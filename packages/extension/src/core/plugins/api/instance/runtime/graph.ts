@@ -1,4 +1,4 @@
-import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/types';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../../shared/graph/types';
 import type { ApiContext } from './context';
 import {
   filterEdgesByKind as facadeFilterEdgesByKind,
@@ -10,7 +10,7 @@ import {
   getNode as facadeGetNode,
   getOutgoingEdges as facadeGetOutgoingEdges,
   getSubgraph as facadeGetSubgraph,
-} from '../../graphQuery/facade';
+} from '../../../graphQuery/facade';
 
 type GraphContext = Pick<ApiContext, 'graphProvider'>;
 

@@ -1,21 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { mergeEdgeTypes, mergeNodeTypes } from '../../../../src/extension/graphView/controls/send/definitions';
-import { normalizeHexColor } from '../../../../src/shared/fileColors';
-import { prettifyIdentifier } from '../../../../src/extension/graphView/controls/send/identifiers';
+import { mergeEdgeTypes, mergeNodeTypes } from '../../../../../src/extension/graphView/controls/send/definitions/merge';
+import { normalizeHexColor } from '../../../../../src/shared/fileColors';
+import { prettifyIdentifier } from '../../../../../src/extension/graphView/controls/send/definitions/identifiers';
 
-vi.mock('../../../../src/shared/fileColors', async () => {
-  const actual = await vi.importActual('../../../../src/shared/fileColors');
+vi.mock('../../../../../src/shared/fileColors', async () => {
+  const actual = await vi.importActual('../../../../../src/shared/fileColors');
   return {
     ...actual,
     normalizeHexColor: vi.fn(),
   };
 });
 
-vi.mock('../../../../src/extension/graphView/controls/send/identifiers', () => ({
+vi.mock('../../../../../src/extension/graphView/controls/send/definitions/identifiers', () => ({
   prettifyIdentifier: vi.fn(),
 }));
 
-describe('extension/graphView/controls/send/definitions', () => {
+describe('extension/graphView/controls/send/definitions/merge', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(normalizeHexColor).mockImplementation((value, fallback) => value || fallback);

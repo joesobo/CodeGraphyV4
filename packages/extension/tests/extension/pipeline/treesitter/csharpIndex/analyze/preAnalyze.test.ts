@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { preAnalyzeCSharpTreeSitterFiles } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/analyze';
+import { preAnalyzeCSharpTreeSitterFiles } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/analyze/preAnalyze';
 import { createTreeSitterRuntime } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages';
 import { indexCSharpTree } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/analyze/tree';
 import {
@@ -22,7 +22,7 @@ vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csh
   setCSharpWorkspaceIndex: vi.fn(),
 }));
 
-describe('pipeline/plugins/treesitter/runtime/csharpIndex/analyze/index', () => {
+describe('pipeline/plugins/treesitter/runtime/csharpIndex/analyze/preAnalyze', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(createEmptyCSharpIndex).mockReturnValue({ typesByQualifiedName: new Map() } as never);

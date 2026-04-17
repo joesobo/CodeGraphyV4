@@ -3,9 +3,9 @@ import {
   resolveEdgeColors,
   resolveNodeColors,
   resolveVisibilityMap,
-} from '../../../../../src/extension/graphView/controls/send/values';
+} from '../../../../../src/extension/graphView/controls/send/definitions/values';
 
-describe('extension/graphView/controls/send/values', () => {
+describe('extension/graphView/controls/send/definitions/values', () => {
   it('prefers configured boolean visibility values and falls back to defaults otherwise', () => {
     expect(
       resolveVisibilityMap(

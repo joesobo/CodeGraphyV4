@@ -1,8 +1,8 @@
 import type {
   IGraphEdgeTypeDefinition,
   IGraphNodeTypeDefinition,
-} from '../../../../shared/graphControls/types';
-import { normalizeHexColor } from '../../../../shared/fileColors';
+} from '../../../../../shared/graphControls/types';
+import { normalizeHexColor } from '../../../../../shared/fileColors';
 
 export function resolveVisibilityMap<TDefinition extends { id: string; defaultVisible: boolean }>(
   definitions: TDefinition[],

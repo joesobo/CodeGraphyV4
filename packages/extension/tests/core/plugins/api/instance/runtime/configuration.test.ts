@@ -5,7 +5,7 @@ import { ViewRegistry } from '@/core/views/registry';
 import {
   hasScopedApiConfiguration,
   IPluginApiConfiguration,
-} from '@/core/plugins/api/instance/configuration';
+} from '@/core/plugins/api/instance/runtime/configuration';
 
 function createCompleteConfiguration(): IPluginApiConfiguration {
   return {
@@ -19,7 +19,7 @@ function createCompleteConfiguration(): IPluginApiConfiguration {
   };
 }
 
-describe('core/plugins/api/instance/configuration', () => {
+describe('core/plugins/api/instance/runtime/configuration', () => {
   it('returns true only when every scoped API dependency is configured', () => {
     expect(hasScopedApiConfiguration(createCompleteConfiguration())).toBe(true);
   });

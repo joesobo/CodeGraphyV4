@@ -1,12 +1,12 @@
-import type { IGraphData } from '../../../../shared/graph/types';
-import type { IGraphControlsSnapshot } from '../../../../shared/graphControls/types';
-import { mergeEdgeTypes, mergeNodeTypes } from './definitions';
+import type { IGraphData } from '../../../../../shared/graph/types';
+import type { IGraphControlsSnapshot } from '../../../../../shared/graphControls/types';
+import { mergeEdgeTypes, mergeNodeTypes } from './merge';
 import { resolveEdgeColors, resolveNodeColors, resolveVisibilityMap } from './values';
 import type {
   GraphControlsConfigurationLike,
   GraphEdgeTypeLike,
   GraphNodeTypeLike,
-} from './types';
+} from './contracts';
 
 export function captureGraphControlsSnapshot(
   config: GraphControlsConfigurationLike,

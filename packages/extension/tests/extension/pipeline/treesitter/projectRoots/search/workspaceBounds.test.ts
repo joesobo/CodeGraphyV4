@@ -3,17 +3,17 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   isWithinRoot,
   shouldStopProjectRootWalk,
-} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/bounds';
+} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/search/workspaceBounds';
 import {
   cleanupProjectRootsWorkspaces,
   createProjectRootsWorkspace,
-} from './workspace';
+} from '../workspace';
 
 afterEach(() => {
   cleanupProjectRootsWorkspaces();
 });
 
-describe('pipeline/plugins/treesitter/runtime/projectRoots/bounds', () => {
+describe('pipeline/plugins/treesitter/runtime/projectRoots/search/workspaceBounds', () => {
   it('detects when a candidate path is inside or outside the workspace root', () => {
     const workspaceRoot = createProjectRootsWorkspace();
 

@@ -14,13 +14,13 @@ vi.mock(
 import {
   createTreeSitterParser,
   createTreeSitterRuntime,
-} from '../../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/runtime';
+} from '../../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/parser';
 
 class MockParser {
   setLanguage = vi.fn();
 }
 
-describe('pipeline/plugins/treesitter/runtime/languages/runtime', () => {
+describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

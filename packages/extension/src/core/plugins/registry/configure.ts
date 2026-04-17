@@ -5,7 +5,7 @@
 
 import type { EventBus } from '../events/bus';
 import type { DecorationManager } from '../decoration/manager';
-import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../api/instance/context';
+import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../api/instance/runtime/context';
 import type { ViewRegistry } from '../../views/registry';
 import type { RegistryV2Config } from './register';
 

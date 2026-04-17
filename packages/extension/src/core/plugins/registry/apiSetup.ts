@@ -5,7 +5,7 @@
 
 import type { IPlugin } from '../types/contracts';
 import { CodeGraphyAPIImpl } from '../api/instance';
-import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../api/instance/context';
+import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../api/instance/runtime/context';
 import type { EventBus } from '../events/bus';
 import type { DecorationManager } from '../decoration/manager';
 import type { ViewRegistry } from '../../views/registry';

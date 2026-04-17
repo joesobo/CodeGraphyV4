@@ -1,5 +1,5 @@
-import type { Disposable } from '../../disposable';
-import type { EdgeDecoration, NodeDecoration } from '../../decoration/manager';
+import type { Disposable } from '../../../disposable';
+import type { EdgeDecoration, NodeDecoration } from '../../../decoration/manager';
 import type { ApiContext } from './context';
 
 type DecorationContext = Pick<ApiContext, 'decorationManager' | 'pluginId'>;

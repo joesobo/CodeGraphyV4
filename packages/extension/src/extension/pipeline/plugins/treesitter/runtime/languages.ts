@@ -8,7 +8,7 @@ import {
   createTreeSitterParser as createParser,
   createTreeSitterRuntime as createRuntime,
   type ITreeSitterRuntime,
-} from './languages/runtime';
+} from './languages/parser';
 
 export type { TreeSitterLanguageKind, ITreeSitterRuntime };
 export const TREE_SITTER_SOURCE_IDS = SOURCE_IDS;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { isGraphNodeTypeLike } from '../../../../src/extension/graphView/controls/send/nodeGuard';
+import { isGraphNodeTypeLike } from '../../../../../src/extension/graphView/controls/send/definitions/nodeGuard';
 
-describe('extension/graphView/controls/send/nodeGuard', () => {
+describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
   it('accepts node definitions with the required string and boolean fields', () => {
     expect(
       isGraphNodeTypeLike({

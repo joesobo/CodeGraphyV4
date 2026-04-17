@@ -9,7 +9,7 @@ import {
 } from './projectRoots/java';
 import { getPythonSearchRoots as readPythonSearchRoots } from './projectRoots/python';
 import { getRustCrateRoot as readRustCrateRoot } from './projectRoots/rust';
-import { dedupePaths as dedupeProjectRootPaths, findNearestProjectRoot as findProjectRoot } from './projectRoots/rootSearch';
+import { dedupePaths as dedupeProjectRootPaths, findNearestProjectRoot as findProjectRoot } from './projectRoots/search/projectRoot';
 
 export const resolveGoPackagePath = resolveGoPath;
 export const readGoModuleName = readModuleName;

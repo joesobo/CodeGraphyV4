@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { shouldStopProjectRootWalk } from './bounds';
+import { shouldStopProjectRootWalk } from './workspaceBounds';
 
 export function findNearestProjectRoot(
   filePath: string,

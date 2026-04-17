@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { resolveGoPackageDirectory } from './module';
-import { findNearestProjectRoot } from '../rootSearch';
+import { findNearestProjectRoot } from '../search/projectRoot';
 
 function resolveGoDirectFilePath(packageDirectoryPath: string): string | null {
   const directFilePath = `${packageDirectoryPath}.go`;

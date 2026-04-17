@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../src/shared/graphControls/defaults/definitions';
-import { captureGraphControlsSnapshot } from '../../../../src/extension/graphView/controls/send';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../../src/shared/graphControls/defaults/definitions';
+import { captureGraphControlsSnapshot } from '../../../../../src/extension/graphView/controls/send';
 
 describe('extension/graphView/controls/snapshot', () => {
   it('merges core and plugin graph control definitions with stored settings overrides', () => {

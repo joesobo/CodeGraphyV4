@@ -8,7 +8,7 @@ import { analyzePythonFile } from './analyze/python/analyze';
 import { analyzeRustFile } from './analyze/rust/analyze';
 import {
   createTreeSitterRuntime,
-} from './languages/runtime';
+} from './languages/parser';
 const JAVASCRIPT_FAMILY_LANGUAGE_KINDS = new Set([
   'javascript',
   'tsx',

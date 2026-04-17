@@ -1,6 +1,6 @@
-import type { Disposable } from '../../disposable';
-import { toDisposable } from '../../disposable';
-import type { ExportRequest } from '../../../../../../plugin-api/src/api';
+import type { Disposable } from '../../../disposable';
+import { toDisposable } from '../../../disposable';
+import type { ExportRequest } from '../../../../../../../plugin-api/src/api';
 import type { ApiContext } from './context';
 
 type WebviewContext = Pick<

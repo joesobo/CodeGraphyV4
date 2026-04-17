@@ -1,5 +1,5 @@
-import type { Disposable } from '../../disposable';
-import type { EventName, EventPayloads } from '../../events/bus';
+import type { Disposable } from '../../../disposable';
+import type { EventName, EventPayloads } from '../../../events/bus';
 import type { ApiContext } from './context';
 
 type EventContext = Pick<ApiContext, 'eventBus' | 'pluginId'>;

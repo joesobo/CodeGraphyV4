@@ -1,5 +1,5 @@
-import type { ICommand, IContextMenuItem } from '../../../../../../plugin-api/src/commands';
-import type { IExporter, IToolbarAction } from '../../../../../../plugin-api/src/api';
+import type { ICommand, IContextMenuItem } from '../../../../../../../plugin-api/src/commands';
+import type { IExporter, IToolbarAction } from '../../../../../../../plugin-api/src/api';
 import type { ApiContext } from './context';
 
 type UtilityContext = Pick<

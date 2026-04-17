@@ -1,18 +1,18 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../../shared/graph/types';
 import type {
   IGraphEdgeTypeDefinition,
   IGraphNodeTypeDefinition,
-} from '../../../../shared/graphControls/types';
+} from '../../../../../shared/graphControls/types';
 import {
   CORE_GRAPH_EDGE_TYPES,
   CORE_GRAPH_NODE_TYPES,
-} from '../../../../shared/graphControls/defaults/definitions';
+} from '../../../../../shared/graphControls/defaults/definitions';
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   normalizeHexColor,
-} from '../../../../shared/fileColors';
+} from '../../../../../shared/fileColors';
 import { prettifyIdentifier } from './identifiers';
-import type { GraphEdgeTypeLike, GraphNodeTypeLike } from './types';
+import type { GraphEdgeTypeLike, GraphNodeTypeLike } from './contracts';
 
 export function mergeNodeTypes(
   graphData: IGraphData,

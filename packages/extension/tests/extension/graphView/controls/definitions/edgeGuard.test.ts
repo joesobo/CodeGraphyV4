@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { isGraphEdgeTypeLike } from '../../../../src/extension/graphView/controls/send/edgeGuard';
+import { isGraphEdgeTypeLike } from '../../../../../src/extension/graphView/controls/send/definitions/edgeGuard';
 
-describe('extension/graphView/controls/send/edgeGuard', () => {
+describe('extension/graphView/controls/send/definitions/edgeGuard', () => {
   it('accepts edge definitions with the required string and boolean fields', () => {
     expect(
       isGraphEdgeTypeLike({

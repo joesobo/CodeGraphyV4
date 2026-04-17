@@ -2,7 +2,7 @@ import type {
   GraphDefinitionReader,
   GraphEdgeTypeLike,
   GraphNodeTypeLike,
-} from './types';
+} from './contracts';
 import { isGraphEdgeTypeLike } from './edgeGuard';
 import { isGraphNodeTypeLike } from './nodeGuard';
 

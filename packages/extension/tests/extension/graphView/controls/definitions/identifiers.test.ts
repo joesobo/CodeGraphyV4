@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { prettifyIdentifier } from '../../../../src/extension/graphView/controls/send/identifiers';
+import { prettifyIdentifier } from '../../../../../src/extension/graphView/controls/send/definitions/identifiers';
 
-describe('extension/graphView/controls/send/identifiers', () => {
+describe('extension/graphView/controls/send/definitions/identifiers', () => {
   it('removes the codegraphy prefix, splits separators, and title-cases each word', () => {
     expect(prettifyIdentifier('codegraphy:custom-edge_type')).toBe('Custom Edge Type');
   });

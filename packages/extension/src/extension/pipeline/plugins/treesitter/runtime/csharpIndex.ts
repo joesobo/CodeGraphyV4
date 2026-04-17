@@ -1,7 +1,7 @@
 import {
   preAnalyzeCSharpTreeSitterFiles as preAnalyzeFiles,
   type PreAnalyzeFileInput,
-} from './csharpIndex/analyze';
+} from './csharpIndex/analyze/preAnalyze';
 import { indexCSharpTree as indexTree } from './csharpIndex/analyze/tree';
 import {
   getCSharpFileScopedNamespaceName as getFileScopedNamespaceName,

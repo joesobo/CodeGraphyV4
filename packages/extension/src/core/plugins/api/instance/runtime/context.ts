@@ -1,10 +1,10 @@
-import type { EventBus } from '../../events/bus';
-import type { DecorationManager } from '../../decoration/manager';
-import type { ViewRegistry } from '../../../views/registry';
-import type { IGraphData } from '../../../../shared/graph/types';
-import type { ExportRequest, IExporter, IToolbarAction } from '../../../../../../plugin-api/src/api';
-import type { ICommand, IContextMenuItem } from '../../../../../../plugin-api/src/commands';
-import type { DisposableStore } from '../../disposable';
+import type { EventBus } from '../../../events/bus';
+import type { DecorationManager } from '../../../decoration/manager';
+import type { ViewRegistry } from '../../../../views/registry';
+import type { IGraphData } from '../../../../../shared/graph/types';
+import type { ExportRequest, IExporter, IToolbarAction } from '../../../../../../../plugin-api/src/api';
+import type { ICommand, IContextMenuItem } from '../../../../../../../plugin-api/src/commands';
+import type { DisposableStore } from '../../../disposable';
 
 export type GraphDataProvider = () => IGraphData;
 export type CommandRegistrar = (id: string, action: () => void | Promise<void>) => { dispose(): void };

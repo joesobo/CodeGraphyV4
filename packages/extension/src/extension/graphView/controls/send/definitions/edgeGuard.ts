@@ -1,6 +1,6 @@
-import type { GraphNodeTypeLike } from './types';
+import type { GraphEdgeTypeLike } from './contracts';
 
-export function isGraphNodeTypeLike(definition: unknown): definition is GraphNodeTypeLike {
+export function isGraphEdgeTypeLike(definition: unknown): definition is GraphEdgeTypeLike {
   if (!definition || typeof definition !== 'object') {
     return false;
   }

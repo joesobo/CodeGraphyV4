@@ -3,7 +3,7 @@ import {
   readEdgeTypes,
   readNodeTypes,
   readRegistryDefinitions,
-} from '../../../../src/extension/graphView/controls/send/registry';
+} from '../../../../../src/extension/graphView/controls/send/definitions/registry';
 
 describe('extension/graphView/controls/registry', () => {
   it('returns an empty list without throwing when the registry is missing or malformed', () => {
