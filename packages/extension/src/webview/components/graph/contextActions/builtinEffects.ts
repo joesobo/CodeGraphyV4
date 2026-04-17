@@ -3,17 +3,19 @@ import type { GraphContextEffect } from './effects';
 import {
   createClipboardEffects,
   createCreateFileEffects,
-  createFitViewEffects,
-  createFocusEffects,
-  createLegendPromptEffects,
-  createOpenFileEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
   createPatternMessageEffects,
-  createPatternPromptEffects,
   createRefreshEffects,
-} from './builders';
+} from './messages';
+import {
+  createFitViewEffects,
+  createFocusEffects,
+  createLegendPromptEffects,
+  createOpenFileEffects,
+  createPatternPromptEffects,
+} from './prompts';
 
 const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   open: (targetPaths: string[]) => createOpenFileEffects(targetPaths),

@@ -5,7 +5,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache';
 
 const sourceExamplesRoot = path.resolve(__dirname, '../../../../../examples');

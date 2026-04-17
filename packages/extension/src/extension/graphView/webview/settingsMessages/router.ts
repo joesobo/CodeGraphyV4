@@ -1,6 +1,6 @@
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import { applySettingsUpdateMessage } from './updates';
+import { applySettingsUpdateMessage } from './updates/apply';
 import { applySettingsDirectionMessage } from './direction';
 import { applySettingsToggleMessage } from './toggle';
 

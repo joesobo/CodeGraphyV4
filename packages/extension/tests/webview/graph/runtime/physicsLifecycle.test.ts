@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   isPhysicsGraphReady,
-  resolvePhysicsInitAction,
   selectActivePhysicsGraph,
-  shouldApplyPhysicsUpdate,
-} from '../../../../src/webview/components/graph/runtime/physicsLifecycle';
+} from '../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness';
+import {
+  resolvePhysicsInitAction,
+} from '../../../../src/webview/components/graph/runtime/physicsLifecycle/init';
+import { shouldApplyPhysicsUpdate } from '../../../../src/webview/components/graph/runtime/physicsLifecycle/updates';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,

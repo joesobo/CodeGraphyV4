@@ -5,7 +5,7 @@ import {
   createDefaultEdgeVisibility,
   createDefaultNodeColors,
   createDefaultNodeVisibility,
-} from '../../../src/shared/graphControls/defaults';
+} from '../../../src/shared/graphControls/defaults/maps';
 import { createDefaultCodeGraphyRepoSettings } from '../../../src/extension/repoSettings/defaults';
 
 describe('extension/repoSettings/defaults', () => {

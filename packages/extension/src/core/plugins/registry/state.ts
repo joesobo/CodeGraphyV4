@@ -9,7 +9,7 @@ import {
 } from '../lifecycle/replay';
 import type {
   CoreFileAnalysisResultProvider,
-} from '../routing/router';
+} from '../routing/router/analyze';
 
 export interface IPluginInfoV2 extends IPluginInfo {
   api?: CodeGraphyAPIImpl;

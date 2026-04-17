@@ -1,5 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
-import type { GraphViewCommandHandlers } from '../commands';
+import type { GraphViewCommandHandlers } from './dispatch';
 
 export async function applyHistoryCommand(
   message: WebviewToExtensionMessage,

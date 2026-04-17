@@ -6,7 +6,9 @@
 
 import { useMemo } from 'react';
 import type { SearchOptions } from '../components/searchBar/field/model';
-import { filterGraphData, applyFilterPatterns, applyLegendRules } from './filtering';
+import { applyFilterPatterns } from './filtering/patterns';
+import { applyLegendRules } from './filtering/rules';
+import { filterGraphData } from './filtering/search';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IGroup } from '../../shared/settings/groups';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';

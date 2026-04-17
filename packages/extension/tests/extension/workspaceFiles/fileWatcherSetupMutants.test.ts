@@ -25,9 +25,11 @@ vi.mock('path', async () => {
 import * as path from 'path';
 import {
   registerEditorChangeHandler,
-  registerSaveHandler,
+} from '../../../src/extension/workspaceFiles/editorSync';
+import {
   registerFileWatcher,
-} from '../../../src/extension/workspaceFiles/register';
+  registerSaveHandler,
+} from '../../../src/extension/workspaceFiles/refresh/watchers';
 
 function captureEditorChangeListener(): (editor: unknown) => Promise<void> {
   let listener: ((editor: unknown) => Promise<void>) | undefined;

@@ -1,7 +1,7 @@
-import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
-import { applyHistoryCommand } from './commands/history';
-import { applyGraphModeCommand } from './commands/modes';
+import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
+import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
+import { applyHistoryCommand } from './history';
+import { applyGraphModeCommand } from './modes';
 
 export interface GraphViewCommandHandlers {
   undo(): Promise<string | undefined>;

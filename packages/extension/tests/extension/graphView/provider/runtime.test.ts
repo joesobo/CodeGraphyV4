@@ -56,7 +56,7 @@ async function loadSubject(
     },
   };
 
-  vi.doMock('../../../../src/extension/pipeline/service', () => ({
+  vi.doMock('../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
     WorkspacePipeline: class WorkspacePipeline {},
   }));
   vi.doMock('../../../../src/core/views', () => ({
@@ -103,7 +103,7 @@ describe('graphView/provider/runtime', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.doUnmock('vscode');
-    vi.doUnmock('../../../../src/extension/pipeline/service');
+    vi.doUnmock('../../../../src/extension/pipeline/service/lifecycleFacade');
     vi.doUnmock('../../../../src/extension/repoSettings/meta');
     vi.doUnmock('../../../../src/core/views');
     vi.doUnmock('../../../../src/core/plugins/events/bus');

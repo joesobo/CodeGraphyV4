@@ -11,7 +11,7 @@ import type { IGraphData } from '../../../../shared/graph/types';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
-import { WorkspacePipeline } from '../../../pipeline/service';
+import { WorkspacePipeline } from '../../../pipeline/service/lifecycleFacade';
 import {
   createGraphViewProviderMethodContainers,
   type GraphViewProviderMethodContainers,

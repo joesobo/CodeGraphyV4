@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildContainmentEdges,
   collectFolderPaths,
   createFolderNodes,
-} from '../../../src/shared/graphControls/nests';
+} from '../../../src/shared/graphControls/nests/folders';
+import { buildContainmentEdges } from '../../../src/shared/graphControls/nests/edges';
 
 describe('shared/graphControls/nests', () => {
   it('collects nested folders and the synthetic root when needed', () => {

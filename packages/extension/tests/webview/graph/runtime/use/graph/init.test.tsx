@@ -13,7 +13,7 @@ vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => 
   syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
   resolvePhysicsInitAction: physicsHarness.resolvePhysicsInitAction,
 }));
 

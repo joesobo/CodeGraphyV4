@@ -1,5 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import { applyCommandMessage } from '../messages/commands';
+import { applyCommandMessage } from '../messages/commands/dispatch';
 import { applyExportMessage } from '../messages/exports';
 import { applyNodeFileMessage } from '../nodeFile/router';
 import { applyPhysicsMessage } from '../messages/physics';

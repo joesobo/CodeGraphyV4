@@ -1,7 +1,7 @@
 import { useEffect, type MutableRefObject } from 'react';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import { initPhysics, syncPhysicsAnimation } from '../../physics';
-import { resolvePhysicsInitAction } from '../../physicsLifecycle';
+import { resolvePhysicsInitAction } from '../../physicsLifecycle/init';
 import type { PhysicsRuntimeRefs } from './types';
 
 interface UsePhysicsRuntimeInitOptions extends PhysicsRuntimeRefs {

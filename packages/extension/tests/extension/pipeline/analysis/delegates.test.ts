@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
 import type { IGraphData } from '../../../../src/shared/graph/types';
-import { WorkspacePipeline } from '../../../../src/extension/pipeline/service';
+import { WorkspacePipeline } from '../../../../src/extension/pipeline/service/lifecycleFacade';
 import * as pluginModule from '../../../../src/extension/pipeline/plugins/queries';
 import * as runModule from '../../../../src/extension/pipeline/analysis/run';
 import * as stateModule from '../../../../src/extension/pipeline/analysis/state';

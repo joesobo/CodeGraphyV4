@@ -10,11 +10,13 @@ import { rebuildPluginExtensionMap } from './extensionMap';
 import {
   analyzeFile,
   analyzeFileResult,
+} from '../routing/router/analyze';
+import {
   getPluginForFile,
   getPluginsForExtension,
   getSupportedExtensions,
   supportsFile,
-} from '../routing/router';
+} from '../routing/router/lookups';
 import { listPluginContributions } from './contributions';
 import { buildReorderedPluginMap, replacePluginMap } from './order';
 import { PluginRegistryState } from './state';

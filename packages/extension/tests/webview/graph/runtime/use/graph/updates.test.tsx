@@ -12,9 +12,12 @@ vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => 
   applyPhysicsSettings: physicsHarness.applyPhysicsSettings,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle', () => ({
-  selectActivePhysicsGraph: physicsHarness.selectActivePhysicsGraph,
+vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
   shouldApplyPhysicsUpdate: physicsHarness.shouldApplyPhysicsUpdate,
+}));
+
+vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
+  selectActivePhysicsGraph: physicsHarness.selectActivePhysicsGraph,
 }));
 
 import { usePhysicsRuntimeUpdates } from '../../../../../../src/webview/components/graph/runtime/use/graph/updates';

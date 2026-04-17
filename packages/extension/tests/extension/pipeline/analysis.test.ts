@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
 const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
 const tempWorkspaceRoots: string[] = [];

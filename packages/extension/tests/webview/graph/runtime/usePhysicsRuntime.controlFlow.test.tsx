@@ -17,10 +17,13 @@ vi.mock('../../../../src/webview/components/graph/runtime/physics', () => ({
   syncPhysicsAnimation: runtimeHarness.syncPhysicsAnimation,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle', () => ({
+vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
   resolvePhysicsInitAction: runtimeHarness.resolvePhysicsInitAction,
-  selectActivePhysicsGraph: runtimeHarness.selectActivePhysicsGraph,
   shouldApplyPhysicsUpdate: runtimeHarness.shouldApplyPhysicsUpdate,
+}));
+
+vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
+  selectActivePhysicsGraph: runtimeHarness.selectActivePhysicsGraph,
 }));
 
 import { usePhysicsRuntime } from '../../../../src/webview/components/graph/runtime/use/graph/physics';

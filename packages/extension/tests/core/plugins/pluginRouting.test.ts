@@ -4,9 +4,11 @@ import {
   getPluginsForExtension,
   supportsFile,
   getSupportedExtensions,
+} from '../../../src/core/plugins/routing/router/lookups';
+import {
   analyzeFile,
   analyzeFileResult,
-} from '../../../src/core/plugins/routing/router';
+} from '../../../src/core/plugins/routing/router/analyze';
 import type { IPlugin } from '../../../src/core/plugins/types/contracts';
 
 function makePlugin(id: string, extensions: string[]): IPlugin {

@@ -10,7 +10,7 @@ const harness = vi.hoisted(() => ({
   setupMessageListener: vi.fn(() => vi.fn()),
 }));
 
-vi.mock('../../../src/webview/components/Timeline', () => ({
+vi.mock('../../../src/webview/components/timeline/panel', () => ({
   default: () => <div data-testid="timeline-content" />,
 }));
 

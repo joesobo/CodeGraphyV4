@@ -109,7 +109,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-vi.mock('../../../../../src/extension/pipeline/service', () => ({
+vi.mock('../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
   WorkspacePipeline: class WorkspacePipeline {
     invalidateWorkspaceFiles = vi.fn((filePaths: readonly string[]) => [...filePaths]);
 

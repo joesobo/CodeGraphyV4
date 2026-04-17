@@ -11,7 +11,7 @@ const harness = vi.hoisted(() => ({
   throwSurface3d: false,
 }));
 
-vi.mock('../../../src/webview/components/NodeTooltip', () => ({
+vi.mock('../../../src/webview/components/nodeTooltip/view', () => ({
   NodeTooltip: (props: Record<string, unknown>) => {
     harness.nodeTooltip(props);
     return <div data-testid="node-tooltip">{String(props.path)}</div>;

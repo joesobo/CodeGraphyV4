@@ -4,7 +4,7 @@ import type { ViewRegistry } from '../../../../core/views/registry';
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
-import { applyGraphViewTransform } from '../../presentation';
+import { applyGraphViewTransform } from '../../presentation/transform';
 import { sendGraphViewDepthState } from '../../view/broadcast';
 import { buildGraphViewContext } from '../../view/context';
 import { filterDepthGraph } from '../../../../core/views/depth/transform';

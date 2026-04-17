@@ -12,7 +12,7 @@ const routingMocks = vi.hoisted(() => ({
   createGraphViewPrimaryNodeFileHandlers: vi.fn(),
 }));
 
-vi.mock('../../../../../src/extension/graphView/webview/messages/commands', () => ({
+vi.mock('../../../../../src/extension/graphView/webview/messages/commands/dispatch', () => ({
   applyCommandMessage: routingMocks.applyCommandMessage,
 }));
 

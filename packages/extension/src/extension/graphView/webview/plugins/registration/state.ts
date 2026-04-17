@@ -3,7 +3,7 @@ import type {
   GraphViewExternalPluginRegistrationHandlers,
   GraphViewExternalPluginRegistrationOptions,
   GraphViewExternalPluginRegistrationState,
-} from '../registration';
+} from './register';
 
 export function getExternalPluginId(plugin: unknown): string | undefined {
   if (typeof plugin !== 'object' || plugin === null || !('id' in plugin)) {

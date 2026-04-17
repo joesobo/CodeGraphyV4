@@ -3,9 +3,11 @@ import { getPluginsForFile, type IRoutablePluginInfo } from './lookups';
 import {
   createEmptyFileAnalysisResult,
   mergeFileAnalysisResults,
+} from './results/merge';
+import {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
-} from './results';
+} from './results/project';
 
 export type CoreFileAnalysisResultProvider = (
   filePath: string,

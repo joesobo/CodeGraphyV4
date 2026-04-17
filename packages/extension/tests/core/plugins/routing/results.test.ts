@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { IPlugin } from '../../../../src/core/plugins/types/contracts';
+import { getRelationKey } from '../../../../src/core/plugins/routing/router/results/keys';
 import {
   createEmptyFileAnalysisResult,
-  getRelationKey,
   mergeFileAnalysisResults,
+} from '../../../../src/core/plugins/routing/router/results/merge';
+import {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
-} from '../../../../src/core/plugins/routing/router/results';
+} from '../../../../src/core/plugins/routing/router/results/project';
 
 describe('routing/results', () => {
   it('builds distinct relation keys for resolved call targets', () => {

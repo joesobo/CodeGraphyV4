@@ -2,7 +2,7 @@ import { useEffect, type MutableRefObject } from 'react';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { PhysicsRuntimeRefs } from './types';
 import { applyPhysicsSettings, syncPhysicsAnimation } from '../../physics';
-import { selectActivePhysicsGraph } from '../../physicsLifecycle';
+import { selectActivePhysicsGraph } from '../../physicsLifecycle/readiness';
 
 interface UsePhysicsRuntimeLayoutResetOptions {
   graphMode: '2d' | '3d';

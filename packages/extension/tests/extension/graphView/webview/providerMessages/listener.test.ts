@@ -472,7 +472,7 @@ describe('graph view provider listener bridge', () => {
       }),
     );
     vi.doMock(
-      '../../../../../src/extension/graphView/webview/providerMessages/settingsContext',
+      '../../../../../src/extension/graphView/webview/providerMessages/settingsContext/context',
       () => ({
         createGraphViewProviderMessageSettingsContext: vi.fn((_source, dependencies) => {
           executeUndoActionPromise = dependencies.executeUndoAction(

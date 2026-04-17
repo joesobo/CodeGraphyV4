@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import {
   registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationState,
-} from '../../../../../src/extension/graphView/webview/plugins/registration';
+} from '../../../../../src/extension/graphView/webview/plugins/registration/register';
 
 function createState(
   overrides: Partial<GraphViewExternalPluginRegistrationState> = {},

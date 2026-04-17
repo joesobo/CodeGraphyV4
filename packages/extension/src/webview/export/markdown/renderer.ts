@@ -1,11 +1,10 @@
 import type { ExportData } from '../shared/contracts';
 import {
   appendEdgeSourceLines,
-  appendLegendLines,
-  appendNodeLines,
-  appendSection,
-  appendTimelineSummary,
-} from './sections';
+} from './edgeEntries';
+import { appendLegendLines } from './legendEntries';
+import { appendNodeLines } from './nodeEntries';
+import { appendSection, appendTimelineSummary } from './summary';
 
 export function renderMarkdownExport(data: ExportData): string {
   const lines: string[] = [

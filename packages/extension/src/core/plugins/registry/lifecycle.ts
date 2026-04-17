@@ -4,13 +4,15 @@ import {
   initializePlugin as lifecycleInitializePlugin,
 } from '../lifecycle/initialize';
 import {
-  notifyFilesChanged as lifecycleNotifyFilesChanged,
   notifyGraphRebuild as lifecycleNotifyGraphRebuild,
   notifyPostAnalyze as lifecycleNotifyPostAnalyze,
   notifyPreAnalyze as lifecycleNotifyPreAnalyze,
+} from '../lifecycle/notify/analysis';
+import {
   notifyWebviewReady as lifecycleNotifyWebviewReady,
   notifyWorkspaceReady as lifecycleNotifyWorkspaceReady,
-} from '../lifecycle/notify';
+} from '../lifecycle/notify/readiness';
+import { notifyFilesChanged as lifecycleNotifyFilesChanged } from '../lifecycle/notify/filesChanged';
 import { PluginRegistryCollection } from './collection';
 
 export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {

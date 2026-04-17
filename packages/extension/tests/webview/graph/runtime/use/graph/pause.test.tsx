@@ -7,7 +7,7 @@ const physicsHarness = vi.hoisted(() => ({
   syncPhysicsAnimation: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
   selectActivePhysicsGraph: physicsHarness.selectActivePhysicsGraph,
 }));
 

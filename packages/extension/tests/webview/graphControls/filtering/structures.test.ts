@@ -3,7 +3,7 @@ import {
   buildStructuralEdges,
   buildStructuralGraphNodes,
 } from '../../../../src/webview/graphControls/filtering/structures';
-import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../src/shared/graphControls/defaults';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../src/shared/graphControls/defaults/definitions';
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_PACKAGE_NODE_COLOR,

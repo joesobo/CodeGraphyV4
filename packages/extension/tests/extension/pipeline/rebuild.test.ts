@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => [{ uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 }],

@@ -1,10 +1,10 @@
-import type { GraphViewMessageListenerContext } from '../messages/listener';
+import type { GraphViewMessageListenerContext } from '../../messages/listener';
 import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
-} from './listener';
-import { createSettingsConfigPersistence } from './settingsContext/config';
-import { reprocessPluginFiles } from './settingsContext/pluginFiles';
+} from '../listener';
+import { createSettingsConfigPersistence } from './config';
+import { reprocessPluginFiles } from './pluginFiles';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,

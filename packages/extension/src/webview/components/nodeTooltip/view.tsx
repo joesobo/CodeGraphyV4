@@ -12,12 +12,12 @@ import {
   shift,
   autoUpdate,
 } from '@floating-ui/react';
-import { cn } from './ui/cn';
-import { Separator } from './ui/separator';
-import { TooltipHeader, TooltipStats, TooltipExtraSections } from './nodeTooltipContent';
-import type { TooltipAction } from '../pluginHost/api/contracts';
-import type { WebviewPluginHost } from '../pluginHost/manager';
-import { SlotHost } from '../pluginHost/slotHost/view';
+import { cn } from '../ui/cn';
+import { Separator } from '../ui/separator';
+import { TooltipHeader, TooltipStats, TooltipExtraSections } from './content';
+import type { TooltipAction } from '../../pluginHost/api/contracts';
+import type { WebviewPluginHost } from '../../pluginHost/manager';
+import { SlotHost } from '../../pluginHost/slotHost/view';
 
 interface NodeTooltipProps {
   /** File path relative to workspace */

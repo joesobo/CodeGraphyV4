@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import {
   registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationOptions,
-} from '../webview/plugins/registration';
+} from '../webview/plugins/registration/register';
 import type { GraphViewProviderPluginBroadcastMethods } from './pluginBroadcasts';
 import type { GraphViewProviderPluginMethodsSource } from './plugins';
 

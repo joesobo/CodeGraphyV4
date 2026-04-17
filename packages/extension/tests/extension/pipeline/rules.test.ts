@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
 import type { IProjectedConnection } from '../../../src/core/plugins/types/contracts';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
 

@@ -6,7 +6,7 @@ import {
   createDefaultEdgeVisibility,
   createDefaultNodeColors,
   createDefaultNodeVisibility,
-} from '../../shared/graphControls/defaults';
+} from '../../shared/graphControls/defaults/maps';
 
 export interface ICodeGraphyRepoSettings {
   version: 1;

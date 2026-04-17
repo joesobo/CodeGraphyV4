@@ -7,7 +7,7 @@ describe('graphView/provider/view/context defaults', () => {
     vi.restoreAllMocks();
     vi.doUnmock('../../../../../src/extension/graphView/view/context');
     vi.doUnmock('../../../../../src/extension/graphView/view/broadcast');
-    vi.doUnmock('../../../../../src/extension/graphView/presentation');
+    vi.doUnmock('../../../../../src/extension/graphView/presentation/transform');
     vi.doUnmock('../../../../../src/extension/graphView/provider/view/context');
     vi.doUnmock('../../../../../src/extension/graphView/settings/reader');
     vi.doUnmock('../../../../../src/extension/repoSettings/current');
@@ -37,7 +37,7 @@ describe('graphView/provider/view/context defaults', () => {
     vi.doMock('../../../../../src/extension/graphView/view/context', () => ({
       buildGraphViewContext: buildViewContext,
     }));
-    vi.doMock('../../../../../src/extension/graphView/presentation', () => ({
+    vi.doMock('../../../../../src/extension/graphView/presentation/transform', () => ({
       applyGraphViewTransform: vi.fn((_, __, rawGraphData) => ({ graphData: rawGraphData })),
     }));
     vi.doMock('../../../../../src/extension/graphView/view/broadcast', () => ({

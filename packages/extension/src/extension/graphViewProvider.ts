@@ -3,7 +3,7 @@
  */
 
 import * as vscode from 'vscode';
-import { GraphViewProviderRuntime } from './graphView/provider/runtime';
+import { GraphViewProviderRuntime } from './graphView/provider/runtime/provider';
 import type { GraphViewProviderPublicMethods } from './graphView/provider/wiring/publicApi';
 
 /**
