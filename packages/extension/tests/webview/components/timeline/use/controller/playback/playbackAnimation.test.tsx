@@ -1,18 +1,18 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ICommitInfo } from '@/shared/timeline/contracts';
-import { useTimelinePlaybackAnimation } from '../../../../../../src/webview/components/timeline/use/controller/playbackAnimation';
+import { useTimelinePlaybackAnimation } from '../../../../../../../src/webview/components/timeline/use/controller/playback/playbackAnimation';
 
 const { createTimelinePlaybackTick, stopTimelinePlayback } = vi.hoisted(() => ({
   createTimelinePlaybackTick: vi.fn(() => vi.fn()),
   stopTimelinePlayback: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/webview/components/timeline/playbackTick', () => ({
+vi.mock('../../../../../../../src/webview/components/timeline/playbackTick', () => ({
   createTimelinePlaybackTick,
 }));
 
-vi.mock('../../../../../../src/webview/components/timeline/cleanup', () => ({
+vi.mock('../../../../../../../src/webview/components/timeline/cleanup', () => ({
   stopTimelinePlayback,
 }));
 

@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { resetTimelinePlaybackToStart } from '../../../../../../src/webview/components/timeline/use/controller/jumpToStart';
+import { resetTimelinePlaybackToStart } from '../../../../../../../src/webview/components/timeline/use/controller/playback/jumpToStart';
 
 const { postMessage } = vi.hoisted(() => ({
   postMessage: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../../../../../src/webview/vscodeApi', () => ({
   postMessage,
 }));
 
