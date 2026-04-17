@@ -5,7 +5,7 @@ import {
   getCSharpNamespaceName,
   isCSharpTypeDeclarationNode,
 } from './nodes';
-import type { CSharpIndexedType, CSharpWorkspaceIndex } from './store';
+import type { CSharpIndexedType, CSharpWorkspaceIndex } from '../store';
 
 function getCSharpIndexNamespace(
   node: Parser.SyntaxNode,

@@ -1,10 +1,10 @@
-import { createTreeSitterRuntime } from '../languages';
-import { indexCSharpTree } from './indexTree';
+import { createTreeSitterRuntime } from '../../languages';
+import { indexCSharpTree } from './tree';
 import {
   clearCSharpWorkspaceIndex,
   createEmptyCSharpIndex,
   setCSharpWorkspaceIndex,
-} from './store';
+} from '../store';
 
 export interface PreAnalyzeFileInput {
   absolutePath: string;

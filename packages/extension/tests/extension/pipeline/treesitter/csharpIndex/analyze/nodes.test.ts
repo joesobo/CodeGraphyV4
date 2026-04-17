@@ -5,10 +5,10 @@ import {
   getCSharpNamespaceName,
   getCSharpNodeText,
   isCSharpTypeDeclarationNode,
-} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
-import { createCSharpNode } from './fixtures';
+} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
+import { createCSharpNode } from '../fixtures';
 
-describe('pipeline/plugins/treesitter/runtime/csharpIndex/nodes', () => {
+describe('pipeline/plugins/treesitter/runtime/csharpIndex/analyze/nodes', () => {
   it('reads identifier text from identifier and type_identifier nodes', () => {
     expect(getCSharpIdentifierText(createCSharpNode({ type: 'identifier', text: 'ApiService' })))
       .toBe('ApiService');

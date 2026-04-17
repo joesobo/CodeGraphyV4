@@ -1,28 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { preAnalyzeCSharpTreeSitterFiles } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/analyze';
-import { createTreeSitterRuntime } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages';
-import { indexCSharpTree } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/indexTree';
+import { preAnalyzeCSharpTreeSitterFiles } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/analyze';
+import { createTreeSitterRuntime } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages';
+import { indexCSharpTree } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/analyze/tree';
 import {
   clearCSharpWorkspaceIndex,
   createEmptyCSharpIndex,
   setCSharpWorkspaceIndex,
-} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/store';
+} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/store';
 
-vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages', () => ({
+vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages', () => ({
   createTreeSitterRuntime: vi.fn(),
 }));
 
-vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/indexTree', () => ({
+vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/analyze/tree', () => ({
   indexCSharpTree: vi.fn(),
 }));
 
-vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/store', () => ({
+vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/store', () => ({
   clearCSharpWorkspaceIndex: vi.fn(),
   createEmptyCSharpIndex: vi.fn(),
   setCSharpWorkspaceIndex: vi.fn(),
 }));
 
-describe('pipeline/plugins/treesitter/runtime/csharpIndex/analyze', () => {
+describe('pipeline/plugins/treesitter/runtime/csharpIndex/analyze/index', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(createEmptyCSharpIndex).mockReturnValue({ typesByQualifiedName: new Map() } as never);
