@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleCSharpNamespaceNode,
   handleCSharpUsingDirective,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/namespace';
-import { getResolvedNamespaceName } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/namespaceNames';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespace';
+import { getResolvedNamespaceName } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames';
 import { getNodeText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/namespaceNames', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames', () => ({
   getResolvedNamespaceName: vi.fn(),
 }));
 
@@ -25,7 +25,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/csharp/namespace', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/namespace', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

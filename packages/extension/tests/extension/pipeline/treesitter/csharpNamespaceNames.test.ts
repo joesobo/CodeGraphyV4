@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getCSharpFileScopedNamespaceName,
   getResolvedNamespaceName,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/namespaceNames';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames';
 import { getNodeText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
@@ -27,7 +27,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/csharp/namespaceNames', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

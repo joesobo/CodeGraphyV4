@@ -22,7 +22,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/r
   addImportRelation: javaImportsHarness.addImportRelation,
 }));
 
-import { handleJavaImportDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/java/imports';
+import { handleJavaImportDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/imports';
 
 describe('pipeline/treesitter/javaImports', () => {
   beforeEach(() => {

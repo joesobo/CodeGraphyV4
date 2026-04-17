@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { handlePythonImportStatement } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/import/imports';
+import { handlePythonImportStatement } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzePython/imports';
 import {
   getIdentifierText,
   getLastPathSegment,
   getNodeText,
 } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
-import { resolvePythonModulePath } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/paths';
+import { resolvePythonModulePath } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzePython/paths';
 import { addImportRelation } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
 vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
@@ -14,7 +14,7 @@ vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyz
   getNodeText: vi.fn((node?: { text?: string } | null) => node?.text ?? null),
 }));
 
-vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/paths', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzePython/paths', () => ({
   resolvePythonModulePath: vi.fn(),
 }));
 
@@ -37,7 +37,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/python/import/imports', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzePython/imports', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

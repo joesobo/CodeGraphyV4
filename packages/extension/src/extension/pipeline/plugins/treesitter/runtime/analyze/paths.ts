@@ -1,6 +1,6 @@
-import { resolvePythonModulePath as readPythonModulePath } from './python/paths';
-import { resolveRustModuleDeclarationPath as readRustModuleDeclarationPath } from './rust/analysis/moduleDeclarationPath';
-import { resolveRustUsePath as readRustUsePath } from './rust/analysis/usePath';
+import { resolvePythonModulePath as readPythonModulePath } from '../analyzePython/paths';
+import { resolveRustModuleDeclarationPath as readRustModuleDeclarationPath } from '../analyzeRust/moduleDeclarationPath';
+import { resolveRustUsePath as readRustUsePath } from '../analyzeRust/usePath';
 
 export const resolvePythonModulePath = readPythonModulePath;
 export const resolveRustModuleDeclarationPath = readRustModuleDeclarationPath;

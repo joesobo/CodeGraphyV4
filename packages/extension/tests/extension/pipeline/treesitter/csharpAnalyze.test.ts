@@ -12,13 +12,13 @@ const csharpHarness = vi.hoisted(() => ({
   walkTree: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/namespace', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespace', () => ({
   handleCSharpNamespaceNode: csharpHarness.handleCSharpNamespaceNode,
   handleCSharpUsingDirective: csharpHarness.handleCSharpUsingDirective,
 }));
 
 vi.mock(
-  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/declarations',
+  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations',
   () => ({
     handleCSharpMethodDeclaration: csharpHarness.handleCSharpMethodDeclaration,
     handleCSharpTypeDeclaration: csharpHarness.handleCSharpTypeDeclaration,
@@ -26,7 +26,7 @@ vi.mock(
 );
 
 vi.mock(
-  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/references',
+  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/references',
   () => ({
     appendCSharpUsingImportRelations: csharpHarness.appendCSharpUsingImportRelations,
     handleCSharpReferenceNode: csharpHarness.handleCSharpReferenceNode,
@@ -34,7 +34,7 @@ vi.mock(
 );
 
 vi.mock(
-  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/namespaceNames',
+  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames',
   () => ({
     getCSharpFileScopedNamespaceName: csharpHarness.getCSharpFileScopedNamespaceName,
   }),
@@ -48,9 +48,9 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/w
   walkTree: csharpHarness.walkTree,
 }));
 
-import { analyzeCSharpFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/analyze';
+import { analyzeCSharpFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/analyze';
 
-describe('pipeline/plugins/treesitter/runtime/analyze/csharp/analyze', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/analyze', () => {
   beforeEach(() => {
     csharpHarness.appendCSharpUsingImportRelations.mockReset();
     csharpHarness.getCSharpFileScopedNamespaceName.mockReset();

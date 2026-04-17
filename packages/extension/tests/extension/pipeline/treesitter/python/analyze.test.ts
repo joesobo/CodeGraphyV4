@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyzePythonFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/analyze';
+import { analyzePythonFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzePython/analyze';
 
 const {
   handlePythonImportStatement,
@@ -19,12 +19,12 @@ const {
   walkTree: vi.fn(),
 }));
 
-vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/import/imports', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzePython/imports', () => ({
   handlePythonImportStatement,
   handlePythonImportFromStatement,
 }));
 
-vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/symbols', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => ({
   handlePythonCall,
   handlePythonClassDefinition,
   handlePythonFunctionDefinition,

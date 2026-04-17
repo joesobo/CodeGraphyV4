@@ -3,7 +3,7 @@ import type Parser from 'tree-sitter';
 import {
   handleJavaMethodDeclaration,
   handleJavaMethodInvocation,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/java/methods';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/methods';
 import type { ImportedBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/model';
 import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 import { addCallRelation, createSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
@@ -37,7 +37,7 @@ function createNode({
   } as unknown as Parser.SyntaxNode;
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/java/methods', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzeJava/methods', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
