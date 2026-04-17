@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateNodeSizes } from '../../../../src/webview/components/graph/model/node/sizing';
+import { calculateNodeSizes } from '../../../../../src/webview/components/graph/model/node/sizing';
 
 describe('calculateNodeSizes (mutation kill tests)', () => {
   /**

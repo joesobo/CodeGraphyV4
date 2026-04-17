@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateNodeSizes, toD3Repel } from '../../../../src/webview/components/graph/model/node/sizing';
+import { calculateNodeSizes, toD3Repel } from '../../../../../src/webview/components/graph/model/node/sizing';
 
 describe('nodeSizing (mutation targets)', () => {
   describe('toD3Repel', () => {
