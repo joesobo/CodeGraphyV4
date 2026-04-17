@@ -2,14 +2,14 @@ import type { IGraphData } from '../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGraphControlsSnapshot } from '../../../shared/graphControls/types';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
-import { readEdgeTypes, readNodeTypes } from './send/registry';
-import { captureGraphControlsSnapshot } from './send/snapshot';
+import { readEdgeTypes, readNodeTypes } from './send/definitions/registry';
+import { captureGraphControlsSnapshot } from './send/definitions/snapshot';
 import type {
   GraphControlsAnalyzerLike,
   GraphControlsConfigurationLike,
-} from './send/types';
+} from './send/definitions/contracts';
 
-export { captureGraphControlsSnapshot } from './send/snapshot';
+export { captureGraphControlsSnapshot } from './send/definitions/snapshot';
 
 export function buildGraphControlsUpdatedMessage(
   snapshot: IGraphControlsSnapshot,
