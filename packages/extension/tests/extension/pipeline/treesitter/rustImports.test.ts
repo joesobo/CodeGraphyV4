@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { handleRustUseDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/imports';
-import { resolveRustUsePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths';
+import { resolveRustUsePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustPaths';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustPaths', () => ({
   resolveRustUsePath: vi.fn(),
 }));
 

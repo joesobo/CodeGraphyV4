@@ -4,15 +4,17 @@ import type { IPhysicsSettings } from '../../../../../../src/shared/settings/phy
 
 const physicsHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),
+  havePhysicsSettingsChanged: vi.fn(),
   selectActivePhysicsGraph: vi.fn(),
   shouldApplyPhysicsUpdate: vi.fn(),
 }));
 
 vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => ({
   applyPhysicsSettings: physicsHarness.applyPhysicsSettings,
+  havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/updates', () => ({
   shouldApplyPhysicsUpdate: physicsHarness.shouldApplyPhysicsUpdate,
 }));
 
@@ -33,6 +35,7 @@ const SETTINGS: IPhysicsSettings = {
 describe('webview/graph/runtime/use/graph/updates', () => {
   beforeEach(() => {
     physicsHarness.applyPhysicsSettings.mockReset();
+    physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.selectActivePhysicsGraph.mockReset();
     physicsHarness.shouldApplyPhysicsUpdate.mockReset();
   });

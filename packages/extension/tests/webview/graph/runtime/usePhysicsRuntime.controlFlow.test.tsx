@@ -4,6 +4,7 @@ import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 
 const runtimeHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),
+  havePhysicsSettingsChanged: vi.fn(),
   initPhysics: vi.fn(),
   resolvePhysicsInitAction: vi.fn(),
   selectActivePhysicsGraph: vi.fn(),
@@ -13,12 +14,16 @@ const runtimeHarness = vi.hoisted(() => ({
 
 vi.mock('../../../../src/webview/components/graph/runtime/physics', () => ({
   applyPhysicsSettings: runtimeHarness.applyPhysicsSettings,
+  havePhysicsSettingsChanged: runtimeHarness.havePhysicsSettingsChanged,
   initPhysics: runtimeHarness.initPhysics,
   syncPhysicsAnimation: runtimeHarness.syncPhysicsAnimation,
 }));
 
 vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
   resolvePhysicsInitAction: runtimeHarness.resolvePhysicsInitAction,
+}));
+
+vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle/updates', () => ({
   shouldApplyPhysicsUpdate: runtimeHarness.shouldApplyPhysicsUpdate,
 }));
 
@@ -46,6 +51,7 @@ function create2DGraph(): Graph2DCurrent {
 describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
   beforeEach(() => {
     runtimeHarness.applyPhysicsSettings.mockReset();
+    runtimeHarness.havePhysicsSettingsChanged.mockReset();
     runtimeHarness.initPhysics.mockReset();
     runtimeHarness.resolvePhysicsInitAction.mockReset();
     runtimeHarness.selectActivePhysicsGraph.mockReset();

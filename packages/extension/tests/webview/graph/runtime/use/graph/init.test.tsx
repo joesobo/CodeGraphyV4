@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../../../src/shared/settings/physics';
 
 const physicsHarness = vi.hoisted(() => ({
+  havePhysicsSettingsChanged: vi.fn(),
   initPhysics: vi.fn(),
   resolvePhysicsInitAction: vi.fn(),
   syncPhysicsAnimation: vi.fn(),
 }));
 
 vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => ({
+  havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
   initPhysics: physicsHarness.initPhysics,
   syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
 }));
@@ -33,6 +35,7 @@ function createGraph() {
 
 describe('webview/graph/runtime/use/graph/init', () => {
   beforeEach(() => {
+    physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.initPhysics.mockReset();
     physicsHarness.resolvePhysicsInitAction.mockReset();
     physicsHarness.syncPhysicsAnimation.mockReset();

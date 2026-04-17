@@ -8,12 +8,14 @@ import {
 
 const physicsHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),
+  havePhysicsSettingsChanged: vi.fn(),
   selectActivePhysicsGraph: vi.fn(),
   syncPhysicsAnimation: vi.fn(),
 }));
 
 vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => ({
   applyPhysicsSettings: physicsHarness.applyPhysicsSettings,
+  havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
   syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
 }));
 
@@ -32,6 +34,7 @@ const SETTINGS: IPhysicsSettings = {
 describe('webview/graph/runtime/use/graph/layout', () => {
   beforeEach(() => {
     physicsHarness.applyPhysicsSettings.mockReset();
+    physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.selectActivePhysicsGraph.mockReset();
     physicsHarness.syncPhysicsAnimation.mockReset();
   });
