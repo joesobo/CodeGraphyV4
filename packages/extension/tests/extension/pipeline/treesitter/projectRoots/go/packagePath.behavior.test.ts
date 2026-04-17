@@ -16,7 +16,7 @@ const sharedMock = vi.hoisted(() => ({
 
 vi.mock('node:fs', () => fsMock);
 vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/goModule', () => goModuleMock);
-vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/projectRootSearch', () => sharedMock);
+vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/search', () => sharedMock);
 
 import { resolveGoPackagePath } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/goPackagePath';
 

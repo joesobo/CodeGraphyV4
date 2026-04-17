@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   dedupePaths,
   findNearestProjectRoot,
-} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/projectRootSearch';
+} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/search';
 import {
   cleanupProjectRootsWorkspaces,
   createProjectRootsWorkspace,
@@ -14,7 +14,7 @@ afterEach(() => {
   cleanupProjectRootsWorkspaces();
 });
 
-describe('pipeline/plugins/treesitter/runtime/projectRoots/projectRootSearch', () => {
+describe('pipeline/plugins/treesitter/runtime/projectRoots/search', () => {
   it('finds the nearest marker while staying inside the workspace root', () => {
     const workspaceRoot = createProjectRootsWorkspace();
     const projectRoot = path.join(workspaceRoot, 'packages', 'api');
