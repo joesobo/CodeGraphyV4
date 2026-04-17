@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyzePythonFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzePython/analyze';
+import { analyzePythonFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzePython/file';
 
 const {
   handlePythonImportStatement,

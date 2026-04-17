@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyzeJavaFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/analyze';
+import { analyzeJavaFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/file';
 
 const {
   handleJavaImportDeclaration,
@@ -35,7 +35,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/w
   walkTree,
 }));
 
-describe('pipeline/plugins/treesitter/runtime/analyzeJava/analyze', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resolveJavaSourceInfo.mockReturnValue({ packageName: 'pkg', sourceRoot: '/workspace/src' });

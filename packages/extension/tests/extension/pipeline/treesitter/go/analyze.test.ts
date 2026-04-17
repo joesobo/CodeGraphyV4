@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyzeGoFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeGo/analyze';
+import { analyzeGoFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeGo/file';
 
 const {
   handleGoImportDeclaration,
@@ -35,7 +35,7 @@ vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyz
   walkTree,
 }));
 
-describe('pipeline/plugins/treesitter/runtime/analyzeGo/analyze', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzeGo/file', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     normalizeAnalysisResult.mockImplementation((filePath, symbols, relations) => ({

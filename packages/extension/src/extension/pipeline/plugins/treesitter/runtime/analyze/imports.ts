@@ -1,7 +1,7 @@
 import {
   getImportedBindingByIdentifier as readImportedBindingByIdentifier,
   getImportedBindingByPropertyAccess as readImportedBindingByPropertyAccess,
-} from '../analyzeImportBinding/bindingLookup';
+} from '../analyzeImportBinding/lookup';
 import { getVariableAssignedFunctionSymbol as readVariableAssignedFunctionSymbol } from '../analyzeImportBinding/functionSymbols';
 import { collectImportBindings as readImportBindings } from '../analyzeImportBinding/bindings';
 

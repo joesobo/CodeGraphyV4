@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import { applyImportClauseBinding } from './bindingHelpers';
+import { applyImportClauseBinding } from './helpers';
 import type { ImportedBinding } from '../analyze/model';
 
 export function collectImportBindings(

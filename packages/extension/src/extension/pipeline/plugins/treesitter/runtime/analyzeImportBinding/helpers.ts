@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import { addCollectedImportBinding } from './collectedBinding';
+import { addCollectedImportBinding } from './collected';
 import { addNamedImportBindings } from './namedBindings';
 import type { ImportedBinding } from '../analyze/model';
 

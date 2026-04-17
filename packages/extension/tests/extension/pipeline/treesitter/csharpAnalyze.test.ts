@@ -48,9 +48,9 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/w
   walkTree: csharpHarness.walkTree,
 }));
 
-import { analyzeCSharpFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/analyze';
+import { analyzeCSharpFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/file';
 
-describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/analyze', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
   beforeEach(() => {
     csharpHarness.appendCSharpUsingImportRelations.mockReset();
     csharpHarness.getCSharpFileScopedNamespaceName.mockReset();
