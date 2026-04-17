@@ -1,4 +1,4 @@
-import type { GraphInteractionHandlersDependencies } from './handlers';
+import type { GraphInteractionHandlersDependencies } from '../../handlers';
 
 export function updateAccessCount(
   dependencies: GraphInteractionHandlersDependencies,

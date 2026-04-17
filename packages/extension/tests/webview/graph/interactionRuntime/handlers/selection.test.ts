@@ -4,9 +4,9 @@ import {
   createSelectionHandlers,
   incrementHighlightVersion,
   resolveSelectionLinkEndpointId,
-} from '../../../../src/webview/components/graph/interactionRuntime/selection';
-import { createInteractionDependencies } from './testUtils';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
+} from '../../../../../src/webview/components/graph/interactionRuntime/handlers/selection';
+import { createInteractionDependencies } from '../testUtils';
+import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
 
 describe('graph/selectionHandlers', () => {
   it('resolveSelectionLinkEndpointId returns ids for string and node endpoints', () => {

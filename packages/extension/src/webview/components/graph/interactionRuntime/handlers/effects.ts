@@ -1,8 +1,8 @@
-import { postMessage } from '../../../vscodeApi';
-import { applyInteractionEffects, type GraphInteractionOptions } from '../effects/interaction';
-import type { GraphInteractionEffect } from '../interaction/model';
-import type { FGLink } from '../model/build';
-import type { GraphInteractionHandlersDependencies } from './handlers';
+import { postMessage } from '../../../../vscodeApi';
+import { applyInteractionEffects, type GraphInteractionOptions } from '../../effects/interaction';
+import type { GraphInteractionEffect } from '../../interaction/model';
+import type { FGLink } from '../../model/build';
+import type { GraphInteractionHandlersDependencies } from '../handlers';
 
 export interface EffectCallbackHandlers {
   clearSelection(this: void): void;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { zoom2d } from '../../../../src/webview/components/graph/interactionRuntime/zoom';
-import { createInteractionDependencies } from './testUtils';
+import { zoom2d } from '../../../../../../src/webview/components/graph/interactionRuntime/handlers/view/zoom';
+import { createInteractionDependencies } from '../../testUtils';
 
 describe('graph/interactionRuntime/zoom', () => {
   it('scales the current 2d zoom by the requested factor', () => {

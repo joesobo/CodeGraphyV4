@@ -1,8 +1,8 @@
-import type { GraphInteractionHandlersDependencies } from './handlers';
-import { focusNodeById } from './focus';
-import { updateAccessCount } from './accessCount';
-import { fitGraphView } from './fit/view';
-import { zoom2d } from './zoom';
+import type { GraphInteractionHandlersDependencies } from '../handlers';
+import { fitGraphView } from '../fit/view';
+import { updateAccessCount } from './view/accessCount';
+import { focusNodeById } from './view/focus';
+import { zoom2d } from './view/zoom';
 
 export interface ViewHandlers {
   fitView(this: void): void;

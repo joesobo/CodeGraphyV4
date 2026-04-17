@@ -2,10 +2,10 @@ import {
   getBackgroundClickCommand,
   getLinkClickCommand,
   getNodeClickCommand,
-} from '../interaction/model';
-import type { FGLink, FGNode } from '../model/build';
-import type { GraphCursorStyle } from '../support/dom';
-import type { GraphInteractionHandlersDependencies } from './handlers';
+} from '../../interaction/model';
+import type { FGLink, FGNode } from '../../model/build';
+import type { GraphCursorStyle } from '../../support/dom';
+import type { GraphInteractionHandlersDependencies } from '../handlers';
 
 const NODE_DOUBLE_CLICK_THRESHOLD_MS = 450;
 

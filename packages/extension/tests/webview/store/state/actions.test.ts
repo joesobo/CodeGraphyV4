@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createGraphStore } from '../../src/webview/store/state';
+import { createGraphStore } from '../../../../src/webview/store/state';
 
 describe('GraphStore actions', () => {
   let store: ReturnType<typeof createGraphStore>;

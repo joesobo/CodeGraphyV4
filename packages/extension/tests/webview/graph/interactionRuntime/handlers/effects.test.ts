@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createEffectHandlers } from '../../../../src/webview/components/graph/interactionRuntime/effects';
+import { createEffectHandlers } from '../../../../../src/webview/components/graph/interactionRuntime/handlers/effects';
 import {
   clearSentMessages,
   findMessage,
   getSentMessages,
-} from '../../../helpers/sentMessages';
-import { createInteractionDependencies } from './testUtils';
+} from '../../../../helpers/sentMessages';
+import { createInteractionDependencies } from '../testUtils';
 
 describe('graph/effectHandlers', () => {
   it('posts preview, open, and interaction messages', () => {

@@ -23,7 +23,7 @@ vi.mock('@floating-ui/react', () => ({
 }));
 
 import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react';
-import { NodeTooltip } from '../../src/webview/components/nodeTooltip/view';
+import { NodeTooltip } from '../../../src/webview/components/nodeTooltip/view';
 
 const defaultNodeRect = { x: 120, y: 180, radius: 20 };
 

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type { IPluginContextMenuItem } from '../../src/shared/plugins/contextMenu';
-import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../src/shared/plugins/decorations';
-import type { IGroup } from '../../src/shared/settings/groups';
-import { createGraphStore } from '../../src/webview/store/state';
-import { clearSentMessages, findMessage } from '../helpers/sentMessages';
+import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../src/shared/plugins/decorations';
+import type { IGroup } from '../../../../src/shared/settings/groups';
+import { createGraphStore } from '../../../../src/webview/store/state';
+import { clearSentMessages, findMessage } from '../../../helpers/sentMessages';
 
 describe('GraphStore message routing', () => {
   let store: ReturnType<typeof createGraphStore>;

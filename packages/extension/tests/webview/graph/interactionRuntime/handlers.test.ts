@@ -293,19 +293,19 @@ describe('graph/interactionRuntime/handlers', () => {
     const createEffectHandlers = vi.fn(() => effectHandlers);
     const createClickHandlers = vi.fn(() => clickHandlers);
 
-    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/selection', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/handlers/selection', () => ({
       createSelectionHandlers,
     }));
-    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/contextMenu', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/handlers/contextMenu', () => ({
       createContextMenuHandlers,
     }));
-    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/view', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/handlers/view', () => ({
       createViewHandlers,
     }));
-    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/effects', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/handlers/effects', () => ({
       createEffectHandlers,
     }));
-    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/click', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionRuntime/handlers/click', () => ({
       createClickHandlers,
     }));
     vi.doMock('../../../../src/webview/components/graph/support/dom', async () => {
@@ -382,11 +382,11 @@ describe('graph/interactionRuntime/handlers', () => {
       'pointer',
     );
 
-    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/selection');
-    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/contextMenu');
-    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/view');
-    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/effects');
-    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/click');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/handlers/selection');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/handlers/contextMenu');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/handlers/view');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/handlers/effects');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionRuntime/handlers/click');
     vi.doUnmock('../../../../src/webview/components/graph/support/dom');
     vi.resetModules();
   });

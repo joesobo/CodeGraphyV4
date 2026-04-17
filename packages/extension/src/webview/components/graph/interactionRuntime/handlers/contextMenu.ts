@@ -2,11 +2,11 @@ import {
   makeBackgroundContextSelection,
   makeEdgeContextSelection,
   makeNodeContextSelection,
-} from '../contextMenu/selection';
-import { getNodeContextMenuSelection } from '../interaction/model';
-import type { FGLink } from '../model/build';
-import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../support/linkTargets';
-import type { GraphInteractionHandlersDependencies } from './handlers';
+} from '../../contextMenu/selection';
+import { getNodeContextMenuSelection } from '../../interaction/model';
+import type { FGLink } from '../../model/build';
+import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../../support/linkTargets';
+import type { GraphInteractionHandlersDependencies } from '../handlers';
 
 export interface ContextMenuHandlers {
   openBackgroundContextMenu(this: void, event: MouseEvent): void;

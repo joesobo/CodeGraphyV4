@@ -1,5 +1,5 @@
-import type { GraphInteractionHandlersDependencies } from './handlers';
-import type { GraphView2dControls } from './fit/api';
+import type { GraphInteractionHandlersDependencies } from '../../handlers';
+import type { GraphView2dControls } from '../../fit/api';
 
 export function zoom2d(
   dependencies: GraphInteractionHandlersDependencies,

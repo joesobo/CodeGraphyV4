@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
-import { createClickHandlers } from '../../../../src/webview/components/graph/interactionRuntime/click';
-import { createInteractionDependencies } from './testUtils';
+import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
+import { createClickHandlers } from '../../../../../src/webview/components/graph/interactionRuntime/handlers/click';
+import { createInteractionDependencies } from '../testUtils';
 
 const interactionHarness = vi.hoisted(() => ({
   getBackgroundClickCommand: vi.fn(),
@@ -9,7 +9,7 @@ const interactionHarness = vi.hoisted(() => ({
   getNodeClickCommand: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/interaction/model', () => ({
+vi.mock('../../../../../src/webview/components/graph/interaction/model', () => ({
   getBackgroundClickCommand: interactionHarness.getBackgroundClickCommand,
   getLinkClickCommand: interactionHarness.getLinkClickCommand,
   getNodeClickCommand: interactionHarness.getNodeClickCommand,

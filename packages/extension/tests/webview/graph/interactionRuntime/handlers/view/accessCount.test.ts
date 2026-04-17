@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { updateAccessCount } from '../../../../src/webview/components/graph/interactionRuntime/accessCount';
-import { createInteractionDependencies } from './testUtils';
+import { updateAccessCount } from '../../../../../../src/webview/components/graph/interactionRuntime/handlers/view/accessCount';
+import { createInteractionDependencies } from '../../testUtils';
 
 describe('graph/interactionRuntime/accessCount', () => {
   it('updates the access count for the matching node only', () => {

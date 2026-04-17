@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { FGLink } from '../../../../src/webview/components/graph/model/build';
+import type { FGLink } from '../../../../../src/webview/components/graph/model/build';
 import {
   createContextMenuHandlers,
   getContextMenuPointerState,
-} from '../../../../src/webview/components/graph/interactionRuntime/contextMenu';
-import { createInteractionDependencies } from './testUtils';
+} from '../../../../../src/webview/components/graph/interactionRuntime/handlers/contextMenu';
+import { createInteractionDependencies } from '../testUtils';
 
 function spyOnDispatchEvent(container: HTMLElement | null) {
   if (!container) {

@@ -6,7 +6,7 @@ import {
   Row,
   TooltipExtraSections,
   TooltipStats,
-} from '../../src/webview/components/nodeTooltip/content';
+} from '../../../src/webview/components/nodeTooltip/content';
 
 describe('nodeTooltipContent', () => {
   beforeEach(() => {

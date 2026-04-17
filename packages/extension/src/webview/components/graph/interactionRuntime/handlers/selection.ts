@@ -1,6 +1,6 @@
-import type { FGLink } from '../model/build';
-import { resolveLinkEndpointId } from '../support/linkTargets';
-import type { GraphInteractionHandlersDependencies } from './handlers';
+import type { FGLink } from '../../model/build';
+import { resolveLinkEndpointId } from '../../support/linkTargets';
+import type { GraphInteractionHandlersDependencies } from '../handlers';
 
 export interface SelectionHandlers {
   clearSelection(this: void): void;
