@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createTestAPI } from './runtime/testSupport';
+import { createTestAPI } from './runtime/access/testSupport';
 
 describe('CodeGraphyAPIImpl version', () => {
   it('exposes version 2.0.0', () => {
