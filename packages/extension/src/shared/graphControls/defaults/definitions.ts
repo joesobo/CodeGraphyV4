@@ -1,2 +1,6 @@
-export { CORE_GRAPH_EDGE_TYPES, STRUCTURAL_NESTS_EDGE_KIND } from './edgeTypes';
-export { CORE_GRAPH_NODE_TYPES } from './nodeTypes';
+import { CORE_GRAPH_EDGE_TYPES as EDGE_TYPES, STRUCTURAL_NESTS_EDGE_KIND as NEST_EDGE_KIND } from './edgeTypes';
+import { CORE_GRAPH_NODE_TYPES as NODE_TYPES } from './nodeTypes';
+
+export const CORE_GRAPH_EDGE_TYPES = EDGE_TYPES;
+export const STRUCTURAL_NESTS_EDGE_KIND = NEST_EDGE_KIND;
+export const CORE_GRAPH_NODE_TYPES = NODE_TYPES;

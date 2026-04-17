@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { applyImportClauseBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/importClauseBindingHelpers';
-import { addCollectedImportBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/importClauseCollectedBinding';
-import { addNamedImportBindings } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/importClauseNamedBindings';
+import { applyImportClauseBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/bindingHelpers';
+import { addCollectedImportBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/collectedBinding';
+import { addNamedImportBindings } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/namedBindings';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/importClauseCollectedBinding', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/collectedBinding', () => ({
   addCollectedImportBinding: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/importClauseNamedBindings', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/namedBindings', () => ({
   addNamedImportBindings: vi.fn(),
 }));
 
@@ -24,7 +24,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/importClauseBindingHelpers', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/import/bindingHelpers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

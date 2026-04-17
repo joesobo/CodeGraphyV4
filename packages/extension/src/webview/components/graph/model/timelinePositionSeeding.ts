@@ -3,7 +3,7 @@ import type { FGNode } from './build';
 import {
   resolveSeedNeighbor,
   seedNodePosition,
-} from './timelinePositionSeeding/helpers';
+} from './timelinePositionSeeding/seeding';
 
 export function seedTimelinePositions(
   nodes: FGNode[],

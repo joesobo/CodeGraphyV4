@@ -13,7 +13,7 @@ import {
 import { getGraphNavigator, getGraphWindow } from './browser';
 import { buildGraphCallbackOptions } from './callbackOptions';
 import { useGraphDebugApi } from './useDebugApi';
-import { buildGraphDebugOptions } from './debugOptions';
+import { buildGraphDebugOptions } from './debug/options';
 import { buildGraphLayoutKey } from './layoutKey';
 import { detectMacPlatform } from './platform';
 import { useGraphViewStoreState } from './store';

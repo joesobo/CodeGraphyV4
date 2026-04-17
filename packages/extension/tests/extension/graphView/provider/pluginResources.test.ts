@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../../src/shared/settings/groups';
-import { createGraphViewProviderPluginResourceMethods } from '../../../../src/extension/graphView/provider/pluginResources';
+import { createGraphViewProviderPluginResourceMethods } from '../../../../src/extension/graphView/provider/plugin/resources';
 
-describe('graphView/provider/pluginResources', () => {
+describe('graphView/provider/plugin/resources', () => {
   it('registers built-in plugin roots and computes merged groups', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/extension'),

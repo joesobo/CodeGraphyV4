@@ -5,7 +5,7 @@ import {
   getCSharpTypeName,
   normalizeCSharpTypeName,
   resolveCSharpUsingImport,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharpResolution';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/resolution';
 import {
   resolveCSharpTypePath,
   resolveCSharpTypePathInNamespace,
@@ -35,7 +35,7 @@ function createNode({
   } as unknown as Parser.SyntaxNode;
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/csharpResolution', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/csharp/resolution', () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });

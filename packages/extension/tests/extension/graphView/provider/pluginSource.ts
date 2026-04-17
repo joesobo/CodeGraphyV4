@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/types';
-import type { GraphViewProviderPluginMethodsSource } from '../../../../src/extension/graphView/provider/plugins';
+import type { GraphViewProviderPluginMethodsSource } from '../../../../src/extension/graphView/provider/plugin/methods';
 
 const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 

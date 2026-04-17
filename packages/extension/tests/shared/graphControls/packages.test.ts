@@ -4,7 +4,7 @@ import {
 } from '../../../src/shared/graphControls/packages/edges';
 import { createWorkspacePackageNodes } from '../../../src/shared/graphControls/packages/nodes';
 import { collectWorkspacePackageRoots } from '../../../src/shared/graphControls/packages/roots';
-import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../src/shared/graphControls/packages/shared';
+import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../src/shared/graphControls/packages/workspace';
 
 describe('shared/graphControls/packages', () => {
   it('collects root and nested workspace package roots from package.json files', () => {

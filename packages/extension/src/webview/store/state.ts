@@ -21,7 +21,7 @@ import type { ICommitInfo } from '../../shared/timeline/types';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
-} from './optimisticGroups';
+} from './optimistic/groups';
 
 export interface GraphState {
   graphData: IGraphData | null;

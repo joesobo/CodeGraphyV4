@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { handlePythonImportFromStatement } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonImportFrom';
+import { handlePythonImportFromStatement } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/importFrom';
 import {
   getIdentifierText,
   getLastPathSegment,
@@ -9,8 +9,8 @@ import {
   getPythonImportFromImportedNodes,
   getPythonImportFromModuleNode,
   getPythonImportedName,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonImportFromNodes';
-import { resolvePythonImportFromPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonImportFromPath';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/importFromNodes';
+import { resolvePythonImportFromPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/importFromPath';
 import { resolvePythonModulePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths';
 import { addImportRelation } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
@@ -22,13 +22,13 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/n
     moduleSpecifier ? `${moduleSpecifier}.${importedName}` : importedName),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonImportFromNodes', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/importFromNodes', () => ({
   getPythonImportFromImportedNodes: vi.fn(),
   getPythonImportFromModuleNode: vi.fn(),
   getPythonImportedName: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonImportFromPath', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/importFromPath', () => ({
   resolvePythonImportFromPath: vi.fn(),
 }));
 
@@ -53,7 +53,7 @@ function createNode(
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/pythonImportFrom', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/python/importFrom', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

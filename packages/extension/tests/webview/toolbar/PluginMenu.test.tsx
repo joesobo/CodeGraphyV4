@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
-import { PluginToolbarActionMenu } from '../../../src/webview/components/toolbar/PluginMenu';
+import { PluginToolbarActionMenu } from '../../../src/webview/components/toolbar/plugin/Menu';
 
 vi.mock('../../../src/webview/components/ui/menus/dropdown-menu', () => {
   const DropdownMenuTrigger = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>(
@@ -38,7 +38,7 @@ vi.mock('../../../src/webview/components/ui/menus/dropdown-menu', () => {
   };
 });
 
-describe('webview/toolbar/PluginMenu', () => {
+describe('webview/toolbar/plugin/Menu', () => {
   it('renders plugin action items and posts the selected action', () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage').mockImplementation(() => undefined);
 

@@ -3,9 +3,9 @@ import {
   getWorkspacePackageNodeId,
   isFileNode,
   WORKSPACE_PACKAGE_NODE_ID_PREFIX,
-} from '../../../../src/shared/graphControls/packages/shared';
+} from '../../../../src/shared/graphControls/packages/workspace';
 
-describe('shared/graphControls/packages/shared', () => {
+describe('shared/graphControls/packages/workspace', () => {
   it('treats file nodes and missing node types as file nodes', () => {
     expect(isFileNode({
       id: 'src/app.ts',

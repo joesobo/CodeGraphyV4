@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { handleJavaScriptCallExpression } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascriptCalls';
+import { handleJavaScriptCallExpression } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascript/calls';
 import {
   getImportedBindingByIdentifier,
   getImportedBindingByPropertyAccess,
 } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/imports';
-import { getImportRelationForJavaScriptCallExpression } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascriptCallImports';
+import { getImportRelationForJavaScriptCallExpression } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascript/callImports';
 import { addCallRelation } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/imports', () => ({
@@ -12,7 +12,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/i
   getImportedBindingByPropertyAccess: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascriptCallImports', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascript/callImports', () => ({
   getImportRelationForJavaScriptCallExpression: vi.fn(),
 }));
 
@@ -31,7 +31,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/javascriptCalls', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/javascript/calls', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

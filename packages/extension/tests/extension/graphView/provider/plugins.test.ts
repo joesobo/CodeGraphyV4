@@ -5,7 +5,7 @@ import type { IGroup } from '../../../../src/shared/settings/groups';
 import {
   createGraphViewProviderPluginMethods,
   type GraphViewProviderPluginMethodsSource,
-} from '../../../../src/extension/graphView/provider/plugins';
+} from '../../../../src/extension/graphView/provider/plugin/methods';
 
 const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 
@@ -58,7 +58,7 @@ function createSource(
   return source as GraphViewProviderPluginMethodsSource;
 }
 
-describe('graphView/provider/plugins', () => {
+describe('graphView/provider/plugin/methods', () => {
   it('forwards decoration payloads through the provider message bridge', () => {
     const sendMessage = vi.fn();
     const methods = createGraphViewProviderPluginMethods(

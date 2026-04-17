@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import { describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../../src/shared/settings/groups';
-import { createGraphViewProviderPluginBroadcastMethods } from '../../../../src/extension/graphView/provider/pluginBroadcasts';
+import { createGraphViewProviderPluginBroadcastMethods } from '../../../../src/extension/graphView/provider/plugin/broadcasts';
 import { createPluginSource } from './pluginSource';
 import * as controlsSendModule from '../../../../src/extension/graphView/controls/send';
 
-describe('graphView/provider/pluginBroadcasts', () => {
+describe('graphView/provider/plugin/broadcasts', () => {
   it('forwards broadcasts through the provider message bridge', () => {
     const sendMessage = vi.fn();
     const source = createPluginSource({

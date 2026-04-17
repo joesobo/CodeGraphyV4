@@ -8,7 +8,7 @@ import {
   handlePythonCall,
   handlePythonClassDefinition,
   handlePythonFunctionDefinition,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonSymbols';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/symbols';
 import type { ImportedBinding, SymbolWalkState } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/model';
 
 function createNode({
@@ -43,7 +43,7 @@ function createNode({
   return node;
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/pythonSymbols', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/python/symbols', () => {
   it('adds class symbols only when the class definition has a name', () => {
     const symbols: IAnalysisSymbol[] = [];
     const namedClass = createNode({

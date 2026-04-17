@@ -31,11 +31,11 @@ import type {
 import type {
   GraphViewProviderPluginMethods,
   GraphViewProviderPluginMethodsSource,
-} from '../plugins';
+} from '../plugin/methods';
 import type {
   GraphViewProviderPluginResourceMethods,
   GraphViewProviderPluginResourceMethodsSource,
-} from '../pluginResources';
+} from '../plugin/resources';
 import type {
   GraphViewProviderRefreshMethods,
   GraphViewProviderRefreshMethodsSource,

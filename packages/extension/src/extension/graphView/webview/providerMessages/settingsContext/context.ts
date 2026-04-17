@@ -3,7 +3,7 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from '../listener';
-import { createSettingsConfigPersistence } from './config';
+import { createSettingsConfigPersistence } from './persistence';
 import { reprocessPluginFiles } from './pluginFiles';
 
 type GraphViewProviderSettingsContext = Pick<

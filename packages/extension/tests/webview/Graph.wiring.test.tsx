@@ -23,7 +23,7 @@ vi.mock('../../src/webview/components/graph/useDebugApi', () => ({
 	useGraphDebugApi: harness.useGraphDebugApi,
 }));
 
-vi.mock('../../src/webview/components/graph/debugOptions', () => ({
+vi.mock('../../src/webview/components/graph/debug/options', () => ({
 	buildGraphDebugOptions: harness.buildGraphDebugOptions,
 }));
 

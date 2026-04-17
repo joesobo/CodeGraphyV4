@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { installGraphDebugApi } from '../../../src/webview/components/graph/debugInstall';
+import { installGraphDebugApi } from '../../../src/webview/components/graph/debug/install';
 
-describe('webview/graph/debugInstall', () => {
+describe('webview/graph/debug/install', () => {
   it('returns undefined when graph debug mode is disabled', () => {
     const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: false } as Window;
 

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   applyPendingUserGroupsUpdate,
   createPendingUserGroupsUpdate,
-} from '../../../src/webview/store/optimisticGroupsUser';
+} from '../../../src/webview/store/optimistic/user';
 
-describe('webview/store/optimisticGroupsUser', () => {
+describe('webview/store/optimistic/user', () => {
   it('creates a defensive pending user-group snapshot', () => {
     const groups = [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }];
     const pending = createPendingUserGroupsUpdate(groups, 1000);

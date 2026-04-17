@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildGraphDebugOptions } from '../../../src/webview/components/graph/debugOptions';
+import { buildGraphDebugOptions } from '../../../src/webview/components/graph/debug/options';
 
 describe('graph/debugOptions', () => {
   it('builds debug hook options from graph state and interactions', () => {

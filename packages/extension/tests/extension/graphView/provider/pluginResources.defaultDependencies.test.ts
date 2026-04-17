@@ -58,9 +58,9 @@ vi.mock('../../../../src/extension/graphView/resources', () => ({
   normalizeGraphViewExtensionUri: normalizeExtensionUri,
 }));
 
-import { createGraphViewProviderPluginResourceMethods } from '../../../../src/extension/graphView/provider/pluginResources';
+import { createGraphViewProviderPluginResourceMethods } from '../../../../src/extension/graphView/provider/plugin/resources';
 
-describe('graphView/provider/pluginResources default dependencies', () => {
+describe('graphView/provider/plugin/resources default dependencies', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getPluginDefaultGroups.mockReturnValue([]);

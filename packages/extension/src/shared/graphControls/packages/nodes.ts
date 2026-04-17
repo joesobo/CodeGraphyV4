@@ -1,4 +1,4 @@
-import { getWorkspacePackageNodeId } from './shared';
+import { getWorkspacePackageNodeId } from './workspace';
 
 function getWorkspacePackageLabel(rootPath: string): string {
   if (rootPath === '.') {

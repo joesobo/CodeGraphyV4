@@ -4,11 +4,11 @@ import {
   handleRustFunctionItem,
   handleRustModuleItem,
   handleRustNamedSymbol,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustHandlers';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/handlers';
 import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 import { resolveRustModuleDeclarationPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths';
 import { addCallRelation, addImportRelation, createSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
-import { getRustCallBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustBindings';
+import { getRustCallBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/bindings';
 import { walkSymbolBody } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
@@ -25,7 +25,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/r
   createSymbol: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustBindings', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/bindings', () => ({
   getRustCallBinding: vi.fn(),
 }));
 
@@ -46,7 +46,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/rustHandlers', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/rust/handlers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

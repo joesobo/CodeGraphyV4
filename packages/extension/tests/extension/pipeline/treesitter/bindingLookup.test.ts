@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getImportedBindingByIdentifier,
   getImportedBindingByPropertyAccess,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/bindingLookup';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/bindingLookup';
 import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/text';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/text', () => ({
@@ -22,7 +22,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/bindingLookup', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/import/bindingLookup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

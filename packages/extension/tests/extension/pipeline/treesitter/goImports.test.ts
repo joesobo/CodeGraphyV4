@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { handleGoImportDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/goImports';
+import { handleGoImportDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/go/imports';
 import { resolveGoPackagePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots';
 import { resolveTreeSitterImportPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/resolve';
 import {
@@ -40,7 +40,7 @@ function createNode(
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/goImports', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/go/imports', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

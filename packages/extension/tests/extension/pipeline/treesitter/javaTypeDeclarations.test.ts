@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { handleJavaTypeDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javaTypeDeclarations';
+import { handleJavaTypeDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/java/typeDeclarations';
 import { resolveJavaTypePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots';
 import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 import { addInheritRelation, createSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
@@ -32,7 +32,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/javaTypeDeclarations', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/java/typeDeclarations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

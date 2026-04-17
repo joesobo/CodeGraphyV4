@@ -17,7 +17,7 @@ import type { ICommitInfo } from '../../shared/timeline/types';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
-} from './optimisticGroups';
+} from './optimistic/groups';
 
 /** All fields that the store can hold — used to type partial state updates. */
 export interface IStoreFields {

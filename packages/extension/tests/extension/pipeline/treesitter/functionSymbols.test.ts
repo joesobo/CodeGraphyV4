@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type Parser from 'tree-sitter';
-import { getVariableAssignedFunctionSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/functionSymbols';
+import { getVariableAssignedFunctionSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/functionSymbols';
 
 function createNode({
   type,
@@ -25,7 +25,7 @@ function createNode({
   } as unknown as Parser.SyntaxNode;
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/functionSymbols', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/import/functionSymbols', () => {
   it('returns null when the node is not a variable declarator or is missing a usable function assignment', () => {
     expect(
       getVariableAssignedFunctionSymbol(

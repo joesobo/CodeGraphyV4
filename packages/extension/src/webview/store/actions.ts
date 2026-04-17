@@ -13,7 +13,7 @@ import {
   clearPendingGroupUpdate,
   createPendingUserGroupsUpdate,
   mergePendingGroupUpdate,
-} from './optimisticGroups';
+} from './optimistic/groups';
 
 type SetState = StoreApi<GraphState>['setState'];
 type GetState = StoreApi<GraphState>['getState'];

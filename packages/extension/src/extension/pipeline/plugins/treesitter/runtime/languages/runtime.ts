@@ -4,7 +4,7 @@ import {
   supportsTreeSitterFile,
   TREE_SITTER_RUNTIME_BINDINGS,
   type TreeSitterLanguageKind,
-} from './constants';
+} from './catalog';
 import { loadTreeSitterBindings } from './bindings';
 
 export interface ITreeSitterRuntime {

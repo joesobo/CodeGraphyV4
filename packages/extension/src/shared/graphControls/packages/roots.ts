@@ -1,5 +1,5 @@
 import type { IGraphData } from '../../graph/types';
-import { isFileNode } from './shared';
+import { isFileNode } from './workspace';
 
 function isPackageManifestPath(nodeId: string): boolean {
   return nodeId === 'package.json' || nodeId.endsWith('/package.json');

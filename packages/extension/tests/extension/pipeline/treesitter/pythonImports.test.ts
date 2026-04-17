@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { handlePythonImportStatement } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonImports';
+import { handlePythonImportStatement } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/imports';
 import {
   getIdentifierText,
   getLastPathSegment,
@@ -37,7 +37,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/pythonImports', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/python/imports', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

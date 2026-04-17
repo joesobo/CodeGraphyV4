@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TREE_SITTER_SOURCE_IDS } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/languages';
-import { getImportRelationForJavaScriptCallExpression } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascriptCallImports';
+import { getImportRelationForJavaScriptCallExpression } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascript/callImports';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/resolve', () => ({
   resolveTreeSitterImportPath: vi.fn(() => '/workspace/src/utils.ts'),

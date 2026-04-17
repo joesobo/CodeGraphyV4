@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Parser from 'tree-sitter';
-import { collectImportBindings } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/importClauseBindings';
-import { applyImportClauseBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/importClauseBindingHelpers';
+import { collectImportBindings } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/bindings';
+import { applyImportClauseBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/bindingHelpers';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/importClauseBindingHelpers', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/import/bindingHelpers', () => ({
   applyImportClauseBinding: vi.fn(),
 }));
 
@@ -20,7 +20,7 @@ function createNode({
   } as unknown as Parser.SyntaxNode;
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/importClauseBindings', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/import/bindings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

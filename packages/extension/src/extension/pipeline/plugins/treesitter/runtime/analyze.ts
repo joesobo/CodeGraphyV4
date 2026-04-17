@@ -1,14 +1,14 @@
 import type Parser from 'tree-sitter';
 import type { IFileAnalysisResult } from '../../../../../core/plugins/types/contracts';
-import { analyzeCSharpFile } from './analyze/csharp';
-import { analyzeGoFile } from './analyze/go';
-import { analyzeJavaFile } from './analyze/java';
-import { analyzeJavaScriptFamilyFile } from './analyze/javascript';
-import { analyzePythonFile } from './analyze/python';
-import { analyzeRustFile } from './analyze/rust';
+import { analyzeCSharpFile } from './analyze/csharp/analyze';
+import { analyzeGoFile } from './analyze/go/analyze';
+import { analyzeJavaFile } from './analyze/java/analyze';
+import { analyzeJavaScriptFamilyFile } from './analyze/javascript/analyze';
+import { analyzePythonFile } from './analyze/python/analyze';
+import { analyzeRustFile } from './analyze/rust/analyze';
 import {
   createTreeSitterRuntime,
-} from './languages';
+} from './languages/runtime';
 const JAVASCRIPT_FAMILY_LANGUAGE_KINDS = new Set([
   'javascript',
   'tsx',

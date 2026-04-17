@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Parser from 'tree-sitter';
-import { handleCSharpReferenceNode } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharpReferences';
+import { handleCSharpReferenceNode } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/references';
 import {
   getCSharpTypeName,
   resolveCSharpUsingImport,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharpResolution';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/resolution';
 import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 import { addReferenceRelation } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharpResolution', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/resolution', () => ({
   getCSharpTypeName: vi.fn(),
   resolveCSharpUsingImport: vi.fn(),
 }));
@@ -39,7 +39,7 @@ function createNode({
   } as unknown as Parser.SyntaxNode;
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/csharpReferences', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/csharp/references', () => {
   const state = {
     currentNamespace: 'CodeGraphy.App',
     currentSymbolId: '/workspace/src/App.cs:method:Run',

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { resolvePythonModulePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonPaths';
+import { resolvePythonModulePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/paths';
 import { findExistingFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/existingFile';
 import { getPythonSearchRoots } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots';
 
@@ -11,7 +11,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRo
   getPythonSearchRoots: vi.fn(),
 }));
 
-describe('pipeline/plugins/treesitter/runtime/analyze/pythonPaths', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/python/paths', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

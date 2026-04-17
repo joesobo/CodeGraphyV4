@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../../src/shared/graphControls/packages/shared';
+import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../../src/shared/graphControls/packages/workspace';
 import { buildWorkspacePackageEdges } from '../../../../src/shared/graphControls/packages/edges';
 
 describe('shared/graphControls/packages/edges', () => {

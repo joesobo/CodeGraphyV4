@@ -3,7 +3,7 @@ import {
   handleGoCallExpression,
   handleGoCallableDeclaration,
   handleGoTypeSpec,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/goHandlers';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/go/handlers';
 import {
   getImportedBindingByIdentifier,
   getImportedBindingByPropertyAccess,
@@ -43,7 +43,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/goHandlers', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/go/handlers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

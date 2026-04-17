@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { describe, expect, it, vi } from 'vitest';
-import { createGraphViewProviderExternalPluginRegistration } from '../../../../src/extension/graphView/provider/pluginExternalRegistration';
-import type { GraphViewProviderPluginBroadcastMethods } from '../../../../src/extension/graphView/provider/pluginBroadcasts';
+import { createGraphViewProviderExternalPluginRegistration } from '../../../../src/extension/graphView/provider/plugin/externalRegistration';
+import type { GraphViewProviderPluginBroadcastMethods } from '../../../../src/extension/graphView/provider/plugin/broadcasts';
 import { createPluginSource } from './pluginSource';
 
 function createBroadcasts(): GraphViewProviderPluginBroadcastMethods {
@@ -18,7 +18,7 @@ function createBroadcasts(): GraphViewProviderPluginBroadcastMethods {
   };
 }
 
-describe('graphView/provider/pluginExternalRegistration', () => {
+describe('graphView/provider/plugin/externalRegistration', () => {
   it('registers external plugins with live provider state and callbacks', () => {
     const registerExternalPlugin = vi.fn();
     const source = createPluginSource();

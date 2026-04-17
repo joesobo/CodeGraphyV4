@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getRustCallBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustBindings';
+import { getRustCallBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/bindings';
 import { getIdentifierText, getLastPathSegment } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
@@ -22,7 +22,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/rustBindings', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/rust/bindings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

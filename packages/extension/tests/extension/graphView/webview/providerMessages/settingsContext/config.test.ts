@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   SILENT_CONFIG_KEYS,
   createSettingsConfigPersistence,
-} from '../../../../../../src/extension/graphView/webview/providerMessages/settingsContext/config';
+} from '../../../../../../src/extension/graphView/webview/providerMessages/settingsContext/persistence';
 import {
   getCodeGraphyConfiguration,
   updateCodeGraphyConfigurationSilently,
@@ -13,7 +13,7 @@ vi.mock('../../../../../../src/extension/repoSettings/current', () => ({
   updateCodeGraphyConfigurationSilently: vi.fn(),
 }));
 
-describe('graphView/webview/providerMessages/settingsContext/config', () => {
+describe('graphView/webview/providerMessages/settingsContext/persistence', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

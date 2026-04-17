@@ -3,7 +3,7 @@ import {
   getPythonImportedName,
   getPythonImportFromImportedNodes,
   getPythonImportFromModuleNode,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/pythonImportFromNodes';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/importFromNodes';
 import { getNodeText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
@@ -25,7 +25,7 @@ function createNode(overrides: Partial<{
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/pythonImportFromNodes', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/python/importFromNodes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -8,7 +8,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_PACKAGE_NODE_COLOR,
 } from '../../../../src/shared/fileColors';
-import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../../src/shared/graphControls/packages/shared';
+import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../../src/shared/graphControls/packages/workspace';
 
 const fileNodes = [
   { id: 'package.json', label: 'package.json', color: '#111111', nodeType: 'file' as const },

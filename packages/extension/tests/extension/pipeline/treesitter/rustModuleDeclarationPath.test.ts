@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { resolveRustModuleDeclarationPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustModuleDeclarationPath';
+import { resolveRustModuleDeclarationPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/moduleDeclarationPath';
 import { findExistingFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/existingFile';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/existingFile', () => ({
   findExistingFile: vi.fn(),
 }));
 
-describe('pipeline/plugins/treesitter/runtime/analyze/rustModuleDeclarationPath', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/rust/moduleDeclarationPath', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

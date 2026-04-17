@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyzeGoFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/go';
+import { analyzeGoFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/go/analyze';
 
 const {
   handleGoImportDeclaration,
@@ -17,11 +17,11 @@ const {
   walkTree: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/goImports', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/go/imports', () => ({
   handleGoImportDeclaration,
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/goHandlers', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/go/handlers', () => ({
   handleGoCallableDeclaration,
   handleGoCallExpression,
   handleGoTypeSpec,
@@ -35,7 +35,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/w
   walkTree,
 }));
 
-describe('pipeline/plugins/treesitter/runtime/analyze/go', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/go/analyze', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     normalizeAnalysisResult.mockImplementation((filePath, symbols, relations) => ({

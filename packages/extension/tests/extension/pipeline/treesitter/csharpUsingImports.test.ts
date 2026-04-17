@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { appendCSharpUsingImportRelations } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharpUsingImports';
+import { appendCSharpUsingImportRelations } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/usingImports';
 import { resolveCSharpTypePathInNamespace } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
-import { normalizeCSharpTypeName } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharpResolution';
+import { normalizeCSharpTypeName } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/resolution';
 import { addImportRelation } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex', () => ({
   resolveCSharpTypePathInNamespace: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharpResolution', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/csharp/resolution', () => ({
   normalizeCSharpTypeName: vi.fn((name: string) => name.toUpperCase()),
 }));
 
@@ -16,7 +16,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/r
   addImportRelation: vi.fn(),
 }));
 
-describe('pipeline/plugins/treesitter/runtime/analyze/csharpUsingImports', () => {
+describe('pipeline/plugins/treesitter/runtime/analyze/csharp/usingImports', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -3,7 +3,7 @@ import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensi
 import {
   applyPendingGroupUpdates,
   applyPendingUserGroupsUpdate,
-} from '../optimisticGroups';
+} from '../optimistic/groups';
 import { arePlainValuesEqual } from './equality';
 
 export function handleGraphDataUpdated(

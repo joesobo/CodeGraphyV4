@@ -1,7 +1,7 @@
 import type { IGraphData } from '../../graph/types';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../defaults/definitions';
 import { getNearestWorkspacePackageRoot } from './roots';
-import { getWorkspacePackageNodeId, isFileNode } from './shared';
+import { getWorkspacePackageNodeId, isFileNode } from './workspace';
 
 export function buildWorkspacePackageEdges(
   packageRoots: ReadonlySet<string>,

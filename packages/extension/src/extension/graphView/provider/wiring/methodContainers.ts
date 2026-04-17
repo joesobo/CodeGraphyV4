@@ -5,8 +5,8 @@ import { createGraphViewProviderCommandMethods } from '../commands';
 import { createGraphViewProviderFileActionMethods } from '../file/actions';
 import { createGraphViewProviderFileVisitMethods } from '../file/visits';
 import { createGraphViewProviderPhysicsSettingsMethods } from '../physicsSettings';
-import { createGraphViewProviderPluginMethods } from '../plugins';
-import { createGraphViewProviderPluginResourceMethods } from '../pluginResources';
+import { createGraphViewProviderPluginMethods } from '../plugin/methods';
+import { createGraphViewProviderPluginResourceMethods } from '../plugin/resources';
 import { createGraphViewProviderRefreshMethods } from '../refresh';
 import { createGraphViewProviderSettingsStateMethods } from '../settingsState';
 import {
