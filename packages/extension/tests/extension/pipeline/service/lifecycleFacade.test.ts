@@ -16,7 +16,7 @@ import {
 import {
   getWorkspacePipelinePluginName,
   getWorkspacePipelineStatusList,
-} from '../../../../src/extension/pipeline/service/plugins';
+} from '../../../../src/extension/pipeline/service/runtime/plugins';
 
 vi.mock('../../../../src/extension/pipeline/service/cache/storage', () => ({
   clearWorkspacePipelineStoredCache: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock('../../../../src/extension/pipeline/service/cache/invalidation', () => (
   resolveWorkspacePipelinePluginFilePaths: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/plugins', () => ({
+vi.mock('../../../../src/extension/pipeline/service/runtime/plugins', () => ({
   getWorkspacePipelinePluginName: vi.fn(),
   getWorkspacePipelineStatusList: vi.fn(),
 }));

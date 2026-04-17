@@ -33,6 +33,3 @@ export interface RelationRow {
   resolvedPath?: unknown;
   metadataJson?: unknown;
 }
-export { createSnapshotFileEntry } from './fileEntry';
-export { createSnapshotRelationEntry } from './relation/entry';
-export { createSnapshotSymbolEntry } from './symbolEntry';

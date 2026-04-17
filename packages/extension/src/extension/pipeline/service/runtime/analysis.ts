@@ -1,11 +1,11 @@
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { FileDiscovery } from '../../../core/discovery/file/service';
-import type { EventBus } from '../../../core/plugins/events/bus';
-import type { PluginRegistry } from '../../../core/plugins/registry/manager';
-import type { IWorkspaceAnalysisCache } from '../cache';
-import type { IWorkspaceFileAnalysisResult } from '../fileAnalysis';
-import { preAnalyzeWorkspacePipelineFiles } from '../analysis/preAnalyze';
-import { analyzeWorkspacePipelineFiles } from '../serviceAdapters';
+import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import type { FileDiscovery } from '../../../../core/discovery/file/service';
+import type { EventBus } from '../../../../core/plugins/events/bus';
+import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
+import type { IWorkspaceAnalysisCache } from '../../cache';
+import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
+import { preAnalyzeWorkspacePipelineFiles } from '../../analysis/preAnalyze';
+import { analyzeWorkspacePipelineFiles } from '../../serviceAdapters';
 
 export async function preAnalyzeWorkspacePipelinePlugins(
   files: IDiscoveredFile[],

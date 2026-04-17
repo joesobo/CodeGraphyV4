@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createSnapshotRelationEntry } from '../../../../../../src/extension/pipeline/database/cache/relation/entry';
-import * as cacheRowValues from '../../../../../../src/extension/pipeline/database/cache/rowValues';
+import * as cacheRowValues from '../../../../../../src/extension/pipeline/database/cache/records/values';
 
 describe('pipeline/database/cache/relation/entry', () => {
   it.each([

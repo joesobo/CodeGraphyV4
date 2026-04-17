@@ -1,63 +1,63 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { WorkspacePipelineInternalBase } from '../../../../src/extension/pipeline/service/internalBase';
-import type { Configuration } from '../../../../src/extension/config/reader';
-import type { FileDiscovery } from '../../../../src/core/discovery/file/service';
-import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
-import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
-import { readWorkspacePipelineFileStat } from '../../../../src/extension/pipeline/serviceAdapters';
+import { WorkspacePipelineInternalBase } from '../../../../../src/extension/pipeline/service/base/internal';
+import type { Configuration } from '../../../../../src/extension/config/reader';
+import type { FileDiscovery } from '../../../../../src/core/discovery/file/service';
+import type { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
+import type { IWorkspaceAnalysisCache } from '../../../../../src/extension/pipeline/cache';
+import { readWorkspacePipelineFileStat } from '../../../../../src/extension/pipeline/serviceAdapters';
 import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
-} from '../../../../src/extension/pipeline/service/analysisDelegates';
-import { persistWorkspacePipelineCache } from '../../../../src/extension/pipeline/service/cache/storage';
+} from '../../../../../src/extension/pipeline/service/runtime/analysis';
+import { persistWorkspacePipelineCache } from '../../../../../src/extension/pipeline/service/cache/storage';
 import {
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
-} from '../../../../src/extension/pipeline/service/graph';
-import { persistWorkspacePipelineIndexMetadata } from '../../../../src/extension/pipeline/service/cache/index';
+} from '../../../../../src/extension/pipeline/service/runtime/graph';
+import { persistWorkspacePipelineIndexMetadata } from '../../../../../src/extension/pipeline/service/cache/index';
 import {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
-} from '../../../../src/extension/pipeline/service/cache/paths';
+} from '../../../../../src/extension/pipeline/service/cache/paths';
 import {
   createWorkspacePipelinePluginSignature,
   readWorkspacePipelineCurrentCommitSha,
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitShaSync,
-} from '../../../../src/extension/pipeline/service/cache/signatures';
+} from '../../../../../src/extension/pipeline/service/cache/signatures';
 
-vi.mock('../../../../src/extension/pipeline/serviceAdapters', () => ({
+vi.mock('../../../../../src/extension/pipeline/serviceAdapters', () => ({
   readWorkspacePipelineFileStat: vi.fn(),
   readWorkspacePipelineRoot: vi.fn(() => '/workspace'),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/analysisDelegates', () => ({
+vi.mock('../../../../../src/extension/pipeline/service/runtime/analysis', () => ({
   analyzeWorkspacePipelineDiscoveredFiles: vi.fn(),
   preAnalyzeWorkspacePipelinePlugins: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/cache/storage', () => ({
+vi.mock('../../../../../src/extension/pipeline/service/cache/storage', () => ({
   persistWorkspacePipelineCache: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/graph', () => ({
+vi.mock('../../../../../src/extension/pipeline/service/runtime/graph', () => ({
   buildWorkspacePipelineGraph: vi.fn(),
   buildWorkspacePipelineGraphFromAnalysis: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/cache/index', () => ({
+vi.mock('../../../../../src/extension/pipeline/service/cache/index', () => ({
   persistWorkspacePipelineIndexMetadata: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/cache/paths', () => ({
+vi.mock('../../../../../src/extension/pipeline/service/cache/paths', () => ({
   readWorkspacePipelineAnalysisFiles: vi.fn(),
   toWorkspaceRelativePath: vi.fn((workspaceRoot: string, filePath: string) =>
     filePath.replace(`${workspaceRoot}/`, ''),
   ),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/cache/signatures', () => ({
+vi.mock('../../../../../src/extension/pipeline/service/cache/signatures', () => ({
   createWorkspacePipelinePluginSignature: vi.fn(),
   createWorkspacePipelineSettingsSignature: vi.fn(),
   readWorkspacePipelineCurrentCommitSha: vi.fn(),

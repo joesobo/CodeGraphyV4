@@ -1,14 +1,14 @@
-import type { FileDiscovery } from '../../../core/discovery/file/service';
-import type { IGraphData } from '../../../shared/graph/contracts';
-import type { Configuration } from '../../config/reader';
-import type { IWorkspaceAnalysisCache } from '../cache';
-import { rebuildWorkspacePipelineGraphForSource } from '../analysis/state';
-import { runWorkspacePipelineAnalysis } from '../analysis/run';
+import type { FileDiscovery } from '../../../../core/discovery/file/service';
+import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { Configuration } from '../../../config/reader';
+import type { IWorkspaceAnalysisCache } from '../../cache';
+import { rebuildWorkspacePipelineGraphForSource } from '../../analysis/state';
+import { runWorkspacePipelineAnalysis } from '../../analysis/run';
 import {
   createWorkspacePipelineAnalysisSource,
   createWorkspacePipelineRebuildSource,
   type WorkspacePipelineSourceOwner,
-} from '../analysisSource';
+} from '../../analysisSource';
 
 export async function analyzeWorkspacePipeline(
   sourceOwner: WorkspacePipelineSourceOwner,

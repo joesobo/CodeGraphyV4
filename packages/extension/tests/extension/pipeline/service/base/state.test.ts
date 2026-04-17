@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { EventBus } from '../../../../src/core/plugins/events/bus';
-import { FileDiscovery } from '../../../../src/core/discovery/file/service';
-import { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
-import { WorkspacePipelineStateBase } from '../../../../src/extension/pipeline/service/stateBase';
+import { EventBus } from '../../../../../src/core/plugins/events/bus';
+import { FileDiscovery } from '../../../../../src/core/discovery/file/service';
+import { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
+import { WorkspacePipelineStateBase } from '../../../../../src/extension/pipeline/service/base/state';
 
 const stateBaseHarness = vi.hoisted(() => ({
   readWorkspaceAnalysisDatabaseSnapshot: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
   readWorkspaceAnalysisDatabaseSnapshot: stateBaseHarness.readWorkspaceAnalysisDatabaseSnapshot,
 }));
 

@@ -3,11 +3,11 @@ import {
   createEmptyWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
   type IWorkspaceAnalysisCache,
-} from '../../cache';
+} from '../../../cache';
 import { readRowsSync, withConnection } from './connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from './paths';
-import { createSnapshotFileEntry } from './rows';
-import { FILE_ANALYSIS_ROWS_QUERY } from './queries';
+import { createSnapshotFileEntry } from '../records/file';
+import { FILE_ANALYSIS_ROWS_QUERY } from '../query/read';
 
 export function loadWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,

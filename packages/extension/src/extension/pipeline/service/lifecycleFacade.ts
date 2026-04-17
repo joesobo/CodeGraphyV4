@@ -9,7 +9,7 @@ import {
 import {
   getWorkspacePipelinePluginName,
   getWorkspacePipelineStatusList,
-} from './plugins';
+} from './runtime/plugins';
 
 export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFacade {
   getPluginStatuses(disabledPlugins: Set<string>): IPluginStatus[] {

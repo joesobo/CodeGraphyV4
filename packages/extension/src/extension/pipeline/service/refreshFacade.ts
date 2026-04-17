@@ -4,8 +4,8 @@ import { WorkspacePipelineDiscoveryFacade } from './discoveryFacade';
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
-} from './discovery';
-import { refreshWorkspacePipelineChangedFiles } from './refresh';
+} from './runtime/discovery';
+import { refreshWorkspacePipelineChangedFiles } from './runtime/refresh';
 
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
   async refreshChangedFiles(

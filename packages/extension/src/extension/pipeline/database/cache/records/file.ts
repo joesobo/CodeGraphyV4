@@ -1,6 +1,6 @@
-import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
-import type { FileAnalysisRow } from './rows';
-import { readOptionalNumber, readRequiredString } from './rowValues';
+import type { IFileAnalysisResult } from '../../../../../core/plugins/types/contracts';
+import type { FileAnalysisRow } from './contracts';
+import { readOptionalNumber, readRequiredString } from './values';
 
 export function createSnapshotFileEntry(
   row: FileAnalysisRow,

@@ -4,15 +4,15 @@ import { WorkspacePipelineRefreshFacade } from '../../../../src/extension/pipeli
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
-} from '../../../../src/extension/pipeline/service/discovery';
-import { refreshWorkspacePipelineChangedFiles } from '../../../../src/extension/pipeline/service/refresh';
+} from '../../../../src/extension/pipeline/service/runtime/discovery';
+import { refreshWorkspacePipelineChangedFiles } from '../../../../src/extension/pipeline/service/runtime/refresh';
 
-vi.mock('../../../../src/extension/pipeline/service/discovery', () => ({
+vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
   createWorkspacePipelineDiscoveryDependencies: vi.fn(),
   discoverWorkspacePipelineFilesWithWarnings: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/refresh', () => ({
+vi.mock('../../../../src/extension/pipeline/service/runtime/refresh', () => ({
   refreshWorkspacePipelineChangedFiles: vi.fn(),
 }));
 

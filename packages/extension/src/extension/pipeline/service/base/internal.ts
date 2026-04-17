@@ -2,32 +2,32 @@ import * as vscode from 'vscode';
 import type {
   IProjectedConnection,
   IFileAnalysisResult,
-} from '../../../core/plugins/types/contracts';
-import type { IGraphData } from '../../../shared/graph/contracts';
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { IWorkspaceFileAnalysisResult } from '../fileAnalysis';
-import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../serviceAdapters';
+} from '../../../../core/plugins/types/contracts';
+import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
+import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../../serviceAdapters';
 import {
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
-} from './graph';
-import { persistWorkspacePipelineIndexMetadata } from './cache/index';
+} from '../runtime/graph';
+import { persistWorkspacePipelineIndexMetadata } from '../cache/index';
 import {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
-} from './cache/paths';
+} from '../cache/paths';
 import {
   createWorkspacePipelinePluginSignature,
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
-} from './cache/signatures';
-import { persistWorkspacePipelineCache } from './cache/storage';
+} from '../cache/signatures';
+import { persistWorkspacePipelineCache } from '../cache/storage';
 import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
-} from './analysisDelegates';
-import { WorkspacePipelineStateBase } from './stateBase';
+} from '../runtime/analysis';
+import { WorkspacePipelineStateBase } from './state';
 
 export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineStateBase {
   protected async _preAnalyzePlugins(

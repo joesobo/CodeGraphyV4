@@ -4,20 +4,17 @@ import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '../../../../core/plugins/types/contracts';
-import { readRowsSync, withConnection } from './connection';
-import { getWorkspaceAnalysisDatabasePath } from './paths';
-import {
-  createSnapshotFileEntry,
-  createSnapshotRelationEntry,
-  createSnapshotSymbolEntry,
-  type RelationRow,
-  type SymbolRow,
-} from './rows';
+import { readRowsSync, withConnection } from './io/connection';
+import { getWorkspaceAnalysisDatabasePath } from './io/paths';
+import { createSnapshotFileEntry } from './records/file';
+import { createSnapshotRelationEntry } from './relation/entry';
+import { createSnapshotSymbolEntry } from './records/symbol';
+import type { RelationRow, SymbolRow } from './records/contracts';
 import {
   FILE_ANALYSIS_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
-} from './queries';
+} from './query/read';
 
 export interface WorkspaceAnalysisDatabaseSnapshot {
   files: Array<{

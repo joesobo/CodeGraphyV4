@@ -2,13 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   discoverWorkspacePipelineFiles,
   formatWorkspacePipelineLimitReachedMessage,
-} from '../../../../src/extension/pipeline/discovery';
+} from '../../../../../src/extension/pipeline/discovery';
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
-} from '../../../../src/extension/pipeline/service/discovery';
+} from '../../../../../src/extension/pipeline/service/runtime/discovery';
 
-vi.mock('../../../../src/extension/pipeline/discovery', () => ({
+vi.mock('../../../../../src/extension/pipeline/discovery', () => ({
   discoverWorkspacePipelineFiles: vi.fn(),
   formatWorkspacePipelineLimitReachedMessage: vi.fn(),
 }));

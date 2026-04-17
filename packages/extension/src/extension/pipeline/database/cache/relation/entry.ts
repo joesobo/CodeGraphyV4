@@ -1,10 +1,10 @@
 import type { IAnalysisRelation } from '../../../../../core/plugins/types/contracts';
-import type { RelationRow } from '../rows';
+import type { RelationRow } from '../records/contracts';
 import {
   parseOptionalJson,
   readOptionalString,
   readRequiredString,
-} from '../rowValues';
+} from '../records/values';
 
 export function createSnapshotRelationEntry(row: RelationRow): IAnalysisRelation | undefined {
   const filePath = readRequiredString(row.filePath);

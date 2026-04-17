@@ -1,13 +1,13 @@
 import type * as vscode from 'vscode';
-import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
-import type { PluginRegistry } from '../../../core/plugins/registry/manager';
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { IPluginStatus } from '../../../shared/plugins/status';
+import type { IProjectedConnection } from '../../../../core/plugins/types/contracts';
+import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
+import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import type { IPluginStatus } from '../../../../shared/plugins/status';
 import {
   getWorkspacePipelinePluginStatuses,
   resolveWorkspacePipelinePluginNameForFile,
-} from '../plugins/queries';
-import { readWorkspacePipelineRoot } from '../serviceAdapters';
+} from '../../plugins/queries';
+import { readWorkspacePipelineRoot } from '../../serviceAdapters';
 
 export function getWorkspacePipelineStatusList(
   registry: PluginRegistry,
