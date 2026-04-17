@@ -22,7 +22,7 @@ vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle
   selectActivePhysicsGraph: physicsHarness.selectActivePhysicsGraph,
 }));
 
-import { usePhysicsRuntimeUpdates } from '../../../../../../src/webview/components/graph/runtime/use/graph/updates';
+import { usePhysicsRuntimeUpdates } from '../../../../../../src/webview/components/graph/runtime/use/graph/physics/updates';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
@@ -32,7 +32,7 @@ const SETTINGS: IPhysicsSettings = {
   repelForce: 500,
 };
 
-describe('webview/graph/runtime/use/graph/updates', () => {
+describe('webview/graph/runtime/use/graph/physics/updates', () => {
   beforeEach(() => {
     physicsHarness.applyPhysicsSettings.mockReset();
     physicsHarness.havePhysicsSettingsChanged.mockReset();

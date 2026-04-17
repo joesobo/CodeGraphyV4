@@ -1,7 +1,7 @@
 import { useEffect, type MutableRefObject } from 'react';
-import type { PhysicsRuntimeRefs } from './types';
-import { syncPhysicsAnimation } from '../../physics';
-import { selectActivePhysicsGraph } from '../../physicsLifecycle/readiness';
+import type { PhysicsRuntimeRefs } from './refs';
+import { syncPhysicsAnimation } from '../../../physics';
+import { selectActivePhysicsGraph } from '../../../physicsLifecycle/readiness';
 
 interface UsePhysicsRuntimePauseOptions extends PhysicsRuntimeRefs {
   graphMode: '2d' | '3d';

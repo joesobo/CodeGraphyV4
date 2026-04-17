@@ -36,15 +36,7 @@ Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   configurable: true,
 });
 
-vi.mock('../../../src/extension/pipeline/database/cache', () => ({
-  clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
-  getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
-  loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
-  readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
-  saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
-}));
-
-vi.mock('../../../src/extension/pipeline/database/cache/index.ts', () => ({
+vi.mock('../../../src/extension/pipeline/database/cache/storage.ts', () => ({
   clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,

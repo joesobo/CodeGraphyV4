@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
-import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache';
+import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
 
 const sourceExamplesRoot = path.resolve(__dirname, '../../../../../examples');
 const tempWorkspaceRoots: string[] = [];

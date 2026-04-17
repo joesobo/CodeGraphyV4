@@ -4,7 +4,7 @@ import {
   createEmptyWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
 } from '../cache';
-import { clearWorkspaceAnalysisDatabaseCache } from '../database/cache';
+import { clearWorkspaceAnalysisDatabaseCache } from '../database/cache/storage';
 
 export interface WorkspacePipelineRebuildDependencies {
   buildGraphDataFromAnalysis(

@@ -24,7 +24,7 @@ import { useDirectional } from '../directional/indicators';
 import { useLabelVisibility } from '../directional/labelVisibility';
 import { useMeshHighlights } from '../directional/meshHighlights';
 import { useNodeAppearance } from '../directional/nodeAppearance';
-import { usePhysicsRuntime } from './physics';
+import { usePhysicsRuntime } from './physics/hook';
 import { usePluginOverlays } from '../../pluginOverlays';
 
 export interface UseGraphRenderingRuntimeOptions {

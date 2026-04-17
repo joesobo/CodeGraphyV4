@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getAccessCountEffects,
   getFileInfoEffects,
-} from '../../../../src/webview/components/graph/messages/fileInfo';
+} from '../../../../src/webview/components/graph/messages/effects/fileInfo';
 import {
   EMPTY_EFFECTS,
   getExportEffects,
@@ -10,7 +10,7 @@ import {
   getGraphRuntimeStateEffects,
   getNodeBoundsEffects,
   getZoomEffects,
-} from '../../../../src/webview/components/graph/messages/graphRuntime';
+} from '../../../../src/webview/components/graph/messages/effects/runtime';
 
 describe('graph/messages/effectBuilders', () => {
   it('exposes the graph message effect helpers from their owning modules', () => {

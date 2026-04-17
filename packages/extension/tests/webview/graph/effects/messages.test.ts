@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { applyWebviewMessageEffects } from '../../../../src/webview/components/graph/effects/messages';
-import type { GraphWebviewMessageEffect } from '../../../../src/webview/components/graph/messages/effects';
+import type { GraphWebviewMessageEffect } from '../../../../src/webview/components/graph/messages/effects/routing';
 
 function createHandlers() {
   return {

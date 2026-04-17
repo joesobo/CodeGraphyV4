@@ -1,6 +1,6 @@
 import type { IFileInfo } from '../../../../shared/files/info';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { GraphWebviewMessageEffect } from '../messages/effects';
+import type { GraphWebviewMessageEffect } from '../messages/effects/routing';
 
 export interface GraphWebviewMessageEffectHandlers {
   fitView(): void;

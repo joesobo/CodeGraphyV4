@@ -42,7 +42,7 @@ vi.mock('../../../../src/webview/components/graph/runtime/use/directional/nodeAp
 	useNodeAppearance: renderingHarness.useNodeAppearance,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/use/graph/physics', () => ({
+vi.mock('../../../../src/webview/components/graph/runtime/use/graph/physics/hook', () => ({
 	usePhysicsRuntime: renderingHarness.usePhysicsRuntime,
 }));
 

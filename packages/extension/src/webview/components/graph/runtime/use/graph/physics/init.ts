@@ -1,8 +1,8 @@
 import { useEffect, type MutableRefObject } from 'react';
-import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
-import { initPhysics, syncPhysicsAnimation } from '../../physics';
-import { resolvePhysicsInitAction } from '../../physicsLifecycle/init';
-import type { PhysicsRuntimeRefs } from './types';
+import type { IPhysicsSettings } from '../../../../../../../shared/settings/physics';
+import { initPhysics, syncPhysicsAnimation } from '../../../physics';
+import { resolvePhysicsInitAction } from '../../../physicsLifecycle/init';
+import type { PhysicsRuntimeRefs } from './refs';
 
 interface UsePhysicsRuntimeInitOptions extends PhysicsRuntimeRefs {
   graphMode: '2d' | '3d';

@@ -3,7 +3,7 @@ import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '../../../core/plugins/types/contracts';
-import type { WorkspaceAnalysisDatabaseSnapshot } from '../../pipeline/database/cache';
+import type { WorkspaceAnalysisDatabaseSnapshot } from '../../pipeline/database/cache/storage';
 import {
   createSymbolExportData,
   normalizeSymbolFilePath,

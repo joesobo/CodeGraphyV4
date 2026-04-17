@@ -6,7 +6,7 @@ import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
-import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache';
+import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache/storage';
 import { dispatchGraphViewPrimaryRouteMessage } from './routed';
 import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 

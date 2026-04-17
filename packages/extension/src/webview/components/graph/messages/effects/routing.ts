@@ -1,7 +1,7 @@
-import type { IFileInfo } from '../../../../shared/files/info';
-import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { FGNode } from '../model/build';
+import type { IFileInfo } from '../../../../../shared/files/info';
+import type { ExtensionToWebviewMessage } from '../../../../../shared/protocol/extensionToWebview';
+import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
+import type { FGNode } from '../../model/build';
 import {
   getAccessCountEffects,
   getFileInfoEffects,
@@ -13,7 +13,7 @@ import {
   getGraphRuntimeStateEffects,
   getNodeBoundsEffects,
   getZoomEffects,
-} from './graphRuntime';
+} from './runtime';
 
 export type GraphWebviewMessageEffect =
   | { kind: 'fitView' }

@@ -3,7 +3,7 @@ import {
   createEmptyWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
 } from '../../cache';
-import { loadWorkspaceAnalysisDatabaseCache } from '../../database/cache';
+import { loadWorkspaceAnalysisDatabaseCache } from '../../database/cache/storage';
 import { readWorkspacePipelineRoot } from '../../serviceAdapters';
 
 export function createWorkspacePipelineInitialCache(
