@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Dispatch, SetStateAction } from 'react';
-import type { FGNode } from '../../../../src/webview/components/graph/model/build';
-import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltipModel';
+import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
+import type { GraphTooltipState } from '../../../../../src/webview/components/graph/tooltipModel';
 import {
   startTooltipTracking,
   stopTooltipTracking,
-} from '../../../../src/webview/components/graph/runtime/tooltip/tracking';
+} from '../../../../../src/webview/components/graph/runtime/tooltip/tracking';
 
 describe('tooltipTracking', () => {
   it('cancels an in-flight animation frame', () => {
