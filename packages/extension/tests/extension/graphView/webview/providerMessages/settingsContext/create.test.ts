@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessageSettingsContext,
-} from '../../../../../src/extension/graphView/webview/providerMessages/settingsContext/context';
-import * as repoSettings from '../../../../../src/extension/repoSettings/current';
+} from '../../../../../../src/extension/graphView/webview/providerMessages/settingsContext/create';
+import * as repoSettings from '../../../../../../src/extension/repoSettings/current';
 
-vi.mock('../../../../../src/extension/repoSettings/current', () => ({
+vi.mock('../../../../../../src/extension/repoSettings/current', () => ({
   getCodeGraphyConfiguration: vi.fn(),
   updateCodeGraphyConfigurationSilently: vi.fn(() => Promise.resolve()),
 }));

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createGraphViewProviderFileTimelineMethodDelegates } from '../../../../../src/extension/graphView/provider/source/fileTimelineDelegates';
-import { createMethodSourceOwnerStub } from './fakes';
+import { createGraphViewProviderFileTimelineMethodDelegates } from '../../../../../../src/extension/graphView/provider/source/delegates/fileTimeline';
+import { createMethodSourceOwnerStub } from '../fakes';
 
-describe('source/fileTimelineDelegates', () => {
+describe('source/delegates/fileTimeline', () => {
   it('forwards file and timeline delegates with their arguments', async () => {
     const owner = createMethodSourceOwnerStub();
     owner._viewContext.focusedFile = 'src/focused.ts';

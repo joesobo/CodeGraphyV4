@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createGraphViewProviderPluginMethodDelegates } from '../../../../../src/extension/graphView/provider/source/pluginDelegates';
+import { createGraphViewProviderPluginMethodDelegates } from '../../../../../../src/extension/graphView/provider/source/delegates/plugin';
 
 function createOwner() {
   const pluginMethods = {
@@ -21,7 +21,7 @@ function createOwner() {
   } as const;
 }
 
-describe('graphView/provider/source/pluginDelegates', () => {
+describe('graphView/provider/source/delegates/plugin', () => {
   it('creates delegates for every plugin method container entry', async () => {
     const owner = createOwner();
     const delegates = createGraphViewProviderPluginMethodDelegates(owner as never);

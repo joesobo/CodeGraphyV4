@@ -1,4 +1,4 @@
-import type { GraphViewProviderMethodSourceOwner } from './contracts';
+import type { GraphViewProviderMethodSourceOwner } from '../contracts';
 import { attachMutableAccessors, attachReadonlyAccessors } from './accessors';
 
 const MUTABLE_STATE_KEYS = [
@@ -47,7 +47,7 @@ const READONLY_STATE_KEYS = [
   string
 >[];
 
-export function createGraphViewProviderMethodStateSource(
+export function createGraphViewProviderMethodStateProjection(
   owner: GraphViewProviderMethodSourceOwner,
 ): Pick<
   GraphViewProviderMethodSourceOwner,

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { createGraphViewProviderMethodStateSource } from '../../../../../src/extension/graphView/provider/source/state';
-import { createMethodSourceOwnerStub } from './fakes';
+import { createGraphViewProviderMethodStateProjection } from '../../../../../../src/extension/graphView/provider/source/state/projection';
+import { createMethodSourceOwnerStub } from '../fakes';
 
-describe('source/state', () => {
+describe('source/state/projection', () => {
   it('exposes live mutable and readonly state through accessors', () => {
     const owner = createMethodSourceOwnerStub();
-    const source = createGraphViewProviderMethodStateSource(owner);
+    const source = createGraphViewProviderMethodStateProjection(owner);
     const nextRegistry = { id: 'next-registry' };
     const mutableOwner = owner as unknown as { _viewRegistry: unknown };
 

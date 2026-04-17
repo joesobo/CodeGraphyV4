@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { attachMutableAccessors, attachReadonlyAccessors } from '../../../../../src/extension/graphView/provider/source/accessors';
+import { attachMutableAccessors, attachReadonlyAccessors } from '../../../../../../src/extension/graphView/provider/source/state/accessors';
 
-describe('source/accessors', () => {
+describe('source/state/accessors', () => {
   it('mirrors mutable owner state through getters and setters', () => {
     const owner = { count: 1 };
     const target = {} as { count: number };

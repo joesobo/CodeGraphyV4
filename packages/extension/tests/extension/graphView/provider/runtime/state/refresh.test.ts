@@ -2,17 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   invalidatePluginFiles,
   invalidateWorkspaceFiles,
-  isGraphViewVisible,
   mergePendingWorkspaceRefresh,
-} from '../../../../../src/extension/graphView/provider/runtime/stateRuntime';
+} from '../../../../../../src/extension/graphView/provider/runtime/state/refresh';
 
-describe('graphView/provider/runtime/stateRuntime', () => {
-  it('detects visibility from the main view or detached panels', () => {
-    expect(isGraphViewVisible({ visible: true } as never, [])).toBe(true);
-    expect(isGraphViewVisible(undefined, [{ visible: true }] as never)).toBe(true);
-    expect(isGraphViewVisible(undefined, [{ visible: false }] as never)).toBe(false);
-  });
-
+describe('graphView/provider/runtime/state/refresh', () => {
   it('delegates invalidation calls when an analyzer exists', () => {
     const analyzer = {
       invalidateWorkspaceFiles: (filePaths: readonly string[]) => [...filePaths, 'workspace'],

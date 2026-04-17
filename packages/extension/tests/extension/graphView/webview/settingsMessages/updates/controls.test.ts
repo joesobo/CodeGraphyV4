@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyGraphControlMessage } from '../../../../../../src/extension/graphView/webview/settingsMessages/updates/graphControls';
+import { applyGraphControlMessage } from '../../../../../../src/extension/graphView/webview/settingsMessages/updates/controls';
 import { createHandlers } from '../testSupport';
 
-describe('settingsMessages/updates/graphControls', () => {
+describe('settingsMessages/updates/controls', () => {
   it('updates graph control config maps and publishes refreshed controls', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(_: string, defaultValue: T): T => (

@@ -1,17 +1,5 @@
-import type * as vscode from 'vscode';
-import type { WorkspacePipeline } from '../../../pipeline/service/lifecycleFacade';
-import type { PendingWorkspaceRefreshState } from './workspaceRefreshPersistence';
-
-export function isGraphViewVisible(
-  view: vscode.WebviewView | undefined,
-  panels: readonly vscode.WebviewPanel[],
-): boolean {
-  if (view?.visible) {
-    return true;
-  }
-
-  return panels.some((panel) => panel.visible);
-}
+import type { WorkspacePipeline } from '../../../../pipeline/service/lifecycleFacade';
+import type { PendingWorkspaceRefreshState } from '../workspaceRefreshPersistence';
 
 export function invalidateWorkspaceFiles(
   analyzer: WorkspacePipeline | undefined,

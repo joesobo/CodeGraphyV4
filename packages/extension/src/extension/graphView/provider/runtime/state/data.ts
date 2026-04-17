@@ -1,13 +1,13 @@
 import type * as vscode from 'vscode';
-import type { IViewContext } from '../../../../core/views/contracts';
-import type { IGraphData } from '../../../../shared/graph/types';
-import type { IGroup } from '../../../../shared/settings/groups';
+import type { IViewContext } from '../../../../../core/views/contracts';
+import type { IGraphData } from '../../../../../shared/graph/types';
+import type { IGroup } from '../../../../../shared/settings/groups';
 import {
   createEmptyGraphData,
   createEmptyGroups,
   createInitialViewContext,
   createStringSet,
-} from '../runtimeDefaults';
+} from '../../runtimeDefaults';
 
 export function createGraphViewProviderRuntimeDataState(): {
   _panels: vscode.WebviewPanel[];

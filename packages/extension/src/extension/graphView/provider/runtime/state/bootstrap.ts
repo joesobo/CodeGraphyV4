@@ -1,12 +1,12 @@
 import type * as vscode from 'vscode';
-import type { IGraphData } from '../../../../shared/graph/types';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
-import type { GraphViewProviderMethodContainers } from '../wiring/methodContainers';
+import type { IGraphData } from '../../../../../shared/graph/types';
+import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
+import type { GraphViewProviderMethodContainers } from '../../wiring/methodContainers';
 import {
   initializeGraphViewProviderRuntimeServices,
   restoreGraphViewProviderRuntimeState,
   type RuntimeBootstrapSource,
-} from '../runtimeBootstrap';
+} from '../../runtimeBootstrap';
 
 type RuntimeBootstrapDependencies = Pick<
   RuntimeBootstrapSource,

@@ -1,4 +1,4 @@
-import type { DagMode } from '../../../../shared/settings/modes';
+import type { DagMode } from '../../../../../shared/settings/modes';
 
 export function createGraphViewProviderRuntimeFlagState(): {
   _analyzerInitialized: boolean;

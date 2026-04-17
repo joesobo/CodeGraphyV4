@@ -1,7 +1,7 @@
 import type {
   GraphViewProviderMethodSource,
   GraphViewProviderMethodSourceOwner,
-} from './contracts';
+} from '../contracts';
 
 export function createGraphViewProviderSettingsMethodDelegates(
   owner: GraphViewProviderMethodSourceOwner,
