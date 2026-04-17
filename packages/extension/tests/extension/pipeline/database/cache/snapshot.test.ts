@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'node:fs';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../../../src/extension/pipeline/database/cache/snapshot';
-import { readRowsSync, withConnection } from '../../../../../src/extension/pipeline/database/cache/connection';
-import { getWorkspaceAnalysisDatabasePath } from '../../../../../src/extension/pipeline/database/cache/paths';
+import { readRowsSync, withConnection } from '../../../../../src/extension/pipeline/database/cache/io/connection';
+import { getWorkspaceAnalysisDatabasePath } from '../../../../../src/extension/pipeline/database/cache/io/paths';
 import {
   createSnapshotFileEntry,
-  createSnapshotRelationEntry,
-  createSnapshotSymbolEntry,
-} from '../../../../../src/extension/pipeline/database/cache/rows';
+} from '../../../../../src/extension/pipeline/database/cache/records/file';
+import { createSnapshotRelationEntry } from '../../../../../src/extension/pipeline/database/cache/relation/entry';
+import { createSnapshotSymbolEntry } from '../../../../../src/extension/pipeline/database/cache/records/symbol';
 import {
   FILE_ANALYSIS_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
-} from '../../../../../src/extension/pipeline/database/cache/queries';
+} from '../../../../../src/extension/pipeline/database/cache/query/read';
 
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>();
@@ -22,21 +22,26 @@ vi.mock('node:fs', async (importOriginal) => {
   };
 });
 
-vi.mock('../../../../../src/extension/pipeline/database/cache/connection', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/io/connection', () => ({
   readRowsSync: vi.fn(),
   withConnection: vi.fn(),
 }));
 
-vi.mock('../../../../../src/extension/pipeline/database/cache/paths', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/io/paths', () => ({
   getWorkspaceAnalysisDatabasePath: vi.fn(),
 }));
 
-vi.mock('../../../../../src/extension/pipeline/database/cache/rows', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/records/file', () => ({
   createSnapshotFileEntry: vi.fn(),
-  createSnapshotRelationEntry: vi.fn(),
-  createSnapshotSymbolEntry: vi.fn(),
 }));
 
+vi.mock('../../../../../src/extension/pipeline/database/cache/relation/entry', () => ({
+  createSnapshotRelationEntry: vi.fn(),
+}));
+
+vi.mock('../../../../../src/extension/pipeline/database/cache/records/symbol', () => ({
+  createSnapshotSymbolEntry: vi.fn(),
+}));
 describe('pipeline/database/cache/snapshot', () => {
   beforeEach(() => {
     vi.clearAllMocks();

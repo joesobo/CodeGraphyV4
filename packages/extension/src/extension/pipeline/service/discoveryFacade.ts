@@ -3,16 +3,16 @@ import type { IProjectedConnection } from '../../../core/plugins/types/contracts
 import type { IGraphData } from '../../../shared/graph/contracts';
 import { getWorkspacePipelinePluginFilterPatterns, initializeWorkspacePipeline } from '../plugins/bootstrap';
 import type { WorkspacePipelineSourceOwner } from '../analysisSource';
-import { WorkspacePipelineInternalBase } from './internalBase';
+import { WorkspacePipelineInternalBase } from './base/internal';
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
-} from './discovery';
+} from './runtime/discovery';
 import { hasWorkspacePipelineIndex } from './cache/index';
 import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
-} from './run';
+} from './runtime/run';
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   async initialize(): Promise<void> {

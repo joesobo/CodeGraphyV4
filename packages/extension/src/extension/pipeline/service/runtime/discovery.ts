@@ -1,12 +1,12 @@
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { FileDiscovery } from '../../../core/discovery/file/service';
+import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import type { FileDiscovery } from '../../../../core/discovery/file/service';
 import {
   discoverWorkspacePipelineFiles,
   formatWorkspacePipelineLimitReachedMessage,
   type WorkspacePipelineDiscoveryConfig,
   type WorkspacePipelineDiscoveryDependencies,
   type WorkspacePipelineDiscoveryResult,
-} from '../discovery';
+} from '../../discovery';
 
 export function createWorkspacePipelineDiscoveryDependencies(
   discovery: Pick<FileDiscovery, 'discover'>,

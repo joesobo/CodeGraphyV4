@@ -2,18 +2,18 @@ import * as vscode from 'vscode';
 import type {
   IProjectedConnection,
   IFileAnalysisResult,
-} from '../../../core/plugins/types/contracts';
-import { PluginRegistry } from '../../../core/plugins/registry/manager';
-import { FileDiscovery } from '../../../core/discovery/file/service';
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import { Configuration } from '../../config/reader';
-import { EventBus } from '../../../core/plugins/events/bus';
-import type { IWorkspaceAnalysisCache } from '../cache';
+} from '../../../../core/plugins/types/contracts';
+import { PluginRegistry } from '../../../../core/plugins/registry/manager';
+import { FileDiscovery } from '../../../../core/discovery/file/service';
+import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import { Configuration } from '../../../config/reader';
+import { EventBus } from '../../../../core/plugins/events/bus';
+import type { IWorkspaceAnalysisCache } from '../../cache';
 import {
   readWorkspaceAnalysisDatabaseSnapshot,
   type WorkspaceAnalysisDatabaseSnapshot,
-} from '../database/cache/storage';
-import { createWorkspacePipelineInitialCache } from './cache/initialState';
+} from '../../database/cache/storage';
+import { createWorkspacePipelineInitialCache } from '../cache/initialState';
 
 export abstract class WorkspacePipelineStateBase {
   protected readonly _config: Configuration;

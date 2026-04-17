@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
-import { refreshWorkspacePipelineChangedFiles } from '../../../../src/extension/pipeline/service/refresh';
+import type { IFileAnalysisResult } from '../../../../../src/core/plugins/types/contracts';
+import { refreshWorkspacePipelineChangedFiles } from '../../../../../src/extension/pipeline/service/runtime/refresh';
 
 function createSource() {
   return {

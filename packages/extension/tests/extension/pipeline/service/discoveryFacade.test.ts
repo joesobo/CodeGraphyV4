@@ -9,7 +9,7 @@ import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
-} from '../../../../src/extension/pipeline/service/discovery';
+} from '../../../../src/extension/pipeline/service/runtime/discovery';
 import {
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
@@ -18,9 +18,9 @@ import { hasWorkspacePipelineIndex } from '../../../../src/extension/pipeline/se
 import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
-} from '../../../../src/extension/pipeline/service/run';
+} from '../../../../src/extension/pipeline/service/runtime/run';
 
-vi.mock('../../../../src/extension/pipeline/service/discovery', () => ({
+vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
   createWorkspacePipelineDiscoveryDependencies: vi.fn(),
   discoverWorkspacePipelineFilesWithWarnings: vi.fn(),
 }));
@@ -34,7 +34,7 @@ vi.mock('../../../../src/extension/pipeline/service/cache/index', () => ({
   hasWorkspacePipelineIndex: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/run', () => ({
+vi.mock('../../../../src/extension/pipeline/service/runtime/run', () => ({
   analyzeWorkspacePipeline: vi.fn(),
   rebuildWorkspacePipelineGraph: vi.fn(),
 }));

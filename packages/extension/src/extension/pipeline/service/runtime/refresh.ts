@@ -1,15 +1,15 @@
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
+import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
 import type {
   IFileAnalysisResult,
   IProjectedConnection,
-} from '../../../core/plugins/types/contracts';
-import type { IGraphData } from '../../../shared/graph/contracts';
-import type { IWorkspaceFileAnalysisResult } from '../fileAnalysis';
+} from '../../../../core/plugins/types/contracts';
+import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import {
   mapDiscoveredWorkspaceFilesByRelativePath,
   mergeDiscoveredWorkspaceFiles,
   selectDiscoveredWorkspaceFiles,
-} from './cache/changedFiles';
+} from '../cache/changedFiles';
 
 interface WorkspacePipelineRefreshSource {
   _analyzeFiles(
