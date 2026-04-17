@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   persistAnalysisEntry,
   sortedCacheEntries,
-} from '../../../../src/extension/pipeline/database/cacheWriteStatements';
-import * as cacheConnectionModule from '../../../../src/extension/pipeline/database/cacheConnection';
-import * as relationStatementModule from '../../../../src/extension/pipeline/database/cacheRelationStatement';
+} from '../../../../src/extension/pipeline/database/cache/writeStatements';
+import * as cacheConnectionModule from '../../../../src/extension/pipeline/database/cache/connection';
+import * as relationStatementModule from '../../../../src/extension/pipeline/database/cache/relationStatement';
 
-describe('extension/pipeline/database/cacheWriteStatements', () => {
+describe('extension/pipeline/database/cache/writeStatements', () => {
   it('sorts cache entries by file path', () => {
     const entries = sortedCacheEntries({
       files: {

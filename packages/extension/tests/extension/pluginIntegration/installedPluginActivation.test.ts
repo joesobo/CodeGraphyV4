@@ -53,7 +53,7 @@ vi.mock('../../../src/extension/pipeline/database/cache', () => ({
   saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
 }));
 
-vi.mock('../../../src/extension/pipeline/database/cache.ts', () => ({
+vi.mock('../../../src/extension/pipeline/database/cache/index.ts', () => ({
   clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,

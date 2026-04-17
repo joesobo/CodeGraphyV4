@@ -10,7 +10,7 @@ import { DepthModeToggle } from './DepthModeToggle';
 import { DagModeToggle } from './DagModeToggle';
 import { DimensionToggle } from './DimensionToggle';
 import { NodeSizeToggle } from './NodeSizeToggle';
-import { ToolbarActions } from './Actions';
+import { ToolbarActions } from './actions/view';
 import type { WebviewPluginHost } from '../../pluginHost/manager';
 import { SlotHost } from '../../pluginHost/slotHost/view';
 

@@ -1,5 +1,5 @@
-import { affectsSettingsConfiguration } from './storeAffectsConfiguration';
-import type { ICodeGraphySettingsChangeEvent } from './store';
+import { affectsSettingsConfiguration } from './affectsConfiguration';
+import type { ICodeGraphySettingsChangeEvent } from './index';
 
 export function createChangeEvent(changedKeys: string[]): ICodeGraphySettingsChangeEvent {
   const uniqueChangedKeys = Array.from(new Set(changedKeys));

@@ -4,14 +4,14 @@ import {
   readRowsSync,
   runStatementSync,
   withConnection,
-} from '../../../../src/extension/pipeline/database/cacheConnection';
+} from '../../../../src/extension/pipeline/database/cache/connection';
 
 vi.mock('@ladybugdb/core', () => ({
   Connection: vi.fn(),
   Database: vi.fn(),
 }));
 
-describe('pipeline/database/cacheConnection', () => {
+describe('pipeline/database/cache/connection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

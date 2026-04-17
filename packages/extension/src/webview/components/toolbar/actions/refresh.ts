@@ -1,6 +1,6 @@
 import type React from 'react';
-import { graphStore } from '../../store/state';
-import { postMessage } from '../../vscodeApi';
+import { graphStore } from '../../../store/state';
+import { postMessage } from '../../../vscodeApi';
 
 export interface ToolbarRefreshConfig {
   phase: string;

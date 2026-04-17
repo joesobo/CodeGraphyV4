@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultCodeGraphyRepoSettings } from '../../../src/extension/repoSettings/defaults';
-import { serializeSettings } from '../../../src/extension/repoSettings/storeSerialization';
+import { serializeSettings } from '../../../src/extension/repoSettings/store/serialization';
 
 type LegacySettingsShape = ReturnType<typeof createDefaultCodeGraphyRepoSettings> & {
   exclude?: string[];
@@ -8,7 +8,7 @@ type LegacySettingsShape = ReturnType<typeof createDefaultCodeGraphyRepoSettings
   nodeColors?: unknown;
 };
 
-describe('extension/repoSettings/storeSerialization', () => {
+describe('extension/repoSettings/store/serialization', () => {
   it('removes legacy fields and backfills folder node colors into nodeColors', () => {
     const settings: LegacySettingsShape = createDefaultCodeGraphyRepoSettings();
     settings.exclude = ['legacy'];

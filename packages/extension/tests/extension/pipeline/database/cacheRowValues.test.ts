@@ -4,9 +4,9 @@ import {
   readOptionalNumber,
   readOptionalString,
   readRequiredString,
-} from '../../../../src/extension/pipeline/database/cacheRowValues';
+} from '../../../../src/extension/pipeline/database/cache/rowValues';
 
-describe('pipeline/database/cacheRowValues', () => {
+describe('pipeline/database/cache/rowValues', () => {
   it('parses optional JSON strings and drops nullish or empty values', () => {
     expect(parseOptionalJson<{ path: string }>('{"path":"src/app.ts"}')).toEqual({
       path: 'src/app.ts',

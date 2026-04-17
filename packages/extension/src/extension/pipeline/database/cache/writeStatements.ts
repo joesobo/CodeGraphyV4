@@ -1,8 +1,8 @@
 import type * as lb from '@ladybugdb/core';
-import type { IAnalysisSymbol } from '../../../core/plugins/types/contracts';
-import type { IWorkspaceAnalysisCache } from '../cache';
-import { runStatementSync } from './cacheConnection';
-import { createRelationStatement } from './cacheRelationStatement';
+import type { IAnalysisSymbol } from '../../../../core/plugins/types/contracts';
+import type { IWorkspaceAnalysisCache } from '../../cache';
+import { runStatementSync } from './connection';
+import { createRelationStatement } from './relationStatement';
 
 function escapeCypherString(value: string): string {
   return JSON.stringify(value);

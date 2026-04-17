@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { affectsSettingsConfiguration } from '../../../src/extension/repoSettings/storeAffectsConfiguration';
+import { affectsSettingsConfiguration } from '../../../src/extension/repoSettings/store/affectsConfiguration';
 
-describe('extension/repoSettings/storeAffectsConfiguration', () => {
+describe('extension/repoSettings/store/affectsConfiguration', () => {
   it('always matches the root codegraphy section', () => {
     expect(affectsSettingsConfiguration([], 'codegraphy')).toBe(true);
   });

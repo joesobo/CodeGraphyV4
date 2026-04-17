@@ -3,21 +3,21 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '../../../core/plugins/types/contracts';
-import { readRowsSync, withConnection } from './cacheConnection';
-import { getWorkspaceAnalysisDatabasePath } from './cachePaths';
+} from '../../../../core/plugins/types/contracts';
+import { readRowsSync, withConnection } from './connection';
+import { getWorkspaceAnalysisDatabasePath } from './paths';
 import {
   createSnapshotFileEntry,
   createSnapshotRelationEntry,
   createSnapshotSymbolEntry,
   type RelationRow,
   type SymbolRow,
-} from './cacheRows';
+} from './rows';
 import {
   FILE_ANALYSIS_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
-} from './cacheStatements';
+} from './statements';
 
 export interface WorkspaceAnalysisDatabaseSnapshot {
   files: Array<{

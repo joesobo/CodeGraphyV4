@@ -3,20 +3,20 @@ import * as path from 'node:path';
 import {
   createDefaultCodeGraphyRepoSettings,
   type ICodeGraphyRepoSettings,
-} from './defaults';
-import { createChangeEvent } from './storeChangeEvent';
+} from '../defaults';
+import { createChangeEvent } from './changeEvent';
 import {
   ensureGitIgnoreContainsCodeGraphyEntry,
   SETTINGS_DIR_NAME,
   SETTINGS_FILE_NAME,
-} from './storeFilesystem';
+} from './filesystem';
 import {
   createUpdatedSettings,
   readSettingsFromDisk,
   reloadSettingsFromDisk,
   writeSettingsToDisk,
-} from './storeState';
-import { getNestedValue, hasNestedValue } from './storeValues';
+} from './state';
+import { getNestedValue, hasNestedValue } from './values';
 
 export interface ICodeGraphySettingsInspect<T> {
   defaultValue?: T;

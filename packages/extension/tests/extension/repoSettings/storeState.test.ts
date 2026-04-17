@@ -8,8 +8,8 @@ import {
   readSettingsFromDisk,
   reloadSettingsFromDisk,
   writeSettingsToDisk,
-} from '../../../src/extension/repoSettings/storeState';
-import { serializeSettings } from '../../../src/extension/repoSettings/storeSerialization';
+} from '../../../src/extension/repoSettings/store/state';
+import { serializeSettings } from '../../../src/extension/repoSettings/store/serialization';
 
 vi.mock('node:fs', async () => {
   const actual = await vi.importActual<typeof import('node:fs')>('node:fs');
@@ -25,7 +25,7 @@ function createTempSettingsPath(): string {
   return path.join(workspaceRoot, '.codegraphy', 'settings.json');
 }
 
-describe('extension/repoSettings/storeState', () => {
+describe('extension/repoSettings/store/state', () => {
   const tempDirectories: string[] = [];
 
   afterEach(() => {

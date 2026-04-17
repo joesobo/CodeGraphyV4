@@ -4,7 +4,7 @@ import {
   clearPendingIndexTimeout,
   createRefreshConfig,
   requestGraphIndex,
-} from '../../../src/webview/components/toolbar/refresh';
+} from '../../../src/webview/components/toolbar/actions/refresh';
 
 vi.mock('../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),

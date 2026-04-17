@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createSnapshotFileEntry } from '../../../../src/extension/pipeline/database/cacheFileEntry';
+import { createSnapshotFileEntry } from '../../../../src/extension/pipeline/database/cache/fileEntry';
 
-describe('extension/pipeline/database/cacheFileEntry', () => {
+describe('extension/pipeline/database/cache/fileEntry', () => {
   it('creates a snapshot entry from valid persisted values', () => {
     expect(createSnapshotFileEntry({
       filePath: 'src/app.ts',

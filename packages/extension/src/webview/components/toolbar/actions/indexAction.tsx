@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { mdiAutorenew } from '@mdi/js';
-import { ToolbarIconButton } from './IconButton';
+import { ToolbarIconButton } from '../IconButton';
 import {
   clearPendingIndexTimeout,
   createRefreshConfig,
