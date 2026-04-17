@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../../src/shared/fileColors';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
@@ -7,7 +7,7 @@ import {
   getDepthSizeMultiplier,
   getNodeType,
   resolveDirectionColor,
-} from '../../../../src/webview/components/graph/model/node/display';
+} from '../../../../../src/webview/components/graph/model/node/display';
 
 describe('graph/model/node/display', () => {
   it('exports the public sizing and favorite border constants', () => {

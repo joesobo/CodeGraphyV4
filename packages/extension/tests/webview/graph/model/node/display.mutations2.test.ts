@@ -3,8 +3,8 @@ import {
   resolveDirectionColor,
   getDepthOpacity,
   getDepthSizeMultiplier,
-} from '../../../../src/webview/components/graph/model/node/display';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+} from '../../../../../src/webview/components/graph/model/node/display';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../../src/shared/fileColors';
 
 describe('nodeDisplay (mutation kill tests)', () => {
   /**

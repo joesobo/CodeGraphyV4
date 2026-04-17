@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateNodeSizes, toD3Repel } from '../../../../src/webview/components/graph/model/node/sizing';
+import { calculateNodeSizes, toD3Repel } from '../../../../../src/webview/components/graph/model/node/sizing';
 
 describe('graph/model/node/sizing', () => {
   it('maps normalized repel force to the d3 force range', () => {

@@ -11,8 +11,8 @@ import { useTimelineCleanup } from './cleanup';
 import { useTimelineCommitSync } from './commitSync';
 import { useTimelineNavigation } from './navigation';
 import { useTimelinePlaybackAnimation } from './playbackAnimation';
-import { useTimelineScrub } from './trackScrub';
-import { useTimelineTrackElement } from './trackElement';
+import { useTimelineScrub } from './track/scrub';
+import { useTimelineTrackElement } from './track/element';
 
 export interface UseTimelineControllerOptions {
   currentCommitSha: string | null;
