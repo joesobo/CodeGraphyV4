@@ -2,9 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as vscode from 'vscode';
 import {
   registerEditorChangeHandler,
-  registerSaveHandler,
+} from '../../../src/extension/workspaceFiles/editorSync';
+import {
   registerFileWatcher,
-} from '../../../src/extension/workspaceFiles/register';
+  registerSaveHandler,
+} from '../../../src/extension/workspaceFiles/refresh/watchers';
 
 function makeProvider() {
   return {

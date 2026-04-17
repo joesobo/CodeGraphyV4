@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
-import Graph from '../../../../src/webview/components/Graph';
+import Graph from '../../../../src/webview/components/graph/view';
 import type { IGraphData } from '../../../../src/shared/graph/types';
 import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../src/webview/store/state';

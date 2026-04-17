@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessageSettingsContext,
-} from '../../../../../src/extension/graphView/webview/providerMessages/settingsContext';
+} from '../../../../../src/extension/graphView/webview/providerMessages/settingsContext/context';
 import * as repoSettings from '../../../../../src/extension/repoSettings/current';
 
 vi.mock('../../../../../src/extension/repoSettings/current', () => ({

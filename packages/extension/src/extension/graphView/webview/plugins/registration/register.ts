@@ -1,13 +1,13 @@
 import type * as vscode from 'vscode';
-import type { IPlugin } from '../../../../core/plugins/types/contracts';
-import { runExternalPluginRegistrationFollowUp, sendExternalPluginRegistrationUpdates } from './registration/followUp';
+import type { IPlugin } from '../../../../../core/plugins/types/contracts';
+import { runExternalPluginRegistrationFollowUp, sendExternalPluginRegistrationUpdates } from './followUp';
 import {
   getExternalPluginId,
   initializeExternalPlugin,
   registerExternalPlugin,
   shouldDeferExternalPluginReadinessReplay,
   storeExternalPluginExtensionUri,
-} from './registration/state';
+} from './state';
 
 interface GraphViewPluginRegistry {
   register(plugin: IPlugin, options: { deferReadinessReplay: boolean }): void;

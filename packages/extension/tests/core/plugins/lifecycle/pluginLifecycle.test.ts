@@ -1,14 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  notifyWorkspaceReady,
-  notifyPreAnalyze,
   notifyFilesChanged,
-  notifyPostAnalyze,
+} from '../../../../src/core/plugins/lifecycle/notify/filesChanged';
+import {
   notifyGraphRebuild,
+  notifyPostAnalyze,
+  notifyPreAnalyze,
+} from '../../../../src/core/plugins/lifecycle/notify/analysis';
+import {
   notifyWebviewReady,
   notifyWorkspaceReadyForPlugin,
   notifyWebviewReadyForPlugin,
-} from '../../../../src/core/plugins/lifecycle/notify';
+  notifyWorkspaceReady,
+} from '../../../../src/core/plugins/lifecycle/notify/readiness';
 import { initializeAll, initializePlugin } from '../../../../src/core/plugins/lifecycle/initialize';
 import { replayReadinessForPlugin } from '../../../../src/core/plugins/lifecycle/replay';
 import type { IPlugin } from '../../../../src/core/plugins/types/contracts';

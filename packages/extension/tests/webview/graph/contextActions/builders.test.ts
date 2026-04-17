@@ -2,17 +2,19 @@ import { describe, expect, it } from 'vitest';
 import {
   createClipboardEffects,
   createCreateFileEffects,
-  createFitViewEffects,
-  createFocusEffects,
-  createLegendPromptEffects,
-  createOpenFileEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
   createPatternMessageEffects,
-  createPatternPromptEffects,
   createRefreshEffects,
-} from '../../../../src/webview/components/graph/contextActions/builders';
+} from '../../../../src/webview/components/graph/contextActions/messages';
+import {
+  createFitViewEffects,
+  createFocusEffects,
+  createLegendPromptEffects,
+  createOpenFileEffects,
+  createPatternPromptEffects,
+} from '../../../../src/webview/components/graph/contextActions/prompts';
 
 describe('graph/contextActions/builders', () => {
   it('builds open-file and focus effects', () => {

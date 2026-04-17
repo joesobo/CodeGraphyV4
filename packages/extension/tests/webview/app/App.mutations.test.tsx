@@ -20,7 +20,7 @@ const harness = vi.hoisted(() => ({
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];
 
-vi.mock('../../../src/webview/components/Graph', () => ({
+vi.mock('../../../src/webview/components/graph/view', () => ({
   default: (props: Record<string, unknown>) => {
     harness.graphProps = props;
     const data = props.data as { nodes: Array<{ id: string }>; edges: Array<{ id: string }> };
@@ -59,7 +59,7 @@ vi.mock('../../../src/webview/components/plugins/Panel', () => ({
   },
 }));
 
-vi.mock('../../../src/webview/components/Toolbar', () => ({
+vi.mock('../../../src/webview/components/toolbar/view', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 

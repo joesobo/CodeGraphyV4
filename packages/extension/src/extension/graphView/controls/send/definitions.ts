@@ -6,7 +6,7 @@ import type {
 import {
   CORE_GRAPH_EDGE_TYPES,
   CORE_GRAPH_NODE_TYPES,
-} from '../../../../shared/graphControls/defaults';
+} from '../../../../shared/graphControls/defaults/definitions';
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   normalizeHexColor,

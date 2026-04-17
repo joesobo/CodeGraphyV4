@@ -4,11 +4,8 @@ import { registerConfigHandler } from './config/listener';
 import { initializeCurrentCodeGraphyConfiguration } from './repoSettings/current';
 import { registerCommands } from './commands/register';
 import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed';
-import {
-  registerEditorChangeHandler,
-  registerFileWatcher,
-  registerSaveHandler,
-} from './workspaceFiles/register';
+import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
+import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
 import type { IGraphData } from '../shared/graph/types';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 

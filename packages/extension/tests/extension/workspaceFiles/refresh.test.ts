@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   registerFileWatcher,
   registerSaveHandler,
-  scheduleWorkspaceRefresh,
-} from '../../../src/extension/workspaceFiles/refresh';
+} from '../../../src/extension/workspaceFiles/refresh/watchers';
+import { scheduleWorkspaceRefresh } from '../../../src/extension/workspaceFiles/refresh/scheduler';
 
 function makeProvider() {
   return {

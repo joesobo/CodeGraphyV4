@@ -90,3 +90,5 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
     this._registry.disposeAll();
   }
 }
+
+export { WorkspacePipelineLifecycleFacade as WorkspacePipeline };

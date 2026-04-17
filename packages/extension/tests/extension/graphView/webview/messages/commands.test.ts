@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyCommandMessage } from '../../../../../src/extension/graphView/webview/messages/commands';
+import { applyCommandMessage } from '../../../../../src/extension/graphView/webview/messages/commands/dispatch';
 
 function createHandlers() {
   return {

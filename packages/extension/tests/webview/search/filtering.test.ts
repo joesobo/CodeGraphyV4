@@ -3,10 +3,10 @@ import { DEFAULT_NODE_COLOR } from '../../../src/shared/fileColors';
 import type { IGraphData } from '../../../src/shared/graph/types';
 import type { IGroup } from '../../../src/shared/settings/groups';
 import {
-  applyFilterPatterns,
   applyLegendRules,
-  filterGraphData,
-} from '../../../src/webview/search/filtering';
+} from '../../../src/webview/search/filtering/rules';
+import { applyFilterPatterns } from '../../../src/webview/search/filtering/patterns';
+import { filterGraphData } from '../../../src/webview/search/filtering/search';
 
 const graphData: IGraphData = {
   nodes: [

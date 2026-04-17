@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import type { EventName, EventPayloads } from '../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/plugins/registration';
+import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/plugins/registration/register';
 import { dispatchGraphViewProviderMessage } from '../../webview/providerMessages/dispatch';
 import type { GraphViewProviderMethodContainers } from './methodContainers';
 import type { GraphViewProviderMessageListenerSource } from '../../webview/providerMessages/listener';

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   appendEdgeSourceLines,
-  appendLegendLines,
-  appendNodeLines,
-} from '../../../../src/webview/export/markdown/entries';
+} from '../../../../src/webview/export/markdown/edgeEntries';
+import { appendLegendLines } from '../../../../src/webview/export/markdown/legendEntries';
+import { appendNodeLines } from '../../../../src/webview/export/markdown/nodeEntries';
 import type { ExportData } from '../../../../src/webview/export/shared/contracts';
 
 function createExportData(overrides: Partial<ExportData> = {}): ExportData {

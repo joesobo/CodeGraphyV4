@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-  WORKSPACE_PACKAGE_NODE_ID_PREFIX,
   buildWorkspacePackageEdges,
-  collectWorkspacePackageRoots,
-  createWorkspacePackageNodes,
-} from '../../../src/shared/graphControls/packages';
+} from '../../../src/shared/graphControls/packages/edges';
+import { createWorkspacePackageNodes } from '../../../src/shared/graphControls/packages/nodes';
+import { collectWorkspacePackageRoots } from '../../../src/shared/graphControls/packages/roots';
+import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../src/shared/graphControls/packages/shared';
 
 describe('shared/graphControls/packages', () => {
   it('collects root and nested workspace package roots from package.json files', () => {

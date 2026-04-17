@@ -1,5 +1,5 @@
 import type { IGraphData } from '../../graph/types';
-import { STRUCTURAL_NESTS_EDGE_KIND } from '../defaults';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../defaults/definitions';
 
 export function buildContainmentEdges(
   folderPaths: Set<string>,

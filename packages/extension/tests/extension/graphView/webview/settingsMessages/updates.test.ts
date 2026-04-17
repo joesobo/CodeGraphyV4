@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   applySettingsUpdateMessage,
-} from '../../../../../src/extension/graphView/webview/settingsMessages/updates';
+} from '../../../../../src/extension/graphView/webview/settingsMessages/updates/apply';
 import { createHandlers, createState } from './testSupport';
 
 describe('graph view settings update message', () => {

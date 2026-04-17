@@ -1,15 +1,15 @@
 import {
-  buildContainmentEdges,
   collectFolderPaths,
   createFolderNodes,
-} from '../../../shared/graphControls/nests';
+} from '../../../shared/graphControls/nests/folders';
+import { buildContainmentEdges } from '../../../shared/graphControls/nests/edges';
 import {
-  buildWorkspacePackageEdges,
   collectWorkspacePackageRoots,
-  createWorkspacePackageNodes,
-} from '../../../shared/graphControls/packages';
+} from '../../../shared/graphControls/packages/roots';
+import { createWorkspacePackageNodes } from '../../../shared/graphControls/packages/nodes';
+import { buildWorkspacePackageEdges } from '../../../shared/graphControls/packages/edges';
 import type { IGraphData, IGraphNode } from '../../../shared/graph/types';
-import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../shared/graphControls/defaults';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../shared/graphControls/defaults/definitions';
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_PACKAGE_NODE_COLOR,

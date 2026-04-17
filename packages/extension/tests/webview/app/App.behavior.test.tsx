@@ -15,7 +15,7 @@ const harness = vi.hoisted(() => ({
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];
 
-vi.mock('../../../src/webview/components/Graph', () => ({
+vi.mock('../../../src/webview/components/graph/view', () => ({
   default: (props: Record<string, unknown>) => {
     harness.graphRenderCount += 1;
     harness.graphProps = props;
@@ -56,11 +56,11 @@ vi.mock('../../../src/webview/components/plugins/Panel', () => ({
     isOpen ? <button data-testid="plugins-panel" onClick={onClose}>Close Plugins</button> : null,
 }));
 
-vi.mock('../../../src/webview/components/Timeline', () => ({
+vi.mock('../../../src/webview/components/timeline/panel', () => ({
   default: () => <div data-testid="timeline" />,
 }));
 
-vi.mock('../../../src/webview/components/Toolbar', () => ({
+vi.mock('../../../src/webview/components/toolbar/view', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 

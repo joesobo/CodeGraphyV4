@@ -1,13 +1,13 @@
-import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,
-} from './router';
-import { applySimpleSettingsUpdate } from './updates/simple';
-import { applyFilterPatternsUpdate } from './updates/filterPatterns';
-import { applyShowLabelsUpdate } from './updates/labels';
-import { applyPluginOrderUpdate } from './updates/pluginOrder';
-import { applyGraphControlMessage } from './updates/graphControls';
+} from '../router';
+import { applySimpleSettingsUpdate } from './simple';
+import { applyFilterPatternsUpdate } from './filterPatterns';
+import { applyShowLabelsUpdate } from './labels';
+import { applyPluginOrderUpdate } from './pluginOrder';
+import { applyGraphControlMessage } from './graphControls';
 
 export async function applySettingsUpdateMessage(
   message: WebviewToExtensionMessage,

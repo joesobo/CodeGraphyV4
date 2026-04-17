@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ToolbarRail } from '../../../src/webview/app/ToolbarRail';
 
-vi.mock('../../../src/webview/components/Toolbar', () => ({
+vi.mock('../../../src/webview/components/toolbar/view', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 

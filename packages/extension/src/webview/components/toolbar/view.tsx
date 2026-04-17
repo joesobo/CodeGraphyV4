@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
-import { TooltipProvider } from './ui/overlay/tooltip';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/overlay/tooltip';
-import { Button } from './ui/button';
-import { MdiIcon } from './icons/MdiIcon';
-import { cn } from './ui/cn';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/disclosure/collapsible';
-import { DepthModeToggle } from './toolbar/DepthModeToggle';
-import { DagModeToggle } from './toolbar/DagModeToggle';
-import { DimensionToggle } from './toolbar/DimensionToggle';
-import { NodeSizeToggle } from './toolbar/NodeSizeToggle';
-import { ToolbarActions } from './toolbar/Actions';
-import type { WebviewPluginHost } from '../pluginHost/manager';
-import { SlotHost } from '../pluginHost/slotHost/view';
+import { TooltipProvider } from '../ui/overlay/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/overlay/tooltip';
+import { Button } from '../ui/button';
+import { MdiIcon } from '../icons/MdiIcon';
+import { cn } from '../ui/cn';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/disclosure/collapsible';
+import { DepthModeToggle } from './DepthModeToggle';
+import { DagModeToggle } from './DagModeToggle';
+import { DimensionToggle } from './DimensionToggle';
+import { NodeSizeToggle } from './NodeSizeToggle';
+import { ToolbarActions } from './Actions';
+import type { WebviewPluginHost } from '../../pluginHost/manager';
+import { SlotHost } from '../../pluginHost/slotHost/view';
 
 interface ToolbarProps {
   pluginHost?: WebviewPluginHost;

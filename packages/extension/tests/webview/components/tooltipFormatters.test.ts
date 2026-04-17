@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { formatSize, formatRelativeTime } from '../../../src/webview/components/tooltipFormatters';
+import { formatSize, formatRelativeTime } from '../../../src/webview/components/nodeTooltip/formatters';
 
 describe('formatSize', () => {
   it('formats bytes below 1 KB as "N B"', () => {

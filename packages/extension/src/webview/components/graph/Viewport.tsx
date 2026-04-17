@@ -9,7 +9,7 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from '../ui/context/menu';
-import { NodeTooltip } from '../NodeTooltip';
+import { NodeTooltip } from '../nodeTooltip/view';
 import type {
   GraphContextMenuAction,
   GraphContextMenuEntry,

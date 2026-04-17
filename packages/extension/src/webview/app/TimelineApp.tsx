@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import Timeline from '../components/Timeline';
+import Timeline from '../components/timeline/panel';
 import { usePluginManager } from '../pluginRuntime/useManager';
 import { setupMessageListener } from './messageListener';
 

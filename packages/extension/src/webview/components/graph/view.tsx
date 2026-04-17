@@ -5,25 +5,25 @@
  */
 
 import React from 'react';
-import type { IGraphData } from '../../shared/graph/types';
-import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
+import type { IGraphData } from '../../../shared/graph/types';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../shared/plugins/decorations';
 import {
   useGraphAutoFit,
-} from './graph/autoFit';
-import { getGraphNavigator, getGraphWindow } from './graph/browser';
-import { buildGraphCallbackOptions } from './graph/callbackOptions';
-import { useGraphDebugApi } from './graph/useDebugApi';
-import { buildGraphDebugOptions } from './graph/debugOptions';
-import { buildGraphLayoutKey } from './graph/layoutKey';
-import { detectMacPlatform } from './graph/platform';
-import { useGraphViewStoreState } from './graph/store';
-import { useGraphCallbacks } from './graph/rendering/useGraphCallbacks';
-import { useGraphInteractionRuntime } from './graph/runtime/use/graph/interaction';
-import { useGraphState } from './graph/runtime/use/graph/state';
-import { isPhysicsGraphReady, selectActivePhysicsGraph } from './graph/runtime/physicsLifecycle';
-import { GraphViewportShell } from './graph/viewport/shell';
-import { ThemeKind } from '../theme/useTheme';
-import type { WebviewPluginHost } from '../pluginHost/manager';
+} from './autoFit';
+import { getGraphNavigator, getGraphWindow } from './browser';
+import { buildGraphCallbackOptions } from './callbackOptions';
+import { useGraphDebugApi } from './useDebugApi';
+import { buildGraphDebugOptions } from './debugOptions';
+import { buildGraphLayoutKey } from './layoutKey';
+import { detectMacPlatform } from './platform';
+import { useGraphViewStoreState } from './store';
+import { useGraphCallbacks } from './rendering/useGraphCallbacks';
+import { useGraphInteractionRuntime } from './runtime/use/graph/interaction';
+import { useGraphState } from './runtime/use/graph/state';
+import { isPhysicsGraphReady, selectActivePhysicsGraph } from './runtime/physicsLifecycle/readiness';
+import { GraphViewportShell } from './viewport/shell';
+import { ThemeKind } from '../../theme/useTheme';
+import type { WebviewPluginHost } from '../../pluginHost/manager';
 
 interface GraphProps {
   data: IGraphData;

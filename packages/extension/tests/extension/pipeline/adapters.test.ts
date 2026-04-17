@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import path from 'path';
 import * as vscode from 'vscode';
 import type { IProjectedConnection, IFileAnalysisResult, IPlugin } from '../../../src/core/plugins/types/contracts';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import * as workspaceFileAnalysisModule from '../../../src/extension/pipeline/fileAnalysis';
 
 let workspaceFoldersValue:

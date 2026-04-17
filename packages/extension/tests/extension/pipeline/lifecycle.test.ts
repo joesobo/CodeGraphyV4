@@ -11,7 +11,7 @@ import {
   saveWorkspaceAnalysisDatabaseCache,
 } from '../../../src/extension/pipeline/database/cache';
 import * as repoMetaModule from '../../../src/extension/repoSettings/meta';
-import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
+import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>

@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
 import type { IGraphData } from '../../../../../src/shared/graph/types';
 import { buildGraphViewContext } from '../../../../../src/extension/graphView/view/context';
-import { applyGraphViewTransform, type IGraphViewTransformResult } from '../../../../../src/extension/graphView/presentation';
+import { applyGraphViewTransform } from '../../../../../src/extension/graphView/presentation/transform';
+import type { IGraphViewTransformResult } from '../../../../../src/extension/graphView/presentation/contracts';
 import type { GraphViewProviderViewContextMethodDependencies } from '../../../../../src/extension/graphView/provider/view/context';
 const providerViewContextMethodMocks = vi.hoisted(() => ({
   buildViewContext: vi.fn(),
@@ -19,7 +20,7 @@ vi.mock('../../../../../src/extension/graphView/view/broadcast', () => ({
   sendGraphViewDepthState: providerViewContextMethodMocks.sendDepthState,
 }));
 
-vi.mock('../../../../../src/extension/graphView/presentation', () => ({
+vi.mock('../../../../../src/extension/graphView/presentation/transform', () => ({
   applyGraphViewTransform: providerViewContextMethodMocks.applyViewTransform,
 }));
 

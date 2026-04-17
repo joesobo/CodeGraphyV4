@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import type { ICommitInfo } from '../../shared/timeline/types';
-import { useGraphStore } from '../store/state';
-import { postMessage } from '../vscodeApi';
-import { formatDate } from './timeline/format/dates';
-import Controls from './timeline/view/Controls';
-import CommitList from './timeline/view/CommitList';
-import Status from './timeline/view/Status';
-import Summary from './timeline/view/Summary';
-import Track from './timeline/view/Track';
-import { useTimelineController } from './timeline/use/controller';
-import type { WebviewPluginHost } from '../pluginHost/manager';
-import { SlotHost } from '../pluginHost/slotHost/view';
+import type { ICommitInfo } from '../../../shared/timeline/types';
+import { useGraphStore } from '../../store/state';
+import { postMessage } from '../../vscodeApi';
+import { formatDate } from './format/dates';
+import Controls from './view/Controls';
+import CommitList from './view/CommitList';
+import Status from './view/Status';
+import Summary from './view/Summary';
+import Track from './view/Track';
+import { useTimelineController } from './use/controller';
+import type { WebviewPluginHost } from '../../pluginHost/manager';
+import { SlotHost } from '../../pluginHost/slotHost/view';
 
 interface ReadyTimelineProps {
   currentCommitSha: string | null;

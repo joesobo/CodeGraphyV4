@@ -1,7 +1,7 @@
 import type {
   GraphViewExternalPluginRegistrationHandlers,
   GraphViewExternalPluginRegistrationState,
-} from '../registration';
+} from './register';
 
 export function sendExternalPluginRegistrationUpdates(
   handlers: GraphViewExternalPluginRegistrationHandlers,

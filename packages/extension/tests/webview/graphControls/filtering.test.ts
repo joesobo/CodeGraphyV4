@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyGraphControls } from '../../../src/webview/graphControls/filtering';
-import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../src/shared/graphControls/defaults';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../src/shared/graphControls/defaults/definitions';
 import { DEFAULT_FOLDER_NODE_COLOR } from '../../../src/shared/fileColors';
 
 describe('webview/graphControls/filtering', () => {

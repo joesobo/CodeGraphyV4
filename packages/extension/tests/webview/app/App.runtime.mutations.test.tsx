@@ -15,7 +15,7 @@ const harness = vi.hoisted(() => ({
   injectPluginAssets: vi.fn(),
 }));
 
-vi.mock('../../../src/webview/components/Graph', () => ({
+vi.mock('../../../src/webview/components/graph/view', () => ({
   default: () => <div data-testid="mock-graph" />,
 }));
 
@@ -34,7 +34,7 @@ vi.mock('../../../src/webview/components/plugins/Panel', () => ({
   default: () => null,
 }));
 
-vi.mock('../../../src/webview/components/Toolbar', () => ({
+vi.mock('../../../src/webview/components/toolbar/view', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 

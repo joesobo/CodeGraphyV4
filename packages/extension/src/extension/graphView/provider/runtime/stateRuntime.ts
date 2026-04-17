@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import type { WorkspacePipeline } from '../../../pipeline/service';
+import type { WorkspacePipeline } from '../../../pipeline/service/lifecycleFacade';
 import type { PendingWorkspaceRefreshState } from './workspaceRefreshPersistence';
 
 export function isGraphViewVisible(

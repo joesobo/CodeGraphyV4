@@ -6,7 +6,7 @@ import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensi
 import type { IGroup } from '../../../shared/settings/groups';
 import {
   type GraphViewExternalPluginRegistrationOptions,
-} from '../webview/plugins/registration';
+} from '../webview/plugins/registration/register';
 import {
   GraphViewProviderPluginBroadcastMethods,
   DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
@@ -21,7 +21,7 @@ const DEFAULT_DEPTH_LIMIT = 1;
 
 type GraphViewPluginAnalyzerLike =
   NonNullable<
-    Parameters<typeof import('../webview/plugins/registration').registerGraphViewExternalPlugin>[2]['analyzer']
+    Parameters<typeof import('../webview/plugins/registration/register').registerGraphViewExternalPlugin>[2]['analyzer']
   >
   & NonNullable<Parameters<typeof import('../webview/plugins/assets').sendGraphViewContextMenuItems>[0]>
   & NonNullable<Parameters<typeof import('../webview/plugins/assets').sendGraphViewPluginStatuses>[0]>;

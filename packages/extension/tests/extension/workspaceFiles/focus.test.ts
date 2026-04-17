@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  cancelPendingFocusedFileClear,
-  hasVisibleWorkspaceFileEditor,
-  scheduleFocusedFileClear,
   syncActiveEditor,
-} from '../../../src/extension/workspaceFiles/focus';
+} from '../../../src/extension/workspaceFiles/editorSync';
+import {
+  cancelPendingFocusedFileClear,
+  scheduleFocusedFileClear,
+} from '../../../src/extension/workspaceFiles/focusedFileClear';
+import { hasVisibleWorkspaceFileEditor } from '../../../src/extension/workspaceFiles/visibleEditor';
 
 function makeProvider() {
   return {

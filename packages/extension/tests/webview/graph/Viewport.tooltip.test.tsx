@@ -18,7 +18,7 @@ const harness = vi.hoisted(() => ({
   surface3d: vi.fn(),
 }));
 
-vi.mock('../../../src/webview/components/NodeTooltip', () => ({
+vi.mock('../../../src/webview/components/nodeTooltip/view', () => ({
   NodeTooltip: (props: Record<string, unknown>) => {
     harness.nodeTooltip(props);
     return <div data-testid="node-tooltip" data-visible={String(props.visible)} data-path={String(props.path)} />;

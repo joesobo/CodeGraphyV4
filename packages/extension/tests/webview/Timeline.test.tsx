@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
-import Timeline from '../../src/webview/components/Timeline';
+import Timeline from '../../src/webview/components/timeline/panel';
 import { graphStore } from '../../src/webview/store/state';
 import type { IGraphData } from '../../src/shared/graph/types';
 import type { ICommitInfo } from '../../src/shared/timeline/types';

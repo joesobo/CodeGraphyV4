@@ -46,7 +46,7 @@ vi.mock('../../src/webview/components/icons/MdiIcon', () => ({
   ),
 }));
 
-import Toolbar from '../../src/webview/components/Toolbar';
+import Toolbar from '../../src/webview/components/toolbar/view';
 import { graphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
