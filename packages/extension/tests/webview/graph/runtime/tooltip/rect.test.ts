@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { FGNode } from '../../../../src/webview/components/graph/model/build';
-import { DEFAULT_NODE_SIZE } from '../../../../src/webview/components/graph/model/build';
-import { getTooltipNodeRect } from '../../../../src/webview/components/graph/runtime/tooltip/rect';
+import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_NODE_SIZE } from '../../../../../src/webview/components/graph/model/build';
+import { getTooltipNodeRect } from '../../../../../src/webview/components/graph/runtime/tooltip/rect';
 
 describe('getTooltipNodeRect', () => {
   it('maps node coordinates into viewport space', () => {
