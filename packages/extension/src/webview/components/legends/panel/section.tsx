@@ -10,7 +10,7 @@ import {
 import { LegendBuiltInRow } from './builtInRow';
 import { LegendRuleCreateRow } from './createRow';
 import { shouldRenderRuleInSection } from './displayRules';
-import type { LegendBuiltInEntry, LegendDisplayRule, LegendTargetSection } from './types';
+import type { LegendBuiltInEntry, LegendDisplayRule, LegendTargetSection } from './contracts';
 import { LegendRuleRow } from './ruleRow';
 import { postLegendOrderUpdate } from './sectionOrder';
 

@@ -1,1 +1,5 @@
-export { default } from './shell/view';
+import AppShell from './shell/view';
+
+export default function App() {
+  return <AppShell />;
+}

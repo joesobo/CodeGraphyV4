@@ -6,7 +6,7 @@ import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { LegendColorInput } from './colorInput';
 import { createLegendRuleId } from './messages';
-import type { LegendTargetSection } from './types';
+import type { LegendTargetSection } from './contracts';
 
 export function LegendRuleCreateRow({
   target,

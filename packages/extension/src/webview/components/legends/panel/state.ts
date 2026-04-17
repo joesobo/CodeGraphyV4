@@ -4,7 +4,7 @@ import {
   resolveDisplayRules,
   shouldRenderRuleInSection,
 } from './displayRules';
-import type { LegendBuiltInEntry } from './types';
+import type { LegendBuiltInEntry } from './contracts';
 
 interface PanelStateInput {
   edgeColors: Record<string, string>;
