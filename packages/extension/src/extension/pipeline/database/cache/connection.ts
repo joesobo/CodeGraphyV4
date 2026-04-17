@@ -1,6 +1,6 @@
 import { Connection, Database } from '@ladybugdb/core';
 import type * as lb from '@ladybugdb/core';
-import type { FileAnalysisRow } from './cacheRows';
+import type { FileAnalysisRow } from './rows';
 
 interface LadybugQueryResultLike {
   getAllSync?(): FileAnalysisRow[];

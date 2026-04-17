@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { normalizePersistedSettingsShape } from '../../../src/extension/repoSettings/storeNormalization';
+import { normalizePersistedSettingsShape } from '../../../src/extension/repoSettings/store/normalization';
 
-describe('extension/repoSettings/storeNormalization', () => {
+describe('extension/repoSettings/store/normalization', () => {
   it('returns an empty object for non-object persisted values', () => {
     expect(normalizePersistedSettingsShape(null)).toEqual({});
     expect(normalizePersistedSettingsShape(['legend'])).toEqual({});

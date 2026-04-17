@@ -1,5 +1,5 @@
 import React from 'react';
-import { ToolbarIconButton } from './IconButton';
+import { ToolbarIconButton } from '../IconButton';
 import {
   TOOLBAR_PANEL_BUTTONS,
   type ToolbarPanel,

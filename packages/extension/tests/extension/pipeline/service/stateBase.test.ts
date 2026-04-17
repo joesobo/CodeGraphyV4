@@ -9,7 +9,7 @@ const stateBaseHarness = vi.hoisted(() => ({
   readWorkspaceAnalysisDatabaseSnapshot: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache.ts', () => ({
+vi.mock('../../../../src/extension/pipeline/database/cache/index.ts', () => ({
   readWorkspaceAnalysisDatabaseSnapshot: stateBaseHarness.readWorkspaceAnalysisDatabaseSnapshot,
 }));
 

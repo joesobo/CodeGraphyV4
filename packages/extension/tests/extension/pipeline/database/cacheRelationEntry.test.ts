@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createSnapshotRelationEntry } from '../../../../src/extension/pipeline/database/cacheRelationEntry';
-import * as cacheRowValues from '../../../../src/extension/pipeline/database/cacheRowValues';
+import { createSnapshotRelationEntry } from '../../../../src/extension/pipeline/database/cache/relationEntry';
+import * as cacheRowValues from '../../../../src/extension/pipeline/database/cache/rowValues';
 
-describe('pipeline/database/cacheRelationEntry', () => {
+describe('pipeline/database/cache/relationEntry', () => {
   it.each([
     ['filePath', '', 'import', 'source', 'src/from.ts'],
     ['kind', 'src/file.ts', '', 'source', 'src/from.ts'],

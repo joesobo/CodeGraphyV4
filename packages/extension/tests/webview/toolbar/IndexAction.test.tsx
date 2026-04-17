@@ -1,14 +1,14 @@
 import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { IndexToolbarAction } from '../../../src/webview/components/toolbar/IndexAction';
+import { IndexToolbarAction } from '../../../src/webview/components/toolbar/actions/indexAction';
 
 const clearPendingIndexTimeout = vi.fn();
 const createRefreshConfig = vi.fn();
 const requestGraphIndex = vi.fn();
 const buttonProps: Array<Record<string, unknown>> = [];
 
-vi.mock('../../../src/webview/components/toolbar/refresh', () => ({
+vi.mock('../../../src/webview/components/toolbar/actions/refresh', () => ({
   clearPendingIndexTimeout: (...args: unknown[]) => clearPendingIndexTimeout(...args),
   createRefreshConfig: (...args: unknown[]) => createRefreshConfig(...args),
   requestGraphIndex: (...args: unknown[]) => requestGraphIndex(...args),

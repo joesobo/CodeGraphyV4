@@ -1,4 +1,4 @@
-import { isPlainObject } from './storeObjects';
+import { isPlainObject } from './objects';
 
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value)

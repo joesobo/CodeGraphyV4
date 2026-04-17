@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadWorkspaceAnalysisDatabaseCache } from '../../../../src/extension/pipeline/database/cacheLoad';
+import { loadWorkspaceAnalysisDatabaseCache } from '../../../../src/extension/pipeline/database/cache/load';
 import {
   createEmptyWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from '../../../../src/extension/pipeline/cache';
-import { readRowsSync, withConnection } from '../../../../src/extension/pipeline/database/cacheConnection';
-import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from '../../../../src/extension/pipeline/database/cachePaths';
-import { createSnapshotFileEntry } from '../../../../src/extension/pipeline/database/cacheRows';
+import { readRowsSync, withConnection } from '../../../../src/extension/pipeline/database/cache/connection';
+import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from '../../../../src/extension/pipeline/database/cache/paths';
+import { createSnapshotFileEntry } from '../../../../src/extension/pipeline/database/cache/rows';
 
 vi.mock('node:fs', () => ({
   default: {
@@ -20,23 +20,23 @@ vi.mock('../../../../src/extension/pipeline/cache', () => ({
   WORKSPACE_ANALYSIS_CACHE_VERSION: '2.0.0',
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cacheConnection', () => ({
+vi.mock('../../../../src/extension/pipeline/database/cache/connection', () => ({
   readRowsSync: vi.fn(),
   withConnection: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cachePaths', () => ({
+vi.mock('../../../../src/extension/pipeline/database/cache/paths', () => ({
   clearDatabaseArtifacts: vi.fn(),
   getWorkspaceAnalysisDatabasePath: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cacheRows', () => ({
+vi.mock('../../../../src/extension/pipeline/database/cache/rows', () => ({
   createSnapshotFileEntry: vi.fn(),
 }));
 
 const fsModule = await import('node:fs');
 
-describe('extension/pipeline/database/cacheLoad', () => {
+describe('extension/pipeline/database/cache/load', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getWorkspaceAnalysisDatabasePath).mockReturnValue('/workspace/.codegraphy/graph.lbug');

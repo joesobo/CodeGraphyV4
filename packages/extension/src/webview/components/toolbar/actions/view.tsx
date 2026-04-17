@@ -1,8 +1,8 @@
 import React from 'react';
-import { useGraphStore } from '../../store/state';
-import { IndexToolbarAction } from './IndexAction';
-import { ToolbarPanelButtons } from './PanelButtons';
-import { PluginToolbarActions } from './plugin/Actions';
+import { useGraphStore } from '../../../store/state';
+import { IndexToolbarAction } from './indexAction';
+import { ToolbarPanelButtons } from './panelButtons';
+import { PluginToolbarActions } from '../plugin/Actions';
 
 export {
   getToolbarActionIconPath,

@@ -1,10 +1,10 @@
-import type { IAnalysisSymbol } from '../../../core/plugins/types/contracts';
-import type { SymbolRow } from './cacheRows';
+import type { IAnalysisSymbol } from '../../../../core/plugins/types/contracts';
+import type { SymbolRow } from './rows';
 import {
   parseOptionalJson,
   readOptionalString,
   readRequiredString,
-} from './cacheRowValues';
+} from './rowValues';
 
 export function createSnapshotSymbolEntry(row: SymbolRow): IAnalysisSymbol | undefined {
   const symbolId = readRequiredString(row.symbolId);

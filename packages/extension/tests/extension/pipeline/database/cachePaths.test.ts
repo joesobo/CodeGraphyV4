@@ -4,7 +4,7 @@ import {
   clearDatabaseArtifacts,
   ensureDatabaseDirectory,
   getWorkspaceAnalysisDatabasePath,
-} from '../../../../src/extension/pipeline/database/cachePaths';
+} from '../../../../src/extension/pipeline/database/cache/paths';
 
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>();
@@ -16,7 +16,7 @@ vi.mock('node:fs', async (importOriginal) => {
   };
 });
 
-describe('pipeline/database/cachePaths', () => {
+describe('pipeline/database/cache/paths', () => {
   it('creates the database directory only when the workspace root exists', () => {
     const existsSync = vi.mocked(fs.existsSync);
     const mkdirSync = vi.mocked(fs.mkdirSync);

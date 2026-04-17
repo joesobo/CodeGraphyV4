@@ -15,7 +15,7 @@ import {
   getToolbarActionKey,
   type ToolbarActionItemLike,
   type ToolbarActionLike,
-} from '../model';
+} from '../actions/model';
 
 function postPluginToolbarAction(
   action: ToolbarActionLike,

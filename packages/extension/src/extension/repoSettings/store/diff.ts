@@ -1,4 +1,4 @@
-import { isPlainObject } from './storeObjects';
+import { isPlainObject } from './objects';
 
 function areValuesEqual(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);

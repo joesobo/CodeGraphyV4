@@ -2,12 +2,12 @@ import * as fs from 'node:fs';
 import {
   createDefaultCodeGraphyRepoSettings,
   type ICodeGraphyRepoSettings,
-} from './defaults';
-import { collectChangedKeys } from './storeDiff';
-import { normalizePersistedSettingsShape } from './storeNormalization';
-import { deepClone, deepMerge } from './storeObjects';
-import { serializeSettings } from './storeSerialization';
-import { setNestedValue } from './storeValues';
+} from '../defaults';
+import { collectChangedKeys } from './diff';
+import { normalizePersistedSettingsShape } from './normalization';
+import { deepClone, deepMerge } from './objects';
+import { serializeSettings } from './serialization';
+import { setNestedValue } from './values';
 
 interface SettingsState {
   serializedSettings: string;

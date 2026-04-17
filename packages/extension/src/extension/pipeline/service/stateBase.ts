@@ -12,7 +12,7 @@ import type { IWorkspaceAnalysisCache } from '../cache';
 import {
   readWorkspaceAnalysisDatabaseSnapshot,
   type WorkspaceAnalysisDatabaseSnapshot,
-} from '../database/cache.ts';
+} from '../database/cache';
 import { createWorkspacePipelineInitialCache } from './cache';
 
 export abstract class WorkspacePipelineStateBase {

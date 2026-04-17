@@ -51,7 +51,7 @@ import {
   getToolbarActionIconPath,
   getToolbarActionItemKey,
   getToolbarActionKey,
-} from '../../../src/webview/components/toolbar/Actions';
+} from '../../../src/webview/components/toolbar/actions/view';
 import {
   buildPluginExporterGroups,
   getPluginExporterKey,

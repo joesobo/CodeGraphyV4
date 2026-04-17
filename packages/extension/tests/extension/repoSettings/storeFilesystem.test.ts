@@ -6,13 +6,13 @@ import {
   SETTINGS_DIR_NAME,
   SETTINGS_FILE_NAME,
   ensureGitIgnoreContainsCodeGraphyEntry,
-} from '../../../src/extension/repoSettings/storeFilesystem';
+} from '../../../src/extension/repoSettings/store/filesystem';
 
 function createTempFilePath(name: string): string {
   return path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-gitignore-')), name);
 }
 
-describe('extension/repoSettings/storeFilesystem', () => {
+describe('extension/repoSettings/store/filesystem', () => {
   const tempDirectories: string[] = [];
 
   afterEach(() => {

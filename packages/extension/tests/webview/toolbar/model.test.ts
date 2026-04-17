@@ -5,7 +5,7 @@ import {
   getToolbarActionItemKey,
   getToolbarActionKey,
   TOOLBAR_PANEL_BUTTONS,
-} from '../../../src/webview/components/toolbar/model';
+} from '../../../src/webview/components/toolbar/actions/model';
 
 describe('webview/toolbar/model', () => {
   it('builds stable keys for toolbar actions and items', () => {

@@ -1,5 +1,5 @@
-import type { ICodeGraphyRepoSettings } from './defaults';
-import { deepClone, isPlainObject } from './storeObjects';
+import type { ICodeGraphyRepoSettings } from '../defaults';
+import { deepClone, isPlainObject } from './objects';
 
 export function serializeSettings(value: ICodeGraphyRepoSettings): string {
   const persisted = deepClone(value) as unknown as Record<string, unknown>;

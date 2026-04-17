@@ -1,6 +1,6 @@
 import React from 'react';
 import type { IPluginToolbarAction } from '../../../../shared/plugins/toolbarActions';
-import { getToolbarActionKey } from '../model';
+import { getToolbarActionKey } from '../actions/model';
 import { PluginToolbarActionMenu } from './Menu';
 
 interface PluginToolbarActionsProps {

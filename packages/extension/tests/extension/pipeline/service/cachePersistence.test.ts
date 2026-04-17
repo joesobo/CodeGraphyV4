@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearWorkspacePipelineCache } from '../../../../src/extension/pipeline/analysis/state';
-import { saveWorkspaceAnalysisDatabaseCache } from '../../../../src/extension/pipeline/database/cache.ts';
+import { saveWorkspaceAnalysisDatabaseCache } from '../../../../src/extension/pipeline/database/cache/index.ts';
 import {
   clearWorkspacePipelineStoredCache,
   persistWorkspacePipelineCache,
@@ -10,7 +10,7 @@ vi.mock('../../../../src/extension/pipeline/analysis/state', () => ({
   clearWorkspacePipelineCache: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache.ts', () => ({
+vi.mock('../../../../src/extension/pipeline/database/cache/index.ts', () => ({
   saveWorkspaceAnalysisDatabaseCache: vi.fn(),
 }));
 

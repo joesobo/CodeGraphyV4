@@ -1,9 +1,9 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { IWorkspaceAnalysisCache } from '../cache';
-import { runStatementSync, withConnection } from './cacheConnection';
-import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './cachePaths';
-import { persistAnalysisEntry, sortedCacheEntries } from './cacheStatements';
+import type { IWorkspaceAnalysisCache } from '../../cache';
+import { runStatementSync, withConnection } from './connection';
+import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
+import { persistAnalysisEntry, sortedCacheEntries } from './statements';
 
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
