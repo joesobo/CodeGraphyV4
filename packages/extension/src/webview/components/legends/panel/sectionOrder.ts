@@ -1,5 +1,5 @@
-import type { IGroup } from '../../../shared/settings/groups';
-import { postMessage } from '../../vscodeApi';
+import type { IGroup } from '../../../../shared/settings/groups';
+import { postMessage } from '../../../vscodeApi';
 import { resolveDisplayRules } from './displayRules';
 import { reorderItems } from './messages';
 import type { LegendDisplayRule, LegendTargetSection } from './types';

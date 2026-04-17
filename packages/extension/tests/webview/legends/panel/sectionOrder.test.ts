@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { postLegendOrderUpdate } from '../../../src/webview/components/legends/sectionOrder';
-import * as displayRulesModule from '../../../src/webview/components/legends/displayRules';
-import * as messagesModule from '../../../src/webview/components/legends/messages';
-import * as vscodeApiModule from '../../../src/webview/vscodeApi';
+import { postLegendOrderUpdate } from '../../../../src/webview/components/legends/panel/sectionOrder';
+import * as displayRulesModule from '../../../../src/webview/components/legends/panel/displayRules';
+import * as messagesModule from '../../../../src/webview/components/legends/panel/messages';
+import * as vscodeApiModule from '../../../../src/webview/vscodeApi';
 
 describe('legends/sectionOrder', () => {
   beforeEach(() => {

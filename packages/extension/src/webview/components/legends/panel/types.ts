@@ -1,4 +1,4 @@
-import type { IGroup } from '../../../shared/settings/groups';
+import type { IGroup } from '../../../../shared/settings/groups';
 
 export type LegendTargetSection = 'node' | 'edge';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import type { IGroup } from '../../../src/shared/settings/groups';
-import { useLegendPanelState } from '../../../src/webview/components/legends/panelState';
+import type { IGroup } from '../../../../src/shared/settings/groups';
+import { useLegendPanelState } from '../../../../src/webview/components/legends/panel/state';
 
 type PanelStateProps = Parameters<typeof useLegendPanelState>[0];
 

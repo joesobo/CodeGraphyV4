@@ -1,11 +1,11 @@
 import React from 'react';
 import { mdiClose } from '@mdi/js';
-import { useGraphStore } from '../../store/state';
-import { postMessage } from '../../vscodeApi';
-import { MdiIcon } from '../icons/MdiIcon';
-import { Button } from '../ui/button';
-import { ScrollArea } from '../ui/scroll-area';
-import { useLegendPanelState } from './panelState';
+import { useGraphStore } from '../../../store/state';
+import { postMessage } from '../../../vscodeApi';
+import { MdiIcon } from '../../icons/MdiIcon';
+import { Button } from '../../ui/button';
+import { ScrollArea } from '../../ui/scroll-area';
+import { useLegendPanelState } from './state';
 import { LegendSection } from './section';
 import {
   replaceSectionRules,

@@ -1,12 +1,12 @@
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import LegendsPanel from '../../../src/webview/components/legends/Panel';
-import { graphStore } from '../../../src/webview/store/state';
+import LegendsPanel from '../../../../src/webview/components/legends/panel/view';
+import { graphStore } from '../../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
 
-vi.mock('../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: (message: unknown) => sentMessages.push(message),
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));

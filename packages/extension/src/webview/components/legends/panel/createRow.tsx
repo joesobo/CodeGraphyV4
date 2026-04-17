@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { mdiPlus } from '@mdi/js';
-import type { IGroup } from '../../../shared/settings/groups';
-import { MdiIcon } from '../icons/MdiIcon';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import type { IGroup } from '../../../../shared/settings/groups';
+import { MdiIcon } from '../../icons/MdiIcon';
+import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
 import { LegendColorInput } from './colorInput';
 import { createLegendRuleId } from './messages';
 import type { LegendTargetSection } from './types';

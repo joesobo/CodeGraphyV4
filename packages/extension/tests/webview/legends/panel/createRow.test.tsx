@@ -1,9 +1,9 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { LegendRuleCreateRow } from '../../../src/webview/components/legends/createRow';
+import { LegendRuleCreateRow } from '../../../../src/webview/components/legends/panel/createRow';
 
-vi.mock('../../../src/webview/components/legends/colorInput', () => ({
+vi.mock('../../../../src/webview/components/legends/panel/colorInput', () => ({
   LegendColorInput: ({
     ariaLabel,
     color,
@@ -21,7 +21,7 @@ vi.mock('../../../src/webview/components/legends/colorInput', () => ({
   ),
 }));
 
-vi.mock('../../../src/webview/components/legends/messages', () => ({
+vi.mock('../../../../src/webview/components/legends/panel/messages', () => ({
   createLegendRuleId: vi.fn(() => 'legend:new'),
 }));
 

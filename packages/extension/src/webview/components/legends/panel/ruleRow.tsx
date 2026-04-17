@@ -1,10 +1,10 @@
 import React from 'react';
 import { mdiDelete } from '@mdi/js';
-import type { IGroup } from '../../../shared/settings/groups';
-import { MdiIcon } from '../icons/MdiIcon';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Switch } from '../ui/switch';
+import type { IGroup } from '../../../../shared/settings/groups';
+import { MdiIcon } from '../../icons/MdiIcon';
+import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
+import { Switch } from '../../ui/switch';
 import { LegendColorInput } from './colorInput';
 
 export function LegendRuleRow({

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
-import type { IGroup } from '../../../shared/settings/groups';
-import { MdiIcon } from '../icons/MdiIcon';
+import type { IGroup } from '../../../../shared/settings/groups';
+import { MdiIcon } from '../../icons/MdiIcon';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '../ui/disclosure/collapsible';
+} from '../../ui/disclosure/collapsible';
 import { LegendBuiltInRow } from './builtInRow';
 import { LegendRuleCreateRow } from './createRow';
 import {

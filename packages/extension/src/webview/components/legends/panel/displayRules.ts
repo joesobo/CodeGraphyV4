@@ -1,4 +1,4 @@
-import type { IGroup } from '../../../shared/settings/groups';
+import type { IGroup } from '../../../../shared/settings/groups';
 import type { LegendDisplayRule, LegendTargetSection } from './types';
 
 export function shouldRenderRuleInSection(rule: IGroup, target: LegendTargetSection): boolean {

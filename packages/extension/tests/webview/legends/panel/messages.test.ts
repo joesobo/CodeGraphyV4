@@ -3,11 +3,11 @@ import {
   createLegendRuleId,
   reorderItems,
   sendUserLegendRules,
-} from '../../../src/webview/components/legends/messages';
-import { postMessage } from '../../../src/webview/vscodeApi';
-import type { IGroup } from '../../../src/shared/settings/groups';
+} from '../../../../src/webview/components/legends/panel/messages';
+import { postMessage } from '../../../../src/webview/vscodeApi';
+import type { IGroup } from '../../../../src/shared/settings/groups';
 
-vi.mock('../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),
 }));
 

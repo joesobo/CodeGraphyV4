@@ -19,7 +19,7 @@ vi.mock('../../../src/webview/components/plugins/Panel', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="plugins-panel" /> : null),
 }));
 
-vi.mock('../../../src/webview/components/legends/Panel', () => ({
+vi.mock('../../../src/webview/components/legends/panel/view', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="legends-panel" /> : null),
 }));
 

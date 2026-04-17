@@ -1,5 +1,5 @@
-import type { IGroup } from '../../../shared/settings/groups';
-import { postMessage } from '../../vscodeApi';
+import type { IGroup } from '../../../../shared/settings/groups';
+import { postMessage } from '../../../vscodeApi';
 
 export function createLegendRuleId(): string {
   return `legend:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
