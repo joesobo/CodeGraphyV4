@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphEdge } from '../../../../../src/shared/graph/contracts';
-import { applyEdgeLegendRules } from '../../../../../src/webview/search/filtering/rules/edgeRules';
+import { applyEdgeLegendRules } from '../../../../../src/webview/search/filtering/rules/edges';
 
-describe('search/filtering/rules/edgeRules', () => {
+describe('search/filtering/rules/edges', () => {
   it('colors edges that match edge-targeted rules by id kind or path', () => {
     const edge: IGraphEdge = {
       id: 'edge-1',

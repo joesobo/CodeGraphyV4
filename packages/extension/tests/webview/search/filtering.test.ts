@@ -6,7 +6,7 @@ import {
   applyLegendRules,
 } from '../../../src/webview/search/filtering/rules';
 import { applyFilterPatterns } from '../../../src/webview/search/filtering/patterns';
-import { filterGraphData } from '../../../src/webview/search/filtering/search';
+import { filterGraphData } from '../../../src/webview/search/filtering/graph';
 
 const graphData: IGraphData = {
   nodes: [

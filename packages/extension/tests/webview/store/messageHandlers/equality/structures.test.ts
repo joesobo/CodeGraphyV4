@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { arePlainObjectValuesEqual } from '../../../../../src/webview/store/messageHandlers/equality/plainEquality';
+import { arePlainObjectValuesEqual } from '../../../../../src/webview/store/messageHandlers/equality/structures';
 
-describe('webview/store/messageHandlers/equality/plainEquality', () => {
+describe('webview/store/messageHandlers/equality/structures', () => {
   it('compares nested objects and arrays deeply', () => {
     expect(
       arePlainObjectValuesEqual(

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import { filterGraphData } from '../../../../src/webview/search/filtering/search';
+import { filterGraphData } from '../../../../src/webview/search/filtering/graph';
 
 const graphData: IGraphData = {
   nodes: [
@@ -16,7 +16,7 @@ const graphData: IGraphData = {
 
 const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
 
-describe('search/filtering/search', () => {
+describe('search/filtering/graph', () => {
   it('returns null when no graph data is available', () => {
     expect(filterGraphData(null, 'App', defaultOptions)).toEqual({
       filteredData: null,

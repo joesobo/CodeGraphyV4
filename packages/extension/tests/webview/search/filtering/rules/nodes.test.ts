@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../../../../src/shared/fileColors';
-import { applyNodeLegendRules, getOrderedActiveRules } from '../../../../../src/webview/search/filtering/rules/nodeRules';
+import { applyNodeLegendRules, getOrderedActiveRules } from '../../../../../src/webview/search/filtering/rules/nodes';
 
-describe('search/filtering/rules/nodeRules', () => {
+describe('search/filtering/rules/nodes', () => {
   it('returns a reversed copy of enabled rules without mutating the source list', () => {
     const legends = [
       { id: 'first', pattern: 'src/**', color: '#111111' },
