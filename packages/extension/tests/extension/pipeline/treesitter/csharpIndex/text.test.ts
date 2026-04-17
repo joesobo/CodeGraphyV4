@@ -4,8 +4,8 @@ import {
   getCSharpIdentifierText,
   getCSharpNamespaceName,
   getCSharpNodeText,
-} from '../../../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/text';
-import { createCSharpNode } from '../../../../../treesitter/csharpIndex/fixtures';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/text';
+import { createCSharpNode } from './fixtures';
 
 describe('pipeline/plugins/treesitter/runtime/csharpIndex/text', () => {
   it('reads identifier text only from identifier node kinds', () => {

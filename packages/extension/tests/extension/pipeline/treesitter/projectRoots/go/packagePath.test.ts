@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { resolveGoPackagePath } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/goPackagePath';
+import { resolveGoPackagePath } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/go/packagePath';
 import {
   cleanupProjectRootsWorkspaces,
   createProjectRootsWorkspace,
@@ -10,7 +10,7 @@ afterEach(() => {
   cleanupProjectRootsWorkspaces();
 });
 
-describe('pipeline/plugins/treesitter/runtime/projectRoots/goPackagePath', () => {
+describe('pipeline/plugins/treesitter/runtime/projectRoots/go/packagePath', () => {
   it('prefers a direct package file when the import resolves to package.go', () => {
     const workspaceRoot = createProjectRootsWorkspace();
     const filePath = writeProjectRootsFile(workspaceRoot, 'cmd/app/main.go');

@@ -1,22 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { preAnalyzeCSharpTreeSitterFiles } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/preAnalyze';
-import { createTreeSitterRuntime } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages';
-import { indexCSharpTree } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/tree';
+import { preAnalyzeCSharpTreeSitterFiles } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/preAnalyze';
+import { createTreeSitterRuntime } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages';
+import { indexCSharpTree } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/tree';
 import {
   clearCSharpWorkspaceIndex,
   createEmptyCSharpIndex,
   setCSharpWorkspaceIndex,
-} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/store';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/store';
 
-vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages', () => ({
   createTreeSitterRuntime: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => ({
   indexCSharpTree: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/store', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex/store', () => ({
   clearCSharpWorkspaceIndex: vi.fn(),
   createEmptyCSharpIndex: vi.fn(),
   setCSharpWorkspaceIndex: vi.fn(),

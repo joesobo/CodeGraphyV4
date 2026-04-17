@@ -3,11 +3,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   isWithinRoot,
   shouldStopProjectRootWalk,
-} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/workspaceBounds';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/workspaceBounds';
 import {
   cleanupProjectRootsWorkspaces,
   createProjectRootsWorkspace,
-} from '../workspace';
+} from './workspace';
 
 afterEach(() => {
   cleanupProjectRootsWorkspaces();

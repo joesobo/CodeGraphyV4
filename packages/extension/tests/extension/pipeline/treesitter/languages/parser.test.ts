@@ -5,7 +5,7 @@ const { loadTreeSitterBindings } = vi.hoisted(() => ({
 }));
 
 vi.mock(
-  '../../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/load',
+  '../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/load',
   () => ({
     loadTreeSitterBindings,
   }),
@@ -14,7 +14,7 @@ vi.mock(
 import {
   createTreeSitterParser,
   createTreeSitterRuntime,
-} from '../../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/parser';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/parser';
 
 class MockParser {
   setLanguage = vi.fn();

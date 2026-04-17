@@ -5,7 +5,7 @@ import {
   getLastPathSegment,
   getNodeText,
   joinModuleSpecifier,
-} from '../../../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/text';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/text';
 
 function createNode(type: string, text: string): Parser.SyntaxNode {
   return { type, text } as Parser.SyntaxNode;

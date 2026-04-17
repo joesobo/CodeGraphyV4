@@ -3,12 +3,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   dedupePaths,
   findNearestProjectRoot,
-} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/search';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/search';
 import {
   cleanupProjectRootsWorkspaces,
   createProjectRootsWorkspace,
   writeProjectRootsFile,
-} from '../workspace';
+} from './workspace';
 
 afterEach(() => {
   cleanupProjectRootsWorkspaces();
