@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const MODULE_PATH =
-  '../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/bindings/load';
+  '../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/load';
 
-describe('pipeline/plugins/treesitter/runtime/languages/bindings/load', () => {
+describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();

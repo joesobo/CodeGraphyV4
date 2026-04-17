@@ -1,4 +1,4 @@
-import { dedupePaths, findNearestProjectRoot } from './search/projectRoot';
+import { dedupePaths, findNearestProjectRoot } from './projectRootSearch';
 
 const pythonProjectMarkers = [
   'pyproject.toml',
