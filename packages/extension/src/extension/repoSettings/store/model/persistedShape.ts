@@ -1,4 +1,4 @@
-import { isPlainObject } from './objects';
+import { isPlainObject } from './plainObject';
 
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value)

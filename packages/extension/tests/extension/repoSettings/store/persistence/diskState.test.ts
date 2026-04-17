@@ -2,14 +2,14 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createDefaultCodeGraphyRepoSettings } from '../../../src/extension/repoSettings/defaults';
+import { createDefaultCodeGraphyRepoSettings } from '../../../../../src/extension/repoSettings/defaults';
 import {
   createUpdatedSettings,
   readSettingsFromDisk,
   reloadSettingsFromDisk,
   writeSettingsToDisk,
-} from '../../../src/extension/repoSettings/store/state';
-import { serializeSettings } from '../../../src/extension/repoSettings/store/serialization';
+} from '../../../../../src/extension/repoSettings/store/persistence/diskState';
+import { serializeSettings } from '../../../../../src/extension/repoSettings/store/persistence/serialization';
 
 vi.mock('node:fs', async () => {
   const actual = await vi.importActual<typeof import('node:fs')>('node:fs');
@@ -25,7 +25,7 @@ function createTempSettingsPath(): string {
   return path.join(workspaceRoot, '.codegraphy', 'settings.json');
 }
 
-describe('extension/repoSettings/store/state', () => {
+describe('extension/repoSettings/store/persistence/diskState', () => {
   const tempDirectories: string[] = [];
 
   afterEach(() => {

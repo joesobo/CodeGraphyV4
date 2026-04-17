@@ -3,9 +3,8 @@ import {
   deepClone,
   deepMerge,
   isPlainObject,
-} from '../../../src/extension/repoSettings/store/objects';
-
-describe('extension/repoSettings/store/objects', () => {
+} from '../../../../../src/extension/repoSettings/store/model/plainObject';
+describe('extension/repoSettings/store/model/plainObject', () => {
   it('deep clones nested objects and arrays without preserving references', () => {
     const original = {
       legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#123456' }],

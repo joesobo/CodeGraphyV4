@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { collectChangedKeys } from '../../../src/extension/repoSettings/store/diff';
+import { collectChangedKeys } from '../../../../../src/extension/repoSettings/store/model/changedKeys';
 
-describe('extension/repoSettings/store/diff', () => {
+describe('extension/repoSettings/store/model/changedKeys', () => {
   it('returns the repo root key when primitive values change at the top level', () => {
     expect(collectChangedKeys('old', 'new')).toEqual(['codegraphy']);
   });

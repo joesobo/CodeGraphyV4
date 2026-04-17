@@ -1,4 +1,4 @@
-import { normalizeSettingsKeyAlias } from './aliases';
+import { normalizeSettingsKeyAlias } from '../model/keyAliases';
 
 export function affectsSettingsConfiguration(
   changedKeys: readonly string[],
