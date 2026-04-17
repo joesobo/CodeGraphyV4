@@ -1,8 +1,8 @@
-import { resolveGoPackagePath as resolveGoPath } from './projectRoots/goPackagePath';
+import { resolveGoPackagePath as resolveGoPath } from './projectRoots/go/packagePath';
 import {
   readGoModuleName as readModuleName,
   resolveGoPackageDirectory as resolveGoDirectory,
-} from './projectRoots/goModule';
+} from './projectRoots/go/module';
 import {
   resolveJavaSourceRoot as resolveSourceRoot,
   resolveJavaTypePath as resolveTypePath,
