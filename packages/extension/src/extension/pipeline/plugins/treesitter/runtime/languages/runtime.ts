@@ -4,8 +4,8 @@ import {
   supportsTreeSitterFile,
   TREE_SITTER_RUNTIME_BINDINGS,
   type TreeSitterLanguageKind,
-} from './catalog';
-import { loadTreeSitterBindings } from './bindings';
+} from './bindings/catalog';
+import { loadTreeSitterBindings } from './bindings/load';
 
 export interface ITreeSitterRuntime {
   languageKind: TreeSitterLanguageKind;

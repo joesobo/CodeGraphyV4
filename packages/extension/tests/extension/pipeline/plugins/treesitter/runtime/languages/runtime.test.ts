@@ -5,7 +5,7 @@ const { loadTreeSitterBindings } = vi.hoisted(() => ({
 }));
 
 vi.mock(
-  '../../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/bindings',
+  '../../../../../../../src/extension/pipeline/plugins/treesitter/runtime/languages/bindings/load',
   () => ({
     loadTreeSitterBindings,
   }),

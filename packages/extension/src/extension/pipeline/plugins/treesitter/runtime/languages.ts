@@ -3,7 +3,7 @@ import {
   TREE_SITTER_SUPPORTED_EXTENSIONS as SUPPORTED_EXTENSIONS,
   supportsTreeSitterFile as supportsFile,
   type TreeSitterLanguageKind,
-} from './languages/catalog';
+} from './languages/bindings/catalog';
 import {
   createTreeSitterParser as createParser,
   createTreeSitterRuntime as createRuntime,
