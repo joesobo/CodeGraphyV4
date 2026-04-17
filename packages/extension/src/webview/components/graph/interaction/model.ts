@@ -70,8 +70,8 @@ export interface GraphRightClickFallbackOptions {
   fallbackDelayMs: number;
 }
 
-export { getNodeContextMenuSelection } from './nodeSelection';
-export { getNodeClickCommand } from './nodeClick';
+export { getNodeContextMenuSelection } from './node/selection';
+export { getNodeClickCommand } from './node/click';
 export {
   getBackgroundClickCommand,
   getLinkClickCommand,

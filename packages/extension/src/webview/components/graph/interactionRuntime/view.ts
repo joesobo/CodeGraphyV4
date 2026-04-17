@@ -1,7 +1,7 @@
 import type { GraphInteractionHandlersDependencies } from './handlers';
 import { focusNodeById } from './focus';
 import { updateAccessCount } from './accessCount';
-import { fitGraphView } from './fitView';
+import { fitGraphView } from './fit/view';
 import { zoom2d } from './zoom';
 
 export interface ViewHandlers {
