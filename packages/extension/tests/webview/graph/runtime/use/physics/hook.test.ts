@@ -19,20 +19,20 @@ const {
   usePhysicsRuntimeUpdates: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/physics/init', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/physics/hook/init', () => ({
   usePhysicsRuntimeInit,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/physics/layout', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/physics/hook/layout', () => ({
   usePhysicsRuntimeLayoutKey,
   usePhysicsRuntimeLayoutReset,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/physics/pause', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/physics/hook/pause', () => ({
   usePhysicsRuntimePause,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/physics/updates', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/physics/hook/updates', () => ({
   usePhysicsRuntimeUpdates,
 }));
 

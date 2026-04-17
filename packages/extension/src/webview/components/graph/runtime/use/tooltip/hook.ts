@@ -9,8 +9,8 @@ import type { GraphCursorStyle } from '../../../support/dom';
 import type { FGLink, FGNode } from '../../../model/build';
 import type { GraphTooltipState } from '../../../tooltipModel';
 import type { WebviewPluginHost } from '../../../../../pluginHost/manager';
-import { useTooltipEvents } from './events';
-import { useTooltipState } from './state';
+import { useTooltipEvents } from './events/handlers';
+import { useTooltipState } from './events/state';
 
 export interface GraphTooltipInteractionDependencies {
 	sendGraphInteraction: (this: void, event: string, eventData: unknown) => void;

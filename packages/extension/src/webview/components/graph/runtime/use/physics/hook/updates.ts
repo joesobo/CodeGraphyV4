@@ -1,9 +1,9 @@
 import { useEffect, type MutableRefObject } from 'react';
-import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
+import type { IPhysicsSettings } from '../../../../../../../shared/settings/physics';
 import type { PhysicsRuntimeRefs } from './refs';
-import { applyPhysicsSettings } from '../../physics';
-import { selectActivePhysicsGraph } from '../../physicsLifecycle/readiness';
-import { shouldApplyPhysicsUpdate } from '../../physicsLifecycle/updates';
+import { applyPhysicsSettings } from '../../../physics';
+import { selectActivePhysicsGraph } from '../../../physicsLifecycle/readiness';
+import { shouldApplyPhysicsUpdate } from '../../../physicsLifecycle/updates';
 
 interface UsePhysicsRuntimeUpdatesOptions extends PhysicsRuntimeRefs {
   graphMode: '2d' | '3d';

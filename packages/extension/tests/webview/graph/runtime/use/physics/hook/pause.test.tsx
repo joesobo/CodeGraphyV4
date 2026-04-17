@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { usePhysicsRuntimePause } from '../../../../../../src/webview/components/graph/runtime/use/physics/pause';
+import { usePhysicsRuntimePause } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook/pause';
 
 const physicsHarness = vi.hoisted(() => ({
   havePhysicsSettingsChanged: vi.fn(),
@@ -8,11 +8,11 @@ const physicsHarness = vi.hoisted(() => ({
   syncPhysicsAnimation: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
+vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
   selectActivePhysicsGraph: physicsHarness.selectActivePhysicsGraph,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => ({
+vi.mock('../../../../../../../src/webview/components/graph/runtime/physics', () => ({
   havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
   syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
 }));

@@ -5,19 +5,19 @@ import {
 import type {
 	ForceGraphMethods as FG2DMethods,
 } from 'react-force-graph-2d';
-import type { IFileInfo } from '../../../../../../shared/files/info';
-import type { IGraphData } from '../../../../../../shared/graph/contracts';
-import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
-import type { FGLink, FGNode } from '../../../model/build';
-import type { GraphTooltipState } from '../../../tooltipModel';
-import type { WebviewPluginHost } from '../../../../../pluginHost/manager';
-import type { GraphTooltipInteractionDependencies } from './hook';
-import { handleTooltipNodeHover } from '../../tooltip/hover';
-import { getTooltipNodeRect } from '../../tooltip/rect';
+import type { IFileInfo } from '../../../../../../../shared/files/info';
+import type { IGraphData } from '../../../../../../../shared/graph/contracts';
+import type { WebviewToExtensionMessage } from '../../../../../../../shared/protocol/webviewToExtension';
+import type { FGLink, FGNode } from '../../../../model/build';
+import type { GraphTooltipState } from '../../../../tooltipModel';
+import type { WebviewPluginHost } from '../../../../../../pluginHost/manager';
+import type { GraphTooltipInteractionDependencies } from '../hook';
+import { handleTooltipNodeHover } from '../../../tooltip/hover';
+import { getTooltipNodeRect } from '../../../tooltip/rect';
 import {
 	startTooltipTracking as beginTooltipTracking,
 	stopTooltipTracking as endTooltipTracking,
-} from '../../tooltip/tracking';
+} from '../../../tooltip/tracking';
 
 export interface UseTooltipEventsOptions {
 	containerRef: MutableRefObject<HTMLDivElement | null>;

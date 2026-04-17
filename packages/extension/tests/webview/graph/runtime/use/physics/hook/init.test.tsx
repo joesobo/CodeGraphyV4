@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../../../src/shared/settings/physics';
+import type { IPhysicsSettings } from '../../../../../../../src/shared/settings/physics';
 
 const physicsHarness = vi.hoisted(() => ({
   havePhysicsSettingsChanged: vi.fn(),
@@ -9,17 +9,17 @@ const physicsHarness = vi.hoisted(() => ({
   syncPhysicsAnimation: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => ({
+vi.mock('../../../../../../../src/webview/components/graph/runtime/physics', () => ({
   havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
   initPhysics: physicsHarness.initPhysics,
   syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
+vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
   resolvePhysicsInitAction: physicsHarness.resolvePhysicsInitAction,
 }));
 
-import { usePhysicsRuntimeInit } from '../../../../../../src/webview/components/graph/runtime/use/physics/init';
+import { usePhysicsRuntimeInit } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook/init';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
