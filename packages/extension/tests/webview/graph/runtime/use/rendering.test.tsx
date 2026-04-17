@@ -2,10 +2,10 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as THREE from 'three';
 import type SpriteText from 'three-spritetext';
-import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
-import { useGraphRenderingRuntime } from '../../../../src/webview/components/graph/runtime/use/rendering';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import type { IPhysicsSettings } from '../../../../../src/shared/settings/physics';
+import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
+import { useGraphRenderingRuntime } from '../../../../../src/webview/components/graph/runtime/use/rendering';
 
 const renderingHarness = vi.hoisted(() => ({
 	renderPluginOverlays: vi.fn(),
@@ -18,31 +18,31 @@ const renderingHarness = vi.hoisted(() => ({
 	usePluginOverlays: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/containerSize', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/containerSize', () => ({
 	useContainerSize: renderingHarness.useContainerSize,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/pluginOverlays', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/pluginOverlays', () => ({
 	usePluginOverlays: renderingHarness.usePluginOverlays,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/use/indicators', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/indicators', () => ({
 	useDirectional: renderingHarness.useDirectional,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/use/labelVisibility', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/labelVisibility', () => ({
 	useLabelVisibility: renderingHarness.useLabelVisibility,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/use/meshHighlights', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/meshHighlights', () => ({
 	useMeshHighlights: renderingHarness.useMeshHighlights,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/use/nodeAppearance', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/nodeAppearance', () => ({
 	useNodeAppearance: renderingHarness.useNodeAppearance,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/use/physics/hook', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/physics/hook', () => ({
 	usePhysicsRuntime: renderingHarness.usePhysicsRuntime,
 }));
 

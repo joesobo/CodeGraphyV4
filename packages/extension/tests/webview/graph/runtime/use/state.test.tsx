@@ -1,19 +1,19 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../src/shared/plugins/decorations';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
+import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
 
 const graphStateHarness = vi.hoisted(() => ({
   as2DExtMethods: vi.fn(),
   buildGraphData: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/model/build', () => ({
+vi.mock('../../../../../src/webview/components/graph/model/build', () => ({
   buildGraphData: graphStateHarness.buildGraphData,
 }));
 
-vi.mock('../../../../src/webview/components/graph/support/contracts', () => ({
+vi.mock('../../../../../src/webview/components/graph/support/contracts', () => ({
   as2DExtMethods: graphStateHarness.as2DExtMethods,
 }));
 
@@ -23,7 +23,7 @@ import {
   incrementImageCacheVersion,
   useGraphState,
   type UseGraphStateOptions,
-} from '../../../../src/webview/components/graph/runtime/use/state';
+} from '../../../../../src/webview/components/graph/runtime/use/state';
 
 function createData(suffix: string): IGraphData {
   return {
