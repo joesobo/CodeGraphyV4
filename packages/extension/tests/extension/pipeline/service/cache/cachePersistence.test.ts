@@ -1,20 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearWorkspacePipelineCache } from '../../../../src/extension/pipeline/analysis/state';
-import { saveWorkspaceAnalysisDatabaseCache } from '../../../../src/extension/pipeline/database/cache/index.ts';
+import { clearWorkspacePipelineCache } from '../../../../../src/extension/pipeline/analysis/state';
+import { saveWorkspaceAnalysisDatabaseCache } from '../../../../../src/extension/pipeline/database/cache/index.ts';
 import {
   clearWorkspacePipelineStoredCache,
   persistWorkspacePipelineCache,
-} from '../../../../src/extension/pipeline/service/cachePersistence';
+} from '../../../../../src/extension/pipeline/service/cache/cachePersistence';
 
-vi.mock('../../../../src/extension/pipeline/analysis/state', () => ({
+vi.mock('../../../../../src/extension/pipeline/analysis/state', () => ({
   clearWorkspacePipelineCache: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache/index.ts', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/index.ts', () => ({
   saveWorkspaceAnalysisDatabaseCache: vi.fn(),
 }));
 
-describe('pipeline/service/cachePersistence', () => {
+describe('pipeline/service/cache/cachePersistence', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

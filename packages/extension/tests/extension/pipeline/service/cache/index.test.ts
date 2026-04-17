@@ -2,19 +2,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   hasWorkspacePipelineIndex,
   persistWorkspacePipelineIndexMetadata,
-} from '../../../../src/extension/pipeline/service/index';
+} from '../../../../../src/extension/pipeline/service/cache/index';
 import {
   readCodeGraphyRepoMeta,
   writeCodeGraphyRepoMeta,
-} from '../../../../src/extension/repoSettings/meta';
-import type { ICodeGraphyRepoMeta } from '../../../../src/extension/repoSettings/meta';
+} from '../../../../../src/extension/repoSettings/meta';
+import type { ICodeGraphyRepoMeta } from '../../../../../src/extension/repoSettings/meta';
 
-vi.mock('../../../../src/extension/repoSettings/meta', () => ({
+vi.mock('../../../../../src/extension/repoSettings/meta', () => ({
   readCodeGraphyRepoMeta: vi.fn(),
   writeCodeGraphyRepoMeta: vi.fn(),
 }));
 
-describe('pipeline/service/index', () => {
+describe('pipeline/service/cache/index', () => {
   const meta = (overrides: Partial<ICodeGraphyRepoMeta> = {}): ICodeGraphyRepoMeta => ({
     version: 1,
     lastIndexedAt: '2026-01-01T00:00:00.000Z',

@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
-} from '../../../../src/extension/pipeline/service/paths';
+} from '../../../../../src/extension/pipeline/service/cache/paths';
 
-describe('pipeline/service/paths', () => {
+describe('pipeline/service/cache/paths', () => {
   it('returns workspace-relative paths for absolute and workspace-relative file paths', () => {
     expect(toWorkspaceRelativePath('/workspace', '/workspace/src/a.ts')).toBe('src/a.ts');
     expect(toWorkspaceRelativePath('/workspace', 'src/a.ts')).toBe('src/a.ts');

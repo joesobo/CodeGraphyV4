@@ -10,22 +10,22 @@ import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
 } from '../../../../src/extension/pipeline/service/analysisDelegates';
-import { persistWorkspacePipelineCache } from '../../../../src/extension/pipeline/service/cachePersistence';
+import { persistWorkspacePipelineCache } from '../../../../src/extension/pipeline/service/cache/cachePersistence';
 import {
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
 } from '../../../../src/extension/pipeline/service/graph';
-import { persistWorkspacePipelineIndexMetadata } from '../../../../src/extension/pipeline/service/index';
+import { persistWorkspacePipelineIndexMetadata } from '../../../../src/extension/pipeline/service/cache/index';
 import {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
-} from '../../../../src/extension/pipeline/service/paths';
+} from '../../../../src/extension/pipeline/service/cache/paths';
 import {
   createWorkspacePipelinePluginSignature,
   readWorkspacePipelineCurrentCommitSha,
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitShaSync,
-} from '../../../../src/extension/pipeline/service/signatures';
+} from '../../../../src/extension/pipeline/service/cache/signatures';
 
 vi.mock('../../../../src/extension/pipeline/serviceAdapters', () => ({
   readWorkspacePipelineFileStat: vi.fn(),
@@ -37,7 +37,7 @@ vi.mock('../../../../src/extension/pipeline/service/analysisDelegates', () => ({
   preAnalyzeWorkspacePipelinePlugins: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/cachePersistence', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/cachePersistence', () => ({
   persistWorkspacePipelineCache: vi.fn(),
 }));
 
@@ -46,18 +46,18 @@ vi.mock('../../../../src/extension/pipeline/service/graph', () => ({
   buildWorkspacePipelineGraphFromAnalysis: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/index', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/index', () => ({
   persistWorkspacePipelineIndexMetadata: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/paths', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/paths', () => ({
   readWorkspacePipelineAnalysisFiles: vi.fn(),
   toWorkspaceRelativePath: vi.fn((workspaceRoot: string, filePath: string) =>
     filePath.replace(`${workspaceRoot}/`, ''),
   ),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/signatures', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/signatures', () => ({
   createWorkspacePipelinePluginSignature: vi.fn(),
   createWorkspacePipelineSettingsSignature: vi.fn(),
   readWorkspacePipelineCurrentCommitSha: vi.fn(),

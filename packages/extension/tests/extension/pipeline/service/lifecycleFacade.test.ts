@@ -8,21 +8,21 @@ import type {
   IFileAnalysisResult,
   IProjectedConnection,
 } from '../../../../src/core/plugins/types/contracts';
-import { clearWorkspacePipelineStoredCache } from '../../../../src/extension/pipeline/service/cachePersistence';
+import { clearWorkspacePipelineStoredCache } from '../../../../src/extension/pipeline/service/cache/cachePersistence';
 import {
   invalidateWorkspacePipelineFiles,
   resolveWorkspacePipelinePluginFilePaths,
-} from '../../../../src/extension/pipeline/service/invalidation';
+} from '../../../../src/extension/pipeline/service/cache/invalidation';
 import {
   getWorkspacePipelinePluginName,
   getWorkspacePipelineStatusList,
 } from '../../../../src/extension/pipeline/service/plugins';
 
-vi.mock('../../../../src/extension/pipeline/service/cachePersistence', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/cachePersistence', () => ({
   clearWorkspacePipelineStoredCache: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/invalidation', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/invalidation', () => ({
   invalidateWorkspacePipelineFiles: vi.fn(),
   resolveWorkspacePipelinePluginFilePaths: vi.fn(),
 }));
