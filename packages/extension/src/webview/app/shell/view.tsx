@@ -11,9 +11,9 @@ import { RulePrompt, type RulePromptState } from '../rulePrompt/view';
 import { useGraphStore } from '../../store/state';
 import { GraphSurface } from '../graph/surface';
 import { GraphStatsBadge, buildGraphStatsLabel } from '../graph/stats';
-import { PanelStack } from './PanelStack';
-import { SearchHeader } from './SearchHeader';
-import { ToolbarRail } from './ToolbarRail';
+import { PanelStack } from './panel/stack';
+import { SearchHeader } from './panel/search';
+import { ToolbarRail } from './panel/toolbar';
 import { useFilterLegendInputs } from './derivedState';
 import { useRulePromptHandlers } from '../rulePrompt/handlers';
 
