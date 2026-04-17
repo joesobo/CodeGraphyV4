@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { IGroup } from '../../shared/settings/groups';
+import type { IGroup } from '../../../shared/settings/groups';
 
 export function useFilterLegendInputs(
   filterPatterns: string[],

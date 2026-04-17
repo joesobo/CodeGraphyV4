@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, renderHook } from '@testing-library/react';
-import { useAppActions, useAppState } from '../../../src/webview/app/storeSelectors';
-import { graphStore } from '../../../src/webview/store/state';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import { useAppActions, useAppState } from '../../../../src/webview/app/shell/storeSelectors';
+import { graphStore } from '../../../../src/webview/store/state';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 
 const originalState = graphStore.getState();
 

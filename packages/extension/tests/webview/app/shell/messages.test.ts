@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getNoDataHint } from '../../../src/webview/app/messages';
+import { getNoDataHint } from '../../../../src/webview/app/shell/messages';
 
 describe('app messages', () => {
   it('prompts to enable show orphans when graph data exists but orphans are hidden', () => {

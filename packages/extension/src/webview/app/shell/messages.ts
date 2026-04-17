@@ -1,11 +1,11 @@
-import type { IGraphData } from '../../shared/graph/types';
-export type { PluginWebviewModule } from '../pluginRuntime/moduleResolver';
-export type { PluginInjectPayload, PluginScopedMessage } from '../pluginRuntime/messageValidation';
+import type { IGraphData } from '../../../shared/graph/types';
+export type { PluginWebviewModule } from '../../pluginRuntime/moduleResolver';
+export type { PluginInjectPayload, PluginScopedMessage } from '../../pluginRuntime/messageValidation';
 export {
   normalizePluginInjectPayload,
   parsePluginScopedMessage,
-} from '../pluginRuntime/messageValidation';
-export { resolvePluginModuleActivator } from '../pluginRuntime/moduleResolver';
+} from '../../pluginRuntime/messageValidation';
+export { resolvePluginModuleActivator } from '../../pluginRuntime/moduleResolver';
 
 export function getNoDataHint(
   graphData: IGraphData | null,

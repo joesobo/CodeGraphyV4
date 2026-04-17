@@ -65,7 +65,7 @@ vi.mock('../../../../src/webview/search/useFilteredGraph', () => ({
   }),
 }));
 
-vi.mock('../../../../src/webview/app/states', () => ({
+vi.mock('../../../../src/webview/app/shell/states', () => ({
   LoadingState: () => <div data-testid="loading-state" />,
   EmptyState: (props: Record<string, unknown>) => {
     harness.emptyStateProps = props;
@@ -73,7 +73,7 @@ vi.mock('../../../../src/webview/app/states', () => ({
   },
 }));
 
-vi.mock('../../../../src/webview/app/messageListener', () => ({
+vi.mock('../../../../src/webview/app/shell/messageListener', () => ({
   setupMessageListener: (...args: unknown[]) => harness.setupMessageListener(...args),
 }));
 

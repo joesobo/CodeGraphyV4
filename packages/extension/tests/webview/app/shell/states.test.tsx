@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { EmptyState, LoadingState } from '../../../src/webview/app/states';
+import { EmptyState, LoadingState } from '../../../../src/webview/app/shell/states';
 
 describe('app/states', () => {
   it('renders the loading state copy', () => {

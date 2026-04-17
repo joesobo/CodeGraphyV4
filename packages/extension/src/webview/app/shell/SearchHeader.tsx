@@ -1,7 +1,7 @@
 import React from 'react';
-import { SearchBar } from '../components/searchBar/Field';
-import { ActiveFileBreadcrumb } from '../components/activeFileBreadcrumb/view';
-import type { SearchOptions } from '../components/searchBar/field/model';
+import { SearchBar } from '../../components/searchBar/Field';
+import { ActiveFileBreadcrumb } from '../../components/activeFileBreadcrumb/view';
+import type { SearchOptions } from '../../components/searchBar/field/model';
 
 export interface SearchHeaderProps {
   searchQuery: string;

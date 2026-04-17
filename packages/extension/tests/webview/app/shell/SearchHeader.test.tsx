@@ -1,9 +1,9 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SearchHeader } from '../../../src/webview/app/SearchHeader';
+import { SearchHeader } from '../../../../src/webview/app/shell/SearchHeader';
 
-vi.mock('../../../src/webview/components/searchBar/Field', () => ({
+vi.mock('../../../../src/webview/components/searchBar/Field', () => ({
   SearchBar: ({
     value,
     resultCount,

@@ -1,8 +1,8 @@
 import React from 'react';
 import Graph from '../../components/graph/view';
 import { DepthViewControls } from '../../components/depthView/view';
-import { EmptyState } from '../states';
-import { getNoDataHint } from '../messages';
+import { EmptyState } from '../shell/states';
+import { getNoDataHint } from '../shell/messages';
 import type { IGraphData } from '../../../shared/graph/types';
 
 type GraphComponentProps = React.ComponentProps<typeof Graph>;

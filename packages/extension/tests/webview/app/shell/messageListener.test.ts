@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { graphStore } from '../../../src/webview/store/state';
-import { createMessageHandler, setupMessageListener, type InjectAssetsParams } from '../../../src/webview/app/messageListener';
-import type { WebviewPluginHost } from '../../../src/webview/pluginHost/manager';
+import { graphStore } from '../../../../src/webview/store/state';
+import { createMessageHandler, setupMessageListener, type InjectAssetsParams } from '../../../../src/webview/app/shell/messageListener';
+import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
 
-vi.mock('../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),
 }));
 
-import { postMessage } from '../../../src/webview/vscodeApi';
+import { postMessage } from '../../../../src/webview/vscodeApi';
 
 describe('app message listener', () => {
   beforeEach(() => {

@@ -3,7 +3,7 @@
  * @module webview/appStoreSelectors
  */
 
-import { useGraphStore } from '../store/state';
+import { useGraphStore } from '../../store/state';
 
 export function useAppState() {
   const graphData = useGraphStore(s => s.graphData);

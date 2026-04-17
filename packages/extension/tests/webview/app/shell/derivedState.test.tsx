@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { IGroup } from '../../../src/shared/settings/groups';
-import { useFilterLegendInputs } from '../../../src/webview/app/derivedState';
+import type { IGroup } from '../../../../src/shared/settings/groups';
+import { useFilterLegendInputs } from '../../../../src/webview/app/shell/derivedState';
 
 type HookProps = {
   filterPatterns: string[];

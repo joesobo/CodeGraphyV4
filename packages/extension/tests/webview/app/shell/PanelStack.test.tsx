@@ -1,41 +1,41 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { PanelStack } from '../../../src/webview/app/PanelStack';
+import { PanelStack } from '../../../../src/webview/app/shell/PanelStack';
 
 const slotHostSpy = vi.fn();
-vi.mock('../../../src/webview/pluginHost/slotHost/view', () => ({
+vi.mock('../../../../src/webview/pluginHost/slotHost/view', () => ({
   SlotHost: (props: Record<string, unknown>) => {
     slotHostSpy(props);
     return <div data-testid="node-details-slot" />;
   },
 }));
 
-vi.mock('../../../src/webview/components/settingsPanel/Drawer', () => ({
+vi.mock('../../../../src/webview/components/settingsPanel/Drawer', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="settings-panel" /> : null),
 }));
 
-vi.mock('../../../src/webview/components/plugins/Panel', () => ({
+vi.mock('../../../../src/webview/components/plugins/Panel', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="plugins-panel" /> : null),
 }));
 
-vi.mock('../../../src/webview/components/legends/panel/view', () => ({
+vi.mock('../../../../src/webview/components/legends/panel/view', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="legends-panel" /> : null),
 }));
 
-vi.mock('../../../src/webview/components/nodes/Panel', () => ({
+vi.mock('../../../../src/webview/components/nodes/Panel', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="nodes-panel" /> : null),
 }));
 
-vi.mock('../../../src/webview/components/edges/Panel', () => ({
+vi.mock('../../../../src/webview/components/edges/Panel', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="edges-panel" /> : null),
 }));
 
-vi.mock('../../../src/webview/components/export/Panel', () => ({
+vi.mock('../../../../src/webview/components/export/Panel', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="export-panel" /> : null),
 }));
 
-vi.mock('../../../src/webview/components/graphCornerControls/view', () => ({
+vi.mock('../../../../src/webview/components/graphCornerControls/view', () => ({
   GraphCornerControls: () => <div data-testid="graph-corner-controls" />,
 }));
 

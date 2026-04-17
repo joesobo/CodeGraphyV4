@@ -1,5 +1,5 @@
 import React from 'react';
-import Toolbar from '../components/toolbar/view';
+import Toolbar from '../../components/toolbar/view';
 
 type ToolbarProps = React.ComponentProps<typeof Toolbar>;
 

@@ -3,11 +3,11 @@
  * @module webview/appMessageListener
  */
 
-import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
-import { postMessage } from '../vscodeApi';
-import { graphStore } from '../store/state';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import { postMessage } from '../../vscodeApi';
+import { graphStore } from '../../store/state';
 import { normalizePluginInjectPayload, parsePluginScopedMessage } from './messages';
-import type { WebviewPluginHost } from '../pluginHost/manager';
+import type { WebviewPluginHost } from '../../pluginHost/manager';
 
 type WindowWithCodeGraphyReadyFlag = Window & {
   __codegraphyWebviewReadyPosted?: boolean;

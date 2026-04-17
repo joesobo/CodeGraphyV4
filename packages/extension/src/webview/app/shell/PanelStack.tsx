@@ -1,12 +1,12 @@
 import React from 'react';
-import SettingsPanel from '../components/settingsPanel/Drawer';
-import PluginsPanel from '../components/plugins/Panel';
-import LegendsPanel from '../components/legends/panel/view';
-import NodesPanel from '../components/nodes/Panel';
-import EdgesPanel from '../components/edges/Panel';
-import ExportPanel from '../components/export/Panel';
-import { SlotHost } from '../pluginHost/slotHost/view';
-import { GraphCornerControls } from '../components/graphCornerControls/view';
+import SettingsPanel from '../../components/settingsPanel/Drawer';
+import PluginsPanel from '../../components/plugins/Panel';
+import LegendsPanel from '../../components/legends/panel/view';
+import NodesPanel from '../../components/nodes/Panel';
+import EdgesPanel from '../../components/edges/Panel';
+import ExportPanel from '../../components/export/Panel';
+import { SlotHost } from '../../pluginHost/slotHost/view';
+import { GraphCornerControls } from '../../components/graphCornerControls/view';
 
 type SlotHostProps = React.ComponentProps<typeof SlotHost>;
 

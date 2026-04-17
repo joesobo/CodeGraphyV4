@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Timeline from '../../components/timeline/panel';
 import { usePluginManager } from '../../pluginRuntime/useManager';
-import { setupMessageListener } from '../messageListener';
+import { setupMessageListener } from '../shell/messageListener';
 
 export default function TimelineApp(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();

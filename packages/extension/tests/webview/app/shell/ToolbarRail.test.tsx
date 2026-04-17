@@ -1,9 +1,9 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ToolbarRail } from '../../../src/webview/app/ToolbarRail';
+import { ToolbarRail } from '../../../../src/webview/app/shell/ToolbarRail';
 
-vi.mock('../../../src/webview/components/toolbar/view', () => ({
+vi.mock('../../../../src/webview/components/toolbar/view', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 

@@ -21,7 +21,7 @@ vi.mock('../../../../src/webview/pluginRuntime/useManager', () => ({
   }),
 }));
 
-vi.mock('../../../../src/webview/app/messageListener', () => ({
+vi.mock('../../../../src/webview/app/shell/messageListener', () => ({
   setupMessageListener: harness.setupMessageListener,
 }));
 

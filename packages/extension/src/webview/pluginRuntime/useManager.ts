@@ -12,7 +12,7 @@ import {
   resolvePluginModuleActivator,
   PluginWebviewModule,
   PluginInjectPayload,
-} from '../app/messages';
+} from '../app/shell/messages';
 
 export interface IPluginManager {
   pluginHost: WebviewPluginHost;
