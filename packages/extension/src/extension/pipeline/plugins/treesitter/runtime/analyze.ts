@@ -1,11 +1,11 @@
 import type Parser from 'tree-sitter';
 import type { IFileAnalysisResult } from '../../../../../core/plugins/types/contracts';
 import { analyzeCSharpFile } from './analyze/csharp/analyze';
-import { analyzeGoFile } from './analyze/go/analyze';
+import { analyzeGoFile } from './analyze/go/analysis/analyze';
 import { analyzeJavaFile } from './analyze/java/analyze';
-import { analyzeJavaScriptFamilyFile } from './analyze/javascript/analyze';
+import { analyzeJavaScriptFamilyFile } from './analyze/javascript/analysis/analyze';
 import { analyzePythonFile } from './analyze/python/analyze';
-import { analyzeRustFile } from './analyze/rust/analyze';
+import { analyzeRustFile } from './analyze/rust/analysis/analyze';
 import {
   createTreeSitterRuntime,
 } from './languages/parser';
