@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   readGoModuleName,
   resolveGoPackageDirectory,
-} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/go/module';
+} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/goModule';
 import {
   cleanupProjectRootsWorkspaces,
   createProjectRootsWorkspace,
@@ -13,7 +13,7 @@ afterEach(() => {
   cleanupProjectRootsWorkspaces();
 });
 
-describe('pipeline/plugins/treesitter/runtime/projectRoots/go/module', () => {
+describe('pipeline/plugins/treesitter/runtime/projectRoots/goModule', () => {
   it('reads the Go module name from go.mod', () => {
     const workspaceRoot = createProjectRootsWorkspace();
     writeProjectRootsFile(workspaceRoot, 'go.mod', 'module github.com/acme/project\n');

@@ -1,15 +1,15 @@
-import { resolveGoPackagePath as resolveGoPath } from './projectRoots/go/packagePath';
+import { resolveGoPackagePath as resolveGoPath } from './projectRoots/goPackagePath';
 import {
   readGoModuleName as readModuleName,
   resolveGoPackageDirectory as resolveGoDirectory,
-} from './projectRoots/go/module';
+} from './projectRoots/goModule';
 import {
   resolveJavaSourceRoot as resolveSourceRoot,
   resolveJavaTypePath as resolveTypePath,
 } from './projectRoots/java';
 import { getPythonSearchRoots as readPythonSearchRoots } from './projectRoots/python';
 import { getRustCrateRoot as readRustCrateRoot } from './projectRoots/rust';
-import { dedupePaths as dedupeProjectRootPaths, findNearestProjectRoot as findProjectRoot } from './projectRoots/search/projectRoot';
+import { dedupePaths as dedupeProjectRootPaths, findNearestProjectRoot as findProjectRoot } from './projectRoots/projectRootSearch';
 
 export const resolveGoPackagePath = resolveGoPath;
 export const readGoModuleName = readModuleName;

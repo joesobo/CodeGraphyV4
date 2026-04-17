@@ -15,12 +15,12 @@ const sharedMock = vi.hoisted(() => ({
 }));
 
 vi.mock('node:fs', () => fsMock);
-vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/go/module', () => goModuleMock);
-vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/search/projectRoot', () => sharedMock);
+vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/goModule', () => goModuleMock);
+vi.mock('../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/projectRootSearch', () => sharedMock);
 
-import { resolveGoPackagePath } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/go/packagePath';
+import { resolveGoPackagePath } from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots/goPackagePath';
 
-describe('pipeline/plugins/treesitter/runtime/projectRoots/go/packagePath behavior', () => {
+describe('pipeline/plugins/treesitter/runtime/projectRoots/goPackagePath behavior', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sharedMock.findNearestProjectRoot.mockReturnValue('/workspace/project');

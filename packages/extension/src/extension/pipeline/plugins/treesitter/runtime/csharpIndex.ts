@@ -1,15 +1,15 @@
 import {
   preAnalyzeCSharpTreeSitterFiles as preAnalyzeFiles,
   type PreAnalyzeFileInput,
-} from './csharpIndex/analyze/preAnalyze';
-import { indexCSharpTree as indexTree } from './csharpIndex/analyze/tree';
+} from './csharpIndex/preAnalyze';
+import { indexCSharpTree as indexTree } from './csharpIndex/tree';
 import {
   getCSharpFileScopedNamespaceName as getFileScopedNamespaceName,
   getCSharpIdentifierText as getIdentifierText,
   getCSharpNamespaceName as getNamespaceName,
   getCSharpNodeText as getNodeText,
   isCSharpTypeDeclarationNode as isTypeDeclarationNode,
-} from './csharpIndex/analyze/nodes';
+} from './csharpIndex/nodes';
 import {
   resolveCSharpTypePath as resolveTypePath,
   resolveCSharpTypePathInNamespace as resolveTypePathInNamespace,
