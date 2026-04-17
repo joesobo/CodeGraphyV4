@@ -6,11 +6,11 @@
 import type {
   IPlugin,
 } from '../types/contracts';
-import { validateAndCreatePluginInfo, addToRegistry } from './register';
-import { removeFromRegistry } from './unregister';
-import { buildV2Config } from './configure';
-import type { ConfigureV2Options } from './configure';
-import { PluginRegistryLifecycle } from './lifecycle';
+import { buildV2Config } from './runtime/configure';
+import { PluginRegistryLifecycle } from './runtime/lifecycle';
+import { validateAndCreatePluginInfo, addToRegistry } from './runtime/register';
+import type { ConfigureV2Options } from './runtime/configure';
+import { removeFromRegistry } from './runtime/unregister';
 
 export class PluginRegistry extends PluginRegistryLifecycle {
   configureV2(options: ConfigureV2Options): void {

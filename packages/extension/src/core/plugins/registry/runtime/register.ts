@@ -3,14 +3,14 @@
  * @module core/plugins/registry/register
  */
 
-import type { IPlugin } from '../types/contracts';
+import type { IPlugin } from '../../types/contracts';
 import type { IPluginInfoV2 } from './state';
-import type { EventBus } from '../events/bus';
-import type { DecorationManager } from '../decoration/manager';
-import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../api/instance/runtime/context';
-import type { ViewRegistry } from '../../views/registry';
-import { CORE_PLUGIN_API_VERSION } from '../versioning/apiVersions';
-import { hasScopedApiConfiguration } from '../api/instance/runtime/configuration';
+import type { EventBus } from '../../events/bus';
+import type { DecorationManager } from '../../decoration/manager';
+import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../../api/instance/runtime/context';
+import type { ViewRegistry } from '../../../views/registry';
+import { CORE_PLUGIN_API_VERSION } from '../../versioning/apiVersions';
+import { hasScopedApiConfiguration } from '../../api/instance/runtime/configuration';
 import { assertCoreApiCompatibility, warnOnWebviewApiMismatch } from './compatibility';
 import { addPluginToExtensionMap } from './extensionMap';
 import { createPluginApi, callOnLoad } from './apiSetup';

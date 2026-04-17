@@ -1,15 +1,15 @@
-import type { EventBus } from '../events/bus';
-import type { CodeGraphyAPIImpl } from '../api/instance';
-import type { IGraphData } from '../../../shared/graph/contracts';
-import type { IPluginInfo } from '../types/contracts';
+import type { EventBus } from '../../events/bus';
+import type { CodeGraphyAPIImpl } from '../../api/instance';
+import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { IPluginInfo } from '../../types/contracts';
 import { DEFAULT_LOG_FN } from './configure';
 import type { RegistryV2Config } from './register';
 import {
   replayReadinessForPlugin as lifecycleReplayReadiness,
-} from '../lifecycle/replay';
+} from '../../lifecycle/replay';
 import type {
   CoreFileAnalysisResultProvider,
-} from '../routing/router/analyze';
+} from '../../routing/router/analyze';
 
 export interface IPluginInfoV2 extends IPluginInfo {
   api?: CodeGraphyAPIImpl;

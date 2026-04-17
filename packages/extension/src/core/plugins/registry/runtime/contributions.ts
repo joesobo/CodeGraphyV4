@@ -1,6 +1,6 @@
 import type {
   IPlugin,
-} from '../types/contracts';
+} from '../../types/contracts';
 import type { IPluginInfoV2 } from './state';
 
 export function listPluginContributions<TDefinition>(

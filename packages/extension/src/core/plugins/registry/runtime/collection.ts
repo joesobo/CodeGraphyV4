@@ -5,18 +5,18 @@ import type {
   IPluginInfo,
   IPluginNodeType,
   IProjectedConnection,
-} from '../types/contracts';
+} from '../../types/contracts';
 import { rebuildPluginExtensionMap } from './extensionMap';
 import {
   analyzeFile,
   analyzeFileResult,
-} from '../routing/router/analyze';
+} from '../../routing/router/analyze';
 import {
   getPluginForFile,
   getPluginsForExtension,
   getSupportedExtensions,
   supportsFile,
-} from '../routing/router/lookups';
+} from '../../routing/router/lookups';
 import { listPluginContributions } from './contributions';
 import { buildReorderedPluginMap, replacePluginMap } from './order';
 import { PluginRegistryState } from './state';

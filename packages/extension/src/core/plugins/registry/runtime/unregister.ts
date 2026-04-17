@@ -4,7 +4,7 @@
  */
 
 import type { IPluginInfoV2 } from './state';
-import type { EventBus } from '../events/bus';
+import type { EventBus } from '../../events/bus';
 import { removePluginFromExtensionMap } from './extensionMap';
 
 /**

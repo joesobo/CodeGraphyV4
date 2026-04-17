@@ -1,18 +1,18 @@
-import type { IGraphData } from '../../../shared/graph/contracts';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import {
   initializeAll as lifecycleInitializeAll,
   initializePlugin as lifecycleInitializePlugin,
-} from '../lifecycle/initialize';
+} from '../../lifecycle/initialize';
 import {
   notifyGraphRebuild as lifecycleNotifyGraphRebuild,
   notifyPostAnalyze as lifecycleNotifyPostAnalyze,
   notifyPreAnalyze as lifecycleNotifyPreAnalyze,
-} from '../lifecycle/notify/analysis';
+} from '../../lifecycle/notify/analysis';
 import {
   notifyWebviewReady as lifecycleNotifyWebviewReady,
   notifyWorkspaceReady as lifecycleNotifyWorkspaceReady,
-} from '../lifecycle/notify/readiness';
-import { notifyFilesChanged as lifecycleNotifyFilesChanged } from '../lifecycle/notify/filesChanged';
+} from '../../lifecycle/notify/readiness';
+import { notifyFilesChanged as lifecycleNotifyFilesChanged } from '../../lifecycle/notify/filesChanged';
 import { PluginRegistryCollection } from './collection';
 
 export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {

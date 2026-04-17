@@ -3,13 +3,13 @@
  * @module core/plugins/registry/compatibility
  */
 
-import type { IPlugin } from '../types/contracts';
+import type { IPlugin } from '../../types/contracts';
 import {
   CORE_PLUGIN_API_VERSION,
   WEBVIEW_PLUGIN_API_VERSION,
   parseSemver,
   satisfiesSemverRange,
-} from '../versioning/apiVersions';
+} from '../../versioning/apiVersions';
 
 /**
  * Enforces compatibility between plugin apiVersion and host core API version.

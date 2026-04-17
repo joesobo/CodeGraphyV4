@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildReorderedPluginMap, replacePluginMap } from '../../../../src/core/plugins/registry/order';
+import { buildReorderedPluginMap, replacePluginMap } from '../../../../src/core/plugins/registry/runtime/order';
 
-describe('core/plugins/registry/order', () => {
+describe('core/plugins/registry/runtime/order', () => {
   it('reorders plugins once and appends unmentioned plugins without duplicates', () => {
     const alpha = { plugin: { id: 'alpha' } } as never;
     const beta = { plugin: { id: 'beta' } } as never;
