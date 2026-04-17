@@ -9,7 +9,7 @@ import {
   getGraphViewWebviewResourceRoots,
   refreshGraphViewResourceRoots,
   resolveGraphViewPluginAssetPath,
-} from '../webview/plugins/assets';
+} from '../webview/plugins/resources';
 import { normalizeGraphViewExtensionUri } from '../resources';
 
 export interface GraphViewProviderPluginResourceMethodsSource {

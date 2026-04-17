@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   sendGraphViewContextMenuItems,
-  sendGraphViewDecorations,
   sendGraphViewPluginExporters,
-  sendGraphViewPluginStatuses,
   sendGraphViewPluginToolbarActions,
   sendGraphViewPluginWebviewInjections,
-} from '../../../../../src/extension/graphView/webview/plugins/dispatch';
+} from '../../../../../src/extension/graphView/webview/plugins/contributionDispatch';
+import {
+  sendGraphViewDecorations,
+  sendGraphViewPluginStatuses,
+} from '../../../../../src/extension/graphView/webview/plugins/updates';
 
 describe('graphView/webview/plugins/dispatch', () => {
   it('re-exports the plugin dispatch helpers', () => {

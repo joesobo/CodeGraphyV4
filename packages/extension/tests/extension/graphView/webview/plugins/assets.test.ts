@@ -3,13 +3,17 @@ import {
   getGraphViewWebviewResourceRoots,
   refreshGraphViewResourceRoots,
   resolveGraphViewPluginAssetPath,
+} from '../../../../../src/extension/graphView/webview/plugins/resources';
+import {
   sendGraphViewContextMenuItems,
-  sendGraphViewDecorations,
   sendGraphViewPluginExporters,
-  sendGraphViewPluginToolbarActions,
-  sendGraphViewPluginStatuses,
   sendGraphViewPluginWebviewInjections,
-} from '../../../../../src/extension/graphView/webview/plugins/assets';
+  sendGraphViewPluginToolbarActions,
+} from '../../../../../src/extension/graphView/webview/plugins/contributionDispatch';
+import {
+  sendGraphViewDecorations,
+  sendGraphViewPluginStatuses,
+} from '../../../../../src/extension/graphView/webview/plugins/updates';
 
 describe('graphView/webview/plugins/assets', () => {
   it('re-exports the plugin webview asset helpers', () => {

@@ -48,7 +48,7 @@ vi.mock('../../../../src/extension/graphView/groups/merged', () => ({
   buildGraphViewMergedGroups: buildMergedGroups,
 }));
 
-vi.mock('../../../../src/extension/graphView/webview/plugins/assets', () => ({
+vi.mock('../../../../src/extension/graphView/webview/plugins/resources', () => ({
   getGraphViewWebviewResourceRoots: getWebviewResourceRoots,
   refreshGraphViewResourceRoots: refreshWebviewResourceRoots,
   resolveGraphViewPluginAssetPath: resolvePluginAssetPath,
