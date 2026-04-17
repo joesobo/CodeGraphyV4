@@ -2,9 +2,9 @@ import type * as vscode from 'vscode';
 import {
   createEmptyWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
-} from '../cache';
-import { loadWorkspaceAnalysisDatabaseCache } from '../database/cache';
-import { readWorkspacePipelineRoot } from '../serviceAdapters';
+} from '../../cache';
+import { loadWorkspaceAnalysisDatabaseCache } from '../../database/cache';
+import { readWorkspacePipelineRoot } from '../../serviceAdapters';
 
 export function createWorkspacePipelineInitialCache(
   workspaceFolders: typeof vscode.workspace.workspaceFolders,

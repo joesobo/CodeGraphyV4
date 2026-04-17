@@ -8,7 +8,7 @@ import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
 } from './discovery';
-import { hasWorkspacePipelineIndex } from './index';
+import { hasWorkspacePipelineIndex } from './cache/index';
 import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,

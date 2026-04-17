@@ -11,18 +11,18 @@ import {
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
 } from './graph';
-import { persistWorkspacePipelineIndexMetadata } from './index';
+import { persistWorkspacePipelineIndexMetadata } from './cache/index';
 import {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
-} from './paths';
+} from './cache/paths';
 import {
   createWorkspacePipelinePluginSignature,
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
-} from './signatures';
-import { persistWorkspacePipelineCache } from './cachePersistence';
+} from './cache/signatures';
+import { persistWorkspacePipelineCache } from './cache/cachePersistence';
 import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,

@@ -1,6 +1,6 @@
 import path from 'node:path';
-import type { IFileAnalysisResult, IProjectedConnection } from '../../../core/plugins/types/contracts';
-import type { IWorkspaceAnalysisCache } from '../cache';
+import type { IFileAnalysisResult, IProjectedConnection } from '../../../../core/plugins/types/contracts';
+import type { IWorkspaceAnalysisCache } from '../../cache';
 
 interface WorkspacePipelineInvalidationState {
   cache: IWorkspaceAnalysisCache;

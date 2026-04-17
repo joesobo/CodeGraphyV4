@@ -3,28 +3,28 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { execGitCommand } from '../../../../src/extension/gitHistory/exec';
+import { execGitCommand } from '../../../../../src/extension/gitHistory/exec';
 import {
   createCodeGraphyPluginSignature,
   createCodeGraphySettingsSignature,
-} from '../../../../src/extension/repoSettings/signatures';
+} from '../../../../../src/extension/repoSettings/signatures';
 import {
   createWorkspacePipelinePluginSignature,
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
-} from '../../../../src/extension/pipeline/service/signatures';
+} from '../../../../../src/extension/pipeline/service/cache/signatures';
 
-vi.mock('../../../../src/extension/gitHistory/exec', () => ({
+vi.mock('../../../../../src/extension/gitHistory/exec', () => ({
   execGitCommand: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/repoSettings/signatures', () => ({
+vi.mock('../../../../../src/extension/repoSettings/signatures', () => ({
   createCodeGraphyPluginSignature: vi.fn(),
   createCodeGraphySettingsSignature: vi.fn(),
 }));
 
-describe('pipeline/service/signatures', () => {
+describe('pipeline/service/cache/signatures', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

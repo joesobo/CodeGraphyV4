@@ -13,7 +13,7 @@ import {
   readWorkspaceAnalysisDatabaseSnapshot,
   type WorkspaceAnalysisDatabaseSnapshot,
 } from '../database/cache';
-import { createWorkspacePipelineInitialCache } from './cache';
+import { createWorkspacePipelineInitialCache } from './cache/cache';
 
 export abstract class WorkspacePipelineStateBase {
   protected readonly _config: Configuration;

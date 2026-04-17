@@ -14,7 +14,7 @@ import {
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
 } from '../../../../src/extension/pipeline/plugins/bootstrap';
-import { hasWorkspacePipelineIndex } from '../../../../src/extension/pipeline/service/index';
+import { hasWorkspacePipelineIndex } from '../../../../src/extension/pipeline/service/cache/index';
 import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
@@ -30,7 +30,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/bootstrap', () => ({
   getWorkspacePipelinePluginFilterPatterns: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/index', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/index', () => ({
   hasWorkspacePipelineIndex: vi.fn(),
 }));
 

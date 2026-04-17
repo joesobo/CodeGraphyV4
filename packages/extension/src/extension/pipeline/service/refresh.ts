@@ -9,7 +9,7 @@ import {
   mapDiscoveredWorkspaceFilesByRelativePath,
   mergeDiscoveredWorkspaceFiles,
   selectDiscoveredWorkspaceFiles,
-} from './changedFiles';
+} from './cache/changedFiles';
 
 interface WorkspacePipelineRefreshSource {
   _analyzeFiles(

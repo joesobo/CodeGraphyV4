@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 import { WorkspacePipelineRefreshFacade } from './refreshFacade';
-import { clearWorkspacePipelineStoredCache } from './cachePersistence';
+import { clearWorkspacePipelineStoredCache } from './cache/cachePersistence';
 import {
   invalidateWorkspacePipelineFiles,
   resolveWorkspacePipelinePluginFilePaths,
-} from './invalidation';
+} from './cache/invalidation';
 import {
   getWorkspacePipelinePluginName,
   getWorkspacePipelineStatusList,

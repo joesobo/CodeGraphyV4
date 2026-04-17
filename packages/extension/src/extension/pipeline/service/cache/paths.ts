@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
+import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
 
 export function toWorkspaceRelativePath(
   workspaceRoot: string,

@@ -1,6 +1,6 @@
-import type { IWorkspaceAnalysisCache } from '../cache';
-import { clearWorkspacePipelineCache } from '../analysis/state';
-import { saveWorkspaceAnalysisDatabaseCache } from '../database/cache';
+import type { IWorkspaceAnalysisCache } from '../../cache';
+import { clearWorkspacePipelineCache } from '../../analysis/state';
+import { saveWorkspaceAnalysisDatabaseCache } from '../../database/cache';
 
 export function clearWorkspacePipelineStoredCache(
   workspaceRoot: string | undefined,

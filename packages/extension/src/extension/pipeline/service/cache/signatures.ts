@@ -1,10 +1,10 @@
 import { execFileSync } from 'node:child_process';
-import type { Configuration } from '../../config/reader';
-import { execGitCommand } from '../../gitHistory/exec';
+import type { Configuration } from '../../../config/reader';
+import { execGitCommand } from '../../../gitHistory/exec';
 import {
   createCodeGraphyPluginSignature,
   createCodeGraphySettingsSignature,
-} from '../../repoSettings/signatures';
+} from '../../../repoSettings/signatures';
 
 export function createWorkspacePipelinePluginSignature(
   plugins: ReadonlyArray<{ plugin: { id: string; version: string } }>,

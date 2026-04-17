@@ -1,4 +1,4 @@
-import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../repoSettings/meta';
+import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSettings/meta';
 
 interface WorkspacePipelineSignatureDependencies {
   getPluginSignature(): string | null;
