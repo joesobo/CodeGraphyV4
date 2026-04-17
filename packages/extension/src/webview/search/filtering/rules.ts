@@ -1,7 +1,7 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IGroup } from '../../../shared/settings/groups';
-import { applyEdgeLegendRules } from './rules/edgeRules';
-import { applyNodeLegendRules, getOrderedActiveRules } from './rules/nodeRules';
+import { applyEdgeLegendRules } from './rules/edges';
+import { applyNodeLegendRules, getOrderedActiveRules } from './rules/nodes';
 
 export function applyLegendRules(
   data: IGraphData | null,

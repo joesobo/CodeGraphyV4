@@ -4,8 +4,8 @@ import { arePlainValuesEqual } from '@/webview/store/messageHandlers/equality';
 afterEach(() => {
   vi.resetModules();
   vi.doUnmock('@/webview/store/messageHandlers/equality/isNumberPair');
-  vi.doUnmock('@/webview/store/messageHandlers/equality/numberEquality');
-  vi.doUnmock('@/webview/store/messageHandlers/equality/plainEquality');
+  vi.doUnmock('@/webview/store/messageHandlers/equality/numbers');
+  vi.doUnmock('@/webview/store/messageHandlers/equality/structures');
 });
 
 describe('webview/store/messageHandlers/equality', () => {
@@ -83,10 +83,10 @@ describe('webview/store/messageHandlers/equality', () => {
     vi.doMock('@/webview/store/messageHandlers/equality/isNumberPair', () => ({
       isNumberPair: () => true,
     }));
-    vi.doMock('@/webview/store/messageHandlers/equality/numberEquality', () => ({
+    vi.doMock('@/webview/store/messageHandlers/equality/numbers', () => ({
       areNumberValuesEqual,
     }));
-    vi.doMock('@/webview/store/messageHandlers/equality/plainEquality', () => ({
+    vi.doMock('@/webview/store/messageHandlers/equality/structures', () => ({
       arePlainObjectValuesEqual,
     }));
 
@@ -106,10 +106,10 @@ describe('webview/store/messageHandlers/equality', () => {
     vi.doMock('@/webview/store/messageHandlers/equality/isNumberPair', () => ({
       isNumberPair: () => false,
     }));
-    vi.doMock('@/webview/store/messageHandlers/equality/numberEquality', () => ({
+    vi.doMock('@/webview/store/messageHandlers/equality/numbers', () => ({
       areNumberValuesEqual,
     }));
-    vi.doMock('@/webview/store/messageHandlers/equality/plainEquality', () => ({
+    vi.doMock('@/webview/store/messageHandlers/equality/structures', () => ({
       arePlainObjectValuesEqual,
     }));
 
