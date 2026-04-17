@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { GraphContextMenuEntry } from '../../../src/webview/components/graph/contextMenu/contracts';
-import { Viewport } from '../../../src/webview/components/graph/Viewport';
+import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
+import { Viewport } from '../../../../src/webview/components/graph/Viewport';
 
 const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),
@@ -10,28 +10,28 @@ const harness = vi.hoisted(() => ({
   surface3d: vi.fn(),
 }));
 
-vi.mock('../../../src/webview/components/nodeTooltip/view', () => ({
+vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
   NodeTooltip: (props: Record<string, unknown>) => {
     harness.nodeTooltip(props);
     return <div data-testid="node-tooltip">{String(props.path)}</div>;
   },
 }));
 
-vi.mock('../../../src/webview/components/graph/rendering/surface/view2d', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/view2d', () => ({
   Surface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;
   },
 }));
 
-vi.mock('../../../src/webview/components/graph/rendering/surface/view3d', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/view3d', () => ({
   Surface3d: (props: Record<string, unknown>) => {
     harness.surface3d(props);
     return <div data-testid="surface-3d" />;
   },
 }));
 
-vi.mock('../../../src/webview/components/ui/context/menu', () => ({
+vi.mock('../../../../src/webview/components/ui/context/menu', () => ({
   ContextMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ContextMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ContextMenuContent: ({ children }: { children: React.ReactNode }) => <div data-testid="ctx-content">{children}</div>,

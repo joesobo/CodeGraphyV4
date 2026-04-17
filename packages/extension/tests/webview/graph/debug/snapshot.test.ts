@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildGraphDebugSnapshot } from '../../../src/webview/components/graph/debug/snapshot';
+import { buildGraphDebugSnapshot } from '../../../../src/webview/components/graph/debug/snapshot';
 
 describe('webview/graph/debug/snapshot', () => {
   it('builds a snapshot from container and node coordinates', () => {
