@@ -2,21 +2,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleCSharpMethodDeclaration,
   handleCSharpTypeDeclaration,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations';
-import { getCSharpTypeDeclarationKind, resolveCSharpUsingImport } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution';
-import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
-import { addInheritRelation, createSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations';
+import { getCSharpTypeDeclarationKind, resolveCSharpUsingImport } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution';
+import { getIdentifierText } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
+import { addInheritRelation, createSymbol } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => ({
   getCSharpTypeDeclarationKind: vi.fn(),
   resolveCSharpUsingImport: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
   getIdentifierText: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
   addInheritRelation: vi.fn(),
   createSymbol: vi.fn(),
 }));

@@ -3,22 +3,22 @@ import type Parser from 'tree-sitter';
 import {
   handleJavaMethodDeclaration,
   handleJavaMethodInvocation,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/methods';
-import type { ImportedBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/model';
-import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
-import { addCallRelation, createSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
-import { walkSymbolBody } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/methods';
+import type { ImportedBinding } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/model';
+import { getIdentifierText } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
+import { addCallRelation, createSymbol } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
+import { walkSymbolBody } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
   getIdentifierText: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
   addCallRelation: vi.fn(),
   createSymbol: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk', () => ({
   walkSymbolBody: vi.fn(),
 }));
 

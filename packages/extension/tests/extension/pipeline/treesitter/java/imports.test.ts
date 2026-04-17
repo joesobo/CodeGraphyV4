@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IAnalysisRelation } from '../../../../src/core/plugins/types/contracts';
-import type { ImportedBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/model';
+import type { IAnalysisRelation } from '../../../../../src/core/plugins/types/contracts';
+import type { ImportedBinding } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/model';
 
 const javaImportsHarness = vi.hoisted(() => ({
   addImportRelation: vi.fn(),
@@ -9,20 +9,20 @@ const javaImportsHarness = vi.hoisted(() => ({
   resolveJavaTypePath: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots', () => ({
   resolveJavaTypePath: javaImportsHarness.resolveJavaTypePath,
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
   getLastPathSegment: javaImportsHarness.getLastPathSegment,
   getNodeText: javaImportsHarness.getNodeText,
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
   addImportRelation: javaImportsHarness.addImportRelation,
 }));
 
-import { handleJavaImportDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/imports';
+import { handleJavaImportDeclaration } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/imports';
 
 describe('pipeline/treesitter/javaImports', () => {
   beforeEach(() => {

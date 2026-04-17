@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { handleJavaTypeDeclaration } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/typeDeclarations';
-import { resolveJavaTypePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots';
-import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
-import { addInheritRelation, createSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
+import { handleJavaTypeDeclaration } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/typeDeclarations';
+import { resolveJavaTypePath } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots';
+import { getIdentifierText } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
+import { addInheritRelation, createSymbol } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots', () => ({
   resolveJavaTypePath: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
   getIdentifierText: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
   addInheritRelation: vi.fn(),
   createSymbol: vi.fn(),
 }));

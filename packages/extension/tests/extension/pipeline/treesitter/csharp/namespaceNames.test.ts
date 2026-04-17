@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getCSharpFileScopedNamespaceName,
   getResolvedNamespaceName,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames';
-import { getNodeText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames';
+import { getNodeText } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
   getNodeText: vi.fn((node?: { text?: string } | null) => node?.text ?? null),
 }));
 

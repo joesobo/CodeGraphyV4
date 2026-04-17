@@ -5,19 +5,19 @@ import {
   getCSharpTypeName,
   normalizeCSharpTypeName,
   resolveCSharpUsingImport,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution';
 import {
   resolveCSharpTypePath,
   resolveCSharpTypePathInNamespace,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
-import { getIdentifierText, getNodeText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
+import { getIdentifierText, getNodeText } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex', () => ({
   resolveCSharpTypePath: vi.fn(),
   resolveCSharpTypePathInNamespace: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
   getIdentifierText: vi.fn(),
   getNodeText: vi.fn(),
 }));
