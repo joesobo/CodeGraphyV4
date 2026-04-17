@@ -1,5 +1,5 @@
-import { getPathSegments } from './aliases';
-import { isPlainObject } from './objects';
+import { getPathSegments } from './keyAliases';
+import { isPlainObject } from './plainObject';
 
 export function getNestedValue<T>(value: unknown, key: string): T | undefined {
   let current: unknown = value;

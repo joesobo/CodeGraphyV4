@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   getPathSegments,
   normalizeSettingsKeyAlias,
-} from '../../../src/extension/repoSettings/store/aliases';
-
-describe('extension/repoSettings/store/aliases', () => {
+} from '../../../../../src/extension/repoSettings/store/model/keyAliases';
+describe('extension/repoSettings/store/model/keyAliases', () => {
   it('normalizes legacy settings aliases to their persisted keys', () => {
     expect(normalizeSettingsKeyAlias('folderNodeColor')).toBe('nodeColors.folder');
     expect(normalizeSettingsKeyAlias('groups')).toBe('legend');

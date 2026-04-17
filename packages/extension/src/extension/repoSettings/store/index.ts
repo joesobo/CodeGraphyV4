@@ -4,19 +4,19 @@ import {
   createDefaultCodeGraphyRepoSettings,
   type ICodeGraphyRepoSettings,
 } from '../defaults';
-import { createChangeEvent } from './changeEvent';
+import { createChangeEvent } from './change/event';
 import {
   ensureGitIgnoreContainsCodeGraphyEntry,
   SETTINGS_DIR_NAME,
   SETTINGS_FILE_NAME,
-} from './filesystem';
+} from './persistence/files';
 import {
   createUpdatedSettings,
   readSettingsFromDisk,
   reloadSettingsFromDisk,
   writeSettingsToDisk,
-} from './state';
-import { getNestedValue, hasNestedValue } from './values';
+} from './persistence/diskState';
+import { getNestedValue, hasNestedValue } from './model/nestedValues';
 
 export interface ICodeGraphySettingsInspect<T> {
   defaultValue?: T;

@@ -3,9 +3,8 @@ import {
   getNestedValue,
   hasNestedValue,
   setNestedValue,
-} from '../../../src/extension/repoSettings/store/values';
-
-describe('extension/repoSettings/store/values', () => {
+} from '../../../../../src/extension/repoSettings/store/model/nestedValues';
+describe('extension/repoSettings/store/model/nestedValues', () => {
   it('reads and reports nested values through normalized alias keys', () => {
     const settings = {
       nodeColors: { folder: '#123456' },
