@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import { runStatementSync, withConnection } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
-import { persistAnalysisEntry, sortedCacheEntries } from './statements';
+import { persistAnalysisEntry, sortedCacheEntries } from './writeStatements';
 
 export function saveWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,

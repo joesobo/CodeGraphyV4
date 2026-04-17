@@ -12,7 +12,7 @@ import {
   FILE_ANALYSIS_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
-} from '../../../../src/extension/pipeline/database/cache/statements';
+} from '../../../../src/extension/pipeline/database/cache/queries';
 
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>();

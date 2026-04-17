@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createRelationIdentityProperties } from '../../../../src/extension/pipeline/database/cache/relationIdentityProperties';
+import { createRelationIdentityProperties } from '../../../../../../src/extension/pipeline/database/cache/relation/identityProperties';
 
-describe('pipeline/database/cache/relationIdentityProperties', () => {
+describe('pipeline/database/cache/relation/identityProperties', () => {
   it('builds deterministic quoted identity properties for relations', () => {
     expect(
       createRelationIdentityProperties(

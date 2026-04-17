@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createRelationDescriptorProperties } from '../../../../src/extension/pipeline/database/cache/relationDescriptorProperties';
+import { createRelationDescriptorProperties } from '../../../../../../src/extension/pipeline/database/cache/relation/descriptorProperties';
 
-describe('extension/pipeline/database/cache/relationDescriptorProperties', () => {
+describe('extension/pipeline/database/cache/relation/descriptorProperties', () => {
   it('serializes relation descriptor properties with empty-string fallbacks', () => {
     expect(
       createRelationDescriptorProperties({

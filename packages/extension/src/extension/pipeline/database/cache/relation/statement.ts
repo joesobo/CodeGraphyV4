@@ -1,9 +1,7 @@
-import type { IAnalysisRelation } from '../../../../core/plugins/types/contracts';
-import {
-  createRelationDescriptorProperties,
-  createRelationEndpointProperties,
-  createRelationIdentityProperties,
-} from './relationProperties';
+import type { IAnalysisRelation } from '../../../../../core/plugins/types/contracts';
+import { createRelationDescriptorProperties } from './descriptorProperties';
+import { createRelationEndpointProperties } from './endpointProperties';
+import { createRelationIdentityProperties } from './identityProperties';
 
 export function createRelationStatement(
   filePath: string,

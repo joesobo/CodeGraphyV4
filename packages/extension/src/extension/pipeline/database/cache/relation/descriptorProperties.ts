@@ -1,4 +1,4 @@
-import type { IAnalysisRelation } from '../../../../core/plugins/types/contracts';
+import type { IAnalysisRelation } from '../../../../../core/plugins/types/contracts';
 
 function escapeCypherString(value: string): string {
   return JSON.stringify(value);

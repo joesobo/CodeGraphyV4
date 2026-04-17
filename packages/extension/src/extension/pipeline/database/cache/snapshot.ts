@@ -17,7 +17,7 @@ import {
   FILE_ANALYSIS_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
-} from './statements';
+} from './queries';
 
 export interface WorkspaceAnalysisDatabaseSnapshot {
   files: Array<{

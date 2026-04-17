@@ -7,7 +7,7 @@ import {
 import { readRowsSync, withConnection } from './connection';
 import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from './paths';
 import { createSnapshotFileEntry } from './rows';
-import { FILE_ANALYSIS_ROWS_QUERY } from './statements';
+import { FILE_ANALYSIS_ROWS_QUERY } from './queries';
 
 export function loadWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,

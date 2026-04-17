@@ -34,5 +34,5 @@ export interface RelationRow {
   metadataJson?: unknown;
 }
 export { createSnapshotFileEntry } from './fileEntry';
-export { createSnapshotRelationEntry } from './relationEntry';
+export { createSnapshotRelationEntry } from './relation/entry';
 export { createSnapshotSymbolEntry } from './symbolEntry';
