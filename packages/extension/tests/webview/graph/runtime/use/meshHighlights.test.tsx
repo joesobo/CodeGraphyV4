@@ -1,14 +1,14 @@
 import { renderHook } from '@testing-library/react';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import type { FGNode } from '../../../../src/webview/components/graph/model/build';
+import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import {
   findGraphNodeById,
   getMeshHighlightVisuals,
   isMeshNodeHighlighted,
   updateMeshHighlights,
   useMeshHighlights,
-} from '../../../../src/webview/components/graph/runtime/use/meshHighlights';
+} from '../../../../../src/webview/components/graph/runtime/use/meshHighlights';
 
 function createMesh(color: string): THREE.Mesh {
   return new THREE.Mesh(

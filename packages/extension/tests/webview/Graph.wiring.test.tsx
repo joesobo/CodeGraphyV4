@@ -3,7 +3,7 @@ import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../src/shared/graph/contracts';
 import Graph from '../../src/webview/components/graph/view';
-import type { UseGraphStateResult } from '../../src/webview/components/graph/runtime/use/graph/state';
+import type { UseGraphStateResult } from '../../src/webview/components/graph/runtime/use/state';
 import { graphStore } from '../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
@@ -27,11 +27,11 @@ vi.mock('../../src/webview/components/graph/debug/options', () => ({
 	buildGraphDebugOptions: harness.buildGraphDebugOptions,
 }));
 
-vi.mock('../../src/webview/components/graph/runtime/use/graph/state', () => ({
+vi.mock('../../src/webview/components/graph/runtime/use/state', () => ({
 	useGraphState: harness.useGraphState,
 }));
 
-vi.mock('../../src/webview/components/graph/runtime/use/graph/interaction', () => ({
+vi.mock('../../src/webview/components/graph/runtime/use/interaction', () => ({
 	useGraphInteractionRuntime: harness.useGraphInteractionRuntime,
 }));
 

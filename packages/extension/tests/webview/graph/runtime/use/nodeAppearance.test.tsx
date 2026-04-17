@@ -1,18 +1,18 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import type { NodeSizeMode } from '../../../../src/shared/settings/modes';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import type { NodeSizeMode } from '../../../../../src/shared/settings/modes';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
   getDepthSizeMultiplier,
   type FGNode,
-} from '../../../../src/webview/components/graph/model/build';
+} from '../../../../../src/webview/components/graph/model/build';
 import {
   applyNodeAppearance,
   useNodeAppearance,
-} from '../../../../src/webview/components/graph/runtime/use/nodeAppearance';
-import { adjustColorForLightTheme } from '../../../../src/webview/theme/useTheme';
+} from '../../../../../src/webview/components/graph/runtime/use/nodeAppearance';
+import { adjustColorForLightTheme } from '../../../../../src/webview/theme/useTheme';
 
 function createData(nodes: IGraphData['nodes']): IGraphData {
     return {

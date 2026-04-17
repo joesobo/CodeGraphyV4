@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
+import type { IPhysicsSettings } from '../../../../../../src/shared/settings/physics';
 
 const runtimeHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),
@@ -12,26 +12,26 @@ const runtimeHarness = vi.hoisted(() => ({
   syncPhysicsAnimation: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/physics', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => ({
   applyPhysicsSettings: runtimeHarness.applyPhysicsSettings,
   havePhysicsSettingsChanged: runtimeHarness.havePhysicsSettingsChanged,
   initPhysics: runtimeHarness.initPhysics,
   syncPhysicsAnimation: runtimeHarness.syncPhysicsAnimation,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
   resolvePhysicsInitAction: runtimeHarness.resolvePhysicsInitAction,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle/updates', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/updates', () => ({
   shouldApplyPhysicsUpdate: runtimeHarness.shouldApplyPhysicsUpdate,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle/readiness', () => ({
   selectActivePhysicsGraph: runtimeHarness.selectActivePhysicsGraph,
 }));
 
-import { usePhysicsRuntime } from '../../../../src/webview/components/graph/runtime/use/physics/hook';
+import { usePhysicsRuntime } from '../../../../../../src/webview/components/graph/runtime/use/physics/hook';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
