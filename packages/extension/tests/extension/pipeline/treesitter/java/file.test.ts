@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { analyzeJavaFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/file';
+import { analyzeJavaFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/file';
 
 const {
   handleJavaImportDeclaration,
@@ -19,7 +19,7 @@ const {
   walkTree: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/handlers', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/handlers', () => ({
   handleJavaImportDeclaration,
   handleJavaMethodDeclaration,
   handleJavaMethodInvocation,
@@ -27,11 +27,11 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJa
   resolveJavaSourceInfo,
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
   normalizeAnalysisResult,
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk', () => ({
   walkTree,
 }));
 

@@ -1,23 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Parser from 'tree-sitter';
-import { handleCSharpReferenceNode } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/references';
+import { handleCSharpReferenceNode } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/references';
 import {
   getCSharpTypeName,
   resolveCSharpUsingImport,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution';
-import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
-import { addReferenceRelation } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution';
+import { getIdentifierText } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
+import { addReferenceRelation } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/resolution', () => ({
   getCSharpTypeName: vi.fn(),
   resolveCSharpUsingImport: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
   getIdentifierText: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
   addReferenceRelation: vi.fn(),
 }));
 

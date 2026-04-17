@@ -2,18 +2,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getJavaPackageName,
   resolveJavaSourceInfo,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/sourceInfo';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/sourceInfo';
 
 const { resolveJavaSourceRoot, getNodeText } = vi.hoisted(() => ({
   resolveJavaSourceRoot: vi.fn(),
   getNodeText: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots', () => ({
   resolveJavaSourceRoot,
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
   getNodeText,
 }));
 

@@ -12,13 +12,13 @@ const csharpHarness = vi.hoisted(() => ({
   walkTree: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespace', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespace', () => ({
   handleCSharpNamespaceNode: csharpHarness.handleCSharpNamespaceNode,
   handleCSharpUsingDirective: csharpHarness.handleCSharpUsingDirective,
 }));
 
 vi.mock(
-  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations',
+  '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/declarations',
   () => ({
     handleCSharpMethodDeclaration: csharpHarness.handleCSharpMethodDeclaration,
     handleCSharpTypeDeclaration: csharpHarness.handleCSharpTypeDeclaration,
@@ -26,7 +26,7 @@ vi.mock(
 );
 
 vi.mock(
-  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/references',
+  '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/references',
   () => ({
     appendCSharpUsingImportRelations: csharpHarness.appendCSharpUsingImportRelations,
     handleCSharpReferenceNode: csharpHarness.handleCSharpReferenceNode,
@@ -34,21 +34,21 @@ vi.mock(
 );
 
 vi.mock(
-  '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames',
+  '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/namespaceNames',
   () => ({
     getCSharpFileScopedNamespaceName: csharpHarness.getCSharpFileScopedNamespaceName,
   }),
 );
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
   normalizeAnalysisResult: csharpHarness.normalizeAnalysisResult,
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk', () => ({
   walkTree: csharpHarness.walkTree,
 }));
 
-import { analyzeCSharpFile } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/file';
+import { analyzeCSharpFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeCSharp/file';
 
 describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/file', () => {
   beforeEach(() => {
