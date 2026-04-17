@@ -18,7 +18,7 @@ import { applyCursorToGraphSurface } from '../../support/dom';
 import {
   useGraphTooltip,
   type GraphTooltipInteractionDependencies,
-} from './tooltip';
+} from './tooltip/hook';
 import type { FGLink, FGNode } from '../../model/build';
 import type { UseGraphStateResult } from './state';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';

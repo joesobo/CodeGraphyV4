@@ -27,7 +27,7 @@ vi.mock('../../../../../src/webview/components/graph/support/dom', () => ({
   applyCursorToGraphSurface: interactionRuntimeHarness.applyCursorToGraphSurface,
 }));
 
-vi.mock('../../../../../src/webview/components/graph/runtime/use/tooltip', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/tooltip/hook', () => ({
   useGraphTooltip: interactionRuntimeHarness.useGraphTooltip,
 }));
 
