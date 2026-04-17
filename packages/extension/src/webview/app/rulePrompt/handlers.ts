@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { postMessage } from '../vscodeApi';
+import { postMessage } from '../../vscodeApi';
 import { buildNextFilterPatterns, buildNextLegendRules } from './rules';
-import type { RulePromptState } from './RulePrompt';
-import type { IGroup } from '../../shared/settings/groups';
+import type { RulePromptState } from './view';
+import type { IGroup } from '../../../shared/settings/groups';
 
 interface UseRulePromptHandlersOptions {
   filterPatterns: string[];

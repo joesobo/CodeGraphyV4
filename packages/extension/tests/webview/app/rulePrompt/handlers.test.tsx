@@ -1,14 +1,14 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { useRulePromptHandlers } from '../../../src/webview/app/rulePromptHandlers';
+import { useRulePromptHandlers } from '../../../../src/webview/app/rulePrompt/handlers';
 
 const sentMessages: Array<{ type: string; payload?: unknown }> = [];
 
-vi.mock('../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: (message: { type: string; payload?: unknown }) => sentMessages.push(message),
 }));
 
-describe('app/rulePromptHandlers', () => {
+describe('app/rulePrompt/handlers', () => {
   it('opens and closes filter prompts and posts trimmed filter pattern updates', () => {
     const setFilterPatterns = vi.fn();
     const setOptimisticUserLegends = vi.fn();

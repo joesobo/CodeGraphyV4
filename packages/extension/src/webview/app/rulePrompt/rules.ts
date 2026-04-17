@@ -1,5 +1,5 @@
-import type { RulePromptState } from './RulePrompt';
-import type { IGroup } from '../../shared/settings/groups';
+import type { RulePromptState } from './view';
+import type { IGroup } from '../../../shared/settings/groups';
 
 export function buildNextFilterPatterns(
   filterPatterns: string[],

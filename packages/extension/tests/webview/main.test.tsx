@@ -22,7 +22,7 @@ vi.mock('../../src/webview/app/App', () => ({
   },
 }));
 
-vi.mock('../../src/webview/app/TimelineApp', () => ({
+vi.mock('../../src/webview/app/timeline/view', () => ({
   default: function TimelineApp() {
     return null;
   },
