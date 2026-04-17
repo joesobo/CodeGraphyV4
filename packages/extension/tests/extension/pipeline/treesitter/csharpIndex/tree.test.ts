@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   createEmptyCSharpIndex,
   indexCSharpTree,
-} from '../../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
-import { createCSharpNode } from '../fixtures';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
+import { createCSharpNode } from './fixtures';
 
 describe('pipeline/plugins/treesitter/runtime/csharpIndex/tree', () => {
   it('indexes file-scoped and block-scoped namespaces into qualified names', () => {
