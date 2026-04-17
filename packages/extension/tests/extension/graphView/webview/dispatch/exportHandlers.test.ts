@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../../../src/extension/pipeline/database/cache';
+import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../../../src/extension/pipeline/database/cache/storage';
 
 const exportHandlerMocks = vi.hoisted(() => ({
   buildSymbolsExportData: vi.fn(() => ({ kind: 'analysis-export' })),

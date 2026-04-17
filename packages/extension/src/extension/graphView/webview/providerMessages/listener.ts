@@ -11,7 +11,7 @@ import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
-import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache';
+import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache/storage';
 import { getGraphViewConfigTarget } from '../../settings/reader';
 import { captureGraphViewSettingsSnapshot } from '../../settings/snapshot';
 import { createGraphViewProviderMessageContext } from './context';

@@ -13,7 +13,7 @@ import {
   loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
-} from '../../../../../src/extension/pipeline/database/cache';
+} from '../../../../../src/extension/pipeline/database/cache/storage';
 
 const tempRoots = new Set<string>();
 

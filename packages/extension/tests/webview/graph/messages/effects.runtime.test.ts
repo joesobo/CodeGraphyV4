@@ -6,9 +6,9 @@ import {
   getGraphRuntimeStateEffects,
   getNodeBoundsEffects,
   getZoomEffects,
-} from '../../../../src/webview/components/graph/messages/graphRuntime';
+} from '../../../../src/webview/components/graph/messages/effects/runtime';
 
-describe('graph/messages/graphRuntime', () => {
+describe('graph/messages/effects/runtime', () => {
   it('returns a reusable empty effects array', () => {
     expect(EMPTY_EFFECTS).toEqual([]);
   });

@@ -4,7 +4,7 @@ import type { IPhysicsSettings } from '../../../../../../src/shared/settings/phy
 import {
   usePhysicsRuntimeLayoutKey,
   usePhysicsRuntimeLayoutReset,
-} from '../../../../../../src/webview/components/graph/runtime/use/graph/layout';
+} from '../../../../../../src/webview/components/graph/runtime/use/graph/physics/layout';
 
 const physicsHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),
@@ -31,7 +31,7 @@ const SETTINGS: IPhysicsSettings = {
   repelForce: 500,
 };
 
-describe('webview/graph/runtime/use/graph/layout', () => {
+describe('webview/graph/runtime/use/graph/physics/layout', () => {
   beforeEach(() => {
     physicsHarness.applyPhysicsSettings.mockReset();
     physicsHarness.havePhysicsSettingsChanged.mockReset();

@@ -1,6 +1,6 @@
-import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import type { FGNode } from '../model/build';
-import type { GraphWebviewMessageEffect } from './effects';
+import type { ExtensionToWebviewMessage } from '../../../../../shared/protocol/extensionToWebview';
+import type { FGNode } from '../../model/build';
+import type { GraphWebviewMessageEffect } from './routing';
 
 type SingleEffectKind =
   | 'fitView'

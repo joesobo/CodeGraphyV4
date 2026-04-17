@@ -9,7 +9,7 @@ import {
 import {
   loadWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCache,
-} from '../../../src/extension/pipeline/database/cache';
+} from '../../../src/extension/pipeline/database/cache/storage';
 import * as repoMetaModule from '../../../src/extension/repoSettings/meta';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 

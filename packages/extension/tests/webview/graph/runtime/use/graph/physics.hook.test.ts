@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   syncPhysicsAnimation,
   usePhysicsRuntime,
-} from '../../../../../../src/webview/components/graph/runtime/use/graph/physics';
+} from '../../../../../../src/webview/components/graph/runtime/use/graph/physics/hook';
 
 const {
   usePhysicsRuntimeInit,
@@ -19,24 +19,24 @@ const {
   usePhysicsRuntimeUpdates: vi.fn(),
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/init', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/physics/init', () => ({
   usePhysicsRuntimeInit,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/layout', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/physics/layout', () => ({
   usePhysicsRuntimeLayoutKey,
   usePhysicsRuntimeLayoutReset,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/pause', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/physics/pause', () => ({
   usePhysicsRuntimePause,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/updates', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/physics/updates', () => ({
   usePhysicsRuntimeUpdates,
 }));
 
-describe('webview/graph/runtime/use/graph/physics', () => {
+describe('webview/graph/runtime/use/graph/physics/hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

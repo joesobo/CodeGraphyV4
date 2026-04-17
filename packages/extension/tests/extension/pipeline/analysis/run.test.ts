@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import type { IProjectedConnection } from '../../../../src/core/plugins/types/contracts';
 import * as analyzeModule from '../../../../src/extension/pipeline/analysis/analyze';
-import * as databaseCacheModule from '../../../../src/extension/pipeline/database/cache';
+import * as databaseCacheModule from '../../../../src/extension/pipeline/database/cache/storage';
 import { runWorkspacePipelineAnalysis } from '../../../../src/extension/pipeline/analysis/run';
 
 describe('pipeline/analysis/run', () => {
