@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { handleRustUseDeclaration } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/analysis/imports';
-import { resolveRustUsePath } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustPaths';
+import { handleRustUseDeclaration } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeRust/imports';
+import { resolveRustUsePath } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeRust/paths';
 
-vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustPaths', () => ({
+vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeRust/paths', () => ({
   resolveRustUsePath: vi.fn(),
 }));
 
@@ -21,7 +21,7 @@ function createNode(argumentText: string | null) {
   };
 }
 
-describe('extension/pipeline/plugins/treesitter/runtime/analyze/rust/analysis/imports', () => {
+describe('extension/pipeline/plugins/treesitter/runtime/analyzeRust/imports', () => {
   it('skips Rust use declarations without a readable argument', () => {
     const relations: Array<Record<string, unknown>> = [];
     const importedBindings = new Map();

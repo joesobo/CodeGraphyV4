@@ -1,9 +1,9 @@
 import {
   getImportedBindingByIdentifier as readImportedBindingByIdentifier,
   getImportedBindingByPropertyAccess as readImportedBindingByPropertyAccess,
-} from './import/binding/bindingLookup';
-import { getVariableAssignedFunctionSymbol as readVariableAssignedFunctionSymbol } from './import/binding/functionSymbols';
-import { collectImportBindings as readImportBindings } from './import/binding/bindings';
+} from '../analyzeImportBinding/bindingLookup';
+import { getVariableAssignedFunctionSymbol as readVariableAssignedFunctionSymbol } from '../analyzeImportBinding/functionSymbols';
+import { collectImportBindings as readImportBindings } from '../analyzeImportBinding/bindings';
 
 export const getImportedBindingByIdentifier = readImportedBindingByIdentifier;
 export const getImportedBindingByPropertyAccess = readImportedBindingByPropertyAccess;

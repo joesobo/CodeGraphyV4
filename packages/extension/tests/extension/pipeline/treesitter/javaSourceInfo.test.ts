@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getJavaPackageName,
   resolveJavaSourceInfo,
-} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/java/sourceInfo';
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJava/sourceInfo';
 
 const { resolveJavaSourceRoot, getNodeText } = vi.hoisted(() => ({
   resolveJavaSourceRoot: vi.fn(),

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleJavaScriptExportStatement,
   handleJavaScriptImportStatement,
-} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascript/analysis/imports';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/imports';
 
 const {
   resolveTreeSitterImportPath,

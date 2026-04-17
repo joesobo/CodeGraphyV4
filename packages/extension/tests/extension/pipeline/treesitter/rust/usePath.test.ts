@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { resolveRustUsePath } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/analysis/usePath';
+import { resolveRustUsePath } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeRust/usePath';
 import { findExistingFile } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/existingFile';
 import { getRustCrateRoot } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/projectRoots';
 
@@ -11,7 +11,7 @@ vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/projec
   getRustCrateRoot: vi.fn(),
 }));
 
-describe('extension/pipeline/plugins/treesitter/runtime/analyze/rust/analysis/usePath', () => {
+describe('extension/pipeline/plugins/treesitter/runtime/analyzeRust/usePath', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getRustCrateRoot).mockReturnValue('/workspace/crate');

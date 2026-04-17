@@ -4,7 +4,7 @@ import {
   handleJavaScriptFunctionDeclaration,
   handleJavaScriptMethodDefinition,
   handleJavaScriptVariableDeclarator,
-} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/javascript/analysis/declarations';
+} from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/declarations';
 import { getVariableAssignedFunctionSymbol } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/imports';
 import { getIdentifierText } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
 import { createSymbol } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
@@ -41,7 +41,7 @@ function createNode(
   };
 }
 
-describe('pipeline/plugins/treesitter/runtime/analyze/javascript/analysis/declarations', () => {
+describe('pipeline/plugins/treesitter/runtime/analyzeJavaScript/declarations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
