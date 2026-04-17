@@ -11,7 +11,7 @@ import {
 import {
   applyNodeAppearance,
   useNodeAppearance,
-} from '../../../../src/webview/components/graph/runtime/use/directional/nodeAppearance';
+} from '../../../../src/webview/components/graph/runtime/use/nodeAppearance';
 import { adjustColorForLightTheme } from '../../../../src/webview/theme/useTheme';
 
 function createData(nodes: IGraphData['nodes']): IGraphData {

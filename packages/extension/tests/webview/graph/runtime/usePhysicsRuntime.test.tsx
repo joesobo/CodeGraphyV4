@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   usePhysicsRuntime,
-} from '../../../../src/webview/components/graph/runtime/use/graph/physics/hook';
+} from '../../../../src/webview/components/graph/runtime/use/physics/hook';
 
 const physicsHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),

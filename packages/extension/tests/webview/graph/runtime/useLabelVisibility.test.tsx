@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { useLabelVisibility } from '../../../../src/webview/components/graph/runtime/use/directional/labelVisibility';
+import { useLabelVisibility } from '../../../../src/webview/components/graph/runtime/use/labelVisibility';
 
 describe('useLabelVisibility', () => {
   it('toggles sprite visibility to match the label setting', () => {

@@ -4,7 +4,7 @@ import type { ICommitInfo } from '@/shared/timeline/contracts';
 import { clearSentMessages, findMessage } from '../../../../../../helpers/sentMessages';
 import * as dragListenersModule from '../../../../../../../src/webview/components/timeline/dragListeners';
 import * as scrubPositionModule from '../../../../../../../src/webview/components/timeline/scrubPosition';
-import { useTimelineScrub } from '../../../../../../../src/webview/components/timeline/use/controller/track/scrub';
+import { useTimelineScrub } from '../../../../../../../src/webview/components/timeline/use/controller/trackScrub';
 
 vi.mock('../../../../../../../src/webview/components/timeline/dragListeners', async () => {
   const actual = await vi.importActual<typeof import('../../../../../../../src/webview/components/timeline/dragListeners')>(

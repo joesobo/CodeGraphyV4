@@ -5,16 +5,16 @@
  */
 
 import { DisposableStore } from '../../disposable';
-import { clearPluginDecorations, decoratePluginEdge, decoratePluginNode } from './runtime/display/decorations';
-import { disposePluginApi } from './runtime/lifecycle/cleanup';
+import { clearPluginDecorations, decoratePluginEdge, decoratePluginNode } from './runtime/decorations';
+import { disposePluginApi } from './runtime/dispose';
 import type {
   ApiContext,
   CommandRegistrar,
   ExportSaver,
   GraphDataProvider,
   WebviewMessageSender,
-} from './runtime/state/context';
-import { offCodeGraphyEvent, onCodeGraphyEvent, onceCodeGraphyEvent } from './runtime/messaging/events';
+} from './runtime/context';
+import { offCodeGraphyEvent, onCodeGraphyEvent, onceCodeGraphyEvent } from './runtime/events';
 import {
   filterNodeEdgesByKind,
   findNodePath,
@@ -25,14 +25,14 @@ import {
   getNodeNeighbors,
   getNodeOutgoingEdges,
   getNodeSubgraph,
-} from './runtime/graph/read';
+} from './runtime/graph';
 import {
   registerPluginCommand,
   registerPluginContextMenuItem,
   registerPluginExporter,
   registerPluginToolbarAction,
   registerPluginView,
-} from './runtime/contributions/register';
+} from './runtime/registration';
 import {
   getCommands,
   getContextMenuItems,
@@ -41,8 +41,8 @@ import {
   getToolbarActions,
   getWorkspaceRoot,
   logPluginMessage,
-} from './runtime/contributions/access';
-import { deliverPluginWebviewMessage, onPluginWebviewMessage, savePluginExport, sendPluginWebviewMessage } from './runtime/messaging/webview';
+} from './runtime/access';
+import { deliverPluginWebviewMessage, onPluginWebviewMessage, savePluginExport, sendPluginWebviewMessage } from './runtime/webview';
 import type { Disposable } from '../../disposable';
 import { EventBus, EventPayloads, EventName } from '../../events/bus';
 import { DecorationManager, EdgeDecoration, NodeDecoration } from '../../decoration/manager';

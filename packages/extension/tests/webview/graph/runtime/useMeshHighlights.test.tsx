@@ -8,7 +8,7 @@ import {
   isMeshNodeHighlighted,
   updateMeshHighlights,
   useMeshHighlights,
-} from '../../../../src/webview/components/graph/runtime/use/directional/meshHighlights';
+} from '../../../../src/webview/components/graph/runtime/use/meshHighlights';
 
 function createMesh(color: string): THREE.Mesh {
   return new THREE.Mesh(

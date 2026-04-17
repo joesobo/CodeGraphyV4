@@ -19,7 +19,7 @@ vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle
   resolvePhysicsInitAction: physicsHarness.resolvePhysicsInitAction,
 }));
 
-import { usePhysicsRuntimeInit } from '../../../../../../src/webview/components/graph/runtime/use/graph/physics/init';
+import { usePhysicsRuntimeInit } from '../../../../../../src/webview/components/graph/runtime/use/physics/init';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
@@ -33,7 +33,7 @@ function createGraph() {
   return {} as Parameters<typeof usePhysicsRuntimeInit>[0]['fg2dRef']['current'];
 }
 
-describe('webview/graph/runtime/use/graph/physics/init', () => {
+describe('webview/graph/runtime/use/physics/init', () => {
   beforeEach(() => {
     physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.initPhysics.mockReset();

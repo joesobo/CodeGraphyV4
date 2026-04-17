@@ -10,7 +10,7 @@ import {
 	type GraphTooltipState,
 } from '../../tooltipModel';
 import type { FGNode } from '../../model/build';
-import type { GraphTooltipInteractionDependencies } from '../use/graph/tooltip';
+import type { GraphTooltipInteractionDependencies } from '../use/tooltip';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
 
 function isPackageNodeId(nodeId: string): boolean {

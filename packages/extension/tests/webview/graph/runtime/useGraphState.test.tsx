@@ -23,7 +23,7 @@ import {
   incrementImageCacheVersion,
   useGraphState,
   type UseGraphStateOptions,
-} from '../../../../src/webview/components/graph/runtime/use/graph/state';
+} from '../../../../src/webview/components/graph/runtime/use/state';
 
 function createData(suffix: string): IGraphData {
   return {

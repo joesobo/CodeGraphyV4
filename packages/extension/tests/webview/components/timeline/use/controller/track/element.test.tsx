@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useTimelineTrackElement } from '../../../../../../../src/webview/components/timeline/use/controller/track/element';
+import { useTimelineTrackElement } from '../../../../../../../src/webview/components/timeline/use/controller/trackElement';
 
 function createTrack(width: number = 300): HTMLDivElement {
   const track = document.createElement('div');

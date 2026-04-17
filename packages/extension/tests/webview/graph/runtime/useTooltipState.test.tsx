@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { useTooltipState } from '../../../../src/webview/components/graph/runtime/use/directional/tooltipState';
+import { useTooltipState } from '../../../../src/webview/components/graph/runtime/use/tooltipState';
 
 describe('graph/runtime/useTooltipState', () => {
 	it('initializes the tooltip refs and hidden tooltip state', () => {

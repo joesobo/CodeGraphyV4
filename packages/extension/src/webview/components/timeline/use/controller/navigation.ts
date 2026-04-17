@@ -6,8 +6,8 @@ import {
   runJumpToEndAction,
   runPlayPauseAction,
 } from '../../playbackActions';
-import { resetTimelinePlaybackToStart } from './playback/jumpToStart';
-import { useTimelinePlayFromStart } from './playback/playFromStart';
+import { resetTimelinePlaybackToStart } from './resetToStart';
+import { useTimelinePlayFromStart } from './playFromStart';
 
 export interface UseTimelineNavigationOptions {
   currentCommitSha: string | null;

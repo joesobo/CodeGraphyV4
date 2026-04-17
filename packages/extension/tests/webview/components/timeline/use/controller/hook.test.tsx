@@ -4,7 +4,7 @@ import type { ICommitInfo } from '@/shared/timeline/contracts';
 import { clearSentMessages, findMessage } from '../../../../../helpers/sentMessages';
 import * as datesModule from '../../../../../../src/webview/components/timeline/format/dates';
 import * as dragListenersModule from '../../../../../../src/webview/components/timeline/dragListeners';
-import * as playbackAnimationModule from '../../../../../../src/webview/components/timeline/use/controller/playback/animation';
+import * as playbackAnimationModule from '../../../../../../src/webview/components/timeline/use/controller/playbackAnimation';
 import * as commitSyncModule from '../../../../../../src/webview/components/timeline/use/controller/commitSync';
 import { useTimelineController } from '../../../../../../src/webview/components/timeline/use/controller/hook';
 
@@ -19,10 +19,10 @@ vi.mock('../../../../../../src/webview/components/timeline/dragListeners', async
   };
 });
 
-vi.mock('../../../../../../src/webview/components/timeline/use/controller/playback/animation', async () => {
+vi.mock('../../../../../../src/webview/components/timeline/use/controller/playbackAnimation', async () => {
   const actual = await vi.importActual<
-    typeof import('../../../../../../src/webview/components/timeline/use/controller/playback/animation')
-  >('../../../../../../src/webview/components/timeline/use/controller/playback/animation');
+    typeof import('../../../../../../src/webview/components/timeline/use/controller/playbackAnimation')
+  >('../../../../../../src/webview/components/timeline/use/controller/playbackAnimation');
 
   return {
     ...actual,

@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
-import { useTooltipEvents } from '../../../../src/webview/components/graph/runtime/use/directional/tooltipEvents';
+import { useTooltipEvents } from '../../../../src/webview/components/graph/runtime/use/tooltipEvents';
 
 function createNode(): FGNode {
 	return {

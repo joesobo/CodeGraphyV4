@@ -2,8 +2,8 @@ import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import type { GraphViewStoreState } from '../../../../src/webview/components/graph/store';
-import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/graph/state';
-import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/graph/interaction';
+import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/state';
+import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import { useGraphViewportModel } from '../../../../src/webview/components/graph/viewport/model';
 
 const harness = vi.hoisted(() => ({

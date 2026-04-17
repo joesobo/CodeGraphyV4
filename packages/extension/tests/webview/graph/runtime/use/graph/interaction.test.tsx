@@ -5,7 +5,7 @@ import type {
   GraphContextSelection,
 } from '../../../../../../src/webview/components/graph/contextMenu/contracts';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
-import { useGraphInteractionRuntime } from '../../../../../../src/webview/components/graph/runtime/use/graph/interaction';
+import { useGraphInteractionRuntime } from '../../../../../../src/webview/components/graph/runtime/use/interaction';
 
 const interactionRuntimeHarness = vi.hoisted(() => ({
   applyCursorToGraphSurface: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock('../../../../../../src/webview/components/graph/support/dom', () => ({
   applyCursorToGraphSurface: interactionRuntimeHarness.applyCursorToGraphSurface,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/tooltip', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/tooltip', () => ({
   useGraphTooltip: interactionRuntimeHarness.useGraphTooltip,
 }));
 

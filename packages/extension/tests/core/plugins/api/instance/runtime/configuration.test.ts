@@ -5,7 +5,7 @@ import { ViewRegistry } from '@/core/views/registry';
 import {
   hasScopedApiConfiguration,
   IPluginApiConfiguration,
-} from '@/core/plugins/api/instance/runtime/state/configuration';
+} from '@/core/plugins/api/instance/runtime/configuration';
 
 function createCompleteConfiguration(): IPluginApiConfiguration {
   return {

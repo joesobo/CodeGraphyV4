@@ -31,7 +31,7 @@ vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle/readi
   selectActivePhysicsGraph: runtimeHarness.selectActivePhysicsGraph,
 }));
 
-import { usePhysicsRuntime } from '../../../../src/webview/components/graph/runtime/use/graph/physics/hook';
+import { usePhysicsRuntime } from '../../../../src/webview/components/graph/runtime/use/physics/hook';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
