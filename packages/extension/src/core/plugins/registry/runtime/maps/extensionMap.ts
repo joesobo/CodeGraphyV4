@@ -3,8 +3,8 @@
  * @module core/plugins/registry/extensionMap
  */
 
-import type { IPlugin } from '../../types/contracts';
-import { normalizePluginExtension } from '../../routing/fileExtensions';
+import type { IPlugin } from '../../../types/contracts';
+import { normalizePluginExtension } from '../../../routing/fileExtensions';
 
 const WILDCARD_EXTENSION = '*';
 

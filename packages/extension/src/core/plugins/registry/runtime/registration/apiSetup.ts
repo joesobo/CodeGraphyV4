@@ -3,12 +3,12 @@
  * @module core/plugins/registry/apiSetup
  */
 
-import type { IPlugin } from '../../types/contracts';
-import { CodeGraphyAPIImpl } from '../../api/instance';
-import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../../api/instance/runtime/context';
-import type { EventBus } from '../../events/bus';
-import type { DecorationManager } from '../../decoration/manager';
-import type { ViewRegistry } from '../../../views/registry';
+import type { IPlugin } from '../../../types/contracts';
+import { CodeGraphyAPIImpl } from '../../../api/instance';
+import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../../../api/instance/runtime/state/context';
+import type { EventBus } from '../../../events/bus';
+import type { DecorationManager } from '../../../decoration/manager';
+import type { ViewRegistry } from '../../../../views/registry';
 
 export interface IApiDependencies {
   eventBus: EventBus;

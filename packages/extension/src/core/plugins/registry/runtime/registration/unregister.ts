@@ -3,9 +3,9 @@
  * @module core/plugins/registry/unregister
  */
 
-import type { IPluginInfoV2 } from './state';
-import type { EventBus } from '../../events/bus';
-import { removePluginFromExtensionMap } from './extensionMap';
+import type { IPluginInfoV2 } from '../state/store';
+import type { EventBus } from '../../../events/bus';
+import { removePluginFromExtensionMap } from '../maps/extensionMap';
 
 /**
  * Remove a plugin from the registry, calling onUnload and cleaning up.

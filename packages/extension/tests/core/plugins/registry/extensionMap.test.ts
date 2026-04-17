@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addPluginToExtensionMap, removePluginFromExtensionMap } from '@/core/plugins/registry/runtime/extensionMap';
+import { addPluginToExtensionMap, removePluginFromExtensionMap } from '@/core/plugins/registry/runtime/maps/extensionMap';
 import type { IPlugin } from '@/core/plugins/types/contracts';
 
 function createPlugin(overrides: Partial<IPlugin> = {}): IPlugin {

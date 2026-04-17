@@ -1,7 +1,7 @@
 import type {
   IPlugin,
-} from '../../types/contracts';
-import type { IPluginInfoV2 } from './state';
+} from '../../../types/contracts';
+import type { IPluginInfoV2 } from '../state/store';
 
 export function listPluginContributions<TDefinition>(
   plugins: Map<string, IPluginInfoV2>,

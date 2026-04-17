@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CodeGraphyAPIImpl } from '@/core/plugins/api/instance';
-import { registerPluginToolbarAction } from '@/core/plugins/api/instance/runtime/registration';
+import { registerPluginToolbarAction } from '@/core/plugins/api/instance/runtime/contributions/register';
 import { EventBus } from '@/core/plugins/events/bus';
 import { DecorationManager } from '@/core/plugins/decoration/manager';
 import { ViewRegistry } from '@/core/views/registry';

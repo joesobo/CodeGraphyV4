@@ -1,4 +1,4 @@
-import type { ApiContext } from './context';
+import type { ApiContext } from '../state/context';
 
 type CleanupContext = Pick<
   ApiContext,

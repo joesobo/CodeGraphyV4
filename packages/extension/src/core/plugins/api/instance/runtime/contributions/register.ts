@@ -1,9 +1,9 @@
-import type { Disposable } from '../../../disposable';
-import { toDisposable } from '../../../disposable';
-import type { IView } from '../../../../views/contracts';
-import type { ICommand, IContextMenuItem } from '../../../../../../../plugin-api/src/commands';
-import type { IExporter, IToolbarAction } from '../../../../../../../plugin-api/src/api';
-import type { ApiContext } from './context';
+import type { Disposable } from '../../../../disposable';
+import { toDisposable } from '../../../../disposable';
+import type { IView } from '../../../../../views/contracts';
+import type { ICommand, IContextMenuItem } from '../../../../../../../../plugin-api/src/commands';
+import type { IExporter, IToolbarAction } from '../../../../../../../../plugin-api/src/api';
+import type { ApiContext } from '../state/context';
 
 type RegistrationContext = Pick<
   ApiContext,

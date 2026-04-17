@@ -5,21 +5,21 @@ import type {
   IPluginInfo,
   IPluginNodeType,
   IProjectedConnection,
-} from '../../types/contracts';
-import { rebuildPluginExtensionMap } from './extensionMap';
+} from '../../../types/contracts';
+import { rebuildPluginExtensionMap } from '../maps/extensionMap';
 import {
   analyzeFile,
   analyzeFileResult,
-} from '../../routing/router/analyze';
+} from '../../../routing/router/analyze';
 import {
   getPluginForFile,
   getPluginsForExtension,
   getSupportedExtensions,
   supportsFile,
-} from '../../routing/router/lookups';
-import { listPluginContributions } from './contributions';
-import { buildReorderedPluginMap, replacePluginMap } from './order';
-import { PluginRegistryState } from './state';
+} from '../../../routing/router/lookups';
+import { listPluginContributions } from '../maps/contributions';
+import { buildReorderedPluginMap, replacePluginMap } from '../maps/order';
+import { PluginRegistryState } from './store';
 
 export abstract class PluginRegistryCollection extends PluginRegistryState {
   get(pluginId: string): IPluginInfo | undefined {

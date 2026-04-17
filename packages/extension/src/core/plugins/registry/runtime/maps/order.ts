@@ -1,4 +1,4 @@
-import type { IPluginInfoV2 } from './state';
+import type { IPluginInfoV2 } from '../state/store';
 
 export function buildReorderedPluginMap(
   plugins: Map<string, IPluginInfoV2>,

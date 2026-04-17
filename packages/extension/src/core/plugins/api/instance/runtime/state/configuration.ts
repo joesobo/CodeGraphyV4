@@ -1,6 +1,6 @@
-import type { ViewRegistry } from '../../../../views/registry';
-import type { DecorationManager } from '../../../decoration/manager';
-import type { EventBus } from '../../../events/bus';
+import type { ViewRegistry } from '../../../../../views/registry';
+import type { DecorationManager } from '../../../../decoration/manager';
+import type { EventBus } from '../../../../events/bus';
 import type {
   CommandRegistrar,
   ExportSaver,

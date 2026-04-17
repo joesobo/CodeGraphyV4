@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildReorderedPluginMap, replacePluginMap } from '../../../../src/core/plugins/registry/runtime/order';
+import { buildReorderedPluginMap, replacePluginMap } from '../../../../src/core/plugins/registry/runtime/maps/order';
 
 describe('core/plugins/registry/runtime/order', () => {
   it('reorders plugins once and appends unmentioned plugins without duplicates', () => {
