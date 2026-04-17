@@ -3,7 +3,8 @@ import type {
   GraphEdgeTypeLike,
   GraphNodeTypeLike,
 } from './types';
-import { isGraphEdgeTypeLike, isGraphNodeTypeLike } from './guards';
+import { isGraphEdgeTypeLike } from './edgeGuard';
+import { isGraphNodeTypeLike } from './nodeGuard';
 
 export function readRegistryDefinitions<TDefinition>(
   registry: unknown,

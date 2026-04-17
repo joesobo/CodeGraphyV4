@@ -8,6 +8,13 @@ import {
   type GraphViewExternalPluginRegistrationOptions,
 } from '../webview/plugins/registration/register';
 import {
+  sendGraphViewContextMenuItems,
+} from '../webview/plugins/contributionDispatch';
+import {
+  sendGraphViewDecorations,
+  sendGraphViewPluginStatuses,
+} from '../webview/plugins/updates';
+import {
   GraphViewProviderPluginBroadcastMethods,
   DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
   createGraphViewProviderPluginBroadcastMethods,
@@ -23,11 +30,11 @@ type GraphViewPluginAnalyzerLike =
   NonNullable<
     Parameters<typeof import('../webview/plugins/registration/register').registerGraphViewExternalPlugin>[2]['analyzer']
   >
-  & NonNullable<Parameters<typeof import('../webview/plugins/assets').sendGraphViewContextMenuItems>[0]>
-  & NonNullable<Parameters<typeof import('../webview/plugins/assets').sendGraphViewPluginStatuses>[0]>;
+  & NonNullable<Parameters<typeof sendGraphViewContextMenuItems>[0]>
+  & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>;
 
 type GraphViewDecorationManagerLike =
-  Parameters<typeof import('../webview/plugins/assets').sendGraphViewDecorations>[0];
+  Parameters<typeof sendGraphViewDecorations>[0];
 
 export interface GraphViewProviderPluginMethodsSource {
   _pluginExtensionUris: Map<string, vscode.Uri>;

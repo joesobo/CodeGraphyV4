@@ -4,12 +4,14 @@ import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { sendGraphControlsUpdated } from '../controls/send';
 import {
   sendGraphViewContextMenuItems,
-  sendGraphViewDecorations,
-  sendGraphViewPluginExporters,
-  sendGraphViewPluginStatuses,
   sendGraphViewPluginToolbarActions,
   sendGraphViewPluginWebviewInjections,
-} from '../webview/plugins/assets';
+  sendGraphViewPluginExporters,
+} from '../webview/plugins/contributionDispatch';
+import {
+  sendGraphViewDecorations,
+  sendGraphViewPluginStatuses,
+} from '../webview/plugins/updates';
 import { sendGraphViewDepthState, sendGraphViewLegendsUpdated } from '../view/broadcast';
 import type { GraphViewProviderPluginMethodsSource } from './plugins';
 
