@@ -1,10 +1,10 @@
 /**
  * @fileoverview Plugin cleanup for WebviewPluginHost.
- * @module webview/pluginHost/cleanup
+ * @module webview/pluginHost/api/registration/cleanup
  */
 
-import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from './contracts';
-import { syncSlotHostVisibility } from './registration';
+import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../contracts';
+import { syncSlotHostVisibility } from './visibility';
 
 function removePluginMapEntries<T extends { pluginId: string }>(
   pluginId: string,

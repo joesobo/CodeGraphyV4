@@ -8,8 +8,8 @@ import {
   registerTooltipProvider,
   getOrCreateContainer,
   syncSlotHostVisibility,
-} from '../../../../src/webview/pluginHost/api/registration';
-import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../src/webview/pluginHost/api/contracts';
+} from '../../../../../src/webview/pluginHost/api/registration';
+import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../../src/webview/pluginHost/api/contracts';
 
 describe('registerNodeRenderer', () => {
   let nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>;

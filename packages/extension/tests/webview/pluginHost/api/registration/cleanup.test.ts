@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { removePluginRegistrations } from '../../../../src/webview/pluginHost/api/cleanup';
-import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../src/webview/pluginHost/api/contracts';
+import { removePluginRegistrations } from '../../../../../src/webview/pluginHost/api/registration/cleanup';
+import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../../src/webview/pluginHost/api/contracts';
 
 describe('removePluginRegistrations', () => {
   let nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>;

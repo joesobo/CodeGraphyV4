@@ -6,15 +6,15 @@ const { createTimelinePlaybackTick, stopTimelinePlayback } = vi.hoisted(() => ({
   stopTimelinePlayback: vi.fn(),
 }));
 
-vi.mock('../../../../../src/webview/components/timeline/cleanup', () => ({
+vi.mock('../../../../../../src/webview/components/timeline/cleanup', () => ({
   stopTimelinePlayback,
 }));
 
-vi.mock('../../../../../src/webview/components/timeline/playbackTick', () => ({
+vi.mock('../../../../../../src/webview/components/timeline/playbackTick', () => ({
   createTimelinePlaybackTick,
 }));
 
-import { useTimelinePlaybackAnimation } from '../../../../../src/webview/components/timeline/use/playbackAnimation';
+import { useTimelinePlaybackAnimation } from '../../../../../../src/webview/components/timeline/use/controller/playbackAnimation';
 
 function createRefs() {
   return {
@@ -31,7 +31,7 @@ const commits = [
   { author: 'Bob', message: 'Next', parents: ['aaa'], sha: 'bbb', timestamp: 3000 },
 ];
 
-describe('timeline/usePlaybackAnimation', () => {
+describe('timeline/use/controller/usePlaybackAnimation', () => {
   let requestAnimationFrameMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {

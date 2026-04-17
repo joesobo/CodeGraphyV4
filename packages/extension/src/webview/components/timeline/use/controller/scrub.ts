@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction, type MouseEvent as ReactMouseEvent } from 'react';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
-import { bindTimelineDragListeners } from '../dragListeners';
-import { jumpToTrackPosition } from '../scrubPosition';
+import type { ICommitInfo } from '../../../../../shared/timeline/types';
+import { bindTimelineDragListeners } from '../../dragListeners';
+import { jumpToTrackPosition } from '../../scrubPosition';
 
 export interface UseTimelineScrubOptions {
   debounceTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;

@@ -1,16 +1,16 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ICommitInfo } from '@/shared/timeline/types';
-import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
-import * as datesModule from '../../../../../src/webview/components/timeline/format/dates';
-import * as dragListenersModule from '../../../../../src/webview/components/timeline/dragListeners';
-import * as playbackAnimationModule from '../../../../../src/webview/components/timeline/use/playbackAnimation';
-import * as commitSyncModule from '../../../../../src/webview/components/timeline/use/commitSync';
-import { useTimelineController } from '../../../../../src/webview/components/timeline/use/controller';
+import { clearSentMessages, findMessage } from '../../../../../helpers/sentMessages';
+import * as datesModule from '../../../../../../src/webview/components/timeline/format/dates';
+import * as dragListenersModule from '../../../../../../src/webview/components/timeline/dragListeners';
+import * as playbackAnimationModule from '../../../../../../src/webview/components/timeline/use/controller/playbackAnimation';
+import * as commitSyncModule from '../../../../../../src/webview/components/timeline/use/controller/commitSync';
+import { useTimelineController } from '../../../../../../src/webview/components/timeline/use/controller/hook';
 
-vi.mock('../../../../../src/webview/components/timeline/dragListeners', async () => {
-  const actual = await vi.importActual<typeof import('../../../../../src/webview/components/timeline/dragListeners')>(
-    '../../../../../src/webview/components/timeline/dragListeners',
+vi.mock('../../../../../../src/webview/components/timeline/dragListeners', async () => {
+  const actual = await vi.importActual<typeof import('../../../../../../src/webview/components/timeline/dragListeners')>(
+    '../../../../../../src/webview/components/timeline/dragListeners',
   );
 
   return {
@@ -19,10 +19,10 @@ vi.mock('../../../../../src/webview/components/timeline/dragListeners', async ()
   };
 });
 
-vi.mock('../../../../../src/webview/components/timeline/use/playbackAnimation', async () => {
+vi.mock('../../../../../../src/webview/components/timeline/use/controller/playbackAnimation', async () => {
   const actual = await vi.importActual<
-    typeof import('../../../../../src/webview/components/timeline/use/playbackAnimation')
-  >('../../../../../src/webview/components/timeline/use/playbackAnimation');
+    typeof import('../../../../../../src/webview/components/timeline/use/controller/playbackAnimation')
+  >('../../../../../../src/webview/components/timeline/use/controller/playbackAnimation');
 
   return {
     ...actual,
@@ -30,9 +30,9 @@ vi.mock('../../../../../src/webview/components/timeline/use/playbackAnimation', 
   };
 });
 
-vi.mock('../../../../../src/webview/components/timeline/use/commitSync', async () => {
-  const actual = await vi.importActual<typeof import('../../../../../src/webview/components/timeline/use/commitSync')>(
-    '../../../../../src/webview/components/timeline/use/commitSync',
+vi.mock('../../../../../../src/webview/components/timeline/use/controller/commitSync', async () => {
+  const actual = await vi.importActual<typeof import('../../../../../../src/webview/components/timeline/use/controller/commitSync')>(
+    '../../../../../../src/webview/components/timeline/use/controller/commitSync',
   );
 
   return {
@@ -41,9 +41,9 @@ vi.mock('../../../../../src/webview/components/timeline/use/commitSync', async (
   };
 });
 
-vi.mock('../../../../../src/webview/components/timeline/scrubPosition', async () => {
-  const actual = await vi.importActual<typeof import('../../../../../src/webview/components/timeline/scrubPosition')>(
-    '../../../../../src/webview/components/timeline/scrubPosition',
+vi.mock('../../../../../../src/webview/components/timeline/scrubPosition', async () => {
+  const actual = await vi.importActual<typeof import('../../../../../../src/webview/components/timeline/scrubPosition')>(
+    '../../../../../../src/webview/components/timeline/scrubPosition',
   );
 
   return {
@@ -110,7 +110,7 @@ function expectJumpToCommit(sha: string): void {
   });
 }
 
-describe('timeline/use/controller', () => {
+describe('timeline/use/controller/hook', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();

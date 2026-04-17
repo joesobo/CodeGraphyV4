@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ICommitInfo } from '@/shared/timeline/types';
-import { useTimelineNavigation } from '../../../../../src/webview/components/timeline/use/navigation';
+import { useTimelineNavigation } from '../../../../../../src/webview/components/timeline/use/controller/navigation';
 
 const {
   postMessage,
@@ -15,11 +15,11 @@ const {
   runPlayPauseAction: vi.fn(),
 }));
 
-vi.mock('../../../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../../../../src/webview/vscodeApi', () => ({
   postMessage,
 }));
 
-vi.mock('../../../../../src/webview/components/timeline/playbackActions', () => ({
+vi.mock('../../../../../../src/webview/components/timeline/playbackActions', () => ({
   runJumpToCommitAction,
   runJumpToEndAction,
   runPlayPauseAction,
@@ -84,7 +84,7 @@ function renderNavigationHook(
   };
 }
 
-describe('timeline/use/navigation', () => {
+describe('timeline/use/controller/navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -1,11 +1,11 @@
 import { useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
-import { postMessage } from '../../../vscodeApi';
+import type { ICommitInfo } from '../../../../../shared/timeline/types';
+import { postMessage } from '../../../../vscodeApi';
 import {
   runJumpToCommitAction,
   runJumpToEndAction,
   runPlayPauseAction,
-} from '../playbackActions';
+} from '../../playbackActions';
 import { useTimelinePlayFromStart } from './playFromStart';
 import { resetTimelinePlaybackToStart } from './jumpToStart';
 

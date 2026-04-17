@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { GraphPluginSlot } from '../../../../src/webview/pluginHost/api/contracts';
+import type { GraphPluginSlot } from '../../../../../src/webview/pluginHost/api/contracts';
 import {
   attachSlotHost,
   detachSlotHost,
   getOrCreateContainer,
   getOrCreateSlotContainer,
-} from '../../../../src/webview/pluginHost/api/containers';
+} from '../../../../../src/webview/pluginHost/api/registration/containers';
 
-describe('pluginHost/api/containers', () => {
+describe('pluginHost/api/registration/containers', () => {
   it('creates and reuses plugin containers', () => {
     const containers = new Map<string, HTMLDivElement>();
     const first = getOrCreateContainer('plugin-a', containers);

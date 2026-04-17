@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ICommitInfo } from '@/shared/timeline/types';
-import { useTimelinePlayFromStart } from '../../../../../src/webview/components/timeline/use/playFromStart';
+import { useTimelinePlayFromStart } from '../../../../../../src/webview/components/timeline/use/controller/playFromStart';
 
 const commits: ICommitInfo[] = [
   {
@@ -20,7 +20,7 @@ const commits: ICommitInfo[] = [
   },
 ];
 
-describe('timeline/use/playFromStart', () => {
+describe('timeline/use/controller/playFromStart', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

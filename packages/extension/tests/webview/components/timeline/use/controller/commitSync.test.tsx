@@ -6,13 +6,13 @@ const { syncTimelinePlaybackFromCommit } = vi.hoisted(() => ({
   syncTimelinePlaybackFromCommit: vi.fn(),
 }));
 
-vi.mock('../../../../../src/webview/components/timeline/syncPlayback', () => ({
+vi.mock('../../../../../../src/webview/components/timeline/syncPlayback', () => ({
   syncTimelinePlaybackFromCommit,
 }));
 
-import { useTimelineCommitSync } from '../../../../../src/webview/components/timeline/use/commitSync';
+import { useTimelineCommitSync } from '../../../../../../src/webview/components/timeline/use/controller/commitSync';
 
-describe('timeline/useCommitSync', () => {
+describe('timeline/use/controller/commitSync', () => {
   beforeEach(() => {
     syncTimelinePlaybackFromCommit.mockReset();
   });

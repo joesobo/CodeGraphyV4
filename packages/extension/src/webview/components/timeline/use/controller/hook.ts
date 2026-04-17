@@ -4,9 +4,9 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
-import { getResponsiveAxisTickCount } from '../format/dates';
-import { getTimelineViewState } from '../viewState';
+import type { ICommitInfo } from '../../../../../shared/timeline/types';
+import { getResponsiveAxisTickCount } from '../../format/dates';
+import { getTimelineViewState } from '../../viewState';
 import { useTimelineCleanup } from './cleanup';
 import { useTimelineCommitSync } from './commitSync';
 import { useTimelineNavigation } from './navigation';

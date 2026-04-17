@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useTimelineTrackElement } from '../../../../../src/webview/components/timeline/use/trackElement';
+import { useTimelineTrackElement } from '../../../../../../src/webview/components/timeline/use/controller/trackElement';
 
 function createTrack(width: number = 300): HTMLDivElement {
   const track = document.createElement('div');
@@ -18,7 +18,7 @@ function createTrack(width: number = 300): HTMLDivElement {
   return track;
 }
 
-describe('timeline/use/trackElement', () => {
+describe('timeline/use/controller/trackElement', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();

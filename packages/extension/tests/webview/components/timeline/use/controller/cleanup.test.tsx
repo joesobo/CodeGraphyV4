@@ -6,13 +6,13 @@ const { cleanupTimelineController } = vi.hoisted(() => ({
   cleanupTimelineController: vi.fn(),
 }));
 
-vi.mock('../../../../../src/webview/components/timeline/cleanup', () => ({
+vi.mock('../../../../../../src/webview/components/timeline/cleanup', () => ({
   cleanupTimelineController,
 }));
 
-import { useTimelineCleanup } from '../../../../../src/webview/components/timeline/use/cleanup';
+import { useTimelineCleanup } from '../../../../../../src/webview/components/timeline/use/controller/cleanup';
 
-describe('timeline/useCleanup', () => {
+describe('timeline/use/controller/cleanup', () => {
   beforeEach(() => {
     cleanupTimelineController.mockReset();
   });

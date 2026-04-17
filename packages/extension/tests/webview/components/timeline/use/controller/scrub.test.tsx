@@ -1,14 +1,14 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ICommitInfo } from '@/shared/timeline/types';
-import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
-import * as dragListenersModule from '../../../../../src/webview/components/timeline/dragListeners';
-import * as scrubPositionModule from '../../../../../src/webview/components/timeline/scrubPosition';
-import { useTimelineScrub } from '../../../../../src/webview/components/timeline/use/scrub';
+import { clearSentMessages, findMessage } from '../../../../../helpers/sentMessages';
+import * as dragListenersModule from '../../../../../../src/webview/components/timeline/dragListeners';
+import * as scrubPositionModule from '../../../../../../src/webview/components/timeline/scrubPosition';
+import { useTimelineScrub } from '../../../../../../src/webview/components/timeline/use/controller/scrub';
 
-vi.mock('../../../../../src/webview/components/timeline/dragListeners', async () => {
-  const actual = await vi.importActual<typeof import('../../../../../src/webview/components/timeline/dragListeners')>(
-    '../../../../../src/webview/components/timeline/dragListeners',
+vi.mock('../../../../../../src/webview/components/timeline/dragListeners', async () => {
+  const actual = await vi.importActual<typeof import('../../../../../../src/webview/components/timeline/dragListeners')>(
+    '../../../../../../src/webview/components/timeline/dragListeners',
   );
 
   return {
@@ -17,9 +17,9 @@ vi.mock('../../../../../src/webview/components/timeline/dragListeners', async ()
   };
 });
 
-vi.mock('../../../../../src/webview/components/timeline/scrubPosition', async () => {
-  const actual = await vi.importActual<typeof import('../../../../../src/webview/components/timeline/scrubPosition')>(
-    '../../../../../src/webview/components/timeline/scrubPosition',
+vi.mock('../../../../../../src/webview/components/timeline/scrubPosition', async () => {
+  const actual = await vi.importActual<typeof import('../../../../../../src/webview/components/timeline/scrubPosition')>(
+    '../../../../../../src/webview/components/timeline/scrubPosition',
   );
 
   return {
@@ -68,7 +68,7 @@ const commits: ICommitInfo[] = [
   },
 ];
 
-describe('timeline/use/scrub', () => {
+describe('timeline/use/controller/scrub', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();

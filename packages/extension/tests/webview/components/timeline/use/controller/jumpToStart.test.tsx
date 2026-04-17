@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { resetTimelinePlaybackToStart } from '../../../../../src/webview/components/timeline/use/jumpToStart';
+import { resetTimelinePlaybackToStart } from '../../../../../../src/webview/components/timeline/use/controller/jumpToStart';
 
 const { postMessage } = vi.hoisted(() => ({
   postMessage: vi.fn(),
 }));
 
-vi.mock('../../../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../../../../src/webview/vscodeApi', () => ({
   postMessage,
 }));
 
-describe('timeline/use/jumpToStart', () => {
+describe('timeline/use/controller/jumpToStart', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

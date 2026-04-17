@@ -1,5 +1,5 @@
 import { useEffect, type MutableRefObject, type Dispatch, type SetStateAction } from 'react';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../../../shared/timeline/types';
 
 export interface UseTimelinePlayFromStartOptions {
   currentCommitSha: string | null;

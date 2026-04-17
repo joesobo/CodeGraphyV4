@@ -1,4 +1,4 @@
-import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn, WebviewDisposable } from './contracts';
+import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn, WebviewDisposable } from '../contracts';
 
 export function registerNodeRenderer(
   pluginId: string,

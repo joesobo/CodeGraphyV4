@@ -8,7 +8,7 @@ import CommitList from './view/CommitList';
 import Status from './view/Status';
 import Summary from './view/Summary';
 import Track from './view/Track';
-import { useTimelineController } from './use/controller';
+import { useTimelineController } from './use/controller/hook';
 import type { WebviewPluginHost } from '../../pluginHost/manager';
 import { SlotHost } from '../../pluginHost/slotHost/view';
 

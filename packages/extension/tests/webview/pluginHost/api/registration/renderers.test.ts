@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { registerNodeRenderer, registerOverlay, registerTooltipProvider } from '../../../../src/webview/pluginHost/api/renderers';
+import {
+  registerNodeRenderer,
+  registerOverlay,
+  registerTooltipProvider,
+} from '../../../../../src/webview/pluginHost/api/registration/renderers';
 
-describe('pluginHost/api/renderers', () => {
+describe('pluginHost/api/registration/renderers', () => {
   it('registers and disposes node renderers by plugin ownership', () => {
     const renderers = new Map<string, { pluginId: string; fn: () => void }>();
     const fn = vi.fn();

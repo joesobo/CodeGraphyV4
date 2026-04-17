@@ -1,5 +1,5 @@
 import type { MutableRefObject } from 'react';
-import { postMessage } from '../../../vscodeApi';
+import { postMessage } from '../../../../vscodeApi';
 
 export interface ResetTimelinePlaybackToStartOptions {
   isPlaying: boolean;

@@ -1,5 +1,5 @@
 import { useEffect, type MutableRefObject } from 'react';
-import { cleanupTimelineController } from '../cleanup';
+import { cleanupTimelineController } from '../../cleanup';
 
 export function useTimelineCleanup(options: {
   debounceTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
