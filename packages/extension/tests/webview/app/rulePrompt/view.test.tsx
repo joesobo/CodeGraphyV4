@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { RulePrompt } from '../../../src/webview/app/RulePrompt';
+import { RulePrompt } from '../../../../src/webview/app/rulePrompt/view';
 
-describe('RulePrompt', () => {
+describe('app/rulePrompt/view', () => {
   it('renders nothing when no prompt state is active', () => {
     const { container } = render(
       <RulePrompt

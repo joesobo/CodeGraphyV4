@@ -7,15 +7,15 @@ import { setupMessageListener } from './messageListener';
 import { LoadingState, EmptyState } from './states';
 import { useAppState, useAppActions } from './storeSelectors';
 import { GraphIndexStatus } from '../components/graphIndexStatus/view';
-import { RulePrompt, type RulePromptState } from './RulePrompt';
+import { RulePrompt, type RulePromptState } from './rulePrompt/view';
 import { useGraphStore } from '../store/state';
-import { GraphSurface } from './GraphSurface';
-import { GraphStatsBadge, buildGraphStatsLabel } from './graphStats';
+import { GraphSurface } from './graph/surface';
+import { GraphStatsBadge, buildGraphStatsLabel } from './graph/stats';
 import { PanelStack } from './PanelStack';
 import { SearchHeader } from './SearchHeader';
 import { ToolbarRail } from './ToolbarRail';
 import { useFilterLegendInputs } from './derivedState';
-import { useRulePromptHandlers } from './rulePromptHandlers';
+import { useRulePromptHandlers } from './rulePrompt/handlers';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();

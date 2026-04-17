@@ -1,19 +1,19 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { GraphSurface } from '../../../src/webview/app/GraphSurface';
+import { GraphSurface } from '../../../../src/webview/app/graph/surface';
 
-vi.mock('../../../src/webview/components/graph/view', () => ({
+vi.mock('../../../../src/webview/components/graph/view', () => ({
   default: ({ data }: { data: { nodes: Array<{ id: string }> } }) => (
     <div data-testid="graph-surface-graph">{data.nodes.map((node) => node.id).join(',')}</div>
   ),
 }));
 
-vi.mock('../../../src/webview/components/depthView/view', () => ({
+vi.mock('../../../../src/webview/components/depthView/view', () => ({
   DepthViewControls: () => <div data-testid="depth-controls" />,
 }));
 
-describe('app/GraphSurface', () => {
+describe('app/graph/surface', () => {
   it('renders the graph with colored data when nodes are present', () => {
     render(
       <GraphSurface

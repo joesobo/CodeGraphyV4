@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
-import { graphStore } from '../../../src/webview/store/state';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { graphStore } from '../../../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
   emptyStateProps: null as null | Record<string, unknown>,
@@ -15,49 +15,49 @@ const harness = vi.hoisted(() => ({
   injectPluginAssets: vi.fn(),
 }));
 
-vi.mock('../../../src/webview/components/graph/view', () => ({
+vi.mock('../../../../src/webview/components/graph/view', () => ({
   default: () => <div data-testid="mock-graph" />,
 }));
 
-vi.mock('../../../src/webview/components/searchBar/Field', () => ({
+vi.mock('../../../../src/webview/components/searchBar/Field', () => ({
   SearchBar: (props: Record<string, unknown>) => {
     harness.searchBarProps = props;
     return <div data-testid="mock-search-bar" data-result-count={String(props.resultCount ?? '')} />;
   },
 }));
 
-vi.mock('../../../src/webview/components/settingsPanel/Drawer', () => ({
+vi.mock('../../../../src/webview/components/settingsPanel/Drawer', () => ({
   default: () => null,
 }));
 
-vi.mock('../../../src/webview/components/plugins/Panel', () => ({
+vi.mock('../../../../src/webview/components/plugins/Panel', () => ({
   default: () => null,
 }));
 
-vi.mock('../../../src/webview/components/toolbar/view', () => ({
+vi.mock('../../../../src/webview/components/toolbar/view', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 
-vi.mock('../../../src/webview/components/depthView/view', () => ({
+vi.mock('../../../../src/webview/components/depthView/view', () => ({
   DepthViewControls: () => <div data-testid="depth-view-controls" />,
 }));
 
-vi.mock('../../../src/webview/components/activeFileBreadcrumb/view', () => ({
+vi.mock('../../../../src/webview/components/activeFileBreadcrumb/view', () => ({
   ActiveFileBreadcrumb: () => <div data-testid="active-file-breadcrumb" />,
 }));
 
-vi.mock('../../../src/webview/theme/useTheme', () => ({
+vi.mock('../../../../src/webview/theme/useTheme', () => ({
   useTheme: () => 'dark',
 }));
 
-vi.mock('../../../src/webview/pluginRuntime/useManager', () => ({
+vi.mock('../../../../src/webview/pluginRuntime/useManager', () => ({
   usePluginManager: () => ({
     pluginHost: harness.pluginHost,
     injectPluginAssets: harness.injectPluginAssets,
   }),
 }));
 
-vi.mock('../../../src/webview/search/useFilteredGraph', () => ({
+vi.mock('../../../../src/webview/search/useFilteredGraph', () => ({
   useFilteredGraph: () => ({
     filteredData: undefined,
     coloredData: undefined,
@@ -65,7 +65,7 @@ vi.mock('../../../src/webview/search/useFilteredGraph', () => ({
   }),
 }));
 
-vi.mock('../../../src/webview/app/states', () => ({
+vi.mock('../../../../src/webview/app/states', () => ({
   LoadingState: () => <div data-testid="loading-state" />,
   EmptyState: (props: Record<string, unknown>) => {
     harness.emptyStateProps = props;
@@ -73,11 +73,11 @@ vi.mock('../../../src/webview/app/states', () => ({
   },
 }));
 
-vi.mock('../../../src/webview/app/messageListener', () => ({
+vi.mock('../../../../src/webview/app/messageListener', () => ({
   setupMessageListener: (...args: unknown[]) => harness.setupMessageListener(...args),
 }));
 
-import App from '../../../src/webview/app/App';
+import App from '../../../../src/webview/app/App';
 
 function resetStore(): void {
   graphStore.setState({

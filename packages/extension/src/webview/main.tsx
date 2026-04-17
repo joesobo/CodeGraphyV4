@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './three/runtime';
 import App from './app/App';
-import TimelineApp from './app/TimelineApp';
+import TimelineApp from './app/timeline/view';
 import './index.css';
 import { getVsCodeApi, VsCodeApi } from './vscodeApi';
 

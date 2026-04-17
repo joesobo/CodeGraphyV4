@@ -1,9 +1,9 @@
 import React from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { GraphStatsBadge, buildGraphStatsLabel, formatGraphStat } from '../../../src/webview/app/graphStats';
+import { GraphStatsBadge, buildGraphStatsLabel, formatGraphStat } from '../../../../src/webview/app/graph/stats';
 
-describe('app/graphStats', () => {
+describe('app/graph/stats', () => {
   it('formats singular and plural graph counts', () => {
     expect(formatGraphStat(1, 'node', 'nodes')).toBe('1 node');
     expect(formatGraphStat(1200, 'edge', 'edges')).toBe('1,200 edges');

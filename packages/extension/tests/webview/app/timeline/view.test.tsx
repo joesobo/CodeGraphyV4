@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
-import { graphStore } from '../../../src/webview/store/state';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { graphStore } from '../../../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
   injectPluginAssets: vi.fn(),
@@ -10,22 +10,22 @@ const harness = vi.hoisted(() => ({
   setupMessageListener: vi.fn(() => vi.fn()),
 }));
 
-vi.mock('../../../src/webview/components/timeline/panel', () => ({
+vi.mock('../../../../src/webview/components/timeline/panel', () => ({
   default: () => <div data-testid="timeline-content" />,
 }));
 
-vi.mock('../../../src/webview/pluginRuntime/useManager', () => ({
+vi.mock('../../../../src/webview/pluginRuntime/useManager', () => ({
   usePluginManager: () => ({
     pluginHost: harness.pluginHost,
     injectPluginAssets: harness.injectPluginAssets,
   }),
 }));
 
-vi.mock('../../../src/webview/app/messageListener', () => ({
+vi.mock('../../../../src/webview/app/messageListener', () => ({
   setupMessageListener: harness.setupMessageListener,
 }));
 
-import TimelineApp from '../../../src/webview/app/TimelineApp';
+import TimelineApp from '../../../../src/webview/app/timeline/view';
 
 function resetStore(): void {
   graphStore.setState({
@@ -74,7 +74,7 @@ function resetStore(): void {
   });
 }
 
-describe('TimelineApp', () => {
+describe('app/timeline/view', () => {
   beforeEach(() => {
     resetStore();
     harness.injectPluginAssets.mockReset();

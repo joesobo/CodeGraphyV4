@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { RulePromptDialog } from './rulePrompt/Dialog';
+import { RulePromptDialog } from './Dialog';
 import {
   createSubmittedRulePromptState,
   getRulePromptColor,
   getRulePromptTitle,
-} from './rulePrompt/model';
+} from './model';
 
 export type RulePromptState =
   | { kind: 'filter'; pattern: string }

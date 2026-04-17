@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildNextFilterPatterns, buildNextLegendRules } from '../../../src/webview/app/rules';
+import { buildNextFilterPatterns, buildNextLegendRules } from '../../../../src/webview/app/rulePrompt/rules';
 
-describe('app/rules', () => {
+describe('app/rulePrompt/rules', () => {
   it('adds trimmed filter patterns and skips blanks or duplicates', () => {
     expect(buildNextFilterPatterns(['src/**'], ' src/lib/** ')).toEqual(['src/**', 'src/lib/**']);
     expect(buildNextFilterPatterns(['src/**'], ' src/** ')).toBeNull();

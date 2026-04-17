@@ -1,4 +1,4 @@
-import type { RulePromptState } from '../RulePrompt';
+import type { RulePromptState } from './view';
 
 export const DEFAULT_LEGEND_RULE_COLOR = '#808080';
 
