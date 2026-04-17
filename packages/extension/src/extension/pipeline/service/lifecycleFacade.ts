@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 import { WorkspacePipelineRefreshFacade } from './refreshFacade';
-import { clearWorkspacePipelineStoredCache } from './cache/cachePersistence';
+import { clearWorkspacePipelineStoredCache } from './cache/storage';
 import {
   invalidateWorkspacePipelineFiles,
   resolveWorkspacePipelinePluginFilePaths,
@@ -34,7 +34,7 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
   override clearCache(): void {
     this._cache = clearWorkspacePipelineStoredCache(
       this._getWorkspaceRoot(),
-      message => {
+      (message: string) => {
         console.log(message);
       },
     );

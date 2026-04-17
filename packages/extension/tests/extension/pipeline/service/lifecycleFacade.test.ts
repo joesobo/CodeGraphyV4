@@ -8,7 +8,7 @@ import type {
   IFileAnalysisResult,
   IProjectedConnection,
 } from '../../../../src/core/plugins/types/contracts';
-import { clearWorkspacePipelineStoredCache } from '../../../../src/extension/pipeline/service/cache/cachePersistence';
+import { clearWorkspacePipelineStoredCache } from '../../../../src/extension/pipeline/service/cache/storage';
 import {
   invalidateWorkspacePipelineFiles,
   resolveWorkspacePipelinePluginFilePaths,
@@ -18,7 +18,7 @@ import {
   getWorkspacePipelineStatusList,
 } from '../../../../src/extension/pipeline/service/plugins';
 
-vi.mock('../../../../src/extension/pipeline/service/cache/cachePersistence', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/storage', () => ({
   clearWorkspacePipelineStoredCache: vi.fn(),
 }));
 

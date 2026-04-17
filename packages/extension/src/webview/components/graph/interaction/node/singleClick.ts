@@ -1,5 +1,5 @@
 import type { GraphNodeClickCommand } from '../model';
-import { buildNodeSingleClickInteractionEffect } from './singleClickInteraction';
+import { buildNodeSingleClickInteractionEffect } from './effect';
 import { buildNodeSingleClickSelectionResult } from './singleClickSelection';
 
 export interface GraphNodeSingleClickOptions {

@@ -1,6 +1,6 @@
 import type { MutableRefObject, RefObject } from 'react';
 import './window';
-import type { GraphDebugControls } from './types';
+import type { GraphDebugControls } from './contracts';
 import { buildGraphDebugSnapshot, type DebugNode } from './snapshot';
 
 export function installGraphDebugApi({
