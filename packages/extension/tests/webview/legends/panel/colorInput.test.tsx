@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { LegendColorInput } from '../../../../src/webview/components/legends/panel/colorInput';
+import { LegendColorInput } from '../../../../src/webview/components/legends/panel/section/colorInput';
 
 describe('webview/components/legends/colorInput', () => {
   beforeEach(() => {

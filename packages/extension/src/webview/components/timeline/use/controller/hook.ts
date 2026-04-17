@@ -10,9 +10,9 @@ import { getTimelineViewState } from '../../viewState';
 import { useTimelineCleanup } from './cleanup';
 import { useTimelineCommitSync } from './commitSync';
 import { useTimelineNavigation } from './navigation';
-import { useTimelinePlaybackAnimation } from './playback/playbackAnimation';
+import { useTimelinePlaybackAnimation } from './playback/animation';
 import { useTimelineScrub } from './track/scrub';
-import { useTimelineTrackElement } from './track/trackElement';
+import { useTimelineTrackElement } from './track/element';
 
 export interface UseTimelineControllerOptions {
   currentCommitSha: string | null;

@@ -3,8 +3,8 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import {
   resolveDisplayRules,
   shouldRenderRuleInSection,
-} from './displayRules';
-import type { LegendBuiltInEntry } from './contracts';
+} from './section/displayRules';
+import type { LegendBuiltInEntry } from './section/contracts';
 
 interface PanelStateInput {
   edgeColors: Record<string, string>;

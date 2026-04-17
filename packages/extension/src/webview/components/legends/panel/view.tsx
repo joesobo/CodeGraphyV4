@@ -6,8 +6,8 @@ import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { ScrollArea } from '../../ui/scroll-area';
 import { useLegendPanelState } from './state';
-import { LegendSection } from './section';
-import { replaceSectionRules } from './displayRules';
+import { replaceSectionRules } from './section/displayRules';
+import { LegendSection } from './section/view';
 import { sendUserLegendRules } from './messages';
 
 interface LegendsPanelProps {

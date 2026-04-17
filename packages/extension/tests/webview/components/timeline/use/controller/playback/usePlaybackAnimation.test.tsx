@@ -14,7 +14,7 @@ vi.mock('../../../../../../../src/webview/components/timeline/playbackTick', () 
   createTimelinePlaybackTick,
 }));
 
-import { useTimelinePlaybackAnimation } from '../../../../../../../src/webview/components/timeline/use/controller/playback/playbackAnimation';
+import { useTimelinePlaybackAnimation } from '../../../../../../../src/webview/components/timeline/use/controller/playback/animation';
 
 function createRefs() {
   return {

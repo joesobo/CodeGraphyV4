@@ -2,17 +2,17 @@ import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { IGroup } from '../../../../src/shared/settings/groups';
-import { LegendSection } from '../../../../src/webview/components/legends/panel/section';
+import { LegendSection } from '../../../../src/webview/components/legends/panel/section/view';
 
 const { postLegendOrderUpdate } = vi.hoisted(() => ({
   postLegendOrderUpdate: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/legends/panel/sectionOrder', () => ({
+vi.mock('../../../../src/webview/components/legends/panel/section/order', () => ({
   postLegendOrderUpdate,
 }));
 
-vi.mock('../../../../src/webview/components/legends/panel/builtInRow', () => ({
+vi.mock('../../../../src/webview/components/legends/panel/section/builtInRow', () => ({
   LegendBuiltInRow: ({
     entry,
     onChange,
@@ -26,7 +26,7 @@ vi.mock('../../../../src/webview/components/legends/panel/builtInRow', () => ({
   ),
 }));
 
-vi.mock('../../../../src/webview/components/legends/panel/createRow', () => ({
+vi.mock('../../../../src/webview/components/legends/panel/section/createRow', () => ({
   LegendRuleCreateRow: ({
     target,
     onAdd,
@@ -50,7 +50,7 @@ vi.mock('../../../../src/webview/components/legends/panel/createRow', () => ({
   ),
 }));
 
-vi.mock('../../../../src/webview/components/legends/panel/ruleRow', () => ({
+vi.mock('../../../../src/webview/components/legends/panel/section/ruleRow', () => ({
   LegendRuleRow: ({
     rule,
     isDragging,

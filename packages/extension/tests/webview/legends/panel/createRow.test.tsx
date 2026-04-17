@@ -1,9 +1,9 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { LegendRuleCreateRow } from '../../../../src/webview/components/legends/panel/createRow';
+import { LegendRuleCreateRow } from '../../../../src/webview/components/legends/panel/section/createRow';
 
-vi.mock('../../../../src/webview/components/legends/panel/colorInput', () => ({
+vi.mock('../../../../src/webview/components/legends/panel/section/colorInput', () => ({
   LegendColorInput: ({
     ariaLabel,
     color,
