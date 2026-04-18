@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
-import type { GraphViewStoreState } from '../../../../src/webview/components/graph/store';
+import type { GraphViewStoreState } from '../../../../src/webview/components/graph/view/store';
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/state';
 import { GraphViewportShell } from '../../../../src/webview/components/graph/viewport/shell';
@@ -22,7 +22,7 @@ vi.mock('../../../../src/webview/components/graph/viewport/model', () => ({
 	useGraphViewportModel: harness.useGraphViewportModel,
 }));
 
-vi.mock('../../../../src/webview/components/graph/Viewport', () => ({
+vi.mock('../../../../src/webview/components/graph/viewport/view', () => ({
 	Viewport: (props: Record<string, unknown>) => {
 		harness.viewport(props);
 		return <div data-testid="graph-viewport" />;

@@ -1,5 +1,5 @@
-import { useGraphStore } from '../../store/state';
-import type { GraphState } from '../../store/state';
+import { useGraphStore } from '../../../store/state';
+import type { GraphState } from '../../../store/state';
 
 export type GraphViewStoreState = Pick<
   GraphState,

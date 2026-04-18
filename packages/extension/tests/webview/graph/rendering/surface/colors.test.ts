@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getGraphSurfaceColors } from '../../../src/webview/components/graph/theme';
+import { getGraphSurfaceColors } from '../../../../../src/webview/components/graph/rendering/surface/colors';
 
 describe('webview/graph/theme', () => {
   it('returns the dark graph colors by default', () => {

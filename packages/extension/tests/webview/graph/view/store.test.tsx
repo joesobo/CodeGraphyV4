@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { useGraphViewStoreState } from '../../../src/webview/components/graph/store';
-import { graphStore } from '../../../src/webview/store/state';
+import { useGraphViewStoreState } from '../../../../src/webview/components/graph/view/store';
+import { graphStore } from '../../../../src/webview/store/state';
 
 function resetStore(overrides: Record<string, unknown> = {}) {
   graphStore.setState({

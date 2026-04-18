@@ -2,7 +2,7 @@ import type { MutableRefObject } from 'react';
 import type {
 	GraphTooltipRect,
 	GraphTooltipState,
-} from '../../tooltipModel';
+} from '../../tooltip/model';
 import type { FGNode } from '../../model/build';
 
 interface GraphTooltipTrackingOptions {

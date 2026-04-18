@@ -5,25 +5,25 @@
  */
 
 import React from 'react';
-import type { IGraphData } from '../../../shared/graph/contracts';
-import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../shared/plugins/decorations';
+import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
 import {
   useGraphAutoFit,
-} from './autoFit';
-import { getGraphNavigator, getGraphWindow } from './browser';
+} from '../viewport/autoFit';
+import { getGraphNavigator, getGraphWindow } from '../environment/browser';
 import { buildGraphCallbackOptions } from './callbackOptions';
-import { useGraphDebugApi } from './useDebugApi';
-import { buildGraphDebugOptions } from './debug/options';
+import { useGraphDebugApi } from '../debug/api';
+import { buildGraphDebugOptions } from '../debug/options';
 import { buildGraphLayoutKey } from './layoutKey';
-import { detectMacPlatform } from './platform';
+import { detectMacPlatform } from '../environment/platform';
 import { useGraphViewStoreState } from './store';
-import { useGraphCallbacks } from './rendering/useGraphCallbacks';
-import { useGraphInteractionRuntime } from './runtime/use/interaction';
-import { useGraphState } from './runtime/use/state';
-import { isPhysicsGraphReady, selectActivePhysicsGraph } from './runtime/physicsLifecycle/readiness';
-import { GraphViewportShell } from './viewport/shell';
-import { ThemeKind } from '../../theme/useTheme';
-import type { WebviewPluginHost } from '../../pluginHost/manager';
+import { useGraphCallbacks } from '../rendering/useGraphCallbacks';
+import { useGraphInteractionRuntime } from '../runtime/use/interaction';
+import { useGraphState } from '../runtime/use/state';
+import { isPhysicsGraphReady, selectActivePhysicsGraph } from '../runtime/physicsLifecycle/readiness';
+import { GraphViewportShell } from '../viewport/shell';
+import { ThemeKind } from '../../../theme/useTheme';
+import type { WebviewPluginHost } from '../../../pluginHost/manager';
 
 interface GraphProps {
   data: IGraphData;

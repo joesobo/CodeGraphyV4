@@ -5,7 +5,7 @@ import type { IFileInfo } from '../../../../../../src/shared/files/info';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import type { GraphInteractionHandlers } from '../../../../../../src/webview/components/graph/interactionRuntime/handlers';
-import type { GraphTooltipState } from '../../../../../../src/webview/components/graph/tooltipModel';
+import type { GraphTooltipState } from '../../../../../../src/webview/components/graph/tooltip/model';
 import { useGraphEventEffects } from '../../../../../../src/webview/components/graph/runtime/use/events/effects';
 
 const eventEffectsHarness = vi.hoisted(() => ({
@@ -34,7 +34,7 @@ vi.mock('../../../../../../src/webview/components/graph/keyboard/listener', () =
   createGraphKeyboardListener: eventEffectsHarness.createGraphKeyboardListener,
 }));
 
-vi.mock('../../../../../../src/webview/components/graph/messageListener', () => ({
+vi.mock('../../../../../../src/webview/components/graph/messages/listener', () => ({
   createGraphMessageListener: eventEffectsHarness.createGraphMessageListener,
 }));
 

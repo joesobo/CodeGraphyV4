@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createGraphMessageListener } from '../../../src/webview/components/graph/messageListener';
+import { createGraphMessageListener } from '../../../../src/webview/components/graph/messages/listener';
 
 describe('graph/messageListener', () => {
   it('builds message effects from the live graph nodes and tooltip path', () => {

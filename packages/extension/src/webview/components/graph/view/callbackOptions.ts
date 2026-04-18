@@ -1,6 +1,6 @@
-import type { WebviewPluginHost } from '../../pluginHost/manager';
-import type { UseGraphCallbacksOptions } from './rendering/useGraphCallbacks';
-import type { UseGraphStateResult } from './runtime/use/state';
+import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import type { UseGraphCallbacksOptions } from '../rendering/useGraphCallbacks';
+import type { UseGraphStateResult } from '../runtime/use/state';
 
 export function buildGraphCallbackOptions({
   graphState,

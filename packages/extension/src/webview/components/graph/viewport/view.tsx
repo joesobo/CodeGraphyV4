@@ -1,6 +1,6 @@
 import type { MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
-import type { DirectionMode } from '../../../shared/settings/modes';
-import type { GraphTooltipState } from './tooltipModel';
+import type { DirectionMode } from '../../../../shared/settings/modes';
+import type { GraphTooltipState } from '../tooltip/model';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -8,23 +8,23 @@ import {
   ContextMenuSeparator,
   ContextMenuShortcut,
   ContextMenuTrigger,
-} from '../ui/context/menu';
-import { NodeTooltip } from '../nodeTooltip/view';
+} from '../../ui/context/menu';
+import { NodeTooltip } from '../../nodeTooltip/view';
 import type {
   GraphContextMenuAction,
   GraphContextMenuEntry,
-} from './contextMenu/contracts';
+} from '../contextMenu/contracts';
 import {
   Surface2d,
   type Surface2dProps,
-} from './rendering/surface/view/twoDimensional';
+} from '../rendering/surface/view/twoDimensional';
 import {
   DeferredSurface3d,
   type Surface3dProps,
-} from './rendering/surface/view/threeDimensional';
-import { SurfaceFallbackBoundary } from './rendering/surface/view/fallbackBoundary';
-import type { WebviewPluginHost } from '../../pluginHost/manager';
-import { SlotHost } from '../../pluginHost/slotHost/view';
+} from '../rendering/surface/view/threeDimensional';
+import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBoundary';
+import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import { SlotHost } from '../../../pluginHost/slotHost/view';
 
 export interface ViewportProps {
   backgroundColor: string;

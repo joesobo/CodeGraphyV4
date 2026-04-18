@@ -10,7 +10,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Viewport } from '../../../../src/webview/components/graph/Viewport';
+import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
 
 const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),
@@ -25,14 +25,14 @@ vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
   },
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view2d', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/view/twoDimensional', () => ({
   Surface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;
   },
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view3d', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/view/threeDimensional', () => ({
   Surface3d: (props: Record<string, unknown>) => {
     harness.surface3d(props);
     return <div data-testid="surface-3d" />;

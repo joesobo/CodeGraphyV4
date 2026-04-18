@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { detectMacPlatform } from '../../../src/webview/components/graph/platform';
+import { detectMacPlatform } from '../../../../src/webview/components/graph/environment/platform';
 
 describe('graph/platform', () => {
   it('detects mac and ios platforms', () => {

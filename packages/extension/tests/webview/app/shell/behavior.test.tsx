@@ -15,7 +15,7 @@ const harness = vi.hoisted(() => ({
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];
 
-vi.mock('../../../../src/webview/components/graph/view', () => ({
+vi.mock('../../../../src/webview/components/graph/view/component', () => ({
   default: (props: Record<string, unknown>) => {
     harness.graphRenderCount += 1;
     harness.graphProps = props;

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Dispatch, SetStateAction } from 'react';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
-import type { GraphTooltipState } from '../../../../../src/webview/components/graph/tooltipModel';
+import type { GraphTooltipState } from '../../../../../src/webview/components/graph/tooltip/model';
 import {
   startTooltipTracking,
   stopTooltipTracking,

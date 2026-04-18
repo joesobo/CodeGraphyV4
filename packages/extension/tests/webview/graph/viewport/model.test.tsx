@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
-import type { GraphViewStoreState } from '../../../../src/webview/components/graph/store';
+import type { GraphViewStoreState } from '../../../../src/webview/components/graph/view/store';
 import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/state';
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import { useGraphViewportModel } from '../../../../src/webview/components/graph/viewport/model';
@@ -23,15 +23,15 @@ vi.mock('../../../../src/webview/components/graph/rendering/surface/sharedProps'
 	buildSharedGraphProps: harness.buildSharedGraphProps,
 }));
 
-vi.mock('../../../../src/webview/components/graph/sharedPropsOptions', () => ({
+vi.mock('../../../../src/webview/components/graph/view/sharedPropsOptions', () => ({
 	buildGraphSharedPropsOptions: harness.buildGraphSharedPropsOptions,
 }));
 
-vi.mock('../../../../src/webview/components/graph/surfaceError', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/error', () => ({
 	handleGraphSurface3dError: harness.handleGraphSurface3dError,
 }));
 
-vi.mock('../../../../src/webview/components/graph/theme', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/colors', () => ({
 	getGraphSurfaceColors: harness.getGraphSurfaceColors,
 }));
 
