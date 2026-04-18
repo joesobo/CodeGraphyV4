@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { appendNodeImageOverlay } from '../../../../../../src/webview/export/svg/node/image/imageOverlay';
+import { appendNodeImageOverlay } from '../../../../../../src/webview/export/svg/node/image/overlay';
 import type { SvgExportNode } from '../../../../../../src/webview/export/svg/contracts';
 
 const overlayHarness = vi.hoisted(() => ({

@@ -4,5 +4,5 @@
  */
 
 export type ThemeKind = 'light' | 'dark' | 'high-contrast';
-export { detectTheme } from './brightness';
+export { detectTheme } from './detect';
 export { isThemeChangedMessage } from '../messageGuard';

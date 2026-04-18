@@ -1,4 +1,4 @@
-import { svgRegularPolygonPath } from './regularPolygon/regularPolygonPath';
+import { svgRegularPolygonPath } from './regularPolygon/path';
 import { svgStarPath } from './starPath';
 import type { NodeShape2D } from '../../../../shared/settings/modes';
 

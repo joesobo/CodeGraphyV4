@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { svgRegularPolygonPath } from '../../../../../../src/webview/export/svg/shape/regularPolygon/regularPolygonPath';
+import { svgRegularPolygonPath } from '../../../../../../src/webview/export/svg/shape/regularPolygon/path';
 
 describe('exportSvgRegularPolygonPath', () => {
   it.each([

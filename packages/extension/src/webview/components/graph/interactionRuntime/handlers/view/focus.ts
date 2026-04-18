@@ -1,6 +1,6 @@
 import type { GraphInteractionHandlersDependencies } from '../../handlers';
 import type { FGNode } from '../../../model/build';
-import type { GraphView2dControls, GraphView3dControls } from '../../fit/api';
+import type { GraphView2dControls, GraphView3dControls } from '../../fit/api/controls';
 
 export function focusNodeById(
   dependencies: GraphInteractionHandlersDependencies,

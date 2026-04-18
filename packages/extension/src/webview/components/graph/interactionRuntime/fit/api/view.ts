@@ -4,7 +4,7 @@ import {
   getFitViewPadding,
   type GraphView2dControls,
   type GraphView3dControls,
-} from '.';
+} from './controls';
 
 export function fitGraphView(dependencies: GraphInteractionHandlersDependencies): void {
   const padding = getFitViewPadding(dependencies.graphDataRef.current.nodes);

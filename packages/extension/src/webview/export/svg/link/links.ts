@@ -1,4 +1,4 @@
-import { buildLinkElement } from './element/element';
+import { buildLinkElement } from './element/build';
 import { getLinkNodeId } from './nodeId';
 import type { SvgExportLink, SvgPosition } from '../contracts';
 
