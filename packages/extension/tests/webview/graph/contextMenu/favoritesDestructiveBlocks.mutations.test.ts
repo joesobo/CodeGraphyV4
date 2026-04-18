@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildFavoriteBlock,
-} from '../../../../src/webview/components/graph/contextMenu/node/favoritesDestructiveBlocks';
+} from '../../../../src/webview/components/graph/contextMenu/node/destructive/favoritesBlocks';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 
 type ItemEntry = Extract<GraphContextMenuEntry, { kind: 'item' }>;

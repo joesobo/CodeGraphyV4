@@ -3,7 +3,7 @@
  * @module webview/pluginModuleResolver
  */
 
-import type { CodeGraphyWebviewAPI } from '../pluginHost/api/contracts';
+import type { CodeGraphyWebviewAPI } from '../pluginHost/api/contracts/types';
 
 export interface PluginWebviewModule {
   activate?: (api: CodeGraphyWebviewAPI) => void | Promise<void>;

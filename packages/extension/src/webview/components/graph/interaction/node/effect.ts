@@ -1,5 +1,5 @@
 import type { GraphInteractionEffect } from '../model';
-import type { GraphNodeSingleClickOptions } from './singleClick';
+import type { GraphNodeSingleClickOptions } from './singleClick/command';
 
 function toPoint(x: number, y: number) {
   return { x, y };

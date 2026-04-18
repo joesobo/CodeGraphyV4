@@ -1,6 +1,6 @@
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphStateResult } from '../runtime/use/state';
-import type { GraphDebugControls } from './contracts';
+import type { GraphDebugControls } from './contracts/types';
 
 export function buildGraphDebugOptions({
   graphMode,

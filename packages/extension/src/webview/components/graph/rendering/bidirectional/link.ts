@@ -2,8 +2,8 @@ import {
   type FGLink,
   type FGNode,
 } from '../../model/build';
-import { getGraphDirectionalColor } from '../link/colors';
-import { createBidirectionalArrowGeometry } from './arrowGeometry';
+import { getGraphDirectionalColor } from '../link/colors/model';
+import { createBidirectionalArrowGeometry } from './arrow/geometry';
 import { createBidirectionalLineGeometry } from './lineGeometry';
 import type { LinkRenderingDependencies } from '../link/contracts';
 import {

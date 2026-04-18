@@ -7,7 +7,7 @@ import React from 'react';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { formatSize, formatRelativeTime } from './formatters';
-import type { TooltipAction } from '../../pluginHost/api/contracts';
+import type { TooltipAction } from '../../pluginHost/api/contracts/types';
 
 export interface TooltipContentProps {
   path: string;

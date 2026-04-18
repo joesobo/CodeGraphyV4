@@ -20,10 +20,10 @@ import {
 } from '../../model/build';
 import type { GraphContainerSize } from '../../rendering/surface/sharedProps';
 import { useContainerSize } from '../containerSize';
-import { useDirectional } from './indicators';
-import { useLabelVisibility } from './labelVisibility';
-import { useMeshHighlights } from './meshHighlights';
-import { useNodeAppearance } from './nodeAppearance';
+import { useDirectional } from './indicators/directional';
+import { useLabelVisibility } from './indicators/labelVisibility';
+import { useMeshHighlights } from './indicators/meshHighlights';
+import { useNodeAppearance } from './indicators/nodeAppearance';
 import { usePhysicsRuntime } from './physics/hook';
 import { usePluginOverlays } from '../pluginOverlays';
 

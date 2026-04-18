@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildNodeSingleClickSelectionResult } from '../../../../../src/webview/components/graph/interaction/node/singleClickSelection';
+import { buildNodeSingleClickSelectionResult } from '../../../../../src/webview/components/graph/interaction/node/singleClick/selection';
 
 function makeOptions(overrides: Partial<Parameters<typeof buildNodeSingleClickSelectionResult>[0]> = {}) {
   return {

@@ -9,7 +9,7 @@ import {
   getOrCreateContainer,
   syncSlotHostVisibility,
 } from '../../../../../src/webview/pluginHost/api/registration';
-import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../../src/webview/pluginHost/api/contracts';
+import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../../src/webview/pluginHost/api/contracts/types';
 
 describe('registerNodeRenderer', () => {
   let nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>;

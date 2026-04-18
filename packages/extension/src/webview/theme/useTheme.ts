@@ -3,10 +3,10 @@
  */
 
 import { useState, useEffect } from 'react';
-import { detectTheme, isThemeChangedMessage } from './detection';
-import type { ThemeKind } from './detection';
+import { detectTheme, isThemeChangedMessage } from './brightness/detection';
+import type { ThemeKind } from './brightness/detection';
 
-export type { ThemeKind } from './detection';
+export type { ThemeKind } from './brightness/detection';
 export { adjustColorForLightTheme } from '../colorParsing';
 
 /**

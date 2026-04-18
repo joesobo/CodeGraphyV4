@@ -7,7 +7,7 @@ import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interactio
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { UseGraphStateResult } from '../runtime/use/state';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
-import { useGraphEventEffects } from '../runtime/use/events';
+import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport } from '../Viewport';
 import { useGraphViewportModel } from './model';
 

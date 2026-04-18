@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { TooltipProviderFn } from '@/webview/pluginHost/api/contracts';
+import type { TooltipProviderFn } from '@/webview/pluginHost/api/contracts/types';
 import { WebviewPluginHost } from '../../../src/webview/pluginHost/manager';
 
 function createMockContext(): CanvasRenderingContext2D {
