@@ -4,7 +4,7 @@
  * @module webview/pluginHost/drawing
  */
 
-import type { BadgeOpts, RingOpts, LabelOpts } from './contracts/types';
+import type { BadgeOpts, RingOpts, LabelOpts } from './contracts/webview';
 
 /**
  * Draws a pill-shaped badge with centered text.

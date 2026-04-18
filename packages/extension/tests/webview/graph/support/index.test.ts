@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   as2DExtMethods,
   setSpriteVisible,
-} from '../../../../src/webview/components/graph/support/contracts/types';
+} from '../../../../src/webview/components/graph/support/contracts/forceGraph';
 import {
   hasDistanceAndStrength,
   hasStrength,

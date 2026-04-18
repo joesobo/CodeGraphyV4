@@ -4,7 +4,7 @@ import {
 } from 'react';
 import type { ForceGraphMethods as FG2DMethods, LinkObject } from 'react-force-graph-2d';
 import type { FGLink, FGNode } from '../../../model/build';
-import { as2DExtMethods, type FG2DExtMethods } from '../../../support/contracts/types';
+import { as2DExtMethods, type FG2DExtMethods } from '../../../support/contracts/forceGraph';
 
 interface DirectionalOptions {
 	directionMode: 'arrows' | 'particles' | 'none';

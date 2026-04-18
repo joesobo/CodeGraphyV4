@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import { createImageSprite, createNodeMesh } from '../shapes/draw/threeDimensional';
 import { DEFAULT_NODE_SIZE, type FGNode } from '../../model/build';
-import { setSpriteVisible } from '../../support/contracts/types';
+import { setSpriteVisible } from '../../support/contracts/forceGraph';
 
 interface GraphRef<TValue> {
   current: TValue;
