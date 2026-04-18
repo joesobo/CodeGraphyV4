@@ -3,7 +3,7 @@
  * @module webview/pluginHost/api/registration/cleanup
  */
 
-import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../contracts/types';
+import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../contracts/webview';
 import { syncSlotHostVisibility } from '../visibility';
 
 function removePluginMapEntries<T extends { pluginId: string }>(

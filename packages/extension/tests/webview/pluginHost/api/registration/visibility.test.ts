@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { GraphPluginSlot } from '../../../../../src/webview/pluginHost/api/contracts/types';
+import type { GraphPluginSlot } from '../../../../../src/webview/pluginHost/api/contracts/webview';
 import { syncSlotHostVisibility } from '../../../../../src/webview/pluginHost/api/registration/visibility';
 
 describe('pluginHost/api/registration/visibility', () => {

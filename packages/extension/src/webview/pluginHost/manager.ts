@@ -14,7 +14,7 @@ import type {
   RingOpts,
   LabelOpts,
   CodeGraphyWebviewAPI,
-} from './api/contracts/types';
+} from './api/contracts/webview';
 import { drawBadge, drawProgressRing, drawLabel } from './api/drawing';
 import { createPluginWebviewApi } from './api';
 import { removePluginRegistrations } from './api/registration/cleanup/remove';

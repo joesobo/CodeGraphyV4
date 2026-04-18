@@ -1,4 +1,4 @@
-import type { DistanceMaxForce, LinkDistanceForce, StrengthForce } from './contracts/types';
+import type { DistanceMaxForce, LinkDistanceForce, StrengthForce } from './contracts/forceGraph';
 
 export function isRecordLike(value: unknown): value is Record<string, unknown> {
   return (typeof value === 'object' && value !== null) || typeof value === 'function';
