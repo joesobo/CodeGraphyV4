@@ -34,6 +34,65 @@ function appendEdgeSource(
   edge.sources.push(edgeSource);
 }
 
+function appendConnectionEdge(
+  filePath: string,
+  connection: IProjectedConnection,
+  options: {
+    connectedIds: Set<string>;
+    disabledPlugins: ReadonlySet<string>;
+    edgeMap: Map<string, IGraphEdge>;
+    edges: IGraphEdge[];
+    fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
+    nodeIds: Set<string>;
+    plugin: IPlugin | undefined;
+    workspaceRoot: string;
+  },
+): void {
+  const sourcePluginId = connection.pluginId ?? options.plugin?.id;
+  if (sourcePluginId && options.disabledPlugins.has(sourcePluginId)) {
+    return;
+  }
+
+  const targetId = getConnectionTargetId(
+    options.plugin,
+    connection,
+    options.fileConnections,
+    options.workspaceRoot,
+  );
+  if (!targetId) {
+    return;
+  }
+
+  options.connectedIds.add(filePath);
+  options.connectedIds.add(targetId);
+  options.nodeIds.add(targetId);
+
+  const edgeId = createGraphEdgeId({
+    from: filePath,
+    to: targetId,
+    kind: connection.kind,
+    type: connection.type,
+    variant: connection.variant,
+  });
+  const existing = options.edgeMap.get(edgeId);
+  const edgeSource = createEdgeSource(options.plugin, connection);
+  if (existing) {
+    appendEdgeSource(existing, edgeSource);
+    return;
+  }
+
+  const edge: IGraphEdge = {
+    id: edgeId,
+    from: filePath,
+    to: targetId,
+    kind: connection.kind,
+    sources: edgeSource ? [edgeSource] : [],
+  };
+
+  options.edges.push(edge);
+  options.edgeMap.set(edgeId, edge);
+}
+
 export function buildWorkspaceGraphEdges(
   options: IWorkspaceGraphEdgesOptions,
 ): IWorkspaceGraphEdgeBuildResult {
@@ -55,43 +114,16 @@ export function buildWorkspaceGraphEdges(
     const plugin = getPluginForFile(path.join(workspaceRoot, filePath));
 
     for (const connection of connections) {
-      const sourcePluginId = connection.pluginId ?? plugin?.id;
-      if (sourcePluginId && disabledPlugins.has(sourcePluginId)) {
-        continue;
-      }
-
-      const targetId = getConnectionTargetId(plugin, connection, fileConnections, workspaceRoot);
-      if (!targetId) {
-        continue;
-      }
-
-      connectedIds.add(filePath);
-      connectedIds.add(targetId);
-      nodeIds.add(targetId);
-      const edgeId = createGraphEdgeId({
-        from: filePath,
-        to: targetId,
-        kind: connection.kind,
-        type: connection.type,
-        variant: connection.variant,
+      appendConnectionEdge(filePath, connection, {
+        connectedIds,
+        disabledPlugins,
+        edgeMap,
+        edges,
+        fileConnections,
+        nodeIds,
+        plugin,
+        workspaceRoot,
       });
-      const existing = edgeMap.get(edgeId);
-      const edgeSource = createEdgeSource(plugin, connection);
-      if (!existing) {
-        const edge: IGraphEdge = {
-          id: edgeId,
-          from: filePath,
-          to: targetId,
-          kind: connection.kind,
-          sources: edgeSource ? [edgeSource] : [],
-        };
-
-        edges.push(edge);
-        edgeMap.set(edgeId, edge);
-        continue;
-      }
-
-      appendEdgeSource(existing, edgeSource);
     }
   }
 

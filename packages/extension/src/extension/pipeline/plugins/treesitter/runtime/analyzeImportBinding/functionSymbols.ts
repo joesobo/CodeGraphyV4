@@ -3,6 +3,16 @@ import type { IAnalysisSymbol } from '../../../../../../core/plugins/types/contr
 import { getIdentifierText } from '../analyze/text';
 import { createSymbol } from '../analyze/results';
 
+function getAssignedFunctionValueNode(node: Parser.SyntaxNode): Parser.SyntaxNode | null {
+  const valueNode = node.childForFieldName('value') ?? node.namedChildren.at(-1);
+  if (!valueNode) {
+    return null;
+  }
+
+  const functionNodeTypes = new Set(['arrow_function', 'function', 'function_expression']);
+  return functionNodeTypes.has(valueNode.type) ? valueNode : null;
+}
+
 export function getVariableAssignedFunctionSymbol(
   node: Parser.SyntaxNode,
   filePath: string,
@@ -12,18 +22,10 @@ export function getVariableAssignedFunctionSymbol(
   }
 
   const nameNode = node.childForFieldName('name') ?? node.namedChildren[0];
-  const valueNode = node.childForFieldName('value') ?? node.namedChildren.at(-1);
+  const valueNode = getAssignedFunctionValueNode(node);
   const name = getIdentifierText(nameNode);
 
   if (!name || !valueNode) {
-    return null;
-  }
-
-  if (
-    valueNode.type !== 'arrow_function'
-    && valueNode.type !== 'function'
-    && valueNode.type !== 'function_expression'
-  ) {
     return null;
   }
 

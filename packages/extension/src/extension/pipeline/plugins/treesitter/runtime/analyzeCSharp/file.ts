@@ -22,6 +22,40 @@ import { getCSharpFileScopedNamespaceName } from './namespaceNames';
 import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
 
+const CSHARP_TYPE_DECLARATIONS = new Set([
+  'class_declaration',
+  'interface_declaration',
+  'struct_declaration',
+  'enum_declaration',
+]);
+
+function handleCSharpTypeNode(
+  node: Parser.SyntaxNode,
+  state: CSharpWalkState,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  symbols: IAnalysisSymbol[],
+  usingNamespaces: Set<string>,
+  importTargetsByNamespace: Map<string, Set<string>>,
+): boolean {
+  if (!CSHARP_TYPE_DECLARATIONS.has(node.type)) {
+    return false;
+  }
+
+  handleCSharpTypeDeclaration(
+    node,
+    state,
+    filePath,
+    workspaceRoot,
+    relations,
+    symbols,
+    usingNamespaces,
+    importTargetsByNamespace,
+  );
+  return true;
+}
+
 function visitCSharpNode(
   node: Parser.SyntaxNode,
   state: CSharpWalkState,
@@ -43,12 +77,7 @@ function visitCSharpNode(
   }
 
   if (
-    node.type === 'class_declaration'
-    || node.type === 'interface_declaration'
-    || node.type === 'struct_declaration'
-    || node.type === 'enum_declaration'
-  ) {
-    handleCSharpTypeDeclaration(
+    handleCSharpTypeNode(
       node,
       state,
       filePath,
@@ -57,7 +86,8 @@ function visitCSharpNode(
       symbols,
       usingNamespaces,
       importTargetsByNamespace,
-    );
+    )
+  ) {
     return;
   }
 

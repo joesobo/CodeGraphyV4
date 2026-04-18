@@ -15,6 +15,26 @@ import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyz
 import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
 
+const RUST_NAMED_SYMBOL_KINDS = {
+  enum_item: 'enum',
+  struct_item: 'struct',
+  trait_item: 'trait',
+} as const satisfies Record<string, IAnalysisSymbol['kind']>;
+
+function handleRustNamedItem(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): boolean {
+  const kind = RUST_NAMED_SYMBOL_KINDS[node.type as keyof typeof RUST_NAMED_SYMBOL_KINDS];
+  if (!kind) {
+    return false;
+  }
+
+  handleRustNamedSymbol(node, kind, filePath, symbols);
+  return true;
+}
+
 function visitRustNode(
   node: Parser.SyntaxNode,
   state: SymbolWalkState,
@@ -25,34 +45,25 @@ function visitRustNode(
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> | void {
-  switch (node.type) {
-    case 'use_declaration': {
-      return handleRustUseDeclaration(node, filePath, workspaceRoot, relations, importedBindings);
-    }
-    case 'mod_item': {
-      handleRustModuleItem(node, filePath, relations);
-      return;
-    }
-    case 'struct_item':
-    case 'enum_item':
-    case 'trait_item': {
-      const kind = node.type === 'struct_item'
-        ? 'struct'
-        : node.type === 'enum_item'
-          ? 'enum'
-          : 'trait';
-      handleRustNamedSymbol(node, kind, filePath, symbols);
-      return;
-    }
-    case 'function_item': {
-      return handleRustFunctionItem(node, filePath, symbols, walk);
-    }
-    case 'call_expression': {
-      handleRustCallExpression(node, filePath, relations, importedBindings, state.currentSymbolId);
-      return;
-    }
-    default:
-      return;
+  if (node.type === 'use_declaration') {
+    return handleRustUseDeclaration(node, filePath, workspaceRoot, relations, importedBindings);
+  }
+
+  if (node.type === 'mod_item') {
+    handleRustModuleItem(node, filePath, relations);
+    return;
+  }
+
+  if (handleRustNamedItem(node, filePath, symbols)) {
+    return;
+  }
+
+  if (node.type === 'function_item') {
+    return handleRustFunctionItem(node, filePath, symbols, walk);
+  }
+
+  if (node.type === 'call_expression') {
+    handleRustCallExpression(node, filePath, relations, importedBindings, state.currentSymbolId);
   }
 }
 

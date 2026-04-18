@@ -3,7 +3,20 @@ import { resolveCSharpTypePathInNamespace } from '../csharpIndex';
 import { normalizeCSharpTypeName } from './resolution';
 import { addImportRelation } from '../analyze/results';
 
-export function appendCSharpUsingImportRelations(
+type CSharpUsingTargetRelation = IAnalysisRelation & {
+  resolvedPath: string;
+  specifier: string;
+};
+
+function isCSharpUsingTargetRelation(relation: IAnalysisRelation): relation is CSharpUsingTargetRelation {
+  return (
+    (relation.kind === 'reference' || relation.kind === 'inherit')
+    && Boolean(relation.resolvedPath)
+    && Boolean(relation.specifier)
+  );
+}
+
+function appendMatchedUsingTargets(
   workspaceRoot: string,
   filePath: string,
   relations: IAnalysisRelation[],
@@ -11,11 +24,7 @@ export function appendCSharpUsingImportRelations(
   importTargetsByNamespace: Map<string, Set<string>>,
 ): void {
   for (const relation of relations) {
-    if (
-      (relation.kind !== 'reference' && relation.kind !== 'inherit')
-      || !relation.resolvedPath
-      || !relation.specifier
-    ) {
+    if (!isCSharpUsingTargetRelation(relation)) {
       continue;
     }
 
@@ -33,7 +42,14 @@ export function appendCSharpUsingImportRelations(
       }
     }
   }
+}
 
+function appendNamespaceImportRelations(
+  filePath: string,
+  relations: IAnalysisRelation[],
+  usingNamespaces: ReadonlySet<string>,
+  importTargetsByNamespace: Map<string, Set<string>>,
+): void {
   for (const namespaceName of usingNamespaces) {
     const targetPaths = importTargetsByNamespace.get(namespaceName);
     if (!targetPaths || targetPaths.size === 0) {
@@ -45,4 +61,26 @@ export function appendCSharpUsingImportRelations(
       addImportRelation(relations, filePath, namespaceName, targetPath);
     }
   }
+}
+
+export function appendCSharpUsingImportRelations(
+  workspaceRoot: string,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  usingNamespaces: ReadonlySet<string>,
+  importTargetsByNamespace: Map<string, Set<string>>,
+): void {
+  appendMatchedUsingTargets(
+    workspaceRoot,
+    filePath,
+    relations,
+    usingNamespaces,
+    importTargetsByNamespace,
+  );
+  appendNamespaceImportRelations(
+    filePath,
+    relations,
+    usingNamespaces,
+    importTargetsByNamespace,
+  );
 }

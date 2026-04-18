@@ -43,4 +43,14 @@ describe('structureIssues', () => {
       }
     ]);
   });
+
+  it('ignores ordinary context helpers and variables inside examples', () => {
+    expect(structureIssues(parse(`
+      test('uses a provider context object', () => {
+        const context = createContext();
+        context.load();
+        expect(context.ready).toBe(true);
+      });
+    `))).toEqual([]);
+  });
 });
