@@ -7,7 +7,7 @@ import type {
   GraphRightClickPointerMoveEvent,
   GraphRightClickPointerUpEvent,
 } from './controller';
-import { createContextMenuFallbackRuntime } from './fallback/runtime';
+import { createContextMenuFallbackRuntime } from './fallback/scheduler';
 
 const DEFAULT_RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
 

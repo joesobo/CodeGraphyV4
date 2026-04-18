@@ -4,8 +4,8 @@ import type {
   GraphRef,
   GraphRightMouseDownState,
   GraphTimerHandle,
-} from '../../../../src/webview/components/graph/contextMenuRuntime/controller';
-import { createContextMenuFallbackRuntime } from '../../../../src/webview/components/graph/contextMenuRuntime/fallback/runtime';
+} from '../../../../../src/webview/components/graph/contextMenuRuntime/controller';
+import { createContextMenuFallbackRuntime } from '../../../../../src/webview/components/graph/contextMenuRuntime/fallback/scheduler';
 
 function createRef<TValue>(current: TValue): GraphRef<TValue> {
   return { current };
@@ -35,7 +35,7 @@ function createDependencies(
   return { dependencies };
 }
 
-describe('graph/contextMenuRuntime/fallback/runtime', () => {
+describe('graph/contextMenuRuntime/fallback/scheduler', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
