@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildGraphSharedPropsOptions } from '../../../src/webview/components/graph/sharedPropsOptions';
+import { buildGraphSharedPropsOptions } from '../../../../src/webview/components/graph/view/sharedPropsOptions';
 
 describe('graph/sharedPropsOptions', () => {
   it('builds the shared graph props input from interaction handlers', () => {

@@ -4,7 +4,7 @@ import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import { applyKeyboardEffects } from '../../../effects/keyboard';
 import { applyWebviewMessageEffects as runWebviewMessageEffects } from '../../../effects/messages';
 import { createGraphKeyboardListener } from '../../../keyboard/listener';
-import { createGraphMessageListener } from '../../../messageListener';
+import { createGraphMessageListener } from '../../../messages/listener';
 import type { GraphWebviewMessageEffect } from '../../../messages/effects/routing';
 import { exportAsJpeg } from '../../../../../export/jpeg';
 import { exportAsJson } from '../../../../../export/json/export';

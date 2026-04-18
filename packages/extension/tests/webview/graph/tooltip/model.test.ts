@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import type { IFileInfo } from '../../../src/shared/files/info';
-import type { IGraphData } from '../../../src/shared/graph/contracts';
+import type { IFileInfo } from '../../../../src/shared/files/info';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import {
   buildGraphTooltipContext,
   buildGraphTooltipState,
   hideGraphTooltipState,
   type GraphTooltipState,
-} from '../../../src/webview/components/graph/tooltipModel';
+} from '../../../../src/webview/components/graph/tooltip/model';
 
 const graphSnapshot: IGraphData = {
   nodes: [

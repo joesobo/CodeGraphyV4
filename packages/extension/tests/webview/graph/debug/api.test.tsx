@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { useGraphDebugApi } from '../../../src/webview/components/graph/useDebugApi';
+import { useGraphDebugApi } from '../../../../src/webview/components/graph/debug/api';
 
 type UseDebugApiProps = {
   graphMode: '2d' | '3d';

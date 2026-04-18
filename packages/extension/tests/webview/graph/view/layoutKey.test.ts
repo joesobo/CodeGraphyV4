@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraphLayoutKey } from '../../../src/webview/components/graph/layoutKey';
+import { buildGraphLayoutKey } from '../../../../src/webview/components/graph/view/layoutKey';
 
 describe('graph/layoutKey', () => {
   it('builds a stable key from node size mode, node ids, and link ids', () => {

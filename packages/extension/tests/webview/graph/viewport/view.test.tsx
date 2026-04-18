@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
-import { Viewport } from '../../../../src/webview/components/graph/Viewport';
+import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
 
 const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),

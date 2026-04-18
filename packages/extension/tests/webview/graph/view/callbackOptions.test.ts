@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildGraphCallbackOptions } from '../../../src/webview/components/graph/callbackOptions';
+import { buildGraphCallbackOptions } from '../../../../src/webview/components/graph/view/callbackOptions';
 
 function createGraphState() {
   return {

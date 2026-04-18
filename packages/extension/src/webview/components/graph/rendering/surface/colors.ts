@@ -1,4 +1,4 @@
-import type { ThemeKind } from '../../theme/useTheme';
+import type { ThemeKind } from '../../../../theme/useTheme';
 
 export function getGraphSurfaceColors(theme: ThemeKind): {
   backgroundColor: string;

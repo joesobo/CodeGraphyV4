@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { handleGraphSurface3dError } from '../../../src/webview/components/graph/surfaceError';
+import { handleGraphSurface3dError } from '../../../../../src/webview/components/graph/rendering/surface/error';
 
 describe('graph/surfaceError', () => {
   it('posts the 3d unavailable message and falls back to 2d', () => {

@@ -5,7 +5,7 @@ import {
   runAutoFitEngineStop,
   schedulePending3dAutoFit,
   useGraphAutoFit,
-} from '../../../src/webview/components/graph/autoFit';
+} from '../../../../src/webview/components/graph/viewport/autoFit';
 
 type AutoFitHookProps = {
   graphData: { nodes: Array<{ id?: string }> };

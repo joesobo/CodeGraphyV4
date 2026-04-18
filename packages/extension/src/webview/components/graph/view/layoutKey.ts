@@ -1,5 +1,5 @@
-import type { NodeSizeMode } from '../../../shared/settings/modes';
-import type { UseGraphStateResult } from './runtime/use/state';
+import type { NodeSizeMode } from '../../../../shared/settings/modes';
+import type { UseGraphStateResult } from '../runtime/use/state';
 
 export function buildGraphLayoutKey(
   graphData: UseGraphStateResult['graphData'],

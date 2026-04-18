@@ -8,13 +8,13 @@ describe('graph/browser', () => {
   it('returns the browser navigator when available', async () => {
     vi.stubGlobal('navigator', { platform: 'MacIntel' });
 
-    const { getGraphNavigator } = await import('../../../src/webview/components/graph/browser');
+    const { getGraphNavigator } = await import('../../../../src/webview/components/graph/environment/browser');
 
     expect(getGraphNavigator()).toEqual({ platform: 'MacIntel' });
   });
 
   it('returns the browser window when available', async () => {
-    const { getGraphWindow } = await import('../../../src/webview/components/graph/browser');
+    const { getGraphWindow } = await import('../../../../src/webview/components/graph/environment/browser');
 
     expect(getGraphWindow()).toBe(window);
   });
@@ -24,7 +24,7 @@ describe('graph/browser', () => {
     vi.stubGlobal('window', undefined);
 
     const { getGraphNavigator, getGraphWindow } = await import(
-      '../../../src/webview/components/graph/browser'
+      '../../../../src/webview/components/graph/environment/browser'
     );
 
     expect(getGraphNavigator()).toBeUndefined();
@@ -34,7 +34,7 @@ describe('graph/browser', () => {
   it('returns undefined for navigator when the navigator global is missing', async () => {
     vi.stubGlobal('navigator', undefined);
 
-    const { getGraphNavigator } = await import('../../../src/webview/components/graph/browser');
+    const { getGraphNavigator } = await import('../../../../src/webview/components/graph/environment/browser');
 
     expect(getGraphNavigator()).toBeUndefined();
   });
@@ -42,7 +42,7 @@ describe('graph/browser', () => {
   it('returns undefined for window when the window global is missing', async () => {
     vi.stubGlobal('window', undefined);
 
-    const { getGraphWindow } = await import('../../../src/webview/components/graph/browser');
+    const { getGraphWindow } = await import('../../../../src/webview/components/graph/environment/browser');
 
     expect(getGraphWindow()).toBeUndefined();
   });

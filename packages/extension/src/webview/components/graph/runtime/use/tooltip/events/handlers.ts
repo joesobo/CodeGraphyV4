@@ -9,7 +9,7 @@ import type { IFileInfo } from '../../../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../../../shared/protocol/webviewToExtension';
 import type { FGLink, FGNode } from '../../../../model/build';
-import type { GraphTooltipState } from '../../../../tooltipModel';
+import type { GraphTooltipState } from '../../../../tooltip/model';
 import type { WebviewPluginHost } from '../../../../../../pluginHost/manager';
 import type { GraphTooltipInteractionDependencies } from '../hook';
 import { handleTooltipNodeHover } from '../../../tooltip/hover';

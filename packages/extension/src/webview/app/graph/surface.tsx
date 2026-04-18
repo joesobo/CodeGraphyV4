@@ -1,5 +1,5 @@
 import React from 'react';
-import Graph from '../../components/graph/view';
+import Graph from '../../components/graph/view/component';
 import { DepthViewControls } from '../../components/depthViewControls';
 import { EmptyState } from '../shell/states';
 import { getNoDataHint } from '../shell/messages';

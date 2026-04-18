@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act, screen, waitFor } from '@testing-library/react';
-import Graph from '../../../src/webview/components/graph/view';
+import Graph from '../../../src/webview/components/graph/view/component';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';

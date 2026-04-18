@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { GraphSurface } from '../../../../src/webview/app/graph/surface';
 
-vi.mock('../../../../src/webview/components/graph/view', () => ({
+vi.mock('../../../../src/webview/components/graph/view/component', () => ({
   default: ({ data }: { data: { nodes: Array<{ id: string }> } }) => (
     <div data-testid="graph-surface-graph">{data.nodes.map((node) => node.id).join(',')}</div>
   ),
