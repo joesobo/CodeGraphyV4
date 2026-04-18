@@ -18,14 +18,14 @@ vi.mock('../../../../src/webview/components/nodeTooltip/view', () => ({
   },
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view2d', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/view/twoDimensional', () => ({
   Surface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;
   },
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/surface/view3d', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/surface/view/threeDimensional', () => ({
   DeferredSurface3d: (props: Record<string, unknown>) => {
     harness.surface3d(props);
     if (harness.throwSurface3d) {
