@@ -58,4 +58,32 @@ describe('resolvePackageCandidates', () => {
       join(workspacePackage.root, 'src/nested/b.ts')
     ]);
   });
+
+  it('keeps configured entrypoints even when broad excludes match them', () => {
+    const { repoRoot, workspacePackage } = createWorkspace();
+    writeFileSync(
+      join(repoRoot, 'quality.config.json'),
+      JSON.stringify({
+        defaults: {
+        boundaries: {
+          include: ['src/**/*.ts'],
+          exclude: ['src/**/*.test.ts', '**/index.ts']
+        }
+      },
+        packages: {
+          example: {
+            boundaries: {
+              entrypoints: ['src/nested/index.ts']
+            }
+          }
+        }
+      })
+    );
+
+    expect(resolvePackageCandidates(repoRoot, workspacePackage)).toEqual([
+      join(workspacePackage.root, 'src/a.ts'),
+      join(workspacePackage.root, 'src/nested/b.ts'),
+      join(workspacePackage.root, 'src/nested/index.ts')
+    ]);
+  });
 });

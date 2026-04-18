@@ -61,7 +61,7 @@ function issuesForCall(
     return [nestedExampleIssue(sourceFile, node, callName)];
   }
 
-  if (isHookOrStructureCallName(callName)) {
+  if (isHookOrStructureCallName(callName) && callbackArgument(node)) {
     return [misplacedStructureIssue(sourceFile, node, callName)];
   }
 

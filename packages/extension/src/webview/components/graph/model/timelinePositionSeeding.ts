@@ -1,38 +1,8 @@
 import type { IGraphEdge } from '../../../../shared/graph/contracts';
 import type { FGNode } from './build';
+import { resolveTimelineSeedNeighbor } from './timelinePositionSeedNeighbor';
 
-function hasNodePosition(node: Pick<FGNode, 'x' | 'y'>): boolean {
-  return node.x !== undefined || node.y !== undefined;
-}
-
-function findConnectedEdge(nodeId: string, edges: IGraphEdge[]): IGraphEdge | undefined {
-  return edges.find((candidate) => candidate.from === nodeId || candidate.to === nodeId);
-}
-
-function getConnectedNeighbor(
-  nodeId: string,
-  edge: IGraphEdge | undefined,
-  nodePositionMap: ReadonlyMap<string, FGNode>,
-): FGNode | undefined {
-  if (!edge) {
-    return undefined;
-  }
-
-  const neighborId = edge.from === nodeId ? edge.to : edge.from;
-  return nodePositionMap.get(neighborId);
-}
-
-function resolveSeedNeighbor(
-  node: FGNode,
-  edges: IGraphEdge[],
-  nodePositionMap: ReadonlyMap<string, FGNode>,
-): FGNode | undefined {
-  if (hasNodePosition(node)) {
-    return undefined;
-  }
-
-  return getConnectedNeighbor(node.id, findConnectedEdge(node.id, edges), nodePositionMap);
-}
+type PreviousTimelinePosition = { x: number | undefined; y: number | undefined };
 
 function seedNodePosition(
   node: FGNode,
@@ -47,7 +17,7 @@ function seedNodePosition(
 export function seedTimelinePositions(
   nodes: FGNode[],
   edges: IGraphEdge[],
-  previousPositions: Map<string, { x: number | undefined; y: number | undefined }> | null,
+  previousPositions: Map<string, PreviousTimelinePosition> | null,
   random: () => number
 ): void {
   if (!previousPositions || previousPositions.size === 0) return;
@@ -55,8 +25,8 @@ export function seedTimelinePositions(
   const nodePositionMap = new Map(nodes.map((node) => [node.id, node]));
 
   for (const node of nodes) {
-    const neighbor = resolveSeedNeighbor(node, edges, nodePositionMap);
-    if (neighbor?.x === undefined || neighbor?.y === undefined) continue;
+    const neighbor = resolveTimelineSeedNeighbor(node, edges, nodePositionMap);
+    if (neighbor?.x === undefined || neighbor.y === undefined) continue;
 
     seedNodePosition(node, neighbor.x, neighbor.y, random);
   }

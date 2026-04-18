@@ -26,6 +26,24 @@ describe('walkDirectories - filtering', () => {
     expect(paths).toContain(join(root, 'src'));
   });
 
+  it('skips generated report and coverage directories', () => {
+    const root = createFileTree(
+      {
+        'coverage/generated.ts': 'export const generated = 1;',
+        'reports/mutation/generated.ts': 'export const report = 1;',
+        'src/index.ts': 'export const x = 1;'
+      },
+      tempDirs
+    );
+
+    const result = walkDirectories(root);
+
+    const paths = result.map((e) => e.directoryPath);
+    expect(paths).not.toContain(join(root, 'coverage'));
+    expect(paths).not.toContain(join(root, 'reports'));
+    expect(paths).toContain(join(root, 'src'));
+  });
+
   it('skips .git directories', () => {
     const root = createFileTree(
       {
