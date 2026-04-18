@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
-import { FAVORITE_BORDER_COLOR } from '../../../../../../src/webview/components/graph/model/build';
-import { buildGraphNodes } from '../../../../../../src/webview/components/graph/model/node/build/model';
+import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
+import { FAVORITE_BORDER_COLOR } from '../../../../../src/webview/components/graph/model/build';
+import { buildGraphNodes } from '../../../../../src/webview/components/graph/model/node/build';
 
 describe('graph/model/node/build', () => {
   it('applies focused and favorite styling while preserving graph node metadata', () => {

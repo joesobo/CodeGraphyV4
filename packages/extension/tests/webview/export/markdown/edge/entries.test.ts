@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appendEdgeSourceLines } from '../../../../../src/webview/export/markdown/edge/edgeEntries';
+import { appendEdgeSourceLines } from '../../../../../src/webview/export/markdown/edge/entries';
 import type { ExportData } from '../../../../../src/webview/export/shared/contracts';
 
 function createExportData(overrides: Partial<ExportData> = {}): ExportData {
@@ -27,7 +27,7 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
   };
 }
 
-describe('webview/export/markdown/edgeEntries', () => {
+describe('webview/export/markdown/edge/entries', () => {
   it('renders the empty state and missing sources', () => {
     const emptyLines: string[] = [];
     const sourceLines: string[] = [];

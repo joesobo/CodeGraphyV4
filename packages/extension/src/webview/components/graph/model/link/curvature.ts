@@ -6,7 +6,7 @@
  * @module webview/components/graph/model/linkCurvature
  */
 import { groupLinksByNodePair } from './grouping';
-import { assignSelfLoopCurvature, assignParallelCurvature } from './assignment/model';
+import { assignSelfLoopCurvature, assignParallelCurvature } from './assignment';
 
 export type NodeRef = string | number | { id?: string | number } | undefined;
 

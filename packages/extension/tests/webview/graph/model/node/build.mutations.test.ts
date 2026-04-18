@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildGraphNodes } from '../../../../../../src/webview/components/graph/model/node/build/model';
-import { FAVORITE_BORDER_COLOR } from '../../../../../../src/webview/components/graph/model/node/display';
+import { buildGraphNodes } from '../../../../../src/webview/components/graph/model/node/build';
+import { FAVORITE_BORDER_COLOR } from '../../../../../src/webview/components/graph/model/node/display';
 
 describe('buildGraphNodes (mutation targets)', () => {
   it('applies dark theme border color for focused node', () => {

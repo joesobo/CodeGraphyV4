@@ -1,6 +1,6 @@
-import type { IFileInfo } from '../../../../../../shared/files/info';
-import type { ExtensionToWebviewMessage } from '../../../../../../shared/protocol/extensionToWebview';
-import type { GraphWebviewMessageEffect } from '../routing';
+import type { IFileInfo } from '../../../../../shared/files/info';
+import type { ExtensionToWebviewMessage } from '../../../../../shared/protocol/extensionToWebview';
+import type { GraphWebviewMessageEffect } from '../effects/routing';
 
 type AccessCountPayload = Extract<ExtensionToWebviewMessage, { type: 'NODE_ACCESS_COUNT_UPDATED' }>['payload'];
 

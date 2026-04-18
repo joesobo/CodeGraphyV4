@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   assignSelfLoopCurvature,
   assignParallelCurvature,
-} from '../../../../../../src/webview/components/graph/model/link/assignment/model';
-import type { CurvatureLink } from '../../../../../../src/webview/components/graph/model/link/curvature';
+} from '../../../../../src/webview/components/graph/model/link/assignment';
+import type { CurvatureLink } from '../../../../../src/webview/components/graph/model/link/curvature';
 
 describe('assignSelfLoopCurvature', () => {
   it('assigns curvature 1 to a single self-loop', () => {

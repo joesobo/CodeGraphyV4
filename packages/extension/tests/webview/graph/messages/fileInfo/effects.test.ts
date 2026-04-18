@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   getAccessCountEffects,
   getFileInfoEffects,
-} from '../../../../src/webview/components/graph/messages/effects/fileInfo/effects';
+} from '../../../../../src/webview/components/graph/messages/fileInfo/effects';
 
-describe('graph/messages/effects/fileInfo/effects', () => {
+describe('graph/messages/fileInfo/effects', () => {
   it('creates file info effects for matching and non-matching tooltips', () => {
     const info = {
       path: 'src/app.ts',

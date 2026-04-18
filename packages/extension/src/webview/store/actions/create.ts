@@ -7,7 +7,7 @@ import type { StoreApi } from 'zustand/vanilla';
 import type { GraphState } from '../state';
 import { postMessage } from '../../vscodeApi';
 import { MESSAGE_HANDLERS } from '../messages';
-import { createDisplayActions } from './displayActions';
+import { createDisplayActions } from './display';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import {
   clearPendingGroupUpdate,

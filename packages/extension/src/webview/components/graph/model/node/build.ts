@@ -1,14 +1,14 @@
-import type { IGraphEdge, IGraphNode } from '../../../../../../shared/graph/contracts';
-import type { ThemeKind } from '../../../../../theme/useTheme';
-import { adjustColorForLightTheme } from '../../../../../theme/useTheme';
-import type { FGNode } from '../../build';
+import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
+import type { ThemeKind } from '../../../../theme/useTheme';
+import { adjustColorForLightTheme } from '../../../../theme/useTheme';
+import type { FGNode } from '../build';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
   getDepthOpacity,
   getDepthSizeMultiplier,
-} from '../display';
-import { seedTimelinePositions } from '../../timeline/seeding';
+} from './display';
+import { seedTimelinePositions } from '../timeline/seeding';
 
 export interface BuildGraphNodesOptions {
   nodes: IGraphNode[];

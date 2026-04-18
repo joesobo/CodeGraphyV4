@@ -1,7 +1,7 @@
 import type { ExportData } from '../shared/contracts';
 import {
   appendEdgeSourceLines,
-} from './edge/edgeEntries';
+} from './edge/entries';
 import { appendLegendLines } from './legendEntries';
 import { appendNodeLines } from './nodeEntries';
 import { appendSection, appendTimelineSummary } from './summary';

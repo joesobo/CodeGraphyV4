@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { arePlainValuesEqual } from '@/webview/store/messageHandlers/equality/equality';
+import { arePlainValuesEqual } from '@/webview/store/messageHandlers/equality/compare';
 
 afterEach(() => {
   vi.resetModules();
@@ -91,7 +91,7 @@ describe('webview/store/messageHandlers/equality', () => {
     }));
 
     const { arePlainValuesEqual: delegatedEquality } = await import(
-      '@/webview/store/messageHandlers/equality/equality'
+      '@/webview/store/messageHandlers/equality/compare'
     );
 
     expect(delegatedEquality(1, 2)).toBe(true);
@@ -114,7 +114,7 @@ describe('webview/store/messageHandlers/equality', () => {
     }));
 
     const { arePlainValuesEqual: delegatedEquality } = await import(
-      '@/webview/store/messageHandlers/equality/equality'
+      '@/webview/store/messageHandlers/equality/compare'
     );
 
     const value = { label: 'alpha' };

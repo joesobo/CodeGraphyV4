@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   appendEdgeSourceLines,
-} from '../../../../src/webview/export/markdown/edge/edgeEntries';
+} from '../../../../src/webview/export/markdown/edge/entries';
 import { appendLegendLines } from '../../../../src/webview/export/markdown/legendEntries';
 import { appendNodeLines } from '../../../../src/webview/export/markdown/nodeEntries';
 import type { ExportData } from '../../../../src/webview/export/shared/contracts';

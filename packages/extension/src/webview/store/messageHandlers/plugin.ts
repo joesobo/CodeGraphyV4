@@ -1,7 +1,7 @@
 import type { PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../shared/plugins/decorations';
-import { arePlainValuesEqual } from './equality/equality';
+import { arePlainValuesEqual } from './equality/compare';
 
 export function handlePluginsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>,

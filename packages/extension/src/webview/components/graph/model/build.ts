@@ -3,7 +3,7 @@ import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { ThemeKind } from '../../../theme/useTheme';
 import { buildGraphLinks } from './link/build';
-import { buildGraphNodes } from './node/build/model';
+import { buildGraphNodes } from './node/build';
 export { processEdges } from './edgeProcessing';
 import { calculateNodeSizes } from './node/sizing';
 export { DEFAULT_NODE_SIZE, FAVORITE_BORDER_COLOR, getDepthOpacity, getDepthSizeMultiplier, getNodeType, resolveDirectionColor } from './node/display';

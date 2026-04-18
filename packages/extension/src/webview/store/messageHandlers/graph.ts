@@ -4,7 +4,7 @@ import {
   applyPendingGroupUpdates,
   applyPendingUserGroupsUpdate,
 } from '../optimistic/groups/updates';
-import { arePlainValuesEqual } from './equality/equality';
+import { arePlainValuesEqual } from './equality/compare';
 
 export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,

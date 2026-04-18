@@ -3,8 +3,8 @@
  * @module webview/components/graph/model/linkCurvatureAssignment
  */
 
-import type { CurvatureLink } from '../curvature';
-import { resolveId } from '../grouping';
+import type { CurvatureLink } from './curvature';
+import { resolveId } from './grouping';
 
 /**
  * Assigns curvature values to self-loop link groups.

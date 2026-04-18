@@ -5,7 +5,7 @@ import type { FGNode } from '../../model/build';
 import {
   getAccessCountEffects,
   getFileInfoEffects,
-} from './fileInfo/effects';
+} from '../fileInfo/effects';
 import {
   EMPTY_EFFECTS,
   getExportEffects,
