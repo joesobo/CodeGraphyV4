@@ -1,5 +1,5 @@
 import { useEffect, type MutableRefObject } from 'react';
-import type { PhysicsRuntimeRefs } from './init/refs';
+import type { PhysicsRuntimeRefs } from './refs';
 import { syncPhysicsAnimation } from '../../../physics';
 import { selectActivePhysicsGraph } from '../../../physicsLifecycle/readiness';
 
