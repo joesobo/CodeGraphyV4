@@ -25,6 +25,7 @@ export type GraphNodeShape3D =
 
 export type CoreEdgeKind =
   | 'import'
+  | 'type-import'
   | 'reexport'
   | 'call'
   | 'inherit'

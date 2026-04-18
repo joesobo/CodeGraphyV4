@@ -68,6 +68,40 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
     );
   });
 
+  it('skips inline type-only import specifiers', () => {
+    const importedBindings = new Map();
+
+    addNamedImportBindings(
+      createNode({
+        type: 'named_imports',
+        namedChildren: [
+          createNode({
+            type: 'import_specifier',
+            text: 'type RuntimeOptions',
+            namedChildren: [createNode({ type: 'type_identifier', text: 'RuntimeOptions' })],
+          }),
+          createNode({
+            type: 'import_specifier',
+            text: 'boot',
+            namedChildren: [createNode({ type: 'identifier', text: 'boot' })],
+          }),
+        ],
+      }) as never,
+      importedBindings,
+      './runtime',
+      '/workspace/runtime.ts',
+    );
+
+    expect(addCollectedImportBinding).toHaveBeenCalledOnce();
+    expect(addCollectedImportBinding).toHaveBeenCalledWith(
+      importedBindings,
+      'boot',
+      'boot',
+      './runtime',
+      '/workspace/runtime.ts',
+    );
+  });
+
   it('skips specifiers without a local identifier', () => {
     addNamedImportBindings(
       createNode({
