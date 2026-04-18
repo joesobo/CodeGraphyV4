@@ -28,6 +28,22 @@ function hasTypeSpecifierImport(node: Parser.SyntaxNode): boolean {
   return getNamedImportSpecifiers(getImportClause(node)).some(isTypeImportSpecifier);
 }
 
+function isValueImportSpecifier(node: Parser.SyntaxNode): boolean {
+  return node.type === 'import_specifier' && !isTypeImportSpecifier(node);
+}
+
+function isValueImportClauseChild(node: Parser.SyntaxNode): boolean {
+  if (node.type === 'identifier' || node.type === 'namespace_import') {
+    return true;
+  }
+
+  if (node.type !== 'named_imports') {
+    return false;
+  }
+
+  return (node.namedChildren ?? []).some(isValueImportSpecifier);
+}
+
 function hasValueImport(node: Parser.SyntaxNode): boolean {
   if (hasDirectTypeKeyword(node)) {
     return false;
@@ -38,19 +54,7 @@ function hasValueImport(node: Parser.SyntaxNode): boolean {
     return true;
   }
 
-  return (importClause.namedChildren ?? []).some((child) => {
-    if (child.type === 'identifier' || child.type === 'namespace_import') {
-      return true;
-    }
-
-    if (child.type !== 'named_imports') {
-      return false;
-    }
-
-    return (child.namedChildren ?? []).some((specifier) =>
-      specifier.type === 'import_specifier' && !isTypeImportSpecifier(specifier),
-    );
-  });
+  return (importClause.namedChildren ?? []).some(isValueImportClauseChild);
 }
 
 export function handleJavaScriptImportStatement(

@@ -162,6 +162,48 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     );
   });
 
+  it('records inline type-only specifier imports without value bindings', () => {
+    resolveTreeSitterImportPath.mockReturnValue('/workspace/packages/plugin-api/src/index.ts');
+    getStringSpecifier.mockReturnValue('@codegraphy-vscode/plugin-api');
+    const importedBindings = new Map();
+    const relations: never[] = [];
+
+    handleJavaScriptImportStatement(
+      {
+        children: [
+          { type: 'import' },
+          { type: 'import_clause' },
+          { type: 'from' },
+          { type: 'string' },
+        ],
+        namedChildren: [
+          {
+            type: 'import_clause',
+            namedChildren: [
+              {
+                type: 'named_imports',
+                namedChildren: [{ type: 'import_specifier', text: 'type Plugin' }],
+              },
+            ],
+          },
+          { type: 'string' },
+        ],
+      } as never,
+      '/workspace/packages/plugin-typescript/src/plugin.ts',
+      relations,
+      importedBindings as never,
+    );
+
+    expect(collectImportBindings).not.toHaveBeenCalled();
+    expect(addImportRelation).not.toHaveBeenCalled();
+    expect(addTypeImportRelation).toHaveBeenCalledWith(
+      relations,
+      '/workspace/packages/plugin-typescript/src/plugin.ts',
+      '@codegraphy-vscode/plugin-api',
+      '/workspace/packages/plugin-api/src/index.ts',
+    );
+  });
+
   it('skips import relation work when no string specifier exists', () => {
     getStringSpecifier.mockReturnValue(null);
 
