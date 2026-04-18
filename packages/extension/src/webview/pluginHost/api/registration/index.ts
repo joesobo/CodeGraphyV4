@@ -3,8 +3,8 @@
  * @module webview/pluginHost/api/registration
  */
 
-import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn, WebviewDisposable } from '../contracts';
-import type { GraphPluginSlot } from '../contracts';
+import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn, WebviewDisposable } from '../contracts/webview';
+import type { GraphPluginSlot } from '../contracts/webview';
 import {
   attachSlotHost as attachSlotHostImpl,
   detachSlotHost as detachSlotHostImpl,

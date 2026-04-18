@@ -1,14 +1,14 @@
 import type { ReactElement } from 'react';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
-import type { GraphViewStoreState } from '../store';
+import type { GraphViewStoreState } from '../view/store';
 import type { UseGraphCallbacksResult } from '../rendering/useGraphCallbacks';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { UseGraphStateResult } from '../runtime/use/state';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
-import { useGraphEventEffects } from '../runtime/use/events';
-import { Viewport } from '../Viewport';
+import { useGraphEventEffects } from '../runtime/use/events/effects';
+import { Viewport } from './view';
 import { useGraphViewportModel } from './model';
 
 export interface GraphViewportShellProps {

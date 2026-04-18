@@ -13,7 +13,7 @@ vi.mock('../../../../../src/webview/components/graph/model/build', () => ({
   buildGraphData: graphStateHarness.buildGraphData,
 }));
 
-vi.mock('../../../../../src/webview/components/graph/support/contracts', () => ({
+vi.mock('../../../../../src/webview/components/graph/support/contracts/forceGraph', () => ({
   as2DExtMethods: graphStateHarness.as2DExtMethods,
 }));
 

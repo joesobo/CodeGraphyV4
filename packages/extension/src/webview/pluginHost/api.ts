@@ -10,8 +10,8 @@ import type {
   TooltipProviderFn,
   WebviewDisposable,
   CodeGraphyWebviewAPI,
-} from './api/contracts';
-import type { BadgeOpts, RingOpts, LabelOpts } from './api/contracts';
+} from './api/contracts/webview';
+import type { BadgeOpts, RingOpts, LabelOpts } from './api/contracts/webview';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';

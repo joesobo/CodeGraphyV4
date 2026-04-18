@@ -2,7 +2,7 @@ import React from 'react';
 import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../src/shared/graph/contracts';
-import Graph from '../../src/webview/components/graph/view';
+import Graph from '../../src/webview/components/graph/view/component';
 import type { UseGraphStateResult } from '../../src/webview/components/graph/runtime/use/state';
 import { graphStore } from '../../src/webview/store/state';
 
@@ -19,7 +19,7 @@ vi.mock('../../src/webview/components/graph/viewport/shell', () => ({
 	GraphViewportShell: harness.graphViewportShell,
 }));
 
-vi.mock('../../src/webview/components/graph/useDebugApi', () => ({
+vi.mock('../../src/webview/components/graph/debug/api', () => ({
 	useGraphDebugApi: harness.useGraphDebugApi,
 }));
 

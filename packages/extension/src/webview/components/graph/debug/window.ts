@@ -1,4 +1,4 @@
-import type { GraphDebugSnapshot } from './contracts';
+import type { GraphDebugSnapshot } from './contracts/protocol';
 
 declare global {
   interface Window {

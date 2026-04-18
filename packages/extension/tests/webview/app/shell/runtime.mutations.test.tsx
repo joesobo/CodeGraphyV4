@@ -15,7 +15,7 @@ const harness = vi.hoisted(() => ({
   injectPluginAssets: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/view', () => ({
+vi.mock('../../../../src/webview/components/graph/view/component', () => ({
   default: () => <div data-testid="mock-graph" />,
 }));
 

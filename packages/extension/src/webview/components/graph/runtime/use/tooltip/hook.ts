@@ -7,7 +7,7 @@ import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
 import type { GraphCursorStyle } from '../../../support/dom';
 import type { FGLink, FGNode } from '../../../model/build';
-import type { GraphTooltipState } from '../../../tooltipModel';
+import type { GraphTooltipState } from '../../../tooltip/model';
 import type { WebviewPluginHost } from '../../../../../pluginHost/manager';
 import { useTooltipEvents } from './events/handlers';
 import { useTooltipState } from './events/state';

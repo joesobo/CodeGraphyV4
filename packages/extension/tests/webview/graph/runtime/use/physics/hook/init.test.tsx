@@ -15,7 +15,7 @@ vi.mock('../../../../../../../src/webview/components/graph/runtime/physics', () 
   syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
 }));
 
-vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init', () => ({
+vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecycle/init/action', () => ({
   resolvePhysicsInitAction: physicsHarness.resolvePhysicsInitAction,
 }));
 

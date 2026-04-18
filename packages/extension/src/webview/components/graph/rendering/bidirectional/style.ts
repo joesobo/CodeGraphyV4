@@ -1,6 +1,6 @@
 import type { FGLink, FGNode } from '../../model/build';
 import type { LinkRenderingDependencies } from '../link/contracts';
-import { createBidirectionalArrowGeometry } from './arrowGeometry';
+import { createBidirectionalArrowGeometry } from './arrow/geometry';
 
 interface LinkDecorationStyle {
   color?: string;

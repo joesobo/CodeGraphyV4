@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuRuntimeDependencies, GraphRef, GraphTimerHandle } from '../../../../src/webview/components/graph/contextMenuRuntime/controller';
-import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltipModel';
+import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltip/model';
 import { createContextMenuTooltipRuntime } from '../../../../src/webview/components/graph/contextMenuRuntime/tooltip';
 
 function createRef<TValue>(current: TValue): GraphRef<TValue> {

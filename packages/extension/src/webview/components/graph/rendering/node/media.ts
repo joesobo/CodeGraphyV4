@@ -1,6 +1,6 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import { getImage } from '../imageCache';
-import { drawShape } from '../shapes/draw2d';
+import { drawShape } from '../shapes/draw/twoDimensional';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
 import {
   getNodeType,

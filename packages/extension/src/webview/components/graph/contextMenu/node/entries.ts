@@ -3,8 +3,8 @@ import {
   buildOpenBlock,
   buildCopyBlock,
 } from './openCopyBlocks';
-import { buildFavoriteBlock } from './favoritesDestructiveBlocks';
-import { buildDestructiveBlock } from './destructiveBlock';
+import { buildFavoriteBlock } from './destructive/favoritesBlocks';
+import { buildDestructiveBlock } from './destructive/block';
 
 export function buildNodeEntries(
   targets: readonly string[],

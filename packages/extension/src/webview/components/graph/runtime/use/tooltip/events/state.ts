@@ -4,7 +4,7 @@ import {
 } from 'react';
 import type { MutableRefObject } from 'react';
 import type { FGNode } from '../../../../model/build';
-import type { GraphTooltipState } from '../../../../tooltipModel';
+import type { GraphTooltipState } from '../../../../tooltip/model';
 
 export interface UseTooltipStateResult {
 	hoveredNodeRef: MutableRefObject<FGNode | null>;
