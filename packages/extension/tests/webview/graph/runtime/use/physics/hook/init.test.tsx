@@ -19,7 +19,7 @@ vi.mock('../../../../../../../src/webview/components/graph/runtime/physicsLifecy
   resolvePhysicsInitAction: physicsHarness.resolvePhysicsInitAction,
 }));
 
-import { usePhysicsRuntimeInit } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook/init/effect';
+import { usePhysicsRuntimeInit } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook/init';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
