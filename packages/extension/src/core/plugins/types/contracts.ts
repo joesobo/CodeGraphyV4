@@ -4,6 +4,7 @@
  */
 
 export type {
+  CoreNodeType,
   CodeGraphyAPI,
   CoreEdgeKind,
   GraphEdgeKind,
@@ -12,24 +13,31 @@ export type {
   GraphNodeShape2D,
   GraphNodeShape3D,
   IAnalysisFile,
-  IConnection,
-  IConnectionDetector,
+  IAnalysisNode,
+  IAnalysisRange,
+  IAnalysisRelation,
+  IAnalysisSymbol,
   IConnectionSource,
+  IFileAnalysisResult,
   IGraphData,
   IGraphEdge,
   IGraphEdgeSource,
   IGraphNode,
   IPlugin,
+  IPluginEdgeType,
   IPluginFileColorDefinition,
+  IPluginNodeType,
   NodeType,
-} from '../../../../../plugin-api/src/contract';
+} from '../../../../../plugin-api/src';
+
+export type { IProjectedConnection } from './projectedConnection';
 
 /**
  * Information about a registered plugin.
  */
 export interface IPluginInfo {
   /** The plugin instance */
-  plugin: import('../../../../../plugin-api/src/contract').IPlugin;
+  plugin: import('../../../../../plugin-api/src').IPlugin;
   /** Whether this is a built-in plugin */
   builtIn: boolean;
   /** Source extension ID for community plugins */

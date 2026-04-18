@@ -5,9 +5,9 @@ import { graphStore } from '../../../src/webview/store/state';
 
 function resetStore(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
-    activeViewId: 'connections',
     bidirectionalMode: 'separate',
     dagMode: null,
+    depthMode: false,
     directionColor: '#22c55e',
     directionMode: 'arrows',
     favorites: new Set<string>(['src/app.ts']),
@@ -40,7 +40,7 @@ describe('graph/store', () => {
   it('reads the graph view store state used by the Graph component', () => {
     act(() => {
       resetStore({
-        activeViewId: 'focused-imports',
+        depthMode: true,
         directionMode: 'particles',
         graphMode: '3d',
         particleSize: 7,
@@ -54,9 +54,9 @@ describe('graph/store', () => {
     const { result } = renderHook(() => useGraphViewStoreState());
 
     expect(result.current).toMatchObject({
-      activeViewId: 'focused-imports',
       bidirectionalMode: 'separate',
       dagMode: null,
+      depthMode: true,
       directionColor: '#22c55e',
       directionMode: 'particles',
       graphMode: '3d',

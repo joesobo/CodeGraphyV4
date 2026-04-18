@@ -1,37 +1,27 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGroup } from '../../../../src/shared/settings/groups';
-import { ViewRegistry } from '../../../../src/core/views/registry';
 import type { IViewContext } from '../../../../src/core/views/contracts';
-import { coreViews } from '../../../../src/core/views/builtIns';
 import {
-  sendGraphViewAvailableViews,
-  sendGraphViewGroupsUpdated,
+  sendGraphViewDepthState,
+  sendGraphViewLegendsUpdated,
 } from '../../../../src/extension/graphView/view/broadcast';
 
 describe('graphView/view/broadcast', () => {
-  it('sends available views and the current depth limit', () => {
-    const viewRegistry = new ViewRegistry();
-    for (const view of coreViews) {
-      viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.connections' });
-    }
+  it('sends depth mode and the current depth limit', () => {
     const sendMessage = vi.fn();
 
-    sendGraphViewAvailableViews(
-      viewRegistry,
+    sendGraphViewDepthState(
       { activePlugins: new Set(['plugin.alpha']), depthLimit: 3 } satisfies IViewContext,
-      'codegraphy.connections',
+      false,
       { nodes: [], edges: [] },
       1,
       sendMessage,
     );
 
     expect(sendMessage).toHaveBeenNthCalledWith(1, {
-      type: 'VIEWS_UPDATED',
-      payload: {
-        views: expect.any(Array),
-        activeViewId: 'codegraphy.connections',
-      },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: false },
     });
     expect(sendMessage).toHaveBeenNthCalledWith(2, {
       type: 'DEPTH_LIMIT_UPDATED',
@@ -43,15 +33,15 @@ describe('graphView/view/broadcast', () => {
     });
   });
 
-  it('builds the groups-updated payload with webview image urls', () => {
-    const groups: IGroup[] = [
+  it('builds the legends-updated payload with webview image urls', () => {
+    const legends: IGroup[] = [
       { id: 'plugin:test:src/**', pattern: 'src/**', color: '#112233', imagePath: 'icons/test.svg' },
     ];
     const registerPluginRoots = vi.fn();
     const sendMessage = vi.fn();
 
-    sendGraphViewGroupsUpdated(
-      groups,
+    sendGraphViewLegendsUpdated(
+      legends,
       {
         registerPluginRoots,
         workspaceFolder: undefined,
@@ -64,9 +54,9 @@ describe('graphView/view/broadcast', () => {
 
     expect(registerPluginRoots).toHaveBeenCalledTimes(1);
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           expect.objectContaining({
             id: 'plugin:test:src/**',
             imageUrl: '/resolved/icons/test.svg',
@@ -82,7 +72,7 @@ describe('graphView/view/broadcast', () => {
       toString: () => `view:${value.fsPath}`,
     }));
 
-    sendGraphViewGroupsUpdated(
+    sendGraphViewLegendsUpdated(
       [
         {
           id: 'user-group',
@@ -103,9 +93,9 @@ describe('graphView/view/broadcast', () => {
 
     expect(viewAsWebviewUri).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           expect.objectContaining({
             id: 'user-group',
             imageUrl: 'view:/test/workspace/.codegraphy/assets/icon.png',
@@ -121,7 +111,7 @@ describe('graphView/view/broadcast', () => {
       toString: () => `panel:${value.fsPath}`,
     }));
 
-    sendGraphViewGroupsUpdated(
+    sendGraphViewLegendsUpdated(
       [
         {
           id: 'user-group',
@@ -142,9 +132,9 @@ describe('graphView/view/broadcast', () => {
 
     expect(panelAsWebviewUri).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           expect.objectContaining({
             id: 'user-group',
             imageUrl: 'panel:/test/workspace/.codegraphy/assets/icon.png',

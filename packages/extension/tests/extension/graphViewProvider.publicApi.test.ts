@@ -163,9 +163,13 @@ describe('GraphViewProvider public API', () => {
     expect(createWebviewPanelMock).toHaveBeenCalledWith(
       'codegraphy.graphView',
       'CodeGraphy',
-      vscode.ViewColumn.Active,
+      vscode.ViewColumn.Beside,
       expect.objectContaining({
         enableScripts: true,
+        localResourceRoots: expect.arrayContaining([
+          expect.objectContaining({ fsPath: '/test/extension' }),
+          expect.objectContaining({ fsPath: '/test/workspace' }),
+        ]),
         retainContextWhenHidden: true,
       })
     );
@@ -316,7 +320,7 @@ describe('GraphViewProvider public API', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onLoad: (api: { registerCommand: (command: { id: string; action: () => void }) => void }) => {
         api.registerCommand({
           id: 'plugin.commands.run',

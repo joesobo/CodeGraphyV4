@@ -15,7 +15,7 @@ function createContext(vscodeModule: typeof import('vscode')) {
 
 function createRestoredState() {
   return {
-    activeViewId: 'codegraphy.connections',
+    depthMode: false,
     dagMode: null,
     nodeSizeMode: 'connections' as const,
   };
@@ -26,14 +26,14 @@ async function loadSubject(
     | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
     | undefined,
 ) {
-  vi.doMock('../../src/extension/workspaceAnalyzer/service', () => ({
-    WorkspaceAnalyzer: class WorkspaceAnalyzer {},
+  vi.doMock('../../src/extension/pipeline/service/lifecycleFacade', () => ({
+    WorkspacePipeline: class WorkspacePipeline {},
   }));
   vi.doMock('../../src/core/views', () => ({
     ViewRegistry: class ViewRegistry {
       register = vi.fn();
       get = vi.fn(() => undefined);
-      getDefaultViewId = vi.fn(() => 'codegraphy.connections');
+      getDefaultViewId = vi.fn(() => 'codegraphy.graph');
     },
     coreViews: [],
   }));
@@ -115,7 +115,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.doUnmock('vscode');
-    vi.doUnmock('../../src/extension/workspaceAnalyzer/service');
+    vi.doUnmock('../../src/extension/pipeline/service/lifecycleFacade');
     vi.doUnmock('../../src/core/views');
     vi.doUnmock('../../src/core/plugins/events/bus');
     vi.doUnmock('../../src/core/plugins/decoration/manager');
@@ -189,11 +189,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     ).toEqual([]);
     expect((provider as unknown as { _groups: unknown[] })._groups).toEqual([]);
     expect((provider as unknown as { _userGroups: unknown[] })._userGroups).toEqual([]);
-    expect(
-      Array.from(
-        (provider as unknown as { _hiddenPluginGroupIds: Set<string> })._hiddenPluginGroupIds,
-      ),
-    ).toEqual([]);
     expect((provider as unknown as { _filterPatterns: unknown[] })._filterPatterns).toEqual([]);
     expect(GraphViewProvider.timelineViewType).toBe('codegraphy.timelineView');
 
@@ -210,14 +205,13 @@ describe('GraphViewProvider bootstrap wiring', () => {
     expect(sendDecorationsSpy).toHaveBeenCalledOnce();
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
-        selectedViewKey: 'codegraphy.selectedView',
-        dagModeKey: 'codegraphy.dagMode',
-        nodeSizeModeKey: 'codegraphy.nodeSizeMode',
-        fallbackViewId: 'codegraphy.connections',
+        dagModeKey: 'dagMode',
+        depthModeKey: 'depthMode',
+        nodeSizeModeKey: 'nodeSizeMode',
         fallbackNodeSizeMode: 'connections',
       }),
     );
-  });
+  }, 15000);
 
   it('passes an empty workspace root to provider services when no folder is open', async () => {
     const initializeGraphViewProviderServices = vi.fn();

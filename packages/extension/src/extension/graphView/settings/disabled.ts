@@ -6,28 +6,20 @@ interface InspectLike<T> {
 }
 
 interface LoadGraphViewDisabledStateOptions {
-  disabledSourcesInspect: InspectLike<string[]> | undefined;
+  configuredDisabledPlugins: readonly string[] | undefined;
   disabledPluginsInspect: InspectLike<string[]> | undefined;
-  persistedDisabledRules: string[] | undefined;
-  persistedDisabledPlugins: string[] | undefined;
 }
 
 export function loadGraphViewDisabledState(
-  disabledSources: Set<string>,
   disabledPlugins: Set<string>,
   {
-    disabledSourcesInspect,
+    configuredDisabledPlugins,
     disabledPluginsInspect,
-    persistedDisabledRules,
-    persistedDisabledPlugins,
   }: LoadGraphViewDisabledStateOptions,
 ) {
   return resolveGraphViewDisabledState(
-    disabledSources,
     disabledPlugins,
-    disabledSourcesInspect?.workspaceValue ?? disabledSourcesInspect?.globalValue,
+    configuredDisabledPlugins,
     disabledPluginsInspect?.workspaceValue ?? disabledPluginsInspect?.globalValue,
-    persistedDisabledRules,
-    persistedDisabledPlugins,
   );
 }

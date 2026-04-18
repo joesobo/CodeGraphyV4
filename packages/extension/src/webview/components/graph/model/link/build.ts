@@ -1,4 +1,4 @@
-import type { IGraphEdge } from '../../../../../shared/graph/types';
+import type { IGraphEdge } from '../../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode } from '../../../../../shared/settings/modes';
 import { computeLinkCurvature } from './curvature';
 import type { FGLink } from '../build';
@@ -13,6 +13,7 @@ export function buildGraphLinks(edges: IGraphEdge[], mode: BidirectionalEdgeMode
     target: edge.to,
     bidirectional: edge.bidirectional ?? false,
     baseColor: edge.bidirectional ? '#60a5fa' : undefined,
+    curvatureGroupId: edge.kind,
   }));
 
   computeLinkCurvature(links);

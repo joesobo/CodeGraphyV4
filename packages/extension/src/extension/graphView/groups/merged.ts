@@ -1,23 +1,49 @@
 import type { IGroup } from '../../../shared/settings/groups';
 
+function applyDefaultLegendVisibilityOverrides(
+  groups: IGroup[],
+  visibility: Record<string, boolean>,
+): IGroup[] {
+  return groups.map((group) => {
+    const visible = visibility[group.id];
+    if (typeof visible !== 'boolean') {
+      return group;
+    }
+
+    return {
+      ...group,
+      disabled: !visible,
+    };
+  });
+}
+
+function sortGroupsByLegendOrder(
+  groups: IGroup[],
+  legendOrder: readonly string[] | undefined,
+): IGroup[] {
+  const resolvedLegendOrder = legendOrder ?? [];
+  const orderById = new Map(
+    resolvedLegendOrder.map((legendId, index) => [legendId, index] as const),
+  );
+  const fallbackIndex = resolvedLegendOrder.length;
+
+  return [...groups].sort((left, right) => {
+    const leftIndex = orderById.get(left.id) ?? fallbackIndex;
+    const rightIndex = orderById.get(right.id) ?? fallbackIndex;
+    return leftIndex - rightIndex;
+  });
+}
+
 export function buildGraphViewMergedGroups(
   userGroups: IGroup[],
-  hiddenPluginGroupIds: ReadonlySet<string>,
   builtInDefaults: IGroup[],
   pluginDefaults: IGroup[],
+  defaultLegendVisibility: Record<string, boolean> = {},
+  legendOrder?: readonly string[],
 ): IGroup[] {
-  const applyDisabledState = (group: IGroup): IGroup => {
-    const lastColon = group.id.lastIndexOf(':');
-    const sectionKey = lastColon > 0 ? group.id.slice(0, lastColon) : undefined;
-    const isDisabled =
-      hiddenPluginGroupIds.has(group.id) ||
-      (sectionKey !== undefined && hiddenPluginGroupIds.has(sectionKey));
-    return { ...group, disabled: isDisabled || undefined };
-  };
-
-  return [
+  return sortGroupsByLegendOrder([
     ...userGroups,
-    ...builtInDefaults.map(applyDisabledState),
-    ...pluginDefaults.map(applyDisabledState),
-  ];
+    ...applyDefaultLegendVisibilityOverrides(builtInDefaults, defaultLegendVisibility),
+    ...applyDefaultLegendVisibilityOverrides(pluginDefaults, defaultLegendVisibility),
+  ], legendOrder);
 }

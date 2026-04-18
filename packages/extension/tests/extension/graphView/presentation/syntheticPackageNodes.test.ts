@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { filterSyntheticPackageNodes } from '../../../../src/extension/graphView/presentation/syntheticPackageNodes';
 
 const graphData: IGraphData = {
@@ -19,14 +19,11 @@ const graphData: IGraphData = {
 };
 
 describe('graphView/presentation/syntheticPackageNodes', () => {
-  it('removes package nodes outside the focused imports view', () => {
-    expect(filterSyntheticPackageNodes(graphData, 'codegraphy.connections')).toEqual({
-      nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#ffffff' }],
-      edges: [],
-    });
+  it('keeps package nodes in the unified graph surface', () => {
+    expect(filterSyntheticPackageNodes(graphData)).toBe(graphData);
   });
 
-  it('keeps package nodes in the focused imports view', () => {
-    expect(filterSyntheticPackageNodes(graphData, 'codegraphy.typescript.focused-imports')).toBe(graphData);
+  it('keeps package nodes in plugin-focused views too', () => {
+    expect(filterSyntheticPackageNodes(graphData)).toBe(graphData);
   });
 });

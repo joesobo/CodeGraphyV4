@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { findNodePath as findPath } from '../../../../src/core/plugins/graphQuery/path';
-import { buildSubgraph as getSubgraph } from '../../../../src/core/plugins/graphQuery/subgraph';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import { findNodePath as findPath } from '../../../../src/core/plugins/graphQuery/traversal/path';
+import { buildSubgraph as getSubgraph } from '../../../../src/core/plugins/graphQuery/traversal/subgraph';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 const sampleGraph: IGraphData = {
   nodes: [

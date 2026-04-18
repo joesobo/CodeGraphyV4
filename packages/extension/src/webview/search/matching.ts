@@ -1,5 +1,5 @@
 import type { SearchOptions } from '../components/searchBar/field/model';
-import type { IGraphNode } from '../../shared/graph/types';
+import type { IGraphNode } from '../../shared/graph/contracts';
 
 /**
  * Compiles the user query into a RegExp (or null for plain-text matching),

@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
+import { savePluginExport } from '../../../../../src/extension/export/pluginSave';
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
 } from '../../../../../src/extension/graphView/provider/wiring/bootstrap';
 
+vi.mock('../../../../../src/extension/export/pluginSave', () => ({
+  savePluginExport: vi.fn(),
+}));
+
 describe('graph view provider bootstrap helper', () => {
-  it('registers core views, configures analyzer services, and forwards decoration updates', () => {
+  it('registers core views, configures analyzer services, and forwards decoration updates', async () => {
     const graphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
       edges: [],
@@ -27,11 +32,10 @@ describe('graph view provider bootstrap helper', () => {
       viewRegistry: {
         register,
         get: vi.fn(() => undefined),
-        getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
+        getDefaultViewId: vi.fn(() => 'codegraphy.graph'),
       },
       coreViews: [
-        { id: 'codegraphy.connections' },
-        { id: 'codegraphy.folder' },
+        { id: 'codegraphy.graph' },
       ],
       eventBus: { id: 'event-bus' },
       decorationManager: {
@@ -49,13 +53,8 @@ describe('graph view provider bootstrap helper', () => {
 
     expect(register).toHaveBeenNthCalledWith(
       1,
-      { id: 'codegraphy.connections' },
+      { id: 'codegraphy.graph' },
       { core: true, isDefault: true },
-    );
-    expect(register).toHaveBeenNthCalledWith(
-      2,
-      { id: 'codegraphy.folder' },
-      { core: true, isDefault: false },
     );
     expect(setEventBus).toHaveBeenCalledWith({ id: 'event-bus' });
 
@@ -72,63 +71,74 @@ describe('graph view provider bootstrap helper', () => {
     registration.webviewSender({ type: 'PLUGIN_MESSAGE' });
     expect(sendMessage).toHaveBeenCalledWith({ type: 'PLUGIN_MESSAGE' });
 
+    await registration.exportSaver({ format: 'json' });
+    expect(savePluginExport).toHaveBeenCalledWith({ format: 'json' });
+
     decorationsChangedHandler?.();
     expect(onDecorationsChanged).toHaveBeenCalledOnce();
   });
 
-  it('restores the persisted view and modes when the saved view still exists', () => {
-    const workspaceState = {
-      get<T>(key: string): T | undefined {
-        if (key === 'selected') return 'codegraphy.folder' as T;
+  it('restores persisted modes', () => {
+    const configuration = {
+      get<T>(key: string, defaultValue: T): T {
         if (key === 'dag') return 'horizontal' as T;
         if (key === 'size') return 'visits' as T;
-        return undefined;
+        return defaultValue;
       },
     };
 
     expect(
       restoreGraphViewProviderState({
-        workspaceState,
-        viewRegistry: {
-          register: vi.fn(),
-          get: vi.fn((viewId: string) => (viewId === 'codegraphy.folder' ? {} : undefined)),
-          getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
-        },
-        selectedViewKey: 'selected',
+        configuration,
         dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
-        fallbackViewId: 'codegraphy.connections',
+        depthModeKey: 'depth',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
-      activeViewId: 'codegraphy.folder',
+      depthMode: false,
       dagMode: 'horizontal',
       nodeSizeMode: 'visits',
     });
   });
 
-  it('falls back to the default view and node size mode when persisted values are unavailable', () => {
+  it('falls back to the default node size mode when persisted values are unavailable', () => {
     expect(
       restoreGraphViewProviderState({
-        workspaceState: {
-          get<T>(key: string): T | undefined {
-            if (key === 'selected') return 'missing.view' as T;
-            return undefined;
+        configuration: {
+          get<T>(key: string, defaultValue: T): T {
+            return defaultValue;
           },
         },
-        viewRegistry: {
-          register: vi.fn(),
-          get: vi.fn(() => undefined),
-          getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
-        },
-        selectedViewKey: 'selected',
         dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
-        fallbackViewId: 'codegraphy.connections',
+        depthModeKey: 'depth',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
-      activeViewId: 'codegraphy.connections',
+      depthMode: false,
+      dagMode: null,
+      nodeSizeMode: 'connections',
+    });
+  });
+
+  it('uses the default depth mode key when no custom depth key is provided', () => {
+    expect(
+      restoreGraphViewProviderState({
+        configuration: {
+          get<T>(key: string, defaultValue: T): T {
+            if (key === 'depthMode') {
+              return true as T;
+            }
+            return defaultValue;
+          },
+        },
+        dagModeKey: 'dag',
+        nodeSizeModeKey: 'size',
+        fallbackNodeSizeMode: 'connections',
+      }),
+    ).toEqual({
+      depthMode: true,
       dagMode: null,
       nodeSizeMode: 'connections',
     });

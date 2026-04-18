@@ -1,9 +1,9 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import { applyGroupMessage } from '../messages/groups';
+import { applyLegendMessage } from '../messages/legends';
 import { applySettingsMessage } from '../settingsMessages/router';
 import type { GraphViewPrimaryMessageContext, GraphViewPrimaryMessageResult } from './primary';
 import {
-  createGraphViewPrimaryGroupMessageState,
+  createGraphViewPrimaryLegendMessageState,
   createGraphViewPrimarySettingsMessageState,
 } from './primaryState';
 
@@ -11,11 +11,11 @@ export async function dispatchGraphViewPrimaryStateMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPrimaryMessageContext,
 ): Promise<GraphViewPrimaryMessageResult> {
-  const groupState = createGraphViewPrimaryGroupMessageState(context);
-  if (await applyGroupMessage(message, groupState, context)) {
+  const legendState = createGraphViewPrimaryLegendMessageState(context);
+  if (await applyLegendMessage(message, legendState, context)) {
     return {
       handled: true,
-      userGroups: groupState.userGroups,
+      userGroups: legendState.userLegends,
     };
   }
 
@@ -23,7 +23,10 @@ export async function dispatchGraphViewPrimaryStateMessage(
   if (await applySettingsMessage(message, settingsState, context)) {
     return {
       handled: true,
-      filterPatterns: settingsState.filterPatterns,
+      filterPatterns:
+        message.type === 'UPDATE_FILTER_PATTERNS'
+          ? settingsState.filterPatterns
+          : undefined,
     };
   }
 

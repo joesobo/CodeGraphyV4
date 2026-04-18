@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { IFileInfo } from '../../../src/shared/files/info';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 import {
   buildGraphTooltipContext,
   buildGraphTooltipState,

@@ -1,13 +1,13 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { ExtensionContext } from 'vscode';
 import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
-import { applyTimelineCommitGraph, buildTimelineCommitGraphData } from './commitGraph';
+import { applyTimelineCommitGraph, buildTimelineCommitGraphData } from './commitData';
 import type {
   GraphViewProviderTimelineAnalyzer,
   GraphViewProviderTimelineGitAnalyzer,
   GraphViewProviderTimelineSource,
-} from './types';
+} from './contracts';
 export { indexGraphViewProviderRepository } from './repository';
 export { jumpGraphViewProviderToCommit } from './jump';
 
@@ -28,7 +28,6 @@ export interface GraphViewProviderTimelineDependencies {
     rawGraphData: IGraphData,
     options: {
       disabledPlugins: Set<string>;
-      disabledSources: Set<string>;
       showOrphans: boolean;
       workspaceRoot: string | undefined;
       registry: unknown;
@@ -78,7 +77,6 @@ export async function resetGraphViewProviderTimeline(
     | '_gitAnalyzer'
     | '_currentCommitSha'
     | '_disabledPlugins'
-    | '_disabledSources'
     | '_rawGraphData'
     | '_graphData'
     | '_applyViewTransform'

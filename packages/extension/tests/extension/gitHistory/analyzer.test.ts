@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import type { ExecFileOptions } from 'child_process';
+import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 
 // Mock vscode module
 vi.mock('vscode', () => ({
@@ -77,7 +79,10 @@ function createMockContext() {
  */
 function createMockRegistry() {
   return {
-    analyzeFile: vi.fn().mockResolvedValue([]),
+    analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
+      filePath: absolutePath,
+      relations: [],
+    })),
     supportsFile: vi.fn().mockReturnValue(true),
     getSupportedExtensions: vi.fn().mockReturnValue(['.ts', '.js']),
     list: vi.fn().mockReturnValue([
@@ -89,10 +94,20 @@ function createMockRegistry() {
       },
     ]),
   } as unknown as PluginRegistry & {
-    analyzeFile: Mock;
+    analyzeFileResult: Mock;
     supportsFile: Mock;
     getSupportedExtensions: Mock;
     list: Mock;
+  };
+}
+
+function createAnalysisResult(
+  filePath: string,
+  relations: IFileAnalysisResult['relations'] = [],
+): IFileAnalysisResult {
+  return {
+    filePath,
+    relations,
   };
 }
 
@@ -239,6 +254,31 @@ describe('GitHistoryAnalyzer', () => {
       const commits = await analyzer.getCommitList(10, liveAbortSignal());
       expect(commits).toEqual([]);
     });
+
+    it('passes the workspace root and git execution buffer options into child process calls', async () => {
+      const capturedOptions: Array<{ cwd?: string; maxBuffer?: number }> = [];
+      mockExecFile.mockImplementation(((
+        _cmd: string,
+        args: readonly string[],
+        opts: ExecFileOptions,
+        cb?: (error: Error | null, stdout: string, stderr: string) => void,
+      ) => {
+        capturedOptions.push(opts as { cwd?: string; maxBuffer?: number });
+        const joined = [...args].join(' ');
+        if (joined.includes('rev-parse')) {
+          cb?.(null, 'main\n', '');
+        } else if (joined.includes('log')) {
+          cb?.(null, '', '');
+        }
+        return undefined as never;
+      }) as never);
+      await analyzer.getCommitList(10, liveAbortSignal());
+
+      expect(capturedOptions).toEqual([
+        expect.objectContaining({ cwd: workspaceRoot, maxBuffer: 10 * 1024 * 1024 }),
+        expect.objectContaining({ cwd: workspaceRoot, maxBuffer: 10 * 1024 * 1024 }),
+      ]);
+    });
   });
 
   // =========================================================================
@@ -329,26 +369,32 @@ describe('GitHistoryAnalyzer', () => {
       ]);
 
       // Configure registry to return connections
-      registry.analyzeFile.mockImplementation(
+      registry.analyzeFileResult.mockImplementation(
         async (filePath: string, content: string, _root: string) => {
           if (filePath.endsWith('a.ts') && content.includes('./b')) {
-            const conns = [
+            const relations = [
               {
                 specifier: './b',
                 resolvedPath: '/workspace/src/b.ts',
                 type: 'static' as const,
+                kind: 'import' as const,
+                sourceId: 'import',
+                fromFilePath: filePath,
               },
             ];
             if (content.includes('./c')) {
-              conns.push({
+              relations.push({
                 specifier: './c',
                 resolvedPath: '/workspace/src/c.ts',
                 type: 'static' as const,
+                kind: 'import' as const,
+                sourceId: 'import',
+                fromFilePath: filePath,
               });
             }
-            return conns;
+            return createAnalysisResult(filePath, relations);
           }
-          return [];
+          return createAnalysisResult(filePath);
         }
       );
 
@@ -453,35 +499,44 @@ describe('GitHistoryAnalyzer', () => {
       ]);
 
       let callCount = 0;
-      registry.analyzeFile.mockImplementation(
+      registry.analyzeFileResult.mockImplementation(
         async (filePath: string, _content: string) => {
           callCount++;
           if (filePath.endsWith('a.ts')) {
             if (callCount <= 3) {
               // First commit: only b
-              return [
+              return createAnalysisResult(filePath, [
                 {
                   specifier: './b',
                   resolvedPath: '/workspace/src/b.ts',
                   type: 'static' as const,
+                  kind: 'import',
+                  sourceId: 'import',
+                  fromFilePath: filePath,
                 },
-              ];
+              ]);
             }
             // Second commit: b and c
-            return [
+            return createAnalysisResult(filePath, [
               {
                 specifier: './b',
                 resolvedPath: '/workspace/src/b.ts',
                 type: 'static' as const,
+                kind: 'import',
+                sourceId: 'import',
+                fromFilePath: filePath,
               },
               {
                 specifier: './c',
                 resolvedPath: '/workspace/src/c.ts',
                 type: 'static' as const,
+                kind: 'import',
+                sourceId: 'import',
+                fromFilePath: filePath,
               },
-            ];
+            ]);
           }
-          return [];
+          return createAnalysisResult(filePath);
         }
       );
 
@@ -513,18 +568,21 @@ describe('GitHistoryAnalyzer', () => {
       ]);
 
       // main.ts imports old.ts at sha1
-      registry.analyzeFile.mockImplementation(
+      registry.analyzeFileResult.mockImplementation(
         async (filePath: string) => {
           if (filePath.endsWith('main.ts')) {
-            return [
+            return createAnalysisResult(filePath, [
               {
                 specifier: './old',
                 resolvedPath: '/workspace/src/old.ts',
                 type: 'static' as const,
+                kind: 'import',
+                sourceId: 'import',
+                fromFilePath: filePath,
               },
-            ];
+            ]);
           }
-          return [];
+          return createAnalysisResult(filePath);
         }
       );
 
@@ -553,6 +611,25 @@ describe('GitHistoryAnalyzer', () => {
   // =========================================================================
 
   describe('exclude patterns', () => {
+    it('does not exclude files when the default exclude pattern list is used', async () => {
+      mockGitCommands([
+        { match: 'rev-parse', stdout: 'main\n' },
+        { match: 'log', stdout: 'sha1|1|first|A|\n' },
+        {
+          match: 'ls-tree',
+          stdout: 'src/Stryker was here.ts\n',
+        },
+        { match: /show sha1:/, stdout: '' },
+      ]);
+
+      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
+
+      const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
+      const graph = JSON.parse(writeCallArgs[1] as string) as IGraphData;
+
+      expect(graph.nodes.map((node) => node.id)).toContain('src/Stryker was here.ts');
+    });
+
     it('should filter out excluded files during full commit analysis', async () => {
       const analyzerWithExcludes = new GitHistoryAnalyzer(
         context as never,
@@ -577,7 +654,7 @@ describe('GitHistoryAnalyzer', () => {
       await analyzerWithExcludes.indexHistory(vi.fn(), liveAbortSignal());
 
       // Only non-excluded files should be analyzed
-      const analyzeCalls = registry.analyzeFile.mock.calls;
+      const analyzeCalls = registry.analyzeFileResult.mock.calls;
       const analyzedPaths = analyzeCalls.map((call) => call[0] as string);
       for (const analyzedPath of analyzedPaths) {
         expect(analyzedPath).not.toMatch(/assets\//);
@@ -747,6 +824,20 @@ describe('GitHistoryAnalyzer', () => {
       expect(analyzer.hasCachedTimeline()).toBe(true);
     });
 
+    it('should sort plugin signatures before comparing them to cached timeline metadata', () => {
+      registry.list.mockReturnValue([
+        { plugin: { id: 'z.plugin', version: '2.0.0' } },
+        { plugin: { id: 'a.plugin', version: '1.0.0' } },
+      ]);
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set(
+        'codegraphy.timelinePluginSignature',
+        'a.plugin@1.0.0|z.plugin@2.0.0',
+      );
+
+      expect(analyzer.hasCachedTimeline()).toBe(true);
+    });
+
     it('should return false when cache version does not match', () => {
       context._stateStore.set('codegraphy.timelineCacheVersion', '0.9.0');
       expect(analyzer.hasCachedTimeline()).toBe(false);
@@ -776,6 +867,24 @@ describe('GitHistoryAnalyzer', () => {
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
+      );
+      context._stateStore.set('codegraphy.timelineCommits', commits);
+
+      expect(analyzer.getCachedCommitList()).toEqual(commits);
+    });
+
+    it('should read cached commits when multiple plugin signatures are joined with pipes in sorted order', () => {
+      const commits = [
+        { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
+      ];
+      registry.list.mockReturnValue([
+        { plugin: { id: 'z.plugin', version: '2.0.0' } },
+        { plugin: { id: 'a.plugin', version: '1.0.0' } },
+      ]);
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set(
+        'codegraphy.timelinePluginSignature',
+        'a.plugin@1.0.0|z.plugin@2.0.0',
       );
       context._stateStore.set('codegraphy.timelineCommits', commits);
 

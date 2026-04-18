@@ -4,6 +4,7 @@ import {
   jumpGraphViewProviderToCommit,
   resetGraphViewProviderTimeline,
 } from '../../timeline/provider/indexing';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import {
   invalidateGraphViewTimelineCache,
   sendCachedGraphViewTimeline,
@@ -15,7 +16,7 @@ import {
 } from '../../timeline/open';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import type { GraphViewProviderTimelineMethodDependencies } from './types';
+import type { GraphViewProviderTimelineMethodDependencies } from './contracts';
 
 export function createDefaultGraphViewProviderTimelineMethodDependencies(): GraphViewProviderTimelineMethodDependencies {
   return {
@@ -30,7 +31,7 @@ export function createDefaultGraphViewProviderTimelineMethodDependencies(): Grap
     sendPlaybackSpeed: sendGraphViewPlaybackSpeed,
     invalidateTimelineCache: invalidateGraphViewTimelineCache,
     getPlaybackSpeed: () =>
-      vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0),
+      getCodeGraphyConfiguration().get<number>('timeline.playbackSpeed', 1.0),
     getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
     openTextDocument: fileUri => vscode.workspace.openTextDocument(fileUri),
     showTextDocument: (document, options) => vscode.window.showTextDocument(document, options),

@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import {
   registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationState,
-} from '../../../../../src/extension/graphView/webview/plugins/registration';
+} from '../../../../../src/extension/graphView/webview/plugins/registration/register';
 
 function createState(
   overrides: Partial<GraphViewExternalPluginRegistrationState> = {},
@@ -47,7 +47,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots,
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -73,7 +73,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots,
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -87,7 +87,7 @@ describe('graphView/webview/plugins/registration', () => {
 
   it('registers external plugins, stores extension roots, and refreshes plugin webview state', async () => {
     const refreshWebviewResourceRoots = vi.fn();
-    const sendAvailableViews = vi.fn();
+    const sendDepthState = vi.fn();
     const sendPluginStatuses = vi.fn();
     const sendContextMenuItems = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
@@ -99,7 +99,7 @@ describe('graphView/webview/plugins/registration', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
     };
 
     registerGraphViewExternalPlugin(
@@ -111,7 +111,7 @@ describe('graphView/webview/plugins/registration', () => {
           typeof uri === 'string' ? vscode.Uri.file(uri) : uri,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots,
-        sendAvailableViews,
+        sendDepthState,
         sendPluginStatuses,
         sendContextMenuItems,
         sendPluginWebviewInjections,
@@ -131,11 +131,11 @@ describe('graphView/webview/plugins/registration', () => {
       '/test/workspace',
     );
     expect(refreshWebviewResourceRoots).toHaveBeenCalledOnce();
-    expect(sendAvailableViews).toHaveBeenCalledOnce();
+    expect(sendDepthState).toHaveBeenCalledOnce();
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('defers readiness replay after first analysis even before the webview is marked ready', async () => {
@@ -152,7 +152,7 @@ describe('graphView/webview/plugins/registration', () => {
         version: '1.0.0',
         apiVersion: '^2.0.0',
         supportedExtensions: ['.ts'],
-        detectConnections: async () => [],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       },
       undefined,
       state,
@@ -160,7 +160,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -191,7 +191,7 @@ describe('graphView/webview/plugins/registration', () => {
         version: '1.0.0',
         apiVersion: '^2.0.0',
         supportedExtensions: ['.ts'],
-        detectConnections: async () => [],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       },
       undefined,
       state,
@@ -199,7 +199,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -235,7 +235,7 @@ describe('graphView/webview/plugins/registration', () => {
         version: '1.0.0',
         apiVersion: '^2.0.0',
         supportedExtensions: ['.ts'],
-        detectConnections: async () => [],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       },
       undefined,
       state,
@@ -243,7 +243,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => undefined,
         refreshWebviewResourceRoots,
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses,
         sendContextMenuItems,
         sendPluginWebviewInjections,
@@ -258,7 +258,7 @@ describe('graphView/webview/plugins/registration', () => {
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('waits for analyzer initialization to settle before replaying readiness and reanalyzing', async () => {
@@ -304,7 +304,7 @@ describe('graphView/webview/plugins/registration', () => {
         version: '1.0.0',
         apiVersion: '^2.0.0',
         supportedExtensions: ['.ts'],
-        detectConnections: async () => [],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       },
       undefined,
       state,
@@ -312,7 +312,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -347,7 +347,7 @@ describe('graphView/webview/plugins/registration', () => {
         version: '1.0.0',
         apiVersion: '^2.0.0',
         supportedExtensions: ['.ts'],
-        detectConnections: async () => [],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       },
       undefined,
       state,
@@ -355,7 +355,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -373,6 +373,60 @@ describe('graphView/webview/plugins/registration', () => {
     );
   });
 
+  it('logs follow-up failures instead of leaking unhandled rejections', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const initializePlugin = vi.fn(async () => undefined);
+    const analyzeAndSendData = vi.fn(async () => {
+      throw new Error('reanalysis failed');
+    });
+    const state = createState({
+      firstAnalysis: false,
+      readyNotified: true,
+      analyzer: {
+        clearCache: vi.fn(),
+        registry: {
+          register: vi.fn(),
+          initializePlugin,
+          replayReadinessForPlugin: vi.fn(),
+        },
+      },
+    });
+
+    registerGraphViewExternalPlugin(
+      {
+        id: 'plugin.test',
+        name: 'Plugin',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
+      },
+      undefined,
+      state,
+      {
+        normalizeExtensionUri: () => undefined,
+        getWorkspaceRoot: () => '/test/workspace',
+        refreshWebviewResourceRoots: vi.fn(),
+        sendDepthState: vi.fn(),
+        sendPluginStatuses: vi.fn(),
+        sendContextMenuItems: vi.fn(),
+        sendPluginWebviewInjections: vi.fn(),
+        analyzeAndSendData,
+      },
+    );
+
+    await flushPluginRegistration();
+
+    expect(initializePlugin).toHaveBeenCalledWith('plugin.test', '/test/workspace');
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(consoleError).toHaveBeenCalledWith(
+      '[CodeGraphy] External plugin registration follow-up failed for plugin.test:',
+      expect.any(Error),
+    );
+
+    consoleError.mockRestore();
+  });
+
   it('ignores invalid plugin registrations when there is no analyzer or plugin id', () => {
     const refreshWebviewResourceRoots = vi.fn();
 
@@ -384,7 +438,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => undefined,
         refreshWebviewResourceRoots,
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),

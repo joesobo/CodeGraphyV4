@@ -1,10 +1,11 @@
 import type { IFileInfo } from '../files/info';
-import type { IGraphData } from '../graph/types';
+import type { IGraphData } from '../graph/contracts';
 import type { IPluginContextMenuItem } from '../plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../plugins/decorations';
 import type { IPluginExporterItem } from '../plugins/exporters';
 import type { IPluginToolbarAction } from '../plugins/toolbarActions';
 import type { IPluginStatus } from '../plugins/status';
+import type { IGraphControlsSnapshot } from '../graphControls/contracts';
 import type {
   BidirectionalEdgeMode,
   DagMode,
@@ -13,11 +14,13 @@ import type {
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
-import type { ITimelineData } from '../timeline/types';
-import type { IAvailableView } from '../view/types';
+import type { ITimelineData } from '../timeline/contracts';
 
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
+  | { type: 'GRAPH_INDEX_STATUS_UPDATED'; payload: { hasIndex: boolean } }
+  | { type: 'GRAPH_INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
+  | { type: 'GRAPH_CONTROLS_UPDATED'; payload: IGraphControlsSnapshot }
   | { type: 'FIT_VIEW' }
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }
@@ -33,12 +36,13 @@ export type ExtensionToWebviewMessage =
   | { type: 'REQUEST_EXPORT_JPEG' }
   | { type: 'REQUEST_EXPORT_JSON' }
   | { type: 'REQUEST_EXPORT_MD' }
+  | { type: 'REQUEST_OPEN_IN_EDITOR' }
   | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
-  | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } }
+  | { type: 'DEPTH_MODE_UPDATED'; payload: { depthMode: boolean } }
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
   | { type: 'DEPTH_LIMIT_RANGE_UPDATED'; payload: { maxDepthLimit: number } }
-  | { type: 'GROUPS_UPDATED'; payload: { groups: IGroup[] } }
+  | { type: 'LEGENDS_UPDATED'; payload: { legends: IGroup[] } }
   | {
       type: 'FILTER_PATTERNS_UPDATED';
       payload: { patterns: string[]; pluginPatterns: string[] };
@@ -75,9 +79,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'PLUGIN_EXPORTERS_UPDATED'; payload: { items: IPluginExporterItem[] } }
   | { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED'; payload: { items: IPluginToolbarAction[] } }
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
-  | { type: 'FOLDER_NODE_COLOR_UPDATED'; payload: { folderNodeColor: string } }
   | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
   | { type: 'NODE_SIZE_MODE_UPDATED'; payload: { nodeSizeMode: NodeSizeMode } }
-  | { type: 'CYCLE_VIEW' }
+  | { type: 'TOGGLE_DEPTH_MODE' }
   | { type: 'CYCLE_LAYOUT' }
   | { type: 'TOGGLE_DIMENSION' };

@@ -8,18 +8,15 @@ The timeline lets you visualize how your codebase's dependency graph evolved ove
 
 1. Open a git repository in VS Code
 2. Open CodeGraphy from the activity bar
-3. Click **Index Repo** at the bottom of the graph view
+3. Click **Index Repo** in the toolbar
 4. Wait for indexing to complete (progress is shown inline)
 5. Scrub, click, or play through the timeline
 
 ## How it works
 
-Indexing analyzes the main branch's commit history (up to 500 commits). The first commit is fully analyzed, then each subsequent commit uses diff-based incremental analysis — only changed files are re-analyzed. Results are cached to disk so reopening the extension loads the timeline instantly.
+Indexing analyzes the main branch's commit history (up to 500 commits) and caches timeline snapshots to disk so reopening the extension does not need to rebuild unchanged history.
 
-The timeline respects your current settings:
-- **Filter patterns** are applied during indexing
-- **Disabled plugins and sources** are applied at display time — toggle a rule off and it's off across all commits
-- **Show Orphans** filtering is applied at display time
+Timeline state is stored under `.codegraphy/` alongside the live repo index and repo-local settings.
 
 ## Controls
 
@@ -53,11 +50,10 @@ Double-clicking a node opens that file at the selected commit as a permanent edi
 
 During timeline mode, destructive file actions (Delete, Rename, Create File, Add to Filter) are hidden from the context menu. Non-destructive actions (Open File, Reveal in Explorer, Copy Path, Toggle Favorite) remain available.
 
-## Cache
+## Refreshing
 
-Timeline data is cached in the extension's storage directory (`context.storageUri/git-cache/`). The cache is automatically invalidated when:
-- Filter patterns change
-- Disabled plugins or sources change (`codegraphy.disabledPlugins`, `codegraphy.disabledSources`)
-- You click Index Repo again (re-indexes from scratch)
+CodeGraphy keeps using the cached timeline data until you intentionally ask for a full rebuild.
 
-To force a fresh index, click **Index Repo** again.
+- Click **Refresh** to force a full re-index from scratch.
+- While CodeGraphy is open, normal file saves update the live index incrementally.
+- If files changed while CodeGraphy was closed, those pending changes are applied the next time you open it.

@@ -14,7 +14,7 @@ These shortcuts work when the graph view is focused and no text input is active.
 | `Enter` | Open selected node(s) in editor |
 | `Ctrl+Click` | Add/remove node from selection |
 | `Shift+Drag` | Box selection |
-| `V` | Cycle view (Connections → Depth → Folder) |
+| `V` | Toggle depth mode |
 | `L` | Cycle layout (Default → Radial → Top Down → Left to Right) |
 | `T` | Toggle 2D/3D mode |
 | `Right-click` | Open context menu |
@@ -31,7 +31,7 @@ These are registered as VS Code commands and appear in the Command Palette (`Ctr
 | `Ctrl+Z` / `Cmd+Z` | Undo | CodeGraphy panel visible, no text input |
 | `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo | CodeGraphy panel visible, no text input |
 | `Ctrl+Y` | Redo (alternate) | CodeGraphy panel visible, no text input |
-| `V` | Cycle View | Graph focused |
+| `V` | Toggle Depth Mode | Graph focused |
 | `L` | Cycle Layout | Graph focused |
 | `T` | Toggle 2D/3D | Graph focused |
 

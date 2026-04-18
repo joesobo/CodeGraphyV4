@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import {
   executeGraphViewProviderAnalysis,
@@ -30,19 +30,19 @@ interface GraphViewProviderAnalysisAnalyzerLike {
 export interface GraphViewProviderAnalysisMethodsSource {
   _analysisController?: AbortController;
   _analysisRequestId: number;
+  _changedFilePaths?: string[];
   _analyzer?: GraphViewProviderAnalysisState['analyzer'] & GraphViewProviderAnalysisAnalyzerLike;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
   _installedPluginActivationPromise?: Promise<void>;
   _filterPatterns: string[];
-  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _graphData: IGraphData;
   _rawGraphData: IGraphData;
   _firstAnalysis: boolean;
   _resolveFirstWorkspaceReady?: () => void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
   _updateViewContext(): void;
@@ -52,6 +52,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _sendContextMenuItems(): void;
   _sendPluginExporters?(): void;
   _sendPluginToolbarActions?(): void;
+  _loadAndSendData?(this: void): Promise<void>;
   _doAnalyzeAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady?(this: void, graph: IGraphData): void;
   _isAnalysisStale?(this: void, signal: AbortSignal, requestId: number): boolean;
@@ -59,7 +60,11 @@ export interface GraphViewProviderAnalysisMethodsSource {
 }
 
 export interface GraphViewProviderAnalysisMethods {
+  _loadAndSendData(): Promise<void>;
+  _indexAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
+  _refreshAndSendData(): Promise<void>;
+  _incrementalAnalyzeAndSendData(filePaths: readonly string[]): Promise<void>;
   _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady(graph: IGraphData): void;
   _isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
@@ -132,20 +137,83 @@ export function createGraphViewProviderAnalysisMethods(
     isAnalysisStale: (signal, requestId) => _isAnalysisStale(signal, requestId),
     isAbortError: error => _isAbortError(error),
   });
+  const _doLoadAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    'load',
+  );
   const _doAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
     source,
     dependencies,
     delegates,
+    'analyze',
+  );
+  const _loadAndSendData = createGraphViewProviderAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    _doLoadAndSendData,
+    'load',
   );
   const _analyzeAndSendData = createGraphViewProviderAnalyzeAndSendData(
     source,
     dependencies,
     delegates,
     _doAnalyzeAndSendData,
+    'analyze',
   );
+  const _doIndexAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    'index',
+  );
+  const _indexAndSendData = createGraphViewProviderAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    _doIndexAndSendData,
+    'index',
+  );
+  const _doRefreshAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    'refresh',
+  );
+  const _refreshAndSendData = createGraphViewProviderAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    _doRefreshAndSendData,
+    'refresh',
+  );
+  const _incrementalAnalyzeAndSendData = async (filePaths: readonly string[]): Promise<void> => {
+    source._changedFilePaths = [...filePaths];
+    const doIncrementalAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
+      source,
+      dependencies,
+      delegates,
+      'incremental',
+    );
+    const runIncrementalAnalyzeAndSendData = createGraphViewProviderAnalyzeAndSendData(
+      source,
+      dependencies,
+      delegates,
+      doIncrementalAnalyzeAndSendData,
+      'incremental',
+    );
+
+    await runIncrementalAnalyzeAndSendData();
+  };
 
   const methods: GraphViewProviderAnalysisMethods = {
+    _loadAndSendData,
+    _indexAndSendData,
     _analyzeAndSendData,
+    _refreshAndSendData,
+    _incrementalAnalyzeAndSendData,
     _doAnalyzeAndSendData,
     _markWorkspaceReady,
     _isAnalysisStale,

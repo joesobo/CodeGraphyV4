@@ -31,7 +31,7 @@ export interface E2EScenario {
 export const e2eScenarios: E2EScenario[] = [
   {
     name: 'typescript',
-    workspaceRelativePath: 'examples/typescript-monorepo',
+    workspaceRelativePath: 'examples/example-typescript',
     pluginDevelopmentRelativePaths: ['packages/plugin-typescript'],
     graphNodeExtension: '.ts',
     expectedNodeIds: [
@@ -55,8 +55,11 @@ export const e2eScenarios: E2EScenario[] = [
         'packages/shared/src/types.ts',
       ],
       depthOneEdgeIds: [
+        'packages/app/src/index.ts->packages/app/src/utils.ts#call',
         'packages/app/src/index.ts->packages/app/src/utils.ts#import',
+        'packages/app/src/index.ts->packages/shared/src/types.ts#call',
         'packages/app/src/index.ts->packages/shared/src/types.ts#import',
+        'packages/app/src/utils.ts->packages/shared/src/types.ts#call',
         'packages/app/src/utils.ts->packages/shared/src/types.ts#import',
       ],
       depthTwoNodeIds: [
@@ -77,16 +80,20 @@ export const e2eScenarios: E2EScenario[] = [
         'packages/shared/src/types.ts',
       ],
       rerootDepthOneEdgeIds: [
+        'packages/app/src/index.ts->packages/app/src/utils.ts#call',
         'packages/app/src/index.ts->packages/app/src/utils.ts#import',
+        'packages/app/src/index.ts->packages/shared/src/types.ts#call',
         'packages/app/src/index.ts->packages/shared/src/types.ts#import',
+        'packages/app/src/utils.ts->packages/feature-depth/src/deep.ts#call',
         'packages/app/src/utils.ts->packages/feature-depth/src/deep.ts#import',
+        'packages/app/src/utils.ts->packages/shared/src/types.ts#call',
         'packages/app/src/utils.ts->packages/shared/src/types.ts#import',
       ],
     },
   },
   {
     name: 'godot',
-    workspaceRelativePath: 'examples/godot-game',
+    workspaceRelativePath: 'examples/example-godot',
     pluginDevelopmentRelativePaths: ['packages/plugin-godot'],
     graphNodeExtension: '.gd',
     expectedNodeIds: [

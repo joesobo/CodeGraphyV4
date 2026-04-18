@@ -1,4 +1,4 @@
-import type { IGraphNode } from '../../../../../shared/graph/types';
+import type { IGraphNode } from '../../../../../shared/graph/contracts';
 import { MIN_NODE_SIZE, MAX_NODE_SIZE } from './calculations';
 import { getMetricRange, scaleMetricValue } from './range';
 

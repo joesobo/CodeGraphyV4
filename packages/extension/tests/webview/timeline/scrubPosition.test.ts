@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '@/shared/timeline/types';
+import type { ICommitInfo } from '@/shared/timeline/contracts';
 import { clearSentMessages, findMessage } from '../../helpers/sentMessages';
 import { jumpToTrackPosition } from '../../../src/webview/components/timeline/scrubPosition';
 

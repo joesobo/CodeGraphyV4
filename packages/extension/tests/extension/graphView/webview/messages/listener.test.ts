@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NodeSizeMode } from '../../../../../src/shared/settings/modes';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
 import {
@@ -11,13 +11,11 @@ import {
 function createContext(
   overrides: Partial<GraphViewMessageListenerContext> = {},
 ): GraphViewMessageListenerContext {
-  return {
+  const context = {
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
-    getActiveViewId: vi.fn(() => 'codegraphy.connections'),
     getDisabledPlugins: vi.fn(() => new Set<string>()),
-    getDisabledRules: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
@@ -35,6 +33,8 @@ function createContext(
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    refreshIndex: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
     redo: vi.fn(() => Promise.resolve(undefined)),
@@ -50,7 +50,8 @@ function createContext(
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),
     workspaceFolder: undefined,
-    persistGroups: vi.fn(() => Promise.resolve()),
+    persistLegends: vi.fn(() => Promise.resolve()),
+    persistDefaultLegendVisibility: vi.fn(() => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
@@ -59,6 +60,7 @@ function createContext(
     getConfig: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
     updateConfig: vi.fn(() => Promise.resolve()),
     getPluginFilterPatterns: vi.fn(() => []),
+    sendGraphControls: vi.fn(),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
@@ -67,14 +69,13 @@ function createContext(
     getPlaybackSpeed: vi.fn(() => 1),
     getDagMode: vi.fn(() => null),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
-    getFolderNodeColor: vi.fn(() => '#111111'),
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),
     isWebviewReadyNotified: vi.fn(() => false),
-    getHiddenPluginGroupIds: vi.fn(() => new Set<string>()),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
+    loadAndSendData: vi.fn(() => Promise.resolve()),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendCachedTimeline: vi.fn(),
@@ -90,12 +91,15 @@ function createContext(
     findNode: vi.fn(),
     findEdge: vi.fn(),
     logError: vi.fn(),
-    updateHiddenPluginGroups: vi.fn(() => Promise.resolve()),
     setUserGroups: vi.fn(),
     setFilterPatterns: vi.fn(),
     setWebviewReadyNotified: vi.fn(),
     ...overrides,
   };
+
+  context.sendGraphControls ??= vi.fn();
+
+  return context as GraphViewMessageListenerContext;
 }
 
 describe('graph view webview message listener', () => {
@@ -111,7 +115,7 @@ describe('graph view webview message listener', () => {
     const context = createContext();
 
     setGraphViewWebviewMessageListener(webview as never, context);
-    await messageHandler?.({ type: 'UPDATE_GROUPS', payload: { groups: userGroups } });
+    await messageHandler?.({ type: 'UPDATE_LEGENDS', payload: { legends: userGroups } });
 
     expect(context.setUserGroups).toHaveBeenCalledWith(userGroups);
     expect(context.setFilterPatterns).not.toHaveBeenCalled();
@@ -130,7 +134,7 @@ describe('graph view webview message listener', () => {
     const context = createContext();
 
     setGraphViewWebviewMessageListener(webview as never, context);
-    await messageHandler?.({ type: 'UPDATE_GROUPS', payload: { groups: userGroups } });
+    await messageHandler?.({ type: 'UPDATE_LEGENDS', payload: { legends: userGroups } });
 
     expect(context.setUserGroups).toHaveBeenCalledWith(userGroups);
     expect(context.recomputeGroups).toHaveBeenCalledTimes(1);
@@ -154,8 +158,29 @@ describe('graph view webview message listener', () => {
     });
 
     expect(context.setFilterPatterns).toHaveBeenCalledWith(['dist/**']);
+    expect(context.analyzeAndSendData).not.toHaveBeenCalled();
     expect(context.setUserGroups).not.toHaveBeenCalled();
     expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
+  });
+
+  it('does not reanalyze the graph for unrelated settings updates', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({
+      type: 'UPDATE_SHOW_ORPHANS',
+      payload: { showOrphans: false },
+    });
+
+    expect(context.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(context.setFilterPatterns).not.toHaveBeenCalled();
   });
 
   it('stores ready state updates from plugin dispatch flows', async () => {
@@ -188,7 +213,7 @@ describe('graph view webview message listener', () => {
     await messageHandler?.({ type: 'WEBVIEW_READY' });
     await messageHandler?.({ type: 'WEBVIEW_READY' });
 
-    expect(context.analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.loadAndSendData).toHaveBeenCalledTimes(1);
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(1);
     expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(1);
     expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);
@@ -219,7 +244,8 @@ describe('graph view webview message listener', () => {
       [...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })),
     );
 
-    expect(context.analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.refreshIndex).toHaveBeenCalledTimes(1);
+    expect(context.clearCacheAndRefresh).not.toHaveBeenCalled();
   });
 
   it('does not store ready state for handled plugin messages without a ready flag', async () => {

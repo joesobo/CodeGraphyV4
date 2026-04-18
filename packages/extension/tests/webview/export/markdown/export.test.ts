@@ -17,15 +17,15 @@ vi.mock('../../../../src/webview/export/shared/context', async (importOriginal) 
 });
 
 import { buildMarkdownExport, exportAsMarkdown } from '../../../../src/webview/export/markdown/export';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPluginStatus } from '../../../../src/shared/plugins/status';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { graphStore } from '../../../../src/webview/store/state';
 
-const noGroups: IGroup[] = [];
+const noLegends: IGroup[] = [];
 const initialStoreState = {
   currentCommitSha: graphStore.getState().currentCommitSha,
-  groups: graphStore.getState().groups,
+  legends: graphStore.getState().legends,
   pluginStatuses: graphStore.getState().pluginStatuses,
   timelineActive: graphStore.getState().timelineActive,
 };
@@ -39,17 +39,18 @@ afterEach(() => {
 describe('buildMarkdownExport', () => {
   it('includes summary and labeled top-level sections', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildMarkdownExport(data, noGroups);
+    const result = buildMarkdownExport(data, noLegends);
 
     expect(result).toContain('# CodeGraphy Export');
-    expect(result).toContain('0 files, 0 connections');
-    expect(result).toContain('## Connections');
-    expect(result).toContain('## Images');
+    expect(result).toContain('0 nodes, 0 edges');
+    expect(result).toContain('## Legend');
+    expect(result).toContain('## Nodes');
+    expect(result).toContain('## Edges');
   });
 
   it('shows timeline scope when active', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildMarkdownExport(data, noGroups, [], {
+    const result = buildMarkdownExport(data, noLegends, [], {
       timelineActive: true,
       currentCommitSha: 'abc123',
     });
@@ -57,7 +58,7 @@ describe('buildMarkdownExport', () => {
     expect(result).toContain('timeline commit: abc123');
   });
 
-  it('renders sources and grouped imports', () => {
+  it('renders sourced edges', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
@@ -67,17 +68,15 @@ describe('buildMarkdownExport', () => {
     };
     const plugins: IPluginStatus[] = [{
       id: 'ts', name: 'TypeScript', version: '1.0.0', supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 1,
-      sources: [{ id: 'es6', qualifiedSourceId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 }],
     }];
 
-    const result = buildMarkdownExport(data, noGroups, plugins);
-    expect(result).toContain('### Rules');
-    expect(result).toContain('**ES6 Import**');
-    expect(result).toContain('*ES6 Import*');
-    expect(result).toContain('    - b.ts');
+    const result = buildMarkdownExport(data, noLegends, plugins);
+    expect(result).toContain('## Edges');
+    expect(result).toContain('`import` `a.ts` -> `b.ts`');
+    expect(result).toContain('ES6 Import (TypeScript)');
   });
 
-  it('renders groups and ungrouped files', () => {
+  it('renders legend-backed nodes', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
@@ -85,38 +84,36 @@ describe('buildMarkdownExport', () => {
       ],
       edges: [],
     };
-    const groups: IGroup[] = [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }];
+    const legends: IGroup[] = [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }];
 
-    const result = buildMarkdownExport(data, groups);
-    expect(result).toContain('### Groups');
-    expect(result).toContain('#### `*.tsx`');
-    expect(result).toContain('### Ungrouped');
+    const result = buildMarkdownExport(data, legends);
+    expect(result).toContain('## Legend');
+    expect(result).toContain('`*.tsx` (#3B82F6)');
+    expect(result).toContain('## Nodes');
     expect(result).toContain('README.md');
   });
 
-  it('renders image section entries with owning groups', () => {
+  it('renders legend image metadata inline', () => {
     const data: IGraphData = {
       nodes: [{ id: 'src/App.tsx', label: 'App.tsx', color: '#fff' }],
       edges: [],
     };
-    const groups: IGroup[] = [{
+    const legends: IGroup[] = [{
       id: 'g1', pattern: '*.tsx', color: '#3B82F6', imagePath: '.codegraphy/images/app.png',
     }];
 
-    const result = buildMarkdownExport(data, groups);
-    expect(result).toContain('## Images');
-    expect(result).toContain('`.codegraphy/images/app.png`');
-    expect(result).toContain('groups: `*.tsx`');
+    const result = buildMarkdownExport(data, legends);
+    expect(result).toContain('image: .codegraphy/images/app.png');
   });
 
-  it('lists "none" when there are no groups or images', () => {
+  it('lists "none" when there is no legend data', () => {
     const data: IGraphData = {
       nodes: [{ id: 'orphan.ts', label: 'orphan.ts', color: '#fff' }],
       edges: [],
     };
 
-    const result = buildMarkdownExport(data, noGroups);
-    expect(result).toContain('### Groups');
+    const result = buildMarkdownExport(data, noLegends);
+    expect(result).toContain('## Legend');
     expect(result).toContain('- none');
   });
 
@@ -127,7 +124,7 @@ describe('buildMarkdownExport', () => {
     };
     graphStore.setState({
       currentCommitSha: 'abc123',
-      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
+      legends: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
       pluginStatuses: [],
       timelineActive: true,
     });
@@ -140,23 +137,23 @@ describe('buildMarkdownExport', () => {
         markdown: [
           '# CodeGraphy Export',
           '',
-          '> 1 files, 0 connections',
+          '> 1 nodes, 0 edges',
           '> timeline commit: abc123',
           '',
-          '## Connections',
+          '## Legend',
           '',
-          '### Groups',
+          '- `*.tsx` (#3B82F6)',
           '',
-          '#### `*.tsx`',
-          '- style: #3B82F6',
-          '- src/App.tsx',
+          '## Nodes',
           '',
-          '## Images',
+          '- `src/App.tsx` (file) | legend: g1',
+          '',
+          '## Edges',
           '',
           '- none',
           '',
         ].join('\n'),
-        filename: 'codegraphy-connections-2026-03-16T12-34-56.md',
+        filename: 'codegraphy-graph-2026-03-16T12-34-56.md',
       },
     });
   });

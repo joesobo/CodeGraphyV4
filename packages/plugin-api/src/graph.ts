@@ -3,7 +3,9 @@
  * @module @codegraphy-vscode/plugin-api/graph
  */
 
-export type NodeType = 'file' | 'folder' | 'package';
+export type CoreNodeType = 'file' | 'folder' | 'package';
+
+export type NodeType = CoreNodeType | (string & {});
 
 export type GraphNodeShape2D =
   | 'circle'
@@ -86,7 +88,7 @@ export interface IGraphNode {
   accessCount?: number;
 
   /**
-   * Distance from the focused node in the depth graph view.
+   * Distance from the focused node when depth mode is active.
    * 0 = the focused node, 1 = direct neighbors, 2 = two hops away, etc.
    */
   depthLevel?: number;
@@ -117,7 +119,7 @@ export interface IGraphEdgeSource {
   /** Plugin that contributed this source. */
   pluginId: string;
 
-  /** Plugin-local source identifier used for toggles and diagnostics. */
+  /** Plugin-local source identifier used for provenance, exports, and diagnostics. */
   sourceId: string;
 
   /** Human-readable label shown in inspectors, menus, and exports. */
@@ -156,6 +158,9 @@ export interface IGraphEdge {
 
   /** Semantic meaning of the connection. */
   kind: GraphEdgeKind;
+
+  /** Optional color override resolved by graph controls and legends. */
+  color?: string;
 
   /** All contributing plugin sources merged into this edge. */
   sources: IGraphEdgeSource[];

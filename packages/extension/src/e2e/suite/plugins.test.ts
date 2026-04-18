@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import { getCurrentE2EScenario } from '../scenarios';
 
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/graph/types').IGraphData;
+  getGraphData(): import('../../shared/graph/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   dispatchWebviewMessage(message: unknown): Promise<void>;
@@ -32,6 +32,71 @@ async function getAPI(): Promise<CodeGraphyAPI> {
 
 const scenario = getCurrentE2EScenario();
 const pluginSuiteName = `Plugin: ${scenario.name}`;
+let indexedGraphPromise: Promise<void> | undefined;
+
+function waitForExtensionMessageWhere<TMessage>(
+  api: CodeGraphyAPI,
+  type: string,
+  predicate: (message: TMessage) => boolean,
+  timeoutMs: number,
+): Promise<TMessage> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timed out waiting for extension message: ${type}`)),
+      timeoutMs,
+    );
+    const disposable = api.onExtensionMessage((msg: unknown) => {
+      const message = msg as TMessage & { type?: string };
+      if (message.type !== type || !predicate(message)) {
+        return;
+      }
+
+      clearTimeout(timer);
+      disposable.dispose();
+      resolve(message);
+    });
+  });
+}
+
+async function waitForGraphIndexStatus(
+  api: CodeGraphyAPI,
+  hasIndex: boolean,
+  timeoutMs = 15_000,
+): Promise<void> {
+  await waitForExtensionMessageWhere<{ type: 'GRAPH_INDEX_STATUS_UPDATED'; payload: { hasIndex: boolean } }>(
+    api,
+    'GRAPH_INDEX_STATUS_UPDATED',
+    (message) => message.payload.hasIndex === hasIndex,
+    timeoutMs,
+  );
+}
+
+async function ensureIndexedGraph(api: CodeGraphyAPI): Promise<void> {
+  await vscode.commands.executeCommand('codegraphy.open');
+
+  indexedGraphPromise ??= (async () => {
+    const graphUpdated = new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Timed out waiting for GRAPH_DATA_UPDATED')), 30_000);
+      const disposable = api.onExtensionMessage((msg: unknown) => {
+        const message = msg as { type?: string };
+        if (message.type !== 'GRAPH_DATA_UPDATED') {
+          return;
+        }
+
+        clearTimeout(timer);
+        disposable.dispose();
+        resolve();
+      });
+    });
+    const indexUpdated = waitForGraphIndexStatus(api, true, 30_000);
+    await api.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
+    await Promise.all([graphUpdated, indexUpdated]);
+    await sleep(500);
+  })();
+
+  await indexedGraphPromise;
+  await sleep(250);
+}
 
 // ── Active plugin scenario ─────────────────────────────────────────────────
 
@@ -40,8 +105,7 @@ suite(pluginSuiteName, function () {
 
   test('scenario fixture files appear as graph nodes', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const graphData = api.getGraphData();
     assert.ok(graphData.nodes.length > 0, `Expected ${scenario.name} nodes in the graph`);
@@ -57,8 +121,7 @@ suite(pluginSuiteName, function () {
 
   test('scenario import edges are detected', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const graphData = api.getGraphData();
     const edgeIds = graphData.edges.map((edge) => String(edge.id));
@@ -69,8 +132,7 @@ suite(pluginSuiteName, function () {
 
   test('node IDs are workspace-relative paths (no absolute paths)', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const graphData = api.getGraphData();
     for (const node of graphData.nodes) {
@@ -83,44 +145,6 @@ suite(pluginSuiteName, function () {
   });
 });
 
-// ── View switching ─────────────────────────────────────────────────────────
-
-suite('Plugin: View switching', function () {
-  this.timeout(30_000);
-
-  test('CHANGE_VIEW message switches to Folder view', async function() {
-    const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(3_000);
-
-    // Send the CHANGE_VIEW message
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.folder' },
-    });
-    await sleep(2_000);
-
-    // The graph should still have nodes (folder view creates folder + file nodes)
-    const graphData = api.getGraphData();
-    assert.ok(graphData.nodes.length > 0, 'Folder view should still have nodes');
-  });
-
-  test('CHANGE_VIEW back to Connections view works', async function() {
-    const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(3_000);
-
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
-    await sleep(1_000);
-
-    const graphData = api.getGraphData();
-    assert.ok(graphData.nodes.length > 0, 'Connections view should have nodes');
-  });
-});
-
 // ── Favorites ──────────────────────────────────────────────────────────────
 
 suite('Plugin: Favorites', function () {
@@ -128,8 +152,7 @@ suite('Plugin: Favorites', function () {
 
   test('TOGGLE_FAVORITE adds a file to favorites', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(3_000);
+    await ensureIndexedGraph(api);
 
     const graphData = api.getGraphData();
     if (graphData.nodes.length === 0) {

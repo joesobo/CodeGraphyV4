@@ -1,22 +1,25 @@
 /**
- * @fileoverview Undoable action for adding patterns to exclude list.
+ * @fileoverview Undoable action for adding patterns to filterPatterns.
  * @module extension/actions/addToExclude
  */
 
-import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
+import {
+  getCodeGraphyConfiguration,
+  updateCodeGraphyConfigurationSilently,
+} from '../repoSettings/current';
 
 /**
- * Action for adding patterns to the exclude list.
+ * Action for adding patterns to repo-local filterPatterns.
  * Uses state-based undo (stores full state before/after) for robustness
  * against external modifications.
  */
 export class AddToExcludeAction implements IUndoableAction {
   readonly description: string;
   
-  /** Full exclude state BEFORE this action was executed */
+  /** Full filter-pattern state BEFORE this action was executed */
   private _stateBefore: string[] = [];
-  /** Full exclude state AFTER this action was executed */
+  /** Full filter-pattern state AFTER this action was executed */
   private _stateAfter: string[] = [];
   /** Whether this action has been executed at least once */
   private _hasExecuted = false;
@@ -36,15 +39,15 @@ export class AddToExcludeAction implements IUndoableAction {
   }
 
   async execute(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const currentExclude = config.get<string[]>('exclude', []);
+    const config = getCodeGraphyConfiguration();
+    const currentFilterPatterns = config.get<string[]>('filterPatterns', []);
     
     // Only capture "before" state on first execution
     if (!this._hasExecuted) {
-      this._stateBefore = [...currentExclude];
+      this._stateBefore = [...currentFilterPatterns];
       
       // Calculate new state by adding patterns
-      const excludeSet = new Set<string>(currentExclude);
+      const excludeSet = new Set<string>(currentFilterPatterns);
       for (const path of this._paths) {
         const pattern = `**/${path}`;
         excludeSet.add(pattern);
@@ -54,15 +57,13 @@ export class AddToExcludeAction implements IUndoableAction {
     }
 
     // Apply the "after" state
-    await config.update('exclude', this._stateAfter, vscode.ConfigurationTarget.Workspace);
+    await updateCodeGraphyConfigurationSilently('filterPatterns', this._stateAfter);
     await this._refreshGraph();
   }
 
   async undo(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    
     // Restore to the "before" state (full replacement)
-    await config.update('exclude', this._stateBefore, vscode.ConfigurationTarget.Workspace);
+    await updateCodeGraphyConfigurationSilently('filterPatterns', this._stateBefore);
     await this._refreshGraph();
   }
 }

@@ -4,7 +4,11 @@ import type { GraphViewProviderMethodSourceOwner } from '../../../../../src/exte
 
 export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwner {
   const analysisMethods = {
+    _loadAndSendData: vi.fn(async () => undefined),
+    _indexAndSendData: vi.fn(async () => undefined),
     _analyzeAndSendData: vi.fn(async () => undefined),
+    _refreshAndSendData: vi.fn(async () => undefined),
+    _incrementalAnalyzeAndSendData: vi.fn(async () => undefined),
     _doAnalyzeAndSendData: vi.fn(async () => undefined),
     _markWorkspaceReady: vi.fn(),
     _isAnalysisStale: vi.fn(() => false),
@@ -37,6 +41,8 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendContextMenuItems: vi.fn(),
+    _sendPluginExporters: vi.fn(),
+    _sendPluginToolbarActions: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
     registerExternalPlugin: vi.fn(),
   };
@@ -71,20 +77,21 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _indexRepository: vi.fn(async () => undefined),
     _jumpToCommit: vi.fn(async () => undefined),
     _resetTimeline: vi.fn(async () => undefined),
+    invalidateTimelineCache: vi.fn(),
     _openSelectedNode: vi.fn(async () => undefined),
     _activateNode: vi.fn(async () => undefined),
     _previewFileAtCommit: vi.fn(async () => undefined),
     _sendCachedTimeline: vi.fn(),
   };
   const viewContextMethods = {
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _updateViewContext: vi.fn(),
     _applyViewTransform: vi.fn(),
     updateGraphData: vi.fn(),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
   };
   const viewSelectionMethods = {
-    changeView: vi.fn(async () => undefined),
+    setDepthMode: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
     setDepthLimit: vi.fn(async () => undefined),
   };
@@ -106,7 +113,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _analysisController: undefined,
     _analysisRequestId: 1,
     _viewRegistry: { id: 'registry' },
-    _activeViewId: 'codegraphy.connections',
     _dagMode: null,
     _nodeSizeMode: 'connections',
     _rawGraphData: { nodes: [], edges: [] },
@@ -118,7 +124,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _userGroups: [],
     _hiddenPluginGroupIds: new Set<string>(),
     _filterPatterns: [],
-    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _gitAnalyzer: undefined,
     _currentCommitSha: undefined,

@@ -2,7 +2,7 @@ import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/
 import { jumpGraphViewProviderToCommit } from './jump';
 import type {
   GraphViewProviderTimelineSource,
-} from './types';
+} from './contracts';
 import type { GraphViewProviderTimelineDependencies } from './indexing';
 
 function toErrorMessage(error: unknown): string {

@@ -6,6 +6,6 @@
 export const CORE_PLUGIN_API_VERSION = '2.0.0';
 export const WEBVIEW_PLUGIN_API_VERSION = '1.0.0';
 
-export type { ISemver } from './semver';
-export { parseSemver, compareSemver } from './semver';
-export { satisfiesSemverRange } from './semverRange';
+export type { ISemver } from './semver/value';
+export { compareSemver, parseSemver } from './semver/value';
+export { satisfiesSemverRange } from './semver/range';

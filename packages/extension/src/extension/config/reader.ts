@@ -1,24 +1,29 @@
 /**
- * @fileoverview Type-safe wrapper class for reading CodeGraphy extension settings.
+ * @fileoverview Type-safe wrapper class for reading CodeGraphy's repo-local settings.
  * @module extension/config/reader
  */
 
 import * as vscode from 'vscode';
 import type { IGroup } from '../../shared/settings/groups';
+import { getCodeGraphyConfiguration, onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
 import type { ICodeGraphyConfig } from './defaults';
+
+interface CodeGraphyConfigurationLike {
+  get<T>(key: string, defaultValue: T): T;
+}
 
 /**
  * Type-safe wrapper for accessing CodeGraphy extension settings.
  *
  * This class provides methods to read configuration values with proper
- * type checking and default values. It reads from VSCode's workspace
- * configuration under the 'codegraphy' section.
+ * type checking and default values. It reads from CodeGraphy's repo-local
+ * settings store.
  *
  * @example
  * ```typescript
  * const config = new Configuration();
  * const maxFiles = config.maxFiles; // number
- * const patterns = config.exclude;  // string[]
+ * const patterns = config.get('filterPatterns', []);  // string[]
  *
  * // Or get all settings at once
  * const all = config.getAll();
@@ -28,10 +33,10 @@ export class Configuration {
   private readonly _section = 'codegraphy';
 
   /**
-   * Gets the VSCode workspace configuration for CodeGraphy.
+   * Gets the repo-local CodeGraphy configuration.
    */
-  private get config(): vscode.WorkspaceConfiguration {
-    return vscode.workspace.getConfiguration(this._section);
+  private get config(): CodeGraphyConfigurationLike {
+    return getCodeGraphyConfiguration();
   }
 
   /**
@@ -85,21 +90,20 @@ export class Configuration {
   }
 
   /**
-   * Rule toggle state persisted in VS Code settings.
-   * Entries are qualified IDs in "<pluginId>:<sourceId>" format.
-   * @default []
-   */
-  get disabledSources(): string[] {
-    return this.config.get<string[]>('disabledSources', []);
-  }
-
-  /**
-   * Plugin toggle state persisted in VS Code settings.
+   * Plugin toggle state persisted in repo-local settings.
    * Entries are plugin IDs (e.g., "codegraphy.typescript").
    * @default []
    */
   get disabledPlugins(): string[] {
     return this.config.get<string[]>('disabledPlugins', []);
+  }
+
+  /**
+   * Plugin processing order, highest priority first.
+   * @default []
+   */
+  get pluginOrder(): string[] {
+    return this.config.get<string[]>('pluginOrder', []);
   }
 
   /**
@@ -110,12 +114,8 @@ export class Configuration {
     return this.config.get<number>('timeline.maxCommits', 500);
   }
 
-  /**
-   * User-defined groups with pattern, color, shape, and image settings.
-   * @default []
-   */
-  get groups(): IGroup[] {
-    return this.config.get<IGroup[]>('groups', []);
+  get legend(): IGroup[] {
+    return this.config.get<IGroup[]>('legend', []);
   }
 
   /**
@@ -150,8 +150,8 @@ export class Configuration {
       showOrphans: this.showOrphans,
       bidirectionalEdges: this.bidirectionalEdges,
       plugins: this.plugins,
-      disabledSources: this.disabledSources,
       disabledPlugins: this.disabledPlugins,
+      pluginOrder: this.pluginOrder,
     };
   }
 
@@ -173,7 +173,7 @@ export class Configuration {
    * ```
    */
   onDidChange(callback: () => void): vscode.Disposable {
-    return vscode.workspace.onDidChangeConfiguration((event) => {
+    return onDidChangeCodeGraphyConfiguration((event) => {
       if (event.affectsConfiguration(this._section)) {
         callback();
       }

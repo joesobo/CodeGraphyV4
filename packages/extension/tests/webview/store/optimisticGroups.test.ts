@@ -5,7 +5,7 @@ import {
   clearPendingGroupUpdate,
   createPendingUserGroupsUpdate,
   mergePendingGroupUpdate,
-} from '../../../src/webview/store/optimisticGroups';
+} from '../../../src/webview/store/optimistic/groups';
 
 describe('optimisticGroups', () => {
   it('merges pending updates for the same group id', () => {

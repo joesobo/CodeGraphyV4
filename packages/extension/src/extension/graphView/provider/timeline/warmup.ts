@@ -1,5 +1,5 @@
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../config/defaults';
-import type { GraphViewProviderTimelineMethodDependencies, GraphViewProviderTimelineMethodsSource } from './types';
+import type { GraphViewProviderTimelineMethodDependencies, GraphViewProviderTimelineMethodsSource } from './contracts';
 
 export async function ensureGitAnalyzerForCachedTimeline(
   source: GraphViewProviderTimelineMethodsSource,

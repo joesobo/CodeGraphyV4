@@ -24,11 +24,11 @@ describe('graphView/settings/physics/reader', () => {
       centerForce: 1.1,
     });
     expect(get.mock.calls.map(([key]) => key)).toEqual([
-      'repelForce',
-      'linkDistance',
-      'linkForce',
-      'damping',
-      'centerForce',
+      'physics.repelForce',
+      'physics.linkDistance',
+      'physics.linkForce',
+      'physics.damping',
+      'physics.centerForce',
     ]);
   });
 });

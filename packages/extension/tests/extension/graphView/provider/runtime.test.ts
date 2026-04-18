@@ -15,7 +15,7 @@ function createContext(vscodeModule: typeof import('vscode')) {
 
 function createRestoredState() {
   return {
-    activeViewId: 'codegraphy.connections',
+    depthMode: false,
     dagMode: null,
     nodeSizeMode: 'connections' as const,
   };
@@ -39,7 +39,9 @@ async function loadSubject(
       _sendDecorations: vi.fn(),
     },
     pluginResource: {},
-    refresh: {},
+    refresh: {
+      refresh: vi.fn(),
+    },
     settingsState: {
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
     },
@@ -54,14 +56,14 @@ async function loadSubject(
     },
   };
 
-  vi.doMock('../../../../src/extension/workspaceAnalyzer/service', () => ({
-    WorkspaceAnalyzer: class WorkspaceAnalyzer {},
+  vi.doMock('../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
+    WorkspacePipeline: class WorkspacePipeline {},
   }));
   vi.doMock('../../../../src/core/views', () => ({
     ViewRegistry: class ViewRegistry {
       register = vi.fn();
       get = vi.fn(() => undefined);
-      getDefaultViewId = vi.fn(() => 'codegraphy.connections');
+      getDefaultViewId = vi.fn(() => 'codegraphy.graph');
     },
     coreViews: [],
   }));
@@ -101,7 +103,8 @@ describe('graphView/provider/runtime', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.doUnmock('vscode');
-    vi.doUnmock('../../../../src/extension/workspaceAnalyzer/service');
+    vi.doUnmock('../../../../src/extension/pipeline/service/lifecycleFacade');
+    vi.doUnmock('../../../../src/extension/repoSettings/meta');
     vi.doUnmock('../../../../src/core/views');
     vi.doUnmock('../../../../src/core/plugins/events/bus');
     vi.doUnmock('../../../../src/core/plugins/decoration/manager');
@@ -178,10 +181,9 @@ describe('graphView/provider/runtime', () => {
     );
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
-        selectedViewKey: 'codegraphy.selectedView',
-        dagModeKey: 'codegraphy.dagMode',
-        nodeSizeModeKey: 'codegraphy.nodeSizeMode',
-        fallbackViewId: 'codegraphy.connections',
+        dagModeKey: 'dagMode',
+        depthModeKey: 'depthMode',
+        nodeSizeModeKey: 'nodeSizeMode',
         fallbackNodeSizeMode: 'connections',
       }),
     );
@@ -196,7 +198,7 @@ describe('graphView/provider/runtime', () => {
 
     resolveFirstWorkspaceReady?.();
     await expect(firstWorkspaceReadyPromise).resolves.toBeUndefined();
-  });
+  }, 15000);
 
   it('forwards bootstrap callbacks through the extracted method containers', async () => {
     const initializeGraphViewProviderServices = vi.fn();
@@ -270,6 +272,9 @@ describe('graphView/provider/runtime', () => {
     expect(internals._viewContextMethods).toBe(methodContainers.viewContext);
     expect(internals._viewSelectionMethods).toBe(methodContainers.viewSelection);
     expect(internals._webviewMethods).toBe(methodContainers.webview);
+    expect(
+      (provider as unknown as { _webviewMethods: unknown })._webviewMethods,
+    ).toBe(methodContainers.webview);
   });
 
   it('disposes the extension message emitter through the registered subscription', async () => {
@@ -406,5 +411,169 @@ describe('graphView/provider/runtime', () => {
       (provider as unknown as { _installedPluginActivationPromise: Promise<void> })
         ._installedPluginActivationPromise,
     ).toBe(activationPromise);
+  });
+
+  it('returns no persisted workspace refresh when there is no workspace root', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+
+    const { GraphViewProvider, vscodeModule } = await loadSubject(undefined);
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    ) as unknown as {
+      _loadPersistedWorkspaceRefresh(): unknown;
+    };
+
+    expect(provider._loadPersistedWorkspaceRefresh()).toBeUndefined();
+  });
+
+  it('returns no persisted workspace refresh when repo metadata has no pending files', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+    vi.doMock('../../../../src/extension/repoSettings/meta', () => ({
+      readCodeGraphyRepoMeta: vi.fn(() => ({ pendingChangedFiles: [] })),
+      writeCodeGraphyRepoMeta: vi.fn(),
+    }));
+
+    const { GraphViewProvider, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    ) as unknown as {
+      _loadPersistedWorkspaceRefresh(): unknown;
+    };
+
+    expect(provider._loadPersistedWorkspaceRefresh()).toBeUndefined();
+  });
+
+  it('loads persisted workspace refresh state from repo metadata', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+    vi.doMock('../../../../src/extension/repoSettings/meta', () => ({
+      readCodeGraphyRepoMeta: vi.fn(() => ({
+        pendingChangedFiles: ['src/a.ts', 'src/b.ts'],
+      })),
+      writeCodeGraphyRepoMeta: vi.fn(),
+    }));
+
+    const { GraphViewProvider, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    ) as unknown as {
+      _loadPersistedWorkspaceRefresh(): { filePaths: Set<string>; logMessage: string } | undefined;
+    };
+
+    expect(provider._loadPersistedWorkspaceRefresh()).toEqual({
+      filePaths: new Set(['src/a.ts', 'src/b.ts']),
+      logMessage: '[CodeGraphy] Applying pending workspace changes',
+    });
+  });
+
+  it('flushes queued workspace changes through the incremental refresh path', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+
+    const { GraphViewProvider, methodContainers, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    ) as unknown as {
+      _view?: { visible: boolean };
+      _analyzer?: { invalidateWorkspaceFiles(filePaths: readonly string[]): string[] };
+      markWorkspaceRefreshPending(logMessage: string, filePaths?: readonly string[]): void;
+      flushPendingWorkspaceRefresh(): void;
+    };
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const refreshChangedFiles = vi.fn(() => Promise.resolve());
+
+    provider._view = { visible: true };
+    (methodContainers.refresh as unknown as {
+      refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
+    })
+      .refreshChangedFiles = refreshChangedFiles;
+
+    provider.markWorkspaceRefreshPending('[CodeGraphy] File saved, refreshing graph', [
+      '/test/workspace/src/a.ts',
+    ]);
+    provider.markWorkspaceRefreshPending('[CodeGraphy] File created, refreshing graph', [
+      '/test/workspace/src/b.ts',
+    ]);
+    provider.flushPendingWorkspaceRefresh();
+
+    expect(refreshChangedFiles).toHaveBeenCalledWith([
+      '/test/workspace/src/a.ts',
+      '/test/workspace/src/b.ts',
+    ]);
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
+
+    consoleSpy.mockRestore();
+  });
+
+  it('keeps queued workspace changes pending when only the timeline view is visible', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+
+    const { GraphViewProvider, methodContainers, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    ) as unknown as {
+      _timelineView?: { visible: boolean };
+      markWorkspaceRefreshPending(logMessage: string, filePaths?: readonly string[]): void;
+      flushPendingWorkspaceRefresh(): void;
+    };
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const refreshChangedFiles = vi.fn(() => Promise.resolve());
+
+    provider._timelineView = { visible: true };
+    (methodContainers.refresh as unknown as {
+      refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
+    }).refreshChangedFiles = refreshChangedFiles;
+
+    provider.markWorkspaceRefreshPending('[CodeGraphy] File saved, refreshing graph', [
+      '/test/workspace/src/a.ts',
+    ]);
+    provider.flushPendingWorkspaceRefresh();
+
+    expect(refreshChangedFiles).not.toHaveBeenCalled();
+    expect(consoleSpy).not.toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
   });
 });

@@ -18,7 +18,7 @@ import {
   paintNodePointerArea,
   renderNodeCanvas,
 } from './nodes/canvas2d';
-import type { UseGraphStateResult } from '../runtime/use/graph/state';
+import type { UseGraphStateResult } from '../runtime/use/state';
 import type { FGLink, FGNode } from '../model/build';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 

@@ -3,11 +3,11 @@ import type { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { GraphViewStoreState } from '../store';
 import type { UseGraphCallbacksResult } from '../rendering/useGraphCallbacks';
-import type { UseGraphInteractionRuntimeResult } from '../runtime/use/graph/interaction';
-import type { UseGraphRenderingRuntimeResult } from '../runtime/use/graph/rendering';
-import type { UseGraphStateResult } from '../runtime/use/graph/state';
-import { useGraphRenderingRuntime } from '../runtime/use/graph/rendering';
-import { useGraphEventEffects } from '../runtime/use/graph/events';
+import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
+import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
+import type { UseGraphStateResult } from '../runtime/use/state';
+import { useGraphRenderingRuntime } from '../runtime/use/rendering';
+import { useGraphEventEffects } from '../runtime/use/events';
 import { Viewport } from '../Viewport';
 import { useGraphViewportModel } from './model';
 

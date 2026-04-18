@@ -16,13 +16,13 @@ vi.mock('react-dom/client', () => ({
   createRoot: mocks.createRoot,
 }));
 
-vi.mock('../../src/webview/app/App', () => ({
+vi.mock('../../src/webview/app/view', () => ({
   default: function GraphApp() {
     return null;
   },
 }));
 
-vi.mock('../../src/webview/app/TimelineApp', () => ({
+vi.mock('../../src/webview/app/timeline/view', () => ({
   default: function TimelineApp() {
     return null;
   },

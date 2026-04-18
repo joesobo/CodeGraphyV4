@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
-import Graph from '../../../../src/webview/components/Graph';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import Graph from '../../../../src/webview/components/graph/view';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
 import { graphStore } from '../../../../src/webview/store/state';
 import ForceGraph2D from 'react-force-graph-2d';
@@ -17,6 +17,12 @@ function getGraphContainer(container: HTMLElement): HTMLElement {
   const graphContainer = container.querySelector('[tabindex="0"]');
   expect(graphContainer).toBeTruthy();
   return graphContainer as HTMLElement;
+}
+
+async function waitForThreeDimensionalSurface(): Promise<void> {
+  await waitFor(() => {
+    expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
+  });
 }
 
 async function selectTwoNodesForMultiMenu(graphContainer: HTMLElement): Promise<void> {
@@ -90,6 +96,7 @@ describe('Graph context menu (node)', () => {
       graphStore.setState({ graphMode: '3d' });
     });
     render(<Graph data={menuData} />);
+    await waitForThreeDimensionalSurface();
 
     await act(async () => {
       ForceGraph3D.simulateNodeRightClick({ id: 'src/app.ts' });
@@ -124,6 +131,7 @@ describe('Graph context menu (node)', () => {
         graphStore.setState({ graphMode: '3d' });
       });
       render(<Graph data={menuData} />);
+      await waitForThreeDimensionalSurface();
 
       await act(async () => {
         ForceGraph3D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, ctrlKey: true, clientX: 130, clientY: 95 });
@@ -158,7 +166,7 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Rename...')).toBeInTheDocument();
     expect(screen.getByText('Delete File')).toBeInTheDocument();
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
-    expect(screen.queryByText('Refresh Graph')).not.toBeInTheDocument();
+    expect(screen.queryByText('Refresh')).not.toBeInTheDocument();
   });
 
   it('shows Remove from Favorites for favorited nodes', async () => {
@@ -314,6 +322,7 @@ describe('Graph context menu (node)', () => {
 
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
+    await waitForThreeDimensionalSurface();
 
     await act(async () => {
       ForceGraph3D.simulateNodeRightClick({ id: 'src/app.ts' });
@@ -331,8 +340,14 @@ describe('Graph context menu (node)', () => {
     expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20, expect.any(Function));
   });
 
-  it('sends ADD_TO_EXCLUDE message when clicking Add to Filter', async () => {
-    const { container } = render(<Graph data={menuData} />);
+  it('opens the filter prompt when clicking Add to Filter for a single node', async () => {
+    const onAddFilterRequested = vi.fn();
+    const { container } = render(
+      <Graph
+        data={menuData}
+        onAddFilterRequested={onAddFilterRequested}
+      />,
+    );
     const graphContainer = getGraphContainer(container);
 
     await act(async () => {
@@ -344,14 +359,11 @@ describe('Graph context menu (node)', () => {
       expect(screen.getByText('Add to Filter')).toBeInTheDocument();
     });
 
-    clearSentMessages();
     await act(async () => {
       fireEvent.click(screen.getByText('Add to Filter'));
     });
 
-    const addMsg = findMessage('ADD_TO_EXCLUDE');
-    expect(addMsg).toBeTruthy();
-    expect(addMsg!.payload.patterns).toEqual(['src/app.ts']);
+    expect(onAddFilterRequested).toHaveBeenCalledWith('src/app.ts');
   });
 
   it('sends RENAME_FILE message when clicking Rename...', async () => {

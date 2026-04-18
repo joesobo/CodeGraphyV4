@@ -10,7 +10,7 @@ describe('graph/keyboardToolbarShortcutResolver', () => {
     expect(getToolbarShortcutCommand('v', false)).toEqual({
       preventDefault: true,
       stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_VIEW' } }],
+      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DEPTH_MODE' } }],
     });
     expect(getToolbarShortcutCommand('L', false)).toEqual({
       preventDefault: true,

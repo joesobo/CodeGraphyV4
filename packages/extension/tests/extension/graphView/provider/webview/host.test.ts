@@ -12,11 +12,13 @@ describe('graphView/provider/webview/host', () => {
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
     const webviewView = {
       viewType: 'codegraphy.graphView',
       webview: {},
       visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
       onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
     } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
@@ -58,11 +60,13 @@ describe('graphView/provider/webview/host', () => {
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
     const timelineView = {
       viewType: 'codegraphy.timelineView',
       webview: {},
       visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
       onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
     } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
@@ -103,8 +107,10 @@ describe('graphView/provider/webview/host', () => {
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
     const webviewView = {
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
       onDidDispose: vi.fn(listener => {
         disposeListener = listener;
         return { dispose: vi.fn() };
@@ -151,11 +157,13 @@ describe('graphView/provider/webview/host', () => {
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => resourceRoots),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
     const webviewView = {
       viewType: 'codegraphy.graphView',
       webview: {},
       visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
       onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
     } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
@@ -203,8 +211,10 @@ describe('graphView/provider/webview/host', () => {
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
     const timelineView = {
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
       onDidDispose: vi.fn(listener => {
         disposeListener = listener;
         return { dispose: vi.fn() };
@@ -256,11 +266,13 @@ describe('graphView/provider/webview/host', () => {
       _sendAllSettings: vi.fn(),
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
     const webviewView = {
       viewType: 'codegraphy.graphView',
       webview: {},
       visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
       onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
     } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {

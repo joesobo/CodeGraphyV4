@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CodeGraphyAPIImpl } from '../../../../src/core/plugins/api/instance';
-import { callOnLoad, createPluginApi, type IApiDependencies } from '../../../../src/core/plugins/registry/apiSetup';
+import { callOnLoad, createPluginApi, type IApiDependencies } from '../../../../src/core/plugins/registry/runtime/registration/apiSetup';
 
 function createDependencies(overrides: Partial<IApiDependencies> = {}): IApiDependencies {
   return {
@@ -15,7 +15,7 @@ function createDependencies(overrides: Partial<IApiDependencies> = {}): IApiDepe
   };
 }
 
-describe('core/plugins/registry/apiSetup', () => {
+describe('core/plugins/registry/runtime/apiSetup', () => {
   it('creates a scoped CodeGraphy API with the provided dependencies', () => {
     const logFn = vi.fn();
     const api = createPluginApi('plugin.test', createDependencies(), logFn);

@@ -38,8 +38,8 @@ describe('FilterSection', () => {
   it('renders existing filter patterns', () => {
     renderSection({ filterPatterns: ['**/*.test.ts', '**/*.spec.ts'] });
 
-    expect(screen.getByText('**/*.test.ts')).toBeInTheDocument();
-    expect(screen.getByText('**/*.spec.ts')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('**/*.test.ts')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('**/*.spec.ts')).toBeInTheDocument();
   });
 
   it('shows an empty-state message when no custom filter patterns exist', () => {

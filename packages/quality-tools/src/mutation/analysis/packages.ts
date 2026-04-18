@@ -8,7 +8,6 @@ function hasSourceDirectory(workspacePackage: WorkspacePackage): boolean {
 
 function hasMutationTests(workspacePackage: WorkspacePackage): boolean {
   return existsSync(join(workspacePackage.root, 'tests')) ||
-    existsSync(join(workspacePackage.root, '__tests__')) ||
     workspacePackage.name === 'extension';
 }
 

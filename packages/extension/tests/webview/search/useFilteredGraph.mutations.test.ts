@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useFilteredGraph } from '../../../src/webview/search/useFilteredGraph';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../src/shared/settings/groups';
 
 const graphA: IGraphData = {
@@ -25,7 +25,8 @@ const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
 describe('useFilteredGraph dependency array mutations', () => {
   it('recomputes filteredData when graphData changes', () => {
     const { result, rerender } = renderHook(
-      ({ graphData }) => useFilteredGraph(graphData, 'App', defaultOptions, []),
+      ({ graphData }) =>
+        useFilteredGraph(graphData, 'App', defaultOptions, [], {}, {}, {}, {}),
       { initialProps: { graphData: graphA as IGraphData | null } },
     );
 
@@ -38,7 +39,8 @@ describe('useFilteredGraph dependency array mutations', () => {
 
   it('recomputes filteredData when searchQuery changes', () => {
     const { result, rerender } = renderHook(
-      ({ query }) => useFilteredGraph(graphA, query, defaultOptions, []),
+      ({ query }) =>
+        useFilteredGraph(graphA, query, defaultOptions, [], {}, {}, {}, {}),
       { initialProps: { query: 'App' } },
     );
 
@@ -51,7 +53,8 @@ describe('useFilteredGraph dependency array mutations', () => {
 
   it('recomputes filteredData when searchOptions change', () => {
     const { result, rerender } = renderHook(
-      ({ options }) => useFilteredGraph(graphA, 'app', options, []),
+      ({ options }) =>
+        useFilteredGraph(graphA, 'app', options, [], {}, {}, {}, {}),
       { initialProps: { options: { matchCase: false, wholeWord: false, regex: false } } },
     );
 
@@ -67,7 +70,8 @@ describe('useFilteredGraph dependency array mutations', () => {
     const groupsB: IGroup[] = [{ id: 'g2', pattern: '**/*.ts', color: '#00ff00' }];
 
     const { result, rerender } = renderHook(
-      ({ groups }) => useFilteredGraph(graphA, '', defaultOptions, groups),
+      ({ groups }) =>
+        useFilteredGraph(graphA, '', defaultOptions, groups, {}, {}, {}, {}),
       { initialProps: { groups: groupsA } },
     );
 
@@ -82,7 +86,8 @@ describe('useFilteredGraph dependency array mutations', () => {
     const groups: IGroup[] = [{ id: 'g1', pattern: '**/*.ts', color: '#ff0000' }];
 
     const { result, rerender } = renderHook(
-      ({ query }) => useFilteredGraph(graphA, query, defaultOptions, groups),
+      ({ query }) =>
+        useFilteredGraph(graphA, query, defaultOptions, groups, {}, {}, {}, {}),
       { initialProps: { query: '' } },
     );
 

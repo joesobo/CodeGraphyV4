@@ -9,7 +9,7 @@ function getBuiltInGraphViewDefaultGroupDefinitions(): Array<{ pattern: string; 
     { pattern: '*.svg', color: '#43AA8B' },
     { pattern: '*.md', color: '#577590' },
     { pattern: '*.jpeg', color: '#90BE6D' },
-    { pattern: '.vscode/settings.json', color: '#277ACC' },
+    { pattern: '.codegraphy/settings.json', color: '#277ACC' },
   ];
 }
 

@@ -46,4 +46,14 @@ describe('graphView/webview/providerMessages/pluginApis', () => {
     expect(apis.getToolbarActionPluginApi('plugin.test')).toBeUndefined();
     expect(() => apis.notifyWebviewReady()).not.toThrow();
   });
+
+  it('returns undefined when the analyzer exists but its registry does not', () => {
+    const apis = createGraphViewProviderPluginApis({ _analyzer: {} } as never);
+
+    expect(apis.getInteractionPluginApi('plugin.test')).toBeUndefined();
+    expect(apis.getContextMenuPluginApi('plugin.test')).toBeUndefined();
+    expect(apis.getExporterPluginApi('plugin.test')).toBeUndefined();
+    expect(apis.getToolbarActionPluginApi('plugin.test')).toBeUndefined();
+    expect(() => apis.notifyWebviewReady()).not.toThrow();
+  });
 });

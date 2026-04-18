@@ -14,13 +14,15 @@ The plugin's VS Code extension activates. It grabs CodeGraphy's exported API and
 
 ```typescript
 import * as vscode from 'vscode';
+import manifest from './codegraphy.json';
+import { createMyPlugin } from './plugin';
 
 export async function activate(context: vscode.ExtensionContext) {
   const cg = vscode.extensions.getExtension('codegraphy.codegraphy');
   if (!cg) return;
 
   const api = cg.isActive ? cg.exports : await cg.activate();
-  api.registerPlugin(myPlugin, { extensionUri: context.extensionUri });
+  api.registerPlugin(createMyPlugin(manifest), { extensionUri: context.extensionUri });
 }
 ```
 
@@ -29,6 +31,29 @@ At this point the core validates the plugin's `apiVersion` from its `codegraphy.
 - Compatible version range: proceed.
 - Future version: error with clear message.
 - Unsupported/deprecated version: reject registration with a migration message.
+
+More precisely: runtime validates `plugin.apiVersion` on the object you pass to `registerPlugin(...)`.
+
+- `codegraphy.json` is the recommended way to keep plugin metadata in one place
+- it is not the thing the host directly reads at registration time
+
+Minimum required plugin object:
+
+```typescript
+const plugin: IPlugin = {
+  id: 'acme.plugin',
+  name: 'Acme Plugin',
+  version: '1.0.0',
+  apiVersion: '^2.0.0',
+  supportedExtensions: ['.ts'],
+};
+```
+
+Recommended setup:
+
+- store metadata in `codegraphy.json`
+- import that manifest into `plugin.ts`
+- build the runtime `IPlugin` object from that manifest
 
 ### 2. onLoad(api)
 
@@ -53,12 +78,12 @@ onLoad(api: CodeGraphyAPI) {
     action: (node) => { /* ... */ },
   });
 
-  // Register a custom view
+  // Register an optional compatibility graph transform
   api.registerView({
     id: 'my-plugin.custom-view',
     name: 'My View',
     icon: 'graph',
-    description: 'A custom graph view',
+    description: 'A plugin-defined graph transform',
     recomputeOn: ['focusedFile'],
     transform(data, context) { return data; },
   });
@@ -92,6 +117,8 @@ onLoad(api: CodeGraphyAPI) {
   });
 }
 ```
+
+`registerView(...)` still exists in the API, but treat it as a compatibility / future-facing hook. The current built-in UI stays on one unified graph surface instead of surfacing plugin-defined views as a primary product concept.
 
 Every `api.on()`, `api.register*()`, and `api.decorateNode/Edge()` call returns a `Disposable`. See [Auto-Cleanup](#auto-cleanup-disposable-pattern) below.
 
@@ -150,6 +177,141 @@ onPreAnalyze(files, workspaceRoot) {
 
 **Example:** The GDScript plugin uses this to build a `class_name` map so `extends Player` resolves to the correct file. The Markdown plugin builds a file index for wikilink resolution.
 
+### onFilesChanged(files, workspaceRoot)
+
+Called before an incremental save-driven refresh when CodeGraphy already has a warmed repo index.
+
+Use this when your plugin keeps cross-file state that can be updated from a small changed-file set. Return additional workspace-relative file paths when those dependents also need re-analysis.
+
+```typescript
+async onFilesChanged(files, workspaceRoot) {
+  let requiresDependents = false;
+
+  for (const file of files) {
+    const changed = updateLocalIndex(file.relativePath, file.content);
+    requiresDependents ||= changed;
+  }
+
+  return requiresDependents
+    ? ['src/runtime/container.ts', 'src/runtime/registry.ts']
+    : [];
+}
+```
+
+Behavior:
+
+- return `[]` or `undefined` when re-analyzing only the changed files is enough
+- return workspace-relative file paths when dependents should also be re-analyzed
+- if your plugin only implements `onPreAnalyze(...)` and not `onFilesChanged(...)`, CodeGraphy falls back to a full refresh for safety
+- if `onFilesChanged(...)` throws, CodeGraphy also falls back to a full refresh
+
+### analyzeFile(filePath, content, workspaceRoot)
+
+Called for each file after the core has prepared the file payload. Plugins return a per-file analysis object containing any mix of:
+
+- node type contributions
+- edge type contributions
+- analysis nodes
+- symbols
+- relations
+
+The host merges core output first and then plugin output in plugin priority order.
+
+Plugins that contribute code analysis should implement this hook.
+
+Use plain plugin-local `sourceId` values in plugin output, like `import`, `reference`, `preload`, or `wikilink`.
+
+- plugin output: `sourceId: 'reference'`
+- merged graph provenance later: `id: 'acme.plugin:reference'`
+
+```typescript
+async analyzeFile(filePath, content, workspaceRoot) {
+  return {
+    filePath,
+    nodeTypes: [
+      {
+        id: 'service',
+        label: 'Service',
+        defaultColor: '#22c55e',
+        defaultVisible: true,
+      },
+    ],
+    edgeTypes: [
+      {
+        id: 'acme:injects',
+        label: 'Injects',
+        defaultColor: '#f59e0b',
+        defaultVisible: true,
+      },
+    ],
+    nodes: [
+      {
+        id: `${filePath}#service:BillingService`,
+        nodeType: 'service',
+        label: 'BillingService',
+        filePath,
+      },
+    ],
+    symbols: [
+      {
+        id: `${filePath}:function:buildInvoice`,
+        name: 'buildInvoice',
+        kind: 'function',
+        filePath,
+      },
+    ],
+    relations: [
+      {
+        kind: 'reference',
+        sourceId: 'reference',
+        fromFilePath: filePath,
+        fromSymbolId: `${filePath}:function:buildInvoice`,
+        toFilePath: '/repo/src/shared/money.ts',
+        toSymbolId: '/repo/src/shared/money.ts:function:formatMoney',
+        specifier: './shared/money',
+      },
+      {
+        kind: 'acme:injects',
+        sourceId: 'injects',
+        fromFilePath: filePath,
+        fromNodeId: `${filePath}#service:BillingService`,
+        toFilePath: '/repo/src/runtime/container.ts',
+        specifier: '@runtime/container',
+      },
+    ],
+  };
+}
+```
+
+Path contract:
+
+- `filePath` is the absolute workspace path for the file being analyzed
+- `fromFilePath` is also absolute
+- resolved `toFilePath` values are absolute workspace paths
+- unresolved package/runtime targets should use `toFilePath: null`
+
+Examples:
+
+```typescript
+// Resolved workspace file
+{
+  kind: 'import',
+  sourceId: 'import',
+  fromFilePath: '/repo/src/app.ts',
+  toFilePath: '/repo/src/shared/index.ts',
+  specifier: './shared',
+}
+
+// Unresolved package/runtime import
+{
+  kind: 'import',
+  sourceId: 'import',
+  fromFilePath: '/repo/src/app.ts',
+  toFilePath: null,
+  specifier: 'react',
+}
+```
+
 ### onPostAnalyze(graph)
 
 Called after analysis completes with the full graph data. Use this to attach decorations, compute metrics, or update badges based on the latest graph state.
@@ -164,7 +326,7 @@ onPostAnalyze(graph: IGraphData) {
 
 ### onGraphRebuild(graph)
 
-Called when the graph is rebuilt without re-analysis (e.g., when a user toggles a rule or plugin). The cached connection data is used to rebuild the graph. Plugins should re-apply their decorations since the node set may have changed.
+Called when the graph is rebuilt without re-analysis (for example after graph-control toggles or plugin toggles). The cached connection data is used to rebuild the graph. Plugins should re-apply their decorations since the rendered node set may have changed.
 
 ```typescript
 onGraphRebuild(graph: IGraphData) {
@@ -186,7 +348,7 @@ interface Disposable {
 }
 ```
 
-When `onUnload` fires, **all** Disposables registered by that plugin are automatically disposed. Event subscriptions are removed, commands are unregistered, views are removed, decorations are cleared, and webview contributions are torn down. No manual cleanup needed.
+When `onUnload` fires, **all** Disposables registered by that plugin are automatically disposed. Event subscriptions are removed, commands are unregistered, plugin-defined views/transforms are removed, decorations are cleared, and webview contributions are torn down. No manual cleanup needed.
 
 ```typescript
 onLoad(api: CodeGraphyAPI) {
@@ -215,10 +377,20 @@ export function createMetricsPlugin(): IPlugin {
 
   return {
     id: 'codegraphy-metrics',
+    name: 'Metrics',
+    version: '1.0.0',
     apiVersion: '^2.0.0',
+    supportedExtensions: ['*'],
 
-    detectConnections(filePath, content, workspaceRoot) {
-      return []; // This plugin doesn't detect connections
+    async analyzeFile(filePath, content, workspaceRoot) {
+      return {
+        filePath,
+        relations: [],
+      };
+    },
+
+    async onFilesChanged(files) {
+      return files.map((file) => file.relativePath);
     },
 
     onLoad(_api) {

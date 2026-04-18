@@ -10,6 +10,7 @@ describe('Patterns', () => {
         newFilterPattern=""
         onAdd={vi.fn()}
         onDelete={vi.fn()}
+        onEdit={vi.fn()}
         onPatternChange={vi.fn()}
         pluginFilterPatterns={['**/*.uid']}
       />,
@@ -17,7 +18,7 @@ describe('Patterns', () => {
 
     expect(screen.getByText('Plugin defaults (read-only)')).toBeInTheDocument();
     expect(screen.getByText('**/*.uid')).toBeInTheDocument();
-    expect(screen.getByText('**/*.tmp')).toBeInTheDocument();
+    expect(screen.getByLabelText('Edit filter pattern **/*.tmp')).toHaveValue('**/*.tmp');
   });
 
   it('renders the empty state and keeps the add button disabled for whitespace-only input', () => {
@@ -27,6 +28,7 @@ describe('Patterns', () => {
         newFilterPattern="   "
         onAdd={vi.fn()}
         onDelete={vi.fn()}
+        onEdit={vi.fn()}
         onPatternChange={vi.fn()}
         pluginFilterPatterns={[]}
       />,
@@ -39,6 +41,7 @@ describe('Patterns', () => {
   it('forwards add, delete, change, and enter-key events', () => {
     const onAdd = vi.fn();
     const onDelete = vi.fn();
+    const onEdit = vi.fn();
     const onPatternChange = vi.fn();
 
     render(
@@ -47,6 +50,7 @@ describe('Patterns', () => {
         newFilterPattern="**/*.cache"
         onAdd={onAdd}
         onDelete={onDelete}
+        onEdit={onEdit}
         onPatternChange={onPatternChange}
         pluginFilterPatterns={[]}
       />,
@@ -61,5 +65,92 @@ describe('Patterns', () => {
     expect(onPatternChange).toHaveBeenCalledWith('**/*.log');
     expect(onAdd).toHaveBeenCalledTimes(2);
     expect(onDelete).toHaveBeenCalledWith('**/*.tmp');
+  });
+
+  it('does not add a pattern for non-enter key presses in the draft input', () => {
+    const onAdd = vi.fn();
+
+    render(
+      <Patterns
+        filterPatterns={[]}
+        newFilterPattern="**/*.cache"
+        onAdd={onAdd}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        onPatternChange={vi.fn()}
+        pluginFilterPatterns={[]}
+      />,
+    );
+
+    fireEvent.keyDown(screen.getByPlaceholderText('*.png'), { key: 'Escape' });
+
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it('allows custom patterns to be edited inline', () => {
+    const onEdit = vi.fn();
+
+    render(
+      <Patterns
+        filterPatterns={['**/*.tmp']}
+        newFilterPattern=""
+        onAdd={vi.fn()}
+        onDelete={vi.fn()}
+        onEdit={onEdit}
+        onPatternChange={vi.fn()}
+        pluginFilterPatterns={[]}
+      />,
+    );
+
+    const input = screen.getByLabelText('Edit filter pattern **/*.tmp');
+    fireEvent.change(input, { target: { value: '**/*.cache' } });
+    fireEvent.blur(input);
+
+    expect(onEdit).toHaveBeenCalledWith('**/*.tmp', '**/*.cache');
+  });
+
+  it('edits a custom pattern on enter and blurs the inline input', () => {
+    const onEdit = vi.fn();
+
+    render(
+      <Patterns
+        filterPatterns={['**/*.tmp']}
+        newFilterPattern=""
+        onAdd={vi.fn()}
+        onDelete={vi.fn()}
+        onEdit={onEdit}
+        onPatternChange={vi.fn()}
+        pluginFilterPatterns={[]}
+      />,
+    );
+
+    const input = screen.getByLabelText('Edit filter pattern **/*.tmp');
+    const blurSpy = vi.spyOn(input, 'blur');
+    fireEvent.change(input, { target: { value: '**/*.cache' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onEdit).toHaveBeenCalledWith('**/*.tmp', '**/*.cache');
+    expect(blurSpy).toHaveBeenCalledOnce();
+  });
+
+  it('does not edit a custom pattern for non-enter key presses', () => {
+    const onEdit = vi.fn();
+
+    render(
+      <Patterns
+        filterPatterns={['**/*.tmp']}
+        newFilterPattern=""
+        onAdd={vi.fn()}
+        onDelete={vi.fn()}
+        onEdit={onEdit}
+        onPatternChange={vi.fn()}
+        pluginFilterPatterns={[]}
+      />,
+    );
+
+    const input = screen.getByLabelText('Edit filter pattern **/*.tmp');
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    expect(onEdit).not.toHaveBeenCalled();
   });
 });

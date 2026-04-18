@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NodeSizeMode } from '@/shared/settings/modes';
-import type { IGraphData } from '@/shared/graph/types';
+import type { IGraphData } from '@/shared/graph/contracts';
 import {
   dispatchGraphViewPluginMessage,
   type GraphViewPluginMessageContext,
@@ -9,19 +9,17 @@ import {
 function createContext(
   overrides: Partial<GraphViewPluginMessageContext> = {},
 ): GraphViewPluginMessageContext {
-  return {
+  const context = {
     getFilterPatterns: vi.fn(() => []),
     getPluginFilterPatterns: vi.fn(() => []),
     getMaxFiles: vi.fn(() => 500),
     getPlaybackSpeed: vi.fn(() => 1),
     getDagMode: vi.fn(() => null),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
-    getFolderNodeColor: vi.fn(() => '#111111'),
     getFocusedFile: vi.fn(() => undefined),
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),
     isWebviewReadyNotified: vi.fn(() => false),
-    getHiddenPluginGroupIds: vi.fn(() => new Set<string>()),
     getGraphData: vi.fn(
       () =>
         ({
@@ -31,7 +29,9 @@ function createContext(
     ),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
+    sendGraphControls: vi.fn(),
+    loadAndSendData: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
@@ -53,10 +53,12 @@ function createContext(
     findNode: vi.fn((targetId: string) => ({ id: targetId })),
     findEdge: vi.fn((targetId: string) => ({ id: targetId })),
     logError: vi.fn(),
-    updateHiddenPluginGroups: vi.fn(() => Promise.resolve()),
-    recomputeGroups: vi.fn(),
     ...overrides,
   };
+
+  context.sendGraphControls ??= vi.fn();
+
+  return context as GraphViewPluginMessageContext;
 }
 
 describe('graph view plugin message dispatch', () => {
@@ -220,28 +222,6 @@ describe('graph view plugin message dispatch', () => {
     expect(context.logError).not.toHaveBeenCalled();
   });
 
-  it('updates hidden plugin groups for direct group toggles', async () => {
-    const hiddenPluginGroupIds = new Set<string>();
-    const context = createContext({
-      getHiddenPluginGroupIds: vi.fn(() => hiddenPluginGroupIds),
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'TOGGLE_PLUGIN_GROUP_DISABLED',
-          payload: { groupId: 'plugin:test:*.ts', disabled: true },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(hiddenPluginGroupIds.has('plugin:test:*.ts')).toBe(true);
-    expect(context.updateHiddenPluginGroups).toHaveBeenCalledWith(['plugin:test:*.ts']);
-    expect(context.recomputeGroups).toHaveBeenCalledOnce();
-    expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
-  });
-
   it('runs plugin context menu edge actions against resolved graph edges', async () => {
     const action = vi.fn(() => Promise.resolve());
     const context = createContext({
@@ -270,28 +250,6 @@ describe('graph view plugin message dispatch', () => {
     expect(context.findEdge).toHaveBeenCalledWith('src/index.ts->src/lib.ts');
     expect(action).toHaveBeenCalledWith({ id: 'src/index.ts->src/lib.ts', label: 'Edge' });
     expect(context.logError).not.toHaveBeenCalled();
-  });
-
-  it('updates hidden plugin groups for section toggles', async () => {
-    const hiddenPluginGroupIds = new Set<string>();
-    const context = createContext({
-      getHiddenPluginGroupIds: vi.fn(() => hiddenPluginGroupIds),
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'TOGGLE_PLUGIN_SECTION_DISABLED',
-          payload: { pluginId: 'test', disabled: true },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(hiddenPluginGroupIds.has('plugin:test')).toBe(true);
-    expect(context.updateHiddenPluginGroups).toHaveBeenCalledWith(['plugin:test']);
-    expect(context.recomputeGroups).toHaveBeenCalledOnce();
-    expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
   });
 
   it('returns false for unrelated messages', async () => {

@@ -2,9 +2,9 @@
 
 ![Type Surface Diagram](./diagrams/type-surface.excalidraw)
 
-Diagram source: `docs-vscode/plugin-api/diagrams/type-surface.excalidraw`
+Diagram source: `docs/plugin-api/diagrams/type-surface.excalidraw`
 
-This document references the canonical type package in `packages-vscode/plugin-api/src`.
+This document references the canonical type package in `packages/plugin-api/src`.
 
 ## Import Surface
 
@@ -12,12 +12,16 @@ This document references the canonical type package in `packages-vscode/plugin-a
 import type {
   IPlugin,
   IAnalysisFile,
+  IAnalysisNode,
+  IAnalysisSymbol,
+  IAnalysisRelation,
+  IFileAnalysisResult,
+  IPluginNodeType,
+  IPluginEdgeType,
   CodeGraphyAPI,
   EventName,
   EventPayloads,
-  IConnection,
   IConnectionSource,
-  IConnectionDetector,
   IGraphNode,
   IGraphEdge,
   IGraphData,
@@ -52,10 +56,76 @@ Defined in `plugin.ts`.
 Key points:
 - `apiVersion: string` is required (for example `'^2.0.0'`).
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
-- `sources?: IConnectionSource[]` declares the plugin’s toggleable relation sources.
+- `sources?: IConnectionSource[]` declares the plugin’s relation provenance/source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
-- `detectConnections(filePath, content, workspaceRoot)` is required.
-- Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+- `analyzeFile(filePath, content, workspaceRoot)` is the plugin analysis hook for returning relations, symbols, and contributed node or edge types.
+- core builds the base file result first, then plugin results are merged on top in plugin order.
+- `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
+- Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+
+### Merge Rules
+
+Higher-priority plugins only override data when both sides hit the same merge key.
+
+- `nodeTypes`, `edgeTypes`, `nodes`, and `symbols` merge by `id`
+- `relations` merge by relation identity
+
+Current relation identity:
+
+- always: `kind`, `sourceId`, `fromFilePath`, `fromNodeId`, `fromSymbolId`, `specifier`, `type`, `variant`
+- additionally for `call` and `reference`: `toFilePath`, `toNodeId`, `toSymbolId`, `resolvedPath`
+
+Practical result:
+
+- imports/reexports/loads/inherits with the same source identity override each other
+- distinct calls/references to different targets coexist
+
+Example:
+
+```typescript
+// Core result
+{
+  filePath,
+  relations: [
+    {
+      kind: 'import',
+      sourceId: 'import',
+      fromFilePath: filePath,
+      specifier: '@app/shared',
+      toFilePath: '/repo/src/shared/index.ts',
+    },
+  ],
+}
+
+// Higher-priority plugin
+{
+  filePath,
+  relations: [
+    {
+      kind: 'import',
+      sourceId: 'import',
+      fromFilePath: filePath,
+      specifier: '@app/shared',
+      toFilePath: '/repo/packages/shared/src/index.ts',
+    },
+    {
+      kind: 'call',
+      sourceId: 'call',
+      fromFilePath: filePath,
+      fromSymbolId: `${filePath}:function:run`,
+      toFilePath: '/repo/src/lib-b.ts',
+      toSymbolId: '/repo/src/lib-b.ts:function:boot',
+      specifier: './lib',
+    },
+  ],
+}
+```
+
+Merged result:
+
+- the import keeps only the higher-priority plugin target
+- call/reference relations with different targets remain separate
+- graph edges also stay separate when relation `type` or `variant` differs, even if `from`, `to`, and `kind` match
 
 ### `IAnalysisFile`
 
@@ -73,27 +143,47 @@ interface IAnalysisFile {
 
 Defined in `api.ts`.
 
-Main groups:
+Main areas:
 - Events: `on`, `once`, `off`
 - Decorations: `decorateNode`, `decorateEdge`, `clearDecorations`
 - Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`
+  - these read from the projected repo-local index and current graph state, not only transient in-memory plugin output
 - Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
+  - `registerView` is a compatibility / future-facing hook for plugin-defined graph transforms; the current built-in product stays on one unified graph surface rather than exposing separate core Connections/Folder/Depth views
 - Tier 2 bridge: `sendToWebview`, `onWebviewMessage`
 - Export saving: `saveExport`
 - Utilities: `getWorkspaceRoot`, `log`
 
 ## Data Types
 
-### Connections (`connection.ts`)
+### Analysis (`analysis.ts`)
+
+- `IAnalysisNode`
+- `IAnalysisSymbol`
+- `IAnalysisRelation`
+- `IFileAnalysisResult`
+- `IPluginNodeType`
+- `IPluginEdgeType`
+
+### Connections and Provenance (`connection.ts`)
 
 - `IConnectionSource`
-- `IConnectionDetector<TContext>`
-- `IConnection` with `kind`, `sourceId`, optional `type`, optional `variant`, and scalar-only `metadata`
 - `IPluginFileColorDefinition` with `color`, optional `shape2D`, optional `shape3D`, and optional `imagePath`
+
+`connection.ts` is now only about source metadata: the relation families a plugin declares in `sources` so the host can preserve provenance in graph edges, inspectors, and exports.
+
+The public plugin API no longer exposes the old `IConnection` / `IConnectionDetector` analysis types. Plugins return `IFileAnalysisResult` objects from `analyzeFile(...)`, with relations expressed through `IAnalysisRelation`.
+
+`sourceId` is plugin-local. Use ids like `wikilink`, `import`, `preload`, or `call`.
+
+- plugin output: `sourceId: 'wikilink'`
+- merged graph provenance later: `id: 'codegraphy.markdown:wikilink'`
+
+If you see projected file-to-file edges inside the extension codebase, those are extension-internal compatibility shapes used by the current graph/timeline pipeline. They are not part of the public plugin API.
 
 ### Graph (`graph.ts`)
 
-- `NodeType` = `file | folder | package`
+- `NodeType` = core `file | folder | package` plus plugin-defined string node kinds
 - `IGraphNode` (id/label/color + optional position/favorite/size/access/depth fields)
 - `IGraphEdge` (`id`, `from`, `to`, `kind`, `sources[]`)
 - `IGraphEdgeSource` (`id`, `pluginId`, `sourceId`, `label`, optional `variant`, optional scalar `metadata`)
@@ -113,6 +203,8 @@ Main groups:
 - `ICommand`, `IContextMenuItem` in `commands.ts`
 - `IExporter`, `ExportRequest`, `IToolbarAction`, `IToolbarActionItem` in `api.ts`
 - `Disposable` in `disposable.ts`
+
+Plugin views are an optional compatibility surface for graph transforms layered on top of the unified graph. They are not the built-in way users switch the graph anymore, and the current host experience stays centered on one unified surface.
 
 ## Webview Types (Tier 2)
 

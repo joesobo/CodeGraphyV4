@@ -28,4 +28,16 @@ describe('graph/layoutKey', () => {
       ),
     ).toBe('uniform::::');
   });
+
+  it('joins multiple link identifiers with the pipe separator', () => {
+    expect(
+      buildGraphLayoutKey(
+        {
+          nodes: [{ id: 'src/a.ts' }] as never,
+          links: [{ id: 'edge-1' }, { id: 'edge-2' }] as never,
+        },
+        'connections',
+      ),
+    ).toBe('connections::src/a.ts::edge-1|edge-2');
+  });
 });

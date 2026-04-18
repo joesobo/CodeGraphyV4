@@ -22,29 +22,35 @@ describe('gitHistory/fullCommitAnalysis', () => {
       return 'export const value = 1;';
     });
     const registry = {
-      analyzeFile: vi.fn(async (absolutePath: string) => {
+      analyzeFileResult: vi.fn(async (absolutePath: string) => {
         if (absolutePath.endsWith('a.ts')) {
-          return [
-            {
-              resolvedPath: '/workspace/src/b.ts',
-              sourceId: 'import',
-              specifier: './b',
-              type: 'static' as const,
-              kind: 'import' as const,
-            },
-            {
-              resolvedPath: '/workspace/src/missing.ts',
-              specifier: './missing',
-              type: 'static' as const,
-              sourceId: 'import',
-              kind: 'import' as const,
-            },
-          ];
+          return {
+            filePath: absolutePath,
+            relations: [
+              {
+                resolvedPath: '/workspace/src/b.ts',
+                sourceId: 'import',
+                specifier: './b',
+                type: 'static' as const,
+                kind: 'import' as const,
+                pluginId: 'ts',
+                fromFilePath: absolutePath,
+              },
+              {
+                resolvedPath: '/workspace/src/missing.ts',
+                specifier: './missing',
+                type: 'static' as const,
+                sourceId: 'import',
+                kind: 'import' as const,
+                pluginId: 'ts',
+                fromFilePath: absolutePath,
+              },
+            ],
+          };
         }
 
-        return [];
+        return { filePath: absolutePath, relations: [] };
       }),
-      getPluginForFile: vi.fn(() => ({ id: 'ts' })),
     };
 
     const result = await analyzeFullCommitGraph({
@@ -61,7 +67,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
     expect(result.nodes.map((node) => node.id)).toEqual(['src/a.ts', 'src/b.ts']);
     expect(result.edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts#import',
+        id: 'src/a.ts->src/b.ts#import:static',
         from: 'src/a.ts',
         to: 'src/b.ts',
         kind: 'import',
@@ -76,7 +82,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
       },
     ]);
     expect(getFileAtCommit).toHaveBeenCalledTimes(2);
-    expect(registry.analyzeFile).toHaveBeenCalledTimes(2);
+    expect(registry.analyzeFileResult).toHaveBeenCalledTimes(2);
   });
 
   it('throws an abort error when the signal is aborted during the analysis loop', async () => {
@@ -91,7 +97,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
         allFiles: ['src/a.ts', 'src/b.ts'],
         getFileAtCommit,
         registry: {
-          analyzeFile: vi.fn(async () => []),
+          analyzeFileResult: vi.fn(async (absolutePath: string) => ({ filePath: absolutePath, relations: [] })),
         },
         sha: 'abc123',
         shouldExclude: () => false,

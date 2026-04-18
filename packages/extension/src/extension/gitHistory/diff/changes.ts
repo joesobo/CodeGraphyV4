@@ -1,14 +1,14 @@
-import type { IConnection } from '../../../core/plugins/types/contracts';
-import type { IGraphEdge, IGraphNode } from '../../../shared/graph/types';
+import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type { IGraphEdge, IGraphNode } from '../../../shared/graph/contracts';
 import { createGitHistoryNode } from '../fullCommitAnalysis';
 import { reanalyzeGraphFile, removeOutgoingGitHistoryEdges } from '../reanalyzeGraphFile';
 
 interface DiffGraphChangeRegistry {
-  analyzeFile(
+  analyzeFileResult(
     absolutePath: string,
     content: string,
     workspaceRoot: string,
-  ): Promise<IConnection[]>;
+  ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
   supportsFile(filePath: string): boolean;
 }

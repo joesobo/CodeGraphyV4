@@ -3,11 +3,11 @@ import type { IViewContext } from '../../../../core/views/contracts';
 import type { ViewRegistry } from '../../../../core/views/registry';
 import { DecorationManager } from '../../../../core/plugins/decoration/manager';
 import { EventBus } from '../../../../core/plugins/events/bus';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
-import { WorkspaceAnalyzer } from '../../../workspaceAnalyzer/service';
+import { WorkspacePipeline } from '../../../pipeline/service/lifecycleFacade';
 import type {
   GraphViewProviderAnalysisMethods,
   GraphViewProviderAnalysisMethodsSource,
@@ -31,11 +31,11 @@ import type {
 import type {
   GraphViewProviderPluginMethods,
   GraphViewProviderPluginMethodsSource,
-} from '../plugins';
+} from '../plugin/methods';
 import type {
   GraphViewProviderPluginResourceMethods,
   GraphViewProviderPluginResourceMethodsSource,
-} from '../pluginResources';
+} from '../plugin/resources';
 import type {
   GraphViewProviderRefreshMethods,
   GraphViewProviderRefreshMethodsSource,
@@ -48,7 +48,7 @@ import type {
 import type {
   GraphViewProviderTimelineMethods,
   GraphViewProviderTimelineMethodsSource,
-} from '../timeline/types';
+} from '../timeline/contracts';
 import type {
   GraphViewProviderViewContextMethods,
   GraphViewProviderViewContextMethodsSource,
@@ -96,22 +96,21 @@ export interface GraphViewProviderMethodSourceOwner {
   _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
   _graphData: IGraphData;
-  _analyzer?: WorkspaceAnalyzer;
+  _analyzer?: WorkspacePipeline;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
   _analysisController?: AbortController;
   _analysisRequestId: number;
+  _changedFilePaths?: string[];
   _viewRegistry: ViewRegistry;
-  _activeViewId: string;
+  _depthMode: boolean;
   _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
   _rawGraphData: IGraphData;
   _viewContext: IViewContext;
   _groups: IGroup[];
   _userGroups: IGroup[];
-  _hiddenPluginGroupIds: Set<string>;
   _filterPatterns: string[];
-  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _gitAnalyzer?: GitHistoryAnalyzer;
   _currentCommitSha?: string;

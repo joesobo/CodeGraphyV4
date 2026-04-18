@@ -18,7 +18,7 @@ describe('graphView/provider/webview/editor', () => {
     const createHtml = vi.fn(() => '<graph html />');
     const setWebviewMessageListener = vi.fn();
     const openInEditor = vi.fn(options => {
-      const nextPanel = options.createPanel('codegraphy.graphView', 'CodeGraphy', vscode.ViewColumn.Active, {
+      const nextPanel = options.createPanel('codegraphy.graphView', 'CodeGraphy', vscode.ViewColumn.Beside, {
         enableScripts: true,
         localResourceRoots: [{ fsPath: '/test/root' }],
         retainContextWhenHidden: true,
@@ -48,7 +48,7 @@ describe('graphView/provider/webview/editor', () => {
     expect(createPanel).toHaveBeenCalledWith(
       'codegraphy.graphView',
       'CodeGraphy',
-      expect.any(Number),
+      vscode.ViewColumn.Beside,
       expect.objectContaining({
         enableScripts: true,
         localResourceRoots: expect.arrayContaining([
@@ -60,5 +60,34 @@ describe('graphView/provider/webview/editor', () => {
     expect(setWebviewMessageListener).toHaveBeenCalledWith(panel.webview, source);
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, panel.webview, 'graph');
     expect(source._panels).toEqual([]);
+  });
+
+  it('reuses an existing registered panel when opening from the sidebar again', () => {
+    const existingPanel = {
+      reveal: vi.fn(),
+    } as unknown as vscode.WebviewPanel;
+    const createPanel = vi.fn();
+    const openInEditor = vi.fn(options => {
+      options.getPanels()[0]?.reveal?.(vscode.ViewColumn.Beside);
+    });
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _panels: [existingPanel],
+      _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
+    };
+
+    openGraphViewProviderWebviewInEditor(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml: vi.fn(() => '<graph html />'),
+      createPanel,
+      openInEditor,
+      setWebviewMessageListener: vi.fn(),
+    });
+
+    expect(openInEditor).toHaveBeenCalledOnce();
+    expect(existingPanel.reveal).toHaveBeenCalledWith(vscode.ViewColumn.Beside);
+    expect(createPanel).not.toHaveBeenCalled();
   });
 });

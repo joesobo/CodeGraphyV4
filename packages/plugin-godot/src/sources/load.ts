@@ -5,15 +5,16 @@
  */
 
 import * as path from 'path';
-import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { isResPath, normalizePath } from '../parser';
 
 /** Detects load() calls: load("res://..."), ResourceLoader.load("res://...") */
-export function detect(content: string, _filePath: string, ctx: GDScriptRuleContext): IConnection[] {
-  const connections: IConnection[] = [];
+export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelation[] {
+  const relations: IAnalysisRelation[] = [];
   const lines = content.split('\n');
   const regex = /(?<!pre)(?:ResourceLoader\.)?load\s*\(\s*["']([^"']+)["']\s*\)/g;
+  const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
   for (let i = 0; i < lines.length; i++) {
     const lineWithoutComment = lines[i].split('#')[0];
@@ -25,23 +26,26 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
       const resPath = match[1];
       if (isResPath(resPath)) {
         const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
-        connections.push({
+        const resolvedPath = resolved ? normalizePath(path.join(projectRoot, resolved)) : null;
+        relations.push({
           kind: 'load',
           specifier: resPath,
-          resolvedPath: resolved ? normalizePath(path.join(ctx.workspaceRoot, resolved)) : null,
+          resolvedPath,
           type: 'dynamic',
           sourceId: 'load',
+          fromFilePath: filePath,
+          toFilePath: resolvedPath,
         });
       }
     }
   }
 
-  return connections;
+  return relations;
 }
 
-class LoadRule implements IConnectionDetector<GDScriptRuleContext> {
-	readonly id = 'load';
-	readonly detect = detect;
+class LoadRule {
+    readonly id = 'load';
+    readonly detect = detect;
 }
 
 const rule = new LoadRule();

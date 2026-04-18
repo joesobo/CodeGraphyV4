@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 
 const mocks = vi.hoisted(() => {
   let workspaceFolders: { uri: { fsPath: string } }[] | undefined = [{ uri: { fsPath: '/workspace' } }];
@@ -116,7 +116,6 @@ describe('graph view provider timeline default dependencies', () => {
       _timelineActive: false,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _sendMessage: vi.fn(),
     };
@@ -165,7 +164,6 @@ describe('graph view provider timeline default dependencies', () => {
       } as never,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(['plugin.test']),
-      _disabledSources: new Set<string>(['rule.test']),
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _sendMessage: vi.fn(),
     };
@@ -185,7 +183,6 @@ describe('graph view provider timeline default dependencies', () => {
       { nodes: ['raw'], edges: [] },
       {
         disabledPlugins: new Set<string>(['plugin.test']),
-        disabledSources: new Set<string>(['rule.test']),
         showOrphans: true,
         workspaceRoot: undefined,
         registry: undefined,

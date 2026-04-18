@@ -1,14 +1,37 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
+import { publishAnalysisFailure } from './execution/publish';
+import { prepareGraphViewAnalysis } from './execution/prepare';
+import { runGraphViewAnalysis } from './execution/run';
 
-const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
+export type GraphViewAnalysisMode = 'analyze' | 'load' | 'index' | 'refresh' | 'incremental';
+export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
 
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
-  analyze(
+  hasIndex(): boolean;
+  discoverGraph(
     filterPatterns?: string[],
-    disabledSources?: Set<string>,
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
+  ): Promise<IGraphData>;
+  analyze(
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
+  ): Promise<IGraphData>;
+  refreshIndex?(
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
+  ): Promise<IGraphData>;
+  refreshChangedFiles?(
+    filePaths: readonly string[],
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<IGraphData>;
   registry: {
     notifyPostAnalyze(graph: IGraphData): void;
@@ -20,8 +43,9 @@ export interface GraphViewAnalysisExecutionState {
   analyzerInitialized: boolean;
   analyzerInitPromise: Promise<void> | undefined;
   installedPluginActivationPromise?: Promise<void>;
+  mode: GraphViewAnalysisMode;
+  changedFilePaths?: readonly string[];
   filterPatterns: string[];
-  disabledSources: Set<string>;
   disabledPlugins: Set<string>;
 }
 
@@ -32,7 +56,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   setGraphData(graphData: IGraphData): void;
   getGraphData(): IGraphData;
   sendGraphDataUpdated(graphData: IGraphData): void;
-  sendAvailableViews(): void;
+  sendDepthState(): void;
   computeMergedGroups(): void;
   sendGroupsUpdated(): void;
   updateViewContext(): void;
@@ -40,19 +64,13 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendPluginStatuses(): void;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendGraphIndexStatusUpdated(hasIndex: boolean): void;
+  sendIndexProgress?(progress: GraphViewIndexingProgress): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
   markWorkspaceReady(graphData: IGraphData): void;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
-}
-
-function publishEmptyGraph(handlers: GraphViewAnalysisExecutionHandlers): IGraphData {
-  handlers.setRawGraphData(EMPTY_GRAPH_DATA);
-  handlers.setGraphData(EMPTY_GRAPH_DATA);
-  handlers.sendGraphDataUpdated(EMPTY_GRAPH_DATA);
-  handlers.sendAvailableViews();
-  return EMPTY_GRAPH_DATA;
 }
 
 export async function executeGraphViewAnalysis(
@@ -61,74 +79,18 @@ export async function executeGraphViewAnalysis(
   state: GraphViewAnalysisExecutionState,
   handlers: GraphViewAnalysisExecutionHandlers,
 ): Promise<void> {
-  if (handlers.isAnalysisStale(signal, requestId)) return;
-
-  if (!state.analyzer) {
-    publishEmptyGraph(handlers);
-    return;
-  }
-
-  await (state.installedPluginActivationPromise ?? Promise.resolve());
-  if (handlers.isAnalysisStale(signal, requestId)) return;
-
-  if (!state.analyzerInitialized) {
-    if (!state.analyzerInitPromise) {
-      state.analyzerInitPromise = state.analyzer
-        .initialize()
-        .then(() => {
-          state.analyzerInitialized = true;
-        })
-        .finally(() => {
-          state.analyzerInitPromise = undefined;
-        });
-    }
-
-    await state.analyzerInitPromise;
-    if (handlers.isAnalysisStale(signal, requestId)) return;
-  }
-
-  handlers.computeMergedGroups();
-  if (handlers.isAnalysisStale(signal, requestId)) return;
-  handlers.sendGroupsUpdated();
-
-  if (!handlers.hasWorkspace()) {
-    publishEmptyGraph(handlers);
+  if (!(await prepareGraphViewAnalysis(signal, requestId, state, handlers))) {
     return;
   }
 
   try {
-    const rawGraphData = await state.analyzer.analyze(
-      state.filterPatterns,
-      state.disabledSources,
-      state.disabledPlugins,
-      signal,
-    );
-    if (handlers.isAnalysisStale(signal, requestId)) return;
-
-    handlers.setRawGraphData(rawGraphData);
-    handlers.updateViewContext();
-    handlers.applyViewTransform();
-
-    const graphData = handlers.getGraphData();
-    handlers.sendGraphDataUpdated(graphData);
-    handlers.sendAvailableViews();
-    handlers.sendPluginStatuses();
-    handlers.sendDecorations();
-    handlers.sendContextMenuItems();
-    handlers.sendPluginExporters?.();
-    handlers.sendPluginToolbarActions?.();
-    state.analyzer.registry.notifyPostAnalyze(graphData);
-    handlers.markWorkspaceReady(graphData);
+    await runGraphViewAnalysis(signal, requestId, state, handlers);
   } catch (error) {
     if (handlers.isAbortError(error) || handlers.isAnalysisStale(signal, requestId)) {
       return;
     }
 
     handlers.logError('[CodeGraphy] Analysis failed:', error);
-    const graphData = publishEmptyGraph(handlers);
-    handlers.sendPluginStatuses();
-    handlers.sendPluginExporters?.();
-    handlers.sendPluginToolbarActions?.();
-    handlers.markWorkspaceReady(graphData);
+    publishAnalysisFailure(handlers);
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../../src/shared/timeline/types';
+import type { ICommitInfo } from '../../../../src/shared/timeline/contracts';
 import {
   invalidateGraphViewTimelineCache,
   sendCachedGraphViewTimeline,

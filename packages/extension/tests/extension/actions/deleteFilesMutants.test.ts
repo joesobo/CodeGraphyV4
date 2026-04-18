@@ -107,7 +107,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
@@ -121,7 +121,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
   });
@@ -157,7 +157,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         [],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
@@ -171,7 +171,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         [],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
   });
@@ -298,7 +298,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         ['keep.ts', 'also-keep.ts'],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
   });

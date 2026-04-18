@@ -1,6 +1,6 @@
 import type { BuildSharedGraphPropsOptions } from './rendering/surface/sharedProps';
-import type { UseGraphInteractionRuntimeResult } from './runtime/use/graph/interaction';
-import type { UseGraphStateResult } from './runtime/use/graph/state';
+import type { UseGraphInteractionRuntimeResult } from './runtime/use/interaction';
+import type { UseGraphStateResult } from './runtime/use/state';
 import type { DagMode } from '../../../shared/settings/modes';
 
 export function buildGraphSharedPropsOptions({

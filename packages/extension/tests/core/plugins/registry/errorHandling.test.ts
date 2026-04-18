@@ -13,9 +13,9 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.test'],
-    detectConnections: vi.fn().mockResolvedValue([]),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 function createConfiguredRegistry() {
@@ -154,7 +154,7 @@ describe('PluginRegistry error handling', () => {
     const failure = new Error('Parse error');
     const plugin = createPlugin('analysis-plugin', {
       supportedExtensions: ['.ts'],
-      detectConnections: vi.fn().mockRejectedValue(failure),
+      analyzeFile: vi.fn().mockRejectedValue(failure),
     });
 
     registry.register(plugin);

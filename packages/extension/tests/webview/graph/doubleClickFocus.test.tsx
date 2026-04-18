@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, act } from '@testing-library/react';
-import Graph from '../../../src/webview/components/Graph';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import { render, act, screen, waitFor } from '@testing-library/react';
+import Graph from '../../../src/webview/components/graph/view';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';
 import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
@@ -15,6 +15,12 @@ const graphData: IGraphData = {
   ],
   edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
 };
+
+async function waitForThreeDimensionalSurface(): Promise<void> {
+  await waitFor(() => {
+    expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
+  });
+}
 
 describe('Graph double-click behavior', () => {
   beforeEach(() => {
@@ -69,6 +75,7 @@ describe('Graph double-click behavior', () => {
     methods.zoomToFit.mockClear();
 
     render(<Graph data={graphData} />);
+    await waitForThreeDimensionalSurface();
 
     await act(async () => {
       ForceGraph3D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 120, clientY: 120 });

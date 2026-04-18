@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../graphViewProvider';
-import { hasVisibleWorkspaceFileEditor } from './visibleWorkspaceEditor';
+import { hasVisibleWorkspaceFileEditor } from './visibleEditor';
 
 const ACTIVE_EDITOR_CLEAR_DELAY_MS = 150;
 const pendingFocusedFileClears = new WeakMap<GraphViewProvider, ReturnType<typeof setTimeout>>();

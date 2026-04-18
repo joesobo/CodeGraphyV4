@@ -3,12 +3,13 @@ process.env.CODEGRAPHY_VITEST_SCOPE = process.env.CODEGRAPHY_VITEST_SCOPE ?? 'wo
 module.exports = {
   $schema: 'https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-core.schema.json',
   packageManager: 'pnpm',
-  testRunner: 'vitest',
+  testRunner: 'codegraphy-vitest',
   plugins: [
+    './packages/quality-tools/stryker/codegraphy-vitest-runner.mjs',
     '@stryker-mutator/vitest-runner',
   ],
   vitest: {
-    configFile: 'packages/extension/vitest.stryker.config.ts',
+    configFile: 'packages/extension/vitest.config.ts',
     related: false,
   },
   reporters: [
@@ -22,7 +23,13 @@ module.exports = {
   htmlReporter: {
     fileName: 'reports/mutation/mutation.html',
   },
+  concurrency: 1,
   coverageAnalysis: 'perTest',
+  maxTestRunnerReuse: 1,
+  testRunnerNodeArgs: [
+    '--max-old-space-size=8192',
+  ],
+  dryRunTimeoutMinutes: 30,
   incremental: true,
   incrementalFile: 'reports/mutation/stryker-incremental.json',
   ignorePatterns: [

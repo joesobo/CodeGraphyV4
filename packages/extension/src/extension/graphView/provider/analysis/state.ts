@@ -1,4 +1,5 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { GraphViewAnalysisMode } from '../../analysis/execution';
 import type { GraphViewProviderAnalysisState } from '../../analysis/lifecycle';
 import type { GraphViewProviderAnalysisMethodsSource } from './methods';
 
@@ -9,6 +10,7 @@ interface GraphViewProviderWorkspaceReadyState {
 
 export function createGraphViewProviderAnalysisState(
   source: GraphViewProviderAnalysisMethodsSource,
+  mode: GraphViewAnalysisMode,
 ): GraphViewProviderAnalysisState {
   return {
     get analysisController() {
@@ -44,17 +46,18 @@ export function createGraphViewProviderAnalysisState(
     get installedPluginActivationPromise() {
       return source._installedPluginActivationPromise;
     },
+    get changedFilePaths() {
+      return source._changedFilePaths;
+    },
+    set changedFilePaths(filePaths) {
+      source._changedFilePaths = [...(filePaths ?? [])];
+    },
+    mode,
     get filterPatterns() {
       return source._filterPatterns;
     },
     set filterPatterns(filterPatterns) {
       source._filterPatterns = filterPatterns;
-    },
-    get disabledSources() {
-      return source._disabledSources;
-    },
-    set disabledSources(disabledSources) {
-      source._disabledSources = disabledSources;
     },
     get disabledPlugins() {
       return source._disabledPlugins;
@@ -80,6 +83,7 @@ export function syncGraphViewProviderAnalysisExecutionState(
   syncGraphViewProviderAnalysisState(source, state);
   source._analyzerInitialized = state.analyzerInitialized;
   source._analyzerInitPromise = state.analyzerInitPromise;
+  source._changedFilePaths = [...(state.changedFilePaths ?? [])];
 }
 
 export function createGraphViewProviderWorkspaceReadyState(

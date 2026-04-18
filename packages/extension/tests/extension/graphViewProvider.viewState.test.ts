@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../src/shared/graph/types';
+import type { IGraphData } from '../../src/shared/graph/contracts';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
+import { resetCurrentCodeGraphyConfigurationForTest } from '../../src/extension/repoSettings/current';
 import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
   | undefined;
+let currentConfiguration: ReturnType<typeof createConfiguration>;
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
@@ -36,22 +38,19 @@ function createConfiguration(values: Record<string, unknown>) {
 
 describe('GraphViewProvider view state and internal helpers', () => {
   beforeEach(() => {
+    resetCurrentCodeGraphyConfigurationForTest();
     workspaceFoldersValue = [
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
     ];
+    currentConfiguration = createConfiguration({});
     (vscode.workspace as unknown as { getConfiguration: ReturnType<typeof vi.fn> }).getConfiguration =
-      vi.fn((section?: string) => {
-        if (section === 'codegraphy.physics') {
-          return createConfiguration({});
-        }
-        return createConfiguration({});
-      });
+      vi.fn(() => currentConfiguration);
     (vscode.workspace as unknown as { asRelativePath: ReturnType<typeof vi.fn> }).asRelativePath =
       vi.fn((uri: vscode.Uri) => uri.fsPath.replace('/test/workspace/', ''));
     vi.clearAllMocks();
   });
 
-  it('allows switching to depth view without a focused file', async () => {
+  it('allows enabling depth mode without a focused file', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
@@ -67,23 +66,26 @@ describe('GraphViewProvider view state and internal helpers', () => {
       '_sendMessage'
     ).mockImplementation(() => {});
 
-    await provider.changeView('codegraphy.depth-graph');
+    await provider.setDepthMode(true);
 
-    expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
-      'codegraphy.depth-graph'
-    );
-    expect(context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
-      'codegraphy.depth-graph'
+    expect((provider as unknown as { _depthMode: boolean })._depthMode).toBe(true);
+    expect(currentConfiguration.update).toHaveBeenCalledWith(
+      'depthMode',
+      true,
+      undefined,
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
+    expect(sendMessageSpy).toHaveBeenCalledWith({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
+    });
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
   });
 
-  it('persists and broadcasts available view changes when a target view is available', async () => {
+  it('persists depth mode and refreshes graph data when depth mode is enabled', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
@@ -95,40 +97,38 @@ describe('GraphViewProvider view state and internal helpers', () => {
       internals._viewContextMethods,
       '_applyViewTransform'
     ).mockImplementation(() => {});
-    const sendViewsSpy = vi.spyOn(
-      internals._viewContextMethods,
-      '_sendAvailableViews'
-    ).mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
       internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
-    await provider.changeView('codegraphy.depth-graph');
+    await provider.setDepthMode(true);
 
-    expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
-      'codegraphy.depth-graph'
-    );
-    expect(context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
-      'codegraphy.depth-graph'
+    expect((provider as unknown as { _depthMode: boolean })._depthMode).toBe(true);
+    expect(currentConfiguration.update).toHaveBeenCalledWith(
+      'depthMode',
+      true,
+      undefined,
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
-    expect(sendViewsSpy).toHaveBeenCalledTimes(1);
+    expect(sendMessageSpy).toHaveBeenCalledWith({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
+    });
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
   });
 
-  it('clamps depth limits and re-sends graph data when the depth graph is active', async () => {
+  it('clamps depth limits and re-sends graph data when depth mode is active', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    (provider as unknown as { _activeViewId: string })._activeViewId = 'codegraphy.depth-graph';
+    (provider as unknown as { _depthMode: boolean })._depthMode = true;
     const applySpy = vi.spyOn(
       internals._viewContextMethods,
       '_applyViewTransform'
@@ -141,7 +141,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     await provider.setDepthLimit(99);
 
     expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(10);
-    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.depthLimit', 10);
+    expect(currentConfiguration.update).toHaveBeenCalledWith('depthLimit', 10, undefined);
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',
@@ -172,7 +172,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     await provider.setDepthLimit(0);
 
     expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(1);
-    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.depthLimit', 1);
+    expect(currentConfiguration.update).toHaveBeenCalledWith('depthLimit', 1, undefined);
     expect(applySpy).not.toHaveBeenCalled();
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',
@@ -194,7 +194,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
           particleSpeed: 0.02,
           particleSize: 7,
           directionColor: '#00ff00',
-          folderNodeColor: '#112233',
           showLabels: false,
         })
       );
@@ -211,9 +210,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
     internals._settingsStateMethods._sendSettings();
 
-    expect((provider as unknown as { _viewContext: { folderNodeColor: string } })._viewContext.folderNodeColor).toBe(
-      '#112233'
-    );
     expect(sendMessageSpy).toHaveBeenNthCalledWith(1, {
       type: 'SETTINGS_UPDATED',
       payload: { bidirectionalEdges: 'combined', showOrphans: false },
@@ -228,10 +224,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
       },
     });
     expect(sendMessageSpy).toHaveBeenNthCalledWith(3, {
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#112233' },
-    });
-    expect(sendMessageSpy).toHaveBeenNthCalledWith(4, {
       type: 'SHOW_LABELS_UPDATED',
       payload: { showLabels: false },
     });
@@ -239,18 +231,15 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
   it('sends physics settings from configuration', () => {
     (vscode.workspace as unknown as { getConfiguration: ReturnType<typeof vi.fn> }).getConfiguration =
-      vi.fn((section?: string) => {
-        if (section === 'codegraphy.physics') {
-          return createConfiguration({
-            repelForce: 14,
-            linkDistance: 90,
-            linkForce: 0.25,
-            damping: 0.6,
-            centerForce: 0.2,
-          });
-        }
-        return createConfiguration({});
-      });
+      vi.fn(() =>
+        createConfiguration({
+          'physics.repelForce': 14,
+          'physics.linkDistance': 90,
+          'physics.linkForce': 0.25,
+          'physics.damping': 0.6,
+          'physics.centerForce': 0.2,
+        })
+      );
 
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
@@ -320,7 +309,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     ).mockImplementation(() => {});
     const sendViewsSpy = vi.spyOn(
       internals._viewContextMethods,
-      '_sendAvailableViews'
+      '_sendDepthState'
     ).mockImplementation(() => {});
     const sendStatusesSpy = vi.spyOn(
       internals._pluginMethods,
@@ -337,7 +326,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
     internals._refreshMethods._rebuildAndSend();
 
-    expect(rebuildGraph).toHaveBeenCalledWith(new Set(), new Set(), false);
+    expect(rebuildGraph).toHaveBeenCalledWith(new Set(), false);
     expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual(graphData);
     expect(updateViewContextSpy).toHaveBeenCalledTimes(1);
     expect(applySpy).toHaveBeenCalledTimes(1);

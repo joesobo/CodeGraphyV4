@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import App from '../../src/webview/app/App';
+import App from '../../src/webview/app/view';
 
 // Track message listeners
 const messageListeners: ((event: MessageEvent) => void)[] = [];

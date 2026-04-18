@@ -5,6 +5,48 @@ import type { GraphViewProviderSidebarViewSource } from './sidebarViews';
 export interface GraphViewProviderWebviewResolveSource extends GraphViewProviderSidebarViewSource {
   _extensionUri: vscode.Uri;
   _getLocalResourceRoots(): vscode.Uri[];
+  flushPendingWorkspaceRefresh?(): void;
+}
+
+function isTimelineWebviewView(webviewView: vscode.WebviewView): boolean {
+  return webviewView.viewType === 'codegraphy.timelineView';
+}
+
+function assignResolvedWebviewView(
+  source: GraphViewProviderWebviewResolveSource,
+  webviewView: vscode.WebviewView,
+  isTimelineView: boolean,
+): void {
+  if (isTimelineView) {
+    source._timelineView = webviewView;
+    return;
+  }
+
+  source._view = webviewView;
+}
+
+function clearResolvedWebviewView(
+  source: GraphViewProviderWebviewResolveSource,
+  webviewView: vscode.WebviewView,
+  isTimelineView: boolean,
+): void {
+  if (isTimelineView && source._timelineView === webviewView) {
+    source._timelineView = undefined;
+  }
+
+  if (!isTimelineView && source._view === webviewView) {
+    source._view = undefined;
+  }
+}
+
+function maybeFlushPendingWorkspaceRefresh(
+  source: GraphViewProviderWebviewResolveSource,
+  webviewView: vscode.WebviewView,
+  isTimelineView: boolean,
+): void {
+  if (!isTimelineView && webviewView.visible) {
+    source.flushPendingWorkspaceRefresh?.();
+  }
 }
 
 export function resolveGraphViewProviderWebviewView(
@@ -15,21 +57,15 @@ export function resolveGraphViewProviderWebviewView(
   >,
   webviewView: vscode.WebviewView,
 ): void {
-  const isTimelineView = webviewView.viewType === 'codegraphy.timelineView';
-  if (isTimelineView) {
-    source._timelineView = webviewView;
-  } else {
-    source._view = webviewView;
-  }
+  const isTimelineView = isTimelineWebviewView(webviewView);
+  assignResolvedWebviewView(source, webviewView, isTimelineView);
 
   webviewView.onDidDispose(() => {
-    if (isTimelineView && source._timelineView === webviewView) {
-      source._timelineView = undefined;
-    }
+    clearResolvedWebviewView(source, webviewView, isTimelineView);
+  });
 
-    if (!isTimelineView && source._view === webviewView) {
-      source._view = undefined;
-    }
+  webviewView.onDidChangeVisibility(() => {
+    maybeFlushPendingWorkspaceRefresh(source, webviewView, isTimelineView);
   });
 
   dependencies.resolveWebviewView(webviewView, {
@@ -41,8 +77,10 @@ export function resolveGraphViewProviderWebviewView(
         source._extensionUri,
         nextWebview,
         isTimelineView ? 'timeline' : 'graph',
-    ),
+      ),
     executeCommand: (command: string, key: string, value: boolean) =>
       dependencies.executeCommand(command, key, value),
   } as never);
+
+  maybeFlushPendingWorkspaceRefresh(source, webviewView, isTimelineView);
 }

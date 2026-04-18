@@ -23,7 +23,7 @@ function isExcludedDirectory(name: string): boolean {
   if (isHidden(name)) {
     return true;
   }
-  return name === 'node_modules';
+  return name === 'node_modules' || name === 'coverage' || name === 'reports' || name === 'dist' || name === 'dist-e2e';
 }
 
 function isTypeScriptOrJavaScriptFile(name: string): boolean {

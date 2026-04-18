@@ -70,7 +70,6 @@ export default defineConfig(
       'packages/**/__tests__/**/*.{ts,tsx}',
       'packages/**/vite.config.ts',
       'packages/**/vitest*.config.ts',
-      'packages/plugin-typescript/examples/**/*.{ts,tsx}',
     ],
     ...tseslint.configs.disableTypeChecked,
   },

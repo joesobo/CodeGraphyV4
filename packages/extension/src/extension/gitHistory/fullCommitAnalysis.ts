@@ -1,15 +1,15 @@
 import * as path from 'path';
-import type { IConnection } from '../../core/plugins/types/contracts';
+import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
 import { getFileColor } from '../../shared/fileColors';
-import type { IGraphData, IGraphEdge, IGraphNode } from '../../shared/graph/types';
-import { appendGitHistoryConnectionEdges } from './graphConnections';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../shared/graph/contracts';
+import { appendGitHistoryAnalysisEdges } from './graphConnections';
 
 interface FullCommitAnalysisRegistry {
-  analyzeFile(
+  analyzeFileResult(
     absolutePath: string,
     content: string,
     workspaceRoot: string,
-  ): Promise<IConnection[]>;
+  ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
 }
 
@@ -55,7 +55,8 @@ export async function analyzeFullCommitGraph(
       return false;
     }
 
-    return supportedExtensions.has(path.extname(filePath).toLowerCase());
+    const extension = path.extname(filePath).toLowerCase();
+    return supportedExtensions.has('*') || supportedExtensions.has(extension);
   });
 
   const nodes: IGraphNode[] = [];
@@ -72,7 +73,7 @@ export async function analyzeFullCommitGraph(
 
     const content = await getFileAtCommit(sha, filePath, signal);
     const absolutePath = path.join(workspaceRoot, filePath);
-    const connections = await registry.analyzeFile(absolutePath, content, workspaceRoot);
+    const analysis = await registry.analyzeFileResult(absolutePath, content, workspaceRoot);
     const plugin = registry.getPluginForFile?.(absolutePath);
 
     if (!nodeIds.has(filePath)) {
@@ -80,8 +81,8 @@ export async function analyzeFullCommitGraph(
       nodes.push(createGitHistoryNode(filePath));
     }
 
-    appendGitHistoryConnectionEdges({
-      connections,
+    appendGitHistoryAnalysisEdges({
+      analysis,
       edgeSet,
       edges,
       plugin,

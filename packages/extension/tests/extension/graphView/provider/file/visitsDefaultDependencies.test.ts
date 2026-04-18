@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 
 const mocks = vi.hoisted(() => {
   let workspaceFolders: { uri: { fsPath: string } }[] | undefined = undefined;

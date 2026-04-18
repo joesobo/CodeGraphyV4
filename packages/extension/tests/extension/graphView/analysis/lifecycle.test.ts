@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import {
   executeGraphViewProviderAnalysis,
   isGraphViewAbortError,
@@ -19,9 +19,22 @@ function createState(
     analyzer: undefined,
     analyzerInitialized: false,
     analyzerInitPromise: undefined,
+    mode: 'analyze',
     filterPatterns: [],
-    disabledSources: new Set<string>(),
     disabledPlugins: new Set<string>(),
+    ...overrides,
+  };
+}
+
+function createAnalyzer(overrides: Partial<NonNullable<GraphViewProviderAnalysisState['analyzer']>> = {}) {
+  return {
+    initialize: vi.fn(async () => undefined),
+    hasIndex: vi.fn(() => true),
+    discoverGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
+    analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+    registry: {
+      notifyPostAnalyze: vi.fn(),
+    },
     ...overrides,
   };
 }
@@ -39,7 +52,7 @@ function createHandlers(
     }),
     getGraphData: vi.fn(() => graphData),
     sendGraphDataUpdated: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     computeMergedGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     updateViewContext: vi.fn(),
@@ -47,6 +60,7 @@ function createHandlers(
     sendPluginStatuses: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
+    sendGraphIndexStatusUpdated: vi.fn(),
     markWorkspaceReady: vi.fn(),
     isAnalysisStale: vi.fn(() => false),
     isAbortError: vi.fn(() => false),
@@ -76,13 +90,30 @@ describe('graph view provider analysis lifecycle helper', () => {
     expect(state.analysisRequestId).toBe(1);
     expect(state.analysisController).toBeUndefined();
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith({ nodes: [], edges: [] });
-    expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(handlers.sendDepthState).toHaveBeenCalledOnce();
     expect(updateAnalysisController).toHaveBeenNthCalledWith(
       1,
       expect.any(AbortController),
     );
     expect(updateAnalysisController).toHaveBeenLastCalledWith(undefined);
     expect(updateAnalysisRequestId).toHaveBeenCalledWith(1);
+  });
+
+  it('updates request state even when optional request update callbacks are absent', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      runGraphViewProviderAnalysisRequest(state, {
+        executeAnalysis: (signal, requestId) =>
+          executeGraphViewProviderAnalysis(signal, requestId, state, handlers),
+        isAbortError: error => isGraphViewAbortError(error),
+        logError: handlers.logError,
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(state.analysisRequestId).toBe(1);
+    expect(state.analysisController).toBeUndefined();
   });
 
   it('syncs analyzer initialization state after execution', async () => {
@@ -92,13 +123,9 @@ describe('graph view provider analysis lifecycle helper', () => {
     };
     const state = createState({
       analysisRequestId: 1,
-      analyzer: {
-        initialize: vi.fn(() => Promise.resolve()),
+      analyzer: createAnalyzer({
         analyze: vi.fn(() => Promise.resolve(rawGraphData)),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
     });
     const handlers = createHandlers();
 
@@ -116,13 +143,9 @@ describe('graph view provider analysis lifecycle helper', () => {
     abortError.name = 'AbortError';
     const state = createState({
       analysisRequestId: 1,
-      analyzer: {
-        initialize: vi.fn(() => Promise.resolve()),
+      analyzer: createAnalyzer({
         analyze: vi.fn(() => Promise.reject(abortError)),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
     });
     const handlers = createHandlers({
       isAnalysisStale: vi.fn(() => false),
@@ -183,5 +206,23 @@ describe('graph view provider analysis lifecycle helper', () => {
     expect(isGraphViewAbortError(abortError)).toBe(true);
     expect(isGraphViewAbortError(new Error('boom'))).toBe(false);
     expect(isGraphViewAbortError('AbortError')).toBe(false);
+  });
+
+  it('marks workspace ready without requiring a waiting promise', () => {
+    const registry = {
+      notifyWorkspaceReady: vi.fn(),
+    };
+    const workspaceReadyState = {
+      firstAnalysis: true,
+      resolveFirstWorkspaceReady: undefined,
+    };
+
+    markGraphViewWorkspaceReady(workspaceReadyState, registry, {
+      nodes: [],
+      edges: [],
+    });
+
+    expect(registry.notifyWorkspaceReady).toHaveBeenCalledOnce();
+    expect(workspaceReadyState.firstAnalysis).toBe(false);
   });
 });

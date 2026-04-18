@@ -11,11 +11,6 @@ interface MockExtensionContext {
   };
 }
 
-interface MockConfigInspect<T> {
-  workspaceValue?: T;
-  globalValue?: T;
-}
-
 describe('GraphViewProvider settings persistence', () => {
   let workspaceStateGet: ReturnType<typeof vi.fn>;
   let workspaceStateUpdate: ReturnType<typeof vi.fn>;
@@ -54,24 +49,26 @@ describe('GraphViewProvider settings persistence', () => {
     };
   });
 
-  it('prefers disabled toggles from VS Code settings over workspaceState', () => {
-    const configuredRules = ['codegraphy.typescript:dynamic-import'];
+  it('prefers repo-local disabled toggles over workspaceState', () => {
     const configuredPlugins = ['codegraphy.python'];
-    const legacyWorkspaceRules = ['legacy:rule'];
     const legacyWorkspacePlugins = ['legacy.plugin'];
 
-    configInspect.mockImplementation((key: string) => {
-      if (key === 'disabledSources') {
-        return { workspaceValue: configuredRules } satisfies MockConfigInspect<string[]>;
-      }
+    configGet.mockImplementation(<T>(key: string, defaultValue: T): T => {
       if (key === 'disabledPlugins') {
-        return { workspaceValue: configuredPlugins } satisfies MockConfigInspect<string[]>;
+        return configuredPlugins as T;
       }
+
+      return defaultValue;
+    });
+    configInspect.mockImplementation((key: string) => {
+      if (key === 'disabledPlugins') {
+        return { workspaceValue: configuredPlugins };
+      }
+
       return undefined;
     });
 
     workspaceStateGet.mockImplementation((key: string) => {
-      if (key === 'codegraphy.disabledSources') return legacyWorkspaceRules;
       if (key === 'codegraphy.disabledPlugins') return legacyWorkspacePlugins;
       return undefined;
     });
@@ -82,17 +79,14 @@ describe('GraphViewProvider settings persistence', () => {
     );
 
     const providerState = provider as unknown as {
-      _disabledSources: Set<string>;
       _disabledPlugins: Set<string>;
     };
 
-    expect([...providerState._disabledSources]).toEqual(configuredRules);
     expect([...providerState._disabledPlugins]).toEqual(configuredPlugins);
-    expect([...providerState._disabledSources]).not.toEqual(legacyWorkspaceRules);
     expect([...providerState._disabledPlugins]).not.toEqual(legacyWorkspacePlugins);
   });
 
-  it('persists TOGGLE_SOURCE and TOGGLE_PLUGIN changes to VS Code settings', async () => {
+  it('persists edge visibility and plugin toggles to the repo settings store', async () => {
     const provider = new GraphViewProvider(
       mockContext.extensionUri,
       mockContext as unknown as vscode.ExtensionContext
@@ -127,10 +121,10 @@ describe('GraphViewProvider settings persistence', () => {
     expect(messageHandler).not.toBeNull();
 
     await messageHandler!({
-      type: 'TOGGLE_SOURCE',
+      type: 'UPDATE_EDGE_VISIBILITY',
       payload: {
-        qualifiedSourceId: 'codegraphy.typescript:dynamic-import',
-        enabled: false,
+        edgeKind: 'IMPORTS',
+        visible: false,
       },
     });
     await messageHandler!({
@@ -141,17 +135,17 @@ describe('GraphViewProvider settings persistence', () => {
       },
     });
 
-    const rulesUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'disabledSources');
+    const edgeVisibilityUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'edgeVisibility');
     const pluginsUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'disabledPlugins');
 
-    expect(rulesUpdateCall).toBeDefined();
-    expect(rulesUpdateCall?.[1]).toEqual(['codegraphy.typescript:dynamic-import']);
+    expect(edgeVisibilityUpdateCall).toBeDefined();
+    expect(edgeVisibilityUpdateCall?.[1]).toEqual({ IMPORTS: false });
     expect(pluginsUpdateCall).toBeDefined();
     expect(pluginsUpdateCall?.[1]).toEqual(['codegraphy.python']);
 
     expect(
       workspaceStateUpdate.mock.calls.some(
-        ([key]) => key === 'codegraphy.disabledSources' || key === 'codegraphy.disabledPlugins'
+        ([key]) => key === 'codegraphy.edgeVisibility' || key === 'codegraphy.disabledPlugins'
       )
     ).toBe(false);
   });

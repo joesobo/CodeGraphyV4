@@ -86,6 +86,32 @@ describe('graphView/resourceRoots', () => {
       ]);
     });
 
+    it('deduplicates roots using path keys when fsPath is not available', () => {
+      const extensionUri = {
+        path: '/test/extension',
+        toString: () => 'extension-uri',
+      } as unknown as vscode.Uri;
+      const duplicatePluginUri = {
+        path: '/test/extension',
+        toString: () => 'plugin-uri',
+      } as unknown as vscode.Uri;
+      const workspaceUri = {
+        path: '/test/workspace',
+        toString: () => 'workspace-uri',
+      } as unknown as vscode.Uri;
+
+      const roots = getGraphViewLocalResourceRoots(
+        extensionUri,
+        new Map([['plugin.same', duplicatePluginUri]]),
+        [{ uri: workspaceUri }],
+      );
+
+      expect(roots.map(getGraphViewUriKey)).toEqual([
+        '/test/extension',
+        '/test/workspace',
+      ]);
+    });
+
     it('handles undefined workspaceFolders gracefully', () => {
       const extensionUri = vscode.Uri.file('/test/extension');
       const roots = getGraphViewLocalResourceRoots(extensionUri, new Map(), undefined);

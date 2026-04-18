@@ -87,7 +87,7 @@ describe('ToggleFavoriteAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
@@ -99,7 +99,7 @@ describe('ToggleFavoriteAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
   });
@@ -114,7 +114,7 @@ describe('ToggleFavoriteAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         [],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 

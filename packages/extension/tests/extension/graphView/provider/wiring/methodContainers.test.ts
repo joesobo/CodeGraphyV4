@@ -67,10 +67,10 @@ vi.mock('../../../../../src/extension/graphView/provider/physicsSettings', () =>
   createGraphViewProviderPhysicsSettingsMethods:
     mockedFactories.createGraphViewProviderPhysicsSettingsMethods,
 }));
-vi.mock('../../../../../src/extension/graphView/provider/plugins', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/plugin/methods', () => ({
   createGraphViewProviderPluginMethods: mockedFactories.createGraphViewProviderPluginMethods,
 }));
-vi.mock('../../../../../src/extension/graphView/provider/pluginResources', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/plugin/resources', () => ({
   createGraphViewProviderPluginResourceMethods:
     mockedFactories.createGraphViewProviderPluginResourceMethods,
 }));

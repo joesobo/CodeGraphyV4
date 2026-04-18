@@ -15,6 +15,9 @@ export function buildDestructiveBlock(targets: readonly string[]): GraphContextM
   entries.push(
     builtInItem('node-add-filter', isMultiSelect ? 'Add All to Filter' : 'Add to Filter', 'addToFilter')
   );
+  if (!isMultiSelect) {
+    entries.push(builtInItem('node-add-legend', 'Add Legend Group', 'addNodeLegend'));
+  }
   entries.push(separator('node-separator-destructive-2'));
 
   if (!isMultiSelect) {

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Configuration defaults and types for CodeGraphy extension settings.
+ * @fileoverview Configuration defaults and types for CodeGraphy's repo-local settings.
  * @module extension/config/defaults
  */
 
@@ -14,6 +14,7 @@ export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = [
   '**/build/**',
   '**/out/**',
   '**/.git/**',
+  '**/.codegraphy/**',
   '**/coverage/**',
   '**/*.min.js',
   '**/*.bundle.js',
@@ -21,7 +22,7 @@ export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = [
 ];
 
 /**
- * Configuration interface matching the settings defined in package.json.
+ * Configuration interface matching the settings persisted under `.codegraphy/settings.json`.
  */
 export interface ICodeGraphyConfig {
   /** Maximum number of files to analyze */
@@ -36,8 +37,8 @@ export interface ICodeGraphyConfig {
   bidirectionalEdges: 'separate' | 'combined';
   /** List of plugin extension names to enable */
   plugins: string[];
-  /** List of disabled rule qualified IDs */
-  disabledSources: string[];
   /** List of disabled plugin IDs */
   disabledPlugins: string[];
+  /** Ordered plugin IDs, highest priority first */
+  pluginOrder: string[];
 }

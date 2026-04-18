@@ -10,16 +10,16 @@ As codebases grow, the metaphor breaks down. Folder names become arbitrary. File
 
 ## The insight
 
-Code has a hidden structure that the file system obscures: the dependency graph. Files import other files. Components render other components. Modules call into other modules. This web of connections is the real architecture of a codebase, but it's invisible unless you trace imports manually.
+Code has a hidden structure that the file system obscures: the relationship graph. Files import other files. Functions call other functions. Types inherit from other types. Markdown notes link to other files. This web of connections is the real architecture of a codebase, but it's invisible unless you trace it manually.
 
-CodeGraphy makes this structure visible.
+CodeGraphy makes that structure visible.
 
 ## The vision
 
 A force-directed graph where:
-- **Nodes are files** (or directories, or modules)
-- **Edges are connections** (imports, dependencies, references)
-- **Physics creates meaning**: files that work together cluster together
+- **Nodes start as files** and can expand to folders, packages, or plugin-defined node kinds
+- **Edges are relationships** projected from indexed code facts
+- **Physics creates meaning**: related code pulls together into stable shapes
 
 This isn't visualization for its own sake. It builds on a fundamental truth about human cognition: we have an innate sense of place.
 
@@ -36,23 +36,31 @@ The file system groups files by folder. CodeGraphy groups files by relationship.
 Every visual property carries meaning:
 - **Position**: Clusters emerge from force physics. Related files pull together.
 - **Size**: Configurable by connection count, file size, or access frequency.
-- **Color**: Encodes file type or user-defined categories via groups.
-- **Edges**: Show direction of dependency (A -> B means A imports B).
+- **Color**: Encodes node kinds, edge kinds, or user-defined legend rules.
+- **Edges**: Show structural and semantic relationships between rendered nodes.
 
 ### Stability creates memory
 
 The graph must produce consistent layouts. If nodes shuffle randomly each time, the spatial memory benefit disappears. Layouts are deterministic, and user adjustments are persisted across sessions.
 
-### Language agnostic core, language-specific plugins
+### Core pipeline first, plugins for enrichment
 
-What counts as a "connection" varies by language:
-- JavaScript/TypeScript: `import`, `require`, dynamic imports
-- Python: `import`, `from x import y`
-- C#: `using` directives, type references
-- GDScript: `preload`, `load`, `extends`
-- Markdown: `[[wikilinks]]`
+CodeGraphy now has a built-in analysis pipeline:
+- core discovers files once
+- core reads each file once
+- core uses Tree-sitter where it has coverage
+- built-in and external plugins run after core on the same in-memory file data
+- later plugin output can override or extend lower-priority results
 
-The core graph engine doesn't know about language specifics. Plugins analyze files and report connections in a standard format. This keeps the core simple and makes CodeGraphy extensible to any language.
+That means the core is no longer "empty" until a language plugin shows up. You still get useful graph edges out of the box where Tree-sitter coverage exists, and plugins stay valuable for language- or framework-specific semantics.
+
+Today that built-in baseline covers JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C#.
+
+Examples:
+- JavaScript/TypeScript: built-in Tree-sitter plugin finds baseline syntax and relations, plugins can add path alias or framework-aware semantics
+- Python, Go, Java, Rust, and C#: built-in Tree-sitter plugin finds baseline imports, symbols, and low-noise structural relations, plugins can add richer project-aware semantics
+- GDScript: plugin fills the gap where built-in Tree-sitter coverage is missing or weak
+- Markdown wikilinks: built-in wildcard plugin scans for Obsidian-style links across files
 
 ### Insights through visualization
 
@@ -61,12 +69,15 @@ The graph reveals patterns that are invisible in the file tree:
 - **Isolated clusters**: Groups of files that only talk to each other, natural module boundaries
 - **Circular dependencies**: Loops that might indicate design issues
 - **Bridge files**: Files that connect otherwise separate clusters
+- **Structural context**: Folders and packages can be shown as nodes with `NESTS` edges
+- **Focused traversal**: Depth mode filters the same graph surface instead of switching to a separate built-in view
 
 ## What CodeGraphy is not
 
 - **Not a replacement for the file system.** You still need folders. CodeGraphy is an additional lens.
 - **Not just a pretty picture.** Every visual element conveys meaningful information.
-- **Not language-specific.** The plugin system makes any language possible.
+- **Not only a plugin host.** The core owns discovery, indexing, projection, and repo-local state.
+- **Not plugin-first anymore.** The core owns baseline analysis, and plugins extend or correct it.
 
 ## Inspiration
 

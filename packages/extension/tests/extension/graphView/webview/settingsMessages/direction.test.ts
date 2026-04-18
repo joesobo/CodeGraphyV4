@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
 import type { DirectionMode } from '@/shared/settings/modes';
 import {
   applySettingsDirectionMessage,
@@ -13,12 +12,8 @@ function createState(
   overrides: Partial<GraphViewSettingsMessageState> = {},
 ): GraphViewSettingsMessageState {
   return {
-    activeViewId: 'codegraphy.graphView',
     disabledPlugins: new Set<string>(),
-    disabledSources: new Set<string>(),
     filterPatterns: [],
-    graphData: { nodes: [], edges: [] } satisfies IGraphData,
-    viewContext: { folderNodeColor: '#111111' },
     ...overrides,
   };
 }
@@ -35,7 +30,7 @@ function createHandlers(
     ...Object.entries(initialConfig),
   ]);
 
-  return {
+  const handlers = {
     getConfig: vi.fn(<T>(key: string, defaultValue: T): T =>
       config.has(key) ? (config.get(key) as T) : defaultValue,
     ),
@@ -44,12 +39,15 @@ function createHandlers(
       return Promise.resolve();
     }),
     getPluginFilterPatterns: vi.fn(() => []),
+    sendGraphControls: vi.fn(),
     sendMessage: vi.fn(),
-    applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  handlers.sendGraphControls ??= vi.fn();
+
+  return handlers as GraphViewSettingsMessageHandlers;
 }
 
 describe('graph view settings direction message', () => {
@@ -61,11 +59,11 @@ describe('graph view settings direction message', () => {
       directionColor: 'bad-color',
     });
 
-    await applySettingsDirectionMessage(
+    await expect(applySettingsDirectionMessage(
       { type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: 'particles' } },
       state,
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('directionMode', 'particles');
     expect(handlers.sendMessage).toHaveBeenCalledWith({
@@ -87,11 +85,11 @@ describe('graph view settings direction message', () => {
       particleSize: 6,
     });
 
-    await applySettingsDirectionMessage(
+    await expect(applySettingsDirectionMessage(
       { type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: '  #aa00cc ' } },
       state,
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('directionColor', '#AA00CC');
     expect(handlers.sendMessage).toHaveBeenCalledWith({
@@ -105,48 +103,33 @@ describe('graph view settings direction message', () => {
     });
   });
 
-  it('updates folder node color and refreshes folder graph data in folder view', async () => {
-    const graphData: IGraphData = {
-      nodes: [{ id: 'src', label: 'src', color: '#93C5FD' }],
-      edges: [],
-    };
-    const state = createState({
-      activeViewId: 'codegraphy.folder',
-      graphData,
+  it('uses the default direction mode and default direction color when config values are absent', async () => {
+    const handlers = createHandlers({}, {
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'directionMode' || key === 'directionColor') {
+          return defaultValue;
+        }
+        return defaultValue;
+      }),
     });
-    const handlers = createHandlers();
 
     await applySettingsDirectionMessage(
-      { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
-      state,
+      { type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: 'bad-color' } },
+      createState(),
       handlers,
     );
 
-    expect(state.viewContext.folderNodeColor).toBe('#123ABC');
-    expect(handlers.updateConfig).toHaveBeenCalledWith('folderNodeColor', '#123ABC');
-    expect(handlers.sendMessage).toHaveBeenNthCalledWith(1, {
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#123ABC' },
+    expect(handlers.getConfig).toHaveBeenCalledWith('directionMode', 'arrows');
+    expect(handlers.getConfig).toHaveBeenCalledWith('directionColor', '#475569');
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'DIRECTION_SETTINGS_UPDATED',
+      payload: {
+        directionMode: 'arrows',
+        particleSpeed: 0.005,
+        particleSize: 4,
+        directionColor: '#475569',
+      },
     });
-    expect(handlers.applyViewTransform).toHaveBeenCalledOnce();
-    expect(handlers.sendMessage).toHaveBeenNthCalledWith(2, {
-      type: 'GRAPH_DATA_UPDATED',
-      payload: graphData,
-    });
-  });
-
-  it('updates folder node color without re-sending graph data outside folder view', async () => {
-    const state = createState();
-    const handlers = createHandlers();
-
-    await applySettingsDirectionMessage(
-      { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
-      state,
-      handlers,
-    );
-
-    expect(handlers.applyViewTransform).not.toHaveBeenCalled();
-    expect(handlers.sendMessage).toHaveBeenCalledTimes(1);
   });
 
   it('returns false for unrelated messages', async () => {

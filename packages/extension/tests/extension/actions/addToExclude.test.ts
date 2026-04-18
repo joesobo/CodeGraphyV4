@@ -13,19 +13,27 @@ vi.mock('vscode', () => ({
   },
 }));
 
+function getLastFilterPatternUpdate(
+  calls: Array<[string, unknown, unknown?]>,
+): unknown {
+  return [...calls]
+    .reverse()
+    .find(([key]) => key === 'filterPatterns')?.[1];
+}
+
 describe('AddToExcludeAction', () => {
   let mockConfigUpdate: ReturnType<typeof vi.fn>;
-  let currentExclude: string[];
+  let currentFilterPatterns: string[];
   let mockRefreshGraph: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    currentExclude = [];
+    currentFilterPatterns = [];
     mockConfigUpdate = vi.fn().mockResolvedValue(undefined);
 
     vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
       get: vi.fn((key: string, defaultValue: unknown) => {
-        if (key === 'exclude') return [...currentExclude];
+        if (key === 'filterPatterns') return [...currentFilterPatterns];
         return defaultValue;
       }),
       update: mockConfigUpdate,
@@ -52,38 +60,40 @@ describe('AddToExcludeAction', () => {
   });
 
   describe('execute', () => {
-    it('adds glob patterns to the exclude list', async () => {
+    it('adds glob patterns to the filter pattern list', async () => {
       const action = new AddToExcludeAction(['src/app.ts'], mockRefreshGraph);
 
       await action.execute();
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
-        'exclude',
+        'filterPatterns',
         ['**/src/app.ts'],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
-    it('preserves existing exclude patterns', async () => {
-      currentExclude = ['**/node_modules/**'];
+    it('preserves existing filter patterns', async () => {
+      currentFilterPatterns = ['**/node_modules/**'];
       const action = new AddToExcludeAction(['dist/bundle.js'], mockRefreshGraph);
 
       await action.execute();
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
-        'exclude',
+        'filterPatterns',
         expect.arrayContaining(['**/node_modules/**', '**/dist/bundle.js']),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
     it('does not add duplicate patterns', async () => {
-      currentExclude = ['**/src/app.ts'];
+      currentFilterPatterns = ['**/src/app.ts'];
       const action = new AddToExcludeAction(['src/app.ts'], mockRefreshGraph);
 
       await action.execute();
 
-      const updateArg = mockConfigUpdate.mock.calls[0][1] as string[];
+      const updateArg = mockConfigUpdate.mock.calls.find(
+        ([key]) => key === 'filterPatterns',
+      )?.[1] as string[];
       const matchCount = updateArg.filter((pat) => pat === '**/src/app.ts').length;
       expect(matchCount).toBe(1);
     });
@@ -93,7 +103,9 @@ describe('AddToExcludeAction', () => {
 
       await action.execute();
 
-      const updateArg = mockConfigUpdate.mock.calls[0][1] as string[];
+      const updateArg = mockConfigUpdate.mock.calls.find(
+        ([key]) => key === 'filterPatterns',
+      )?.[1] as string[];
       expect(updateArg).toContain('**/a.ts');
       expect(updateArg).toContain('**/b.ts');
     });
@@ -111,40 +123,46 @@ describe('AddToExcludeAction', () => {
 
       await action.execute();
 
-      // Simulate external modification of the exclude list
-      currentExclude = ['**/app.ts', '**/extra.ts'];
+      // Simulate external modification of the filter pattern list
+      currentFilterPatterns = ['**/app.ts', '**/extra.ts'];
 
       // Re-execute (redo) should apply the same after state, not recalculate
       await action.execute();
 
       // The second call should use the same stateAfter from the first execution
-      const firstCallArg = mockConfigUpdate.mock.calls[0][1];
-      const secondCallArg = mockConfigUpdate.mock.calls[1][1];
+      const filterPatternUpdates = mockConfigUpdate.mock.calls
+        .filter(([key]) => key === 'filterPatterns')
+        .map(([, value]) => value);
+      const firstCallArg = filterPatternUpdates[0];
+      const secondCallArg = filterPatternUpdates[1];
       expect(secondCallArg).toEqual(firstCallArg);
     });
   });
 
   describe('undo', () => {
-    it('restores the exclude list to its state before execute', async () => {
-      currentExclude = ['**/existing.ts'];
+    it('restores the filter pattern list to its state before execute', async () => {
+      currentFilterPatterns = ['**/existing.ts'];
       const action = new AddToExcludeAction(['new.ts'], mockRefreshGraph);
 
       await action.execute();
       await action.undo();
 
       // The undo should restore to ['**/existing.ts']
-      const undoCallArg = mockConfigUpdate.mock.calls[1][1];
+      const undoCallArg = getLastFilterPatternUpdate(
+        mockConfigUpdate.mock.calls as Array<[string, unknown, unknown?]>,
+      );
       expect(undoCallArg).toEqual(['**/existing.ts']);
     });
 
     it('restores to empty array when the list was originally empty', async () => {
-      currentExclude = [];
       const action = new AddToExcludeAction(['app.ts'], mockRefreshGraph);
 
       await action.execute();
       await action.undo();
 
-      const undoCallArg = mockConfigUpdate.mock.calls[1][1];
+      const undoCallArg = getLastFilterPatternUpdate(
+        mockConfigUpdate.mock.calls as Array<[string, unknown, unknown?]>,
+      );
       expect(undoCallArg).toEqual([]);
     });
 
@@ -161,16 +179,19 @@ describe('AddToExcludeAction', () => {
 
   describe('execute after undo (redo)', () => {
     it('reapplies the same after state on redo', async () => {
-      currentExclude = [];
       const action = new AddToExcludeAction(['app.ts'], mockRefreshGraph);
 
       await action.execute();
-      const firstAfter = mockConfigUpdate.mock.calls[0][1];
+      const firstAfter = mockConfigUpdate.mock.calls.find(
+        ([key]) => key === 'filterPatterns',
+      )?.[1];
 
       await action.undo();
       await action.execute();
 
-      const redoAfter = mockConfigUpdate.mock.calls[2][1];
+      const redoAfter = mockConfigUpdate.mock.calls
+        .filter(([key]) => key === 'filterPatterns')
+        .at(-1)?.[1];
       expect(redoAfter).toEqual(firstAfter);
     });
   });

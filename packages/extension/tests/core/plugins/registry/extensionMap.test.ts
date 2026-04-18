@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addPluginToExtensionMap, removePluginFromExtensionMap } from '@/core/plugins/registry/extensionMap';
+import { addPluginToExtensionMap, removePluginFromExtensionMap } from '@/core/plugins/registry/runtime/maps/extensionMap';
 import type { IPlugin } from '@/core/plugins/types/contracts';
 
 function createPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
@@ -9,9 +9,9 @@ function createPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.ts'],
-    detectConnections: async () => [],
+    analyzeFile: async filePath => ({ filePath, relations: [] }),
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 describe('addPluginToExtensionMap', () => {
@@ -61,6 +61,15 @@ describe('addPluginToExtensionMap', () => {
     addPluginToExtensionMap(plugin, extensionMap);
 
     expect(extensionMap.size).toBe(0);
+  });
+
+  it('stores wildcard plugins under the wildcard extension key', () => {
+    const extensionMap = new Map<string, string[]>();
+    const plugin = createPlugin({ supportedExtensions: ['*'] });
+
+    addPluginToExtensionMap(plugin, extensionMap);
+
+    expect(extensionMap.get('*')).toEqual(['test-plugin']);
   });
 });
 
@@ -135,5 +144,25 @@ describe('removePluginFromExtensionMap', () => {
 
     // .ts entry should be unchanged
     expect(extensionMap.get('.ts')).toEqual(['test-plugin']);
+  });
+
+  it('removes wildcard plugins and clears the wildcard key when empty', () => {
+    const extensionMap = new Map<string, string[]>();
+    extensionMap.set('*', ['test-plugin']);
+    const plugin = createPlugin({ supportedExtensions: ['*'] });
+
+    removePluginFromExtensionMap('test-plugin', plugin, extensionMap);
+
+    expect(extensionMap.has('*')).toBe(false);
+  });
+
+  it('keeps wildcard entries unchanged when the plugin id is absent', () => {
+    const extensionMap = new Map<string, string[]>();
+    extensionMap.set('*', ['other-plugin']);
+    const plugin = createPlugin({ supportedExtensions: ['*'] });
+
+    removePluginFromExtensionMap('test-plugin', plugin, extensionMap);
+
+    expect(extensionMap.get('*')).toEqual(['other-plugin']);
   });
 });

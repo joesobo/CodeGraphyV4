@@ -1,10 +1,6 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
-import {
-  dispatchGraphViewPluginGroupToggleMessage,
-  dispatchGraphViewPluginSectionToggleMessage,
-} from './pluginHiddenGroups';
 import { dispatchGraphViewPluginReadyMessage } from './pluginReady';
 import { applyPluginContextMenuAction } from '../pluginMessages/contextMenu';
 import { applyPluginExporterAction } from '../pluginMessages/exporter';
@@ -16,18 +12,19 @@ export interface GraphViewPluginMessageContext {
   getPluginFilterPatterns(): string[];
   getMaxFiles(): number;
   getPlaybackSpeed(): number;
+  getDepthMode(): boolean;
   getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
-  getFolderNodeColor(): string;
   getFocusedFile(): string | undefined;
   hasWorkspace(): boolean;
   isFirstAnalysis(): boolean;
   isWebviewReadyNotified(): boolean;
-  getHiddenPluginGroupIds(): Set<string>;
   getGraphData(): IGraphData;
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
-  sendAvailableViews(): void;
+  sendDepthState(): void;
+  sendGraphControls(): void;
+  loadAndSendData(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
@@ -59,8 +56,6 @@ export interface GraphViewPluginMessageContext {
   findNode(targetId: string): unknown;
   findEdge(targetId: string): unknown;
   logError(message: string, error: unknown): void;
-  updateHiddenPluginGroups(groupIds: string[]): Promise<void>;
-  recomputeGroups(): void;
 }
 
 export interface GraphViewPluginMessageResult {
@@ -79,9 +74,6 @@ export async function dispatchGraphViewPluginMessage(
   const findNode = (targetId: string) => context.findNode(targetId);
   const findEdge = (targetId: string) => context.findEdge(targetId);
   const logError = (messageText: string, error: unknown) => context.logError(messageText, error);
-  const updateHiddenPluginGroups = (groupIds: string[]) => context.updateHiddenPluginGroups(groupIds);
-  const recomputeGroups = () => context.recomputeGroups();
-
   switch (message.type) {
     case 'WEBVIEW_READY':
       return {
@@ -116,22 +108,6 @@ export async function dispatchGraphViewPluginMessage(
       await applyPluginToolbarAction(message.payload, {
         getPluginApi: getToolbarActionPluginApi,
         logError,
-      });
-      return { handled: true };
-
-    case 'TOGGLE_PLUGIN_GROUP_DISABLED':
-      await dispatchGraphViewPluginGroupToggleMessage(message, {
-        ...context,
-        updateHiddenPluginGroups,
-        recomputeGroups,
-      });
-      return { handled: true };
-
-    case 'TOGGLE_PLUGIN_SECTION_DISABLED':
-      await dispatchGraphViewPluginSectionToggleMessage(message, {
-        ...context,
-        updateHiddenPluginGroups,
-        recomputeGroups,
       });
       return { handled: true };
 

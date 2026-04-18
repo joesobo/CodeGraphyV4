@@ -1,8 +1,9 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type {
   GraphViewProviderAnalysisHandlers,
   GraphViewProviderAnalysisRequestHandlers,
 } from '../../analysis/lifecycle';
+import { sendGraphControlsUpdated } from '../../controls/send';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
@@ -36,8 +37,13 @@ export function createGraphViewProviderAnalysisHandlers(
     getGraphData: () => source._graphData,
     sendGraphDataUpdated: graphData => {
       source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
+      sendGraphControlsUpdated(
+        graphData,
+        source._analyzer,
+        message => source._sendMessage(message),
+      );
     },
-    sendAvailableViews: () => source._sendAvailableViews(),
+    sendDepthState: () => source._sendDepthState(),
     computeMergedGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),
     updateViewContext: () => source._updateViewContext(),
@@ -45,6 +51,12 @@ export function createGraphViewProviderAnalysisHandlers(
     sendPluginStatuses: () => source._sendPluginStatuses(),
     sendDecorations: () => source._sendDecorations(),
     sendContextMenuItems: () => source._sendContextMenuItems(),
+    sendGraphIndexStatusUpdated: hasIndex => {
+      source._sendMessage({ type: 'GRAPH_INDEX_STATUS_UPDATED', payload: { hasIndex } });
+    },
+    sendIndexProgress: progress => {
+      source._sendMessage({ type: 'GRAPH_INDEX_PROGRESS', payload: progress });
+    },
     sendPluginExporters: () => source._sendPluginExporters?.(),
     sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),
     markWorkspaceReady: graphData => callbacks.markWorkspaceReady(graphData),

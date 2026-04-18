@@ -5,7 +5,7 @@ import type {
 import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphInteractionHandlersDependencies } from '../../../../src/webview/components/graph/interactionRuntime/handlers';
 
@@ -38,9 +38,9 @@ export function createInteractionDependencies(
   } as unknown as FG3DMethods<FGNode, FGLink>;
 
   return {
-    activeViewId: 'codegraphy.connections',
     containerRef: createRef(container),
     dataRef: createRef(graphData),
+    depthMode: false,
     fg2dRef: createRef(fg2d),
     fg3dRef: createRef(fg3d),
     fileInfoCacheRef: createRef(new Map()),

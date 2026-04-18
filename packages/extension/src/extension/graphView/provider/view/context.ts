@@ -1,21 +1,21 @@
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { ViewRegistry } from '../../../../core/views/registry';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import { applyGraphViewTransform } from '../../presentation';
-import { normalizeFolderNodeColor } from '../../settings/reader';
-import { sendGraphViewAvailableViews } from '../../view/broadcast';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
+import { applyGraphViewTransform } from '../../presentation/transform';
+import { sendGraphViewDepthState } from '../../view/broadcast';
 import { buildGraphViewContext } from '../../view/context';
+import { filterDepthGraph } from '../../../../core/views/depth/transform';
 
 interface GraphViewProviderWorkspaceStateLike {
   get<T>(key: string): T | undefined;
-  update(key: string, value: unknown): PromiseLike<void>;
 }
 
 interface GraphViewProviderConfigLike {
   get<T>(key: string, defaultValue: T): T;
+  update(key: string, value: unknown, target?: unknown): PromiseLike<void>;
 }
 
 interface GraphViewProviderAnalyzerLike {
@@ -29,7 +29,7 @@ export interface GraphViewProviderViewContextMethodsSource {
   _analyzer?: GraphViewProviderAnalyzerLike;
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;
-  _activeViewId: string;
+  _depthMode: boolean;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
   _sendMessage(message: ExtensionToWebviewMessage): void;
@@ -38,7 +38,7 @@ export interface GraphViewProviderViewContextMethodsSource {
 export interface GraphViewProviderViewContextMethods {
   _updateViewContext(): void;
   _applyViewTransform(): void;
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   updateGraphData(data: IGraphData): void;
   getGraphData(): IGraphData;
 }
@@ -50,26 +50,23 @@ export interface GraphViewProviderViewContextMethodDependencies {
   asRelativePath(uri: vscode.Uri): string;
   buildViewContext: typeof buildGraphViewContext;
   applyViewTransform: typeof applyGraphViewTransform;
-  sendAvailableViews: typeof sendGraphViewAvailableViews;
-  normalizeFolderNodeColor: typeof normalizeFolderNodeColor;
+  sendDepthState: typeof sendGraphViewDepthState;
   defaultDepthLimit: number;
-  defaultFolderNodeColor: string;
-  selectedViewKey: string;
 }
 
 function createDefaultDependencies(): GraphViewProviderViewContextMethodDependencies {
   return {
-    getConfiguration: section => vscode.workspace.getConfiguration(section),
+    getConfiguration: section =>
+      section === 'codegraphy'
+        ? getCodeGraphyConfiguration()
+        : vscode.workspace.getConfiguration(section),
     getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
     getActiveTextEditor: () => vscode.window.activeTextEditor,
     asRelativePath: uri => vscode.workspace.asRelativePath(uri),
     buildViewContext: buildGraphViewContext,
     applyViewTransform: applyGraphViewTransform,
-    sendAvailableViews: sendGraphViewAvailableViews,
-    normalizeFolderNodeColor,
+    sendDepthState: sendGraphViewDepthState,
     defaultDepthLimit: 1,
-    defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
-    selectedViewKey: 'codegraphy.selectedView',
   };
 }
 
@@ -83,11 +80,7 @@ export function createGraphViewProviderViewContextMethods(
       analyzer: source._analyzer,
       workspaceFolders: dependencies.getWorkspaceFolders(),
       activeEditor: dependencies.getActiveTextEditor(),
-      readSavedDepthLimit: () => source._context.workspaceState.get<number>('codegraphy.depthLimit'),
-      readFolderNodeColor: () =>
-        dependencies.normalizeFolderNodeColor(
-          config.get<string>('folderNodeColor', dependencies.defaultFolderNodeColor),
-        ),
+      readSavedDepthLimit: () => config.get<number>('depthLimit', dependencies.defaultDepthLimit),
       asRelativePath: uri => dependencies.asRelativePath(uri),
       defaultDepthLimit: dependencies.defaultDepthLimit,
     });
@@ -96,26 +89,18 @@ export function createGraphViewProviderViewContextMethods(
   const _applyViewTransform = (): void => {
     const result = dependencies.applyViewTransform(
       source._viewRegistry,
-      source._activeViewId,
       source._viewContext,
       source._rawGraphData,
     );
-    source._activeViewId = result.activeViewId;
-    source._graphData = result.graphData;
-
-    if (result.persistSelectedViewId) {
-      void source._context.workspaceState.update(
-        dependencies.selectedViewKey,
-        result.persistSelectedViewId,
-      );
-    }
+    source._graphData = source._depthMode
+      ? filterDepthGraph(result.graphData, source._viewContext)
+      : result.graphData;
   };
 
-  const _sendAvailableViews = (): void => {
-    dependencies.sendAvailableViews(
-      source._viewRegistry,
+  const _sendDepthState = (): void => {
+    dependencies.sendDepthState(
       source._viewContext,
-      source._activeViewId,
+      source._depthMode,
       source._rawGraphData,
       dependencies.defaultDepthLimit,
       message => source._sendMessage(message as ExtensionToWebviewMessage),
@@ -132,7 +117,7 @@ export function createGraphViewProviderViewContextMethods(
   return {
     _updateViewContext,
     _applyViewTransform,
-    _sendAvailableViews,
+    _sendDepthState,
     updateGraphData,
     getGraphData,
   };

@@ -1,10 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { DirectionMode } from '../../../../shared/settings/modes';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../shared/fileColors';
-import {
-  normalizeDirectionColor,
-  normalizeFolderNodeColor,
-} from '../../settings/reader';
+import { normalizeDirectionColor } from '../../settings/reader';
 import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,
@@ -26,7 +23,7 @@ function buildDirectionSettingsPayload(
 
 export async function applySettingsDirectionMessage(
   message: WebviewToExtensionMessage,
-  state: GraphViewSettingsMessageState,
+  _state: GraphViewSettingsMessageState,
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
@@ -55,25 +52,6 @@ export async function applySettingsDirectionMessage(
       });
       return true;
     }
-
-    case 'UPDATE_FOLDER_NODE_COLOR': {
-      const folderNodeColor = normalizeFolderNodeColor(message.payload.folderNodeColor);
-      await handlers.updateConfig('folderNodeColor', folderNodeColor);
-      state.viewContext.folderNodeColor = folderNodeColor;
-      handlers.sendMessage({
-        type: 'FOLDER_NODE_COLOR_UPDATED',
-        payload: { folderNodeColor },
-      });
-      if (state.activeViewId === 'codegraphy.folder') {
-        handlers.applyViewTransform();
-        handlers.sendMessage({
-          type: 'GRAPH_DATA_UPDATED',
-          payload: state.graphData,
-        });
-      }
-      return true;
-    }
-
     default:
       return false;
   }

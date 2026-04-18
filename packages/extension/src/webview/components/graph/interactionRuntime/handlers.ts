@@ -6,7 +6,7 @@ import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
 import type { IFileInfo } from '../../../../shared/files/info';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { GraphContextSelection } from '../contextMenu/contracts';
 import {
   type GraphInteractionEffect,
@@ -14,16 +14,16 @@ import {
 } from '../interaction/model';
 import type { FGLink, FGNode } from '../model/build';
 import { applyCursorToGraphSurface, type GraphCursorStyle } from '../support/dom';
-import { createClickHandlers } from './click';
-import { createContextMenuHandlers } from './contextMenu';
-import { createEffectHandlers } from './effects';
-import { createSelectionHandlers } from './selection';
-import { createViewHandlers } from './view';
+import { createClickHandlers } from './handlers/click';
+import { createContextMenuHandlers } from './handlers/contextMenu';
+import { createEffectHandlers } from './handlers/effects';
+import { createSelectionHandlers } from './handlers/selection';
+import { createViewHandlers } from './handlers/view';
 
 export interface GraphInteractionHandlersDependencies {
-  activeViewId: string;
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
+  depthMode?: boolean;
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;

@@ -1,5 +1,6 @@
-import type { IGraphEdge } from '../../../../shared/graph/types';
+import type { IGraphEdge } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode } from '../../../../shared/settings/modes';
+import { getGraphEdgeIdSuffix } from '../../../../shared/graph/edgeIdentity';
 
 export interface ProcessedEdge extends IGraphEdge {
   bidirectional?: boolean;
@@ -8,13 +9,16 @@ export interface ProcessedEdge extends IGraphEdge {
 export function processEdges(edges: IGraphEdge[], mode: BidirectionalEdgeMode): ProcessedEdge[] {
   if (mode === 'separate') return edges.map(edge => ({ ...edge, bidirectional: false }));
 
-  const edgeSet = new Set(edges.map(edge => `${edge.from}->${edge.to}#${edge.kind}`));
+  const edgeSet = new Set(
+    edges.map(edge => `${edge.from}->${edge.to}${getGraphEdgeIdSuffix(edge.id, edge.kind)}`),
+  );
   const processed: ProcessedEdge[] = [];
   const seen = new Set<string>();
 
   for (const edge of edges) {
-    const key = `${edge.from}->${edge.to}#${edge.kind}`;
-    const reverseKey = `${edge.to}->${edge.from}#${edge.kind}`;
+    const suffix = getGraphEdgeIdSuffix(edge.id, edge.kind);
+    const key = `${edge.from}->${edge.to}${suffix}`;
+    const reverseKey = `${edge.to}->${edge.from}${suffix}`;
 
     if (seen.has(key) || seen.has(reverseKey)) continue;
 
@@ -22,7 +26,7 @@ export function processEdges(edges: IGraphEdge[], mode: BidirectionalEdgeMode): 
       const [nodeA, nodeB] = [edge.from, edge.to].sort();
       processed.push({
         ...edge,
-        id: `${nodeA}<->${nodeB}#${edge.kind}`,
+        id: `${nodeA}<->${nodeB}${suffix}`,
         from: nodeA,
         to: nodeB,
         bidirectional: true,

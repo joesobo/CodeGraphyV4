@@ -48,7 +48,7 @@ describe('graph view primary routed dispatch', () => {
 
   it('returns false when no routed message family handles the input', async () => {
     await expect(
-      dispatchGraphViewPrimaryRouteMessage({ type: 'UPDATE_GROUPS', payload: { groups: [] } }, createPrimaryMessageContext()),
+      dispatchGraphViewPrimaryRouteMessage({ type: 'UPDATE_LEGENDS', payload: { legends: [] } }, createPrimaryMessageContext()),
     ).resolves.toEqual({ handled: false });
   });
 });

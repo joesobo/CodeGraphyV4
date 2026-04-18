@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
+import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
+import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache/storage';
 import { dispatchGraphViewPrimaryRouteMessage } from './routed';
 import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 
@@ -12,17 +14,22 @@ export interface GraphViewPrimaryMessageContext {
   getTimelineActive(): boolean;
   getCurrentCommitSha(): string | undefined;
   getUserGroups(): IGroup[];
-  getActiveViewId(): string;
   getDisabledPlugins(): Set<string>;
-  getDisabledRules(): Set<string>;
   getFilterPatterns(): string[];
   getGraphData(): IGraphData;
+  getAnalyzer():
+    | {
+        lastFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
+        readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
+      }
+    | undefined;
   getViewContext(): IViewContext;
   openSelectedNode(nodeId: string): Promise<void>;
   activateNode(nodeId: string): Promise<void>;
   setFocusedFile(filePath: string | undefined): void;
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
+  openInEditor(): void;
   revealInExplorer(filePath: string): Promise<void>;
   copyToClipboard(text: string): Promise<void>;
   deleteFiles(paths: string[]): Promise<void>;
@@ -30,13 +37,17 @@ export interface GraphViewPrimaryMessageContext {
   createFile(directory: string): Promise<void>;
   toggleFavorites(paths: string[]): Promise<void>;
   addToExclude(patterns: string[]): Promise<void>;
+  indexAndSendData(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
+  refreshIndex(): Promise<void>;
+  clearCacheAndRefresh(): Promise<void>;
   getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;
   showInformationMessage(detail: string): void;
-  changeView(viewId: string): Promise<void>;
+  setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
+  getDepthMode(): boolean;
   updateDagMode(dagMode: DagMode): Promise<void>;
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): Promise<void>;
   indexRepository(): Promise<void>;
@@ -46,7 +57,9 @@ export interface GraphViewPrimaryMessageContext {
   updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
   resetPhysicsSettings(): Promise<void>;
   workspaceFolder: vscode.WorkspaceFolder | undefined;
-  persistGroups(groups: IGroup[]): Promise<void>;
+  persistLegends(legends: IGroup[]): Promise<void>;
+  persistDefaultLegendVisibility(legendId: string, visible: boolean): Promise<void>;
+  persistLegendOrder(legendIds: string[]): Promise<void>;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;
   showOpenDialog(
@@ -60,10 +73,12 @@ export interface GraphViewPrimaryMessageContext {
   ): Thenable<void>;
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
+  sendGraphControls(): void;
+  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
   sendMessage(message: unknown): void;
   applyViewTransform(): void;
-  smartRebuild(kind: 'rule' | 'plugin', id: string): void;
+  smartRebuild(id: string): void;
   resetAllSettings(): Promise<void>;
 }
 

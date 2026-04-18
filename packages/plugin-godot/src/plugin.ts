@@ -6,9 +6,11 @@
  */
 
 import * as path from 'path';
-import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
+import type { IPlugin } from '@codegraphy-vscode/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
+import type { GDScriptFileAnalysisResult } from './analysis';
+import { resolveGodotProjectRoot } from './projectRoot';
 import manifest from '../codegraphy.json';
 
 // Source detect functions
@@ -40,8 +42,54 @@ export type { IGDScriptReference, GDScriptReferenceType } from './parser';
  * registry.register(plugin, { builtIn: true });
  * ```
  */
-export function createGDScriptPlugin(): IPlugin {
+export interface IGDScriptAnalyzeFilePlugin extends IPlugin {
+  analyzeFile(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<GDScriptFileAnalysisResult>;
+}
+
+export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
   let resolver: GDScriptPathResolver | null = null;
+
+  const extractClassNames = (content: string): string[] => {
+    const classNames = new Set<string>();
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const ref = detectClassNameDeclaration(lines[i], i + 1);
+      if (ref) {
+        classNames.add(ref.resPath);
+      }
+    }
+
+    return [...classNames];
+  };
+
+  const analyzeFile = async (
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<GDScriptFileAnalysisResult> => {
+    if (!resolver) resolver = new GDScriptPathResolver(workspaceRoot);
+
+    const projectRoot = resolveGodotProjectRoot(filePath, workspaceRoot);
+    const relativeFilePath = normalizePath(path.relative(workspaceRoot, filePath));
+    const ctx = { resolver, projectRoot, workspaceRoot, relativeFilePath };
+
+    const relations = [
+      ...detectPreload(content, filePath, ctx),
+      ...detectLoad(content, filePath, ctx),
+      ...detectExtends(content, filePath, ctx),
+      ...detectClassNameUsage(content, filePath, ctx),
+    ];
+
+    return {
+      filePath,
+      relations,
+    };
+  };
 
   return {
     id: manifest.id,
@@ -67,38 +115,38 @@ export function createGDScriptPlugin(): IPlugin {
       for (const { relativePath, content } of files) {
         // Register file for snake_case fallback resolution
         resolver.registerFile(relativePath);
-
-        // Register explicit class_name declarations
-        const lines = content.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-          const ref = detectClassNameDeclaration(lines[i], i + 1);
-          if (ref) resolver.registerClassName(ref.resPath, relativePath);
-        }
+        resolver.replaceFileClassNames(relativePath, extractClassNames(content));
       }
 
       console.log(`[CodeGraphy] GDScript class_name map: ${resolver.getClassNameMap().size} entries, ${resolver.getFileNameMap().size} files indexed`);
     },
 
-    async detectConnections(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> {
-      if (!resolver) resolver = new GDScriptPathResolver(workspaceRoot);
-
-      const relativeFilePath = normalizePath(path.relative(workspaceRoot, filePath));
-      const ctx = { resolver, workspaceRoot, relativeFilePath };
-
-      // Register class_name declarations from this file (in case onPreAnalyze did not run yet)
-      const lines = content.split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        const ref = detectClassNameDeclaration(lines[i], i + 1);
-        if (ref) resolver.registerClassName(ref.resPath, relativeFilePath);
+    async onFilesChanged(
+      files: Array<{ absolutePath: string; relativePath: string; content: string }>,
+      workspaceRoot: string,
+    ): Promise<string[]> {
+      if (!resolver) {
+        resolver = new GDScriptPathResolver(workspaceRoot);
       }
 
-      return [
-        ...detectPreload(content, filePath, ctx),
-        ...detectLoad(content, filePath, ctx),
-        ...detectExtends(content, filePath, ctx),
-        ...detectClassNameUsage(content, filePath, ctx),
-      ];
+      let requiresBroadReanalysis = false;
+
+      for (const { relativePath, content } of files) {
+        resolver.registerFile(relativePath);
+        const { changed } = resolver.replaceFileClassNames(relativePath, extractClassNames(content));
+        requiresBroadReanalysis ||= changed;
+      }
+
+      if (!requiresBroadReanalysis) {
+        return [];
+      }
+
+      return resolver
+        .getRegisteredFiles()
+        .filter((filePath) => filePath.endsWith('.gd'));
     },
+
+    analyzeFile,
 
     onUnload(): void {
       resolver?.clearClassNames();

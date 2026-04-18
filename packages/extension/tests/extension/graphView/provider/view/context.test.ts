@@ -1,16 +1,15 @@
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../../src/shared/fileColors';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { buildGraphViewContext } from '../../../../../src/extension/graphView/view/context';
-import { applyGraphViewTransform, type IGraphViewTransformResult } from '../../../../../src/extension/graphView/presentation';
+import { applyGraphViewTransform } from '../../../../../src/extension/graphView/presentation/transform';
+import type { IGraphViewTransformResult } from '../../../../../src/extension/graphView/presentation/contracts';
 import type { GraphViewProviderViewContextMethodDependencies } from '../../../../../src/extension/graphView/provider/view/context';
 const providerViewContextMethodMocks = vi.hoisted(() => ({
   buildViewContext: vi.fn(),
   applyViewTransform: vi.fn(),
-  sendAvailableViews: vi.fn(),
-  normalizeFolderNodeColor: vi.fn(),
+  sendDepthState: vi.fn(),
 }));
 
 vi.mock('../../../../../src/extension/graphView/view/context', () => ({
@@ -18,15 +17,11 @@ vi.mock('../../../../../src/extension/graphView/view/context', () => ({
 }));
 
 vi.mock('../../../../../src/extension/graphView/view/broadcast', () => ({
-  sendGraphViewAvailableViews: providerViewContextMethodMocks.sendAvailableViews,
+  sendGraphViewDepthState: providerViewContextMethodMocks.sendDepthState,
 }));
 
-vi.mock('../../../../../src/extension/graphView/presentation', () => ({
+vi.mock('../../../../../src/extension/graphView/presentation/transform', () => ({
   applyGraphViewTransform: providerViewContextMethodMocks.applyViewTransform,
-}));
-
-vi.mock('../../../../../src/extension/graphView/settings/reader', () => ({
-  normalizeFolderNodeColor: providerViewContextMethodMocks.normalizeFolderNodeColor,
 }));
 
 import { createGraphViewProviderViewContextMethods } from '../../../../../src/extension/graphView/provider/view/context';
@@ -35,8 +30,7 @@ describe('graphView/provider/view/context', () => {
   beforeEach(() => {
     providerViewContextMethodMocks.buildViewContext.mockReset();
     providerViewContextMethodMocks.applyViewTransform.mockReset();
-    providerViewContextMethodMocks.sendAvailableViews.mockReset();
-    providerViewContextMethodMocks.normalizeFolderNodeColor.mockReset();
+    providerViewContextMethodMocks.sendDepthState.mockReset();
   });
 
   it('updates graph data and returns the current graph snapshot', () => {
@@ -60,10 +54,18 @@ describe('graphView/provider/view/context', () => {
   it('builds view context from workspace and editor state', () => {
     const source = createSource();
     const configuration = {
-      get: vi.fn(<T>(_: string, _defaultValue: T): T => '#123456' as T),
+      get: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'depthLimit') {
+          return 1 as T;
+        }
+        if (key === 'nodeColors') {
+          return { folder: '#123456' } as T;
+        }
+        return defaultValue;
+      }),
+      update: vi.fn(() => Promise.resolve()),
     };
     const getConfiguration = vi.fn(() => configuration);
-    const normalizeFolderNodeColor = vi.fn(() => '#654321');
     const asRelativePath = vi.fn(() => 'src/app.ts');
     const workspaceFolders = [{ uri: { fsPath: '/workspace' }, name: 'workspace', index: 0 }] as never;
     const activeEditor = { document: { uri: { fsPath: '/workspace/src/app.ts' } } } as never;
@@ -72,7 +74,6 @@ describe('graphView/provider/view/context', () => {
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
-      folderNodeColor: '#123456',
       } satisfies IViewContext),
     );
     const methods = createGraphViewProviderViewContextMethods(
@@ -83,7 +84,6 @@ describe('graphView/provider/view/context', () => {
         getWorkspaceFolders: vi.fn(() => workspaceFolders),
         getActiveTextEditor: vi.fn(() => activeEditor),
         asRelativePath,
-        normalizeFolderNodeColor,
       }),
     );
 
@@ -96,7 +96,6 @@ describe('graphView/provider/view/context', () => {
       workspaceFolders: unknown;
       activeEditor: unknown;
       readSavedDepthLimit(): number;
-      readFolderNodeColor(): string;
       asRelativePath(uri: { fsPath: string }): string;
       defaultDepthLimit: number;
     };
@@ -104,27 +103,31 @@ describe('graphView/provider/view/context', () => {
     expect(options.workspaceFolders).toBe(workspaceFolders);
     expect(options.activeEditor).toBe(activeEditor);
     expect(options.readSavedDepthLimit()).toBe(1);
-    expect(options.readFolderNodeColor()).toBe('#654321');
     expect(options.asRelativePath({ fsPath: '/workspace/src/app.ts' })).toBe('src/app.ts');
     expect(options.defaultDepthLimit).toBe(1);
-    expect(source._context.workspaceState.get).toHaveBeenCalledWith('codegraphy.depthLimit');
-    expect(configuration.get).toHaveBeenCalledWith('folderNodeColor', '#93C5FD');
-    expect(normalizeFolderNodeColor).toHaveBeenCalledWith('#123456');
+    expect(configuration.get).toHaveBeenCalledWith('depthLimit', 1);
     expect(asRelativePath).toHaveBeenCalledWith({ fsPath: '/workspace/src/app.ts' });
     expect(source._viewContext).toEqual({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
-      folderNodeColor: '#123456',
     });
   });
 
   it('uses the live vscode defaults to build the view context', () => {
     const source = createSource();
-    const configurationGet = vi.fn(() => '#123456');
+    const configurationGet = vi.fn(<T>(key: string, defaultValue: T): T => {
+      if (key === 'depthLimit') {
+        return 1 as T;
+      }
+      if (key === 'nodeColors') {
+        return { folder: '#123456' } as T;
+      }
+      return defaultValue;
+    });
     const getConfiguration = vi
       .spyOn(vscode.workspace, 'getConfiguration')
-      .mockReturnValue({ get: configurationGet } as never);
+      .mockReturnValue({ get: configurationGet, update: vi.fn(() => Promise.resolve()) } as never);
     const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
     const workspaceFolders = vi
       .spyOn(vscode.workspace, 'workspaceFolders', 'get')
@@ -142,12 +145,10 @@ describe('graphView/provider/view/context', () => {
       value: asRelativePath,
     });
 
-    providerViewContextMethodMocks.normalizeFolderNodeColor.mockReturnValue('#654321');
     providerViewContextMethodMocks.buildViewContext.mockReturnValue({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
-      folderNodeColor: '#654321',
     } satisfies IViewContext);
 
     const methods = createGraphViewProviderViewContextMethods(source as never);
@@ -161,7 +162,6 @@ describe('graphView/provider/view/context', () => {
       workspaceFolders: unknown;
       activeEditor: unknown;
       readSavedDepthLimit(): number;
-      readFolderNodeColor(): string;
       asRelativePath(uri: vscode.Uri): string;
       defaultDepthLimit: number;
     };
@@ -169,18 +169,14 @@ describe('graphView/provider/view/context', () => {
     expect(options.workspaceFolders).toEqual([workspaceFolder]);
     expect(options.activeEditor).toBe(activeEditor);
     expect(options.readSavedDepthLimit()).toBe(1);
-    expect(options.readFolderNodeColor()).toBe('#654321');
     expect(options.asRelativePath(vscode.Uri.file('/workspace/src/app.ts'))).toBe('src/app.ts');
     expect(options.defaultDepthLimit).toBe(1);
-    expect(source._context.workspaceState.get).toHaveBeenCalledWith('codegraphy.depthLimit');
-    expect(configurationGet).toHaveBeenCalledWith('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR);
-    expect(providerViewContextMethodMocks.normalizeFolderNodeColor).toHaveBeenCalledWith('#123456');
+    expect(configurationGet).toHaveBeenCalledWith('depthLimit', 1);
     expect(asRelativePath).toHaveBeenCalledWith(vscode.Uri.file('/workspace/src/app.ts'));
     expect(source._viewContext).toEqual({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
-      folderNodeColor: '#654321',
     });
 
     if (originalAsRelativePath === undefined) {
@@ -205,170 +201,172 @@ describe('graphView/provider/view/context', () => {
 
   it('sends available views through the provider message bridge', () => {
     const source = createSource({
-      _activeViewId: 'codegraphy.depth-graph',
+      _depthMode: true,
       _viewContext: {
         activePlugins: new Set<string>(['plugin.test']),
         depthLimit: 3,
       } satisfies IViewContext,
     });
-    const sendAvailableViews = vi.fn(
-      (_registry, _viewContext, _activeViewId, _rawGraphData, _defaultDepthLimit, sendMessage) => {
+    const sendDepthState = vi.fn(
+      (
+        _viewContext,
+        _depthMode,
+        _rawGraphData,
+        _defaultDepthLimit,
+        sendMessage,
+      ) => {
         sendMessage({
-          type: 'VIEWS_UPDATED',
-          payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
+          type: 'DEPTH_MODE_UPDATED',
+          payload: { depthMode: true },
         });
       },
     );
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
       createDependencies({
-        sendAvailableViews,
+        sendDepthState,
       }),
     );
 
-    methods._sendAvailableViews();
+    methods._sendDepthState();
 
-    expect(sendAvailableViews).toHaveBeenCalledWith(
-      source._viewRegistry,
+    expect(sendDepthState).toHaveBeenCalledWith(
       source._viewContext,
-      'codegraphy.depth-graph',
+      true,
       source._rawGraphData,
       1,
       expect.any(Function),
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
     });
   });
 
-  it('applies the active transform and persists fallback view selections', () => {
-    const source = createSource({
-      _activeViewId: 'codegraphy.depth-graph',
-    });
+  it('applies the active transform without trying to persist a separate built-in view id', () => {
+    const source = createSource();
     const applyViewTransform = vi.fn(() => ({
-      activeViewId: 'codegraphy.connections',
       graphData: {
         nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
         edges: [],
       },
-      persistSelectedViewId: 'codegraphy.connections',
     } satisfies IGraphViewTransformResult));
-    const sendAvailableViews = vi.fn();
+    const sendDepthState = vi.fn();
+    const dependencies = createDependencies({
+      applyViewTransform,
+      sendDepthState,
+    });
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
-      createDependencies({
-        applyViewTransform,
-        sendAvailableViews,
-      }),
+      dependencies,
     );
 
     methods._applyViewTransform();
-    methods._sendAvailableViews();
+    methods._sendDepthState();
 
     expect(applyViewTransform).toHaveBeenCalledWith(
       source._viewRegistry,
-      'codegraphy.depth-graph',
       source._viewContext,
       source._rawGraphData,
     );
-    expect(source._activeViewId).toBe('codegraphy.connections');
     expect(source._graphData).toEqual({
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
     });
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
-      'codegraphy.connections',
+    const configuration = dependencies.getConfiguration('codegraphy');
+    expect(configuration.update).not.toHaveBeenCalledWith(
+      expect.stringMatching(/selectedView/),
+      expect.anything(),
     );
-    expect(sendAvailableViews).toHaveBeenCalledOnce();
+    expect(sendDepthState).toHaveBeenCalledOnce();
   });
 
   it('uses the live default transform and view broadcast helpers', () => {
     const source = createSource({
-      _activeViewId: 'codegraphy.depth-graph',
+      _depthMode: true,
       _viewContext: {
         activePlugins: new Set<string>(['plugin.test']),
         depthLimit: 2,
       } satisfies IViewContext,
     });
     providerViewContextMethodMocks.applyViewTransform.mockReturnValue({
-      activeViewId: 'codegraphy.connections',
       graphData: {
         nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
         edges: [],
       },
-      persistSelectedViewId: 'codegraphy.connections',
     } satisfies IGraphViewTransformResult);
-    providerViewContextMethodMocks.sendAvailableViews.mockImplementation(
-      (_registry, _viewContext, _activeViewId, _rawGraphData, _defaultDepthLimit, sendMessage) => {
+    providerViewContextMethodMocks.sendDepthState.mockImplementation(
+      (
+        _viewContext,
+        _depthMode,
+        _rawGraphData,
+        _defaultDepthLimit,
+        sendMessage,
+      ) => {
         sendMessage({
-          type: 'VIEWS_UPDATED',
-          payload: { views: [], activeViewId: 'codegraphy.connections' },
+          type: 'DEPTH_MODE_UPDATED',
+          payload: { depthMode: true },
         });
       },
     );
+    const update = vi.fn(() => Promise.resolve());
+    vi.spyOn(vscode.workspace, 'getConfiguration')
+      .mockReturnValue({ get: vi.fn((_: string, fallback: unknown) => fallback), update } as never);
 
     const methods = createGraphViewProviderViewContextMethods(source as never);
 
     methods._applyViewTransform();
-    methods._sendAvailableViews();
+    methods._sendDepthState();
 
     expect(providerViewContextMethodMocks.applyViewTransform).toHaveBeenCalledWith(
       source._viewRegistry,
-      'codegraphy.depth-graph',
       source._viewContext,
       source._rawGraphData,
     );
-    expect(source._activeViewId).toBe('codegraphy.connections');
     expect(source._graphData).toEqual({
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
     });
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
-      'codegraphy.connections',
+    expect(update).not.toHaveBeenCalledWith(
+      expect.stringMatching(/selectedView/),
+      expect.anything(),
     );
-    expect(providerViewContextMethodMocks.sendAvailableViews).toHaveBeenCalledWith(
-      source._viewRegistry,
+    expect(providerViewContextMethodMocks.sendDepthState).toHaveBeenCalledWith(
       source._viewContext,
-      'codegraphy.connections',
+      true,
       source._rawGraphData,
       1,
       expect.any(Function),
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.connections' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
     });
   });
 
-  it('keeps the current selected view when the transform does not request persistence', () => {
-    const source = createSource({
-      _activeViewId: 'codegraphy.depth-graph',
-    });
+  it('keeps the current graph transform result when no persistence is requested', () => {
+    const source = createSource();
     const applyViewTransform = vi.fn(() => ({
-      activeViewId: 'codegraphy.connections',
       graphData: {
         nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
         edges: [],
       },
     } satisfies IGraphViewTransformResult));
+    const dependencies = createDependencies({
+      applyViewTransform,
+    });
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
-      createDependencies({
-        applyViewTransform,
-      }),
+      dependencies,
     );
 
     methods._applyViewTransform();
 
-    expect(source._activeViewId).toBe('codegraphy.connections');
     expect(source._graphData).toEqual({
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
     });
-    expect(source._context.workspaceState.update).not.toHaveBeenCalled();
+    expect(dependencies.getConfiguration('codegraphy').update).not.toHaveBeenCalled();
   });
 });
 
@@ -378,7 +376,7 @@ function createSource(
     _analyzer: unknown;
     _viewRegistry: unknown;
     _viewContext: IViewContext;
-    _activeViewId: string;
+    _depthMode: boolean;
     _rawGraphData: IGraphData;
     _graphData: IGraphData;
     _sendMessage: ReturnType<typeof vi.fn>;
@@ -393,14 +391,14 @@ function createSource(
     },
     _analyzer: { registry: { list: vi.fn(() => []) } },
     _viewRegistry: {
-      get: vi.fn(() => ({ view: { id: 'codegraphy.connections' } })),
+      get: vi.fn(() => ({ view: { id: 'codegraphy.graph' } })),
       isViewAvailable: vi.fn(() => true),
     },
     _viewContext: {
       activePlugins: new Set<string>(),
       depthLimit: 1,
     } satisfies IViewContext,
-    _activeViewId: 'codegraphy.connections',
+    _depthMode: false,
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _sendMessage: vi.fn(),
@@ -413,7 +411,11 @@ function createDependencies(
 ): GraphViewProviderViewContextMethodDependencies {
   const configuration = {
     get: vi.fn((_: string, fallback: unknown) => fallback),
-  } as { get<T>(section: string, defaultValue: T): T };
+    update: vi.fn(() => Promise.resolve()),
+  } as {
+    get<T>(section: string, defaultValue: T): T;
+    update(key: string, value: unknown, target?: unknown): Promise<void>;
+  };
   const getConfiguration: GraphViewProviderViewContextMethodDependencies['getConfiguration'] = vi.fn(
     () => configuration,
   );
@@ -424,9 +426,8 @@ function createDependencies(
     } satisfies IViewContext));
   const applyViewTransform: GraphViewProviderViewContextMethodDependencies['applyViewTransform'] =
     vi.fn((...args: Parameters<typeof applyGraphViewTransform>) => {
-      const [, activeViewId, , rawGraphData] = args;
+      const [, , rawGraphData] = args;
       return {
-        activeViewId,
         graphData: rawGraphData,
       } satisfies IGraphViewTransformResult;
     });
@@ -437,11 +438,8 @@ function createDependencies(
     asRelativePath: vi.fn((uri: { fsPath?: string }) => uri.fsPath ?? ''),
     buildViewContext,
     applyViewTransform,
-    sendAvailableViews: vi.fn(),
-    normalizeFolderNodeColor: vi.fn((color: string | undefined) => color ?? '#93C5FD'),
+    sendDepthState: vi.fn(),
     defaultDepthLimit: 1,
-    defaultFolderNodeColor: '#93C5FD',
-    selectedViewKey: 'codegraphy.selectedView',
     ...overrides,
   };
 }

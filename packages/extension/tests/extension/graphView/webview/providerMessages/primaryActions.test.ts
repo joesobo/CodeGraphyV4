@@ -3,6 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessagePrimaryActions,
 } from '../../../../../src/extension/graphView/webview/providerMessages/primaryActions';
+import * as repoSettings from '../../../../../src/extension/repoSettings/current';
+
+vi.mock('../../../../../src/extension/repoSettings/current', () => ({
+  getCodeGraphyConfiguration: vi.fn(),
+  updateCodeGraphyConfigurationSilently: vi.fn(() => Promise.resolve()),
+}));
 
 describe('graph view provider listener primary actions', () => {
   afterEach(() => {
@@ -46,10 +52,14 @@ describe('graph view provider listener primary actions', () => {
     const source = createSource();
     const actions = createActions(source);
 
+    await actions.loadAndSendData();
+    await actions.indexAndSendData();
     await actions.analyzeAndSendData();
+    await actions.refreshIndex();
+    await actions.clearCacheAndRefresh();
     await actions.undo();
     await actions.redo();
-    await actions.changeView('codegraphy.depth-graph');
+    await actions.setDepthMode(true);
     await actions.setDepthLimit(4);
     await actions.indexRepository();
     await actions.jumpToCommit('sha-1');
@@ -58,10 +68,14 @@ describe('graph view provider listener primary actions', () => {
     await actions.updatePhysicsSetting('damping', 300);
     await actions.resetPhysicsSettings();
 
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._indexAndSendData).toHaveBeenCalledOnce();
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source.refreshIndex).toHaveBeenCalledOnce();
+    expect(source.clearCacheAndRefresh).toHaveBeenCalledOnce();
     expect(source.undo).toHaveBeenCalledOnce();
     expect(source.redo).toHaveBeenCalledOnce();
-    expect(source.changeView).toHaveBeenCalledWith('codegraphy.depth-graph');
+    expect(source.setDepthMode).toHaveBeenCalledWith(true);
     expect(source.setDepthLimit).toHaveBeenCalledWith(4);
     expect(source._indexRepository).toHaveBeenCalledOnce();
     expect(source._jumpToCommit).toHaveBeenCalledWith('sha-1');
@@ -74,21 +88,50 @@ describe('graph view provider listener primary actions', () => {
   it('uses dependency-backed wrappers for group persistence and dialogs', async () => {
     const source = createSource();
     const dependencies = createDependencies();
+    const updateSilently = vi.fn(() => Promise.resolve());
+    vi.mocked(dependencies.workspace.getConfiguration).mockReturnValue({
+      get: vi.fn((key: string, defaultValue: unknown) =>
+        key === 'legendVisibility'
+          ? {
+              existing: true,
+            }
+          : defaultValue,
+      ),
+    } as never);
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
+    vi.mocked(repoSettings.updateCodeGraphyConfigurationSilently).mockImplementation(updateSilently);
     const actions = createActions(source, dependencies);
     const groups = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
     const openDialogOptions = { canSelectFiles: true };
 
-    await actions.persistGroups(groups as never);
+    await actions.persistLegends(groups as never);
+    await actions.persistDefaultLegendVisibility('plugin:codegraphy.typescript:*.ts', false);
+    await actions.persistLegendOrder(['plugin:codegraphy.typescript:*.ts', 'legend:user']);
     actions.showInformationMessage('saved');
     await actions.showOpenDialog(openDialogOptions as never);
 
-    expect(dependencies.getConfigTarget).toHaveBeenCalledWith(
-      dependencies.workspace.workspaceFolders,
-    );
-    expect(dependencies.workspace.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(dependencies.update).toHaveBeenCalledWith('groups', groups, 'workspace');
+    expect(updateSilently).toHaveBeenCalledWith('legend', groups);
+    expect(updateSilently).toHaveBeenCalledWith('legendVisibility', {
+      existing: true,
+      'plugin:codegraphy.typescript:*.ts': false,
+    });
+    expect(updateSilently).toHaveBeenCalledWith('legendOrder', [
+      'plugin:codegraphy.typescript:*.ts',
+      'legend:user',
+    ]);
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
+  });
+
+  it('delegates opening in the existing editor surface', async () => {
+    const source = createSource();
+    const actions = createActions(source);
+
+    await actions.openInEditor();
+
+    expect(source._webviewMethods.openInEditor).toHaveBeenCalledOnce();
   });
 
   it('uses vscode file system wrappers for directory and file copies', async () => {
@@ -130,13 +173,13 @@ describe('graph view provider listener primary actions', () => {
     actions.sendGroupsUpdated();
     actions.sendMessage(message as never);
     actions.applyViewTransform();
-    actions.smartRebuild('plugin', 'plugin.test');
+    actions.smartRebuild('plugin.test');
 
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith(message);
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
-    expect(source._smartRebuild).toHaveBeenCalledWith('plugin', 'plugin.test');
+    expect(source._smartRebuild).toHaveBeenCalledWith('plugin.test');
   });
 });
 
@@ -147,6 +190,9 @@ function createSource() {
     setFocusedFile: vi.fn(),
     _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
+    _webviewMethods: {
+      openInEditor: vi.fn(() => Promise.resolve()),
+    },
     _revealInExplorer: vi.fn(() => Promise.resolve()),
     _copyToClipboard: vi.fn(() => Promise.resolve()),
     _deleteFiles: vi.fn(() => Promise.resolve()),
@@ -154,11 +200,15 @@ function createSource() {
     _createFile: vi.fn(() => Promise.resolve()),
     _toggleFavorites: vi.fn(() => Promise.resolve()),
     _addToExclude: vi.fn(() => Promise.resolve()),
+    _loadAndSendData: vi.fn(() => Promise.resolve()),
+    _indexAndSendData: vi.fn(() => Promise.resolve()),
     _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    refreshIndex: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve('undo')),
     redo: vi.fn(() => Promise.resolve('redo')),
-    changeView: vi.fn(() => Promise.resolve()),
+    setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
     _indexRepository: vi.fn(() => Promise.resolve()),
     _jumpToCommit: vi.fn(() => Promise.resolve()),
@@ -175,19 +225,18 @@ function createSource() {
 }
 
 function createDependencies() {
-  const update = vi.fn(() => Promise.resolve());
-
   return {
-    update,
     workspace: {
       workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-      getConfiguration: vi.fn(() => ({ update })),
+      getConfiguration: vi.fn(() => ({
+        get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
+      })),
     },
     window: {
       showInformationMessage: vi.fn(),
       showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
     },
-    getConfigTarget: vi.fn(() => 'workspace'),
+    getConfigTarget: vi.fn(),
   };
 }
 

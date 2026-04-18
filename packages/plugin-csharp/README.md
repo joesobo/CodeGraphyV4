@@ -1,6 +1,6 @@
 # CodeGraphy C#
 
-Adds C# dependency analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+Adds C# ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - Marketplace plugin: [CodeGraphy C#](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp)
@@ -10,12 +10,15 @@ Adds C# dependency analysis to [CodeGraphy](https://marketplace.visualstudio.com
 
 1. Install the core `codegraphy.codegraphy` extension.
 2. Install this plugin extension.
-3. Open CodeGraphy and let it analyze your workspace.
+3. Open CodeGraphy and index your workspace.
 
-## Detection coverage
+## What It Provides
 
-- `using` directives
-- type usage references
+The built-in Tree-sitter plugin now owns C# analysis inside the core extension.
+This plugin is intentionally lightweight and only adds:
+
+- C#-focused file colors
+- C# ecosystem ignore filters
 
 ## More
 

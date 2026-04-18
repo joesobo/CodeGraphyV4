@@ -2,7 +2,7 @@
   "name": "codegraphy-csharp",
   "displayName": "CodeGraphy C#",
   "version": "1.0.1",
-  "description": "Adds C# dependency detection to CodeGraphy. Requires codegraphy.codegraphy.",
+  "description": "Adds C# ecosystem defaults to CodeGraphy. Requires codegraphy.codegraphy.",
   "publisher": "codegraphy",
   "license": "MIT",
   "icon": "assets/icon.png",
@@ -52,7 +52,7 @@
     "vscode:prepublish": "pnpm run build",
     "build": "esbuild src/activate.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
     "test": "vitest run",
-    "lint": "eslint \"src/**/*.ts\" \"__tests__/activate.test.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "package:vsix": "mkdir -p ../../artifacts/vsix && pnpm exec vsce package --no-dependencies --out ../../artifacts/vsix/codegraphy.codegraphy-csharp-${npm_package_version}.vsix",
     "publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate"

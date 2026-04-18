@@ -1,7 +1,7 @@
 import { useEffect, type MutableRefObject, type RefObject } from 'react';
-import type { GraphDebugControls } from './debugTypes';
-import { installGraphDebugApi } from './debugInstall';
-import type { DebugNode } from './debugSnapshot';
+import type { GraphDebugControls } from './debug/contracts';
+import { installGraphDebugApi } from './debug/install';
+import type { DebugNode } from './debug/snapshot';
 
 export function useGraphDebugApi({
   containerRef,

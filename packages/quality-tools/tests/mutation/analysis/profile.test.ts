@@ -8,8 +8,10 @@ import { REPO_ROOT } from '../../../src/shared/resolve/repoRoot';
 import { resolveQualityTarget } from '../../../src/shared/resolve/target';
 
 const require = createRequire(import.meta.url);
-const extensionStrykerConfig = require('../../../../extension/stryker.config.cjs') as {
+const rootStrykerConfig = require(`${REPO_ROOT}/stryker.config.cjs`) as {
   dryRunTimeoutMinutes?: number;
+  plugins?: string[];
+  testRunner?: string;
 };
 
 describe('mutation profiles', () => {
@@ -26,9 +28,9 @@ describe('mutation profiles', () => {
     expect(packages).not.toContain('plugin-api');
   });
 
-  it('uses package-specific configs for extension and quality-tools', () => {
+  it('uses the shared root config for extension and generic workspace packages', () => {
     expect(resolveMutationProfile(resolveQualityTarget(REPO_ROOT, 'extension/'))).toMatchObject({
-      configPath: 'packages/extension/stryker.config.cjs'
+      configPath: 'stryker.config.cjs'
     });
 
     expect(resolveMutationProfile(resolveQualityTarget(REPO_ROOT, 'quality-tools/'))).toMatchObject({
@@ -36,11 +38,16 @@ describe('mutation profiles', () => {
     });
   });
 
-  it('raises the extension dry-run timeout above the stryker default', () => {
-    expect(extensionStrykerConfig).toMatchObject({
+  it('raises the shared dry-run timeout above the stryker default', () => {
+    expect(rootStrykerConfig).toMatchObject({
       dryRunTimeoutMinutes: expect.any(Number),
     });
-    expect(extensionStrykerConfig.dryRunTimeoutMinutes).toBeGreaterThan(5);
+    expect(rootStrykerConfig.dryRunTimeoutMinutes).toBeGreaterThanOrEqual(30);
+  });
+
+  it('routes shared mutation through the repo-local vitest runner', () => {
+    expect(rootStrykerConfig.testRunner).toBe('codegraphy-vitest');
+    expect(rootStrykerConfig.plugins).toContain('./packages/quality-tools/stryker/codegraphy-vitest-runner.mjs');
   });
 
   it('scopes extension mutation test discovery to extension tests', async () => {
@@ -48,7 +55,6 @@ describe('mutation profiles', () => {
 
     expect(resolveMutationVitestIncludes({})).toEqual([
       'packages/extension/tests/**/*.test.{ts,tsx}',
-      'packages/extension/__tests__/**/*.test.{ts,tsx}',
     ]);
   });
 
@@ -59,15 +65,14 @@ describe('mutation profiles', () => {
       CODEGRAPHY_VITEST_SCOPE: 'workspace',
     })).toEqual([
       'packages/*/tests/**/*.test.{ts,tsx}',
-      'packages/*/__tests__/**/*.test.{ts,tsx}',
     ]);
   });
 
   it('scopes regular extension vitest discovery to extension-owned tests', async () => {
-    const { extensionOwnedVitestIncludes } = await import('../../../../extension/vitest.includes');
+    const { resolveMutationVitestIncludes } = await import('../../../../extension/vitest.includes');
 
-    expect(extensionOwnedVitestIncludes).toEqual([
-      'tests/**/*.test.{ts,tsx}',
+    expect(resolveMutationVitestIncludes({})).toEqual([
+      'packages/extension/tests/**/*.test.{ts,tsx}',
     ]);
   });
 

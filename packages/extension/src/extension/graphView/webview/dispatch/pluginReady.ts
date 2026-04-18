@@ -9,17 +9,18 @@ export interface GraphViewPluginReadyContext {
   getPluginFilterPatterns(): string[];
   getMaxFiles(): number;
   getPlaybackSpeed(): number;
+  getDepthMode?(): boolean;
   getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
-  getFolderNodeColor(): string;
   getFocusedFile(): string | undefined;
   hasWorkspace(): boolean;
   isFirstAnalysis(): boolean;
   isWebviewReadyNotified(): boolean;
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
-  sendAvailableViews(): void;
-  analyzeAndSendData(): Promise<void>;
+  sendDepthState(): void;
+  sendGraphControls(): void;
+  loadAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
   sendPhysicsSettings(): void;
@@ -42,23 +43,24 @@ export async function dispatchGraphViewPluginReadyMessage(
 ): Promise<boolean> {
   return applyWebviewReady(
     {
-      filterPatterns: context.getFilterPatterns(),
-      pluginFilterPatterns: context.getPluginFilterPatterns(),
       maxFiles: context.getMaxFiles(),
-        playbackSpeed: context.getPlaybackSpeed(),
-        dagMode: context.getDagMode(),
-        nodeSizeMode: context.getNodeSizeMode(),
-        folderNodeColor: context.getFolderNodeColor(),
-        focusedFile: context.getFocusedFile(),
-        hasWorkspace: context.hasWorkspace(),
-        firstAnalysis: context.isFirstAnalysis(),
-        readyNotified: context.isWebviewReadyNotified(),
+      playbackSpeed: context.getPlaybackSpeed(),
+      depthMode: context.getDepthMode?.() ?? false,
+      dagMode: context.getDagMode(),
+      nodeSizeMode: context.getNodeSizeMode(),
+      focusedFile: context.getFocusedFile(),
+      hasWorkspace: context.hasWorkspace(),
+      firstAnalysis: context.isFirstAnalysis(),
+      readyNotified: context.isWebviewReadyNotified(),
     },
     {
+      getFilterPatterns: () => context.getFilterPatterns(),
+      getPluginFilterPatterns: () => context.getPluginFilterPatterns(),
       loadGroupsAndFilterPatterns: () => context.loadGroupsAndFilterPatterns(),
       loadDisabledRulesAndPlugins: () => context.loadDisabledRulesAndPlugins(),
-      sendAvailableViews: () => context.sendAvailableViews(),
-      analyzeAndSendData: () => void context.analyzeAndSendData(),
+      sendDepthState: () => context.sendDepthState(),
+      sendGraphControls: () => context.sendGraphControls(),
+      loadAndSendData: () => void context.loadAndSendData(),
       sendFavorites: () => context.sendFavorites(),
       sendSettings: () => context.sendSettings(),
       sendPhysicsSettings: () => context.sendPhysicsSettings(),

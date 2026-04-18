@@ -29,10 +29,6 @@ export function resolveDisplayColor(value: string, fallback: string): string {
   return isHexColor(value) ? value : fallback;
 }
 
-export function shouldShowFolderNodeColor(activeViewId: string): boolean {
-  return activeViewId === 'codegraphy.folder';
-}
-
 export function shouldShowParticleControls(directionMode: DirectionMode): boolean {
   return directionMode === 'particles';
 }

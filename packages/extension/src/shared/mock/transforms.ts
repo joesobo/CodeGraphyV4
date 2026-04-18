@@ -5,7 +5,7 @@
 
 import { getFileColor } from '../fileColors';
 import type { IFileData } from './fileData';
-import type { IGraphEdge, IGraphNode } from '../graph/types';
+import type { IGraphEdge, IGraphNode } from '../graph/contracts';
 
 /**
  * Converts an array of file data to graph nodes.

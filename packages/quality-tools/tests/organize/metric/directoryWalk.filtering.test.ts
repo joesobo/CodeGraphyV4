@@ -26,6 +26,28 @@ describe('walkDirectories - filtering', () => {
     expect(paths).toContain(join(root, 'src'));
   });
 
+  it('skips generated output directories', () => {
+    const root = createFileTree(
+      {
+        'coverage/generated.ts': 'export const generated = 1;',
+        'dist/generated.ts': 'export const generatedBuild = 1;',
+        'dist-e2e/generated.ts': 'export const generatedE2eBuild = 1;',
+        'reports/mutation/generated.ts': 'export const report = 1;',
+        'src/index.ts': 'export const x = 1;'
+      },
+      tempDirs
+    );
+
+    const result = walkDirectories(root);
+
+    const paths = result.map((e) => e.directoryPath);
+    expect(paths).not.toContain(join(root, 'coverage'));
+    expect(paths).not.toContain(join(root, 'dist'));
+    expect(paths).not.toContain(join(root, 'dist-e2e'));
+    expect(paths).not.toContain(join(root, 'reports'));
+    expect(paths).toContain(join(root, 'src'));
+  });
+
   it('skips .git directories', () => {
     const root = createFileTree(
       {

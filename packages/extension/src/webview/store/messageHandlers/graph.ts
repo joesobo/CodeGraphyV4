@@ -3,13 +3,46 @@ import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensi
 import {
   applyPendingGroupUpdates,
   applyPendingUserGroupsUpdate,
-} from '../optimisticGroups';
+} from '../optimistic/groups';
 import { arePlainValuesEqual } from './equality';
 
 export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,
 ): PartialState {
-  return { graphData: message.payload, isLoading: false };
+  return {
+    graphData: message.payload,
+    isLoading: false,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
+  };
+}
+
+export function handleGraphIndexStatusUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>,
+): PartialState {
+  return { graphHasIndex: message.payload.hasIndex };
+}
+
+export function handleGraphIndexProgress(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_PROGRESS' }>,
+): PartialState {
+  return {
+    graphIsIndexing: true,
+    graphIndexProgress: message.payload,
+  };
+}
+
+export function handleGraphControlsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>,
+): PartialState {
+  return {
+    graphNodeTypes: message.payload.nodeTypes,
+    graphEdgeTypes: message.payload.edgeTypes,
+    nodeColors: message.payload.nodeColors,
+    nodeVisibility: message.payload.nodeVisibility,
+    edgeVisibility: message.payload.edgeVisibility,
+    edgeColors: message.payload.edgeColors,
+  };
 }
 
 export function handleFavoritesUpdated(
@@ -27,32 +60,32 @@ export function handleSettingsUpdated(
   };
 }
 
-export function handleGroupsUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>,
+export function handleLegendsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'LEGENDS_UPDATED' }>,
   ctx: IHandlerContext,
 ): PartialState | void {
   const state = ctx.getState();
   const resolvedUserGroups = applyPendingUserGroupsUpdate(
-    message.payload.groups,
-    state.optimisticUserGroups,
+    message.payload.legends,
+    state.optimisticUserLegends,
   );
   const resolved = applyPendingGroupUpdates(
     resolvedUserGroups.groups,
-    state.optimisticGroupUpdates,
+    state.optimisticLegendUpdates,
   );
 
   if (
-    arePlainValuesEqual(state.groups, resolved.groups) &&
-    arePlainValuesEqual(state.optimisticUserGroups, resolvedUserGroups.pendingUserGroups) &&
-    arePlainValuesEqual(state.optimisticGroupUpdates, resolved.pendingUpdates)
+    arePlainValuesEqual(state.legends, resolved.groups) &&
+    arePlainValuesEqual(state.optimisticUserLegends, resolvedUserGroups.pendingUserGroups) &&
+    arePlainValuesEqual(state.optimisticLegendUpdates, resolved.pendingUpdates)
   ) {
     return;
   }
 
   return {
-    groups: resolved.groups,
-    optimisticUserGroups: resolvedUserGroups.pendingUserGroups,
-    optimisticGroupUpdates: resolved.pendingUpdates,
+    legends: resolved.groups,
+    optimisticUserLegends: resolvedUserGroups.pendingUserGroups,
+    optimisticLegendUpdates: resolved.pendingUpdates,
   };
 }
 
@@ -65,13 +98,10 @@ export function handleFilterPatternsUpdated(
   };
 }
 
-export function handleViewsUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'VIEWS_UPDATED' }>,
+export function handleDepthModeUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'DEPTH_MODE_UPDATED' }>,
 ): PartialState {
-  return {
-    availableViews: message.payload.views,
-    activeViewId: message.payload.activeViewId,
-  };
+  return { depthMode: message.payload.depthMode };
 }
 
 export function handlePhysicsSettingsUpdated(

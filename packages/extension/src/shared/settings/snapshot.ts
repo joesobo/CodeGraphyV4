@@ -4,17 +4,21 @@ import type { IPhysicsSettings } from './physics';
 
 export interface ISettingsSnapshot {
   physics: IPhysicsSettings;
-  groups: IGroup[];
+  legends: IGroup[];
   filterPatterns: string[];
   showOrphans: boolean;
   bidirectionalMode: BidirectionalEdgeMode;
   directionMode: DirectionMode;
   directionColor: string;
-  folderNodeColor: string;
+  nodeColors: Record<string, string>;
+  nodeVisibility: Record<string, boolean>;
+  edgeVisibility: Record<string, boolean>;
+  edgeColors: Record<string, string>;
+  pluginOrder: string[];
+  disabledPlugins: string[];
   particleSpeed: number;
   particleSize: number;
   showLabels: boolean;
   nodeSizeMode: NodeSizeMode;
   maxFiles: number;
-  hiddenPluginGroups: string[];
 }

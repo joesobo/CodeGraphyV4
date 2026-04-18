@@ -22,7 +22,7 @@ describe('destructiveBlock', () => {
 
   it('has a second separator after the add-to-filter item', () => {
     const entries = buildDestructiveBlock(['a.ts']);
-    expect(entries[2]).toEqual({ kind: 'separator', id: 'node-separator-destructive-2' });
+    expect(entries[3]).toEqual({ kind: 'separator', id: 'node-separator-destructive-2' });
   });
 
   it('includes Add to Filter for single target', () => {
@@ -37,8 +37,16 @@ describe('destructiveBlock', () => {
     expect(itemLabels(buildDestructiveBlock(['a.ts']))).toContain('Rename...');
   });
 
+  it('includes Add Legend Group for single target', () => {
+    expect(itemLabels(buildDestructiveBlock(['a.ts']))).toContain('Add Legend Group');
+  });
+
   it('omits Rename for multi-select', () => {
     expect(itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']))).not.toContain('Rename...');
+  });
+
+  it('omits Add Legend Group for multi-select', () => {
+    expect(itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']))).not.toContain('Add Legend Group');
   });
 
   it('shows Delete File for single target', () => {
@@ -62,6 +70,11 @@ describe('destructiveBlock', () => {
   it('uses rename action for the rename entry', () => {
     const entry = findItem(buildDestructiveBlock(['a.ts']), 'Rename...');
     expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'rename' });
+  });
+
+  it('uses addNodeLegend action for the add legend entry', () => {
+    const entry = findItem(buildDestructiveBlock(['a.ts']), 'Add Legend Group');
+    expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addNodeLegend' });
   });
 
   it('uses delete action for the delete entry', () => {

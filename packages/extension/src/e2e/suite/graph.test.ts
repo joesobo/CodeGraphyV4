@@ -12,7 +12,7 @@ import { getCurrentE2EScenario } from '../scenarios';
 
 // The type exported by the extension's activate() function
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/graph/types').IGraphData;
+  getGraphData(): import('../../shared/graph/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   dispatchWebviewMessage(message: unknown): Promise<void>;
@@ -30,32 +30,28 @@ async function getAPI(): Promise<CodeGraphyAPI> {
 }
 
 const scenario = getCurrentE2EScenario();
+let indexedGraphPromise: Promise<void> | undefined;
+let discoveredGraphPromise: Promise<void> | undefined;
 
 suite('Graph: Workspace Analysis', function () {
   this.timeout(60_000);
 
-  test('graph data is produced for the example workspace', async function() {
+  test('fresh open shows discovered file nodes before indexing', async function() {
     const api = await getAPI();
-
-    // Open the graph view so the webview initializes and triggers analysis
-    await vscode.commands.executeCommand('codegraphy.open');
-
-    // Give analysis time to complete
-    await sleep(5_000);
+    await ensureDiscoveredGraph(api);
 
     const graphData = api.getGraphData();
-    assert.ok(graphData, 'Graph data should be available after analysis');
-    assert.ok(graphData.nodes.length > 0, `Expected nodes, got ${graphData.nodes.length}`);
+    assert.ok(graphData.nodes.length > 0, `Expected discovered nodes, got ${graphData.nodes.length}`);
+    assert.strictEqual(graphData.edges.length, 0, 'Fresh-open graph should not have connections yet');
 
     console.log(
-      `[e2e] Graph has ${graphData.nodes.length} node(s) and ${graphData.edges.length} edge(s)`
+      `[e2e] Fresh graph has ${graphData.nodes.length} node(s) and ${graphData.edges.length} edge(s)`
     );
   });
 
-  test('fixture files appear as nodes', async function() {
+  test('fixture files appear as nodes before indexing', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureDiscoveredGraph(api);
 
     const graphData = api.getGraphData();
     const nodeIds = graphData.nodes.map((n) => n.id);
@@ -70,10 +66,42 @@ suite('Graph: Workspace Analysis', function () {
     }
   });
 
+  test('manual graph indexing creates scenario edges', async function() {
+    const api = await getAPI();
+    await ensureIndexedGraph(api);
+
+    const graphData = api.getGraphData();
+    const edgeIds = graphData.edges.map((edge) => String(edge.id));
+    for (const edgeId of scenario.minimumExpectedEdgeIds) {
+      assert.ok(
+        edgeIds.includes(edgeId),
+        `Expected edge '${edgeId}' in scenario '${scenario.name}'. Got: ${edgeIds.join(', ')}`
+      );
+    }
+  });
+
+  test('manual refresh keeps the graph indexed and rebuilds scenario edges', async function() {
+    const api = await getAPI();
+    await ensureIndexedGraph(api);
+
+    const graphUpdated = waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', 30_000);
+    const indexUpdated = waitForGraphIndexStatus(api, true, 30_000);
+    await api.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
+    await Promise.all([graphUpdated, indexUpdated]);
+
+    const graphData = api.getGraphData();
+    const edgeIds = graphData.edges.map((edge) => String(edge.id));
+    for (const edgeId of scenario.minimumExpectedEdgeIds) {
+      assert.ok(
+        edgeIds.includes(edgeId),
+        `Expected edge '${edgeId}' after refresh in scenario '${scenario.name}'. Got: ${edgeIds.join(', ')}`
+      );
+    }
+  });
+
   test('scenario edges are detected between fixture files', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const graphData = api.getGraphData();
     const edgeIds = graphData.edges.map((edge) => String(edge.id));
@@ -108,6 +136,69 @@ function waitForExtensionMessage(
   });
 }
 
+function waitForExtensionMessageWhere<TMessage>(
+  api: CodeGraphyAPI,
+  type: string,
+  predicate: (message: TMessage) => boolean,
+  timeoutMs: number,
+): Promise<TMessage> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timed out waiting for webview message: ${type}`)),
+      timeoutMs,
+    );
+    const disposable = api.onExtensionMessage((msg: unknown) => {
+      const message = msg as TMessage & { type?: string };
+      if (message.type !== type || !predicate(message)) {
+        return;
+      }
+
+      clearTimeout(timer);
+      disposable.dispose();
+      resolve(message);
+    });
+  });
+}
+
+async function waitForGraphIndexStatus(
+  api: CodeGraphyAPI,
+  hasIndex: boolean,
+  timeoutMs = 15_000,
+): Promise<void> {
+  await waitForExtensionMessageWhere<{ type: 'GRAPH_INDEX_STATUS_UPDATED'; payload: { hasIndex: boolean } }>(
+    api,
+    'GRAPH_INDEX_STATUS_UPDATED',
+    (message) => message.payload.hasIndex === hasIndex,
+    timeoutMs,
+  );
+}
+
+async function ensureIndexedGraph(api: CodeGraphyAPI): Promise<void> {
+  await vscode.commands.executeCommand('codegraphy.open');
+
+  indexedGraphPromise ??= (async () => {
+    const graphUpdated = waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', 30_000);
+    const indexUpdated = waitForGraphIndexStatus(api, true, 30_000);
+    await api.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
+    await Promise.all([graphUpdated, indexUpdated]);
+    await sleep(500);
+  })();
+
+  await indexedGraphPromise;
+  await sleep(250);
+}
+
+async function ensureDiscoveredGraph(api: CodeGraphyAPI): Promise<void> {
+  discoveredGraphPromise ??= (async () => {
+    const indexStatus = waitForGraphIndexStatus(api, false, 15_000);
+    const graphUpdated = waitForGraphDataUpdate(api);
+    await vscode.commands.executeCommand('codegraphy.open');
+    await Promise.all([indexStatus, graphUpdated]);
+  })();
+
+  await discoveredGraphPromise;
+}
+
 function waitForWebviewMessage(
   api: CodeGraphyAPI,
   type: string,
@@ -131,7 +222,7 @@ function waitForWebviewMessage(
 async function waitForGraphDataUpdate(
   api: CodeGraphyAPI,
   timeoutMs = 15_000,
-): Promise<import('../../shared/graph/types').IGraphData> {
+): Promise<import('../../shared/graph/contracts').IGraphData> {
   await waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', timeoutMs);
   return api.getGraphData();
 }
@@ -146,13 +237,6 @@ interface GraphRuntimeStateResponse {
   payload: {
     graphMode: '2d' | '3d';
     nodeCount: number;
-  };
-}
-
-interface ViewsUpdatedResponse {
-  payload: {
-    activeViewId: string;
-    views: Array<{ id: string; name: string }>;
   };
 }
 
@@ -223,12 +307,19 @@ async function waitForStableNodeBounds(
   throw new Error('Rendered node positions never stabilized');
 }
 
+async function setDepthMode(api: CodeGraphyAPI, depthMode: boolean): Promise<void> {
+  await api.dispatchWebviewMessage({
+    type: 'UPDATE_DEPTH_MODE',
+    payload: { depthMode },
+  });
+}
+
 suite('Graph: Physics Stabilization', function () {
   this.timeout(30_000);
 
   test('graph layout stabilizes within 10 seconds of opening', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
+    await ensureIndexedGraph(api);
     await waitForStableNodeBounds(api, 10_000);
   });
 });
@@ -238,7 +329,7 @@ suite('Graph: No Node Overlap After Stabilization', function () {
 
   test('no two nodes overlap after physics stabilizes', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
+    await ensureIndexedGraph(api);
 
     const nodes = await waitForStableNodeBounds(api, 15_000);
     assert.ok(nodes.length > 0, 'Expected at least one node');
@@ -270,8 +361,7 @@ suite('Graph: Webview Messaging', function () {
 
   test('extension responds to WEBVIEW_READY with graph data', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(2_000);
+    await ensureIndexedGraph(api);
 
     const updatePromise = waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', 15_000);
     void api.dispatchWebviewMessage({ type: 'WEBVIEW_READY', payload: null });
@@ -280,32 +370,13 @@ suite('Graph: Webview Messaging', function () {
 
   test('FIT_VIEW command sends FIT_VIEW message to webview', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(1_000);
+    await ensureIndexedGraph(api);
 
     const fitViewPromise = waitForExtensionMessage(api, 'FIT_VIEW', 10_000);
     void vscode.commands.executeCommand('codegraphy.fitView');
     await fitViewPromise;
   });
 
-  test('typescript workspaces expose the focused imports plugin view to the webview', async function() {
-    if (scenario.name !== 'typescript') {
-      this.skip();
-    }
-
-    const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
-
-    const viewsUpdatedPromise = waitForExtensionMessage(api, 'VIEWS_UPDATED', 15_000);
-    await api.dispatchWebviewMessage({ type: 'WEBVIEW_READY', payload: null });
-    const message = await viewsUpdatedPromise as ViewsUpdatedResponse;
-
-    assert.ok(
-      message.payload.views.some((view) => view.id === 'codegraphy.typescript.focused-imports'),
-      `Expected focused imports view in: ${message.payload.views.map((view) => view.id).join(', ')}`,
-    );
-  });
 });
 
 suite('Graph: 3D Mode', function () {
@@ -313,8 +384,7 @@ suite('Graph: 3D Mode', function () {
 
   test('toggle dimension switches the runtime into 3d without the webview reporting a fallback', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const webviewMessages: unknown[] = [];
     const subscription = api.onWebviewMessage((message: unknown) => {
@@ -340,13 +410,12 @@ suite('Graph: 3D Mode', function () {
   });
 });
 
-suite('Graph: Depth View', function () {
+suite('Graph: Depth Mode', function () {
   this.timeout(60_000);
 
-  test('depth view falls back to the full connections graph when no file is active', async function() {
+  test('depth mode falls back to the full graph when no file is active', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     await sleep(1_000);
@@ -355,10 +424,7 @@ suite('Graph: Depth View', function () {
     assert.ok(fullGraph.nodes.length > 0, 'Expected connections graph data before switching views');
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     const depthGraph = await depthGraphPromise;
 
     assert.deepStrictEqual(
@@ -371,10 +437,9 @@ suite('Graph: Depth View', function () {
     );
   });
 
-  test('depth view filters the graph around the active file and still renders bounds', async function() {
+  test('depth mode filters the graph around the active file and still renders bounds', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     assert.ok(workspaceRoot, 'Workspace folder required');
@@ -386,10 +451,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthOnePromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     const depthOneGraph = await depthOnePromise;
     const depthOneNodeIds = depthOneGraph.nodes.map((node) => String(node.id)).sort();
 
@@ -420,25 +482,18 @@ suite('Graph: Depth View', function () {
     const depthTwoBounds = await requestNodeBounds(api);
     assert.strictEqual(depthTwoBounds.length, depthTwoGraph.nodes.length);
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
-  test('depth view re-roots around the selected node even without an active editor', async function() {
+  test('depth mode re-roots around the selected node even without an active editor', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     await sleep(1_000);
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const selectedNodeGraphPromise = waitForGraphDataUpdate(api);
@@ -460,16 +515,12 @@ suite('Graph: Depth View', function () {
     const renderedBounds = await requestNodeBounds(api);
     assert.strictEqual(renderedBounds.length, selectedNodeGraph.nodes.length);
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
-  test('depth view re-roots around the selected node even when another editor stays active', async function() {
+  test('depth mode re-roots around the selected node even when another editor stays active', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     assert.ok(workspaceRoot, 'Workspace folder required');
@@ -481,10 +532,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const depthLimitResetPromise = waitForGraphDataUpdate(api);
@@ -518,16 +566,12 @@ suite('Graph: Depth View', function () {
     const renderedBounds = await requestNodeBounds(api);
     assert.strictEqual(renderedBounds.length, selectedNodeGraph.nodes.length);
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
-  test('depth view stays filtered when re-rooting from the current node to a visible neighbor', async function() {
+  test('depth mode stays filtered when re-rooting from the current node to a visible neighbor', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     assert.ok(workspaceRoot, 'Workspace folder required');
@@ -539,10 +583,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const depthLimitResetPromise = waitForGraphDataUpdate(api);
@@ -581,7 +622,7 @@ suite('Graph: Depth View', function () {
     rerootMessageSubscription.dispose();
 
     const graphUpdates = rerootMessages.filter(
-      (message): message is { type: 'GRAPH_DATA_UPDATED'; payload: import('../../shared/graph/types').IGraphData } =>
+      (message): message is { type: 'GRAPH_DATA_UPDATED'; payload: import('../../shared/graph/contracts').IGraphData } =>
         (message as { type?: string }).type === 'GRAPH_DATA_UPDATED',
     );
     const activeFileUpdates = rerootMessages.filter(
@@ -603,22 +644,15 @@ suite('Graph: Depth View', function () {
       `Re-rooting should not clear the focused file. Active file updates: ${JSON.stringify(activeFileUpdates)}`,
     );
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
-  test('depth view returns to the full graph when the focused node is cleared', async function() {
+  test('depth mode returns to the full graph when the focused node is cleared', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const connectionsGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
     await connectionsGraphPromise;
 
     const fullGraph = api.getGraphData();
@@ -626,10 +660,7 @@ suite('Graph: Depth View', function () {
     const fullEdgeIds = fullGraph.edges.map(edge => String(edge.id)).sort();
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const depthLimitResetPromise = waitForGraphDataUpdate(api);
@@ -664,16 +695,12 @@ suite('Graph: Depth View', function () {
       fullEdgeIds,
     );
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
-  test('depth view re-roots again after clearing a selected node and choosing a different node', async function() {
+  test('depth mode re-roots again after clearing a selected node and choosing a different node', async function() {
     const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
+    await ensureIndexedGraph(api);
 
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     assert.ok(workspaceRoot, 'Workspace folder required');
@@ -685,10 +712,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const depthLimitResetPromise = waitForGraphDataUpdate(api);
@@ -727,9 +751,6 @@ suite('Graph: Depth View', function () {
       scenario.depth.selectedNodeDepthOneEdgeIds,
     );
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 });

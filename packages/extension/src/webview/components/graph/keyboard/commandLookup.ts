@@ -15,6 +15,24 @@ function isPackageNodeId(nodeId: string): boolean {
   return nodeId.startsWith('pkg:');
 }
 
+function getEnterCommand(selectedNodeIds: readonly string[]): GraphKeyboardCommand | null {
+  if (selectedNodeIds.length === 0) {
+    return null;
+  }
+
+  return createOpenSelectedNodesCommand(
+    selectedNodeIds.filter(nodeId => !isPackageNodeId(nodeId)),
+  );
+}
+
+function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null {
+  return (
+    getZoomShortcutCommand(options.key, options.isMod, options.graphMode) ??
+    getHistoryShortcutCommand(options.key, options.isMod, options.shiftKey) ??
+    getToolbarShortcutCommand(options.key, options.isMod)
+  );
+}
+
 export function getGraphKeyboardCommandImpl(
   options: GraphKeyboardOptions
 ): GraphKeyboardCommand | null {
@@ -30,18 +48,10 @@ export function getGraphKeyboardCommandImpl(
     case 'Escape':
       return createClearSelectionCommand();
     case 'Enter':
-      return selectedNodeIds.length > 0
-        ? createOpenSelectedNodesCommand(
-            selectedNodeIds.filter(nodeId => !isPackageNodeId(nodeId)),
-          )
-        : null;
+      return getEnterCommand(selectedNodeIds);
     case 'a':
       return isMod ? createSelectAllCommand(allNodeIds) : null;
     default:
-      return (
-        getZoomShortcutCommand(key, isMod, graphMode) ??
-        getHistoryShortcutCommand(key, isMod, shiftKey) ??
-        getToolbarShortcutCommand(key, isMod)
-      );
+      return getShortcutCommand({ key, isMod, shiftKey, graphMode, selectedNodeIds, allNodeIds, targetIsEditable });
   }
 }

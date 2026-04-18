@@ -15,6 +15,7 @@ export interface CurvatureLink {
   target?: NodeRef;
   curvature?: number;
   nodePairId?: string;
+  curvatureGroupId?: string;
 }
 
 /**

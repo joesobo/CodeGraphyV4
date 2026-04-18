@@ -1,19 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection } from '../../../../src/core/plugins/types/contracts';
-import type { IGraphEdge } from '../../../../src/shared/graph/types';
+import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
+import type { IGraphEdge } from '../../../../src/shared/graph/contracts';
 import {
   addGitHistoryGraphFile,
   modifyGitHistoryGraphFile,
 } from '../../../../src/extension/gitHistory/diff/changes';
 
 describe('gitHistory/diff/changes', () => {
-  const noConnections = (): IConnection[] => [];
+  const emptyAnalysis = (filePath: string): IFileAnalysisResult => ({ filePath, relations: [] });
 
   it('adds a node for unsupported files without reanalyzing them', async () => {
     const nodes: Array<{ id: string; label: string; color: string }> = [];
     const nodeMap = new Map();
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
+      analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => emptyAnalysis(absolutePath)),
       supportsFile: vi.fn(() => false),
     };
 
@@ -31,7 +31,7 @@ describe('gitHistory/diff/changes', () => {
     });
 
     expect(nodes).toEqual([{ id: 'src/readme.md', label: 'readme.md', color: '#CBD5E1' }]);
-    expect(registry.analyzeFile).not.toHaveBeenCalled();
+    expect(registry.analyzeFileResult).not.toHaveBeenCalled();
   });
 
   it('adds supported files by fetching content and appending analyzed edges', async () => {
@@ -39,15 +39,19 @@ describe('gitHistory/diff/changes', () => {
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./b";');
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
-        {
-          sourceId: 'import',
-          specifier: './b',
-          type: 'static',
-          resolvedPath: '/workspace/src/b.ts',
-          kind: 'import',
-        } satisfies IConnection,
-      ]),
+      analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
+        filePath: absolutePath,
+        relations: [
+          {
+            sourceId: 'import',
+            specifier: './b',
+            type: 'static',
+            resolvedPath: '/workspace/src/b.ts',
+            kind: 'import',
+            fromFilePath: absolutePath,
+          },
+        ],
+      })),
       supportsFile: vi.fn(() => true),
     };
     const signal = new AbortController().signal;
@@ -68,7 +72,7 @@ describe('gitHistory/diff/changes', () => {
     });
 
     expect(getFileAtCommit).toHaveBeenCalledWith('abc123', 'src/a.ts', signal);
-    expect(registry.analyzeFile).toHaveBeenCalledWith(
+    expect(registry.analyzeFileResult).toHaveBeenCalledWith(
       '/workspace/src/a.ts',
       'import "./b";',
       '/workspace',
@@ -76,14 +80,14 @@ describe('gitHistory/diff/changes', () => {
     expect(nodes).toEqual([{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }]);
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts#import',
+        id: 'src/a.ts->src/b.ts#import:static',
         from: 'src/a.ts',
         to: 'src/b.ts',
         kind: 'import',
         sources: [],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts#import']));
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts#import:static']));
   });
 
   it('reuses an existing supported node while reanalyzing its edges', async () => {
@@ -94,15 +98,19 @@ describe('gitHistory/diff/changes', () => {
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./c";');
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
-        {
-          sourceId: 'import',
-          specifier: './c',
-          type: 'static',
-          resolvedPath: '/workspace/src/c.ts',
-          kind: 'import',
-        } satisfies IConnection,
-      ]),
+      analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
+        filePath: absolutePath,
+        relations: [
+          {
+            sourceId: 'import',
+            specifier: './c',
+            type: 'static',
+            resolvedPath: '/workspace/src/c.ts',
+            kind: 'import',
+            fromFilePath: absolutePath,
+          },
+        ],
+      })),
       supportsFile: vi.fn(() => true),
     };
     const signal = new AbortController().signal;
@@ -121,7 +129,7 @@ describe('gitHistory/diff/changes', () => {
     });
 
     expect(getFileAtCommit).toHaveBeenCalledWith('abc123', existingNode.id, signal);
-    expect(registry.analyzeFile).toHaveBeenCalledWith(
+    expect(registry.analyzeFileResult).toHaveBeenCalledWith(
       '/workspace/src/a.ts',
       'import "./c";',
       '/workspace',
@@ -130,14 +138,14 @@ describe('gitHistory/diff/changes', () => {
     expect(nodeMap.get(existingNode.id)).toBe(existingNode);
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/c.ts#import',
+        id: 'src/a.ts->src/c.ts#import:static',
         from: 'src/a.ts',
         to: 'src/c.ts',
         kind: 'import',
         sources: [],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/a.ts->src/c.ts#import']));
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/c.ts#import:static']));
   });
 
   it('does not duplicate unsupported nodes that already exist', async () => {
@@ -153,7 +161,7 @@ describe('gitHistory/diff/changes', () => {
       nodeMap,
       nodes,
       registry: {
-        analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
+        analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => emptyAnalysis(absolutePath)),
         supportsFile: vi.fn(() => false),
       },
       sha: 'abc123',
@@ -173,15 +181,19 @@ describe('gitHistory/diff/changes', () => {
     ];
     const edgeSet = new Set(edges.map((edge) => edge.id));
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
-        {
-          sourceId: 'import',
-          specifier: './new',
-          type: 'static',
-          resolvedPath: '/workspace/src/new.ts',
-          kind: 'import',
-        } satisfies IConnection,
-      ]),
+      analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
+        filePath: absolutePath,
+        relations: [
+          {
+            sourceId: 'import',
+            specifier: './new',
+            type: 'static',
+            resolvedPath: '/workspace/src/new.ts',
+            kind: 'import',
+            fromFilePath: absolutePath,
+          },
+        ],
+      })),
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => true),
     };
@@ -202,7 +214,7 @@ describe('gitHistory/diff/changes', () => {
     expect(edges).toEqual([
       { id: 'src/c.ts->src/a.ts#import', from: 'src/c.ts', to: 'src/a.ts' , kind: 'import', sources: [] },
       {
-        id: 'src/a.ts->src/new.ts#import',
+        id: 'src/a.ts->src/new.ts#import:static',
         from: 'src/a.ts',
         to: 'src/new.ts',
         kind: 'import',
@@ -212,11 +224,13 @@ describe('gitHistory/diff/changes', () => {
             pluginId: 'ts',
             sourceId: 'import',
             label: 'import',
+            metadata: undefined,
+            variant: undefined,
           },
         ],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/c.ts->src/a.ts#import', 'src/a.ts->src/new.ts#import']));
+    expect(edgeSet).toEqual(new Set(['src/c.ts->src/a.ts#import', 'src/a.ts->src/new.ts#import:static']));
   });
 
   it('skips modify reanalysis for unsupported files', async () => {
@@ -224,7 +238,7 @@ describe('gitHistory/diff/changes', () => {
     const edges: IGraphEdge[] = [{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }];
     const edgeSet = new Set(['src/a.txt->src/b.txt#import']);
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
+      analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => emptyAnalysis(absolutePath)),
       supportsFile: vi.fn(() => false),
     };
 
@@ -241,7 +255,7 @@ describe('gitHistory/diff/changes', () => {
       workspaceRoot: '/workspace',
     });
 
-    expect(registry.analyzeFile).not.toHaveBeenCalled();
+    expect(registry.analyzeFileResult).not.toHaveBeenCalled();
     expect(getFileAtCommit).not.toHaveBeenCalled();
     expect(edges).toEqual([{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }]);
     expect(edgeSet).toEqual(new Set(['src/a.txt->src/b.txt#import']));

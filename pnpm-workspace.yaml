@@ -1,2 +1,12 @@
 packages:
   - "packages/*"
+allowBuilds:
+  '@ladybugdb/core': true
+  tree-sitter: true
+  tree-sitter-c-sharp: true
+  tree-sitter-go: true
+  tree-sitter-java: true
+  tree-sitter-javascript: true
+  tree-sitter-python: true
+  tree-sitter-rust: true
+  tree-sitter-typescript: true

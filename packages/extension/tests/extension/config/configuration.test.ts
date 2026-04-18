@@ -26,7 +26,6 @@ describe('Configuration', () => {
       respectGitignore: true,
       showOrphans: true,
       plugins: [],
-      disabledSources: [],
       disabledPlugins: [],
     };
 
@@ -62,11 +61,6 @@ describe('Configuration', () => {
     it('should return default plugins as empty array', () => {
       const config = new Configuration();
       expect(config.plugins).toEqual([]);
-    });
-
-    it('should return default disabledSources as empty array', () => {
-      const config = new Configuration();
-      expect(config.disabledSources).toEqual([]);
     });
 
     it('should return default disabledPlugins as empty array', () => {
@@ -106,12 +100,6 @@ describe('Configuration', () => {
       expect(config.plugins).toEqual(['codegraphy-rust', 'codegraphy-go']);
     });
 
-    it('should return custom disabledSources', () => {
-      mockConfig.disabledSources = ['codegraphy.typescript:dynamic-import'];
-      const config = new Configuration();
-      expect(config.disabledSources).toEqual(['codegraphy.typescript:dynamic-import']);
-    });
-
     it('should return custom disabledPlugins', () => {
       mockConfig.disabledPlugins = ['codegraphy.python'];
       const config = new Configuration();
@@ -131,8 +119,8 @@ describe('Configuration', () => {
         showOrphans: true,
         bidirectionalEdges: 'separate',
         plugins: [],
-        disabledSources: [],
         disabledPlugins: [],
+        pluginOrder: [],
       });
     });
 
@@ -140,7 +128,6 @@ describe('Configuration', () => {
       mockConfig.maxFiles = 200;
       mockConfig.showOrphans = false;
       mockConfig.plugins = ['codegraphy-rust'];
-      mockConfig.disabledSources = ['codegraphy.typescript:dynamic-import'];
       mockConfig.disabledPlugins = ['codegraphy.python'];
 
       const config = new Configuration();
@@ -149,7 +136,6 @@ describe('Configuration', () => {
       expect(all.maxFiles).toBe(200);
       expect(all.showOrphans).toBe(false);
       expect(all.plugins).toEqual(['codegraphy-rust']);
-      expect(all.disabledSources).toEqual(['codegraphy.typescript:dynamic-import']);
       expect(all.disabledPlugins).toEqual(['codegraphy.python']);
     });
   });

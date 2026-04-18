@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { coreViews } from '../../../core/views/builtIns';
+import { coreViews } from '../../../core/views/catalog';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { initializeGraphViewProviderServices, restoreGraphViewProviderState } from './wiring/bootstrap';
 import type { GraphViewProviderMethodContainers } from './wiring/methodContainers';
 
-export const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
-export const DAG_MODE_KEY = 'codegraphy.dagMode';
-export const NODE_SIZE_MODE_KEY = 'codegraphy.nodeSizeMode';
-export const DEFAULT_VIEW_ID = 'codegraphy.connections';
+export const DAG_MODE_KEY = 'dagMode';
+export const NODE_SIZE_MODE_KEY = 'nodeSizeMode';
+export const DEPTH_MODE_KEY = 'depthMode';
 
 type GraphViewProviderServicesArgs = Parameters<typeof initializeGraphViewProviderServices>[0];
 type RestoredStateArgs = Parameters<typeof restoreGraphViewProviderState>[0];
@@ -46,17 +46,14 @@ export function initializeGraphViewProviderRuntimeServices(
 }
 
 export function restoreGraphViewProviderRuntimeState(
-  context: vscode.ExtensionContext,
-  viewRegistry: RuntimeBootstrapSource['_viewRegistry'],
+  _context: vscode.ExtensionContext,
   fallbackNodeSizeMode: RestoredStateArgs['fallbackNodeSizeMode'],
 ) {
   return restoreGraphViewProviderState({
-    workspaceState: context.workspaceState,
-    viewRegistry: viewRegistry as RestoredStateArgs['viewRegistry'],
-    selectedViewKey: SELECTED_VIEW_KEY,
+    configuration: getCodeGraphyConfiguration(),
     dagModeKey: DAG_MODE_KEY,
     nodeSizeModeKey: NODE_SIZE_MODE_KEY,
-    fallbackViewId: DEFAULT_VIEW_ID,
+    depthModeKey: DEPTH_MODE_KEY,
     fallbackNodeSizeMode,
   });
 }

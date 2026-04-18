@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protocol/extensionToWebview';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../../src/extension/config/defaults';
 const timelineMethodMocks = vi.hoisted(() => ({
@@ -57,7 +57,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: false,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: vi.fn(),
@@ -124,7 +123,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: false,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: vi.fn(),
@@ -202,7 +200,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: false,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: vi.fn(),
@@ -250,7 +247,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: true,
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] },
       _graphData: { nodes: [], edges: [] },
       _applyViewTransform: vi.fn(),
@@ -308,7 +304,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: true,
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: vi.fn(),
@@ -346,7 +341,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: true,
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: vi.fn(),
@@ -392,7 +386,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: false,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] },
       _graphData: { nodes: [], edges: [] },
       _applyViewTransform: vi.fn(),
@@ -444,7 +437,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: true,
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: vi.fn(),
@@ -506,7 +498,6 @@ describe('graphView/provider/timeline methods', () => {
       _timelineActive: true,
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: vi.fn(),

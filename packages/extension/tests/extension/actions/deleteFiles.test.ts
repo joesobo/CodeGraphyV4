@@ -124,7 +124,7 @@ describe('DeleteFilesAction', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         ['src/other.ts'],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
@@ -139,7 +139,7 @@ describe('DeleteFilesAction', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         ['src/other.ts'],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 

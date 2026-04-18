@@ -5,6 +5,7 @@ All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift
 | Command | Description |
 |---------|-------------|
 | `CodeGraphy: Open` | Open the CodeGraphy panel |
+| `CodeGraphy: Open in Editor` | Open the current graph or export target in a regular editor tab |
 | `CodeGraphy: Fit All Nodes in View` | Reset zoom to show all nodes |
 | `CodeGraphy: Zoom In` | Increase zoom level |
 | `CodeGraphy: Zoom Out` | Decrease zoom level |
@@ -13,12 +14,12 @@ All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift
 | `CodeGraphy: Export as PNG` | Save the graph as a rasterized image |
 | `CodeGraphy: Export as SVG` | Save the graph as a scalable vector |
 | `CodeGraphy: Export as JPEG` | Save the graph as a JPEG image |
-| `CodeGraphy: Export Connections as JSON` | Save current graph connection data as structured JSON |
-| `CodeGraphy: Export Connections as Markdown` | Save current graph connection data as markdown |
-| `CodeGraphy: Cycle View` | Cycle through graph views (Connections → Depth → Folder) |
+| `CodeGraphy: Export Graph as JSON` | Save the current graph data as structured JSON |
+| `CodeGraphy: Export Graph as Markdown` | Save the current graph data as markdown |
+| `CodeGraphy: Toggle Depth Mode` | Toggle depth mode on the unified graph surface |
 | `CodeGraphy: Cycle Layout` | Cycle through DAG layouts (Default → Radial → Top Down → Left to Right) |
 | `CodeGraphy: Toggle 2D/3D` | Switch between 2D canvas and 3D WebGL rendering |
-| `CodeGraphy: Clear Cache and Refresh` | Clear analysis cache and re-scan the workspace |
+| `CodeGraphy: Clear Cache and Refresh` | Clear cached graph data and force a full refresh |
 
 ## Command IDs
 
@@ -27,6 +28,7 @@ For keybinding customization or extension integration:
 | Command ID | Maps to |
 |-----------|---------|
 | `codegraphy.open` | Open |
+| `codegraphy.openInEditor` | Open in Editor |
 | `codegraphy.fitView` | Fit All Nodes in View |
 | `codegraphy.zoomIn` | Zoom In |
 | `codegraphy.zoomOut` | Zoom Out |
@@ -35,11 +37,13 @@ For keybinding customization or extension integration:
 | `codegraphy.exportPng` | Export as PNG |
 | `codegraphy.exportSvg` | Export as SVG |
 | `codegraphy.exportJpeg` | Export as JPEG |
-| `codegraphy.exportJson` | Export Connections as JSON |
-| `codegraphy.exportMarkdown` | Export Connections as Markdown |
-| `codegraphy.cycleView` | Cycle View |
+| `codegraphy.exportJson` | Export Graph as JSON |
+| `codegraphy.exportMarkdown` | Export Graph as Markdown |
+| `codegraphy.toggleDepthMode` | Toggle Depth Mode |
 | `codegraphy.cycleLayout` | Cycle Layout |
 | `codegraphy.toggleDimension` | Toggle 2D/3D |
 | `codegraphy.clearCache` | Clear Cache and Refresh |
 
 See [Keybindings](./KEYBINDINGS.md) for default shortcuts and customization.
+
+Symbol export is available from the graph toolbar export menu as `Export Symbols as JSON`.

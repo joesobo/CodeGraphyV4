@@ -22,9 +22,11 @@ CodeGraphy has two plugin surfaces:
 
 The current plugin API supports more than file analysis:
 
-- semantic relations via `kind` + `sourceId`
-- graph queries backed by the host graph cache
-- custom views with `recomputeOn` dependencies
+- per-file analysis objects with symbols, relations, node types, and edge types
+- `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
+- `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
+- graph queries backed by the projected repo-local index and current graph state
+- commands, exporters, toolbar actions, and the compatibility `registerView(...)` hook for optional future graph transforms
 - context menu items, commands, and exporters
 - host-saved exports via `api.saveExport(...)`
 - Tier 2 webview slots such as `toolbar`, `node-details`, `tooltip`, `timeline-panel`, `graph-overlay`
@@ -56,3 +58,25 @@ import type { CodeGraphyAPI, IPlugin } from '@codegraphy-vscode/plugin-api';
 ```
 
 Use `import type` because the package is type-only.
+
+## Analysis model
+
+The core extension owns discovery, repo-local settings, caching, graph projection, and export flow. Plugins contribute analysis and UI on top of that pipeline and can:
+
+- return per-file analysis results with relations, symbols, and extra nodes
+- override or enrich lower-priority plugin results for the same file
+- add node kinds
+- add edge kinds
+- contribute language or framework-specific semantics
+- add exporters, commands, toolbar actions, and other UI surfaces through the host API
+- register optional view transforms for compatibility, even though the current built-in UI stays on one unified graph surface
+
+Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.
+
+In practice, "win merge conflicts" means:
+
+- `nodes`, `symbols`, `nodeTypes`, and `edgeTypes` override by matching `id`
+- imports/reexports/loads/inherits override when they describe the same source relation
+- distinct call/reference targets stay separate so symbol-aware routing is preserved
+
+Markdown-style wikilink scanning is implemented as a wildcard plugin so it can inspect any file, not just `.md` files.

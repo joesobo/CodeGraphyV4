@@ -1,9 +1,10 @@
 import type { GraphViewProviderMethodSource, GraphViewProviderMethodSourceOwner } from './contracts';
-import { createGraphViewProviderAnalysisMethodDelegates } from './analysisDelegates';
-import { createGraphViewProviderFileTimelineMethodDelegates } from './fileTimelineDelegates';
-import { createGraphViewProviderPublicMethodDelegates } from './publicDelegates';
-import { createGraphViewProviderSettingsMethodDelegates } from './settingsDelegates';
-import { createGraphViewProviderMethodStateSource } from './state';
+import { createGraphViewProviderAnalysisMethodDelegates } from './delegates/analysis';
+import { createGraphViewProviderFileTimelineMethodDelegates } from './delegates/fileTimeline';
+import { createGraphViewProviderPluginMethodDelegates } from './delegates/plugin';
+import { createGraphViewProviderPublicMethodDelegates } from './delegates/public';
+import { createGraphViewProviderSettingsMethodDelegates } from './delegates/settings';
+import { createGraphViewProviderMethodStateProjection } from './state/projection';
 
 export { type GraphViewProviderMethodSource, type GraphViewProviderMethodSourceOwner } from './contracts';
 
@@ -26,12 +27,13 @@ function attachDelegateProperties<TTarget extends object, TDelegates extends obj
 export function createGraphViewProviderMethodSource(
   owner: GraphViewProviderMethodSourceOwner,
 ): GraphViewProviderMethodSource {
-  const source = createGraphViewProviderMethodStateSource(owner);
+  const source = createGraphViewProviderMethodStateProjection(owner);
 
   for (const createDelegates of [
     createGraphViewProviderAnalysisMethodDelegates,
     createGraphViewProviderSettingsMethodDelegates,
     createGraphViewProviderFileTimelineMethodDelegates,
+    createGraphViewProviderPluginMethodDelegates,
     createGraphViewProviderPublicMethodDelegates,
   ]) {
     attachDelegateProperties(source, createDelegates(owner));

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type {
   GraphViewProviderTimelineMethodDependencies,
   GraphViewProviderTimelineMethodsSource,
-} from '../../../../../src/extension/graphView/provider/timeline/types';
+} from '../../../../../src/extension/graphView/provider/timeline/contracts';
 import { createGraphViewProviderTimelineEditorMethods } from '../../../../../src/extension/graphView/provider/timeline/editor';
 
 function createSource(
@@ -19,7 +19,6 @@ function createSource(
     _timelineActive: true,
     _currentCommitSha: 'sha-1',
     _disabledPlugins: new Set<string>(),
-    _disabledSources: new Set<string>(),
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _applyViewTransform: vi.fn(),

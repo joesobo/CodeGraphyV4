@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import { describe, expect, it } from 'vitest';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { buildGraphViewTimelineGraphData } from '../../../../../src/extension/graphView/timeline/indexing/filtering';
 
 const rawGraphData: IGraphData = {
@@ -30,18 +30,7 @@ describe('graphView/timeline/indexing/filtering', () => {
   it('filters out edges from disabled plugins', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledSources: new Set<string>(),
       showOrphans: true,
-      workspaceRoot: '/workspace',
-      registry: {
-        getPluginForFile(filePath) {
-          if (filePath.endsWith('src/a.ts')) {
-            return { id: 'codegraphy.typescript' };
-          }
-
-          return { id: 'codegraphy.python' };
-        },
-      },
     });
 
     expect(graphData.edges).toEqual([
@@ -58,35 +47,17 @@ describe('graphView/timeline/indexing/filtering', () => {
   it('keeps all nodes when showOrphans is enabled', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledSources: new Set<string>(),
       showOrphans: true,
-      workspaceRoot: '/workspace',
-      registry: {
-        getPluginForFile(filePath) {
-          if (filePath.endsWith('src/a.ts')) {
-            return { id: 'codegraphy.typescript' };
-          }
-
-          return { id: 'codegraphy.python' };
-        },
-      },
     });
 
     expect(graphData.nodes).toBe(rawGraphData.nodes);
     expect(graphData.nodes.map((node) => node.id)).toEqual(['src/a.ts', 'src/b.ts', 'src/c.ts']);
   });
 
-  it('filters out edges from disabled sources', () => {
+  it('keeps edges when only source ids would previously have been disabled', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set<string>(),
-      disabledSources: new Set(['codegraphy.python:import']),
       showOrphans: true,
-      workspaceRoot: '/workspace',
-      registry: {
-        getPluginForFile() {
-          return { id: 'codegraphy.python' };
-        },
-      },
     });
 
     expect(graphData.edges).toEqual([
@@ -97,62 +68,84 @@ describe('graphView/timeline/indexing/filtering', () => {
         kind: 'import',
         sources: [{ id: 'codegraphy.typescript:import', pluginId: 'codegraphy.typescript', sourceId: 'import', label: 'Import' }],
       },
+      {
+        id: 'src/c.ts->src/b.ts#import',
+        from: 'src/c.ts',
+        to: 'src/b.ts',
+        kind: 'import',
+        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+      },
     ]);
   });
 
   it('drops orphaned nodes when showOrphans is disabled', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledSources: new Set<string>(),
       showOrphans: false,
-      workspaceRoot: '/workspace',
-      registry: {
-        getPluginForFile(filePath) {
-          if (filePath.endsWith('src/a.ts')) {
-            return { id: 'codegraphy.typescript' };
-          }
-
-          return { id: 'codegraphy.python' };
-        },
-      },
     });
 
     expect(graphData.nodes.map((node) => node.id)).toEqual(['src/b.ts', 'src/c.ts']);
   });
 
   it('returns the original edge array when no plugin or rule filters are disabled', () => {
-    const getPluginForFile = vi.fn(() => ({ id: 'codegraphy.typescript' }));
-
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set<string>(),
-      disabledSources: new Set<string>(),
       showOrphans: true,
-      workspaceRoot: '/workspace',
-      registry: { getPluginForFile },
-    });
-
-    expect(graphData.edges).toBe(rawGraphData.edges);
-    expect(getPluginForFile).not.toHaveBeenCalled();
-  });
-
-  it('returns the original edge array when the registry is missing', () => {
-    const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
-      disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledSources: new Set<string>(),
-      showOrphans: true,
-      workspaceRoot: '/workspace',
     });
 
     expect(graphData.edges).toBe(rawGraphData.edges);
   });
 
-  it('returns the original edge array when the workspace root is missing', () => {
+  it('keeps source-less edges when plugin provenance is missing', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledSources: new Set<string>(),
+      showOrphans: true,
+      });
+
+    expect(graphData.edges).toEqual([
+      {
+        id: 'src/c.ts->src/b.ts#import',
+        from: 'src/c.ts',
+        to: 'src/b.ts',
+        kind: 'import',
+        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+      },
+    ]);
+  });
+
+  it('returns source-less edges unchanged when they cannot be attributed', () => {
+    const graphData = buildGraphViewTimelineGraphData({
+      ...rawGraphData,
+      edges: [
+        ...rawGraphData.edges,
+        {
+          id: 'src/a.ts->src/c.ts#reference',
+          from: 'src/a.ts',
+          to: 'src/c.ts',
+          kind: 'reference',
+          sources: [],
+        },
+      ],
+    }, {
+      disabledPlugins: new Set(['codegraphy.typescript']),
       showOrphans: true,
     });
 
-    expect(graphData.edges).toBe(rawGraphData.edges);
+    expect(graphData.edges).toEqual([
+      {
+        id: 'src/c.ts->src/b.ts#import',
+        from: 'src/c.ts',
+        to: 'src/b.ts',
+        kind: 'import',
+        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+      },
+      {
+        id: 'src/a.ts->src/c.ts#reference',
+        from: 'src/a.ts',
+        to: 'src/c.ts',
+        kind: 'reference',
+        sources: [],
+      },
+    ]);
   });
 });

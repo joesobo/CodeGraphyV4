@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   createGraphViewProviderSettingsStateMethods,
@@ -13,8 +14,7 @@ function createSource(
   overrides: Partial<GraphViewProviderSettingsStateMethodsSource> = {},
 ): GraphViewProviderSettingsStateMethodsSource {
   const get = vi.fn((key: string) => {
-    if (key === 'codegraphy.groups') return undefined;
-    if (key === 'codegraphy.disabledSources') return ['rule.saved'];
+    if (key === 'codegraphy.legend') return undefined;
     if (key === 'codegraphy.disabledPlugins') return ['plugin.saved'];
     return undefined;
   }) as WorkspaceStateGetMock;
@@ -26,10 +26,9 @@ function createSource(
   const source: GraphViewProviderSettingsStateMethodsSource = {
     _context: { workspaceState },
     _viewContext: { activePlugins: new Set<string>(), depthLimit: 1 } as never,
-    _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
     _userGroups: [{ id: 'group.current' } as never],
     _filterPatterns: ['current/**'],
-    _disabledSources: new Set<string>(['rule.current']),
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _disabledPlugins: new Set<string>(['plugin.current']),
     _nodeSizeMode: 'connections',
     _analyzer: undefined,
@@ -43,6 +42,9 @@ function createSource(
   if (!overrides._context) {
     source._context = { workspaceState };
   }
+
+  source._graphData ??= { nodes: [], edges: [] } satisfies IGraphData;
+  source._disabledPlugins ??= new Set<string>();
 
   return source;
 }
@@ -71,12 +73,10 @@ function createDependencies(
       getConfigTarget: vi.fn(() => 'workspace'),
       loadGroupState: vi.fn(() => ({
         userGroups: [],
-        hiddenPluginGroupIds: new Set<string>(),
         filterPatterns: [],
       }) as never),
       applyLoadedGroupState: vi.fn(),
       loadDisabledState: vi.fn(() => ({
-        disabledSources: new Set<string>(),
         disabledPlugins: new Set<string>(),
         changed: false,
       })),
@@ -93,7 +93,6 @@ describe('graphView/provider/settingsState', () => {
     const source = createSource();
     const groupState = {
       userGroups: [{ id: 'group.saved' } as never],
-      hiddenPluginGroupIds: new Set<string>(['plugin.saved']),
       filterPatterns: ['dist/**'],
     } as never;
     const { configuration, dependencies } = createDependencies({
@@ -101,12 +100,10 @@ describe('graphView/provider/settingsState', () => {
       applyLoadedGroupState: vi.fn((loadedGroupState, state, handlers) => {
         expect(loadedGroupState).toBe(groupState);
         expect(state.userGroups).toBe(source._userGroups);
-        expect([...state.hiddenPluginGroupIds]).toEqual(['plugin.current']);
         expect(state.filterPatterns).toEqual(['current/**']);
 
         handlers.recomputeGroups();
         state.userGroups = [{ id: 'group.loaded' } as never];
-        state.hiddenPluginGroupIds = new Set<string>(['plugin.loaded']);
         state.filterPatterns = ['loaded/**'];
       }),
     });
@@ -116,25 +113,21 @@ describe('graphView/provider/settingsState', () => {
     methods._loadGroupsAndFilterPatterns();
 
     expect(dependencies.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(dependencies.loadGroupState).toHaveBeenCalledWith(configuration, source._context.workspaceState);
+    expect(dependencies.loadGroupState).toHaveBeenCalledWith(configuration);
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._userGroups).toEqual([{ id: 'group.loaded' }]);
-    expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.loaded']);
     expect(source._filterPatterns).toEqual(['loaded/**']);
   });
 
   it('recomputes loaded groups from the freshly synced provider state', () => {
     const source = createSource({
       _userGroups: [{ id: 'group.current' } as never],
-      _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
       _filterPatterns: ['current/**'],
     });
     const loadedGroups = [{ id: 'group.loaded' } as never];
-    const loadedHiddenPluginGroupIds = new Set<string>(['plugin.loaded']);
     const loadedFilterPatterns = ['loaded/**'];
     const computeMergedGroups = vi.fn(() => {
       expect(source._userGroups).toEqual(loadedGroups);
-      expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.loaded']);
       expect(source._filterPatterns).toEqual(loadedFilterPatterns);
     });
     source._computeMergedGroups = computeMergedGroups;
@@ -142,7 +135,6 @@ describe('graphView/provider/settingsState', () => {
     const { dependencies } = createDependencies({
       applyLoadedGroupState: vi.fn((_loadedGroupState, state, handlers) => {
         state.userGroups = loadedGroups;
-        state.hiddenPluginGroupIds = loadedHiddenPluginGroupIds;
         state.filterPatterns = loadedFilterPatterns;
         handlers.recomputeGroups();
       }),
@@ -155,43 +147,29 @@ describe('graphView/provider/settingsState', () => {
     expect(computeMergedGroups).toHaveBeenCalledOnce();
   });
 
-  it('migrates legacy groups into configuration and clears the persisted workspace value', () => {
-    const get = vi.fn((key: string) => {
-      if (key === 'codegraphy.groups') return undefined;
-      return undefined;
-    }) as WorkspaceStateGetMock;
+  it('loads groups without attempting legacy workspace-state migration', () => {
     const workspaceState = {
-      get,
+      get: vi.fn(() => [{ id: 'group.legacy' }]),
       update: vi.fn(() => Promise.resolve()),
     };
     const source = createSource({
-      _context: { workspaceState },
+      _context: { workspaceState: workspaceState as never },
     });
-    const legacyGroups = [{ id: 'group.legacy' } as never];
-    const workspaceFolders = [{ name: 'workspace-folder', uri: { fsPath: '/workspace' }, index: 0 }] as never;
-    const { configuration, dependencies } = createDependencies({
-      getWorkspaceFolders: vi.fn(() => workspaceFolders),
-      getConfigTarget: vi.fn(() => 'workspace-folder'),
-      applyLoadedGroupState: vi.fn((_groupState, _state, handlers) => {
-        handlers.persistLegacyGroups(legacyGroups);
-        handlers.clearLegacyGroups();
-      }),
-    });
+    const { configuration, dependencies } = createDependencies();
 
     const methods = createGraphViewProviderSettingsStateMethods(source, dependencies);
 
     methods._loadGroupsAndFilterPatterns();
 
-    expect(dependencies.getWorkspaceFolders).toHaveBeenCalledOnce();
-    expect(dependencies.getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
-    expect(configuration.update).toHaveBeenCalledWith('groups', legacyGroups, 'workspace-folder');
-    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.groups', undefined);
+    expect(dependencies.getWorkspaceFolders).not.toHaveBeenCalled();
+    expect(dependencies.getConfigTarget).not.toHaveBeenCalled();
+    expect(configuration.update).not.toHaveBeenCalled();
+    expect(workspaceState.get).not.toHaveBeenCalled();
+    expect(workspaceState.update).not.toHaveBeenCalled();
   });
 
-  it('loads disabled sources and plugins from inspected config and persisted workspace keys', () => {
-    const get = vi.fn((key: string) =>
-      key === 'codegraphy.disabledSources' ? ['rule.saved'] : ['plugin.saved']
-    ) as WorkspaceStateGetMock;
+  it('loads disabled plugins from the current config value before inspection fallbacks', () => {
+    const get = vi.fn((_key: string) => ['plugin.saved']) as WorkspaceStateGetMock;
     const workspaceState = {
       get,
       update: vi.fn(() => Promise.resolve()),
@@ -199,38 +177,32 @@ describe('graphView/provider/settingsState', () => {
     const source = createSource({
       _context: { workspaceState },
     });
-    const initialDisabledRules = source._disabledSources;
     const initialDisabledPlugins = source._disabledPlugins;
-    const disabledSourcesInspect = { workspaceValue: ['rule.config'] };
     const disabledPluginsInspect = { workspaceValue: ['plugin.config'] };
     const { configuration, dependencies } = createDependencies({
       loadDisabledState: vi.fn(() => ({
-        disabledSources: new Set<string>(['rule.saved']),
         disabledPlugins: new Set<string>(['plugin.saved']),
         changed: true,
       })),
     });
 
-    configuration.inspect.mockImplementation((key: string) =>
-      key === 'disabledSources' ? disabledSourcesInspect : disabledPluginsInspect,
+    configuration.get.mockImplementation((key: string, fallback: string[]) =>
+      key === 'disabledPlugins' ? ['plugin.current'] : fallback,
     );
+    configuration.inspect.mockImplementation((_key: string) => disabledPluginsInspect);
 
     const methods = createGraphViewProviderSettingsStateMethods(source, dependencies);
 
     expect(methods._loadDisabledRulesAndPlugins()).toBe(true);
 
     expect(dependencies.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledSources');
-    expect(configuration.inspect).toHaveBeenNthCalledWith(2, 'disabledPlugins');
-    expect(workspaceState.get).toHaveBeenNthCalledWith(1, 'codegraphy.disabledSources');
-    expect(workspaceState.get).toHaveBeenNthCalledWith(2, 'codegraphy.disabledPlugins');
-    expect(dependencies.loadDisabledState).toHaveBeenCalledWith(initialDisabledRules, initialDisabledPlugins, {
-      disabledSourcesInspect,
+    expect(configuration.get).toHaveBeenNthCalledWith(1, 'disabledPlugins', []);
+    expect(configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledPlugins');
+    expect(dependencies.loadDisabledState).toHaveBeenCalledWith(initialDisabledPlugins, {
+      configuredDisabledPlugins: ['plugin.current'],
       disabledPluginsInspect,
-      persistedDisabledRules: ['rule.saved'],
-      persistedDisabledPlugins: ['plugin.saved'],
     });
-    expect([...source._disabledSources]).toEqual(['rule.saved']);
+    expect(workspaceState.get).not.toHaveBeenCalled();
     expect([...source._disabledPlugins]).toEqual(['plugin.saved']);
   });
 
@@ -269,7 +241,6 @@ describe('graphView/provider/settingsState', () => {
       captureSettingsSnapshot: vi.fn(() => snapshot),
       sendProviderAllSettings: vi.fn((state, options) => {
         expect(state.viewContext).toBe(source._viewContext);
-        expect([...state.hiddenPluginGroupIds]).toEqual(['plugin.current']);
         expect(state.userGroups).toEqual([{ id: 'group.current' }]);
         expect(state.filterPatterns).toEqual(['current/**']);
         expect(options.captureSettingsSnapshot()).toBe(snapshot);
@@ -278,7 +249,6 @@ describe('graphView/provider/settingsState', () => {
         options.sendMessage(message);
         options.recomputeGroups();
         options.sendGroupsUpdated();
-        state.hiddenPluginGroupIds = new Set<string>(['plugin.updated']);
         state.userGroups = [{ id: 'group.updated' } as never];
         state.filterPatterns = ['updated/**'];
       }),
@@ -298,7 +268,6 @@ describe('graphView/provider/settingsState', () => {
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith(message);
-    expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.updated']);
     expect(source._userGroups).toEqual([{ id: 'group.updated' }]);
     expect(source._filterPatterns).toEqual(['updated/**']);
   });
@@ -306,21 +275,17 @@ describe('graphView/provider/settingsState', () => {
   it('recomputes snapshot groups from the updated provider state before sending them', () => {
     const source = createSource({
       _userGroups: [{ id: 'group.current' } as never],
-      _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
       _filterPatterns: ['current/**'],
       _analyzer: { getPluginFilterPatterns: vi.fn(() => ['plugin/**']) },
     });
     const snapshotGroups = [{ id: 'group.snapshot' } as never];
-    const snapshotHiddenPluginGroups = ['plugin.snapshot'];
     const snapshotFilterPatterns = ['snapshot/**'];
     const snapshot = {
-      groups: snapshotGroups,
-      hiddenPluginGroups: snapshotHiddenPluginGroups,
+      legends: snapshotGroups,
       filterPatterns: snapshotFilterPatterns,
     } as never;
     const computeMergedGroups = vi.fn(() => {
       expect(source._userGroups).toEqual(snapshotGroups);
-      expect([...source._hiddenPluginGroupIds]).toEqual(snapshotHiddenPluginGroups);
       expect(source._filterPatterns).toEqual(snapshotFilterPatterns);
     });
     source._computeMergedGroups = computeMergedGroups;
@@ -328,7 +293,6 @@ describe('graphView/provider/settingsState', () => {
     const { dependencies } = createDependencies({
       captureSettingsSnapshot: vi.fn(() => snapshot),
       sendProviderAllSettings: vi.fn((state, options) => {
-        state.hiddenPluginGroupIds = new Set(snapshotHiddenPluginGroups);
         state.userGroups = snapshotGroups;
         state.filterPatterns = snapshotFilterPatterns;
         options.recomputeGroups();
@@ -345,12 +309,10 @@ describe('graphView/provider/settingsState', () => {
   it('defaults missing snapshot groups and filters before recomputing', () => {
     const source = createSource({
       _userGroups: [{ id: 'group.current' } as never],
-      _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
       _filterPatterns: ['current/**'],
     });
     const computeMergedGroups = vi.fn(() => {
       expect(source._userGroups).toEqual([]);
-      expect([...source._hiddenPluginGroupIds]).toEqual([]);
       expect(source._filterPatterns).toEqual([]);
     });
     source._computeMergedGroups = computeMergedGroups;
@@ -359,8 +321,7 @@ describe('graphView/provider/settingsState', () => {
       captureSettingsSnapshot: vi.fn(
         () =>
           ({
-            hiddenPluginGroups: undefined,
-            groups: undefined,
+            legends: undefined,
             filterPatterns: undefined,
           }) as never,
       ),
@@ -373,7 +334,6 @@ describe('graphView/provider/settingsState', () => {
 
     expect(computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._userGroups).toEqual([]);
-    expect([...source._hiddenPluginGroupIds]).toEqual([]);
     expect(source._filterPatterns).toEqual([]);
   });
 

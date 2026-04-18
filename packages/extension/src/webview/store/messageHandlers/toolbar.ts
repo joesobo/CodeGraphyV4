@@ -2,15 +2,21 @@ import type { IHandlerContext, PartialState } from '../messageTypes';
 import { DAG_MODE_CYCLE } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 
-export function handleCycleView(
+export function handleToggleDepthMode(
   _message: ExtensionToWebviewMessage,
   ctx: IHandlerContext,
 ): void {
-  const { availableViews, activeViewId } = ctx.getState();
-  if (availableViews.length === 0) return;
-  const idx = availableViews.findIndex((view) => view.id === activeViewId);
-  const next = availableViews[(idx + 1) % availableViews.length];
-  ctx.postMessage({ type: 'CHANGE_VIEW', payload: { viewId: next.id } });
+  const { depthMode, graphHasIndex } = ctx.getState();
+  if (!graphHasIndex) {
+    return;
+  }
+
+  ctx.postMessage({
+    type: 'UPDATE_DEPTH_MODE',
+    payload: {
+      depthMode: !depthMode,
+    },
+  });
 }
 
 export function handleCycleLayout(

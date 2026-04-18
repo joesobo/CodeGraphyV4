@@ -12,9 +12,9 @@ function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.test'],
-    detectConnections: vi.fn().mockResolvedValue([]),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 function createConfiguredRegistry() {

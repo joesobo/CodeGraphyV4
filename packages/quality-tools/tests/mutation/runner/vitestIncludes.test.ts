@@ -19,8 +19,6 @@ describe('resolveScopedVitestIncludes', () => {
     expect(resolveScopedVitestIncludes(target({ kind: 'package' }))).toEqual([
       'packages/extension/tests/**/*.test.ts',
       'packages/extension/tests/**/*.test.tsx',
-      'packages/extension/__tests__/**/*.test.ts',
-      'packages/extension/__tests__/**/*.test.tsx',
     ]);
   });
 
@@ -52,8 +50,8 @@ describe('resolveScopedVitestIncludes', () => {
       }),
     );
 
-    expect(includes).toContain('packages/plugin-typescript/__tests__/focusedImports.filter.test.ts');
-    expect(includes).toContain('packages/plugin-typescript/__tests__/**/focusedImports.filter.test.ts');
+    expect(includes).toContain('packages/plugin-typescript/tests/focusedImports.filter.test.ts');
+    expect(includes).toContain('packages/plugin-typescript/tests/**/focusedImports.filter.test.ts');
   });
 
   it('includes the mirrored feature test tree for service-style source files', () => {
@@ -82,8 +80,8 @@ describe('resolveScopedVitestIncludes', () => {
       }),
     );
 
-    expect(includes).toContain('packages/plugin-python/__tests__/**/ruleDetectors.test.ts');
-    expect(includes).toContain('packages/plugin-python/__tests__/**/*Detectors.test.ts');
+    expect(includes).toContain('packages/plugin-python/tests/**/ruleDetectors.test.ts');
+    expect(includes).toContain('packages/plugin-python/tests/**/*Detectors.test.ts');
   });
 
   it('includes camel-cased rule tests for hyphenated source rule files', () => {
@@ -98,8 +96,8 @@ describe('resolveScopedVitestIncludes', () => {
       }),
     );
 
-    expect(includes).toContain('packages/plugin-csharp/__tests__/sources/typeUsageRule.test.ts');
-    expect(includes).toContain('packages/plugin-csharp/__tests__/**/typeUsageRule.test.ts');
+    expect(includes).toContain('packages/plugin-csharp/tests/sources/typeUsageRule.test.ts');
+    expect(includes).toContain('packages/plugin-csharp/tests/**/typeUsageRule.test.ts');
   });
 
   it('skips broad basename fallback patterns for generic file names', () => {
@@ -130,8 +128,6 @@ describe('resolveScopedVitestIncludes', () => {
     ).toEqual([
       'packages/extension/tests/core/views/**/*.test.ts',
       'packages/extension/tests/core/views/**/*.test.tsx',
-      'packages/extension/__tests__/core/views/**/*.test.ts',
-      'packages/extension/__tests__/core/views/**/*.test.tsx',
     ]);
   });
 
@@ -158,8 +154,6 @@ describe('resolveScopedVitestIncludes', () => {
     ).toEqual([
       'packages/extension/tests/webview/graph/runtime/use/graph/**/*.test.ts',
       'packages/extension/tests/webview/graph/runtime/use/graph/**/*.test.tsx',
-      'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.ts',
-      'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.tsx',
     ]);
   });
 

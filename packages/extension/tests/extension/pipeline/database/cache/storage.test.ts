@@ -1,0 +1,218 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
+import type { IWorkspaceAnalysisCache } from '../../../../../src/extension/pipeline/cache';
+import {
+  createEmptyWorkspaceAnalysisCache,
+  WORKSPACE_ANALYSIS_CACHE_VERSION,
+} from '../../../../../src/extension/pipeline/cache';
+import {
+  clearWorkspaceAnalysisDatabaseCache,
+  getWorkspaceAnalysisDatabasePath,
+  loadWorkspaceAnalysisDatabaseCache,
+  readWorkspaceAnalysisDatabaseSnapshot,
+  saveWorkspaceAnalysisDatabaseCache,
+} from '../../../../../src/extension/pipeline/database/cache/storage';
+
+const tempRoots = new Set<string>();
+
+function createWorkspaceRoot(): string {
+  const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-pipeline-db-'));
+  tempRoots.add(workspaceRoot);
+  return workspaceRoot;
+}
+
+afterEach(() => {
+  for (const workspaceRoot of tempRoots) {
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
+  }
+  tempRoots.clear();
+});
+
+describe('workspace analysis database cache', { timeout: 30000 }, () => {
+  it('returns an empty cache when the repo database does not exist yet', () => {
+    const workspaceRoot = createWorkspaceRoot();
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(
+      createEmptyWorkspaceAnalysisCache(),
+    );
+  });
+
+  it('persists and reloads file analysis entries from .codegraphy/graph.lbug', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const cache: IWorkspaceAnalysisCache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 123,
+          size: 456,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            symbols: [
+              {
+                id: '/workspace/src/index.ts:function:main',
+                filePath: '/workspace/src/index.ts',
+                kind: 'function',
+                name: 'main',
+              },
+            ],
+            relations: [
+              {
+                kind: 'import',
+                pluginId: 'codegraphy.treesitter',
+                sourceId: 'treesitter:import',
+                fromFilePath: '/workspace/src/index.ts',
+                toFilePath: '/workspace/src/utils.ts',
+                resolvedPath: '/workspace/src/utils.ts',
+                specifier: './utils',
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
+
+    expect(fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot))).toBe(true);
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toEqual({
+      files: [
+        {
+          filePath: 'src/index.ts',
+          mtime: 123,
+          size: 456,
+          analysis: cache.files['src/index.ts']!.analysis,
+        },
+      ],
+      symbols: [
+        {
+          id: '/workspace/src/index.ts:function:main',
+          filePath: '/workspace/src/index.ts',
+          kind: 'function',
+          name: 'main',
+          signature: undefined,
+          range: undefined,
+          metadata: undefined,
+        },
+      ],
+      relations: [
+        {
+          kind: 'import',
+          pluginId: 'codegraphy.treesitter',
+          sourceId: 'treesitter:import',
+          fromFilePath: '/workspace/src/index.ts',
+          toFilePath: '/workspace/src/utils.ts',
+          specifier: './utils',
+          resolvedPath: '/workspace/src/utils.ts',
+          fromNodeId: undefined,
+          toNodeId: undefined,
+          fromSymbolId: undefined,
+          toSymbolId: undefined,
+          type: undefined,
+          variant: undefined,
+          metadata: undefined,
+        },
+      ],
+    });
+  });
+
+  it('skips persistence when the workspace root no longer exists', () => {
+    const workspaceRoot = path.join(os.tmpdir(), `codegraphy-missing-${Date.now()}`);
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            relations: [],
+          },
+        },
+      },
+    });
+
+    expect(fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot))).toBe(false);
+  });
+
+  it('supports repeated save and load cycles without corrupting the repo-local database', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const firstCache: IWorkspaceAnalysisCache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/first.ts': {
+          mtime: 1,
+          size: 10,
+          analysis: {
+            filePath: '/workspace/src/first.ts',
+            relations: [],
+          },
+        },
+      },
+    };
+    const secondCache: IWorkspaceAnalysisCache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/second.ts': {
+          mtime: 2,
+          size: 20,
+          analysis: {
+            filePath: '/workspace/src/second.ts',
+            relations: [],
+          },
+        },
+      },
+    };
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, firstCache);
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(firstCache);
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, secondCache);
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(secondCache);
+  });
+
+  it('falls back to an empty cache when the persisted database is unreadable', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+    fs.writeFileSync(databasePath, 'not-a-ladybug-database', 'utf8');
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(
+      createEmptyWorkspaceAnalysisCache(),
+    );
+  });
+
+  it('clears persisted analysis rows without deleting repo-local settings files', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const codeGraphyDirectory = path.join(workspaceRoot, '.codegraphy');
+    fs.mkdirSync(codeGraphyDirectory, { recursive: true });
+    fs.writeFileSync(path.join(codeGraphyDirectory, 'settings.json'), '{"maxFiles":500}\n', 'utf8');
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            relations: [],
+          },
+        },
+      },
+    });
+
+    clearWorkspaceAnalysisDatabaseCache(workspaceRoot);
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(
+      createEmptyWorkspaceAnalysisCache(),
+    );
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toEqual({
+      files: [],
+      symbols: [],
+      relations: [],
+    });
+    expect(fs.existsSync(path.join(codeGraphyDirectory, 'settings.json'))).toBe(true);
+  });
+});

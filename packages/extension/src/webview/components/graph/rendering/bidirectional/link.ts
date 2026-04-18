@@ -6,39 +6,10 @@ import { getGraphDirectionalColor } from '../link/colors';
 import { createBidirectionalArrowGeometry } from './arrowGeometry';
 import { createBidirectionalLineGeometry } from './lineGeometry';
 import type { LinkRenderingDependencies } from '../link/contracts';
-
-function renderArrow(
-  ctx: CanvasRenderingContext2D,
-  color: string,
-  arrow: ReturnType<typeof createBidirectionalArrowGeometry>,
-): void {
-  ctx.beginPath();
-  ctx.moveTo(arrow.tipX, arrow.tipY);
-  ctx.lineTo(arrow.leftX, arrow.leftY);
-  ctx.lineTo(arrow.vertexX, arrow.vertexY);
-  ctx.lineTo(arrow.rightX, arrow.rightY);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-
-function getLineStrokeStyle(
-  dependencies: LinkRenderingDependencies,
-  link: FGLink,
-  source: FGNode,
-  target: FGNode,
-): { alpha: number; lineWidth: number; strokeStyle: string } {
-  const highlighted = dependencies.highlightedNodeRef.current;
-  const isConnected = !highlighted || source.id === highlighted || target.id === highlighted;
-  const isLight = dependencies.themeRef.current === 'light';
-  const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
-
-  return {
-    alpha: decoration?.opacity ?? (isConnected ? 1 : 0.15),
-    lineWidth: (decoration?.width ?? 2),
-    strokeStyle: decoration?.color ?? (isConnected ? '#60a5fa' : (isLight ? '#d4d4d4' : '#2d3748')),
-  };
-}
+import {
+  getLineStrokeStyle,
+  renderArrow,
+} from './style';
 
 export function renderBidirectionalLink(
   dependencies: LinkRenderingDependencies,

@@ -7,7 +7,12 @@
  * @module @codegraphy-vscode/plugin-api/plugin
  */
 
-import type { IConnection, IConnectionSource } from './connection';
+import type {
+  IFileAnalysisResult,
+  IPluginEdgeType,
+  IPluginNodeType,
+} from './analysis';
+import type { IConnectionSource } from './connection';
 import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
 import type { CodeGraphyAPI } from './api';
 
@@ -44,7 +49,9 @@ export interface IPluginFileColorDefinition {
  *   version: '0.1.0',
  *   apiVersion: '^2.0.0',
  *   supportedExtensions: [],
- *   async detectConnections() { return []; },
+ *   async analyzeFile(filePath) {
+ *     return { filePath, relations: [] };
+ *   },
  *   onLoad(api) {
  *     api.on('analysis:completed', ({ graph }) => {
  *       // decorate nodes with coverage data
@@ -71,13 +78,13 @@ export interface IPlugin {
   /** Optional semver range for the webview-side API contract. */
   webviewApiVersion?: string;
 
-  /** File extensions this plugin can handle (e.g., `['.ts', '.tsx']`). */
+  /** File extensions this plugin can handle (e.g., `['.ts', '.tsx']`, or `['*']` for all files). */
   supportedExtensions: string[];
 
   /**
    * Connection sources this plugin supports.
    * Each source describes a category of relations the plugin can emit.
-   * Used by the Plugins panel to let users toggle individual source types.
+   * These source IDs flow into graph-edge provenance, exports, and any source-level filtering.
    */
   sources?: IConnectionSource[];
 
@@ -113,18 +120,25 @@ export interface IPlugin {
   // ---------------------------------------------------------------------------
 
   /**
-   * Detect connections in a single file.
-   *
-   * @param filePath      - Absolute path to the file being analyzed
-   * @param content       - The file's content as a string
-   * @param workspaceRoot - Absolute path to the workspace root
-   * @returns Array of detected connections
+   * Per-file analysis result contract.
+   * Plugins can return symbols, relations, extra nodes, and node/edge type contributions.
+   * This is the primary analysis hook for plugin-contributed code analysis.
    */
-  detectConnections(
+  analyzeFile?(
     filePath: string,
     content: string,
-    workspaceRoot: string
-  ): Promise<IConnection[]>;
+    workspaceRoot: string,
+  ): Promise<IFileAnalysisResult>;
+
+  /**
+   * Optional node-type contributions shown in graph controls and legends.
+   */
+  contributeNodeTypes?(): IPluginNodeType[];
+
+  /**
+   * Optional edge-type contributions shown in graph controls and legends.
+   */
+  contributeEdgeTypes?(): IPluginEdgeType[];
 
   // ---------------------------------------------------------------------------
   // Optional analysis hooks
@@ -143,7 +157,7 @@ export interface IPlugin {
   /**
    * Called when the plugin is loaded and the host API is available.
    * This is the primary entry point for plugins to register
-   * event handlers, views, commands, and decorations.
+   * event handlers, optional graph transforms, commands, and decorations.
    */
   onLoad?(api: CodeGraphyAPI): void;
 
@@ -167,6 +181,18 @@ export interface IPlugin {
   ): Promise<void>;
 
   /**
+   * Called before an incremental save-driven re-analysis.
+   * Plugins can update internal indexes from the changed files and optionally
+   * request additional workspace-relative files to re-analyze.
+   *
+   * Return `undefined` or an empty array when only the changed files need work.
+   */
+  onFilesChanged?(
+    files: IAnalysisFile[],
+    workspaceRoot: string,
+  ): Promise<readonly string[] | void>;
+
+  /**
    * Called after all files have been analyzed and the graph is built.
    * Plugins can inspect or augment the graph data.
    */
@@ -174,7 +200,7 @@ export interface IPlugin {
 
   /**
    * Called whenever the graph is rebuilt (e.g., after file changes,
-   * view switches, or setting changes).
+   * graph-control toggles, plugin toggles, or setting changes).
    */
   onGraphRebuild?(graph: IGraphData): void;
 

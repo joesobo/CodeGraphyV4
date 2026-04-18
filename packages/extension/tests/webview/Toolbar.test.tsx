@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
 
 vi.mock('../../src/webview/components/ui/overlay/tooltip', async () => {
   const React = await import('react');
@@ -39,43 +40,47 @@ vi.mock('../../src/webview/components/ui/overlay/tooltip', async () => {
   return { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
 });
 
-import Toolbar from '../../src/webview/components/Toolbar';
+vi.mock('../../src/webview/components/icons/MdiIcon', () => ({
+  MdiIcon: ({ path, size }: { path: string; size?: number }) => (
+    <span data-testid="mdi-icon" data-icon-path={path} data-icon-size={size} />
+  ),
+}));
+
+import Toolbar from '../../src/webview/components/toolbar/view';
 import { graphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
-const mockViews = [
-  { id: 'codegraphy.connections', name: 'Connections', icon: 'symbol-file', description: 'Shows all files', active: true },
-  { id: 'codegraphy.depth-graph', name: 'Depth Graph', icon: 'target', description: 'Focus on current file', active: false },
-  { id: 'codegraphy.folder', name: 'Folder', icon: 'folder', description: 'Shows folder hierarchy', active: false },
-];
-
 function setDefaultState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
-    availableViews: mockViews,
-    activeViewId: 'codegraphy.connections',
     dagMode: null,
     graphMode: '2d',
     depthLimit: 1,
+    depthMode: false,
     activePanel: 'none',
     pluginExporters: [],
     pluginToolbarActions: [],
+    graphHasIndex: false,
+    isIndexing: false,
     ...overrides,
   });
 }
 
 /**
  * Helper to get button groups from the toolbar DOM using data-testid attributes.
- * Layout: [view-buttons] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [plugin-action] [export] [plugins] [settings]
+ * Layout: [dag-buttons] [depth-mode] [2d/3d] [node-size-buttons] [top-collapse] | [bottom-collapse] [refresh] [plugin-action] [export] [plugins] [settings]
  */
 function getButtonGroups(container: HTMLElement) {
-  const viewGroup = container.querySelector('[data-testid="view-buttons"]');
   const dagGroup = container.querySelector('[data-testid="dag-buttons"]');
   const nodeSizeGroup = container.querySelector('[data-testid="node-size-buttons"]');
   return {
-    viewButtons: viewGroup ? Array.from(viewGroup.querySelectorAll('button')) : [],
+    depthButtons: Array.from(container.querySelectorAll('button[title="Enable Depth Mode"], button[title="Disable Depth Mode"]')),
     dagButtons: dagGroup ? Array.from(dagGroup.querySelectorAll('button')) : [],
     nodeSizeButtons: nodeSizeGroup ? Array.from(nodeSizeGroup.querySelectorAll('button')) : [],
   };
+}
+
+function getIconPath(button: HTMLElement): string | null {
+  return button.querySelector('[data-testid="mdi-icon"]')?.getAttribute('data-icon-path') ?? null;
 }
 
 describe('Toolbar', () => {
@@ -94,7 +99,6 @@ describe('Toolbar', () => {
       const toolbar = container.querySelector('[data-testid="toolbar"]') as HTMLElement | null;
       const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
       const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]') as HTMLElement | null;
-      const viewButtons = container.querySelector('[data-testid="view-buttons"]') as HTMLElement | null;
       const dagButtons = container.querySelector('[data-testid="dag-buttons"]') as HTMLElement | null;
       const nodeSizeButtons = container.querySelector('[data-testid="node-size-buttons"]') as HTMLElement | null;
 
@@ -110,52 +114,43 @@ describe('Toolbar', () => {
       expect(bottomGroup).toBeTruthy();
       expect(topGroup?.className).toContain('flex-col');
       expect(bottomGroup?.className).toContain('flex-col');
-      expect(topGroup?.querySelector('[data-testid="view-buttons"]')).toBeTruthy();
       expect(topGroup?.querySelector('[data-testid="dag-buttons"]')).toBeTruthy();
       expect(topGroup?.querySelector('[data-testid="node-size-buttons"]')).toBeTruthy();
-      expect(viewButtons?.className).toContain('flex-col');
-      expect(viewButtons?.className).not.toContain('bg-popover/80');
-      expect(viewButtons?.className).not.toContain('border');
       expect(dagButtons?.className).toContain('flex-col');
       expect(dagButtons?.className).not.toContain('bg-popover/80');
       expect(dagButtons?.className).not.toContain('border');
       expect(nodeSizeButtons?.className).toContain('flex-col');
       expect(nodeSizeButtons?.className).not.toContain('bg-popover/80');
       expect(nodeSizeButtons?.className).not.toContain('border');
-      expect(screen.getByTitle('Refresh Graph').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+      expect(screen.getByTitle('Index Repo').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
       expect(screen.getByTitle('Settings').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+      expect(screen.getByTitle('Legends').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
     });
 
-    it('renders a collapse toggle at the bottom of the top toolbar group', () => {
+    it('renders separate collapse toggles for the top and bottom toolbar groups', () => {
       const { container } = render(<Toolbar />);
       const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
-      const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
-      const collapseTrigger = screen.getByRole('button', { name: 'Collapse Toolbar' });
+      const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]') as HTMLElement | null;
+      const topCollapseTrigger = screen.getByRole('button', { name: 'Collapse Top Toolbar' });
+      const bottomCollapseTrigger = screen.getByRole('button', { name: 'Collapse Bottom Toolbar' });
 
-      expect(collapseTrigger.closest('[data-testid="toolbar-top-group"]')).toBe(topGroup);
-      expect(collapseTrigger).toHaveAttribute('title', 'Collapse Toolbar');
-      expect(topGroup).toContainElement(collapseTrigger);
-      expect(controls).toHaveClass(
-        'overflow-hidden',
-        'transition-[max-height,opacity,margin,transform]',
-        'duration-200',
-        'ease-out',
-        'mb-1.5',
-        'max-h-96',
-        'opacity-100',
-        'translate-y-0',
-      );
-      expect(screen.getAllByText('Collapse Toolbar').length).toBeGreaterThanOrEqual(1);
+      expect(topCollapseTrigger.closest('[data-testid="toolbar-top-group"]')).toBe(topGroup);
+      expect(bottomCollapseTrigger.closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+      expect(topCollapseTrigger).toHaveAttribute('title', 'Collapse Top Toolbar');
+      expect(bottomCollapseTrigger).toHaveAttribute('title', 'Collapse Bottom Toolbar');
+      expect(getIconPath(topCollapseTrigger)).toBe(mdiChevronUp);
+      expect(getIconPath(bottomCollapseTrigger)).toBe(mdiChevronDown);
     });
 
     it('collapses only the top toolbar controls and keeps the bottom actions visible', () => {
       const { container } = render(<Toolbar />);
-      const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
+      const topControls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
+      const bottomControls = container.querySelector('[data-testid="toolbar-secondary-controls"]') as HTMLElement | null;
 
-      fireEvent.click(screen.getByRole('button', { name: 'Collapse Toolbar' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Collapse Top Toolbar' }));
 
-      expect(screen.getByRole('button', { name: 'Expand Toolbar' })).toHaveAttribute('title', 'Expand Toolbar');
-      expect(controls).toHaveClass(
+      expect(screen.getByRole('button', { name: 'Expand Top Toolbar' })).toHaveAttribute('title', 'Expand Top Toolbar');
+      expect(topControls).toHaveClass(
         'overflow-hidden',
         'transition-[max-height,opacity,margin,transform]',
         'duration-200',
@@ -166,36 +161,79 @@ describe('Toolbar', () => {
         '-translate-y-1',
         'pointer-events-none',
       );
-      expect(screen.getAllByText('Expand Toolbar').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByTitle('Refresh Graph')).toBeTruthy();
+      expect(bottomControls).toHaveClass('opacity-100');
+      expect(screen.getByTitle('Index Repo')).toBeTruthy();
       expect(screen.getByTitle('Settings')).toBeTruthy();
+      expect(getIconPath(screen.getByRole('button', { name: 'Expand Top Toolbar' }))).toBe(mdiChevronDown);
+    });
+
+    it('collapses only the bottom toolbar controls and keeps the top actions visible', () => {
+      const { container } = render(<Toolbar />);
+      const topControls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
+      const bottomControls = container.querySelector('[data-testid="toolbar-secondary-controls"]') as HTMLElement | null;
+
+      fireEvent.click(screen.getByRole('button', { name: 'Collapse Bottom Toolbar' }));
+
+      expect(screen.getByRole('button', { name: 'Expand Bottom Toolbar' })).toHaveAttribute('title', 'Expand Bottom Toolbar');
+      expect(bottomControls).toHaveClass(
+        'overflow-hidden',
+        'transition-[max-height,opacity,margin,transform]',
+        'duration-200',
+        'ease-out',
+        'mt-0',
+        'max-h-0',
+        'opacity-0',
+        'translate-y-1',
+        'pointer-events-none',
+      );
+      expect(topControls).toHaveClass('opacity-100');
+      expect(screen.getByTitle('Toggle 2D/3D Mode')).toBeTruthy();
+      expect(getIconPath(screen.getByRole('button', { name: 'Expand Bottom Toolbar' }))).toBe(mdiChevronUp);
     });
   });
 
-  describe('view buttons', () => {
-    it('renders a button for each available view', () => {
+  describe('depth mode button', () => {
+    it('renders a depth toggle button', () => {
       const { container } = render(<Toolbar />);
-      const { viewButtons } = getButtonGroups(container);
-      expect(viewButtons).toHaveLength(mockViews.length);
+      const { depthButtons } = getButtonGroups(container);
+      expect(depthButtons).toHaveLength(1);
     });
 
-    it('sends CHANGE_VIEW with correct viewId when view button is clicked', () => {
-      const { container } = render(<Toolbar />);
-      const { viewButtons } = getButtonGroups(container);
-      // Click the second view button (Depth Graph)
-      fireEvent.click(viewButtons[1]);
-      const msg = findMessage('CHANGE_VIEW');
+    it('renders the depth toggle immediately before the dimension toggle', () => {
+      setDefaultState({ graphHasIndex: true });
+      render(<Toolbar />);
+
+      const depthButton = screen.getByTitle('Enable Depth Mode');
+      const dimensionButton = screen.getByTitle('Toggle 2D/3D Mode');
+
+      expect(
+        depthButton.compareDocumentPosition(dimensionButton) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it('sends UPDATE_DEPTH_MODE when enabled after indexing', () => {
+      setDefaultState({ graphHasIndex: true });
+      render(<Toolbar />);
+      fireEvent.click(screen.getByTitle('Enable Depth Mode'));
+      const msg = findMessage('UPDATE_DEPTH_MODE');
       expect(msg).toBeTruthy();
-      expect(msg!.payload.viewId).toBe('codegraphy.depth-graph');
+      expect(msg!.payload.depthMode).toBe(true);
     });
 
-    it('active view button has default variant', () => {
-      const { container } = render(<Toolbar />);
-      const { viewButtons } = getButtonGroups(container);
-      // First button (Connections) is active — should NOT have ghost class
-      expect(viewButtons[0].className).not.toContain('hover:bg-accent');
-      // Second button should have ghost variant
-      expect(viewButtons[1].className).toContain('hover:bg-accent');
+    it('disables the depth button before indexing', () => {
+      render(<Toolbar />);
+      expect(screen.getByTitle('Enable Depth Mode')).toBeDisabled();
+    });
+
+    it('keeps the depth toggle in the on state while depth mode is enabled', () => {
+      setDefaultState({ graphHasIndex: true, depthMode: true });
+
+      render(<Toolbar />);
+
+      const button = screen.getByTitle('Disable Depth Mode');
+      expect(button).toHaveAttribute('aria-pressed', 'true');
+      expect(button.className).not.toContain('hover:bg-accent');
+      expect(button.className).toContain('bg-primary');
     });
   });
 
@@ -286,10 +324,18 @@ describe('Toolbar', () => {
   });
 
   describe('action buttons', () => {
-    it('refresh button sends REFRESH_GRAPH', () => {
+    it('refresh button sends INDEX_GRAPH before a graph index exists', () => {
       render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Refresh Graph'));
-      expect(findMessage('REFRESH_GRAPH')).toBeTruthy();
+      fireEvent.click(screen.getByTitle('Index Repo'));
+      expect(findMessage('INDEX_GRAPH')).toBeTruthy();
+    });
+
+    it('shows Refresh when an index already exists', () => {
+      setDefaultState({ graphHasIndex: true });
+
+      render(<Toolbar />);
+
+      expect(screen.getByTitle('Refresh')).toBeTruthy();
     });
 
     it('settings button opens settings panel', () => {
@@ -302,6 +348,12 @@ describe('Toolbar', () => {
       render(<Toolbar />);
       fireEvent.click(screen.getByTitle('Plugins'));
       expect(graphStore.getState().activePanel).toBe('plugins');
+    });
+
+    it('legends button opens legends panel', () => {
+      render(<Toolbar />);
+      fireEvent.click(screen.getByTitle('Legends'));
+      expect(graphStore.getState().activePanel).toBe('legends');
     });
   });
 });

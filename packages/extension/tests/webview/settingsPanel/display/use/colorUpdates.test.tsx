@@ -20,7 +20,6 @@ describe('display useColorUpdates', () => {
     const { result } = renderHook(() =>
       useColorUpdates({
         setDirectionColor,
-        setFolderNodeColor: vi.fn(),
       }),
     );
 
@@ -41,13 +40,11 @@ describe('display useColorUpdates', () => {
     const { result, unmount } = renderHook(() =>
       useColorUpdates({
         setDirectionColor: vi.fn(),
-        setFolderNodeColor: vi.fn(),
       }),
     );
 
     act(() => {
       result.current.onDirectionColorChange('#abcdef');
-      result.current.onFolderNodeColorChange('#ff00ff');
     });
     unmount();
 

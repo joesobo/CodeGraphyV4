@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   applyDirectionalSettings,
   useDirectional,
-} from '../../../../src/webview/components/graph/runtime/use/directional/indicators';
+} from '../../../../src/webview/components/graph/runtime/use/indicators';
 
 function createGraph() {
   return {

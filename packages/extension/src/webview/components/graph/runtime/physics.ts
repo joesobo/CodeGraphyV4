@@ -71,4 +71,4 @@ export function initPhysics(
 	graph.d3ReheatSimulation();
 }
 
-export { syncPhysicsAnimation } from './use/graph/physics';
+export { syncPhysicsAnimation } from './use/physics/hook';

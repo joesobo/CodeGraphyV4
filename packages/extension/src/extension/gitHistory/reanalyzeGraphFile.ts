@@ -1,15 +1,15 @@
 import * as path from 'path';
-import type { IConnection } from '../../core/plugins/types/contracts';
-import type { IGraphEdge, IGraphNode } from '../../shared/graph/types';
-import { appendGitHistoryConnectionEdges } from './graphConnections';
+import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
+import type { IGraphEdge, IGraphNode } from '../../shared/graph/contracts';
+import { appendGitHistoryAnalysisEdges } from './graphConnections';
 import { createGitHistoryNode } from './fullCommitAnalysis';
 
 interface ReanalyzeGraphFileRegistry {
-  analyzeFile(
+  analyzeFileResult(
     absolutePath: string,
     content: string,
     workspaceRoot: string,
-  ): Promise<IConnection[]>;
+  ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
   supportsFile(filePath: string): boolean;
 }
@@ -53,7 +53,7 @@ export async function reanalyzeGraphFile(
 
   const content = await getFileAtCommit(sha, filePath, signal);
   const absolutePath = path.join(workspaceRoot, filePath);
-  const connections = await registry.analyzeFile(absolutePath, content, workspaceRoot);
+  const analysis = await registry.analyzeFileResult(absolutePath, content, workspaceRoot);
   const plugin = registry.getPluginForFile?.(absolutePath);
 
   if (!nodeMap.has(filePath)) {
@@ -62,8 +62,8 @@ export async function reanalyzeGraphFile(
     nodeMap.set(filePath, node);
   }
 
-  appendGitHistoryConnectionEdges({
-    connections,
+  appendGitHistoryAnalysisEdges({
+    analysis,
     edgeSet,
     edges,
     plugin,

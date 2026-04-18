@@ -40,7 +40,7 @@ describe('PluginsPanel', () => {
     expect(screen.getByText('No plugins registered.')).toBeInTheDocument();
   });
 
-  it('renders plugin rows with their connection counts', () => {
+  it('renders the plugin priority hint and plugin rows without connection counts', () => {
     renderPanel([
       {
         id: 'codegraphy.typescript',
@@ -50,12 +50,12 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        sources: [],
       },
     ]);
 
+    expect(screen.getByText('Bottom runs first. Top wins.')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
-    expect(screen.getByText('12')).toBeInTheDocument();
+    expect(screen.queryByText('12')).not.toBeInTheDocument();
   });
 
   it('calls onClose when the close button is clicked', () => {
@@ -64,87 +64,6 @@ describe('PluginsPanel', () => {
     fireEvent.click(screen.getByTitle('Close'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('expands a plugin to show its sources and rule descriptions', () => {
-    const { container } = renderPanel([
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript',
-        version: '1.0.0',
-        supportedExtensions: ['.ts'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 12,
-        sources: [
-          {
-            id: 'imports',
-            qualifiedSourceId: 'codegraphy.typescript:imports',
-            name: 'Imports',
-            description: 'Tracks import declarations.',
-            enabled: true,
-            connectionCount: 7,
-          },
-        ],
-      },
-    ]);
-
-    const expandButtons = container.querySelectorAll('button.h-5.w-5');
-    fireEvent.click(expandButtons[0]);
-
-    expect(screen.getByText('Imports')).toBeInTheDocument();
-    expect(screen.getByText('Tracks import declarations.')).toBeInTheDocument();
-    expect(screen.getByText('7')).toBeInTheDocument();
-  });
-
-  it('keeps the base rule label and count typography classes when expanded', () => {
-    const { container } = renderPanel([
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript',
-        version: '1.0.0',
-        supportedExtensions: ['.ts'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 12,
-        sources: [
-          {
-            id: 'imports',
-            qualifiedSourceId: 'codegraphy.typescript:imports',
-            name: 'Imports',
-            description: 'Tracks import declarations.',
-            enabled: true,
-            connectionCount: 7,
-          },
-        ],
-      },
-    ]);
-
-    const expandButtons = container.querySelectorAll('button.h-5.w-5');
-    fireEvent.click(expandButtons[0]);
-
-    expect(screen.getByText('Imports')).toHaveClass('text-xs', 'block', 'truncate');
-    expect(screen.getByText('7')).toHaveClass('text-xs', 'flex-shrink-0', 'tabular-nums');
-  });
-
-  it('shows a no-sources message when an expanded plugin has no sources', () => {
-    const { container } = renderPanel([
-      {
-        id: 'codegraphy.markdown',
-        name: 'Markdown',
-        version: '1.0.0',
-        supportedExtensions: ['.md'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 0,
-        sources: [],
-      },
-    ]);
-
-    const expandButtons = container.querySelectorAll('button.h-5.w-5');
-    fireEvent.click(expandButtons[0]);
-
-    expect(screen.getByText('No sources declared.')).toBeInTheDocument();
   });
 
   it('posts a plugin toggle message when the plugin switch changes', () => {
@@ -157,7 +76,6 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        sources: [],
       },
     ]);
 
@@ -167,74 +85,32 @@ describe('PluginsPanel', () => {
       type: 'TOGGLE_PLUGIN',
       payload: { pluginId: 'codegraphy.typescript', enabled: false },
     });
-  });
-
-  it('posts a rule toggle message when an enabled plugin rule switch changes', () => {
-    const { container } = renderPanel([
-      {
+    expect(graphStore.getState().pluginStatuses).toEqual([
+      expect.objectContaining({
         id: 'codegraphy.typescript',
-        name: 'TypeScript',
-        version: '1.0.0',
-        supportedExtensions: ['.ts'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 12,
-        sources: [
-          {
-            id: 'imports',
-            qualifiedSourceId: 'codegraphy.typescript:imports',
-            name: 'Imports',
-            description: 'Tracks import declarations.',
-            enabled: true,
-            connectionCount: 7,
-          },
-        ],
-      },
-    ]);
-
-    const expandButtons = container.querySelectorAll('button.h-5.w-5');
-    fireEvent.click(expandButtons[0]);
-    const switches = screen.getAllByRole('switch');
-
-    fireEvent.click(switches[1]);
-
-    expect(sentMessages).toContainEqual({
-      type: 'TOGGLE_SOURCE',
-      payload: { qualifiedSourceId: 'codegraphy.typescript:imports', enabled: false },
-    });
-  });
-
-  it('disables rule switches when the parent plugin is disabled', () => {
-    const { container } = renderPanel([
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript',
-        version: '1.0.0',
-        supportedExtensions: ['.ts'],
-        status: 'inactive',
         enabled: false,
+      }),
+    ]);
+  });
+
+  it('renders plugin-only rows without per-source content', () => {
+    renderPanel([
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: true,
         connectionCount: 12,
-        sources: [
-          {
-            id: 'imports',
-            qualifiedSourceId: 'codegraphy.typescript:imports',
-            name: 'Imports',
-            description: 'Tracks import declarations.',
-            enabled: false,
-            connectionCount: 7,
-          },
-        ],
       },
     ]);
 
-    const expandButtons = container.querySelectorAll('button.h-5.w-5');
-    fireEvent.click(expandButtons[0]);
-    const switches = screen.getAllByRole('switch');
-
-    expect(switches[1]).toBeDisabled();
+    expect(screen.getByRole('switch')).toBeInTheDocument();
+    expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
-  it('renders separators only between plugin rows', () => {
+  it('posts a plugin-order message when rows are dragged into a new order', () => {
     const { container } = renderPanel([
       {
         id: 'codegraphy.typescript',
@@ -244,7 +120,6 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        sources: [],
       },
       {
         id: 'codegraphy.markdown',
@@ -254,10 +129,112 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 1,
-        sources: [],
       },
     ]);
 
-    expect(container.querySelectorAll('[data-orientation="horizontal"]')).toHaveLength(1);
+    const draggableRows = container.querySelectorAll('[draggable="true"]');
+    fireEvent.dragStart(draggableRows[1]);
+    fireEvent.dragOver(draggableRows[0]);
+    fireEvent.drop(draggableRows[0]);
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_PLUGIN_ORDER',
+      payload: { pluginIds: ['codegraphy.markdown', 'codegraphy.typescript'] },
+    });
+  });
+
+  it('clears drag highlight state without sending a reorder when a row is dropped before dragging starts', () => {
+    const { container } = renderPanel([
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 12,
+      },
+      {
+        id: 'codegraphy.markdown',
+        name: 'Markdown',
+        version: '1.0.0',
+        supportedExtensions: ['.md'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 1,
+      },
+    ]);
+
+    const draggableRows = container.querySelectorAll('[draggable="true"]');
+    fireEvent.dragOver(draggableRows[0]);
+    expect(draggableRows[0]?.className).toContain('ring-primary/40');
+
+    fireEvent.drop(draggableRows[0]);
+
+    expect(sentMessages).not.toContainEqual(
+      expect.objectContaining({ type: 'UPDATE_PLUGIN_ORDER' }),
+    );
+    expect(draggableRows[0]?.className).not.toContain('ring-primary/40');
+  });
+
+  it('clears drag state when dragging ends without dropping', () => {
+    const { container } = renderPanel([
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: false,
+        connectionCount: 12,
+      },
+      {
+        id: 'codegraphy.markdown',
+        name: 'Markdown',
+        version: '1.0.0',
+        supportedExtensions: ['.md'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 1,
+      },
+    ]);
+
+    const draggableRows = container.querySelectorAll('[draggable="true"]');
+    fireEvent.dragStart(draggableRows[0]);
+    fireEvent.dragOver(draggableRows[1]);
+
+    expect(draggableRows[0]?.className).toContain('opacity-60');
+    expect(draggableRows[0]?.className).toContain('opacity-50');
+    expect(draggableRows[1]?.className).toContain('ring-primary/40');
+
+    fireEvent.dragEnd(draggableRows[0]);
+
+    expect(draggableRows[0]?.className).toBe('opacity-50');
+    expect(draggableRows[1]?.className).toBe('');
+  });
+
+  it('renders plugin rows inside the shared divided list style', () => {
+    const { container } = renderPanel([
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 12,
+      },
+      {
+        id: 'codegraphy.markdown',
+        name: 'Markdown',
+        version: '1.0.0',
+        supportedExtensions: ['.md'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 1,
+      },
+    ]);
+
+    expect(container.querySelector('[class*="divide-y"]')).not.toBeNull();
   });
 });

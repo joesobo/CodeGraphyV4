@@ -1,80 +1,28 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IViewContext } from '../../../core/views/contracts';
 
 interface GraphViewSelectionState {
-  _activeViewId: string;
+  _depthMode?: boolean;
   _graphData: IGraphData;
   _viewContext: IViewContext;
 }
 
-interface GraphViewViewInfoLike {
-  view: {
-    id: string;
-    recomputeOn?: readonly ('focusedFile' | 'depthLimit')[];
-  };
-}
-
-function shouldRefreshActiveView(
-  viewInfo: GraphViewViewInfoLike | undefined,
-  dependency: 'focusedFile' | 'depthLimit',
-): boolean {
-  return Boolean(viewInfo?.view.recomputeOn?.includes(dependency));
-}
-
-interface ChangeGraphViewViewDependencies {
-  isViewAvailable: (viewId: string, viewContext: IViewContext) => boolean;
-  persistActiveViewId: (viewId: string) => Promise<void>;
-  applyViewTransform: () => void;
-  sendAvailableViews: () => void;
-  sendMessage: (message: unknown) => void;
-  logUnavailableView: (viewId: string) => void;
-}
-
 interface SetGraphViewFocusDependencies {
-  getActiveViewInfo: (activeViewId: string) => GraphViewViewInfoLike | undefined;
   applyViewTransform: () => void;
-  sendAvailableViews: () => void;
   sendMessage: (message: unknown) => void;
 }
 
 interface SetGraphViewDepthLimitDependencies {
   persistDepthLimit: (depthLimit: number) => Promise<void>;
   sendMessage: (message: unknown) => void;
-  getActiveViewInfo: (activeViewId: string) => GraphViewViewInfoLike | undefined;
   applyViewTransform: () => void;
-}
-
-export async function changeGraphViewView(
-  state: GraphViewSelectionState,
-  viewId: string,
-  {
-    isViewAvailable,
-    persistActiveViewId,
-    applyViewTransform,
-    sendAvailableViews,
-    sendMessage,
-    logUnavailableView,
-  }: ChangeGraphViewViewDependencies,
-): Promise<void> {
-  if (!isViewAvailable(viewId, state._viewContext)) {
-    logUnavailableView(viewId);
-    return;
-  }
-
-  state._activeViewId = viewId;
-  await persistActiveViewId(viewId);
-  applyViewTransform();
-  sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
-  sendAvailableViews();
 }
 
 export function setGraphViewFocusedFile(
   state: GraphViewSelectionState,
   filePath: string | undefined,
   {
-    getActiveViewInfo,
     applyViewTransform,
-    sendAvailableViews,
     sendMessage,
   }: SetGraphViewFocusDependencies,
 ): void {
@@ -82,14 +30,13 @@ export function setGraphViewFocusedFile(
   state._viewContext.focusedFile = filePath;
 
   if (previousFocusedFile !== filePath) {
-    sendAvailableViews();
     sendMessage({
       type: 'ACTIVE_FILE_UPDATED',
       payload: { filePath },
     });
   }
 
-  if (shouldRefreshActiveView(getActiveViewInfo(state._activeViewId), 'focusedFile')) {
+  if (state._depthMode) {
     applyViewTransform();
     sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
   }
@@ -101,7 +48,6 @@ export async function setGraphViewDepthLimit(
   {
     persistDepthLimit,
     sendMessage,
-    getActiveViewInfo,
     applyViewTransform,
   }: SetGraphViewDepthLimitDependencies,
 ): Promise<void> {
@@ -114,7 +60,7 @@ export async function setGraphViewDepthLimit(
     payload: { depthLimit: clampedDepthLimit },
   });
 
-  if (shouldRefreshActiveView(getActiveViewInfo(state._activeViewId), 'depthLimit')) {
+  if (state._depthMode) {
     applyViewTransform();
     sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
   }

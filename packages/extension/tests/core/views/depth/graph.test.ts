@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { buildUndirectedAdjacencyList, walkDepthFromNode } from '../../../../src/core/views/depth/graph';
 
 const sampleData: IGraphData = {

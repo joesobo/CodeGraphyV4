@@ -1,14 +1,12 @@
 import * as vscode from 'vscode';
 import { GraphViewProvider } from './graphViewProvider';
 import { registerConfigHandler } from './config/listener';
+import { initializeCurrentCodeGraphyConfiguration } from './repoSettings/current';
 import { registerCommands } from './commands/register';
 import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed';
-import {
-  registerEditorChangeHandler,
-  registerFileWatcher,
-  registerSaveHandler,
-} from './workspaceFiles/register';
-import type { IGraphData } from '../shared/graph/types';
+import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
+import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
+import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
 const CODEGRAPHY_EXTENSION_ID = 'codegraphy.codegraphy';
@@ -30,6 +28,7 @@ export interface CodeGraphyAPI {
 }
 
 export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
+  initializeCurrentCodeGraphyConfiguration(context);
   const provider = new GraphViewProvider(context.extensionUri, context);
   provider.setInstalledPluginActivationPromise(
     activateInstalledCodeGraphyPlugins(vscode.extensions.all, CODEGRAPHY_EXTENSION_ID),

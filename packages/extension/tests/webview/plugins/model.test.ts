@@ -1,23 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
-  getPluginsPanelChevronClassName,
-  getPluginsPanelRuleCountClassName,
-  getPluginsPanelRuleLabelClassName,
+  getPluginsPanelItemClassName,
   getPluginsPanelWrapperClassName,
-  shouldRenderPluginsPanelRuleDescription,
-  shouldRenderPluginsPanelSeparator,
-  toggleExpandedPluginIds,
+  reorderPluginStatuses,
 } from '../../../src/webview/components/plugins/model';
+import type { IPluginStatus } from '../../../src/shared/plugins/status';
 
 describe('plugins panel model', () => {
-  it('adds the rotation class to expanded chevrons', () => {
-    expect(getPluginsPanelChevronClassName(true)).toContain('rotate-90');
-  });
-
-  it('omits the rotation class from collapsed chevrons', () => {
-    expect(getPluginsPanelChevronClassName(false)).not.toContain('rotate-90');
-  });
-
   it('dims disabled plugin rows', () => {
     expect(getPluginsPanelWrapperClassName(false)).toBe('opacity-50');
   });
@@ -26,37 +15,100 @@ describe('plugins panel model', () => {
     expect(getPluginsPanelWrapperClassName(true)).toBe('');
   });
 
-  it('uses enabled rule label styling when the plugin is enabled', () => {
-    expect(getPluginsPanelRuleLabelClassName(true)).toBe('text-foreground');
+  it('returns an empty class string when no drag state applies', () => {
+    expect(getPluginsPanelItemClassName(true, 1, null, null)).toBe('');
   });
 
-  it('uses muted rule label styling when the plugin is disabled', () => {
-    expect(getPluginsPanelRuleLabelClassName(false)).toBe('text-muted-foreground/50');
+  it('highlights the active drop target row', () => {
+    expect(getPluginsPanelItemClassName(true, 1, 0, 1)).toBe('rounded-md ring-1 ring-primary/40');
   });
 
-  it('uses enabled rule count styling when the plugin is enabled', () => {
-    expect(getPluginsPanelRuleCountClassName(true)).toBe('text-muted-foreground');
+  it('dims the dragged row and skips the drop-target ring when hovering over itself', () => {
+    expect(getPluginsPanelItemClassName(false, 1, 1, 1)).toBe('opacity-50 opacity-60');
   });
 
-  it('uses muted rule count styling when the plugin is disabled', () => {
-    expect(getPluginsPanelRuleCountClassName(false)).toBe('text-muted-foreground/50');
+  it('reorders plugin statuses by drag indices', () => {
+    const plugins: IPluginStatus[] = [
+      {
+        id: 'plugin.a',
+        name: 'A',
+        version: '1.0.0',
+        supportedExtensions: ['.a'],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+      {
+        id: 'plugin.b',
+        name: 'B',
+        version: '1.0.0',
+        supportedExtensions: ['.b'],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+    ];
+
+    expect(reorderPluginStatuses(plugins, 1, 0).map((plugin) => plugin.id)).toEqual([
+      'plugin.b',
+      'plugin.a',
+    ]);
   });
 
-  it('renders rule descriptions only when text is present', () => {
-    expect(shouldRenderPluginsPanelRuleDescription('Tracks imports')).toBe(true);
-    expect(shouldRenderPluginsPanelRuleDescription('')).toBe(false);
+  it('reorders plugin statuses when the first plugin moves to a later index', () => {
+    const plugins: IPluginStatus[] = [
+      {
+        id: 'plugin.a',
+        name: 'A',
+        version: '1.0.0',
+        supportedExtensions: ['.a'],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+      {
+        id: 'plugin.b',
+        name: 'B',
+        version: '1.0.0',
+        supportedExtensions: ['.b'],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+    ];
+
+    expect(reorderPluginStatuses(plugins, 0, 1).map((plugin) => plugin.id)).toEqual([
+      'plugin.b',
+      'plugin.a',
+    ]);
   });
 
-  it('renders separators only between plugin rows', () => {
-    expect(shouldRenderPluginsPanelSeparator(0, 2)).toBe(true);
-    expect(shouldRenderPluginsPanelSeparator(1, 2)).toBe(false);
-  });
+  it('returns the original array when the drag indices are invalid or unchanged', () => {
+    const plugins: IPluginStatus[] = [
+      {
+        id: 'plugin.a',
+        name: 'A',
+        version: '1.0.0',
+        supportedExtensions: ['.a'],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+      {
+        id: 'plugin.b',
+        name: 'B',
+        version: '1.0.0',
+        supportedExtensions: ['.b'],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+    ];
 
-  it('adds a collapsed plugin to the expanded set', () => {
-    expect([...toggleExpandedPluginIds(new Set(['a']), 'b')]).toEqual(['a', 'b']);
-  });
-
-  it('removes an expanded plugin from the expanded set', () => {
-    expect([...toggleExpandedPluginIds(new Set(['a', 'b']), 'b')]).toEqual(['a']);
+    expect(reorderPluginStatuses(plugins, -1, 0)).toBe(plugins);
+    expect(reorderPluginStatuses(plugins, 1, -1)).toBe(plugins);
+    expect(reorderPluginStatuses(plugins, 2, 0)).toBe(plugins);
+    expect(reorderPluginStatuses(plugins, 0, 2)).toBe(plugins);
+    expect(reorderPluginStatuses(plugins, 1, 1)).toBe(plugins);
   });
 });

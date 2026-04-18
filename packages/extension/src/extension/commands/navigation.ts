@@ -14,7 +14,7 @@ export function getNavCommands(provider: GraphViewProvider): CommandDefinition[]
     { id: 'codegraphy.fitView', handler: () => { provider.sendCommand('FIT_VIEW'); } },
     { id: 'codegraphy.zoomIn', handler: () => { provider.sendCommand('ZOOM_IN'); } },
     { id: 'codegraphy.zoomOut', handler: () => { provider.sendCommand('ZOOM_OUT'); } },
-    { id: 'codegraphy.cycleView', handler: () => { provider.sendCommand('CYCLE_VIEW'); } },
+    { id: 'codegraphy.toggleDepthMode', handler: () => { provider.sendCommand('TOGGLE_DEPTH_MODE'); } },
     { id: 'codegraphy.cycleLayout', handler: () => { provider.sendCommand('CYCLE_LAYOUT'); } },
     { id: 'codegraphy.toggleDimension', handler: () => { provider.sendCommand('TOGGLE_DIMENSION'); } },
   ];

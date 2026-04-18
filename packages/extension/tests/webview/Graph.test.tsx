@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen } from '@testing-library/react';
-import Graph from '../../src/webview/components/Graph';
-import type { IGraphData } from '../../src/shared/graph/types';
+import Graph from '../../src/webview/components/graph/view';
+import type { IGraphData } from '../../src/shared/graph/contracts';
 import { graphStore } from '../../src/webview/store/state';
 import ForceGraph2D from 'react-force-graph-2d';
 
@@ -294,22 +294,30 @@ describe('Export Functionality', () => {
 
     const { json, filename } = exportMsg!.payload;
     expect(json).toBeDefined();
-    expect(filename).toMatch(/^codegraphy-connections-.*\.json$/);
+    expect(filename).toMatch(/^codegraphy-graph-.*\.json$/);
 
     const parsed = JSON.parse(json);
     expect(parsed.format).toBe('codegraphy-export');
-    expect(parsed.version).toBe('2.0');
+    expect(parsed.version).toBe('3.0');
     expect(parsed.exportedAt).toBeDefined();
     expect(parsed.scope.graph).toBe('current-view');
-    expect(parsed.summary.totalFiles).toBe(2);
-    expect(parsed.summary.totalConnections).toBe(1);
-
-    expect(parsed.sections.connections.ungrouped['src/app.ts']).toBeDefined();
-    expect(parsed.sections.connections.ungrouped['src/app.ts'].imports).toEqual({ unattributed: ['src/utils.ts'] });
-
-    expect(parsed.sections.connections.ungrouped['src/utils.ts']).toBeDefined();
-    expect(parsed.sections.connections.ungrouped['src/utils.ts'].imports).toBeUndefined();
-    expect(parsed.sections.images).toEqual({});
+    expect(parsed.summary.totalNodes).toBe(2);
+    expect(parsed.summary.totalEdges).toBe(1);
+    expect(parsed.summary.totalLegendRules).toBe(0);
+    expect(parsed.summary.totalImages).toBe(0);
+    expect(parsed.legend).toEqual([]);
+    expect(parsed.nodes).toEqual([
+      expect.objectContaining({ id: 'src/app.ts', nodeType: 'file', legendIds: [] }),
+      expect.objectContaining({ id: 'src/utils.ts', nodeType: 'file', legendIds: [] }),
+    ]);
+    expect(parsed.edges).toEqual([
+      expect.objectContaining({
+        from: 'src/app.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [],
+      }),
+    ]);
   });
 
   it('should handle REQUEST_EXPORT_MD message and send EXPORT_MD response', async () => {
@@ -333,7 +341,26 @@ describe('Export Functionality', () => {
     expect(exportMsg).toBeTruthy();
 
     expect(exportMsg!.payload.markdown).toContain('# CodeGraphy Export');
-    expect(exportMsg!.payload.filename).toMatch(/^codegraphy-connections-.*\.md$/);
+    expect(exportMsg!.payload.filename).toMatch(/^codegraphy-graph-.*\.md$/);
+  });
+
+  it('should handle REQUEST_OPEN_IN_EDITOR message and send OPEN_IN_EDITOR to vscode', async () => {
+    render(<Graph data={mockData} />);
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    });
+
+    await act(async () => {
+      const event = new MessageEvent('message', { data: { type: 'REQUEST_OPEN_IN_EDITOR' } });
+      window.dispatchEvent(event);
+    });
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    });
+
+    expect(findMessage('OPEN_IN_EDITOR')).toBeTruthy();
   });
 
   it('should handle REQUEST_EXPORT_SVG message and send EXPORT_SVG response', async () => {

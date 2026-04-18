@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protocol/extensionToWebview';
 import {
   createGraphViewProviderAnalysisHandlers,
   createGraphViewProviderAnalysisRequestHandlers,
@@ -8,6 +9,20 @@ import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
 } from '../../../../../src/extension/graphView/provider/analysis/methods';
+
+const handlerHarness = vi.hoisted(() => ({
+  sendGraphControlsUpdated: vi.fn<
+    (
+      graphData: IGraphData,
+      analyzer: unknown,
+      sendMessage: (message: ExtensionToWebviewMessage) => void,
+    ) => void
+  >(),
+}));
+
+vi.mock('../../../../../src/extension/graphView/controls/send', () => ({
+  sendGraphControlsUpdated: handlerHarness.sendGraphControlsUpdated,
+}));
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},
@@ -19,14 +34,13 @@ function createSource(
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: [],
-    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: undefined,
     _sendMessage: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -54,6 +68,10 @@ function createDependencies(
 }
 
 describe('graphView/provider/analysis/handlers', () => {
+  beforeEach(() => {
+    handlerHarness.sendGraphControlsUpdated.mockReset();
+  });
+
   it('builds execution handlers that update provider state and delegate callbacks', () => {
     const source = createSource();
     const dependencies = createDependencies();
@@ -75,7 +93,7 @@ describe('graphView/provider/analysis/handlers', () => {
     });
     handlers.setGraphData(graphData);
     handlers.sendGraphDataUpdated(graphData);
-    handlers.sendAvailableViews();
+    handlers.sendDepthState();
     handlers.computeMergedGroups();
     handlers.sendGroupsUpdated();
     handlers.updateViewContext();
@@ -96,7 +114,7 @@ describe('graphView/provider/analysis/handlers', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: graphData,
     });
-    expect(source._sendAvailableViews).toHaveBeenCalledOnce();
+    expect(source._sendDepthState).toHaveBeenCalledOnce();
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._updateViewContext).toHaveBeenCalledOnce();
@@ -107,6 +125,94 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(callbacks.markWorkspaceReady).toHaveBeenCalledWith(graphData);
     expect(callbacks.isAbortError).toHaveBeenCalledOnce();
     expect(dependencies.logError).toHaveBeenCalledOnce();
+  });
+
+  it('forwards graph-control, index, and plugin broadcast messages through the source sender', () => {
+    const source = createSource({
+      _analyzer: { id: 'analyzer' } as never,
+      _sendPluginExporters: vi.fn(),
+      _sendPluginToolbarActions: vi.fn(),
+    });
+    const dependencies = createDependencies({ hasWorkspace: vi.fn(() => false) });
+    const callbacks = {
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      markWorkspaceReady: vi.fn(),
+    };
+    const handlers = createGraphViewProviderAnalysisHandlers(source, dependencies, callbacks);
+    const graphData = { nodes: [], edges: [] } satisfies IGraphData;
+    const progress = { phase: 'indexing', current: 2, total: 5 };
+
+    handlerHarness.sendGraphControlsUpdated.mockImplementation((_graphData, _analyzer, sendMessage) => {
+      sendMessage({
+        type: 'GRAPH_CONTROLS_UPDATED',
+        payload: {
+          nodeTypes: [],
+          edgeTypes: [],
+          nodeColors: {},
+          nodeVisibility: {},
+          edgeVisibility: {},
+          edgeColors: {},
+        },
+      });
+    });
+
+    expect(handlers.hasWorkspace()).toBe(false);
+    expect(handlers.getGraphData()).toBe(source._graphData);
+
+    handlers.sendGraphDataUpdated(graphData);
+    handlers.sendGraphIndexStatusUpdated(true);
+    if (handlers.sendIndexProgress) {
+      handlers.sendIndexProgress(progress);
+    }
+    if (handlers.sendPluginExporters) {
+      handlers.sendPluginExporters();
+    }
+    if (handlers.sendPluginToolbarActions) {
+      handlers.sendPluginToolbarActions();
+    }
+
+    expect(handlerHarness.sendGraphControlsUpdated).toHaveBeenCalledWith(
+      graphData,
+      source._analyzer,
+      expect.any(Function),
+    );
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_CONTROLS_UPDATED',
+      payload: {
+        nodeTypes: [],
+        edgeTypes: [],
+        nodeColors: {},
+        nodeVisibility: {},
+        edgeVisibility: {},
+        edgeColors: {},
+      },
+    });
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_INDEX_STATUS_UPDATED',
+      payload: { hasIndex: true },
+    });
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_INDEX_PROGRESS',
+      payload: progress,
+    });
+    expect(source._sendPluginExporters).toHaveBeenCalledOnce();
+    expect(source._sendPluginToolbarActions).toHaveBeenCalledOnce();
+  });
+
+  it('tolerates missing optional plugin broadcast delegates', () => {
+    const source = createSource({
+      _sendPluginExporters: undefined,
+      _sendPluginToolbarActions: undefined,
+    });
+    const handlers = createGraphViewProviderAnalysisHandlers(source, createDependencies(), {
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      markWorkspaceReady: vi.fn(),
+    });
+
+    expect(() => handlers.sendPluginExporters?.()).not.toThrow();
+    expect(() => handlers.sendPluginToolbarActions?.()).not.toThrow();
   });
 
   it('builds request handlers that update live request state', async () => {

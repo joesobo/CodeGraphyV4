@@ -96,28 +96,6 @@ describe('configListener (extra mutant coverage)', () => {
     expect(provider.sendPlaybackSpeed).not.toHaveBeenCalled();
   });
 
-  it('handles hiddenPluginGroups changes as groups category', () => {
-    vi.useFakeTimers();
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.hiddenPluginGroups' });
-
-    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
-
-    vi.advanceTimersByTime(300);
-
-    expect(provider.refreshGroupSettings).toHaveBeenCalledOnce();
-    expect(provider.refresh).not.toHaveBeenCalled();
-    expect(provider.refreshPhysicsSettings).not.toHaveBeenCalled();
-    expect(provider.refreshToggleSettings).not.toHaveBeenCalled();
-    expect(provider.refreshSettings).not.toHaveBeenCalled();
-    vi.useRealTimers();
-  });
-
   it('invalidates timeline cache for timeline.maxCommits changes', () => {
     const context = makeContext();
     const provider = makeProvider();

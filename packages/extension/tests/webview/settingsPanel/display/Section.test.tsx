@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 import { DisplaySection } from '../../../../src/webview/components/settingsPanel/display/Section';
 import { graphStore } from '../../../../src/webview/store/state';
 
@@ -18,8 +18,24 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
-    activeViewId: 'codegraphy.connections',
-    folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
+    graphHasIndex: false,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
+    depthMode: false,
+    depthLimit: 1,
+    maxDepthLimit: 10,
+    legends: [],
+    filterPatterns: [],
+    pluginFilterPatterns: [],
+    pluginStatuses: [],
+    graphNodeTypes: [],
+    graphEdgeTypes: [],
+    nodeColors: {},
+    nodeVisibility: {},
+    edgeVisibility: {},
+    edgeColors: {},
+    activePanel: 'none',
+    maxFiles: 500,
     ...overrides,
   });
 }
@@ -80,15 +96,12 @@ describe('DisplaySection', () => {
     expect(screen.getByRole('button', { name: /^Combined$/i })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('renders valid display colors from store state', () => {
+  it('renders the current direction color from store state', () => {
     renderContent({
       directionColor: '#123ABC',
-      activeViewId: 'codegraphy.folder',
-      folderNodeColor: '#654321',
     });
 
     expect(screen.getByLabelText('Direction Color')).toHaveValue('#123abc');
-    expect(screen.getByLabelText('Folder Node Color')).toHaveValue('#654321');
   });
 
   it('posts direction mode updates when selecting particles', () => {
@@ -257,35 +270,10 @@ describe('DisplaySection', () => {
     vi.useRealTimers();
   });
 
-  it('shows folder color only in folder view and posts normalized updates', () => {
-    vi.useFakeTimers();
-    const { rerender } = renderContent({
-      activeViewId: 'codegraphy.folder',
-      folderNodeColor: 'bad-color',
-    });
-
-    const input = screen.getByLabelText('Folder Node Color');
-    expect(input).toHaveValue(DEFAULT_FOLDER_NODE_COLOR.toLowerCase());
-
-    fireEvent.change(input, { target: { value: '#ff00ff' } });
-    expect(graphStore.getState().folderNodeColor).toBe('#FF00FF');
-
-    act(() => {
-      vi.advanceTimersByTime(150);
-    });
-
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_FOLDER_NODE_COLOR',
-      payload: { folderNodeColor: '#FF00FF' },
-    });
-
-    act(() => {
-      setStoreState({ activeViewId: 'codegraphy.connections' });
-      rerender(<DisplaySection />);
-    });
+  it('does not render the legacy folder color field', () => {
+    renderContent();
 
     expect(screen.queryByLabelText('Folder Node Color')).not.toBeInTheDocument();
-    vi.useRealTimers();
   });
 
   it('cancels pending debounced posts on unmount', () => {
@@ -293,7 +281,6 @@ describe('DisplaySection', () => {
     const { unmount } = renderContent({
       directionMode: 'particles',
       particleSpeed: 0.0005,
-      activeViewId: 'codegraphy.folder',
     });
 
     const speedSlider = screen.getAllByRole('slider').find(
@@ -307,9 +294,6 @@ describe('DisplaySection', () => {
     fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
     fireEvent.change(screen.getByLabelText('Direction Color'), {
       target: { value: '#abcdef' },
-    });
-    fireEvent.change(screen.getByLabelText('Folder Node Color'), {
-      target: { value: '#ff00ff' },
     });
 
     unmount();

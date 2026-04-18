@@ -10,7 +10,6 @@
     "**/bin/**",
     "**/obj/**",
     "**/.vs/**",
-    "**/packages/**",
     "**/TestResults/**",
     "**/*.Designer.cs",
     "**/*.generated.cs",
@@ -31,9 +30,5 @@
     "appsettings.json": "#F7DF1E",
     "appsettings.Development.json": "#F7DF1E",
     "launchSettings.json": "#F7DF1E"
-  },
-  "sources": [
-    { "id": "using-directive", "name": "Using Directives", "description": "using System; static/global/alias" },
-    { "id": "type-usage", "name": "Type Usage", "description": "new Type(), Type.Method(), : Type" }
-  ]
+  }
 }

@@ -8,7 +8,12 @@ import type { GraphContextMenuRuntimeDependencies } from './controller';
 
 type GraphContextMenuEffectDependencies = Pick<
   GraphContextMenuRuntimeDependencies,
-  'clearCachedFile' | 'fitView' | 'focusNode' | 'postMessage'
+  | 'clearCachedFile'
+  | 'fitView'
+  | 'focusNode'
+  | 'openFilterPatternPrompt'
+  | 'openLegendRulePrompt'
+  | 'postMessage'
 >;
 
 export interface GraphContextMenuEffectRuntime {
@@ -24,6 +29,8 @@ export function createContextMenuEffectRuntime(
       clearCachedFile: (path) => dependencies.clearCachedFile(path),
       fitView: () => dependencies.fitView(),
       focusNode: (nodeId) => dependencies.focusNode(nodeId),
+      openFilterPatternPrompt: (pattern) => dependencies.openFilterPatternPrompt?.(pattern),
+      openLegendRulePrompt: (rule) => dependencies.openLegendRulePrompt?.(rule),
       postMessage: (message) => dependencies.postMessage(message),
     });
   };

@@ -1,41 +1,44 @@
-import * as vscode from 'vscode';
-
 export type ConfigCategory =
   | 'physics'
   | 'toggles'
   | 'display'
-  | 'groups'
+  | 'legend'
   | 'general';
 
+interface CodeGraphyConfigurationChangeLike {
+  affectsConfiguration(section: string): boolean;
+}
+
 /** Determines which category a configuration change falls into. */
-export function classifyConfigChange(event: vscode.ConfigurationChangeEvent): ConfigCategory | null {
+export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): ConfigCategory | null {
+  const affectsAny = (...keys: string[]) => keys.some(key => event.affectsConfiguration(key));
+
   if (event.affectsConfiguration('codegraphy.physics')) {
     return 'physics';
   }
 
-  if (
-    event.affectsConfiguration('codegraphy.disabledSources') ||
-    event.affectsConfiguration('codegraphy.disabledPlugins')
-  ) {
+  if (affectsAny('codegraphy.disabledPlugins')) {
     return 'toggles';
   }
 
-  if (
-    event.affectsConfiguration('codegraphy.directionMode') ||
-    event.affectsConfiguration('codegraphy.directionColor') ||
-    event.affectsConfiguration('codegraphy.particleSpeed') ||
-    event.affectsConfiguration('codegraphy.particleSize') ||
-    event.affectsConfiguration('codegraphy.showLabels') ||
-    event.affectsConfiguration('codegraphy.bidirectionalEdges')
-  ) {
+  if (affectsAny(
+    'codegraphy.showOrphans',
+    'codegraphy.directionMode',
+    'codegraphy.directionColor',
+    'codegraphy.particleSpeed',
+    'codegraphy.particleSize',
+    'codegraphy.showLabels',
+    'codegraphy.bidirectionalEdges',
+    'codegraphy.nodeColors',
+    'codegraphy.edgeColors',
+    'codegraphy.nodeVisibility',
+    'codegraphy.edgeVisibility',
+  )) {
     return 'display';
   }
 
-  if (
-    event.affectsConfiguration('codegraphy.groups') ||
-    event.affectsConfiguration('codegraphy.hiddenPluginGroups')
-  ) {
-    return 'groups';
+  if (affectsAny('codegraphy.legend')) {
+    return 'legend';
   }
 
   if (event.affectsConfiguration('codegraphy')) {

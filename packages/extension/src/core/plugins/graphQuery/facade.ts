@@ -1,8 +1,8 @@
-import type { IGraphData } from '../../../shared/graph/types';
-import { filterEdgesByKind, getEdgesFor, getIncomingEdges, getOutgoingEdges } from './edges';
-import { getGraph, getNeighbors, getNode } from './nodes';
-import { findNodePath } from './path';
-import { buildSubgraph } from './subgraph';
+import type { IGraphData } from '../../../shared/graph/contracts';
+import { filterEdgesByKind, getEdgesFor, getIncomingEdges, getOutgoingEdges } from './read/edges';
+import { getGraph, getNeighbors, getNode } from './read/nodes';
+import { findNodePath } from './traversal/path';
+import { buildSubgraph } from './traversal/subgraph';
 
 /** Function that provides current graph data. */
 export type GraphDataGetter = () => IGraphData;

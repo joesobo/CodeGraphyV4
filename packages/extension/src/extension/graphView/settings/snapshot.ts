@@ -13,21 +13,31 @@ export function captureGraphViewSettingsSnapshot(
   nodeSizeMode: NodeSizeMode,
 ): ISettingsSnapshot {
   const settings = readGraphViewSettings(config);
+  const nodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
+  const nodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
+  const edgeVisibility = config.get<Record<string, boolean>>('edgeVisibility', {}) ?? {};
+  const edgeColors = config.get<Record<string, string>>('edgeColors', {}) ?? {};
+  const pluginOrder = config.get<string[]>('pluginOrder', []) ?? [];
+  const disabledPlugins = config.get<string[]>('disabledPlugins', []) ?? [];
 
   return {
     physics,
-    groups: config.get('groups', []),
+    legends: config.get('legend', []),
     filterPatterns: config.get('filterPatterns', []),
     showOrphans: config.get('showOrphans', true),
     bidirectionalMode: config.get('bidirectionalEdges', 'separate'),
     directionMode: config.get('directionMode', 'arrows'),
     directionColor: settings.directionColor,
-    folderNodeColor: settings.folderNodeColor,
+    nodeColors,
+    nodeVisibility,
+    edgeVisibility,
+    edgeColors,
+    pluginOrder,
+    disabledPlugins,
     particleSpeed: config.get('particleSpeed', 0.005),
     particleSize: config.get('particleSize', 4),
     showLabels: config.get('showLabels', true),
     maxFiles: config.get('maxFiles', 500),
-    hiddenPluginGroups: config.get('hiddenPluginGroups', []),
     nodeSizeMode,
   };
 }

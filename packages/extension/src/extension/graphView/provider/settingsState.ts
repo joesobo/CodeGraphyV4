@@ -1,23 +1,26 @@
 import * as vscode from 'vscode';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { NodeSizeMode } from '../../../shared/settings/modes';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { IPhysicsSettings } from '../../../shared/settings/physics';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { getGraphViewConfigTarget } from '../settings/reader';
 import { loadGraphViewDisabledState } from '../settings/disabled';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';
 import { loadGraphViewGroupState } from '../groups/state';
 import { captureGraphViewSettingsSnapshot } from '../settings/snapshot';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from '../settings/lifecycle';
+import { sendGraphControlsUpdated } from '../controls/send';
 
 interface GraphViewProviderSettingsAnalyzerLike {
   getPluginFilterPatterns(): string[];
+  registry?: unknown;
 }
 
 interface GraphViewProviderSettingsWorkspaceStateLike {
   get<T>(key: string): T | undefined;
-  update(key: string, value: unknown): PromiseLike<void>;
 }
 
 interface GraphViewProviderSettingsConfigLike {
@@ -34,10 +37,9 @@ interface GraphViewProviderSettingsConfigLike {
 export interface GraphViewProviderSettingsStateMethodsSource {
   _context: { workspaceState: GraphViewProviderSettingsWorkspaceStateLike };
   _viewContext: IViewContext;
-  _hiddenPluginGroupIds: Set<string>;
   _userGroups: IGroup[];
   _filterPatterns: string[];
-  _disabledSources: Set<string>;
+  _graphData: IGraphData;
   _disabledPlugins: Set<string>;
   _nodeSizeMode: NodeSizeMode;
   _analyzer?: GraphViewProviderSettingsAnalyzerLike;
@@ -60,7 +62,6 @@ export interface GraphViewProviderSettingsStateMethodDependencies {
   getConfigTarget(workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined): unknown;
   loadGroupState(
     config: GraphViewProviderSettingsConfigLike,
-    workspaceState: GraphViewProviderSettingsWorkspaceStateLike,
   ): ReturnType<typeof loadGraphViewGroupState>;
   applyLoadedGroupState: typeof applyLoadedGraphViewGroupState;
   loadDisabledState: typeof loadGraphViewDisabledState;
@@ -75,7 +76,10 @@ export interface GraphViewProviderSettingsStateMethodDependencies {
 
 export function createDefaultGraphViewProviderSettingsStateMethodDependencies(): GraphViewProviderSettingsStateMethodDependencies {
   return {
-    getConfiguration: section => vscode.workspace.getConfiguration(section),
+    getConfiguration: section =>
+      section === 'codegraphy'
+        ? getCodeGraphyConfiguration()
+        : vscode.workspace.getConfiguration(section),
     getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
     getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
     loadGroupState: loadGraphViewGroupState,
@@ -94,21 +98,17 @@ export function createGraphViewProviderSettingsStateMethods(
 ): GraphViewProviderSettingsStateMethods {
   const syncGroupStateToSource = (state: {
     userGroups: IGroup[] | undefined;
-    hiddenPluginGroupIds: Set<string> | undefined;
     filterPatterns: string[] | undefined;
   }): void => {
     source._userGroups = Array.isArray(state.userGroups) ? state.userGroups : [];
-    source._hiddenPluginGroupIds =
-      state.hiddenPluginGroupIds instanceof Set ? state.hiddenPluginGroupIds : new Set<string>();
     source._filterPatterns = Array.isArray(state.filterPatterns) ? state.filterPatterns : [];
   };
 
   const _loadGroupsAndFilterPatterns = (): void => {
     const config = dependencies.getConfiguration('codegraphy');
-    const groupState = dependencies.loadGroupState(config, source._context.workspaceState);
+    const groupState = dependencies.loadGroupState(config);
     const state = {
       userGroups: source._userGroups,
-      hiddenPluginGroupIds: source._hiddenPluginGroupIds,
       filterPatterns: source._filterPatterns,
     };
 
@@ -116,13 +116,6 @@ export function createGraphViewProviderSettingsStateMethods(
       recomputeGroups: () => {
         syncGroupStateToSource(state);
         source._computeMergedGroups();
-      },
-      persistLegacyGroups: groups => {
-        const target = dependencies.getConfigTarget(dependencies.getWorkspaceFolders());
-        void dependencies.getConfiguration('codegraphy').update('groups', groups, target);
-      },
-      clearLegacyGroups: () => {
-        void source._context.workspaceState.update('codegraphy.groups', undefined);
       },
     });
 
@@ -132,17 +125,13 @@ export function createGraphViewProviderSettingsStateMethods(
   const _loadDisabledRulesAndPlugins = (): boolean => {
     const config = dependencies.getConfiguration('codegraphy');
     const disabledState = dependencies.loadDisabledState(
-      source._disabledSources,
       source._disabledPlugins,
       {
-        disabledSourcesInspect: config.inspect<string[]>('disabledSources'),
+        configuredDisabledPlugins: config.get<string[]>('disabledPlugins', []),
         disabledPluginsInspect: config.inspect<string[]>('disabledPlugins'),
-        persistedDisabledRules: source._context.workspaceState.get<string[]>('codegraphy.disabledSources'),
-        persistedDisabledPlugins: source._context.workspaceState.get<string[]>('codegraphy.disabledPlugins'),
       },
     );
 
-    source._disabledSources = disabledState.disabledSources;
     source._disabledPlugins = disabledState.disabledPlugins;
     return disabledState.changed;
   };
@@ -152,12 +141,17 @@ export function createGraphViewProviderSettingsStateMethods(
       getConfiguration: () => dependencies.getConfiguration('codegraphy'),
       sendMessage: message => source._sendMessage(message),
     });
+    sendGraphControlsUpdated(
+      source._graphData,
+      source._analyzer,
+      message => source._sendMessage(message),
+      dependencies.getConfiguration('codegraphy'),
+    );
   };
 
   const _sendAllSettings = (): void => {
     const state = {
       viewContext: source._viewContext,
-      hiddenPluginGroupIds: source._hiddenPluginGroupIds,
       userGroups: source._userGroups,
       filterPatterns: source._filterPatterns,
     };
@@ -169,7 +163,10 @@ export function createGraphViewProviderSettingsStateMethods(
           source._getPhysicsSettings(),
           source._nodeSizeMode,
         ),
-      getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
+      getPluginFilterPatterns: () =>
+        typeof source._analyzer?.getPluginFilterPatterns === 'function'
+          ? source._analyzer.getPluginFilterPatterns()
+          : [],
       sendMessage: message => source._sendMessage(message),
       recomputeGroups: () => {
         syncGroupStateToSource(state);
@@ -177,6 +174,13 @@ export function createGraphViewProviderSettingsStateMethods(
       },
       sendGroupsUpdated: () => source._sendGroupsUpdated(),
     });
+
+    sendGraphControlsUpdated(
+      source._graphData,
+      source._analyzer,
+      message => source._sendMessage(message),
+      dependencies.getConfiguration('codegraphy'),
+    );
 
     syncGroupStateToSource(state);
   };

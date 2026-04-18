@@ -1,6 +1,6 @@
 import type { IFileInfo } from '../../../../shared/files/info';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { GraphWebviewMessageEffect } from '../messages/effects';
+import type { GraphWebviewMessageEffect } from '../messages/effects/routing';
 
 export interface GraphWebviewMessageEffectHandlers {
   fitView(): void;
@@ -8,6 +8,7 @@ export interface GraphWebviewMessageEffectHandlers {
   cacheFileInfo(info: IFileInfo): void;
   updateTooltipInfo(info: IFileInfo): void;
   postMessage(message: WebviewToExtensionMessage): void;
+  openInEditor(): void;
   exportPng(): void;
   exportSvg(): void;
   exportJpeg(): void;
@@ -16,45 +17,62 @@ export interface GraphWebviewMessageEffectHandlers {
   updateAccessCount(nodeId: string, accessCount: number): void;
 }
 
+type WebviewMessageEffectHandler = (
+  effect: GraphWebviewMessageEffect,
+  handlers: GraphWebviewMessageEffectHandlers,
+) => void;
+
+type ZoomEffect = Extract<GraphWebviewMessageEffect, { kind: 'zoom' }>;
+type CacheFileInfoEffect = Extract<GraphWebviewMessageEffect, { kind: 'cacheFileInfo' }>;
+type UpdateTooltipInfoEffect = Extract<GraphWebviewMessageEffect, { kind: 'updateTooltipInfo' }>;
+type PostMessageEffect = Extract<GraphWebviewMessageEffect, { kind: 'postMessage' }>;
+type UpdateAccessCountEffect = Extract<GraphWebviewMessageEffect, { kind: 'updateAccessCount' }>;
+
+const WEBVIEW_MESSAGE_EFFECT_HANDLERS = {
+  fitView: (_effect, handlers) => {
+    handlers.fitView();
+  },
+  zoom: (effect, handlers) => {
+    handlers.zoom2d((effect as ZoomEffect).factor);
+  },
+  cacheFileInfo: (effect, handlers) => {
+    handlers.cacheFileInfo((effect as CacheFileInfoEffect).info);
+  },
+  updateTooltipInfo: (effect, handlers) => {
+    handlers.updateTooltipInfo((effect as UpdateTooltipInfoEffect).info);
+  },
+  postMessage: (effect, handlers) => {
+    handlers.postMessage((effect as PostMessageEffect).message);
+  },
+  openInEditor: (_effect, handlers) => {
+    handlers.openInEditor();
+  },
+  exportPng: (_effect, handlers) => {
+    handlers.exportPng();
+  },
+  exportSvg: (_effect, handlers) => {
+    handlers.exportSvg();
+  },
+  exportJpeg: (_effect, handlers) => {
+    handlers.exportJpeg();
+  },
+  exportJson: (_effect, handlers) => {
+    handlers.exportJson();
+  },
+  exportMarkdown: (_effect, handlers) => {
+    handlers.exportMarkdown();
+  },
+  updateAccessCount: (effect, handlers) => {
+    const accessCountEffect = effect as UpdateAccessCountEffect;
+    handlers.updateAccessCount(accessCountEffect.nodeId, accessCountEffect.accessCount);
+  },
+} satisfies Record<GraphWebviewMessageEffect['kind'], WebviewMessageEffectHandler>;
+
 export function applyWebviewMessageEffects(
   effects: GraphWebviewMessageEffect[],
   handlers: GraphWebviewMessageEffectHandlers
 ): void {
   for (const effect of effects) {
-    switch (effect.kind) {
-      case 'fitView':
-        handlers.fitView();
-        break;
-      case 'zoom':
-        handlers.zoom2d(effect.factor);
-        break;
-      case 'cacheFileInfo':
-        handlers.cacheFileInfo(effect.info);
-        break;
-      case 'updateTooltipInfo':
-        handlers.updateTooltipInfo(effect.info);
-        break;
-      case 'postMessage':
-        handlers.postMessage(effect.message);
-        break;
-      case 'exportPng':
-        handlers.exportPng();
-        break;
-      case 'exportSvg':
-        handlers.exportSvg();
-        break;
-      case 'exportJpeg':
-        handlers.exportJpeg();
-        break;
-      case 'exportJson':
-        handlers.exportJson();
-        break;
-      case 'exportMarkdown':
-        handlers.exportMarkdown();
-        break;
-      case 'updateAccessCount':
-        handlers.updateAccessCount(effect.nodeId, effect.accessCount);
-        break;
-    }
+    WEBVIEW_MESSAGE_EFFECT_HANDLERS[effect.kind](effect, handlers);
   }
 }

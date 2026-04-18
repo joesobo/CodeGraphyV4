@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { ensureGitAnalyzerForCachedTimeline } from '../../../../../src/extension/graphView/provider/timeline/warmup';
 
 describe('ensureGitAnalyzerForCachedTimeline', () => {
@@ -168,7 +168,6 @@ function createSource(overrides: Partial<Record<string, unknown>> = {}) {
     _timelineActive: false,
     _currentCommitSha: undefined,
     _disabledPlugins: new Set<string>(),
-    _disabledSources: new Set<string>(),
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _applyViewTransform: vi.fn(),

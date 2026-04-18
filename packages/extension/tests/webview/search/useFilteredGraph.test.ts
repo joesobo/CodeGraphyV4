@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useFilteredGraph } from '../../../src/webview/search/useFilteredGraph';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../src/shared/settings/groups';
 
 const sampleGraph: IGraphData = {
@@ -17,16 +17,22 @@ const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
 describe('useFilteredGraph', () => {
   it('returns the original graph when the query is empty', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, '', defaultOptions, []),
+      useFilteredGraph(sampleGraph, '', defaultOptions, [], {}, {}, {}, {}),
     );
 
-    expect(result.current.filteredData).toBe(sampleGraph);
+    expect(result.current.filteredData).toEqual({
+      nodes: [
+        { id: 'src/App.ts', label: 'App', color: '#aaa', nodeType: 'file' },
+        { id: 'src/util.ts', label: 'util', color: '#bbb', nodeType: 'file' },
+      ],
+      edges: [{ id: 'e1', from: 'src/App.ts', to: 'src/util.ts' , kind: 'import', sources: [] }],
+    });
     expect(result.current.regexError).toBeNull();
   });
 
   it('returns null filteredData when graphData is null', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(null, '', defaultOptions, []),
+      useFilteredGraph(null, '', defaultOptions, [], {}, {}, {}, {}),
     );
 
     expect(result.current.filteredData).toBeNull();
@@ -35,7 +41,7 @@ describe('useFilteredGraph', () => {
 
   it('filters nodes that do not match the search query', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, 'util', defaultOptions, []),
+      useFilteredGraph(sampleGraph, 'util', defaultOptions, [], {}, {}, {}, {}),
     );
 
     expect(result.current.filteredData?.nodes.map((node) => node.id)).toEqual(['src/util.ts']);
@@ -43,7 +49,16 @@ describe('useFilteredGraph', () => {
 
   it('provides a regexError for invalid regex queries', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, '[invalid', { ...defaultOptions, regex: true }, []),
+      useFilteredGraph(
+        sampleGraph,
+        '[invalid',
+        { ...defaultOptions, regex: true },
+        [],
+        {},
+        {},
+        {},
+        {},
+      ),
     );
 
     expect(result.current.regexError).toBeTruthy();
@@ -54,7 +69,7 @@ describe('useFilteredGraph', () => {
     const groups: IGroup[] = [{ id: 'grp', pattern: 'src/**', color: '#ff0000' }];
 
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, '', defaultOptions, groups),
+      useFilteredGraph(sampleGraph, '', defaultOptions, groups, {}, {}, {}, {}),
     );
 
     expect(result.current.coloredData?.nodes.every((node) => node.color === '#ff0000')).toBe(true);
@@ -62,7 +77,7 @@ describe('useFilteredGraph', () => {
 
   it('returns all hook fields', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, '', defaultOptions, []),
+      useFilteredGraph(sampleGraph, '', defaultOptions, [], {}, {}, {}, {}),
     );
 
     expect(result.current).toHaveProperty('filteredData');
@@ -72,7 +87,7 @@ describe('useFilteredGraph', () => {
 
   it('drops edges whose endpoints do not both match the search query', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, 'App', defaultOptions, []),
+      useFilteredGraph(sampleGraph, 'App', defaultOptions, [], {}, {}, {}, {}),
     );
 
     expect(result.current.filteredData?.edges).toHaveLength(0);
@@ -82,7 +97,7 @@ describe('useFilteredGraph', () => {
     const groups: IGroup[] = [{ id: 'grp', pattern: '**/*.ts', color: '#123456' }];
 
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, 'App', defaultOptions, groups),
+      useFilteredGraph(sampleGraph, 'App', defaultOptions, groups, {}, {}, {}, {}),
     );
 
     expect(result.current.coloredData?.nodes[0]?.color).toBe('#123456');
@@ -90,9 +105,17 @@ describe('useFilteredGraph', () => {
 
   it('returns null regexError for non-regex searches', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, 'test', defaultOptions, []),
+      useFilteredGraph(sampleGraph, 'test', defaultOptions, [], {}, {}, {}, {}),
     );
 
     expect(result.current.regexError).toBeNull();
+  });
+
+  it('applies node type colors before legend overrides', () => {
+    const { result } = renderHook(() =>
+      useFilteredGraph(sampleGraph, '', defaultOptions, [], { file: '#224466' }, {}, {}, {}),
+    );
+
+    expect(result.current.filteredData?.nodes.every((node) => node.color === '#224466')).toBe(true);
   });
 });

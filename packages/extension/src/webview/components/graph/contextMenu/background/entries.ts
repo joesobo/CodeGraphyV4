@@ -8,7 +8,7 @@ export function buildBackgroundEntries(timelineActive: boolean): GraphContextMen
     entries.push(separator('background-separator-primary'));
   }
   entries.push(
-    builtInItem('background-refresh', 'Refresh Graph', 'refresh'),
+    builtInItem('background-refresh', 'Refresh', 'refresh'),
     builtInItem('background-fit', 'Fit All Nodes', 'fitView')
   );
   return entries;

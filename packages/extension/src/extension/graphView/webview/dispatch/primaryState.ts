@@ -1,13 +1,13 @@
 import type { GraphViewPrimaryMessageContext } from './primary';
-import type { GraphViewGroupMessageState } from '../messages/groups';
+import type { GraphViewLegendMessageState } from '../messages/legends';
 import type { GraphViewNodeFileHandlers } from '../nodeFile/router';
 import type { GraphViewSettingsMessageState } from '../settingsMessages/router';
 
-export function createGraphViewPrimaryGroupMessageState(
+export function createGraphViewPrimaryLegendMessageState(
   context: GraphViewPrimaryMessageContext,
-): GraphViewGroupMessageState {
+): GraphViewLegendMessageState {
   return {
-    userGroups: context.getUserGroups(),
+    userLegends: context.getUserGroups(),
   };
 }
 
@@ -16,6 +16,8 @@ export function createGraphViewPrimaryNodeFileHandlers(
 ): GraphViewNodeFileHandlers {
   return {
     ...context,
+    indexGraph: () => context.indexAndSendData(),
+    refreshGraph: () => context.refreshIndex(),
     timelineActive: context.getTimelineActive(),
     currentCommitSha: context.getCurrentCommitSha(),
   };
@@ -25,11 +27,7 @@ export function createGraphViewPrimarySettingsMessageState(
   context: GraphViewPrimaryMessageContext,
 ): GraphViewSettingsMessageState {
   return {
-    activeViewId: context.getActiveViewId(),
     disabledPlugins: context.getDisabledPlugins(),
-    disabledSources: context.getDisabledRules(),
     filterPatterns: context.getFilterPatterns(),
-    graphData: context.getGraphData(),
-    viewContext: context.getViewContext(),
   };
 }

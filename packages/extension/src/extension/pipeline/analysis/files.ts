@@ -1,0 +1,93 @@
+import type { IDiscoveredFile } from '../../../core/discovery/contracts';
+import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type { EventBus } from '../../../core/plugins/events/bus';
+import { analyzeWorkspaceFiles } from '../fileAnalysis';
+import type {
+  IWorkspaceFileAnalysisResult,
+  IWorkspaceFileProcessedPayload,
+} from '../fileAnalysis';
+import type { IWorkspaceAnalysisCache } from '../cache';
+
+export interface WorkspacePipelineFilesDependencies {
+  analyzeFile: (
+    absolutePath: string,
+    content: string,
+    workspaceRoot: string,
+  ) => Promise<IFileAnalysisResult>;
+  cache: IWorkspaceAnalysisCache;
+  emitFileProcessed?: (payload: IWorkspaceFileProcessedPayload) => void;
+  files: IDiscoveredFile[];
+  getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
+  logInfo(message: string): void;
+  onProgress?: (progress: { current: number; total: number; filePath: string }) => void;
+  readContent: (file: IDiscoveredFile) => Promise<string>;
+  signal?: AbortSignal;
+  workspaceRoot: string;
+}
+
+export interface WorkspacePipelineFilesSource {
+  _cache: IWorkspaceAnalysisCache;
+  _discovery: {
+    readContent(file: IDiscoveredFile): Promise<string>;
+  };
+  _eventBus?: Pick<EventBus, 'emit'>;
+  _getFileStat(filePath: string): Promise<{ mtime: number; size: number } | null>;
+  _registry: {
+    analyzeFileResult(
+      absolutePath: string,
+      content: string,
+      workspaceRoot: string,
+    ): Promise<IFileAnalysisResult | null>;
+  };
+}
+
+export async function analyzeWorkspacePipelineFiles(
+  dependencies: WorkspacePipelineFilesDependencies,
+): Promise<IWorkspaceFileAnalysisResult> {
+  const result = await analyzeWorkspaceFiles({
+    analyzeFile: dependencies.analyzeFile,
+    cache: dependencies.cache,
+    emitFileProcessed: dependencies.emitFileProcessed,
+    files: dependencies.files,
+    getFileStat: dependencies.getFileStat,
+    onProgress: dependencies.onProgress,
+    readContent: dependencies.readContent,
+    signal: dependencies.signal,
+    workspaceRoot: dependencies.workspaceRoot,
+  });
+
+  dependencies.logInfo(
+    `[CodeGraphy] Analysis: ${result.cacheHits} cache hits, ${result.cacheMisses} misses`,
+  );
+  return result;
+}
+
+export async function analyzeWorkspacePipelineSourceFiles(
+  source: WorkspacePipelineFilesSource,
+  files: IDiscoveredFile[],
+  workspaceRoot: string,
+  logInfo: (message: string) => void,
+  onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
+  signal?: AbortSignal,
+): Promise<IWorkspaceFileAnalysisResult> {
+  const eventBus = source._eventBus;
+
+  return analyzeWorkspacePipelineFiles({
+    analyzeFile: (absolutePath, content, rootPath) =>
+      source._registry.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
+        filePath: absolutePath,
+        relations: [],
+      })),
+    cache: source._cache,
+    emitFileProcessed: eventBus
+      ? payload => eventBus.emit('analysis:fileProcessed', payload)
+      : undefined,
+    files,
+    getFileStat: filePath => source._getFileStat(filePath),
+    logInfo,
+    onProgress,
+    readContent: file => source._discovery.readContent(file),
+    signal,
+    workspaceRoot,
+  });
+}

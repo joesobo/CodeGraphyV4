@@ -1,13 +1,11 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 
 export interface GraphViewReadyState {
-  filterPatterns: string[];
-  pluginFilterPatterns: string[];
   maxFiles: number;
   playbackSpeed: number;
+  depthMode?: boolean;
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
-  folderNodeColor: string;
   focusedFile: string | undefined;
   hasWorkspace: boolean;
   firstAnalysis: boolean;
@@ -15,10 +13,13 @@ export interface GraphViewReadyState {
 }
 
 export interface GraphViewReadyHandlers {
+  getFilterPatterns(): string[];
+  getPluginFilterPatterns(): string[];
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
-  sendAvailableViews(): void;
-  analyzeAndSendData(): void;
+  sendDepthState(): void;
+  sendGraphControls(): void;
+  loadAndSendData(): void;
   sendFavorites(): void;
   sendSettings(): void;
   sendPhysicsSettings(): void;
@@ -41,8 +42,9 @@ export async function applyWebviewReady(
 ): Promise<boolean> {
   handlers.loadGroupsAndFilterPatterns();
   handlers.loadDisabledRulesAndPlugins();
-  handlers.sendAvailableViews();
-  handlers.analyzeAndSendData();
+  handlers.sendDepthState();
+  handlers.sendGraphControls();
+  handlers.loadAndSendData();
   handlers.sendFavorites();
   handlers.sendSettings();
   handlers.sendPhysicsSettings();
@@ -50,8 +52,8 @@ export async function applyWebviewReady(
   handlers.sendMessage({
     type: 'FILTER_PATTERNS_UPDATED',
     payload: {
-      patterns: state.filterPatterns,
-      pluginPatterns: state.pluginFilterPatterns,
+      patterns: handlers.getFilterPatterns(),
+      pluginPatterns: handlers.getPluginFilterPatterns(),
     },
   });
   handlers.sendMessage({
@@ -64,16 +66,16 @@ export async function applyWebviewReady(
     payload: { speed: state.playbackSpeed },
   });
   handlers.sendMessage({
+    type: 'DEPTH_MODE_UPDATED',
+    payload: { depthMode: state.depthMode ?? false },
+  });
+  handlers.sendMessage({
     type: 'DAG_MODE_UPDATED',
     payload: { dagMode: state.dagMode },
   });
   handlers.sendMessage({
     type: 'NODE_SIZE_MODE_UPDATED',
     payload: { nodeSizeMode: state.nodeSizeMode },
-  });
-  handlers.sendMessage({
-    type: 'FOLDER_NODE_COLOR_UPDATED',
-    payload: { folderNodeColor: state.folderNodeColor },
   });
   handlers.sendDecorations();
   handlers.sendContextMenuItems();

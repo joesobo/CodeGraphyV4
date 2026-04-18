@@ -2,11 +2,11 @@ import { renderHook } from '@testing-library/react';
 import type { Dispatch, SetStateAction } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IFileInfo } from '../../../../src/shared/files/info';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphInteractionHandlers } from '../../../../src/webview/components/graph/interactionRuntime/handlers';
 import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltipModel';
-import { useGraphEventEffects } from '../../../../src/webview/components/graph/runtime/use/graph/events';
+import { useGraphEventEffects } from '../../../../src/webview/components/graph/runtime/use/events';
 
 const eventEffectsHarness = vi.hoisted(() => ({
   applyKeyboardEffects: vi.fn(),

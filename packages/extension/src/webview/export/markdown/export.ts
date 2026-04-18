@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 import type { IGroup } from '../../../shared/settings/groups';
 import { graphStore } from '../../store/state';
@@ -10,15 +10,15 @@ import type { ExportBuildContext } from '../shared/contracts';
 
 export function exportAsMarkdown(data: IGraphData): void {
   try {
-    const { groups, pluginStatuses } = graphStore.getState();
-    const markdown = buildMarkdownExport(data, groups, pluginStatuses, getExportContext());
+    const { legends, pluginStatuses } = graphStore.getState();
+    const markdown = buildMarkdownExport(data, legends, pluginStatuses, getExportContext());
     const timestamp = createExportTimestamp();
 
     postMessage({
       type: 'EXPORT_MD',
       payload: {
         markdown,
-        filename: `codegraphy-connections-${timestamp}.md`,
+        filename: `codegraphy-graph-${timestamp}.md`,
       },
     });
   } catch (error) {
@@ -28,9 +28,9 @@ export function exportAsMarkdown(data: IGraphData): void {
 
 export function buildMarkdownExport(
   graphData: IGraphData,
-  groups: IGroup[],
+  legends: IGroup[],
   pluginStatuses: IPluginStatus[] = [],
   context: ExportBuildContext = {},
 ): string {
-  return renderMarkdownExport(buildExportData(graphData, groups, pluginStatuses, context));
+  return renderMarkdownExport(buildExportData(graphData, legends, pluginStatuses, context));
 }

@@ -1,6 +1,6 @@
 # CodeGraphy Python
 
-Adds Python dependency analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+Adds Python ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - Marketplace plugin: [CodeGraphy Python](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python)
@@ -10,13 +10,15 @@ Adds Python dependency analysis to [CodeGraphy](https://marketplace.visualstudio
 
 1. Install the core `codegraphy.codegraphy` extension.
 2. Install this plugin extension.
-3. Open CodeGraphy and let it analyze your workspace.
+3. Open CodeGraphy and index your workspace.
 
-## Detection coverage
+## What It Provides
 
-- `import ...`
-- `from ... import ...`
-- relative imports
+The built-in Tree-sitter plugin now owns Python analysis inside the core extension.
+This plugin is intentionally lightweight and only adds:
+
+- Python-focused file colors
+- Python ecosystem ignore filters
 
 ## More
 

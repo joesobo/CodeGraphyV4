@@ -5,6 +5,7 @@ import {
 } from '../../core/discovery/pathMatching';
 
 const WORKSPACE_REFRESH_IGNORE_PATTERNS = [
+  '**/.codegraphy/**',
   '**/.vscode/settings.json',
   '**/.vscode/tasks.json',
   '**/.vscode/launch.json',

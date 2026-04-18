@@ -1,5 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import { applyCommandMessage } from '../messages/commands';
+import { applyCommandMessage } from '../messages/commands/dispatch';
 import { applyExportMessage } from '../messages/exports';
 import { applyNodeFileMessage } from '../nodeFile/router';
 import { applyPhysicsMessage } from '../messages/physics';
@@ -17,7 +17,7 @@ export async function dispatchGraphViewPrimaryRouteMessage(
     return { handled: true };
   }
 
-  if (await applyExportMessage(message, createGraphViewPrimaryExportHandlers())) {
+  if (await applyExportMessage(message, createGraphViewPrimaryExportHandlers(context))) {
     return { handled: true };
   }
 

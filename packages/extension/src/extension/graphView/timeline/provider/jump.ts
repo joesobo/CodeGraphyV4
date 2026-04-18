@@ -1,6 +1,6 @@
-import { applyTimelineCommitGraph, buildTimelineCommitGraphData } from './commitGraph';
+import { applyTimelineCommitGraph, buildTimelineCommitGraphData } from './commitData';
 import type { GraphViewProviderTimelineDependencies } from './indexing';
-import type { GraphViewProviderTimelineSource } from './types';
+import type { GraphViewProviderTimelineSource } from './contracts';
 import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
 
 export async function jumpGraphViewProviderToCommit(
@@ -10,7 +10,6 @@ export async function jumpGraphViewProviderToCommit(
     | '_gitAnalyzer'
     | '_currentCommitSha'
     | '_disabledPlugins'
-    | '_disabledSources'
     | '_rawGraphData'
     | '_graphData'
     | '_applyViewTransform'

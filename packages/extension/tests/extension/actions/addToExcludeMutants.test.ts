@@ -4,7 +4,7 @@
  * Surviving mutants:
  * - L18:36, L20:35 ArrayDeclaration: initial _stateBefore/_stateAfter = []
  * - L39:54 StringLiteral: config section 'codegraphy'
- * - L40:60 ArrayDeclaration: default [] in config.get('exclude', [])
+ * - L40:60 ArrayDeclaration: default [] in config.get('filterPatterns', [])
  * - L62:54 StringLiteral: config section 'codegraphy' in undo
  * - L65:25 StringLiteral: pattern prefix in undo path
  */
@@ -23,6 +23,14 @@ vi.mock('vscode', () => ({
     WorkspaceFolder: 3,
   },
 }));
+
+function getLastFilterPatternUpdate(
+  calls: Array<[string, unknown, unknown?]>,
+): [string, unknown, unknown?] | undefined {
+  return [...calls]
+    .reverse()
+    .find(([key]) => key === 'filterPatterns');
+}
 
 describe('AddToExcludeAction (mutant coverage)', () => {
   let mockConfigGet: ReturnType<typeof vi.fn>;
@@ -62,29 +70,41 @@ describe('AddToExcludeAction (mutant coverage)', () => {
   });
 
   describe('config get key and default value', () => {
-    it('reads the exclude key with an empty array default', async () => {
+    it('reads the filterPatterns key with an empty array default', async () => {
       const action = new AddToExcludeAction(['file.ts'], mockRefreshGraph);
 
       await action.execute();
 
-      expect(mockConfigGet).toHaveBeenCalledWith('exclude', []);
+      expect(mockConfigGet).toHaveBeenCalledWith('filterPatterns', []);
     });
   });
 
   describe('config update key', () => {
-    it('updates the exclude config key during execute', async () => {
+    it('updates the filterPatterns config key during execute', async () => {
       const action = new AddToExcludeAction(['file.ts'], mockRefreshGraph);
 
       await action.execute();
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
-        'exclude',
+        'filterPatterns',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
-    it('updates the exclude config key during undo', async () => {
+    it('does not write a second legacy exclude key during execute', async () => {
+      const action = new AddToExcludeAction(['file.ts'], mockRefreshGraph);
+
+      await action.execute();
+
+      expect(mockConfigUpdate).not.toHaveBeenCalledWith(
+        'exclude',
+        expect.any(Array),
+        undefined,
+      );
+    });
+
+    it('updates the filterPatterns config key during undo', async () => {
       const action = new AddToExcludeAction(['file.ts'], mockRefreshGraph);
 
       await action.execute();
@@ -92,9 +112,23 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       await action.undo();
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
+        'filterPatterns',
+        expect.any(Array),
+        undefined,
+      );
+    });
+
+    it('does not write a second legacy exclude key during undo', async () => {
+      const action = new AddToExcludeAction(['file.ts'], mockRefreshGraph);
+
+      await action.execute();
+      mockConfigUpdate.mockClear();
+      await action.undo();
+
+      expect(mockConfigUpdate).not.toHaveBeenCalledWith(
         'exclude',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
   });
@@ -105,7 +139,9 @@ describe('AddToExcludeAction (mutant coverage)', () => {
 
       await action.execute();
 
-      const updatedExclude = mockConfigUpdate.mock.calls[0][1] as string[];
+      const updatedExclude = mockConfigUpdate.mock.calls.find(
+        ([key]) => key === 'filterPatterns',
+      )?.[1] as string[];
       expect(updatedExclude).toContain('**/src/utils.ts');
       // Verify the exact prefix, not just containment
       const pattern = updatedExclude.find(pat => pat.includes('utils.ts'));
@@ -117,36 +153,46 @@ describe('AddToExcludeAction (mutant coverage)', () => {
 
       await action.execute();
 
-      const updatedExclude = mockConfigUpdate.mock.calls[0][1] as string[];
+      const updatedExclude = mockConfigUpdate.mock.calls.find(
+        ([key]) => key === 'filterPatterns',
+      )?.[1] as string[];
       expect(updatedExclude).toEqual(['**/app.ts']);
     });
   });
 
   describe('initial state arrays are empty', () => {
-    it('undo before execute restores an empty exclude list', async () => {
+    it('undo before execute restores an empty filter pattern list', async () => {
       const action = new AddToExcludeAction(['file.ts'], mockRefreshGraph);
 
       // Undo without execute: _stateBefore should be [] (empty default)
       await action.undo();
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
-        'exclude',
+        'filterPatterns',
         [],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
     it('undo after execute restores the captured before-state not the initial array', async () => {
-      // Start with existing excludes
-      mockConfigGet.mockReturnValue(['**/existing.ts']);
+      // Start with existing filter patterns
+      mockConfigGet.mockImplementation((key: string) =>
+        key === 'filterPatterns' ? ['**/existing.ts'] : [],
+      );
 
       const action = new AddToExcludeAction(['new.ts'], mockRefreshGraph);
 
       await action.execute();
       await action.undo();
 
-      // The undo call should restore the original exclude list
-      const undoCallArgs = mockConfigUpdate.mock.calls[1];
+      // The undo call should restore the original filter pattern list
+      const undoCallArgs = getLastFilterPatternUpdate(
+        mockConfigUpdate.mock.calls as Array<[string, unknown, unknown?]>,
+      );
+      expect(undoCallArgs).toBeDefined();
+      if (!undoCallArgs) {
+        throw new Error('expected filterPatterns undo call');
+      }
       expect(undoCallArgs[1]).toEqual(['**/existing.ts']);
     });
   });

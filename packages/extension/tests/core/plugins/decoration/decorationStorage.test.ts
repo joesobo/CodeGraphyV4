@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addDecorationEntry, clearPluginEntries } from '../../../../src/core/plugins/decoration/storage';
+import { addDecorationEntry, clearPluginEntries } from '../../../../src/core/plugins/decoration/entries';
 import type { DecorationEntry } from '../../../../src/core/plugins/decoration/contracts';
 
 describe('addDecorationEntry', () => {

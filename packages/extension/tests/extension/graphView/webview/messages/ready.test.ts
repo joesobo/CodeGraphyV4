@@ -3,10 +3,13 @@ import { applyWebviewReady } from '../../../../../src/extension/graphView/webvie
 
 function createHandlers() {
   return {
+    getFilterPatterns: vi.fn(() => ['dist/**']),
+    getPluginFilterPatterns: vi.fn(() => ['venv/**']),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
-    sendAvailableViews: vi.fn(),
-    analyzeAndSendData: vi.fn(),
+    sendDepthState: vi.fn(),
+    sendGraphControls: vi.fn(),
+    loadAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendPhysicsSettings: vi.fn(),
@@ -29,13 +32,10 @@ describe('graph view ready message', () => {
 
     const readyNotified = await applyWebviewReady(
       {
-        filterPatterns: ['dist/**'],
-        pluginFilterPatterns: ['venv/**'],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: 'td',
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: 'src/game/player.gd',
         hasWorkspace: false,
         firstAnalysis: false,
@@ -46,8 +46,9 @@ describe('graph view ready message', () => {
 
     expect(handlers.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(handlers.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
-    expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.sendDepthState).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
+    expect(handlers.loadAndSendData).toHaveBeenCalledOnce();
     expect(handlers.sendFavorites).toHaveBeenCalledOnce();
     expect(handlers.sendSettings).toHaveBeenCalledOnce();
     expect(handlers.sendPhysicsSettings).toHaveBeenCalledOnce();
@@ -80,10 +81,6 @@ describe('graph view ready message', () => {
       type: 'NODE_SIZE_MODE_UPDATED',
       payload: { nodeSizeMode: 'connections' },
     });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#111111' },
-    });
     expect(handlers.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(readyNotified).toBe(true);
   });
@@ -91,22 +88,19 @@ describe('graph view ready message', () => {
   it('sends available views before kicking off analysis', async () => {
     const callOrder: string[] = [];
     const handlers = createHandlers();
-    handlers.sendAvailableViews.mockImplementation(() => {
+    handlers.sendDepthState.mockImplementation(() => {
       callOrder.push('views');
     });
-    handlers.analyzeAndSendData.mockImplementation(() => {
+    handlers.loadAndSendData.mockImplementation(() => {
       callOrder.push('analyze');
     });
 
     await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: true,
         firstAnalysis: true,
@@ -125,13 +119,10 @@ describe('graph view ready message', () => {
 
     await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: true,
         firstAnalysis: true,
@@ -148,13 +139,10 @@ describe('graph view ready message', () => {
 
     await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: true,
         firstAnalysis: false,
@@ -171,13 +159,10 @@ describe('graph view ready message', () => {
 
     const readyNotified = await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: false,
         firstAnalysis: false,
@@ -204,13 +189,10 @@ describe('graph view ready message', () => {
 
     await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: false,
         firstAnalysis: false,

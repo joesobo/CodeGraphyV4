@@ -1,11 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import type { GraphViewStoreState } from '../../../../src/webview/components/graph/store';
-import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/graph/interaction';
-import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/graph/state';
+import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
+import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/state';
 import { GraphViewportShell } from '../../../../src/webview/components/graph/viewport/shell';
 
 const harness = vi.hoisted(() => ({
@@ -14,7 +14,7 @@ const harness = vi.hoisted(() => ({
 	viewport: vi.fn((_props: Record<string, unknown>) => <div data-testid="graph-viewport" />),
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/use/graph/rendering', () => ({
+vi.mock('../../../../src/webview/components/graph/runtime/use/rendering', () => ({
 	useGraphRenderingRuntime: harness.useGraphRenderingRuntime,
 }));
 
@@ -177,7 +177,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'activeViewId' | 'bidirectionalMode' | 'dagMode' | 'directionColor' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive'
+	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionColor' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -188,9 +188,9 @@ function createViewState(): Pick<
 	};
 
 	return {
-		activeViewId: 'active',
 		bidirectionalMode: 'separate',
 		dagMode: 'td',
+		depthMode: false,
 		directionColor: '#22c55e',
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),

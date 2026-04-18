@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import App from '../../src/webview/app/App';
+import App from '../../src/webview/app/view';
 import { graphStore } from '../../src/webview/store/state';
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];
@@ -35,14 +35,23 @@ function resetStore() {
     graphMode: '2d',
     nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
+    depthMode: false,
     depthLimit: 1,
-    groups: [],
+    maxDepthLimit: 10,
+    legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
-    availableViews: [],
-    activeViewId: 'codegraphy.connections',
     pluginStatuses: [],
     activePanel: 'none',
+    graphNodeTypes: [],
+    graphEdgeTypes: [],
+    nodeColors: {},
+    nodeVisibility: {},
+    edgeVisibility: {},
+    edgeColors: {},
+    graphHasIndex: false,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
     maxFiles: 500,
   });
 }

@@ -3,9 +3,9 @@ import {
   applyPendingGroupUpdates,
   clearPendingGroupUpdate,
   mergePendingGroupUpdate,
-} from '../../../src/webview/store/optimisticGroupsPending';
+} from '../../../src/webview/store/optimistic/pending';
 
-describe('webview/store/optimisticGroupsPending', () => {
+describe('webview/store/optimistic/pending', () => {
   it('merges pending updates for the same group id', () => {
     const pending = mergePendingGroupUpdate({}, 'g1', { pattern: '*.tsx' }, 1000);
     const merged = mergePendingGroupUpdate(pending, 'g1', { color: '#ff00ff' }, 1100);

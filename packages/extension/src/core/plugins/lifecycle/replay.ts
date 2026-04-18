@@ -3,9 +3,12 @@
  * @module core/plugins/lifecycle/replay
  */
 
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { ILifecyclePluginInfo } from './contracts';
-import { notifyWorkspaceReadyForPlugin, notifyWebviewReadyForPlugin } from './notify';
+import {
+  notifyWebviewReadyForPlugin,
+  notifyWorkspaceReadyForPlugin,
+} from './notify/readiness';
 
 /**
  * Replays readiness hooks for a late-registered plugin.

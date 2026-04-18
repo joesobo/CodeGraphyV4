@@ -1,5 +1,5 @@
-import type { IConnection } from '../../../core/plugins/types/contracts';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import { addGitHistoryGraphFile, modifyGitHistoryGraphFile } from './changes';
 import {
   createDiffGraphSnapshot,
@@ -9,11 +9,11 @@ import { deleteGitHistoryGraphFile, renameGitHistoryGraphFile } from './state';
 import { reanalyzeGraphFile } from '../reanalyzeGraphFile';
 
 interface DiffGraphRegistry {
-  analyzeFile(
+  analyzeFileResult(
     absolutePath: string,
     content: string,
     workspaceRoot: string,
-  ): Promise<IConnection[]>;
+  ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
   supportsFile(filePath: string): boolean;
 }

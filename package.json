@@ -7,9 +7,9 @@
 	],
 	"scripts": {
 		"vscode:prepublish": "pnpm run build",
-    "build": "turbo run build",
-    "build:devhost": "pnpm --filter @codegraphy/extension run build && pnpm --filter codegraphy-typescript run build && pnpm --filter codegraphy-python run build && pnpm --filter codegraphy-csharp run build && pnpm --filter codegraphy-godot run build",
-    "build:extension": "pnpm --filter @codegraphy/extension run build:extension",
+		"build": "turbo run build",
+		"build:devhost": "pnpm --filter @codegraphy/extension run build && pnpm --filter codegraphy-typescript run build && pnpm --filter codegraphy-python run build && pnpm --filter codegraphy-csharp run build && pnpm --filter codegraphy-godot run build",
+		"build:extension": "pnpm --filter @codegraphy/extension run build:extension",
 		"build:webview": "pnpm --filter @codegraphy/extension run build:webview",
 		"watch": "pnpm --filter @codegraphy/extension run watch",
 		"watch:extension": "pnpm --filter @codegraphy/extension run watch:extension",
@@ -131,19 +131,19 @@
 			},
 			{
 				"command": "codegraphy.exportJson",
-				"title": "CodeGraphy: Export Connections as JSON"
+				"title": "CodeGraphy: Export Graph as JSON"
 			},
 			{
 				"command": "codegraphy.exportMarkdown",
-				"title": "CodeGraphy: Export Connections as Markdown"
+				"title": "CodeGraphy: Export Graph as Markdown"
 			},
 			{
 				"command": "codegraphy.clearCache",
 				"title": "CodeGraphy: Clear Cache and Refresh"
 			},
 			{
-				"command": "codegraphy.cycleView",
-				"title": "CodeGraphy: Cycle View"
+				"command": "codegraphy.toggleDepthMode",
+				"title": "CodeGraphy: Toggle Depth Mode"
 			},
 			{
 				"command": "codegraphy.cycleLayout",
@@ -193,7 +193,7 @@
 				"when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
 			},
 			{
-				"command": "codegraphy.cycleView",
+				"command": "codegraphy.toggleDepthMode",
 				"key": "v",
 				"when": "codegraphy.graphFocused"
 			},
@@ -209,14 +209,14 @@
 			}
 		],
 		"viewsContainers": {
-				"activitybar": [
-					{
-						"id": "codegraphy",
-						"title": "CodeGraphy",
-						"icon": "assets/icon-dark.svg"
-					}
-				]
-			},
+			"activitybar": [
+				{
+					"id": "codegraphy",
+					"title": "CodeGraphy",
+					"icon": "assets/icon-dark.svg"
+				}
+			]
+		},
 		"views": {
 			"codegraphy": [
 				{
@@ -233,255 +233,15 @@
 					"visibility": "collapsed"
 				}
 			]
-		},
-		"configuration": {
-			"title": "CodeGraphy",
-			"properties": {
-				"codegraphy.maxFiles": {
-					"type": "number",
-					"default": 500,
-					"description": "Maximum number of files to analyze. Shows a warning if exceeded."
-				},
-				"codegraphy.include": {
-					"type": "array",
-					"items": "string",
-					"default": [
-						"**/*"
-					],
-					"description": "Glob patterns for files to include in analysis."
-				},
-				"codegraphy.respectGitignore": {
-					"type": "boolean",
-					"default": true,
-					"description": "Also exclude files matched by .gitignore."
-				},
-				"codegraphy.showOrphans": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show files that have no connections (no imports and not imported)."
-				},
-				"codegraphy.plugins": {
-					"type": "array",
-					"items": "string",
-					"default": [],
-					"description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
-				},
-				"codegraphy.disabledSources": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "Disabled plugin sources by qualified ID ('<pluginId>:<sourceId>'). Managed by the Plugins panel."
-				},
-				"codegraphy.disabledPlugins": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "Disabled plugin IDs. Managed by the Plugins panel."
-				},
-				"codegraphy.hiddenPluginGroups": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "Plugin default group IDs that have been hidden. Managed by the Groups panel."
-				},
-				"codegraphy.favorites": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "List of favorite file paths. Favorited files are displayed with a yellow outline in the graph."
-				},
-				"codegraphy.bidirectionalEdges": {
-					"type": "string",
-					"enum": [
-						"separate",
-						"combined"
-					],
-					"default": "separate",
-					"enumDescriptions": [
-						"Show two separate arrows for bidirectional connections",
-						"Show a single bidirectional arrow with arrowheads on both ends"
-					],
-					"description": "How to display bidirectional connections (when A imports B and B imports A)."
-				},
-				"codegraphy.physics.repelForce": {
-					"type": "number",
-					"default": 10,
-					"minimum": 0,
-					"maximum": 20,
-					"description": "Node repulsion strength (0 = no repel, 20 = max repel)."
-				},
-				"codegraphy.physics.linkDistance": {
-					"type": "number",
-					"default": 80,
-					"minimum": 30,
-					"maximum": 500,
-					"description": "Preferred distance between connected nodes in pixels."
-				},
-				"codegraphy.physics.linkForce": {
-					"type": "number",
-					"default": 0.15,
-					"minimum": 0,
-					"maximum": 1,
-					"description": "Spring stiffness — how strongly connected nodes pull together (0–1)."
-				},
-				"codegraphy.physics.damping": {
-					"type": "number",
-					"default": 0.7,
-					"minimum": 0,
-					"maximum": 1,
-					"description": "How quickly motion settles. Higher = less jitter after dragging."
-				},
-					"codegraphy.physics.centerForce": {
-						"type": "number",
-						"default": 0.1,
-						"minimum": 0,
-						"maximum": 1,
-						"description": "Pull toward the viewport center (0 = none, 1 = max)."
-					},
-					"codegraphy.physics.chargeRange": {
-						"type": "number",
-						"default": 200,
-						"minimum": 50,
-						"maximum": 1000,
-						"description": "Maximum distance at which node repulsion applies. Lower values produce tighter local clusters."
-					},
-					"codegraphy.groups": {
-					"type": "array",
-					"default": [],
-					"description": "Groups for matching files. Each entry defines a glob pattern with color, shape, and optional image.",
-					"items": {
-						"type": "object",
-						"properties": {
-							"id": {
-								"type": "string"
-							},
-							"pattern": {
-								"type": "string"
-							},
-							"color": {
-								"type": "string",
-								"pattern": "^#[0-9A-Fa-f]{6}$"
-							},
-							"shape2D": {
-								"type": "string",
-								"enum": [
-									"circle",
-									"square",
-									"diamond",
-									"triangle",
-									"hexagon",
-									"star"
-								]
-							},
-							"shape3D": {
-								"type": "string",
-								"enum": [
-									"sphere",
-									"cube",
-									"octahedron",
-									"cone",
-									"dodecahedron",
-									"icosahedron"
-								]
-							},
-							"imagePath": {
-								"type": "string",
-								"description": "Workspace-relative path to image (e.g. .codegraphy/assets/icon.png)"
-							},
-							"disabled": {
-								"type": "boolean",
-								"description": "Whether this group is disabled (hidden from color/shape matching)"
-							}
-						}
-					}
-				},
-				"codegraphy.filterPatterns": {
-					"type": "array",
-					"items": {
-						"type": "string"
-					},
-					"default": [],
-					"description": "Glob patterns for files to exclude from the graph (applied at discovery). Replaces codegraphy.exclude."
-				},
-				"codegraphy.showLabels": {
-					"type": "boolean",
-					"default": true,
-					"description": "Show file name labels on graph nodes."
-				},
-				"codegraphy.directionMode": {
-					"type": "string",
-					"enum": [
-						"arrows",
-						"particles",
-						"none"
-					],
-					"default": "arrows",
-					"enumDescriptions": [
-						"Static arrowheads at link endpoints",
-						"Animated dots flowing along links",
-						"No directional indicator"
-					],
-					"description": "How to indicate import direction on graph edges."
-				},
-				"codegraphy.directionColor": {
-					"type": "string",
-					"default": "#475569",
-					"pattern": "^#[0-9A-Fa-f]{6}$",
-					"description": "Directional indicator color as a hex value."
-				},
-				"codegraphy.folderNodeColor": {
-					"type": "string",
-					"default": "#A1A1AA",
-					"pattern": "^#[0-9A-Fa-f]{6}$",
-					"description": "Color for folder nodes in Folder View (hex format, e.g., #A1A1AA)."
-				},
-				"codegraphy.particleSpeed": {
-					"type": "number",
-					"default": 0.005,
-					"minimum": 0.0005,
-					"maximum": 0.005,
-					"description": "Speed of directional particles (ratio of link length per frame)."
-				},
-				"codegraphy.particleSize": {
-					"type": "number",
-					"default": 4,
-					"minimum": 1,
-					"maximum": 10,
-					"description": "Size (width) of directional particles in pixels."
-				},
-				"codegraphy.timeline.maxCommits": {
-					"type": "number",
-					"default": 500,
-					"minimum": 10,
-					"maximum": 5000,
-					"description": "Maximum number of commits to index for the timeline feature."
-				},
-				"codegraphy.timeline.playbackSpeed": {
-					"type": "number",
-					"default": 1,
-					"minimum": 0.1,
-					"maximum": 10,
-					"description": "Timeline playback speed multiplier (1.0 = ~2 days per second)."
-				}
-			}
 		}
 	},
 	"devDependencies": {
-		"@vscode/vsce": "^3.7.1",
 		"@changesets/changelog-github": "^0.6.0",
 		"@changesets/cli": "^2.30.0",
 		"@eslint/js": "^9.0.0",
 		"@playwright/test": "^1.58.2",
-		"@stryker-mutator/core": "^9.6.0",
-		"@stryker-mutator/vitest-runner": "^9.6.0",
+		"@stryker-mutator/core": "^9.6.1",
+		"@stryker-mutator/vitest-runner": "^9.6.1",
 		"@testing-library/jest-dom": "^6.2.0",
 		"@testing-library/react": "^14.1.2",
 		"@types/glob": "^8.1.0",
@@ -493,6 +253,7 @@
 		"@vitejs/plugin-react": "^4.2.1",
 		"@vitest/coverage-istanbul": "^3.2.4",
 		"@vscode/test-electron": "^2.5.2",
+		"@vscode/vsce": "^3.7.1",
 		"autoprefixer": "^10.4.17",
 		"concurrently": "^8.2.2",
 		"esbuild": "^0.25.0",

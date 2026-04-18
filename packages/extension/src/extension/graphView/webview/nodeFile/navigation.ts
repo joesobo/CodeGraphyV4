@@ -3,7 +3,8 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 export interface GraphViewNodeFileNavigationHandlers {
   revealInExplorer(filePath: string): Promise<void>;
   copyToClipboard(text: string): Promise<void>;
-  analyzeAndSendData(): Promise<void>;
+  indexGraph(): Promise<void>;
+  refreshGraph(): Promise<void>;
   getFileInfo(filePath: string): Promise<void>;
 }
 
@@ -21,7 +22,11 @@ export async function applyNodeFileNavigationMessage(
       return true;
 
     case 'REFRESH_GRAPH':
-      await handlers.analyzeAndSendData();
+      await handlers.refreshGraph();
+      return true;
+
+    case 'INDEX_GRAPH':
+      await handlers.indexGraph();
       return true;
 
     case 'GET_FILE_INFO':

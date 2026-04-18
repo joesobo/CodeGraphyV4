@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IViewContext } from '../contracts';
 import { buildUndirectedAdjacencyList, walkDepthFromNode } from './graph';
 import { clampDepthLimit, MAX_DEPTH_LIMIT } from './limits';

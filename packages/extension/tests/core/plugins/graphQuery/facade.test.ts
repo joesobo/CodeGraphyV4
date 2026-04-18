@@ -15,19 +15,19 @@ import {
   getEdgesFor as getEdgesForDirect,
   getIncomingEdges as getIncomingEdgesDirect,
   getOutgoingEdges as getOutgoingEdgesDirect,
-} from '../../../../src/core/plugins/graphQuery/edges';
+} from '../../../../src/core/plugins/graphQuery/read/edges';
 import {
   getGraph as getGraphDirect,
   getNeighbors as getNeighborsDirect,
   getNode as getNodeDirect,
-} from '../../../../src/core/plugins/graphQuery/nodes';
+} from '../../../../src/core/plugins/graphQuery/read/nodes';
 import {
   findNodePath as findPathDirect,
-} from '../../../../src/core/plugins/graphQuery/path';
+} from '../../../../src/core/plugins/graphQuery/traversal/path';
 import {
   buildSubgraph as getSubgraphDirectFromSubgraph,
-} from '../../../../src/core/plugins/graphQuery/subgraph';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+} from '../../../../src/core/plugins/graphQuery/traversal/subgraph';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 const sampleGraph: IGraphData = {
   nodes: [

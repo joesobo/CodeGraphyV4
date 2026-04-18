@@ -13,6 +13,7 @@ export type BuiltInContextMenuAction =
   | 'toggleFavorite'
   | 'focus'
   | 'addToFilter'
+  | 'addNodeLegend'
   | 'rename'
   | 'delete'
   | 'refresh'

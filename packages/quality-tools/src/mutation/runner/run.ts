@@ -24,13 +24,17 @@ function buildArgs(target: QualityTarget): { args: string[]; reportKey: string }
 export function runMutation(target: QualityTarget): void {
   const { args, reportKey } = buildArgs(target);
   const scopedVitestIncludes = resolveScopedVitestIncludes(target);
-  const env = scopedVitestIncludes
-    ? {
-        ...process.env,
-        CODEGRAPHY_VITEST_INCLUDE_JSON: JSON.stringify(scopedVitestIncludes),
-      }
-    : process.env;
-
+  const env = {
+    ...process.env,
+    CODEGRAPHY_VITEST_SCOPE: target.packageName === 'extension'
+      ? 'extension'
+      : process.env.CODEGRAPHY_VITEST_SCOPE ?? 'workspace',
+    ...(scopedVitestIncludes
+      ? {
+          CODEGRAPHY_VITEST_INCLUDE_JSON: JSON.stringify(scopedVitestIncludes),
+        }
+      : {}),
+  };
   execFileSync('stryker', args, { cwd: REPO_ROOT, env, stdio: 'inherit' });
   const reportPath = copySharedMutationReports(reportKey, REPO_ROOT);
   reportMutationSiteViolations(reportPath);

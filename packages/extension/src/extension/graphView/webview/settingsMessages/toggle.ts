@@ -10,16 +10,6 @@ export async function applySettingsToggleMessage(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
-    case 'TOGGLE_SOURCE':
-      if (message.payload.enabled) {
-        state.disabledSources.delete(message.payload.qualifiedSourceId);
-      } else {
-        state.disabledSources.add(message.payload.qualifiedSourceId);
-      }
-      await handlers.updateConfig('disabledSources', [...state.disabledSources]);
-      handlers.smartRebuild('rule', message.payload.qualifiedSourceId);
-      return true;
-
     case 'TOGGLE_PLUGIN':
       if (message.payload.enabled) {
         state.disabledPlugins.delete(message.payload.pluginId);
@@ -27,7 +17,7 @@ export async function applySettingsToggleMessage(
         state.disabledPlugins.add(message.payload.pluginId);
       }
       await handlers.updateConfig('disabledPlugins', [...state.disabledPlugins]);
-      handlers.smartRebuild('plugin', message.payload.pluginId);
+      handlers.smartRebuild(message.payload.pluginId);
       return true;
 
     default:

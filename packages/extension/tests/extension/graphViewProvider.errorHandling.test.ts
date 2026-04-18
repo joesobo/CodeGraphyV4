@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../src/shared/graph/types';
+import type { IGraphData } from '../../src/shared/graph/contracts';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
@@ -38,8 +38,26 @@ describe('GraphViewProvider error handling', () => {
       createContext() as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    vi.spyOn(internals._analysisMethods, '_doAnalyzeAndSendData').mockRejectedValueOnce(new Error('boom'));
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    (provider as unknown as { _analyzerInitialized: boolean })._analyzerInitialized = true;
+    (provider as unknown as {
+      _analyzer: {
+        analyze: () => Promise<IGraphData>;
+        hasIndex(): boolean;
+        initialize(): Promise<void>;
+        discoverGraph(): Promise<IGraphData>;
+        registry: { notifyPostAnalyze(graph: IGraphData): void };
+      };
+    })._analyzer = {
+      analyze: vi.fn().mockRejectedValueOnce(new Error('boom')),
+      hasIndex: () => true,
+      initialize: vi.fn().mockResolvedValue(undefined),
+      discoverGraph: vi.fn().mockResolvedValue({ nodes: [], edges: [] }),
+      registry: {
+        notifyPostAnalyze: () => {},
+      },
+    };
 
     await internals._analysisMethods._analyzeAndSendData();
 
@@ -74,8 +92,8 @@ describe('GraphViewProvider error handling', () => {
     const sendMessageSpy = vi
       .spyOn(internals._webviewMethods, '_sendMessage')
       .mockImplementation(() => {});
-    const sendAvailableViewsSpy = vi
-      .spyOn(internals._viewContextMethods, '_sendAvailableViews')
+    const sendDepthStateSpy = vi
+      .spyOn(internals._viewContextMethods, '_sendDepthState')
       .mockImplementation(() => {});
     const sendPluginStatusesSpy = vi
       .spyOn(internals._pluginMethods, '_sendPluginStatuses')
@@ -95,7 +113,7 @@ describe('GraphViewProvider error handling', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
-    expect(sendAvailableViewsSpy).toHaveBeenCalledTimes(1);
+    expect(sendDepthStateSpy).toHaveBeenCalledTimes(1);
     expect(sendPluginStatusesSpy).toHaveBeenCalledTimes(1);
     expect(sendPluginExportersSpy).toHaveBeenCalledTimes(1);
     expect(markWorkspaceReadySpy).toHaveBeenCalledWith({ nodes: [], edges: [] });

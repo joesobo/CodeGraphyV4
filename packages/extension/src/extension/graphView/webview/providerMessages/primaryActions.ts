@@ -5,6 +5,9 @@ import type {
   GraphViewProviderMessageListenerSource,
 } from './listener';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import {
+  updateCodeGraphyConfigurationSilently,
+} from '../../../repoSettings/current';
 
 type GraphViewProviderPrimaryActions = Pick<
   GraphViewMessageListenerContext,
@@ -13,6 +16,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'setFocusedFile'
   | 'previewFileAtCommit'
   | 'openFile'
+  | 'openInEditor'
   | 'revealInExplorer'
   | 'copyToClipboard'
   | 'deleteFiles'
@@ -20,12 +24,16 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'createFile'
   | 'toggleFavorites'
   | 'addToExclude'
+  | 'loadAndSendData'
+  | 'indexAndSendData'
   | 'analyzeAndSendData'
+  | 'refreshIndex'
+  | 'clearCacheAndRefresh'
   | 'getFileInfo'
   | 'undo'
   | 'redo'
   | 'showInformationMessage'
-  | 'changeView'
+  | 'setDepthMode'
   | 'setDepthLimit'
   | 'indexRepository'
   | 'jumpToCommit'
@@ -33,7 +41,9 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'sendPhysicsSettings'
   | 'updatePhysicsSetting'
   | 'resetPhysicsSettings'
-  | 'persistGroups'
+  | 'persistLegends'
+  | 'persistDefaultLegendVisibility'
+  | 'persistLegendOrder'
   | 'recomputeGroups'
   | 'sendGroupsUpdated'
   | 'showOpenDialog'
@@ -54,6 +64,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     setFocusedFile: filePath => source.setFocusedFile(filePath),
     previewFileAtCommit: (sha, filePath) => source._previewFileAtCommit(sha, filePath),
     openFile: filePath => source._openFile(filePath),
+    openInEditor: () => source._webviewMethods.openInEditor(),
     revealInExplorer: filePath => source._revealInExplorer(filePath),
     copyToClipboard: text => source._copyToClipboard(text),
     deleteFiles: paths => source._deleteFiles(paths),
@@ -61,14 +72,18 @@ export function createGraphViewProviderMessagePrimaryActions(
     createFile: directory => source._createFile(directory),
     toggleFavorites: paths => source._toggleFavorites(paths),
     addToExclude: patterns => source._addToExclude(patterns),
+    loadAndSendData: () => source._loadAndSendData(),
+    indexAndSendData: () => source._indexAndSendData(),
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    refreshIndex: () => source.refreshIndex(),
+    clearCacheAndRefresh: () => source.clearCacheAndRefresh(),
     getFileInfo: filePath => source._getFileInfo(filePath),
     undo: () => source.undo(),
     redo: () => source.redo(),
     showInformationMessage: detail => {
       dependencies.window.showInformationMessage(detail);
     },
-    changeView: viewId => source.changeView(viewId),
+    setDepthMode: depthMode => source.setDepthMode(depthMode),
     setDepthLimit: depthLimit => source.setDepthLimit(depthLimit),
     indexRepository: () => source._indexRepository(),
     jumpToCommit: sha => source._jumpToCommit(sha),
@@ -76,9 +91,21 @@ export function createGraphViewProviderMessagePrimaryActions(
     sendPhysicsSettings: () => source._sendPhysicsSettings(),
     updatePhysicsSetting: (key, value) => source._updatePhysicsSetting(key, value),
     resetPhysicsSettings: () => source._resetPhysicsSettings(),
-    persistGroups: async groups => {
-      const target = dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
-      await dependencies.workspace.getConfiguration('codegraphy').update('groups', groups, target);
+    persistLegends: async legends => {
+      await updateCodeGraphyConfigurationSilently('legend', legends);
+    },
+    persistDefaultLegendVisibility: async (legendId, visible) => {
+      const currentVisibility =
+        dependencies.workspace
+          .getConfiguration('codegraphy')
+          .get<Record<string, boolean>>('legendVisibility', {}) ?? {};
+      await updateCodeGraphyConfigurationSilently('legendVisibility', {
+        ...currentVisibility,
+        [legendId]: visible,
+      });
+    },
+    persistLegendOrder: async legendIds => {
+      await updateCodeGraphyConfigurationSilently('legendOrder', legendIds);
     },
     recomputeGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),
@@ -88,6 +115,6 @@ export function createGraphViewProviderMessagePrimaryActions(
       vscode.workspace.fs.copy(sourceUri, destinationUri, options),
     sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     applyViewTransform: () => source._applyViewTransform(),
-    smartRebuild: (kind, id) => source._smartRebuild(kind, id),
+    smartRebuild: id => source._smartRebuild(id),
   };
 }

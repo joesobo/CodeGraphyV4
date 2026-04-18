@@ -1,17 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  notifyWorkspaceReady,
-  notifyPreAnalyze,
-  notifyPostAnalyze,
+  notifyFilesChanged,
+} from '../../../../src/core/plugins/lifecycle/notify/filesChanged';
+import {
   notifyGraphRebuild,
+  notifyPostAnalyze,
+  notifyPreAnalyze,
+} from '../../../../src/core/plugins/lifecycle/notify/analysis';
+import {
   notifyWebviewReady,
   notifyWorkspaceReadyForPlugin,
   notifyWebviewReadyForPlugin,
-} from '../../../../src/core/plugins/lifecycle/notify';
+  notifyWorkspaceReady,
+} from '../../../../src/core/plugins/lifecycle/notify/readiness';
 import { initializeAll, initializePlugin } from '../../../../src/core/plugins/lifecycle/initialize';
 import { replayReadinessForPlugin } from '../../../../src/core/plugins/lifecycle/replay';
 import type { IPlugin } from '../../../../src/core/plugins/types/contracts';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 const emptyGraph: IGraphData = { nodes: [], edges: [] };
 
@@ -22,9 +27,9 @@ function makePlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.ts'],
-    detectConnections: vi.fn().mockResolvedValue([]),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 function makePluginsMap(plugin: IPlugin): Map<string, { plugin: IPlugin }> {
@@ -125,6 +130,33 @@ describe('pluginLifecycle', () => {
       await notifyPreAnalyze(plugins, files, '/ws');
 
       expect(onPreAnalyze).toHaveBeenCalledWith(files, '/ws');
+    });
+  });
+
+  describe('notifyFilesChanged', () => {
+    it('collects additional workspace-relative files requested by plugins', async () => {
+      const onFilesChanged = vi.fn().mockResolvedValue(['src/dependency.ts', 'src/dependency.ts']);
+      const plugin = makePlugin({ onFilesChanged });
+      const plugins = makePluginsMap(plugin);
+      const files = [{ absolutePath: '/ws/a.ts', relativePath: 'a.ts', content: '' }];
+
+      await expect(notifyFilesChanged(plugins, files, '/ws')).resolves.toEqual({
+        additionalFilePaths: ['src/dependency.ts'],
+        requiresFullRefresh: false,
+      });
+      expect(onFilesChanged).toHaveBeenCalledWith(files, '/ws');
+    });
+
+    it('requests a full refresh when a matching plugin still only supports pre-analysis hooks', async () => {
+      const onPreAnalyze = vi.fn().mockResolvedValue(undefined);
+      const plugin = makePlugin({ onPreAnalyze });
+      const plugins = makePluginsMap(plugin);
+      const files = [{ absolutePath: '/ws/a.ts', relativePath: 'a.ts', content: '' }];
+
+      await expect(notifyFilesChanged(plugins, files, '/ws')).resolves.toEqual({
+        additionalFilePaths: [],
+        requiresFullRefresh: true,
+      });
     });
   });
 

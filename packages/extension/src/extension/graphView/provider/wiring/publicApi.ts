@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import type { EventName, EventPayloads } from '../../../../core/plugins/events/bus';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
-import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/plugins/registration';
+import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/plugins/registration/register';
 import { dispatchGraphViewProviderMessage } from '../../webview/providerMessages/dispatch';
 import type { GraphViewProviderMethodContainers } from './methodContainers';
 import type { GraphViewProviderMessageListenerSource } from '../../webview/providerMessages/listener';
@@ -30,6 +30,8 @@ interface GraphViewProviderPublicMethodsOwner {
 
 export interface GraphViewProviderPublicMethods {
   refresh: () => Promise<void>;
+  refreshIndex: () => Promise<void>;
+  refreshChangedFiles: (filePaths: readonly string[]) => Promise<void>;
   refreshGroupSettings: () => void;
   refreshPhysicsSettings: () => void;
   refreshSettings: () => void;
@@ -40,7 +42,7 @@ export interface GraphViewProviderPublicMethods {
       | 'FIT_VIEW'
       | 'ZOOM_IN'
       | 'ZOOM_OUT'
-      | 'CYCLE_VIEW'
+      | 'TOGGLE_DEPTH_MODE'
       | 'CYCLE_LAYOUT'
       | 'TOGGLE_DIMENSION',
   ) => void;
@@ -68,7 +70,7 @@ export interface GraphViewProviderPublicMethods {
     plugin: unknown,
     options?: GraphViewExternalPluginRegistrationOptions,
   ) => void;
-  changeView: (viewId: string) => Promise<void>;
+  setDepthMode: (depthMode: boolean) => Promise<void>;
   setFocusedFile: (filePath: string | undefined) => void;
   setDepthLimit: (depthLimit: number) => Promise<void>;
   getDepthLimit: () => number;
@@ -89,6 +91,9 @@ export function assignGraphViewProviderPublicMethods(
   target: GraphViewProviderPublicMethodsTarget,
 ): void {
   target.refresh = () => target._methodContainers.refresh.refresh();
+  target.refreshIndex = () => target._methodContainers.refresh.refreshIndex();
+  target.refreshChangedFiles = filePaths =>
+    target._methodContainers.refresh.refreshChangedFiles(filePaths);
   target.refreshGroupSettings = () => target._methodContainers.refresh.refreshGroupSettings();
   target.refreshPhysicsSettings = () => target._methodContainers.refresh.refreshPhysicsSettings();
   target.refreshSettings = () => target._methodContainers.refresh.refreshSettings();
@@ -114,7 +119,7 @@ export function assignGraphViewProviderPublicMethods(
   target.trackFileVisit = filePath => target._methodContainers.fileVisit.trackFileVisit(filePath);
   target.registerExternalPlugin = (plugin, options) =>
     target._methodContainers.plugin.registerExternalPlugin(plugin, options);
-  target.changeView = viewId => target._methodContainers.viewSelection.changeView(viewId);
+  target.setDepthMode = depthMode => target._methodContainers.viewSelection.setDepthMode(depthMode);
   target.setFocusedFile = filePath => target._methodContainers.viewSelection.setFocusedFile(filePath);
   target.setDepthLimit = depthLimit => target._methodContainers.viewSelection.setDepthLimit(depthLimit);
   target.getDepthLimit = () => target._methodContainers.viewSelection.getDepthLimit();

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import {
   assignGraphViewProviderPublicMethods,
   type GraphViewProviderPublicMethodsTarget,
@@ -50,8 +50,8 @@ function createTarget() {
     getGraphData,
   };
   const viewSelectionMethods = {
-    changeView: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
+    setDepthMode: vi.fn(async () => undefined),
     setDepthLimit: vi.fn(async () => undefined),
     getDepthLimit: vi.fn(() => 7),
   };
@@ -87,7 +87,7 @@ function createTarget() {
     invalidateTimelineCache: vi.fn(async () => undefined),
     trackFileVisit: vi.fn(async () => undefined),
     registerExternalPlugin: vi.fn(),
-    changeView: vi.fn(async () => undefined),
+    setDepthMode: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
     setDepthLimit: vi.fn(async () => undefined),
     getDepthLimit: vi.fn(() => 7),
@@ -176,7 +176,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     await target.invalidateTimelineCache();
     await target.trackFileVisit('src/feature.ts');
     target.registerExternalPlugin({ id: 'plugin.test' });
-    await target.changeView('codegraphy.folder');
+    await target.setDepthMode(true);
     target.setFocusedFile('src/feature.ts');
     await target.setDepthLimit(3);
     expect(target.getDepthLimit()).toBe(7);
@@ -192,9 +192,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
       { id: 'plugin.test' },
       undefined,
     );
-    expect(target._methodContainers.viewSelection.changeView).toHaveBeenCalledWith(
-      'codegraphy.folder',
-    );
+    expect(target._methodContainers.viewSelection.setDepthMode).toHaveBeenCalledWith(true);
     expect(target._methodContainers.viewSelection.setFocusedFile).toHaveBeenCalledWith(
       'src/feature.ts',
     );

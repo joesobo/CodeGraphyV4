@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/extension/graphView/provider/analysis/delegates';
 import { createGraphViewProviderAnalysisMethods } from '../../../../../src/extension/graphView/provider/analysis/methods';
 
@@ -27,14 +27,13 @@ function createSource(
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
   _filterPatterns: string[];
-  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _graphData: IGraphData;
   _rawGraphData: IGraphData;
   _firstAnalysis: boolean;
   _resolveFirstWorkspaceReady?: ReturnType<typeof vi.fn>;
   _sendMessage: ReturnType<typeof vi.fn>;
-  _sendAvailableViews: ReturnType<typeof vi.fn>;
+  _sendDepthState: ReturnType<typeof vi.fn>;
   _computeMergedGroups: ReturnType<typeof vi.fn>;
   _sendGroupsUpdated: ReturnType<typeof vi.fn>;
   _updateViewContext: ReturnType<typeof vi.fn>;
@@ -60,14 +59,13 @@ function createSource(
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: [],
-    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _graphData: { nodes: [], edges: [] },
     _rawGraphData: { nodes: [], edges: [] },
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: vi.fn(),
     _sendMessage: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _updateViewContext: vi.fn(),

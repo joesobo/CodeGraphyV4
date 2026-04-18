@@ -22,23 +22,23 @@ describe('classifyConfigChange', () => {
   });
 
   describe('toggles category', () => {
-    it('returns toggles when codegraphy.disabledSources is affected', () => {
-      const event = makeEvent('codegraphy.disabledSources');
-      expect(classifyConfigChange(event)).toBe('toggles');
-    });
-
     it('returns toggles when codegraphy.disabledPlugins is affected', () => {
       const event = makeEvent('codegraphy.disabledPlugins');
       expect(classifyConfigChange(event)).toBe('toggles');
     });
 
-    it('returns toggles when both disabled settings are affected', () => {
-      const event = makeEvent('codegraphy.disabledSources', 'codegraphy.disabledPlugins');
+    it('returns toggles when disabled plugins are affected alongside other keys', () => {
+      const event = makeEvent('codegraphy.disabledPlugins', 'codegraphy.showLabels');
       expect(classifyConfigChange(event)).toBe('toggles');
     });
   });
 
   describe('display category', () => {
+    it('returns display when codegraphy.showOrphans is affected', () => {
+      const event = makeEvent('codegraphy.showOrphans');
+      expect(classifyConfigChange(event)).toBe('display');
+    });
+
     it('returns display when codegraphy.directionMode is affected', () => {
       const event = makeEvent('codegraphy.directionMode');
       expect(classifyConfigChange(event)).toBe('display');
@@ -70,16 +70,12 @@ describe('classifyConfigChange', () => {
     });
   });
 
-  describe('groups category', () => {
-    it('returns groups when codegraphy.groups is affected', () => {
-      const event = makeEvent('codegraphy.groups');
-      expect(classifyConfigChange(event)).toBe('groups');
+  describe('legend category', () => {
+    it('returns legend when codegraphy.legend is affected', () => {
+      const event = makeEvent('codegraphy.legend');
+      expect(classifyConfigChange(event)).toBe('legend');
     });
 
-    it('returns groups when codegraphy.hiddenPluginGroups is affected', () => {
-      const event = makeEvent('codegraphy.hiddenPluginGroups');
-      expect(classifyConfigChange(event)).toBe('groups');
-    });
   });
 
   describe('general category', () => {
@@ -108,23 +104,23 @@ describe('classifyConfigChange', () => {
 
   describe('priority ordering', () => {
     it('physics takes priority over toggles', () => {
-      const event = makeEvent('codegraphy.physics', 'codegraphy.disabledSources');
+      const event = makeEvent('codegraphy.physics', 'codegraphy.disabledPlugins');
       expect(classifyConfigChange(event)).toBe('physics');
     });
 
     it('toggles takes priority over display', () => {
-      const event = makeEvent('codegraphy.disabledSources', 'codegraphy.showLabels');
+      const event = makeEvent('codegraphy.disabledPlugins', 'codegraphy.showLabels');
       expect(classifyConfigChange(event)).toBe('toggles');
     });
 
-    it('display takes priority over groups', () => {
-      const event = makeEvent('codegraphy.showLabels', 'codegraphy.groups');
+    it('display takes priority over legend', () => {
+      const event = makeEvent('codegraphy.showLabels', 'codegraphy.legend');
       expect(classifyConfigChange(event)).toBe('display');
     });
 
-    it('groups takes priority over general', () => {
-      const event = makeEvent('codegraphy.groups', 'codegraphy');
-      expect(classifyConfigChange(event)).toBe('groups');
+    it('legend takes priority over general', () => {
+      const event = makeEvent('codegraphy.legend', 'codegraphy');
+      expect(classifyConfigChange(event)).toBe('legend');
     });
   });
 });

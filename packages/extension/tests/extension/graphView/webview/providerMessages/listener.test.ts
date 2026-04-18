@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGraphData } from '@/shared/graph/types';
+import type { IGraphData } from '@/shared/graph/contracts';
 import type { IGroup } from '@/shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '@/shared/settings/modes';
 import type { ISettingsSnapshot } from '../../../../../src/shared/settings/snapshot';
@@ -26,14 +26,18 @@ function createUndoableAction(overrides: Partial<MockUndoableAction> = {}): Mock
 
 function createSettingsSnapshot(): ISettingsSnapshot {
   return {
-    groups: [],
+    legends: [],
     filterPatterns: [],
-    hiddenPluginGroups: [],
     showOrphans: true,
     bidirectionalMode: 'separate',
     directionMode: 'arrows',
     directionColor: '#123456',
-    folderNodeColor: '#abcdef',
+    nodeColors: { file: '#999999', folder: '#888888' },
+    nodeVisibility: { file: true, folder: true },
+    edgeVisibility: { imports: true, nests: false },
+    edgeColors: { imports: '#777777', nests: '#666666' },
+    pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
+    disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -81,31 +85,30 @@ function createDependencies(): GraphViewProviderMessageListenerDependencies {
       createUndoableAction({ kind: 'reset-settings-action' }),
     ),
     executeUndoAction: vi.fn(() => Promise.resolve()),
-    normalizeFolderNodeColor: vi.fn(color => color),
-    defaultFolderNodeColor: '#336699',
-    dagModeKey: 'dag-mode',
-    nodeSizeModeKey: 'node-size-mode',
+    dagModeKey: 'dagMode',
+    nodeSizeModeKey: 'nodeSizeMode',
   };
 }
 
 function createSource(
   overrides: Partial<GraphViewProviderMessageListenerSource> = {},
 ): GraphViewProviderMessageListenerSource {
-  return {
+  const source = {
     _timelineActive: false,
     _currentCommitSha: undefined,
     _userGroups: [],
-    _activeViewId: 'codegraphy.connections',
     _disabledPlugins: new Set<string>(),
-    _disabledSources: new Set<string>(),
     _filterPatterns: ['dist/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _viewContext: { activePlugins: new Set() } satisfies IViewContext,
+    _depthMode: false,
     _dagMode: null,
     _nodeSizeMode: 'connections',
     _firstAnalysis: false,
     _webviewReadyNotified: false,
-    _hiddenPluginGroupIds: new Set<string>(),
+    _webviewMethods: {
+      openInEditor: vi.fn(),
+    },
     _context: {
       workspaceState: {
         update: vi.fn(() => Promise.resolve()),
@@ -141,11 +144,15 @@ function createSource(
     _createFile: vi.fn(() => Promise.resolve()),
     _toggleFavorites: vi.fn(() => Promise.resolve()),
     _addToExclude: vi.fn(() => Promise.resolve()),
+    _loadAndSendData: vi.fn(() => Promise.resolve()),
     _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    refreshIndex: vi.fn(() => Promise.resolve()),
+    refreshChangedFiles: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
     redo: vi.fn(() => Promise.resolve(undefined)),
-    changeView: vi.fn(() => Promise.resolve()),
+    setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
     _indexRepository: vi.fn(() => Promise.resolve()),
     _jumpToCommit: vi.fn(() => Promise.resolve()),
@@ -155,7 +162,7 @@ function createSource(
     _resetPhysicsSettings: vi.fn(() => Promise.resolve()),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _sendMessage: vi.fn(),
     _applyViewTransform: vi.fn(),
     _smartRebuild: vi.fn(),
@@ -167,9 +174,15 @@ function createSource(
     _sendCachedTimeline: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendContextMenuItems: vi.fn(),
+    _sendGraphControls: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
+    invalidatePluginFiles: vi.fn(() => []),
     ...overrides,
   };
+
+  source._sendGraphControls ??= vi.fn();
+
+  return source as GraphViewProviderMessageListenerSource;
 }
 
 describe('graph view provider listener bridge', () => {
@@ -195,7 +208,8 @@ describe('graph view provider listener bridge', () => {
 
     await Promise.all([...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })));
 
-    expect(source._analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(source.refreshIndex).toHaveBeenCalledTimes(1);
+    expect(source.clearCacheAndRefresh).not.toHaveBeenCalled();
   });
 
   it('stores updated user groups back onto the provider source', async () => {
@@ -211,9 +225,50 @@ describe('graph view provider listener bridge', () => {
     const userGroups: IGroup[] = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
 
     setGraphViewProviderMessageListener(webview as never, source, deps);
-    await messageHandler?.({ type: 'UPDATE_GROUPS', payload: { groups: userGroups } });
+    await messageHandler?.({ type: 'UPDATE_LEGENDS', payload: { legends: userGroups } });
 
     expect(source._userGroups).toEqual(userGroups);
+  });
+
+  it('routes OPEN_IN_EDITOR through the provider webview methods', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const deps = createDependencies();
+    const source = createSource();
+
+    setGraphViewProviderMessageListener(webview as never, source, deps);
+    await messageHandler?.({ type: 'OPEN_IN_EDITOR' });
+
+    expect(source._webviewMethods.openInEditor).toHaveBeenCalledOnce();
+  });
+
+  it('reprocesses plugin-owned files with a scoped refresh when invalidated files are known', async () => {
+    const { context, source } = await loadDefaultListenerHarness({
+      invalidatePluginFiles: vi.fn(() => ['src/plugin.py']),
+    });
+
+    await context.reprocessPluginFiles(['codegraphy.python']);
+
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source.refreshChangedFiles).toHaveBeenCalledWith(['src/plugin.py']);
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('skips a full reanalysis when plugin-owned invalidation reports no concrete files', async () => {
+    const { context, source } = await loadDefaultListenerHarness({
+      invalidatePluginFiles: vi.fn(() => []),
+    });
+
+    await context.reprocessPluginFiles(['codegraphy.python']);
+
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source.refreshChangedFiles).not.toHaveBeenCalled();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('stores ready state updates back onto the provider source', async () => {
@@ -253,22 +308,19 @@ describe('graph view provider listener bridge', () => {
     expect(context.getTimelineActive()).toBe(false);
     expect(context.getCurrentCommitSha()).toBeUndefined();
     expect(context.getUserGroups()).toEqual([]);
-    expect(context.getActiveViewId()).toBe('codegraphy.connections');
     expect(context.getFilterPatterns()).toEqual(['dist/**']);
     expect(context.findNode('node-1')).toEqual(source._graphData.nodes[0]);
     expect(context.findEdge('edge-1')).toEqual(source._graphData.edges[0]);
   });
 
   it('wires plugin-context bridges into the captured listener context', async () => {
-    const { context, source, getConfigTarget, configurationUpdate, workspaceFolders } =
-      await loadDefaultListenerHarness();
+    const { context, source } = await loadDefaultListenerHarness();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(context.getPluginFilterPatterns()).toEqual(['plugin/**']);
     expect(context.hasWorkspace()).toBe(true);
     expect(context.isFirstAnalysis()).toBe(false);
     expect(context.isWebviewReadyNotified()).toBe(false);
-    expect(context.getHiddenPluginGroupIds()).toBe(source._hiddenPluginGroupIds);
 
     context.loadGroupsAndFilterPatterns();
     context.loadDisabledRulesAndPlugins();
@@ -282,7 +334,6 @@ describe('graph view provider listener bridge', () => {
     context.notifyWebviewReady();
     context.emitEvent('plugin:ready', { id: 'plugin.test' });
     context.logError('listener failed', new Error('boom'));
-    await context.updateHiddenPluginGroups(['plugin.test:group']);
     context.setUserGroups([{ id: 'user:src', pattern: 'src/**', color: '#112233' }]);
     context.setFilterPatterns(['src/**']);
     context.setWebviewReadyNotified(true);
@@ -297,12 +348,6 @@ describe('graph view provider listener bridge', () => {
     expect(source._sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(source._analyzer?.registry?.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(source._eventBus.emit).toHaveBeenCalledWith('plugin:ready', { id: 'plugin.test' });
-    expect(getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
-    expect(configurationUpdate).toHaveBeenCalledWith(
-      'hiddenPluginGroups',
-      ['plugin.test:group'],
-      vscode.ConfigurationTarget.Workspace,
-    );
     expect(source._userGroups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
     ]);
@@ -319,11 +364,8 @@ describe('graph view provider listener bridge', () => {
       captureSettingsSnapshot,
       ResetSettingsAction,
       execute,
-      getConfigTarget,
       configurationGet,
       configurationUpdate,
-      normalizeFolderNodeColor,
-      workspaceFolders,
     } = await loadDefaultListenerHarness();
 
     await context.updateDagMode('td' as DagMode);
@@ -331,10 +373,15 @@ describe('graph view provider listener bridge', () => {
     await context.updateConfig('showOrphans', false);
     await context.resetAllSettings();
 
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith('codegraphy.dagMode', 'td');
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.nodeSizeMode',
+    expect(configurationUpdate).toHaveBeenCalledWith(
+      'dagMode',
+      'td',
+      undefined,
+    );
+    expect(configurationUpdate).toHaveBeenCalledWith(
+      'nodeSizeMode',
       'file-size',
+      undefined,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DAG_MODE_UPDATED',
@@ -344,20 +391,31 @@ describe('graph view provider listener bridge', () => {
       type: 'NODE_SIZE_MODE_UPDATED',
       payload: { nodeSizeMode: 'file-size' },
     });
-    expect(getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
     expect(configurationUpdate).toHaveBeenCalledWith(
       'showOrphans',
       false,
-      vscode.ConfigurationTarget.Workspace,
+      undefined,
     );
-    expect(captureSettingsSnapshot).toHaveBeenCalledWith(
-      expect.objectContaining({ get: configurationGet }),
-      source._getPhysicsSettings(),
-      'file-size',
-    );
+    expect(captureSettingsSnapshot).toHaveBeenCalledTimes(1);
+    const captureSettingsSnapshotCall = (
+      captureSettingsSnapshot as unknown as { mock: { calls: Array<[unknown, unknown, unknown]> } }
+    ).mock.calls[0];
+    expect(captureSettingsSnapshotCall).toBeDefined();
+    if (!captureSettingsSnapshotCall) {
+      throw new Error('expected captureSettingsSnapshot to receive one call');
+    }
+    const [capturedConfig, capturedPhysics, capturedNodeSizeMode] =
+      captureSettingsSnapshotCall as unknown as [unknown, unknown, unknown];
+    expect(capturedConfig).toEqual(expect.objectContaining({
+      get: expect.any(Function),
+      update: expect.any(Function),
+      inspect: expect.any(Function),
+    }));
+    expect(capturedPhysics).toEqual(source._getPhysicsSettings());
+    expect(capturedNodeSizeMode).toBe('file-size');
     expect(ResetSettingsAction).toHaveBeenCalledWith(
       createSettingsSnapshot(),
-      vscode.ConfigurationTarget.Workspace,
+      undefined,
       source._context,
       expect.any(Function),
       expect.any(Function),
@@ -369,11 +427,8 @@ describe('graph view provider listener bridge', () => {
     expect(context.getPlaybackSpeed()).toBe(1);
     expect(context.getDagMode()).toBe('td');
     expect(context.getNodeSizeMode()).toBe('file-size');
-    expect(context.getFolderNodeColor()).toBe('#ABCDEF');
     expect(configurationGet).toHaveBeenCalledWith('maxFiles', 500);
     expect(configurationGet).toHaveBeenCalledWith('timeline.playbackSpeed', 1.0);
-    expect(configurationGet).toHaveBeenCalledWith('folderNodeColor', '#A1A1AA');
-    expect(normalizeFolderNodeColor).toHaveBeenCalledWith('#abcdef');
   });
 
   it('wires the default undo-execution dependency into the settings context', async () => {
@@ -397,7 +452,6 @@ describe('graph view provider listener bridge', () => {
     }));
     vi.doMock('../../../../../src/extension/graphView/settings/reader', () => ({
       getGraphViewConfigTarget: vi.fn(() => vscode.ConfigurationTarget.Workspace),
-      normalizeFolderNodeColor: vi.fn((color: string) => color),
     }));
     vi.doMock('../../../../../src/extension/graphView/settings/snapshot', () => ({
       captureGraphViewSettingsSnapshot: vi.fn(() => createSettingsSnapshot()),
@@ -418,7 +472,7 @@ describe('graph view provider listener bridge', () => {
       }),
     );
     vi.doMock(
-      '../../../../../src/extension/graphView/webview/providerMessages/settingsContext',
+      '../../../../../src/extension/graphView/webview/providerMessages/settingsContext/create',
       () => ({
         createGraphViewProviderMessageSettingsContext: vi.fn((_source, dependencies) => {
           executeUndoActionPromise = dependencies.executeUndoAction(
@@ -449,18 +503,73 @@ describe('graph view provider listener bridge', () => {
       expect.objectContaining({ kind: 'reset-settings' }),
     );
   });
+
+  it('does not enumerate proposed workspace getters while building default dependencies', async () => {
+    vi.resetModules();
+
+    const proposedGetter = vi.fn(() => {
+      throw new Error('proposed getter should not be touched');
+    });
+    const workspace = {
+      workspaceFolders: undefined,
+      getConfiguration: vi.fn(() => ({
+        get: vi.fn(),
+        update: vi.fn(() => Promise.resolve()),
+      })),
+    };
+
+    Object.defineProperty(workspace, 'isAgentSessionsWorkspace', {
+      enumerable: true,
+      get: proposedGetter,
+    });
+
+    vi.doMock('vscode', () => ({
+      workspace,
+      window: {
+        showInformationMessage: vi.fn(),
+        showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
+      },
+      ConfigurationTarget: {
+        Workspace: 2,
+      },
+    }));
+    vi.doMock('../../../../../src/extension/graphView/settings/reader', () => ({
+      getGraphViewConfigTarget: vi.fn(() => vscode.ConfigurationTarget.Workspace),
+    }));
+    vi.doMock('../../../../../src/extension/graphView/settings/snapshot', () => ({
+      captureGraphViewSettingsSnapshot: vi.fn(() => createSettingsSnapshot()),
+    }));
+    vi.doMock('../../../../../src/extension/actions/resetSettings', () => ({
+      ResetSettingsAction: vi.fn(),
+    }));
+    vi.doMock('../../../../../src/extension/undoManager', () => ({
+      getUndoManager: () => ({ execute: vi.fn(() => Promise.resolve()) }),
+    }));
+    vi.doMock('../../../../../src/extension/repoSettings/current', () => ({
+      getCodeGraphyConfiguration: vi.fn(() => ({
+        get: vi.fn(),
+        update: vi.fn(() => Promise.resolve()),
+      })),
+    }));
+    vi.doMock('../../../../../src/extension/graphView/webview/messages/listener', () => ({
+      setGraphViewWebviewMessageListener: vi.fn(),
+    }));
+
+    await expect(import(
+      '../../../../../src/extension/graphView/webview/providerMessages/listener'
+    )).resolves.toBeDefined();
+    expect(proposedGetter).not.toHaveBeenCalled();
+  });
 });
 
-async function loadDefaultListenerHarness() {
+async function loadDefaultListenerHarness(
+  sourceOverrides: Partial<GraphViewProviderMessageListenerSource> = {},
+) {
   vi.resetModules();
 
   let capturedContext: GraphViewMessageListenerContext | undefined;
   const workspaceFolders = [{ uri: { fsPath: '/workspace' }, name: 'workspace', index: 0 }];
   const configurationGet = vi.fn(<T>(key: string, defaultValue: T) => {
-    if (key === 'folderNodeColor') {
-      return '#abcdef' as T;
-    }
-
     return defaultValue;
   });
   const configurationUpdate = vi.fn(() => Promise.resolve());
@@ -486,8 +595,6 @@ async function loadDefaultListenerHarness() {
     this.setNodeSizeMode = setNodeSizeMode;
     this.analyzeAndSendData = analyzeAndSendData;
   });
-  const normalizeFolderNodeColor = vi.fn((color: string) => color.toUpperCase());
-
   vi.doMock('vscode', () => ({
     workspace: {
       workspaceFolders,
@@ -508,7 +615,6 @@ async function loadDefaultListenerHarness() {
   }));
   vi.doMock('../../../../../src/extension/graphView/settings/reader', () => ({
     getGraphViewConfigTarget: getConfigTarget,
-    normalizeFolderNodeColor,
   }));
   vi.doMock('../../../../../src/extension/graphView/settings/snapshot', () => ({
     captureGraphViewSettingsSnapshot: captureSettingsSnapshot,
@@ -528,6 +634,7 @@ async function loadDefaultListenerHarness() {
       nodes: [{ id: 'node-1', label: 'node-1', color: '#93C5FD' }],
       edges: [{ id: 'edge-1', from: 'node-1', to: 'node-2' , kind: 'import', sources: [] }],
     } satisfies IGraphData,
+    ...sourceOverrides,
   });
   const webview = {
     onDidReceiveMessage: vi.fn(),
@@ -545,6 +652,5 @@ async function loadDefaultListenerHarness() {
     captureSettingsSnapshot,
     ResetSettingsAction,
     execute,
-    normalizeFolderNodeColor,
   };
 }

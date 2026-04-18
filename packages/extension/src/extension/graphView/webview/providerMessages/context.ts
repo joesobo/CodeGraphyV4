@@ -6,7 +6,7 @@ import type {
 import { createGraphViewProviderMessagePluginContext } from './pluginContext';
 import { createGraphViewProviderMessagePrimaryActions } from './primaryActions';
 import { createGraphViewProviderMessageReadContext } from './readContext';
-import { createGraphViewProviderMessageSettingsContext } from './settingsContext';
+import { createGraphViewProviderMessageSettingsContext } from './settingsContext/create';
 
 export function createGraphViewProviderMessageContext(
   source: GraphViewProviderMessageListenerSource,

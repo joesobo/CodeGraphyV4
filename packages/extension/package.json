@@ -6,22 +6,31 @@
   "license": "MIT",
   "scripts": {
     "build": "pnpm run build:extension && pnpm run build:webview",
-    "build:extension": "esbuild src/extension/activate.ts --bundle --outfile=../../dist/extension.js --external:vscode --format=cjs --platform=node",
+    "build:extension": "tsx scripts/buildExtension.ts",
     "build:webview": "cd ../.. && vite build --config packages/extension/vite.config.ts",
     "watch": "concurrently \"pnpm run watch:extension\" \"pnpm run watch:webview\"",
-    "watch:extension": "esbuild src/extension/activate.ts --bundle --outfile=../../dist/extension.js --external:vscode --format=cjs --platform=node --watch",
+    "watch:extension": "tsx scripts/buildExtension.ts --watch",
     "watch:webview": "cd ../.. && vite build --config packages/extension/vite.config.ts --watch",
     "dev": "pnpm run watch",
     "test": "vitest run --config vitest.config.ts",
     "test:playwright": "playwright test --config playwright.config.ts",
     "test:playwright:ui": "playwright test --config playwright.config.ts --ui",
     "test:watch": "vitest --config vitest.config.ts",
-    "lint": "eslint \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.ts\" \"tests/**/*.{ts,tsx}\"",
     "lint:playwright": "eslint tests/playwright --max-warnings=0",
-    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tests/playwright/tsconfig.json"
   },
   "dependencies": {
+    "@ladybugdb/core": "^0.15.3",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
-    "graphology": "^0.26.0"
+    "graphology": "^0.26.0",
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-c-sharp": "0.23.1",
+    "tree-sitter-go": "0.25.0",
+    "tree-sitter-java": "0.23.5",
+    "tree-sitter-javascript": "^0.25.0",
+    "tree-sitter-python": "0.25.0",
+    "tree-sitter-rust": "0.24.0",
+    "tree-sitter-typescript": "^0.23.2"
   }
 }

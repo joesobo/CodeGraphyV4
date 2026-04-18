@@ -1,6 +1,7 @@
 /**
  * @fileoverview View system types for CodeGraphy.
- * Views transform graph data into different visualization perspectives.
+ * Views are plugin-defined graph transforms the host may expose as optional
+ * alternate surfaces on top of the unified graph experience.
  * @module @codegraphy-vscode/plugin-api/views
  */
 
@@ -11,15 +12,15 @@ export type ViewDependency =
   | 'depthLimit';
 
 /**
- * A view that transforms graph data into a specific visualization.
+ * A plugin-defined graph transform.
  *
  * Views can filter, transform, or reorganize the graph data to present
- * a specific perspective on the codebase (e.g., depth graph, folder view).
+ * a specific perspective on the codebase when the host chooses to surface it.
  *
  * @example
  * ```typescript
  * const myView: IView = {
- *   id: 'myplugin.cycleView',
+ *   id: 'myplugin.cycles',
  *   name: 'Cycles',
  *   icon: 'sync',
  *   description: 'Highlights circular dependencies',
@@ -32,14 +33,14 @@ export type ViewDependency =
  */
 export interface IView {
   /**
-   * Unique identifier for the view (e.g., 'codegraphy.connections').
+   * Unique identifier for the view.
    * Should be namespaced to avoid conflicts.
    */
   id: string;
 
   /**
    * Human-readable name for display in the UI.
-   * @example 'Connections', 'Type Graph', 'Depth View'
+   * @example 'Cycle Lens', 'API Surface', 'Hotspots'
    */
   name: string;
 
@@ -50,18 +51,18 @@ export interface IView {
    */
   icon: string;
 
-  /** Brief description of what this view shows. Used for tooltips. */
+  /** Brief description of what this transform shows. Used for tooltips. */
   description: string;
 
   /**
    * Optional plugin ID that provides this view.
    * If set, the view will only be available when the plugin is active.
-   * Core views should leave this undefined.
+   * Host-defined views should leave this undefined.
    */
   pluginId?: string;
 
   /**
-   * Declares which context changes should re-run this view's transform
+   * Declares which context changes should re-run this transform
    * while it is active.
    */
   recomputeOn?: readonly ViewDependency[];
@@ -69,15 +70,15 @@ export interface IView {
   /**
    * Transforms the base graph data into the view's representation.
    *
-   * @param data    - The complete graph data from workspace analysis
+   * @param data    - The complete projected graph data from the current repo index
    * @param context - Additional context for the transformation
    * @returns Transformed graph data for rendering
    */
   transform(data: IGraphData, context: IViewContext): IGraphData;
 
   /**
-   * Optional validation to check if this view can be used.
-   * Return false to hide the view (e.g., if required data is missing).
+   * Optional validation to check if this transform can be used.
+   * Return false to hide it when the required data is missing.
    *
    * @param context - Context to validate against
    * @returns true if the view can be displayed
@@ -99,12 +100,10 @@ export interface IViewContext {
   workspaceRoot?: string;
 
   /**
-   * Maximum depth for depth-limited views.
+   * Maximum depth for depth-aware transforms.
    * Controls how many hops from the focused node to include.
    * Default is 1 (direct neighbors only).
    */
   depthLimit?: number;
 
-  /** Color for folder nodes in folder view. */
-  folderNodeColor?: string;
 }

@@ -3,8 +3,8 @@ import type { IViewContext } from '../../../../src/core/views/contracts';
 import { sendGraphViewSettingsMessages } from '../../../../src/extension/graphView/settings/sender';
 
 describe('graphView/settings/sender', () => {
-  it('updates folder node color and sends the ordered settings payloads', () => {
-    const viewContext = { activePlugins: new Set(), folderNodeColor: '#000000' } satisfies IViewContext;
+  it('sends the ordered settings payloads without mutating the view context', () => {
+    const viewContext = { activePlugins: new Set() } satisfies IViewContext;
     const sendMessage = vi.fn();
 
     sendGraphViewSettingsMessages(viewContext, {
@@ -17,7 +17,6 @@ describe('graphView/settings/sender', () => {
             particleSpeed: 0.02,
             particleSize: 7,
             directionColor: '#00ff00',
-            folderNodeColor: '#112233',
             showLabels: false,
           };
 
@@ -27,14 +26,15 @@ describe('graphView/settings/sender', () => {
       sendMessage,
     });
 
-    expect(viewContext.folderNodeColor).toBe('#112233');
+    expect(sendMessage).toHaveBeenCalledTimes(3);
     expect(sendMessage).toHaveBeenNthCalledWith(1, {
       type: 'SETTINGS_UPDATED',
       payload: { bidirectionalEdges: 'combined', showOrphans: false },
     });
-    expect(sendMessage).toHaveBeenNthCalledWith(4, {
+    expect(sendMessage).toHaveBeenNthCalledWith(3, {
       type: 'SHOW_LABELS_UPDATED',
       payload: { showLabels: false },
     });
+    expect(viewContext.activePlugins.size).toBe(0);
   });
 });

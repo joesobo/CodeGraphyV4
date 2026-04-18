@@ -17,7 +17,7 @@ export function createDisplayActions(set: SetState) {
     setGraphMode: (mode: GraphState['graphMode']) => set({ graphMode: mode }),
     setNodeSizeMode: (mode: GraphState['nodeSizeMode']) => set({ nodeSizeMode: mode }),
     setPhysicsSettings: (settings: GraphState['physicsSettings']) => set({ physicsSettings: settings }),
-    setGroups: (groups: GraphState['groups']) => set({ groups }),
+    setLegends: (legends: GraphState['legends']) => set({ legends }),
     setFilterPatterns: (patterns: string[]) => set({ filterPatterns: patterns }),
     setShowOrphans: (show: boolean) => set({ showOrphans: show }),
     setShowLabels: (show: boolean) => set({ showLabels: show }),

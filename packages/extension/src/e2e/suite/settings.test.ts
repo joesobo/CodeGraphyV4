@@ -3,18 +3,33 @@
  *
  * Validates that settings-related webview messages round-trip correctly
  * through the extension host: the webview sends a message, the extension
- * processes it, and the updated value is either persisted in VS Code
- * settings or reflected in a subsequent SETTINGS_UPDATED broadcast.
+ * processes it, and the updated value is either persisted in
+ * `.codegraphy/settings.json` or reflected in a subsequent
+ * SETTINGS_UPDATED broadcast.
  */
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
+import type { IGroup } from '../../shared/settings/groups';
 
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/graph/types').IGraphData;
+  getGraphData(): import('../../shared/graph/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   dispatchWebviewMessage(message: unknown): Promise<void>;
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
+}
+
+interface RepoSettingsFile {
+  legend?: IGroup[];
+  filterPatterns?: string[];
+  showOrphans?: boolean;
+  directionMode?: string;
+}
+
+function readRepoSettingsFile(settingsPath: string): RepoSettingsFile {
+  return JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as RepoSettingsFile;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -77,7 +92,7 @@ suite('Settings: Physics', function () {
 suite('Settings: Filter Patterns', function () {
   this.timeout(30_000);
 
-  test('UPDATE_FILTER_PATTERNS persists patterns via VS Code settings', async function() {
+  test('UPDATE_FILTER_PATTERNS persists patterns via .codegraphy/settings.json', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(1_000);
@@ -90,12 +105,11 @@ suite('Settings: Filter Patterns', function () {
 
     await sleep(1_000);
 
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const stored = config.get<string[]>('filterPatterns') ?? [];
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Expected an open workspace folder');
+    const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
+    const stored = readRepoSettingsFile(settingsPath).filterPatterns ?? [];
     assert.deepStrictEqual(stored, patterns, 'Filter patterns should be persisted in settings');
-
-    // Cleanup
-    await config.update('filterPatterns', [], vscode.ConfigurationTarget.Workspace);
   });
 });
 
@@ -110,12 +124,17 @@ suite('Settings: Orphans', function () {
     await api.dispatchWebviewMessage({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: false } });
     await sleep(1_000);
 
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const stored = config.get<boolean>('showOrphans');
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Expected an open workspace folder');
+    const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
+    const stored = readRepoSettingsFile(settingsPath).showOrphans;
     assert.strictEqual(stored, false, 'showOrphans should be persisted as false');
 
-    // Cleanup
-    await config.update('showOrphans', true, vscode.ConfigurationTarget.Workspace);
+    await api.dispatchWebviewMessage({
+      type: 'UPDATE_SHOW_ORPHANS',
+      payload: { showOrphans: true },
+    });
+    await sleep(1_000);
   });
 });
 
@@ -136,32 +155,86 @@ suite('Settings: Direction Mode', function () {
     const msg = (await echo) as { type: string; payload: { directionMode: string; directionColor: string; particleSpeed: number; particleSize: number } };
     assert.strictEqual(msg.payload.directionMode, 'particles');
 
-    // Cleanup
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    await config.update('directionMode', 'arrows', vscode.ConfigurationTarget.Workspace);
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Expected an open workspace folder');
+    const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
+    const stored = readRepoSettingsFile(settingsPath).directionMode;
+    assert.strictEqual(stored, 'particles', 'directionMode should be persisted to repo settings');
   });
 });
 
-suite('Settings: Groups', function () {
+suite('Settings: Legends', function () {
   this.timeout(30_000);
 
-  test('UPDATE_GROUPS persists groups in VS Code settings', async function() {
+  test('UPDATE_LEGENDS persists legend rules in .codegraphy/settings.json', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(1_000);
 
-    const groups = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
-    await api.dispatchWebviewMessage({ type: 'UPDATE_GROUPS', payload: { groups } });
+    const legends = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
+    await api.dispatchWebviewMessage({ type: 'UPDATE_LEGENDS', payload: { legends } });
     await sleep(1_000);
 
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const stored = config.get<typeof groups>('groups') ?? [];
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Expected an open workspace folder');
+    const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
+    const stored = readRepoSettingsFile(settingsPath).legend ?? [];
     assert.ok(
       stored.some((g) => g.pattern === 'src/**'),
       `Expected group with pattern 'src/**'. Got: ${JSON.stringify(stored)}`
     );
 
     // Cleanup
-    await config.update('groups', [], vscode.ConfigurationTarget.Workspace);
+    const current = readRepoSettingsFile(settingsPath);
+    current.legend = [];
+    fs.writeFileSync(settingsPath, `${JSON.stringify(current, null, 2)}\n`, 'utf8');
+  });
+});
+
+suite('Settings: Repo File Watch', function () {
+  this.timeout(30_000);
+
+  test('manual edits to .codegraphy/settings.json trigger a graph refresh', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(1_000);
+
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Expected an open workspace folder');
+    const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
+
+    const initialGraph = api.getGraphData();
+    const initialNodeCount = initialGraph.nodes.length;
+
+    const nextSettings = {
+      ...readRepoSettingsFile(settingsPath),
+      showOrphans: false,
+    };
+
+    const graphUpdated = waitForMessage(api, 'GRAPH_DATA_UPDATED', 15_000);
+    fs.writeFileSync(settingsPath, `${JSON.stringify(nextSettings, null, 2)}\n`, 'utf8');
+    await graphUpdated;
+    await sleep(500);
+
+    const updatedGraph = api.getGraphData();
+    assert.ok(
+      updatedGraph.nodes.length < initialNodeCount,
+      `Expected fewer visible nodes after disabling orphans. Before=${initialNodeCount}, after=${updatedGraph.nodes.length}`,
+    );
+
+    const restoredSettings = {
+      ...readRepoSettingsFile(settingsPath),
+      showOrphans: true,
+    };
+    const restoredGraphUpdated = waitForMessage(api, 'GRAPH_DATA_UPDATED', 15_000);
+    fs.writeFileSync(settingsPath, `${JSON.stringify(restoredSettings, null, 2)}\n`, 'utf8');
+    await restoredGraphUpdated;
+    await sleep(500);
+
+    assert.strictEqual(
+      readRepoSettingsFile(settingsPath).showOrphans,
+      true,
+      'Expected watcher cleanup to restore showOrphans=true',
+    );
   });
 });

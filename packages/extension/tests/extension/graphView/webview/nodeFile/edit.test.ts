@@ -22,10 +22,10 @@ describe('graph view node/file edit message', () => {
   it('deletes files outside timeline mode', async () => {
     const handlers = createHandlers();
 
-    await applyNodeFileEditMessage(
+    await expect(applyNodeFileEditMessage(
       { type: 'DELETE_FILES', payload: { paths: ['src/app.ts'] } },
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
   });
@@ -44,10 +44,10 @@ describe('graph view node/file edit message', () => {
   it('renames files outside timeline mode', async () => {
     const handlers = createHandlers();
 
-    await applyNodeFileEditMessage(
+    await expect(applyNodeFileEditMessage(
       { type: 'RENAME_FILE', payload: { path: 'src/app.ts' } },
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.renameFile).toHaveBeenCalledWith('src/app.ts');
   });
@@ -55,10 +55,10 @@ describe('graph view node/file edit message', () => {
   it('creates files outside timeline mode', async () => {
     const handlers = createHandlers();
 
-    await applyNodeFileEditMessage(
+    await expect(applyNodeFileEditMessage(
       { type: 'CREATE_FILE', payload: { directory: 'src' } },
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.createFile).toHaveBeenCalledWith('src');
   });
@@ -66,10 +66,10 @@ describe('graph view node/file edit message', () => {
   it('toggles favorites even in timeline mode', async () => {
     const handlers = createHandlers({ timelineActive: true });
 
-    await applyNodeFileEditMessage(
+    await expect(applyNodeFileEditMessage(
       { type: 'TOGGLE_FAVORITE', payload: { paths: ['src/app.ts'] } },
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.toggleFavorites).toHaveBeenCalledWith(['src/app.ts']);
   });
@@ -77,10 +77,10 @@ describe('graph view node/file edit message', () => {
   it('adds exclude patterns outside timeline mode', async () => {
     const handlers = createHandlers();
 
-    await applyNodeFileEditMessage(
+    await expect(applyNodeFileEditMessage(
       { type: 'ADD_TO_EXCLUDE', payload: { patterns: ['dist/**'] } },
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.addToExclude).toHaveBeenCalledWith(['dist/**']);
   });

@@ -6,7 +6,7 @@
  */
 
 import type {
-  IConnection,
+  IFileAnalysisResult,
   IPlugin,
 } from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
@@ -21,7 +21,7 @@ export type { IDetectedWikilink, MarkdownRuleContext } from './sources/wikilink'
 /**
  * Built-in plugin for Markdown files.
  *
- * Detects Obsidian-style [[wikilinks]] between .md files and maps them
+ * Detects Obsidian-style [[wikilinks]] in any file and maps them
  * to file connections in the graph. Supports:
  * - `[[Note Name]]` — basic wikilink
  * - `[[Note Name|Alias]]` — wikilink with display alias
@@ -31,6 +31,17 @@ export type { IDetectedWikilink, MarkdownRuleContext } from './sources/wikilink'
  */
 export function createMarkdownPlugin(): IPlugin {
   const resolver = new PathResolver(String());
+  const buildAnalysisResult = async (
+    filePath: string,
+    content: string,
+  ): Promise<IFileAnalysisResult> => {
+    const connections = detectWikilink(content, filePath, { resolver });
+
+    return {
+      filePath,
+      relations: connections,
+    };
+  };
 
   return {
     id: manifest.id,
@@ -58,12 +69,23 @@ export function createMarkdownPlugin(): IPlugin {
       resolver.buildIndex(files);
     },
 
-    async detectConnections(
+    async onFilesChanged(
+      _files: Array<{
+        absolutePath: string;
+        relativePath: string;
+        content: string;
+      }>,
+      workspaceRoot: string,
+    ): Promise<void> {
+      resolver.setWorkspaceRoot(workspaceRoot);
+    },
+
+    async analyzeFile(
       filePath: string,
       content: string,
-      _workspaceRoot: string
-    ): Promise<IConnection[]> {
-      return detectWikilink(content, filePath, { resolver });
+      _workspaceRoot: string,
+    ): Promise<IFileAnalysisResult> {
+      return buildAnalysisResult(filePath, content);
     },
   };
 }

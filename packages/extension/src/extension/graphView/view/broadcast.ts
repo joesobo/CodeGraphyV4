@@ -1,11 +1,9 @@
 import type * as vscode from 'vscode';
-import { getDepthGraphEffectiveDepthLimit, getDepthGraphMaxDepthLimit } from '../../../core/views/depth/view';
+import { getDepthGraphEffectiveDepthLimit, getDepthGraphMaxDepthLimit } from '../../../core/views/depth/transform';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { IViewContext } from '../../../core/views/contracts';
-import type { ViewRegistry } from '../../../core/views/registry';
-import type { IGraphData } from '../../../shared/graph/types';
-import { mapAvailableViews } from '../presentation';
-import { buildGraphViewGroupsUpdatedMessage } from '../groups/message';
+import type { IGraphData } from '../../../shared/graph/contracts';
+import { buildGraphViewLegendsUpdatedMessage } from '../groups/message';
 
 interface SendGraphViewGroupsUpdatedOptions {
   registerPluginRoots: () => void;
@@ -15,22 +13,18 @@ interface SendGraphViewGroupsUpdatedOptions {
   resolvePluginAssetPath: (assetPath: string, pluginId?: string) => string;
 }
 
-export function sendGraphViewAvailableViews(
-  viewRegistry: ViewRegistry,
+export function sendGraphViewDepthState(
   viewContext: IViewContext,
-  activeViewId: string,
+  depthMode: boolean,
   rawGraphData: IGraphData,
   defaultDepthLimit: number,
   sendMessage: (message: unknown) => void,
 ): void {
-  const availableViews = viewRegistry.getAvailableViews(viewContext);
-  const views = mapAvailableViews(availableViews, activeViewId);
   const maxDepthLimit = getDepthGraphMaxDepthLimit(rawGraphData, viewContext.focusedFile);
   const depthLimit = getDepthGraphEffectiveDepthLimit(rawGraphData, viewContext);
-
   sendMessage({
-    type: 'VIEWS_UPDATED',
-    payload: { views, activeViewId },
+    type: 'DEPTH_MODE_UPDATED',
+    payload: { depthMode },
   });
   sendMessage({
     type: 'DEPTH_LIMIT_UPDATED',
@@ -42,8 +36,8 @@ export function sendGraphViewAvailableViews(
   });
 }
 
-export function sendGraphViewGroupsUpdated(
-  groups: IGroup[],
+export function sendGraphViewLegendsUpdated(
+  legends: IGroup[],
   {
     registerPluginRoots,
     workspaceFolder,
@@ -57,7 +51,7 @@ export function sendGraphViewGroupsUpdated(
 
   const webview = view?.webview ?? panels[0]?.webview;
   sendMessage(
-    buildGraphViewGroupsUpdatedMessage(groups, {
+    buildGraphViewLegendsUpdatedMessage(legends, {
       workspaceFolder,
       asWebviewUri: webview ? uri => webview.asWebviewUri(uri) : undefined,
       resolvePluginAssetPath,

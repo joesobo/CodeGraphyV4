@@ -246,7 +246,7 @@ describe('graph/keyboard/effects', () => {
     })).toEqual({
       preventDefault: true,
       stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_VIEW' } }],
+      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DEPTH_MODE' } }],
     });
   });
 
@@ -262,7 +262,7 @@ describe('graph/keyboard/effects', () => {
     })).toEqual({
       preventDefault: true,
       stopPropagation: false,
-      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_VIEW' } }],
+      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DEPTH_MODE' } }],
     });
   });
 

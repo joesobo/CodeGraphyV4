@@ -154,6 +154,7 @@ describe('graph view timeline repository', () => {
       '**/build/**',
       '**/out/**',
       '**/.git/**',
+      '**/.codegraphy/**',
       '**/coverage/**',
       '**/*.min.js',
       '**/*.bundle.js',

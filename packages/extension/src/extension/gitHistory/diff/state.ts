@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { getFileColor } from '../../../shared/fileColors';
-import type { IGraphEdge, IGraphNode } from '../../../shared/graph/types';
+import type { IGraphEdge, IGraphNode } from '../../../shared/graph/contracts';
+import { replaceGraphEdgeIdEndpoints } from '../../../shared/graph/edgeIdentity';
 
 export function deleteGitHistoryGraphFile(
   filePath: string,
@@ -66,7 +67,7 @@ export function renameGitHistoryGraphFile(
     }
 
     edgeSet.delete(previousId);
-    edge.id = `${edge.from}->${edge.to}#${edge.kind}`;
+    edge.id = replaceGraphEdgeIdEndpoints(edge, edge.from, edge.to);
     edgeSet.add(edge.id);
   }
 }

@@ -4,7 +4,7 @@ import {
   buildGraphViewSettingsMessages,
 } from '../../../../src/extension/graphView/settings/messages';
 import { captureGraphViewSettingsSnapshot } from '../../../../src/extension/graphView/settings/snapshot';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 
 function createConfig(values: Record<string, unknown>) {
   return {
@@ -36,18 +36,22 @@ describe('graphView/settings/snapshotMessages', () => {
         damping: 0.7,
         centerForce: 0.1,
       },
-      groups: [],
+      legends: [],
       filterPatterns: [],
       showOrphans: true,
       bidirectionalMode: 'separate',
       directionMode: 'arrows',
       directionColor: DEFAULT_DIRECTION_COLOR,
-      folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
+      nodeColors: {},
+      nodeVisibility: {},
+      edgeVisibility: {},
+      edgeColors: {},
+      pluginOrder: [],
+      disabledPlugins: [],
       particleSpeed: 0.005,
       particleSize: 4,
       showLabels: true,
       maxFiles: 500,
-      hiddenPluginGroups: [],
       nodeSizeMode: 'uniform',
     });
   });
@@ -55,18 +59,22 @@ describe('graphView/settings/snapshotMessages', () => {
   it('captures reset snapshots from configuration and normalized settings state', () => {
     const snapshot = captureGraphViewSettingsSnapshot(
       createConfig({
-        groups: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
+        legend: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
         filterPatterns: ['dist/**'],
         showOrphans: false,
         bidirectionalEdges: 'combined',
         directionMode: 'particles',
         directionColor: 'not-a-color',
-        folderNodeColor: '#abcdef',
+        nodeColors: { file: '#123123', folder: '#456456' },
+        nodeVisibility: { file: true, folder: false },
+        edgeVisibility: { imports: true, nests: false },
+        edgeColors: { imports: '#ABCDEF', nests: '#FEDCBA' },
+        pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
+        disabledPlugins: ['codegraphy.python'],
         particleSpeed: 0.02,
         particleSize: 6,
         showLabels: false,
         maxFiles: 250,
-        hiddenPluginGroups: ['plugin:codegraphy.typescript'],
       }),
       {
         repelForce: 10,
@@ -86,18 +94,22 @@ describe('graphView/settings/snapshotMessages', () => {
         damping: 0.7,
         centerForce: 0.1,
       },
-      groups: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
+      legends: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
       filterPatterns: ['dist/**'],
       showOrphans: false,
       bidirectionalMode: 'combined',
       directionMode: 'particles',
       directionColor: DEFAULT_DIRECTION_COLOR,
-      folderNodeColor: '#ABCDEF',
+      nodeColors: { file: '#123123', folder: '#456456' },
+      nodeVisibility: { file: true, folder: false },
+      edgeVisibility: { imports: true, nests: false },
+      edgeColors: { imports: '#ABCDEF', nests: '#FEDCBA' },
+      pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
+      disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.02,
       particleSize: 6,
       showLabels: false,
       maxFiles: 250,
-      hiddenPluginGroups: ['plugin:codegraphy.typescript'],
       nodeSizeMode: 'access-count',
     });
   });
@@ -111,7 +123,6 @@ describe('graphView/settings/snapshotMessages', () => {
         particleSpeed: 0.02,
         particleSize: 6,
         directionColor: '#00FF00',
-        folderNodeColor: '#112233',
         showLabels: false,
       }),
     ).toEqual([
@@ -127,10 +138,6 @@ describe('graphView/settings/snapshotMessages', () => {
           particleSize: 6,
           directionColor: '#00FF00',
         },
-      },
-      {
-        type: 'FOLDER_NODE_COLOR_UPDATED',
-        payload: { folderNodeColor: '#112233' },
       },
       {
         type: 'SHOW_LABELS_UPDATED',
@@ -150,18 +157,22 @@ describe('graphView/settings/snapshotMessages', () => {
             damping: 0.7,
             centerForce: 0.1,
           },
-          groups: [],
+          legends: [],
           filterPatterns: ['dist/**'],
           showOrphans: false,
           bidirectionalMode: 'combined',
           directionMode: 'particles',
           directionColor: '#00FF00',
-          folderNodeColor: '#112233',
+          nodeColors: { file: '#111111' },
+          nodeVisibility: { file: true },
+          edgeVisibility: { imports: true },
+          edgeColors: { imports: '#222222' },
+          pluginOrder: ['codegraphy.markdown'],
+          disabledPlugins: ['codegraphy.python'],
           particleSpeed: 0.02,
           particleSize: 6,
           showLabels: false,
           maxFiles: 250,
-          hiddenPluginGroups: [],
           nodeSizeMode: 'access-count',
         },
         ['venv/**'],
@@ -190,10 +201,6 @@ describe('graphView/settings/snapshotMessages', () => {
             particleSize: 6,
             directionColor: '#00FF00',
           },
-        },
-        {
-          type: 'FOLDER_NODE_COLOR_UPDATED',
-          payload: { folderNodeColor: '#112233' },
         },
         {
           type: 'SHOW_LABELS_UPDATED',
