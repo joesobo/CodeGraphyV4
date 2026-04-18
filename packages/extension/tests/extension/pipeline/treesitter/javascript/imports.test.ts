@@ -133,7 +133,11 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
               {
                 type: 'named_imports',
                 namedChildren: [
-                  { type: 'import_specifier', text: 'type Foo' },
+                  {
+                    type: 'import_specifier',
+                    text: 'type Foo',
+                    children: [{ type: 'type' }, { type: 'identifier' }],
+                  },
                   { type: 'import_specifier', text: 'Bar' },
                 ],
               },
@@ -182,7 +186,13 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
             namedChildren: [
               {
                 type: 'named_imports',
-                namedChildren: [{ type: 'import_specifier', text: 'type Plugin' }],
+                namedChildren: [
+                  {
+                    type: 'import_specifier',
+                    text: 'type Plugin',
+                    children: [{ type: 'type' }, { type: 'identifier' }],
+                  },
+                ],
               },
             ],
           },
@@ -202,6 +212,58 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
       '@codegraphy-vscode/plugin-api',
       '/workspace/packages/plugin-api/src/index.ts',
     );
+  });
+
+  it('keeps value imports named type as regular imports', () => {
+    resolveTreeSitterImportPath.mockReturnValue('/workspace/src/lib.ts');
+    getStringSpecifier.mockReturnValue('./lib');
+    const importedBindings = new Map();
+    const relations: never[] = [];
+
+    handleJavaScriptImportStatement(
+      {
+        children: [
+          { type: 'import' },
+          { type: 'import_clause' },
+          { type: 'from' },
+          { type: 'string' },
+        ],
+        namedChildren: [
+          {
+            type: 'import_clause',
+            namedChildren: [
+              {
+                type: 'named_imports',
+                namedChildren: [
+                  {
+                    type: 'import_specifier',
+                    text: 'type as alias',
+                    children: [
+                      { type: 'identifier' },
+                      { type: 'as' },
+                      { type: 'identifier' },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          { type: 'string' },
+        ],
+      } as never,
+      '/workspace/src/app.ts',
+      relations,
+      importedBindings as never,
+    );
+
+    expect(collectImportBindings).toHaveBeenCalledOnce();
+    expect(addImportRelation).toHaveBeenCalledWith(
+      relations,
+      '/workspace/src/app.ts',
+      './lib',
+      '/workspace/src/lib.ts',
+    );
+    expect(addTypeImportRelation).not.toHaveBeenCalled();
   });
 
   it('skips import relation work when no string specifier exists', () => {

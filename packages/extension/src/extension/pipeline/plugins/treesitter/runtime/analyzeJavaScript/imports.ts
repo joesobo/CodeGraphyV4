@@ -12,7 +12,7 @@ function hasDirectTypeKeyword(node: Parser.SyntaxNode): boolean {
 }
 
 function isTypeImportSpecifier(node: Parser.SyntaxNode): boolean {
-  return node.type === 'import_specifier' && node.text.trimStart().startsWith('type ');
+  return node.type === 'import_specifier' && (node.children ?? []).some((child) => child.type === 'type');
 }
 
 function getImportClause(node: Parser.SyntaxNode): Parser.SyntaxNode | undefined {
