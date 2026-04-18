@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-vscode/plugin-api",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Type definitions for CodeGraphy plugins",
   "repository": {
     "type": "git",

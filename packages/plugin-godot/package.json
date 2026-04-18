@@ -1,7 +1,7 @@
 {
   "name": "codegraphy-godot",
   "displayName": "CodeGraphy GDScript",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Adds GDScript dependency detection to CodeGraphy. Requires codegraphy.codegraphy.",
   "publisher": "codegraphy",
   "license": "MIT",

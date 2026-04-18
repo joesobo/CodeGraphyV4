@@ -1,7 +1,7 @@
 {
   "name": "codegraphy-csharp",
   "displayName": "CodeGraphy C#",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Adds C# ecosystem defaults to CodeGraphy. Requires codegraphy.codegraphy.",
   "publisher": "codegraphy",
   "license": "MIT",
