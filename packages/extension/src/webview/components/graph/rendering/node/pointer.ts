@@ -1,4 +1,4 @@
-import { drawShape } from '../shapes/draw2d';
+import { drawShape } from '../shapes/draw/twoDimensional';
 import type { FGNode } from '../../model/build';
 
 export function paintNodePointerArea(

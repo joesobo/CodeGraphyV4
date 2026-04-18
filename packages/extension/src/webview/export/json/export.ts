@@ -2,7 +2,7 @@ import type { IGraphData } from '../../../shared/graph/contracts';
 import { graphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { createExportTimestamp, getExportContext } from '../shared/context';
-import { buildExportData } from './build';
+import { buildExportData } from './build/build';
 
 export type {
   ExportBuildContext,
@@ -12,7 +12,7 @@ export type {
   ExportLegendRule,
   ExportNodeEntry,
 } from '../shared/contracts';
-export { buildExportData } from './build';
+export { buildExportData } from './build/build';
 
 export function exportAsJson(data: IGraphData): void {
   try {

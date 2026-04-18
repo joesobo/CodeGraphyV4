@@ -1,4 +1,4 @@
-import type { GraphPluginSlot } from '../contracts';
+import type { GraphPluginSlot } from '../contracts/types';
 
 type SlotHostMap = Map<GraphPluginSlot, HTMLDivElement>;
 

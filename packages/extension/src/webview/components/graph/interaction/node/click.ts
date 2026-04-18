@@ -6,7 +6,7 @@ import {
   getNodeDoubleClickCommand,
   isDoubleNodeClick,
 } from './doubleClick';
-import { getNodeSingleClickCommand } from './singleClick';
+import { getNodeSingleClickCommand } from './singleClick/command';
 
 function isMacControlContextAction(
   ctrlKey: boolean,

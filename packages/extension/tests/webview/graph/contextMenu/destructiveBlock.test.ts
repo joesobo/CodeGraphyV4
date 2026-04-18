@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildDestructiveBlock } from '../../../../src/webview/components/graph/contextMenu/node/destructiveBlock';
+import { buildDestructiveBlock } from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 
 function itemLabels(entries: GraphContextMenuEntry[]): string[] {
@@ -14,7 +14,7 @@ function findItem(entries: GraphContextMenuEntry[], label: string) {
   ) as Extract<GraphContextMenuEntry, { kind: 'item' }> | undefined;
 }
 
-describe('destructiveBlock', () => {
+describe('destructive block', () => {
   it('begins with a separator', () => {
     const entries = buildDestructiveBlock(['a.ts']);
     expect(entries[0]).toEqual({ kind: 'separator', id: 'node-separator-destructive-1' });

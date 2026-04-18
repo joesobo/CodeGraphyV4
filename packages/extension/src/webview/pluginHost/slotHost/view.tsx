@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import type { ComponentPropsWithoutRef } from 'react';
-import type { GraphPluginSlot } from '../api/contracts';
+import type { GraphPluginSlot } from '../api/contracts/types';
 import type { WebviewPluginHost } from '../manager';
 
 interface SlotHostProps extends ComponentPropsWithoutRef<'div'> {

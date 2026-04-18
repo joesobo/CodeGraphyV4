@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
-import { buildGraphContextMenuEntries } from '../../../../src/webview/components/graph/contextMenu/buildEntries';
+import { buildGraphContextMenuEntries } from '../../../../src/webview/components/graph/contextMenu/build/entries';
 import {
   makeBackgroundContextSelection,
   makeEdgeContextSelection,

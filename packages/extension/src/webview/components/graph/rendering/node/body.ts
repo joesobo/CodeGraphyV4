@@ -1,6 +1,6 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import type { ThemeKind } from '../../../../theme/useTheme';
-import { drawShape } from '../shapes/draw2d';
+import { drawShape } from '../shapes/draw/twoDimensional';
 import type { FGNode } from '../../model/build';
 
 export interface RenderNodeBodyOptions {

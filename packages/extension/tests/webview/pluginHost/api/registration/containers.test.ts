@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { GraphPluginSlot } from '../../../../../src/webview/pluginHost/api/contracts';
+import type { GraphPluginSlot } from '../../../../../src/webview/pluginHost/api/contracts/types';
 import {
   attachSlotHost,
   detachSlotHost,

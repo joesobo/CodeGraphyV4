@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { SurfaceFallbackBoundary } from '../../../../../src/webview/components/graph/rendering/surface/fallbackBoundary';
+import { SurfaceFallbackBoundary } from '../../../../../src/webview/components/graph/rendering/surface/view/fallbackBoundary';
 
 function Crash({ shouldThrow }: { shouldThrow: boolean }) {
   if (shouldThrow) {

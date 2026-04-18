@@ -15,7 +15,7 @@ const harness = vi.hoisted(() => ({
 	postMessage: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/contextMenu/buildEntries', () => ({
+vi.mock('../../../../src/webview/components/graph/contextMenu/build/entries', () => ({
 	buildGraphContextMenuEntries: harness.buildGraphContextMenuEntries,
 }));
 

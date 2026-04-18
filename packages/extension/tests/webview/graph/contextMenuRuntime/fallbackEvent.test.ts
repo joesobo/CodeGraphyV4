@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createFallbackContextMenuEvent } from '../../../../src/webview/components/graph/contextMenuRuntime/fallbackEvent';
+import { createFallbackContextMenuEvent } from '../../../../src/webview/components/graph/contextMenuRuntime/fallback/event';
 
-describe('graph/contextMenuRuntime/fallbackEvent', () => {
+describe('graph/contextMenuRuntime/fallback/event', () => {
   it('creates a right-click context menu event with pointer coordinates', () => {
     const event = createFallbackContextMenuEvent(48, 64, true);
 

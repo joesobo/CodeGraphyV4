@@ -1,6 +1,6 @@
 import { useEffect, type MutableRefObject } from 'react';
 import type { IPhysicsSettings } from '../../../../../../../shared/settings/physics';
-import type { PhysicsRuntimeRefs } from './refs';
+import type { PhysicsRuntimeRefs } from './init/refs';
 import { applyPhysicsSettings, syncPhysicsAnimation } from '../../../physics';
 import { selectActivePhysicsGraph } from '../../../physicsLifecycle/readiness';
 

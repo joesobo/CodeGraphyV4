@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { GraphViewStoreState } from '../store';
 import type { GraphContextMenuEntry } from '../contextMenu/contracts';
-import { buildGraphContextMenuEntries } from '../contextMenu/buildEntries';
+import { buildGraphContextMenuEntries } from '../contextMenu/build/entries';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { UseGraphStateResult } from '../runtime/use/state';

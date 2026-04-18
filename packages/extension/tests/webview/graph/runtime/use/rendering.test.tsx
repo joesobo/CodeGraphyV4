@@ -26,19 +26,19 @@ vi.mock('../../../../../src/webview/components/graph/runtime/pluginOverlays', ()
 	usePluginOverlays: renderingHarness.usePluginOverlays,
 }));
 
-vi.mock('../../../../../src/webview/components/graph/runtime/use/indicators', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/indicators/directional', () => ({
 	useDirectional: renderingHarness.useDirectional,
 }));
 
-vi.mock('../../../../../src/webview/components/graph/runtime/use/labelVisibility', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/indicators/labelVisibility', () => ({
 	useLabelVisibility: renderingHarness.useLabelVisibility,
 }));
 
-vi.mock('../../../../../src/webview/components/graph/runtime/use/meshHighlights', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/indicators/meshHighlights', () => ({
 	useMeshHighlights: renderingHarness.useMeshHighlights,
 }));
 
-vi.mock('../../../../../src/webview/components/graph/runtime/use/nodeAppearance', () => ({
+vi.mock('../../../../../src/webview/components/graph/runtime/use/indicators/nodeAppearance', () => ({
 	useNodeAppearance: renderingHarness.useNodeAppearance,
 }));
 

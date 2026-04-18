@@ -17,12 +17,12 @@ import type {
 import {
   Surface2d,
   type Surface2dProps,
-} from './rendering/surface/view2d';
+} from './rendering/surface/view/twoDimensional';
 import {
   DeferredSurface3d,
   type Surface3dProps,
-} from './rendering/surface/view3d';
-import { SurfaceFallbackBoundary } from './rendering/surface/fallbackBoundary';
+} from './rendering/surface/view/threeDimensional';
+import { SurfaceFallbackBoundary } from './rendering/surface/view/fallbackBoundary';
 import type { WebviewPluginHost } from '../../pluginHost/manager';
 import { SlotHost } from '../../pluginHost/slotHost/view';
 
