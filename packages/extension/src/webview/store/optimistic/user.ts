@@ -1,5 +1,5 @@
 import type { IGroup } from '../../../shared/settings/groups';
-import type { PendingUserGroupsUpdate } from './groups/groups';
+import type { PendingUserGroupsUpdate } from './groups/updates';
 import { areGroupListsEqual, replaceUserGroups } from '../userGroupLists';
 
 const OPTIMISTIC_GROUP_UPDATE_TTL_MS = 2000;

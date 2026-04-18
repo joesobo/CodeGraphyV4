@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IPluginStatus } from '../../../../../src/shared/plugins/status';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
-import { buildExportData } from '../../../../../src/webview/export/json/build/build';
+import { buildExportData } from '../../../../../src/webview/export/json/build/document';
 
 describe('webview/export/json/build', () => {
   it('builds export data from active legends and plugin display names', () => {

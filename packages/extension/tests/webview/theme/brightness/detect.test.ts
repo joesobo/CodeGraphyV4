@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { detectTheme } from '../../../../src/webview/theme/brightness/brightness';
+import { detectTheme } from '../../../../src/webview/theme/brightness/detect';
 
 let editorBackground = '';
 

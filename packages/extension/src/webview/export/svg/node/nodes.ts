@@ -1,4 +1,4 @@
-import { appendNodeImageOverlay } from './image/imageOverlay';
+import { appendNodeImageOverlay } from './image/overlay';
 import { buildNodeLabelElement, buildNodeShapeElement } from './markup';
 import type { SvgExportNode, SvgPosition } from '../contracts';
 

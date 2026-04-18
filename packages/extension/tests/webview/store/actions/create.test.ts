@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { INITIAL_STATE } from '../../../../src/webview/store/initialState';
-import { createActions } from '../../../../src/webview/store/actions/actions';
+import { createActions } from '../../../../src/webview/store/actions/create';
 import type { GraphState } from '../../../../src/webview/store/state';
 
 function createHarness() {
