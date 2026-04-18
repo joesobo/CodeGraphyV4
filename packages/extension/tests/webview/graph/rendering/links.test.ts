@@ -7,7 +7,7 @@ import type { FGLink } from '../../../../src/webview/components/graph/model/buil
 import {
   getGraphDirectionalColor,
   getGraphLinkColor,
-} from '../../../../src/webview/components/graph/rendering/link/colors';
+} from '../../../../src/webview/components/graph/rendering/link/colors/model';
 import {
   getGraphArrowRelPos,
   getGraphLinkParticles,

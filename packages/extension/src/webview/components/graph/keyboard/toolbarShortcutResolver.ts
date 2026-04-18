@@ -1,5 +1,5 @@
 import type { GraphKeyboardCommand } from './effects';
-import { createStoreMessageCommand } from './commandBuilders';
+import { createStoreMessageCommand } from './command/builders';
 
 function getToolbarShortcutMessageType(key: string): 'TOGGLE_DEPTH_MODE' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION' | null {
   switch (key.toLowerCase()) {

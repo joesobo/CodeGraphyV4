@@ -19,7 +19,7 @@ const renderingHarness = vi.hoisted(() => ({
   renderNodeCanvas: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/link/colors', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/link/colors/model', () => ({
   getGraphDirectionalColor: renderingHarness.getGraphDirectionalColor,
   getGraphLinkColor: renderingHarness.getGraphLinkColor,
 }));

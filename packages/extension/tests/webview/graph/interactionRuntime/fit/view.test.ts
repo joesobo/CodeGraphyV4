@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fitGraphView } from '../../../../../src/webview/components/graph/interactionRuntime/fit/view';
+import { fitGraphView } from '../../../../../src/webview/components/graph/interactionRuntime/fit/api/view';
 import { createInteractionDependencies } from '../testUtils';
 
 describe('graph/interactionRuntime/fitView', () => {

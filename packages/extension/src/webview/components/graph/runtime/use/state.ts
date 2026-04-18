@@ -26,7 +26,7 @@ import {
 } from '../../model/build';
 import {
   as2DExtMethods,
-} from '../../support/contracts';
+} from '../../support/contracts/forceGraph';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { ThemeKind } from '../../../../theme/useTheme';
 

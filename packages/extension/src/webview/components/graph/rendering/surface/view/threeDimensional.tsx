@@ -1,0 +1,111 @@
+import { useEffect, useState, type MutableRefObject, type ReactElement } from 'react';
+import ForceGraph3D from 'react-force-graph-3d';
+import type {
+  ForceGraphMethods as FG3DMethods,
+} from 'react-force-graph-3d';
+import type { DirectionMode } from '../../../../../../shared/settings/modes';
+import type { LinkObject, NodeObject } from 'react-force-graph-2d';
+import * as THREE from 'three';
+import { DEFAULT_NODE_SIZE, type FGLink, type FGNode } from '../../../model/build';
+import type { GraphSurfaceSharedProps } from '../sharedProps';
+
+type ForceGraph3DRef = MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
+
+export interface Surface3dProps {
+  backgroundColor: string;
+  directionMode: DirectionMode;
+  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
+  getArrowColor: (this: void, link: LinkObject) => string;
+  getLinkColor: (this: void, link: LinkObject) => string;
+  getLinkParticles: (this: void, link: LinkObject) => number;
+  getLinkWidth: (this: void, link: LinkObject) => number;
+  getParticleColor: (this: void, link: LinkObject) => string;
+  nodeThreeObject: (this: void, node: NodeObject) => THREE.Object3D;
+  particleSize: number;
+  particleSpeed: number;
+  sharedProps: GraphSurfaceSharedProps;
+}
+
+export interface DeferredSurface3dProps extends Surface3dProps {
+  fallback: ReactElement;
+}
+
+export function useDeferredSurface3dMount(enabled: boolean): boolean {
+  const [isMounted, setIsMounted] = useState(!enabled);
+
+  useEffect(() => {
+    if (!enabled) {
+      setIsMounted(true);
+      return;
+    }
+
+    setIsMounted(false);
+
+    let firstFrame: number | null = null;
+    let secondFrame: number | null = null;
+
+    firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
+        setIsMounted(true);
+      });
+    });
+
+    return () => {
+      if (firstFrame !== null) cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) cancelAnimationFrame(secondFrame);
+    };
+  }, [enabled]);
+
+  return isMounted;
+}
+
+export function Surface3d({
+  backgroundColor,
+  directionMode,
+  fg3dRef,
+  getArrowColor,
+  getLinkColor,
+  getLinkParticles,
+  getLinkWidth,
+  getParticleColor,
+  nodeThreeObject,
+  particleSize,
+  particleSpeed,
+  sharedProps,
+}: Surface3dProps): ReactElement {
+  return (
+    <ForceGraph3D
+      ref={fg3dRef as unknown as ForceGraph3DRef}
+      {...sharedProps}
+      backgroundColor={backgroundColor}
+      nodeVal={(node: NodeObject) => (node as FGNode).size / DEFAULT_NODE_SIZE}
+      nodeLabel=""
+      nodeThreeObjectExtend={false}
+      nodeThreeObject={nodeThreeObject}
+      linkColor={getLinkColor}
+      linkWidth={getLinkWidth}
+      linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
+      linkDirectionalArrowRelPos={1}
+      linkDirectionalArrowColor={getArrowColor}
+      linkDirectionalParticles={directionMode === 'particles' ? getLinkParticles : 0}
+      linkDirectionalParticleWidth={particleSize}
+      linkDirectionalParticleSpeed={particleSpeed}
+      linkDirectionalParticleColor={getParticleColor}
+      linkCurvature={(link: LinkObject) => (link as FGLink).curvature ?? 0}
+      linkCurveRotation="rotation"
+    />
+  );
+}
+
+export function DeferredSurface3d({
+  fallback,
+  ...props
+}: DeferredSurface3dProps): ReactElement {
+  const isMounted = useDeferredSurface3dMount(true);
+
+  if (!isMounted) {
+    return fallback;
+  }
+
+  return <Surface3d {...props} />;
+}

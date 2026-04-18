@@ -3,8 +3,8 @@ import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensi
 import {
   applyPendingGroupUpdates,
   applyPendingUserGroupsUpdate,
-} from '../optimistic/groups';
-import { arePlainValuesEqual } from './equality';
+} from '../optimistic/groups/updates';
+import { arePlainValuesEqual } from './equality/compare';
 
 export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,

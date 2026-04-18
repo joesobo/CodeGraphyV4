@@ -4,7 +4,7 @@ import {
   get2dFitTransform,
   getFitViewPadding,
   getMeasuredSize,
-} from '../../../../../src/webview/components/graph/interactionRuntime/fit/api';
+} from '../../../../../src/webview/components/graph/interactionRuntime/fit/api/controls';
 
 function createNode(overrides: Partial<FGNode> = {}): FGNode {
   return {

@@ -1,4 +1,4 @@
-import type { GraphPluginSlot } from '../contracts';
+import type { GraphPluginSlot } from '../contracts/webview';
 import { syncSlotHostVisibility } from './visibility';
 
 export type SlotContainerMap = Map<string, Map<GraphPluginSlot, HTMLDivElement>>;

@@ -6,7 +6,7 @@
 
 import { useRef, useMemo } from 'react';
 import { WebviewPluginHost } from '../pluginHost/manager';
-import type { CodeGraphyWebviewAPI } from '../pluginHost/api/contracts';
+import type { CodeGraphyWebviewAPI } from '../pluginHost/api/contracts/webview';
 import { postMessage } from '../vscodeApi';
 import {
   resolvePluginModuleActivator,

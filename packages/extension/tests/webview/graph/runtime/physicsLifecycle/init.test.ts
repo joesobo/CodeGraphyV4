@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { resolvePhysicsInitAction } from '../../../../../src/webview/components/graph/runtime/physicsLifecycle/init';
+import { resolvePhysicsInitAction } from '../../../../../src/webview/components/graph/runtime/physicsLifecycle/init/action';
 
 function createReady3DGraph() {
   return {

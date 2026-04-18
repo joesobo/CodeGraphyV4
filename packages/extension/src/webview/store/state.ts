@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla';
 import { useStore as useZustandStore } from 'zustand';
 import type { SearchOptions } from '../components/searchBar/field/model';
 import { INITIAL_STATE } from './initialState';
-import { createActions } from './actions';
+import { createActions } from './actions/create';
 import type { IGraphData } from '../../shared/graph/contracts';
 import type { IPluginContextMenuItem } from '../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
@@ -21,7 +21,7 @@ import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
-} from './optimistic/groups';
+} from './optimistic/groups/updates';
 
 export interface GraphState {
   graphData: IGraphData | null;

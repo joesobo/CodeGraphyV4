@@ -6,12 +6,12 @@ vi.mock('../../../../../src/webview/components/graph/rendering/imageCache', () =
   getImage: vi.fn(),
 }));
 
-vi.mock('../../../../../src/webview/components/graph/rendering/shapes/draw2d', () => ({
+vi.mock('../../../../../src/webview/components/graph/rendering/shapes/draw/twoDimensional', () => ({
   drawShape: vi.fn(),
 }));
 
 import { getImage } from '../../../../../src/webview/components/graph/rendering/imageCache';
-import { drawShape } from '../../../../../src/webview/components/graph/rendering/shapes/draw2d';
+import { drawShape } from '../../../../../src/webview/components/graph/rendering/shapes/draw/twoDimensional';
 import type { WebviewPluginHost } from '../../../../../src/webview/pluginHost/manager';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import {

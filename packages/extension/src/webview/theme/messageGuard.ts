@@ -3,7 +3,7 @@
  * @module webview/themeMessageGuard
  */
 
-import type { ThemeKind } from './detection';
+import type { ThemeKind } from './brightness/detection';
 
 type ThemeChangedMessage = { type: 'THEME_CHANGED'; payload: { kind: ThemeKind } };
 

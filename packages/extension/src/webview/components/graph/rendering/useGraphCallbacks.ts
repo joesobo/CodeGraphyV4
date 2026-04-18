@@ -6,7 +6,7 @@ import type {
 import {
   getGraphDirectionalColor,
   getGraphLinkColor,
-} from './link/colors';
+} from './link/colors/model';
 import {
   getGraphArrowRelPos,
   getGraphLinkParticles,

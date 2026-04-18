@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildDestructiveBlock } from '../../../../src/webview/components/graph/contextMenu/node/destructiveBlock';
+import { buildDestructiveBlock } from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 
 type ItemEntry = Extract<GraphContextMenuEntry, { kind: 'item' }>;

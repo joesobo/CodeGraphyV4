@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
-import type { GraphViewStoreState } from '../store';
+import type { GraphViewStoreState } from '../view/store';
 import type { GraphContextMenuEntry } from '../contextMenu/contracts';
-import { buildGraphContextMenuEntries } from '../contextMenu/buildEntries';
+import { buildGraphContextMenuEntries } from '../contextMenu/build/entries';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { UseGraphStateResult } from '../runtime/use/state';
 import { buildSharedGraphProps } from '../rendering/surface/sharedProps';
-import { buildGraphSharedPropsOptions } from '../sharedPropsOptions';
-import { handleGraphSurface3dError } from '../surfaceError';
-import { getGraphSurfaceColors } from '../theme';
+import { buildGraphSharedPropsOptions } from '../view/sharedPropsOptions';
+import { handleGraphSurface3dError } from '../rendering/surface/error';
+import { getGraphSurfaceColors } from '../rendering/surface/colors';
 import type { ThemeKind } from '../../../theme/useTheme';
 import { postMessage } from '../../../vscodeApi';
 

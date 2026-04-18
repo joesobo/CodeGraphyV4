@@ -1,5 +1,5 @@
 import type { IGroup } from '../../../shared/settings/groups';
-import type { PendingGroupUpdate, PendingGroupUpdates } from './groups';
+import type { PendingGroupUpdate, PendingGroupUpdates } from './groups/updates';
 
 const OPTIMISTIC_GROUP_UPDATE_TTL_MS = 2000;
 

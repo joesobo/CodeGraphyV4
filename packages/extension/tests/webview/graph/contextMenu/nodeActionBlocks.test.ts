@@ -5,10 +5,10 @@ import {
 } from '../../../../src/webview/components/graph/contextMenu/node/openCopyBlocks';
 import {
   buildFavoriteBlock,
-} from '../../../../src/webview/components/graph/contextMenu/node/favoritesDestructiveBlocks';
+} from '../../../../src/webview/components/graph/contextMenu/node/destructive/favoritesBlocks';
 import {
   buildDestructiveBlock,
-} from '../../../../src/webview/components/graph/contextMenu/node/destructiveBlock';
+} from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 
 function itemLabels(entries: GraphContextMenuEntry[]): string[] {

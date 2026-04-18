@@ -8,7 +8,7 @@ import {
   getDepthOpacity,
   getDepthSizeMultiplier,
 } from './display';
-import { seedTimelinePositions } from '../timelinePositionSeeding';
+import { seedTimelinePositions } from '../timeline/seeding';
 
 export interface BuildGraphNodesOptions {
   nodes: IGraphNode[];

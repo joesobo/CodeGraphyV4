@@ -3,7 +3,7 @@
  * @module webview/pluginHost/tooltip
  */
 
-import type { TooltipAction, TooltipProviderFn, TooltipContent, TooltipContext } from './contracts';
+import type { TooltipAction, TooltipProviderFn, TooltipContent, TooltipContext } from './contracts/webview';
 
 /**
  * Aggregate tooltip content from all registered providers.
