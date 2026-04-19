@@ -1,5 +1,12 @@
 # codegraphy-csharp
 
+## 2.0.1
+
+### Patch Changes
+
+- Updated dependencies [[`bae8657`](https://github.com/joesobo/CodeGraphyV4/commit/bae86577832441943b8cc83130617d1f79c0dc83)]:
+  - @codegraphy-vscode/plugin-api@1.1.0
+
 ## 2.0.0
 
 ### Major Changes
