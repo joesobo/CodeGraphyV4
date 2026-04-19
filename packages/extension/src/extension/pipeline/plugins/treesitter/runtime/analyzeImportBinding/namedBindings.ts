@@ -9,6 +9,10 @@ export function addNamedImportBindings(
   resolvedPath: string | null,
 ): void {
   for (const importSpecifier of node.namedChildren.filter((child) => child.type === 'import_specifier')) {
+    if ((importSpecifier.children ?? []).some((child) => child.type === 'type')) {
+      continue;
+    }
+
     const identifiers = importSpecifier.namedChildren.filter((child) =>
       child.type === 'identifier' || child.type === 'type_identifier',
     );

@@ -9,12 +9,14 @@ const {
   collectImportBindings,
   getStringSpecifier,
   addImportRelation,
+  addTypeImportRelation,
   addRelation,
 } = vi.hoisted(() => ({
   resolveTreeSitterImportPath: vi.fn(),
   collectImportBindings: vi.fn(),
   getStringSpecifier: vi.fn(),
   addImportRelation: vi.fn(),
+  addTypeImportRelation: vi.fn(),
   addRelation: vi.fn(),
 }));
 
@@ -32,6 +34,7 @@ vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyz
 
 vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results', () => ({
   addImportRelation,
+  addTypeImportRelation,
   addRelation,
 }));
 
@@ -42,6 +45,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     collectImportBindings.mockReset();
     getStringSpecifier.mockReset();
     addImportRelation.mockReset();
+    addTypeImportRelation.mockReset();
     addRelation.mockReset();
   });
 
@@ -73,6 +77,193 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
       './lib',
       '/workspace/src/lib.ts',
     );
+    expect(addTypeImportRelation).not.toHaveBeenCalled();
+  });
+
+  it('records top-level type-only imports as type-import relations without value bindings', () => {
+    resolveTreeSitterImportPath.mockReturnValue('/workspace/packages/plugin-api/src/index.ts');
+    getStringSpecifier.mockReturnValue('@codegraphy-vscode/plugin-api');
+    const importedBindings = new Map();
+    const relations: never[] = [];
+
+    handleJavaScriptImportStatement(
+      {
+        children: [
+          { type: 'import' },
+          { type: 'type' },
+          { type: 'import_clause' },
+          { type: 'from' },
+          { type: 'string' },
+        ],
+        namedChildren: [{ type: 'import_clause' }, { type: 'string' }],
+      } as never,
+      '/workspace/packages/plugin-typescript/src/plugin.ts',
+      relations,
+      importedBindings as never,
+    );
+
+    expect(collectImportBindings).not.toHaveBeenCalled();
+    expect(addImportRelation).not.toHaveBeenCalled();
+    expect(addTypeImportRelation).toHaveBeenCalledWith(
+      relations,
+      '/workspace/packages/plugin-typescript/src/plugin.ts',
+      '@codegraphy-vscode/plugin-api',
+      '/workspace/packages/plugin-api/src/index.ts',
+    );
+  });
+
+  it('records mixed value and type specifier imports with both edge kinds', () => {
+    resolveTreeSitterImportPath.mockReturnValue('/workspace/src/lib.ts');
+    getStringSpecifier.mockReturnValue('./lib');
+    const importedBindings = new Map();
+    const relations: never[] = [];
+
+    handleJavaScriptImportStatement(
+      {
+        children: [
+          { type: 'import' },
+          { type: 'import_clause' },
+          { type: 'from' },
+          { type: 'string' },
+        ],
+        namedChildren: [
+          {
+            type: 'import_clause',
+            namedChildren: [
+              {
+                type: 'named_imports',
+                namedChildren: [
+                  {
+                    type: 'import_specifier',
+                    text: 'type Foo',
+                    children: [{ type: 'type' }, { type: 'identifier' }],
+                  },
+                  { type: 'import_specifier', text: 'Bar' },
+                ],
+              },
+            ],
+          },
+          { type: 'string' },
+        ],
+      } as never,
+      '/workspace/src/app.ts',
+      relations,
+      importedBindings as never,
+    );
+
+    expect(collectImportBindings).toHaveBeenCalledOnce();
+    expect(addImportRelation).toHaveBeenCalledWith(
+      relations,
+      '/workspace/src/app.ts',
+      './lib',
+      '/workspace/src/lib.ts',
+    );
+    expect(addTypeImportRelation).toHaveBeenCalledWith(
+      relations,
+      '/workspace/src/app.ts',
+      './lib',
+      '/workspace/src/lib.ts',
+    );
+  });
+
+  it('records inline type-only specifier imports without value bindings', () => {
+    resolveTreeSitterImportPath.mockReturnValue('/workspace/packages/plugin-api/src/index.ts');
+    getStringSpecifier.mockReturnValue('@codegraphy-vscode/plugin-api');
+    const importedBindings = new Map();
+    const relations: never[] = [];
+
+    handleJavaScriptImportStatement(
+      {
+        children: [
+          { type: 'import' },
+          { type: 'import_clause' },
+          { type: 'from' },
+          { type: 'string' },
+        ],
+        namedChildren: [
+          {
+            type: 'import_clause',
+            namedChildren: [
+              {
+                type: 'named_imports',
+                namedChildren: [
+                  {
+                    type: 'import_specifier',
+                    text: 'type Plugin',
+                    children: [{ type: 'type' }, { type: 'identifier' }],
+                  },
+                ],
+              },
+            ],
+          },
+          { type: 'string' },
+        ],
+      } as never,
+      '/workspace/packages/plugin-typescript/src/plugin.ts',
+      relations,
+      importedBindings as never,
+    );
+
+    expect(collectImportBindings).not.toHaveBeenCalled();
+    expect(addImportRelation).not.toHaveBeenCalled();
+    expect(addTypeImportRelation).toHaveBeenCalledWith(
+      relations,
+      '/workspace/packages/plugin-typescript/src/plugin.ts',
+      '@codegraphy-vscode/plugin-api',
+      '/workspace/packages/plugin-api/src/index.ts',
+    );
+  });
+
+  it('keeps value imports named type as regular imports', () => {
+    resolveTreeSitterImportPath.mockReturnValue('/workspace/src/lib.ts');
+    getStringSpecifier.mockReturnValue('./lib');
+    const importedBindings = new Map();
+    const relations: never[] = [];
+
+    handleJavaScriptImportStatement(
+      {
+        children: [
+          { type: 'import' },
+          { type: 'import_clause' },
+          { type: 'from' },
+          { type: 'string' },
+        ],
+        namedChildren: [
+          {
+            type: 'import_clause',
+            namedChildren: [
+              {
+                type: 'named_imports',
+                namedChildren: [
+                  {
+                    type: 'import_specifier',
+                    text: 'type as alias',
+                    children: [
+                      { type: 'identifier' },
+                      { type: 'as' },
+                      { type: 'identifier' },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          { type: 'string' },
+        ],
+      } as never,
+      '/workspace/src/app.ts',
+      relations,
+      importedBindings as never,
+    );
+
+    expect(collectImportBindings).toHaveBeenCalledOnce();
+    expect(addImportRelation).toHaveBeenCalledWith(
+      relations,
+      '/workspace/src/app.ts',
+      './lib',
+      '/workspace/src/lib.ts',
+    );
+    expect(addTypeImportRelation).not.toHaveBeenCalled();
   });
 
   it('skips import relation work when no string specifier exists', () => {
@@ -89,6 +280,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(resolveTreeSitterImportPath).not.toHaveBeenCalled();
     expect(collectImportBindings).not.toHaveBeenCalled();
     expect(addImportRelation).not.toHaveBeenCalled();
+    expect(addTypeImportRelation).not.toHaveBeenCalled();
   });
 
   it('adds reexport relations only when an export specifier exists', () => {

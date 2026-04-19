@@ -86,6 +86,22 @@ export function addImportRelation(
   });
 }
 
+export function addTypeImportRelation(
+  relations: IAnalysisRelation[],
+  filePath: string,
+  specifier: string,
+  resolvedPath: string | null,
+): void {
+  addRelation(relations, {
+    kind: 'type-import',
+    sourceId: TREE_SITTER_SOURCE_IDS.typeImport,
+    fromFilePath: filePath,
+    specifier,
+    resolvedPath,
+    toFilePath: resolvedPath,
+  });
+}
+
 export function addCallRelation(
   relations: IAnalysisRelation[],
   filePath: string,

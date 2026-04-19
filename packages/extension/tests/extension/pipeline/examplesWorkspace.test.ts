@@ -83,6 +83,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference:static',
       'example-typescript/packages/app/src/index.ts->example-typescript/packages/app/src/utils.ts#import',
       'example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#import',
+      'example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#type-import',
       'example-typescript/packages/app/src/utils.ts->example-typescript/packages/feature-depth/src/deep.ts#import',
     ];
 

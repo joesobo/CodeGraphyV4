@@ -18,3 +18,4 @@ blob-report/
 reports/
 .stryker-tmp/
 .pnpm-store/
+.codegraphy/
