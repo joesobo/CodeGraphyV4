@@ -1,5 +1,11 @@
 # @codegraphy/extension
 
+## 5.1.0
+
+### Minor Changes
+
+- [#176](https://github.com/joesobo/CodeGraphyV4/pull/176) [`bae8657`](https://github.com/joesobo/CodeGraphyV4/commit/bae86577832441943b8cc83130617d1f79c0dc83) Thanks [@joesobo](https://github.com/joesobo)! - Add optional Type imports graph edges for TypeScript type-only imports.
+
 ## 5.0.0
 
 ### Major Changes

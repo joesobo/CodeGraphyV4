@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy/extension",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "private": true,
   "description": "CodeGraphy VS Code extension core",
   "license": "MIT",
