@@ -6,6 +6,37 @@ function readStringArray(value: unknown): string[] {
     : [];
 }
 
+function createLegendRuleId(rule: Record<string, unknown>, index: number): string {
+  const target = typeof rule.target === 'string' && rule.target.length > 0
+    ? rule.target
+    : 'node';
+  const pattern = typeof rule.pattern === 'string' && rule.pattern.length > 0
+    ? rule.pattern
+    : `rule-${index + 1}`;
+  const slug = pattern
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48) || `rule-${index + 1}`;
+
+  return `legend:${target}:${slug}:${index + 1}`;
+}
+
+function normalizePersistedLegendRules(value: unknown): unknown[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isPlainObject)
+    .map((rule, index) => ({
+      ...rule,
+      id: typeof rule.id === 'string' && rule.id.length > 0
+        ? rule.id
+        : createLegendRuleId(rule, index),
+    }));
+}
+
 function normalizePersistedFilterPatterns(normalized: Record<string, unknown>): void {
   const filterPatterns = readStringArray(normalized.filterPatterns);
   if (filterPatterns.length > 0) {
@@ -16,11 +47,16 @@ function normalizePersistedFilterPatterns(normalized: Record<string, unknown>): 
 }
 
 function normalizePersistedLegend(normalized: Record<string, unknown>): void {
+  if (Array.isArray(normalized.legend) && normalized.legend.length > 0) {
+    normalized.legend = normalizePersistedLegendRules(normalized.legend);
+    return;
+  }
+
   if (
     Array.isArray(normalized.groups)
     && (!Array.isArray(normalized.legend) || normalized.legend.length === 0)
   ) {
-    normalized.legend = normalized.groups;
+    normalized.legend = normalizePersistedLegendRules(normalized.groups);
   }
 }
 

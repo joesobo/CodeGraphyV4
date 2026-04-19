@@ -16,7 +16,6 @@ describe('extension/repoSettings/defaults', () => {
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
-      plugins: [],
       pluginOrder: [],
       disabledPlugins: [],
       nodeColors: createDefaultNodeColors(),
@@ -58,7 +57,6 @@ describe('extension/repoSettings/defaults', () => {
     expect(second).toEqual(first);
     expect(second).not.toBe(first);
     expect(second.include).not.toBe(first.include);
-    expect(second.plugins).not.toBe(first.plugins);
     expect(second.pluginOrder).not.toBe(first.pluginOrder);
     expect(second.disabledPlugins).not.toBe(first.disabledPlugins);
     expect(second.nodeColors).not.toBe(first.nodeColors);

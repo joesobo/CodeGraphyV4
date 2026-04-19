@@ -12,11 +12,11 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     expect(normalizePersistedSettingsShape({
       filterPatterns: ['**/*.png', '**/*.png', 42, '**/*.tmp'],
       exclude: ['legacy'],
-      groups: [{ id: 'group-1', pattern: 'src/**', color: '#123456' }],
+      groups: [{ pattern: 'src/**', color: '#123456' }],
     })).toEqual({
       filterPatterns: ['**/*.png', '**/*.tmp'],
-      groups: [{ id: 'group-1', pattern: 'src/**', color: '#123456' }],
-      legend: [{ id: 'group-1', pattern: 'src/**', color: '#123456' }],
+      groups: [{ pattern: 'src/**', color: '#123456' }],
+      legend: [{ id: 'legend:node:src:1', pattern: 'src/**', color: '#123456' }],
     });
   });
 
@@ -44,6 +44,20 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       filterPatterns: [],
       folderNodeColor: '#445566',
       nodeColors: { folder: '#445566' },
+    });
+  });
+
+  it('adds runtime ids to persisted legend rules that omit them', () => {
+    expect(normalizePersistedSettingsShape({
+      legend: [
+        { pattern: 'src/**', color: '#abcdef' },
+        { id: 'custom-id', pattern: 'import', color: '#123456', target: 'edge' },
+      ],
+    })).toEqual({
+      legend: [
+        { id: 'legend:node:src:1', pattern: 'src/**', color: '#abcdef' },
+        { id: 'custom-id', pattern: 'import', color: '#123456', target: 'edge' },
+      ],
     });
   });
 });

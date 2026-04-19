@@ -77,17 +77,6 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
-  describe('plugins', () => {
-    it('returns the configured plugin list', () => {
-      mockConfig['plugins'] = ['my-plugin'];
-      expect(new Configuration().plugins).toEqual(['my-plugin']);
-    });
-
-    it('defaults to empty array', () => {
-      expect(new Configuration().plugins).toEqual([]);
-    });
-  });
-
   describe('disabledPlugins', () => {
     it('returns the configured disabled plugins', () => {
       mockConfig['disabledPlugins'] = ['codegraphy.python'];
@@ -151,7 +140,6 @@ describe('Configuration (configReaders)', () => {
       mockConfig['respectGitignore'] = false;
       mockConfig['showOrphans'] = false;
       mockConfig['bidirectionalEdges'] = 'combined';
-      mockConfig['plugins'] = ['p1'];
       mockConfig['disabledPlugins'] = ['d1'];
 
       const all = new Configuration().getAll();
@@ -161,7 +149,6 @@ describe('Configuration (configReaders)', () => {
       expect(all.respectGitignore).toBe(false);
       expect(all.showOrphans).toBe(false);
       expect(all.bidirectionalEdges).toBe('combined');
-      expect(all.plugins).toEqual(['p1']);
       expect(all.disabledPlugins).toEqual(['d1']);
     });
 
@@ -169,7 +156,7 @@ describe('Configuration (configReaders)', () => {
       const all = new Configuration().getAll();
       expect(all.maxFiles).toBe(500);
       expect(all.showOrphans).toBe(true);
-      expect(all.plugins).toEqual([]);
+      expect(all.disabledPlugins).toEqual([]);
     });
   });
 

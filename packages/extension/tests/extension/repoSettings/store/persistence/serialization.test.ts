@@ -55,4 +55,29 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
 
     expect(parsed.nodeColors).toEqual({ folder: '' });
   });
+
+  it('omits runtime-only plugins and legend ids from persisted settings', () => {
+    const settings = createDefaultCodeGraphyRepoSettings() as ReturnType<typeof createDefaultCodeGraphyRepoSettings> & {
+      plugins?: string[];
+    };
+    settings.plugins = ['legacy.plugin'];
+    settings.legend = [
+      {
+        id: 'legend:runtime',
+        pattern: 'src/**',
+        color: '#123456',
+        target: 'node',
+        imageUrl: 'webview://icon.png',
+        isPluginDefault: true,
+        pluginName: 'CodeGraphy',
+      },
+    ];
+
+    const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
+
+    expect(parsed.plugins).toBeUndefined();
+    expect(parsed.legend).toEqual([
+      { pattern: 'src/**', color: '#123456', target: 'node' },
+    ]);
+  });
 });

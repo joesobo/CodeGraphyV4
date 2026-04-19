@@ -182,7 +182,7 @@ describe('extension/repoSettings/store', () => {
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
     expect(store.get('legend', [])).toEqual(nextLegend);
-    expect(persisted.legend).toEqual(nextLegend);
+    expect(persisted.legend).toEqual([{ pattern: 'tests/**', color: '#00ff00' }]);
   });
 
   it('ignores legacy exclude entries in persisted settings files', () => {
@@ -255,7 +255,7 @@ describe('extension/repoSettings/store', () => {
     ]);
     expect(store.get('folderNodeColor', '')).toBe('#445566');
     expect(persisted.legend).toEqual([
-      { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
+      { pattern: 'src/**', color: '#112233' },
     ]);
     expect(persisted.nodeColors).toEqual(expect.objectContaining({
       folder: '#445566',
