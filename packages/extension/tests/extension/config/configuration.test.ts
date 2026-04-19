@@ -25,7 +25,6 @@ describe('Configuration', () => {
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
-      plugins: [],
       disabledPlugins: [],
     };
 
@@ -56,11 +55,6 @@ describe('Configuration', () => {
     it('should return default showOrphans as true', () => {
       const config = new Configuration();
       expect(config.showOrphans).toBe(true);
-    });
-
-    it('should return default plugins as empty array', () => {
-      const config = new Configuration();
-      expect(config.plugins).toEqual([]);
     });
 
     it('should return default disabledPlugins as empty array', () => {
@@ -94,12 +88,6 @@ describe('Configuration', () => {
       expect(config.showOrphans).toBe(false);
     });
 
-    it('should return custom plugins', () => {
-      mockConfig.plugins = ['codegraphy-rust', 'codegraphy-go'];
-      const config = new Configuration();
-      expect(config.plugins).toEqual(['codegraphy-rust', 'codegraphy-go']);
-    });
-
     it('should return custom disabledPlugins', () => {
       mockConfig.disabledPlugins = ['codegraphy.python'];
       const config = new Configuration();
@@ -118,7 +106,6 @@ describe('Configuration', () => {
         respectGitignore: true,
         showOrphans: true,
         bidirectionalEdges: 'separate',
-        plugins: [],
         disabledPlugins: [],
         pluginOrder: [],
       });
@@ -127,7 +114,6 @@ describe('Configuration', () => {
     it('should return custom values in getAll', () => {
       mockConfig.maxFiles = 200;
       mockConfig.showOrphans = false;
-      mockConfig.plugins = ['codegraphy-rust'];
       mockConfig.disabledPlugins = ['codegraphy.python'];
 
       const config = new Configuration();
@@ -135,7 +121,6 @@ describe('Configuration', () => {
 
       expect(all.maxFiles).toBe(200);
       expect(all.showOrphans).toBe(false);
-      expect(all.plugins).toEqual(['codegraphy-rust']);
       expect(all.disabledPlugins).toEqual(['codegraphy.python']);
     });
   });

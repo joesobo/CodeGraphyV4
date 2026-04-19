@@ -14,7 +14,6 @@ export interface ICodeGraphyRepoSettings {
   include: string[];
   respectGitignore: boolean;
   showOrphans: boolean;
-  plugins: string[];
   pluginOrder: string[];
   disabledPlugins: string[];
   nodeColors: Record<string, string>;
@@ -55,7 +54,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     include: ['**/*'],
     respectGitignore: true,
     showOrphans: true,
-    plugins: [],
     pluginOrder: [],
     disabledPlugins: [],
     nodeColors: createDefaultNodeColors(),

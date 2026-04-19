@@ -81,15 +81,6 @@ export class Configuration {
   }
 
   /**
-   * List of CodeGraphy plugin extension names to enable.
-   * Plugins are VSCode extensions that provide additional language support.
-   * @default []
-   */
-  get plugins(): string[] {
-    return this.config.get<string[]>('plugins', []);
-  }
-
-  /**
    * Plugin toggle state persisted in repo-local settings.
    * Entries are plugin IDs (e.g., "codegraphy.typescript").
    * @default []
@@ -149,7 +140,6 @@ export class Configuration {
       respectGitignore: this.respectGitignore,
       showOrphans: this.showOrphans,
       bidirectionalEdges: this.bidirectionalEdges,
-      plugins: this.plugins,
       disabledPlugins: this.disabledPlugins,
       pluginOrder: this.pluginOrder,
     };

@@ -11,6 +11,20 @@ export function serializeSettings(value: ICodeGraphyRepoSettings): string {
     nodeColors.folder = persisted.folderNodeColor;
   }
   persisted.nodeColors = nodeColors;
+  if (Array.isArray(persisted.legend)) {
+    persisted.legend = persisted.legend
+      .filter(isPlainObject)
+      .map((rule) => {
+        const serializedRule = { ...rule };
+        delete serializedRule.id;
+        delete serializedRule.imageUrl;
+        delete serializedRule.isPluginDefault;
+        delete serializedRule.pluginName;
+        return serializedRule;
+      });
+  }
+
+  delete persisted.plugins;
   delete persisted.folderNodeColor;
   delete persisted.exclude;
 
