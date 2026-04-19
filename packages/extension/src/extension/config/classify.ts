@@ -30,7 +30,6 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
     'codegraphy.showLabels',
     'codegraphy.bidirectionalEdges',
     'codegraphy.nodeColors',
-    'codegraphy.edgeColors',
     'codegraphy.nodeVisibility',
     'codegraphy.edgeVisibility',
   )) {

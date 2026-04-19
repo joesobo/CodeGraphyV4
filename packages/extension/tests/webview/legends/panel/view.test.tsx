@@ -87,10 +87,36 @@ describe('LegendsPanel', () => {
       payload: { nodeType: 'file', color: '#abc123' },
     });
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_EDGE_COLOR',
-      payload: { edgeKind: 'import', color: '#def456' },
+      type: 'UPDATE_LEGENDS',
+      payload: {
+        legends: [
+          expect.objectContaining({
+            id: 'legend:edge:import',
+            pattern: 'import',
+            target: 'edge',
+            color: '#def456',
+          }),
+        ],
+      },
     });
     expect(sentMessages).toHaveLength(2);
+  });
+
+  it('renders edge type color overrides through legend rules without duplicating them as custom rules', () => {
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      nodeColors: {},
+      edgeColors: { import: '#222222' },
+      legends: [
+        { id: 'legend:edge:import', pattern: 'import', color: '#abcdef', target: 'edge' },
+      ],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.getByLabelText('Imports color')).toHaveValue('#abcdef');
+    expect(screen.queryByDisplayValue('import')).not.toBeInTheDocument();
   });
 
   it('flushes a pending color change when the picker loses focus', () => {
@@ -248,7 +274,7 @@ describe('LegendsPanel', () => {
       edgeColors: {},
       legends: [
         { id: 'legend:node:existing', pattern: 'src/**', color: '#123456', target: 'node' },
-        { id: 'legend:edge:existing', pattern: 'import', color: '#654321', target: 'edge' },
+        { id: 'legend:edge:existing', pattern: 'lib/**', color: '#654321', target: 'edge' },
       ],
     });
 
@@ -264,7 +290,7 @@ describe('LegendsPanel', () => {
         legends: [
           expect.objectContaining({
             id: 'legend:edge:existing',
-            pattern: 'import',
+            pattern: 'lib/**',
             target: 'edge',
           }),
           expect.objectContaining({
@@ -276,7 +302,7 @@ describe('LegendsPanel', () => {
       },
     });
 
-    fireEvent.change(screen.getByDisplayValue('import'), {
+    fireEvent.change(screen.getByDisplayValue('lib/**'), {
       target: { value: 'call' },
     });
 

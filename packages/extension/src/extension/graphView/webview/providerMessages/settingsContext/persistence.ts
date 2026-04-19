@@ -8,7 +8,6 @@ export const SILENT_CONFIG_KEYS = new Set([
   'directionColor',
   'directionMode',
   'disabledPlugins',
-  'edgeColors',
   'edgeVisibility',
   'filterPatterns',
   'maxFiles',

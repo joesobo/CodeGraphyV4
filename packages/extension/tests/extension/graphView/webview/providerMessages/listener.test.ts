@@ -35,7 +35,6 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     nodeColors: { file: '#999999', folder: '#888888' },
     nodeVisibility: { file: true, folder: true },
     edgeVisibility: { imports: true, nests: false },
-    edgeColors: { imports: '#777777', nests: '#666666' },
     pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
     disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.005,

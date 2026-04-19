@@ -2,7 +2,6 @@ import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import {
-  createDefaultEdgeColors,
   createDefaultEdgeVisibility,
   createDefaultNodeColors,
   createDefaultNodeVisibility,
@@ -19,7 +18,6 @@ export interface ICodeGraphyRepoSettings {
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
-  edgeColors: Record<string, string>;
   favorites: string[];
   bidirectionalEdges: 'separate' | 'combined';
   legend: IGroup[];
@@ -59,7 +57,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     nodeColors: createDefaultNodeColors(),
     nodeVisibility: createDefaultNodeVisibility(),
     edgeVisibility: createDefaultEdgeVisibility(),
-    edgeColors: createDefaultEdgeColors(),
     favorites: [],
     bidirectionalEdges: 'separate',
     legend: [],

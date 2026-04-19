@@ -22,7 +22,7 @@ export function createUpdatedSettings(
 ): ICodeGraphyRepoSettings {
   const nextSettings = deepClone(settings) as unknown as Record<string, unknown>;
   setNestedValue(nextSettings, key, value);
-  return deepMerge(defaults, nextSettings);
+  return deepMerge(defaults, normalizePersistedSettingsShape(nextSettings));
 }
 
 function createSettingsState(settings: ICodeGraphyRepoSettings): SettingsState {

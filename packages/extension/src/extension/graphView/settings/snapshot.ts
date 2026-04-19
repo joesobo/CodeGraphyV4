@@ -16,7 +16,6 @@ export function captureGraphViewSettingsSnapshot(
   const nodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
   const nodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
   const edgeVisibility = config.get<Record<string, boolean>>('edgeVisibility', {}) ?? {};
-  const edgeColors = config.get<Record<string, string>>('edgeColors', {}) ?? {};
   const pluginOrder = config.get<string[]>('pluginOrder', []) ?? [];
   const disabledPlugins = config.get<string[]>('disabledPlugins', []) ?? [];
 
@@ -31,7 +30,6 @@ export function captureGraphViewSettingsSnapshot(
     nodeColors,
     nodeVisibility,
     edgeVisibility,
-    edgeColors,
     pluginOrder,
     disabledPlugins,
     particleSpeed: config.get('particleSpeed', 0.005),

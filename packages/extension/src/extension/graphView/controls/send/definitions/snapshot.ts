@@ -1,7 +1,13 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGraphControlsSnapshot } from '../../../../../shared/graphControls/contracts';
+import type { IGroup } from '../../../../../shared/settings/groups';
 import { mergeEdgeTypes, mergeNodeTypes } from './merge';
-import { resolveEdgeColors, resolveNodeColors, resolveVisibilityMap } from './values';
+import {
+  readLegendEdgeColorOverrides,
+  resolveEdgeColors,
+  resolveNodeColors,
+  resolveVisibilityMap,
+} from './values';
 import type {
   GraphControlsConfigurationLike,
   GraphEdgeTypeLike,
@@ -17,7 +23,7 @@ export function captureGraphControlsSnapshot(
   const configuredNodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
   const configuredNodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
   const configuredEdgeVisibility = config.get<Record<string, boolean>>('edgeVisibility', {}) ?? {};
-  const configuredEdgeColors = config.get<Record<string, string>>('edgeColors', {}) ?? {};
+  const configuredLegend = config.get<IGroup[]>('legend', []) ?? [];
   const nodeTypes = mergeNodeTypes(graphData, pluginNodeTypes, configuredNodeColors);
   const edgeTypes = mergeEdgeTypes(graphData, pluginEdgeTypes);
 
@@ -27,6 +33,6 @@ export function captureGraphControlsSnapshot(
     nodeColors: resolveNodeColors(nodeTypes, configuredNodeColors),
     nodeVisibility: resolveVisibilityMap(nodeTypes, configuredNodeVisibility),
     edgeVisibility: resolveVisibilityMap(edgeTypes, configuredEdgeVisibility),
-    edgeColors: resolveEdgeColors(edgeTypes, configuredEdgeColors),
+    edgeColors: resolveEdgeColors(edgeTypes, readLegendEdgeColorOverrides(configuredLegend)),
   };
 }

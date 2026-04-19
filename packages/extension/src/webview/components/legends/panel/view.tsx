@@ -5,7 +5,11 @@ import { postMessage } from '../../../vscodeApi';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { ScrollArea } from '../../ui/scroll-area';
-import { useLegendPanelState } from './state';
+import {
+  replaceCustomEdgeRules,
+  upsertEdgeTypeColorRule,
+  useLegendPanelState,
+} from './state';
 import { replaceSectionRules } from './section/displayRules';
 import { LegendSection } from './section/view';
 import { sendUserLegendRules } from './messages';
@@ -32,6 +36,7 @@ export default function LegendsPanel({
     displayedNodeLegendRules,
     edgeEntries,
     edgeLegendRules,
+    edgeTypeIds,
     nodeEntries,
     nodeLegendRules,
     userLegendRules,
@@ -93,14 +98,14 @@ export default function LegendsPanel({
             legends={legends}
             target="edge"
             onBuiltInColorChange={(edgeKind, color) => {
-              postMessage({
-                type: 'UPDATE_EDGE_COLOR',
-                payload: { edgeKind, color },
-              });
+              sendUserLegendRules(
+                upsertEdgeTypeColorRule(userLegendRules, edgeKind, color),
+                setOptimisticUserLegends,
+              );
             }}
             onRulesChange={(nextSectionRules) => {
               sendUserLegendRules(
-                replaceSectionRules(userLegendRules, 'edge', nextSectionRules),
+                replaceCustomEdgeRules(userLegendRules, edgeTypeIds, nextSectionRules),
                 setOptimisticUserLegends,
               );
             }}

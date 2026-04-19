@@ -25,6 +25,72 @@ function createBuiltInEntries(
   }));
 }
 
+function ruleTargetsEdges(rule: IGroup): boolean {
+  return (rule.target ?? 'node') !== 'node';
+}
+
+function createEdgeTypeIdSet(edgeTypes: Array<{ id: string }>): Set<string> {
+  return new Set(edgeTypes.map((edgeType) => edgeType.id));
+}
+
+export function isEdgeTypeColorRule(rule: IGroup, edgeTypeIds: ReadonlySet<string>): boolean {
+  return !rule.isPluginDefault && ruleTargetsEdges(rule) && edgeTypeIds.has(rule.pattern);
+}
+
+function resolveEdgeTypeColorRules(
+  rules: IGroup[],
+  edgeTypeIds: ReadonlySet<string>,
+): Record<string, string> {
+  const colors: Record<string, string> = {};
+
+  for (const rule of [...rules].filter((entry) => !entry.disabled).reverse()) {
+    if (isEdgeTypeColorRule(rule, edgeTypeIds)) {
+      colors[rule.pattern] = rule.color;
+    }
+  }
+
+  return colors;
+}
+
+export function upsertEdgeTypeColorRule(
+  rules: IGroup[],
+  edgeKind: string,
+  color: string,
+): IGroup[] {
+  const nextRules = [...rules];
+  const index = nextRules.findIndex(
+    (rule) => ruleTargetsEdges(rule) && rule.pattern === edgeKind,
+  );
+  const currentRule = index >= 0 ? nextRules[index] : undefined;
+  const nextRule: IGroup = {
+    id: currentRule?.id ?? `legend:edge:${edgeKind}`,
+    pattern: edgeKind,
+    target: 'edge',
+    color,
+  };
+
+  if (index >= 0) {
+    nextRules[index] = {
+      ...currentRule,
+      ...nextRule,
+    };
+    return nextRules;
+  }
+
+  return [...nextRules, nextRule];
+}
+
+export function replaceCustomEdgeRules(
+  rules: IGroup[],
+  edgeTypeIds: ReadonlySet<string>,
+  nextSectionRules: IGroup[],
+): IGroup[] {
+  const remainingRules = rules.filter((rule) =>
+    !shouldRenderRuleInSection(rule, 'edge') || isEdgeTypeColorRule(rule, edgeTypeIds),
+  );
+  return [...remainingRules, ...nextSectionRules];
+}
+
 export function useLegendPanelState({
   edgeColors,
   edgeTypes,
@@ -36,29 +102,47 @@ export function useLegendPanelState({
     () => legends.filter((group) => !group.isPluginDefault),
     [legends],
   );
+  const edgeTypeIds = useMemo(
+    () => createEdgeTypeIdSet(edgeTypes),
+    [edgeTypes],
+  );
+  const userDisplayLegendRules = useMemo(
+    () => userLegendRules.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
+    [edgeTypeIds, userLegendRules],
+  );
   const nodeLegendRules = useMemo(
-    () => userLegendRules.filter((rule) => shouldRenderRuleInSection(rule, 'node')),
-    [userLegendRules],
+    () => userDisplayLegendRules.filter((rule) => shouldRenderRuleInSection(rule, 'node')),
+    [userDisplayLegendRules],
   );
   const edgeLegendRules = useMemo(
-    () => userLegendRules.filter((rule) => shouldRenderRuleInSection(rule, 'edge')),
-    [userLegendRules],
+    () => userDisplayLegendRules.filter((rule) => shouldRenderRuleInSection(rule, 'edge')),
+    [userDisplayLegendRules],
   );
   const displayedNodeLegendRules = useMemo(
-    () => resolveDisplayRules(legends, 'node'),
-    [legends],
+    () => resolveDisplayRules(
+      legends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
+      'node',
+    ),
+    [edgeTypeIds, legends],
   );
   const displayedEdgeLegendRules = useMemo(
-    () => resolveDisplayRules(legends, 'edge'),
-    [legends],
+    () => resolveDisplayRules(
+      legends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
+      'edge',
+    ),
+    [edgeTypeIds, legends],
   );
   const nodeEntries = useMemo(
     () => createBuiltInEntries(nodeTypes, nodeColors),
     [nodeColors, nodeTypes],
   );
+  const edgeTypeRuleColors = useMemo(
+    () => resolveEdgeTypeColorRules(userLegendRules, edgeTypeIds),
+    [edgeTypeIds, userLegendRules],
+  );
   const edgeEntries = useMemo(
-    () => createBuiltInEntries(edgeTypes, edgeColors),
-    [edgeColors, edgeTypes],
+    () => createBuiltInEntries(edgeTypes, { ...edgeColors, ...edgeTypeRuleColors }),
+    [edgeColors, edgeTypeRuleColors, edgeTypes],
   );
 
   return {
@@ -68,6 +152,7 @@ export function useLegendPanelState({
     edgeLegendRules,
     nodeEntries,
     nodeLegendRules,
+    edgeTypeIds,
     userLegendRules,
   };
 }

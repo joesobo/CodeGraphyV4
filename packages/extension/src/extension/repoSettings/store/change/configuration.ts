@@ -1,5 +1,3 @@
-import { normalizeSettingsKeyAlias } from '../model/keyAliases';
-
 export function affectsSettingsConfiguration(
   changedKeys: readonly string[],
   section: string,
@@ -12,7 +10,7 @@ export function affectsSettingsConfiguration(
     return false;
   }
 
-  const key = normalizeSettingsKeyAlias(section.slice('codegraphy.'.length));
+  const key = section.slice('codegraphy.'.length);
   return changedKeys.some(
     changedKey =>
       changedKey === key

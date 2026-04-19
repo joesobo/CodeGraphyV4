@@ -59,7 +59,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     nodeColors: { file: '#111111', folder: '#222222' },
     nodeVisibility: { file: true, folder: false },
     edgeVisibility: { imports: true, calls: false },
-    edgeColors: { imports: '#333333', calls: '#444444' },
     pluginOrder: ['codegraphy.markdown'],
     disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.001,
@@ -89,7 +88,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       nodeColors: { file: '#111111', folder: '#222222' },
       nodeVisibility: { file: true, folder: false },
       edgeVisibility: { imports: true, calls: false },
-      edgeColors: { imports: '#333333', calls: '#444444' },
       pluginOrder: ['codegraphy.markdown'],
       disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.001,
@@ -149,7 +147,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     expect(keys).toContain('nodeColors');
     expect(keys).toContain('nodeVisibility');
     expect(keys).toContain('edgeVisibility');
-    expect(keys).toContain('edgeColors');
     expect(keys).toContain('pluginOrder');
     expect(keys).toContain('disabledPlugins');
     expect(keys).toContain('nodeSizeMode');

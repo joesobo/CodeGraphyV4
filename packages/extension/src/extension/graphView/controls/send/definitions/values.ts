@@ -3,6 +3,7 @@ import type {
   IGraphNodeTypeDefinition,
 } from '../../../../../shared/graphControls/contracts';
 import { normalizeHexColor } from '../../../../../shared/fileColors';
+import type { IGroup } from '../../../../../shared/settings/groups';
 
 export function resolveVisibilityMap<TDefinition extends { id: string; defaultVisible: boolean }>(
   definitions: TDefinition[],
@@ -49,6 +50,28 @@ export function resolveEdgeColors(
         ? (configured[definition.id] as string)
         : undefined;
     colors[definition.id] = normalizeHexColor(configuredColor, definition.defaultColor);
+  }
+
+  return colors;
+}
+
+function ruleTargetsEdges(rule: IGroup): boolean {
+  return (rule.target ?? 'node') !== 'node';
+}
+
+export function readLegendEdgeColorOverrides(legends: IGroup[]): Record<string, string> {
+  const colors: Record<string, string> = {};
+
+  for (const rule of [...legends].filter(rule => !rule.disabled).reverse()) {
+    if (
+      !ruleTargetsEdges(rule)
+      || typeof rule.pattern !== 'string'
+      || typeof rule.color !== 'string'
+    ) {
+      continue;
+    }
+
+    colors[rule.pattern] = rule.color;
   }
 
   return colors;

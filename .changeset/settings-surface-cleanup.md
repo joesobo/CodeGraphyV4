@@ -2,4 +2,4 @@
 "@codegraphy/extension": patch
 ---
 
-Clean up repo-local settings by dropping the unused plugins field and hiding generated legend rule IDs from settings.json.
+Clean up repo-local settings by dropping unused plugin and edge color fields while keeping edge colors in legend rules.

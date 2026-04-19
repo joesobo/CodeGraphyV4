@@ -185,7 +185,7 @@ describe('extension/repoSettings/store', () => {
     expect(persisted.legend).toEqual([{ pattern: 'tests/**', color: '#00ff00' }]);
   });
 
-  it('ignores legacy exclude entries in persisted settings files', () => {
+  it('drops unknown settings keys from persisted settings files', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
     const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
@@ -196,6 +196,7 @@ describe('extension/repoSettings/store', () => {
         ...createSettingsWithOverrides({}),
         filterPatterns: ['**/*.png'],
         exclude: ['**/*.tmp', '**/*.png'],
+        edgeColors: { import: '#123456' },
       }, null, 2),
       'utf8',
     );
@@ -203,6 +204,9 @@ describe('extension/repoSettings/store', () => {
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
     expect(store.get('filterPatterns', [])).toEqual(['**/*.png']);
+    const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+    expect(persisted.exclude).toBeUndefined();
+    expect(persisted.edgeColors).toBeUndefined();
   });
 
   it('ignores invalid manual saves and keeps the last valid settings in memory', () => {
@@ -228,7 +232,7 @@ describe('extension/repoSettings/store', () => {
     expect(changes).toEqual([['maxFiles']]);
   });
 
-  it('prefers existing legend and node color entries over legacy aliases while cleaning excludes', () => {
+  it('keeps explicit legend and node color entries while dropping unknown keys', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
     const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
@@ -238,11 +242,10 @@ describe('extension/repoSettings/store', () => {
       JSON.stringify({
         ...createSettingsWithOverrides({}),
         legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#112233' }],
-        groups: [{ id: 'legacy-group', pattern: 'legacy/**', color: '#ffffff' }],
         nodeColors: { folder: '#445566', file: '#999999' },
-        folderNodeColor: '#000000',
         filterPatterns: ['**/*.png'],
         exclude: ['**/*.png', 42],
+        edgeColors: { import: '#123456' },
       }, null, 2),
       'utf8',
     );
@@ -253,7 +256,7 @@ describe('extension/repoSettings/store', () => {
     expect(store.get('legend', [])).toEqual([
       { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
     ]);
-    expect(store.get('folderNodeColor', '')).toBe('#445566');
+    expect(store.get('folderNodeColor', '')).toBe('');
     expect(persisted.legend).toEqual([
       { pattern: 'src/**', color: '#112233' },
     ]);
@@ -262,6 +265,7 @@ describe('extension/repoSettings/store', () => {
       file: '#999999',
     }));
     expect(persisted.exclude).toBeUndefined();
+    expect(persisted.edgeColors).toBeUndefined();
     expect(persisted.filterPatterns).toEqual(['**/*.png']);
   });
 
@@ -281,7 +285,7 @@ describe('extension/repoSettings/store', () => {
     );
   });
 
-  it('reports alias and parent-child matches through affectsConfiguration', async () => {
+  it('reports explicit and parent-child matches through affectsConfiguration', async () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
@@ -296,13 +300,14 @@ describe('extension/repoSettings/store', () => {
     await store.update('nodeColors', { folder: '#123456' });
 
     expect(events[0].affectsConfiguration('codegraphy')).toBe(true);
-    expect(events[0].affectsConfiguration('codegraphy.groups')).toBe(true);
+    expect(events[0].affectsConfiguration('codegraphy.legend')).toBe(true);
+    expect(events[0].affectsConfiguration('codegraphy.groups')).toBe(false);
     expect(events[0].affectsConfiguration('workbench.colorTheme')).toBe(false);
 
     expect(events[1].affectsConfiguration('codegraphy.timeline')).toBe(true);
     expect(events[1].affectsConfiguration('codegraphy.timeline.playbackSpeed')).toBe(true);
 
-    expect(events[2].affectsConfiguration('codegraphy.folderNodeColor')).toBe(true);
+    expect(events[2].affectsConfiguration('codegraphy.folderNodeColor')).toBe(false);
     expect(events[2].affectsConfiguration('codegraphy.nodeColors')).toBe(true);
   });
 

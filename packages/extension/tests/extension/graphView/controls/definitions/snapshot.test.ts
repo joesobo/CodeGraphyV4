@@ -16,8 +16,16 @@ describe('extension/graphView/controls/snapshot', () => {
           if (key === 'edgeVisibility') {
             return { import: true, 'plugin:route': false } as T;
           }
-          if (key === 'edgeColors') {
-            return { import: '#ff00ff', 'plugin:route': '#0f0f0f' } as T;
+          if (key === 'legend') {
+            return [
+              { id: 'legend:edge:import', pattern: 'import', color: '#ff00ff', target: 'edge' },
+              {
+                id: 'legend:edge:route',
+                pattern: 'plugin:route',
+                color: '#0f0f0f',
+                target: 'edge',
+              },
+            ] as T;
           }
           return defaultValue;
         },
@@ -84,8 +92,10 @@ describe('extension/graphView/controls/snapshot', () => {
           if (key === 'nodeColors') {
             return { file: 'bad-color' } as T;
           }
-          if (key === 'edgeColors') {
-            return { import: 'bad-color' } as T;
+          if (key === 'legend') {
+            return [
+              { id: 'legend:edge:import', pattern: 'import', color: 'bad-color', target: 'edge' },
+            ] as T;
           }
           return defaultValue;
         },
