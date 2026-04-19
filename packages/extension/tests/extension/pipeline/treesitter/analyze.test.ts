@@ -158,6 +158,69 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
     );
   });
 
+  it('extracts TypeScript type-only imports as type-import relations', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/runtime.ts': [
+        'export interface RuntimeOptions { enabled: boolean }',
+        'export function boot() { return true; }',
+        '',
+      ].join('\n'),
+      'src/types.ts': 'export interface PluginContract { id: string }\n',
+    });
+    const appPath = path.join(workspaceRoot, 'src/app.ts');
+    const appSource = [
+      "import type { PluginContract } from './types';",
+      "import { type RuntimeOptions, boot } from './runtime';",
+      'const contract: PluginContract = { id: "plugin" };',
+      'const options: RuntimeOptions = { enabled: boot() };',
+      'void contract;',
+      'void options;',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(appPath, appSource, workspaceRoot);
+
+    expect(result?.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'type-import',
+          pluginId: 'codegraphy.treesitter',
+          specifier: './types',
+          resolvedPath: path.join(workspaceRoot, 'src/types.ts'),
+          fromFilePath: appPath,
+          toFilePath: path.join(workspaceRoot, 'src/types.ts'),
+          sourceId: 'codegraphy.treesitter:type-import',
+        }),
+        expect.objectContaining({
+          kind: 'type-import',
+          pluginId: 'codegraphy.treesitter',
+          specifier: './runtime',
+          resolvedPath: path.join(workspaceRoot, 'src/runtime.ts'),
+          fromFilePath: appPath,
+          toFilePath: path.join(workspaceRoot, 'src/runtime.ts'),
+          sourceId: 'codegraphy.treesitter:type-import',
+        }),
+        expect.objectContaining({
+          kind: 'import',
+          pluginId: 'codegraphy.treesitter',
+          specifier: './runtime',
+          resolvedPath: path.join(workspaceRoot, 'src/runtime.ts'),
+          fromFilePath: appPath,
+          toFilePath: path.join(workspaceRoot, 'src/runtime.ts'),
+          sourceId: 'codegraphy.treesitter:import',
+        }),
+      ]),
+    );
+    expect(result?.relations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'import',
+          specifier: './types',
+        }),
+      ]),
+    );
+  });
+
   it('extracts symbols from arrow function and function expression variable declarations', async () => {
     const workspaceRoot = await createWorkspace({});
     const filePath = path.join(workspaceRoot, 'src/createFolder.ts');

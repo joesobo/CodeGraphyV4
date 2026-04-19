@@ -23,6 +23,7 @@ export const TREE_SITTER_SOURCE_IDS = {
   inherit: 'codegraphy.treesitter:inherit',
   reference: 'codegraphy.treesitter:reference',
   reexport: 'codegraphy.treesitter:reexport',
+  typeImport: 'codegraphy.treesitter:type-import',
 } as const;
 
 export const TREE_SITTER_SUPPORTED_EXTENSIONS = [

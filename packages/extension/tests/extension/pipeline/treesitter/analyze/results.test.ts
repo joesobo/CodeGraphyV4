@@ -6,6 +6,7 @@ import {
   addImportRelation,
   addInheritRelation,
   addReferenceRelation,
+  addTypeImportRelation,
   createRange,
   createSymbol,
   createSymbolId,
@@ -131,6 +132,23 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
         resolvedPath: null,
         toFilePath: null,
         type: 'style',
+      },
+    ]);
+  });
+
+  it('adds type-import relations with their own edge kind and source id', () => {
+    const relations: unknown[] = [];
+
+    addTypeImportRelation(relations as never, '/workspace/app.ts', './types', '/workspace/types.ts');
+
+    expect(relations).toEqual([
+      {
+        kind: 'type-import',
+        sourceId: TREE_SITTER_SOURCE_IDS.typeImport,
+        fromFilePath: '/workspace/app.ts',
+        specifier: './types',
+        resolvedPath: '/workspace/types.ts',
+        toFilePath: '/workspace/types.ts',
       },
     ]);
   });

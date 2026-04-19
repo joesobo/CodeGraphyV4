@@ -7,11 +7,13 @@ vi.mock('../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyz
 }));
 
 function createNode(overrides: Partial<{
+  children: unknown[];
   type: string;
   text: string;
   namedChildren: unknown[];
 }> = {}) {
   return {
+    children: [],
     type: 'identifier',
     text: '',
     namedChildren: [],
@@ -65,6 +67,78 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       'Service',
       './lib',
       '/workspace/lib.ts',
+    );
+  });
+
+  it('skips inline type-only import specifiers', () => {
+    const importedBindings = new Map();
+
+    addNamedImportBindings(
+      createNode({
+        type: 'named_imports',
+        namedChildren: [
+          createNode({
+            type: 'import_specifier',
+            text: 'type RuntimeOptions',
+            children: [createNode({ type: 'type', text: 'type' })],
+            namedChildren: [createNode({ type: 'type_identifier', text: 'RuntimeOptions' })],
+          }),
+          createNode({
+            type: 'import_specifier',
+            text: 'boot',
+            namedChildren: [createNode({ type: 'identifier', text: 'boot' })],
+          }),
+        ],
+      }) as never,
+      importedBindings,
+      './runtime',
+      '/workspace/runtime.ts',
+    );
+
+    expect(addCollectedImportBinding).toHaveBeenCalledOnce();
+    expect(addCollectedImportBinding).toHaveBeenCalledWith(
+      importedBindings,
+      'boot',
+      'boot',
+      './runtime',
+      '/workspace/runtime.ts',
+    );
+  });
+
+  it('collects value imports named type', () => {
+    const importedBindings = new Map();
+
+    addNamedImportBindings(
+      createNode({
+        type: 'named_imports',
+        namedChildren: [
+          createNode({
+            type: 'import_specifier',
+            text: 'type as alias',
+            children: [
+              createNode({ type: 'identifier', text: 'type' }),
+              createNode({ type: 'as', text: 'as' }),
+              createNode({ type: 'identifier', text: 'alias' }),
+            ],
+            namedChildren: [
+              createNode({ type: 'identifier', text: 'type' }),
+              createNode({ type: 'identifier', text: 'alias' }),
+            ],
+          }),
+        ],
+      }) as never,
+      importedBindings,
+      './runtime',
+      '/workspace/runtime.ts',
+    );
+
+    expect(addCollectedImportBinding).toHaveBeenCalledOnce();
+    expect(addCollectedImportBinding).toHaveBeenCalledWith(
+      importedBindings,
+      'alias',
+      'type',
+      './runtime',
+      '/workspace/runtime.ts',
     );
   });
 

@@ -17,6 +17,12 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultVisible: true,
     },
     {
+      id: 'type-import',
+      label: 'Type imports',
+      defaultColor: '#38BDF8',
+      defaultVisible: false,
+    },
+    {
       id: 'reexport',
       label: 'Re-exports',
       defaultColor: '#A78BFA',
