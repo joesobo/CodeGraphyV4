@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  resolveEdgeColors,
   resolveNodeColors,
   resolveVisibilityMap,
 } from '../../../../../src/extension/graphView/controls/send/definitions/values';
@@ -45,27 +44,6 @@ describe('extension/graphView/controls/send/definitions/values', () => {
       file: '#ABCDEF',
       route: '#22C55E',
       package: '#F59E0B',
-    });
-  });
-
-  it('normalizes configured edge colors and falls back to defaults for invalid values', () => {
-    expect(
-      resolveEdgeColors(
-        [
-          { id: 'import', label: 'Imports', defaultColor: '#60A5FA', defaultVisible: true },
-          { id: 'plugin:route', label: 'Route Links', defaultColor: '#10B981', defaultVisible: true },
-          { id: 'codegraphy:nests', label: 'Nests', defaultColor: '#64748B', defaultVisible: true },
-        ],
-        {
-          import: '#ff00ff',
-          'plugin:route': ['#00ff00'],
-          'codegraphy:nests': { color: '#000000' },
-        },
-      ),
-    ).toEqual({
-      import: '#FF00FF',
-      'plugin:route': '#10B981',
-      'codegraphy:nests': '#64748B',
     });
   });
 });

@@ -113,7 +113,6 @@ describe('extension/graphView/controls/send', () => {
       nodeColors: { file: '#A1A1AA' },
       nodeVisibility: { file: true },
       edgeVisibility: { import: true },
-      edgeColors: { import: '#60A5FA' },
     };
 
     expect(buildGraphControlsUpdatedMessage(snapshot)).toStrictEqual({

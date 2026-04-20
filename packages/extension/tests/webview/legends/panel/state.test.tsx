@@ -14,10 +14,9 @@ describe('webview/legends/panelState', () => {
       ],
       edgeTypes: [
         { id: 'import', label: 'Import', defaultColor: '#333333' },
-        { id: 'call', label: 'Call', defaultColor: '#444444' },
+        { id: 'call', label: 'Call', defaultColor: '#fedcba' },
       ],
       nodeColors: { file: '#abcdef' },
-      edgeColors: { call: '#fedcba' },
       legends: [
         { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
         { id: 'edge:user', pattern: 'src/**', color: '#654321', target: 'edge' },
@@ -74,7 +73,6 @@ describe('webview/legends/panelState', () => {
       nodeTypes: [{ id: 'service', label: 'Service', defaultColor: '#101010' }],
       edgeTypes: [{ id: 'depends', label: 'Depends', defaultColor: '#202020' }],
       nodeColors: { service: '#0f0f0f' },
-      edgeColors: {},
       legends: [
         { id: 'edge:plugin', pattern: 'depends', color: '#808080', target: 'edge', isPluginDefault: true },
       ] satisfies IGroup[],
@@ -101,7 +99,6 @@ describe('webview/legends/panelState', () => {
         nodeTypes: [],
         edgeTypes: [],
         nodeColors: {},
-        edgeColors: {},
         legends: [
           { id: 'shared', pattern: 'src/**', color: '#123456', target: 'node' },
           {
@@ -159,7 +156,6 @@ describe('webview/legends/panelState', () => {
         nodeTypes: [],
         edgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#111111' }],
         nodeColors: {},
-        edgeColors: { import: '#222222' },
         legends: [
           { id: 'legend:edge:import', pattern: 'import', color: '#abcdef', target: 'edge' },
         ],

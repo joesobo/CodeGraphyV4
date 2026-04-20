@@ -15,8 +15,8 @@ describe('EdgesPanel', () => {
   it('renders nothing while closed', () => {
     graphStore.setState({
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#111111', defaultVisible: true }],
-      edgeColors: {},
       edgeVisibility: {},
+      legends: [],
     });
 
     const { container } = render(<EdgesPanel isOpen={false} onClose={vi.fn()} />);
@@ -27,16 +27,17 @@ describe('EdgesPanel', () => {
   it('shows edge labels with their current colors', () => {
     graphStore.setState({
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#111111', defaultVisible: true }],
-      edgeColors: { import: '#444444' },
       edgeVisibility: { import: true },
+      legends: [{ id: 'legend:edge:import', pattern: 'import', color: '#444444', target: 'edge' }],
     });
 
-    render(<EdgesPanel isOpen={true} onClose={vi.fn()} />);
+    const { container } = render(<EdgesPanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByText('Imports')).toBeInTheDocument();
     expect(screen.queryByText('import')).not.toBeInTheDocument();
     expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'checked');
     expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('h-6', 'w-6');
+    expect(container.querySelector('[aria-hidden="true"]')).toHaveStyle({ backgroundColor: '#444444' });
   });
 
   it('renders edge entries inside a divided list', () => {
@@ -45,8 +46,8 @@ describe('EdgesPanel', () => {
         { id: 'import', label: 'Imports', defaultColor: '#111111', defaultVisible: true },
         { id: 'call', label: 'Calls', defaultColor: '#222222', defaultVisible: true },
       ],
-      edgeColors: {},
       edgeVisibility: { import: true, call: true },
+      legends: [],
     });
 
     const { container } = render(<EdgesPanel isOpen={true} onClose={vi.fn()} />);
@@ -58,8 +59,8 @@ describe('EdgesPanel', () => {
     sentMessages.length = 0;
     graphStore.setState({
       graphEdgeTypes: [{ id: 'codegraphy:nests', label: 'Nests', defaultColor: '#222222', defaultVisible: true }],
-      edgeColors: {},
       edgeVisibility: { 'codegraphy:nests': true },
+      legends: [],
     });
 
     render(<EdgesPanel isOpen={true} onClose={vi.fn()} />);
@@ -76,8 +77,8 @@ describe('EdgesPanel', () => {
     const onClose = vi.fn();
     graphStore.setState({
       graphEdgeTypes: [{ id: 'call', label: 'Calls', defaultColor: '#abcdef', defaultVisible: false }],
-      edgeColors: {},
       edgeVisibility: {},
+      legends: [],
     });
 
     const { container } = render(<EdgesPanel isOpen={true} onClose={onClose} />);

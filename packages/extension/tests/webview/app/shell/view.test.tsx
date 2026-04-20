@@ -53,7 +53,6 @@ function resetStore() {
     nodeColors: {},
     nodeVisibility: {},
     edgeVisibility: {},
-    edgeColors: {},
     activePanel: 'none',
     maxFiles: 500,
   });

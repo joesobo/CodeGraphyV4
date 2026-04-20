@@ -139,6 +139,19 @@ describe('graph/rendering/bidirectional/link', () => {
     ]));
   });
 
+  it('uses resolved link colors for the default stroke', () => {
+    const { ctx, operations } = createContext();
+
+    renderBidirectionalLink(createDependencies(), createLink({ baseColor: '#123456' }), ctx, 1);
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'stroke',
+        strokeStyle: '#123456',
+      }),
+    ]));
+  });
+
   it('keeps the connected stroke styling when the highlighted node is the source', () => {
     const { ctx, operations } = createContext();
 

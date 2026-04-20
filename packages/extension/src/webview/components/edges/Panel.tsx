@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { mdiClose } from '@mdi/js';
 import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { MdiIcon } from '../icons/MdiIcon';
 import { ScrollArea } from '../ui/scroll-area';
 import { Switch } from '../ui/switch';
+import { resolveEdgeTypeColors } from '../../graphControls/edgeTypeColors';
 
 interface EdgesPanelProps {
   isOpen: boolean;
@@ -18,7 +19,11 @@ export default function EdgesPanel({
 }: EdgesPanelProps): React.ReactElement | null {
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
   const edgeVisibility = useGraphStore((state) => state.edgeVisibility);
-  const edgeColors = useGraphStore((state) => state.edgeColors);
+  const legends = useGraphStore((state) => state.legends);
+  const edgeTypeColors = useMemo(
+    () => resolveEdgeTypeColors(edgeTypes, legends),
+    [edgeTypes, legends],
+  );
 
   if (!isOpen) {
     return null;
@@ -37,7 +42,7 @@ export default function EdgesPanel({
         <div className="px-3 py-2">
           <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
             {edgeTypes.map((edgeType) => {
-              const color = edgeColors[edgeType.id] ?? edgeType.defaultColor;
+              const color = edgeTypeColors[edgeType.id] ?? edgeType.defaultColor;
               const enabled = edgeVisibility[edgeType.id] ?? edgeType.defaultVisible;
 
               return (
