@@ -29,7 +29,6 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   nodeColors: 'nodeColors',
   nodeVisibility: 'nodeVisibility',
   edgeVisibility: 'edgeVisibility',
-  edgeColors: 'edgeColors',
   pluginOrder: 'pluginOrder',
   disabledPlugins: 'disabledPlugins',
   particleSpeed: 'particleSpeed',

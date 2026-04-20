@@ -55,20 +55,21 @@ describe('extension/repoSettings/store/persistence/diskState', () => {
       maxFiles: 250,
       filterPatterns: ['**/*.png', '**/*.png'],
       exclude: ['legacy'],
-      groups: [{ id: 'group-1', pattern: 'src/**', color: '#123456' }],
-      folderNodeColor: '#445566',
+      legend: [{ pattern: 'src/**', color: '#123456' }],
+      edgeColors: { import: '#654321' },
+      plugins: ['legacy.plugin'],
     }, null, 2), 'utf8');
 
     const state = readSettingsFromDisk(settingsPath, defaults);
 
     expect(state.settings.maxFiles).toBe(250);
     expect(state.settings.filterPatterns).toEqual(['**/*.png']);
-    expect(state.settings.legend).toEqual([{ id: 'group-1', pattern: 'src/**', color: '#123456' }]);
-    expect(state.settings.nodeColors.folder).toBe('#445566');
+    expect(state.settings.legend).toEqual([{ id: 'legend:node:src:1', pattern: 'src/**', color: '#123456' }]);
     expect(state.serializedSettings).toBe(fs.readFileSync(settingsPath, 'utf8'));
     expect(fs.readFileSync(settingsPath, 'utf8')).toContain('"legend"');
     expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"exclude"');
-    expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"folderNodeColor"');
+    expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"edgeColors"');
+    expect(fs.readFileSync(settingsPath, 'utf8')).not.toContain('"plugins"');
   });
 
   it('reads an already-normalized settings file without rewriting it', () => {

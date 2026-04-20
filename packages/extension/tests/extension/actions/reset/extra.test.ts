@@ -62,7 +62,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     nodeColors: { file: '#999999', folder: '#888888' },
     nodeVisibility: { file: true, folder: true },
     edgeVisibility: { imports: true, nests: false },
-    edgeColors: { imports: '#777777', nests: '#666666' },
     pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
     disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.001,
@@ -89,7 +88,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       nodeColors: { file: '#999999', folder: '#888888' },
       nodeVisibility: { file: true, folder: true },
       edgeVisibility: { imports: true, nests: false },
-      edgeColors: { imports: '#777777', nests: '#666666' },
       pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
       disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.001,
@@ -159,7 +157,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(updatedKeys).toContain('nodeColors');
     expect(updatedKeys).toContain('nodeVisibility');
     expect(updatedKeys).toContain('edgeVisibility');
-    expect(updatedKeys).toContain('edgeColors');
     expect(updatedKeys).toContain('pluginOrder');
     expect(updatedKeys).toContain('disabledPlugins');
     expect(updatedKeys).toContain('particleSpeed');
@@ -211,7 +208,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'nodeColors' && value === SNAPSHOT.nodeColors)).toBe(true);
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'nodeVisibility' && value === SNAPSHOT.nodeVisibility)).toBe(true);
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'edgeVisibility' && value === SNAPSHOT.edgeVisibility)).toBe(true);
-    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'edgeColors' && value === SNAPSHOT.edgeColors)).toBe(true);
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'pluginOrder' && value === SNAPSHOT.pluginOrder)).toBe(true);
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'disabledPlugins' && value === SNAPSHOT.disabledPlugins)).toBe(true);
   });

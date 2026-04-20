@@ -3,7 +3,7 @@ import type { GraphViewSettingsMessageHandlers } from '../router';
 
 function getUpdatedConfigMap(
   handlers: GraphViewSettingsMessageHandlers,
-  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'edgeColors',
+  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors',
   entryKey: string,
   value: boolean | string,
 ): Record<string, boolean | string> {
@@ -14,7 +14,7 @@ function getUpdatedConfigMap(
 }
 
 async function applyGraphControlsUpdate(
-  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'edgeColors',
+  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors',
   entryKey: string,
   value: boolean | string,
   handlers: GraphViewSettingsMessageHandlers,
@@ -50,15 +50,6 @@ export async function applyGraphControlMessage(
     return applyGraphControlsUpdate(
       'nodeColors',
       message.payload.nodeType,
-      message.payload.color,
-      handlers,
-    );
-  }
-
-  if (message.type === 'UPDATE_EDGE_COLOR') {
-    return applyGraphControlsUpdate(
-      'edgeColors',
-      message.payload.edgeKind,
       message.payload.color,
       handlers,
     );

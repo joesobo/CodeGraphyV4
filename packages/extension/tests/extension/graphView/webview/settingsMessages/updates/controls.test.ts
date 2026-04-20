@@ -41,17 +41,9 @@ describe('settingsMessages/updates/controls', () => {
         handlers,
       ),
     ).resolves.toBe(true);
-    await expect(
-      applyGraphControlMessage(
-        { type: 'UPDATE_EDGE_COLOR', payload: { edgeKind: 'import', color: '#abcdef' } },
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'edgeVisibility', { import: false });
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'nodeColors', { file: '#123456' });
-    expect(handlers.updateConfig).toHaveBeenNthCalledWith(3, 'edgeColors', { import: '#abcdef' });
-    expect(handlers.sendGraphControls).toHaveBeenCalledTimes(3);
+    expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
   });
 
   it('returns false for unrelated messages without updating settings', async () => {

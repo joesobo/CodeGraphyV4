@@ -5,7 +5,11 @@ import { postMessage } from '../../../vscodeApi';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { ScrollArea } from '../../ui/scroll-area';
-import { useLegendPanelState } from './state';
+import {
+  replaceCustomEdgeRules,
+  upsertEdgeTypeColorRule,
+  useLegendPanelState,
+} from './state';
 import { replaceSectionRules } from './section/displayRules';
 import { LegendSection } from './section/view';
 import { sendUserLegendRules } from './messages';
@@ -22,7 +26,6 @@ export default function LegendsPanel({
   const nodeTypes = useGraphStore((state) => state.graphNodeTypes);
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
   const nodeColors = useGraphStore((state) => state.nodeColors);
-  const edgeColors = useGraphStore((state) => state.edgeColors);
   const legends = useGraphStore((state) => state.legends);
   const setOptimisticLegendUpdate = useGraphStore((state) => state.setOptimisticLegendUpdate);
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
@@ -32,11 +35,11 @@ export default function LegendsPanel({
     displayedNodeLegendRules,
     edgeEntries,
     edgeLegendRules,
+    edgeTypeIds,
     nodeEntries,
     nodeLegendRules,
     userLegendRules,
   } = useLegendPanelState({
-    edgeColors,
     edgeTypes,
     legends,
     nodeColors,
@@ -93,14 +96,14 @@ export default function LegendsPanel({
             legends={legends}
             target="edge"
             onBuiltInColorChange={(edgeKind, color) => {
-              postMessage({
-                type: 'UPDATE_EDGE_COLOR',
-                payload: { edgeKind, color },
-              });
+              sendUserLegendRules(
+                upsertEdgeTypeColorRule(userLegendRules, edgeKind, color),
+                setOptimisticUserLegends,
+              );
             }}
             onRulesChange={(nextSectionRules) => {
               sendUserLegendRules(
-                replaceSectionRules(userLegendRules, 'edge', nextSectionRules),
+                replaceCustomEdgeRules(userLegendRules, edgeTypeIds, nextSectionRules),
                 setOptimisticUserLegends,
               );
             }}

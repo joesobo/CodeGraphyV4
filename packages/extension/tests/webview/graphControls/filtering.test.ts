@@ -17,7 +17,7 @@ describe('webview/graphControls/filtering', () => {
       nodeColors: {},
       nodeVisibility: {},
       edgeVisibility: {},
-      edgeColors: {},
+      edgeTypes: [],
       edgeDecorations,
     })).toEqual({
       graphData: null,
@@ -25,7 +25,7 @@ describe('webview/graphControls/filtering', () => {
     });
   });
 
-  it('overrides edge decoration colors with edge-kind colors while preserving other decoration fields', () => {
+  it('preserves plugin edge decorations without applying edge type colors to decoration state', () => {
     const edgeId = 'src/a.ts->src/b.ts#import';
 
     const result = applyGraphControls({
@@ -47,7 +47,7 @@ describe('webview/graphControls/filtering', () => {
       nodeColors: {},
       nodeVisibility: { file: true },
       edgeVisibility: { import: true },
-      edgeColors: { import: '#00ff88' },
+      edgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#00ff88', defaultVisible: true }],
       edgeDecorations: {
         [edgeId]: {
           color: '#ff0066',
@@ -60,12 +60,13 @@ describe('webview/graphControls/filtering', () => {
 
     expect(result.edgeDecorations).toEqual({
       [edgeId]: {
-        color: '#00ff88',
+        color: '#ff0066',
         width: 4,
         style: 'dashed',
         label: { text: 'plugin label', color: '#ffffff' },
       },
     });
+    expect(result.graphData?.edges[0]).toMatchObject({ color: '#00ff88' });
   });
 
   it('keeps structural nests edges hidden until the required folder nodes are enabled', () => {
@@ -85,7 +86,7 @@ describe('webview/graphControls/filtering', () => {
       edgeVisibility: {
         [STRUCTURAL_NESTS_EDGE_KIND]: true,
       },
-      edgeColors: {},
+      edgeTypes: [],
     });
 
     expect(result.graphData).toEqual({
@@ -113,7 +114,7 @@ describe('webview/graphControls/filtering', () => {
       edgeVisibility: {
         [STRUCTURAL_NESTS_EDGE_KIND]: true,
       },
-      edgeColors: {},
+      edgeTypes: [],
     });
 
     expect(result.graphData).toEqual({

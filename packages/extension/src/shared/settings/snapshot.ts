@@ -13,7 +13,6 @@ export interface ISettingsSnapshot {
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
-  edgeColors: Record<string, string>;
   pluginOrder: string[];
   disabledPlugins: string[];
   particleSpeed: number;

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import {
-  createDefaultEdgeColors,
   createDefaultEdgeVisibility,
   createDefaultNodeColors,
   createDefaultNodeVisibility,
@@ -16,13 +15,11 @@ describe('extension/repoSettings/defaults', () => {
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
-      plugins: [],
       pluginOrder: [],
       disabledPlugins: [],
       nodeColors: createDefaultNodeColors(),
       nodeVisibility: createDefaultNodeVisibility(),
       edgeVisibility: createDefaultEdgeVisibility(),
-      edgeColors: createDefaultEdgeColors(),
       favorites: [],
       bidirectionalEdges: 'separate',
       legend: [],
@@ -58,13 +55,11 @@ describe('extension/repoSettings/defaults', () => {
     expect(second).toEqual(first);
     expect(second).not.toBe(first);
     expect(second.include).not.toBe(first.include);
-    expect(second.plugins).not.toBe(first.plugins);
     expect(second.pluginOrder).not.toBe(first.pluginOrder);
     expect(second.disabledPlugins).not.toBe(first.disabledPlugins);
     expect(second.nodeColors).not.toBe(first.nodeColors);
     expect(second.nodeVisibility).not.toBe(first.nodeVisibility);
     expect(second.edgeVisibility).not.toBe(first.edgeVisibility);
-    expect(second.edgeColors).not.toBe(first.edgeColors);
     expect(second.legend).not.toBe(first.legend);
     expect(second.filterPatterns).not.toBe(first.filterPatterns);
     expect(second.physics).not.toBe(first.physics);

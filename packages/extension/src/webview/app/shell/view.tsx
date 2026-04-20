@@ -33,7 +33,7 @@ export default function App(): React.ReactElement {
     nodeColors,
     nodeVisibility,
     edgeVisibility,
-    edgeColors,
+    graphEdgeTypes,
     nodeDecorations,
     edgeDecorations,
     activeFilePath,
@@ -64,7 +64,7 @@ export default function App(): React.ReactElement {
     nodeColors,
     nodeVisibility,
     edgeVisibility,
-    edgeColors,
+    graphEdgeTypes,
     edgeDecorations,
     activeFilterPatterns,
   );

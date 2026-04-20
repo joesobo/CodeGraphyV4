@@ -57,7 +57,6 @@ function createState(
     nodeColors: {},
     nodeVisibility: {},
     edgeVisibility: {},
-    edgeColors: {},
     nodeDecorations: {},
     edgeDecorations: {},
     pluginContextMenuItems: [],
@@ -111,7 +110,6 @@ describe('webview/store/messageHandlers/graph', () => {
       nodeColors: { file: '#A1A1AA' },
       nodeVisibility: { file: true },
       edgeVisibility: { import: false },
-      edgeColors: { import: '#64748B' },
     };
 
     expect(handleGraphControlsUpdated({
@@ -123,7 +121,6 @@ describe('webview/store/messageHandlers/graph', () => {
       nodeColors: controls.nodeColors,
       nodeVisibility: controls.nodeVisibility,
       edgeVisibility: controls.edgeVisibility,
-      edgeColors: controls.edgeColors,
     });
 
     const favorites = handleFavoritesUpdated({

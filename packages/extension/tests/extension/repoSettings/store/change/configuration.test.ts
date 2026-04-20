@@ -11,17 +11,18 @@ describe('extension/repoSettings/store/change/configuration', () => {
     expect(affectsSettingsConfiguration(['legend'], 'xxxxxxxxxxxlegend')).toBe(false);
   });
 
-  it('matches exact, parent, child, and aliased sections', () => {
+  it('matches exact, parent, and child sections', () => {
     const changedKeys = [
       'legend',
       'timeline.playbackSpeed',
       'nodeColors.folder',
     ];
 
-    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.groups')).toBe(true);
+    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.legend')).toBe(true);
+    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.groups')).toBe(false);
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.timeline')).toBe(true);
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.timeline.playbackSpeed')).toBe(true);
-    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.folderNodeColor')).toBe(true);
+    expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.folderNodeColor')).toBe(false);
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.nodeColors')).toBe(true);
     expect(affectsSettingsConfiguration(changedKeys, 'codegraphy.maxFiles')).toBe(false);
   });

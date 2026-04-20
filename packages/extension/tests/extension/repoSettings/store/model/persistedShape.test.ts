@@ -8,33 +8,28 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     expect(normalizePersistedSettingsShape('settings')).toEqual({});
   });
 
-  it('deduplicates filter patterns, removes exclude, and backfills legend from groups', () => {
+  it('deduplicates filter patterns and drops unknown top-level settings', () => {
     expect(normalizePersistedSettingsShape({
       filterPatterns: ['**/*.png', '**/*.png', 42, '**/*.tmp'],
-      exclude: ['legacy'],
-      groups: [{ id: 'group-1', pattern: 'src/**', color: '#123456' }],
+      edgeColors: { import: '#123456' },
+      plugins: ['codegraphy.typescript'],
     })).toEqual({
       filterPatterns: ['**/*.png', '**/*.tmp'],
-      groups: [{ id: 'group-1', pattern: 'src/**', color: '#123456' }],
-      legend: [{ id: 'group-1', pattern: 'src/**', color: '#123456' }],
     });
   });
 
-  it('keeps an existing legend and merges folderNodeColor only when folder is missing', () => {
+  it('keeps explicit legend and node color settings only', () => {
     expect(normalizePersistedSettingsShape({
       legend: [{ id: 'legend-1', pattern: 'tests/**', color: '#abcdef' }],
-      groups: [{ id: 'legacy-group', pattern: 'src/**', color: '#123456' }],
       nodeColors: { folder: '#654321', file: '#111111' },
-      folderNodeColor: '#222222',
+      unknownNested: { value: true },
     })).toEqual({
       legend: [{ id: 'legend-1', pattern: 'tests/**', color: '#abcdef' }],
-      groups: [{ id: 'legacy-group', pattern: 'src/**', color: '#123456' }],
       nodeColors: { folder: '#654321', file: '#111111' },
-      folderNodeColor: '#222222',
     });
   });
 
-  it('creates nodeColors from folderNodeColor when the persisted shape lacks one', () => {
+  it('drops legacy folder color and exclude aliases', () => {
     expect(normalizePersistedSettingsShape({
       nodeColors: 'invalid',
       folderNodeColor: '#445566',
@@ -42,8 +37,37 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       exclude: ['legacy'],
     })).toEqual({
       filterPatterns: [],
-      folderNodeColor: '#445566',
-      nodeColors: { folder: '#445566' },
+      nodeColors: 'invalid',
+    });
+  });
+
+  it('adds runtime ids to persisted legend rules that omit them', () => {
+    expect(normalizePersistedSettingsShape({
+      legend: [
+        { pattern: 'src/**', color: '#abcdef' },
+        { id: 'custom-id', pattern: 'import', color: '#123456', target: 'edge' },
+      ],
+    })).toEqual({
+      legend: [
+        { id: 'legend:node:src:1', pattern: 'src/**', color: '#abcdef' },
+        { id: 'custom-id', pattern: 'import', color: '#123456', target: 'edge' },
+      ],
+    });
+  });
+
+  it('drops unknown nested physics and timeline fields', () => {
+    expect(normalizePersistedSettingsShape({
+      physics: {
+        repelForce: 20,
+        mysteryForce: 99,
+      },
+      timeline: {
+        maxCommits: 1000,
+        unknownTimelineKey: true,
+      },
+    })).toEqual({
+      physics: { repelForce: 20 },
+      timeline: { maxCommits: 1000 },
     });
   });
 });

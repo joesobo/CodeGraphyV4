@@ -48,7 +48,6 @@ function resetStore() {
     nodeColors: {},
     nodeVisibility: {},
     edgeVisibility: {},
-    edgeColors: {},
     graphHasIndex: false,
     graphIsIndexing: false,
     graphIndexProgress: null,

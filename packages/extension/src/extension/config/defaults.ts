@@ -35,8 +35,6 @@ export interface ICodeGraphyConfig {
   showOrphans: boolean;
   /** How to display bidirectional connections */
   bidirectionalEdges: 'separate' | 'combined';
-  /** List of plugin extension names to enable */
-  plugins: string[];
   /** List of disabled plugin IDs */
   disabledPlugins: string[];
   /** Ordered plugin IDs, highest priority first */

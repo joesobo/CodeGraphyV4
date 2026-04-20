@@ -111,7 +111,6 @@ function resetStore(): void {
     nodeColors: {},
     nodeVisibility: {},
     edgeVisibility: {},
-    edgeColors: {},
     activePanel: 'none',
     timelineActive: false,
     nodeDecorations: {},

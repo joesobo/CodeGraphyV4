@@ -70,7 +70,6 @@ describe('ResetSettingsAction', () => {
     nodeColors: { file: '#111111', folder: '#222222' },
     nodeVisibility: { file: true, folder: false },
     edgeVisibility: { imports: true, calls: false },
-    edgeColors: { imports: '#333333', calls: '#444444' },
     pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
     disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.002,
@@ -114,7 +113,6 @@ describe('ResetSettingsAction', () => {
       nodeColors: { file: '#111111', folder: '#222222' },
       nodeVisibility: { file: true, folder: false },
       edgeVisibility: { imports: true, calls: false },
-      edgeColors: { imports: '#333333', calls: '#444444' },
       pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
       disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.002,
@@ -193,7 +191,6 @@ describe('ResetSettingsAction', () => {
     expect(settingsStore.nodeColors).toEqual({ file: '#111111', folder: '#222222' });
     expect(settingsStore.nodeVisibility).toEqual({ file: true, folder: false });
     expect(settingsStore.edgeVisibility).toEqual({ imports: true, calls: false });
-    expect(settingsStore.edgeColors).toEqual({ imports: '#333333', calls: '#444444' });
     expect(settingsStore.pluginOrder).toEqual(['codegraphy.markdown', 'codegraphy.typescript']);
     expect(settingsStore.disabledPlugins).toEqual(['codegraphy.python']);
     expect(settingsStore.maxFiles).toBe(1000);

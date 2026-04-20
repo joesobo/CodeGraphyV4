@@ -5,21 +5,21 @@ import {
   setNestedValue,
 } from '../../../../../src/extension/repoSettings/store/model/nestedValues';
 describe('extension/repoSettings/store/model/nestedValues', () => {
-  it('reads and reports nested values through normalized alias keys', () => {
+  it('reads and reports nested values through explicit keys', () => {
     const settings = {
       nodeColors: { folder: '#123456' },
       filterPatterns: ['src/**'],
       timeline: { playbackSpeed: 2 },
     };
 
-    expect(getNestedValue(settings, 'folderNodeColor')).toBe('#123456');
-    expect(getNestedValue(settings, 'exclude')).toEqual(['src/**']);
+    expect(getNestedValue(settings, 'nodeColors.folder')).toBe('#123456');
+    expect(getNestedValue(settings, 'filterPatterns')).toEqual(['src/**']);
     expect(getNestedValue(settings, 'timeline.playbackSpeed')).toBe(2);
     expect(getNestedValue(settings, 'timeline.maxCommits')).toBeUndefined();
-    expect(getNestedValue(settings, 'exclude.0')).toBeUndefined();
+    expect(getNestedValue(settings, 'filterPatterns.0')).toBeUndefined();
     expect(getNestedValue({ timeline: 2 }, 'timeline.playbackSpeed')).toBeUndefined();
-    expect(hasNestedValue(settings, 'exclude')).toBe(true);
-    expect(hasNestedValue(settings, 'exclude.0')).toBe(false);
+    expect(hasNestedValue(settings, 'filterPatterns')).toBe(true);
+    expect(hasNestedValue(settings, 'filterPatterns.0')).toBe(false);
     expect(hasNestedValue({ timeline: 2 }, 'timeline.playbackSpeed')).toBe(false);
     expect(hasNestedValue(settings, 'timeline.maxCommits')).toBe(false);
   });
@@ -29,7 +29,7 @@ describe('extension/repoSettings/store/model/nestedValues', () => {
       nodeColors: '#bad-shape',
     };
 
-    setNestedValue(settings, 'folderNodeColor', '#abcdef');
+    setNestedValue(settings, 'nodeColors.folder', '#abcdef');
     setNestedValue(settings, 'physics.chargeRange', 300);
     setNestedValue(settings, 'physics.centerForce', 0.1);
     setNestedValue(settings, '', 'ignored');

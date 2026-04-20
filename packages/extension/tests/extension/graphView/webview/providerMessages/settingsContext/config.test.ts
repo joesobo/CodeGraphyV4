@@ -24,7 +24,6 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'directionColor',
       'directionMode',
       'disabledPlugins',
-      'edgeColors',
       'edgeVisibility',
       'filterPatterns',
       'maxFiles',

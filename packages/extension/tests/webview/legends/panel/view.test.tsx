@@ -21,9 +21,8 @@ describe('LegendsPanel', () => {
   it('shows node and edge color controls when open', () => {
     graphStore.setState({
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
-      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#444444', defaultVisible: true }],
       nodeColors: { file: '#333333' },
-      edgeColors: { import: '#444444' },
       legends: [],
     });
 
@@ -51,7 +50,6 @@ describe('LegendsPanel', () => {
         defaultVisible: true,
       })),
       nodeColors: {},
-      edgeColors: {},
       legends: [],
     });
 
@@ -65,9 +63,8 @@ describe('LegendsPanel', () => {
     vi.useFakeTimers();
     graphStore.setState({
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
-      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#444444', defaultVisible: true }],
       nodeColors: { file: '#333333' },
-      edgeColors: { import: '#444444' },
       legends: [],
     });
 
@@ -87,10 +84,35 @@ describe('LegendsPanel', () => {
       payload: { nodeType: 'file', color: '#abc123' },
     });
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_EDGE_COLOR',
-      payload: { edgeKind: 'import', color: '#def456' },
+      type: 'UPDATE_LEGENDS',
+      payload: {
+        legends: [
+          expect.objectContaining({
+            id: 'legend:edge:import',
+            pattern: 'import',
+            target: 'edge',
+            color: '#def456',
+          }),
+        ],
+      },
     });
     expect(sentMessages).toHaveLength(2);
+  });
+
+  it('renders edge type color overrides through legend rules without duplicating them as custom rules', () => {
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      nodeColors: {},
+      legends: [
+        { id: 'legend:edge:import', pattern: 'import', color: '#abcdef', target: 'edge' },
+      ],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.getByLabelText('Imports color')).toHaveValue('#abcdef');
+    expect(screen.queryByDisplayValue('import')).not.toBeInTheDocument();
   });
 
   it('flushes a pending color change when the picker loses focus', () => {
@@ -100,7 +122,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [],
       nodeColors: { file: '#333333' },
-      edgeColors: {},
       legends: [],
     });
 
@@ -123,7 +144,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: { file: '#333333' },
-      edgeColors: { import: '#444444' },
       legends: [
         { id: 'legend:node', pattern: '*/tests/**', color: '#123abc', target: 'node' },
         { id: 'legend:edge', pattern: 'src/**', color: '#321cba', target: 'edge' },
@@ -143,7 +163,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [],
       nodeColors: { file: '#333333' },
-      edgeColors: {},
       legends: [
         {
           id: 'plugin:codegraphy.typescript:*.ts',
@@ -166,7 +185,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: { file: '#333333' },
-      edgeColors: { import: '#444444' },
       legends: [{ id: 'legend:node', pattern: '*/tests/**', color: '#123abc', target: 'node' }],
     });
 
@@ -185,7 +203,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: {},
-      edgeColors: {},
       legends: [],
     });
 
@@ -245,10 +262,9 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: {},
-      edgeColors: {},
       legends: [
         { id: 'legend:node:existing', pattern: 'src/**', color: '#123456', target: 'node' },
-        { id: 'legend:edge:existing', pattern: 'import', color: '#654321', target: 'edge' },
+        { id: 'legend:edge:existing', pattern: 'lib/**', color: '#654321', target: 'edge' },
       ],
     });
 
@@ -264,7 +280,7 @@ describe('LegendsPanel', () => {
         legends: [
           expect.objectContaining({
             id: 'legend:edge:existing',
-            pattern: 'import',
+            pattern: 'lib/**',
             target: 'edge',
           }),
           expect.objectContaining({
@@ -276,7 +292,7 @@ describe('LegendsPanel', () => {
       },
     });
 
-    fireEvent.change(screen.getByDisplayValue('import'), {
+    fireEvent.change(screen.getByDisplayValue('lib/**'), {
       target: { value: 'call' },
     });
 
@@ -304,7 +320,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: {},
-      edgeColors: {},
       legends: [{ id: 'legend:edge', pattern: 'src/**', color: '#321cba', target: 'edge' }],
     });
 
@@ -320,7 +335,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [],
       nodeColors: {},
-      edgeColors: {},
       legends: [{ id: 'legend:node', pattern: '*/types.ts', color: '#ffffff', target: 'node' }],
     });
 
@@ -335,7 +349,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
       graphEdgeTypes: [],
       nodeColors: {},
-      edgeColors: {},
       legends: [{ id: 'legend:node', pattern: '*/tests/**', color: '#123abc', target: 'node' }],
     });
 
@@ -372,7 +385,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [],
       graphEdgeTypes: [],
       nodeColors: {},
-      edgeColors: {},
       legends: [
         {
           id: 'plugin:codegraphy.typescript:*.ts',
@@ -408,7 +420,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [],
       graphEdgeTypes: [],
       nodeColors: {},
-      edgeColors: {},
       legends: [
         {
           id: 'plugin:routing:call',
@@ -446,7 +457,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [],
       graphEdgeTypes: [],
       nodeColors: {},
-      edgeColors: {},
       legends: [
         { id: 'legend:first', pattern: 'src/**', color: '#111111', target: 'node' },
         { id: 'legend:second', pattern: 'tests/**', color: '#222222', target: 'node' },
@@ -474,7 +484,6 @@ describe('LegendsPanel', () => {
       graphNodeTypes: [],
       graphEdgeTypes: [],
       nodeColors: {},
-      edgeColors: {},
       legends: [
         { id: 'legend:node', pattern: 'src/**', color: '#111111', target: 'node' },
         { id: 'legend:edge:first', pattern: 'import', color: '#222222', target: 'edge' },
