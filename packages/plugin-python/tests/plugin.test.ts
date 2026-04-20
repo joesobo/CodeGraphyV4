@@ -19,8 +19,8 @@ describe('createPythonPlugin', () => {
 
     expect(plugin.defaultFilters).toContain('**/__pycache__/**');
     expect(plugin.fileColors).toMatchObject({
-      '*.py': '#3776AB',
-      '*.pyi': '#3776AB',
+      '*.py': { color: '#3776AB', imagePath: 'assets/python.svg' },
+      '*.pyi': { color: '#3776AB', imagePath: 'assets/python.svg' },
       '__init__.py': '#FFD43B',
     });
   });
