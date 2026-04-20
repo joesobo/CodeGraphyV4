@@ -38,6 +38,7 @@ describe('graph view legend message', () => {
         imagePath: '.codegraphy/assets/icon.png',
         imageUrl: 'webview://icon.png',
         isPluginDefault: true,
+        pluginId: 'codegraphy.typescript',
         pluginName: 'TypeScript',
       },
     ];
