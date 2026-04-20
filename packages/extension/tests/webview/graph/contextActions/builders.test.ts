@@ -48,13 +48,13 @@ describe('graph/contextActions/builders', () => {
     expect(createPatternMessageEffects(['src/**'])).toEqual([
       { kind: 'postMessage', message: { type: 'ADD_TO_EXCLUDE', payload: { patterns: ['src/**'] } } },
     ]);
-    expect(createPatternPromptEffects('src/**')).toEqual([
-      { kind: 'promptFilterPattern', pattern: 'src/**' },
+    expect(createPatternPromptEffects(['src/**'])).toEqual([
+      { kind: 'promptFilterPattern', patterns: ['src/**'] },
     ]);
     expect(createLegendPromptEffects('src/**', '#22c55e', 'node')).toEqual([
       { kind: 'promptLegendRule', pattern: 'src/**', color: '#22c55e', target: 'node' },
     ]);
-    expect(createPatternPromptEffects(undefined)).toEqual([]);
+    expect(createPatternPromptEffects([])).toEqual([]);
     expect(createLegendPromptEffects(undefined, '#22c55e', 'edge')).toEqual([]);
     expect(createRefreshEffects()).toEqual([{ kind: 'postMessage', message: { type: 'REFRESH_GRAPH' } }]);
     expect(createFitViewEffects()).toEqual([{ kind: 'fitView' }]);

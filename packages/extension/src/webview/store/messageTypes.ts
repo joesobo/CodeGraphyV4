@@ -47,6 +47,8 @@ export interface IStoreFields {
   optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  disabledPluginFilterPatterns: string[];
   dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];

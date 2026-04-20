@@ -97,6 +97,14 @@ export class Configuration {
     return this.config.get<string[]>('pluginOrder', []);
   }
 
+  get disabledCustomFilterPatterns(): string[] {
+    return this.config.get<string[]>('disabledCustomFilterPatterns', []);
+  }
+
+  get disabledPluginFilterPatterns(): string[] {
+    return this.config.get<string[]>('disabledPluginFilterPatterns', []);
+  }
+
   /**
    * Maximum number of commits to index for the timeline.
    * @default 500
@@ -142,6 +150,8 @@ export class Configuration {
       bidirectionalEdges: this.bidirectionalEdges,
       disabledPlugins: this.disabledPlugins,
       pluginOrder: this.pluginOrder,
+      disabledCustomFilterPatterns: this.disabledCustomFilterPatterns,
+      disabledPluginFilterPatterns: this.disabledPluginFilterPatterns,
     };
   }
 

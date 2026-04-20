@@ -277,7 +277,15 @@ describe('App: message handlers', () => {
   it('FILTER_PATTERNS_UPDATED message is handled', async () => {
     render(<App />);
     await act(async () => {
-      sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: ['**/*.test.ts'], pluginPatterns: [] } });
+      sendMessage({
+        type: 'FILTER_PATTERNS_UPDATED',
+        payload: {
+          patterns: ['**/*.test.ts'],
+          pluginPatterns: [],
+          disabledCustomPatterns: [],
+          disabledPluginPatterns: [],
+        },
+      });
     });
     expect(graphStore.getState().filterPatterns).toEqual(['**/*.test.ts']);
   });

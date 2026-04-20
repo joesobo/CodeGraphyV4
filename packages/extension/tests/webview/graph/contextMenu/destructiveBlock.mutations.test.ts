@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { buildDestructiveBlock } from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
+import {
+  buildDestructiveBlock,
+  buildFilterBlock,
+} from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 
 type ItemEntry = Extract<GraphContextMenuEntry, { kind: 'item' }>;
@@ -14,7 +17,7 @@ describe('buildDestructiveBlock (mutation kill tests)', () => {
    * Verify exact action string for the Add to Filter entry.
    */
   it('produces action "addToFilter" for single-target filter entry', () => {
-    const entries = buildDestructiveBlock(['a.ts']);
+    const entries = buildFilterBlock(['a.ts']);
     const items = getItems(entries);
     const filterItem = items.find(item => item.id === 'node-add-filter');
 
@@ -24,7 +27,7 @@ describe('buildDestructiveBlock (mutation kill tests)', () => {
   });
 
   it('produces action "addToFilter" for multi-select filter entry', () => {
-    const entries = buildDestructiveBlock(['a.ts', 'b.ts']);
+    const entries = buildFilterBlock(['a.ts', 'b.ts']);
     const items = getItems(entries);
     const filterItem = items.find(item => item.id === 'node-add-filter');
 

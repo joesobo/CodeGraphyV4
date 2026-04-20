@@ -19,4 +19,18 @@ export interface SearchBarProps {
   resultCount?: number;
   totalCount?: number;
   regexError?: string | null;
+  countLabel?: string | null;
+  filterPopover?: {
+    disabledCustomPatterns: string[];
+    disabledPluginPatterns: string[];
+    customPatterns: string[];
+    excludedCount: number;
+    onDisabledCustomPatternsChange: (patterns: string[]) => void;
+    onDisabledPluginPatternsChange: (patterns: string[]) => void;
+    onOpenChange: (open: boolean) => void;
+    onPatternsChange: (patterns: string[]) => void;
+    open: boolean;
+    pendingPatterns: string[];
+    pluginPatterns: string[];
+  };
 }

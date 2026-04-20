@@ -29,7 +29,7 @@ export function createContextMenuEffectRuntime(
       clearCachedFile: (path) => dependencies.clearCachedFile(path),
       fitView: () => dependencies.fitView(),
       focusNode: (nodeId) => dependencies.focusNode(nodeId),
-      openFilterPatternPrompt: (pattern) => dependencies.openFilterPatternPrompt?.(pattern),
+      openFilterPatternPrompt: (patterns) => dependencies.openFilterPatternPrompt?.(patterns),
       openLegendRulePrompt: (rule) => dependencies.openLegendRulePrompt?.(rule),
       postMessage: (message) => dependencies.postMessage(message),
     });

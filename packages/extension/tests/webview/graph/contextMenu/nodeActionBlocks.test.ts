@@ -7,6 +7,7 @@ import {
   buildFavoriteBlock,
 } from '../../../../src/webview/components/graph/contextMenu/node/destructive/favoritesBlocks';
 import {
+  buildFilterBlock,
   buildDestructiveBlock,
 } from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
@@ -89,17 +90,29 @@ describe('graph/contextMenu/node/openCopyBlocks', () => {
     });
   });
 
-  describe('buildDestructiveBlock', () => {
-    it('includes Add to Filter, Rename, and Delete for single target', () => {
-      const labels = itemLabels(buildDestructiveBlock(['src/app.ts']));
+  describe('buildFilterBlock', () => {
+    it('includes Add to Filter for single target', () => {
+      const labels = itemLabels(buildFilterBlock(['src/app.ts']));
       expect(labels).toContain('Add to Filter');
+      expect(labels).toContain('Add Legend Group');
+    });
+
+    it('shows Add All to Filter and omits Add Legend Group for multi-select', () => {
+      const labels = itemLabels(buildFilterBlock(['src/a.ts', 'src/b.ts']));
+      expect(labels).toContain('Add All to Filter');
+      expect(labels).not.toContain('Add Legend Group');
+    });
+  });
+
+  describe('buildDestructiveBlock', () => {
+    it('includes Rename and Delete for single target', () => {
+      const labels = itemLabels(buildDestructiveBlock(['src/app.ts']));
       expect(labels).toContain('Rename...');
       expect(labels).toContain('Delete File');
     });
 
     it('shows plural labels and omits Rename for multi-select', () => {
       const labels = itemLabels(buildDestructiveBlock(['src/a.ts', 'src/b.ts']));
-      expect(labels).toContain('Add All to Filter');
       expect(labels).toContain('Delete 2 Files');
       expect(labels).not.toContain('Rename...');
     });

@@ -38,7 +38,7 @@ export interface UseGraphInteractionRuntimeOptions {
   lastClickRef: UseGraphStateResult['lastClickRef'];
   lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
   lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
-  openFilterPatternPrompt?: (pattern: string) => void;
+  openFilterPatternPrompt?: (patterns: string[]) => void;
   openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
   refs: Pick<
@@ -85,7 +85,7 @@ interface BuildContextMenuRuntimeDependenciesOptions {
   interactionHandlers: GraphInteractionHandlersRuntime;
   lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
   lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
-  openFilterPatternPrompt?: (pattern: string) => void;
+  openFilterPatternPrompt?: (patterns: string[]) => void;
   openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   refs: UseGraphInteractionRuntimeOptions['refs'];
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;

@@ -45,7 +45,12 @@ export type ExtensionToWebviewMessage =
   | { type: 'LEGENDS_UPDATED'; payload: { legends: IGroup[] } }
   | {
       type: 'FILTER_PATTERNS_UPDATED';
-      payload: { patterns: string[]; pluginPatterns: string[] };
+      payload: {
+        patterns: string[];
+        pluginPatterns: string[];
+        disabledCustomPatterns: string[];
+        disabledPluginPatterns: string[];
+      };
     }
   | {
       type: 'DIRECTION_SETTINGS_UPDATED';

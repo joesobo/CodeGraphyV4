@@ -4,7 +4,7 @@ export interface GraphContextEffectHandlers {
   clearCachedFile(path: string): void;
   focusNode(nodeId: string): void;
   fitView(): void;
-  openFilterPatternPrompt?(pattern: string): void;
+  openFilterPatternPrompt?(patterns: string[]): void;
   openLegendRulePrompt?(rule: { pattern: string; color: string; target: 'node' | 'edge' }): void;
   postMessage(message: { type: string; payload?: unknown }): void;
 }
@@ -26,7 +26,7 @@ export function applyContextEffects(
         handlers.fitView();
         break;
       case 'promptFilterPattern':
-        handlers.openFilterPatternPrompt?.(effect.pattern);
+        handlers.openFilterPatternPrompt?.(effect.patterns);
         break;
       case 'promptLegendRule':
         handlers.openLegendRulePrompt?.({

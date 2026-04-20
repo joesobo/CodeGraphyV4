@@ -15,6 +15,7 @@ export interface GraphViewReadyState {
 export interface GraphViewReadyHandlers {
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
+  getConfig<T>(key: string, defaultValue: T): T;
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
   sendDepthState(): void;
@@ -54,6 +55,8 @@ export async function applyWebviewReady(
     payload: {
       patterns: handlers.getFilterPatterns(),
       pluginPatterns: handlers.getPluginFilterPatterns(),
+      disabledCustomPatterns: handlers.getConfig('disabledCustomFilterPatterns', []),
+      disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
     },
   });
   handlers.sendMessage({

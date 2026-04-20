@@ -106,6 +106,8 @@ describe('Configuration', () => {
         respectGitignore: true,
         showOrphans: true,
         bidirectionalEdges: 'separate',
+        disabledCustomFilterPatterns: [],
+        disabledPluginFilterPatterns: [],
         disabledPlugins: [],
         pluginOrder: [],
       });

@@ -38,6 +38,8 @@ describe('graphView/settings/snapshotMessages', () => {
       },
       legends: [],
       filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      disabledPluginFilterPatterns: [],
       showOrphans: true,
       bidirectionalMode: 'separate',
       directionMode: 'arrows',
@@ -94,6 +96,8 @@ describe('graphView/settings/snapshotMessages', () => {
       },
       legends: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
       filterPatterns: ['dist/**'],
+      disabledCustomFilterPatterns: [],
+      disabledPluginFilterPatterns: [],
       showOrphans: false,
       bidirectionalMode: 'combined',
       directionMode: 'particles',
@@ -156,6 +160,8 @@ describe('graphView/settings/snapshotMessages', () => {
           },
           legends: [],
           filterPatterns: ['dist/**'],
+          disabledCustomFilterPatterns: [],
+          disabledPluginFilterPatterns: [],
           showOrphans: false,
           bidirectionalMode: 'combined',
           directionMode: 'particles',
@@ -206,7 +212,12 @@ describe('graphView/settings/snapshotMessages', () => {
       postGroupMessages: [
         {
           type: 'FILTER_PATTERNS_UPDATED',
-          payload: { patterns: ['dist/**'], pluginPatterns: ['venv/**'] },
+          payload: {
+            patterns: ['dist/**'],
+            pluginPatterns: ['venv/**'],
+            disabledCustomPatterns: [],
+            disabledPluginPatterns: [],
+          },
         },
         {
           type: 'MAX_FILES_UPDATED',

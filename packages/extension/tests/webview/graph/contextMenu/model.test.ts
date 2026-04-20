@@ -82,6 +82,8 @@ describe('graph/contextMenuModel', () => {
       'Copy Absolute Path',
       'Remove from Favorites',
       'Focus Node',
+      'Add to Filter',
+      'Add Legend Group',
     ]);
   });
 
@@ -151,6 +153,8 @@ describe('graph/contextMenuModel', () => {
       'copyAbsolute',
       'toggleFavorite',
       'focus',
+      'addToFilter',
+      'addNodeLegend',
     ]);
 
     const multiSelection = makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts']));
@@ -178,6 +182,7 @@ describe('graph/contextMenuModel', () => {
       'open',
       'copyRelative',
       'toggleFavorite',
+      'addToFilter',
     ]);
 
     const edgeSelection = makeEdgeContextSelection('src/a.ts->src/b.ts', 'src/a.ts', 'src/b.ts');

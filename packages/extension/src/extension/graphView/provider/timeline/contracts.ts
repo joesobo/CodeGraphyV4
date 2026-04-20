@@ -124,6 +124,8 @@ export interface GraphViewProviderTimelineMethodDependencies {
     sendMessage: (message: ExtensionToWebviewMessage) => void,
   ): Promise<GraphViewProviderTimelineMethodsSource['_gitAnalyzer']>;
   getPlaybackSpeed(): number;
+  getDisabledCustomFilterPatterns(): string[];
+  getDisabledPluginFilterPatterns(): string[];
   getWorkspaceFolder(): vscode.WorkspaceFolder | undefined;
   openTextDocument(fileUri: vscode.Uri): Thenable<vscode.TextDocument>;
   showTextDocument(

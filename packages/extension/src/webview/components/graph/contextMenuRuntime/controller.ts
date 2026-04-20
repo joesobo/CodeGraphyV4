@@ -49,7 +49,7 @@ export interface GraphContextMenuRuntimeDependencies<THoveredNode = unknown> {
   clearCachedFile(path: string): void;
   fitView(): void;
   focusNode(nodeId: string): void;
-  openFilterPatternPrompt?(pattern: string): void;
+  openFilterPatternPrompt?(patterns: string[]): void;
   openLegendRulePrompt?(rule: { pattern: string; color: string; target: 'node' | 'edge' }): void;
   openBackgroundContextMenu(event: MouseEvent): void;
   postMessage(message: { type: string; payload?: unknown }): void;

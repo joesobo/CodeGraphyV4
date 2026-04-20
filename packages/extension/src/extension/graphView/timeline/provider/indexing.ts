@@ -15,6 +15,8 @@ export interface GraphViewProviderTimelineDependencies {
   getWorkspaceFolder(): { uri: { fsPath: string } } | undefined;
   getShowOrphans(): boolean;
   getMaxCommits(): number;
+  getDisabledCustomFilterPatterns(): string[];
+  getDisabledPluginFilterPatterns(): string[];
   verifyGitRepository(cwd: string): Promise<void>;
   createGitAnalyzer(
     context: ExtensionContext,
@@ -40,6 +42,8 @@ export interface GraphViewProviderTimelineDependencies {
       gitAnalyzer: GraphViewProviderTimelineGitAnalyzer | undefined;
       indexingController: AbortController | undefined;
       filterPatterns: string[];
+      disabledCustomFilterPatterns?: string[];
+      disabledPluginFilterPatterns?: string[];
       timelineActive?: boolean;
       currentCommitSha?: string;
     },

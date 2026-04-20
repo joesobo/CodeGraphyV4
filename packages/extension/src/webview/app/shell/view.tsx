@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTheme } from '../../theme/useTheme';
 import { usePluginManager } from '../../pluginRuntime/useManager';
 import { useFilteredGraph } from '../../search/useFilteredGraph';
@@ -16,6 +16,9 @@ import { SearchHeader } from './panel/search';
 import { ToolbarRail } from './panel/toolbar';
 import { useFilterLegendInputs } from './derivedState';
 import { useRulePromptHandlers } from '../rulePrompt/handlers';
+import { applyFilterPatterns } from '../../search/filtering/patterns';
+import { getFilterCountState } from '../../components/searchBar/filters/countState';
+import { toFilterGlob } from '../../components/searchBar/filters/model';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
@@ -27,6 +30,8 @@ export default function App(): React.ReactElement {
     legends,
     filterPatterns,
     pluginFilterPatterns,
+    disabledCustomFilterPatterns,
+    disabledPluginFilterPatterns,
     showOrphans,
     activePanel,
     depthMode,
@@ -40,16 +45,30 @@ export default function App(): React.ReactElement {
     graphIsIndexing,
     graphIndexProgress,
   } = useAppState();
-  const { setSearchQuery, setSearchOptions, setActivePanel } = useAppActions();
-  const setFilterPatterns = useGraphStore((state) => state.setFilterPatterns);
+  const {
+    setSearchQuery,
+    setSearchOptions,
+    setActivePanel,
+    setFilterPatterns,
+    setDisabledCustomFilterPatterns,
+    setDisabledPluginFilterPatterns,
+  } = useAppActions();
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
   const [rulePrompt, setRulePrompt] = useState<RulePromptState | null>(null);
+  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
+  const [pendingFilterPatterns, setPendingFilterPatterns] = useState<string[]>([]);
 
   const theme = useTheme();
   const { activeFilterPatterns, userLegendRules } = useFilterLegendInputs(
     filterPatterns,
     pluginFilterPatterns,
+    disabledCustomFilterPatterns,
+    disabledPluginFilterPatterns,
     legends,
+  );
+  const filterVisibleData = useMemo(
+    () => applyFilterPatterns(graphData, activeFilterPatterns),
+    [activeFilterPatterns, graphData],
   );
   const {
     filteredData,
@@ -71,7 +90,6 @@ export default function App(): React.ReactElement {
 
   const {
     closeRulePrompt,
-    openFilterPrompt,
     openLegendPrompt,
     handleRulePromptSubmit,
   } = useRulePromptHandlers({
@@ -95,6 +113,19 @@ export default function App(): React.ReactElement {
   const displayGraphData = coloredData || graphData;
   const graphStatsLabel = buildGraphStatsLabel(displayGraphData.nodes.length, displayGraphData.edges.length);
   const closeActivePanel = () => setActivePanel('none');
+  const excludedCount = graphData.nodes.length - (filterVisibleData?.nodes.length ?? graphData.nodes.length);
+  const countState = getFilterCountState({
+    excludedCount,
+    filterVisibleCount: filterVisibleData?.nodes.length ?? graphData.nodes.length,
+    regexError,
+    resultCount: filteredData?.nodes.length,
+    searchActive: searchQuery.length > 0,
+    totalCount: graphData.nodes.length,
+  });
+  const openFilterPopoverWithPatterns = (patterns: string[]) => {
+    setPendingFilterPatterns(patterns.map(toFilterGlob).filter(Boolean));
+    setFilterPopoverOpen(true);
+  };
 
   return (
     <div className="relative w-full h-screen flex flex-col">
@@ -104,6 +135,25 @@ export default function App(): React.ReactElement {
         resultCount={filteredData?.nodes.length}
         totalCount={graphData.nodes.length}
         activeFilePath={activeFilePath}
+        countLabel={countState.label}
+        filterPopover={{
+          customPatterns: filterPatterns,
+          disabledCustomPatterns: disabledCustomFilterPatterns,
+          disabledPluginPatterns: disabledPluginFilterPatterns,
+          excludedCount,
+          onDisabledCustomPatternsChange: setDisabledCustomFilterPatterns,
+          onDisabledPluginPatternsChange: setDisabledPluginFilterPatterns,
+          onOpenChange: (open) => {
+            setFilterPopoverOpen(open);
+            if (!open) {
+              setPendingFilterPatterns([]);
+            }
+          },
+          onPatternsChange: setFilterPatterns,
+          open: filterPopoverOpen,
+          pendingPatterns: pendingFilterPatterns,
+          pluginPatterns: pluginFilterPatterns,
+        }}
         regexError={regexError}
         onSearchQueryChange={setSearchQuery}
         onSearchOptionsChange={setSearchOptions}
@@ -118,7 +168,7 @@ export default function App(): React.ReactElement {
           nodeDecorations={nodeDecorations}
           edgeDecorations={graphEdgeDecorations}
           pluginHost={pluginHost}
-          onAddFilterRequested={openFilterPrompt}
+          onAddFilterRequested={openFilterPopoverWithPatterns}
           onAddLegendRequested={openLegendPrompt}
         />
         <GraphStatsBadge label={graphStatsLabel} />

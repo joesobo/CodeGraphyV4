@@ -340,7 +340,7 @@ describe('Graph context menu (node)', () => {
     expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20, expect.any(Function));
   });
 
-  it('opens the filter prompt when clicking Add to Filter for a single node', async () => {
+  it('opens the filter popover request when clicking Add to Filter for a single node', async () => {
     const onAddFilterRequested = vi.fn();
     const { container } = render(
       <Graph
@@ -363,7 +363,7 @@ describe('Graph context menu (node)', () => {
       fireEvent.click(screen.getByText('Add to Filter'));
     });
 
-    expect(onAddFilterRequested).toHaveBeenCalledWith('src/app.ts');
+    expect(onAddFilterRequested).toHaveBeenCalledWith(['src/app.ts']);
   });
 
   it('sends RENAME_FILE message when clicking Rename...', async () => {
@@ -563,8 +563,9 @@ describe('Graph context menu (node)', () => {
     expect(favMsg!.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
   });
 
-  it('sends ADD_TO_EXCLUDE with all selected paths for Add All to Filter', async () => {
-    const { container } = render(<Graph data={selectionData} />);
+  it('opens the filter popover request with all selected paths for Add All to Filter', async () => {
+    const onAddFilterRequested = vi.fn();
+    const { container } = render(<Graph data={selectionData} onAddFilterRequested={onAddFilterRequested} />);
     const graphContainer = getGraphContainer(container);
 
     await selectTwoNodesForMultiMenu(graphContainer);
@@ -573,14 +574,11 @@ describe('Graph context menu (node)', () => {
       expect(screen.getByText('Add All to Filter')).toBeInTheDocument();
     });
 
-    clearSentMessages();
     await act(async () => {
       fireEvent.click(screen.getByText('Add All to Filter'));
     });
 
-    const addMsg = findMessage('ADD_TO_EXCLUDE');
-    expect(addMsg).toBeTruthy();
-    expect(addMsg!.payload.patterns).toEqual(['nodeA.ts', 'nodeB.ts']);
+    expect(onAddFilterRequested).toHaveBeenCalledWith(['nodeA.ts', 'nodeB.ts']);
   });
 
   it('sends DELETE_FILES with all selected paths for Delete N Files', async () => {
@@ -603,7 +601,7 @@ describe('Graph context menu (node)', () => {
     expect(deleteMsg!.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
   });
 
-  it('hides destructive single-node actions in timeline mode', async () => {
+  it('keeps filter actions but hides file-changing single-node actions in timeline mode', async () => {
     graphStore.setState({ timelineActive: true });
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
@@ -620,12 +618,13 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
     expect(screen.getByText('Focus Node')).toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
-    expect(screen.queryByText('Add to Filter')).not.toBeInTheDocument();
+    expect(screen.getByText('Add to Filter')).toBeInTheDocument();
+    expect(screen.getByText('Add Legend Group')).toBeInTheDocument();
     expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
     expect(screen.queryByText('Delete File')).not.toBeInTheDocument();
   });
 
-  it('hides destructive multi-node actions in timeline mode', async () => {
+  it('keeps filter actions but hides file-changing multi-node actions in timeline mode', async () => {
     graphStore.setState({ timelineActive: true });
     const { container } = render(<Graph data={selectionData} />);
     const graphContainer = getGraphContainer(container);
@@ -637,7 +636,7 @@ describe('Graph context menu (node)', () => {
     });
     expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
-    expect(screen.queryByText('Add All to Filter')).not.toBeInTheDocument();
+    expect(screen.getByText('Add All to Filter')).toBeInTheDocument();
     expect(screen.queryByText('Delete 2 Files')).not.toBeInTheDocument();
   });
 

@@ -6,7 +6,6 @@ import {
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
-  createPatternMessageEffects,
   createRefreshEffects,
 } from '../messages';
 import {
@@ -30,10 +29,7 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   toggleFavorite: (targetPaths: string[]) =>
     createPathListMessageEffects('TOGGLE_FAVORITE', targetPaths),
   focus: (targetPaths: string[]) => createFocusEffects(targetPaths[0]),
-  addToFilter: (targetPaths: string[]) =>
-    targetPaths.length <= 1
-      ? createPatternPromptEffects(targetPaths[0])
-      : createPatternMessageEffects(targetPaths),
+  addToFilter: (targetPaths: string[]) => createPatternPromptEffects(targetPaths),
   addNodeLegend: (targetPaths: string[]) =>
     createLegendPromptEffects(targetPaths[0], '#808080', 'node'),
   rename: (targetPaths: string[]) =>

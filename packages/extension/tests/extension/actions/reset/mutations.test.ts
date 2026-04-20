@@ -52,6 +52,8 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     physics: { repelForce: 10, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 },
     legends: [],
     filterPatterns: [],
+    disabledCustomFilterPatterns: [],
+    disabledPluginFilterPatterns: [],
     showOrphans: true,
     bidirectionalMode: 'separate',
     directionMode: 'arrows',

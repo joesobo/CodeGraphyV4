@@ -14,6 +14,7 @@ interface SearchBarResultsProps {
   resultCount?: number;
   totalCount?: number;
   regexError?: string | null;
+  countLabel?: string | null;
   onClear: () => void;
 }
 
@@ -23,6 +24,7 @@ export function SearchBarResults({
   resultCount,
   totalCount,
   regexError,
+  countLabel,
   onClear,
 }: SearchBarResultsProps): React.ReactElement {
   return (
@@ -34,7 +36,7 @@ export function SearchBarResults({
             ? 'text-[var(--vscode-errorForeground,#f48771)]'
             : 'text-[var(--vscode-descriptionForeground,#8c8c8c)]'
         )}>
-          {regexError ? 'Invalid regex' : `${resultCount} of ${totalCount}`}
+          {countLabel ?? (regexError ? 'Invalid regex' : `${resultCount} of ${totalCount}`)}
         </span>
       )}
 

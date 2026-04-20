@@ -24,6 +24,8 @@ describe('extension/repoSettings/defaults', () => {
       bidirectionalEdges: 'separate',
       legend: [],
       filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      disabledPluginFilterPatterns: [],
       showLabels: true,
       directionMode: 'arrows',
       directionColor: DEFAULT_DIRECTION_COLOR,

@@ -7,6 +7,7 @@ type GraphViewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW
 export interface GraphViewPluginReadyContext {
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
+  getConfig<T>(key: string, defaultValue: T): T;
   getMaxFiles(): number;
   getPlaybackSpeed(): number;
   getDepthMode?(): boolean;
@@ -56,6 +57,7 @@ export async function dispatchGraphViewPluginReadyMessage(
     {
       getFilterPatterns: () => context.getFilterPatterns(),
       getPluginFilterPatterns: () => context.getPluginFilterPatterns(),
+      getConfig: (key, defaultValue) => context.getConfig(key, defaultValue),
       loadGroupsAndFilterPatterns: () => context.loadGroupsAndFilterPatterns(),
       loadDisabledRulesAndPlugins: () => context.loadDisabledRulesAndPlugins(),
       sendDepthState: () => context.sendDepthState(),

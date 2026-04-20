@@ -59,6 +59,8 @@ export function buildGraphViewAllSettingsMessages(
         payload: {
           patterns: snapshot.filterPatterns,
           pluginPatterns,
+          disabledCustomPatterns: snapshot.disabledCustomFilterPatterns,
+          disabledPluginPatterns: snapshot.disabledPluginFilterPatterns,
         },
       },
       {

@@ -50,6 +50,8 @@ function createState(
     optimisticUserLegends: null,
     filterPatterns: [],
     pluginFilterPatterns: [],
+    disabledCustomFilterPatterns: [],
+    disabledPluginFilterPatterns: [],
     dagMode: null,
     pluginStatuses: [],
     graphNodeTypes: [],
@@ -141,10 +143,17 @@ describe('webview/store/messageHandlers/graph', () => {
 
     expect(handleFilterPatternsUpdated({
       type: 'FILTER_PATTERNS_UPDATED',
-      payload: { patterns: ['dist/**'], pluginPatterns: ['plugin/**'] },
+      payload: {
+        patterns: ['dist/**'],
+        pluginPatterns: ['plugin/**'],
+        disabledCustomPatterns: ['custom/**'],
+        disabledPluginPatterns: [],
+      },
     })).toEqual({
       filterPatterns: ['dist/**'],
       pluginFilterPatterns: ['plugin/**'],
+      disabledCustomFilterPatterns: ['custom/**'],
+      disabledPluginFilterPatterns: [],
     });
   });
 

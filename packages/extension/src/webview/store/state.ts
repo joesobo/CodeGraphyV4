@@ -51,6 +51,8 @@ export interface GraphState {
   optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  disabledPluginFilterPatterns: string[];
   dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   nodeDecorations: Record<string, NodeDecorationPayload>;
@@ -86,6 +88,8 @@ export interface GraphState {
   clearOptimisticLegendUpdate: (legendId: string) => void;
   setOptimisticUserLegends: (legends: IGroup[]) => void;
   setFilterPatterns: (patterns: string[]) => void;
+  setDisabledCustomFilterPatterns: (patterns: string[]) => void;
+  setDisabledPluginFilterPatterns: (patterns: string[]) => void;
   setShowOrphans: (show: boolean) => void;
   setDirectionMode: (mode: DirectionMode) => void;
   setDirectionColor: (color: string) => void;

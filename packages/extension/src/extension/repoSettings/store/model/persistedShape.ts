@@ -15,6 +15,8 @@ const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'bidirectionalEdges',
   'legend',
   'filterPatterns',
+  'disabledCustomFilterPatterns',
+  'disabledPluginFilterPatterns',
   'showLabels',
   'directionMode',
   'directionColor',

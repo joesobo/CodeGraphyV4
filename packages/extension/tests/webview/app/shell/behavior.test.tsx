@@ -388,7 +388,7 @@ describe('App behavior', () => {
     expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/Todo.ts');
   });
 
-  it('adds a trimmed filter rule once from graph requests', async () => {
+  it('opens the filter popover with a glob from graph requests', async () => {
     graphStore.setState({
       graphData: {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
@@ -401,40 +401,38 @@ describe('App behavior', () => {
     harness.sentMessages.length = 0;
 
     await act(async () => {
-      (harness.graphProps?.onAddFilterRequested as ((pattern: string) => void))('  src/**  ');
+      (harness.graphProps?.onAddFilterRequested as ((patterns: string[]) => void))(['src/App.ts']);
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    expect(graphStore.getState().filterPatterns).toEqual(['existing/**', 'src/**']);
-    expect(harness.sentMessages).toContainEqual({
-      type: 'UPDATE_FILTER_PATTERNS',
-      payload: { patterns: ['existing/**', 'src/**'] },
+    expect(harness.searchBarProps?.filterPopover).toMatchObject({
+      open: true,
+      pendingPatterns: ['**/src/App.ts'],
     });
-    expect(screen.queryByLabelText('Add Filter pattern')).not.toBeInTheDocument();
+    expect(harness.sentMessages).toEqual([]);
   });
 
-  it('closes duplicate filter submissions without sending an update', async () => {
+  it('keeps duplicate filter requests in the popover without sending an update', async () => {
     graphStore.setState({
       graphData: {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
         edges: [],
       },
-      filterPatterns: ['src/**'],
+      filterPatterns: ['**/src/App.ts'],
     });
 
     render(<App />);
     harness.sentMessages.length = 0;
 
     await act(async () => {
-      (harness.graphProps?.onAddFilterRequested as ((pattern: string) => void))(' src/** ');
+      (harness.graphProps?.onAddFilterRequested as ((patterns: string[]) => void))(['src/App.ts']);
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-    expect(graphStore.getState().filterPatterns).toEqual(['src/**']);
+    expect(graphStore.getState().filterPatterns).toEqual(['**/src/App.ts']);
+    expect(harness.searchBarProps?.filterPopover).toMatchObject({
+      open: true,
+      pendingPatterns: ['**/src/App.ts'],
+    });
     expect(harness.sentMessages).toEqual([]);
-    expect(screen.queryByLabelText('Add Filter pattern')).not.toBeInTheDocument();
   });
 
   it('adds legend rules from graph requests and sends the optimistic legend list', async () => {

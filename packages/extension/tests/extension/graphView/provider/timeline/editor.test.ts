@@ -41,6 +41,8 @@ function createDependencies(
     sendPlaybackSpeed: vi.fn(),
     invalidateTimelineCache: vi.fn(async () => undefined),
     getPlaybackSpeed: vi.fn(() => 1),
+    getDisabledCustomFilterPatterns: vi.fn(() => []),
+    getDisabledPluginFilterPatterns: vi.fn(() => []),
     getWorkspaceFolder: vi.fn(),
     openTextDocument: vi.fn(),
     showTextDocument: vi.fn(),

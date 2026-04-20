@@ -20,6 +20,8 @@ export async function indexGraphViewProviderRepository(
     gitAnalyzer: source._gitAnalyzer,
     indexingController: source._indexingController,
     filterPatterns: source._filterPatterns,
+    disabledCustomFilterPatterns: dependencies.getDisabledCustomFilterPatterns(),
+    disabledPluginFilterPatterns: dependencies.getDisabledPluginFilterPatterns(),
     timelineActive: source._timelineActive,
     currentCommitSha: source._currentCommitSha,
   };

@@ -72,4 +72,46 @@ describe('graph/model/node/build', () => {
     expect(nodes.find(node => node.id === 'anchor.ts')).toMatchObject({ x: 100, y: 200 });
     expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({ x: 110, y: 210 });
   });
+
+  it('preserves previous physics state outside timeline mode', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        { id: 'survives.ts', label: 'survives.ts', color: '#93C5FD' },
+        { id: 'new.ts', label: 'new.ts', color: '#67E8F9' },
+      ],
+      edges: [],
+      nodeSizes: new Map([
+        ['survives.ts', 16],
+        ['new.ts', 16],
+      ]),
+      theme: 'dark',
+      favorites: new Set(),
+      timelineActive: false,
+      previousNodes: [
+        {
+          id: 'survives.ts',
+          x: 100,
+          y: 200,
+          z: 300,
+          vx: 1,
+          vy: 2,
+          vz: 3,
+        } satisfies Pick<FGNode, 'id' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>,
+      ],
+    });
+
+    expect(nodes.find(node => node.id === 'survives.ts')).toMatchObject({
+      vx: 1,
+      vy: 2,
+      vz: 3,
+      x: 100,
+      y: 200,
+      z: 300,
+    });
+    expect(nodes.find(node => node.id === 'new.ts')).toMatchObject({
+      x: undefined,
+      y: undefined,
+      z: undefined,
+    });
+  });
 });

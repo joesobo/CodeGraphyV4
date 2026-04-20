@@ -62,6 +62,14 @@ describe('GraphStore actions', () => {
     expect(store.getState().filterPatterns).toEqual(['**/*.spec.ts']);
   });
 
+  it('setDisabledFilterPatterns updates disabled filter rows', () => {
+    store.getState().setDisabledCustomFilterPatterns(['custom/**']);
+    store.getState().setDisabledPluginFilterPatterns(['plugin/**']);
+
+    expect(store.getState().disabledCustomFilterPatterns).toEqual(['custom/**']);
+    expect(store.getState().disabledPluginFilterPatterns).toEqual(['plugin/**']);
+  });
+
   it('setShowOrphans updates the orphan visibility flag', () => {
     store.getState().setShowOrphans(false);
 

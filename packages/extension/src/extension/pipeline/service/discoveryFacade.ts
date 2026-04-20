@@ -29,6 +29,17 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     return getWorkspacePipelinePluginFilterPatterns(this._registry, disabledPlugins);
   }
 
+  private _getEffectiveCustomFilterPatterns(filterPatterns: string[]): string[] {
+    const disabledPatterns = new Set(this._config.disabledCustomFilterPatterns);
+    return filterPatterns.filter(pattern => !disabledPatterns.has(pattern));
+  }
+
+  private _getEffectivePluginFilterPatterns(disabledPlugins: ReadonlySet<string>): string[] {
+    const disabledPatterns = new Set(this._config.disabledPluginFilterPatterns);
+    return this.getPluginFilterPatterns(disabledPlugins)
+      .filter(pattern => !disabledPatterns.has(pattern));
+  }
+
   hasIndex(): boolean {
     return hasWorkspacePipelineIndex(this._getWorkspaceRoot(), {
       getCurrentCommitShaSync: workspaceRoot => this._getCurrentCommitShaSync(workspaceRoot),
@@ -54,8 +65,8 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       createWorkspacePipelineDiscoveryDependencies(this._discovery),
       workspaceRoot,
       config,
-      filterPatterns,
-      this.getPluginFilterPatterns(disabledPlugins),
+      this._getEffectiveCustomFilterPatterns(filterPatterns),
+      this._getEffectivePluginFilterPatterns(disabledPlugins),
       signal,
       message => {
         vscode.window.showWarningMessage(message);
@@ -91,7 +102,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       this._config,
       this._discovery,
       () => this._getWorkspaceRoot(),
-      filterPatterns,
+      this._getEffectiveCustomFilterPatterns(filterPatterns),
       disabledPlugins,
       onProgress,
       signal,

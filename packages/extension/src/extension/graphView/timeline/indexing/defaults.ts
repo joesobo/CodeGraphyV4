@@ -17,6 +17,10 @@ export function createDefaultGraphViewProviderTimelineDependencies(): GraphViewP
       getCodeGraphyConfiguration().get<boolean>('showOrphans', true),
     getMaxCommits: () =>
       getCodeGraphyConfiguration().get<number>('timeline.maxCommits', 500),
+    getDisabledCustomFilterPatterns: () =>
+      getCodeGraphyConfiguration().get<string[]>('disabledCustomFilterPatterns', []),
+    getDisabledPluginFilterPatterns: () =>
+      getCodeGraphyConfiguration().get<string[]>('disabledPluginFilterPatterns', []),
     verifyGitRepository: async cwd => {
       const { execFile } = await import('child_process');
       const { promisify } = await import('util');

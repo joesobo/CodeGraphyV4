@@ -10,6 +10,7 @@ import { applyPluginInteraction } from '../pluginMessages/interaction';
 export interface GraphViewPluginMessageContext {
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
+  getConfig<T>(key: string, defaultValue: T): T;
   getMaxFiles(): number;
   getPlaybackSpeed(): number;
   getDepthMode(): boolean;

@@ -63,11 +63,17 @@ describe('app store selectors', () => {
     const setSearchQuery = vi.fn();
     const setSearchOptions = vi.fn();
     const setActivePanel = vi.fn();
+    const setFilterPatterns = vi.fn();
+    const setDisabledCustomFilterPatterns = vi.fn();
+    const setDisabledPluginFilterPatterns = vi.fn();
     act(() => {
       graphStore.setState({
         setSearchQuery,
         setSearchOptions,
         setActivePanel,
+        setFilterPatterns,
+        setDisabledCustomFilterPatterns,
+        setDisabledPluginFilterPatterns,
       });
     });
 
@@ -76,11 +82,17 @@ describe('app store selectors', () => {
     result.current.setSearchQuery('next query');
     result.current.setSearchOptions({ matchCase: true, wholeWord: false, regex: false });
     result.current.setActivePanel('settings');
+    result.current.setFilterPatterns(['**/generated.ts']);
+    result.current.setDisabledCustomFilterPatterns(['**/generated.ts']);
+    result.current.setDisabledPluginFilterPatterns(['plugin/**']);
 
     expect(result.current).toEqual({
       setSearchQuery,
       setSearchOptions,
       setActivePanel,
+      setFilterPatterns,
+      setDisabledCustomFilterPatterns,
+      setDisabledPluginFilterPatterns,
     });
     expect(setSearchQuery).toHaveBeenCalledWith('next query');
     expect(setSearchOptions).toHaveBeenCalledWith({
@@ -89,5 +101,8 @@ describe('app store selectors', () => {
       regex: false,
     });
     expect(setActivePanel).toHaveBeenCalledWith('settings');
+    expect(setFilterPatterns).toHaveBeenCalledWith(['**/generated.ts']);
+    expect(setDisabledCustomFilterPatterns).toHaveBeenCalledWith(['**/generated.ts']);
+    expect(setDisabledPluginFilterPatterns).toHaveBeenCalledWith(['plugin/**']);
   });
 });

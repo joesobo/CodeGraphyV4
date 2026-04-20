@@ -39,6 +39,8 @@ function createStableListSettings(settings: Partial<ICodeGraphyRepoSettings>) {
   return {
     include: settings.include ?? [],
     filterPatterns: settings.filterPatterns ?? [],
+    disabledCustomFilterPatterns: settings.disabledCustomFilterPatterns ?? [],
+    disabledPluginFilterPatterns: settings.disabledPluginFilterPatterns ?? [],
     pluginOrder: settings.pluginOrder ?? [],
   };
 }

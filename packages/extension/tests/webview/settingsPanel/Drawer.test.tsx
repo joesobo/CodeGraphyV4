@@ -74,12 +74,10 @@ describe('SettingsPanel', () => {
     expect(screen.queryByText('Repel Force')).not.toBeInTheDocument();
   });
 
-  it('renders filter content when the filters section is opened', () => {
+  it('does not render a separate filters section', () => {
     renderPanel();
 
-    fireEvent.click(screen.getByText('Filters'));
-
-    expect(screen.getByText('Show Orphans')).toBeInTheDocument();
+    expect(screen.queryByText('Filters')).not.toBeInTheDocument();
   });
 
   it('renders display content when the display section is opened', () => {
@@ -88,6 +86,8 @@ describe('SettingsPanel', () => {
     fireEvent.click(screen.getByText('Display'));
 
     expect(screen.getByText('Direction')).toBeInTheDocument();
+    expect(screen.getByText('Show Orphans')).toBeInTheDocument();
+    expect(screen.getByText('Max Files')).toBeInTheDocument();
   });
 
   it('calls onClose when the close button is clicked', () => {

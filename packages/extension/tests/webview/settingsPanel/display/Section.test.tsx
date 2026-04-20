@@ -308,7 +308,7 @@ describe('DisplaySection', () => {
   it('posts label visibility updates when toggled', () => {
     renderContent({ showLabels: true });
 
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByLabelText('Show Labels'));
 
     expect(graphStore.getState().showLabels).toBe(false);
     expect(sentMessages).toContainEqual({

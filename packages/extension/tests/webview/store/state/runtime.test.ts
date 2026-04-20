@@ -99,10 +99,17 @@ describe('GraphStore', () => {
   it('handles FILTER_PATTERNS_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'FILTER_PATTERNS_UPDATED',
-      payload: { patterns: ['*.test.ts'], pluginPatterns: ['*.uid'] },
+      payload: {
+        patterns: ['*.test.ts'],
+        pluginPatterns: ['*.uid'],
+        disabledCustomPatterns: ['custom/**'],
+        disabledPluginPatterns: [],
+      },
     });
     expect(store.getState().filterPatterns).toEqual(['*.test.ts']);
     expect(store.getState().pluginFilterPatterns).toEqual(['*.uid']);
+    expect(store.getState().disabledCustomFilterPatterns).toEqual(['custom/**']);
+    expect(store.getState().disabledPluginFilterPatterns).toEqual([]);
   });
 
   it('handles DEPTH_MODE_UPDATED message', () => {
