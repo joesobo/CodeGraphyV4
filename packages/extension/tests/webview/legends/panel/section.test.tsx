@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { LegendSection } from '../../../../src/webview/components/legends/panel/section/view';
 
@@ -146,12 +146,67 @@ describe('webview/legends/section', () => {
     render(<LegendSection {...baseProps} />);
 
     expect(screen.getByText('built-in:Files')).toBeInTheDocument();
+    expect(screen.getByText('Custom')).toBeInTheDocument();
+    expect(screen.getByText('Plugin defaults')).toBeInTheDocument();
     expect(screen.getByText('src/**')).toBeInTheDocument();
 
     fireEvent.click(screen.getByTitle('Toggle Nodes legend section'));
 
     expect(screen.queryByText('built-in:Files')).not.toBeInTheDocument();
     expect(screen.queryByText('src/**')).not.toBeInTheDocument();
+  });
+
+  it('groups plugin default rules by plugin inside the section', () => {
+    render(
+      <LegendSection
+        {...baseProps}
+        displayRules={[
+          { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
+          {
+            id: 'plugin:codegraphy.typescript:*.ts',
+            pattern: '*.ts',
+            color: '#3178c6',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.typescript',
+            pluginName: 'TypeScript',
+          },
+          {
+            id: 'plugin:codegraphy.typescript:*.tsx',
+            pattern: '*.tsx',
+            color: '#61dafb',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.typescript',
+            pluginName: 'TypeScript',
+          },
+          {
+            id: 'plugin:codegraphy.python:*.py',
+            pattern: '*.py',
+            color: '#3776ab',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.python',
+            pluginName: 'Python',
+          },
+        ]}
+      />,
+    );
+
+    const customSection = screen.getByText('Custom').closest('[data-testid="legend-rule-subsection"]');
+    expect(customSection).not.toBeNull();
+    expect(within(customSection as HTMLElement).getByText('src/**')).toBeInTheDocument();
+    expect(within(customSection as HTMLElement).getByText('add:node')).toBeInTheDocument();
+
+    const typescriptSection = screen.getByText('TypeScript').closest('[data-testid="legend-rule-subsection"]');
+    expect(typescriptSection).not.toBeNull();
+    expect(within(typescriptSection as HTMLElement).getByText('*.ts')).toBeInTheDocument();
+    expect(within(typescriptSection as HTMLElement).getByText('*.tsx')).toBeInTheDocument();
+    expect(within(typescriptSection as HTMLElement).queryByText('*.py')).not.toBeInTheDocument();
+
+    const pythonSection = screen.getByText('Python').closest('[data-testid="legend-rule-subsection"]');
+    expect(pythonSection).not.toBeNull();
+    expect(within(pythonSection as HTMLElement).getByText('*.py')).toBeInTheDocument();
   });
 
   it('forwards built-in color changes, added rules, and rule updates to the section callbacks', () => {
