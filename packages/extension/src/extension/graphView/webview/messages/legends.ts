@@ -17,6 +17,7 @@ function toPersistableGroup(group: IGroup): IGroup {
   const persistable = { ...group };
   delete persistable.imageUrl;
   delete persistable.isPluginDefault;
+  delete persistable.pluginId;
   delete persistable.pluginName;
   return persistable;
 }

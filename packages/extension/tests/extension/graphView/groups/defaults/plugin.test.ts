@@ -63,6 +63,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.md',
         color: '#577590',
         isPluginDefault: true,
+        pluginId: 'codegraphy.markdown',
         pluginName: 'Markdown',
       },
       {
@@ -70,6 +71,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.mdx',
         color: '#577590',
         isPluginDefault: true,
+        pluginId: 'codegraphy.markdown',
         pluginName: 'Markdown',
         shape2D: 'hexagon',
         imagePath: 'assets/markdown.svg',
@@ -112,6 +114,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.ts',
         color: '#3178C6',
         isPluginDefault: true,
+        pluginId: 'codegraphy.typescript',
         pluginName: 'TypeScript',
       },
     ]);
@@ -147,6 +150,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.unknown',
         color: '#999999',
         isPluginDefault: true,
+        pluginId: 'codegraphy.unknown',
         pluginName: 'Unknown',
       },
     ]);
@@ -184,6 +188,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.gd',
         color: '#478CBF',
         isPluginDefault: true,
+        pluginId: 'codegraphy.godot',
         pluginName: 'Godot',
         shape3D: 'sphere',
       },
@@ -220,6 +225,7 @@ describe('graphView/pluginDefaultGroups', () => {
       pattern: '*.rs',
       color: '#DEA584',
       isPluginDefault: true,
+      pluginId: 'codegraphy.rust',
       pluginName: 'Rust',
     });
     expect(groups[0]).not.toHaveProperty('shape2D');
@@ -267,6 +273,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.py',
         color: '#3776AB',
         isPluginDefault: true,
+        pluginId: 'codegraphy.python',
         pluginName: 'Python',
       },
     ]);
@@ -319,6 +326,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.gd',
         color: '#478CBF',
         isPluginDefault: true,
+        pluginId: 'codegraphy.godot',
         pluginName: 'Godot',
         shape3D: 'sphere',
       },
@@ -327,6 +335,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.godot',
         color: '#6A9FB5',
         isPluginDefault: true,
+        pluginId: 'codegraphy.godot',
         pluginName: 'Godot',
       },
     ]);

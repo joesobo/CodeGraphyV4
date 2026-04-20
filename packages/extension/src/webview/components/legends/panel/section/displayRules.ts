@@ -33,14 +33,22 @@ export function resolveDisplayRules(
       continue;
     }
 
-    rulesById.set(rule.id, {
+    const merged: LegendDisplayRule = {
       ...rule,
       ...existing,
       isPluginDefault: rule.isPluginDefault || existing.isPluginDefault,
-      pluginName: existing.pluginName ?? rule.pluginName,
-      imagePath: existing.imagePath ?? rule.imagePath,
-      imageUrl: existing.imageUrl ?? rule.imageUrl,
-    });
+    };
+    const pluginId = existing.pluginId ?? rule.pluginId;
+    const pluginName = existing.pluginName ?? rule.pluginName;
+    const imagePath = existing.imagePath ?? rule.imagePath;
+    const imageUrl = existing.imageUrl ?? rule.imageUrl;
+
+    if (pluginId) merged.pluginId = pluginId;
+    if (pluginName) merged.pluginName = pluginName;
+    if (imagePath) merged.imagePath = imagePath;
+    if (imageUrl) merged.imageUrl = imageUrl;
+
+    rulesById.set(rule.id, merged);
   }
 
   return [...rulesById.values()];

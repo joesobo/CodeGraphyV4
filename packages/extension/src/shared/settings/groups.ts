@@ -12,6 +12,7 @@ export interface IGroup {
   imagePath?: string;
   imageUrl?: string;
   isPluginDefault?: boolean;
+  pluginId?: string;
   pluginName?: string;
   disabled?: boolean;
 }
