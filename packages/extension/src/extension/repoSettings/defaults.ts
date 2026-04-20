@@ -22,6 +22,8 @@ export interface ICodeGraphyRepoSettings {
   bidirectionalEdges: 'separate' | 'combined';
   legend: IGroup[];
   filterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  disabledPluginFilterPatterns: string[];
   showLabels: boolean;
   directionMode: 'arrows' | 'particles' | 'none';
   directionColor: string;
@@ -61,6 +63,8 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     bidirectionalEdges: 'separate',
     legend: [],
     filterPatterns: [],
+    disabledCustomFilterPatterns: [],
+    disabledPluginFilterPatterns: [],
     showLabels: true,
     directionMode: 'arrows',
     directionColor: DEFAULT_DIRECTION_COLOR,

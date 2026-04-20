@@ -69,7 +69,7 @@ describe('SearchBar (CSS class mutations)', () => {
     const input = screen.getByRole('textbox');
     expect(input.className).toContain('w-full');
     expect(input.className).toContain('pl-10');
-    expect(input.className).toContain('pr-20');
+    expect(input.className).toContain('pr-32');
     expect(input.className).toContain('py-1.5');
     expect(input.className).toContain('rounded-md');
     expect(input.className).toContain('text-sm');

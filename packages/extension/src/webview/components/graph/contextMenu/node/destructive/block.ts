@@ -6,19 +6,24 @@
 import { builtInItem, separator } from '../../common/entryFactories';
 import type { GraphContextMenuEntry } from '../../contracts';
 
-/** Builds the "destructive" block: Add to Filter, Rename, and Delete. */
-export function buildDestructiveBlock(targets: readonly string[]): GraphContextMenuEntry[] {
+export function buildFilterBlock(targets: readonly string[]): GraphContextMenuEntry[] {
   const isMultiSelect = targets.length > 1;
-  const entries: GraphContextMenuEntry[] = [];
+  const entries: GraphContextMenuEntry[] = [
+    separator('node-separator-filter'),
+    builtInItem('node-add-filter', isMultiSelect ? 'Add All to Filter' : 'Add to Filter', 'addToFilter'),
+  ];
 
-  entries.push(separator('node-separator-destructive-1'));
-  entries.push(
-    builtInItem('node-add-filter', isMultiSelect ? 'Add All to Filter' : 'Add to Filter', 'addToFilter')
-  );
   if (!isMultiSelect) {
     entries.push(builtInItem('node-add-legend', 'Add Legend Group', 'addNodeLegend'));
   }
-  entries.push(separator('node-separator-destructive-2'));
+
+  return entries;
+}
+
+/** Builds file-changing actions hidden in timeline mode. */
+export function buildDestructiveBlock(targets: readonly string[]): GraphContextMenuEntry[] {
+  const isMultiSelect = targets.length > 1;
+  const entries: GraphContextMenuEntry[] = [separator('node-separator-destructive')];
 
   if (!isMultiSelect) {
     entries.push(builtInItem('node-rename', 'Rename...', 'rename'));

@@ -129,6 +129,34 @@ describe('ensureGitAnalyzerForCachedTimeline', () => {
     expect(source._gitAnalyzer).toEqual({ kind: 'git-analyzer' });
   });
 
+  it('omits disabled filter sources when warming the cached git analyzer', async () => {
+    const analyzer = {
+      registry: { kind: 'registry' },
+      initialize: vi.fn(async () => undefined),
+      getPluginFilterPatterns: vi.fn(() => ['plugin-cache/**']),
+    };
+    const createGitAnalyzer = vi.fn(() => ({ kind: 'git-analyzer' } as never));
+    const source = createSource({
+      _analyzer: analyzer,
+      _analyzerInitialized: true,
+      _filterPatterns: ['dist/**'],
+    });
+
+    await ensureGitAnalyzerForCachedTimeline(source as never, {
+      createGitAnalyzer,
+      getDisabledCustomFilterPatterns: vi.fn(() => ['dist/**']),
+      getDisabledPluginFilterPatterns: vi.fn(() => ['plugin-cache/**']),
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } } as never)),
+    });
+
+    expect(createGitAnalyzer).toHaveBeenCalledWith(
+      source._context,
+      analyzer.registry,
+      '/workspace',
+      expect.not.arrayContaining(['plugin-cache/**', 'dist/**']),
+    );
+  });
+
   it('reuses an in-flight analyzer initialization promise instead of starting a second one', async () => {
     const initialize = vi.fn(async () => undefined);
     const analyzer = {

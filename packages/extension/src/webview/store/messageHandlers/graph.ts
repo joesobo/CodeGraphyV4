@@ -94,6 +94,9 @@ export function handleFilterPatternsUpdated(
   return {
     filterPatterns: message.payload.patterns,
     pluginFilterPatterns: message.payload.pluginPatterns,
+    pluginFilterGroups: message.payload.pluginPatternGroups,
+    disabledCustomFilterPatterns: message.payload.disabledCustomPatterns,
+    disabledPluginFilterPatterns: message.payload.disabledPluginPatterns,
   };
 }
 

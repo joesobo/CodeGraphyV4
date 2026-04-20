@@ -1,8 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildFavoriteBlock,
-  buildDestructiveBlock,
 } from '../../../../src/webview/components/graph/contextMenu/node/destructive/favoritesBlocks';
+import {
+  buildDestructiveBlock,
+  buildFilterBlock,
+} from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 
 function itemLabels(entries: GraphContextMenuEntry[]): string[] {
@@ -78,16 +81,6 @@ describe('buildDestructiveBlock', () => {
     expect(entries[0].kind).toBe('separator');
   });
 
-  it('includes Add to Filter for single target', () => {
-    const labels = itemLabels(buildDestructiveBlock(['a.ts']));
-    expect(labels).toContain('Add to Filter');
-  });
-
-  it('includes Add All to Filter for multi-select', () => {
-    const labels = itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']));
-    expect(labels).toContain('Add All to Filter');
-  });
-
   it('includes Rename for single target', () => {
     const labels = itemLabels(buildDestructiveBlock(['a.ts']));
     expect(labels).toContain('Rename...');
@@ -113,10 +106,28 @@ describe('buildDestructiveBlock', () => {
     const deleteEntry = findItem(entries, 'Delete File');
     expect(deleteEntry?.destructive).toBe(true);
   });
+});
 
-  it('contains two separators in the destructive block', () => {
-    const entries = buildDestructiveBlock(['a.ts']);
+describe('buildFilterBlock', () => {
+  it('starts with a separator', () => {
+    const entries = buildFilterBlock(['a.ts']);
+    expect(entries[0].kind).toBe('separator');
+    expect(entries[0].id).toBe('node-separator-filter');
+  });
+
+  it('includes Add to Filter for single target', () => {
+    const labels = itemLabels(buildFilterBlock(['a.ts']));
+    expect(labels).toContain('Add to Filter');
+  });
+
+  it('includes Add All to Filter for multi-select', () => {
+    const labels = itemLabels(buildFilterBlock(['a.ts', 'b.ts']));
+    expect(labels).toContain('Add All to Filter');
+  });
+
+  it('contains one separator in the filter block', () => {
+    const entries = buildFilterBlock(['a.ts']);
     const separators = entries.filter(e => e.kind === 'separator');
-    expect(separators).toHaveLength(2);
+    expect(separators).toHaveLength(1);
   });
 });

@@ -1,4 +1,5 @@
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
 import type { IGraphViewSettingsSnapshot } from './reader';
 
@@ -36,6 +37,7 @@ export function buildGraphViewSettingsMessages(
 export function buildGraphViewAllSettingsMessages(
   snapshot: ISettingsSnapshot,
   pluginPatterns: string[],
+  pluginPatternGroups: IPluginFilterPatternGroup[] = [],
 ): {
   preGroupMessages: ExtensionToWebviewMessage[];
   postGroupMessages: ExtensionToWebviewMessage[];
@@ -59,6 +61,9 @@ export function buildGraphViewAllSettingsMessages(
         payload: {
           patterns: snapshot.filterPatterns,
           pluginPatterns,
+          pluginPatternGroups,
+          disabledCustomPatterns: snapshot.disabledCustomFilterPatterns,
+          disabledPluginPatterns: snapshot.disabledPluginFilterPatterns,
         },
       },
       {

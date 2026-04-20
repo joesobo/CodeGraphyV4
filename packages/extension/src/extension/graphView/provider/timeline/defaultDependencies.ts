@@ -32,6 +32,10 @@ export function createDefaultGraphViewProviderTimelineMethodDependencies(): Grap
     invalidateTimelineCache: invalidateGraphViewTimelineCache,
     getPlaybackSpeed: () =>
       getCodeGraphyConfiguration().get<number>('timeline.playbackSpeed', 1.0),
+    getDisabledCustomFilterPatterns: () =>
+      getCodeGraphyConfiguration().get<string[]>('disabledCustomFilterPatterns', []),
+    getDisabledPluginFilterPatterns: () =>
+      getCodeGraphyConfiguration().get<string[]>('disabledPluginFilterPatterns', []),
     getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
     openTextDocument: fileUri => vscode.workspace.openTextDocument(fileUri),
     showTextDocument: (document, options) => vscode.window.showTextDocument(document, options),

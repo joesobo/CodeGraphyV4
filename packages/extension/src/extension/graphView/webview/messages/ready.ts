@@ -1,4 +1,5 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 
 export interface GraphViewReadyState {
   maxFiles: number;
@@ -15,6 +16,8 @@ export interface GraphViewReadyState {
 export interface GraphViewReadyHandlers {
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
+  getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
+  getConfig<T>(key: string, defaultValue: T): T;
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
   sendDepthState(): void;
@@ -54,6 +57,9 @@ export async function applyWebviewReady(
     payload: {
       patterns: handlers.getFilterPatterns(),
       pluginPatterns: handlers.getPluginFilterPatterns(),
+      pluginPatternGroups: handlers.getPluginFilterGroups?.() ?? [],
+      disabledCustomPatterns: handlers.getConfig('disabledCustomFilterPatterns', []),
+      disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
     },
   });
   handlers.sendMessage({

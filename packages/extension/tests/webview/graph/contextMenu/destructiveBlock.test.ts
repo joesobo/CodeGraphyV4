@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { buildDestructiveBlock } from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
+import {
+  buildDestructiveBlock,
+  buildFilterBlock,
+} from '../../../../src/webview/components/graph/contextMenu/node/destructive/block';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 
 function itemLabels(entries: GraphContextMenuEntry[]): string[] {
@@ -17,36 +20,15 @@ function findItem(entries: GraphContextMenuEntry[], label: string) {
 describe('destructive block', () => {
   it('begins with a separator', () => {
     const entries = buildDestructiveBlock(['a.ts']);
-    expect(entries[0]).toEqual({ kind: 'separator', id: 'node-separator-destructive-1' });
-  });
-
-  it('has a second separator after the add-to-filter item', () => {
-    const entries = buildDestructiveBlock(['a.ts']);
-    expect(entries[3]).toEqual({ kind: 'separator', id: 'node-separator-destructive-2' });
-  });
-
-  it('includes Add to Filter for single target', () => {
-    expect(itemLabels(buildDestructiveBlock(['a.ts']))).toContain('Add to Filter');
-  });
-
-  it('includes Add All to Filter for multi-select', () => {
-    expect(itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']))).toContain('Add All to Filter');
+    expect(entries[0]).toEqual({ kind: 'separator', id: 'node-separator-destructive' });
   });
 
   it('includes Rename for single target', () => {
     expect(itemLabels(buildDestructiveBlock(['a.ts']))).toContain('Rename...');
   });
 
-  it('includes Add Legend Group for single target', () => {
-    expect(itemLabels(buildDestructiveBlock(['a.ts']))).toContain('Add Legend Group');
-  });
-
   it('omits Rename for multi-select', () => {
     expect(itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']))).not.toContain('Rename...');
-  });
-
-  it('omits Add Legend Group for multi-select', () => {
-    expect(itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']))).not.toContain('Add Legend Group');
   });
 
   it('shows Delete File for single target', () => {
@@ -62,23 +44,46 @@ describe('destructive block', () => {
     expect(entry?.destructive).toBe(true);
   });
 
-  it('uses addToFilter action for the filter entry', () => {
-    const entry = findItem(buildDestructiveBlock(['a.ts']), 'Add to Filter');
-    expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addToFilter' });
-  });
-
   it('uses rename action for the rename entry', () => {
     const entry = findItem(buildDestructiveBlock(['a.ts']), 'Rename...');
     expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'rename' });
   });
 
-  it('uses addNodeLegend action for the add legend entry', () => {
-    const entry = findItem(buildDestructiveBlock(['a.ts']), 'Add Legend Group');
-    expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addNodeLegend' });
-  });
-
   it('uses delete action for the delete entry', () => {
     const entry = findItem(buildDestructiveBlock(['a.ts']), 'Delete File');
     expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'delete' });
+  });
+});
+
+describe('filter block', () => {
+  it('begins with a separator', () => {
+    const entries = buildFilterBlock(['a.ts']);
+    expect(entries[0]).toEqual({ kind: 'separator', id: 'node-separator-filter' });
+  });
+
+  it('includes Add to Filter for single target', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add to Filter');
+  });
+
+  it('includes Add All to Filter for multi-select', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).toContain('Add All to Filter');
+  });
+
+  it('includes Add Legend Group for single target', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add Legend Group');
+  });
+
+  it('omits Add Legend Group for multi-select', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).not.toContain('Add Legend Group');
+  });
+
+  it('uses addToFilter action for the filter entry', () => {
+    const entry = findItem(buildFilterBlock(['a.ts']), 'Add to Filter');
+    expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addToFilter' });
+  });
+
+  it('uses addNodeLegend action for the add legend entry', () => {
+    const entry = findItem(buildFilterBlock(['a.ts']), 'Add Legend Group');
+    expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addNodeLegend' });
   });
 });

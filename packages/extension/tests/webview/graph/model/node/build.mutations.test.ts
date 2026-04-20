@@ -73,7 +73,7 @@ describe('buildGraphNodes (mutation targets)', () => {
     expect(nodes[0].size).toBe(16);
   });
 
-  it('does not use previous positions when timeline is not active', () => {
+  it('uses previous positions when timeline is not active', () => {
     const nodes = buildGraphNodes({
       nodes: [{ id: 'a.ts', label: 'a.ts', color: '#93C5FD' }],
       edges: [],
@@ -84,8 +84,8 @@ describe('buildGraphNodes (mutation targets)', () => {
       previousNodes: [{ id: 'a.ts', x: 100, y: 200 }],
     });
 
-    expect(nodes[0].x).toBeUndefined();
-    expect(nodes[0].y).toBeUndefined();
+    expect(nodes[0].x).toBe(100);
+    expect(nodes[0].y).toBe(200);
   });
 
   it('uses previous positions when timeline is active', () => {

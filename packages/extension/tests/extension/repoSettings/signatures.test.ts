@@ -62,6 +62,8 @@ describe('extension/repoSettings/signatures', () => {
     changed.maxFiles = 900;
     changed.include = ['src/**/*.ts'];
     changed.filterPatterns = ['**/*.png'];
+    changed.disabledCustomFilterPatterns = ['**/*.png'];
+    changed.disabledPluginFilterPatterns = ['**/*.generated.ts'];
     changed.pluginOrder = ['codegraphy.typescript'];
 
     expect(createCodeGraphySettingsSignature(changed)).not.toBe(
@@ -77,6 +79,8 @@ describe('extension/repoSettings/signatures', () => {
       depthLimit: 1,
       include: [],
       filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      disabledPluginFilterPatterns: [],
       pluginOrder: [],
       nodeVisibility: [],
       edgeVisibility: [],
@@ -87,6 +91,8 @@ describe('extension/repoSettings/signatures', () => {
     expect(createCodeGraphySettingsSignature({
       maxFiles: 250,
       respectGitignore: false,
+      disabledCustomFilterPatterns: ['custom/**'],
+      disabledPluginFilterPatterns: ['plugin/**'],
       depthMode: true,
       depthLimit: 4,
       include: ['src/**/*.ts'],
@@ -101,6 +107,8 @@ describe('extension/repoSettings/signatures', () => {
       depthLimit: 4,
       include: ['src/**/*.ts'],
       filterPatterns: ['**/*.png'],
+      disabledCustomFilterPatterns: ['custom/**'],
+      disabledPluginFilterPatterns: ['plugin/**'],
       pluginOrder: ['codegraphy.typescript'],
       nodeVisibility: [
         ['file', true],

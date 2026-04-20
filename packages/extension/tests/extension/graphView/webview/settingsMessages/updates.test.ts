@@ -32,8 +32,59 @@ describe('graph view settings update message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('filterPatterns', ['dist/**']);
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'FILTER_PATTERNS_UPDATED',
-      payload: { patterns: ['dist/**'], pluginPatterns: ['venv/**'] },
+      payload: {
+        patterns: ['dist/**'],
+        pluginPatterns: ['venv/**'],
+        pluginPatternGroups: [],
+        disabledCustomPatterns: [],
+        disabledPluginPatterns: [],
+      },
     });
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+  });
+
+  it('persists filter row state and refreshes graph data so old nodes can return', async () => {
+    const state = createState({ filterPatterns: ['dist/**'] });
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'disabledCustomFilterPatterns') {
+          return ['dist/**'] as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await applySettingsUpdateMessage(
+      {
+        type: 'UPDATE_FILTER_PATTERN_STATE',
+        payload: { source: 'custom', pattern: 'dist/**', enabled: true },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', []);
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+  });
+
+  it('persists section filter state and refreshes graph data once', async () => {
+    const state = createState({ filterPatterns: ['dist/**', 'coverage/**'] });
+    const handlers = createHandlers();
+
+    await applySettingsUpdateMessage(
+      {
+        type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+        payload: { source: 'custom', enabled: false },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', [
+      'dist/**',
+      'coverage/**',
+    ]);
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
   it('persists update-show-orphans through config updates', async () => {

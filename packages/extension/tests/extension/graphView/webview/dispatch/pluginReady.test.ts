@@ -11,6 +11,7 @@ function createContext(
   return {
     getFilterPatterns: vi.fn(() => ['src/**']),
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
+    getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     getMaxFiles: vi.fn(() => 500),
     getPlaybackSpeed: vi.fn(() => 2),
     getDepthMode: vi.fn(() => false),
@@ -69,6 +70,9 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
       payload: {
         patterns: ['src/**'],
         pluginPatterns: ['plugin:test/**'],
+        pluginPatternGroups: [],
+        disabledCustomPatterns: [],
+        disabledPluginPatterns: [],
       },
     });
     expect(context.sendMessage).toHaveBeenCalledWith({
@@ -110,6 +114,9 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
       payload: {
         patterns: ['**/README.md'],
         pluginPatterns: ['plugin:test/**'],
+        pluginPatternGroups: [],
+        disabledCustomPatterns: [],
+        disabledPluginPatterns: [],
       },
     });
   });

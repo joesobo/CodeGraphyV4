@@ -22,6 +22,8 @@ const PHYSICS_KEYS: (keyof IPhysicsSettings)[] = [
 const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   legend: 'legends',
   filterPatterns: 'filterPatterns',
+  disabledCustomFilterPatterns: 'disabledCustomFilterPatterns',
+  disabledPluginFilterPatterns: 'disabledPluginFilterPatterns',
   showOrphans: 'showOrphans',
   bidirectionalEdges: 'bidirectionalMode',
   directionMode: 'directionMode',

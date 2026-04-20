@@ -6,6 +6,8 @@ export interface ISettingsSnapshot {
   physics: IPhysicsSettings;
   legends: IGroup[];
   filterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  disabledPluginFilterPatterns: string[];
   showOrphans: boolean;
   bidirectionalMode: BidirectionalEdgeMode;
   directionMode: DirectionMode;

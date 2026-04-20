@@ -9,6 +9,8 @@ export interface SearchHeaderProps {
   resultCount: number | undefined;
   totalCount: number;
   activeFilePath: string | null;
+  countLabel?: string | null;
+  filterPopover?: React.ComponentProps<typeof SearchBar>['filterPopover'];
   regexError: string | null;
   onSearchQueryChange: (value: string) => void;
   onSearchOptionsChange: (options: SearchOptions) => void;
@@ -20,12 +22,14 @@ export function SearchHeader({
   resultCount,
   totalCount,
   activeFilePath,
+  countLabel,
+  filterPopover,
   regexError,
   onSearchQueryChange,
   onSearchOptionsChange,
 }: SearchHeaderProps): React.ReactElement {
   return (
-    <div className="flex-shrink-0 p-2 border-b border-[var(--vscode-panel-border,#3c3c3c)]">
+    <div className="flex-shrink-0 px-2 pt-2 pb-1 border-b border-[var(--vscode-panel-border,#3c3c3c)]">
       <SearchBar
         value={searchQuery}
         onChange={onSearchQueryChange}
@@ -33,12 +37,16 @@ export function SearchHeader({
         onOptionsChange={onSearchOptionsChange}
         resultCount={resultCount}
         totalCount={totalCount}
+        countLabel={countLabel}
+        filterPopover={filterPopover}
         placeholder="Search files... (Ctrl+F)"
         regexError={regexError}
       />
-      <div className="mt-1.5 min-h-5">
-        <ActiveFileBreadcrumb filePath={activeFilePath} />
-      </div>
+      {activeFilePath && (
+        <div className="mt-1">
+          <ActiveFileBreadcrumb filePath={activeFilePath} />
+        </div>
+      )}
     </div>
   );
 }

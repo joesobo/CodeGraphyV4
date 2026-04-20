@@ -8,8 +8,8 @@ export function createFocusEffects(nodeId: string | undefined): GraphContextEffe
   return nodeId ? [{ kind: 'focusNode', nodeId }] : [];
 }
 
-export function createPatternPromptEffects(pattern: string | undefined): GraphContextEffect[] {
-  return pattern ? [{ kind: 'promptFilterPattern', pattern }] : [];
+export function createPatternPromptEffects(patterns: string[]): GraphContextEffect[] {
+  return patterns.length > 0 ? [{ kind: 'promptFilterPattern', patterns }] : [];
 }
 
 export function createLegendPromptEffects(

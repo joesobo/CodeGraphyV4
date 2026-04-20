@@ -40,12 +40,16 @@ export interface WorkspacePipelineAnalysisSource {
     workspaceRoot: string,
     signal?: AbortSignal,
   ): Promise<void>;
-  getPluginFilterPatterns(): string[];
+  getPluginFilterPatterns(disabledPlugins?: ReadonlySet<string>): string[];
 }
 
 export interface WorkspacePipelineAnalysisDependencies
   extends WorkspacePipelineDiscoveryDependencies<IDiscoveredFile> {
-  getConfig(): WorkspacePipelineDiscoveryConfig & { showOrphans: boolean };
+  getConfig(): WorkspacePipelineDiscoveryConfig & {
+    disabledCustomFilterPatterns?: string[];
+    disabledPluginFilterPatterns?: string[];
+    showOrphans: boolean;
+  };
   getWorkspaceRoot(): string | undefined;
   logInfo(message: string): void;
   saveCache(): void;
@@ -69,12 +73,15 @@ export async function analyzeWorkspaceWithAnalyzer(
   }
 
   const config = dependencies.getConfig();
+  const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns ?? []);
+  const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns ?? []);
   const discoveryResult = await discoverWorkspacePipelineFiles(
     dependencies,
     workspaceRoot,
     config,
-    filterPatterns,
-    source.getPluginFilterPatterns(),
+    filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
+    source.getPluginFilterPatterns(disabledPlugins)
+      .filter(pattern => !disabledPluginPatterns.has(pattern)),
     signal,
   );
 

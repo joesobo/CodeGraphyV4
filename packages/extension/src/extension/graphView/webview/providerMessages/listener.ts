@@ -6,6 +6,7 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
+import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IViewContext } from '../../../../core/views/contracts';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
@@ -82,6 +83,7 @@ export interface GraphViewProviderMessageListenerSource {
   _analyzer?:
     | {
         getPluginFilterPatterns(): string[];
+        getPluginFilterGroups?(disabledPlugins?: ReadonlySet<string>): IPluginFilterPatternGroup[];
         lastFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
         readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
         registry?: {

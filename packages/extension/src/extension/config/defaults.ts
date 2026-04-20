@@ -39,4 +39,8 @@ export interface ICodeGraphyConfig {
   disabledPlugins: string[];
   /** Ordered plugin IDs, highest priority first */
   pluginOrder: string[];
+  /** Repo-local custom filter patterns disabled by the user */
+  disabledCustomFilterPatterns: string[];
+  /** Plugin-provided filter patterns disabled by the user */
+  disabledPluginFilterPatterns: string[];
 }

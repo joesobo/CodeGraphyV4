@@ -47,7 +47,7 @@ export interface WorkspacePipelineSourceOwner {
   _discovery: FileDiscovery;
   _registry: PluginRegistry;
   _context: vscode.ExtensionContext;
-  getPluginFilterPatterns(): string[];
+  getPluginFilterPatterns(disabledPlugins?: ReadonlySet<string>): string[];
 }
 
 export function createWorkspacePipelineAnalysisSource(
@@ -93,7 +93,8 @@ export function createWorkspacePipelineAnalysisSource(
       workspaceRoot: string,
       nextSignal?: AbortSignal,
     ) => owner._preAnalyzePlugins(files, workspaceRoot, nextSignal),
-    getPluginFilterPatterns: () => owner.getPluginFilterPatterns(),
+    getPluginFilterPatterns: (disabledPlugins?: ReadonlySet<string>) =>
+      owner.getPluginFilterPatterns(disabledPlugins),
   } as WorkspacePipelineAnalysisSource;
 
   Object.defineProperties(source, {

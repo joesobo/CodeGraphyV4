@@ -4,7 +4,7 @@ import {
   buildCopyBlock,
 } from './openCopyBlocks';
 import { buildFavoriteBlock } from './destructive/favoritesBlocks';
-import { buildDestructiveBlock } from './destructive/block';
+import { buildDestructiveBlock, buildFilterBlock } from './destructive/block';
 
 export function buildNodeEntries(
   targets: readonly string[],
@@ -15,6 +15,7 @@ export function buildNodeEntries(
     ...buildOpenBlock(targets, timelineActive),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
+    ...buildFilterBlock(targets),
   ];
 
   if (!timelineActive) {

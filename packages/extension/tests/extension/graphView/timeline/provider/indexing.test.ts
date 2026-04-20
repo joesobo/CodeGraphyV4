@@ -45,6 +45,8 @@ describe('graph view provider timeline indexing', () => {
       getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
       getShowOrphans: vi.fn(() => true),
       getMaxCommits: vi.fn(() => 500),
+      getDisabledCustomFilterPatterns: vi.fn(() => []),
+      getDisabledPluginFilterPatterns: vi.fn(() => []),
       verifyGitRepository: vi.fn(() => Promise.resolve()),
       createGitAnalyzer: vi.fn(),
       showErrorMessage: vi.fn(),
@@ -74,6 +76,8 @@ describe('graph view provider timeline indexing', () => {
           gitAnalyzer: existingGitAnalyzer,
           indexingController: existingIndexingController,
           filterPatterns: ['dist/**'],
+          disabledCustomFilterPatterns: [],
+          disabledPluginFilterPatterns: [],
           timelineActive: true,
           currentCommitSha: 'sha-0',
         });

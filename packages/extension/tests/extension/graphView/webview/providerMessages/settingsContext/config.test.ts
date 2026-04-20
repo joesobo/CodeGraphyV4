@@ -23,6 +23,8 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'bidirectionalEdges',
       'directionColor',
       'directionMode',
+      'disabledCustomFilterPatterns',
+      'disabledPluginFilterPatterns',
       'disabledPlugins',
       'edgeVisibility',
       'filterPatterns',

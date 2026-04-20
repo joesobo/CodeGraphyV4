@@ -23,6 +23,8 @@ export function captureGraphViewSettingsSnapshot(
     physics,
     legends: config.get('legend', []),
     filterPatterns: config.get('filterPatterns', []),
+    disabledCustomFilterPatterns: config.get('disabledCustomFilterPatterns', []),
+    disabledPluginFilterPatterns: config.get('disabledPluginFilterPatterns', []),
     showOrphans: config.get('showOrphans', true),
     bidirectionalMode: config.get('bidirectionalEdges', 'separate'),
     directionMode: config.get('directionMode', 'arrows'),

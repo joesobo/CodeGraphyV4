@@ -22,6 +22,8 @@ function scheduleGroupSettingsRefresh(provider: GraphViewProvider): void {
 function shouldInvalidateTimelineCache(event: CodeGraphyConfigurationChangeLike): boolean {
   return (
     event.affectsConfiguration('codegraphy.filterPatterns')
+    || event.affectsConfiguration('codegraphy.disabledCustomFilterPatterns')
+    || event.affectsConfiguration('codegraphy.disabledPluginFilterPatterns')
     || event.affectsConfiguration('codegraphy.timeline.maxCommits')
   );
 }

@@ -19,7 +19,14 @@ describe('settingsMessages/updates/filterPatterns', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('filterPatterns', ['dist/**']);
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'FILTER_PATTERNS_UPDATED',
-      payload: { patterns: ['dist/**'], pluginPatterns: ['venv/**'] },
+      payload: {
+        patterns: ['dist/**'],
+        pluginPatterns: ['venv/**'],
+        pluginPatternGroups: [],
+        disabledCustomPatterns: [],
+        disabledPluginPatterns: [],
+      },
     });
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });
 });

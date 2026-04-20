@@ -1,12 +1,20 @@
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../config/defaults';
 import type { GraphViewProviderTimelineMethodDependencies, GraphViewProviderTimelineMethodsSource } from './contracts';
 
+type CachedTimelineWarmupDependencies = Pick<
+  GraphViewProviderTimelineMethodDependencies,
+  'createGitAnalyzer' | 'getWorkspaceFolder'
+> &
+  Partial<
+    Pick<
+      GraphViewProviderTimelineMethodDependencies,
+      'getDisabledCustomFilterPatterns' | 'getDisabledPluginFilterPatterns'
+    >
+  >;
+
 export async function ensureGitAnalyzerForCachedTimeline(
   source: GraphViewProviderTimelineMethodsSource,
-  dependencies: Pick<
-    GraphViewProviderTimelineMethodDependencies,
-    'createGitAnalyzer' | 'getWorkspaceFolder'
-  >,
+  dependencies: CachedTimelineWarmupDependencies,
 ): Promise<void> {
   if (source._gitAnalyzer || !source._analyzer) {
     return;
@@ -38,11 +46,17 @@ export async function ensureGitAnalyzerForCachedTimeline(
     await source._analyzerInitPromise;
   }
 
+  const disabledCustomPatterns = new Set(dependencies.getDisabledCustomFilterPatterns?.() ?? []);
+  const disabledPluginPatterns = new Set(dependencies.getDisabledPluginFilterPatterns?.() ?? []);
+  const pluginFilterPatterns = source._analyzer.getPluginFilterPatterns()
+    .filter(pattern => !disabledPluginPatterns.has(pattern));
+  const customFilterPatterns = source._filterPatterns
+    .filter(pattern => !disabledCustomPatterns.has(pattern));
   const mergedExclude = [
     ...new Set([
       ...DEFAULT_EXCLUDE_PATTERNS,
-      ...source._analyzer.getPluginFilterPatterns(),
-      ...source._filterPatterns,
+      ...pluginFilterPatterns,
+      ...customFilterPatterns,
     ]),
   ];
 

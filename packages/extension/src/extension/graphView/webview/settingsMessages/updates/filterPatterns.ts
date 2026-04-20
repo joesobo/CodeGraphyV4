@@ -11,12 +11,20 @@ export async function applyFilterPatternsUpdate(
 ): Promise<boolean> {
   state.filterPatterns = message.payload.patterns;
   await handlers.updateConfig('filterPatterns', state.filterPatterns);
+  const disabledCustomPatterns = handlers
+    .getConfig<string[]>('disabledCustomFilterPatterns', [])
+    .filter(pattern => state.filterPatterns.includes(pattern));
+  await handlers.updateConfig('disabledCustomFilterPatterns', disabledCustomPatterns);
   handlers.sendMessage({
     type: 'FILTER_PATTERNS_UPDATED',
     payload: {
       patterns: state.filterPatterns,
       pluginPatterns: handlers.getPluginFilterPatterns(),
+      pluginPatternGroups: handlers.getPluginFilterGroups(),
+      disabledCustomPatterns,
+      disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
     },
   });
+  await handlers.analyzeAndSendData();
   return true;
 }

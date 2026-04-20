@@ -46,7 +46,7 @@ export function createGraphViewProviderMessageSettingsContext(
         payload: { nodeSizeMode: source._nodeSizeMode },
       });
     },
-    getConfig: (key, defaultValue) => config.get(key, defaultValue),
+    getConfig: (key, defaultValue) => config.get(key, defaultValue) ?? defaultValue,
     updateConfig: async (key, value) => persistConfig(key, value),
     sendGraphControls: () => {
       source._sendGraphControls?.();
@@ -71,8 +71,8 @@ export function createGraphViewProviderMessageSettingsContext(
       );
       await dependencies.executeUndoAction(action);
     },
-    getMaxFiles: () => config.get<number>('maxFiles', 500),
-    getPlaybackSpeed: () => config.get<number>('timeline.playbackSpeed', 1.0),
+    getMaxFiles: () => config.get<number>('maxFiles', 500) ?? 500,
+    getPlaybackSpeed: () => config.get<number>('timeline.playbackSpeed', 1.0) ?? 1.0,
     getDepthMode: () => source._depthMode,
     getDagMode: () => source._dagMode,
     getNodeSizeMode: () => source._nodeSizeMode,

@@ -98,6 +98,38 @@ describe('graph view timeline setup', () => {
     expect(state.indexingController).toBeInstanceOf(AbortController);
   });
 
+  it('omits disabled custom and plugin filter sources from timeline excludes', async () => {
+    const analyzer = {
+      initialize: vi.fn(() => Promise.resolve()),
+      getPluginFilterPatterns: vi.fn(() => ['**/*.generated.ts']),
+    };
+    const state = createState({
+      analyzer,
+      disabledCustomFilterPatterns: ['src/generated/**'],
+      disabledPluginFilterPatterns: ['**/*.generated.ts'],
+      filterPatterns: ['src/generated/**'],
+    });
+    const handlers = createHandlers({
+      workspaceFolder: { uri: { fsPath: '/workspace' } },
+    });
+
+    const ready = await prepareGraphViewTimelineIndex(state, handlers);
+
+    expect(ready).toBe(true);
+    expect(handlers.createGitAnalyzer).toHaveBeenCalledWith('/workspace', [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/out/**',
+      '**/.git/**',
+      '**/.codegraphy/**',
+      '**/coverage/**',
+      '**/*.min.js',
+      '**/*.bundle.js',
+      '**/*.map',
+    ]);
+  });
+
   it('returns false after preparing the controller when analyzer state is unavailable', async () => {
     const state = createState();
     const handlers = createHandlers({

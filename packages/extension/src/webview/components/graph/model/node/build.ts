@@ -17,17 +17,36 @@ export interface BuildGraphNodesOptions {
   theme: ThemeKind;
   favorites: Set<string>;
   timelineActive: boolean;
-  previousNodes?: Array<Pick<FGNode, 'id' | 'x' | 'y'>>;
+  previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
   random?: () => number;
 }
 
-function createPreviousPositionMap(
-  timelineActive: boolean,
-  previousNodes: Array<Pick<FGNode, 'id' | 'x' | 'y'>>,
-): Map<string, { x: number | undefined; y: number | undefined }> | null {
-  return timelineActive
-    ? new Map(previousNodes.map(node => [node.id, { x: node.x, y: node.y }]))
-    : null;
+interface PreviousNodeState {
+  fx: number | undefined;
+  fy: number | undefined;
+  fz: number | undefined;
+  vx: number | undefined;
+  vy: number | undefined;
+  vz: number | undefined;
+  x: number | undefined;
+  y: number | undefined;
+  z: number | undefined;
+}
+
+function createPreviousNodeStateMap(
+  previousNodes: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>,
+): Map<string, PreviousNodeState> {
+  return new Map(previousNodes.map(node => [node.id, {
+    fx: node.fx,
+    fy: node.fy,
+    fz: node.fz,
+    vx: node.vx,
+    vy: node.vy,
+    vz: node.vz,
+    x: node.x,
+    y: node.y,
+    z: node.z,
+  }]));
 }
 
 function getNodeBorderColor(
@@ -55,13 +74,13 @@ function createGraphNode(
   node: IGraphNode,
   options: Pick<BuildGraphNodesOptions, 'nodeSizes' | 'favorites'>,
   isLight: boolean,
-  previousPositions: ReadonlyMap<string, { x: number | undefined; y: number | undefined }> | null,
+  previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
 ): FGNode {
   const rawColor = isLight ? adjustColorForLightTheme(node.color) : node.color;
   const isFavorite = options.favorites.has(node.id);
   const isFocused = node.depthLevel === 0;
   const size = (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);
-  const previous = previousPositions?.get(node.id);
+  const previous = previousNodeStates.get(node.id);
 
   return {
     id: node.id,
@@ -75,8 +94,15 @@ function createGraphNode(
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,
+    fx: previous?.fx,
+    fy: previous?.fy,
+    fz: previous?.fz,
+    vx: previous?.vx,
+    vy: previous?.vy,
+    vz: previous?.vz,
     x: node.x ?? previous?.x,
     y: node.y ?? previous?.y,
+    z: previous?.z,
   } as FGNode;
 }
 
@@ -92,10 +118,10 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
     random = Math.random,
   } = options;
   const isLight = theme === 'light';
-  const previousPositions = createPreviousPositionMap(timelineActive, previousNodes);
-  const graphNodes = nodes.map(node => createGraphNode(node, { nodeSizes, favorites }, isLight, previousPositions));
+  const previousNodeStates = createPreviousNodeStateMap(previousNodes);
+  const graphNodes = nodes.map(node => createGraphNode(node, { nodeSizes, favorites }, isLight, previousNodeStates));
 
-  seedTimelinePositions(graphNodes, edges, previousPositions, random);
+  seedTimelinePositions(graphNodes, edges, timelineActive ? previousNodeStates : null, random);
 
   return graphNodes;
 }

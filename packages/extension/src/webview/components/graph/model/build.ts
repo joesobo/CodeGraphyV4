@@ -21,6 +21,15 @@ export type FGNode = NodeObject & {
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;
+  fx?: number;
+  fy?: number;
+  fz?: number;
+  vx?: number;
+  vy?: number;
+  vz?: number;
+  x?: number;
+  y?: number;
+  z?: number;
 };
 
 export type FGLink = LinkObject & {
@@ -42,7 +51,7 @@ export interface BuildGraphDataOptions {
   favorites: Set<string>;
   bidirectionalMode: BidirectionalEdgeMode;
   timelineActive: boolean;
-  previousNodes?: Array<Pick<FGNode, 'id' | 'x' | 'y'>>;
+  previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
   random?: () => number;
 }
 

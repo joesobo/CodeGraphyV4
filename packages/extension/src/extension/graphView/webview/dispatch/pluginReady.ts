@@ -1,4 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { applyWebviewReady } from '../messages/ready';
 
@@ -7,6 +8,8 @@ type GraphViewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW
 export interface GraphViewPluginReadyContext {
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
+  getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
+  getConfig<T>(key: string, defaultValue: T): T;
   getMaxFiles(): number;
   getPlaybackSpeed(): number;
   getDepthMode?(): boolean;
@@ -56,6 +59,8 @@ export async function dispatchGraphViewPluginReadyMessage(
     {
       getFilterPatterns: () => context.getFilterPatterns(),
       getPluginFilterPatterns: () => context.getPluginFilterPatterns(),
+      getPluginFilterGroups: () => context.getPluginFilterGroups?.() ?? [],
+      getConfig: (key, defaultValue) => context.getConfig(key, defaultValue),
       loadGroupsAndFilterPatterns: () => context.loadGroupsAndFilterPatterns(),
       loadDisabledRulesAndPlugins: () => context.loadDisabledRulesAndPlugins(),
       sendDepthState: () => context.sendDepthState(),

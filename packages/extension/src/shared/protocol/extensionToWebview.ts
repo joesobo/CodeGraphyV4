@@ -16,6 +16,12 @@ import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
 import type { ITimelineData } from '../timeline/contracts';
 
+export interface IPluginFilterPatternGroup {
+  pluginId: string;
+  pluginName: string;
+  patterns: string[];
+}
+
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | { type: 'GRAPH_INDEX_STATUS_UPDATED'; payload: { hasIndex: boolean } }
@@ -45,7 +51,13 @@ export type ExtensionToWebviewMessage =
   | { type: 'LEGENDS_UPDATED'; payload: { legends: IGroup[] } }
   | {
       type: 'FILTER_PATTERNS_UPDATED';
-      payload: { patterns: string[]; pluginPatterns: string[] };
+      payload: {
+        patterns: string[];
+        pluginPatterns: string[];
+        pluginPatternGroups: IPluginFilterPatternGroup[];
+        disabledCustomPatterns: string[];
+        disabledPluginPatterns: string[];
+      };
     }
   | {
       type: 'DIRECTION_SETTINGS_UPDATED';

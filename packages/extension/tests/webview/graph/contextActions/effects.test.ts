@@ -69,16 +69,13 @@ describe('graph/contextActions/effects', () => {
 
   it('creates a filter prompt effect for a single selected path', () => {
     expect(getBuiltInContextActionEffects('addToFilter', ['README.md'])).toEqual([
-      { kind: 'promptFilterPattern', pattern: 'README.md' },
+      { kind: 'promptFilterPattern', patterns: ['README.md'] },
     ]);
   });
 
-  it('falls back to immediate filter messages for multi-select add-to-filter', () => {
+  it('creates a filter prompt effect for multi-select add-to-filter', () => {
     expect(getBuiltInContextActionEffects('addToFilter', ['a.ts', 'b.ts'])).toEqual([
-      {
-        kind: 'postMessage',
-        message: { type: 'ADD_TO_EXCLUDE', payload: { patterns: ['a.ts', 'b.ts'] } },
-      },
+      { kind: 'promptFilterPattern', patterns: ['a.ts', 'b.ts'] },
     ]);
   });
 

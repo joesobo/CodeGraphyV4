@@ -71,7 +71,7 @@ describe('graph/contextMenuRuntime/effects', () => {
       ['README.md'],
     );
 
-    expect(dependencies.openFilterPatternPrompt).toHaveBeenCalledWith('README.md');
+    expect(dependencies.openFilterPatternPrompt).toHaveBeenCalledWith(['README.md']);
     expect(dependencies.postMessage).not.toHaveBeenCalled();
   });
 

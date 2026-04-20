@@ -30,7 +30,7 @@ interface GraphProps {
   theme?: ThemeKind;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
-  onAddFilterRequested?: (pattern: string) => void;
+  onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
 }

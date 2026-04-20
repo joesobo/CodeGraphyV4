@@ -12,6 +12,7 @@ function createContext(
   const context = {
     getFilterPatterns: vi.fn(() => []),
     getPluginFilterPatterns: vi.fn(() => []),
+    getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     getMaxFiles: vi.fn(() => 500),
     getPlaybackSpeed: vi.fn(() => 1),
     getDagMode: vi.fn(() => null),

@@ -20,6 +20,8 @@ export interface GraphViewTimelineIndexSetupState {
   gitAnalyzer: GraphViewGitAnalyzerLike | undefined;
   indexingController: AbortController | undefined;
   filterPatterns: string[];
+  disabledCustomFilterPatterns?: string[];
+  disabledPluginFilterPatterns?: string[];
 }
 
 export interface GraphViewTimelineIndexSetupHandlers {
@@ -59,11 +61,17 @@ export async function prepareGraphViewTimelineIndex(
   }
 
   if (!state.gitAnalyzer) {
+    const disabledCustomPatterns = new Set(state.disabledCustomFilterPatterns ?? []);
+    const disabledPluginPatterns = new Set(state.disabledPluginFilterPatterns ?? []);
+    const pluginFilterPatterns = state.analyzer.getPluginFilterPatterns()
+      .filter(pattern => !disabledPluginPatterns.has(pattern));
+    const customFilterPatterns = state.filterPatterns
+      .filter(pattern => !disabledCustomPatterns.has(pattern));
     const mergedExclude = [
       ...new Set([
         ...DEFAULT_EXCLUDE_PATTERNS,
-        ...state.analyzer.getPluginFilterPatterns(),
-        ...state.filterPatterns,
+        ...pluginFilterPatterns,
+        ...customFilterPatterns,
       ]),
     ];
     state.gitAnalyzer = handlers.createGitAnalyzer(workspaceFolder.uri.fsPath, mergedExclude);

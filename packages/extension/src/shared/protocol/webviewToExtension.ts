@@ -42,6 +42,14 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY'; payload: { legendId: string; visible: boolean } }
   | { type: 'UPDATE_LEGEND_ORDER'; payload: { legendIds: string[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
+  | {
+      type: 'UPDATE_FILTER_PATTERN_STATE';
+      payload: { source: 'custom' | 'plugin'; pattern: string; enabled: boolean };
+    }
+  | {
+      type: 'UPDATE_FILTER_PATTERN_GROUP_STATE';
+      payload: { source: 'custom' | 'plugin'; enabled: boolean };
+    }
   | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } }
   | { type: 'UPDATE_BIDIRECTIONAL_MODE'; payload: { bidirectionalMode: BidirectionalEdgeMode } }
   | { type: 'UPDATE_DIRECTION_MODE'; payload: { directionMode: DirectionMode } }

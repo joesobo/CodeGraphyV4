@@ -38,7 +38,9 @@ function createHandlers(
     }),
     smartRebuild: vi.fn(),
     getPluginFilterPatterns: vi.fn(() => []),
+    getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),
+    analyzeAndSendData: vi.fn(() => Promise.resolve()),
     reprocessPluginFiles: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
@@ -76,7 +78,13 @@ describe('graph view settings router', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('filterPatterns', ['dist/**']);
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'FILTER_PATTERNS_UPDATED',
-      payload: { patterns: ['dist/**'], pluginPatterns: ['venv/**'] },
+      payload: {
+        patterns: ['dist/**'],
+        pluginPatterns: ['venv/**'],
+        pluginPatternGroups: [],
+        disabledCustomPatterns: [],
+        disabledPluginPatterns: [],
+      },
     });
   });
 

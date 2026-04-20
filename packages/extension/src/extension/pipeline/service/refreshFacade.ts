@@ -22,12 +22,15 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     }
 
     const config = this._config.getAll();
+    const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns);
+    const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns);
     const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
       createWorkspacePipelineDiscoveryDependencies(this._discovery),
       workspaceRoot,
       config,
-      filterPatterns,
-      this.getPluginFilterPatterns(disabledPlugins),
+      filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
+      this.getPluginFilterPatterns(disabledPlugins)
+        .filter(pattern => !disabledPluginPatterns.has(pattern)),
       signal,
       message => {
         vscode.window.showWarningMessage(message);

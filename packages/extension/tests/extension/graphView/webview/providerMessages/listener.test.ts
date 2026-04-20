@@ -28,6 +28,8 @@ function createSettingsSnapshot(): ISettingsSnapshot {
   return {
     legends: [],
     filterPatterns: [],
+    disabledCustomFilterPatterns: [],
+    disabledPluginFilterPatterns: [],
     showOrphans: true,
     bidirectionalMode: 'separate',
     directionMode: 'arrows',
@@ -296,7 +298,13 @@ describe('graph view provider listener bridge', () => {
     expect(source._analyzer?.registry?.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'FILTER_PATTERNS_UPDATED',
-      payload: { patterns: ['dist/**'], pluginPatterns: ['plugin/**'] },
+      payload: {
+        patterns: ['dist/**'],
+        pluginPatterns: ['plugin/**'],
+        pluginPatternGroups: [],
+        disabledCustomPatterns: [],
+        disabledPluginPatterns: [],
+      },
     });
   });
 

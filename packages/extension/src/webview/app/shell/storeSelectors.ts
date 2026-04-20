@@ -15,6 +15,9 @@ export function useAppState() {
   const legends = useGraphStore(s => s.legends);
   const filterPatterns = useGraphStore(s => s.filterPatterns);
   const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
+  const pluginFilterGroups = useGraphStore(s => s.pluginFilterGroups);
+  const disabledCustomFilterPatterns = useGraphStore(s => s.disabledCustomFilterPatterns);
+  const disabledPluginFilterPatterns = useGraphStore(s => s.disabledPluginFilterPatterns);
   const showOrphans = useGraphStore(s => s.showOrphans);
   const timelineActive = useGraphStore(s => s.timelineActive);
   const activePanel = useGraphStore(s => s.activePanel);
@@ -36,6 +39,9 @@ export function useAppState() {
     legends,
     filterPatterns,
     pluginFilterPatterns,
+    pluginFilterGroups,
+    disabledCustomFilterPatterns,
+    disabledPluginFilterPatterns,
     showOrphans,
     timelineActive,
     activePanel,
@@ -54,6 +60,16 @@ export function useAppActions() {
   const setSearchQuery = useGraphStore(s => s.setSearchQuery);
   const setSearchOptions = useGraphStore(s => s.setSearchOptions);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
+  const setFilterPatterns = useGraphStore(s => s.setFilterPatterns);
+  const setDisabledCustomFilterPatterns = useGraphStore(s => s.setDisabledCustomFilterPatterns);
+  const setDisabledPluginFilterPatterns = useGraphStore(s => s.setDisabledPluginFilterPatterns);
 
-  return { setSearchQuery, setSearchOptions, setActivePanel };
+  return {
+    setSearchQuery,
+    setSearchOptions,
+    setActivePanel,
+    setFilterPatterns,
+    setDisabledCustomFilterPatterns,
+    setDisabledPluginFilterPatterns,
+  };
 }

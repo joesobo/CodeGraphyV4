@@ -19,6 +19,8 @@ export function createDisplayActions(set: SetState) {
     setPhysicsSettings: (settings: GraphState['physicsSettings']) => set({ physicsSettings: settings }),
     setLegends: (legends: GraphState['legends']) => set({ legends }),
     setFilterPatterns: (patterns: string[]) => set({ filterPatterns: patterns }),
+    setDisabledCustomFilterPatterns: (patterns: string[]) => set({ disabledCustomFilterPatterns: patterns }),
+    setDisabledPluginFilterPatterns: (patterns: string[]) => set({ disabledPluginFilterPatterns: patterns }),
     setShowOrphans: (show: boolean) => set({ showOrphans: show }),
     setShowLabels: (show: boolean) => set({ showLabels: show }),
   };

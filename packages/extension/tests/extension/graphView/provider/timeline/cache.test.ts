@@ -55,6 +55,8 @@ describe('graphView/provider/timeline cache', () => {
       sendPlaybackSpeed: vi.fn(),
       invalidateTimelineCache: vi.fn(async () => undefined),
       getPlaybackSpeed: vi.fn(() => 1),
+      getDisabledCustomFilterPatterns: vi.fn(() => []),
+      getDisabledPluginFilterPatterns: vi.fn(() => []),
       getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
       openTextDocument: vi.fn(),
       showTextDocument: vi.fn(),

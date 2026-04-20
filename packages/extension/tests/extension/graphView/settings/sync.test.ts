@@ -18,6 +18,8 @@ function createSnapshot(
     },
     legends: [{ id: 'group', pattern: 'src/**', color: '#112233' }],
     filterPatterns: ['dist/**'],
+    disabledCustomFilterPatterns: [],
+    disabledPluginFilterPatterns: [],
     showOrphans: false,
     bidirectionalMode: 'combined',
     directionMode: 'arrows',
