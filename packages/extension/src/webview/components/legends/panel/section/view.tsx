@@ -8,6 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '../../../ui/disclosure/collapsible';
+import { Switch } from '../../../ui/switch';
 import { LegendBuiltInRow } from './builtInRow';
 import { LegendRuleCreateRow } from './createRow';
 import { shouldRenderRuleInSection } from './displayRules';
@@ -38,22 +39,53 @@ interface LegendRuleRenderState {
 function LegendSubsection({
   children,
   group,
+  toggleChecked,
+  toggleTitle,
+  onToggle,
 }: {
   children: React.ReactNode;
   group: Pick<LegendRuleGroup, 'id' | 'label'>;
+  toggleChecked?: boolean;
+  toggleTitle?: string;
+  onToggle?: () => void;
 }): React.ReactElement {
+  const [open, setOpen] = useState(true);
+  const collapseTitle = `${open ? 'Collapse' : 'Expand'} ${group.label} legend entries`;
+
   return (
-    <div
-      data-testid="legend-rule-subsection"
-      className="border-t border-border/60 bg-background/20 first:border-t-0"
-    >
-      <div className="flex items-center justify-between px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-        <span>{group.label}</span>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div
+        data-testid="legend-rule-subsection"
+        className="border-t border-border/60 bg-background/20 first:border-t-0"
+      >
+        <div className="flex items-center justify-between gap-2 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex min-w-0 flex-1 items-center gap-1 text-left"
+              title={collapseTitle}
+            >
+              <MdiIcon path={open ? mdiChevronUp : mdiChevronDown} size={14} />
+              <span className="truncate">{group.label}</span>
+            </button>
+          </CollapsibleTrigger>
+          {onToggle ? (
+            <Switch
+              checked={toggleChecked}
+              title={toggleTitle}
+              aria-label={toggleTitle}
+              onClick={(event) => event.stopPropagation()}
+              onCheckedChange={onToggle}
+            />
+          ) : null}
+        </div>
+        <CollapsibleContent>
+          <div className="divide-y divide-border/50 bg-black/10">
+            {children}
+          </div>
+        </CollapsibleContent>
       </div>
-      <div className="divide-y divide-border/50 bg-black/10">
-        {children}
-      </div>
-    </div>
+    </Collapsible>
   );
 }
 
@@ -76,6 +108,20 @@ function getTargetRules(userRules: IGroup[], target: LegendTargetSection): IGrou
 
 function replaceRule(rules: IGroup[], nextRule: IGroup): IGroup[] {
   return rules.map((candidate) => (candidate.id === nextRule.id ? nextRule : candidate));
+}
+
+function areAllRulesEnabled(rules: LegendRuleRowModel[]): boolean {
+  return rules.every(({ rule }) => !rule.disabled);
+}
+
+function setRulesDisabled(ruleIds: Set<string>, rules: IGroup[], disabled: boolean): IGroup[] {
+  return rules.map((rule) => {
+    if (!ruleIds.has(rule.id)) {
+      return rule;
+    }
+
+    return { ...rule, disabled };
+  });
 }
 
 function BuiltInRulesSubsection({
@@ -115,8 +161,22 @@ function CustomRulesSubsection({
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
   onRulesChange: LegendRulesChange;
 }): React.ReactElement {
+  const targetRules = getTargetRules(userRules, target);
+  const allCustomRulesEnabled = areAllRulesEnabled(customRuleGroup.rules);
+
   return (
-    <LegendSubsection group={customRuleGroup}>
+    <LegendSubsection
+      group={customRuleGroup}
+      toggleChecked={allCustomRulesEnabled}
+      toggleTitle="Toggle Custom legend entries"
+      onToggle={() => {
+        const customRuleIds = new Set(customRuleGroup.rules.map(({ rule }) => rule.id));
+        emitRulesChange(
+          onRulesChange,
+          setRulesDisabled(customRuleIds, targetRules, allCustomRulesEnabled),
+        );
+      }}
+    >
       <LegendRuleCreateRow
         target={target}
         onAdd={(rule, iconImports) => {
@@ -131,31 +191,37 @@ function CustomRulesSubsection({
 function PluginRuleGroup({
   group,
   renderRuleRow,
+  onToggleDefaultVisibility,
 }: {
   group: LegendRuleGroup;
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
+  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
 }): React.ReactElement {
+  const allPluginRulesEnabled = areAllRulesEnabled(group.rules);
+
   return (
-    <div
-      data-testid="legend-rule-subsection"
-      className="overflow-hidden rounded-md border border-border/50 bg-background/20"
+    <LegendSubsection
+      group={group}
+      toggleChecked={allPluginRulesEnabled}
+      toggleTitle={`Toggle ${group.label} legend entries`}
+      onToggle={() => {
+        const nextVisible = !allPluginRulesEnabled;
+        group.rules.forEach(({ rule }) => onToggleDefaultVisibility(rule.id, nextVisible));
+      }}
     >
-      <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">
-        {group.label}
-      </div>
-      <div className="divide-y divide-border/50">
-        {group.rules.map(renderRuleRow)}
-      </div>
-    </div>
+      {group.rules.map(renderRuleRow)}
+    </LegendSubsection>
   );
 }
 
 function PluginRulesSubsection({
   pluginRuleGroups,
   renderRuleRow,
+  onToggleDefaultVisibility,
 }: {
   pluginRuleGroups: LegendRuleGroup[];
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
+  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
 }): React.ReactElement | null {
   if (!pluginRuleGroups.length) {
     return null;
@@ -169,6 +235,7 @@ function PluginRulesSubsection({
             key={group.id}
             group={group}
             renderRuleRow={renderRuleRow}
+            onToggleDefaultVisibility={onToggleDefaultVisibility}
           />
         ))}
       </div>
@@ -185,6 +252,7 @@ function SectionRules({
   renderRuleRow,
   onBuiltInColorChange,
   onRulesChange,
+  onToggleDefaultVisibility,
 }: {
   builtInEntries: LegendBuiltInEntry[];
   customRuleGroup: LegendRuleGroup;
@@ -194,6 +262,7 @@ function SectionRules({
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
   onBuiltInColorChange: (id: string, color: string) => void;
   onRulesChange: LegendRulesChange;
+  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
 }): React.ReactElement {
   return (
     <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
@@ -211,6 +280,7 @@ function SectionRules({
       <PluginRulesSubsection
         pluginRuleGroups={pluginRuleGroups}
         renderRuleRow={renderRuleRow}
+        onToggleDefaultVisibility={onToggleDefaultVisibility}
       />
     </div>
   );
@@ -317,6 +387,7 @@ export function LegendSection({
             renderRuleRow={renderRuleRow}
             onBuiltInColorChange={onBuiltInColorChange}
             onRulesChange={onRulesChange}
+            onToggleDefaultVisibility={onToggleDefaultVisibility}
           />
         </CollapsibleContent>
       </section>

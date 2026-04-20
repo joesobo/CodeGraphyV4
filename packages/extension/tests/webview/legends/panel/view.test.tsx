@@ -273,6 +273,7 @@ describe('LegendsPanel', () => {
     fireEvent.change(screen.getByDisplayValue('src/**'), {
       target: { value: 'src/**/*.ts' },
     });
+    fireEvent.blur(screen.getByDisplayValue('src/**/*.ts'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGENDS',
@@ -295,6 +296,7 @@ describe('LegendsPanel', () => {
     fireEvent.change(screen.getByDisplayValue('lib/**'), {
       target: { value: 'call' },
     });
+    fireEvent.blur(screen.getByDisplayValue('call'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGENDS',
@@ -357,7 +359,7 @@ describe('LegendsPanel', () => {
     const nodesSection = screen.getByText('Nodes').closest('section');
     expect(nodesSection).not.toBeNull();
 
-    fireEvent.click(within(nodesSection as HTMLElement).getByRole('switch'));
+    fireEvent.click(within(nodesSection as HTMLElement).getByTitle('Toggle */tests/** legend entry'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGENDS',
@@ -398,7 +400,7 @@ describe('LegendsPanel', () => {
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByTitle('Toggle *.ts legend entry'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
@@ -435,7 +437,7 @@ describe('LegendsPanel', () => {
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByTitle('Toggle call legend entry'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',

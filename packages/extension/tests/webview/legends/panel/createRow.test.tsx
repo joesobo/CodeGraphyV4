@@ -47,6 +47,8 @@ describe('webview/legends/createRow', () => {
       pattern: '*/tests/**',
       color: '#123abc',
       target: 'node',
+      shape2D: 'circle',
+      shape3D: 'sphere',
     });
     expect(screen.getByLabelText('New node legend pattern')).toHaveValue('');
     expect(screen.getByLabelText('New node legend color')).toHaveValue('#3B82F6');
@@ -60,8 +62,8 @@ describe('webview/legends/createRow', () => {
     fireEvent.change(screen.getByLabelText('New node legend pattern'), {
       target: { value: '*.tsx' },
     });
-    fireEvent.click(screen.getByTitle('Edit new node legend visual'));
-    fireEvent.click(screen.getByText('Star'));
+    fireEvent.click(screen.getByTitle('Choose new node legend shape'));
+    fireEvent.click(screen.getByTitle('Use star shape'));
     fireEvent.click(screen.getByTitle('Add node legend'));
 
     expect(onAdd).toHaveBeenCalledWith({
@@ -72,6 +74,13 @@ describe('webview/legends/createRow', () => {
       shape2D: 'star',
       shape3D: 'icosahedron',
     });
+  });
+
+  it('keeps shape and icon controls separate when creating node rules', () => {
+    render(<LegendRuleCreateRow target="node" onAdd={vi.fn()} />);
+
+    expect(screen.getByTitle('Choose new node legend shape')).toBeInTheDocument();
+    expect(screen.getByTitle('Upload new node legend icon')).toBeInTheDocument();
   });
 
   it('ignores blank patterns without resetting the selected color', () => {

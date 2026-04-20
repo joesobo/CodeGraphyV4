@@ -51,7 +51,7 @@ export default function LegendsPanel({
   }
 
   return (
-    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
+    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-[30rem] max-w-[calc(100vw-2rem)] shadow-lg max-h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Legends</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">

@@ -209,6 +209,60 @@ describe('webview/legends/section', () => {
     expect(within(pythonSection as HTMLElement).getByText('*.py')).toBeInTheDocument();
   });
 
+  it('collapses plugin groups and toggles all rules in a plugin group', () => {
+    render(
+      <LegendSection
+        {...baseProps}
+        displayRules={[
+          {
+            id: 'plugin:codegraphy.python:*.py',
+            pattern: '*.py',
+            color: '#3776ab',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.python',
+            pluginName: 'Python',
+          },
+          {
+            id: 'plugin:codegraphy.python:*.pyi',
+            pattern: '*.pyi',
+            color: '#3776ab',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.python',
+            pluginName: 'Python',
+            disabled: true,
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Toggle Python legend entries'));
+    expect(baseProps.onToggleDefaultVisibility).toHaveBeenCalledWith(
+      'plugin:codegraphy.python:*.py',
+      true,
+    );
+    expect(baseProps.onToggleDefaultVisibility).toHaveBeenCalledWith(
+      'plugin:codegraphy.python:*.pyi',
+      true,
+    );
+
+    fireEvent.click(screen.getByTitle('Collapse Python legend entries'));
+    expect(screen.queryByText('*.py')).not.toBeInTheDocument();
+    expect(screen.queryByText('*.pyi')).not.toBeInTheDocument();
+  });
+
+  it('toggles all custom rules in a section', () => {
+    render(<LegendSection {...baseProps} />);
+
+    fireEvent.click(screen.getByTitle('Toggle Custom legend entries'));
+
+    expect(baseProps.onRulesChange).toHaveBeenCalledWith([
+      { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node', disabled: true },
+      { id: 'node:second', pattern: 'tests/**', color: '#456789', target: 'node', disabled: true },
+    ]);
+  });
+
   it('forwards built-in color changes, added rules, and rule updates to the section callbacks', () => {
     render(<LegendSection {...baseProps} />);
 
