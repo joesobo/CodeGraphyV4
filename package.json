@@ -69,6 +69,7 @@
 		"assets/**",
 		"docs/**",
 		"packages/plugin-markdown/codegraphy.json",
+		"packages/plugin-markdown/assets/**",
 		"README.md",
 		"CONTRIBUTING.md",
 		"LICENSE"

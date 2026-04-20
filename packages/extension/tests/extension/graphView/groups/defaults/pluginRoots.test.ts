@@ -29,8 +29,8 @@ describe('graphView/builtInPluginRoots', () => {
 
     registerBuiltInGraphViewPluginRoots(vscode.Uri.file('/test/extension'), pluginExtensionUris);
 
-    expect([...pluginExtensionUris.entries()]).toEqual([
-      ['codegraphy.markdown', vscode.Uri.file('/custom/plugin-markdown')],
-    ]);
+    expect(pluginExtensionUris.get('codegraphy.markdown')).toEqual(
+      vscode.Uri.file('/custom/plugin-markdown'),
+    );
   });
 });

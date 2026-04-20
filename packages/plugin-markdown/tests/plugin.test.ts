@@ -78,8 +78,8 @@ describe('createMarkdownPlugin', () => {
       const plugin = createMarkdownPlugin();
 
       expect(plugin.fileColors).toEqual({
-        '*.md': '#7C3AED',
-        '*.mdx': '#8B5CF6',
+        '*.md': { color: '#7C3AED', imagePath: 'assets/markdown.svg' },
+        '*.mdx': { color: '#8B5CF6', imagePath: 'assets/markdown.svg' },
       });
     });
   });

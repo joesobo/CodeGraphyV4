@@ -20,7 +20,7 @@ describe('createCSharpPlugin', () => {
     expect(plugin.defaultFilters).toContain('**/bin/**');
     expect(plugin.defaultFilters).not.toContain('**/packages/**');
     expect(plugin.fileColors).toMatchObject({
-      '*.cs': '#512BD4',
+      '*.cs': { color: '#512BD4', imagePath: 'assets/csharp.svg' },
       '*.csproj': '#512BD4',
       '*.sln': '#854CC7',
     });
