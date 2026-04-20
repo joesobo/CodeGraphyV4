@@ -26,7 +26,6 @@ export default function LegendsPanel({
   const nodeTypes = useGraphStore((state) => state.graphNodeTypes);
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
   const nodeColors = useGraphStore((state) => state.nodeColors);
-  const edgeColors = useGraphStore((state) => state.edgeColors);
   const legends = useGraphStore((state) => state.legends);
   const setOptimisticLegendUpdate = useGraphStore((state) => state.setOptimisticLegendUpdate);
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
@@ -41,7 +40,6 @@ export default function LegendsPanel({
     nodeLegendRules,
     userLegendRules,
   } = useLegendPanelState({
-    edgeColors,
     edgeTypes,
     legends,
     nodeColors,

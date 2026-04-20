@@ -21,7 +21,10 @@ describe('webview/graphSurface/controls', () => {
       nodeColors: { file: '#111111', folder: '#BBBBBB', package: '#333333' },
       nodeVisibility: { file: true, folder: true, package: false },
       edgeVisibility: { import: true, [STRUCTURAL_NESTS_EDGE_KIND]: true },
-      edgeColors: { import: '#654321', [STRUCTURAL_NESTS_EDGE_KIND]: '#222222' },
+      edgeTypes: [
+        { id: 'import', label: 'Imports', defaultColor: '#654321', defaultVisible: true },
+        { id: STRUCTURAL_NESTS_EDGE_KIND, label: 'Nests', defaultColor: '#222222', defaultVisible: true },
+      ],
     });
 
     expect(result).toEqual({
@@ -36,25 +39,22 @@ describe('webview/graphSurface/controls', () => {
             from: 'src',
             to: 'src/App.ts',
             kind: STRUCTURAL_NESTS_EDGE_KIND,
+            color: '#222222',
             sources: [],
           },
         ],
       },
-      edgeDecorations: {
-        [`src->src/App.ts#${STRUCTURAL_NESTS_EDGE_KIND}`]: {
-          color: '#222222',
-        },
-      },
+      edgeDecorations: {},
     });
   });
 
-  it('filters hidden node and edge types while keeping edge colors on visible semantic edges', () => {
+  it('filters hidden node and edge types', () => {
     const result = applyGraphControls({
       graphData,
       nodeColors: { file: '#111111', folder: '#BBBBBB', package: '#333333' },
       nodeVisibility: { file: true, folder: false, package: true },
       edgeVisibility: { import: false, [STRUCTURAL_NESTS_EDGE_KIND]: true },
-      edgeColors: { import: '#654321' },
+      edgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#654321', defaultVisible: true }],
     });
 
     expect(result).toEqual({
@@ -84,7 +84,9 @@ describe('webview/graphSurface/controls', () => {
       nodeColors: { file: '#111111', folder: '#BBBBBB', package: '#F59E0B' },
       nodeVisibility: { file: true, folder: false, package: true },
       edgeVisibility: { [STRUCTURAL_NESTS_EDGE_KIND]: true },
-      edgeColors: { [STRUCTURAL_NESTS_EDGE_KIND]: '#222222' },
+      edgeTypes: [
+        { id: STRUCTURAL_NESTS_EDGE_KIND, label: 'Nests', defaultColor: '#222222', defaultVisible: true },
+      ],
     });
 
     expect(result).toEqual({
@@ -116,6 +118,7 @@ describe('webview/graphSurface/controls', () => {
             from: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}.`,
             to: 'package.json',
             kind: STRUCTURAL_NESTS_EDGE_KIND,
+            color: '#222222',
             sources: [],
           },
           {
@@ -123,6 +126,7 @@ describe('webview/graphSurface/controls', () => {
             from: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension`,
             to: 'packages/extension/package.json',
             kind: STRUCTURAL_NESTS_EDGE_KIND,
+            color: '#222222',
             sources: [],
           },
           {
@@ -130,21 +134,12 @@ describe('webview/graphSurface/controls', () => {
             from: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension`,
             to: 'packages/extension/src/index.ts',
             kind: STRUCTURAL_NESTS_EDGE_KIND,
+            color: '#222222',
             sources: [],
           },
         ],
       },
-      edgeDecorations: {
-        [`${WORKSPACE_PACKAGE_NODE_ID_PREFIX}.->package.json#${STRUCTURAL_NESTS_EDGE_KIND}`]: {
-          color: '#222222',
-        },
-        [`${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension->packages/extension/package.json#${STRUCTURAL_NESTS_EDGE_KIND}`]: {
-          color: '#222222',
-        },
-        [`${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension->packages/extension/src/index.ts#${STRUCTURAL_NESTS_EDGE_KIND}`]: {
-          color: '#222222',
-        },
-      },
+      edgeDecorations: {},
     });
   });
 
@@ -154,7 +149,7 @@ describe('webview/graphSurface/controls', () => {
       nodeColors: {},
       nodeVisibility: {},
       edgeVisibility: {},
-      edgeColors: {},
+      edgeTypes: [],
     })).toEqual({
       graphData: null,
       edgeDecorations: undefined,

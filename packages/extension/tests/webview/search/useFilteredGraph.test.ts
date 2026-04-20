@@ -17,7 +17,7 @@ const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
 describe('useFilteredGraph', () => {
   it('returns the original graph when the query is empty', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, '', defaultOptions, [], {}, {}, {}, {}),
+      useFilteredGraph(sampleGraph, '', defaultOptions, [], {}, {}, {}, []),
     );
 
     expect(result.current.filteredData).toEqual({
@@ -32,7 +32,7 @@ describe('useFilteredGraph', () => {
 
   it('returns null filteredData when graphData is null', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(null, '', defaultOptions, [], {}, {}, {}, {}),
+      useFilteredGraph(null, '', defaultOptions, [], {}, {}, {}, []),
     );
 
     expect(result.current.filteredData).toBeNull();
@@ -41,7 +41,7 @@ describe('useFilteredGraph', () => {
 
   it('filters nodes that do not match the search query', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, 'util', defaultOptions, [], {}, {}, {}, {}),
+      useFilteredGraph(sampleGraph, 'util', defaultOptions, [], {}, {}, {}, []),
     );
 
     expect(result.current.filteredData?.nodes.map((node) => node.id)).toEqual(['src/util.ts']);
@@ -57,7 +57,7 @@ describe('useFilteredGraph', () => {
         {},
         {},
         {},
-        {},
+        [],
       ),
     );
 
@@ -69,7 +69,7 @@ describe('useFilteredGraph', () => {
     const groups: IGroup[] = [{ id: 'grp', pattern: 'src/**', color: '#ff0000' }];
 
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, '', defaultOptions, groups, {}, {}, {}, {}),
+      useFilteredGraph(sampleGraph, '', defaultOptions, groups, {}, {}, {}, []),
     );
 
     expect(result.current.coloredData?.nodes.every((node) => node.color === '#ff0000')).toBe(true);
@@ -77,7 +77,7 @@ describe('useFilteredGraph', () => {
 
   it('returns all hook fields', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, '', defaultOptions, [], {}, {}, {}, {}),
+      useFilteredGraph(sampleGraph, '', defaultOptions, [], {}, {}, {}, []),
     );
 
     expect(result.current).toHaveProperty('filteredData');
@@ -87,7 +87,7 @@ describe('useFilteredGraph', () => {
 
   it('drops edges whose endpoints do not both match the search query', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, 'App', defaultOptions, [], {}, {}, {}, {}),
+      useFilteredGraph(sampleGraph, 'App', defaultOptions, [], {}, {}, {}, []),
     );
 
     expect(result.current.filteredData?.edges).toHaveLength(0);
@@ -97,7 +97,7 @@ describe('useFilteredGraph', () => {
     const groups: IGroup[] = [{ id: 'grp', pattern: '**/*.ts', color: '#123456' }];
 
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, 'App', defaultOptions, groups, {}, {}, {}, {}),
+      useFilteredGraph(sampleGraph, 'App', defaultOptions, groups, {}, {}, {}, []),
     );
 
     expect(result.current.coloredData?.nodes[0]?.color).toBe('#123456');
@@ -105,7 +105,7 @@ describe('useFilteredGraph', () => {
 
   it('returns null regexError for non-regex searches', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, 'test', defaultOptions, [], {}, {}, {}, {}),
+      useFilteredGraph(sampleGraph, 'test', defaultOptions, [], {}, {}, {}, []),
     );
 
     expect(result.current.regexError).toBeNull();
@@ -113,9 +113,31 @@ describe('useFilteredGraph', () => {
 
   it('applies node type colors before legend overrides', () => {
     const { result } = renderHook(() =>
-      useFilteredGraph(sampleGraph, '', defaultOptions, [], { file: '#224466' }, {}, {}, {}),
+      useFilteredGraph(sampleGraph, '', defaultOptions, [], { file: '#224466' }, {}, {}, []),
     );
 
     expect(result.current.filteredData?.nodes.every((node) => node.color === '#224466')).toBe(true);
+  });
+
+  it('applies edge type default colors before legend overrides', () => {
+    const groups: IGroup[] = [
+      { id: 'legend:edge:import', pattern: 'import', color: '#123456', target: 'edge' },
+    ];
+
+    const { result } = renderHook(() =>
+      useFilteredGraph(
+        sampleGraph,
+        '',
+        defaultOptions,
+        groups,
+        {},
+        {},
+        {},
+        [{ id: 'import', label: 'Imports', defaultColor: '#60a5fa', defaultVisible: true }],
+      ),
+    );
+
+    expect(result.current.filteredData?.edges[0]?.color).toBe('#60a5fa');
+    expect(result.current.coloredData?.edges[0]?.color).toBe('#123456');
   });
 });

@@ -152,7 +152,6 @@ describe('graphView/provider/analysis/handlers', () => {
           nodeColors: {},
           nodeVisibility: {},
           edgeVisibility: {},
-          edgeColors: {},
         },
       });
     });
@@ -185,7 +184,6 @@ describe('graphView/provider/analysis/handlers', () => {
         nodeColors: {},
         nodeVisibility: {},
         edgeVisibility: {},
-        edgeColors: {},
       },
     });
     expect(source._sendMessage).toHaveBeenCalledWith({

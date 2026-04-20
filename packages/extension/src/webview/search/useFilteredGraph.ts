@@ -10,6 +10,7 @@ import { applyFilterPatterns } from './filtering/patterns';
 import { applyLegendRules } from './filtering/rules';
 import { filterGraphData } from './filtering/graph';
 import type { IGraphData } from '../../shared/graph/contracts';
+import type { IGraphEdgeTypeDefinition } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import { applyGraphControls } from '../graphControls/filtering';
@@ -37,7 +38,7 @@ export function useFilteredGraph(
   nodeColors: Record<string, string> = {},
   nodeVisibility: Record<string, boolean> = {},
   edgeVisibility: Record<string, boolean> = {},
-  edgeColors: Record<string, string> = {},
+  edgeTypes: IGraphEdgeTypeDefinition[] = [],
   edgeDecorations?: Record<string, EdgeDecorationPayload>,
   filterPatterns: readonly string[] = [],
 ): IFilteredGraph {
@@ -53,10 +54,10 @@ export function useFilteredGraph(
         nodeColors,
         nodeVisibility,
         edgeVisibility,
-        edgeColors,
+        edgeTypes,
         edgeDecorations,
       }),
-    [edgeColors, edgeDecorations, edgeVisibility, filteredGraphData, nodeColors, nodeVisibility],
+    [edgeDecorations, edgeTypes, edgeVisibility, filteredGraphData, nodeColors, nodeVisibility],
   );
 
   const { filteredData, regexError } = useMemo(

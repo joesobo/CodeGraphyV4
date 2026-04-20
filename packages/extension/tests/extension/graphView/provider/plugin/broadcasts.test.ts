@@ -120,7 +120,6 @@ describe('graphView/provider/plugin/broadcasts', () => {
             nodeColors: {},
             nodeVisibility: {},
             edgeVisibility: {},
-            edgeColors: {},
           },
         });
       });
@@ -153,7 +152,6 @@ describe('graphView/provider/plugin/broadcasts', () => {
         nodeColors: {},
         nodeVisibility: {},
         edgeVisibility: {},
-        edgeColors: {},
       },
     });
     expect(source._sendMessage).toHaveBeenCalledWith({

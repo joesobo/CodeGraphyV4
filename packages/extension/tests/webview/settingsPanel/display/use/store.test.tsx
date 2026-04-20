@@ -27,7 +27,6 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     nodeColors: {},
     nodeVisibility: {},
     edgeVisibility: {},
-    edgeColors: {},
     activePanel: 'none',
     maxFiles: 500,
     ...overrides,

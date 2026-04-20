@@ -69,6 +69,21 @@ describe('graph/model/link/build direct coverage', () => {
     ]);
   });
 
+  it('uses resolved edge colors as link base colors', () => {
+    const links = buildGraphLinks(
+      [{ id: 'edge-1', from: 'a.ts', to: 'b.ts', kind: 'import', color: '#123456', sources: [] }],
+      'separate',
+    );
+
+    expect(links).toEqual([
+      expect.objectContaining({
+        id: 'edge-1',
+        bidirectional: false,
+        baseColor: '#123456',
+      }),
+    ]);
+  });
+
   it('marks merged reverse links as bidirectional and colors them blue', () => {
     const links = buildGraphLinks(
       [

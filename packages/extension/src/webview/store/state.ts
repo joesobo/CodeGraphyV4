@@ -63,7 +63,6 @@ export interface GraphState {
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
-  edgeColors: Record<string, string>;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
   activeFilePath: string | null;

@@ -39,9 +39,14 @@ function getLinkStrokeColor(
   source: FGNode,
   target: FGNode,
   isLight: boolean,
+  baseColor?: string,
 ): string {
   if (decoration?.color) {
     return decoration.color;
+  }
+
+  if (!highlighted && baseColor) {
+    return baseColor;
   }
 
   const isConnected = !highlighted || source.id === highlighted || target.id === highlighted;
@@ -61,6 +66,6 @@ export function getLineStrokeStyle(
   return {
     alpha: getLinkConnectionAlpha(decoration, highlighted, source, target),
     lineWidth: decoration?.width ?? 2,
-    strokeStyle: getLinkStrokeColor(decoration, highlighted, source, target, isLight),
+    strokeStyle: getLinkStrokeColor(decoration, highlighted, source, target, isLight, link.baseColor),
   };
 }

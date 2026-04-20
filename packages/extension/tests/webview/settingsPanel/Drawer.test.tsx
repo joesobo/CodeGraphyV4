@@ -45,7 +45,6 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     nodeColors: {},
     nodeVisibility: {},
     edgeVisibility: {},
-    edgeColors: {},
     ...overrides,
   });
 }
