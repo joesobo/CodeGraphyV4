@@ -8,7 +8,15 @@ import { Input } from '../../../ui/input';
 import { LegendColorInput } from './colorInput';
 import { createLegendRuleId } from '../messages';
 import type { LegendTargetSection } from './contracts';
-import { LegendRuleVisual } from './visual';
+import { DEFAULT_NODE_SHAPE, LegendIconControl, LegendShapeControl } from './visual';
+
+function createInitialVisualRule(target: LegendTargetSection): Partial<IGroup> {
+  if (target !== 'node') {
+    return {};
+  }
+
+  return { ...DEFAULT_NODE_SHAPE };
+}
 
 export function LegendRuleCreateRow({
   target,
@@ -20,8 +28,15 @@ export function LegendRuleCreateRow({
   const [draftRuleId, setDraftRuleId] = useState(() => createLegendRuleId());
   const [pattern, setPattern] = useState('');
   const [color, setColor] = useState('#3B82F6');
-  const [visualRule, setVisualRule] = useState<Partial<IGroup>>({});
+  const [visualRule, setVisualRule] = useState<Partial<IGroup>>(() => createInitialVisualRule(target));
   const [iconImports, setIconImports] = useState<LegendIconImport[]>([]);
+  const draftRule: IGroup = {
+    id: draftRuleId,
+    pattern: pattern || `New ${target} legend`,
+    color,
+    target,
+    ...visualRule,
+  };
 
   return (
     <div className="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-accent/20">
@@ -34,34 +49,41 @@ export function LegendRuleCreateRow({
           aria-label={`New ${target} legend pattern`}
         />
       </div>
+      {target === 'node' ? (
+        <>
+          <LegendIconControl
+            editable={true}
+            index={-1}
+            rule={draftRule}
+            title="Upload new node legend icon"
+            onChange={(nextRule, nextIconImports) => {
+              setVisualRule((currentRule) => ({
+                ...currentRule,
+                imagePath: nextRule.imagePath,
+                imageUrl: nextRule.imageUrl,
+              }));
+              setIconImports(nextIconImports ?? []);
+            }}
+          />
+          <LegendShapeControl
+            editable={true}
+            rule={draftRule}
+            title="Choose new node legend shape"
+            onChange={(nextRule) => {
+              setVisualRule((currentRule) => ({
+                ...currentRule,
+                shape2D: nextRule.shape2D,
+                shape3D: nextRule.shape3D,
+              }));
+            }}
+          />
+        </>
+      ) : null}
       <LegendColorInput
         ariaLabel={`New ${target} legend color`}
         color={color}
         onCommit={setColor}
         immediate={true}
-      />
-      <LegendRuleVisual
-        editable={target === 'node'}
-        index={-1}
-        rule={{
-          id: draftRuleId,
-          pattern: pattern || `New ${target} legend`,
-          color,
-          target,
-          ...visualRule,
-        }}
-        title={`Edit new ${target} legend visual`}
-        onChange={(nextRule, nextIconImports) => {
-          setVisualRule({
-            imagePath: nextRule.imagePath,
-            imageUrl: nextRule.imageUrl,
-            shape2D: nextRule.shape2D,
-            shape3D: nextRule.shape3D,
-          });
-          if (nextIconImports?.length) {
-            setIconImports(nextIconImports);
-          }
-        }}
       />
       <Button
         variant="outline"
@@ -89,7 +111,7 @@ export function LegendRuleCreateRow({
           setDraftRuleId(createLegendRuleId());
           setPattern('');
           setColor('#3B82F6');
-          setVisualRule({});
+          setVisualRule(createInitialVisualRule(target));
           setIconImports([]);
         }}
         title={`Add ${target} legend`}

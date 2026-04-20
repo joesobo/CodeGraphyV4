@@ -1,6 +1,18 @@
 import React from 'react';
+import {
+  mdiCircle,
+  mdiHexagon,
+  mdiImage,
+  mdiImageOff,
+  mdiRhombus,
+  mdiSquare,
+  mdiStar,
+  mdiTriangle,
+  mdiUpload,
+} from '@mdi/js';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { NodeShape2D, NodeShape3D } from '../../../../../shared/settings/modes';
+import { MdiIcon } from '../../../icons/MdiIcon';
 import { Button } from '../../../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../ui/overlay/popover';
 import { createLegendIconImport } from './icons';
@@ -8,60 +20,30 @@ import type { LegendRuleChange } from './contracts';
 
 interface ShapeOption {
   label: string;
+  icon: string;
   shape2D: NodeShape2D;
   shape3D: NodeShape3D;
 }
 
-const SHAPE_OPTIONS: ShapeOption[] = [
-  { label: 'Circle', shape2D: 'circle', shape3D: 'sphere' },
-  { label: 'Square', shape2D: 'square', shape3D: 'cube' },
-  { label: 'Diamond', shape2D: 'diamond', shape3D: 'octahedron' },
-  { label: 'Triangle', shape2D: 'triangle', shape3D: 'cone' },
-  { label: 'Hexagon', shape2D: 'hexagon', shape3D: 'dodecahedron' },
-  { label: 'Star', shape2D: 'star', shape3D: 'icosahedron' },
+export const DEFAULT_NODE_SHAPE: Pick<IGroup, 'shape2D' | 'shape3D'> = {
+  shape2D: 'circle',
+  shape3D: 'sphere',
+};
+
+export const SHAPE_OPTIONS: ShapeOption[] = [
+  { label: 'Circle', icon: mdiCircle, shape2D: 'circle', shape3D: 'sphere' },
+  { label: 'Square', icon: mdiSquare, shape2D: 'square', shape3D: 'cube' },
+  { label: 'Diamond', icon: mdiRhombus, shape2D: 'diamond', shape3D: 'octahedron' },
+  { label: 'Triangle', icon: mdiTriangle, shape2D: 'triangle', shape3D: 'cone' },
+  { label: 'Hexagon', icon: mdiHexagon, shape2D: 'hexagon', shape3D: 'dodecahedron' },
+  { label: 'Star', icon: mdiStar, shape2D: 'star', shape3D: 'icosahedron' },
 ];
 
-function getVisibleShape(rule: IGroup): string | undefined {
-  return rule.shape2D ?? rule.shape3D;
+function getShapeOption(rule: IGroup): ShapeOption {
+  return SHAPE_OPTIONS.find((option) => option.shape2D === rule.shape2D) ?? SHAPE_OPTIONS[0];
 }
 
-function LegendVisualSummary({
-  rule,
-}: {
-  rule: IGroup;
-}): React.ReactElement | null {
-  const shape = getVisibleShape(rule);
-
-  if (!rule.imageUrl && !shape) {
-    return null;
-  }
-
-  return (
-    <div className="flex shrink-0 items-center gap-1">
-      {rule.imageUrl ? (
-        <img
-          src={rule.imageUrl}
-          alt={`${rule.pattern} icon`}
-          className="h-5 w-5 rounded-sm border border-border/50 bg-black/20 object-contain p-0.5"
-        />
-      ) : null}
-      {shape ? (
-        <span className="rounded-sm border border-border/50 px-1.5 py-0.5 text-[10px] leading-none text-muted-foreground">
-          {shape}
-        </span>
-      ) : null}
-    </div>
-  );
-}
-
-function applyShape(rule: IGroup, option: ShapeOption | undefined): IGroup {
-  if (!option) {
-    const nextRule = { ...rule };
-    delete nextRule.shape2D;
-    delete nextRule.shape3D;
-    return nextRule;
-  }
-
+function applyShape(rule: IGroup, option: ShapeOption): IGroup {
   return {
     ...rule,
     shape2D: option.shape2D,
@@ -73,58 +55,85 @@ function canEditRuleVisual(editable: boolean, rule: IGroup): boolean {
   return editable && (rule.target ?? 'node') !== 'edge';
 }
 
-function ShapeButton({
-  active,
-  children,
-  onClick,
+function IconPreview({ rule }: { rule: IGroup }): React.ReactElement {
+  if (rule.imageUrl) {
+    return (
+      <img
+        src={rule.imageUrl}
+        alt={`${rule.pattern} icon`}
+        className="h-4 w-4 object-contain"
+      />
+    );
+  }
+
+  return <MdiIcon path={mdiImage} size={16} />;
+}
+
+function ShapePreview({
+  label,
+  option,
 }: {
-  active: boolean;
-  children: React.ReactNode;
-  onClick: () => void;
+  label: string;
+  option: ShapeOption;
 }): React.ReactElement {
   return (
-    <Button
-      type="button"
-      variant={active ? 'default' : 'outline'}
-      size="sm"
-      className="h-7 text-[11px]"
-      onClick={onClick}
+    <span
+      title={label}
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-border/60 bg-background/20 text-muted-foreground"
     >
-      {children}
-    </Button>
+      <MdiIcon path={option.icon} size={15} />
+    </span>
   );
 }
 
-function ShapeSelection({
+export function LegendShapeControl({
+  editable,
   rule,
+  title,
   onChange,
 }: {
+  editable: boolean;
   rule: IGroup;
+  title: string;
   onChange: LegendRuleChange;
 }): React.ReactElement {
+  const option = getShapeOption(rule);
+
+  if (!canEditRuleVisual(editable, rule)) {
+    return <ShapePreview label={`${rule.pattern} shape: ${option.shape2D}`} option={option} />;
+  }
+
   return (
-    <div className="space-y-2">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-        Shape
-      </div>
-      <div className="grid grid-cols-3 gap-1">
-        <ShapeButton
-          active={!rule.shape2D && !rule.shape3D}
-          onClick={() => onChange(applyShape(rule, undefined))}
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="h-7 w-7 shrink-0 border-border/60 bg-background/20 text-muted-foreground hover:bg-accent/20 hover:text-foreground"
+          title={title}
         >
-          None
-        </ShapeButton>
+          <MdiIcon path={option.icon} size={15} />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-auto p-2">
+        <div className="grid grid-cols-3 gap-1">
         {SHAPE_OPTIONS.map((option) => (
-          <ShapeButton
+          <Button
             key={option.shape2D}
-            active={rule.shape2D === option.shape2D}
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            title={`Use ${option.shape2D} shape`}
             onClick={() => onChange(applyShape(rule, option))}
           >
-            {option.label}
-          </ShapeButton>
+            <MdiIcon path={option.icon} size={15} />
+          </Button>
         ))}
-      </div>
-    </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -145,7 +154,14 @@ function readLegendIconUpload(
   });
 }
 
-function IconUploadInput({
+function clearRuleIcon(rule: IGroup): IGroup {
+  const nextRule = { ...rule };
+  delete nextRule.imagePath;
+  delete nextRule.imageUrl;
+  return nextRule;
+}
+
+function IconUploadPanel({
   index,
   rule,
   onChange,
@@ -155,7 +171,7 @@ function IconUploadInput({
   onChange: LegendRuleChange;
 }): React.ReactElement {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         Icon
       </div>
@@ -171,30 +187,24 @@ function IconUploadInput({
           }
         }}
       />
+      {rule.imagePath || rule.imageUrl ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-7 gap-1 text-[11px]"
+          title="Clear legend icon"
+          onClick={() => onChange(clearRuleIcon(rule))}
+        >
+          <MdiIcon path={mdiImageOff} size={14} />
+          Clear icon
+        </Button>
+      ) : null}
     </div>
   );
 }
 
-function LegendVisualPopoverContent({
-  index,
-  rule,
-  onChange,
-}: {
-  index: number;
-  rule: IGroup;
-  onChange: LegendRuleChange;
-}): React.ReactElement {
-  return (
-    <PopoverContent align="end" className="w-72 p-3">
-      <div className="space-y-3">
-        <ShapeSelection rule={rule} onChange={onChange} />
-        <IconUploadInput index={index} rule={rule} onChange={onChange} />
-      </div>
-    </PopoverContent>
-  );
-}
-
-export function LegendRuleVisual({
+export function LegendIconControl({
   editable,
   index,
   rule,
@@ -206,9 +216,13 @@ export function LegendRuleVisual({
   rule: IGroup;
   title: string;
   onChange: LegendRuleChange;
-}): React.ReactElement | null {
+}): React.ReactElement {
   if (!canEditRuleVisual(editable, rule)) {
-    return <LegendVisualSummary rule={rule} />;
+    return (
+      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-border/60 bg-background/20 text-muted-foreground">
+        <IconPreview rule={rule} />
+      </span>
+    );
   }
 
   return (
@@ -217,15 +231,16 @@ export function LegendRuleVisual({
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className="h-7 shrink-0 gap-1 border-border/60 bg-background/20 px-2 text-[11px] text-muted-foreground hover:bg-accent/20 hover:text-foreground"
+          size="icon"
+          className="h-7 w-7 shrink-0 border-border/60 bg-background/20 text-muted-foreground hover:bg-accent/20 hover:text-foreground"
           title={title}
         >
-          <LegendVisualSummary rule={rule} />
-          <span>Visual</span>
+          {rule.imageUrl ? <IconPreview rule={rule} /> : <MdiIcon path={mdiUpload} size={15} />}
         </Button>
       </PopoverTrigger>
-      <LegendVisualPopoverContent index={index} rule={rule} onChange={onChange} />
+      <PopoverContent align="end" className="w-64 p-3">
+        <IconUploadPanel index={index} rule={rule} onChange={onChange} />
+      </PopoverContent>
     </Popover>
   );
 }
