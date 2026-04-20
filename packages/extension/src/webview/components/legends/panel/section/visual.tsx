@@ -69,6 +69,131 @@ function applyShape(rule: IGroup, option: ShapeOption | undefined): IGroup {
   };
 }
 
+function canEditRuleVisual(editable: boolean, rule: IGroup): boolean {
+  return editable && (rule.target ?? 'node') !== 'edge';
+}
+
+function ShapeButton({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}): React.ReactElement {
+  return (
+    <Button
+      type="button"
+      variant={active ? 'default' : 'outline'}
+      size="sm"
+      className="h-7 text-[11px]"
+      onClick={onClick}
+    >
+      {children}
+    </Button>
+  );
+}
+
+function ShapeSelection({
+  rule,
+  onChange,
+}: {
+  rule: IGroup;
+  onChange: LegendRuleChange;
+}): React.ReactElement {
+  return (
+    <div className="space-y-2">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        Shape
+      </div>
+      <div className="grid grid-cols-3 gap-1">
+        <ShapeButton
+          active={!rule.shape2D && !rule.shape3D}
+          onClick={() => onChange(applyShape(rule, undefined))}
+        >
+          None
+        </ShapeButton>
+        {SHAPE_OPTIONS.map((option) => (
+          <ShapeButton
+            key={option.shape2D}
+            active={rule.shape2D === option.shape2D}
+            onClick={() => onChange(applyShape(rule, option))}
+          >
+            {option.label}
+          </ShapeButton>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function readLegendIconUpload(
+  rule: IGroup,
+  file: File,
+  onChange: LegendRuleChange,
+): void {
+  void createLegendIconImport(rule.id, file).then(({ imageUrl, importPayload }) => {
+    onChange(
+      {
+        ...rule,
+        imagePath: importPayload.imagePath,
+        imageUrl,
+      },
+      [importPayload],
+    );
+  });
+}
+
+function IconUploadInput({
+  index,
+  rule,
+  onChange,
+}: {
+  index: number;
+  rule: IGroup;
+  onChange: LegendRuleChange;
+}): React.ReactElement {
+  return (
+    <div className="space-y-2">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        Icon
+      </div>
+      <input
+        aria-label={`Legend icon ${index + 1}`}
+        type="file"
+        accept=".svg,.png,image/svg+xml,image/png"
+        className="block w-full text-[11px] text-muted-foreground file:mr-2 file:rounded-sm file:border file:border-border/60 file:bg-background/30 file:px-2 file:py-1 file:text-[11px] file:text-foreground"
+        onChange={(event) => {
+          const file = event.currentTarget.files?.[0];
+          if (file) {
+            readLegendIconUpload(rule, file, onChange);
+          }
+        }}
+      />
+    </div>
+  );
+}
+
+function LegendVisualPopoverContent({
+  index,
+  rule,
+  onChange,
+}: {
+  index: number;
+  rule: IGroup;
+  onChange: LegendRuleChange;
+}): React.ReactElement {
+  return (
+    <PopoverContent align="end" className="w-72 p-3">
+      <div className="space-y-3">
+        <ShapeSelection rule={rule} onChange={onChange} />
+        <IconUploadInput index={index} rule={rule} onChange={onChange} />
+      </div>
+    </PopoverContent>
+  );
+}
+
 export function LegendRuleVisual({
   editable,
   index,
@@ -82,9 +207,7 @@ export function LegendRuleVisual({
   title: string;
   onChange: LegendRuleChange;
 }): React.ReactElement | null {
-  const canEditNodeVisual = editable && (rule.target ?? 'node') !== 'edge';
-
-  if (!canEditNodeVisual) {
+  if (!canEditRuleVisual(editable, rule)) {
     return <LegendVisualSummary rule={rule} />;
   }
 
@@ -102,66 +225,7 @@ export function LegendRuleVisual({
           <span>Visual</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 p-3">
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              Shape
-            </div>
-            <div className="grid grid-cols-3 gap-1">
-              <Button
-                type="button"
-                variant={!rule.shape2D && !rule.shape3D ? 'default' : 'outline'}
-                size="sm"
-                className="h-7 text-[11px]"
-                onClick={() => onChange(applyShape(rule, undefined))}
-              >
-                None
-              </Button>
-              {SHAPE_OPTIONS.map((option) => (
-                <Button
-                  key={option.shape2D}
-                  type="button"
-                  variant={rule.shape2D === option.shape2D ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-7 text-[11px]"
-                  onClick={() => onChange(applyShape(rule, option))}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              Icon
-            </div>
-            <input
-              aria-label={`Legend icon ${index + 1}`}
-              type="file"
-              accept=".svg,.png,image/svg+xml,image/png"
-              className="block w-full text-[11px] text-muted-foreground file:mr-2 file:rounded-sm file:border file:border-border/60 file:bg-background/30 file:px-2 file:py-1 file:text-[11px] file:text-foreground"
-              onChange={(event) => {
-                const file = event.currentTarget.files?.[0];
-                if (!file) {
-                  return;
-                }
-
-                void createLegendIconImport(rule.id, file).then(({ imageUrl, importPayload }) => {
-                  onChange(
-                    {
-                      ...rule,
-                      imagePath: importPayload.imagePath,
-                      imageUrl,
-                    },
-                    [importPayload],
-                  );
-                });
-              }}
-            />
-          </div>
-        </div>
-      </PopoverContent>
+      <LegendVisualPopoverContent index={index} rule={rule} onChange={onChange} />
     </Popover>
   );
 }

@@ -19,6 +19,18 @@ export function replaceSectionRules(
   return [...remainingRules, ...nextSectionRules];
 }
 
+function mergeRuleMetadata(rule: IGroup, existing: LegendDisplayRule): LegendDisplayRule {
+  return {
+    ...rule,
+    ...existing,
+    isPluginDefault: rule.isPluginDefault || existing.isPluginDefault,
+    pluginId: existing.pluginId ?? rule.pluginId,
+    pluginName: existing.pluginName ?? rule.pluginName,
+    imagePath: existing.imagePath ?? rule.imagePath,
+    imageUrl: existing.imageUrl ?? rule.imageUrl,
+  };
+}
+
 export function resolveDisplayRules(
   legends: IGroup[],
   target: LegendTargetSection,
@@ -33,22 +45,7 @@ export function resolveDisplayRules(
       continue;
     }
 
-    const merged: LegendDisplayRule = {
-      ...rule,
-      ...existing,
-      isPluginDefault: rule.isPluginDefault || existing.isPluginDefault,
-    };
-    const pluginId = existing.pluginId ?? rule.pluginId;
-    const pluginName = existing.pluginName ?? rule.pluginName;
-    const imagePath = existing.imagePath ?? rule.imagePath;
-    const imageUrl = existing.imageUrl ?? rule.imageUrl;
-
-    if (pluginId) merged.pluginId = pluginId;
-    if (pluginName) merged.pluginName = pluginName;
-    if (imagePath) merged.imagePath = imagePath;
-    if (imageUrl) merged.imageUrl = imageUrl;
-
-    rulesById.set(rule.id, merged);
+    rulesById.set(rule.id, mergeRuleMetadata(rule, existing));
   }
 
   return [...rulesById.values()];

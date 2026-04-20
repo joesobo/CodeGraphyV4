@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
 import type { IGroup } from '../../../../../shared/settings/groups';
+import type { LegendIconImport } from '../../../../../shared/protocol/webviewToExtension';
 import { MdiIcon } from '../../../icons/MdiIcon';
 import {
   Collapsible,
@@ -25,6 +26,15 @@ import {
   type LegendRuleRowModel,
 } from './groups';
 
+interface LegendRuleRenderState {
+  dragIndex: number | null;
+  dragOverIndex: number | null;
+  onDragStart: (index: number) => void;
+  onDragOver: (index: number) => void;
+  onDrop: (event: React.DragEvent<HTMLDivElement>, index: number) => void;
+  onDragEnd: () => void;
+}
+
 function LegendSubsection({
   children,
   group,
@@ -43,6 +53,165 @@ function LegendSubsection({
       <div className="divide-y divide-border/50 bg-black/10">
         {children}
       </div>
+    </div>
+  );
+}
+
+function emitRulesChange(
+  onRulesChange: LegendRulesChange,
+  rules: IGroup[],
+  iconImports?: LegendIconImport[],
+): void {
+  if (iconImports?.length) {
+    onRulesChange(rules, iconImports);
+    return;
+  }
+
+  onRulesChange(rules);
+}
+
+function getTargetRules(userRules: IGroup[], target: LegendTargetSection): IGroup[] {
+  return userRules.filter((candidate) => shouldRenderRuleInSection(candidate, target));
+}
+
+function replaceRule(rules: IGroup[], nextRule: IGroup): IGroup[] {
+  return rules.map((candidate) => (candidate.id === nextRule.id ? nextRule : candidate));
+}
+
+function BuiltInRulesSubsection({
+  builtInEntries,
+  onBuiltInColorChange,
+}: {
+  builtInEntries: LegendBuiltInEntry[];
+  onBuiltInColorChange: (id: string, color: string) => void;
+}): React.ReactElement | null {
+  if (!builtInEntries.length) {
+    return null;
+  }
+
+  return (
+    <LegendSubsection group={{ id: 'built-in', label: 'Built in' }}>
+      {builtInEntries.map((entry) => (
+        <LegendBuiltInRow
+          key={entry.id}
+          entry={entry}
+          onChange={onBuiltInColorChange}
+        />
+      ))}
+    </LegendSubsection>
+  );
+}
+
+function CustomRulesSubsection({
+  customRuleGroup,
+  target,
+  userRules,
+  renderRuleRow,
+  onRulesChange,
+}: {
+  customRuleGroup: LegendRuleGroup;
+  target: LegendTargetSection;
+  userRules: IGroup[];
+  renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
+  onRulesChange: LegendRulesChange;
+}): React.ReactElement {
+  return (
+    <LegendSubsection group={customRuleGroup}>
+      <LegendRuleCreateRow
+        target={target}
+        onAdd={(rule, iconImports) => {
+          emitRulesChange(onRulesChange, [...userRules, rule], iconImports);
+        }}
+      />
+      {customRuleGroup.rules.map(renderRuleRow)}
+    </LegendSubsection>
+  );
+}
+
+function PluginRuleGroup({
+  group,
+  renderRuleRow,
+}: {
+  group: LegendRuleGroup;
+  renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
+}): React.ReactElement {
+  return (
+    <div
+      data-testid="legend-rule-subsection"
+      className="overflow-hidden rounded-md border border-border/50 bg-background/20"
+    >
+      <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">
+        {group.label}
+      </div>
+      <div className="divide-y divide-border/50">
+        {group.rules.map(renderRuleRow)}
+      </div>
+    </div>
+  );
+}
+
+function PluginRulesSubsection({
+  pluginRuleGroups,
+  renderRuleRow,
+}: {
+  pluginRuleGroups: LegendRuleGroup[];
+  renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
+}): React.ReactElement | null {
+  if (!pluginRuleGroups.length) {
+    return null;
+  }
+
+  return (
+    <LegendSubsection group={{ id: 'plugin-defaults', label: 'Plugin defaults' }}>
+      <div className="space-y-2 p-2">
+        {pluginRuleGroups.map((group) => (
+          <PluginRuleGroup
+            key={group.id}
+            group={group}
+            renderRuleRow={renderRuleRow}
+          />
+        ))}
+      </div>
+    </LegendSubsection>
+  );
+}
+
+function SectionRules({
+  builtInEntries,
+  customRuleGroup,
+  pluginRuleGroups,
+  target,
+  userRules,
+  renderRuleRow,
+  onBuiltInColorChange,
+  onRulesChange,
+}: {
+  builtInEntries: LegendBuiltInEntry[];
+  customRuleGroup: LegendRuleGroup;
+  pluginRuleGroups: LegendRuleGroup[];
+  target: LegendTargetSection;
+  userRules: IGroup[];
+  renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
+  onBuiltInColorChange: (id: string, color: string) => void;
+  onRulesChange: LegendRulesChange;
+}): React.ReactElement {
+  return (
+    <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
+      <BuiltInRulesSubsection
+        builtInEntries={builtInEntries}
+        onBuiltInColorChange={onBuiltInColorChange}
+      />
+      <CustomRulesSubsection
+        customRuleGroup={customRuleGroup}
+        target={target}
+        userRules={userRules}
+        renderRuleRow={renderRuleRow}
+        onRulesChange={onRulesChange}
+      />
+      <PluginRulesSubsection
+        pluginRuleGroups={pluginRuleGroups}
+        renderRuleRow={renderRuleRow}
+      />
     </div>
   );
 }
@@ -86,35 +255,35 @@ export function LegendSection({
     setDragOverIndex(null);
   };
 
+  const dragState: LegendRuleRenderState = {
+    dragIndex,
+    dragOverIndex,
+    onDragStart: setDragIndex,
+    onDragOver: setDragOverIndex,
+    onDrop: handleDropRule,
+    onDragEnd: () => {
+      setDragIndex(null);
+      setDragOverIndex(null);
+    },
+  };
+
   const renderRuleRow = ({ index, rule }: LegendRuleRowModel): React.ReactElement => (
     <LegendRuleRow
       key={rule.id}
       rule={rule}
       index={index}
-      isDragging={dragIndex === index}
-      isDragOver={dragOverIndex === index}
-      onDragStart={() => setDragIndex(index)}
+      isDragging={dragState.dragIndex === index}
+      isDragOver={dragState.dragOverIndex === index}
+      onDragStart={() => dragState.onDragStart(index)}
       onDragOver={(event) => {
         event.preventDefault();
-        setDragOverIndex(index);
+        dragState.onDragOver(index);
       }}
-      onDrop={(event) => handleDropRule(event, index)}
-      onDragEnd={() => {
-        setDragIndex(null);
-        setDragOverIndex(null);
-      }}
+      onDrop={(event) => dragState.onDrop(event, index)}
+      onDragEnd={dragState.onDragEnd}
       onChange={(nextRule, iconImports) => {
-        const targetRules = userRules.filter((candidate) =>
-          shouldRenderRuleInSection(candidate, target),
-        );
-        const nextRules = targetRules.map((candidate) =>
-          candidate.id === nextRule.id ? nextRule : candidate,
-        );
-        if (iconImports?.length) {
-          onRulesChange(nextRules, iconImports);
-        } else {
-          onRulesChange(nextRules);
-        }
+        const nextRules = replaceRule(getTargetRules(userRules, target), nextRule);
+        emitRulesChange(onRulesChange, nextRules, iconImports);
       }}
       onRemove={() => {
         onRulesChange(userRules.filter((candidate) => candidate.id !== rule.id));
@@ -139,52 +308,16 @@ export function LegendSection({
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
-            {builtInEntries.length ? (
-              <LegendSubsection group={{ id: 'built-in', label: 'Built in' }}>
-                {builtInEntries.map((entry) => (
-                  <LegendBuiltInRow
-                    key={entry.id}
-                    entry={entry}
-                    onChange={onBuiltInColorChange}
-                  />
-                ))}
-              </LegendSubsection>
-            ) : null}
-            <LegendSubsection group={customRuleGroup}>
-              <LegendRuleCreateRow
-                target={target}
-                onAdd={(rule, iconImports) => {
-                  if (iconImports?.length) {
-                    onRulesChange([...userRules, rule], iconImports);
-                  } else {
-                    onRulesChange([...userRules, rule]);
-                  }
-                }}
-              />
-              {customRuleGroup.rules.map(renderRuleRow)}
-            </LegendSubsection>
-            {pluginRuleGroups.length ? (
-              <LegendSubsection group={{ id: 'plugin-defaults', label: 'Plugin defaults' }}>
-                <div className="space-y-2 p-2">
-                  {pluginRuleGroups.map((group) => (
-                    <div
-                      key={group.id}
-                      data-testid="legend-rule-subsection"
-                      className="overflow-hidden rounded-md border border-border/50 bg-background/20"
-                    >
-                      <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">
-                        {group.label}
-                      </div>
-                      <div className="divide-y divide-border/50">
-                        {group.rules.map(renderRuleRow)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </LegendSubsection>
-            ) : null}
-          </div>
+          <SectionRules
+            builtInEntries={builtInEntries}
+            customRuleGroup={customRuleGroup}
+            pluginRuleGroups={pluginRuleGroups}
+            target={target}
+            userRules={userRules}
+            renderRuleRow={renderRuleRow}
+            onBuiltInColorChange={onBuiltInColorChange}
+            onRulesChange={onRulesChange}
+          />
         </CollapsibleContent>
       </section>
     </Collapsible>
