@@ -82,4 +82,22 @@ describe('webview/legends/messages', () => {
       payload: { legends: rules },
     });
   });
+
+  it('posts pending icon imports with legend updates', () => {
+    const rules: IGroup[] = [
+      { id: 'legend:1', pattern: '*.ts', color: '#22C55E', imagePath: '.codegraphy/icons/ts.svg' },
+    ];
+    const iconImports = [
+      { imagePath: '.codegraphy/icons/ts.svg', contentsBase64: 'PHN2Zy8+' },
+    ];
+    const setOptimisticUserLegends = vi.fn();
+
+    sendUserLegendRules(rules, setOptimisticUserLegends, iconImports);
+
+    expect(setOptimisticUserLegends).toHaveBeenCalledWith(rules);
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'UPDATE_LEGENDS',
+      payload: { legends: rules, iconImports },
+    });
+  });
 });

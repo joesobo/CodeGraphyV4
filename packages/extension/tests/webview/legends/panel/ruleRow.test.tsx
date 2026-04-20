@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LegendRuleRow } from '../../../../src/webview/components/legends/panel/section/ruleRow';
 
@@ -105,5 +105,93 @@ describe('webview/components/legends/ruleRow', () => {
 
     expect(handlers.onToggleDefaultVisibility).toHaveBeenCalledWith('legend:default', true);
     expect(handlers.onChange).not.toHaveBeenCalled();
+  });
+
+  it('shows plugin default icon and shape metadata in the rule row', () => {
+    const handlers = baseHandlers();
+
+    render(
+      <LegendRuleRow
+        rule={{
+          id: 'legend:default',
+          pattern: '*.ts',
+          color: '#abcdef',
+          target: 'node',
+          imageUrl: 'webview://typescript.svg',
+          shape2D: 'hexagon',
+          shape3D: 'cube',
+          isPluginDefault: true,
+        }}
+        index={1}
+        isDragging={false}
+        isDragOver={false}
+        {...handlers}
+      />,
+    );
+
+    expect(screen.getByAltText('*.ts icon')).toHaveAttribute('src', 'webview://typescript.svg');
+    expect(screen.getByText('hexagon')).toBeInTheDocument();
+  });
+
+  it('updates custom rule shape metadata from the visual popover', () => {
+    const handlers = baseHandlers();
+
+    render(
+      <LegendRuleRow
+        rule={{ id: 'legend:custom', pattern: 'src/**', color: '#123456', target: 'node' }}
+        index={0}
+        isDragging={false}
+        isDragOver={false}
+        {...handlers}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Edit legend visual'));
+    fireEvent.click(screen.getByText('Hexagon'));
+
+    expect(handlers.onChange).toHaveBeenCalledWith({
+      id: 'legend:custom',
+      pattern: 'src/**',
+      color: '#123456',
+      target: 'node',
+      shape2D: 'hexagon',
+      shape3D: 'dodecahedron',
+    });
+  });
+
+  it('imports uploaded custom rule icons through the row change payload', async () => {
+    const handlers = baseHandlers();
+    const file = new File(['<svg></svg>'], 'Type Script.svg', { type: 'image/svg+xml' });
+
+    render(
+      <LegendRuleRow
+        rule={{ id: 'legend:custom', pattern: 'src/**', color: '#123456', target: 'node' }}
+        index={0}
+        isDragging={false}
+        isDragOver={false}
+        {...handlers}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Edit legend visual'));
+    fireEvent.change(screen.getByLabelText('Legend icon 1'), {
+      target: { files: [file] },
+    });
+
+    await waitFor(() => {
+      expect(handlers.onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'legend:custom',
+          imagePath: '.codegraphy/icons/legend-custom-type-script.svg',
+          imageUrl: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=',
+        }),
+        [
+          {
+            imagePath: '.codegraphy/icons/legend-custom-type-script.svg',
+            contentsBase64: 'PHN2Zz48L3N2Zz4=',
+          },
+        ],
+      );
+    });
   });
 });

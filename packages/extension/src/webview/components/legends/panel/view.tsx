@@ -74,10 +74,11 @@ export default function LegendsPanel({
                 payload: { nodeType, color },
               });
             }}
-            onRulesChange={(nextSectionRules) => {
+            onRulesChange={(nextSectionRules, iconImports) => {
               sendUserLegendRules(
                 replaceSectionRules(userLegendRules, 'node', nextSectionRules),
                 setOptimisticUserLegends,
+                iconImports,
               );
             }}
             onToggleDefaultVisibility={(legendId, visible) => {
@@ -101,10 +102,11 @@ export default function LegendsPanel({
                 setOptimisticUserLegends,
               );
             }}
-            onRulesChange={(nextSectionRules) => {
+            onRulesChange={(nextSectionRules, iconImports) => {
               sendUserLegendRules(
                 replaceCustomEdgeRules(userLegendRules, edgeTypeIds, nextSectionRules),
                 setOptimisticUserLegends,
+                iconImports,
               );
             }}
             onToggleDefaultVisibility={(legendId, visible) => {

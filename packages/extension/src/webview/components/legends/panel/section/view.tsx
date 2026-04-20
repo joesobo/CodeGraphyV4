@@ -10,7 +10,12 @@ import {
 import { LegendBuiltInRow } from './builtInRow';
 import { LegendRuleCreateRow } from './createRow';
 import { shouldRenderRuleInSection } from './displayRules';
-import type { LegendBuiltInEntry, LegendDisplayRule, LegendTargetSection } from './contracts';
+import type {
+  LegendBuiltInEntry,
+  LegendDisplayRule,
+  LegendRulesChange,
+  LegendTargetSection,
+} from './contracts';
 import { LegendRuleRow } from './ruleRow';
 import { postLegendOrderUpdate } from './order';
 import {
@@ -60,7 +65,7 @@ export function LegendSection({
   legends: IGroup[];
   target: LegendTargetSection;
   onBuiltInColorChange: (id: string, color: string) => void;
-  onRulesChange: (rules: IGroup[]) => void;
+  onRulesChange: LegendRulesChange;
   onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
 }): React.ReactElement {
   const [open, setOpen] = useState(true);
@@ -98,13 +103,18 @@ export function LegendSection({
         setDragIndex(null);
         setDragOverIndex(null);
       }}
-      onChange={(nextRule) => {
+      onChange={(nextRule, iconImports) => {
         const targetRules = userRules.filter((candidate) =>
           shouldRenderRuleInSection(candidate, target),
         );
-        onRulesChange(
-          targetRules.map((candidate) => (candidate.id === nextRule.id ? nextRule : candidate)),
+        const nextRules = targetRules.map((candidate) =>
+          candidate.id === nextRule.id ? nextRule : candidate,
         );
+        if (iconImports?.length) {
+          onRulesChange(nextRules, iconImports);
+        } else {
+          onRulesChange(nextRules);
+        }
       }}
       onRemove={() => {
         onRulesChange(userRules.filter((candidate) => candidate.id !== rule.id));
@@ -144,8 +154,12 @@ export function LegendSection({
             <LegendSubsection group={customRuleGroup}>
               <LegendRuleCreateRow
                 target={target}
-                onAdd={(rule) => {
-                  onRulesChange([...userRules, rule]);
+                onAdd={(rule, iconImports) => {
+                  if (iconImports?.length) {
+                    onRulesChange([...userRules, rule], iconImports);
+                  } else {
+                    onRulesChange([...userRules, rule]);
+                  }
                 }}
               />
               {customRuleGroup.rules.map(renderRuleRow)}

@@ -1,4 +1,5 @@
 import type { IGroup } from '../../../../shared/settings/groups';
+import type { LegendIconImport } from '../../../../shared/protocol/webviewToExtension';
 import { postMessage } from '../../../vscodeApi';
 
 export function createLegendRuleId(): string {
@@ -25,10 +26,11 @@ export function reorderItems<T>(items: readonly T[], fromIndex: number, toIndex:
 export function sendUserLegendRules(
   rules: IGroup[],
   setOptimisticUserLegends: (legends: IGroup[]) => void,
+  iconImports?: LegendIconImport[],
 ): void {
   setOptimisticUserLegends(rules);
   postMessage({
     type: 'UPDATE_LEGENDS',
-    payload: { legends: rules },
+    payload: iconImports?.length ? { legends: rules, iconImports } : { legends: rules },
   });
 }

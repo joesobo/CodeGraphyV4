@@ -52,6 +52,28 @@ describe('webview/legends/createRow', () => {
     expect(screen.getByLabelText('New node legend color')).toHaveValue('#3B82F6');
   });
 
+  it('adds selected node visual metadata with the new rule', () => {
+    const onAdd = vi.fn();
+
+    render(<LegendRuleCreateRow target="node" onAdd={onAdd} />);
+
+    fireEvent.change(screen.getByLabelText('New node legend pattern'), {
+      target: { value: '*.tsx' },
+    });
+    fireEvent.click(screen.getByTitle('Edit new node legend visual'));
+    fireEvent.click(screen.getByText('Star'));
+    fireEvent.click(screen.getByTitle('Add node legend'));
+
+    expect(onAdd).toHaveBeenCalledWith({
+      id: 'legend:new',
+      pattern: '*.tsx',
+      color: '#3B82F6',
+      target: 'node',
+      shape2D: 'star',
+      shape3D: 'icosahedron',
+    });
+  });
+
   it('ignores blank patterns without resetting the selected color', () => {
     const onAdd = vi.fn();
 

@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
 import { mdiPlus } from '@mdi/js';
 import type { IGroup } from '../../../../../shared/settings/groups';
+import type { LegendIconImport } from '../../../../../shared/protocol/webviewToExtension';
 import { MdiIcon } from '../../../icons/MdiIcon';
 import { Button } from '../../../ui/button';
 import { Input } from '../../../ui/input';
 import { LegendColorInput } from './colorInput';
 import { createLegendRuleId } from '../messages';
 import type { LegendTargetSection } from './contracts';
+import { LegendRuleVisual } from './visual';
 
 export function LegendRuleCreateRow({
   target,
   onAdd,
 }: {
   target: LegendTargetSection;
-  onAdd: (rule: IGroup) => void;
+  onAdd: (rule: IGroup, iconImports?: LegendIconImport[]) => void;
 }): React.ReactElement {
+  const [draftRuleId, setDraftRuleId] = useState(() => createLegendRuleId());
   const [pattern, setPattern] = useState('');
   const [color, setColor] = useState('#3B82F6');
+  const [visualRule, setVisualRule] = useState<Partial<IGroup>>({});
+  const [iconImports, setIconImports] = useState<LegendIconImport[]>([]);
 
   return (
     <div className="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-accent/20">
@@ -35,6 +40,29 @@ export function LegendRuleCreateRow({
         onCommit={setColor}
         immediate={true}
       />
+      <LegendRuleVisual
+        editable={target === 'node'}
+        index={-1}
+        rule={{
+          id: draftRuleId,
+          pattern: pattern || `New ${target} legend`,
+          color,
+          target,
+          ...visualRule,
+        }}
+        title={`Edit new ${target} legend visual`}
+        onChange={(nextRule, nextIconImports) => {
+          setVisualRule({
+            imagePath: nextRule.imagePath,
+            imageUrl: nextRule.imageUrl,
+            shape2D: nextRule.shape2D,
+            shape3D: nextRule.shape3D,
+          });
+          if (nextIconImports?.length) {
+            setIconImports(nextIconImports);
+          }
+        }}
+      />
       <Button
         variant="outline"
         size="icon"
@@ -45,14 +73,24 @@ export function LegendRuleCreateRow({
             return;
           }
 
-          onAdd({
-            id: createLegendRuleId(),
+          const nextRule = {
+            id: draftRuleId,
             pattern: nextPattern,
             color,
             target,
-          });
+            ...visualRule,
+          };
+
+          if (iconImports.length) {
+            onAdd(nextRule, iconImports);
+          } else {
+            onAdd(nextRule);
+          }
+          setDraftRuleId(createLegendRuleId());
           setPattern('');
           setColor('#3B82F6');
+          setVisualRule({});
+          setIconImports([]);
         }}
         title={`Add ${target} legend`}
       >

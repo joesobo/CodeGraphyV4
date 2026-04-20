@@ -48,6 +48,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'sendGroupsUpdated'
   | 'showOpenDialog'
   | 'createDirectory'
+  | 'writeFile'
   | 'copyFile'
   | 'sendMessage'
   | 'applyViewTransform'
@@ -111,6 +112,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     sendGroupsUpdated: () => source._sendGroupsUpdated(),
     showOpenDialog: options => dependencies.window.showOpenDialog(options),
     createDirectory: uri => vscode.workspace.fs.createDirectory(uri),
+    writeFile: (uri, content) => vscode.workspace.fs.writeFile(uri, content),
     copyFile: (sourceUri, destinationUri, options) =>
       vscode.workspace.fs.copy(sourceUri, destinationUri, options),
     sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),

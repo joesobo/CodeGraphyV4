@@ -6,6 +6,8 @@ import { Button } from '../../../ui/button';
 import { Input } from '../../../ui/input';
 import { Switch } from '../../../ui/switch';
 import { LegendColorInput } from './colorInput';
+import { LegendRuleVisual } from './visual';
+import type { LegendRuleChange } from './contracts';
 
 export function LegendRuleRow({
   rule,
@@ -28,7 +30,7 @@ export function LegendRuleRow({
   onDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (event: React.DragEvent<HTMLDivElement>) => void;
   onDragEnd: () => void;
-  onChange: (rule: IGroup) => void;
+  onChange: LegendRuleChange;
   onRemove: () => void;
   onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
 }): React.ReactElement {
@@ -79,6 +81,13 @@ export function LegendRuleRow({
             onCommit={(color) => onChange({ ...rule, color })}
           />
         )}
+        <LegendRuleVisual
+          editable={!isPluginDefault}
+          index={index}
+          rule={rule}
+          title="Edit legend visual"
+          onChange={onChange}
+        />
         <Switch
           checked={!rule.disabled}
           onCheckedChange={(enabled) => {
