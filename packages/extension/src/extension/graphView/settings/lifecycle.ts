@@ -1,4 +1,5 @@
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
 import { applyGraphViewAllSettingsSnapshot, type GraphViewAllSettingsSyncState } from './sync';
 import { sendGraphViewSettingsMessages } from './sender';
@@ -15,6 +16,7 @@ interface SendGraphViewProviderSettingsOptions {
 interface SendGraphViewProviderAllSettingsOptions {
   captureSettingsSnapshot: () => ISettingsSnapshot;
   getPluginFilterPatterns: () => string[];
+  getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
   sendMessage: (message: ExtensionToWebviewMessage) => void;
   recomputeGroups: () => void;
   sendGroupsUpdated: () => void;
@@ -35,6 +37,7 @@ export function sendGraphViewProviderAllSettings(
   {
     captureSettingsSnapshot,
     getPluginFilterPatterns,
+    getPluginFilterGroups,
     sendMessage,
     recomputeGroups,
     sendGroupsUpdated,
@@ -49,5 +52,6 @@ export function sendGraphViewProviderAllSettings(
       recomputeGroups,
       sendGroupsUpdated,
     },
+    getPluginFilterGroups?.() ?? [],
   );
 }

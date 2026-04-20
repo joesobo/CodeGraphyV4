@@ -22,9 +22,11 @@ describe('settingsMessages/updates/filterPatterns', () => {
       payload: {
         patterns: ['dist/**'],
         pluginPatterns: ['venv/**'],
+        pluginPatternGroups: [],
         disabledCustomPatterns: [],
         disabledPluginPatterns: [],
       },
     });
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });
 });

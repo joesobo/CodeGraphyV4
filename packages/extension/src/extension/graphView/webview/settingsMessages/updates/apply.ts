@@ -24,6 +24,43 @@ function getNextDisabledFilterPatterns(
   return Array.from(nextPatterns);
 }
 
+function getGroupDisabledFilterPatterns(
+  source: 'custom' | 'plugin',
+  enabled: boolean,
+  state: GraphViewSettingsMessageState,
+  handlers: GraphViewSettingsMessageHandlers,
+): string[] {
+  if (enabled) {
+    return [];
+  }
+
+  return source === 'custom'
+    ? [...state.filterPatterns]
+    : handlers.getPluginFilterPatterns();
+}
+
+function sendFilterPatternsUpdated(
+  state: GraphViewSettingsMessageState,
+  handlers: GraphViewSettingsMessageHandlers,
+  overrides: Partial<{
+    disabledCustomPatterns: string[];
+    disabledPluginPatterns: string[];
+  }> = {},
+): void {
+  handlers.sendMessage({
+    type: 'FILTER_PATTERNS_UPDATED',
+    payload: {
+      patterns: state.filterPatterns,
+      pluginPatterns: handlers.getPluginFilterPatterns(),
+      pluginPatternGroups: handlers.getPluginFilterGroups(),
+      disabledCustomPatterns: overrides.disabledCustomPatterns
+        ?? handlers.getConfig('disabledCustomFilterPatterns', []),
+      disabledPluginPatterns: overrides.disabledPluginPatterns
+        ?? handlers.getConfig('disabledPluginFilterPatterns', []),
+    },
+  });
+}
+
 export async function applySettingsUpdateMessage(
   message: WebviewToExtensionMessage,
   state: GraphViewSettingsMessageState,
@@ -48,15 +85,30 @@ export async function applySettingsUpdateMessage(
       message.payload.enabled,
     );
     await handlers.updateConfig(key, disabledPatterns);
-    handlers.sendMessage({
-      type: 'FILTER_PATTERNS_UPDATED',
-      payload: {
-        patterns: state.filterPatterns,
-        pluginPatterns: handlers.getPluginFilterPatterns(),
-        disabledCustomPatterns: handlers.getConfig('disabledCustomFilterPatterns', []),
-        disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
-      },
+    sendFilterPatternsUpdated(state, handlers, {
+      [message.payload.source === 'custom' ? 'disabledCustomPatterns' : 'disabledPluginPatterns']:
+        disabledPatterns,
     });
+    await handlers.analyzeAndSendData();
+    return true;
+  }
+
+  if (message.type === 'UPDATE_FILTER_PATTERN_GROUP_STATE') {
+    const key = message.payload.source === 'custom'
+      ? 'disabledCustomFilterPatterns'
+      : 'disabledPluginFilterPatterns';
+    const disabledPatterns = getGroupDisabledFilterPatterns(
+      message.payload.source,
+      message.payload.enabled,
+      state,
+      handlers,
+    );
+    await handlers.updateConfig(key, disabledPatterns);
+    sendFilterPatternsUpdated(state, handlers, {
+      [message.payload.source === 'custom' ? 'disabledCustomPatterns' : 'disabledPluginPatterns']:
+        disabledPatterns,
+    });
+    await handlers.analyzeAndSendData();
     return true;
   }
 

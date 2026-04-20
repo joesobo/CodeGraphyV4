@@ -21,6 +21,7 @@ function renderPopover(overrides: Partial<React.ComponentProps<typeof FilterPopo
     onPatternsChange: vi.fn(),
     open: true,
     pendingPatterns: [],
+    pluginGroups: [{ pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['plugin/**'] }],
     pluginPatterns: ['plugin/**'],
     ...overrides,
   };
@@ -73,6 +74,48 @@ describe('searchBar/filters/popover', () => {
       type: 'UPDATE_FILTER_PATTERN_STATE',
       payload: { source: 'plugin', pattern: 'plugin/**', enabled: false },
     });
+  });
+
+  it('bulk toggles custom and plugin sections', () => {
+    const props = renderPopover({
+      customPatterns: ['one/**', 'two/**'],
+      disabledCustomPatterns: ['two/**'],
+      disabledPluginPatterns: [],
+      pluginGroups: [
+        { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['plugin-one/**'] },
+        { pluginId: 'plugin.two', pluginName: 'Plugin Two', patterns: ['plugin-two/**'] },
+      ],
+      pluginPatterns: ['plugin-one/**', 'plugin-two/**'],
+    });
+
+    fireEvent.click(screen.getByLabelText('Disable all custom filters'));
+    fireEvent.click(screen.getByLabelText('Disable all plugin filters'));
+
+    expect(props.onDisabledCustomPatternsChange).toHaveBeenCalledWith(['one/**', 'two/**']);
+    expect(props.onDisabledPluginPatternsChange).toHaveBeenCalledWith(['plugin-one/**', 'plugin-two/**']);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+      payload: { source: 'custom', enabled: false },
+    });
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+      payload: { source: 'plugin', enabled: false },
+    });
+  });
+
+  it('groups plugin default filters by plugin', () => {
+    renderPopover({
+      pluginGroups: [
+        { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['plugin-one/**'] },
+        { pluginId: 'plugin.two', pluginName: 'Plugin Two', patterns: ['plugin-two/**'] },
+      ],
+      pluginPatterns: ['plugin-one/**', 'plugin-two/**'],
+    });
+
+    expect(screen.getByText('Plugin One')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('plugin-one/**')).toBeInTheDocument();
+    expect(screen.getByText('Plugin Two')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('plugin-two/**')).toBeInTheDocument();
   });
 
   it('counts disabled rows as not enabled', () => {

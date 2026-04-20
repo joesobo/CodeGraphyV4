@@ -162,6 +162,7 @@ function resetStore(): void {
     legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
+    pluginFilterGroups: [],
     pluginStatuses: [],
     graphNodeTypes: [],
     graphEdgeTypes: [],

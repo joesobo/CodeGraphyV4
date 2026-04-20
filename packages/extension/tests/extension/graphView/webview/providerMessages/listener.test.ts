@@ -301,6 +301,7 @@ describe('graph view provider listener bridge', () => {
       payload: {
         patterns: ['dist/**'],
         pluginPatterns: ['plugin/**'],
+        pluginPatternGroups: [],
         disabledCustomPatterns: [],
         disabledPluginPatterns: [],
       },

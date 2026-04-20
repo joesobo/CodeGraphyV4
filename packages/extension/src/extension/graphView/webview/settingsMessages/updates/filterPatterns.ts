@@ -20,9 +20,11 @@ export async function applyFilterPatternsUpdate(
     payload: {
       patterns: state.filterPatterns,
       pluginPatterns: handlers.getPluginFilterPatterns(),
+      pluginPatternGroups: handlers.getPluginFilterGroups(),
       disabledCustomPatterns,
       disabledPluginPatterns: handlers.getConfig('disabledPluginFilterPatterns', []),
     },
   });
+  await handlers.analyzeAndSendData();
   return true;
 }

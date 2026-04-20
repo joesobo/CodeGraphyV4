@@ -102,6 +102,7 @@ describe('GraphStore', () => {
       payload: {
         patterns: ['*.test.ts'],
         pluginPatterns: ['*.uid'],
+        pluginPatternGroups: [],
         disabledCustomPatterns: ['custom/**'],
         disabledPluginPatterns: [],
       },

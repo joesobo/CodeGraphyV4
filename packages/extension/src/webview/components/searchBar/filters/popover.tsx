@@ -6,9 +6,11 @@ import { Input } from '../../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../../ui/overlay/popover';
 import { Switch } from '../../ui/switch';
 import { cn } from '../../ui/cn';
+import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import {
   addFilterPatterns,
   canAddFilterPattern,
+  commitFilterPatternGroupState,
   commitFilterPatterns,
   commitFilterPatternState,
   editFilterPattern,
@@ -30,24 +32,38 @@ interface FilterPopoverProps {
   onPatternsChange: (patterns: string[]) => void;
   open?: boolean;
   pendingPatterns?: string[];
+  pluginGroups: IPluginFilterPatternGroup[];
   pluginPatterns: string[];
 }
 
 function SectionHeader({
+  ariaLabel,
+  checked,
   count,
   label,
+  onCheckedChange,
   subtext,
 }: {
+  ariaLabel: string;
+  checked: boolean;
   count: number;
   label: string;
+  onCheckedChange: (checked: boolean) => void;
   subtext: string;
 }): React.ReactElement {
   return (
-    <div className="space-y-0.5">
-      <h3 className="text-xs font-medium">
-        {label} <span className="text-muted-foreground">{count}</span>
-      </h3>
-      <p className="text-[11px] text-muted-foreground">{subtext}</p>
+    <div className="flex items-center justify-between gap-3">
+      <div className="space-y-0.5">
+        <h3 className="text-xs font-medium">
+          {label} <span className="text-muted-foreground">{count}</span>
+        </h3>
+        <p className="text-[11px] text-muted-foreground">{subtext}</p>
+      </div>
+      <Switch
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-label={`${checked ? 'Disable' : 'Enable'} all ${ariaLabel}`}
+      />
     </div>
   );
 }
@@ -137,6 +153,7 @@ export function FilterPopover({
   onPatternsChange,
   open,
   pendingPatterns = [],
+  pluginGroups,
   pluginPatterns,
 }: FilterPopoverProps): React.ReactElement {
   const [draftPattern, setDraftPattern] = useState('');
@@ -149,6 +166,11 @@ export function FilterPopover({
   });
   const disabledCustom = useMemo(() => new Set(disabledCustomPatterns), [disabledCustomPatterns]);
   const disabledPlugin = useMemo(() => new Set(disabledPluginPatterns), [disabledPluginPatterns]);
+  const customSectionEnabled = customPatterns.some(pattern => !disabledCustom.has(pattern));
+  const pluginSectionEnabled = pluginPatterns.some(pattern => !disabledPlugin.has(pattern));
+  const visiblePluginGroups = pluginGroups.length > 0
+    ? pluginGroups
+    : [{ pluginId: 'plugin-defaults', pluginName: 'Plugin defaults', patterns: pluginPatterns }];
 
   useEffect(() => {
     if (pendingPatterns.length === 0) {
@@ -196,6 +218,16 @@ export function FilterPopover({
     commitFilterPatternState('plugin', pattern, enabled);
   };
 
+  const handleCustomSectionToggle = (enabled: boolean) => {
+    onDisabledCustomPatternsChange(enabled ? [] : customPatterns);
+    commitFilterPatternGroupState('custom', enabled);
+  };
+
+  const handlePluginSectionToggle = (enabled: boolean) => {
+    onDisabledPluginPatternsChange(enabled ? [] : pluginPatterns);
+    commitFilterPatternGroupState('plugin', enabled);
+  };
+
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -221,8 +253,11 @@ export function FilterPopover({
         <div className="space-y-3 p-3">
           <div className="space-y-1.5">
             <SectionHeader
+              ariaLabel="custom filters"
+              checked={customSectionEnabled}
               count={customPatterns.length}
               label="Custom"
+              onCheckedChange={handleCustomSectionToggle}
               subtext="Globs you add for this repo"
             />
             <p className="text-xs text-muted-foreground">Add glob</p>
@@ -271,19 +306,31 @@ export function FilterPopover({
 
           <div className="space-y-1.5">
             <SectionHeader
+              ariaLabel="plugin filters"
+              checked={pluginSectionEnabled}
               count={pluginPatterns.length}
               label="Plugin defaults"
+              onCheckedChange={handlePluginSectionToggle}
               subtext="Read-only globs from enabled plugins"
             />
             <PatternList empty={pluginPatterns.length === 0}>
-              {pluginPatterns.map((pattern) => (
-                <PatternRow
-                  key={pattern}
-                  enabled={!disabledPlugin.has(pattern)}
-                  pattern={pattern}
-                  source="plugin"
-                  onEnabledChange={(enabled) => handlePluginPatternToggle(pattern, enabled)}
-                />
+              {visiblePluginGroups.map((group) => (
+                <li key={group.pluginId} className="space-y-1">
+                  <p className="px-1 text-[11px] font-medium text-muted-foreground">
+                    {group.pluginName}
+                  </p>
+                  <ul className="space-y-1">
+                    {group.patterns.map((pattern) => (
+                      <PatternRow
+                        key={`${group.pluginId}:${pattern}`}
+                        enabled={!disabledPlugin.has(pattern)}
+                        pattern={pattern}
+                        source="plugin"
+                        onEnabledChange={(enabled) => handlePluginPatternToggle(pattern, enabled)}
+                      />
+                    ))}
+                  </ul>
+                </li>
               ))}
             </PatternList>
           </div>

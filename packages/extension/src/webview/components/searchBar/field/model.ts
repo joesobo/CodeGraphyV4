@@ -3,6 +3,8 @@
  * @module webview/components/searchBar/model
  */
 
+import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+
 export interface SearchOptions {
   matchCase: boolean;
   wholeWord: boolean;
@@ -31,6 +33,7 @@ export interface SearchBarProps {
     onPatternsChange: (patterns: string[]) => void;
     open: boolean;
     pendingPatterns: string[];
+    pluginGroups: IPluginFilterPatternGroup[];
     pluginPatterns: string[];
   };
 }

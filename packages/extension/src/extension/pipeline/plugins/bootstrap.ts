@@ -1,9 +1,10 @@
+import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
 import { createMarkdownPlugin } from '../../../../../plugin-markdown/src/plugin';
 import { createTreeSitterPlugin } from './treesitter/plugin';
 
 export interface WorkspacePipelinePluginFilterSource {
-  list(): Array<{ plugin: { id?: string; defaultFilters?: string[] } }>;
+  list(): Array<{ plugin: { id?: string; name?: string; defaultFilters?: string[] } }>;
 }
 
 export interface WorkspacePipelineInitializationDependencies {
@@ -27,6 +28,27 @@ export function getWorkspacePipelinePluginFilterPatterns(
   }
 
   return [...new Set(patterns)];
+}
+
+export function getWorkspacePipelinePluginFilterGroups(
+  source: WorkspacePipelinePluginFilterSource,
+  disabledPlugins: ReadonlySet<string> = new Set(),
+): IPluginFilterPatternGroup[] {
+  return source.list()
+    .filter(pluginInfo => !pluginInfo.plugin.id || !disabledPlugins.has(pluginInfo.plugin.id))
+    .map((pluginInfo): IPluginFilterPatternGroup | null => {
+      const patterns = pluginInfo.plugin.defaultFilters ?? [];
+      if (patterns.length === 0) {
+        return null;
+      }
+
+      return {
+        pluginId: pluginInfo.plugin.id ?? pluginInfo.plugin.name ?? 'plugin',
+        pluginName: pluginInfo.plugin.name ?? pluginInfo.plugin.id ?? 'Plugin',
+        patterns: [...new Set(patterns)],
+      };
+    })
+    .filter((group): group is IPluginFilterPatternGroup => group !== null);
 }
 
 export async function initializeWorkspacePipeline(
