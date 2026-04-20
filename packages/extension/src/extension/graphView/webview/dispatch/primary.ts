@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
@@ -76,6 +77,7 @@ export interface GraphViewPrimaryMessageContext {
   sendGraphControls(): void;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
+  getPluginFilterGroups(): IPluginFilterPatternGroup[];
   sendMessage(message: unknown): void;
   applyViewTransform(): void;
   smartRebuild(id: string): void;

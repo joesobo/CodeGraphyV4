@@ -46,6 +46,10 @@ export type WebviewToExtensionMessage =
       type: 'UPDATE_FILTER_PATTERN_STATE';
       payload: { source: 'custom' | 'plugin'; pattern: string; enabled: boolean };
     }
+  | {
+      type: 'UPDATE_FILTER_PATTERN_GROUP_STATE';
+      payload: { source: 'custom' | 'plugin'; enabled: boolean };
+    }
   | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } }
   | { type: 'UPDATE_BIDIRECTIONAL_MODE'; payload: { bidirectionalMode: BidirectionalEdgeMode } }
   | { type: 'UPDATE_DIRECTION_MODE'; payload: { directionMode: DirectionMode } }

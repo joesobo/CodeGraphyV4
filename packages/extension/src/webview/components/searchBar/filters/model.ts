@@ -107,3 +107,10 @@ export function commitFilterPatternState(
 ): void {
   postMessage({ type: 'UPDATE_FILTER_PATTERN_STATE', payload: { source, pattern, enabled } });
 }
+
+export function commitFilterPatternGroupState(
+  source: 'custom' | 'plugin',
+  enabled: boolean,
+): void {
+  postMessage({ type: 'UPDATE_FILTER_PATTERN_GROUP_STATE', payload: { source, enabled } });
+}

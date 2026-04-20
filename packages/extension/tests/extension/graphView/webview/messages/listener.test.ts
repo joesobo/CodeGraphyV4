@@ -60,6 +60,7 @@ function createContext(
     getConfig: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
     updateConfig: vi.fn(() => Promise.resolve()),
     getPluginFilterPatterns: vi.fn(() => []),
+    getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
@@ -158,7 +159,7 @@ describe('graph view webview message listener', () => {
     });
 
     expect(context.setFilterPatterns).toHaveBeenCalledWith(['dist/**']);
-    expect(context.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(context.analyzeAndSendData).toHaveBeenCalledOnce();
     expect(context.setUserGroups).not.toHaveBeenCalled();
     expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
   });

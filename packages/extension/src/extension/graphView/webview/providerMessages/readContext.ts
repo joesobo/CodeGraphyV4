@@ -12,6 +12,8 @@ type GraphViewProviderReadContext = Pick<
   | 'getDepthMode'
   | 'getDisabledPlugins'
   | 'getFilterPatterns'
+  | 'getPluginFilterGroups'
+  | 'getPluginFilterPatterns'
   | 'getGraphData'
   | 'getAnalyzer'
   | 'getViewContext'
@@ -32,6 +34,14 @@ export function createGraphViewProviderMessageReadContext(
     getDepthMode: () => source._depthMode,
     getDisabledPlugins: () => source._disabledPlugins,
     getFilterPatterns: () => source._filterPatterns,
+    getPluginFilterPatterns: () =>
+      typeof source._analyzer?.getPluginFilterPatterns === 'function'
+        ? source._analyzer.getPluginFilterPatterns()
+        : [],
+    getPluginFilterGroups: () =>
+      typeof source._analyzer?.getPluginFilterGroups === 'function'
+        ? source._analyzer.getPluginFilterGroups(source._disabledPlugins)
+        : [],
     getGraphData: () => source._graphData,
     getAnalyzer: () => source._analyzer,
     getViewContext: () => source._viewContext,

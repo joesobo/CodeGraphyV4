@@ -64,6 +64,7 @@ describe('graph view ready message', () => {
       payload: {
         patterns: ['dist/**'],
         pluginPatterns: ['venv/**'],
+        pluginPatternGroups: [],
         disabledCustomPatterns: [],
         disabledPluginPatterns: [],
       },

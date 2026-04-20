@@ -30,6 +30,7 @@ export const INITIAL_STATE: GraphStateFields = {
   optimisticUserLegends: null,
   filterPatterns: [],
   pluginFilterPatterns: [],
+  pluginFilterGroups: [],
   disabledCustomFilterPatterns: [],
   disabledPluginFilterPatterns: [],
   dagMode: null,

@@ -13,9 +13,11 @@ import { loadGraphViewGroupState } from '../groups/state';
 import { captureGraphViewSettingsSnapshot } from '../settings/snapshot';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from '../settings/lifecycle';
 import { sendGraphControlsUpdated } from '../controls/send';
+import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 
 interface GraphViewProviderSettingsAnalyzerLike {
   getPluginFilterPatterns(): string[];
+  getPluginFilterGroups?(disabledPlugins?: ReadonlySet<string>): IPluginFilterPatternGroup[];
   registry?: unknown;
 }
 
@@ -166,6 +168,10 @@ export function createGraphViewProviderSettingsStateMethods(
       getPluginFilterPatterns: () =>
         typeof source._analyzer?.getPluginFilterPatterns === 'function'
           ? source._analyzer.getPluginFilterPatterns()
+          : [],
+      getPluginFilterGroups: () =>
+        typeof source._analyzer?.getPluginFilterGroups === 'function'
+          ? source._analyzer.getPluginFilterGroups(source._disabledPlugins)
           : [],
       sendMessage: message => source._sendMessage(message),
       recomputeGroups: () => {

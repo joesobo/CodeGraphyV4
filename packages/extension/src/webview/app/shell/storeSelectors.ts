@@ -15,6 +15,7 @@ export function useAppState() {
   const legends = useGraphStore(s => s.legends);
   const filterPatterns = useGraphStore(s => s.filterPatterns);
   const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
+  const pluginFilterGroups = useGraphStore(s => s.pluginFilterGroups);
   const disabledCustomFilterPatterns = useGraphStore(s => s.disabledCustomFilterPatterns);
   const disabledPluginFilterPatterns = useGraphStore(s => s.disabledPluginFilterPatterns);
   const showOrphans = useGraphStore(s => s.showOrphans);
@@ -38,6 +39,7 @@ export function useAppState() {
     legends,
     filterPatterns,
     pluginFilterPatterns,
+    pluginFilterGroups,
     disabledCustomFilterPatterns,
     disabledPluginFilterPatterns,
     showOrphans,

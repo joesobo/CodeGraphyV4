@@ -47,6 +47,7 @@ function resetStore() {
     legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
+    pluginFilterGroups: [],
     pluginStatuses: [],
     graphNodeTypes: [],
     graphEdgeTypes: [],
@@ -282,6 +283,7 @@ describe('App: message handlers', () => {
         payload: {
           patterns: ['**/*.test.ts'],
           pluginPatterns: [],
+          pluginPatternGroups: [],
           disabledCustomPatterns: [],
           disabledPluginPatterns: [],
         },

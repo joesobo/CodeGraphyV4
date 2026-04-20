@@ -55,6 +55,7 @@ export function createPrimaryMessageContext(
     getConfig: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
     updateConfig: vi.fn(() => Promise.resolve()),
     getPluginFilterPatterns: vi.fn(() => []),
+    getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),

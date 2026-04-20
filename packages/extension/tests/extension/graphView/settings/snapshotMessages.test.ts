@@ -215,6 +215,7 @@ describe('graphView/settings/snapshotMessages', () => {
           payload: {
             patterns: ['dist/**'],
             pluginPatterns: ['venv/**'],
+            pluginPatternGroups: [],
             disabledCustomPatterns: [],
             disabledPluginPatterns: [],
           },

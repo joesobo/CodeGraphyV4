@@ -50,6 +50,7 @@ function createState(
     optimisticUserLegends: null,
     filterPatterns: [],
     pluginFilterPatterns: [],
+    pluginFilterGroups: [],
     disabledCustomFilterPatterns: [],
     disabledPluginFilterPatterns: [],
     dagMode: null,
@@ -146,12 +147,14 @@ describe('webview/store/messageHandlers/graph', () => {
       payload: {
         patterns: ['dist/**'],
         pluginPatterns: ['plugin/**'],
+        pluginPatternGroups: [],
         disabledCustomPatterns: ['custom/**'],
         disabledPluginPatterns: [],
       },
     })).toEqual({
       filterPatterns: ['dist/**'],
       pluginFilterPatterns: ['plugin/**'],
+      pluginFilterGroups: [],
       disabledCustomFilterPatterns: ['custom/**'],
       disabledPluginFilterPatterns: [],
     });

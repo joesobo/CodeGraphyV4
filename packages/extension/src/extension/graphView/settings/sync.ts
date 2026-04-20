@@ -1,4 +1,5 @@
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
 import { buildGraphViewAllSettingsMessages } from './messages';
@@ -20,8 +21,9 @@ export function applyGraphViewAllSettingsSnapshot(
   pluginFilterPatterns: string[],
   state: GraphViewAllSettingsSyncState,
   handlers: GraphViewAllSettingsSyncHandlers,
+  pluginFilterGroups: IPluginFilterPatternGroup[] = [],
 ): void {
-  const messages = buildGraphViewAllSettingsMessages(snapshot, pluginFilterPatterns);
+  const messages = buildGraphViewAllSettingsMessages(snapshot, pluginFilterPatterns, pluginFilterGroups);
 
   for (const message of messages.preGroupMessages) {
     handlers.sendMessage(message);

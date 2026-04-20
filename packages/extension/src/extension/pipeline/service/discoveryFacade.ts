@@ -1,7 +1,12 @@
 import * as vscode from 'vscode';
 import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
-import { getWorkspacePipelinePluginFilterPatterns, initializeWorkspacePipeline } from '../plugins/bootstrap';
+import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
+import {
+  getWorkspacePipelinePluginFilterGroups,
+  getWorkspacePipelinePluginFilterPatterns,
+  initializeWorkspacePipeline,
+} from '../plugins/bootstrap';
 import type { WorkspacePipelineSourceOwner } from '../analysisSource';
 import { WorkspacePipelineInternalBase } from './base/internal';
 import {
@@ -27,6 +32,12 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): string[] {
     return getWorkspacePipelinePluginFilterPatterns(this._registry, disabledPlugins);
+  }
+
+  getPluginFilterGroups(
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): IPluginFilterPatternGroup[] {
+    return getWorkspacePipelinePluginFilterGroups(this._registry, disabledPlugins);
   }
 
   private _getEffectiveCustomFilterPatterns(filterPatterns: string[]): string[] {

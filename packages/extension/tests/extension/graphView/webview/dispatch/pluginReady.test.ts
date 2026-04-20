@@ -70,6 +70,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
       payload: {
         patterns: ['src/**'],
         pluginPatterns: ['plugin:test/**'],
+        pluginPatternGroups: [],
         disabledCustomPatterns: [],
         disabledPluginPatterns: [],
       },
@@ -113,6 +114,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
       payload: {
         patterns: ['**/README.md'],
         pluginPatterns: ['plugin:test/**'],
+        pluginPatternGroups: [],
         disabledCustomPatterns: [],
         disabledPluginPatterns: [],
       },

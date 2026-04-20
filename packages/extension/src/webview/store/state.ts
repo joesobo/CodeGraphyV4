@@ -10,6 +10,7 @@ import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
+import type { IPluginFilterPatternGroup } from '../../shared/protocol/extensionToWebview';
 import type {
   IGraphEdgeTypeDefinition,
   IGraphNodeTypeDefinition,
@@ -51,6 +52,7 @@ export interface GraphState {
   optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
+  pluginFilterGroups: IPluginFilterPatternGroup[];
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
   dagMode: DagMode;

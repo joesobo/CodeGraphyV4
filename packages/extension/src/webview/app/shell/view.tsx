@@ -30,6 +30,7 @@ export default function App(): React.ReactElement {
     legends,
     filterPatterns,
     pluginFilterPatterns,
+    pluginFilterGroups,
     disabledCustomFilterPatterns,
     disabledPluginFilterPatterns,
     showOrphans,
@@ -152,6 +153,7 @@ export default function App(): React.ReactElement {
           onPatternsChange: setFilterPatterns,
           open: filterPopoverOpen,
           pendingPatterns: pendingFilterPatterns,
+          pluginGroups: pluginFilterGroups,
           pluginPatterns: pluginFilterPatterns,
         }}
         regexError={regexError}

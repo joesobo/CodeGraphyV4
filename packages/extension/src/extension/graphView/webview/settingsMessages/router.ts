@@ -1,4 +1,5 @@
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import { applySettingsUpdateMessage } from './updates/apply';
 import { applySettingsDirectionMessage } from './direction';
@@ -16,6 +17,8 @@ export interface GraphViewSettingsMessageHandlers {
   sendGraphControls(): void;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
+  getPluginFilterGroups(): IPluginFilterPatternGroup[];
+  analyzeAndSendData(): Promise<void>;
   sendMessage(message: ExtensionToWebviewMessage): void;
   resetAllSettings(): Promise<void>;
 }
