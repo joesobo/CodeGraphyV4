@@ -156,12 +156,29 @@ describe('webview/legends/section', () => {
     expect(screen.queryByText('src/**')).not.toBeInTheDocument();
   });
 
-  it('groups plugin default rules by plugin inside the section', () => {
+  it('keeps CodeGraphy and Tree-sitter rules under Built in and groups remaining defaults by plugin', () => {
     render(
       <LegendSection
         {...baseProps}
         displayRules={[
           { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
+          {
+            id: 'default:*.json',
+            pattern: '*.json',
+            color: '#f9c74f',
+            target: 'node',
+            isPluginDefault: true,
+            pluginName: 'CodeGraphy',
+          },
+          {
+            id: 'plugin:codegraphy.treesitter:*.rs',
+            pattern: '*.rs',
+            color: '#dea584',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.treesitter',
+            pluginName: 'Tree-sitter',
+          },
           {
             id: 'plugin:codegraphy.typescript:*.ts',
             pattern: '*.ts',
@@ -198,11 +215,20 @@ describe('webview/legends/section', () => {
     expect(within(customSection as HTMLElement).getByText('src/**')).toBeInTheDocument();
     expect(within(customSection as HTMLElement).getByText('add:node')).toBeInTheDocument();
 
+    const builtInSection = screen.getByText('Built in').closest('[data-testid="legend-rule-subsection"]');
+    expect(builtInSection).not.toBeNull();
+    expect(within(builtInSection as HTMLElement).getByText('CodeGraphy')).toBeInTheDocument();
+    expect(within(builtInSection as HTMLElement).getByText('Tree-sitter')).toBeInTheDocument();
+    expect(within(builtInSection as HTMLElement).getByText('*.json')).toBeInTheDocument();
+    expect(within(builtInSection as HTMLElement).getByText('*.rs')).toBeInTheDocument();
+
     const typescriptSection = screen.getByText('TypeScript').closest('[data-testid="legend-rule-subsection"]');
     expect(typescriptSection).not.toBeNull();
     expect(within(typescriptSection as HTMLElement).getByText('*.ts')).toBeInTheDocument();
     expect(within(typescriptSection as HTMLElement).getByText('*.tsx')).toBeInTheDocument();
     expect(within(typescriptSection as HTMLElement).queryByText('*.py')).not.toBeInTheDocument();
+    expect(within(typescriptSection as HTMLElement).queryByText('*.json')).not.toBeInTheDocument();
+    expect(within(typescriptSection as HTMLElement).queryByText('*.rs')).not.toBeInTheDocument();
 
     const pythonSection = screen.getByText('Python').closest('[data-testid="legend-rule-subsection"]');
     expect(pythonSection).not.toBeNull();

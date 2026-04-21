@@ -80,6 +80,25 @@ describe('webview/components/legends/ruleControls', () => {
     expect(screen.queryByTitle('Choose legend shape')).toBeNull();
   });
 
+  it('renders an empty icon slot for plugin defaults without an icon', () => {
+    render(
+      <RuleVisualControls
+        rule={{
+          id: 'legend:default',
+          pattern: '*.json',
+          color: '#f9c74f',
+          target: 'node',
+          isPluginDefault: true,
+        }}
+        index={0}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByAltText('*.json icon')).toBeNull();
+    expect(screen.queryByTitle('Upload legend icon')).toBeNull();
+  });
+
   it('commits custom rule colors through the color input', () => {
     const onChange = vi.fn();
     render(

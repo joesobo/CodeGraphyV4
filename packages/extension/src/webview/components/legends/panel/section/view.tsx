@@ -21,6 +21,7 @@ import type {
 import { LegendRuleRow } from './ruleRow';
 import { postLegendOrderUpdate } from './order';
 import {
+  createBuiltInRuleGroups,
   createCustomRuleGroup,
   createPluginRuleGroups,
   type LegendRuleGroup,
@@ -126,24 +127,44 @@ function setRulesDisabled(ruleIds: Set<string>, rules: IGroup[], disabled: boole
 
 function BuiltInRulesSubsection({
   builtInEntries,
+  builtInRuleGroups,
+  renderRuleRow,
+  onToggleDefaultVisibility,
   onBuiltInColorChange,
 }: {
   builtInEntries: LegendBuiltInEntry[];
+  builtInRuleGroups: LegendRuleGroup[];
+  renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
+  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
   onBuiltInColorChange: (id: string, color: string) => void;
 }): React.ReactElement | null {
-  if (!builtInEntries.length) {
+  if (!builtInEntries.length && !builtInRuleGroups.length) {
     return null;
   }
 
   return (
     <LegendSubsection group={{ id: 'built-in', label: 'Built in' }}>
-      {builtInEntries.map((entry) => (
-        <LegendBuiltInRow
-          key={entry.id}
-          entry={entry}
-          onChange={onBuiltInColorChange}
-        />
-      ))}
+      <>
+        {builtInEntries.map((entry) => (
+          <LegendBuiltInRow
+            key={entry.id}
+            entry={entry}
+            onChange={onBuiltInColorChange}
+          />
+        ))}
+        {builtInRuleGroups.length ? (
+          <div className="space-y-2 p-2">
+            {builtInRuleGroups.map((group) => (
+              <PluginRuleGroup
+                key={group.id}
+                group={group}
+                renderRuleRow={renderRuleRow}
+                onToggleDefaultVisibility={onToggleDefaultVisibility}
+              />
+            ))}
+          </div>
+        ) : null}
+      </>
     </LegendSubsection>
   );
 }
@@ -245,6 +266,7 @@ function PluginRulesSubsection({
 
 function SectionRules({
   builtInEntries,
+  builtInRuleGroups,
   customRuleGroup,
   pluginRuleGroups,
   target,
@@ -255,6 +277,7 @@ function SectionRules({
   onToggleDefaultVisibility,
 }: {
   builtInEntries: LegendBuiltInEntry[];
+  builtInRuleGroups: LegendRuleGroup[];
   customRuleGroup: LegendRuleGroup;
   pluginRuleGroups: LegendRuleGroup[];
   target: LegendTargetSection;
@@ -268,6 +291,9 @@ function SectionRules({
     <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
       <BuiltInRulesSubsection
         builtInEntries={builtInEntries}
+        builtInRuleGroups={builtInRuleGroups}
+        renderRuleRow={renderRuleRow}
+        onToggleDefaultVisibility={onToggleDefaultVisibility}
         onBuiltInColorChange={onBuiltInColorChange}
       />
       <CustomRulesSubsection
@@ -310,6 +336,7 @@ export function LegendSection({
   const [open, setOpen] = useState(true);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const builtInRuleGroups = createBuiltInRuleGroups(displayRules);
   const customRuleGroup = createCustomRuleGroup(displayRules);
   const pluginRuleGroups = createPluginRuleGroups(displayRules);
 
@@ -380,6 +407,7 @@ export function LegendSection({
         <CollapsibleContent>
           <SectionRules
             builtInEntries={builtInEntries}
+            builtInRuleGroups={builtInRuleGroups}
             customRuleGroup={customRuleGroup}
             pluginRuleGroups={pluginRuleGroups}
             target={target}
