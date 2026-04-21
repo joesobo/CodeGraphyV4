@@ -78,13 +78,13 @@ describe('webview/components/legends/colorInput', () => {
 
     const immediateInput = screen.getByLabelText('Legend color');
     expect((immediateInput as HTMLInputElement).value).toBe('#778899');
-    expect(immediateInput.parentElement).toHaveStyle({ backgroundColor: '#778899' });
+    expect(screen.getByTitle('Edit Legend color')).toHaveStyle({ backgroundColor: '#778899' });
 
     fireEvent.change(immediateInput, { target: { value: '#99aabb' } });
     vi.runAllTimers();
 
     expect(onCommit).toHaveBeenCalledTimes(2);
-    expect(onCommit).toHaveBeenLastCalledWith('#99aabb');
+    expect(onCommit).toHaveBeenLastCalledWith('#99AABB');
   });
 
   it('clears pending timeouts on unmount', () => {
@@ -115,5 +115,22 @@ describe('webview/components/legends/colorInput', () => {
 
     expect(clearTimeoutSpy).toHaveBeenCalled();
     expect(onCommit).not.toHaveBeenCalled();
+  });
+
+  it('commits rgba colors when the opacity slider changes', () => {
+    const onCommit = vi.fn();
+    render(
+      <LegendColorInput
+        ariaLabel="Legend color"
+        color="#112233"
+        onCommit={onCommit}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Edit Legend color'));
+    fireEvent.keyDown(screen.getByLabelText('Legend color opacity'), { key: 'Home' });
+    vi.runAllTimers();
+
+    expect(onCommit).toHaveBeenLastCalledWith('rgba(17, 34, 51, 0)');
   });
 });

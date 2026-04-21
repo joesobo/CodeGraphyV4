@@ -66,6 +66,11 @@ vi.mock('../../../../src/webview/components/toolbar/view', () => ({
 
 vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: (message: { type: string; payload?: unknown }) => harness.sentMessages.push(message),
+  getVsCodeApi: () => ({
+    postMessage: (message: { type: string; payload?: unknown }) => harness.sentMessages.push(message),
+    getState: () => undefined,
+    setState: vi.fn(),
+  }),
 }));
 
 vi.mock('../../../../src/webview/pluginHost/manager', () => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { LegendIconImport } from '../../../../../shared/protocol/webviewToExtension';
@@ -37,24 +37,46 @@ interface LegendRuleRenderState {
   onDragEnd: () => void;
 }
 
+interface LegendCollapseProps {
+  collapsedEntries?: Record<string, boolean>;
+  onCollapsedChange?: (entryId: string, collapsed: boolean) => void;
+  storageKey: string;
+}
+
 function LegendSubsection({
   children,
+  collapsedEntries,
   group,
+  onCollapsedChange,
+  onToggle,
+  storageKey,
   toggleChecked,
   toggleTitle,
-  onToggle,
-}: {
+}: LegendCollapseProps & {
   children: React.ReactNode;
   group: Pick<LegendRuleGroup, 'id' | 'label'>;
   toggleChecked?: boolean;
   toggleTitle?: string;
   onToggle?: () => void;
 }): React.ReactElement {
-  const [open, setOpen] = useState(true);
+  const resolvedCollapsedEntries = collapsedEntries ?? {};
+  const [uncontrolledCollapsed, setUncontrolledCollapsed] = React.useState(
+    resolvedCollapsedEntries[storageKey] ?? false,
+  );
+  const handleCollapsedChange: (entryId: string, collapsed: boolean) => void = onCollapsedChange
+    ? onCollapsedChange
+    : (_entryId: string, nextCollapsed: boolean) => setUncontrolledCollapsed(nextCollapsed);
+  const collapsed = onCollapsedChange
+    ? (resolvedCollapsedEntries[storageKey] ?? false)
+    : uncontrolledCollapsed;
+  const open = !collapsed;
   const collapseTitle = `${open ? 'Collapse' : 'Expand'} ${group.label} legend entries`;
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible
+      open={open}
+      onOpenChange={(nextOpen) => handleCollapsedChange(storageKey, !nextOpen)}
+    >
       <div
         data-testid="legend-rule-subsection"
         className="border-t border-border/60 bg-background/20 first:border-t-0"
@@ -127,10 +149,12 @@ function setRulesDisabled(ruleIds: Set<string>, rules: IGroup[], disabled: boole
 
 function BuiltInRulesSubsection({
   builtInEntries,
+  collapsedEntries,
   onBuiltInColorChange,
   onBuiltInColorToggle,
+  onCollapsedChange,
   target,
-}: {
+}: LegendCollapseProps & {
   builtInEntries: LegendBuiltInEntry[];
   onBuiltInColorChange: (id: string, color: string) => void;
   onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
@@ -141,7 +165,12 @@ function BuiltInRulesSubsection({
   }
 
   return (
-    <LegendSubsection group={{ id: 'defaults', label: 'Defaults' }}>
+    <LegendSubsection
+      collapsedEntries={collapsedEntries}
+      group={{ id: 'defaults', label: 'Defaults' }}
+      onCollapsedChange={onCollapsedChange}
+      storageKey={`${target}:defaults`}
+    >
       {builtInEntries.map((entry) => (
         <LegendBuiltInRow
           key={entry.id}
@@ -156,12 +185,14 @@ function BuiltInRulesSubsection({
 }
 
 function CustomRulesSubsection({
+  collapsedEntries,
   customRuleGroup,
+  onCollapsedChange,
+  onRulesChange,
+  renderRuleRow,
   target,
   userRules,
-  renderRuleRow,
-  onRulesChange,
-}: {
+}: LegendCollapseProps & {
   customRuleGroup: LegendRuleGroup;
   target: LegendTargetSection;
   userRules: IGroup[];
@@ -173,7 +204,10 @@ function CustomRulesSubsection({
 
   return (
     <LegendSubsection
+      collapsedEntries={collapsedEntries}
       group={customRuleGroup}
+      onCollapsedChange={onCollapsedChange}
+      storageKey={`${target}:custom`}
       toggleChecked={allCustomRulesEnabled}
       toggleTitle="Toggle Custom legend entries"
       onToggle={() => {
@@ -196,24 +230,31 @@ function CustomRulesSubsection({
 }
 
 function PluginRuleGroup({
+  collapsedEntries,
   group,
+  onCollapsedChange,
+  onToggleDefaultVisibilityBatch,
   renderRuleRow,
-  onToggleDefaultVisibility,
-}: {
+}: LegendCollapseProps & {
   group: LegendRuleGroup;
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
-  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
+  onToggleDefaultVisibilityBatch: (legendIds: string[], visible: boolean) => void;
 }): React.ReactElement {
   const allPluginRulesEnabled = areAllRulesEnabled(group.rules);
 
   return (
     <LegendSubsection
+      collapsedEntries={collapsedEntries}
       group={group}
+      onCollapsedChange={onCollapsedChange}
+      storageKey={`plugin:${group.id}`}
       toggleChecked={allPluginRulesEnabled}
       toggleTitle={`Toggle ${group.label} legend entries`}
       onToggle={() => {
-        const nextVisible = !allPluginRulesEnabled;
-        group.rules.forEach(({ rule }) => onToggleDefaultVisibility(rule.id, nextVisible));
+        onToggleDefaultVisibilityBatch(
+          group.rules.map(({ rule }) => rule.id),
+          !allPluginRulesEnabled,
+        );
       }}
     >
       {group.rules.map(renderRuleRow)}
@@ -222,27 +263,37 @@ function PluginRuleGroup({
 }
 
 function PluginRulesSubsection({
+  collapsedEntries,
+  onCollapsedChange,
+  onToggleDefaultVisibilityBatch,
   pluginRuleGroups,
   renderRuleRow,
-  onToggleDefaultVisibility,
-}: {
+}: LegendCollapseProps & {
   pluginRuleGroups: LegendRuleGroup[];
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
-  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
+  onToggleDefaultVisibilityBatch: (legendIds: string[], visible: boolean) => void;
 }): React.ReactElement | null {
   if (!pluginRuleGroups.length) {
     return null;
   }
 
   return (
-    <LegendSubsection group={{ id: 'plugin-defaults', label: 'Plugin defaults' }}>
+    <LegendSubsection
+      collapsedEntries={collapsedEntries}
+      group={{ id: 'plugin-defaults', label: 'Plugin defaults' }}
+      onCollapsedChange={onCollapsedChange}
+      storageKey="plugin-defaults"
+    >
       <div className="space-y-2 p-2">
         {pluginRuleGroups.map((group) => (
           <PluginRuleGroup
             key={group.id}
+            collapsedEntries={collapsedEntries}
             group={group}
+            onCollapsedChange={onCollapsedChange}
+            onToggleDefaultVisibilityBatch={onToggleDefaultVisibilityBatch}
             renderRuleRow={renderRuleRow}
-            onToggleDefaultVisibility={onToggleDefaultVisibility}
+            storageKey={`plugin:${group.id}`}
           />
         ))}
       </div>
@@ -252,12 +303,14 @@ function PluginRulesSubsection({
 
 function MaterialThemeRulesSubsection({
   builtInRuleGroups,
+  collapsedEntries,
+  onCollapsedChange,
+  onToggleDefaultVisibilityBatch,
   renderRuleRow,
-  onToggleDefaultVisibility,
-}: {
+}: LegendCollapseProps & {
   builtInRuleGroups: LegendRuleGroup[];
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
-  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
+  onToggleDefaultVisibilityBatch: (legendIds: string[], visible: boolean) => void;
 }): React.ReactElement | null {
   if (!builtInRuleGroups.length) {
     return null;
@@ -268,12 +321,17 @@ function MaterialThemeRulesSubsection({
 
   return (
     <LegendSubsection
+      collapsedEntries={collapsedEntries}
       group={{ id: 'material-icon-theme', label: 'Material Icon Theme' }}
+      onCollapsedChange={onCollapsedChange}
+      storageKey="material-icon-theme"
       toggleChecked={allMaterialRulesEnabled}
       toggleTitle="Toggle Material Icon Theme legend entries"
       onToggle={() => {
-        const nextVisible = !allMaterialRulesEnabled;
-        materialRules.forEach(({ rule }) => onToggleDefaultVisibility(rule.id, nextVisible));
+        onToggleDefaultVisibilityBatch(
+          materialRules.map(({ rule }) => rule.id),
+          !allMaterialRulesEnabled,
+        );
       }}
     >
       {materialRules.map(renderRuleRow)}
@@ -284,16 +342,18 @@ function MaterialThemeRulesSubsection({
 function SectionRules({
   builtInEntries,
   builtInRuleGroups,
+  collapsedEntries,
   customRuleGroup,
-  pluginRuleGroups,
-  target,
-  userRules,
-  renderRuleRow,
   onBuiltInColorChange,
   onBuiltInColorToggle,
+  onCollapsedChange,
   onRulesChange,
-  onToggleDefaultVisibility,
-}: {
+  onToggleDefaultVisibilityBatch,
+  pluginRuleGroups,
+  renderRuleRow,
+  target,
+  userRules,
+}: LegendCollapseProps & {
   builtInEntries: LegendBuiltInEntry[];
   builtInRuleGroups: LegendRuleGroup[];
   customRuleGroup: LegendRuleGroup;
@@ -304,31 +364,43 @@ function SectionRules({
   onBuiltInColorChange: (id: string, color: string) => void;
   onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
   onRulesChange: LegendRulesChange;
-  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
+  onToggleDefaultVisibilityBatch: (legendIds: string[], visible: boolean) => void;
 }): React.ReactElement {
   return (
     <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
       <CustomRulesSubsection
+        collapsedEntries={collapsedEntries}
         customRuleGroup={customRuleGroup}
+        onCollapsedChange={onCollapsedChange}
+        onRulesChange={onRulesChange}
+        renderRuleRow={renderRuleRow}
+        storageKey={`${target}:custom`}
         target={target}
         userRules={userRules}
-        renderRuleRow={renderRuleRow}
-        onRulesChange={onRulesChange}
       />
       <PluginRulesSubsection
+        collapsedEntries={collapsedEntries}
+        onCollapsedChange={onCollapsedChange}
+        onToggleDefaultVisibilityBatch={onToggleDefaultVisibilityBatch}
         pluginRuleGroups={pluginRuleGroups}
         renderRuleRow={renderRuleRow}
-        onToggleDefaultVisibility={onToggleDefaultVisibility}
+        storageKey="plugin-defaults"
       />
       <MaterialThemeRulesSubsection
         builtInRuleGroups={builtInRuleGroups}
+        collapsedEntries={collapsedEntries}
+        onCollapsedChange={onCollapsedChange}
+        onToggleDefaultVisibilityBatch={onToggleDefaultVisibilityBatch}
         renderRuleRow={renderRuleRow}
-        onToggleDefaultVisibility={onToggleDefaultVisibility}
+        storageKey="material-icon-theme"
       />
       <BuiltInRulesSubsection
         builtInEntries={builtInEntries}
+        collapsedEntries={collapsedEntries}
         onBuiltInColorChange={onBuiltInColorChange}
         onBuiltInColorToggle={onBuiltInColorToggle}
+        onCollapsedChange={onCollapsedChange}
+        storageKey={`${target}:defaults`}
         target={target}
       />
     </div>
@@ -338,29 +410,46 @@ function SectionRules({
 export function LegendSection({
   title,
   builtInEntries,
+  collapsedEntries,
   displayRules,
-  userRules,
   legends,
-  target,
   onBuiltInColorChange,
   onBuiltInColorToggle,
+  onCollapsedChange,
   onRulesChange,
   onToggleDefaultVisibility,
+  onToggleDefaultVisibilityBatch = () => {},
+  target,
+  userRules,
 }: {
   title: string;
   builtInEntries: LegendBuiltInEntry[];
+  collapsedEntries: Record<string, boolean>;
   displayRules: LegendDisplayRule[];
   userRules: IGroup[];
   legends: IGroup[];
   target: LegendTargetSection;
   onBuiltInColorChange: (id: string, color: string) => void;
   onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
+  onCollapsedChange?: (entryId: string, collapsed: boolean) => void;
   onRulesChange: LegendRulesChange;
   onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
+  onToggleDefaultVisibilityBatch?: (legendIds: string[], visible: boolean) => void;
 }): React.ReactElement {
-  const [open, setOpen] = useState(true);
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const sectionStorageKey = `section:${title.toLowerCase()}`;
+  const resolvedCollapsedEntries = collapsedEntries ?? {};
+  const [uncontrolledCollapsed, setUncontrolledCollapsed] = React.useState(
+    resolvedCollapsedEntries[sectionStorageKey] ?? false,
+  );
+  const handleCollapsedChange: (entryId: string, collapsed: boolean) => void = onCollapsedChange
+    ? onCollapsedChange
+    : (_entryId: string, nextCollapsed: boolean) => setUncontrolledCollapsed(nextCollapsed);
+  const collapsed = onCollapsedChange
+    ? (resolvedCollapsedEntries[sectionStorageKey] ?? false)
+    : uncontrolledCollapsed;
+  const open = !collapsed;
+  const [dragIndex, setDragIndex] = React.useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
   const builtInRuleGroups = createBuiltInRuleGroups(displayRules);
   const customRuleGroup = createCustomRuleGroup(displayRules);
   const pluginRuleGroups = createPluginRuleGroups(displayRules);
@@ -415,7 +504,10 @@ export function LegendSection({
   );
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible
+      open={open}
+      onOpenChange={(nextOpen) => handleCollapsedChange(sectionStorageKey, !nextOpen)}
+    >
       <section className="space-y-2">
         <CollapsibleTrigger asChild>
           <button
@@ -433,15 +525,18 @@ export function LegendSection({
           <SectionRules
             builtInEntries={builtInEntries}
             builtInRuleGroups={builtInRuleGroups}
+            collapsedEntries={resolvedCollapsedEntries}
             customRuleGroup={customRuleGroup}
-            pluginRuleGroups={pluginRuleGroups}
-            target={target}
-            userRules={userRules}
-            renderRuleRow={renderRuleRow}
             onBuiltInColorChange={onBuiltInColorChange}
             onBuiltInColorToggle={onBuiltInColorToggle}
+            onCollapsedChange={handleCollapsedChange}
             onRulesChange={onRulesChange}
-            onToggleDefaultVisibility={onToggleDefaultVisibility}
+            onToggleDefaultVisibilityBatch={onToggleDefaultVisibilityBatch}
+            pluginRuleGroups={pluginRuleGroups}
+            renderRuleRow={renderRuleRow}
+            storageKey={sectionStorageKey}
+            target={target}
+            userRules={userRules}
           />
         </CollapsibleContent>
       </section>
