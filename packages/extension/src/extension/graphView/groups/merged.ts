@@ -43,7 +43,7 @@ export function buildGraphViewMergedGroups(
 ): IGroup[] {
   return sortGroupsByLegendOrder([
     ...userGroups,
-    ...applyDefaultLegendVisibilityOverrides(builtInDefaults, defaultLegendVisibility),
     ...applyDefaultLegendVisibilityOverrides(pluginDefaults, defaultLegendVisibility),
+    ...applyDefaultLegendVisibilityOverrides(builtInDefaults, defaultLegendVisibility),
   ], legendOrder);
 }

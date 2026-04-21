@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildGraphViewMergedGroups } from '../../../../src/extension/graphView/groups/merged';
 
 describe('graphView/mergedGroups', () => {
-  it('keeps user groups ahead of built-in and plugin defaults', () => {
+  it('keeps user groups ahead of plugin defaults and built-in defaults', () => {
     const groups = buildGraphViewMergedGroups(
       [{ id: 'user:src', pattern: 'src/**', color: '#ff0000' }],
       [{ id: 'default:*.json', pattern: '*.json', color: '#F9C74F' }],
@@ -22,9 +22,9 @@ describe('graphView/mergedGroups', () => {
 
     expect(groups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#ff0000' },
-      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
       { id: 'plugin:codegraphy.typescript:*.ts', pattern: '*.ts', color: '#3178C6' },
       { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
+      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
     ]);
   });
 
@@ -56,8 +56,8 @@ describe('graphView/mergedGroups', () => {
     );
 
     expect(groups).toEqual([
-      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
       { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
+      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
     ]);
   });
 
@@ -73,8 +73,8 @@ describe('graphView/mergedGroups', () => {
     );
 
     expect(groups).toEqual([
-      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F', disabled: true },
       { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB', disabled: false },
+      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F', disabled: true },
     ]);
   });
 
@@ -93,8 +93,8 @@ describe('graphView/mergedGroups', () => {
 
     expect(groups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#ff0000' },
-      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
       { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
+      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
     ]);
     expect(userGroups).toEqual([{ id: 'user:src', pattern: 'src/**', color: '#ff0000' }]);
   });
@@ -114,8 +114,8 @@ describe('graphView/mergedGroups', () => {
     expect(groups.map((group) => group.id)).toEqual([
       'ordered',
       'user:keep-first',
-      'default:keep-stable',
       'plugin:keep-stable',
+      'default:keep-stable',
     ]);
   });
 

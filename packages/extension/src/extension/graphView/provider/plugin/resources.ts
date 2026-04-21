@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { getBuiltInGraphViewDefaultGroups } from '../../groups/defaults/builtIn';
@@ -17,6 +18,7 @@ export interface GraphViewProviderPluginResourceMethodsSource {
   _pluginExtensionUris: Map<string, vscode.Uri>;
   _analyzer: Parameters<typeof getGraphViewPluginDefaultGroups>[0];
   _disabledPlugins: Set<string>;
+  _graphData: IGraphData;
   _userGroups: IGroup[];
   _groups: IGroup[];
   _view?: vscode.WebviewView;
@@ -87,7 +89,8 @@ export function createGraphViewProviderPluginResourceMethods(
       source._extensionUri,
     );
 
-  const _getBuiltInDefaultGroups = (): IGroup[] => resolvedDependencies.getBuiltInDefaultGroups();
+  const _getBuiltInDefaultGroups = (): IGroup[] =>
+    resolvedDependencies.getBuiltInDefaultGroups(source._graphData, source._extensionUri);
 
   const _computeMergedGroups = (): void => {
     source._groups = resolvedDependencies.buildMergedGroups(
