@@ -9,6 +9,12 @@ This folder documents the current `@codegraphy/extension` package.
 
 These docs describe the current runtime seams after the graph-view/provider refactor. Historical plans stay in `/docs/archive/`.
 
+Current extension behavior to keep in mind while reading the package docs:
+
+- core owns the default file and folder icon/color theming through `material-icon-theme`
+- legend precedence is `core defaults -> plugin defaults -> custom rules`
+- the language plugins in `packages/plugin-*` are now mostly for ecosystem filters and optional semantic enrichment rather than baseline file coloring
+
 The source tree is split by runtime boundary:
 
 - `src/extension/` - VS Code extension host

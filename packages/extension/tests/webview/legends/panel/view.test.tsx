@@ -20,7 +20,10 @@ describe('LegendsPanel', () => {
 
   it('shows node and edge color controls when open', () => {
     graphStore.setState({
-      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphNodeTypes: [
+        { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
+        { id: 'folder', label: 'Folders', defaultColor: '#222222', defaultVisible: true },
+      ],
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#444444', defaultVisible: true }],
       nodeColors: { file: '#333333' },
       legends: [],
@@ -30,6 +33,7 @@ describe('LegendsPanel', () => {
 
     expect(screen.getByLabelText('Files color')).toHaveValue('#333333');
     expect(screen.getByLabelText('Toggle Files legend color')).toHaveAttribute('data-state', 'checked');
+    expect(screen.queryByLabelText('Folders color')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Imports color')).toHaveValue('#444444');
     expect(screen.queryByLabelText('Toggle Imports legend color')).not.toBeInTheDocument();
     expect(screen.queryByText('Rules')).not.toBeInTheDocument();

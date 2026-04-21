@@ -127,50 +127,30 @@ function setRulesDisabled(ruleIds: Set<string>, rules: IGroup[], disabled: boole
 
 function BuiltInRulesSubsection({
   builtInEntries,
-  builtInRuleGroups,
-  renderRuleRow,
-  onToggleDefaultVisibility,
   onBuiltInColorChange,
   onBuiltInColorToggle,
   target,
 }: {
   builtInEntries: LegendBuiltInEntry[];
-  builtInRuleGroups: LegendRuleGroup[];
-  renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
-  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
   onBuiltInColorChange: (id: string, color: string) => void;
   onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
   target: LegendTargetSection;
 }): React.ReactElement | null {
-  if (!builtInEntries.length && !builtInRuleGroups.length) {
+  if (!builtInEntries.length) {
     return null;
   }
 
   return (
-    <LegendSubsection group={{ id: 'built-in', label: 'Built in' }}>
-      <>
-        {builtInEntries.map((entry) => (
-          <LegendBuiltInRow
-            key={entry.id}
-            entry={entry}
-            onChange={onBuiltInColorChange}
-            onToggleColor={onBuiltInColorToggle}
-            showColorToggle={target === 'node'}
-          />
-        ))}
-        {builtInRuleGroups.length ? (
-          <div className="space-y-2 p-2">
-            {builtInRuleGroups.map((group) => (
-              <PluginRuleGroup
-                key={group.id}
-                group={group}
-                renderRuleRow={renderRuleRow}
-                onToggleDefaultVisibility={onToggleDefaultVisibility}
-              />
-            ))}
-          </div>
-        ) : null}
-      </>
+    <LegendSubsection group={{ id: 'defaults', label: 'Defaults' }}>
+      {builtInEntries.map((entry) => (
+        <LegendBuiltInRow
+          key={entry.id}
+          entry={entry}
+          onChange={onBuiltInColorChange}
+          onToggleColor={onBuiltInColorToggle}
+          showColorToggle={target === 'node'}
+        />
+      ))}
     </LegendSubsection>
   );
 }
@@ -270,6 +250,35 @@ function PluginRulesSubsection({
   );
 }
 
+function MaterialThemeRulesSubsection({
+  builtInRuleGroups,
+  renderRuleRow,
+  onToggleDefaultVisibility,
+}: {
+  builtInRuleGroups: LegendRuleGroup[];
+  renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
+  onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
+}): React.ReactElement | null {
+  if (!builtInRuleGroups.length) {
+    return null;
+  }
+
+  return (
+    <LegendSubsection group={{ id: 'material-icon-theme', label: 'Material Icon Theme' }}>
+      <div className="space-y-2 p-2">
+        {builtInRuleGroups.map((group) => (
+          <PluginRuleGroup
+            key={group.id}
+            group={group}
+            renderRuleRow={renderRuleRow}
+            onToggleDefaultVisibility={onToggleDefaultVisibility}
+          />
+        ))}
+      </div>
+    </LegendSubsection>
+  );
+}
+
 function SectionRules({
   builtInEntries,
   builtInRuleGroups,
@@ -297,15 +306,6 @@ function SectionRules({
 }): React.ReactElement {
   return (
     <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
-      <BuiltInRulesSubsection
-        builtInEntries={builtInEntries}
-        builtInRuleGroups={builtInRuleGroups}
-        renderRuleRow={renderRuleRow}
-        onToggleDefaultVisibility={onToggleDefaultVisibility}
-        onBuiltInColorChange={onBuiltInColorChange}
-        onBuiltInColorToggle={onBuiltInColorToggle}
-        target={target}
-      />
       <CustomRulesSubsection
         customRuleGroup={customRuleGroup}
         target={target}
@@ -317,6 +317,17 @@ function SectionRules({
         pluginRuleGroups={pluginRuleGroups}
         renderRuleRow={renderRuleRow}
         onToggleDefaultVisibility={onToggleDefaultVisibility}
+      />
+      <MaterialThemeRulesSubsection
+        builtInRuleGroups={builtInRuleGroups}
+        renderRuleRow={renderRuleRow}
+        onToggleDefaultVisibility={onToggleDefaultVisibility}
+      />
+      <BuiltInRulesSubsection
+        builtInEntries={builtInEntries}
+        onBuiltInColorChange={onBuiltInColorChange}
+        onBuiltInColorToggle={onBuiltInColorToggle}
+        target={target}
       />
     </div>
   );

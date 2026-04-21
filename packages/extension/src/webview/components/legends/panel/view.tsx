@@ -50,16 +50,18 @@ export default function LegendsPanel({
     optimisticLegendUpdates,
   });
   const displayNodeEntries = useMemo(
-    () => nodeEntries.map((entry) => {
-      const colorEnabled = builtInNodeColorEnabled[entry.id] ?? entry.colorEnabled ?? true;
-      const storedColor = builtInNodeColorsRef.current[entry.id]
-        ?? (entry.color !== entry.defaultColor ? entry.color : entry.defaultColor);
-      return {
-        ...entry,
-        color: colorEnabled ? storedColor : entry.defaultColor,
-        colorEnabled,
-      };
-    }),
+    () => nodeEntries
+      .filter((entry) => entry.id !== 'folder')
+      .map((entry) => {
+        const colorEnabled = builtInNodeColorEnabled[entry.id] ?? entry.colorEnabled ?? true;
+        const storedColor = builtInNodeColorsRef.current[entry.id]
+          ?? (entry.color !== entry.defaultColor ? entry.color : entry.defaultColor);
+        return {
+          ...entry,
+          color: colorEnabled ? storedColor : entry.defaultColor,
+          colorEnabled,
+        };
+      }),
     [builtInNodeColorEnabled, nodeEntries],
   );
 

@@ -85,6 +85,8 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 **Broad Tree-sitter baseline** The core now ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C#. That means many repos produce useful semantic edges before you install any language plugin at all.
 
+**Explorer-style theming in core** The core extension now vendors `material-icon-theme` and uses it as the default file and folder theming layer. File nodes take the Material icon color as their base node color and render the icon in white. Folder nodes keep the configured folder color and render the original Material folder icon as-is.
+
 **One graph, configurable surfaces** Use the `Nodes`, `Edges`, `Legends`, and `Plugins` popups to decide what kinds of nodes and edges are visible. Turn on depth mode from the toolbar when you want the old focused depth behavior.
 
 **Git timeline playback** Index your repository history, scrub through commits, and watch the dependency graph evolve over time.
@@ -93,7 +95,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 **Repo-local graph settings and cache** CodeGraphy stores its index and repo-specific settings under `.codegraphy/`, so graph behavior, colors, toggles, and cached analysis stay with the repo instead of polluting `.vscode/settings.json`.
 
-**Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign regex-based legend rules, and filter out noise.
+**Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign glob-based legend rules, and filter out noise.
 
 **Exports from cached graph data** Export the current graph as JSON/Markdown/image output, and export lightweight symbol JSON from the warmed index without rescanning the repo.
 
@@ -112,6 +114,18 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 3. Click the **CodeGraphy** activity bar icon in VS Code.
 4. Open the graph.
 5. Click **Index Repo** when you want semantic edges and timeline data.
+
+## Legend Precedence
+
+Node legend styling is cumulative and resolves in this order:
+
+1. Core defaults
+   - Material Icon Theme file and folder matches
+   - built-in node colors such as Files and Packages
+2. Plugin defaults
+3. Custom legend rules
+
+Higher layers override lower ones only for the fields they set. A plugin can override a core node color without replacing the core icon, and a custom rule can add an icon on top of an existing color choice.
 
 Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLUGINS.md), the [plugin lifecycle docs](./docs/plugin-api/LIFECYCLE.md), and [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api).
 

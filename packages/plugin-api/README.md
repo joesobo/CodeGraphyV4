@@ -29,8 +29,18 @@ Main seams in the current API:
 - registrations: `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`, and the compatibility `registerView` hook
 - host-side export saving: `saveExport`
 - graph/webview product surfaces: plugin toolbar buttons, plugin slots, tooltip actions, and optional future-facing view transforms
+- default styling via `fileColors`, which already lets a plugin act like a file-theme layer for extension matches, exact file names, and glob patterns
 
 Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged on top in plugin order, with higher-priority plugins winning conflicts.
+
+Current legend/style precedence in the host is:
+
+1. core defaults
+2. plugin defaults
+3. custom user rules
+
+That means a plugin can already behave like a theme pack for file nodes by shipping `fileColors`.
+Current limitation: the public API does not yet expose a first-class folder-theme contract like the core Material layer, so full file-explorer parity would need an API extension.
 
 Exact merge behavior:
 

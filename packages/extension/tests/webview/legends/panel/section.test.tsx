@@ -161,6 +161,7 @@ describe('webview/legends/section', () => {
     expect(screen.getByText('toggle-color:Files')).toBeInTheDocument();
     expect(screen.getByText('Custom')).toBeInTheDocument();
     expect(screen.getByText('Plugin defaults')).toBeInTheDocument();
+    expect(screen.getByText('Defaults')).toBeInTheDocument();
     expect(screen.getByText('src/**')).toBeInTheDocument();
 
     fireEvent.click(screen.getByTitle('Toggle Nodes legend section'));
@@ -169,10 +170,14 @@ describe('webview/legends/section', () => {
     expect(screen.queryByText('src/**')).not.toBeInTheDocument();
   });
 
-  it('keeps Material Icon Theme rules under Built in and groups remaining defaults by plugin', () => {
+  it('renders node subsections in custom, plugin, material, defaults order', () => {
     render(
       <LegendSection
         {...baseProps}
+        builtInEntries={[
+          { id: 'file', label: 'Files', color: '#111111', defaultColor: '#111111' },
+          { id: 'package', label: 'Packages', color: '#222222', defaultColor: '#222222' },
+        ]}
         displayRules={[
           { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
           {
@@ -214,15 +219,26 @@ describe('webview/legends/section', () => {
       />,
     );
 
+    const customLabel = screen.getByText('Custom');
+    const pluginDefaultsLabel = screen.getByText('Plugin defaults');
+    const materialLabel = screen.getAllByText('Material Icon Theme')[0];
+    const defaultsLabel = screen.getByText('Defaults');
+
+    expect(customLabel.compareDocumentPosition(pluginDefaultsLabel) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+    expect(pluginDefaultsLabel.compareDocumentPosition(materialLabel) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+    expect(materialLabel.compareDocumentPosition(defaultsLabel) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+
     const customSection = screen.getByText('Custom').closest('[data-testid="legend-rule-subsection"]');
     expect(customSection).not.toBeNull();
     expect(within(customSection as HTMLElement).getByText('src/**')).toBeInTheDocument();
     expect(within(customSection as HTMLElement).getByText('add:node')).toBeInTheDocument();
 
-    const builtInSection = screen.getByText('Built in').closest('[data-testid="legend-rule-subsection"]');
-    expect(builtInSection).not.toBeNull();
-    expect(within(builtInSection as HTMLElement).getByText('Material Icon Theme')).toBeInTheDocument();
-    expect(within(builtInSection as HTMLElement).getByText('*.json')).toBeInTheDocument();
+    const materialSection = materialLabel.closest('[data-testid="legend-rule-subsection"]');
+    expect(materialSection).not.toBeNull();
+    expect(within(materialSection as HTMLElement).getByText('*.json')).toBeInTheDocument();
 
     const typescriptSection = screen.getByText('TypeScript').closest('[data-testid="legend-rule-subsection"]');
     expect(typescriptSection).not.toBeNull();
@@ -234,6 +250,11 @@ describe('webview/legends/section', () => {
     const pythonSection = screen.getByText('Python').closest('[data-testid="legend-rule-subsection"]');
     expect(pythonSection).not.toBeNull();
     expect(within(pythonSection as HTMLElement).getByText('*.py')).toBeInTheDocument();
+
+    const defaultsSection = screen.getByText('Defaults').closest('[data-testid="legend-rule-subsection"]');
+    expect(defaultsSection).not.toBeNull();
+    expect(within(defaultsSection as HTMLElement).getByText('built-in:Files')).toBeInTheDocument();
+    expect(within(defaultsSection as HTMLElement).getByText('built-in:Packages')).toBeInTheDocument();
   });
 
   it('collapses plugin groups and toggles all rules in a plugin group', () => {
