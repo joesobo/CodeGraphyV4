@@ -197,7 +197,6 @@ describe('graphView/materialTheme/view', () => {
       ],
       edges: [],
     }, vscode.Uri.file(extensionRoot), {
-      folderNodeColor: '#445566',
       includeFolderMatches: true,
     });
 
@@ -205,14 +204,14 @@ describe('graphView/materialTheme/view', () => {
       expect.objectContaining({
         id: 'default:folderName:src',
         pattern: 'src',
-        color: '#445566',
+        color: 'rgba(0, 0, 0, 0)',
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
       expect.objectContaining({
         id: 'default:folderName:.github/ISSUE_TEMPLATE',
         pattern: '.github/ISSUE_TEMPLATE',
-        color: '#445566',
+        color: 'rgba(0, 0, 0, 0)',
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
@@ -221,7 +220,7 @@ describe('graphView/materialTheme/view', () => {
         pattern: '**',
         displayLabel: 'Folder',
         matchNodeType: 'folder',
-        color: '#445566',
+        color: 'rgba(0, 0, 0, 0)',
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),

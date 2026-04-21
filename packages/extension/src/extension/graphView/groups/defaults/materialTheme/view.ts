@@ -10,7 +10,6 @@ import { findMaterialMatch } from './match';
 export { createMaterialGroup, getSpecificityScore, findMaterialMatch };
 
 interface MaterialThemeDefaultOptions {
-  folderNodeColor?: string;
   includeFolderMatches?: boolean;
 }
 
@@ -33,7 +32,6 @@ export function getMaterialThemeDefaultGroups(
     for (const group of collectMaterialFolderGroups(
       graphData,
       theme,
-      options.folderNodeColor ?? '#7E57C2',
     )) {
       groupsById.set(group.id, group);
     }

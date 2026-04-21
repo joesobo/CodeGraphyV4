@@ -6,6 +6,7 @@ import type {
 } from './listener';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import {
+  getCodeGraphyConfiguration,
   updateCodeGraphyConfigurationSilently,
 } from '../../../repoSettings/current';
 
@@ -126,9 +127,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     },
     persistDefaultLegendVisibility: async (legendId, visible) => {
       const currentVisibility =
-        dependencies.workspace
-          .getConfiguration('codegraphy')
-          .get<Record<string, boolean>>('legendVisibility', {}) ?? {};
+        getCodeGraphyConfiguration().get<Record<string, boolean>>('legendVisibility', {}) ?? {};
       await updateCodeGraphyConfigurationSilently('legendVisibility', {
         ...currentVisibility,
         [legendId]: visible,

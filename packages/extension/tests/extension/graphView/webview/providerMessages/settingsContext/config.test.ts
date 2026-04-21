@@ -29,6 +29,7 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'edgeVisibility',
       'filterPatterns',
       'maxFiles',
+      'nodeColorEnabled',
       'nodeColors',
       'nodeVisibility',
       'particleSize',

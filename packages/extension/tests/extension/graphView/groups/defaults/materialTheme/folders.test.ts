@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import { collectMaterialFolderGroups } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/folders';
 import type { MaterialThemeCacheEntry } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/model';
+import { MATERIAL_TRANSPARENT_NODE_COLOR } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/groups';
 
 const tempDirs: string[] = [];
 
@@ -70,7 +71,7 @@ describe('graphView/materialTheme/folders', () => {
         { id: 'missing/icon.ts', label: 'icon.ts', color: '#000000' },
       ],
       edges: [],
-    } satisfies IGraphData, createTheme(), '#445566');
+    } satisfies IGraphData, createTheme());
 
     expect(groups.map((group) => group.id)).toEqual([
       'default:folderName:src',
@@ -79,7 +80,7 @@ describe('graphView/materialTheme/folders', () => {
       'default:folderName:packages',
       'default:folder',
     ]);
-    expect(groups.every((group) => group.color === '#445566')).toBe(true);
+    expect(groups.every((group) => group.color === MATERIAL_TRANSPARENT_NODE_COLOR)).toBe(true);
 
     const encoded = groups[0]?.imageUrl?.split(',')[1];
     const decoded = Buffer.from(encoded ?? '', 'base64').toString('utf8');

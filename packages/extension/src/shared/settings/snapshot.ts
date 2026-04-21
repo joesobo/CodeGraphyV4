@@ -13,8 +13,11 @@ export interface ISettingsSnapshot {
   directionMode: DirectionMode;
   directionColor: string;
   nodeColors: Record<string, string>;
+  nodeColorEnabled: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
+  legendVisibility: Record<string, boolean>;
+  legendOrder: string[];
   pluginOrder: string[];
   disabledPlugins: string[];
   particleSpeed: number;

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { mdiClose } from '@mdi/js';
 import { useGraphStore } from '../../../store/state';
 import { postMessage } from '../../../vscodeApi';
@@ -25,6 +25,7 @@ export default function LegendsPanel({
 }: LegendsPanelProps): React.ReactElement | null {
   const nodeTypes = useGraphStore((state) => state.graphNodeTypes);
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
+  const nodeColorEnabled = useGraphStore((state) => state.nodeColorEnabled);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
   const optimisticLegendUpdates = useGraphStore((state) => state.optimisticLegendUpdates);
@@ -45,10 +46,26 @@ export default function LegendsPanel({
   } = useLegendPanelState({
     edgeTypes,
     legends,
+    nodeColorEnabled,
     nodeColors,
     nodeTypes,
     optimisticLegendUpdates,
   });
+  useEffect(() => {
+    setBuiltInNodeColorEnabled((current) => {
+      const next = { ...current };
+      let changed = false;
+
+      for (const entry of nodeEntries) {
+        if (next[entry.id] === entry.colorEnabled) {
+          delete next[entry.id];
+          changed = true;
+        }
+      }
+
+      return changed ? next : current;
+    });
+  }, [nodeEntries]);
   const displayNodeEntries = useMemo(
     () => nodeEntries
       .filter((entry) => entry.id !== 'folder')
@@ -92,7 +109,7 @@ export default function LegendsPanel({
               setBuiltInNodeColorEnabled((current) => ({ ...current, [nodeType]: true }));
               postMessage({
                 type: 'UPDATE_NODE_COLOR',
-                payload: { nodeType, color },
+                payload: { nodeType, color, enabled: true },
               });
             }}
             onBuiltInColorToggle={(nodeType, enabled) => {
@@ -109,6 +126,7 @@ export default function LegendsPanel({
                 payload: {
                   nodeType,
                   color: enabled ? storedColor : entry.defaultColor,
+                  enabled,
                 },
               });
             }}
