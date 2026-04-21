@@ -190,4 +190,37 @@ describe('GraphViewProvider node open behavior', () => {
     expect(openTextDocumentMock).not.toHaveBeenCalled();
     expect(showTextDocumentMock).not.toHaveBeenCalled();
   });
+
+  it('does not open inferred folder nodes when only file nodes exist in provider graph data', async () => {
+    const providerAny = provider as unknown as {
+      _graphData: { nodes: Array<{ id: string; nodeType?: string }>; edges: unknown[] };
+    };
+    providerAny._graphData = {
+      nodes: [{ id: 'src/lib/app.ts', nodeType: 'file' }],
+      edges: [],
+    };
+
+    await messageHandler({ type: 'NODE_SELECTED', payload: { nodeId: 'src/lib' } });
+    await messageHandler({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: 'src/lib' } });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(openTextDocumentMock).not.toHaveBeenCalled();
+    expect(showTextDocumentMock).not.toHaveBeenCalled();
+  });
+
+  it('does not open inferred folder paths through OPEN_FILE messages', async () => {
+    const providerAny = provider as unknown as {
+      _graphData: { nodes: Array<{ id: string; nodeType?: string }>; edges: unknown[] };
+    };
+    providerAny._graphData = {
+      nodes: [{ id: 'src/lib/app.ts', nodeType: 'file' }],
+      edges: [],
+    };
+
+    await messageHandler({ type: 'OPEN_FILE', payload: { path: 'src/lib' } });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(openTextDocumentMock).not.toHaveBeenCalled();
+    expect(showTextDocumentMock).not.toHaveBeenCalled();
+  });
 });

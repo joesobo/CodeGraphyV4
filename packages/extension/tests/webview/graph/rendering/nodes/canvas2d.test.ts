@@ -203,7 +203,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.clip).not.toHaveBeenCalled();
     expect(ctx.drawImage).toHaveBeenCalledWith(image, 8, 32, 32, 32);
     expect(operations).toContainEqual(expect.objectContaining({
-      fillStyle: '#18181C',
+      fillStyle: 'rgba(0, 0, 0, 0)',
       kind: 'fill',
     }));
   });
