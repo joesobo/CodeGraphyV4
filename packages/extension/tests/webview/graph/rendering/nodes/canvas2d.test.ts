@@ -208,6 +208,28 @@ describe('graph/rendering/nodes/canvas2d', () => {
     }));
   });
 
+  it('renders folder nodes with a filled body when no folder icon is present', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies(),
+      createNode({
+        id: 'docs',
+        label: 'docs',
+        nodeType: 'folder',
+        color: '#A1A1AA',
+      }),
+      ctx,
+      1,
+    );
+
+    expect(ctx.drawImage).not.toHaveBeenCalled();
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#A1A1AA',
+      kind: 'fill',
+    }));
+  });
+
   it('renders labels when labels are enabled and the zoom level makes them visible', () => {
     const { ctx, operations } = createContext();
 

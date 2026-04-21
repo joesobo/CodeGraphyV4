@@ -3,7 +3,7 @@ import type { IGraphData } from '../../../../../shared/graph/contracts';
 import { collectFolderPaths } from '../../../../../shared/graphControls/nests/folders';
 import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
 import type { MaterialThemeCacheEntry } from './model';
-import { createMaterialGroup } from './groups';
+import { createGenericFolderGroup, createMaterialGroup } from './groups';
 import { resolveIconData } from './icons';
 import { findMaterialMatch } from './match';
 import type { MaterialIconManifest, MaterialMatch } from './model';
@@ -46,6 +46,7 @@ export function collectMaterialFolderGroups(
   );
   const folderPaths = collectFolderPaths(fileNodes).paths;
   const groupsById = new Map<string, IGroup>();
+  let defaultFolderGroup: IGroup | undefined;
 
   for (const folderPath of folderPaths) {
     const match = getFolderMatch(folderPath, theme);
@@ -58,8 +59,17 @@ export function collectMaterialFolderGroups(
       continue;
     }
 
+    if (match.iconName === theme.manifest.folder) {
+      defaultFolderGroup ??= createGenericFolderGroup(iconData, folderNodeColor);
+      continue;
+    }
+
     const group = createMaterialGroup(match, iconData, folderNodeColor);
     groupsById.set(group.id, group);
+  }
+
+  if (defaultFolderGroup) {
+    groupsById.set(defaultFolderGroup.id, defaultFolderGroup);
   }
 
   return [...groupsById.values()];

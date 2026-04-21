@@ -74,14 +74,10 @@ describe('graphView/materialTheme/folders', () => {
 
     expect(groups.map((group) => group.id)).toEqual([
       'default:folderName:src',
-      'default:folderName:.github',
       'default:folderName:.github/ISSUE_TEMPLATE',
       'default:folderName:vendor',
-      'default:folderName:vendor/cache',
       'default:folderName:packages',
-      'default:folderName:packages/app',
-      'default:folderName:docs',
-      'default:folderName:(root)',
+      'default:folder',
     ]);
     expect(groups.every((group) => group.color === '#445566')).toBe(true);
 
@@ -92,13 +88,13 @@ describe('graphView/materialTheme/folders', () => {
 
     expect(groups.some((group) => group.id === 'default:folderName:missing')).toBe(false);
 
-    const fallbackGroup = groups.find((group) => group.id === 'default:folderName:docs');
+    const fallbackGroup = groups.find((group) => group.id === 'default:folder');
     const fallbackSvg = Buffer.from(fallbackGroup?.imageUrl?.split(',')[1] ?? '', 'base64').toString('utf8');
     expect(fallbackSvg).toContain('#777777');
-
-    const rootGroup = groups.find((group) => group.id === 'default:folderName:(root)');
-    const rootSvg = Buffer.from(rootGroup?.imageUrl?.split(',')[1] ?? '', 'base64').toString('utf8');
-    expect(rootSvg).toContain('#777777');
-    expect(rootSvg).not.toContain('#999999');
+    expect(fallbackGroup).toEqual(expect.objectContaining({
+      pattern: '**',
+      displayLabel: 'Folder',
+      matchNodeType: 'folder',
+    }));
   });
 });

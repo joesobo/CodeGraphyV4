@@ -102,4 +102,60 @@ describe('search/filtering/rules/nodes', () => {
       imageUrl: 'custom.png',
     });
   });
+
+  it('applies generic folder rules only to folder nodes while allowing specific folder rules to override them', () => {
+    const activeRules = getOrderedActiveRules([
+      {
+        id: 'default:folderName:src',
+        pattern: 'src',
+        color: '#778899',
+        imageUrl: 'src-folder.png',
+      },
+      {
+        id: 'default:folder',
+        pattern: '**',
+        color: '#445566',
+        imageUrl: 'folder.png',
+        matchNodeType: 'folder',
+      },
+    ]);
+
+    expect(
+      applyNodeLegendRules(
+        { id: 'docs', label: 'docs', color: '#111111', nodeType: 'folder' },
+        activeRules,
+      ),
+    ).toEqual({
+      id: 'docs',
+      label: 'docs',
+      color: '#445566',
+      nodeType: 'folder',
+      imageUrl: 'folder.png',
+    });
+
+    expect(
+      applyNodeLegendRules(
+        { id: 'src', label: 'src', color: '#111111', nodeType: 'folder' },
+        activeRules,
+      ),
+    ).toEqual({
+      id: 'src',
+      label: 'src',
+      color: '#778899',
+      nodeType: 'folder',
+      imageUrl: 'src-folder.png',
+    });
+
+    expect(
+      applyNodeLegendRules(
+        { id: 'src/app.ts', label: 'app.ts', color: '#111111', nodeType: 'file' },
+        activeRules,
+      ),
+    ).toEqual({
+      id: 'src/app.ts',
+      label: 'app.ts',
+      color: '#111111',
+      nodeType: 'file',
+    });
+  });
 });

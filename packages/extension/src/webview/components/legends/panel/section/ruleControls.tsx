@@ -8,6 +8,10 @@ import { LegendColorInput } from './colorInput';
 import type { LegendRuleChange } from './contracts';
 import { LegendIconControl, LegendShapeControl } from './visual';
 
+function getRuleLabel(rule: IGroup): string {
+  return rule.displayLabel ?? rule.pattern;
+}
+
 export function RuleDragHandle({
   onDragStart = () => {},
   onDragEnd = () => {},
@@ -95,11 +99,13 @@ export function RuleVisibilitySwitch({
   onChange: LegendRuleChange;
   onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
 }): React.ReactElement {
+  const label = getRuleLabel(rule);
+
   return (
     <Switch
       checked={!rule.disabled}
-      title={`Toggle ${rule.pattern} legend entry`}
-      aria-label={`Toggle ${rule.pattern} legend entry`}
+      title={`Toggle ${label} legend entry`}
+      aria-label={`Toggle ${label} legend entry`}
       onCheckedChange={(enabled) => {
         if (rule.isPluginDefault === true) {
           onToggleDefaultVisibility(rule.id, enabled);

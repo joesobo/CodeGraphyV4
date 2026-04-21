@@ -118,4 +118,24 @@ describe('webview/components/legends/rulePattern', () => {
     expect(screen.queryByLabelText('Legend pattern 2')).toBeNull();
     expect(screen.getByTitle('*.ts')).toHaveTextContent('*.ts');
   });
+
+  it('renders plugin default display labels when provided', () => {
+    render(
+      <RulePatternCell
+        rule={{
+          id: 'default:folder',
+          pattern: '**',
+          displayLabel: 'Folder',
+          color: '#123456',
+          target: 'node',
+          isPluginDefault: true,
+        }}
+        index={1}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByLabelText('Legend pattern 2')).toBeNull();
+    expect(screen.getByTitle('Folder')).toHaveTextContent('Folder');
+  });
 });

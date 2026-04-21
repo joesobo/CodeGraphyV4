@@ -174,15 +174,18 @@ describe('graphView/materialTheme/view', () => {
   it('materializes folder icon groups from the current workspace tree when folder nodes are enabled', () => {
     const extensionRoot = createTempDir();
     writeMaterialPackage(extensionRoot, {
+      folder: 'folder',
       folderNames: {
         src: 'folder-src',
         '.github/issue_template': 'folder-github',
       },
       iconDefinitions: {
+        folder: { iconPath: '../icons/folder.svg' },
         'folder-src': { iconPath: '../icons/folder-src.svg' },
         'folder-github': { iconPath: '../icons/folder-github.svg' },
       },
     }, {
+      'folder.svg': '<svg><path fill="#777777" /></svg>',
       'folder-src.svg': '<svg><path fill="#123456" /></svg>',
       'folder-github.svg': '<svg><path fill="#abcdef" /></svg>',
     });
@@ -213,6 +216,15 @@ describe('graphView/materialTheme/view', () => {
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
+      expect.objectContaining({
+        id: 'default:folder',
+        pattern: '**',
+        displayLabel: 'Folder',
+        matchNodeType: 'folder',
+        color: '#445566',
+        pluginName: 'Material Icon Theme',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
     ]));
   });
 
@@ -239,5 +251,6 @@ describe('graphView/materialTheme/view', () => {
     });
 
     expect(groups.some((group) => group.id === 'default:folderName:src')).toBe(false);
+    expect(groups.some((group) => group.id === 'default:folder')).toBe(false);
   });
 });

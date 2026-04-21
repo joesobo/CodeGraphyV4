@@ -27,14 +27,15 @@ export function renderNodeBody({
   const shape = node.shape2D ?? 'circle';
   drawShape(ctx, shape, node.x!, node.y!, node.size);
   const isFolderNode = node.nodeType === 'folder';
+  const isTransparentFolderNode = isFolderNode && Boolean(node.imageUrl);
   ctx.fillStyle = isFolderNode
-    ? TRANSPARENT_FOLDER_BODY_COLOR
+    ? (isTransparentFolderNode ? TRANSPARENT_FOLDER_BODY_COLOR : node.color)
     : (decoration?.color ?? node.color);
   ctx.fill();
 
   const borderColor = isSelected
     ? (theme === 'light' ? '#000000' : '#ffffff')
-    : (isFolderNode ? TRANSPARENT_FOLDER_BODY_COLOR : node.borderColor);
+    : (isTransparentFolderNode ? TRANSPARENT_FOLDER_BODY_COLOR : node.borderColor);
   ctx.strokeStyle = borderColor;
   ctx.lineWidth = (isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth) / globalScale;
   ctx.globalAlpha = opacity;

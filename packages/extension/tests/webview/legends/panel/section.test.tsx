@@ -170,7 +170,7 @@ describe('webview/legends/section', () => {
     expect(screen.queryByText('src/**')).not.toBeInTheDocument();
   });
 
-  it('renders node subsections in custom, plugin, material, defaults order', () => {
+  it('renders node subsections in custom, plugin, material, defaults order without nesting a duplicate material group', () => {
     render(
       <LegendSection
         {...baseProps}
@@ -221,7 +221,9 @@ describe('webview/legends/section', () => {
 
     const customLabel = screen.getByText('Custom');
     const pluginDefaultsLabel = screen.getByText('Plugin defaults');
-    const materialLabel = screen.getAllByText('Material Icon Theme')[0];
+    const materialLabels = screen.getAllByText('Material Icon Theme');
+    expect(materialLabels).toHaveLength(1);
+    const materialLabel = materialLabels[0];
     const defaultsLabel = screen.getByText('Defaults');
 
     expect(customLabel.compareDocumentPosition(pluginDefaultsLabel) & Node.DOCUMENT_POSITION_FOLLOWING)

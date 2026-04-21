@@ -4,9 +4,11 @@ import { Input } from '../../../ui/input';
 import type { LegendRuleChange } from './contracts';
 
 function ReadOnlyPattern({ rule }: { rule: IGroup }): React.ReactElement {
+  const label = rule.displayLabel ?? rule.pattern;
+
   return (
-    <div className="break-all text-xs font-medium leading-5" title={rule.pattern}>
-      {rule.pattern}
+    <div className="break-all text-xs font-medium leading-5" title={label}>
+      {label}
     </div>
   );
 }

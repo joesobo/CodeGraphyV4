@@ -56,11 +56,13 @@ function canEditRuleVisual(editable: boolean, rule: IGroup): boolean {
 }
 
 function IconPreview({ rule }: { rule: IGroup }): React.ReactElement {
+  const label = rule.displayLabel ?? rule.pattern;
+
   if (rule.imageUrl) {
     return (
       <img
         src={rule.imageUrl}
-        alt={`${rule.pattern} icon`}
+        alt={`${label} icon`}
         className="h-4 w-4 object-contain"
       />
     );
@@ -98,9 +100,10 @@ export function LegendShapeControl({
   onChange: LegendRuleChange;
 }): React.ReactElement {
   const option = getShapeOption(rule);
+  const label = rule.displayLabel ?? rule.pattern;
 
   if (!canEditRuleVisual(editable, rule)) {
-    return <ShapePreview label={`${rule.pattern} shape: ${option.shape2D}`} option={option} />;
+    return <ShapePreview label={`${label} shape: ${option.shape2D}`} option={option} />;
   }
 
   return (

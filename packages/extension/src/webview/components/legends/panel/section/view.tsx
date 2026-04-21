@@ -263,18 +263,20 @@ function MaterialThemeRulesSubsection({
     return null;
   }
 
+  const materialRules = builtInRuleGroups.flatMap((group) => group.rules);
+  const allMaterialRulesEnabled = areAllRulesEnabled(materialRules);
+
   return (
-    <LegendSubsection group={{ id: 'material-icon-theme', label: 'Material Icon Theme' }}>
-      <div className="space-y-2 p-2">
-        {builtInRuleGroups.map((group) => (
-          <PluginRuleGroup
-            key={group.id}
-            group={group}
-            renderRuleRow={renderRuleRow}
-            onToggleDefaultVisibility={onToggleDefaultVisibility}
-          />
-        ))}
-      </div>
+    <LegendSubsection
+      group={{ id: 'material-icon-theme', label: 'Material Icon Theme' }}
+      toggleChecked={allMaterialRulesEnabled}
+      toggleTitle="Toggle Material Icon Theme legend entries"
+      onToggle={() => {
+        const nextVisible = !allMaterialRulesEnabled;
+        materialRules.forEach(({ rule }) => onToggleDefaultVisibility(rule.id, nextVisible));
+      }}
+    >
+      {materialRules.map(renderRuleRow)}
     </LegendSubsection>
   );
 }
