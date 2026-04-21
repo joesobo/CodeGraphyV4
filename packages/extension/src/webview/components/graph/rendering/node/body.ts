@@ -3,8 +3,7 @@ import type { ThemeKind } from '../../../../theme/useTheme';
 import { drawShape } from '../shapes/draw/twoDimensional';
 import type { FGNode } from '../../model/build';
 
-const DARK_FOLDER_BODY_COLOR = '#18181C';
-const LIGHT_FOLDER_BODY_COLOR = '#F5F5F5';
+const TRANSPARENT_FOLDER_BODY_COLOR = 'rgba(0, 0, 0, 0)';
 
 export interface RenderNodeBodyOptions {
   ctx: CanvasRenderingContext2D;
@@ -27,16 +26,15 @@ export function renderNodeBody({
 }: RenderNodeBodyOptions): void {
   const shape = node.shape2D ?? 'circle';
   drawShape(ctx, shape, node.x!, node.y!, node.size);
-  const folderBodyColor = theme === 'light' ? LIGHT_FOLDER_BODY_COLOR : DARK_FOLDER_BODY_COLOR;
   const isFolderNode = node.nodeType === 'folder';
   ctx.fillStyle = isFolderNode
-    ? folderBodyColor
+    ? TRANSPARENT_FOLDER_BODY_COLOR
     : (decoration?.color ?? node.color);
   ctx.fill();
 
   const borderColor = isSelected
     ? (theme === 'light' ? '#000000' : '#ffffff')
-    : (isFolderNode ? folderBodyColor : node.borderColor);
+    : (isFolderNode ? TRANSPARENT_FOLDER_BODY_COLOR : node.borderColor);
   ctx.strokeStyle = borderColor;
   ctx.lineWidth = (isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth) / globalScale;
   ctx.globalAlpha = opacity;

@@ -60,10 +60,28 @@ export function createGraphViewProviderMessagePrimaryActions(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderPrimaryActions {
+  const isInferredFolderPath = (filePath: string): boolean => {
+    if (filePath === '(root)') {
+      return source._graphData.nodes.some((graphNode) => (
+        graphNode.nodeType !== 'folder'
+        && graphNode.nodeType !== 'package'
+        && !graphNode.id.startsWith('pkg:')
+        && !graphNode.id.includes('/')
+      ));
+    }
+
+    return source._graphData.nodes.some((graphNode) => (
+      graphNode.nodeType !== 'folder'
+      && graphNode.nodeType !== 'package'
+      && !graphNode.id.startsWith('pkg:')
+      && graphNode.id.startsWith(`${filePath}/`)
+    ));
+  };
+
   const canOpenPath = (filePath: string): boolean => {
     const node = source._graphData.nodes.find((graphNode) => graphNode.id === filePath);
     if (!node) {
-      return !filePath.startsWith('pkg:');
+      return !filePath.startsWith('pkg:') && !isInferredFolderPath(filePath);
     }
 
     return node.nodeType !== 'folder' && node.nodeType !== 'package';
