@@ -13,6 +13,7 @@ type GraphViewProviderPrimaryActions = Pick<
   GraphViewMessageListenerContext,
   | 'openSelectedNode'
   | 'activateNode'
+  | 'canOpenPath'
   | 'setFocusedFile'
   | 'previewFileAtCommit'
   | 'openFile'
@@ -59,12 +60,22 @@ export function createGraphViewProviderMessagePrimaryActions(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderPrimaryActions {
+  const canOpenPath = (filePath: string): boolean => {
+    const node = source._graphData.nodes.find((graphNode) => graphNode.id === filePath);
+    if (!node) {
+      return !filePath.startsWith('pkg:');
+    }
+
+    return node.nodeType !== 'folder' && node.nodeType !== 'package';
+  };
+
   return {
     openSelectedNode: nodeId => source._openSelectedNode(nodeId),
     activateNode: nodeId => source._activateNode(nodeId),
     setFocusedFile: filePath => source.setFocusedFile(filePath),
     previewFileAtCommit: (sha, filePath) => source._previewFileAtCommit(sha, filePath),
     openFile: filePath => source._openFile(filePath),
+    canOpenPath,
     openInEditor: () => source._webviewMethods.openInEditor(),
     revealInExplorer: filePath => source._revealInExplorer(filePath),
     copyToClipboard: text => source._copyToClipboard(text),

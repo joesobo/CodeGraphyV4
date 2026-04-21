@@ -91,6 +91,7 @@ function createGraphNode(
     borderWidth: getNodeBorderWidth(isFocused, isFavorite),
     baseOpacity: getDepthOpacity(node.depthLevel),
     isFavorite,
+    nodeType: node.nodeType,
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,

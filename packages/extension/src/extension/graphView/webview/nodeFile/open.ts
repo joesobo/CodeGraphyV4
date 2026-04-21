@@ -3,11 +3,19 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 export interface GraphViewNodeFileOpenHandlers {
   timelineActive: boolean;
   currentCommitSha?: string;
+  canOpenPath?(filePath: string): boolean;
   setFocusedFile(filePath: string | undefined): void;
   openSelectedNode(nodeId: string): Promise<void>;
   activateNode(nodeId: string): Promise<void>;
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
+}
+
+function canOpenPath(
+  handlers: GraphViewNodeFileOpenHandlers,
+  filePath: string,
+): boolean {
+  return handlers.canOpenPath?.(filePath) ?? true;
 }
 
 export async function applyNodeFileOpenMessage(
@@ -16,6 +24,11 @@ export async function applyNodeFileOpenMessage(
 ): Promise<boolean> {
   switch (message.type) {
     case 'NODE_SELECTED':
+      if (!canOpenPath(handlers, message.payload.nodeId)) {
+        handlers.setFocusedFile(undefined);
+        return true;
+      }
+
       handlers.setFocusedFile(message.payload.nodeId);
       void handlers.openSelectedNode(message.payload.nodeId);
       return true;
@@ -25,10 +38,19 @@ export async function applyNodeFileOpenMessage(
       return true;
 
     case 'NODE_DOUBLE_CLICKED':
+      if (!canOpenPath(handlers, message.payload.nodeId)) {
+        return true;
+      }
+
       void handlers.activateNode(message.payload.nodeId);
       return true;
 
     case 'OPEN_FILE':
+      if (!canOpenPath(handlers, message.payload.path)) {
+        handlers.setFocusedFile(undefined);
+        return true;
+      }
+
       handlers.setFocusedFile(message.payload.path);
       if (handlers.timelineActive && handlers.currentCommitSha) {
         void handlers.previewFileAtCommit(handlers.currentCommitSha, message.payload.path);

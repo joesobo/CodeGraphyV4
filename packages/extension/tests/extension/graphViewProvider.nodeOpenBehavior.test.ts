@@ -156,4 +156,38 @@ describe('GraphViewProvider node open behavior', () => {
       preserveFocus: false,
     });
   });
+
+  it('does not open folder nodes through preview or activation messages', async () => {
+    const providerAny = provider as unknown as {
+      _graphData: { nodes: Array<{ id: string; nodeType?: string }>; edges: unknown[] };
+    };
+    providerAny._graphData = {
+      nodes: [{ id: 'src', nodeType: 'folder' }],
+      edges: [],
+    };
+
+    await messageHandler({ type: 'NODE_SELECTED', payload: { nodeId: 'src' } });
+    await messageHandler({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: 'src' } });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(openTextDocumentMock).not.toHaveBeenCalled();
+    expect(showTextDocumentMock).not.toHaveBeenCalled();
+  });
+
+  it('does not open package nodes through preview or activation messages', async () => {
+    const providerAny = provider as unknown as {
+      _graphData: { nodes: Array<{ id: string; nodeType?: string }>; edges: unknown[] };
+    };
+    providerAny._graphData = {
+      nodes: [{ id: 'pkg:react', nodeType: 'package' }],
+      edges: [],
+    };
+
+    await messageHandler({ type: 'NODE_SELECTED', payload: { nodeId: 'pkg:react' } });
+    await messageHandler({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: 'pkg:react' } });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(openTextDocumentMock).not.toHaveBeenCalled();
+    expect(showTextDocumentMock).not.toHaveBeenCalled();
+  });
 });

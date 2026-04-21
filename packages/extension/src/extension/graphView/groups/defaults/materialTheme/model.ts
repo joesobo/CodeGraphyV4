@@ -1,10 +1,12 @@
 export interface MaterialIconManifest {
   fileExtensions?: Record<string, string>;
   fileNames?: Record<string, string>;
+  folder?: string;
   folderNames?: Record<string, string>;
   folderNamesExpanded?: Record<string, string>;
   iconDefinitions?: Record<string, { iconPath: string }>;
   languageIds?: Record<string, string>;
+  rootFolder?: string;
 }
 
 export interface MaterialIconData {

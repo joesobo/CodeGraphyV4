@@ -21,11 +21,15 @@ function createTheme(): MaterialThemeCacheEntry {
   fs.writeFileSync(path.join(iconRoot, 'folder-github.svg'), '<svg><path fill="#abcdef" /></svg>');
   fs.writeFileSync(path.join(iconRoot, 'folder-vendor.svg'), '<svg><path fill="#654321" /></svg>');
   fs.writeFileSync(path.join(iconRoot, 'folder-packages.svg'), '<svg><path fill="#112233" /></svg>');
+  fs.writeFileSync(path.join(iconRoot, 'folder.svg'), '<svg><path fill="#777777" /></svg>');
+  fs.writeFileSync(path.join(iconRoot, 'folder-root.svg'), '<svg><path fill="#999999" /></svg>');
 
   return {
     iconDataByName: new Map(),
     manifestPath,
     manifest: {
+      folder: 'folder',
+      rootFolder: 'folder-root',
       folderNames: {
         src: 'folder-src',
         '.github/issue_template': 'folder-github',
@@ -39,6 +43,8 @@ function createTheme(): MaterialThemeCacheEntry {
         'folder-vendor': { iconPath: '../icons/folder-vendor.svg' },
         'folder-packages': { iconPath: '../icons/folder-packages.svg' },
         'folder-missing': { iconPath: '../icons/folder-missing.svg' },
+        folder: { iconPath: '../icons/folder.svg' },
+        'folder-root': { iconPath: '../icons/folder-root.svg' },
       },
     },
   };
@@ -57,8 +63,9 @@ describe('graphView/materialTheme/folders', () => {
         { id: 'src/main.ts', label: 'main.ts', color: '#000000' },
         { id: '.github/ISSUE_TEMPLATE/bug.md', label: 'bug.md', color: '#000000' },
         { id: 'pkg:left-pad', label: 'left-pad', color: '#000000' },
-        { id: 'vendor/cache', label: 'cache', color: '#000000', nodeType: 'folder' },
-        { id: 'packages/app/package.json', label: 'package.json', color: '#000000', nodeType: 'package' },
+        { id: 'vendor/cache/index.ts', label: 'index.ts', color: '#000000' },
+        { id: 'packages/app/main.ts', label: 'main.ts', color: '#000000' },
+        { id: 'docs/guide.ts', label: 'guide.ts', color: '#000000' },
         { id: 'missing/icon.ts', label: 'icon.ts', color: '#000000' },
       ],
       edges: [],
@@ -66,16 +73,25 @@ describe('graphView/materialTheme/folders', () => {
 
     expect(groups.map((group) => group.id)).toEqual([
       'default:folderName:src',
+      'default:folderName:.github',
       'default:folderName:.github/ISSUE_TEMPLATE',
+      'default:folderName:vendor',
+      'default:folderName:vendor/cache',
+      'default:folderName:packages',
+      'default:folderName:packages/app',
+      'default:folderName:docs',
     ]);
     expect(groups.every((group) => group.color === '#445566')).toBe(true);
-    expect(groups.some((group) => group.id === 'default:folderName:vendor')).toBe(false);
-    expect(groups.some((group) => group.id === 'default:folderName:packages')).toBe(false);
-    expect(groups.some((group) => group.id === 'default:folderName:missing')).toBe(false);
 
     const encoded = groups[0]?.imageUrl?.split(',')[1];
     const decoded = Buffer.from(encoded ?? '', 'base64').toString('utf8');
     expect(decoded).toContain('#123456');
     expect(decoded).not.toContain('#FFFFFF');
+
+    expect(groups.some((group) => group.id === 'default:folderName:missing')).toBe(false);
+
+    const fallbackGroup = groups.find((group) => group.id === 'default:folderName:docs');
+    const fallbackSvg = Buffer.from(fallbackGroup?.imageUrl?.split(',')[1] ?? '', 'base64').toString('utf8');
+    expect(fallbackSvg).toContain('#777777');
   });
 });
