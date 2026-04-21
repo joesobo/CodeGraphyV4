@@ -6,6 +6,39 @@ import type { MaterialThemeCacheEntry } from './model';
 import { createMaterialGroup } from './groups';
 import { resolveIconData } from './icons';
 import { findMaterialMatch } from './match';
+import type { MaterialIconManifest, MaterialMatch } from './model';
+
+function getDefaultFolderIconName(
+  folderPath: string,
+  manifest: MaterialIconManifest,
+): string | undefined {
+  if (folderPath === '(root)') {
+    return manifest.rootFolder ?? manifest.folder;
+  }
+
+  return manifest.folder;
+}
+
+function getFolderMatch(
+  folderPath: string,
+  theme: MaterialThemeCacheEntry,
+): MaterialMatch | undefined {
+  const matched = findMaterialMatch(folderPath, theme.manifest, { nodeType: 'folder' });
+  if (matched) {
+    return matched;
+  }
+
+  const iconName = getDefaultFolderIconName(folderPath, theme.manifest);
+  if (!iconName) {
+    return undefined;
+  }
+
+  return {
+    iconName,
+    key: folderPath,
+    kind: 'folderName',
+  };
+}
 
 export function collectMaterialFolderGroups(
   graphData: IGraphData,
@@ -19,7 +52,7 @@ export function collectMaterialFolderGroups(
   const groupsById = new Map<string, IGroup>();
 
   for (const folderPath of folderPaths) {
-    const match = findMaterialMatch(folderPath, theme.manifest, { nodeType: 'folder' });
+    const match = getFolderMatch(folderPath, theme);
     if (!match) {
       continue;
     }

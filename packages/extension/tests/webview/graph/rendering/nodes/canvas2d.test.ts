@@ -63,6 +63,7 @@ function createNode(overrides: Partial<FGNode> = {}): FGNode {
     borderWidth: 2,
     baseOpacity: 1,
     isFavorite: false,
+    nodeType: 'file',
     x: 24,
     y: 48,
     ...overrides,
@@ -179,6 +180,31 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(operations).toContainEqual(expect.objectContaining({
       globalAlpha: 1,
       kind: 'drawImage',
+    }));
+  });
+
+  it('renders folder nodes as icon-first without clipping and with a larger icon', () => {
+    const image = { width: 32, height: 32 };
+    vi.mocked(getImage).mockReturnValue(image as HTMLImageElement);
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies(),
+      createNode({
+        id: 'src',
+        label: 'src',
+        nodeType: 'folder',
+        imageUrl: 'https://example.com/folder.svg',
+      }),
+      ctx,
+      1,
+    );
+
+    expect(ctx.clip).not.toHaveBeenCalled();
+    expect(ctx.drawImage).toHaveBeenCalledWith(image, 12, 36, 24, 24);
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#18181C',
+      kind: 'fill',
     }));
   });
 
