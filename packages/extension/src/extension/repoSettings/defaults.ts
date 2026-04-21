@@ -3,6 +3,7 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import {
   createDefaultEdgeVisibility,
+  createDefaultNodeColorEnabled,
   createDefaultNodeColors,
   createDefaultNodeVisibility,
 } from '../../shared/graphControls/defaults/maps';
@@ -16,11 +17,14 @@ export interface ICodeGraphyRepoSettings {
   pluginOrder: string[];
   disabledPlugins: string[];
   nodeColors: Record<string, string>;
+  nodeColorEnabled: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   favorites: string[];
   bidirectionalEdges: 'separate' | 'combined';
   legend: IGroup[];
+  legendVisibility: Record<string, boolean>;
+  legendOrder: string[];
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];
   disabledPluginFilterPatterns: string[];
@@ -57,11 +61,14 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     pluginOrder: [],
     disabledPlugins: [],
     nodeColors: createDefaultNodeColors(),
+    nodeColorEnabled: createDefaultNodeColorEnabled(),
     nodeVisibility: createDefaultNodeVisibility(),
     edgeVisibility: createDefaultEdgeVisibility(),
     favorites: [],
     bidirectionalEdges: 'separate',
     legend: [],
+    legendVisibility: {},
+    legendOrder: [],
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     disabledPluginFilterPatterns: [],

@@ -114,13 +114,14 @@ describe('graphView/provider/plugin/broadcasts', () => {
       .mockImplementation((_graphData, _analyzer, sendMessage) => {
         sendMessage({
           type: 'GRAPH_CONTROLS_UPDATED',
-          payload: {
-            nodeTypes: [],
-            edgeTypes: [],
-            nodeColors: {},
-            nodeVisibility: {},
-            edgeVisibility: {},
-          },
+        payload: {
+          nodeTypes: [],
+          edgeTypes: [],
+          nodeColors: {},
+          nodeColorEnabled: {},
+          nodeVisibility: {},
+          edgeVisibility: {},
+        },
         });
       });
     const sendPluginExporters = vi.fn((_analyzer, sendMessage) => {
@@ -150,6 +151,7 @@ describe('graphView/provider/plugin/broadcasts', () => {
         nodeTypes: [],
         edgeTypes: [],
         nodeColors: {},
+        nodeColorEnabled: {},
         nodeVisibility: {},
         edgeVisibility: {},
       },

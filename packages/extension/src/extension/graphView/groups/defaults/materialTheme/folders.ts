@@ -3,7 +3,11 @@ import type { IGraphData } from '../../../../../shared/graph/contracts';
 import { collectFolderPaths } from '../../../../../shared/graphControls/nests/folders';
 import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
 import type { MaterialThemeCacheEntry } from './model';
-import { createGenericFolderGroup, createMaterialGroup } from './groups';
+import {
+  createGenericFolderGroup,
+  createMaterialGroup,
+  MATERIAL_TRANSPARENT_NODE_COLOR,
+} from './groups';
 import { resolveIconData } from './icons';
 import { findMaterialMatch } from './match';
 import type { MaterialIconManifest, MaterialMatch } from './model';
@@ -39,7 +43,6 @@ function getFolderMatch(
 export function collectMaterialFolderGroups(
   graphData: IGraphData,
   theme: MaterialThemeCacheEntry,
-  folderNodeColor: string,
 ): IGroup[] {
   const fileNodes = graphData.nodes.filter(
     (node) => node.nodeType !== 'package' && node.nodeType !== 'folder' && !isExternalPackageNodeId(node.id),
@@ -60,11 +63,11 @@ export function collectMaterialFolderGroups(
     }
 
     if (match.iconName === theme.manifest.folder) {
-      defaultFolderGroup ??= createGenericFolderGroup(iconData, folderNodeColor);
+      defaultFolderGroup ??= createGenericFolderGroup(iconData);
       continue;
     }
 
-    const group = createMaterialGroup(match, iconData, folderNodeColor);
+    const group = createMaterialGroup(match, iconData, MATERIAL_TRANSPARENT_NODE_COLOR);
     groupsById.set(group.id, group);
   }
 

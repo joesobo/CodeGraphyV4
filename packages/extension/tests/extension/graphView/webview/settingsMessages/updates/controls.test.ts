@@ -51,12 +51,16 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
     await expect(
       applyGraphControlMessage(
-        { type: 'UPDATE_NODE_COLOR', payload: { nodeType: 'file', color: '#123456' } },
+        {
+          type: 'UPDATE_NODE_COLOR',
+          payload: { nodeType: 'file', color: '#123456', enabled: false },
+        },
         handlers,
       ),
     ).resolves.toBe(true);
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'edgeVisibility', { import: false });
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'nodeColors', { file: '#123456' });
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(3, 'nodeColorEnabled', { file: false });
     expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
   });
 

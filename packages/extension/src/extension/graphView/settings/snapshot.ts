@@ -14,8 +14,11 @@ export function captureGraphViewSettingsSnapshot(
 ): ISettingsSnapshot {
   const settings = readGraphViewSettings(config);
   const nodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
+  const nodeColorEnabled = config.get<Record<string, boolean>>('nodeColorEnabled', {}) ?? {};
   const nodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
   const edgeVisibility = config.get<Record<string, boolean>>('edgeVisibility', {}) ?? {};
+  const legendVisibility = config.get<Record<string, boolean>>('legendVisibility', {}) ?? {};
+  const legendOrder = config.get<string[]>('legendOrder', []) ?? [];
   const pluginOrder = config.get<string[]>('pluginOrder', []) ?? [];
   const disabledPlugins = config.get<string[]>('disabledPlugins', []) ?? [];
 
@@ -30,8 +33,11 @@ export function captureGraphViewSettingsSnapshot(
     directionMode: config.get('directionMode', 'arrows'),
     directionColor: settings.directionColor,
     nodeColors,
+    nodeColorEnabled,
     nodeVisibility,
     edgeVisibility,
+    legendVisibility,
+    legendOrder,
     pluginOrder,
     disabledPlugins,
     particleSpeed: config.get('particleSpeed', 0.005),

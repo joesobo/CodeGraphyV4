@@ -1,6 +1,8 @@
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { MaterialIconData, MaterialMatch } from './model';
 
+export const MATERIAL_TRANSPARENT_NODE_COLOR = 'rgba(0, 0, 0, 0)';
+
 export function createMaterialGroup(
   match: MaterialMatch,
   iconData: MaterialIconData,
@@ -18,14 +20,13 @@ export function createMaterialGroup(
 
 export function createGenericFolderGroup(
   iconData: MaterialIconData,
-  color: string,
 ): IGroup {
   return {
     id: 'default:folder',
     pattern: '**',
     displayLabel: 'Folder',
     matchNodeType: 'folder',
-    color,
+    color: MATERIAL_TRANSPARENT_NODE_COLOR,
     imageUrl: iconData.imageUrl,
     isPluginDefault: true,
     pluginName: 'Material Icon Theme',

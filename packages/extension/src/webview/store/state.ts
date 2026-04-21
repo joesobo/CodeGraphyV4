@@ -65,6 +65,7 @@ export interface GraphState {
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];
   nodeColors: Record<string, string>;
+  nodeColorEnabled: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges' | 'export';

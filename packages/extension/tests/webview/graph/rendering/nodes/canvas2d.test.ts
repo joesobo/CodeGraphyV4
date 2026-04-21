@@ -194,6 +194,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
         id: 'src',
         label: 'src',
         nodeType: 'folder',
+        color: 'rgba(0, 0, 0, 0)',
         imageUrl: 'https://example.com/folder.svg',
       }),
       ctx,

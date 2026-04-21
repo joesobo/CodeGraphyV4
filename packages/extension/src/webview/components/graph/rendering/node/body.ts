@@ -27,9 +27,9 @@ export function renderNodeBody({
   const shape = node.shape2D ?? 'circle';
   drawShape(ctx, shape, node.x!, node.y!, node.size);
   const isFolderNode = node.nodeType === 'folder';
-  const isTransparentFolderNode = isFolderNode && Boolean(node.imageUrl);
+  const isTransparentFolderNode = isFolderNode && node.color === TRANSPARENT_FOLDER_BODY_COLOR;
   ctx.fillStyle = isFolderNode
-    ? (isTransparentFolderNode ? TRANSPARENT_FOLDER_BODY_COLOR : node.color)
+    ? node.color
     : (decoration?.color ?? node.color);
   ctx.fill();
 

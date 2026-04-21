@@ -16,6 +16,7 @@ describe('webview/legends/panelState', () => {
         { id: 'import', label: 'Import', defaultColor: '#333333' },
         { id: 'call', label: 'Call', defaultColor: '#fedcba' },
       ],
+      nodeColorEnabled: { file: true, folder: true },
       nodeColors: { file: '#abcdef' },
       legends: [
         { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
@@ -63,17 +64,18 @@ describe('webview/legends/panelState', () => {
     ]);
     expect(result.current.nodeEntries).toEqual([
       { id: 'file', label: 'File', color: '#abcdef', defaultColor: '#111111', colorEnabled: true },
-      { id: 'folder', label: 'Folder', color: '#222222', defaultColor: '#222222', colorEnabled: false },
+      { id: 'folder', label: 'Folder', color: '#222222', defaultColor: '#222222', colorEnabled: true },
     ]);
     expect(result.current.edgeEntries).toEqual([
-      { id: 'import', label: 'Import', color: '#333333', defaultColor: '#333333', colorEnabled: false },
-      { id: 'call', label: 'Call', color: '#fedcba', defaultColor: '#fedcba', colorEnabled: false },
+      { id: 'import', label: 'Import', color: '#333333', defaultColor: '#333333', colorEnabled: true },
+      { id: 'call', label: 'Call', color: '#fedcba', defaultColor: '#fedcba', colorEnabled: true },
     ]);
 
     rerender({
       ...initialProps,
       nodeTypes: [{ id: 'service', label: 'Service', defaultColor: '#101010' }],
       edgeTypes: [{ id: 'depends', label: 'Depends', defaultColor: '#202020' }],
+      nodeColorEnabled: { service: true },
       nodeColors: { service: '#0f0f0f' },
       legends: [
         { id: 'edge:plugin', pattern: 'depends', color: '#808080', target: 'edge', isPluginDefault: true },
@@ -91,7 +93,7 @@ describe('webview/legends/panelState', () => {
       { id: 'service', label: 'Service', color: '#0f0f0f', defaultColor: '#101010', colorEnabled: true },
     ]);
     expect(result.current.edgeEntries).toEqual([
-      { id: 'depends', label: 'Depends', color: '#202020', defaultColor: '#202020', colorEnabled: false },
+      { id: 'depends', label: 'Depends', color: '#202020', defaultColor: '#202020', colorEnabled: true },
     ]);
   });
 
@@ -100,6 +102,7 @@ describe('webview/legends/panelState', () => {
       useLegendPanelState({
         nodeTypes: [],
         edgeTypes: [],
+        nodeColorEnabled: {},
         nodeColors: {},
         legends: [
           { id: 'shared', pattern: 'src/**', color: '#123456', target: 'node' },
@@ -159,6 +162,7 @@ describe('webview/legends/panelState', () => {
       useLegendPanelState({
         nodeTypes: [],
         edgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#111111' }],
+        nodeColorEnabled: {},
         nodeColors: {},
         legends: [
           { id: 'legend:edge:import', pattern: 'import', color: '#abcdef', target: 'edge' },
@@ -178,6 +182,7 @@ describe('webview/legends/panelState', () => {
       useLegendPanelState({
         nodeTypes: [],
         edgeTypes: [],
+        nodeColorEnabled: {},
         nodeColors: {},
         legends: [
           {
