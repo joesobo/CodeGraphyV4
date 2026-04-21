@@ -28,6 +28,8 @@ export function publishAnalyzedGraph(
   handlers.sendGraphIndexStatusUpdated(hasIndex);
   handlers.updateViewContext();
   handlers.applyViewTransform();
+  handlers.computeMergedGroups();
+  handlers.sendGroupsUpdated();
 
   const graphData = handlers.getGraphData();
   handlers.sendGraphDataUpdated(graphData);

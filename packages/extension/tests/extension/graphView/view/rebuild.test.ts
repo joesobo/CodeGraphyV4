@@ -102,6 +102,64 @@ describe('graphView/view/rebuild', () => {
     expect(notifyGraphRebuild).toHaveBeenCalledWith({ nodes: [], edges: [] });
   });
 
+  it('recomputes legends after the rebuilt graph has been transformed', () => {
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'package.json', label: 'package.json', color: '#ffffff' }],
+      edges: [],
+    };
+    const transformedGraphData: IGraphData = {
+      nodes: [{ id: 'package.json', label: 'package.json', color: '#00AAFF' }],
+      edges: [],
+    };
+    const state: {
+      _analyzer: {
+        rebuildGraph: ReturnType<typeof vi.fn>;
+        registry: { notifyGraphRebuild: ReturnType<typeof vi.fn> };
+      };
+      _disabledPlugins: Set<string>;
+      _rawGraphData: IGraphData;
+      _graphData: IGraphData;
+    } = {
+      _analyzer: {
+        rebuildGraph: vi.fn(() => rawGraphData),
+        registry: { notifyGraphRebuild: vi.fn() },
+      },
+      _disabledPlugins: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    };
+    const computeMergedGroups = vi.fn(() => {
+      expect(state._graphData).toEqual(transformedGraphData);
+    });
+    const sendGroupsUpdated = vi.fn();
+    const updateViewContext = vi.fn();
+    const applyViewTransform = vi.fn(() => {
+      state._graphData = transformedGraphData;
+    });
+
+    rebuildGraphViewData(state, {
+      getShowOrphans: () => false,
+      computeMergedGroups,
+      sendGroupsUpdated,
+      updateViewContext,
+      applyViewTransform,
+      sendDepthState: vi.fn(),
+      sendGraphControls: vi.fn(),
+      sendPluginStatuses: vi.fn(),
+      sendDecorations: vi.fn(),
+      sendMessage: vi.fn(),
+    });
+
+    expect(computeMergedGroups).toHaveBeenCalledOnce();
+    expect(sendGroupsUpdated).toHaveBeenCalledOnce();
+    expect(computeMergedGroups.mock.invocationCallOrder[0]).toBeGreaterThan(
+      applyViewTransform.mock.invocationCallOrder[0]!,
+    );
+    expect(sendGroupsUpdated.mock.invocationCallOrder[0]).toBeGreaterThan(
+      computeMergedGroups.mock.invocationCallOrder[0]!,
+    );
+  });
+
   it('always rebuilds cached graph data for plugin toggles so legends and controls stay in sync', () => {
     const state = {
       _analyzer: {
