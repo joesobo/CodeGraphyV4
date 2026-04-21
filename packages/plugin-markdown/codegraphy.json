@@ -7,10 +7,7 @@
   "tier": 1,
   "supportedExtensions": ["*"],
   "defaultFilters": [],
-  "fileColors": {
-    "*.md": "#7C3AED",
-    "*.mdx": "#8B5CF6"
-  },
+  "fileColors": {},
   "sources": [
     { "id": "wikilink", "name": "Wikilinks", "description": "[[Note Name]], ![[embed]]" }
   ]

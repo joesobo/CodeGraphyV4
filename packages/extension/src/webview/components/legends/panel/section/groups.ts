@@ -12,7 +12,7 @@ export interface LegendRuleGroup {
 }
 
 function isBuiltInRule(rule: LegendDisplayRule): boolean {
-  return rule.id.startsWith('default:') || rule.pluginId === 'codegraphy.treesitter';
+  return rule.id.startsWith('default:');
 }
 
 function getPluginGroupId(rule: LegendDisplayRule): string {

@@ -4,12 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { getBuiltInGraphViewDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/builtIn';
 
 describe('graphView/builtInDefaultGroups', () => {
-  it('materializes matching Material theme defaults for the current graph and keeps CodeGraphy metadata', () => {
+  it('materializes matching Material theme defaults for the current graph and keeps Material Icon Theme metadata', () => {
     const groups = getBuiltInGraphViewDefaultGroups(
       {
         nodes: [
           { id: 'package.json', label: 'package.json', color: '#000000' },
           { id: 'src/main.tsx', label: 'main.tsx', color: '#000000' },
+          { id: 'src/format.py', label: 'format.py', color: '#000000' },
           { id: 'README.md', label: 'README.md', color: '#000000' },
           { id: 'vite.config.ts', label: 'vite.config.ts', color: '#000000' },
         ],
@@ -24,7 +25,7 @@ describe('graphView/builtInDefaultGroups', () => {
         pattern: 'package.json',
         color: '#8bc34a',
         isPluginDefault: true,
-        pluginName: 'CodeGraphy',
+        pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
       expect.objectContaining({
@@ -32,7 +33,15 @@ describe('graphView/builtInDefaultGroups', () => {
         pattern: '*.tsx',
         color: '#0288d1',
         isPluginDefault: true,
-        pluginName: 'CodeGraphy',
+        pluginName: 'Material Icon Theme',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+      expect.objectContaining({
+        id: 'default:fileExtension:py',
+        pattern: '*.py',
+        color: '#0288d1',
+        isPluginDefault: true,
+        pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
       expect.objectContaining({
@@ -40,7 +49,7 @@ describe('graphView/builtInDefaultGroups', () => {
         pattern: '*.md',
         color: '#42a5f5',
         isPluginDefault: true,
-        pluginName: 'CodeGraphy',
+        pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
       expect.objectContaining({
@@ -48,7 +57,7 @@ describe('graphView/builtInDefaultGroups', () => {
         pattern: 'vite.config.ts',
         color: '#a0f',
         isPluginDefault: true,
-        pluginName: 'CodeGraphy',
+        pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
       expect.objectContaining({
@@ -56,7 +65,7 @@ describe('graphView/builtInDefaultGroups', () => {
         pattern: '.codegraphy/settings.json',
         color: '#277ACC',
         isPluginDefault: true,
-        pluginName: 'CodeGraphy',
+        pluginName: 'Material Icon Theme',
       }),
     ]));
   });

@@ -8,11 +8,20 @@ import { LegendColorInput } from './colorInput';
 import type { LegendRuleChange } from './contracts';
 import { LegendIconControl, LegendShapeControl } from './visual';
 
-export function RuleDragHandle(): React.ReactElement {
+export function RuleDragHandle({
+  onDragStart = () => {},
+  onDragEnd = () => {},
+}: {
+  onDragStart?: (event: React.DragEvent<HTMLSpanElement>) => void;
+  onDragEnd?: (event: React.DragEvent<HTMLSpanElement>) => void;
+}): React.ReactElement {
   return (
     <span
+      draggable
       className="inline-flex h-7 w-4 shrink-0 cursor-grab items-center justify-center text-muted-foreground"
       title="Drag legend rule"
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
     >
       <MdiIcon path={mdiDragVertical} size={15} />
     </span>

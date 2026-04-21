@@ -19,9 +19,9 @@ describe('createTypeScriptPlugin', () => {
 
     expect(plugin.defaultFilters).toContain('**/node_modules/**');
     expect(plugin.fileColors).toMatchObject({
-      '*.ts': '#3178C6',
-      '*.tsx': '#61DAFB',
-      '*.js': '#F7DF1E',
+      'tsconfig.json': '#3178C6',
+      'package.json': '#CB3837',
+      '*.vue': '#42B883',
     });
   });
 

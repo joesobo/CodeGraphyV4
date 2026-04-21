@@ -30,6 +30,7 @@ describe('webview/components/legends/ruleControls', () => {
     render(<RuleDragHandle />);
 
     expect(screen.getByTitle('Drag legend rule')).toBeInTheDocument();
+    expect(screen.getByTitle('Drag legend rule')).toHaveAttribute('draggable', 'true');
   });
 
   it('renders editable visual controls for custom node rules', () => {
@@ -80,7 +81,7 @@ describe('webview/components/legends/ruleControls', () => {
     expect(screen.queryByTitle('Choose legend shape')).toBeNull();
   });
 
-  it('renders an empty icon slot for plugin defaults without an icon', () => {
+  it('renders no icon preview for plugin defaults without an icon', () => {
     render(
       <RuleVisualControls
         rule={{
@@ -97,6 +98,7 @@ describe('webview/components/legends/ruleControls', () => {
 
     expect(screen.queryByAltText('*.json icon')).toBeNull();
     expect(screen.queryByTitle('Upload legend icon')).toBeNull();
+    expect(screen.queryByTitle('*.json shape: circle')).toBeInTheDocument();
   });
 
   it('commits custom rule colors through the color input', () => {

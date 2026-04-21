@@ -76,6 +76,7 @@ describe('webview/components/legends/ruleRow', () => {
       'transition-colors bg-accent/30 opacity-60',
     );
     expect(screen.getByTitle('Drag legend rule')).toBeInTheDocument();
+    expect(screen.getByTestId('legend-rule-row')).not.toHaveAttribute('draggable');
   });
 
   it('does not commit blank custom rule names', () => {
@@ -248,5 +249,25 @@ describe('webview/components/legends/ruleRow', () => {
       color: '#123456',
       target: 'node',
     });
+  });
+
+  it('starts dragging only from the drag handle', () => {
+    const handlers = baseHandlers();
+
+    render(
+      <LegendRuleRow
+        rule={{ id: 'legend:custom', pattern: 'src/**', color: '#123456', target: 'node' }}
+        index={0}
+        isDragging={false}
+        isDragOver={false}
+        {...handlers}
+      />,
+    );
+
+    fireEvent.dragStart(screen.getByTestId('legend-rule-row'));
+    expect(handlers.onDragStart).not.toHaveBeenCalled();
+
+    fireEvent.dragStart(screen.getByTitle('Drag legend rule'));
+    expect(handlers.onDragStart).toHaveBeenCalledOnce();
   });
 });

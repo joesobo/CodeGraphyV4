@@ -20,9 +20,9 @@ describe('createCSharpPlugin', () => {
     expect(plugin.defaultFilters).toContain('**/bin/**');
     expect(plugin.defaultFilters).not.toContain('**/packages/**');
     expect(plugin.fileColors).toMatchObject({
-      '*.cs': '#512BD4',
       '*.csproj': '#512BD4',
       '*.sln': '#854CC7',
+      'global.json': '#512BD4',
     });
   });
 

@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 function getBuiltInGraphViewPluginDirEntries(): Array<readonly [string, string]> {
   return [
     ['codegraphy.godot', 'plugin-godot'],
-    ['codegraphy.markdown', 'plugin-markdown'],
   ];
 }
 

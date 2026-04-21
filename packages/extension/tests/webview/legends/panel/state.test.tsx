@@ -62,12 +62,12 @@ describe('webview/legends/panelState', () => {
       { id: 'edge:user', pattern: 'src/**', color: '#654321', target: 'edge' },
     ]);
     expect(result.current.nodeEntries).toEqual([
-      { id: 'file', label: 'File', color: '#abcdef' },
-      { id: 'folder', label: 'Folder', color: '#222222' },
+      { id: 'file', label: 'File', color: '#abcdef', defaultColor: '#111111', colorEnabled: true },
+      { id: 'folder', label: 'Folder', color: '#222222', defaultColor: '#222222', colorEnabled: false },
     ]);
     expect(result.current.edgeEntries).toEqual([
-      { id: 'import', label: 'Import', color: '#333333' },
-      { id: 'call', label: 'Call', color: '#fedcba' },
+      { id: 'import', label: 'Import', color: '#333333', defaultColor: '#333333', colorEnabled: false },
+      { id: 'call', label: 'Call', color: '#fedcba', defaultColor: '#fedcba', colorEnabled: false },
     ]);
 
     rerender({
@@ -88,10 +88,10 @@ describe('webview/legends/panelState', () => {
       { id: 'edge:plugin', pattern: 'depends', color: '#808080', target: 'edge', isPluginDefault: true },
     ]);
     expect(result.current.nodeEntries).toEqual([
-      { id: 'service', label: 'Service', color: '#0f0f0f' },
+      { id: 'service', label: 'Service', color: '#0f0f0f', defaultColor: '#101010', colorEnabled: true },
     ]);
     expect(result.current.edgeEntries).toEqual([
-      { id: 'depends', label: 'Depends', color: '#202020' },
+      { id: 'depends', label: 'Depends', color: '#202020', defaultColor: '#202020', colorEnabled: false },
     ]);
   });
 
@@ -167,9 +167,72 @@ describe('webview/legends/panelState', () => {
     );
 
     expect(result.current.edgeEntries).toEqual([
-      { id: 'import', label: 'Imports', color: '#abcdef' },
+      { id: 'import', label: 'Imports', color: '#abcdef', defaultColor: '#111111', colorEnabled: true },
     ]);
     expect(result.current.edgeLegendRules).toEqual([]);
     expect(result.current.displayedEdgeLegendRules).toEqual([]);
+  });
+
+  it('applies optimistic default-rule updates before the extension echoes legends back', () => {
+    const { result } = renderHook(() =>
+      useLegendPanelState({
+        nodeTypes: [],
+        edgeTypes: [],
+        nodeColors: {},
+        legends: [
+          {
+            id: 'plugin:codegraphy.python:*.py',
+            pattern: '*.py',
+            color: '#3776ab',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.python',
+            pluginName: 'Python',
+          },
+          {
+            id: 'plugin:codegraphy.typescript:*.ts',
+            pattern: '*.ts',
+            color: '#3178c6',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.typescript',
+            pluginName: 'TypeScript',
+          },
+        ],
+        optimisticLegendUpdates: {
+          'plugin:codegraphy.python:*.py': {
+            updates: { disabled: true },
+            expiresAt: Date.now() + 5_000,
+          },
+          'plugin:codegraphy.typescript:*.ts': {
+            updates: { disabled: true },
+            expiresAt: Date.now() + 5_000,
+          },
+        },
+      }),
+    );
+
+    expect(result.current.displayedNodeLegendRules).toEqual([
+      {
+        id: 'plugin:codegraphy.python:*.py',
+        pattern: '*.py',
+        color: '#3776ab',
+        target: 'node',
+        isPluginDefault: true,
+        pluginId: 'codegraphy.python',
+        pluginName: 'Python',
+        disabled: true,
+      },
+      {
+        id: 'plugin:codegraphy.typescript:*.ts',
+        pattern: '*.ts',
+        color: '#3178c6',
+        target: 'node',
+        isPluginDefault: true,
+        pluginId: 'codegraphy.typescript',
+        pluginName: 'TypeScript',
+        disabled: true,
+      },
+    ]);
   });
 });

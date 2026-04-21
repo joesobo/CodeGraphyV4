@@ -16,7 +16,6 @@
     "**/AssemblyInfo.cs"
   ],
   "fileColors": {
-    "*.cs": "#512BD4",
     "*.csx": "#512BD4",
     "*.csproj": "#512BD4",
     "*.sln": "#854CC7",

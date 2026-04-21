@@ -29,7 +29,9 @@ describe('LegendsPanel', () => {
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByLabelText('Files color')).toHaveValue('#333333');
+    expect(screen.getByLabelText('Toggle Files legend color')).toHaveAttribute('data-state', 'checked');
     expect(screen.getByLabelText('Imports color')).toHaveValue('#444444');
+    expect(screen.queryByLabelText('Toggle Imports legend color')).not.toBeInTheDocument();
     expect(screen.queryByText('Rules')).not.toBeInTheDocument();
     expect(screen.queryByText('#333333')).not.toBeInTheDocument();
     expect(screen.queryByText('Top overrides bottom')).not.toBeInTheDocument();
@@ -137,6 +139,39 @@ describe('LegendsPanel', () => {
         payload: { nodeType: 'file', color: '#abcdef' },
       },
     ]);
+  });
+
+  it('toggles built-in node colors between their override and fallback color', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [],
+      nodeColors: { file: '#333333' },
+      legends: [],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    const colorToggle = screen.getByLabelText('Toggle Files legend color');
+    const colorInput = screen.getByLabelText('Files color');
+
+    fireEvent.click(colorToggle);
+
+    expect(colorToggle).toHaveAttribute('data-state', 'unchecked');
+    expect(colorInput).toBeDisabled();
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_NODE_COLOR',
+      payload: { nodeType: 'file', color: '#111111' },
+    });
+
+    fireEvent.click(colorToggle);
+
+    expect(colorToggle).toHaveAttribute('data-state', 'checked');
+    expect(colorInput).not.toBeDisabled();
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_NODE_COLOR',
+      payload: { nodeType: 'file', color: '#333333' },
+    });
   });
 
   it('renders the rules editor when open', () => {
@@ -453,6 +488,53 @@ describe('LegendsPanel', () => {
     });
   });
 
+  it('keeps multiple plugin-group toggles disabled locally before the extension responds', () => {
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      legends: [
+        {
+          id: 'plugin:codegraphy.python:*.py',
+          pattern: '*.py',
+          color: '#3776ab',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.python',
+          pluginName: 'Python',
+        },
+        {
+          id: 'plugin:codegraphy.python:*.pyi',
+          pattern: '*.pyi',
+          color: '#3776ab',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.python',
+          pluginName: 'Python',
+        },
+        {
+          id: 'plugin:codegraphy.typescript:*.ts',
+          pattern: '*.ts',
+          color: '#3178c6',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.typescript',
+          pluginName: 'TypeScript',
+        },
+      ],
+      optimisticLegendUpdates: {},
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    const pythonToggle = screen.getByLabelText('Toggle Python legend entries');
+    const typescriptToggle = screen.getByLabelText('Toggle TypeScript legend entries');
+
+    fireEvent.click(pythonToggle);
+    expect(pythonToggle).toHaveAttribute('data-state', 'unchecked');
+
+    fireEvent.click(typescriptToggle);
+    expect(pythonToggle).toHaveAttribute('data-state', 'unchecked');
+    expect(typescriptToggle).toHaveAttribute('data-state', 'unchecked');
+  });
+
   it('reorders node legend rules through drag and drop', () => {
     sentMessages.length = 0;
     graphStore.setState({
@@ -466,11 +548,12 @@ describe('LegendsPanel', () => {
     });
 
     const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
-    const draggableRows = container.querySelectorAll('[data-testid="legend-rule-row"][draggable="true"]');
+    const rowTargets = container.querySelectorAll('[data-testid="legend-rule-row"]');
+    const dragHandles = screen.getAllByTitle('Drag legend rule');
 
-    fireEvent.dragStart(draggableRows[1] as Element);
-    fireEvent.dragOver(draggableRows[0] as Element);
-    fireEvent.drop(draggableRows[0] as Element);
+    fireEvent.dragStart(dragHandles[1] as Element);
+    fireEvent.dragOver(rowTargets[0] as Element);
+    fireEvent.drop(rowTargets[0] as Element);
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGEND_ORDER',
@@ -494,11 +577,12 @@ describe('LegendsPanel', () => {
     });
 
     const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
-    const draggableRows = container.querySelectorAll('[data-testid="legend-rule-row"][draggable="true"]');
+    const rowTargets = container.querySelectorAll('[data-testid="legend-rule-row"]');
+    const dragHandles = screen.getAllByTitle('Drag legend rule');
 
-    fireEvent.dragStart(draggableRows[2] as Element);
-    fireEvent.dragOver(draggableRows[1] as Element);
-    fireEvent.drop(draggableRows[1] as Element);
+    fireEvent.dragStart(dragHandles[2] as Element);
+    fireEvent.dragOver(rowTargets[1] as Element);
+    fireEvent.drop(rowTargets[1] as Element);
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGEND_ORDER',
