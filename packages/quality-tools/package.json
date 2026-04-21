@@ -5,6 +5,9 @@
   "type": "module",
   "description": "Quality tooling for CRAP, mutation testing, and SCRAP",
   "license": "MIT",
+  "engines": {
+    "node": ">=24.12.0 <25"
+  },
   "scripts": {
     "boundaries": "tsx src/cli/boundaries.ts",
     "reachability": "tsx src/cli/reachability.ts",

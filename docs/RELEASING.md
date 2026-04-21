@@ -68,6 +68,7 @@ vsce verify-pat codegraphy
 3. Confirm `vsce ls-publishers` shows `codegraphy`.
 4. Confirm `vsce verify-pat codegraphy` succeeds.
 5. Run `pnpm install`.
+   - Use Node `24.12.0` LTS from [`.nvmrc`](../.nvmrc) / [`.node-version`](../.node-version).
 6. Add changesets only for unreleased user-facing workspace packages. Archive shipped changesets under [`docs/archive/changesets/`](./archive/changesets/).
 7. Run `pnpm run version-packages`.
 8. If the core Marketplace extension changed, verify `packages/extension/package.json` and [`packages/extension/CHANGELOG.md`](../packages/extension/CHANGELOG.md) have matching top entries.

@@ -39,7 +39,7 @@ Current legend/style precedence in the host is:
 2. plugin defaults
 3. custom user rules
 
-That means a plugin can already behave like a theme pack for file nodes by shipping `fileColors`.
+That means a plugin can already behave like a theme pack for file nodes by shipping `fileColors`, and a user can layer that above or below the built-in Material defaults through the Legends and Plugins popups.
 Current limitation: the public API does not yet expose a first-class folder-theme contract like the core Material layer, so full file-explorer parity would need an API extension.
 
 Exact merge behavior:

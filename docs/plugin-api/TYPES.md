@@ -215,7 +215,7 @@ The current public API already supports a file-theme style plugin through `fileC
 - glob patterns like `**/*.stories.tsx`
 - optional `shape2D`, `shape3D`, and `imagePath`
 
-Those plugin defaults sit above core defaults and below custom legend rules, so a user can treat them like an installable theme layer for file nodes.
+Those plugin defaults sit above core defaults and below custom legend rules, so a user can treat them like an installable theme layer for file nodes. In the current UI that means Material Icon Theme stays in the core layer, plugin defaults are grouped separately, and custom rules still win last.
 
 Current limitation: folder icon theming is still core-only. The API does not yet expose a folder-name or folder-icon contract comparable to the built-in Material Icon Theme integration.
 

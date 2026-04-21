@@ -121,11 +121,26 @@ Node legend styling is cumulative and resolves in this order:
 
 1. Core defaults
    - Material Icon Theme file and folder matches
-   - built-in node colors such as Files and Packages
+   - Defaults entries such as Files and Packages
 2. Plugin defaults
 3. Custom legend rules
 
 Higher layers override lower ones only for the fields they set. A plugin can override a core node color without replacing the core icon, and a custom rule can add an icon on top of an existing color choice.
+
+Inside the **Legends** popup, node styling is organized top-to-bottom as:
+
+1. Custom
+2. Plugin Defaults
+3. Material Icon Theme
+4. Defaults
+
+Each subsection has its own collapse state and top-level toggle. Toggle and visibility state persist in `.codegraphy/settings.json`; collapse state persists in the webview.
+
+Legend colors now support opacity. Built-in Material folder entries use transparent colors so folder nodes can become icon-first while the theme is enabled and fall back to the default filled node style when the Material section is disabled.
+
+## Development
+
+Local development is pinned to Node `24.12.0` LTS. Use the version in [`.nvmrc`](./.nvmrc) or [`.node-version`](./.node-version) before running install, quality, or release commands.
 
 Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLUGINS.md), the [plugin lifecycle docs](./docs/plugin-api/LIFECYCLE.md), and [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api).
 

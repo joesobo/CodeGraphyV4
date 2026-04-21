@@ -6,7 +6,7 @@ Thanks for your interest in contributing to CodeGraphy!
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24.12.0 LTS
 - pnpm 10+
 - VS Code 1.85+
 
@@ -15,6 +15,7 @@ Thanks for your interest in contributing to CodeGraphy!
 1. Fork and clone the repository
 2. Install dependencies:
    ```bash
+   nvm use
    pnpm install
    ```
 3. Build the project:
@@ -105,6 +106,8 @@ pnpm exec vitest run tests/path/to/file.test.ts  # Single file
 pnpm run playwright:install  # Install Playwright browser (one-time per machine)
 pnpm run test:playwright     # Browser smoke test suite
 ```
+
+The repo pins Node in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version). Use that exact runtime before running release or quality-tool commands.
 
 ## Reporting issues
 

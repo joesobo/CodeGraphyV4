@@ -37,3 +37,5 @@ Current command expectations:
 Implementation now lives in `packages/quality-tools/`.
 
 Extension-specific architecture and lifecycle notes live in `packages/extension/docs/`.
+
+These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `24.12.0` LTS. `packages/quality-tools` uses `path.matchesGlob`, so older Node versions are not supported.
