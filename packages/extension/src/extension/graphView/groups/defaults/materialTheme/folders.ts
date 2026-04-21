@@ -9,13 +9,9 @@ import { findMaterialMatch } from './match';
 import type { MaterialIconManifest, MaterialMatch } from './model';
 
 function getDefaultFolderIconName(
-  folderPath: string,
+  _folderPath: string,
   manifest: MaterialIconManifest,
 ): string | undefined {
-  if (folderPath === '(root)') {
-    return manifest.rootFolder ?? manifest.folder;
-  }
-
   return manifest.folder;
 }
 

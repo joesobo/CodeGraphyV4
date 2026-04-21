@@ -60,6 +60,7 @@ describe('graphView/materialTheme/folders', () => {
   it('builds folder groups from file paths and keeps the original folder svg colors', () => {
     const groups = collectMaterialFolderGroups({
       nodes: [
+        { id: 'package.json', label: 'package.json', color: '#000000' },
         { id: 'src/main.ts', label: 'main.ts', color: '#000000' },
         { id: '.github/ISSUE_TEMPLATE/bug.md', label: 'bug.md', color: '#000000' },
         { id: 'pkg:left-pad', label: 'left-pad', color: '#000000' },
@@ -80,6 +81,7 @@ describe('graphView/materialTheme/folders', () => {
       'default:folderName:packages',
       'default:folderName:packages/app',
       'default:folderName:docs',
+      'default:folderName:(root)',
     ]);
     expect(groups.every((group) => group.color === '#445566')).toBe(true);
 
@@ -93,5 +95,10 @@ describe('graphView/materialTheme/folders', () => {
     const fallbackGroup = groups.find((group) => group.id === 'default:folderName:docs');
     const fallbackSvg = Buffer.from(fallbackGroup?.imageUrl?.split(',')[1] ?? '', 'base64').toString('utf8');
     expect(fallbackSvg).toContain('#777777');
+
+    const rootGroup = groups.find((group) => group.id === 'default:folderName:(root)');
+    const rootSvg = Buffer.from(rootGroup?.imageUrl?.split(',')[1] ?? '', 'base64').toString('utf8');
+    expect(rootSvg).toContain('#777777');
+    expect(rootSvg).not.toContain('#999999');
   });
 });

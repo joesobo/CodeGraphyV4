@@ -20,6 +20,8 @@ export function createHandlers(
   const handlers = {
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
     updateConfig: vi.fn(() => Promise.resolve()),
+    recomputeGroups: vi.fn(),
+    sendGroupsUpdated: vi.fn(),
     getPluginFilterPatterns: vi.fn(() => []),
     getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),

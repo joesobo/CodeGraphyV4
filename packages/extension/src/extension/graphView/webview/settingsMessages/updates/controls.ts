@@ -20,6 +20,10 @@ async function applyGraphControlsUpdate(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   await handlers.updateConfig(key, getUpdatedConfigMap(handlers, key, entryKey, value));
+  if (key === 'nodeVisibility' || key === 'nodeColors') {
+    handlers.recomputeGroups();
+    handlers.sendGroupsUpdated();
+  }
   handlers.sendGraphControls();
   return true;
 }
