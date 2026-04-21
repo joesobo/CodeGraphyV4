@@ -41,4 +41,18 @@ describe('graphView/materialTheme/fileExtension', () => {
   it('returns undefined when no extension rule matches', () => {
     expect(matchMaterialFileExtension('README', { ts: 'typescript' })).toBeUndefined();
   });
+
+  it('matches extensions case-insensitively while keeping the actual extension casing in the key', () => {
+    expect(matchMaterialFileExtension('MAIN.TS', { ts: 'typescript' })).toEqual({
+      iconName: 'typescript',
+      key: 'TS',
+      kind: 'fileExtension',
+    });
+
+    expect(matchMaterialFileExtension('TS', { ts: 'typescript' })).toEqual({
+      iconName: 'typescript',
+      key: 'TS',
+      kind: 'fileExtension',
+    });
+  });
 });

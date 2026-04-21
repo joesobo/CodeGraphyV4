@@ -23,7 +23,7 @@ describe('graphView/builtInDefaultGroups', () => {
       expect.objectContaining({
         id: 'default:fileName:package.json',
         pattern: 'package.json',
-        color: '#8bc34a',
+        color: '#8BC34A',
         isPluginDefault: true,
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
@@ -31,7 +31,7 @@ describe('graphView/builtInDefaultGroups', () => {
       expect.objectContaining({
         id: 'default:fileExtension:tsx',
         pattern: '*.tsx',
-        color: '#0288d1',
+        color: '#0288D1',
         isPluginDefault: true,
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
@@ -39,15 +39,15 @@ describe('graphView/builtInDefaultGroups', () => {
       expect.objectContaining({
         id: 'default:fileExtension:py',
         pattern: '*.py',
-        color: '#0288d1',
+        color: '#0288D1',
         isPluginDefault: true,
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
       }),
       expect.objectContaining({
-        id: 'default:fileExtension:md',
-        pattern: '*.md',
-        color: '#42a5f5',
+        id: 'default:fileName:README.md',
+        pattern: 'README.md',
+        color: '#42A5F5',
         isPluginDefault: true,
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
@@ -55,7 +55,7 @@ describe('graphView/builtInDefaultGroups', () => {
       expect.objectContaining({
         id: 'default:fileName:vite.config.ts',
         pattern: 'vite.config.ts',
-        color: '#a0f',
+        color: '#AA00FF',
         isPluginDefault: true,
         pluginName: 'Material Icon Theme',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),

@@ -28,4 +28,18 @@ describe('graphView/materialTheme/languageFallback', () => {
     expect(matchMaterialLanguageFallback('main.ts', { javascript: 'javascript' })).toBeUndefined();
     expect(matchMaterialLanguageFallback('README', { markdown: 'markdown' })).toBeUndefined();
   });
+
+  it('matches fallback extensions case-insensitively while keeping the actual suffix casing in the key', () => {
+    expect(matchMaterialLanguageFallback('README.MARKDOWN', { markdown: 'markdown' })).toEqual({
+      iconName: 'markdown',
+      key: 'MARKDOWN',
+      kind: 'fileExtension',
+    });
+
+    expect(matchMaterialLanguageFallback('MARKDOWN', { markdown: 'markdown' })).toEqual({
+      iconName: 'markdown',
+      key: 'MARKDOWN',
+      kind: 'fileExtension',
+    });
+  });
 });

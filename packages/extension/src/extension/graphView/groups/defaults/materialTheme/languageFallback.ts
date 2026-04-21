@@ -1,4 +1,5 @@
 import languageFallbacks from './languageFallbacks.json';
+import { findLongestExtensionMatch } from './extensionMatch';
 import type { MaterialMatch } from './model';
 
 const LANGUAGE_FALLBACKS = languageFallbacks as Array<{ extensions: string[]; languageId: string }>;
@@ -7,7 +8,13 @@ export function matchMaterialLanguageFallback(
   baseName: string,
   languageIds: Record<string, string>,
 ): MaterialMatch | undefined {
-  let bestMatch: MaterialMatch | undefined;
+  return findLongestExtensionMatch(baseName, getLanguageFallbackEntries(languageIds));
+}
+
+function getLanguageFallbackEntries(
+  languageIds: Record<string, string>,
+): Array<readonly [string, string]> {
+  const entries: Array<readonly [string, string]> = [];
 
   for (const { extensions, languageId } of LANGUAGE_FALLBACKS) {
     const iconName = languageIds[languageId];
@@ -16,20 +23,9 @@ export function matchMaterialLanguageFallback(
     }
 
     for (const extension of extensions) {
-      const matches = baseName === extension || baseName.endsWith(`.${extension}`);
-      if (!matches) {
-        continue;
-      }
-
-      if (!bestMatch || extension.length > bestMatch.key.length) {
-        bestMatch = {
-          iconName,
-          key: extension,
-          kind: 'fileExtension',
-        };
-      }
+      entries.push([extension, iconName]);
     }
   }
 
-  return bestMatch;
+  return entries;
 }

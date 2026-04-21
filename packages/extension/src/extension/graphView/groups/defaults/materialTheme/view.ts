@@ -1,17 +1,23 @@
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../../shared/settings/groups';
-import { isExternalPackageNodeId } from '../../../../pipeline/graph/packageSpecifiers/nodeId';
 import { createMaterialGroup, getManualGroups, getSpecificityScore, sortMaterialGroups } from './groups';
-import { resolveIconData } from './icons';
+import { collectMaterialFileGroups } from './files';
+import { collectMaterialFolderGroups } from './folders';
 import { loadMaterialTheme } from './manifest';
 import { findMaterialMatch } from './match';
 
 export { createMaterialGroup, getSpecificityScore, findMaterialMatch };
 
+interface MaterialThemeDefaultOptions {
+  folderNodeColor?: string;
+  includeFolderMatches?: boolean;
+}
+
 export function getMaterialThemeDefaultGroups(
   graphData: IGraphData,
   extensionUri: vscode.Uri,
+  options: MaterialThemeDefaultOptions = {},
 ): IGroup[] {
   const theme = loadMaterialTheme(extensionUri);
   if (!theme) {
@@ -19,24 +25,18 @@ export function getMaterialThemeDefaultGroups(
   }
 
   const groupsById = new Map<string, IGroup>();
-
-  for (const node of graphData.nodes) {
-    if (node.nodeType === 'package' || isExternalPackageNodeId(node.id)) {
-      continue;
-    }
-
-    const match = findMaterialMatch(node.id, theme.manifest);
-    if (!match) {
-      continue;
-    }
-
-    const iconData = resolveIconData(theme, match.iconName);
-    if (!iconData) {
-      continue;
-    }
-
-    const group = createMaterialGroup(match, iconData);
+  for (const group of collectMaterialFileGroups(graphData, theme)) {
     groupsById.set(group.id, group);
+  }
+
+  if (options.includeFolderMatches) {
+    for (const group of collectMaterialFolderGroups(
+      graphData,
+      theme,
+      options.folderNodeColor ?? '#7E57C2',
+    )) {
+      groupsById.set(group.id, group);
+    }
   }
 
   for (const group of getManualGroups()) {

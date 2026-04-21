@@ -1,13 +1,15 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { MaterialIconData, MaterialThemeCacheEntry } from './model';
-import { extractPrimaryColor, toWhiteSvgDataUrl } from './svg';
+import { extractPrimaryColor, toSvgDataUrl, toWhiteSvgDataUrl } from './svg';
 
 export function resolveIconData(
   theme: MaterialThemeCacheEntry,
   iconName: string,
+  mode: 'file' | 'folder' = 'file',
 ): MaterialIconData | undefined {
-  const cached = theme.iconDataByName.get(iconName);
+  const cacheKey = `${mode}:${iconName}`;
+  const cached = theme.iconDataByName.get(cacheKey);
   if (cached) {
     return cached;
   }
@@ -25,9 +27,9 @@ export function resolveIconData(
   const svg = fs.readFileSync(resolvedIconPath, 'utf8');
   const iconData = {
     color: extractPrimaryColor(svg),
-    imageUrl: toWhiteSvgDataUrl(svg),
+    imageUrl: mode === 'folder' ? toSvgDataUrl(svg) : toWhiteSvgDataUrl(svg),
   } satisfies MaterialIconData;
 
-  theme.iconDataByName.set(iconName, iconData);
+  theme.iconDataByName.set(cacheKey, iconData);
   return iconData;
 }

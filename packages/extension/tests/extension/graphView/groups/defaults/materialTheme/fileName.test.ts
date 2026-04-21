@@ -46,4 +46,18 @@ describe('graphView/materialTheme/fileName', () => {
     });
     expect(matchMaterialFileName('src/main.ts', { 'package.json': 'package' })).toBeUndefined();
   });
+
+  it('matches Material file-name rules case-insensitively for basename and nested paths', () => {
+    expect(matchMaterialFileName('README.md', { 'readme.md': 'readme' })).toEqual({
+      iconName: 'readme',
+      key: 'README.md',
+      kind: 'fileName',
+    });
+
+    expect(matchMaterialFileName('apps/web/Dockerfile', { 'web/dockerfile': 'docker' })).toEqual({
+      iconName: 'docker',
+      key: 'web/Dockerfile',
+      kind: 'fileName',
+    });
+  });
 });

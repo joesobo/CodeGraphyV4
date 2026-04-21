@@ -170,4 +170,74 @@ describe('graphView/materialTheme/view', () => {
       pluginName: 'Material Icon Theme',
     });
   });
+
+  it('materializes folder icon groups from the current workspace tree when folder nodes are enabled', () => {
+    const extensionRoot = createTempDir();
+    writeMaterialPackage(extensionRoot, {
+      folderNames: {
+        src: 'folder-src',
+        '.github/issue_template': 'folder-github',
+      },
+      iconDefinitions: {
+        'folder-src': { iconPath: '../icons/folder-src.svg' },
+        'folder-github': { iconPath: '../icons/folder-github.svg' },
+      },
+    }, {
+      'folder-src.svg': '<svg><path fill="#123456" /></svg>',
+      'folder-github.svg': '<svg><path fill="#abcdef" /></svg>',
+    });
+
+    const groups = getMaterialThemeDefaultGroups({
+      nodes: [
+        { id: 'src/main.ts', label: 'main.ts', color: '#000000' },
+        { id: '.github/ISSUE_TEMPLATE/bug.md', label: 'bug.md', color: '#000000' },
+      ],
+      edges: [],
+    }, vscode.Uri.file(extensionRoot), {
+      folderNodeColor: '#445566',
+      includeFolderMatches: true,
+    });
+
+    expect(groups).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'default:folderName:src',
+        pattern: 'src',
+        color: '#445566',
+        pluginName: 'Material Icon Theme',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+      expect.objectContaining({
+        id: 'default:folderName:.github/ISSUE_TEMPLATE',
+        pattern: '.github/ISSUE_TEMPLATE',
+        color: '#445566',
+        pluginName: 'Material Icon Theme',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+    ]));
+  });
+
+  it('skips folder icon groups when folder matching is disabled', () => {
+    const extensionRoot = createTempDir();
+    writeMaterialPackage(extensionRoot, {
+      folderNames: {
+        src: 'folder-src',
+      },
+      iconDefinitions: {
+        'folder-src': { iconPath: '../icons/folder-src.svg' },
+      },
+    }, {
+      'folder-src.svg': '<svg><path fill="#123456" /></svg>',
+    });
+
+    const groups = getMaterialThemeDefaultGroups({
+      nodes: [
+        { id: 'src/main.ts', label: 'main.ts', color: '#000000' },
+      ],
+      edges: [],
+    }, vscode.Uri.file(extensionRoot), {
+      includeFolderMatches: false,
+    });
+
+    expect(groups.some((group) => group.id === 'default:folderName:src')).toBe(false);
+  });
 });

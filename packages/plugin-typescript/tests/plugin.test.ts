@@ -14,15 +14,11 @@ describe('createTypeScriptPlugin', () => {
     });
   });
 
-  it('keeps TypeScript ecosystem defaults from the manifest', () => {
+  it('keeps TypeScript ecosystem filters while leaving file theming to core Material defaults', () => {
     const plugin = createTypeScriptPlugin();
 
     expect(plugin.defaultFilters).toContain('**/node_modules/**');
-    expect(plugin.fileColors).toMatchObject({
-      'tsconfig.json': '#3178C6',
-      'package.json': '#CB3837',
-      '*.vue': '#42B883',
-    });
+    expect(plugin.fileColors).toEqual({});
   });
 
   it('does not provide supplemental analysis once Tree-sitter owns the base JS/TS parsing', () => {

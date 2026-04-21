@@ -41,7 +41,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     harness = createGraphViewProviderTestHarness();
   });
 
-  it('returns plugin default groups with isPluginDefault flag', async () => {
+  it('returns no optional plugin file-theme defaults when core Material theming owns those files', async () => {
     const provider = getProvider(harness);
     const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [];
@@ -49,13 +49,10 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     registerOptionalPlugins(provider);
 
     const pluginGroups = internals._pluginResourceMethods._getPluginDefaultGroups() as GroupSummary[];
-    expect(pluginGroups.length).toBeGreaterThan(0);
-    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.typescript:package.json' && g.color === '#CB3837')).toBe(true);
-    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.python:pyproject.toml' && g.color === '#FFD43B')).toBe(true);
-    expect(pluginGroups.every(g => g.isPluginDefault === true)).toBe(true);
+    expect(pluginGroups).toEqual([]);
   });
 
-  it('computeMergedGroups combines user groups with visible plugin defaults', async () => {
+  it('computeMergedGroups keeps user groups when optional plugins no longer contribute file-theme defaults', async () => {
     const provider = getProvider(harness);
     const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [{ id: 'user-group-1', pattern: 'src/**', color: '#FF0000' }] as IGroup[];
@@ -66,8 +63,8 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
     const groups = provider._groups as GroupSummary[];
     expect(groups.some(g => g.id === 'user-group-1')).toBe(true);
-    expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:package.json')).toBe(true);
-    expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts')).toBe(false);
+    expect(groups.some(g => g.id.startsWith('plugin:codegraphy.typescript:'))).toBe(false);
+    expect(groups.some(g => g.id.startsWith('plugin:codegraphy.python:'))).toBe(false);
   });
 
   it('computeMergedGroups includes built-in default groups', async () => {
@@ -92,11 +89,11 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     expect(jsonGroup).toBeDefined();
     expect(jsonGroup!.pluginName).toBe('Material Icon Theme');
     expect(jsonGroup!.isPluginDefault).toBe(true);
-    expect(groups.some(g => g.id === 'default:fileExtension:md')).toBe(true);
+    expect(groups.some(g => g.id === 'default:fileName:README.md')).toBe(true);
     expect(groups.some(g => g.id === 'default:fileName:.codegraphy/settings.json')).toBe(true);
   });
 
-  it('getPluginDefaultGroups excludes disabled plugins', async () => {
+  it('getPluginDefaultGroups stays empty even when optional plugins are disabled', async () => {
     const provider = getProvider(harness);
     const internals = getGraphViewProviderInternals(harness.provider);
     provider._disabledPlugins = new Set(['codegraphy.typescript']);
@@ -104,8 +101,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     registerOptionalPlugins(provider);
 
     const pluginGroups = internals._pluginResourceMethods._getPluginDefaultGroups() as GroupSummary[];
-    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.typescript:package.json')).toBe(false);
-    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.python:pyproject.toml')).toBe(true);
+    expect(pluginGroups).toEqual([]);
 
     provider._disabledPlugins = new Set<string>();
   });

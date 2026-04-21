@@ -14,16 +14,12 @@ describe('createCSharpPlugin', () => {
     });
   });
 
-  it('keeps C# ecosystem defaults from the manifest', () => {
+  it('keeps C# ecosystem filters while leaving file theming to core Material defaults', () => {
     const plugin = createCSharpPlugin();
 
     expect(plugin.defaultFilters).toContain('**/bin/**');
     expect(plugin.defaultFilters).not.toContain('**/packages/**');
-    expect(plugin.fileColors).toMatchObject({
-      '*.csproj': '#512BD4',
-      '*.sln': '#854CC7',
-      'global.json': '#512BD4',
-    });
+    expect(plugin.fileColors).toEqual({});
   });
 
   it('does not provide supplemental analysis once Tree-sitter owns C# parsing', () => {

@@ -65,4 +65,22 @@ describe('graphView/materialTheme/icons', () => {
     expect(resolveIconData(theme, 'missing')).toBeUndefined();
     expect(resolveIconData(theme, 'typescript')).toBeUndefined();
   });
+
+  it('keeps folder svg colors intact and caches folder/file variants separately', () => {
+    const theme = createTheme();
+    const iconPath = path.join(path.dirname(theme.manifestPath), '..', 'icons', 'folder-src.svg');
+    fs.mkdirSync(path.dirname(iconPath), { recursive: true });
+    fs.writeFileSync(iconPath, '<svg><path fill="#123456" /></svg>');
+    theme.manifest.iconDefinitions = {
+      'folder-src': { iconPath: '../icons/folder-src.svg' },
+    };
+
+    const fileIcon = resolveIconData(theme, 'folder-src');
+    const folderIcon = resolveIconData(theme, 'folder-src', 'folder');
+    const decoded = Buffer.from(folderIcon!.imageUrl.split(',')[1], 'base64').toString('utf8');
+
+    expect(fileIcon).not.toBe(folderIcon);
+    expect(decoded).toContain('#123456');
+    expect(decoded).not.toContain('#FFFFFF');
+  });
 });

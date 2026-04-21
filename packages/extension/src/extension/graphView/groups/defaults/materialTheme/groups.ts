@@ -1,11 +1,15 @@
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { MaterialIconData, MaterialMatch } from './model';
 
-export function createMaterialGroup(match: MaterialMatch, iconData: MaterialIconData): IGroup {
+export function createMaterialGroup(
+  match: MaterialMatch,
+  iconData: MaterialIconData,
+  color = iconData.color,
+): IGroup {
   return {
     id: `default:${match.kind}:${match.key}`,
-    pattern: match.kind === 'fileName' ? match.key : `*.${match.key}`,
-    color: iconData.color,
+    pattern: match.kind === 'fileExtension' ? `*.${match.key}` : match.key,
+    color,
     imageUrl: iconData.imageUrl,
     isPluginDefault: true,
     pluginName: 'Material Icon Theme',
