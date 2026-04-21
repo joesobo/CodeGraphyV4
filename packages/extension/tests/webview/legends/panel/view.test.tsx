@@ -1,17 +1,33 @@
 import React from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import LegendsPanel from '../../../../src/webview/components/legends/panel/view';
 import { graphStore } from '../../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
+let mockWebviewState: unknown;
 
 vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: (message: unknown) => sentMessages.push(message),
-  vscode: { getState: () => undefined, setState: vi.fn() },
+  getVsCodeApi: () => ({
+    getState: () => mockWebviewState,
+    setState: vi.fn((state: unknown) => {
+      mockWebviewState = state;
+    }),
+  }),
 }));
 
 describe('LegendsPanel', () => {
+  beforeEach(() => {
+    sentMessages.length = 0;
+    mockWebviewState = undefined;
+    graphStore.setState({
+      legends: [],
+      optimisticLegendUpdates: {},
+      optimisticUserLegends: null,
+    });
+  });
+
   it('returns null when the panel is closed', () => {
     const { container } = render(<LegendsPanel isOpen={false} onClose={vi.fn()} />);
 
@@ -113,7 +129,7 @@ describe('LegendsPanel', () => {
 
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_NODE_COLOR',
-      payload: { nodeType: 'file', color: '#abc123', enabled: true },
+      payload: { nodeType: 'file', color: '#ABC123', enabled: true },
     });
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_LEGENDS',
@@ -123,7 +139,7 @@ describe('LegendsPanel', () => {
             id: 'legend:edge:import',
             pattern: 'import',
             target: 'edge',
-            color: '#def456',
+            color: '#DEF456',
           }),
         ],
       },
@@ -166,7 +182,7 @@ describe('LegendsPanel', () => {
     expect(sentMessages).toEqual([
       {
         type: 'UPDATE_NODE_COLOR',
-        payload: { nodeType: 'file', color: '#abcdef', enabled: true },
+        payload: { nodeType: 'file', color: '#ABCDEF', enabled: true },
       },
     ]);
   });
@@ -202,6 +218,82 @@ describe('LegendsPanel', () => {
       type: 'UPDATE_NODE_COLOR',
       payload: { nodeType: 'file', color: '#333333', enabled: true },
     });
+  });
+
+  it('batches material theme visibility updates through a single message', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      legends: [
+        {
+          id: 'default:fileExtension:py',
+          pattern: '*.py',
+          color: '#3776ab',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.material',
+          pluginName: 'Material Icon Theme',
+        },
+        {
+          id: 'default:fileName:package.json',
+          pattern: 'package.json',
+          color: '#8cc84b',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.material',
+          pluginName: 'Material Icon Theme',
+        },
+      ],
+      optimisticLegendUpdates: {},
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText('Toggle Material Icon Theme legend entries'));
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY_BATCH',
+      payload: {
+        legendVisibility: {
+          'default:fileExtension:py': false,
+          'default:fileName:package.json': false,
+        },
+      },
+    });
+    expect(sentMessages).toHaveLength(1);
+    expect(graphStore.getState().optimisticLegendUpdates).toEqual({
+      'default:fileExtension:py': expect.objectContaining({
+        updates: { disabled: true },
+      }),
+      'default:fileName:package.json': expect.objectContaining({
+        updates: { disabled: true },
+      }),
+    });
+  });
+
+  it('persists collapsed legend sections across renders', () => {
+    mockWebviewState = undefined;
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      nodeColors: { file: '#333333' },
+      legends: [],
+    });
+
+    const { unmount } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByTitle('Toggle Nodes legend section'));
+    expect(mockWebviewState).toEqual({
+      legendPanelCollapsed: {
+        'section:nodes': true,
+      },
+    });
+
+    unmount();
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.queryByText('Files')).not.toBeInTheDocument();
+    expect(screen.getByText('Edges')).toBeInTheDocument();
   });
 
   it('renders the rules editor when open', () => {
@@ -288,7 +380,7 @@ describe('LegendsPanel', () => {
           expect.objectContaining({
             pattern: '*/tests/**',
             target: 'node',
-            color: '#123abc',
+            color: '#123ABC',
           }),
         ],
       },
@@ -309,12 +401,12 @@ describe('LegendsPanel', () => {
           expect.objectContaining({
             pattern: '*/tests/**',
             target: 'node',
-            color: '#123abc',
+            color: '#123ABC',
           }),
           expect.objectContaining({
             pattern: 'src/**',
             target: 'edge',
-            color: '#fedcba',
+            color: '#FEDCBA',
           }),
         ]),
       },
@@ -634,4 +726,5 @@ describe('LegendsPanel', () => {
 
 afterEach(() => {
   vi.useRealTimers();
+  mockWebviewState = undefined;
 });

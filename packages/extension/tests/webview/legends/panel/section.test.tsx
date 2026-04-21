@@ -148,14 +148,18 @@ describe('webview/legends/section', () => {
       { id: 'edge:user', pattern: 'call', color: '#654321', target: 'edge' },
     ] as IGroup[],
     target: 'node' as const,
+    collapsedEntries: {},
     onBuiltInColorChange: vi.fn(),
     onBuiltInColorToggle: vi.fn(),
+    onCollapsedChange: vi.fn(),
     onRulesChange: vi.fn(),
     onToggleDefaultVisibility: vi.fn(),
+    onToggleDefaultVisibilityBatch: vi.fn(),
   };
 
   it('renders rows and collapses the section body', () => {
-    render(<LegendSection {...baseProps} />);
+    const onCollapsedChange = vi.fn();
+    render(<LegendSection {...baseProps} onCollapsedChange={onCollapsedChange} />);
 
     expect(screen.getByText('built-in:Files')).toBeInTheDocument();
     expect(screen.getByText('toggle-color:Files')).toBeInTheDocument();
@@ -166,8 +170,7 @@ describe('webview/legends/section', () => {
 
     fireEvent.click(screen.getByTitle('Toggle Nodes legend section'));
 
-    expect(screen.queryByText('built-in:Files')).not.toBeInTheDocument();
-    expect(screen.queryByText('src/**')).not.toBeInTheDocument();
+    expect(onCollapsedChange).toHaveBeenCalledWith('section:nodes', true);
   });
 
   it('renders node subsections in custom, plugin, material, defaults order without nesting a duplicate material group', () => {
@@ -260,6 +263,7 @@ describe('webview/legends/section', () => {
   });
 
   it('collapses plugin groups and toggles all rules in a plugin group', () => {
+    const onCollapsedChange = vi.fn();
     render(
       <LegendSection
         {...baseProps}
@@ -284,22 +288,18 @@ describe('webview/legends/section', () => {
             disabled: true,
           },
         ]}
+        onCollapsedChange={onCollapsedChange}
       />,
     );
 
     fireEvent.click(screen.getByTitle('Toggle Python legend entries'));
-    expect(baseProps.onToggleDefaultVisibility).toHaveBeenCalledWith(
-      'plugin:codegraphy.python:*.py',
-      true,
-    );
-    expect(baseProps.onToggleDefaultVisibility).toHaveBeenCalledWith(
-      'plugin:codegraphy.python:*.pyi',
+    expect(baseProps.onToggleDefaultVisibilityBatch).toHaveBeenCalledWith(
+      ['plugin:codegraphy.python:*.py', 'plugin:codegraphy.python:*.pyi'],
       true,
     );
 
     fireEvent.click(screen.getByTitle('Collapse Python legend entries'));
-    expect(screen.queryByText('*.py')).not.toBeInTheDocument();
-    expect(screen.queryByText('*.pyi')).not.toBeInTheDocument();
+    expect(onCollapsedChange).toHaveBeenCalledWith('plugin:codegraphy.python', true);
   });
 
   it('toggles all custom rules in a section', () => {

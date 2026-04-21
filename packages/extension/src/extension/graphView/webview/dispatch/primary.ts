@@ -61,6 +61,7 @@ export interface GraphViewPrimaryMessageContext {
   workspaceFolder: vscode.WorkspaceFolder | undefined;
   persistLegends(legends: IGroup[]): Promise<void>;
   persistDefaultLegendVisibility(legendId: string, visible: boolean): Promise<void>;
+  persistDefaultLegendVisibilityBatch(legendVisibility: Record<string, boolean>): Promise<void>;
   persistLegendOrder(legendIds: string[]): Promise<void>;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;

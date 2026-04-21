@@ -13,6 +13,10 @@ import {
 import { replaceSectionRules } from './section/displayRules';
 import { LegendSection } from './section/view';
 import { sendUserLegendRules } from './messages';
+import {
+  readLegendPanelCollapsedState,
+  writeLegendPanelCollapsedState,
+} from './storage';
 
 interface LegendsPanelProps {
   isOpen: boolean;
@@ -30,9 +34,13 @@ export default function LegendsPanel({
   const legends = useGraphStore((state) => state.legends);
   const optimisticLegendUpdates = useGraphStore((state) => state.optimisticLegendUpdates);
   const setOptimisticLegendUpdate = useGraphStore((state) => state.setOptimisticLegendUpdate);
+  const setOptimisticLegendUpdates = useGraphStore((state) => state.setOptimisticLegendUpdates);
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
   const builtInNodeColorsRef = useRef<Record<string, string>>({});
   const [builtInNodeColorEnabled, setBuiltInNodeColorEnabled] = useState<Record<string, boolean>>({});
+  const [collapsedEntries, setCollapsedEntries] = useState<Record<string, boolean>>(
+    readLegendPanelCollapsedState,
+  );
 
   const {
     displayedEdgeLegendRules,
@@ -81,6 +89,36 @@ export default function LegendsPanel({
       }),
     [builtInNodeColorEnabled, nodeEntries],
   );
+
+  const setCollapsedEntry = (entryId: string, collapsed: boolean): void => {
+    setCollapsedEntries((current) => {
+      const next = { ...current };
+      if (collapsed) {
+        next[entryId] = true;
+      } else {
+        delete next[entryId];
+      }
+      writeLegendPanelCollapsedState(next);
+      return next;
+    });
+  };
+
+  const toggleDefaultLegendVisibilityBatch = (
+    legendIds: string[],
+    visible: boolean,
+  ): void => {
+    const optimisticUpdates = Object.fromEntries(
+      legendIds.map((legendId) => [legendId, { disabled: !visible }]),
+    );
+    const legendVisibility = Object.fromEntries(
+      legendIds.map((legendId) => [legendId, visible]),
+    );
+    setOptimisticLegendUpdates(optimisticUpdates);
+    postMessage({
+      type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY_BATCH',
+      payload: { legendVisibility },
+    });
+  };
 
   if (!isOpen) {
     return null;
@@ -144,6 +182,9 @@ export default function LegendsPanel({
                 payload: { legendId, visible },
               });
             }}
+            onToggleDefaultVisibilityBatch={toggleDefaultLegendVisibilityBatch}
+            collapsedEntries={collapsedEntries}
+            onCollapsedChange={setCollapsedEntry}
           />
           <LegendSection
             title="Edges"
@@ -172,6 +213,9 @@ export default function LegendsPanel({
                 payload: { legendId, visible },
               });
             }}
+            onToggleDefaultVisibilityBatch={toggleDefaultLegendVisibilityBatch}
+            collapsedEntries={collapsedEntries}
+            onCollapsedChange={setCollapsedEntry}
           />
         </div>
       </ScrollArea>

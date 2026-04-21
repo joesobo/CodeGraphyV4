@@ -162,6 +162,43 @@ describe('graph view provider listener primary actions', () => {
     });
   });
 
+  it('merges batched default-legend visibility updates against the current codegraphy config', async () => {
+    const source = createSource();
+    const dependencies = createDependencies();
+    const updateSilently = vi.fn(async (key: string, value: unknown) => {
+      if (key === 'legendVisibility') {
+        legendVisibility = value as Record<string, boolean>;
+      }
+    });
+    let legendVisibility: Record<string, boolean> = { existing: true };
+
+    vi.mocked(dependencies.workspace.getConfiguration).mockReturnValue({
+      get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
+    } as never);
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      get: vi.fn(<T>(key: string, defaultValue: T): T => (
+        key === 'legendVisibility'
+          ? (legendVisibility as T)
+          : defaultValue
+      )),
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
+    vi.mocked(repoSettings.updateCodeGraphyConfigurationSilently).mockImplementation(updateSilently);
+
+    const actions = createActions(source, dependencies);
+
+    await actions.persistDefaultLegendVisibilityBatch({
+      'default:fileExtension:ts': false,
+      'default:fileExtension:js': false,
+    });
+
+    expect(updateSilently).toHaveBeenCalledWith('legendVisibility', {
+      existing: true,
+      'default:fileExtension:ts': false,
+      'default:fileExtension:js': false,
+    });
+  });
+
   it('delegates opening in the existing editor surface', async () => {
     const source = createSource();
     const actions = createActions(source);

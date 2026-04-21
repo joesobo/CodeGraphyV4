@@ -13,6 +13,7 @@ export interface GraphViewLegendMessageHandlers {
   writeFile(uri: vscode.Uri, content: Uint8Array): Thenable<void>;
   persistLegends(legends: IGroup[]): Promise<void>;
   persistDefaultLegendVisibility(legendId: string, visible: boolean): Promise<void>;
+  persistDefaultLegendVisibilityBatch(legendVisibility: Record<string, boolean>): Promise<void>;
   persistLegendOrder(legendIds: string[]): Promise<void>;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;
@@ -79,6 +80,12 @@ export async function applyLegendMessage(
         message.payload.legendId,
         message.payload.visible,
       );
+      handlers.recomputeGroups();
+      handlers.sendGroupsUpdated();
+      return true;
+
+    case 'UPDATE_DEFAULT_LEGEND_VISIBILITY_BATCH':
+      await handlers.persistDefaultLegendVisibilityBatch(message.payload.legendVisibility);
       handlers.recomputeGroups();
       handlers.sendGroupsUpdated();
       return true;

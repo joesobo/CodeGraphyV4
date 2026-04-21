@@ -19,12 +19,13 @@ function createState(
 function createHandlers(
   overrides: Partial<GraphViewLegendMessageHandlers> = {},
 ): GraphViewLegendMessageHandlers {
-    return {
-      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
-      createDirectory: vi.fn(() => Promise.resolve()),
-      writeFile: vi.fn(() => Promise.resolve()),
-      persistLegends: vi.fn(() => Promise.resolve()),
+  return {
+    workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+    createDirectory: vi.fn(() => Promise.resolve()),
+    writeFile: vi.fn(() => Promise.resolve()),
+    persistLegends: vi.fn(() => Promise.resolve()),
     persistDefaultLegendVisibility: vi.fn(() => Promise.resolve()),
+    persistDefaultLegendVisibilityBatch: vi.fn(() => Promise.resolve()),
     persistLegendOrder: vi.fn(() => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
@@ -143,6 +144,34 @@ describe('graph view legend message', () => {
     expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(state.userLegends).toEqual([{ id: 'user-group', pattern: 'src/**', color: '#112233' }]);
+  });
+
+  it('persists batched plugin-default visibility overrides and resends groups once', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applyLegendMessage(
+        {
+          type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY_BATCH',
+          payload: {
+            legendVisibility: {
+              'default:fileExtension:py': false,
+              'default:fileName:package.json': false,
+            },
+          },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.persistDefaultLegendVisibilityBatch).toHaveBeenCalledWith({
+      'default:fileExtension:py': false,
+      'default:fileName:package.json': false,
+    });
+    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
+    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
   });
 
   it('persists legend ordering and resends groups', async () => {

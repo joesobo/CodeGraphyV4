@@ -45,6 +45,10 @@ export type WebviewToExtensionMessage =
   | { type: 'CHANGE_DEPTH_LIMIT'; payload: { depthLimit: number } }
   | { type: 'UPDATE_LEGENDS'; payload: { legends: IGroup[]; iconImports?: LegendIconImport[] } }
   | { type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY'; payload: { legendId: string; visible: boolean } }
+  | {
+      type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY_BATCH';
+      payload: { legendVisibility: Record<string, boolean> };
+    }
   | { type: 'UPDATE_LEGEND_ORDER'; payload: { legendIds: string[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
   | {

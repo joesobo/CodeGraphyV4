@@ -88,6 +88,7 @@ export interface GraphState {
   setPhysicsSettings: (settings: IPhysicsSettings) => void;
   setLegends: (legends: IGroup[]) => void;
   setOptimisticLegendUpdate: (legendId: string, updates: Partial<IGroup>) => void;
+  setOptimisticLegendUpdates: (updatesByLegendId: Record<string, Partial<IGroup>>) => void;
   clearOptimisticLegendUpdate: (legendId: string) => void;
   setOptimisticUserLegends: (legends: IGroup[]) => void;
   setFilterPatterns: (patterns: string[]) => void;

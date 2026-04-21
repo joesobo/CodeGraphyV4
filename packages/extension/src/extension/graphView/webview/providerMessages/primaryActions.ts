@@ -45,6 +45,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'resetPhysicsSettings'
   | 'persistLegends'
   | 'persistDefaultLegendVisibility'
+  | 'persistDefaultLegendVisibilityBatch'
   | 'persistLegendOrder'
   | 'recomputeGroups'
   | 'sendGroupsUpdated'
@@ -131,6 +132,14 @@ export function createGraphViewProviderMessagePrimaryActions(
       await updateCodeGraphyConfigurationSilently('legendVisibility', {
         ...currentVisibility,
         [legendId]: visible,
+      });
+    },
+    persistDefaultLegendVisibilityBatch: async (legendVisibility: Record<string, boolean>) => {
+      const currentVisibility =
+        getCodeGraphyConfiguration().get<Record<string, boolean>>('legendVisibility', {}) ?? {};
+      await updateCodeGraphyConfigurationSilently('legendVisibility', {
+        ...currentVisibility,
+        ...legendVisibility,
       });
     },
     persistLegendOrder: async legendIds => {
