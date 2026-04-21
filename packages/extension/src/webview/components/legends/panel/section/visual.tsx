@@ -3,12 +3,12 @@ import {
   mdiCircle,
   mdiHexagon,
   mdiImage,
+  mdiImagePlus,
   mdiImageOff,
   mdiRhombus,
   mdiSquare,
   mdiStar,
   mdiTriangle,
-  mdiUpload,
 } from '@mdi/js';
 import type { IGroup } from '../../../../../shared/settings/groups';
 import type { NodeShape2D, NodeShape3D } from '../../../../../shared/settings/modes';
@@ -67,6 +67,10 @@ function IconPreview({ rule }: { rule: IGroup }): React.ReactElement {
   }
 
   return <MdiIcon path={mdiImage} size={16} />;
+}
+
+function EmptyIconSlot(): React.ReactElement {
+  return <span className="h-4 w-4" aria-hidden="true" />;
 }
 
 function ShapePreview({
@@ -220,7 +224,7 @@ export function LegendIconControl({
   if (!canEditRuleVisual(editable, rule)) {
     return (
       <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-border/60 bg-background/20 text-muted-foreground">
-        <IconPreview rule={rule} />
+        {rule.imageUrl ? <IconPreview rule={rule} /> : <EmptyIconSlot />}
       </span>
     );
   }
@@ -232,10 +236,10 @@ export function LegendIconControl({
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7 shrink-0 border-border/60 bg-background/20 text-muted-foreground hover:bg-accent/20 hover:text-foreground"
-          title={title}
-        >
-          {rule.imageUrl ? <IconPreview rule={rule} /> : <MdiIcon path={mdiUpload} size={15} />}
+        className="h-7 w-7 shrink-0 border-border/60 bg-background/20 text-muted-foreground hover:bg-accent/20 hover:text-foreground"
+        title={title}
+      >
+          {rule.imageUrl ? <IconPreview rule={rule} /> : <MdiIcon path={mdiImagePlus} size={15} />}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-3">

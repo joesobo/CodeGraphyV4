@@ -11,6 +11,10 @@ export interface LegendRuleGroup {
   rules: LegendRuleRowModel[];
 }
 
+function isBuiltInRule(rule: LegendDisplayRule): boolean {
+  return rule.id.startsWith('default:') || rule.pluginId === 'codegraphy.treesitter';
+}
+
 function getPluginGroupId(rule: LegendDisplayRule): string {
   return rule.pluginId ?? rule.pluginName ?? 'unknown';
 }
@@ -29,11 +33,36 @@ export function createCustomRuleGroup(rules: LegendDisplayRule[]): LegendRuleGro
   };
 }
 
+export function createBuiltInRuleGroups(rules: LegendDisplayRule[]): LegendRuleGroup[] {
+  const groupsById = new Map<string, LegendRuleGroup>();
+
+  rules.forEach((rule, index) => {
+    if (!rule.isPluginDefault || !isBuiltInRule(rule)) {
+      return;
+    }
+
+    const id = getPluginGroupId(rule);
+    const existingGroup = groupsById.get(id);
+    if (existingGroup) {
+      existingGroup.rules.push({ index, rule });
+      return;
+    }
+
+    groupsById.set(id, {
+      id,
+      label: getPluginGroupLabel(rule),
+      rules: [{ index, rule }],
+    });
+  });
+
+  return [...groupsById.values()];
+}
+
 export function createPluginRuleGroups(rules: LegendDisplayRule[]): LegendRuleGroup[] {
   const groupsById = new Map<string, LegendRuleGroup>();
 
   rules.forEach((rule, index) => {
-    if (!rule.isPluginDefault) {
+    if (!rule.isPluginDefault || isBuiltInRule(rule)) {
       return;
     }
 
