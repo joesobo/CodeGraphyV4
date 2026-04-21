@@ -16,7 +16,7 @@
     "**/AssemblyInfo.cs"
   ],
   "fileColors": {
-    "*.cs": { "color": "#512BD4", "imagePath": "assets/csharp.svg" },
+    "*.cs": "#512BD4",
     "*.csx": "#512BD4",
     "*.csproj": "#512BD4",
     "*.sln": "#854CC7",

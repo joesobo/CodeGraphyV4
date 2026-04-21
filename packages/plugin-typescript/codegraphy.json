@@ -17,12 +17,12 @@
     "**/.turbo/**"
   ],
   "fileColors": {
-    "*.ts": { "color": "#3178C6", "imagePath": "assets/typescript.svg" },
-    "*.tsx": { "color": "#61DAFB", "imagePath": "assets/react.svg" },
-    "*.js": { "color": "#F7DF1E", "imagePath": "assets/javascript.svg" },
-    "*.jsx": { "color": "#61DAFB", "imagePath": "assets/react.svg" },
-    "*.mjs": { "color": "#F7DF1E", "imagePath": "assets/javascript.svg" },
-    "*.cjs": { "color": "#F7DF1E", "imagePath": "assets/javascript.svg" },
+    "*.ts": "#3178C6",
+    "*.tsx": "#61DAFB",
+    "*.js": "#F7DF1E",
+    "*.jsx": "#61DAFB",
+    "*.mjs": "#F7DF1E",
+    "*.cjs": "#F7DF1E",
     "*.vue": "#42B883",
     "tsconfig.json": "#3178C6",
     "jsconfig.json": "#F7DF1E",

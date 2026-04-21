@@ -33,9 +33,9 @@ describe('extension/pipeline/plugins/treesitter/plugin', () => {
     expect(plugin.supportedExtensions).toEqual(TREE_SITTER_SUPPORTED_EXTENSIONS);
     expect(plugin.supportedExtensions).not.toBe(TREE_SITTER_SUPPORTED_EXTENSIONS);
     expect(plugin.fileColors).toMatchObject({
-      '*.java': { color: '#E76F00', imagePath: 'assets/language-icons/java.svg' },
-      '*.rs': { color: '#DEA584', imagePath: 'assets/language-icons/rust.svg' },
-      '*.go': { color: '#00ADD8', imagePath: 'assets/language-icons/go.svg' },
+      '*.java': '#E76F00',
+      '*.rs': '#DEA584',
+      '*.go': '#00ADD8',
     });
   });
 

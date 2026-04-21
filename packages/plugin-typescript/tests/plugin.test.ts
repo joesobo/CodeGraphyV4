@@ -19,9 +19,9 @@ describe('createTypeScriptPlugin', () => {
 
     expect(plugin.defaultFilters).toContain('**/node_modules/**');
     expect(plugin.fileColors).toMatchObject({
-      '*.ts': { color: '#3178C6', imagePath: 'assets/typescript.svg' },
-      '*.tsx': { color: '#61DAFB', imagePath: 'assets/react.svg' },
-      '*.js': { color: '#F7DF1E', imagePath: 'assets/javascript.svg' },
+      '*.ts': '#3178C6',
+      '*.tsx': '#61DAFB',
+      '*.js': '#F7DF1E',
     });
   });
 
