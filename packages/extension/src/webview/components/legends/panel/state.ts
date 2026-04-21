@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import type { IGroup } from '../../../../shared/settings/groups';
+import type { PendingGroupUpdates } from '../../../store/optimistic/groups/updates';
+import { applyPendingGroupUpdates } from '../../../store/optimistic/groups/updates';
 import {
   resolveDisplayRules,
   shouldRenderRuleInSection,
@@ -17,6 +19,7 @@ interface PanelStateInput {
   legends: IGroup[];
   nodeColors: Record<string, string>;
   nodeTypes: Array<{ id: string; label: string; defaultColor: string }>;
+  optimisticLegendUpdates?: PendingGroupUpdates;
 }
 
 function createBuiltInEntries(
@@ -27,6 +30,8 @@ function createBuiltInEntries(
     id: entry.id,
     label: entry.label,
     color: colors[entry.id] ?? entry.defaultColor,
+    colorEnabled: (colors[entry.id] ?? entry.defaultColor) !== entry.defaultColor,
+    defaultColor: entry.defaultColor,
   }));
 }
 
@@ -74,10 +79,15 @@ export function useLegendPanelState({
   legends,
   nodeColors,
   nodeTypes,
+  optimisticLegendUpdates = {},
 }: PanelStateInput) {
+  const resolvedLegends = useMemo(
+    () => applyPendingGroupUpdates(legends, optimisticLegendUpdates).groups,
+    [legends, optimisticLegendUpdates],
+  );
   const userLegendRules = useMemo(
-    () => legends.filter((group) => !group.isPluginDefault),
-    [legends],
+    () => resolvedLegends.filter((group) => !group.isPluginDefault),
+    [resolvedLegends],
   );
   const edgeTypeIds = useMemo(
     () => createEdgeTypeIdSet(edgeTypes),
@@ -97,25 +107,25 @@ export function useLegendPanelState({
   );
   const displayedNodeLegendRules = useMemo(
     () => resolveDisplayRules(
-      legends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
+      resolvedLegends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
       'node',
     ),
-    [edgeTypeIds, legends],
+    [edgeTypeIds, resolvedLegends],
   );
   const displayedEdgeLegendRules = useMemo(
     () => resolveDisplayRules(
-      legends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
+      resolvedLegends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
       'edge',
     ),
-    [edgeTypeIds, legends],
+    [edgeTypeIds, resolvedLegends],
   );
   const nodeEntries = useMemo(
     () => createBuiltInEntries(nodeTypes, nodeColors),
     [nodeColors, nodeTypes],
   );
   const edgeTypeColors = useMemo(
-    () => resolveEdgeTypeColors(edgeTypes, legends),
-    [edgeTypes, legends],
+    () => resolveEdgeTypeColors(edgeTypes, resolvedLegends),
+    [edgeTypes, resolvedLegends],
   );
   const edgeEntries = useMemo(
     () => createBuiltInEntries(edgeTypes, edgeTypeColors),

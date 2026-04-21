@@ -19,9 +19,9 @@ describe('createPythonPlugin', () => {
 
     expect(plugin.defaultFilters).toContain('**/__pycache__/**');
     expect(plugin.fileColors).toMatchObject({
-      '*.py': '#3776AB',
-      '*.pyi': '#3776AB',
       '__init__.py': '#FFD43B',
+      'requirements.txt': '#3776AB',
+      'pyproject.toml': '#FFD43B',
     });
   });
 

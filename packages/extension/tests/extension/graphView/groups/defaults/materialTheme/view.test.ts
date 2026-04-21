@@ -130,7 +130,7 @@ describe('graphView/materialTheme/view', () => {
     expect(groups.find((group) => group.id === 'default:fileName:vite.config.ts')).toEqual(expect.objectContaining({
       pattern: 'vite.config.ts',
       color: '#AA00FF',
-      pluginName: 'CodeGraphy',
+      pluginName: 'Material Icon Theme',
       isPluginDefault: true,
       imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
     }));
@@ -139,7 +139,7 @@ describe('graphView/materialTheme/view', () => {
       pattern: '.codegraphy/settings.json',
       color: '#277ACC',
       isPluginDefault: true,
-      pluginName: 'CodeGraphy',
+      pluginName: 'Material Icon Theme',
     });
     expect(groups.some((group) => group.id === 'default:fileExtension:foo')).toBe(false);
     expect(groups.some((group) => group.id === 'default:fileName:package.json')).toBe(false);
@@ -167,7 +167,7 @@ describe('graphView/materialTheme/view', () => {
       color: '#3178C6',
       imageUrl: 'data:image/svg+xml;base64,abc',
       isPluginDefault: true,
-      pluginName: 'CodeGraphy',
+      pluginName: 'Material Icon Theme',
     });
   });
 });

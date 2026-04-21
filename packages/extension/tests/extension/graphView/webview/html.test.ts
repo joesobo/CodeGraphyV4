@@ -30,6 +30,7 @@ describe('graphView/webview/html', () => {
     );
 
     expect(html).toContain("script-src 'nonce-nonce-value'");
+    expect(html).toContain("img-src vscode-webview://test data:");
     expect(html).toContain('webview:/test/extension/dist/webview/index.js');
     expect(html).toContain('webview:/test/extension/dist/webview/index.css');
     expect(html).toContain('data-codegraphy-view="graph"');

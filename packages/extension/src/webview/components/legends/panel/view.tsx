@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { mdiClose } from '@mdi/js';
 import { useGraphStore } from '../../../store/state';
 import { postMessage } from '../../../vscodeApi';
@@ -27,8 +27,11 @@ export default function LegendsPanel({
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
+  const optimisticLegendUpdates = useGraphStore((state) => state.optimisticLegendUpdates);
   const setOptimisticLegendUpdate = useGraphStore((state) => state.setOptimisticLegendUpdate);
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
+  const builtInNodeColorsRef = useRef<Record<string, string>>({});
+  const [builtInNodeColorEnabled, setBuiltInNodeColorEnabled] = useState<Record<string, boolean>>({});
 
   const {
     displayedEdgeLegendRules,
@@ -44,7 +47,21 @@ export default function LegendsPanel({
     legends,
     nodeColors,
     nodeTypes,
+    optimisticLegendUpdates,
   });
+  const displayNodeEntries = useMemo(
+    () => nodeEntries.map((entry) => {
+      const colorEnabled = builtInNodeColorEnabled[entry.id] ?? entry.colorEnabled ?? true;
+      const storedColor = builtInNodeColorsRef.current[entry.id]
+        ?? (entry.color !== entry.defaultColor ? entry.color : entry.defaultColor);
+      return {
+        ...entry,
+        color: colorEnabled ? storedColor : entry.defaultColor,
+        colorEnabled,
+      };
+    }),
+    [builtInNodeColorEnabled, nodeEntries],
+  );
 
   if (!isOpen) {
     return null;
@@ -63,15 +80,34 @@ export default function LegendsPanel({
         <div className="space-y-4 px-3 pb-3 pt-2">
           <LegendSection
             title="Nodes"
-            builtInEntries={nodeEntries}
+            builtInEntries={displayNodeEntries}
             displayRules={displayedNodeLegendRules}
             userRules={nodeLegendRules}
             legends={legends}
             target="node"
             onBuiltInColorChange={(nodeType, color) => {
+              builtInNodeColorsRef.current[nodeType] = color;
+              setBuiltInNodeColorEnabled((current) => ({ ...current, [nodeType]: true }));
               postMessage({
                 type: 'UPDATE_NODE_COLOR',
                 payload: { nodeType, color },
+              });
+            }}
+            onBuiltInColorToggle={(nodeType, enabled) => {
+              const entry = nodeEntries.find((candidate) => candidate.id === nodeType);
+              if (!entry) {
+                return;
+              }
+              const storedColor = builtInNodeColorsRef.current[nodeType]
+                ?? (entry.color !== entry.defaultColor ? entry.color : entry.defaultColor);
+              builtInNodeColorsRef.current[nodeType] = storedColor;
+              setBuiltInNodeColorEnabled((current) => ({ ...current, [nodeType]: enabled }));
+              postMessage({
+                type: 'UPDATE_NODE_COLOR',
+                payload: {
+                  nodeType,
+                  color: enabled ? storedColor : entry.defaultColor,
+                },
               });
             }}
             onRulesChange={(nextSectionRules, iconImports) => {

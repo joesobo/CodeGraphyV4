@@ -16,13 +16,24 @@ vi.mock('../../../../src/webview/components/legends/panel/section/builtInRow', (
   LegendBuiltInRow: ({
     entry,
     onChange,
+    onToggleColor,
+    showColorToggle,
   }: {
-    entry: { id: string; label: string };
+    entry: { id: string; label: string; colorEnabled?: boolean };
     onChange: (id: string, color: string) => void;
+    onToggleColor?: (id: string, enabled: boolean) => void;
+    showColorToggle?: boolean;
   }) => (
-    <button type="button" onClick={() => onChange(entry.id, '#abc123')}>
-      built-in:{entry.label}
-    </button>
+    <div>
+      <button type="button" onClick={() => onChange(entry.id, '#abc123')}>
+        built-in:{entry.label}
+      </button>
+      {showColorToggle && onToggleColor ? (
+        <button type="button" onClick={() => onToggleColor(entry.id, !(entry.colorEnabled ?? true))}>
+          toggle-color:{entry.label}
+        </button>
+      ) : null}
+    </div>
   ),
 }));
 
@@ -114,7 +125,7 @@ vi.mock('../../../../src/webview/components/legends/panel/section/ruleRow', () =
 describe('webview/legends/section', () => {
   const baseProps = {
     title: 'Nodes',
-    builtInEntries: [{ id: 'file', label: 'Files', color: '#111111' }],
+    builtInEntries: [{ id: 'file', label: 'Files', color: '#111111', defaultColor: '#111111' }],
     displayRules: [
       { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
       { id: 'node:second', pattern: 'tests/**', color: '#456789', target: 'node' },
@@ -138,6 +149,7 @@ describe('webview/legends/section', () => {
     ] as IGroup[],
     target: 'node' as const,
     onBuiltInColorChange: vi.fn(),
+    onBuiltInColorToggle: vi.fn(),
     onRulesChange: vi.fn(),
     onToggleDefaultVisibility: vi.fn(),
   };
@@ -146,6 +158,7 @@ describe('webview/legends/section', () => {
     render(<LegendSection {...baseProps} />);
 
     expect(screen.getByText('built-in:Files')).toBeInTheDocument();
+    expect(screen.getByText('toggle-color:Files')).toBeInTheDocument();
     expect(screen.getByText('Custom')).toBeInTheDocument();
     expect(screen.getByText('Plugin defaults')).toBeInTheDocument();
     expect(screen.getByText('src/**')).toBeInTheDocument();
@@ -156,7 +169,7 @@ describe('webview/legends/section', () => {
     expect(screen.queryByText('src/**')).not.toBeInTheDocument();
   });
 
-  it('keeps CodeGraphy and Tree-sitter rules under Built in and groups remaining defaults by plugin', () => {
+  it('keeps Material Icon Theme rules under Built in and groups remaining defaults by plugin', () => {
     render(
       <LegendSection
         {...baseProps}
@@ -168,16 +181,7 @@ describe('webview/legends/section', () => {
             color: '#f9c74f',
             target: 'node',
             isPluginDefault: true,
-            pluginName: 'CodeGraphy',
-          },
-          {
-            id: 'plugin:codegraphy.treesitter:*.rs',
-            pattern: '*.rs',
-            color: '#dea584',
-            target: 'node',
-            isPluginDefault: true,
-            pluginId: 'codegraphy.treesitter',
-            pluginName: 'Tree-sitter',
+            pluginName: 'Material Icon Theme',
           },
           {
             id: 'plugin:codegraphy.typescript:*.ts',
@@ -217,10 +221,8 @@ describe('webview/legends/section', () => {
 
     const builtInSection = screen.getByText('Built in').closest('[data-testid="legend-rule-subsection"]');
     expect(builtInSection).not.toBeNull();
-    expect(within(builtInSection as HTMLElement).getByText('CodeGraphy')).toBeInTheDocument();
-    expect(within(builtInSection as HTMLElement).getByText('Tree-sitter')).toBeInTheDocument();
+    expect(within(builtInSection as HTMLElement).getByText('Material Icon Theme')).toBeInTheDocument();
     expect(within(builtInSection as HTMLElement).getByText('*.json')).toBeInTheDocument();
-    expect(within(builtInSection as HTMLElement).getByText('*.rs')).toBeInTheDocument();
 
     const typescriptSection = screen.getByText('TypeScript').closest('[data-testid="legend-rule-subsection"]');
     expect(typescriptSection).not.toBeNull();
@@ -228,7 +230,6 @@ describe('webview/legends/section', () => {
     expect(within(typescriptSection as HTMLElement).getByText('*.tsx')).toBeInTheDocument();
     expect(within(typescriptSection as HTMLElement).queryByText('*.py')).not.toBeInTheDocument();
     expect(within(typescriptSection as HTMLElement).queryByText('*.json')).not.toBeInTheDocument();
-    expect(within(typescriptSection as HTMLElement).queryByText('*.rs')).not.toBeInTheDocument();
 
     const pythonSection = screen.getByText('Python').closest('[data-testid="legend-rule-subsection"]');
     expect(pythonSection).not.toBeNull();

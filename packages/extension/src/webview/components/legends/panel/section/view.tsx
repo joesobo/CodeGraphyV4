@@ -131,12 +131,16 @@ function BuiltInRulesSubsection({
   renderRuleRow,
   onToggleDefaultVisibility,
   onBuiltInColorChange,
+  onBuiltInColorToggle,
+  target,
 }: {
   builtInEntries: LegendBuiltInEntry[];
   builtInRuleGroups: LegendRuleGroup[];
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
   onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
   onBuiltInColorChange: (id: string, color: string) => void;
+  onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
+  target: LegendTargetSection;
 }): React.ReactElement | null {
   if (!builtInEntries.length && !builtInRuleGroups.length) {
     return null;
@@ -150,6 +154,8 @@ function BuiltInRulesSubsection({
             key={entry.id}
             entry={entry}
             onChange={onBuiltInColorChange}
+            onToggleColor={onBuiltInColorToggle}
+            showColorToggle={target === 'node'}
           />
         ))}
         {builtInRuleGroups.length ? (
@@ -273,6 +279,7 @@ function SectionRules({
   userRules,
   renderRuleRow,
   onBuiltInColorChange,
+  onBuiltInColorToggle,
   onRulesChange,
   onToggleDefaultVisibility,
 }: {
@@ -284,6 +291,7 @@ function SectionRules({
   userRules: IGroup[];
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
   onBuiltInColorChange: (id: string, color: string) => void;
+  onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
   onRulesChange: LegendRulesChange;
   onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
 }): React.ReactElement {
@@ -295,6 +303,8 @@ function SectionRules({
         renderRuleRow={renderRuleRow}
         onToggleDefaultVisibility={onToggleDefaultVisibility}
         onBuiltInColorChange={onBuiltInColorChange}
+        onBuiltInColorToggle={onBuiltInColorToggle}
+        target={target}
       />
       <CustomRulesSubsection
         customRuleGroup={customRuleGroup}
@@ -320,6 +330,7 @@ export function LegendSection({
   legends,
   target,
   onBuiltInColorChange,
+  onBuiltInColorToggle,
   onRulesChange,
   onToggleDefaultVisibility,
 }: {
@@ -330,6 +341,7 @@ export function LegendSection({
   legends: IGroup[];
   target: LegendTargetSection;
   onBuiltInColorChange: (id: string, color: string) => void;
+  onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
   onRulesChange: LegendRulesChange;
   onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
 }): React.ReactElement {
@@ -414,6 +426,7 @@ export function LegendSection({
             userRules={userRules}
             renderRuleRow={renderRuleRow}
             onBuiltInColorChange={onBuiltInColorChange}
+            onBuiltInColorToggle={onBuiltInColorToggle}
             onRulesChange={onRulesChange}
             onToggleDefaultVisibility={onToggleDefaultVisibility}
           />

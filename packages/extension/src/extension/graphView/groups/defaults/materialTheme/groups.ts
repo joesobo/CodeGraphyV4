@@ -8,7 +8,7 @@ export function createMaterialGroup(match: MaterialMatch, iconData: MaterialIcon
     color: iconData.color,
     imageUrl: iconData.imageUrl,
     isPluginDefault: true,
-    pluginName: 'CodeGraphy',
+    pluginName: 'Material Icon Theme',
   };
 }
 
@@ -31,7 +31,7 @@ export function getManualGroups(): IGroup[] {
       pattern: '.codegraphy/settings.json',
       color: '#277ACC',
       isPluginDefault: true,
-      pluginName: 'CodeGraphy',
+      pluginName: 'Material Icon Theme',
     },
   ];
 }

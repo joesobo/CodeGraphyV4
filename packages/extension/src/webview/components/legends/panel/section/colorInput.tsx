@@ -5,11 +5,13 @@ const COLOR_DEBOUNCE_MS = 150;
 export function LegendColorInput({
   ariaLabel,
   color,
+  disabled = false,
   onCommit,
   immediate = false,
 }: {
   ariaLabel: string;
   color: string;
+  disabled?: boolean;
   onCommit: (color: string) => void;
   immediate?: boolean;
 }): React.ReactElement {
@@ -38,11 +40,13 @@ export function LegendColorInput({
 
   return (
     <label
-      className="relative block h-5 w-8 shrink-0 overflow-hidden rounded-sm border border-black/10 cursor-pointer"
+      className="relative block h-5 w-8 shrink-0 overflow-hidden rounded-sm border border-black/10"
+      data-disabled={disabled ? 'true' : 'false'}
       style={{ backgroundColor: draftColor }}
     >
       <input
         aria-label={ariaLabel}
+        disabled={disabled}
         type="color"
         value={draftColor}
         onChange={(event) => {
@@ -65,7 +69,7 @@ export function LegendColorInput({
             commitColor(pendingColorRef.current);
           }
         }}
-        className="absolute inset-0 cursor-pointer opacity-0"
+        className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
       />
     </label>
   );

@@ -69,10 +69,6 @@ function IconPreview({ rule }: { rule: IGroup }): React.ReactElement {
   return <MdiIcon path={mdiImage} size={16} />;
 }
 
-function EmptyIconSlot(): React.ReactElement {
-  return <span className="h-4 w-4" aria-hidden="true" />;
-}
-
 function ShapePreview({
   label,
   option,
@@ -220,13 +216,15 @@ export function LegendIconControl({
   rule: IGroup;
   title: string;
   onChange: LegendRuleChange;
-}): React.ReactElement {
+}): React.ReactElement | null {
   if (!canEditRuleVisual(editable, rule)) {
-    return (
-      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-border/60 bg-background/20 text-muted-foreground">
-        {rule.imageUrl ? <IconPreview rule={rule} /> : <EmptyIconSlot />}
-      </span>
-    );
+    return rule.imageUrl
+      ? (
+          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-border/60 bg-background/20 text-muted-foreground">
+            <IconPreview rule={rule} />
+          </span>
+        )
+      : null;
   }
 
   return (

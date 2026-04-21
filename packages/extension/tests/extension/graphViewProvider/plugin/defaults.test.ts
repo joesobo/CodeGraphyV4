@@ -50,8 +50,8 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
     const pluginGroups = internals._pluginResourceMethods._getPluginDefaultGroups() as GroupSummary[];
     expect(pluginGroups.length).toBeGreaterThan(0);
-    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts' && g.color === '#3178C6')).toBe(true);
-    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.python:*.py' && g.color === '#3776AB')).toBe(true);
+    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.typescript:package.json' && g.color === '#CB3837')).toBe(true);
+    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.python:pyproject.toml' && g.color === '#FFD43B')).toBe(true);
     expect(pluginGroups.every(g => g.isPluginDefault === true)).toBe(true);
   });
 
@@ -66,8 +66,8 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
     const groups = provider._groups as GroupSummary[];
     expect(groups.some(g => g.id === 'user-group-1')).toBe(true);
-    expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts')).toBe(true);
-    expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:.ts')).toBe(false);
+    expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:package.json')).toBe(true);
+    expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts')).toBe(false);
   });
 
   it('computeMergedGroups includes built-in default groups', async () => {
@@ -90,7 +90,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     const groups = provider._groups as GroupSummary[];
     const jsonGroup = groups.find(g => g.id === 'default:fileName:package.json');
     expect(jsonGroup).toBeDefined();
-    expect(jsonGroup!.pluginName).toBe('CodeGraphy');
+    expect(jsonGroup!.pluginName).toBe('Material Icon Theme');
     expect(jsonGroup!.isPluginDefault).toBe(true);
     expect(groups.some(g => g.id === 'default:fileExtension:md')).toBe(true);
     expect(groups.some(g => g.id === 'default:fileName:.codegraphy/settings.json')).toBe(true);
@@ -104,8 +104,8 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     registerOptionalPlugins(provider);
 
     const pluginGroups = internals._pluginResourceMethods._getPluginDefaultGroups() as GroupSummary[];
-    expect(pluginGroups.some(g => g.id.startsWith('plugin:codegraphy.typescript:'))).toBe(false);
-    expect(pluginGroups.some(g => g.id.startsWith('plugin:codegraphy.python:'))).toBe(true);
+    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.typescript:package.json')).toBe(false);
+    expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.python:pyproject.toml')).toBe(true);
 
     provider._disabledPlugins = new Set<string>();
   });

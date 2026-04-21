@@ -48,15 +48,12 @@ export function LegendRuleRow({
   return (
     <div
       data-testid="legend-rule-row"
-      draggable
-      onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      onDragEnd={onDragEnd}
       className={getRuleRowClassName(isDragOver, isDragging)}
     >
       <div className="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-accent/20">
-        <RuleDragHandle />
+        <RuleDragHandle onDragStart={onDragStart} onDragEnd={onDragEnd} />
         <RulePatternCell rule={rule} index={index} onChange={onChange} />
         <RuleVisualControls rule={rule} index={index} onChange={onChange} />
         <RuleColorControl rule={rule} index={index} onChange={onChange} />
