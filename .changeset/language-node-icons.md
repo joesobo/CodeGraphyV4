@@ -6,4 +6,4 @@
 "codegraphy-csharp": patch
 ---
 
-Show language icons in graph nodes and expose color, icon, and shape controls in custom legend rules.
+Show language icons in graph nodes, add Material-style built-in node theming in the core extension, and expose color, icon, and shape controls in custom legend rules.

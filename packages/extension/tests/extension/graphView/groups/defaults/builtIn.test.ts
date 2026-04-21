@@ -1,65 +1,63 @@
+import * as vscode from 'vscode';
+import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { getBuiltInGraphViewDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/builtIn';
 
 describe('graphView/builtInDefaultGroups', () => {
-  it('builds every built-in default group with CodeGraphy metadata', () => {
-    expect(getBuiltInGraphViewDefaultGroups()).toEqual([
+  it('materializes matching Material theme defaults for the current graph and keeps CodeGraphy metadata', () => {
+    const groups = getBuiltInGraphViewDefaultGroups(
       {
-        id: 'default:.gitignore',
-        pattern: '.gitignore',
-        color: '#F97583',
+        nodes: [
+          { id: 'package.json', label: 'package.json', color: '#000000' },
+          { id: 'src/main.tsx', label: 'main.tsx', color: '#000000' },
+          { id: 'README.md', label: 'README.md', color: '#000000' },
+          { id: 'vite.config.ts', label: 'vite.config.ts', color: '#000000' },
+        ],
+        edges: [],
+      },
+      vscode.Uri.file(path.resolve(process.cwd(), '../..')),
+    );
+
+    expect(groups).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'default:fileName:package.json',
+        pattern: 'package.json',
+        color: '#8bc34a',
         isPluginDefault: true,
         pluginName: 'CodeGraphy',
-      },
-      {
-        id: 'default:*.json',
-        pattern: '*.json',
-        color: '#F9C74F',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+      expect.objectContaining({
+        id: 'default:fileExtension:tsx',
+        pattern: '*.tsx',
+        color: '#0288d1',
         isPluginDefault: true,
         pluginName: 'CodeGraphy',
-      },
-      {
-        id: 'default:*.png',
-        pattern: '*.png',
-        color: '#90BE6D',
-        isPluginDefault: true,
-        pluginName: 'CodeGraphy',
-      },
-      {
-        id: 'default:*.jpg',
-        pattern: '*.jpg',
-        color: '#90BE6D',
-        isPluginDefault: true,
-        pluginName: 'CodeGraphy',
-      },
-      {
-        id: 'default:*.svg',
-        pattern: '*.svg',
-        color: '#43AA8B',
-        isPluginDefault: true,
-        pluginName: 'CodeGraphy',
-      },
-      {
-        id: 'default:*.md',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+      expect.objectContaining({
+        id: 'default:fileExtension:md',
         pattern: '*.md',
-        color: '#577590',
+        color: '#42a5f5',
         isPluginDefault: true,
         pluginName: 'CodeGraphy',
-      },
-      {
-        id: 'default:*.jpeg',
-        pattern: '*.jpeg',
-        color: '#90BE6D',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+      expect.objectContaining({
+        id: 'default:fileName:vite.config.ts',
+        pattern: 'vite.config.ts',
+        color: '#a0f',
         isPluginDefault: true,
         pluginName: 'CodeGraphy',
-      },
-      {
-        id: 'default:.codegraphy/settings.json',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+      expect.objectContaining({
+        id: 'default:fileName:.codegraphy/settings.json',
         pattern: '.codegraphy/settings.json',
         color: '#277ACC',
         isPluginDefault: true,
         pluginName: 'CodeGraphy',
-      },
-    ]);
+      }),
+    ]));
   });
 });

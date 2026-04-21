@@ -122,7 +122,9 @@ describe('webview/components/legends/ruleRow', () => {
     expect(screen.queryByTitle('Delete legend rule')).toBeNull();
     expect(screen.getByTitle('*.ts')).toHaveTextContent('*.ts');
     expect(screen.getByTestId('legend-rule-row').className).toBe('transition-colors');
-    expect(container.querySelector('span[aria-hidden="true"]')).toHaveStyle({ backgroundColor: '#abcdef' });
+    expect(container.querySelector('span[aria-hidden="true"][style]')).toHaveStyle({
+      backgroundColor: '#abcdef',
+    });
     fireEvent.click(screen.getByRole('switch'));
 
     expect(handlers.onToggleDefaultVisibility).toHaveBeenCalledWith('legend:default', true);
