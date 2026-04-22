@@ -1,5 +1,19 @@
 # @codegraphy/extension
 
+## 5.2.0
+
+### Minor Changes
+
+- [#181](https://github.com/joesobo/CodeGraphyV4/pull/181) [`a3c16f3`](https://github.com/joesobo/CodeGraphyV4/commit/a3c16f3a0440d513f1098fb46175402a6070ab91) Thanks [@joesobo](https://github.com/joesobo)! - Show language icons in graph nodes, add Material-style built-in node theming in the core extension, and expose color, icon, and shape controls in custom legend rules.
+
+- [#180](https://github.com/joesobo/CodeGraphyV4/pull/180) [`b95cec9`](https://github.com/joesobo/CodeGraphyV4/commit/b95cec92232fb989a528f491d06779a2ac387ea9) Thanks [@joesobo](https://github.com/joesobo)! - Move graph filters into the search bar with source toggles, counts, and context-menu prefill.
+
+### Patch Changes
+
+- [#181](https://github.com/joesobo/CodeGraphyV4/pull/181) [`b4fd243`](https://github.com/joesobo/CodeGraphyV4/commit/b4fd2433b892b0d1d353a8d2d6c9d004ed87aa44) Thanks [@joesobo](https://github.com/joesobo)! - Fix legend visibility toggles so Material Icon Theme and plugin groups persist reliably, support transparent legend colors, and remember collapsed legend sections between sessions.
+
+- [#177](https://github.com/joesobo/CodeGraphyV4/pull/177) [`16d7460`](https://github.com/joesobo/CodeGraphyV4/commit/16d7460763abc4230d1504ae916c89a4423a3fa1) Thanks [@joesobo](https://github.com/joesobo)! - Clean up repo-local settings by dropping unused plugin and edge color fields while resolving edge colors through legend rules.
+
 ## 5.1.0
 
 ### Minor Changes
