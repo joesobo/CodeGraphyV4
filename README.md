@@ -117,7 +117,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 2. Optionally install plugins for unsupported languages or richer semantics. Core already handles JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C# through Tree-sitter, and Markdown ships built in.
 3. Click the **CodeGraphy** activity bar icon in VS Code.
 4. Open the graph.
-5. Click **Index Repo** when you want semantic edges and timeline data.
+5. Click **Index Repo** when you want to visualize connections.
 
 ## Legend Precedence
 
@@ -129,22 +129,9 @@ Node legend styling is cumulative and resolves in this order:
 2. Plugin defaults
 3. Custom legend rules
 
-Higher layers override lower ones only for the fields they set. A plugin can override a core node color without replacing the core icon, and a custom rule can add an icon on top of an existing color choice.
-
-Inside the **Legends** popup, node styling is organized top-to-bottom as:
-
-1. Custom
-2. Plugin Defaults
-3. Material Icon Theme
-4. Defaults
-
-Each subsection has its own collapse state and top-level toggle. Toggle and visibility state persist in `.codegraphy/settings.json`; collapse state persists in the webview.
-
-Legend colors now support opacity. Built-in Material folder entries use transparent colors so folder nodes can become icon-first while the theme is enabled and fall back to the default filled node style when the Material section is disabled.
+Higher layers override lower ones only for the fields they set.
 
 ## Development
-
-Local development is pinned to Node `22.22.0` LTS. Use the version in [`.nvmrc`](./.nvmrc) or [`.node-version`](./.node-version) before running install, quality, or release commands.
 
 Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLUGINS.md), the [plugin lifecycle docs](./docs/plugin-api/LIFECYCLE.md), and [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api).
 
