@@ -19,6 +19,7 @@ describe('gitHistory/diff/replay', () => {
       }),
       previousGraph: { nodes: [], edges: [] },
       registry: {
+        notifyPreAnalyze: vi.fn(async () => {}),
         analyzeFileResult: vi.fn(async (absolutePath: string) => {
           if (!absolutePath.endsWith('a.ts')) {
             return { filePath: absolutePath, relations: [] };

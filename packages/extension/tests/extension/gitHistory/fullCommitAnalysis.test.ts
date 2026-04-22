@@ -23,6 +23,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
       return 'export const value = 1;';
     });
     const registry = {
+      notifyPreAnalyze: vi.fn(async () => {}),
       analyzeFileResult: vi.fn(async (absolutePath: string) => {
         if (absolutePath.endsWith('a.ts')) {
           return {
@@ -82,7 +83,27 @@ describe('gitHistory/fullCommitAnalysis', () => {
         ],
       },
     ]);
-    expect(getFileAtCommit).toHaveBeenCalledTimes(2);
+    expect(registry.notifyPreAnalyze).toHaveBeenCalledWith(
+      [
+        {
+          absolutePath: '/workspace/src/a.ts',
+          relativePath: 'src/a.ts',
+          content: 'import "./b"; import "./missing";',
+        },
+        {
+          absolutePath: '/workspace/src/b.ts',
+          relativePath: 'src/b.ts',
+          content: 'export const value = 1;',
+        },
+        {
+          absolutePath: '/workspace/src/skip.js',
+          relativePath: 'src/skip.js',
+          content: 'export const value = 1;',
+        },
+      ],
+      '/workspace',
+    );
+    expect(getFileAtCommit).toHaveBeenCalledTimes(5);
     expect(registry.analyzeFileResult).toHaveBeenCalledTimes(2);
   });
 
@@ -98,6 +119,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
         allFiles: ['src/a.ts', 'src/b.ts'],
         getFileAtCommit,
         registry: {
+          notifyPreAnalyze: vi.fn(async () => {}),
           analyzeFileResult: vi.fn(async (absolutePath: string) => ({ filePath: absolutePath, relations: [] })),
         },
         sha: 'abc123',
@@ -118,6 +140,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
       return 'export const b = 1;';
     });
     const registry = {
+      notifyPreAnalyze: vi.fn(async () => {}),
       analyzeFileResult: vi.fn(async (absolutePath: string) => {
         if (!absolutePath.endsWith('a.ts')) {
           return { filePath: absolutePath, relations: [] };

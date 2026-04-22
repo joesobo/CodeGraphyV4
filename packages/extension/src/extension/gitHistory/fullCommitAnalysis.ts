@@ -4,6 +4,7 @@ import { getFileColor } from '../../shared/fileColors';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../shared/graph/contracts';
 import { createGitHistoryCommitPathHost } from './commitPathHost';
 import { appendGitHistoryAnalysisEdges } from './graphConnections';
+import { preAnalyzeGitHistoryPlugins } from './preAnalyze';
 import { withTreeSitterPathHost } from '../pipeline/plugins/treesitter/runtime/pathHost';
 
 interface FullCommitAnalysisRegistry {
@@ -13,6 +14,14 @@ interface FullCommitAnalysisRegistry {
     workspaceRoot: string,
   ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
+  notifyPreAnalyze(
+    files: Array<{
+      absolutePath: string;
+      relativePath: string;
+      content: string;
+    }>,
+    workspaceRoot: string,
+  ): Promise<void>;
 }
 
 export interface AnalyzeFullCommitGraphOptions {
@@ -65,6 +74,14 @@ export async function analyzeFullCommitGraph(
   const edges: IGraphEdge[] = [];
   const nodeIds = new Set<string>();
   const edgeSet = new Set<string>();
+  await preAnalyzeGitHistoryPlugins({
+    allFiles: allFiles.filter((filePath) => !shouldExclude(filePath)),
+    getFileAtCommit,
+    registry,
+    sha,
+    signal,
+    workspaceRoot,
+  });
   const pathHost = await createGitHistoryCommitPathHost({
     allFiles,
     getFileAtCommit,

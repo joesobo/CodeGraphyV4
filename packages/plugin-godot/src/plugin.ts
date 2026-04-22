@@ -10,7 +10,7 @@ import type { IPlugin } from '@codegraphy-vscode/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
 import type { GDScriptFileAnalysisResult } from './analysis';
-import { resolveGodotProjectRoot } from './projectRoot';
+import { collectGodotProjectRoots, resolveGodotProjectRoot } from './projectRoot';
 import manifest from '../codegraphy.json';
 
 // Source detect functions
@@ -52,6 +52,7 @@ export interface IGDScriptAnalyzeFilePlugin extends IPlugin {
 
 export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
   let resolver: GDScriptPathResolver | null = null;
+  let projectRoots = new Set<string>();
 
   const extractClassNames = (content: string): string[] => {
     const classNames = new Set<string>();
@@ -74,7 +75,7 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
   ): Promise<GDScriptFileAnalysisResult> => {
     if (!resolver) resolver = new GDScriptPathResolver(workspaceRoot);
 
-    const projectRoot = resolveGodotProjectRoot(filePath, workspaceRoot);
+    const projectRoot = resolveGodotProjectRoot(filePath, workspaceRoot, projectRoots);
     const relativeFilePath = normalizePath(path.relative(workspaceRoot, filePath));
     const ctx = { resolver, projectRoot, workspaceRoot, relativeFilePath };
 
@@ -102,6 +103,7 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
 
     async initialize(workspaceRoot: string): Promise<void> {
       resolver = new GDScriptPathResolver(workspaceRoot);
+      projectRoots = new Set();
       console.log('[CodeGraphy] GDScript plugin initialized');
     },
 
@@ -110,6 +112,7 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
       workspaceRoot: string
     ): Promise<void> {
       resolver = new GDScriptPathResolver(workspaceRoot);
+      projectRoots = collectGodotProjectRoots(files.map(({ relativePath }) => relativePath));
 
       for (const { relativePath, content } of files) {
         // Register file for snake_case fallback resolution
@@ -127,6 +130,10 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
       if (!resolver) {
         resolver = new GDScriptPathResolver(workspaceRoot);
       }
+      projectRoots = new Set([
+        ...projectRoots,
+        ...collectGodotProjectRoots(files.map(({ relativePath }) => relativePath)),
+      ]);
 
       let requiresBroadReanalysis = false;
 
@@ -150,6 +157,7 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
     onUnload(): void {
       resolver?.clearClassNames();
       resolver = null;
+      projectRoots = new Set();
     },
   };
 }

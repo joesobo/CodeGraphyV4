@@ -79,6 +79,7 @@ function createMockContext() {
  */
 function createMockRegistry() {
   return {
+    notifyPreAnalyze: vi.fn(async () => {}),
     analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
       filePath: absolutePath,
       relations: [],
@@ -94,6 +95,7 @@ function createMockRegistry() {
       },
     ]),
   } as unknown as PluginRegistry & {
+    notifyPreAnalyze: Mock;
     analyzeFileResult: Mock;
     supportsFile: Mock;
     getSupportedExtensions: Mock;
