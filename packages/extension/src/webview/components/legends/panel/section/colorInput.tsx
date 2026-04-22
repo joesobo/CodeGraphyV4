@@ -11,19 +11,19 @@ import {
 
 const COLOR_DEBOUNCE_MS = 150;
 
-export function LegendColorInput({
-  ariaLabel,
-  color,
-  disabled = false,
-  onCommit,
-  immediate = false,
-}: {
-  ariaLabel: string;
-  color: string;
-  disabled?: boolean;
-  onCommit: (color: string) => void;
-  immediate?: boolean;
-}): React.ReactElement {
+interface LegendColorDraftState {
+  displayedColor: string;
+  draftColor: ReturnType<typeof parseLegendColor>;
+  flushPendingColor: () => void;
+  onHexChange: (value: string) => void;
+  onOpacityChange: (value: number) => void;
+}
+
+function useLegendColorDraftState(
+  color: string,
+  immediate: boolean,
+  onCommit: (color: string) => void,
+): LegendColorDraftState {
   const [draftColor, setDraftColor] = useState(() => parseLegendColor(color));
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const pendingColorRef = useRef(color);
@@ -66,7 +66,43 @@ export function LegendColorInput({
     }, COLOR_DEBOUNCE_MS);
   };
 
-  const displayedColor = formatLegendColor(draftColor);
+  return {
+    displayedColor: formatLegendColor(draftColor),
+    draftColor,
+    flushPendingColor: () => {
+      if (pendingColorRef.current !== color) {
+        commitColor(pendingColorRef.current);
+      }
+    },
+    onHexChange: (value: string) => {
+      queueColor(withLegendHexColor(draftColor, value));
+    },
+    onOpacityChange: (value: number) => {
+      queueColor(withLegendAlpha(draftColor, value));
+    },
+  };
+}
+
+export function LegendColorInput({
+  ariaLabel,
+  color,
+  disabled = false,
+  onCommit,
+  immediate = false,
+}: {
+  ariaLabel: string;
+  color: string;
+  disabled?: boolean;
+  onCommit: (color: string) => void;
+  immediate?: boolean;
+}): React.ReactElement {
+  const {
+    displayedColor,
+    draftColor,
+    flushPendingColor,
+    onHexChange,
+    onOpacityChange,
+  } = useLegendColorDraftState(color, immediate, onCommit);
 
   return (
     <div className="flex shrink-0 items-center gap-2">
@@ -75,20 +111,14 @@ export function LegendColorInput({
         disabled={disabled}
         type="color"
         value={toLegendColorHex(draftColor)}
-        onChange={(event) => {
-          queueColor(withLegendHexColor(draftColor, event.target.value));
-        }}
-        onBlur={() => {
-          if (pendingColorRef.current !== color) {
-            commitColor(pendingColorRef.current);
-          }
-        }}
+        onChange={(event) => onHexChange(event.target.value)}
+        onBlur={flushPendingColor}
         className="sr-only"
       />
       <Popover
         onOpenChange={(open) => {
-          if (!open && pendingColorRef.current !== color) {
-            commitColor(pendingColorRef.current);
+          if (!open) {
+            flushPendingColor();
           }
         }}
       >
@@ -111,9 +141,7 @@ export function LegendColorInput({
                 aria-label={`${ariaLabel} base color`}
                 type="color"
                 value={toLegendColorHex(draftColor)}
-                onChange={(event) => {
-                  queueColor(withLegendHexColor(draftColor, event.target.value));
-                }}
+                onChange={(event) => onHexChange(event.target.value)}
                 className="h-9 w-full cursor-pointer rounded border border-border bg-transparent p-1"
               />
             </div>
@@ -128,9 +156,7 @@ export function LegendColorInput({
                 min={0}
                 step={1}
                 value={[Math.round(draftColor.alpha * 100)]}
-                onValueChange={(value) => {
-                  queueColor(withLegendAlpha(draftColor, (value[0] ?? 100) / 100));
-                }}
+                onValueChange={(value) => onOpacityChange((value[0] ?? 100) / 100)}
               />
             </div>
           </div>

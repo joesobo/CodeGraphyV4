@@ -5,7 +5,7 @@
   "description": "CodeGraphy markdown plugin",
   "license": "MIT",
   "engines": {
-    "node": ">=24.12.0 <25"
+    "node": ">=22.22.0 <23"
   },
   "scripts": {
     "lint": "eslint src",

@@ -124,4 +124,45 @@ describe('searchBar/filters/popover', () => {
     expect(screen.getAllByText('Filters 1')[0]).toBeInTheDocument();
     expect(screen.getByText('1 enabled')).toBeInTheDocument();
   });
+
+  it('edits and deletes custom filter rows', () => {
+    const props = renderPopover({ customPatterns: ['existing/**', 'temp/**'] });
+
+    fireEvent.change(screen.getByDisplayValue('existing/**'), {
+      target: { value: 'src/**' },
+    });
+    fireEvent.keyDown(screen.getByDisplayValue('src/**'), { key: 'Enter' });
+
+    expect(props.onPatternsChange).toHaveBeenCalledWith(['src/**', 'temp/**']);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERNS',
+      payload: { patterns: ['src/**', 'temp/**'] },
+    });
+
+    fireEvent.click(screen.getAllByTitle('Delete pattern')[1] as HTMLElement);
+
+    expect(props.onPatternsChange).toHaveBeenCalledWith(['existing/**']);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERNS',
+      payload: { patterns: ['existing/**'] },
+    });
+  });
+
+  it('falls back to a generic plugin-defaults group and ignores blank adds', () => {
+    const props = renderPopover({
+      customPatterns: [],
+      pluginGroups: [],
+      pluginPatterns: ['plugin/**'],
+    });
+
+    expect(screen.getAllByText('Plugin defaults')).toHaveLength(2);
+    expect(screen.getByDisplayValue('plugin/**')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('**/src/app.ts'), {
+      target: { value: '   ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(props.onPatternsChange).not.toHaveBeenCalled();
+    expect(sentMessages).toEqual([]);
+  });
 });

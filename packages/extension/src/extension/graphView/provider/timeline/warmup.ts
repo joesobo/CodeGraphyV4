@@ -16,13 +16,11 @@ export async function ensureGitAnalyzerForCachedTimeline(
   source: GraphViewProviderTimelineMethodsSource,
   dependencies: CachedTimelineWarmupDependencies,
 ): Promise<void> {
-  if (source._gitAnalyzer || !source._analyzer) {
+  if (!shouldWarmGitAnalyzer(source, dependencies)) {
     return;
   }
-
-  if (!dependencies.createGitAnalyzer) {
-    return;
-  }
+  const analyzer = source._analyzer!;
+  const createGitAnalyzer = dependencies.createGitAnalyzer!;
 
   const workspaceFolder = dependencies.getWorkspaceFolder();
   if (!workspaceFolder) {
@@ -33,7 +31,7 @@ export async function ensureGitAnalyzerForCachedTimeline(
 
   if (!source._analyzerInitialized) {
     if (!source._analyzerInitPromise) {
-      source._analyzerInitPromise = source._analyzer
+      source._analyzerInitPromise = analyzer
         .initialize()
         .then(() => {
           source._analyzerInitialized = true;
@@ -46,24 +44,38 @@ export async function ensureGitAnalyzerForCachedTimeline(
     await source._analyzerInitPromise;
   }
 
+  source._gitAnalyzer = createGitAnalyzer(
+    source._context,
+    analyzer.registry,
+    workspaceFolder.uri.fsPath,
+    getMergedExcludePatterns(source, analyzer, dependencies),
+  );
+}
+
+function shouldWarmGitAnalyzer(
+  source: GraphViewProviderTimelineMethodsSource,
+  dependencies: CachedTimelineWarmupDependencies,
+): boolean {
+  return !source._gitAnalyzer && !!source._analyzer && !!dependencies.createGitAnalyzer;
+}
+
+function getMergedExcludePatterns(
+  source: GraphViewProviderTimelineMethodsSource,
+  analyzer: NonNullable<GraphViewProviderTimelineMethodsSource['_analyzer']>,
+  dependencies: CachedTimelineWarmupDependencies,
+): string[] {
   const disabledCustomPatterns = new Set(dependencies.getDisabledCustomFilterPatterns?.() ?? []);
   const disabledPluginPatterns = new Set(dependencies.getDisabledPluginFilterPatterns?.() ?? []);
-  const pluginFilterPatterns = source._analyzer.getPluginFilterPatterns()
+  const pluginFilterPatterns = analyzer.getPluginFilterPatterns()
     .filter(pattern => !disabledPluginPatterns.has(pattern));
   const customFilterPatterns = source._filterPatterns
     .filter(pattern => !disabledCustomPatterns.has(pattern));
-  const mergedExclude = [
+
+  return [
     ...new Set([
       ...DEFAULT_EXCLUDE_PATTERNS,
       ...pluginFilterPatterns,
       ...customFilterPatterns,
     ]),
   ];
-
-  source._gitAnalyzer = dependencies.createGitAnalyzer(
-    source._context,
-    source._analyzer.registry,
-    workspaceFolder.uri.fsPath,
-    mergedExclude,
-  );
 }

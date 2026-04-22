@@ -18,14 +18,42 @@ function canOpenPath(
   return handlers.canOpenPath?.(filePath) ?? true;
 }
 
+function ignoreClosedPath(
+  handlers: GraphViewNodeFileOpenHandlers,
+  filePath: string,
+  clearFocus: boolean = false,
+): boolean {
+  if (canOpenPath(handlers, filePath)) {
+    return false;
+  }
+
+  if (clearFocus) {
+    handlers.setFocusedFile(undefined);
+  }
+
+  return true;
+}
+
+function openPathForCurrentTimeline(
+  handlers: GraphViewNodeFileOpenHandlers,
+  filePath: string,
+): void {
+  handlers.setFocusedFile(filePath);
+  if (handlers.timelineActive && handlers.currentCommitSha) {
+    void handlers.previewFileAtCommit(handlers.currentCommitSha, filePath);
+    return;
+  }
+
+  void handlers.openFile(filePath);
+}
+
 export async function applyNodeFileOpenMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewNodeFileOpenHandlers,
 ): Promise<boolean> {
   switch (message.type) {
     case 'NODE_SELECTED':
-      if (!canOpenPath(handlers, message.payload.nodeId)) {
-        handlers.setFocusedFile(undefined);
+      if (ignoreClosedPath(handlers, message.payload.nodeId, true)) {
         return true;
       }
 
@@ -38,7 +66,7 @@ export async function applyNodeFileOpenMessage(
       return true;
 
     case 'NODE_DOUBLE_CLICKED':
-      if (!canOpenPath(handlers, message.payload.nodeId)) {
+      if (ignoreClosedPath(handlers, message.payload.nodeId)) {
         return true;
       }
 
@@ -46,17 +74,11 @@ export async function applyNodeFileOpenMessage(
       return true;
 
     case 'OPEN_FILE':
-      if (!canOpenPath(handlers, message.payload.path)) {
-        handlers.setFocusedFile(undefined);
+      if (ignoreClosedPath(handlers, message.payload.path, true)) {
         return true;
       }
 
-      handlers.setFocusedFile(message.payload.path);
-      if (handlers.timelineActive && handlers.currentCommitSha) {
-        void handlers.previewFileAtCommit(handlers.currentCommitSha, message.payload.path);
-      } else {
-        void handlers.openFile(message.payload.path);
-      }
+      openPathForCurrentTimeline(handlers, message.payload.path);
       return true;
 
     default:

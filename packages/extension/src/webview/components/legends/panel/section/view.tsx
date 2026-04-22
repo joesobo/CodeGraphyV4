@@ -43,6 +43,35 @@ interface LegendCollapseProps {
   storageKey: string;
 }
 
+function useCollapsibleEntryState({
+  collapsedEntries,
+  onCollapsedChange,
+  storageKey,
+}: LegendCollapseProps): {
+  collapsed: boolean;
+  onOpenChange: (nextOpen: boolean) => void;
+} {
+  const resolvedCollapsedEntries = collapsedEntries ?? {};
+  const [uncontrolledCollapsed, setUncontrolledCollapsed] = React.useState(
+    resolvedCollapsedEntries[storageKey] ?? false,
+  );
+  const collapsed = onCollapsedChange
+    ? (resolvedCollapsedEntries[storageKey] ?? false)
+    : uncontrolledCollapsed;
+
+  return {
+    collapsed,
+    onOpenChange: (nextOpen: boolean) => {
+      if (onCollapsedChange) {
+        onCollapsedChange(storageKey, !nextOpen);
+        return;
+      }
+
+      setUncontrolledCollapsed(!nextOpen);
+    },
+  };
+}
+
 function LegendSubsection({
   children,
   collapsedEntries,
@@ -59,23 +88,18 @@ function LegendSubsection({
   toggleTitle?: string;
   onToggle?: () => void;
 }): React.ReactElement {
-  const resolvedCollapsedEntries = collapsedEntries ?? {};
-  const [uncontrolledCollapsed, setUncontrolledCollapsed] = React.useState(
-    resolvedCollapsedEntries[storageKey] ?? false,
-  );
-  const handleCollapsedChange: (entryId: string, collapsed: boolean) => void = onCollapsedChange
-    ? onCollapsedChange
-    : (_entryId: string, nextCollapsed: boolean) => setUncontrolledCollapsed(nextCollapsed);
-  const collapsed = onCollapsedChange
-    ? (resolvedCollapsedEntries[storageKey] ?? false)
-    : uncontrolledCollapsed;
+  const { collapsed, onOpenChange } = useCollapsibleEntryState({
+    collapsedEntries,
+    onCollapsedChange,
+    storageKey,
+  });
   const open = !collapsed;
   const collapseTitle = `${open ? 'Collapse' : 'Expand'} ${group.label} legend entries`;
 
   return (
     <Collapsible
       open={open}
-      onOpenChange={(nextOpen) => handleCollapsedChange(storageKey, !nextOpen)}
+      onOpenChange={onOpenChange}
     >
       <div
         data-testid="legend-rule-subsection"
@@ -437,16 +461,11 @@ export function LegendSection({
   onToggleDefaultVisibilityBatch?: (legendIds: string[], visible: boolean) => void;
 }): React.ReactElement {
   const sectionStorageKey = `section:${title.toLowerCase()}`;
-  const resolvedCollapsedEntries = collapsedEntries ?? {};
-  const [uncontrolledCollapsed, setUncontrolledCollapsed] = React.useState(
-    resolvedCollapsedEntries[sectionStorageKey] ?? false,
-  );
-  const handleCollapsedChange: (entryId: string, collapsed: boolean) => void = onCollapsedChange
-    ? onCollapsedChange
-    : (_entryId: string, nextCollapsed: boolean) => setUncontrolledCollapsed(nextCollapsed);
-  const collapsed = onCollapsedChange
-    ? (resolvedCollapsedEntries[sectionStorageKey] ?? false)
-    : uncontrolledCollapsed;
+  const { collapsed, onOpenChange } = useCollapsibleEntryState({
+    collapsedEntries,
+    onCollapsedChange,
+    storageKey: sectionStorageKey,
+  });
   const open = !collapsed;
   const [dragIndex, setDragIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
@@ -506,7 +525,7 @@ export function LegendSection({
   return (
     <Collapsible
       open={open}
-      onOpenChange={(nextOpen) => handleCollapsedChange(sectionStorageKey, !nextOpen)}
+      onOpenChange={onOpenChange}
     >
       <section className="space-y-2">
         <CollapsibleTrigger asChild>
@@ -525,11 +544,11 @@ export function LegendSection({
           <SectionRules
             builtInEntries={builtInEntries}
             builtInRuleGroups={builtInRuleGroups}
-            collapsedEntries={resolvedCollapsedEntries}
+            collapsedEntries={collapsedEntries}
             customRuleGroup={customRuleGroup}
             onBuiltInColorChange={onBuiltInColorChange}
             onBuiltInColorToggle={onBuiltInColorToggle}
-            onCollapsedChange={handleCollapsedChange}
+            onCollapsedChange={onCollapsedChange}
             onRulesChange={onRulesChange}
             onToggleDefaultVisibilityBatch={onToggleDefaultVisibilityBatch}
             pluginRuleGroups={pluginRuleGroups}

@@ -62,32 +62,7 @@ export function createGraphViewProviderMessagePrimaryActions(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderPrimaryActions {
-  const isInferredFolderPath = (filePath: string): boolean => {
-    if (filePath === '(root)') {
-      return source._graphData.nodes.some((graphNode) => (
-        graphNode.nodeType !== 'folder'
-        && graphNode.nodeType !== 'package'
-        && !graphNode.id.startsWith('pkg:')
-        && !graphNode.id.includes('/')
-      ));
-    }
-
-    return source._graphData.nodes.some((graphNode) => (
-      graphNode.nodeType !== 'folder'
-      && graphNode.nodeType !== 'package'
-      && !graphNode.id.startsWith('pkg:')
-      && graphNode.id.startsWith(`${filePath}/`)
-    ));
-  };
-
-  const canOpenPath = (filePath: string): boolean => {
-    const node = source._graphData.nodes.find((graphNode) => graphNode.id === filePath);
-    if (!node) {
-      return !filePath.startsWith('pkg:') && !isInferredFolderPath(filePath);
-    }
-
-    return node.nodeType !== 'folder' && node.nodeType !== 'package';
-  };
+  const canOpenPath = (filePath: string): boolean => canOpenGraphPath(source, filePath);
 
   return {
     openSelectedNode: nodeId => source._openSelectedNode(nodeId),
@@ -156,4 +131,50 @@ export function createGraphViewProviderMessagePrimaryActions(
     applyViewTransform: () => source._applyViewTransform(),
     smartRebuild: id => source._smartRebuild(id),
   };
+}
+
+function canOpenGraphPath(
+  source: GraphViewProviderMessageListenerSource,
+  filePath: string,
+): boolean {
+  const node = source._graphData.nodes.find((graphNode) => graphNode.id === filePath);
+  if (node) {
+    return canOpenGraphNode(node.nodeType);
+  }
+
+  return !filePath.startsWith('pkg:') && !isInferredFolderPath(source, filePath);
+}
+
+function canOpenGraphNode(nodeType: string | undefined): boolean {
+  return nodeType !== 'folder' && nodeType !== 'package';
+}
+
+function isInferredFolderPath(
+  source: GraphViewProviderMessageListenerSource,
+  filePath: string,
+): boolean {
+  return filePath === '(root)'
+    ? source._graphData.nodes.some(isRootLevelFileNode)
+    : source._graphData.nodes.some((graphNode) => isNestedFileNode(graphNode, filePath));
+}
+
+function isRootLevelFileNode(
+  graphNode: GraphViewProviderMessageListenerSource['_graphData']['nodes'][number],
+): boolean {
+  return isGraphFileNode(graphNode) && !graphNode.id.includes('/');
+}
+
+function isNestedFileNode(
+  graphNode: GraphViewProviderMessageListenerSource['_graphData']['nodes'][number],
+  filePath: string,
+): boolean {
+  return isGraphFileNode(graphNode) && graphNode.id.startsWith(`${filePath}/`);
+}
+
+function isGraphFileNode(
+  graphNode: GraphViewProviderMessageListenerSource['_graphData']['nodes'][number],
+): boolean {
+  return graphNode.nodeType !== 'folder'
+    && graphNode.nodeType !== 'package'
+    && !graphNode.id.startsWith('pkg:');
 }

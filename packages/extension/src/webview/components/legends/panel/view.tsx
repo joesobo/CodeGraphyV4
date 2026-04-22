@@ -23,6 +23,95 @@ interface LegendsPanelProps {
   onClose: () => void;
 }
 
+function useCollapsedLegendEntries(): readonly [
+  Record<string, boolean>,
+  (entryId: string, collapsed: boolean) => void,
+] {
+  const [collapsedEntries, setCollapsedEntries] = useState<Record<string, boolean>>(
+    readLegendPanelCollapsedState,
+  );
+
+  const setCollapsedEntry = (entryId: string, collapsed: boolean): void => {
+    setCollapsedEntries((current) => {
+      const next = { ...current };
+      if (collapsed) {
+        next[entryId] = true;
+      } else {
+        delete next[entryId];
+      }
+      writeLegendPanelCollapsedState(next);
+      return next;
+    });
+  };
+
+  return [collapsedEntries, setCollapsedEntry];
+}
+
+function useDisplayNodeEntries(
+  nodeEntries: ReturnType<typeof useLegendPanelState>['nodeEntries'],
+): {
+  builtInNodeColorsRef: React.MutableRefObject<Record<string, string>>;
+  displayNodeEntries: LegendSectionProps['builtInEntries'];
+  setBuiltInNodeColorEnabled: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+} {
+  const builtInNodeColorsRef = useRef<Record<string, string>>({});
+  const [builtInNodeColorEnabled, setBuiltInNodeColorEnabled] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setBuiltInNodeColorEnabled((current) => syncBuiltInNodeColorOverrides(current, nodeEntries));
+  }, [nodeEntries]);
+
+  const displayNodeEntries = useMemo(
+    () => buildDisplayNodeEntries(nodeEntries, builtInNodeColorEnabled, builtInNodeColorsRef.current),
+    [builtInNodeColorEnabled, nodeEntries],
+  );
+
+  return {
+    builtInNodeColorsRef,
+    displayNodeEntries,
+    setBuiltInNodeColorEnabled,
+  };
+}
+
+function syncBuiltInNodeColorOverrides(
+  current: Record<string, boolean>,
+  nodeEntries: ReturnType<typeof useLegendPanelState>['nodeEntries'],
+): Record<string, boolean> {
+  const next = { ...current };
+  let changed = false;
+
+  for (const entry of nodeEntries) {
+    if (next[entry.id] === entry.colorEnabled) {
+      delete next[entry.id];
+      changed = true;
+    }
+  }
+
+  return changed ? next : current;
+}
+
+function buildDisplayNodeEntries(
+  nodeEntries: ReturnType<typeof useLegendPanelState>['nodeEntries'],
+  builtInNodeColorEnabled: Record<string, boolean>,
+  builtInNodeColors: Record<string, string>,
+): LegendSectionProps['builtInEntries'] {
+  return nodeEntries
+    .filter((entry) => entry.id !== 'folder')
+    .map((entry) => {
+      const colorEnabled = builtInNodeColorEnabled[entry.id] ?? entry.colorEnabled ?? true;
+      const storedColor = builtInNodeColors[entry.id]
+        ?? (entry.color !== entry.defaultColor ? entry.color : entry.defaultColor);
+
+      return {
+        ...entry,
+        color: colorEnabled ? storedColor : entry.defaultColor,
+        colorEnabled,
+      };
+    });
+}
+
+type LegendSectionProps = React.ComponentProps<typeof LegendSection>;
+
 export default function LegendsPanel({
   isOpen,
   onClose,
@@ -36,11 +125,7 @@ export default function LegendsPanel({
   const setOptimisticLegendUpdate = useGraphStore((state) => state.setOptimisticLegendUpdate);
   const setOptimisticLegendUpdates = useGraphStore((state) => state.setOptimisticLegendUpdates);
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
-  const builtInNodeColorsRef = useRef<Record<string, string>>({});
-  const [builtInNodeColorEnabled, setBuiltInNodeColorEnabled] = useState<Record<string, boolean>>({});
-  const [collapsedEntries, setCollapsedEntries] = useState<Record<string, boolean>>(
-    readLegendPanelCollapsedState,
-  );
+  const [collapsedEntries, setCollapsedEntry] = useCollapsedLegendEntries();
 
   const {
     displayedEdgeLegendRules,
@@ -59,49 +144,11 @@ export default function LegendsPanel({
     nodeTypes,
     optimisticLegendUpdates,
   });
-  useEffect(() => {
-    setBuiltInNodeColorEnabled((current) => {
-      const next = { ...current };
-      let changed = false;
-
-      for (const entry of nodeEntries) {
-        if (next[entry.id] === entry.colorEnabled) {
-          delete next[entry.id];
-          changed = true;
-        }
-      }
-
-      return changed ? next : current;
-    });
-  }, [nodeEntries]);
-  const displayNodeEntries = useMemo(
-    () => nodeEntries
-      .filter((entry) => entry.id !== 'folder')
-      .map((entry) => {
-        const colorEnabled = builtInNodeColorEnabled[entry.id] ?? entry.colorEnabled ?? true;
-        const storedColor = builtInNodeColorsRef.current[entry.id]
-          ?? (entry.color !== entry.defaultColor ? entry.color : entry.defaultColor);
-        return {
-          ...entry,
-          color: colorEnabled ? storedColor : entry.defaultColor,
-          colorEnabled,
-        };
-      }),
-    [builtInNodeColorEnabled, nodeEntries],
-  );
-
-  const setCollapsedEntry = (entryId: string, collapsed: boolean): void => {
-    setCollapsedEntries((current) => {
-      const next = { ...current };
-      if (collapsed) {
-        next[entryId] = true;
-      } else {
-        delete next[entryId];
-      }
-      writeLegendPanelCollapsedState(next);
-      return next;
-    });
-  };
+  const {
+    builtInNodeColorsRef,
+    displayNodeEntries,
+    setBuiltInNodeColorEnabled,
+  } = useDisplayNodeEntries(nodeEntries);
 
   const toggleDefaultLegendVisibilityBatch = (
     legendIds: string[],

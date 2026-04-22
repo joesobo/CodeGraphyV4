@@ -140,7 +140,7 @@ Legend colors now support opacity. Built-in Material folder entries use transpar
 
 ## Development
 
-Local development is pinned to Node `24.12.0` LTS. Use the version in [`.nvmrc`](./.nvmrc) or [`.node-version`](./.node-version) before running install, quality, or release commands.
+Local development is pinned to Node `22.22.0` LTS. Use the version in [`.nvmrc`](./.nvmrc) or [`.node-version`](./.node-version) before running install, quality, or release commands.
 
 Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLUGINS.md), the [plugin lifecycle docs](./docs/plugin-api/LIFECYCLE.md), and [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api).
 

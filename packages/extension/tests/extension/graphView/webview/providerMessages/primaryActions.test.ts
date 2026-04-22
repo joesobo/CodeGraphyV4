@@ -255,9 +255,44 @@ describe('graph view provider listener primary actions', () => {
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
     expect(source._smartRebuild).toHaveBeenCalledWith('plugin.test');
   });
+
+  it('allows opening concrete file nodes and blocks explicit folder or package nodes', () => {
+    const source = createSource({
+      _graphData: {
+        nodes: [
+          { id: 'src/app.ts', nodeType: 'file' },
+          { id: 'src', nodeType: 'folder' },
+          { id: 'pkg:react', nodeType: 'package' },
+        ],
+        edges: [],
+      },
+    });
+    const actions = createActions(source);
+
+    expect(actions.canOpenPath('src/app.ts')).toBe(true);
+    expect(actions.canOpenPath('src')).toBe(false);
+    expect(actions.canOpenPath('pkg:react')).toBe(false);
+  });
+
+  it('blocks inferred root and nested folder paths when no explicit node exists', () => {
+    const source = createSource({
+      _graphData: {
+        nodes: [
+          { id: 'README.md', nodeType: 'file' },
+          { id: 'src/app.ts', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+    });
+    const actions = createActions(source);
+
+    expect(actions.canOpenPath('(root)')).toBe(false);
+    expect(actions.canOpenPath('src')).toBe(false);
+    expect(actions.canOpenPath('docs')).toBe(true);
+  });
 });
 
-function createSource() {
+function createSource(overrides: Record<string, unknown> = {}) {
   return {
     _openSelectedNode: vi.fn(() => Promise.resolve()),
     _activateNode: vi.fn(() => Promise.resolve()),
@@ -295,6 +330,8 @@ function createSource() {
     _sendMessage: vi.fn(),
     _applyViewTransform: vi.fn(),
     _smartRebuild: vi.fn(),
+    _graphData: { nodes: [], edges: [] },
+    ...overrides,
   };
 }
 

@@ -6,7 +6,7 @@ Thanks for your interest in contributing to CodeGraphy!
 
 ### Prerequisites
 
-- Node.js 24.12.0 LTS
+- Node.js 22.22.0 LTS
 - pnpm 10+
 - VS Code 1.85+
 

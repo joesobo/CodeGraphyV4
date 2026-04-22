@@ -24,20 +24,45 @@ export function renderNodeBody({
   opacity,
   theme,
 }: RenderNodeBodyOptions): void {
-  const shape = node.shape2D ?? 'circle';
-  drawShape(ctx, shape, node.x!, node.y!, node.size);
-  const isFolderNode = node.nodeType === 'folder';
-  const isTransparentFolderNode = isFolderNode && node.color === TRANSPARENT_FOLDER_BODY_COLOR;
-  ctx.fillStyle = isFolderNode
-    ? node.color
-    : (decoration?.color ?? node.color);
+  drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size);
+  ctx.fillStyle = getNodeFillColor(node, decoration);
   ctx.fill();
 
-  const borderColor = isSelected
-    ? (theme === 'light' ? '#000000' : '#ffffff')
-    : (isTransparentFolderNode ? TRANSPARENT_FOLDER_BODY_COLOR : node.borderColor);
-  ctx.strokeStyle = borderColor;
-  ctx.lineWidth = (isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth) / globalScale;
+  ctx.strokeStyle = getNodeBorderColor(node, isSelected, theme);
+  ctx.lineWidth = getNodeBorderWidth(node.borderWidth, isSelected, globalScale);
   ctx.globalAlpha = opacity;
   ctx.stroke();
+}
+
+function getNodeFillColor(
+  node: FGNode,
+  decoration: NodeDecorationPayload | undefined,
+): string {
+  return node.nodeType === 'folder'
+    ? node.color
+    : (decoration?.color ?? node.color);
+}
+
+function getNodeBorderColor(
+  node: FGNode,
+  isSelected: boolean,
+  theme: ThemeKind,
+): string {
+  if (isSelected) {
+    return theme === 'light' ? '#000000' : '#ffffff';
+  }
+
+  return isTransparentFolderNode(node) ? TRANSPARENT_FOLDER_BODY_COLOR : node.borderColor;
+}
+
+function getNodeBorderWidth(
+  borderWidth: number,
+  isSelected: boolean,
+  globalScale: number,
+): number {
+  return (isSelected ? Math.max(borderWidth, 3) : borderWidth) / globalScale;
+}
+
+function isTransparentFolderNode(node: FGNode): boolean {
+  return node.nodeType === 'folder' && node.color === TRANSPARENT_FOLDER_BODY_COLOR;
 }

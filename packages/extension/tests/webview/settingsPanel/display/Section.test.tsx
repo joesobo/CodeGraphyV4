@@ -316,4 +316,37 @@ describe('DisplaySection', () => {
       payload: { showLabels: false },
     });
   });
+
+  it('posts orphan visibility updates when toggled', () => {
+    renderContent({ showOrphans: true });
+
+    fireEvent.click(screen.getByLabelText('Show Orphans'));
+
+    expect(graphStore.getState().showOrphans).toBe(false);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_SHOW_ORPHANS',
+      payload: { showOrphans: false },
+    });
+  });
+
+  it('commits max files through blur and enter handlers', () => {
+    renderContent({ maxFiles: 20 });
+
+    const input = screen.getByDisplayValue('20');
+    fireEvent.change(input, { target: { value: '42' } });
+    fireEvent.keyDown(input, { key: 'Enter', currentTarget: { value: '42' } });
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_MAX_FILES',
+      payload: { maxFiles: 42 },
+    });
+
+    fireEvent.change(input, { target: { value: '5' } });
+    fireEvent.blur(input, { target: { value: '5' } });
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_MAX_FILES',
+      payload: { maxFiles: 5 },
+    });
+  });
 });

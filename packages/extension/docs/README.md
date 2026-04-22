@@ -16,7 +16,7 @@ Current extension behavior to keep in mind while reading the package docs:
 - the node legend popup is grouped as `Custom -> Plugin Defaults -> Material Icon Theme -> Defaults`
 - the language plugins in `packages/plugin-*` are now mostly for ecosystem filters and optional semantic enrichment rather than baseline file coloring
 
-Local tooling and CI are pinned to Node `24.12.0` LTS.
+Local tooling and CI are pinned to Node `22.22.0` LTS.
 
 The source tree is split by runtime boundary:
 

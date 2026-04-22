@@ -98,4 +98,14 @@ describe('graphView/materialTheme/folders', () => {
       matchNodeType: 'folder',
     }));
   });
+
+  it('returns no groups when folder matches cannot resolve an icon asset', () => {
+    const theme = createTheme();
+    theme.manifest.folder = undefined;
+
+    expect(collectMaterialFolderGroups({
+      nodes: [{ id: 'docs/guide.ts', label: 'guide.ts', color: '#000000' }],
+      edges: [],
+    } satisfies IGraphData, theme)).toEqual([]);
+  });
 });

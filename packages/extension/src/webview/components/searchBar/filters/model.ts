@@ -74,11 +74,24 @@ export function editFilterPattern(
   nextPattern: string,
 ): string[] {
   const normalizedPattern = normalizeFilterPattern(nextPattern);
-  if (!normalizedPattern || normalizedPattern === previousPattern) {
-    return [...currentPatterns];
-  }
+  return shouldKeepExistingPattern(normalizedPattern, previousPattern)
+    ? [...currentPatterns]
+    : replaceFilterPattern(currentPatterns, previousPattern, normalizedPattern);
+}
 
-  return currentPatterns.map((entry) => (entry === previousPattern ? normalizedPattern : entry));
+function shouldKeepExistingPattern(
+  nextPattern: string,
+  previousPattern: string,
+): boolean {
+  return !nextPattern || nextPattern === previousPattern;
+}
+
+function replaceFilterPattern(
+  currentPatterns: readonly string[],
+  previousPattern: string,
+  nextPattern: string,
+): string[] {
+  return currentPatterns.map((entry) => (entry === previousPattern ? nextPattern : entry));
 }
 
 export function commitFilterPatterns(patterns: string[]): void {
