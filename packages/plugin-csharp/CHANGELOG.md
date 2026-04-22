@@ -1,5 +1,11 @@
 # codegraphy-csharp
 
+## 2.0.2
+
+### Patch Changes
+
+- [#181](https://github.com/joesobo/CodeGraphyV4/pull/181) [`a3c16f3`](https://github.com/joesobo/CodeGraphyV4/commit/a3c16f3a0440d513f1098fb46175402a6070ab91) Thanks [@joesobo](https://github.com/joesobo)! - Show language icons in graph nodes, add Material-style built-in node theming in the core extension, and expose color, icon, and shape controls in custom legend rules.
+
 ## 2.0.1
 
 ### Patch Changes
