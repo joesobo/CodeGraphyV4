@@ -33,19 +33,23 @@ CodeGraphy turns repository structure and code relationships into an interactive
 
 ![CodeGraphy dependency graph](./docs/media/node-drag.gif)
 
+Now with Material Icon Theme!
+
+![Material Icon Theme](./docs/media/material-icon-theme.png)
+
 ## CodeGraphy History
 
 I originally came up with CodeGraphy back in college in 2021 after seeing ![Obsidian.md](https://obsidian.md/)'s graph. I've always been a very visual thinker and so Obsidians graph felt very intuitive to me. The clusters of nodes that appeared represented bundles of knowledge that was closely entangled. These clusters reminded me of the way that code worked and the way it connecting files (whether importing, extending, referencing). I wanted to see the way the my code naturally connected, just like in Obsidian's graph and see what insights I could learn from it. And thats where CodeGraphy was born.
 
-The first iteration was https://github.com/joesobo/CodeGraphy. Its pretty rough, but the core idea is there. 
+The first iteration was https://github.com/joesobo/CodeGraphy. Its pretty rough, but the core idea is there.
 
 V2 was the last published version: https://github.com/joesobo/CodeGraphyV2. This version was a huge upgrade, enabling dynamic physics and a ton more features. But it was largely limited to Javascript
 
 So I started working on V3 https://github.com/joesobo/CodeGraphyV3 this time with a broader scope. Instead of limited ourselves to a single language. The goal was to make the core renderer reusable and let plugins teach it new language semantics when needed.
 
-Unfortunetly I got quite busy and never was able to maintain V2 or finish V3.
+Unfortunately I got quite busy and never was able to maintain V2 or finish V3.
 
-CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time either. This time its been primarly programmed via Codex. Ive followed the same concepts as the previous iterations of CodeGraphy campacted in this monorepo, as a means to test out agentic programming and different methodologies of doing so. This is not a serious project, I am doing this to learn. The project should work but I make no promises. Feel free to fork or look at any of the previous versions if you are interested in the project. Or hell submit an issue or PR.
+CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time either. This time its been primarily programmed via Codex. Ive followed the same concepts as the previous iterations of CodeGraphy compacted in this monorepo, as a means to test out agentic programming and different methodologies of doing so. This is not a serious project, I am doing this to learn. The project should work but I make no promises. Feel free to fork or look at any of the previous versions if you are interested in the project. Or hell submit an issue or PR.
 
 ## Monorepo
 
@@ -97,7 +101,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 **Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign glob-based legend rules, and filter out noise.
 
-**Exports from cached graph data** Export the current graph as JSON/Markdown/image output, and export lightweight symbol JSON from the warmed index without rescanning the repo.
+**Exports from cached graph data** Export the current graph as JSON/Markdown/image output, and export lightweight symbol JSON from the warmed index without re-scanning the repo.
 
 | 2D | 3D |
 |:--:|:--:|
