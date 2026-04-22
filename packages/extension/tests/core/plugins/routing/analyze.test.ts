@@ -36,6 +36,41 @@ function makePlugin(id: string, extensions: string[], result: object): IPlugin {
 }
 
 describe('routing/analyze', () => {
+  it('passes the analysis context through to matching plugins', async () => {
+    const active = makePlugin('active', ['.ts'], {
+      filePath: 'src/app.ts',
+      relations: [],
+    });
+    const { pluginsMap, extensionMap } = buildMaps([active]);
+    const context = {
+      mode: 'workspace',
+      fileSystem: {
+        exists: vi.fn(),
+        isDirectory: vi.fn(),
+        isFile: vi.fn(),
+        listDirectory: vi.fn(),
+        readTextFile: vi.fn(),
+      },
+    };
+
+    await (analyzeFileResult as unknown as (...args: unknown[]) => Promise<unknown>)(
+      'src/app.ts',
+      'content',
+      '/ws',
+      pluginsMap,
+      extensionMap,
+      undefined,
+      context,
+    );
+
+    expect(active.analyzeFile).toHaveBeenCalledWith(
+      'src/app.ts',
+      'content',
+      '/ws',
+      context,
+    );
+  });
+
   it('projects analyzed file results into graph connections', async () => {
     const active = makePlugin('active', ['.ts'], {
       filePath: 'src/app.ts',

@@ -1,4 +1,8 @@
-import type { IFileAnalysisResult, IProjectedConnection } from '../../types/contracts';
+import type {
+  IFileAnalysisResult,
+  IPluginAnalysisContext,
+  IProjectedConnection,
+} from '../../types/contracts';
 import { getPluginsForFile, type IRoutablePluginInfo } from './lookups';
 import {
   createEmptyFileAnalysisResult,
@@ -8,6 +12,7 @@ import {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
 } from './results/project';
+import { createWorkspacePluginAnalysisContext } from '../../context/workspace';
 
 export type CoreFileAnalysisResultProvider = (
   filePath: string,
@@ -25,6 +30,7 @@ export async function analyzeFile(
   plugins: Map<string, IRoutablePluginInfo>,
   extensionMap: Map<string, string[]>,
   coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
+  analysisContext?: IPluginAnalysisContext,
 ): Promise<IProjectedConnection[]> {
   const analysis = await analyzeFileResult(
     filePath,
@@ -33,6 +39,7 @@ export async function analyzeFile(
     plugins,
     extensionMap,
     coreAnalyzeFileResult,
+    analysisContext,
   );
   return analysis ? toProjectedConnectionsFromFileAnalysis(analysis) : [];
 }
@@ -44,6 +51,7 @@ export async function analyzeFileResult(
   plugins: Map<string, IRoutablePluginInfo>,
   extensionMap: Map<string, string[]>,
   coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
+  analysisContext: IPluginAnalysisContext = createWorkspacePluginAnalysisContext(workspaceRoot),
 ): Promise<IFileAnalysisResult | null> {
   const matchingPlugins = getPluginsForFile(filePath, plugins, extensionMap);
   const coreResult = await coreAnalyzeFileResult?.(filePath, content, workspaceRoot) ?? null;
@@ -66,7 +74,7 @@ export async function analyzeFileResult(
     try {
       const pluginResult = withPluginProvenance(
         plugin,
-        await plugin.analyzeFile(filePath, content, workspaceRoot),
+        await plugin.analyzeFile(filePath, content, workspaceRoot, analysisContext),
       );
 
       mergedResult = mergeFileAnalysisResults(mergedResult, pluginResult);

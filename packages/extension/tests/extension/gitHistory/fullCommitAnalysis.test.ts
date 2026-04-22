@@ -102,6 +102,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
         },
       ],
       '/workspace',
+      expect.objectContaining({ mode: 'timeline', commitSha: 'abc123' }),
     );
     expect(getFileAtCommit).toHaveBeenCalledTimes(5);
     expect(registry.analyzeFileResult).toHaveBeenCalledTimes(2);

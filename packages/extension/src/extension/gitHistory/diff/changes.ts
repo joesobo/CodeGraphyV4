@@ -1,4 +1,7 @@
-import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type {
+  IFileAnalysisResult,
+  IPluginAnalysisContext,
+} from '../../../core/plugins/types/contracts';
 import type { IGraphEdge, IGraphNode } from '../../../shared/graph/contracts';
 import type { TreeSitterPathHost } from '../../pipeline/plugins/treesitter/runtime/pathHost';
 import { reanalyzeGraphFile, removeOutgoingGitHistoryEdges } from '../reanalyzeGraphFile';
@@ -8,6 +11,7 @@ interface DiffGraphChangeRegistry {
     absolutePath: string,
     content: string,
     workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
   supportsFile(filePath: string): boolean;
@@ -29,6 +33,7 @@ interface DiffGraphChangeOptions {
   signal: AbortSignal;
   workspaceRoot: string;
   pathHost?: TreeSitterPathHost;
+  analysisContext?: IPluginAnalysisContext;
 }
 
 export async function addGitHistoryGraphFile(
@@ -46,6 +51,7 @@ export async function addGitHistoryGraphFile(
     signal,
     workspaceRoot,
     pathHost,
+    analysisContext,
   } = options;
 
   if (!registry.supportsFile(filePath)) {
@@ -64,6 +70,7 @@ export async function addGitHistoryGraphFile(
     signal,
     workspaceRoot,
     pathHost,
+    analysisContext,
   });
 }
 
@@ -82,6 +89,7 @@ export async function modifyGitHistoryGraphFile(
     signal,
     workspaceRoot,
     pathHost,
+    analysisContext,
   } = options;
 
   if (!registry.supportsFile(filePath)) {
@@ -102,5 +110,6 @@ export async function modifyGitHistoryGraphFile(
     signal,
     workspaceRoot,
     pathHost,
+    analysisContext,
   });
 }

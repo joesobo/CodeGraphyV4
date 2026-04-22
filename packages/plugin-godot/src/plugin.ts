@@ -6,7 +6,10 @@
  */
 
 import * as path from 'path';
-import type { IPlugin } from '@codegraphy-vscode/plugin-api';
+import type {
+  IPlugin,
+  IPluginAnalysisContext,
+} from '@codegraphy-vscode/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
 import type { GDScriptFileAnalysisResult } from './analysis';
@@ -47,6 +50,7 @@ export interface IGDScriptAnalyzeFilePlugin extends IPlugin {
     filePath: string,
     content: string,
     workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<GDScriptFileAnalysisResult>;
 }
 

@@ -76,6 +76,7 @@ describe('gitHistory/diff/changes', () => {
       '/workspace/src/a.ts',
       'import "./b";',
       '/workspace',
+      undefined,
     );
     expect(nodes).toEqual([{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }]);
     expect(edges).toEqual([
@@ -133,6 +134,7 @@ describe('gitHistory/diff/changes', () => {
       '/workspace/src/a.ts',
       'import "./c";',
       '/workspace',
+      undefined,
     );
     expect(nodes).toEqual([existingNode]);
     expect(nodeMap.get(existingNode.id)).toBe(existingNode);

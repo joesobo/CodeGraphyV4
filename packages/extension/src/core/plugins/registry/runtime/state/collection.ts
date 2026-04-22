@@ -1,6 +1,7 @@
 import type {
   IFileAnalysisResult,
   IPlugin,
+  IPluginAnalysisContext,
   IPluginEdgeType,
   IPluginInfo,
   IPluginNodeType,
@@ -38,6 +39,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     filePath: string,
     content: string,
     workspaceRoot: string,
+    analysisContext?: IPluginAnalysisContext,
   ): Promise<IProjectedConnection[]> {
     return analyzeFile(
       filePath,
@@ -46,6 +48,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._plugins,
       this._extensionMap,
       this._coreAnalyzeFileResult,
+      analysisContext,
     );
   }
 
@@ -53,6 +56,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     filePath: string,
     content: string,
     workspaceRoot: string,
+    analysisContext?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult | null> {
     return analyzeFileResult(
       filePath,
@@ -61,6 +65,7 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
       this._plugins,
       this._extensionMap,
       this._coreAnalyzeFileResult,
+      analysisContext,
     );
   }
 

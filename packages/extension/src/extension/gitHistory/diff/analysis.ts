@@ -1,5 +1,9 @@
-import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type {
+  IFileAnalysisResult,
+  IPluginAnalysisContext,
+} from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
+import { createGitHistoryAnalysisContext } from '../analysisContext';
 import { createGitHistoryCommitPathHost } from '../commitPathHost';
 import { preAnalyzeGitHistoryPlugins } from '../preAnalyze';
 import { addGitHistoryGraphFile, modifyGitHistoryGraphFile } from './changes';
@@ -15,6 +19,7 @@ interface DiffGraphRegistry {
     absolutePath: string,
     content: string,
     workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
   notifyPreAnalyze(
@@ -24,6 +29,7 @@ interface DiffGraphRegistry {
       content: string;
     }>,
     workspaceRoot: string,
+    context: IPluginAnalysisContext,
   ): Promise<void>;
   supportsFile(filePath: string): boolean;
 }
@@ -45,6 +51,7 @@ export interface AnalyzeDiffCommitGraphOptions {
 }
 
 interface DiffAnalysisContext {
+  analysisContext: IPluginAnalysisContext;
   edgeSet: Set<string>;
   edges: IGraphData['edges'];
   getFileAtCommit: AnalyzeDiffCommitGraphOptions['getFileAtCommit'];
@@ -85,6 +92,13 @@ export async function analyzeDiffCommitGraph(
   const trackedFiles = new Set(commitFiles.filter((filePath) => {
     return !shouldExclude(filePath) && registry.supportsFile(filePath);
   }));
+  const analysisContext = createGitHistoryAnalysisContext({
+    allFiles: commitFiles,
+    getFileAtCommit,
+    sha,
+    signal,
+    workspaceRoot,
+  });
   await preAnalyzeGitHistoryPlugins({
     allFiles: commitFiles.filter((filePath) => !shouldExclude(filePath)),
     getFileAtCommit,
@@ -92,7 +106,7 @@ export async function analyzeDiffCommitGraph(
     sha,
     signal,
     workspaceRoot,
-  });
+  }, analysisContext);
   const pathHost = await createGitHistoryCommitPathHost({
     allFiles: commitFiles,
     getFileAtCommit,
@@ -101,6 +115,7 @@ export async function analyzeDiffCommitGraph(
     workspaceRoot,
   });
   const context: DiffAnalysisContext = {
+    analysisContext,
     edgeSet,
     edges,
     getFileAtCommit,
@@ -220,6 +235,7 @@ function buildTrackedFileOptions(filePath: string, context: DiffAnalysisContext)
     signal: context.signal,
     workspaceRoot: context.workspaceRoot,
     pathHost: context.pathHost,
+    analysisContext: context.analysisContext,
   };
 }
 

@@ -1,5 +1,11 @@
 import * as path from 'node:path';
 import type { TreeSitterPathHost } from '../pipeline/plugins/treesitter/runtime/pathHost';
+import {
+  buildGitHistoryDirectoryEntries,
+  normalizeGitHistoryPath,
+  toRelativeGitHistoryDirectoryPath,
+  toRelativeGitHistoryFilePath,
+} from './pathIndex';
 
 export interface CreateGitHistoryCommitPathHostOptions {
   allFiles: readonly string[];
@@ -11,71 +17,6 @@ export interface CreateGitHistoryCommitPathHostOptions {
   sha: string;
   signal: AbortSignal;
   workspaceRoot: string;
-}
-
-function normalizeRelativePath(relativePath: string): string {
-  return relativePath.split(path.sep).join('/');
-}
-
-function toRelativeFilePath(absolutePath: string, workspaceRoot: string): string | null {
-  const relativePath = path.relative(workspaceRoot, absolutePath);
-  if (relativePath === '') {
-    return null;
-  }
-
-  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-    return null;
-  }
-
-  return normalizeRelativePath(relativePath);
-}
-
-function toRelativeDirectoryPath(absolutePath: string, workspaceRoot: string): string | null {
-  const relativePath = path.relative(workspaceRoot, absolutePath);
-  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
-    return null;
-  }
-
-  return relativePath === '' ? '' : normalizeRelativePath(relativePath);
-}
-
-function buildDirectoryEntries(
-  allFiles: readonly string[],
-): Map<string, string[]> {
-  const directoryEntries = new Map<string, Set<string>>();
-
-  const addEntry = (directoryPath: string, entryName: string) => {
-    const entries = directoryEntries.get(directoryPath);
-    if (entries) {
-      entries.add(entryName);
-      return;
-    }
-
-    directoryEntries.set(directoryPath, new Set([entryName]));
-  };
-
-  for (const relativeFilePath of allFiles) {
-    const segments = normalizeRelativePath(relativeFilePath).split('/');
-    let currentDirectory = '';
-
-    for (let index = 0; index < segments.length; index += 1) {
-      addEntry(currentDirectory, segments[index]);
-
-      if (index === segments.length - 1) {
-        break;
-      }
-
-      currentDirectory = currentDirectory
-        ? `${currentDirectory}/${segments[index]}`
-        : segments[index];
-    }
-  }
-
-  return new Map(
-    Array.from(directoryEntries.entries(), ([directoryPath, entries]) => {
-      return [directoryPath, Array.from(entries).sort()];
-    }),
-  );
 }
 
 async function buildPrefetchedTextFiles(
@@ -98,15 +39,15 @@ async function buildPrefetchedTextFiles(
 export async function createGitHistoryCommitPathHost(
   options: CreateGitHistoryCommitPathHostOptions,
 ): Promise<TreeSitterPathHost> {
-  const files = new Set(options.allFiles.map(normalizeRelativePath));
-  const directories = buildDirectoryEntries(options.allFiles);
+  const files = new Set(options.allFiles.map(normalizeGitHistoryPath));
+  const directories = buildGitHistoryDirectoryEntries(options.allFiles);
   const textFiles = await buildPrefetchedTextFiles(options);
   const isFile = (absolutePath: string): boolean => {
-    const relativePath = toRelativeFilePath(absolutePath, options.workspaceRoot);
+    const relativePath = toRelativeGitHistoryFilePath(absolutePath, options.workspaceRoot);
     return relativePath !== null && files.has(relativePath);
   };
   const isDirectory = (absolutePath: string): boolean => {
-    const relativePath = toRelativeDirectoryPath(absolutePath, options.workspaceRoot);
+    const relativePath = toRelativeGitHistoryDirectoryPath(absolutePath, options.workspaceRoot);
     return relativePath !== null && directories.has(relativePath);
   };
 
@@ -117,7 +58,7 @@ export async function createGitHistoryCommitPathHost(
     isDirectory,
     isFile,
     listDirectory(absolutePath) {
-      const relativePath = toRelativeDirectoryPath(absolutePath, options.workspaceRoot);
+      const relativePath = toRelativeGitHistoryDirectoryPath(absolutePath, options.workspaceRoot);
       return relativePath === null ? null : directories.get(relativePath) ?? null;
     },
     readTextFile(absolutePath) {

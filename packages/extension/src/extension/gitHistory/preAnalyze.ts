@@ -1,4 +1,5 @@
 import * as path from 'path';
+import type { IPluginAnalysisContext } from '../../core/plugins/types/contracts';
 
 interface GitHistoryPreAnalyzeRegistry {
   notifyPreAnalyze(
@@ -8,6 +9,7 @@ interface GitHistoryPreAnalyzeRegistry {
       content: string;
     }>,
     workspaceRoot: string,
+    context: IPluginAnalysisContext,
   ): Promise<void>;
 }
 
@@ -26,6 +28,7 @@ export interface PreAnalyzeGitHistoryOptions {
 
 export async function preAnalyzeGitHistoryPlugins(
   options: PreAnalyzeGitHistoryOptions,
+  context: IPluginAnalysisContext,
 ): Promise<void> {
   const {
     allFiles,
@@ -47,7 +50,7 @@ export async function preAnalyzeGitHistoryPlugins(
   }));
 
   throwIfGitHistoryPreAnalyzeAborted(signal);
-  await registry.notifyPreAnalyze(files, workspaceRoot);
+  await registry.notifyPreAnalyze(files, workspaceRoot, context);
 }
 
 function throwIfGitHistoryPreAnalyzeAborted(signal: AbortSignal): void {

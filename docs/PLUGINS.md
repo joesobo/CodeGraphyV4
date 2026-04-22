@@ -25,6 +25,7 @@ The current plugin API supports more than file analysis:
 - per-file analysis objects with symbols, relations, node types, and edge types
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
 - `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
+- analysis hooks receive an optional `context` object; use `context.fileSystem` for timeline-safe repo reads
 - graph queries backed by the projected repo-local index and current graph state
 - commands, exporters, toolbar actions, and the compatibility `registerView(...)` hook for optional future graph transforms
 - context menu items, commands, and exporters
@@ -32,6 +33,8 @@ The current plugin API supports more than file analysis:
 - Tier 2 webview slots such as `toolbar`, `node-details`, `tooltip`, `timeline-panel`, `graph-overlay`
 
 Core now owns the default explorer-style file and folder theming through Material Icon Theme. The built-in TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
+
+For timeline compatibility, third-party plugins should avoid reading the live workspace directly during analysis. Use the plugin hook `context` instead so the same plugin can resolve files from either the current workspace or a historical commit snapshot.
 
 ## Packaging model
 

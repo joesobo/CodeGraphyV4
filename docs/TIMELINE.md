@@ -18,6 +18,8 @@ Indexing analyzes the main branch's commit history (up to 500 commits) and cache
 
 Timeline state is stored under `.codegraphy/` alongside the live repo index and repo-local settings.
 
+Plugin analysis runs during timeline indexing too. Plugins that use the public analysis-hook `context.fileSystem` read files from the selected commit, so third-party plugins can contribute nodes and edges to historical snapshots without depending on the current `HEAD` workspace state.
+
 ## Controls
 
 | Control | Action |
