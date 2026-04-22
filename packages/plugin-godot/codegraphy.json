@@ -14,13 +14,6 @@
     "**/addons/**",
     "**/*.uid"
   ],
-  "fileColors": {
-    "*.gd": { "color": "#478CBF", "imagePath": "assets/godot.svg" },
-    "*.tscn": "#6EE7B7",
-    "*.tres": "#5EEAD4",
-    "*.gdshader": "#A78BFA",
-    "project.godot": "#478CBF"
-  },
   "sources": [
     { "id": "preload", "name": "Preload", "description": "preload(\"res://...\")" },
     { "id": "load", "name": "Load", "description": "load(), ResourceLoader.load()" },
