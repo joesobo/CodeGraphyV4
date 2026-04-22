@@ -1,5 +1,6 @@
 import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
+import { createGitHistoryCommitPathHost } from '../commitPathHost';
 import { addGitHistoryGraphFile, modifyGitHistoryGraphFile } from './changes';
 import {
   createDiffGraphSnapshot,
@@ -20,6 +21,7 @@ interface DiffGraphRegistry {
 
 export interface AnalyzeDiffCommitGraphOptions {
   diffOutput: string;
+  commitFiles: readonly string[];
   getFileAtCommit: (
     sha: string,
     filePath: string,
@@ -38,6 +40,7 @@ export async function analyzeDiffCommitGraph(
 ): Promise<IGraphData> {
   const {
     diffOutput,
+    commitFiles,
     getFileAtCommit,
     previousGraph,
     registry,
@@ -49,6 +52,16 @@ export async function analyzeDiffCommitGraph(
 
   const { edgeSet, edges, nodeMap, nodes } = createDiffGraphSnapshot(previousGraph);
   const lines = diffOutput.trim().split('\n').filter(Boolean);
+  const trackedFiles = new Set(commitFiles.filter((filePath) => {
+    return !shouldExclude(filePath) && registry.supportsFile(filePath);
+  }));
+  const pathHost = await createGitHistoryCommitPathHost({
+    allFiles: commitFiles,
+    getFileAtCommit,
+    sha,
+    signal,
+    workspaceRoot,
+  });
 
   for (const line of lines) {
     if (signal.aborted) {
@@ -63,6 +76,11 @@ export async function analyzeDiffCommitGraph(
     if (status.startsWith('R')) {
       const oldPath = parts[1];
       const newPath = parts[2];
+      if (!trackedFiles.has(newPath)) {
+        deleteGitHistoryGraphFile(oldPath, nodes, edges, nodeMap, edgeSet);
+        continue;
+      }
+
       renameGitHistoryGraphFile(oldPath, newPath, edges, nodeMap, edgeSet);
       await reanalyzeGraphFile({
         edgeSet,
@@ -75,12 +93,13 @@ export async function analyzeDiffCommitGraph(
         sha,
         signal,
         workspaceRoot,
+        pathHost,
       });
       continue;
     }
 
     if (status === 'A') {
-      if (shouldExclude(parts[1])) {
+      if (!trackedFiles.has(parts[1])) {
         continue;
       }
 
@@ -95,11 +114,17 @@ export async function analyzeDiffCommitGraph(
         sha,
         signal,
         workspaceRoot,
+        pathHost,
       });
       continue;
     }
 
     if (status === 'M') {
+      if (!trackedFiles.has(parts[1])) {
+        deleteGitHistoryGraphFile(parts[1], nodes, edges, nodeMap, edgeSet);
+        continue;
+      }
+
       await modifyGitHistoryGraphFile({
         edgeSet,
         edges,
@@ -111,6 +136,7 @@ export async function analyzeDiffCommitGraph(
         sha,
         signal,
         workspaceRoot,
+        pathHost,
       });
       continue;
     }

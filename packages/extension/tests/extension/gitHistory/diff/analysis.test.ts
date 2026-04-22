@@ -39,6 +39,7 @@ describe('gitHistory/diff/analysis', () => {
         'D\tsrc/remove.ts',
         'X\tsrc/unknown.ts',
       ].join('\n'),
+      commitFiles: ['src/keep.ts', 'src/new.ts', 'src/add.ts', 'src/edit.ts'],
       getFileAtCommit: vi.fn(async () => ''),
       previousGraph: {
         nodes: [
@@ -98,6 +99,7 @@ describe('gitHistory/diff/analysis', () => {
     await expect(
       analyzeDiffCommitGraph({
         diffOutput: 'A\tsrc/add.ts',
+        commitFiles: ['src/add.ts'],
         getFileAtCommit: vi.fn(async () => ''),
         previousGraph: { nodes: [], edges: [] },
         registry: {

@@ -426,7 +426,8 @@ describe('GitHistoryAnalyzer', () => {
           match: 'log',
           stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
         },
-        { match: 'ls-tree', stdout: 'src/a.ts\n' },
+        { match: /ls-tree -r --name-only sha1/, stdout: 'src/a.ts\n' },
+        { match: /ls-tree -r --name-only sha2/, stdout: 'src/a.ts\nsrc/new.ts\n' },
         { match: /show sha1:/, stdout: '' },
         {
           match: /diff --name-status/,
@@ -557,7 +558,8 @@ describe('GitHistoryAnalyzer', () => {
           match: 'log',
           stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
         },
-        { match: 'ls-tree', stdout: 'src/old.ts\nsrc/main.ts\n' },
+        { match: /ls-tree -r --name-only sha1/, stdout: 'src/old.ts\nsrc/main.ts\n' },
+        { match: /ls-tree -r --name-only sha2/, stdout: 'src/new.ts\nsrc/main.ts\n' },
         { match: /show sha1:src\/old\.ts/, stdout: '' },
         { match: /show sha1:src\/main\.ts/, stdout: 'import "./old";' },
         {
@@ -685,7 +687,8 @@ describe('GitHistoryAnalyzer', () => {
           match: 'log',
           stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
         },
-        { match: 'ls-tree', stdout: 'src/a.ts\n' },
+        { match: /ls-tree -r --name-only sha1/, stdout: 'src/a.ts\n' },
+        { match: /ls-tree -r --name-only sha2/, stdout: 'src/a.ts\nsrc/b.ts\nassets/sprite.ts\n' },
         { match: /show sha1:/, stdout: '' },
         {
           match: /diff --name-status/,
@@ -816,7 +819,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return true when correct cache version and plugin signature are stored', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
@@ -829,7 +832,7 @@ describe('GitHistoryAnalyzer', () => {
         { plugin: { id: 'z.plugin', version: '2.0.0' } },
         { plugin: { id: 'a.plugin', version: '1.0.0' } },
       ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'a.plugin@1.0.0|z.plugin@2.0.0',
@@ -844,7 +847,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return false when plugin signature does not match the current registry', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'stale.plugin@1.0.0',
@@ -863,7 +866,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
@@ -881,7 +884,7 @@ describe('GitHistoryAnalyzer', () => {
         { plugin: { id: 'z.plugin', version: '2.0.0' } },
         { plugin: { id: 'a.plugin', version: '1.0.0' } },
       ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'a.plugin@1.0.0|z.plugin@2.0.0',
@@ -895,7 +898,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'stale.plugin@1.0.0',

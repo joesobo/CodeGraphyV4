@@ -9,7 +9,7 @@ import {
 describe('gitHistory/diff/changes', () => {
   const emptyAnalysis = (filePath: string): IFileAnalysisResult => ({ filePath, relations: [] });
 
-  it('adds a node for unsupported files without reanalyzing them', async () => {
+  it('skips unsupported files instead of adding timeline-only nodes', async () => {
     const nodes: Array<{ id: string; label: string; color: string }> = [];
     const nodeMap = new Map();
     const registry = {
@@ -30,7 +30,7 @@ describe('gitHistory/diff/changes', () => {
       workspaceRoot: '/workspace',
     });
 
-    expect(nodes).toEqual([{ id: 'src/readme.md', label: 'readme.md', color: '#CBD5E1' }]);
+    expect(nodes).toEqual([]);
     expect(registry.analyzeFileResult).not.toHaveBeenCalled();
   });
 
@@ -148,7 +148,7 @@ describe('gitHistory/diff/changes', () => {
     expect(edgeSet).toEqual(new Set(['src/a.ts->src/c.ts#import:static']));
   });
 
-  it('does not duplicate unsupported nodes that already exist', async () => {
+  it('leaves existing unsupported nodes untouched during replay', async () => {
     const existingNode = { id: 'src/readme.md', label: 'readme.md', color: '#CBD5E1' };
     const nodes = [existingNode];
     const nodeMap = new Map([[existingNode.id, existingNode]]);
