@@ -201,10 +201,10 @@ var config = load("res://data/config.tres")`;
     expect(Array.isArray(plugin.sources)).toBe(true);
   });
 
-  it('should expose fileColors from manifest', () => {
+  it('does not expose fileColors when core Material theming owns Godot visuals', () => {
     const plugin = createGodotPlugin();
 
-    expect(plugin.fileColors).toBeDefined();
+    expect(plugin.fileColors).toBeUndefined();
   });
 
   it('should expose defaultFilters from manifest', () => {
