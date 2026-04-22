@@ -36,6 +36,8 @@ function createHandlers(
       config.set(key, value);
       return Promise.resolve();
     }),
+    recomputeGroups: vi.fn(),
+    sendGroupsUpdated: vi.fn(),
     smartRebuild: vi.fn(),
     getPluginFilterPatterns: vi.fn(() => []),
     getPluginFilterGroups: vi.fn(() => []),

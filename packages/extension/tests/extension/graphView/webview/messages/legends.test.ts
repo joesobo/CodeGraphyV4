@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
 import {
@@ -19,8 +20,12 @@ function createHandlers(
   overrides: Partial<GraphViewLegendMessageHandlers> = {},
 ): GraphViewLegendMessageHandlers {
   return {
+    workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+    createDirectory: vi.fn(() => Promise.resolve()),
+    writeFile: vi.fn(() => Promise.resolve()),
     persistLegends: vi.fn(() => Promise.resolve()),
     persistDefaultLegendVisibility: vi.fn(() => Promise.resolve()),
+    persistDefaultLegendVisibilityBatch: vi.fn(() => Promise.resolve()),
     persistLegendOrder: vi.fn(() => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
@@ -38,6 +43,7 @@ describe('graph view legend message', () => {
         imagePath: '.codegraphy/assets/icon.png',
         imageUrl: 'webview://icon.png',
         isPluginDefault: true,
+        pluginId: 'codegraphy.typescript',
         pluginName: 'TypeScript',
       },
     ];
@@ -60,6 +66,44 @@ describe('graph view legend message', () => {
         imagePath: '.codegraphy/assets/icon.png',
       },
     ]);
+    expect(handlers.persistLegends).toHaveBeenCalledWith(state.userLegends);
+  });
+
+  it('writes pending icon imports before persisting updated legends', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applyLegendMessage(
+        {
+          type: 'UPDATE_LEGENDS',
+          payload: {
+            legends: [
+              {
+                id: 'user-group',
+                pattern: '*.ts',
+                color: '#112233',
+                imagePath: '.codegraphy/icons/ts.svg',
+              },
+            ],
+            iconImports: [
+              {
+                imagePath: '.codegraphy/icons/ts.svg',
+                contentsBase64: 'PHN2Zy8+',
+              },
+            ],
+          },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.createDirectory).toHaveBeenCalledWith(vscode.Uri.file('/workspace/.codegraphy/icons'));
+    expect(handlers.writeFile).toHaveBeenCalledWith(
+      vscode.Uri.file('/workspace/.codegraphy/icons/ts.svg'),
+      Uint8Array.from([60, 115, 118, 103, 47, 62]),
+    );
     expect(handlers.persistLegends).toHaveBeenCalledWith(state.userLegends);
   });
 
@@ -100,6 +144,34 @@ describe('graph view legend message', () => {
     expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(state.userLegends).toEqual([{ id: 'user-group', pattern: 'src/**', color: '#112233' }]);
+  });
+
+  it('persists batched plugin-default visibility overrides and resends groups once', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applyLegendMessage(
+        {
+          type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY_BATCH',
+          payload: {
+            legendVisibility: {
+              'default:fileExtension:py': false,
+              'default:fileName:package.json': false,
+            },
+          },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.persistDefaultLegendVisibilityBatch).toHaveBeenCalledWith({
+      'default:fileExtension:py': false,
+      'default:fileName:package.json': false,
+    });
+    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
+    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
   });
 
   it('persists legend ordering and resends groups', async () => {

@@ -55,6 +55,7 @@ describe('runtime package build support', () => {
   it('vendors every Tree-sitter grammar needed by the core runtime', () => {
     expect(EXTENSION_RUNTIME_PACKAGE_NAMES).toEqual(
       expect.arrayContaining([
+        'material-icon-theme',
         'tree-sitter',
         'tree-sitter-c-sharp',
         'tree-sitter-go',

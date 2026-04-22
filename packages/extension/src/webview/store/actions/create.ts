@@ -48,6 +48,13 @@ export function createActions(set: SetState, get: GetState) {
           updates,
         ),
       })),
+    setOptimisticLegendUpdates: (updatesByLegendId: Record<string, Partial<GraphState['legends'][number]>>) =>
+      set((state) => ({
+        optimisticLegendUpdates: Object.entries(updatesByLegendId).reduce(
+          (pending, [groupId, updates]) => mergePendingGroupUpdate(pending, groupId, updates),
+          state.optimisticLegendUpdates,
+        ),
+      })),
     clearOptimisticLegendUpdate: (groupId: string) =>
       set((state) => ({
         optimisticLegendUpdates: clearPendingGroupUpdate(

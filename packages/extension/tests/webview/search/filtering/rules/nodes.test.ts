@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../../../../src/shared/fileColors';
 import { applyNodeLegendRules, getOrderedActiveRules } from '../../../../../src/webview/search/filtering/rules/nodes';
+import { buildGraphViewMergedGroups } from '../../../../../src/extension/graphView/groups/merged';
 
 describe('search/filtering/rules/nodes', () => {
   it('returns a reversed copy of enabled rules without mutating the source list', () => {
@@ -71,6 +72,90 @@ describe('search/filtering/rules/nodes', () => {
       label: 'App',
       color: '#fedcba',
       imageUrl: 'shared.png',
+    });
+  });
+
+  it('lets plugin defaults override core defaults while custom rules still win last', () => {
+    const activeRules = getOrderedActiveRules(
+      buildGraphViewMergedGroups(
+        [
+          { id: 'user:custom', pattern: '*.ts', color: '#ff00ff', imageUrl: 'custom.png' },
+        ],
+        [
+          { id: 'default:fileExtension:ts', pattern: '*.ts', color: '#0288d1', imageUrl: 'core.png' },
+        ],
+        [
+          { id: 'plugin:codegraphy.typescript:*.ts', pattern: '*.ts', color: '#ff0000' },
+        ],
+      ),
+    );
+
+    expect(
+      applyNodeLegendRules(
+        { id: 'src/app.ts', label: 'app.ts', color: '#111111' },
+        activeRules,
+      ),
+    ).toEqual({
+      id: 'src/app.ts',
+      label: 'app.ts',
+      color: '#ff00ff',
+      imageUrl: 'custom.png',
+    });
+  });
+
+  it('applies generic folder rules only to folder nodes while allowing specific folder rules to override them', () => {
+    const activeRules = getOrderedActiveRules([
+      {
+        id: 'default:folderName:src',
+        pattern: 'src',
+        color: '#778899',
+        imageUrl: 'src-folder.png',
+      },
+      {
+        id: 'default:folder',
+        pattern: '**',
+        color: '#445566',
+        imageUrl: 'folder.png',
+        matchNodeType: 'folder',
+      },
+    ]);
+
+    expect(
+      applyNodeLegendRules(
+        { id: 'docs', label: 'docs', color: '#111111', nodeType: 'folder' },
+        activeRules,
+      ),
+    ).toEqual({
+      id: 'docs',
+      label: 'docs',
+      color: '#445566',
+      nodeType: 'folder',
+      imageUrl: 'folder.png',
+    });
+
+    expect(
+      applyNodeLegendRules(
+        { id: 'src', label: 'src', color: '#111111', nodeType: 'folder' },
+        activeRules,
+      ),
+    ).toEqual({
+      id: 'src',
+      label: 'src',
+      color: '#778899',
+      nodeType: 'folder',
+      imageUrl: 'src-folder.png',
+    });
+
+    expect(
+      applyNodeLegendRules(
+        { id: 'src/app.ts', label: 'app.ts', color: '#111111', nodeType: 'file' },
+        activeRules,
+      ),
+    ).toEqual({
+      id: 'src/app.ts',
+      label: 'app.ts',
+      color: '#111111',
+      nodeType: 'file',
     });
   });
 });

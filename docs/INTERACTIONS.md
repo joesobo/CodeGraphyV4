@@ -100,7 +100,7 @@ Toggle edge kinds such as `NESTS`, imports, calls, references, and plugin-added 
 
 ### Legends (paint icon)
 
-Manage regex-based legend rules. Drag to reorder priority. Bottom rules apply first, top rules apply last and can override lower matches.
+Manage glob-based legend styling. Node entries are grouped as `Custom`, `Plugin Defaults`, `Material Icon Theme`, and `Defaults`. Custom rules can be reordered. Bottom rules apply first, top rules apply last and can override lower matches. Section toggles persist in repo settings and collapsed state persists in the webview.
 
 ### Plugins (puzzle icon)
 

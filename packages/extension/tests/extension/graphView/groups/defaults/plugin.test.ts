@@ -37,14 +37,14 @@ describe('graphView/pluginDefaultGroups', () => {
             {
               builtIn: true,
               plugin: {
-                id: 'codegraphy.markdown',
-                name: 'Markdown',
+                id: 'codegraphy.godot',
+                name: 'Godot',
                 fileColors: {
-                  '*.md': '#577590',
-                  '*.mdx': {
-                    color: '#577590',
+                  '*.gd': '#478CBF',
+                  '*.tscn': {
+                    color: '#478CBF',
                     shape2D: 'hexagon',
-                    imagePath: 'assets/markdown.svg',
+                    imagePath: 'assets/godot.svg',
                   },
                 },
               },
@@ -59,24 +59,26 @@ describe('graphView/pluginDefaultGroups', () => {
 
     expect(groups).toEqual([
       {
-        id: 'plugin:codegraphy.markdown:*.md',
-        pattern: '*.md',
-        color: '#577590',
+        id: 'plugin:codegraphy.godot:*.gd',
+        pattern: '*.gd',
+        color: '#478CBF',
         isPluginDefault: true,
-        pluginName: 'Markdown',
+        pluginId: 'codegraphy.godot',
+        pluginName: 'Godot',
       },
       {
-        id: 'plugin:codegraphy.markdown:*.mdx',
-        pattern: '*.mdx',
-        color: '#577590',
+        id: 'plugin:codegraphy.godot:*.tscn',
+        pattern: '*.tscn',
+        color: '#478CBF',
         isPluginDefault: true,
-        pluginName: 'Markdown',
+        pluginId: 'codegraphy.godot',
+        pluginName: 'Godot',
         shape2D: 'hexagon',
-        imagePath: 'assets/markdown.svg',
+        imagePath: 'assets/godot.svg',
       },
     ]);
-    expect(pluginExtensionUris.get('codegraphy.markdown')?.fsPath).toBe(
-      '/test/extension/packages/plugin-markdown',
+    expect(pluginExtensionUris.get('codegraphy.godot')?.fsPath).toBe(
+      '/test/extension/packages/plugin-godot',
     );
   });
 
@@ -112,6 +114,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.ts',
         color: '#3178C6',
         isPluginDefault: true,
+        pluginId: 'codegraphy.typescript',
         pluginName: 'TypeScript',
       },
     ]);
@@ -147,6 +150,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.unknown',
         color: '#999999',
         isPluginDefault: true,
+        pluginId: 'codegraphy.unknown',
         pluginName: 'Unknown',
       },
     ]);
@@ -184,6 +188,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.gd',
         color: '#478CBF',
         isPluginDefault: true,
+        pluginId: 'codegraphy.godot',
         pluginName: 'Godot',
         shape3D: 'sphere',
       },
@@ -220,6 +225,7 @@ describe('graphView/pluginDefaultGroups', () => {
       pattern: '*.rs',
       color: '#DEA584',
       isPluginDefault: true,
+      pluginId: 'codegraphy.rust',
       pluginName: 'Rust',
     });
     expect(groups[0]).not.toHaveProperty('shape2D');
@@ -267,6 +273,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.py',
         color: '#3776AB',
         isPluginDefault: true,
+        pluginId: 'codegraphy.python',
         pluginName: 'Python',
       },
     ]);
@@ -319,6 +326,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.gd',
         color: '#478CBF',
         isPluginDefault: true,
+        pluginId: 'codegraphy.godot',
         pluginName: 'Godot',
         shape3D: 'sphere',
       },
@@ -327,6 +335,7 @@ describe('graphView/pluginDefaultGroups', () => {
         pattern: '*.godot',
         color: '#6A9FB5',
         isPluginDefault: true,
+        pluginId: 'codegraphy.godot',
         pluginName: 'Godot',
       },
     ]);

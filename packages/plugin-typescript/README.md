@@ -17,8 +17,11 @@ Adds TypeScript and JavaScript ecosystem metadata to [CodeGraphy](https://market
 The built-in Tree-sitter plugin now handles JS/TS analysis inside the core extension.
 This plugin keeps the TypeScript/JavaScript ecosystem defaults that are still useful on top:
 
-- file colors for common JS/TS files
 - default ignore filters for common build output and package folders
+- plugin install / enable / disable state for TypeScript/JavaScript-specific defaults
+
+Core CodeGraphy now owns the default JS/TS icons and colors through Material Icon Theme.
+This plugin no longer ships general file theming.
 
 ## More
 

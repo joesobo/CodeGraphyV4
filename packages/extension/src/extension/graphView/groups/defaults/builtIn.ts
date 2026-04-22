@@ -1,24 +1,19 @@
+import * as vscode from 'vscode';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
+import { createDefaultNodeVisibility } from '../../../../shared/graphControls/defaults/maps';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
+import { getMaterialThemeDefaultGroups } from './materialTheme/view';
 
-function getBuiltInGraphViewDefaultGroupDefinitions(): Array<{ pattern: string; color: string }> {
-  return [
-    { pattern: '.gitignore', color: '#F97583' },
-    { pattern: '*.json', color: '#F9C74F' },
-    { pattern: '*.png', color: '#90BE6D' },
-    { pattern: '*.jpg', color: '#90BE6D' },
-    { pattern: '*.svg', color: '#43AA8B' },
-    { pattern: '*.md', color: '#577590' },
-    { pattern: '*.jpeg', color: '#90BE6D' },
-    { pattern: '.codegraphy/settings.json', color: '#277ACC' },
-  ];
-}
+export function getBuiltInGraphViewDefaultGroups(
+  graphData: IGraphData,
+  extensionUri: vscode.Uri,
+): IGroup[] {
+  const config = getCodeGraphyConfiguration();
+  const defaultNodeVisibility = createDefaultNodeVisibility();
+  const configuredNodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
 
-export function getBuiltInGraphViewDefaultGroups(): IGroup[] {
-  return getBuiltInGraphViewDefaultGroupDefinitions().map(({ pattern, color }) => ({
-    id: `default:${pattern}`,
-    pattern,
-    color,
-    isPluginDefault: true,
-    pluginName: 'CodeGraphy',
-  }));
+  return getMaterialThemeDefaultGroups(graphData, extensionUri, {
+    includeFolderMatches: configuredNodeVisibility.folder ?? defaultNodeVisibility.folder,
+  });
 }

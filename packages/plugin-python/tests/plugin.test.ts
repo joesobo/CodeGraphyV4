@@ -14,15 +14,11 @@ describe('createPythonPlugin', () => {
     });
   });
 
-  it('keeps Python ecosystem defaults from the manifest', () => {
+  it('keeps Python ecosystem filters while leaving file theming to core Material defaults', () => {
     const plugin = createPythonPlugin();
 
     expect(plugin.defaultFilters).toContain('**/__pycache__/**');
-    expect(plugin.fileColors).toMatchObject({
-      '*.py': '#3776AB',
-      '*.pyi': '#3776AB',
-      '__init__.py': '#FFD43B',
-    });
+    expect(plugin.fileColors).toEqual({});
   });
 
   it('does not provide supplemental analysis once Tree-sitter owns Python parsing', () => {

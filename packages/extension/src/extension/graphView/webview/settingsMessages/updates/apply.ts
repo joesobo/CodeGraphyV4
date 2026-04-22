@@ -24,6 +24,22 @@ function getNextDisabledFilterPatterns(
   return Array.from(nextPatterns);
 }
 
+function getDisabledFilterPatternConfigKey(
+  source: 'custom' | 'plugin',
+): 'disabledCustomFilterPatterns' | 'disabledPluginFilterPatterns' {
+  return source === 'custom'
+    ? 'disabledCustomFilterPatterns'
+    : 'disabledPluginFilterPatterns';
+}
+
+function getFilterPatternStateOverrideKey(
+  source: 'custom' | 'plugin',
+): 'disabledCustomPatterns' | 'disabledPluginPatterns' {
+  return source === 'custom'
+    ? 'disabledCustomPatterns'
+    : 'disabledPluginPatterns';
+}
+
 function getGroupDisabledFilterPatterns(
   source: 'custom' | 'plugin',
   enabled: boolean,
@@ -61,76 +77,136 @@ function sendFilterPatternsUpdated(
   });
 }
 
+async function applyResetAllSettingsMessage(
+  message: WebviewToExtensionMessage,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  if (message.type !== 'RESET_ALL_SETTINGS') {
+    return false;
+  }
+
+  await handlers.resetAllSettings();
+  return true;
+}
+
+async function applyFilterPatternStateMessage(
+  message: WebviewToExtensionMessage,
+  state: GraphViewSettingsMessageState,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  if (message.type !== 'UPDATE_FILTER_PATTERN_STATE') {
+    return false;
+  }
+
+  const key = getDisabledFilterPatternConfigKey(message.payload.source);
+  const disabledPatterns = getNextDisabledFilterPatterns(
+    handlers.getConfig<string[]>(key, []),
+    message.payload.pattern,
+    message.payload.enabled,
+  );
+  await handlers.updateConfig(key, disabledPatterns);
+  sendFilterPatternsUpdated(state, handlers, {
+    [getFilterPatternStateOverrideKey(message.payload.source)]: disabledPatterns,
+  });
+  await handlers.analyzeAndSendData();
+  return true;
+}
+
+async function applyFilterPatternGroupMessage(
+  message: WebviewToExtensionMessage,
+  state: GraphViewSettingsMessageState,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  if (message.type !== 'UPDATE_FILTER_PATTERN_GROUP_STATE') {
+    return false;
+  }
+
+  const key = getDisabledFilterPatternConfigKey(message.payload.source);
+  const disabledPatterns = getGroupDisabledFilterPatterns(
+    message.payload.source,
+    message.payload.enabled,
+    state,
+    handlers,
+  );
+  await handlers.updateConfig(key, disabledPatterns);
+  sendFilterPatternsUpdated(state, handlers, {
+    [getFilterPatternStateOverrideKey(message.payload.source)]: disabledPatterns,
+  });
+  await handlers.analyzeAndSendData();
+  return true;
+}
+
+async function applyParticleSettingMessage(
+  message: WebviewToExtensionMessage,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  if (message.type !== 'UPDATE_PARTICLE_SETTING') {
+    return false;
+  }
+
+  await handlers.updateConfig(message.payload.key, message.payload.value);
+  return true;
+}
+
+async function applyDirectSettingsUpdateMessage(
+  message: WebviewToExtensionMessage,
+  state: GraphViewSettingsMessageState,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  switch (message.type) {
+    case 'UPDATE_FILTER_PATTERNS':
+      return applyFilterPatternsUpdate(message, state, handlers);
+    case 'UPDATE_SHOW_LABELS':
+      return applyShowLabelsUpdate(message, handlers);
+    case 'UPDATE_PLUGIN_ORDER':
+      return applyPluginOrderUpdate(message, handlers);
+    default:
+      return false;
+  }
+}
+
+const statefulSettingsMessageAppliers = [
+  (
+    message: WebviewToExtensionMessage,
+    _state: GraphViewSettingsMessageState,
+    handlers: GraphViewSettingsMessageHandlers,
+  ) => applyResetAllSettingsMessage(message, handlers),
+  applyFilterPatternStateMessage,
+  applyFilterPatternGroupMessage,
+] as const satisfies ReadonlyArray<(
+  message: WebviewToExtensionMessage,
+  state: GraphViewSettingsMessageState,
+  handlers: GraphViewSettingsMessageHandlers,
+) => Promise<boolean>>;
+
+const statelessSettingsMessageAppliers = [
+  applySimpleSettingsUpdate,
+  applyParticleSettingMessage,
+  applyGraphControlMessage,
+] as const satisfies ReadonlyArray<(
+  message: WebviewToExtensionMessage,
+  handlers: GraphViewSettingsMessageHandlers,
+) => Promise<boolean>>;
+
 export async function applySettingsUpdateMessage(
   message: WebviewToExtensionMessage,
   state: GraphViewSettingsMessageState,
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
-  if (message.type === 'RESET_ALL_SETTINGS') {
-    await handlers.resetAllSettings();
+  for (const applyMessage of statefulSettingsMessageAppliers) {
+    if (await applyMessage(message, state, handlers)) {
+      return true;
+    }
+  }
+
+  if (await applyDirectSettingsUpdateMessage(message, state, handlers)) {
     return true;
   }
 
-  if (message.type === 'UPDATE_FILTER_PATTERNS') {
-    return applyFilterPatternsUpdate(message, state, handlers);
-  }
-
-  if (message.type === 'UPDATE_FILTER_PATTERN_STATE') {
-    const key = message.payload.source === 'custom'
-      ? 'disabledCustomFilterPatterns'
-      : 'disabledPluginFilterPatterns';
-    const disabledPatterns = getNextDisabledFilterPatterns(
-      handlers.getConfig<string[]>(key, []),
-      message.payload.pattern,
-      message.payload.enabled,
-    );
-    await handlers.updateConfig(key, disabledPatterns);
-    sendFilterPatternsUpdated(state, handlers, {
-      [message.payload.source === 'custom' ? 'disabledCustomPatterns' : 'disabledPluginPatterns']:
-        disabledPatterns,
-    });
-    await handlers.analyzeAndSendData();
-    return true;
-  }
-
-  if (message.type === 'UPDATE_FILTER_PATTERN_GROUP_STATE') {
-    const key = message.payload.source === 'custom'
-      ? 'disabledCustomFilterPatterns'
-      : 'disabledPluginFilterPatterns';
-    const disabledPatterns = getGroupDisabledFilterPatterns(
-      message.payload.source,
-      message.payload.enabled,
-      state,
-      handlers,
-    );
-    await handlers.updateConfig(key, disabledPatterns);
-    sendFilterPatternsUpdated(state, handlers, {
-      [message.payload.source === 'custom' ? 'disabledCustomPatterns' : 'disabledPluginPatterns']:
-        disabledPatterns,
-    });
-    await handlers.analyzeAndSendData();
-    return true;
-  }
-
-  if (await applySimpleSettingsUpdate(message, handlers)) {
-    return true;
-  }
-
-  if (message.type === 'UPDATE_PARTICLE_SETTING') {
-    await handlers.updateConfig(message.payload.key, message.payload.value);
-    return true;
-  }
-
-  if (message.type === 'UPDATE_SHOW_LABELS') {
-    return applyShowLabelsUpdate(message, handlers);
-  }
-
-  if (message.type === 'UPDATE_PLUGIN_ORDER') {
-    return applyPluginOrderUpdate(message, handlers);
-  }
-
-  if (await applyGraphControlMessage(message, handlers)) {
-    return true;
+  for (const applyMessage of statelessSettingsMessageAppliers) {
+    if (await applyMessage(message, handlers)) {
+      return true;
+    }
   }
 
   return false;

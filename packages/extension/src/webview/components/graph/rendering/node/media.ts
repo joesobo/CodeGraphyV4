@@ -22,9 +22,11 @@ export function renderNodeImageOverlay(
   }
 
   ctx.save();
-  drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size * 0.8);
-  ctx.clip();
-  const imageSize = node.size * 1.2;
+  if (node.nodeType !== 'folder') {
+    drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size * 0.8);
+    ctx.clip();
+  }
+  const imageSize = node.nodeType === 'folder' ? node.size * 2 : node.size * 1.2;
   ctx.drawImage(image, node.x! - imageSize / 2, node.y! - imageSize / 2, imageSize, imageSize);
   ctx.restore();
 }

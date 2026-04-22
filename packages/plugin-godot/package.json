@@ -19,6 +19,7 @@
     "url": "https://github.com/joesobo/CodeGraphyV4/issues"
   },
   "engines": {
+    "node": ">=22.22.0 <23",
     "vscode": "^1.85.0"
   },
   "categories": [

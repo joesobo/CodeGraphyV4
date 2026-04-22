@@ -17,8 +17,11 @@ Adds C# ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/
 The built-in Tree-sitter plugin now owns C# analysis inside the core extension.
 This plugin is intentionally lightweight and only adds:
 
-- C#-focused file colors
 - C# ecosystem ignore filters
+- plugin install / enable / disable state for C#-specific defaults
+
+Core CodeGraphy now owns the default C# icons and colors through Material Icon Theme.
+This plugin no longer ships general file theming.
 
 ## More
 

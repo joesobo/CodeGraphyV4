@@ -206,6 +206,19 @@ If you see projected file-to-file edges inside the extension codebase, those are
 
 Plugin views are an optional compatibility surface for graph transforms layered on top of the unified graph. They are not the built-in way users switch the graph anymore, and the current host experience stays centered on one unified surface.
 
+## Theme-Style Plugins
+
+The current public API already supports a file-theme style plugin through `fileColors`:
+
+- extension matches like `.ts`
+- exact file names like `package.json`
+- glob patterns like `**/*.stories.tsx`
+- optional `shape2D`, `shape3D`, and `imagePath`
+
+Those plugin defaults sit above core defaults and below custom legend rules, so a user can treat them like an installable theme layer for file nodes. In the current UI that means Material Icon Theme stays in the core layer, plugin defaults are grouped separately, and custom rules still win last.
+
+Current limitation: folder icon theming is still core-only. The API does not yet expose a folder-name or folder-icon contract comparable to the built-in Material Icon Theme integration.
+
 ## Webview Types (Tier 2)
 
 From `@codegraphy-vscode/plugin-api/webview`:

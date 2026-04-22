@@ -10,6 +10,7 @@ function createHandlers(
   return {
     timelineActive: false,
     currentCommitSha: undefined,
+    canOpenPath: vi.fn(() => true),
     setFocusedFile: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
@@ -99,5 +100,43 @@ describe('graph view node/file open message', () => {
     );
 
     expect(handled).toBe(false);
+  });
+
+  it('ignores folder nodes for preview and activation', async () => {
+    const handlers = createHandlers({
+      canOpenPath: vi.fn(() => false),
+    });
+
+    await applyNodeFileOpenMessage(
+      { type: 'NODE_SELECTED', payload: { nodeId: 'src' } },
+      handlers,
+    );
+    await applyNodeFileOpenMessage(
+      { type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: 'src' } },
+      handlers,
+    );
+
+    expect(handlers.setFocusedFile).toHaveBeenCalledWith(undefined);
+    expect(handlers.openSelectedNode).not.toHaveBeenCalled();
+    expect(handlers.activateNode).not.toHaveBeenCalled();
+  });
+
+  it('ignores package and folder open requests', async () => {
+    const handlers = createHandlers({
+      canOpenPath: vi.fn((path: string) => path === 'src/app.ts'),
+    });
+
+    await applyNodeFileOpenMessage(
+      { type: 'OPEN_FILE', payload: { path: 'pkg:react' } },
+      handlers,
+    );
+    await applyNodeFileOpenMessage(
+      { type: 'OPEN_FILE', payload: { path: 'src' } },
+      handlers,
+    );
+
+    expect(handlers.openFile).not.toHaveBeenCalled();
+    expect(handlers.previewFileAtCommit).not.toHaveBeenCalled();
+    expect(handlers.setFocusedFile).toHaveBeenCalledWith(undefined);
   });
 });

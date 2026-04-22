@@ -49,6 +49,7 @@ function createPluginDefaultGroup(
     pattern,
     color: typeof value === 'string' ? value : value.color,
     isPluginDefault: true,
+    pluginId: pluginInfo.plugin.id,
     pluginName: pluginInfo.plugin.name,
   };
 

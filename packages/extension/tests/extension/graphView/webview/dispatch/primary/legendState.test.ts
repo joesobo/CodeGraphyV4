@@ -53,6 +53,7 @@ function createContext(
     sendGroupsUpdated: vi.fn(),
     showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
     createDirectory: vi.fn(() => Promise.resolve()),
+    writeFile: vi.fn(() => Promise.resolve()),
     copyFile: vi.fn(() => Promise.resolve()),
     getConfig: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
     updateConfig: vi.fn(() => Promise.resolve()),

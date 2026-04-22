@@ -24,6 +24,20 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
+  it('recomputes and republishes legends when node visibility changes', async () => {
+    const handlers = createHandlers();
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'folder', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
+    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
+  });
+
   it('updates each graph control message type with the matching config key', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
@@ -37,12 +51,16 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
     await expect(
       applyGraphControlMessage(
-        { type: 'UPDATE_NODE_COLOR', payload: { nodeType: 'file', color: '#123456' } },
+        {
+          type: 'UPDATE_NODE_COLOR',
+          payload: { nodeType: 'file', color: '#123456', enabled: false },
+        },
         handlers,
       ),
     ).resolves.toBe(true);
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'edgeVisibility', { import: false });
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'nodeColors', { file: '#123456' });
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(3, 'nodeColorEnabled', { file: false });
     expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
   });
 

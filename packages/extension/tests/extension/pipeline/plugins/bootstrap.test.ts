@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  getWorkspacePipelinePluginFilterGroups,
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
 } from '../../../../src/extension/pipeline/plugins/bootstrap';
@@ -36,6 +37,57 @@ describe('pipeline/plugins/bootstrap', () => {
         new Set(['plugin.disabled']),
       ),
     ).toEqual(['**/*.generated.ts', '**/*.min.js']);
+  });
+
+  it('groups plugin filter patterns by plugin name and de-duplicates each plugin list', () => {
+    expect(
+      getWorkspacePipelinePluginFilterGroups(
+        {
+          list: () => [
+            {
+              plugin: {
+                id: 'plugin.enabled',
+                name: 'Enabled Plugin',
+                defaultFilters: ['**/*.generated.ts', '**/*.generated.ts'],
+              },
+            },
+            { plugin: { id: 'plugin.empty', name: 'Empty Plugin', defaultFilters: [] } },
+            { plugin: { name: 'Fallback Name', defaultFilters: ['dist/**'] } },
+          ],
+        },
+      ),
+    ).toEqual([
+      {
+        pluginId: 'plugin.enabled',
+        pluginName: 'Enabled Plugin',
+        patterns: ['**/*.generated.ts'],
+      },
+      {
+        pluginId: 'Fallback Name',
+        pluginName: 'Fallback Name',
+        patterns: ['dist/**'],
+      },
+    ]);
+  });
+
+  it('omits grouped filters from disabled plugins', () => {
+    expect(
+      getWorkspacePipelinePluginFilterGroups(
+        {
+          list: () => [
+            { plugin: { id: 'plugin.enabled', name: 'Enabled Plugin', defaultFilters: ['src/**'] } },
+            { plugin: { id: 'plugin.disabled', name: 'Disabled Plugin', defaultFilters: ['dist/**'] } },
+          ],
+        },
+        new Set(['plugin.disabled']),
+      ),
+    ).toEqual([
+      {
+        pluginId: 'plugin.enabled',
+        pluginName: 'Enabled Plugin',
+        patterns: ['src/**'],
+      },
+    ]);
   });
 
   it('registers built-in plugins and initializes them when a workspace root exists', async () => {

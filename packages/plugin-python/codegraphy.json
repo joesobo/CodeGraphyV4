@@ -30,31 +30,5 @@
     "**/build/**",
     "**/.eggs/**"
   ],
-  "fileColors": {
-    "**/tests/**/*.py": "#009688",
-    "**/test_*.py": "#009688",
-    "**/*_test.py": "#009688",
-    "**/migrations/*.py": "#8B5CF6",
-    "*.py": "#3776AB",
-    "*.pyi": "#3776AB",
-    "__init__.py": "#FFD43B",
-    "manage.py": "#F97316",
-    "setup.py": "#FFD43B",
-    "setup.cfg": "#FFD43B",
-    "pyproject.toml": "#FFD43B",
-    "alembic.ini": "#8B5CF6",
-    ".python-version": "#3776AB",
-    "requirements.txt": "#3776AB",
-    "requirements/*.txt": "#3776AB",
-    "requirements-dev.txt": "#3776AB",
-    "Pipfile": "#3776AB",
-    "poetry.lock": "#3776AB",
-    "*.flake8": "#4B8BBE",
-    "*.pylintrc": "#4B8BBE",
-    "pytest.ini": "#009688",
-    "**/conftest.py": "#009688",
-    "tox.ini": "#4B8BBE",
-    "mypy.ini": "#4B8BBE",
-    ".pre-commit-config.yaml": "#FAB040"
-  }
+  "fileColors": {}
 }

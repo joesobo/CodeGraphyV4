@@ -1,6 +1,7 @@
 # Docs
 
 Use the root [README](../README.md) for the release overview, marketplace links, published plugins, and the V2 to V4 migration story.
+The repo-wide local runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
 
 The rest of the docs are split by purpose:
 

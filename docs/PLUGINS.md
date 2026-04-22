@@ -31,6 +31,8 @@ The current plugin API supports more than file analysis:
 - host-saved exports via `api.saveExport(...)`
 - Tier 2 webview slots such as `toolbar`, `node-details`, `tooltip`, `timeline-panel`, `graph-overlay`
 
+Core now owns the default explorer-style file and folder theming through Material Icon Theme. The built-in TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
+
 ## Packaging model
 
 Third-party plugins should ship as their own VS Code extensions.
@@ -72,6 +74,12 @@ The core extension owns discovery, repo-local settings, caching, graph projectio
 - register optional view transforms for compatibility, even though the current built-in UI stays on one unified graph surface
 
 Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.
+
+For node styling, the host resolves layers in this order:
+
+1. core defaults
+2. plugin defaults
+3. custom user rules
 
 In practice, "win merge conflicts" means:
 

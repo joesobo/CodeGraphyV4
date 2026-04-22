@@ -19,6 +19,18 @@ export function replaceSectionRules(
   return [...remainingRules, ...nextSectionRules];
 }
 
+function mergeRuleMetadata(rule: IGroup, existing: LegendDisplayRule): LegendDisplayRule {
+  return {
+    ...rule,
+    ...existing,
+    isPluginDefault: rule.isPluginDefault || existing.isPluginDefault,
+    pluginId: existing.pluginId ?? rule.pluginId,
+    pluginName: existing.pluginName ?? rule.pluginName,
+    imagePath: existing.imagePath ?? rule.imagePath,
+    imageUrl: existing.imageUrl ?? rule.imageUrl,
+  };
+}
+
 export function resolveDisplayRules(
   legends: IGroup[],
   target: LegendTargetSection,
@@ -33,14 +45,7 @@ export function resolveDisplayRules(
       continue;
     }
 
-    rulesById.set(rule.id, {
-      ...rule,
-      ...existing,
-      isPluginDefault: rule.isPluginDefault || existing.isPluginDefault,
-      pluginName: existing.pluginName ?? rule.pluginName,
-      imagePath: existing.imagePath ?? rule.imagePath,
-      imageUrl: existing.imageUrl ?? rule.imageUrl,
-    });
+    rulesById.set(rule.id, mergeRuleMetadata(rule, existing));
   }
 
   return [...rulesById.values()];

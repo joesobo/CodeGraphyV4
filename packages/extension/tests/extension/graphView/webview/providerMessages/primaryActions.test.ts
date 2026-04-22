@@ -99,6 +99,7 @@ describe('graph view provider listener primary actions', () => {
       ),
     } as never);
     vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
       update: vi.fn(() => Promise.resolve()),
     } as never);
     vi.mocked(repoSettings.updateCodeGraphyConfigurationSilently).mockImplementation(updateSilently);
@@ -114,7 +115,6 @@ describe('graph view provider listener primary actions', () => {
 
     expect(updateSilently).toHaveBeenCalledWith('legend', groups);
     expect(updateSilently).toHaveBeenCalledWith('legendVisibility', {
-      existing: true,
       'plugin:codegraphy.typescript:*.ts': false,
     });
     expect(updateSilently).toHaveBeenCalledWith('legendOrder', [
@@ -123,6 +123,80 @@ describe('graph view provider listener primary actions', () => {
     ]);
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
+  });
+
+  it('merges repeated default-legend visibility updates against the current codegraphy config', async () => {
+    const source = createSource();
+    const dependencies = createDependencies();
+    const updateSilently = vi.fn(async (key: string, value: unknown) => {
+      if (key === 'legendVisibility') {
+        legendVisibility = value as Record<string, boolean>;
+      }
+    });
+    let legendVisibility: Record<string, boolean> = {};
+
+    vi.mocked(dependencies.workspace.getConfiguration).mockReturnValue({
+      get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
+    } as never);
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      get: vi.fn(<T>(key: string, defaultValue: T): T => (
+        key === 'legendVisibility'
+          ? (legendVisibility as T)
+          : defaultValue
+      )),
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
+    vi.mocked(repoSettings.updateCodeGraphyConfigurationSilently).mockImplementation(updateSilently);
+
+    const actions = createActions(source, dependencies);
+
+    await actions.persistDefaultLegendVisibility('default:fileExtension:ts', false);
+    await actions.persistDefaultLegendVisibility('default:fileExtension:js', false);
+
+    expect(updateSilently).toHaveBeenNthCalledWith(1, 'legendVisibility', {
+      'default:fileExtension:ts': false,
+    });
+    expect(updateSilently).toHaveBeenNthCalledWith(2, 'legendVisibility', {
+      'default:fileExtension:ts': false,
+      'default:fileExtension:js': false,
+    });
+  });
+
+  it('merges batched default-legend visibility updates against the current codegraphy config', async () => {
+    const source = createSource();
+    const dependencies = createDependencies();
+    const updateSilently = vi.fn(async (key: string, value: unknown) => {
+      if (key === 'legendVisibility') {
+        legendVisibility = value as Record<string, boolean>;
+      }
+    });
+    let legendVisibility: Record<string, boolean> = { existing: true };
+
+    vi.mocked(dependencies.workspace.getConfiguration).mockReturnValue({
+      get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
+    } as never);
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      get: vi.fn(<T>(key: string, defaultValue: T): T => (
+        key === 'legendVisibility'
+          ? (legendVisibility as T)
+          : defaultValue
+      )),
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
+    vi.mocked(repoSettings.updateCodeGraphyConfigurationSilently).mockImplementation(updateSilently);
+
+    const actions = createActions(source, dependencies);
+
+    await actions.persistDefaultLegendVisibilityBatch({
+      'default:fileExtension:ts': false,
+      'default:fileExtension:js': false,
+    });
+
+    expect(updateSilently).toHaveBeenCalledWith('legendVisibility', {
+      existing: true,
+      'default:fileExtension:ts': false,
+      'default:fileExtension:js': false,
+    });
   });
 
   it('delegates opening in the existing editor surface', async () => {
@@ -181,9 +255,44 @@ describe('graph view provider listener primary actions', () => {
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
     expect(source._smartRebuild).toHaveBeenCalledWith('plugin.test');
   });
+
+  it('allows opening concrete file nodes and blocks explicit folder or package nodes', () => {
+    const source = createSource({
+      _graphData: {
+        nodes: [
+          { id: 'src/app.ts', nodeType: 'file' },
+          { id: 'src', nodeType: 'folder' },
+          { id: 'pkg:react', nodeType: 'package' },
+        ],
+        edges: [],
+      },
+    });
+    const actions = createActions(source);
+
+    expect(actions.canOpenPath('src/app.ts')).toBe(true);
+    expect(actions.canOpenPath('src')).toBe(false);
+    expect(actions.canOpenPath('pkg:react')).toBe(false);
+  });
+
+  it('blocks inferred root and nested folder paths when no explicit node exists', () => {
+    const source = createSource({
+      _graphData: {
+        nodes: [
+          { id: 'README.md', nodeType: 'file' },
+          { id: 'src/app.ts', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+    });
+    const actions = createActions(source);
+
+    expect(actions.canOpenPath('(root)')).toBe(false);
+    expect(actions.canOpenPath('src')).toBe(false);
+    expect(actions.canOpenPath('docs')).toBe(true);
+  });
 });
 
-function createSource() {
+function createSource(overrides: Record<string, unknown> = {}) {
   return {
     _openSelectedNode: vi.fn(() => Promise.resolve()),
     _activateNode: vi.fn(() => Promise.resolve()),
@@ -221,6 +330,8 @@ function createSource() {
     _sendMessage: vi.fn(),
     _applyViewTransform: vi.fn(),
     _smartRebuild: vi.fn(),
+    _graphData: { nodes: [], edges: [] },
+    ...overrides,
   };
 }
 

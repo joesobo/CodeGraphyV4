@@ -7,6 +7,17 @@ function ruleTargetsNodes(rule: IGroup): boolean {
   return rule.target !== 'edge';
 }
 
+function ruleMatchesNode(
+  node: IGraphData['nodes'][number],
+  rule: IGroup,
+): boolean {
+  if (rule.matchNodeType && node.nodeType !== rule.matchNodeType) {
+    return false;
+  }
+
+  return globMatch(node.id, rule.pattern);
+}
+
 export function getOrderedActiveRules(legends: IGroup[]): IGroup[] {
   return legends
     .filter((group) => !group.disabled)
@@ -23,7 +34,7 @@ export function applyNodeLegendRules(
   };
 
   for (const rule of activeRules) {
-    if (!ruleTargetsNodes(rule) || !globMatch(node.id, rule.pattern)) {
+    if (!ruleTargetsNodes(rule) || !ruleMatchesNode(node, rule)) {
       continue;
     }
 

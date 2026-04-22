@@ -63,6 +63,7 @@ function createNode(overrides: Partial<FGNode> = {}): FGNode {
     borderWidth: 2,
     baseOpacity: 1,
     isFavorite: false,
+    nodeType: 'file',
     x: 24,
     y: 48,
     ...overrides,
@@ -179,6 +180,54 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(operations).toContainEqual(expect.objectContaining({
       globalAlpha: 1,
       kind: 'drawImage',
+    }));
+  });
+
+  it('renders folder nodes as icon-first without clipping and with a larger icon', () => {
+    const image = { width: 32, height: 32 };
+    vi.mocked(getImage).mockReturnValue(image as HTMLImageElement);
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies(),
+      createNode({
+        id: 'src',
+        label: 'src',
+        nodeType: 'folder',
+        color: 'rgba(0, 0, 0, 0)',
+        imageUrl: 'https://example.com/folder.svg',
+      }),
+      ctx,
+      1,
+    );
+
+    expect(ctx.clip).not.toHaveBeenCalled();
+    expect(ctx.drawImage).toHaveBeenCalledWith(image, 8, 32, 32, 32);
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: 'rgba(0, 0, 0, 0)',
+      kind: 'fill',
+    }));
+  });
+
+  it('renders folder nodes with a filled body when no folder icon is present', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies(),
+      createNode({
+        id: 'docs',
+        label: 'docs',
+        nodeType: 'folder',
+        color: '#A1A1AA',
+      }),
+      ctx,
+      1,
+    );
+
+    expect(ctx.drawImage).not.toHaveBeenCalled();
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#A1A1AA',
+      kind: 'fill',
     }));
   });
 

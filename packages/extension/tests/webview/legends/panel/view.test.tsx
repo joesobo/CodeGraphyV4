@@ -1,17 +1,33 @@
 import React from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import LegendsPanel from '../../../../src/webview/components/legends/panel/view';
 import { graphStore } from '../../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
+let mockWebviewState: unknown;
 
 vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: (message: unknown) => sentMessages.push(message),
-  vscode: { getState: () => undefined, setState: vi.fn() },
+  getVsCodeApi: () => ({
+    getState: () => mockWebviewState,
+    setState: vi.fn((state: unknown) => {
+      mockWebviewState = state;
+    }),
+  }),
 }));
 
 describe('LegendsPanel', () => {
+  beforeEach(() => {
+    sentMessages.length = 0;
+    mockWebviewState = undefined;
+    graphStore.setState({
+      legends: [],
+      optimisticLegendUpdates: {},
+      optimisticUserLegends: null,
+    });
+  });
+
   it('returns null when the panel is closed', () => {
     const { container } = render(<LegendsPanel isOpen={false} onClose={vi.fn()} />);
 
@@ -20,7 +36,10 @@ describe('LegendsPanel', () => {
 
   it('shows node and edge color controls when open', () => {
     graphStore.setState({
-      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphNodeTypes: [
+        { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
+        { id: 'folder', label: 'Folders', defaultColor: '#222222', defaultVisible: true },
+      ],
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#444444', defaultVisible: true }],
       nodeColors: { file: '#333333' },
       legends: [],
@@ -29,10 +48,39 @@ describe('LegendsPanel', () => {
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByLabelText('Files color')).toHaveValue('#333333');
+    expect(screen.getByLabelText('Toggle Files legend color')).toHaveAttribute('data-state', 'checked');
+    expect(screen.queryByLabelText('Folders color')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Imports color')).toHaveValue('#444444');
+    expect(screen.queryByLabelText('Toggle Imports legend color')).not.toBeInTheDocument();
     expect(screen.queryByText('Rules')).not.toBeInTheDocument();
     expect(screen.queryByText('#333333')).not.toBeInTheDocument();
     expect(screen.queryByText('Top overrides bottom')).not.toBeInTheDocument();
+  });
+
+  it('defaults file and package built-in legend color toggles to on', () => {
+    graphStore.setState({
+      graphNodeTypes: [
+        { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
+        { id: 'package', label: 'Packages', defaultColor: '#222222', defaultVisible: false },
+      ],
+      graphEdgeTypes: [],
+      nodeColors: {
+        file: '#111111',
+        package: '#222222',
+      },
+      nodeVisibility: {
+        file: true,
+        package: false,
+      },
+      legends: [],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.getByLabelText('Toggle Files legend color')).toHaveAttribute('data-state', 'checked');
+    expect(screen.getByLabelText('Toggle Packages legend color')).toHaveAttribute('data-state', 'checked');
+    expect(screen.getByLabelText('Files color')).not.toBeDisabled();
+    expect(screen.getByLabelText('Packages color')).not.toBeDisabled();
   });
 
   it('keeps the legend body scrollable when the content grows', () => {
@@ -81,7 +129,7 @@ describe('LegendsPanel', () => {
 
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_NODE_COLOR',
-      payload: { nodeType: 'file', color: '#abc123' },
+      payload: { nodeType: 'file', color: '#ABC123', enabled: true },
     });
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_LEGENDS',
@@ -91,7 +139,7 @@ describe('LegendsPanel', () => {
             id: 'legend:edge:import',
             pattern: 'import',
             target: 'edge',
-            color: '#def456',
+            color: '#DEF456',
           }),
         ],
       },
@@ -134,9 +182,118 @@ describe('LegendsPanel', () => {
     expect(sentMessages).toEqual([
       {
         type: 'UPDATE_NODE_COLOR',
-        payload: { nodeType: 'file', color: '#abcdef' },
+        payload: { nodeType: 'file', color: '#ABCDEF', enabled: true },
       },
     ]);
+  });
+
+  it('toggles built-in node colors between their override and fallback color', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [],
+      nodeColors: { file: '#333333' },
+      legends: [],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    const colorToggle = screen.getByLabelText('Toggle Files legend color');
+    const colorInput = screen.getByLabelText('Files color');
+
+    fireEvent.click(colorToggle);
+
+    expect(colorToggle).toHaveAttribute('data-state', 'unchecked');
+    expect(colorInput).toBeDisabled();
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_NODE_COLOR',
+      payload: { nodeType: 'file', color: '#111111', enabled: false },
+    });
+
+    fireEvent.click(colorToggle);
+
+    expect(colorToggle).toHaveAttribute('data-state', 'checked');
+    expect(colorInput).not.toBeDisabled();
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_NODE_COLOR',
+      payload: { nodeType: 'file', color: '#333333', enabled: true },
+    });
+  });
+
+  it('batches material theme visibility updates through a single message', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      legends: [
+        {
+          id: 'default:fileExtension:py',
+          pattern: '*.py',
+          color: '#3776ab',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.material',
+          pluginName: 'Material Icon Theme',
+        },
+        {
+          id: 'default:fileName:package.json',
+          pattern: 'package.json',
+          color: '#8cc84b',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.material',
+          pluginName: 'Material Icon Theme',
+        },
+      ],
+      optimisticLegendUpdates: {},
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText('Toggle Material Icon Theme legend entries'));
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY_BATCH',
+      payload: {
+        legendVisibility: {
+          'default:fileExtension:py': false,
+          'default:fileName:package.json': false,
+        },
+      },
+    });
+    expect(sentMessages).toHaveLength(1);
+    expect(graphStore.getState().optimisticLegendUpdates).toEqual({
+      'default:fileExtension:py': expect.objectContaining({
+        updates: { disabled: true },
+      }),
+      'default:fileName:package.json': expect.objectContaining({
+        updates: { disabled: true },
+      }),
+    });
+  });
+
+  it('persists collapsed legend sections across renders', () => {
+    mockWebviewState = undefined;
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      nodeColors: { file: '#333333' },
+      legends: [],
+    });
+
+    const { unmount } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByTitle('Toggle Nodes legend section'));
+    expect(mockWebviewState).toEqual({
+      legendPanelCollapsed: {
+        'section:nodes': true,
+      },
+    });
+
+    unmount();
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.queryByText('Files')).not.toBeInTheDocument();
+    expect(screen.getByText('Edges')).toBeInTheDocument();
   });
 
   it('renders the rules editor when open', () => {
@@ -223,7 +380,7 @@ describe('LegendsPanel', () => {
           expect.objectContaining({
             pattern: '*/tests/**',
             target: 'node',
-            color: '#123abc',
+            color: '#123ABC',
           }),
         ],
       },
@@ -244,12 +401,12 @@ describe('LegendsPanel', () => {
           expect.objectContaining({
             pattern: '*/tests/**',
             target: 'node',
-            color: '#123abc',
+            color: '#123ABC',
           }),
           expect.objectContaining({
             pattern: 'src/**',
             target: 'edge',
-            color: '#fedcba',
+            color: '#FEDCBA',
           }),
         ]),
       },
@@ -273,6 +430,7 @@ describe('LegendsPanel', () => {
     fireEvent.change(screen.getByDisplayValue('src/**'), {
       target: { value: 'src/**/*.ts' },
     });
+    fireEvent.blur(screen.getByDisplayValue('src/**/*.ts'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGENDS',
@@ -295,6 +453,7 @@ describe('LegendsPanel', () => {
     fireEvent.change(screen.getByDisplayValue('lib/**'), {
       target: { value: 'call' },
     });
+    fireEvent.blur(screen.getByDisplayValue('call'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGENDS',
@@ -357,7 +516,7 @@ describe('LegendsPanel', () => {
     const nodesSection = screen.getByText('Nodes').closest('section');
     expect(nodesSection).not.toBeNull();
 
-    fireEvent.click(within(nodesSection as HTMLElement).getByRole('switch'));
+    fireEvent.click(within(nodesSection as HTMLElement).getByTitle('Toggle */tests/** legend entry'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGENDS',
@@ -398,7 +557,7 @@ describe('LegendsPanel', () => {
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByTitle('Toggle *.ts legend entry'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
@@ -435,7 +594,7 @@ describe('LegendsPanel', () => {
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.click(screen.getByTitle('Toggle call legend entry'));
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
@@ -451,6 +610,53 @@ describe('LegendsPanel', () => {
     });
   });
 
+  it('keeps multiple plugin-group toggles disabled locally before the extension responds', () => {
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      legends: [
+        {
+          id: 'plugin:codegraphy.python:*.py',
+          pattern: '*.py',
+          color: '#3776ab',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.python',
+          pluginName: 'Python',
+        },
+        {
+          id: 'plugin:codegraphy.python:*.pyi',
+          pattern: '*.pyi',
+          color: '#3776ab',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.python',
+          pluginName: 'Python',
+        },
+        {
+          id: 'plugin:codegraphy.typescript:*.ts',
+          pattern: '*.ts',
+          color: '#3178c6',
+          isPluginDefault: true,
+          pluginId: 'codegraphy.typescript',
+          pluginName: 'TypeScript',
+        },
+      ],
+      optimisticLegendUpdates: {},
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    const pythonToggle = screen.getByLabelText('Toggle Python legend entries');
+    const typescriptToggle = screen.getByLabelText('Toggle TypeScript legend entries');
+
+    fireEvent.click(pythonToggle);
+    expect(pythonToggle).toHaveAttribute('data-state', 'unchecked');
+
+    fireEvent.click(typescriptToggle);
+    expect(pythonToggle).toHaveAttribute('data-state', 'unchecked');
+    expect(typescriptToggle).toHaveAttribute('data-state', 'unchecked');
+  });
+
   it('reorders node legend rules through drag and drop', () => {
     sentMessages.length = 0;
     graphStore.setState({
@@ -464,11 +670,12 @@ describe('LegendsPanel', () => {
     });
 
     const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
-    const draggableRows = container.querySelectorAll('[data-testid="legend-rule-row"][draggable="true"]');
+    const rowTargets = container.querySelectorAll('[data-testid="legend-rule-row"]');
+    const dragHandles = screen.getAllByTitle('Drag legend rule');
 
-    fireEvent.dragStart(draggableRows[1] as Element);
-    fireEvent.dragOver(draggableRows[0] as Element);
-    fireEvent.drop(draggableRows[0] as Element);
+    fireEvent.dragStart(dragHandles[1] as Element);
+    fireEvent.dragOver(rowTargets[0] as Element);
+    fireEvent.drop(rowTargets[0] as Element);
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGEND_ORDER',
@@ -492,11 +699,12 @@ describe('LegendsPanel', () => {
     });
 
     const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
-    const draggableRows = container.querySelectorAll('[data-testid="legend-rule-row"][draggable="true"]');
+    const rowTargets = container.querySelectorAll('[data-testid="legend-rule-row"]');
+    const dragHandles = screen.getAllByTitle('Drag legend rule');
 
-    fireEvent.dragStart(draggableRows[2] as Element);
-    fireEvent.dragOver(draggableRows[1] as Element);
-    fireEvent.drop(draggableRows[1] as Element);
+    fireEvent.dragStart(dragHandles[2] as Element);
+    fireEvent.dragOver(rowTargets[1] as Element);
+    fireEvent.drop(rowTargets[1] as Element);
 
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGEND_ORDER',
@@ -518,4 +726,5 @@ describe('LegendsPanel', () => {
 
 afterEach(() => {
   vi.useRealTimers();
+  mockWebviewState = undefined;
 });

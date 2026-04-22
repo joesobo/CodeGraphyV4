@@ -13,6 +13,7 @@ export const SILENT_CONFIG_KEYS = new Set([
   'edgeVisibility',
   'filterPatterns',
   'maxFiles',
+  'nodeColorEnabled',
   'nodeColors',
   'nodeVisibility',
   'particleSize',

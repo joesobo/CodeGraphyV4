@@ -65,6 +65,7 @@ export interface GraphState {
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];
   nodeColors: Record<string, string>;
+  nodeColorEnabled: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges' | 'export';
@@ -87,6 +88,7 @@ export interface GraphState {
   setPhysicsSettings: (settings: IPhysicsSettings) => void;
   setLegends: (legends: IGroup[]) => void;
   setOptimisticLegendUpdate: (legendId: string, updates: Partial<IGroup>) => void;
+  setOptimisticLegendUpdates: (updatesByLegendId: Record<string, Partial<IGroup>>) => void;
   clearOptimisticLegendUpdate: (legendId: string) => void;
   setOptimisticUserLegends: (legends: IGroup[]) => void;
   setFilterPatterns: (patterns: string[]) => void;

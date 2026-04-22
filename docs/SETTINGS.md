@@ -115,36 +115,57 @@ Adjusts the physics simulation in real time.
 Legend rules now live in their own **Legends** popup, not inside the settings panel.
 The popup label and persisted key are both **Legends** / `legend`.
 
-Legend rules assign colors based on regex/glob-style matching and are applied in drag order:
+For node styling, the popup is split into these subsections from top to bottom:
+
+1. `Custom`
+2. `Plugin Defaults`
+3. `Material Icon Theme`
+4. `Defaults`
+
+`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin defaults sit above core. Custom rules sit above both.
+
+Legend styling resolves in this order:
+
+1. core defaults
+2. plugin defaults
+3. custom rules
+
+Higher layers override lower ones only for the fields they set. A plugin can override a core node color without replacing the core icon, and a custom rule can add an icon on top of an existing color choice.
+
+Custom legend rules use glob matching and are applied in drag order:
 
 - bottom rule applies first
 - top rule applies last
 - top rules can override lower rules
 
-Legend rules can color files, folders, packages, and plugin-added node types through one shared priority system.
+Custom rules can target files, folders, packages, and plugin-added node types through one shared priority system.
 
-- Enter a glob pattern and pick a hex color, then click Add.
-- Click the x button next to any legend rule to delete it.
+- Enter a glob pattern and choose a color, optional shape, and optional icon, then click Add.
+- Click the x button next to a custom legend rule to delete it.
 - Lower rules apply first, higher rules apply last.
-- Drag legend rules to reorder priority.
+- Drag custom rules to reorder priority.
 - Changes sync back to the extension immediately.
+
+Legend colors support opacity. The color popover stores opaque colors as `#RRGGBB` and transparent colors as `rgba(...)`.
 
 Group patterns match by basename or path suffix. Simple extension patterns like `*.ts` match files at any depth, `src/*` matches files directly inside any `src/` folder, and `src/**` matches files at any depth under any `src/` folder.
 
-**Example legend rules:**
+**Example custom legend rules:**
 ```
-Pattern: src/**    Color: #3B82F6   (blue, all source files)
-Pattern: *.test.*  Color: #10B981   (green, test files)
-Pattern: *.md      Color: #6B7280   (grey, documentation)
-Pattern: tests/*   Color: #F59E0B   (amber, files directly inside any tests folder)
+Pattern: src/**    Color: #3B82F6        (blue, all source files)
+Pattern: *.test.*  Color: #10B981        (green, test files)
+Pattern: *.md      Color: rgba(107, 114, 128, 0.65)  (faded documentation)
+Pattern: tests/*   Color: #F59E0B        (amber, files directly inside any tests folder)
 ```
 
-To reuse legend rules across repos or teammates, copy the relevant entries from `.codegraphy/settings.json`:
+Top-level toggles for `Plugin Defaults`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
+
+To reuse custom legend rules across repos or teammates, copy the relevant entries from `.codegraphy/settings.json`:
 ```json
 {
   "legend": [
     { "id": "src", "pattern": "src/**", "color": "#3B82F6" },
-    { "id": "tests", "pattern": "*.test.*", "color": "#10B981" }
+    { "id": "docs", "pattern": "*.md", "color": "rgba(107, 114, 128, 0.65)" }
   ]
 }
 ```

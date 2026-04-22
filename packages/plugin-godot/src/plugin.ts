@@ -99,7 +99,6 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
     sources: manifest.sources,
-    fileColors: manifest.fileColors as IPlugin['fileColors'],
 
     async initialize(workspaceRoot: string): Promise<void> {
       resolver = new GDScriptPathResolver(workspaceRoot);

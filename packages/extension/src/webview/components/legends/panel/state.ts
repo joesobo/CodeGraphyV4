@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import type { IGroup } from '../../../../shared/settings/groups';
+import type { PendingGroupUpdates } from '../../../store/optimistic/groups/updates';
+import { applyPendingGroupUpdates } from '../../../store/optimistic/groups/updates';
 import {
   resolveDisplayRules,
   shouldRenderRuleInSection,
@@ -15,18 +17,23 @@ import {
 interface PanelStateInput {
   edgeTypes: Array<{ id: string; label: string; defaultColor: string }>;
   legends: IGroup[];
+  nodeColorEnabled: Record<string, boolean>;
   nodeColors: Record<string, string>;
   nodeTypes: Array<{ id: string; label: string; defaultColor: string }>;
+  optimisticLegendUpdates?: PendingGroupUpdates;
 }
 
 function createBuiltInEntries(
   types: Array<{ id: string; label: string; defaultColor: string }>,
   colors: Record<string, string>,
+  enabled?: Record<string, boolean>,
 ): LegendBuiltInEntry[] {
   return types.map((entry) => ({
     id: entry.id,
     label: entry.label,
     color: colors[entry.id] ?? entry.defaultColor,
+    colorEnabled: enabled?.[entry.id] ?? true,
+    defaultColor: entry.defaultColor,
   }));
 }
 
@@ -72,12 +79,18 @@ export function replaceCustomEdgeRules(
 export function useLegendPanelState({
   edgeTypes,
   legends,
+  nodeColorEnabled,
   nodeColors,
   nodeTypes,
+  optimisticLegendUpdates = {},
 }: PanelStateInput) {
+  const resolvedLegends = useMemo(
+    () => applyPendingGroupUpdates(legends, optimisticLegendUpdates).groups,
+    [legends, optimisticLegendUpdates],
+  );
   const userLegendRules = useMemo(
-    () => legends.filter((group) => !group.isPluginDefault),
-    [legends],
+    () => resolvedLegends.filter((group) => !group.isPluginDefault),
+    [resolvedLegends],
   );
   const edgeTypeIds = useMemo(
     () => createEdgeTypeIdSet(edgeTypes),
@@ -97,25 +110,25 @@ export function useLegendPanelState({
   );
   const displayedNodeLegendRules = useMemo(
     () => resolveDisplayRules(
-      legends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
+      resolvedLegends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
       'node',
     ),
-    [edgeTypeIds, legends],
+    [edgeTypeIds, resolvedLegends],
   );
   const displayedEdgeLegendRules = useMemo(
     () => resolveDisplayRules(
-      legends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
+      resolvedLegends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
       'edge',
     ),
-    [edgeTypeIds, legends],
+    [edgeTypeIds, resolvedLegends],
   );
   const nodeEntries = useMemo(
-    () => createBuiltInEntries(nodeTypes, nodeColors),
-    [nodeColors, nodeTypes],
+    () => createBuiltInEntries(nodeTypes, nodeColors, nodeColorEnabled),
+    [nodeColorEnabled, nodeColors, nodeTypes],
   );
   const edgeTypeColors = useMemo(
-    () => resolveEdgeTypeColors(edgeTypes, legends),
-    [edgeTypes, legends],
+    () => resolveEdgeTypeColors(edgeTypes, resolvedLegends),
+    [edgeTypes, resolvedLegends],
   );
   const edgeEntries = useMemo(
     () => createBuiltInEntries(edgeTypes, edgeTypeColors),

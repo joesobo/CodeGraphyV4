@@ -111,6 +111,7 @@ describe('extension/graphView/controls/send', () => {
       nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
       edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#60A5FA', defaultVisible: true }],
       nodeColors: { file: '#A1A1AA' },
+      nodeColorEnabled: { file: true },
       nodeVisibility: { file: true },
       edgeVisibility: { import: true },
     };

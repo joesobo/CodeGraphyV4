@@ -2,6 +2,9 @@
   "name": "@codegraphy-vscode/plugin-api",
   "version": "1.1.0",
   "description": "Type definitions for CodeGraphy plugins",
+  "engines": {
+    "node": ">=22.22.0 <23"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/joesobo/CodeGraphyV4.git"

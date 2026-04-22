@@ -27,6 +27,7 @@ export interface GraphViewPrimaryMessageContext {
   getViewContext(): IViewContext;
   openSelectedNode(nodeId: string): Promise<void>;
   activateNode(nodeId: string): Promise<void>;
+  canOpenPath(filePath: string): boolean;
   setFocusedFile(filePath: string | undefined): void;
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
@@ -60,6 +61,7 @@ export interface GraphViewPrimaryMessageContext {
   workspaceFolder: vscode.WorkspaceFolder | undefined;
   persistLegends(legends: IGroup[]): Promise<void>;
   persistDefaultLegendVisibility(legendId: string, visible: boolean): Promise<void>;
+  persistDefaultLegendVisibilityBatch(legendVisibility: Record<string, boolean>): Promise<void>;
   persistLegendOrder(legendIds: string[]): Promise<void>;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;
@@ -67,6 +69,7 @@ export interface GraphViewPrimaryMessageContext {
     options: vscode.OpenDialogOptions,
   ): Thenable<readonly vscode.Uri[] | undefined>;
   createDirectory(uri: vscode.Uri): Thenable<void>;
+  writeFile(uri: vscode.Uri, content: Uint8Array): Thenable<void>;
   copyFile(
     source: vscode.Uri,
     destination: vscode.Uri,

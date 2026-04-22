@@ -2,6 +2,7 @@ import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { ThemeKind } from '../../../theme/useTheme';
+import type { NodeType } from '../../../../shared/graph/contracts';
 import { buildGraphLinks } from './link/build';
 import { buildGraphNodes } from './node/build';
 export { processEdges } from './edgeProcessing';
@@ -18,6 +19,7 @@ export type FGNode = NodeObject & {
   borderWidth: number;
   baseOpacity: number;
   isFavorite: boolean;
+  nodeType?: NodeType;
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;

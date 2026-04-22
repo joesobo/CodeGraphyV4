@@ -55,10 +55,10 @@ export function rebuildGraphViewData(
     state._disabledPlugins,
     getShowOrphans(),
   );
-  computeMergedGroups();
-  sendGroupsUpdated();
   updateViewContext();
   applyViewTransform();
+  computeMergedGroups();
+  sendGroupsUpdated();
   sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
   sendDepthState();
   sendGraphControls();
