@@ -749,7 +749,9 @@ describe('App behavior', () => {
 
     render(<App />);
 
-    expect(screen.getByText(/No files found/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No files found\. No graphable files exist in this commit\./),
+    ).toBeInTheDocument();
   });
 
   it('renders empty state when graph has no nodes', () => {

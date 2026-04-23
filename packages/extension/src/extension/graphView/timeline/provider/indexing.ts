@@ -83,6 +83,8 @@ export async function resetGraphViewProviderTimeline(
     | '_disabledPlugins'
     | '_rawGraphData'
     | '_graphData'
+    | '_computeMergedGroups'
+    | '_sendGroupsUpdated'
     | '_applyViewTransform'
     | '_sendMessage'
   >,
@@ -102,6 +104,8 @@ export async function resetGraphViewProviderTimeline(
 
     if (graphData.nodes.length > 0) {
       applyTimelineCommitGraph(source, commit.sha, graphData);
+      source._computeMergedGroups?.();
+      source._sendGroupsUpdated?.();
       return;
     }
   }

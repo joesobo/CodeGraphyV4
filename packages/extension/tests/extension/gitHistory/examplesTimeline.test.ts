@@ -5,6 +5,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
 import { GitHistoryAnalyzer } from '../../../src/extension/gitHistory/analyzer';
+import { getMaterialThemeDefaultGroups } from '../../../src/extension/graphView/groups/defaults/materialTheme/view';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 
@@ -132,6 +133,26 @@ describe('GitHistoryAnalyzer examples timeline', { timeout: 120000 }, () => {
     if (!hasEdgeCountChanges) {
       throw new Error(`Expected examples timeline edge counts to change, got ${JSON.stringify(edgeCounts)}`);
     }
+
+    const initialMaterialGroups = getMaterialThemeDefaultGroups(
+      graphs[0],
+      vscode.Uri.file(path.resolve(examplesRoot, '..')),
+    );
+
+    expect(initialMaterialGroups).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'default:fileExtension:html',
+        pattern: '*.html',
+        pluginName: 'Material Icon Theme',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+      expect.objectContaining({
+        id: 'default:fileExtension:tsx',
+        pattern: '*.tsx',
+        pluginName: 'Material Icon Theme',
+        imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
+      }),
+    ]));
 
     const directFullAnalyzer = analyzer as unknown as {
       _analyzeFullCommit(sha: string, signal: AbortSignal): Promise<IGraphData>;

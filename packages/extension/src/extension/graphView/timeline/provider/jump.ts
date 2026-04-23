@@ -12,6 +12,8 @@ export async function jumpGraphViewProviderToCommit(
     | '_disabledPlugins'
     | '_rawGraphData'
     | '_graphData'
+    | '_computeMergedGroups'
+    | '_sendGroupsUpdated'
     | '_applyViewTransform'
     | '_sendMessage'
   >,
@@ -25,4 +27,6 @@ export async function jumpGraphViewProviderToCommit(
 
   const graphData = await buildTimelineCommitGraphData(source, sha, dependencies);
   applyTimelineCommitGraph(source, sha, graphData);
+  source._computeMergedGroups?.();
+  source._sendGroupsUpdated?.();
 }
