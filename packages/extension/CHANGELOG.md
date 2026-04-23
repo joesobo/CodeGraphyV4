@@ -1,5 +1,11 @@
 # @codegraphy/extension
 
+## 5.2.1
+
+### Patch Changes
+
+- [#182](https://github.com/joesobo/CodeGraphyV4/pull/182) [`f7ff114`](https://github.com/joesobo/CodeGraphyV4/commit/f7ff114782e122a78b2f3ae6772370f06aacc659) Thanks [@joesobo](https://github.com/joesobo)! - Fix timeline history playback so commit graphs stop pulling in unsupported files from old diffs, resolve plugin file lookups against each commit instead of the current workspace, refresh Material legend groups when you jump between commits, and allow third-party plugins to contribute timeline edges from commit-local state. Timeline commits with no graphable files now show a commit-specific empty state instead of the generic “open a folder” message.
+
 ## 5.2.0
 
 ### Minor Changes

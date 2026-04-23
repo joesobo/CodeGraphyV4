@@ -1,5 +1,11 @@
 # codegraphy-godot
 
+## 2.1.0
+
+### Minor Changes
+
+- [#183](https://github.com/joesobo/CodeGraphyV4/pull/183) [`8ce9a34`](https://github.com/joesobo/CodeGraphyV4/commit/8ce9a34ced0bedf5363cdc7a33a8da96424ca7fb) Thanks [@joesobo](https://github.com/joesobo)! - Analyze `.tscn` and `.tres` Godot text-resource files and add graph connections for their external resource references.
+
 ## 2.0.1
 
 ### Patch Changes
