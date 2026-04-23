@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "apiVersion": "^2.0.0",
   "tier": 1,
-  "supportedExtensions": [".gd"],
+  "supportedExtensions": [".gd", ".godot", ".tscn", ".tres"],
   "defaultFilters": [
     "**/.godot/**",
     "**/.import/**",
@@ -18,6 +18,8 @@
     { "id": "preload", "name": "Preload", "description": "preload(\"res://...\")" },
     { "id": "load", "name": "Load", "description": "load(), ResourceLoader.load()" },
     { "id": "extends", "name": "Extends", "description": "extends \"res://...\" or ClassName" },
-    { "id": "class-name-usage", "name": "Class Name Usage", "description": "Type annotations, static calls" }
+    { "id": "class-name-usage", "name": "Class Name Usage", "description": "Type annotations, static calls" },
+    { "id": "ext-resource", "name": "External Resource", "description": "[ext_resource ... path=\"res://...\"] in .tscn and .tres files" },
+    { "id": "project-settings", "name": "Project Settings", "description": "Resource-bearing settings in project.godot" }
   ]
 }

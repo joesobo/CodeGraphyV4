@@ -1,5 +1,5 @@
 ; Example Godot project for CodeGraphy GDScript plugin demo
-[gd_resource type="ProjectSettings" load_steps=1 format=3]
+[gd_resource type="ProjectSettings" load_steps=2 format=3]
 
 config_version=5
 
@@ -7,6 +7,20 @@ config_version=5
 config/name="CodeGraphy GDScript Demo"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.2")
+
+[autoload]
+GameManager="*res://scripts/game_manager.gd"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[input]
+show_loadout={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":76,"physical_keycode":0,"key_label":76,"unicode":108,"location":0,"echo":false,"script":null)]
+}
 
 [rendering]
 renderer/rendering_method="forward_plus"

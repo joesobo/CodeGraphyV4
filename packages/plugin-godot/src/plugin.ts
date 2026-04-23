@@ -21,6 +21,8 @@ import { detect as detectPreload } from './sources/preload';
 import { detect as detectLoad } from './sources/load';
 import { detect as detectExtends } from './sources/extends';
 import { detect as detectClassNameUsage } from './sources/class-name-usage';
+import { detect as detectExtResource } from './sources/ext-resource';
+import { detect as detectProjectSettings } from './sources/project-settings';
 
 export { GDScriptPathResolver } from './PathResolver';
 export type { IGDScriptReference, GDScriptReferenceType } from './parser';
@@ -36,6 +38,8 @@ export type { IGDScriptReference, GDScriptReferenceType } from './parser';
  * - load() calls (runtime loading)
  * - extends statements (script inheritance)
  * - class_name usage (type annotations, static calls)
+ * - ext_resource references in `.tscn` and `.tres` text resources
+ * - project resource settings in `project.godot`
  *
  * @example
  * ```typescript
@@ -56,6 +60,23 @@ export interface IGDScriptAnalyzeFilePlugin extends IPlugin {
 
 export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
   let resolver: GDScriptPathResolver | null = null;
+  const textResourceExtensions = new Set(['.tscn', '.tres']);
+  const projectSettingsExtensions = new Set(['.godot']);
+
+  const extractResourceUid = (content: string): string | null => {
+    const lines = content.split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith(';')) {
+        continue;
+      }
+
+      const headerMatch = trimmed.match(/^\[\s*gd_(?:scene|resource)\b.*\buid=(["'])([^"']+)\1/);
+      return headerMatch?.[2] ?? null;
+    }
+
+    return null;
+  };
   let projectRoots = new Set<string>();
 
   const extractClassNames = (content: string): string[] => {
@@ -76,19 +97,25 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
     filePath: string,
     content: string,
     workspaceRoot: string,
+    _context?: IPluginAnalysisContext,
   ): Promise<GDScriptFileAnalysisResult> => {
     if (!resolver) resolver = new GDScriptPathResolver(workspaceRoot);
 
     const projectRoot = resolveGodotProjectRoot(filePath, workspaceRoot, projectRoots);
     const relativeFilePath = normalizePath(path.relative(workspaceRoot, filePath));
     const ctx = { resolver, projectRoot, workspaceRoot, relativeFilePath };
+    const extension = path.extname(filePath).toLowerCase();
 
-    const relations = [
-      ...detectPreload(content, filePath, ctx),
-      ...detectLoad(content, filePath, ctx),
-      ...detectExtends(content, filePath, ctx),
-      ...detectClassNameUsage(content, filePath, ctx),
-    ];
+    const relations = textResourceExtensions.has(extension)
+      ? detectExtResource(content, filePath, ctx)
+      : projectSettingsExtensions.has(extension)
+        ? detectProjectSettings(content, filePath, ctx)
+        : [
+            ...detectPreload(content, filePath, ctx),
+            ...detectLoad(content, filePath, ctx),
+            ...detectExtends(content, filePath, ctx),
+            ...detectClassNameUsage(content, filePath, ctx),
+          ];
 
     return {
       filePath,
@@ -113,7 +140,8 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
 
     async onPreAnalyze(
       files: Array<{ absolutePath: string; relativePath: string; content: string }>,
-      workspaceRoot: string
+      workspaceRoot: string,
+      _context?: IPluginAnalysisContext,
     ): Promise<void> {
       resolver = new GDScriptPathResolver(workspaceRoot);
       projectRoots = collectGodotProjectRoots(files.map(({ relativePath }) => relativePath));
@@ -122,6 +150,7 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
         // Register file for snake_case fallback resolution
         resolver.registerFile(relativePath);
         resolver.replaceFileClassNames(relativePath, extractClassNames(content));
+        resolver.replaceFileResourceUid(relativePath, extractResourceUid(content));
       }
 
       console.log(`[CodeGraphy] GDScript class_name map: ${resolver.getClassNameMap().size} entries, ${resolver.getFileNameMap().size} files indexed`);
@@ -130,6 +159,7 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
     async onFilesChanged(
       files: Array<{ absolutePath: string; relativePath: string; content: string }>,
       workspaceRoot: string,
+      _context?: IPluginAnalysisContext,
     ): Promise<string[]> {
       if (!resolver) {
         resolver = new GDScriptPathResolver(workspaceRoot);
@@ -140,20 +170,26 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
       ]);
 
       let requiresBroadReanalysis = false;
+      let requiresTextResourceReanalysis = false;
 
       for (const { relativePath, content } of files) {
         resolver.registerFile(relativePath);
         const { changed } = resolver.replaceFileClassNames(relativePath, extractClassNames(content));
         requiresBroadReanalysis ||= changed;
+        const { changed: uidChanged } = resolver.replaceFileResourceUid(relativePath, extractResourceUid(content));
+        requiresTextResourceReanalysis ||= uidChanged;
       }
 
-      if (!requiresBroadReanalysis) {
+      if (!requiresBroadReanalysis && !requiresTextResourceReanalysis) {
         return [];
       }
 
-      return resolver
-        .getRegisteredFiles()
-        .filter((filePath) => filePath.endsWith('.gd'));
+      return [
+        ...(requiresBroadReanalysis
+          ? resolver.getRegisteredFiles().filter((filePath) => filePath.endsWith('.gd'))
+          : []),
+        ...(requiresTextResourceReanalysis ? resolver.getRegisteredTextResourceFiles() : []),
+      ];
     },
 
     analyzeFile,
