@@ -76,6 +76,8 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-java/src/com/example/app/App.java->example-java/src/com/example/app/BaseService.java#inherit',
       'example-rust/src/main.rs->example-rust/src/util.rs#import',
       'example-rust/src/main.rs->example-rust/src/inner.rs#import',
+      'example-godot/project.godot->example-godot/scenes/main.tscn#load:static',
+      'example-godot/project.godot->example-godot/scripts/game_manager.gd#load:static',
       'example-godot/scripts/player.gd->example-godot/scripts/utils/math_helpers.gd#load:static',
       'example-godot/scripts/player.gd->example-godot/scenes/ui/loadout_preview.tscn#load:static',
       'example-godot/scripts/player.gd->example-godot/resources/player_loadout.tres#load:static',

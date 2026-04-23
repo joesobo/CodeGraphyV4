@@ -27,6 +27,7 @@ describe('createGDScriptPlugin lifecycle', () => {
     expect(plugin.version).toBeTruthy();
     expect(plugin.apiVersion).toBeTruthy();
     expect(plugin.supportedExtensions).toContain('.gd');
+    expect(plugin.supportedExtensions).toContain('.godot');
     expect(plugin.supportedExtensions).toContain('.tscn');
     expect(plugin.supportedExtensions).toContain('.tres');
   });
@@ -202,6 +203,35 @@ var config = load("res://data/config.tres")`;
       'res://textures/player_card.png',
     ]);
     expect(analysis.relations.every(relation => relation.sourceId === 'ext-resource')).toBe(true);
+    expect(analysis.relations.every(relation => relation.kind === 'load')).toBe(true);
+  });
+
+  it('analyzeFile should detect project settings resource paths in project.godot files', async () => {
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
+    await plugin.initialize('/workspace');
+
+    const content = [
+      '; Example Godot project for CodeGraphy GDScript plugin demo',
+      '[gd_resource type="ProjectSettings" load_steps=2 format=3]',
+      '',
+      'config_version=5',
+      '',
+      '[application]',
+      'config/name="CodeGraphy GDScript Demo"',
+      'run/main_scene="res://scenes/main.tscn"',
+      '',
+      '[autoload]',
+      'GameManager="*res://scripts/game_manager.gd"',
+    ].join('\n');
+
+    const analysis = await plugin.analyzeFile('/workspace/project.godot', content, '/workspace');
+
+    expect(analysis.relations).toHaveLength(2);
+    expect(analysis.relations.map(relation => relation.specifier)).toEqual([
+      'res://scenes/main.tscn',
+      'res://scripts/game_manager.gd',
+    ]);
+    expect(analysis.relations.every(relation => relation.sourceId === 'project-settings')).toBe(true);
     expect(analysis.relations.every(relation => relation.kind === 'load')).toBe(true);
   });
 

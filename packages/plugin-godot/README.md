@@ -19,13 +19,17 @@ Adds Godot GDScript dependency analysis to [CodeGraphy](https://marketplace.visu
   - `load()`
   - `extends`
   - `class_name` references
+- `project.godot`:
+  - `application/run/main_scene`
+  - `[autoload]`
 - `.tscn` and `.tres` text resources:
   - `[ext_resource ... path="res://..."]`
 
 ## Edge semantics
 
 - Scene and resource text references are emitted as normal `load` edges with `type: static`.
-- The finer-grained plugin provenance is `sourceId: "ext-resource"`.
+- `project.godot` resource-bearing settings are also emitted as normal static `load` edges.
+- The finer-grained plugin provenance is `sourceId: "ext-resource"` for `.tscn`/`.tres` files and `sourceId: "project-settings"` for `project.godot`.
 - The detector follows Godot's text-loader behavior more closely by accepting relative `path=` values and preferring a matching `uid=` target when one is known in the workspace.
 - This means they participate in the existing load-edge graph controls while still being attributable to Godot text-resource parsing.
 
@@ -33,6 +37,7 @@ Adds Godot GDScript dependency analysis to [CodeGraphy](https://marketplace.visu
 
 The repo fixture at [`examples/example-godot`](https://github.com/joesobo/CodeGraphyV4/tree/main/examples/example-godot) now includes:
 
+- `project.godot` → `scenes/main.tscn`, `scripts/game_manager.gd`
 - `scripts/player.gd` → `scenes/ui/loadout_preview.tscn`, `resources/player_loadout.tres`
 - `resources/player_loadout.tres` → `scripts/data/player_loadout.gd`, `textures/player_card.png`
 - `scenes/ui/loadout_preview.tscn` → `resources/player_loadout.tres`, `scripts/ui/loadout_preview.gd`, `textures/player_card.png`
