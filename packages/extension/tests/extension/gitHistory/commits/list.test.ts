@@ -106,6 +106,8 @@ describe('gitHistory/commits/list', () => {
         '--format=%H|%at|%s|%an|%P',
         '-n',
         '2',
+        '--',
+        '.',
       ]);
       return 'sha-2|200|message-2|author-2|sha-1\nsha-1|100|message-1|author-1|';
     };

@@ -36,9 +36,9 @@ async function indexFirstCommit(
   onProgress: IndexGitHistoryOptions['onProgress'],
   signal: AbortSignal,
 ): Promise<{ firstGraphableCommitIndex: number; previousGraphData: IGraphData }> {
-  onProgress('Indexing commits', 1, total);
   const previousGraphData = await dependencies.analyzeFullCommit(firstCommit.sha, signal);
   await dependencies.writeCachedGraphData(firstCommit.sha, previousGraphData);
+  onProgress('Indexing commits', 1, total);
 
   return {
     firstGraphableCommitIndex: previousGraphData.nodes.length > 0 ? 0 : -1,
@@ -78,7 +78,6 @@ export async function indexGitHistory(
     }
 
     const commit = commits[index];
-    onProgress('Indexing commits', index + 1, total);
     previousGraphData = await dependencies.analyzeDiffCommit(
       commit.sha,
       commits[index - 1].sha,
@@ -86,6 +85,7 @@ export async function indexGitHistory(
       signal
     );
     await dependencies.writeCachedGraphData(commit.sha, previousGraphData);
+    onProgress('Indexing commits', index + 1, total);
 
     if (firstGraphableCommitIndex < 0 && previousGraphData.nodes.length > 0) {
       firstGraphableCommitIndex = index;
@@ -94,6 +94,7 @@ export async function indexGitHistory(
 
   const cachedCommits = getCachedTimelineCommits(commits, firstGraphableCommitIndex);
 
+  onProgress('Finalizing timeline cache', total, total);
   await dependencies.persistCachedCommitState(cachedCommits);
   return cachedCommits;
 }

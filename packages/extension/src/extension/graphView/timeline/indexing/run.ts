@@ -48,7 +48,10 @@ export async function runGraphViewTimelineIndex(
       jumpToCommit: sha => handlers.jumpToCommit(sha),
     });
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') return;
+    if (error instanceof Error && error.name === 'AbortError') {
+      handlers.sendMessage({ type: 'CACHE_INVALIDATED' });
+      return;
+    }
     handlers.logError('[CodeGraphy] Indexing failed:', error);
     handlers.showErrorMessage(`Timeline indexing failed: ${handlers.toErrorMessage(error)}`);
     handlers.sendMessage({ type: 'CACHE_INVALIDATED' });

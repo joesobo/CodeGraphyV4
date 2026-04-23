@@ -765,7 +765,7 @@ describe('GitHistoryAnalyzer', () => {
 
       const progress = vi.fn();
 
-      // Abort after the first commit finishes (progress reports current = 2 for the second)
+      // Abort after the second commit finishes caching (progress reports after each commit is cached)
       progress.mockImplementation((_phase: string, current: number) => {
         if (current === 2) {
           controller.abort();
@@ -776,8 +776,8 @@ describe('GitHistoryAnalyzer', () => {
         analyzer.indexHistory(progress, controller.signal)
       ).rejects.toThrow('Indexing aborted');
 
-      // The first commit should have been cached but the second should not
-      expect(fs.promises.writeFile).toHaveBeenCalledTimes(1);
+      // The first two commits should have been cached before the abort is observed
+      expect(fs.promises.writeFile).toHaveBeenCalledTimes(2);
       // Progress should have been called for commit 1 and commit 2 (where abort happened)
       expect(progress).toHaveBeenCalledWith('Indexing commits', 1, 3);
       expect(progress).toHaveBeenCalledWith('Indexing commits', 2, 3);
