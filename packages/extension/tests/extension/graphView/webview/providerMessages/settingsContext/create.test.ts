@@ -3,6 +3,7 @@ import {
   createGraphViewProviderMessageSettingsContext,
 } from '../../../../../../src/extension/graphView/webview/providerMessages/settingsContext/create';
 import * as repoSettings from '../../../../../../src/extension/repoSettings/current';
+import { DEFAULT_MAX_FILES } from '../../../../../../src/shared/settings/defaults';
 
 vi.mock('../../../../../../src/extension/repoSettings/current', () => ({
   getCodeGraphyConfiguration: vi.fn(),
@@ -123,7 +124,7 @@ describe('graph view provider listener settings context', () => {
     expect(captureSettingsSnapshot).toHaveBeenCalledOnce();
     expect(createResetSettingsAction).toHaveBeenCalledOnce();
     expect(executeUndoAction).toHaveBeenCalledWith({ kind: 'reset-settings' });
-    expect(context.getMaxFiles()).toBe(500);
+    expect(context.getMaxFiles()).toBe(DEFAULT_MAX_FILES);
     expect(context.getPlaybackSpeed()).toBe(1);
   });
 

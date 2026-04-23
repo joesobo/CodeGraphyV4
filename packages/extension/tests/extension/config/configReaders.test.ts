@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
 import { Configuration } from '../../../src/extension/config/reader';
+import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 
 describe('Configuration (configReaders)', () => {
   let mockConfig: Record<string, unknown>;
@@ -19,12 +20,12 @@ describe('Configuration (configReaders)', () => {
 
   describe('maxFiles', () => {
     it('returns the configured value', () => {
-      mockConfig['maxFiles'] = 1000;
-      expect(new Configuration().maxFiles).toBe(1000);
+      mockConfig['maxFiles'] = 1200;
+      expect(new Configuration().maxFiles).toBe(1200);
     });
 
-    it('returns the default 500 when not configured', () => {
-      expect(new Configuration().maxFiles).toBe(500);
+    it('returns the default 1000 when not configured', () => {
+      expect(new Configuration().maxFiles).toBe(DEFAULT_MAX_FILES);
     });
 
     it('reads from the codegraphy section', () => {
@@ -154,7 +155,7 @@ describe('Configuration (configReaders)', () => {
 
     it('uses defaults for unconfigured values', () => {
       const all = new Configuration().getAll();
-      expect(all.maxFiles).toBe(500);
+      expect(all.maxFiles).toBe(DEFAULT_MAX_FILES);
       expect(all.showOrphans).toBe(true);
       expect(all.disabledPlugins).toEqual([]);
     });
