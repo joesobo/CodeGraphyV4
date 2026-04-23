@@ -234,6 +234,10 @@ describe('plugin-godot/activate', () => {
     expect(api.getGraphData().edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
+          from: 'project.godot',
+          to: 'scenes/main.tscn',
+        }),
+        expect.objectContaining({
           from: 'scripts/enemy.gd',
           to: 'scripts/base/entity.gd',
         }),
@@ -249,6 +253,8 @@ describe('plugin-godot/activate', () => {
     );
     expect(edgeIds).toEqual(
       expect.arrayContaining([
+        'project.godot->scenes/main.tscn#load:static',
+        'project.godot->scripts/game_manager.gd#load:static',
         'scripts/player.gd->scenes/ui/loadout_preview.tscn#load:static',
         'scripts/player.gd->resources/player_loadout.tres#load:static',
         'scenes/ui/loadout_preview.tscn->resources/player_loadout.tres#load:static',

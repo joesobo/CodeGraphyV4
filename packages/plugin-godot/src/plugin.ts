@@ -19,6 +19,7 @@ import { detect as detectLoad } from './sources/load';
 import { detect as detectExtends } from './sources/extends';
 import { detect as detectClassNameUsage } from './sources/class-name-usage';
 import { detect as detectExtResource } from './sources/ext-resource';
+import { detect as detectProjectSettings } from './sources/project-settings';
 
 export { GDScriptPathResolver } from './PathResolver';
 export type { IGDScriptReference, GDScriptReferenceType } from './parser';
@@ -35,6 +36,7 @@ export type { IGDScriptReference, GDScriptReferenceType } from './parser';
  * - extends statements (script inheritance)
  * - class_name usage (type annotations, static calls)
  * - ext_resource references in `.tscn` and `.tres` text resources
+ * - project resource settings in `project.godot`
  *
  * @example
  * ```typescript
@@ -55,6 +57,7 @@ export interface IGDScriptAnalyzeFilePlugin extends IPlugin {
 export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
   let resolver: GDScriptPathResolver | null = null;
   const textResourceExtensions = new Set(['.tscn', '.tres']);
+  const projectSettingsExtensions = new Set(['.godot']);
 
   const extractResourceUid = (content: string): string | null => {
     const lines = content.split('\n');
@@ -99,12 +102,14 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
 
     const relations = textResourceExtensions.has(extension)
       ? detectExtResource(content, filePath, ctx)
-      : [
-          ...detectPreload(content, filePath, ctx),
-          ...detectLoad(content, filePath, ctx),
-          ...detectExtends(content, filePath, ctx),
-          ...detectClassNameUsage(content, filePath, ctx),
-        ];
+      : projectSettingsExtensions.has(extension)
+        ? detectProjectSettings(content, filePath, ctx)
+        : [
+            ...detectPreload(content, filePath, ctx),
+            ...detectLoad(content, filePath, ctx),
+            ...detectExtends(content, filePath, ctx),
+            ...detectClassNameUsage(content, filePath, ctx),
+          ];
 
     return {
       filePath,
