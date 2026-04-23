@@ -10,7 +10,7 @@ export async function getCommitTreeFiles(
     throw createAbortError();
   }
 
-  const output = await execGit(['ls-tree', '-r', '--name-only', sha], signal);
+  const output = await execGit(['ls-tree', '-r', '--name-only', sha, '--', '.'], signal);
   return output.trim().split('\n').filter(Boolean);
 }
 
@@ -24,7 +24,7 @@ export async function getDiffNameStatus(
     throw createAbortError();
   }
 
-  return execGit(['diff', '--name-status', '-M', parentSha, sha], signal);
+  return execGit(['diff', '--name-status', '-M', '--relative', parentSha, sha, '--', '.'], signal);
 }
 
 export async function getFileAtCommit(
@@ -34,7 +34,7 @@ export async function getFileAtCommit(
   signal: AbortSignal
 ): Promise<string> {
   try {
-    return await execGit(['show', `${sha}:${filePath}`], signal);
+    return await execGit(['show', `${sha}:./${filePath}`], signal);
   } catch {
     return '';
   }

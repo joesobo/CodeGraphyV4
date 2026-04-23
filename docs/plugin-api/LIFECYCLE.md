@@ -161,12 +161,12 @@ onUnload() {
 
 These hooks are called multiple times during the plugin's lifetime:
 
-### onPreAnalyze(files, workspaceRoot)
+### onPreAnalyze(files, workspaceRoot, context?)
 
 Called before each analysis pass with the full list of discovered files. Use this to build workspace-wide indexes needed for cross-file resolution.
 
 ```typescript
-onPreAnalyze(files, workspaceRoot) {
+onPreAnalyze(files, workspaceRoot, context) {
   // Build a lookup map, parse config files, etc.
   this.fileIndex = new Map();
   for (const f of files) {
@@ -177,14 +177,16 @@ onPreAnalyze(files, workspaceRoot) {
 
 **Example:** The GDScript plugin uses this to build a `class_name` map so `extends Player` resolves to the correct file. The Markdown plugin builds a file index for wikilink resolution.
 
-### onFilesChanged(files, workspaceRoot)
+`context?.mode === 'timeline'` means this pre-analysis run is being built from git history, not the live workspace.
+
+### onFilesChanged(files, workspaceRoot, context?)
 
 Called before an incremental save-driven refresh when CodeGraphy already has a warmed repo index.
 
 Use this when your plugin keeps cross-file state that can be updated from a small changed-file set. Return additional workspace-relative file paths when those dependents also need re-analysis.
 
 ```typescript
-async onFilesChanged(files, workspaceRoot) {
+async onFilesChanged(files, workspaceRoot, context) {
   let requiresDependents = false;
 
   for (const file of files) {
@@ -205,7 +207,7 @@ Behavior:
 - if your plugin only implements `onPreAnalyze(...)` and not `onFilesChanged(...)`, CodeGraphy falls back to a full refresh for safety
 - if `onFilesChanged(...)` throws, CodeGraphy also falls back to a full refresh
 
-### analyzeFile(filePath, content, workspaceRoot)
+### analyzeFile(filePath, content, workspaceRoot, context?)
 
 Called for each file after the core has prepared the file payload. Plugins return a per-file analysis object containing any mix of:
 
@@ -225,7 +227,7 @@ Use plain plugin-local `sourceId` values in plugin output, like `import`, `refer
 - merged graph provenance later: `id: 'acme.plugin:reference'`
 
 ```typescript
-async analyzeFile(filePath, content, workspaceRoot) {
+async analyzeFile(filePath, content, workspaceRoot, context) {
   return {
     filePath,
     nodeTypes: [
@@ -282,6 +284,8 @@ async analyzeFile(filePath, content, workspaceRoot) {
   };
 }
 ```
+
+When plugin behavior depends on the repo state outside the current file, use `context.fileSystem` instead of raw Node `fs`. In timeline mode the host resolves those reads against the selected commit.
 
 Path contract:
 

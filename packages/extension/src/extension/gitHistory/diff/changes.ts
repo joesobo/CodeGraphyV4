@@ -1,6 +1,9 @@
-import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type {
+  IFileAnalysisResult,
+  IPluginAnalysisContext,
+} from '../../../core/plugins/types/contracts';
 import type { IGraphEdge, IGraphNode } from '../../../shared/graph/contracts';
-import { createGitHistoryNode } from '../fullCommitAnalysis';
+import type { TreeSitterPathHost } from '../../pipeline/plugins/treesitter/runtime/pathHost';
 import { reanalyzeGraphFile, removeOutgoingGitHistoryEdges } from '../reanalyzeGraphFile';
 
 interface DiffGraphChangeRegistry {
@@ -8,6 +11,7 @@ interface DiffGraphChangeRegistry {
     absolutePath: string,
     content: string,
     workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
   supportsFile(filePath: string): boolean;
@@ -28,20 +32,8 @@ interface DiffGraphChangeOptions {
   sha: string;
   signal: AbortSignal;
   workspaceRoot: string;
-}
-
-function addGitHistoryNodeIfMissing(
-  filePath: string,
-  nodeMap: Map<string, IGraphNode>,
-  nodes: IGraphNode[],
-): void {
-  if (nodeMap.has(filePath)) {
-    return;
-  }
-
-  const node = createGitHistoryNode(filePath);
-  nodes.push(node);
-  nodeMap.set(filePath, node);
+  pathHost?: TreeSitterPathHost;
+  analysisContext?: IPluginAnalysisContext;
 }
 
 export async function addGitHistoryGraphFile(
@@ -58,10 +50,11 @@ export async function addGitHistoryGraphFile(
     sha,
     signal,
     workspaceRoot,
+    pathHost,
+    analysisContext,
   } = options;
 
   if (!registry.supportsFile(filePath)) {
-    addGitHistoryNodeIfMissing(filePath, nodeMap, nodes);
     return;
   }
 
@@ -76,6 +69,8 @@ export async function addGitHistoryGraphFile(
     sha,
     signal,
     workspaceRoot,
+    pathHost,
+    analysisContext,
   });
 }
 
@@ -93,6 +88,8 @@ export async function modifyGitHistoryGraphFile(
     sha,
     signal,
     workspaceRoot,
+    pathHost,
+    analysisContext,
   } = options;
 
   if (!registry.supportsFile(filePath)) {
@@ -112,5 +109,7 @@ export async function modifyGitHistoryGraphFile(
     sha,
     signal,
     workspaceRoot,
+    pathHost,
+    analysisContext,
   });
 }

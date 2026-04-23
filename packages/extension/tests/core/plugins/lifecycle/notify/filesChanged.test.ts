@@ -15,6 +15,31 @@ function makePlugin(overrides: Partial<IPlugin> = {}): IPlugin {
 }
 
 describe('plugin lifecycle notify/filesChanged', () => {
+  it('passes the analysis context to change hooks', async () => {
+    const onFilesChanged = vi.fn().mockResolvedValue(undefined);
+    const plugin = makePlugin({ onFilesChanged });
+    const files = [{ absolutePath: '/ws/a.ts', relativePath: 'a.ts', content: '' }];
+    const context = {
+      mode: 'workspace',
+      fileSystem: {
+        exists: vi.fn(),
+        isDirectory: vi.fn(),
+        isFile: vi.fn(),
+        listDirectory: vi.fn(),
+        readTextFile: vi.fn(),
+      },
+    };
+
+    await (notifyFilesChanged as unknown as (...args: unknown[]) => Promise<unknown>)(
+      new Map([[plugin.id, { plugin }]]),
+      files,
+      '/ws',
+      context,
+    );
+
+    expect(onFilesChanged).toHaveBeenCalledWith(files, '/ws', context);
+  });
+
   it('deduplicates additional file paths returned by matching plugins', async () => {
     const onFilesChanged = vi.fn().mockResolvedValue(['src/a.ts', 'src/a.ts', '', 42]);
     const plugin = makePlugin({ onFilesChanged });
@@ -63,8 +88,16 @@ describe('plugin lifecycle notify/filesChanged', () => {
       additionalFilePaths: [],
       requiresFullRefresh: false,
     });
-    expect(wildcardPlugin.onFilesChanged).toHaveBeenCalledWith(files, '/ws');
-    expect(caseInsensitivePlugin.onFilesChanged).toHaveBeenCalledWith(files, '/ws');
+    expect(wildcardPlugin.onFilesChanged).toHaveBeenCalledWith(
+      files,
+      '/ws',
+      expect.objectContaining({ mode: 'workspace' }),
+    );
+    expect(caseInsensitivePlugin.onFilesChanged).toHaveBeenCalledWith(
+      files,
+      '/ws',
+      expect.objectContaining({ mode: 'workspace' }),
+    );
     expect(ignoredPlugin.onFilesChanged).not.toHaveBeenCalled();
   });
 
@@ -125,6 +158,10 @@ describe('plugin lifecycle notify/filesChanged', () => {
       '[CodeGraphy] Error in onFilesChanged for broken-plugin:',
       expect.any(Error),
     );
-    expect(healthyPlugin.onFilesChanged).toHaveBeenCalledWith(files, '/ws');
+    expect(healthyPlugin.onFilesChanged).toHaveBeenCalledWith(
+      files,
+      '/ws',
+      expect.objectContaining({ mode: 'workspace' }),
+    );
   });
 });

@@ -69,6 +69,7 @@ describe('gitHistory/indexer', () => {
     expect(dependencies.persistCachedCommitState).toHaveBeenCalledWith(commits);
     expect(onProgress).toHaveBeenCalledWith('Indexing commits', 1, 2);
     expect(onProgress).toHaveBeenCalledWith('Indexing commits', 2, 2);
+    expect(onProgress).toHaveBeenCalledWith('Finalizing timeline cache', 2, 2);
   });
 
   it('indexes a single commit without diff analysis', async () => {
@@ -96,8 +97,48 @@ describe('gitHistory/indexer', () => {
     expect(dependencies.writeCachedGraphData).toHaveBeenCalledOnce();
     expect(dependencies.writeCachedGraphData).toHaveBeenCalledWith('sha1', graphA);
     expect(dependencies.persistCachedCommitState).toHaveBeenCalledWith(commits);
-    expect(onProgress).toHaveBeenCalledOnce();
-    expect(onProgress).toHaveBeenCalledWith('Indexing commits', 1, 1);
+    expect(onProgress).toHaveBeenNthCalledWith(1, 'Indexing commits', 1, 1);
+    expect(onProgress).toHaveBeenNthCalledWith(2, 'Finalizing timeline cache', 1, 1);
+  });
+
+  it('reports commit progress only after the commit graph has been cached', async () => {
+    const events: string[] = [];
+    const dependencies = {
+      analyzeDiffCommit: vi.fn(async () => {
+        events.push('analyze-diff');
+        return createGraph('b');
+      }),
+      analyzeFullCommit: vi.fn(async () => {
+        events.push('analyze-full');
+        return createGraph('a');
+      }),
+      getCommitList: vi.fn(async () => [createCommit('sha1'), createCommit('sha2', ['sha1'])]),
+      persistCachedCommitState: vi.fn(async () => {
+        events.push('persist');
+      }),
+      writeCachedGraphData: vi.fn(async (sha: string) => {
+        events.push(`write-${sha}`);
+      }),
+    };
+
+    await indexGitHistory({
+      dependencies,
+      onProgress: (phase, current, total) => {
+        events.push(`progress:${phase}:${current}/${total}`);
+      },
+      signal: new AbortController().signal,
+    });
+
+    expect(events).toEqual([
+      'analyze-full',
+      'write-sha1',
+      'progress:Indexing commits:1/2',
+      'analyze-diff',
+      'write-sha2',
+      'progress:Indexing commits:2/2',
+      'progress:Finalizing timeline cache:2/2',
+      'persist',
+    ]);
   });
 
   it('drops a single commit from the cached timeline when full analysis yields no nodes', async () => {
