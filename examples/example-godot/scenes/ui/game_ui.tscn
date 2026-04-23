@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://game-ui-scene"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/loadout_preview.tscn" id="1_preview"]
+
+[node name="GameUI" type="CanvasLayer"]
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+
+[node name="TopBar" type="HBoxContainer" parent="MarginContainer"]
+size_flags_horizontal = 3
+
+[node name="LoadoutAnchor" parent="MarginContainer/TopBar" instance=ExtResource("1_preview")]
+unique_name_in_owner = true

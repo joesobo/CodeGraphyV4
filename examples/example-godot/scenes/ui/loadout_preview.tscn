@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3 uid="uid://loadout-preview-scene"]
+
+[ext_resource type="Script" path="../../scripts/ui/loadout_preview.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://player-loadout" path="../../resources/player_loadout.tres" id="2_loadout"]
+[ext_resource type="Texture2D" path="../../textures/player_card.png" id="3_card"]
+
+[node name="LoadoutPreview" type="Control"]
+custom_minimum_size = Vector2(320, 172)
+script = ExtResource("1_script")
+loadout = ExtResource("2_loadout")
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Content" type="HBoxContainer" parent="Panel/MarginContainer"]
+
+[node name="CardTexture" type="TextureRect" parent="Panel/MarginContainer/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 128)
+stretch_mode = 5
+texture = ExtResource("3_card")
+
+[node name="Text" type="VBoxContainer" parent="Panel/MarginContainer/Content"]
+size_flags_horizontal = 3
+
+[node name="TitleLabel" type="Label" parent="Panel/MarginContainer/Content/Text"]
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+text = "Scout Loadout"
+
+[node name="SummaryLabel" type="Label" parent="Panel/MarginContainer/Content/Text"]
+unique_name_in_owner = true
+autowrap_mode = 3
+text = "A mobile starter kit built for the CodeGraphy Godot example."

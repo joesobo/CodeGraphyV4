@@ -24,6 +24,10 @@ export class GDScriptPathResolver {
 	/** Maps snake_case base name → workspace-relative path for .gd files */
 	private fileNameMap: Map<string, string> = new Map();
 	private fileClassNames: Map<string, Set<string>> = new Map();
+	private resourceUidMap: Map<string, string> = new Map();
+	private fileResourceUids: Map<string, string> = new Map();
+	private registeredScriptFiles: Set<string> = new Set();
+	private registeredTextResourceFiles: Set<string> = new Set();
 
 	/**
 	 * Create a new path resolver.
@@ -49,9 +53,16 @@ export class GDScriptPathResolver {
 	 * `class_name` declaration can be resolved via the snake_case convention.
 	 */
 	registerFile(filePath: string): void {
-		if (!filePath.endsWith('.gd')) return;
-		const base = path.basename(filePath, '.gd');
-		this.fileNameMap.set(base, filePath);
+		if (filePath.endsWith('.gd')) {
+			const base = path.basename(filePath, '.gd');
+			this.fileNameMap.set(base, filePath);
+			this.registeredScriptFiles.add(filePath);
+			return;
+		}
+
+		if (filePath.endsWith('.tscn') || filePath.endsWith('.tres')) {
+			this.registeredTextResourceFiles.add(filePath);
+		}
 	}
 
 	/**
@@ -61,6 +72,10 @@ export class GDScriptPathResolver {
 		this.classNameMap.clear();
 		this.fileNameMap.clear();
 		this.fileClassNames.clear();
+		this.resourceUidMap.clear();
+		this.fileResourceUids.clear();
+		this.registeredScriptFiles.clear();
+		this.registeredTextResourceFiles.clear();
 	}
 
 	replaceFileClassNames(filePath: string, classNames: readonly string[]): { changed: boolean } {
@@ -84,6 +99,24 @@ export class GDScriptPathResolver {
 			}
 		}
 
+		return { changed };
+	}
+
+	replaceFileResourceUid(filePath: string, uid: string | null): { changed: boolean } {
+		const previous = this.fileResourceUids.get(filePath) ?? null;
+		const changed = previous !== uid;
+
+		if (previous && this.resourceUidMap.get(previous) === filePath) {
+			this.resourceUidMap.delete(previous);
+		}
+
+		if (!uid) {
+			this.fileResourceUids.delete(filePath);
+			return { changed };
+		}
+
+		this.fileResourceUids.set(filePath, uid);
+		this.resourceUidMap.set(uid, filePath);
 		return { changed };
 	}
 
@@ -115,6 +148,26 @@ export class GDScriptPathResolver {
 		return null;
 	}
 
+	resolveTextResourcePath(importPath: string, fromFile: string, uid?: string): string | null {
+		if (uid && this.resourceUidMap.has(uid)) {
+			return this.resourceUidMap.get(uid) || null;
+		}
+
+		if (importPath.startsWith('res://')) {
+			return this.resolveResPath(importPath);
+		}
+
+		if (importPath.startsWith('user://')) {
+			return null;
+		}
+
+		if (!importPath || importPath.includes('://') || path.isAbsolute(importPath)) {
+			return null;
+		}
+
+		return this.resolveRelativePath(importPath, fromFile);
+	}
+
 	private resolveResPath(resPath: string): string {
 		const relativePath = resPath.slice('res://'.length);
 		return normalizePath(relativePath);
@@ -141,7 +194,11 @@ export class GDScriptPathResolver {
 	}
 
 	getRegisteredFiles(): string[] {
-		return [...this.fileNameMap.values()];
+		return [...this.registeredScriptFiles, ...this.registeredTextResourceFiles];
+	}
+
+	getRegisteredTextResourceFiles(): string[] {
+		return [...this.registeredTextResourceFiles];
 	}
 
 	/**

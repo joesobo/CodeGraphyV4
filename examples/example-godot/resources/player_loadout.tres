@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://player-loadout"]
+
+[ext_resource type="Script" path="../scripts/data/player_loadout.gd" id="1_script"]
+[ext_resource type="Texture2D" path="../textures/player_card.png" id="2_card"]
+
+[resource]
+display_name = "Scout Loadout"
+summary = "Balanced starter gear used by the Godot example scenes."
+preview_texture = ExtResource("2_card")
+script = ExtResource("1_script")
