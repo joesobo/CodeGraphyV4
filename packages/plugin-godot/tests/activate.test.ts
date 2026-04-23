@@ -208,7 +208,7 @@ describe('plugin-godot/activate', () => {
   });
 
   it(
-    'establishes GDScript connections when installed with the core extension',
+    'establishes Godot script, scene, and resource connections when installed with the core extension',
     { timeout: installedWithCoreTimeoutMs },
     async () => {
     const { activate: activateCore } = await import('../../extension/src/extension/activate');
@@ -229,6 +229,7 @@ describe('plugin-godot/activate', () => {
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
     await internals._analysisMethods._analyzeAndSendData();
+    const edgeIds = api.getGraphData().edges.map((edge) => edge.id);
 
     expect(api.getGraphData().edges).toEqual(
       expect.arrayContaining([
@@ -236,6 +237,23 @@ describe('plugin-godot/activate', () => {
           from: 'scripts/enemy.gd',
           to: 'scripts/base/entity.gd',
         }),
+        expect.objectContaining({
+          from: 'resources/player_loadout.tres',
+          to: 'scripts/data/player_loadout.gd',
+        }),
+        expect.objectContaining({
+          from: 'scenes/ui/loadout_preview.tscn',
+          to: 'resources/player_loadout.tres',
+        }),
+      ]),
+    );
+    expect(edgeIds).toEqual(
+      expect.arrayContaining([
+        'scripts/player.gd->scenes/ui/loadout_preview.tscn#load:static',
+        'scripts/player.gd->resources/player_loadout.tres#load:static',
+        'scenes/ui/loadout_preview.tscn->resources/player_loadout.tres#load:static',
+        'scenes/ui/loadout_preview.tscn->scripts/ui/loadout_preview.gd#load:static',
+        'resources/player_loadout.tres->scripts/data/player_loadout.gd#load:static',
       ]),
     );
     expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(

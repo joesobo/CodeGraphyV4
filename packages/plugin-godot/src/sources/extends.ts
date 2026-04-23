@@ -4,10 +4,10 @@
  * @module plugins/godot/sources/extends
  */
 
-import * as path from 'path';
 import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
-import { isResPath, normalizePath } from '../parser';
+import { isResPath } from '../parser';
+import { materializeResolvedPath } from '../resolved-path';
 
 /** Detects extends statements with file paths: extends "res://scripts/base.gd" */
 export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelation[] {
@@ -24,7 +24,13 @@ export function detect(content: string, filePath: string, ctx: GDScriptRuleConte
       const resPath = match[1];
       if (isResPath(resPath)) {
         const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
-        const resolvedPath = resolved ? normalizePath(path.join(projectRoot, resolved)) : null;
+        const resolvedPath = resolved
+          ? materializeResolvedPath({
+              projectRoot,
+              resolvedPath: resolved,
+              workspaceRoot: ctx.workspaceRoot,
+            })
+          : null;
         relations.push({
           kind: 'inherit',
           specifier: resPath,

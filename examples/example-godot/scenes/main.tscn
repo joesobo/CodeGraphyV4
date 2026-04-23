@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://main-scene"]
+
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="2_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_ui.tscn" id="3_ui"]
+
+[node name="Main" type="Node2D"]
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(160, 208)
+
+[node name="Enemy" parent="." instance=ExtResource("2_enemy")]
+position = Vector2(480, 208)
+
+[node name="GameUI" parent="." instance=ExtResource("3_ui")]
