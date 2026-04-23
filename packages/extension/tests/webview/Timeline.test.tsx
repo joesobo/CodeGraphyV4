@@ -57,13 +57,13 @@ describe('Timeline', () => {
 
   // ── State 1: Returns null ──────────────────────────────────────────────
 
-  it('shows a disabled "Index Repo" button when no graph data is available yet', () => {
+  it('shows a disabled "Index Git History" button when no graph data is available yet', () => {
     resetStore({ graphData: null, timelineActive: false, isIndexing: false });
     render(<Timeline />);
-    expect(screen.getByText('Index Repo')).toBeDisabled();
+    expect(screen.getByText('Index Git History')).toBeDisabled();
   });
 
-  it('shows a disabled "Index Repo" button while the graph is still loading', () => {
+  it('shows a disabled "Index Git History" button while the graph is still loading', () => {
     resetStore({
       graphData: MOCK_GRAPH_DATA,
       isLoading: true,
@@ -72,22 +72,22 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    expect(screen.getByText('Index Repo')).toBeDisabled();
+    expect(screen.getByText('Index Git History')).toBeDisabled();
   });
 
-  // ── State 1: Index Repo button ─────────────────────────────────────────
+  // ── State 1: Index Git History button ──────────────────────────────────
 
-  it('shows "Index Repo" button when graph data exists but no timeline', () => {
+  it('shows "Index Git History" button when graph data exists but no timeline', () => {
     resetStore({ graphData: MOCK_GRAPH_DATA, timelineActive: false, isIndexing: false });
     render(<Timeline />);
-    expect(screen.getByText('Index Repo')).toBeInTheDocument();
+    expect(screen.getByText('Index Git History')).toBeInTheDocument();
   });
 
-  it('sends INDEX_REPO message when "Index Repo" button is clicked', () => {
+  it('sends INDEX_REPO message when "Index Git History" button is clicked', () => {
     resetStore({ graphData: MOCK_GRAPH_DATA, timelineActive: false, isIndexing: false });
     render(<Timeline />);
 
-    fireEvent.click(screen.getByText('Index Repo'));
+    fireEvent.click(screen.getByText('Index Git History'));
 
     expect(sentMessages).toContainEqual({ type: 'INDEX_REPO' });
   });

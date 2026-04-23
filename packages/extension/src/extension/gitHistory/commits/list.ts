@@ -43,6 +43,8 @@ export async function getCommitList(
       '--format=%H|%at|%s|%an|%P',
       '-n',
       String(maxCommits),
+      '--',
+      '.',
     ],
     signal
   );

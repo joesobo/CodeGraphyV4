@@ -41,7 +41,8 @@ describe('PluginRegistry analysis', () => {
     expect(plugin.analyzeFile).toHaveBeenCalledWith(
       '/src/app.ts',
       'content',
-      '/workspace'
+      '/workspace',
+      expect.objectContaining({ mode: 'workspace' }),
     );
     expect(result).toEqual([
       {
@@ -130,7 +131,12 @@ describe('PluginRegistry analysis', () => {
 
     const result = await registry.analyzeFileResult('/src/app.ts', 'content', '/workspace');
 
-    expect(plugin.analyzeFile).toHaveBeenCalledWith('/src/app.ts', 'content', '/workspace');
+    expect(plugin.analyzeFile).toHaveBeenCalledWith(
+      '/src/app.ts',
+      'content',
+      '/workspace',
+      expect.objectContaining({ mode: 'workspace' }),
+    );
     expect(result).toEqual({
       edgeTypes: [],
       filePath: '/src/app.ts',

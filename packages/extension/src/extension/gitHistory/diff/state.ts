@@ -48,7 +48,8 @@ export function renameGitHistoryGraphFile(
     nodeMap.set(newPath, node);
   }
 
-  for (const edge of edges) {
+  for (let index = edges.length - 1; index >= 0; index--) {
+    const edge = edges[index];
     let changed = false;
     const previousId = edge.id;
 
@@ -67,7 +68,34 @@ export function renameGitHistoryGraphFile(
     }
 
     edgeSet.delete(previousId);
-    edge.id = replaceGraphEdgeIdEndpoints(edge, edge.from, edge.to);
+    const nextId = replaceGraphEdgeIdEndpoints(edge, edge.from, edge.to);
+    const duplicateIndex = edges.findIndex((candidate, candidateIndex) => {
+      return candidateIndex !== index && candidate.id === nextId;
+    });
+
+    if (duplicateIndex >= 0) {
+      mergeGitHistoryEdgeSources(edges[duplicateIndex], edge);
+      edges.splice(index, 1);
+      continue;
+    }
+
+    edge.id = nextId;
     edgeSet.add(edge.id);
   }
+}
+
+function mergeGitHistoryEdgeSources(targetEdge: IGraphEdge, sourceEdge: IGraphEdge): void {
+  const mergedSources = [...targetEdge.sources];
+  const seenSourceIds = new Set(mergedSources.map((source) => source.id));
+
+  for (const source of sourceEdge.sources) {
+    if (seenSourceIds.has(source.id)) {
+      continue;
+    }
+
+    seenSourceIds.add(source.id);
+    mergedSources.push(source);
+  }
+
+  targetEdge.sources = mergedSources;
 }

@@ -21,14 +21,14 @@ describe('pipeline/plugins/treesitter/runtime/projectRoots/go/module', () => {
     expect(readGoModuleName(workspaceRoot)).toBe('github.com/acme/project');
   });
 
-  it('trims module names and reuses the cached lookup for the same project root', () => {
+  it('trims module names and rereads go.mod when the project file changes', () => {
     const workspaceRoot = createProjectRootsWorkspace();
     writeProjectRootsFile(workspaceRoot, 'go.mod', 'module   github.com/acme/project   \n');
 
     expect(readGoModuleName(workspaceRoot)).toBe('github.com/acme/project');
 
     writeProjectRootsFile(workspaceRoot, 'go.mod', 'module github.com/acme/other\n');
-    expect(readGoModuleName(workspaceRoot)).toBe('github.com/acme/project');
+    expect(readGoModuleName(workspaceRoot)).toBe('github.com/acme/other');
   });
 
   it('returns the matching package directory for root and nested imports', () => {

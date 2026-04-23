@@ -19,6 +19,7 @@ export async function applyGraphViewTimelineIndexResult(
 ): Promise<void> {
   if (commits.length === 0) {
     handlers.showInformationMessage('No commits found to index');
+    handlers.sendMessage({ type: 'CACHE_INVALIDATED' });
     return;
   }
 

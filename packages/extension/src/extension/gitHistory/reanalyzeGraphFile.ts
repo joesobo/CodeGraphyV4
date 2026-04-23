@@ -1,6 +1,11 @@
 import * as path from 'path';
-import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
+import type {
+  IFileAnalysisResult,
+  IPluginAnalysisContext,
+} from '../../core/plugins/types/contracts';
 import type { IGraphEdge, IGraphNode } from '../../shared/graph/contracts';
+import type { TreeSitterPathHost } from '../pipeline/plugins/treesitter/runtime/pathHost';
+import { withTreeSitterPathHost } from '../pipeline/plugins/treesitter/runtime/pathHost';
 import { appendGitHistoryAnalysisEdges } from './graphConnections';
 import { createGitHistoryNode } from './fullCommitAnalysis';
 
@@ -9,6 +14,7 @@ interface ReanalyzeGraphFileRegistry {
     absolutePath: string,
     content: string,
     workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
   supportsFile(filePath: string): boolean;
@@ -29,6 +35,8 @@ export interface ReanalyzeGraphFileOptions {
   sha: string;
   signal: AbortSignal;
   workspaceRoot: string;
+  pathHost?: TreeSitterPathHost;
+  analysisContext?: IPluginAnalysisContext;
 }
 
 export async function reanalyzeGraphFile(
@@ -45,6 +53,8 @@ export async function reanalyzeGraphFile(
     sha,
     signal,
     workspaceRoot,
+    pathHost,
+    analysisContext,
   } = options;
 
   if (!registry.supportsFile(filePath)) {
@@ -53,7 +63,10 @@ export async function reanalyzeGraphFile(
 
   const content = await getFileAtCommit(sha, filePath, signal);
   const absolutePath = path.join(workspaceRoot, filePath);
-  const analysis = await registry.analyzeFileResult(absolutePath, content, workspaceRoot);
+  const analysis = await withTreeSitterPathHost(
+    pathHost,
+    () => registry.analyzeFileResult(absolutePath, content, workspaceRoot, analysisContext),
+  );
   const plugin = registry.getPluginForFile?.(absolutePath);
 
   if (!nodeMap.has(filePath)) {

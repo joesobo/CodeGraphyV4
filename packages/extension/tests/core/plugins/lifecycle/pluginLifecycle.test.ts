@@ -129,7 +129,11 @@ describe('pluginLifecycle', () => {
 
       await notifyPreAnalyze(plugins, files, '/ws');
 
-      expect(onPreAnalyze).toHaveBeenCalledWith(files, '/ws');
+      expect(onPreAnalyze).toHaveBeenCalledWith(
+        files,
+        '/ws',
+        expect.objectContaining({ mode: 'workspace' }),
+      );
     });
   });
 
@@ -144,7 +148,11 @@ describe('pluginLifecycle', () => {
         additionalFilePaths: ['src/dependency.ts'],
         requiresFullRefresh: false,
       });
-      expect(onFilesChanged).toHaveBeenCalledWith(files, '/ws');
+      expect(onFilesChanged).toHaveBeenCalledWith(
+        files,
+        '/ws',
+        expect.objectContaining({ mode: 'workspace' }),
+      );
     });
 
     it('requests a full refresh when a matching plugin still only supports pre-analysis hooks', async () => {

@@ -1,16 +1,33 @@
 import * as path from 'path';
-import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
+import type {
+  IFileAnalysisResult,
+  IPluginAnalysisContext,
+} from '../../core/plugins/types/contracts';
 import { getFileColor } from '../../shared/fileColors';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../shared/graph/contracts';
+import { createGitHistoryCommitPathHost } from './commitPathHost';
+import { createGitHistoryAnalysisContext } from './analysisContext';
 import { appendGitHistoryAnalysisEdges } from './graphConnections';
+import { preAnalyzeGitHistoryPlugins } from './preAnalyze';
+import { withTreeSitterPathHost } from '../pipeline/plugins/treesitter/runtime/pathHost';
 
 interface FullCommitAnalysisRegistry {
   analyzeFileResult(
     absolutePath: string,
     content: string,
     workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult | null>;
   getPluginForFile?(absolutePath: string): { id: string } | undefined;
+  notifyPreAnalyze(
+    files: Array<{
+      absolutePath: string;
+      relativePath: string;
+      content: string;
+    }>,
+    workspaceRoot: string,
+    context: IPluginAnalysisContext,
+  ): Promise<void>;
 }
 
 export interface AnalyzeFullCommitGraphOptions {
@@ -63,6 +80,28 @@ export async function analyzeFullCommitGraph(
   const edges: IGraphEdge[] = [];
   const nodeIds = new Set<string>();
   const edgeSet = new Set<string>();
+  const analysisContext = createGitHistoryAnalysisContext({
+    allFiles,
+    getFileAtCommit,
+    sha,
+    signal,
+    workspaceRoot,
+  });
+  await preAnalyzeGitHistoryPlugins({
+    allFiles: allFiles.filter((filePath) => !shouldExclude(filePath)),
+    getFileAtCommit,
+    registry,
+    sha,
+    signal,
+    workspaceRoot,
+  }, analysisContext);
+  const pathHost = await createGitHistoryCommitPathHost({
+    allFiles,
+    getFileAtCommit,
+    sha,
+    signal,
+    workspaceRoot,
+  });
 
   for (const filePath of files) {
     if (signal.aborted) {
@@ -73,7 +112,10 @@ export async function analyzeFullCommitGraph(
 
     const content = await getFileAtCommit(sha, filePath, signal);
     const absolutePath = path.join(workspaceRoot, filePath);
-    const analysis = await registry.analyzeFileResult(absolutePath, content, workspaceRoot);
+    const analysis = await withTreeSitterPathHost(
+      pathHost,
+      () => registry.analyzeFileResult(absolutePath, content, workspaceRoot, analysisContext),
+    );
     const plugin = registry.getPluginForFile?.(absolutePath);
 
     if (!nodeIds.has(filePath)) {

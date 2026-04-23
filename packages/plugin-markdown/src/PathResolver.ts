@@ -5,7 +5,6 @@
  */
 
 import * as path from 'path';
-import * as fs from 'fs';
 
 /**
  * Resolves wikilink targets to absolute file paths.
@@ -30,8 +29,15 @@ export class PathResolver {
   /**
    * Retained for plugin lifecycle compatibility.
    */
-  buildIndex(_files: Array<{ absolutePath: string }>): void {
+  buildIndex(files: Array<{ absolutePath: string }>): void {
     this.fileIndex.clear();
+
+    for (const { absolutePath } of files) {
+      const relativePath = this.toLookupKey(path.relative(this.workspaceRoot, absolutePath));
+      const existing = this.fileIndex.get(relativePath) ?? [];
+      existing.push(absolutePath);
+      this.fileIndex.set(relativePath, existing);
+    }
   }
 
   /**
@@ -52,14 +58,29 @@ export class PathResolver {
   }
 
   private resolveByPath(target: string): string | null {
-    const normalizedTarget = target.replace(/\\/g, '/');
-    const candidates = [
-      path.join(this.workspaceRoot, normalizedTarget),
-      path.join(this.workspaceRoot, normalizedTarget + '.md'),
-    ];
+    const candidates = this.buildPathCandidates(target);
+
     for (const candidate of candidates) {
-      if (fs.existsSync(candidate)) return candidate;
+      const indexedCandidate = this.fileIndex.get(this.toLookupKey(candidate))?.[0];
+      if (indexedCandidate) {
+        return indexedCandidate;
+      }
     }
-    return null;
+
+    return path.join(this.workspaceRoot, candidates[0]);
+  }
+
+  private buildPathCandidates(target: string): string[] {
+    const normalizedTarget = target.replace(/\\/g, '/');
+
+    if (path.extname(normalizedTarget) !== '') {
+      return [normalizedTarget];
+    }
+
+    return [normalizedTarget + '.md'];
+  }
+
+  private toLookupKey(filePath: string): string {
+    return filePath.replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase();
   }
 }
