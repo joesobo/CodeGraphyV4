@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import Status from '../../../../../src/webview/components/timeline/view/Status';
 
 describe('timeline/Status', () => {
-  it('renders a disabled Index Repo button when graph data is unavailable', () => {
+  it('renders a disabled Index Git History button when graph data is unavailable', () => {
     render(
       <Status
         hasGraphData={false}
@@ -14,10 +14,10 @@ describe('timeline/Status', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Index Repo' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Index Git History' })).toBeDisabled();
   });
 
-  it('renders an Index Repo button when graph data is available', () => {
+  it('renders an Index Git History button when graph data is available', () => {
     render(
       <Status
         hasGraphData
@@ -28,10 +28,10 @@ describe('timeline/Status', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Index Repo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Index Git History' })).toBeInTheDocument();
   });
 
-  it('calls onIndexRepo when the Index Repo button is clicked', () => {
+  it('calls onIndexRepo when the Index Git History button is clicked', () => {
     const onIndexRepo = vi.fn();
 
     render(
@@ -44,7 +44,7 @@ describe('timeline/Status', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Index Repo' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Index Git History' }));
 
     expect(onIndexRepo).toHaveBeenCalledTimes(1);
   });
@@ -93,7 +93,7 @@ describe('timeline/Status', () => {
     expect(screen.getByText('Indexing repository...')).toBeInTheDocument();
   });
 
-  it('keeps the Index Repo button disabled while the graph is still loading', () => {
+  it('keeps the Index Git History button disabled while the graph is still loading', () => {
     render(
       <Status
         hasGraphData={false}
@@ -104,6 +104,6 @@ describe('timeline/Status', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Index Repo' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Index Git History' })).toBeDisabled();
   });
 });

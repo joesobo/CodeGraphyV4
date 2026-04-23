@@ -72,11 +72,11 @@ export default function Status({
         variant="outline"
         size="sm"
         onClick={onIndexRepo}
-        title="Index repository git history"
+        title="Index Git history"
         disabled={!canIndexRepo}
       >
         <MdiIcon path={mdiClockOutline} size={16} className="mr-1" />
-        Index Repo
+        Index Git History
       </Button>
     </div>
   );

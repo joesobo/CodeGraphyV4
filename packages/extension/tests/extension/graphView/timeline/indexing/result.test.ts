@@ -18,7 +18,7 @@ describe('graph view timeline result', () => {
     });
 
     expect(showInformationMessage).toHaveBeenCalledWith('No commits found to index');
-    expect(sendMessage).not.toHaveBeenCalled();
+    expect(sendMessage).toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
     expect(jumpToCommit).not.toHaveBeenCalled();
   });
 
