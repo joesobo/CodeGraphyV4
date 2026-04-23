@@ -209,7 +209,9 @@ describe('App (mutation targets)', () => {
       timelineActive: true,
     });
     render(<App />);
-    expect(screen.getByText(/No files found/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No files found\. No graphable files exist in this commit\./),
+    ).toBeInTheDocument();
   });
 
   it('shows empty state when graphData is null', () => {

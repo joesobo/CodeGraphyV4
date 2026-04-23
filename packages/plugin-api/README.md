@@ -30,6 +30,7 @@ Main seams in the current API:
 - host-side export saving: `saveExport`
 - graph/webview product surfaces: plugin toolbar buttons, plugin slots, tooltip actions, and optional future-facing view transforms
 - default styling via `fileColors`, which already lets a plugin act like a file-theme layer for extension matches, exact file names, and glob patterns
+- analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
 
 Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged on top in plugin order, with higher-priority plugins winning conflicts.
 
@@ -55,6 +56,14 @@ Path and source rules:
 - unresolved package/runtime targets should use `toFilePath: null`
 - `sourceId` in plugin output is plugin-local, like `wikilink` or `import`
 - the host qualifies provenance later, for example `codegraphy.markdown:wikilink`
+
+Timeline-safe plugins:
+
+- `analyzeFile(...)`, `onPreAnalyze(...)`, and `onFilesChanged(...)` may receive `context`
+- `context.mode` is `'workspace'` or `'timeline'`
+- `context.commitSha` is set for timeline replay
+- `context.fileSystem` exposes `exists`, `isFile`, `isDirectory`, `listDirectory`, and `readTextFile`
+- prefer `context.fileSystem` over raw Node `fs` when plugin behavior depends on repo state, config files, or sibling files
 
 Minimal working plugin object:
 

@@ -1,5 +1,5 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { findExistingFile } from './analyze/existingFile';
 
 const IMPORT_RESOLUTION_EXTENSIONS = [
   '',
@@ -14,21 +14,10 @@ const IMPORT_RESOLUTION_EXTENSIONS = [
 ] as const;
 
 function findExistingPath(basePath: string): string | null {
-  for (const extension of IMPORT_RESOLUTION_EXTENSIONS) {
-    const candidatePath = `${basePath}${extension}`;
-    if (fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()) {
-      return candidatePath;
-    }
-  }
-
-  for (const extension of IMPORT_RESOLUTION_EXTENSIONS.slice(1)) {
-    const candidatePath = path.join(basePath, `index${extension}`);
-    if (fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()) {
-      return candidatePath;
-    }
-  }
-
-  return null;
+  return findExistingFile([
+    ...IMPORT_RESOLUTION_EXTENSIONS.map((extension) => `${basePath}${extension}`),
+    ...IMPORT_RESOLUTION_EXTENSIONS.slice(1).map((extension) => path.join(basePath, `index${extension}`)),
+  ]);
 }
 
 export function resolveTreeSitterImportPath(

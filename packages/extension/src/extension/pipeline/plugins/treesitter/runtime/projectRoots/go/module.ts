@@ -1,24 +1,15 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
-
-const goModuleNameCache = new Map<string, string | null>();
+import { treeSitterReadTextFile } from '../../pathHost';
 
 export function readGoModuleName(projectRoot: string): string | null {
-  if (goModuleNameCache.has(projectRoot)) {
-    return goModuleNameCache.get(projectRoot) ?? null;
-  }
-
   const goModPath = path.join(projectRoot, 'go.mod');
-  let moduleName: string | null = null;
-
-  if (fs.existsSync(goModPath)) {
-    const content = fs.readFileSync(goModPath, 'utf8');
-    const match = content.match(/^module\s+(.+)$/mu);
-    moduleName = match?.[1]?.trim() ?? null;
+  const content = treeSitterReadTextFile(goModPath);
+  if (!content) {
+    return null;
   }
 
-  goModuleNameCache.set(projectRoot, moduleName);
-  return moduleName;
+  const match = content.match(/^module\s+(.+)$/mu);
+  return match?.[1]?.trim() ?? null;
 }
 
 export function resolveGoPackageDirectory(

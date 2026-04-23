@@ -67,6 +67,7 @@ describe('graph view timeline execution', () => {
 
     expect(handlers.showInformationMessage).toHaveBeenCalledWith('No commits found to index');
     expect(handlers.jumpToCommit).not.toHaveBeenCalled();
+    expect(handlers.sendMessage).toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
   });
 
   it('reports non-abort indexing failures and invalidates the cache', async () => {
@@ -98,7 +99,7 @@ describe('graph view timeline execution', () => {
     expect(handlers.sendMessage).toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
   });
 
-  it('returns quietly for abort failures', async () => {
+  it('clears indexing state for abort failures', async () => {
     const error = new Error('aborted');
     error.name = 'AbortError';
     const handlers = {
@@ -125,6 +126,6 @@ describe('graph view timeline execution', () => {
 
     expect(handlers.logError).not.toHaveBeenCalled();
     expect(handlers.showErrorMessage).not.toHaveBeenCalled();
-    expect(handlers.sendMessage).not.toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
   });
 });

@@ -79,6 +79,7 @@ function createMockContext() {
  */
 function createMockRegistry() {
   return {
+    notifyPreAnalyze: vi.fn(async () => {}),
     analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
       filePath: absolutePath,
       relations: [],
@@ -94,6 +95,7 @@ function createMockRegistry() {
       },
     ]),
   } as unknown as PluginRegistry & {
+    notifyPreAnalyze: Mock;
     analyzeFileResult: Mock;
     supportsFile: Mock;
     getSupportedExtensions: Mock;
@@ -426,7 +428,8 @@ describe('GitHistoryAnalyzer', () => {
           match: 'log',
           stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
         },
-        { match: 'ls-tree', stdout: 'src/a.ts\n' },
+        { match: /ls-tree -r --name-only sha1/, stdout: 'src/a.ts\n' },
+        { match: /ls-tree -r --name-only sha2/, stdout: 'src/a.ts\nsrc/new.ts\n' },
         { match: /show sha1:/, stdout: '' },
         {
           match: /diff --name-status/,
@@ -557,7 +560,8 @@ describe('GitHistoryAnalyzer', () => {
           match: 'log',
           stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
         },
-        { match: 'ls-tree', stdout: 'src/old.ts\nsrc/main.ts\n' },
+        { match: /ls-tree -r --name-only sha1/, stdout: 'src/old.ts\nsrc/main.ts\n' },
+        { match: /ls-tree -r --name-only sha2/, stdout: 'src/new.ts\nsrc/main.ts\n' },
         { match: /show sha1:src\/old\.ts/, stdout: '' },
         { match: /show sha1:src\/main\.ts/, stdout: 'import "./old";' },
         {
@@ -685,7 +689,8 @@ describe('GitHistoryAnalyzer', () => {
           match: 'log',
           stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
         },
-        { match: 'ls-tree', stdout: 'src/a.ts\n' },
+        { match: /ls-tree -r --name-only sha1/, stdout: 'src/a.ts\n' },
+        { match: /ls-tree -r --name-only sha2/, stdout: 'src/a.ts\nsrc/b.ts\nassets/sprite.ts\n' },
         { match: /show sha1:/, stdout: '' },
         {
           match: /diff --name-status/,
@@ -760,7 +765,7 @@ describe('GitHistoryAnalyzer', () => {
 
       const progress = vi.fn();
 
-      // Abort after the first commit finishes (progress reports current = 2 for the second)
+      // Abort after the second commit finishes caching (progress reports after each commit is cached)
       progress.mockImplementation((_phase: string, current: number) => {
         if (current === 2) {
           controller.abort();
@@ -771,8 +776,8 @@ describe('GitHistoryAnalyzer', () => {
         analyzer.indexHistory(progress, controller.signal)
       ).rejects.toThrow('Indexing aborted');
 
-      // The first commit should have been cached but the second should not
-      expect(fs.promises.writeFile).toHaveBeenCalledTimes(1);
+      // The first two commits should have been cached before the abort is observed
+      expect(fs.promises.writeFile).toHaveBeenCalledTimes(2);
       // Progress should have been called for commit 1 and commit 2 (where abort happened)
       expect(progress).toHaveBeenCalledWith('Indexing commits', 1, 3);
       expect(progress).toHaveBeenCalledWith('Indexing commits', 2, 3);
@@ -816,7 +821,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return true when correct cache version and plugin signature are stored', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
@@ -829,7 +834,7 @@ describe('GitHistoryAnalyzer', () => {
         { plugin: { id: 'z.plugin', version: '2.0.0' } },
         { plugin: { id: 'a.plugin', version: '1.0.0' } },
       ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'a.plugin@1.0.0|z.plugin@2.0.0',
@@ -844,7 +849,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return false when plugin signature does not match the current registry', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'stale.plugin@1.0.0',
@@ -863,7 +868,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
@@ -881,7 +886,7 @@ describe('GitHistoryAnalyzer', () => {
         { plugin: { id: 'z.plugin', version: '2.0.0' } },
         { plugin: { id: 'a.plugin', version: '1.0.0' } },
       ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'a.plugin@1.0.0|z.plugin@2.0.0',
@@ -895,7 +900,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'stale.plugin@1.0.0',

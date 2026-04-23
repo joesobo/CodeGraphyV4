@@ -31,6 +31,8 @@ export interface GraphViewProviderTimelineSource {
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
+  _computeMergedGroups?(): void;
+  _sendGroupsUpdated?(): void;
   _applyViewTransform?(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
 }

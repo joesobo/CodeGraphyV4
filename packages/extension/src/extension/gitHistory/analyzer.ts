@@ -186,6 +186,11 @@ export class GitHistoryAnalyzer {
         sha,
         signal
       ),
+      commitFiles: await getCommitTreeFiles(
+        (args, abortSignal) => this._execGit(args, abortSignal),
+        sha,
+        signal,
+      ),
       getFileAtCommit: (commitSha, filePath, abortSignal) =>
         this._getFileAtCommit(commitSha, filePath, abortSignal),
       previousGraph,

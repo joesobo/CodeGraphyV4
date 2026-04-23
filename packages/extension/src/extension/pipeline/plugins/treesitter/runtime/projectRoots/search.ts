@@ -1,5 +1,5 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { treeSitterPathExists } from '../pathHost';
 import { shouldStopProjectRootWalk } from './workspaceBounds';
 
 export function findNearestProjectRoot(
@@ -12,7 +12,7 @@ export function findNearestProjectRoot(
 
   while (true) {
     for (const marker of markers) {
-      if (fs.existsSync(path.join(currentPath, marker))) {
+      if (treeSitterPathExists(path.join(currentPath, marker))) {
         return currentPath;
       }
     }

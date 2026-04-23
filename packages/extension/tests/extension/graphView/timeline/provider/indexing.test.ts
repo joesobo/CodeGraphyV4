@@ -236,6 +236,8 @@ describe('graph view provider timeline indexing', () => {
 
   it('stores the commit graph as the raw source and reapplies the current view on jump', async () => {
     const sendMessage = vi.fn();
+    const computeMergedGroups = vi.fn();
+    const sendGroupsUpdated = vi.fn();
     const rawTimelineGraph = {
       nodes: [createGraphNode('src/index.ts')],
       edges: [],
@@ -260,6 +262,8 @@ describe('graph view provider timeline indexing', () => {
       _disabledPlugins: new Set<string>(['plugin.test']),
       _rawGraphData: { nodes: [createGraphNode('live.ts')], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _computeMergedGroups: computeMergedGroups,
+      _sendGroupsUpdated: sendGroupsUpdated,
       _applyViewTransform: applyViewTransform,
       _sendMessage: sendMessage,
     };
@@ -275,6 +279,8 @@ describe('graph view provider timeline indexing', () => {
     expect(source._rawGraphData).toBe(rawTimelineGraph);
     expect(source._graphData).toBe(transformedGraph);
     expect(applyViewTransform).toHaveBeenCalledOnce();
+    expect(computeMergedGroups).toHaveBeenCalledOnce();
+    expect(sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
       payload: { sha: 'sha-1', graphData: transformedGraph },
@@ -342,6 +348,8 @@ describe('graph view provider timeline indexing', () => {
 
   it('resets to the first commit that still produces graph nodes', async () => {
     const sendMessage = vi.fn();
+    const computeMergedGroups = vi.fn();
+    const sendGroupsUpdated = vi.fn();
     const source = {
       _analyzer: { registry: { kind: 'registry' } } as never,
       _gitAnalyzer: {
@@ -357,6 +365,8 @@ describe('graph view provider timeline indexing', () => {
       _currentCommitSha: 'sha-9',
       _disabledPlugins: new Set<string>(),
       _graphData: { nodes: [createGraphNode('src/current.ts')], edges: [] } satisfies IGraphData,
+      _computeMergedGroups: computeMergedGroups,
+      _sendGroupsUpdated: sendGroupsUpdated,
       _sendMessage: sendMessage,
     };
     const graphData = { nodes: [createGraphNode('src/index.ts')], edges: [] } satisfies IGraphData;
@@ -373,6 +383,8 @@ describe('graph view provider timeline indexing', () => {
 
     expect(source._currentCommitSha).toBe('sha-2');
     expect(source._graphData).toBe(graphData);
+    expect(computeMergedGroups).toHaveBeenCalledOnce();
+    expect(sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
       payload: { sha: 'sha-2', graphData },

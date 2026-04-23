@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../../../shared/graph/contracts';
+import type { IPluginAnalysisContext } from '../../../types/contracts';
 import {
   initializeAll as lifecycleInitializeAll,
   initializePlugin as lifecycleInitializePlugin,
@@ -44,15 +45,17 @@ export abstract class PluginRegistryLifecycle extends PluginRegistryCollection {
   async notifyPreAnalyze(
     files: Array<{ absolutePath: string; relativePath: string; content: string }>,
     workspaceRoot: string,
+    analysisContext?: IPluginAnalysisContext,
   ): Promise<void> {
-    await lifecycleNotifyPreAnalyze(this._plugins, files, workspaceRoot);
+    await lifecycleNotifyPreAnalyze(this._plugins, files, workspaceRoot, analysisContext);
   }
 
   async notifyFilesChanged(
     files: Array<{ absolutePath: string; relativePath: string; content: string }>,
     workspaceRoot: string,
+    analysisContext?: IPluginAnalysisContext,
   ): Promise<{ additionalFilePaths: string[]; requiresFullRefresh: boolean }> {
-    return lifecycleNotifyFilesChanged(this._plugins, files, workspaceRoot);
+    return lifecycleNotifyFilesChanged(this._plugins, files, workspaceRoot, analysisContext);
   }
 
   notifyPostAnalyze(graph: IGraphData): void {

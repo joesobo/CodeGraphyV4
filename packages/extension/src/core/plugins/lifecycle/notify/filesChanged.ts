@@ -1,4 +1,6 @@
 import type { ILifecyclePluginInfo } from '../contracts';
+import type { IPluginAnalysisContext } from '../../types/contracts';
+import { createWorkspacePluginAnalysisContext } from '../../context/workspace';
 
 type AnalyzeFile = {
   absolutePath: string;
@@ -44,6 +46,7 @@ export async function notifyFilesChanged(
   plugins: Map<string, ILifecyclePluginInfo>,
   files: AnalyzeFile[],
   workspaceRoot: string,
+  analysisContext: IPluginAnalysisContext = createWorkspacePluginAnalysisContext(workspaceRoot),
 ): Promise<IPluginFilesChangedResult> {
   const additionalFilePaths = new Set<string>();
   let requiresFullRefresh = false;
@@ -62,7 +65,11 @@ export async function notifyFilesChanged(
     }
 
     try {
-      const nextPaths = await info.plugin.onFilesChanged(pluginFiles, workspaceRoot);
+      const nextPaths = await info.plugin.onFilesChanged(
+        pluginFiles,
+        workspaceRoot,
+        analysisContext,
+      );
       collectAdditionalFilePaths(nextPaths, additionalFilePaths);
     } catch (error) {
       console.error(`[CodeGraphy] Error in onFilesChanged for ${info.plugin.id}:`, error);

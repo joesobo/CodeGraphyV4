@@ -24,6 +24,8 @@ export type {
   IGraphEdgeSource,
   IGraphNode,
   IPlugin,
+  IPluginAnalysisContext,
+  IPluginAnalysisFileSystem,
   IPluginEdgeType,
   IPluginFileColorDefinition,
   IPluginNodeType,

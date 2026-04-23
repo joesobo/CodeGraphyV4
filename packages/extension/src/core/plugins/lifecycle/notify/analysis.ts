@@ -1,5 +1,7 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ILifecyclePluginInfo } from '../contracts';
+import type { IPluginAnalysisContext } from '../../types/contracts';
+import { createWorkspacePluginAnalysisContext } from '../../context/workspace';
 
 type AnalyzeFile = {
   absolutePath: string;
@@ -15,6 +17,7 @@ export async function notifyPreAnalyze(
   plugins: Map<string, ILifecyclePluginInfo>,
   files: AnalyzeFile[],
   workspaceRoot: string,
+  analysisContext: IPluginAnalysisContext = createWorkspacePluginAnalysisContext(workspaceRoot),
 ): Promise<void> {
   for (const info of plugins.values()) {
     if (!info.plugin.onPreAnalyze) {
@@ -22,7 +25,7 @@ export async function notifyPreAnalyze(
     }
 
     try {
-      await info.plugin.onPreAnalyze(files, workspaceRoot);
+      await info.plugin.onPreAnalyze(files, workspaceRoot, analysisContext);
     } catch (error) {
       logLifecycleError('onPreAnalyze', info.plugin.id, error);
     }

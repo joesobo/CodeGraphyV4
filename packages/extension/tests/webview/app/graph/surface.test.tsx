@@ -21,6 +21,7 @@ describe('app/graph/surface', () => {
         coloredData={{ nodes: [{ id: 'colored-node', label: 'Colored', color: '#222222' }], edges: [] }}
         showOrphans
         depthMode={false}
+        timelineActive={false}
         theme="light"
         nodeDecorations={{}}
         edgeDecorations={{}}
@@ -41,6 +42,7 @@ describe('app/graph/surface', () => {
         coloredData={null}
         showOrphans={false}
         depthMode={false}
+        timelineActive={false}
         theme="light"
         nodeDecorations={{}}
         edgeDecorations={{}}
@@ -51,5 +53,25 @@ describe('app/graph/surface', () => {
     );
 
     expect(screen.getByText(/All files are hidden/)).toBeInTheDocument();
+  });
+
+  it('renders the timeline-specific empty hint when the active commit has no graphable files', () => {
+    render(
+      <GraphSurface
+        graphData={{ nodes: [], edges: [] }}
+        coloredData={null}
+        showOrphans
+        depthMode={false}
+        timelineActive
+        theme="light"
+        nodeDecorations={{}}
+        edgeDecorations={{}}
+        pluginHost={undefined}
+        onAddFilterRequested={() => {}}
+        onAddLegendRequested={() => {}}
+      />,
+    );
+
+    expect(screen.getByText(/No files found\. No graphable files exist in this commit\./)).toBeInTheDocument();
   });
 });

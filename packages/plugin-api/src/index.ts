@@ -99,7 +99,13 @@ export type {
 } from './events';
 
 // Plugin interface
-export type { IPlugin, IAnalysisFile, IPluginFileColorDefinition } from './plugin';
+export type {
+  IPlugin,
+  IAnalysisFile,
+  IPluginAnalysisContext,
+  IPluginAnalysisFileSystem,
+  IPluginFileColorDefinition,
+} from './plugin';
 
 // Host API
 export type { CodeGraphyAPI, ExportRequest, IExporter, IToolbarAction, IToolbarActionItem } from './api';

@@ -9,7 +9,7 @@ describe('gitHistory/files', () => {
       getCommitTreeFiles(execGit, 'abc123', new AbortController().signal)
     ).resolves.toEqual(['src/a.ts', 'src/b.ts']);
     expect(execGit).toHaveBeenCalledWith(
-      ['ls-tree', '-r', '--name-only', 'abc123'],
+      ['ls-tree', '-r', '--name-only', 'abc123', '--', '.'],
       expect.any(AbortSignal)
     );
   });
@@ -41,8 +41,8 @@ describe('gitHistory/files', () => {
     ).resolves.toBe('export const a = 1;');
 
     expect(execGit.mock.calls).toEqual([
-      [['diff', '--name-status', '-M', 'parent', 'child'], expect.any(AbortSignal)],
-      [['show', 'child:src/a.ts'], expect.any(AbortSignal)],
+      [['diff', '--name-status', '-M', '--relative', 'parent', 'child', '--', '.'], expect.any(AbortSignal)],
+      [['show', 'child:./src/a.ts'], expect.any(AbortSignal)],
     ]);
   });
 

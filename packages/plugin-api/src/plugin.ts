@@ -28,6 +28,20 @@ export interface IAnalysisFile {
   content: string;
 }
 
+export interface IPluginAnalysisFileSystem {
+  exists(filePath: string): Promise<boolean>;
+  isDirectory(filePath: string): Promise<boolean>;
+  isFile(filePath: string): Promise<boolean>;
+  listDirectory(filePath: string): Promise<string[] | null>;
+  readTextFile(filePath: string): Promise<string | null>;
+}
+
+export interface IPluginAnalysisContext {
+  mode: 'workspace' | 'timeline';
+  commitSha?: string;
+  fileSystem: IPluginAnalysisFileSystem;
+}
+
 export interface IPluginFileColorDefinition {
   color: string;
   shape2D?: GraphNodeShape2D;
@@ -128,6 +142,7 @@ export interface IPlugin {
     filePath: string,
     content: string,
     workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<IFileAnalysisResult>;
 
   /**
@@ -177,7 +192,8 @@ export interface IPlugin {
    */
   onPreAnalyze?(
     files: IAnalysisFile[],
-    workspaceRoot: string
+    workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<void>;
 
   /**
@@ -190,6 +206,7 @@ export interface IPlugin {
   onFilesChanged?(
     files: IAnalysisFile[],
     workspaceRoot: string,
+    context?: IPluginAnalysisContext,
   ): Promise<readonly string[] | void>;
 
   /**

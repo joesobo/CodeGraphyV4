@@ -1,5 +1,5 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { treeSitterPathIsFile } from '../pathHost';
 
 export function resolveJavaSourceRoot(
   filePath: string,
@@ -42,7 +42,7 @@ export function resolveJavaTypePath(
   }
 
   const candidatePath = path.join(sourceRoot, ...typeName.split('.')) + '.java';
-  return fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()
+  return treeSitterPathIsFile(candidatePath)
     ? candidatePath
     : null;
 }

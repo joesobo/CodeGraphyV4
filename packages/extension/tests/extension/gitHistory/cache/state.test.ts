@@ -6,6 +6,7 @@ import {
   persistCachedCommitState,
 } from '../../../../src/extension/gitHistory/cache/state';
 import type { CacheWorkspaceState } from '../../../../src/extension/gitHistory/cache/state';
+import { CACHE_VERSION } from '../../../../src/extension/gitHistory/cache/stateKeys';
 
 function createWorkspaceState(): CacheWorkspaceState & { store: Map<string, unknown> } {
   const store = new Map<string, unknown>();
@@ -36,7 +37,7 @@ describe('gitHistory/cache/state', () => {
     await persistCachedCommitState(workspaceState, commits, pluginSignature);
 
     expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCommits', commits);
-    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCacheVersion', '1.2.0');
+    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCacheVersion', CACHE_VERSION);
     expect(workspaceState.update).toHaveBeenCalledWith(
       'codegraphy.timelinePluginSignature',
       pluginSignature,
@@ -58,7 +59,7 @@ describe('gitHistory/cache/state', () => {
 
     expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(false);
 
-    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.2.0');
+    workspaceState.store.set('codegraphy.timelineCacheVersion', CACHE_VERSION);
     expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(false);
 
     workspaceState.store.set('codegraphy.timelinePluginSignature', pluginSignature);
@@ -67,7 +68,7 @@ describe('gitHistory/cache/state', () => {
     workspaceState.store.set('codegraphy.timelineCacheVersion', '0.9.0');
     expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(false);
 
-    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.2.0');
+    workspaceState.store.set('codegraphy.timelineCacheVersion', CACHE_VERSION);
     workspaceState.store.set('codegraphy.timelinePluginSignature', 'codegraphy.markdown@0.9.0');
     expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(false);
   });
@@ -84,7 +85,7 @@ describe('gitHistory/cache/state', () => {
     workspaceState.store.set('codegraphy.timelinePluginSignature', pluginSignature);
     expect(getCachedCommitList(workspaceState, pluginSignature)).toBeNull();
 
-    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.2.0');
+    workspaceState.store.set('codegraphy.timelineCacheVersion', CACHE_VERSION);
     workspaceState.store.set('codegraphy.timelinePluginSignature', 'codegraphy.markdown@0.9.0');
     expect(getCachedCommitList(workspaceState, pluginSignature)).toBeNull();
 

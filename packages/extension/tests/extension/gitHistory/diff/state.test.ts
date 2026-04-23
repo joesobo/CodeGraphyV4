@@ -88,4 +88,39 @@ describe('gitHistory/diff/state', () => {
     ]);
     expect(edgeSet).toEqual(new Set(['src/c.ts->src/new.ts#import', 'src/new.ts->src/b.ts#import']));
   });
+
+  it('deduplicates renamed edges that collapse onto an existing edge id', () => {
+    const preservedEdge: IGraphEdge = {
+      id: 'src/new.ts->src/b.ts#import',
+      from: 'src/new.ts',
+      to: 'src/b.ts',
+      kind: 'import',
+      sources: [{ id: 'existing', pluginId: 'existing', sourceId: 'existing', label: 'existing' }],
+    };
+    const renamedEdge: IGraphEdge = {
+      id: 'src/old.ts->src/b.ts#import',
+      from: 'src/old.ts',
+      to: 'src/b.ts',
+      kind: 'import',
+      sources: [{ id: 'renamed', pluginId: 'renamed', sourceId: 'renamed', label: 'renamed' }],
+    };
+    const edges: IGraphEdge[] = [preservedEdge, renamedEdge];
+    const edgeSet = new Set(edges.map((edge) => edge.id));
+
+    renameGitHistoryGraphFile('src/old.ts', 'src/new.ts', edges, new Map(), edgeSet);
+
+    expect(edges).toEqual([
+      {
+        id: 'src/new.ts->src/b.ts#import',
+        from: 'src/new.ts',
+        to: 'src/b.ts',
+        kind: 'import',
+        sources: [
+          { id: 'existing', pluginId: 'existing', sourceId: 'existing', label: 'existing' },
+          { id: 'renamed', pluginId: 'renamed', sourceId: 'renamed', label: 'renamed' },
+        ],
+      },
+    ]);
+    expect(edgeSet).toEqual(new Set(['src/new.ts->src/b.ts#import']));
+  });
 });

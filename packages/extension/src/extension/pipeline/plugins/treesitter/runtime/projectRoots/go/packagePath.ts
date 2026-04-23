@@ -1,21 +1,25 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { resolveGoPackageDirectory } from './module';
+import {
+  treeSitterPathIsDirectory,
+  treeSitterPathIsFile,
+  treeSitterReadDirectory,
+} from '../../pathHost';
 import { findNearestProjectRoot } from '../search';
 
 function resolveGoDirectFilePath(packageDirectoryPath: string): string | null {
   const directFilePath = `${packageDirectoryPath}.go`;
-  return fs.existsSync(directFilePath) && fs.statSync(directFilePath).isFile()
+  return treeSitterPathIsFile(directFilePath)
     ? directFilePath
     : null;
 }
 
 function listGoPackageFiles(packageDirectoryPath: string): string[] {
-  if (!fs.existsSync(packageDirectoryPath) || !fs.statSync(packageDirectoryPath).isDirectory()) {
+  if (!treeSitterPathIsDirectory(packageDirectoryPath)) {
     return [];
   }
 
-  return fs.readdirSync(packageDirectoryPath)
+  return treeSitterReadDirectory(packageDirectoryPath)
     .filter((entry) => entry.endsWith('.go') && !entry.endsWith('_test.go'))
     .sort();
 }

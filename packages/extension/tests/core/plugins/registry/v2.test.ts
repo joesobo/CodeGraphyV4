@@ -249,7 +249,11 @@ describe('PluginRegistry v2', () => {
       registry.notifyWebviewReady();
 
       expect(plugin.onWorkspaceReady).toHaveBeenCalledWith(graph);
-      expect(plugin.onPreAnalyze).toHaveBeenCalledWith(files, '/workspace');
+      expect(plugin.onPreAnalyze).toHaveBeenCalledWith(
+        files,
+        '/workspace',
+        expect.objectContaining({ mode: 'workspace' }),
+      );
       expect(plugin.onPostAnalyze).toHaveBeenCalledWith(graph);
       expect(plugin.onGraphRebuild).toHaveBeenCalledWith(graph);
       expect(plugin.onWebviewReady).toHaveBeenCalledOnce();

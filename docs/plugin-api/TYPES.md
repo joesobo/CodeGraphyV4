@@ -58,10 +58,23 @@ Key points:
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
 - `sources?: IConnectionSource[]` declares the plugin’s relation provenance/source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
-- `analyzeFile(filePath, content, workspaceRoot)` is the plugin analysis hook for returning relations, symbols, and contributed node or edge types.
+- `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relations, symbols, and contributed node or edge types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+
+### `IPluginAnalysisContext`
+
+- `mode: 'workspace' | 'timeline'`
+- `commitSha?: string` is present during timeline replay
+- `fileSystem` is a host-backed adapter with:
+  - `exists(filePath)`
+  - `isFile(filePath)`
+  - `isDirectory(filePath)`
+  - `listDirectory(filePath)`
+  - `readTextFile(filePath)`
+
+Use this instead of raw Node `fs` when your plugin needs sibling files, config files, or repo-local state. During timeline indexing the adapter reads the selected commit, not `HEAD`.
 
 ### Merge Rules
 
