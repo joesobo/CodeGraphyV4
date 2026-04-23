@@ -42,6 +42,45 @@ describe('GDScriptPathResolver', () => {
     });
   });
 
+  describe('text resource path resolution', () => {
+    it('should resolve relative paths without ./ prefix from the current file directory', () => {
+      const result = resolver.resolveTextResourcePath('../resources/player_loadout.tres', 'scenes/ui/loadout_preview.tscn');
+      expect(result).toBe('scenes/resources/player_loadout.tres');
+    });
+
+    it('should resolve bare relative filenames from the current file directory', () => {
+      const result = resolver.resolveTextResourcePath('player_loadout.tres', 'resources/loadouts/default.tres');
+      expect(result).toBe('resources/loadouts/player_loadout.tres');
+    });
+
+    it('should return null for user:// text resource paths', () => {
+      const result = resolver.resolveTextResourcePath('user://cache/runtime.tres', 'resources/item.tres');
+      expect(result).toBeNull();
+    });
+
+    it('should prefer a registered uid over the text path when both are present', () => {
+      resolver.replaceFileResourceUid('resources/player_loadout.tres', 'uid://player-loadout');
+
+      const result = resolver.resolveTextResourcePath(
+        '../wrong/location/player_loadout.tres',
+        'scenes/ui/loadout_preview.tscn',
+        'uid://player-loadout',
+      );
+
+      expect(result).toBe('resources/player_loadout.tres');
+    });
+
+    it('should fall back to the text path when a uid is unknown', () => {
+      const result = resolver.resolveTextResourcePath(
+        '../../resources/player_loadout.tres',
+        'scenes/ui/loadout_preview.tscn',
+        'uid://missing-loadout',
+      );
+
+      expect(result).toBe('resources/player_loadout.tres');
+    });
+  });
+
   describe('class_name resolution', () => {
     it('should resolve registered class_name', () => {
       resolver.registerClassName('Player', 'scripts/player.gd');

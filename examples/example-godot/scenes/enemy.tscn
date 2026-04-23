@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://enemy-scene"]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://textures/player_card.png" id="2_card"]
+
+[node name="Enemy" type="CharacterBody2D"]
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0.5, 0.5, 1)
+position = Vector2(0, -12)
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("2_card")
