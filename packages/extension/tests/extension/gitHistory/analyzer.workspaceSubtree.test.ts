@@ -139,10 +139,10 @@ describe('GitHistoryAnalyzer in a workspace subtree', () => {
           'example-python/src/main.py',
         ].join('\n'),
       },
-      { match: 'show sha1:.gitignore', stdout: '.codegraphy/\n' },
-      { match: 'show sha1:example-python/src/main.py', stdout: 'print("one")\n' },
-      { match: 'diff --name-status -M sha1 sha2 -- .', stdout: 'M\texample-python/src/main.py\n' },
-      { match: 'show sha2:example-python/src/main.py', stdout: 'print("two")\n' },
+      { match: 'show sha1:./.gitignore', stdout: '.codegraphy/\n' },
+      { match: 'show sha1:./example-python/src/main.py', stdout: 'print("one")\n' },
+      { match: 'diff --name-status -M --relative sha1 sha2 -- .', stdout: 'M\texample-python/src/main.py\n' },
+      { match: 'show sha2:./example-python/src/main.py', stdout: 'print("two")\n' },
     ]);
 
     await analyzer.indexHistory(vi.fn(), new AbortController().signal, 100);
