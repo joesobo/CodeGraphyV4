@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
+import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 import {
   createDefaultEdgeVisibility,
   createDefaultNodeColorEnabled,
@@ -12,7 +13,7 @@ describe('extension/repoSettings/defaults', () => {
   it('builds the full repo settings defaults', () => {
     expect(createDefaultCodeGraphyRepoSettings()).toEqual({
       version: 1,
-      maxFiles: 500,
+      maxFiles: DEFAULT_MAX_FILES,
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,

@@ -62,7 +62,7 @@ Example:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `maxFiles` | number | `500` | Maximum files to discover/analyze |
+| `maxFiles` | number | `1000` | Maximum files to discover/analyze |
 | `include` | string[] | `["**/*"]` | Glob patterns for files to include |
 | `filterPatterns` | string[] | `[]` | Glob patterns for files to exclude |
 | `respectGitignore` | boolean | `true` | Honor `.gitignore` patterns |
