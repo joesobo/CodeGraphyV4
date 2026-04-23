@@ -159,10 +159,10 @@ describe('GitHistoryAnalyzer plugin analysis context', () => {
       },
       { match: /ls-tree -r --name-only sha1/, stdout: 'graph/app.edge\ngraph/target.edge\n' },
       { match: /ls-tree -r --name-only sha2/, stdout: 'graph/app.edge\n' },
-      { match: /show sha1:graph\/app\.edge/, stdout: 'target.edge' },
-      { match: /show sha1:graph\/target\.edge/, stdout: 'hello' },
-      { match: /diff --name-status -M sha1 sha2/, stdout: 'D\tgraph/target.edge\nM\tgraph/app.edge\n' },
-      { match: /show sha2:graph\/app\.edge/, stdout: 'target.edge' },
+      { match: /show sha1:\.\/graph\/app\.edge/, stdout: 'target.edge' },
+      { match: /show sha1:\.\/graph\/target\.edge/, stdout: 'hello' },
+      { match: /diff --name-status -M --relative sha1 sha2/, stdout: 'D\tgraph/target.edge\nM\tgraph/app.edge\n' },
+      { match: /show sha2:\.\/graph\/app\.edge/, stdout: 'target.edge' },
     ]);
 
     await analyzer.indexHistory(vi.fn(), new AbortController().signal);
