@@ -119,7 +119,7 @@ args = ["mcp"]
 | `codegraphy_file_dependents` | Lists incoming file relationships | blast radius |
 | `codegraphy_symbol_dependencies` | Lists outgoing symbol relationships | trace a symbol outward |
 | `codegraphy_symbol_dependents` | Lists incoming symbol relationships | symbol-level impact |
-| `codegraphy_impact_set` | Returns bounded transitive impact | scoped change planning |
+| `codegraphy_impact_set` | Returns bounded transitive impact with optional `direction` and `kinds` filters | scoped change planning |
 | `codegraphy_explain_relationship` | Explains how two files or symbols connect | dependency questions |
 | `codegraphy_view_graph` | Projects the saved CodeGraphy depth/folder/package graph view | graph-aware context |
 | `codegraphy_file_summary` | Summarizes symbols and relation counts for a file | targeted inspection |
@@ -161,3 +161,4 @@ Use CodeGraphy to update UserName in types.ts to a FullName object with first an
 - Later Codex sessions can select that repo even if they start from another directory.
 - Every MCP query rereads the DB and saved settings from disk, so saved graph changes show up on the next query.
 - If the repo has no `.codegraphy/graph.lbug`, the MCP returns setup guidance pointing back to the extension.
+- For noisy refactors, prefer `codegraphy_impact_set` with `kinds` like `["type-import"]` or `["call"]`, and use `direction` to choose incoming dependents, outgoing dependencies, or both.

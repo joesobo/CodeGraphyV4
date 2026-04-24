@@ -19,6 +19,7 @@ import { readViewGraph } from '../viewGraph/read';
 
 const querySchema = {
   repo: z.string().optional(),
+  direction: z.enum(['incoming', 'outgoing', 'both']).optional(),
   kinds: z.array(z.string()).optional(),
   maxDepth: z.number().int().positive().optional(),
   maxResults: z.number().int().positive().optional(),
@@ -36,8 +37,9 @@ function normalizeKinds(kinds?: string[]): GraphEdgeKind[] | undefined {
   return kinds?.map((kind) => kind as GraphEdgeKind);
 }
 
-function createQueryOptions(input: { kinds?: string[]; maxDepth?: number; maxResults?: number }): QueryOptions {
+function createQueryOptions(input: { direction?: 'incoming' | 'outgoing' | 'both'; kinds?: string[]; maxDepth?: number; maxResults?: number }): QueryOptions {
   return {
+    direction: input.direction,
     kinds: normalizeKinds(input.kinds),
     maxDepth: input.maxDepth,
     maxResults: input.maxResults,
@@ -234,10 +236,11 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_impact_set',
     {
-      description: 'Return a bounded transitive impact set from a file path or symbol ID. Prefer this before broad repo search when scoping a change.',
+      description: 'Return a bounded transitive impact set from a file path or symbol ID. File seeds expand through declared symbols, and agents can filter by edge kinds to reduce noise before broad repo search.',
       inputSchema: z.object({
         repo: querySchema.repo,
         seed: z.string(),
+        direction: querySchema.direction,
         kinds: querySchema.kinds,
         maxDepth: querySchema.maxDepth,
         maxResults: querySchema.maxResults,

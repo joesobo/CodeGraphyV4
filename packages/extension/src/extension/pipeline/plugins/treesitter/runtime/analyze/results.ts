@@ -93,6 +93,7 @@ export function addTypeImportRelation(
   filePath: string,
   specifier: string,
   resolvedPath: string | null,
+  binding?: ImportedBinding,
 ): void {
   addRelation(relations, {
     kind: 'type-import',
@@ -101,6 +102,7 @@ export function addTypeImportRelation(
     specifier,
     resolvedPath,
     toFilePath: resolvedPath,
+    metadata: createBindingMetadata(binding),
   });
 }
 

@@ -2,9 +2,60 @@ import * as fs from 'node:fs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import type { DatabaseSnapshot } from '../../src/database/model';
 import { createCodeGraphyMcpServer } from '../../src/mcp/server';
 import { appendRelationToRepo, createTempCodeGraphyHome, createTempRepo, writeRepoSettings } from '../support/database';
 import { createSampleSnapshot } from '../support/sampleGraph';
+
+function createTypeImpactSnapshot(): DatabaseSnapshot {
+  return {
+    files: [],
+    symbols: [
+      {
+        id: 'symbol:packages/shared/src/types.ts:type:UserName',
+        name: 'UserName',
+        kind: 'type',
+        filePath: 'packages/shared/src/types.ts',
+      },
+      {
+        id: 'symbol:packages/shared/src/types.ts:function:formatUser',
+        name: 'formatUser',
+        kind: 'function',
+        filePath: 'packages/shared/src/types.ts',
+      },
+      {
+        id: 'symbol:packages/app/src/index.ts:function:bootstrap',
+        name: 'bootstrap',
+        kind: 'function',
+        filePath: 'packages/app/src/index.ts',
+      },
+      {
+        id: 'symbol:packages/app/src/utils.ts:function:normalizeUser',
+        name: 'normalizeUser',
+        kind: 'function',
+        filePath: 'packages/app/src/utils.ts',
+      },
+    ],
+    relations: [
+      {
+        kind: 'type-import',
+        sourceId: 'ts:type-import',
+        fromFilePath: 'packages/app/src/index.ts',
+        toFilePath: 'packages/shared/src/types.ts',
+        fromSymbolId: 'symbol:packages/app/src/index.ts:function:bootstrap',
+        toSymbolId: 'symbol:packages/shared/src/types.ts:type:UserName',
+      },
+      {
+        kind: 'call',
+        sourceId: 'ts:call',
+        fromFilePath: 'packages/app/src/utils.ts',
+        toFilePath: 'packages/shared/src/types.ts',
+        fromSymbolId: 'symbol:packages/app/src/utils.ts:function:normalizeUser',
+        toSymbolId: 'symbol:packages/shared/src/types.ts:function:formatUser',
+      },
+    ],
+  };
+}
 
 describe('mcp/server', () => {
   let homePath: string;
@@ -159,6 +210,44 @@ describe('mcp/server', () => {
         relatedFileCount: 2,
       },
     });
+  });
+
+  it('passes impact direction and kind filters through MCP', async () => {
+    const repo = createTempRepo(createTypeImpactSnapshot());
+    const server = createCodeGraphyMcpServer();
+    const client = new Client({ name: 'test-client', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    await client.callTool({
+      name: 'codegraphy_select_repo',
+      arguments: { repo: repo.workspaceRoot },
+    });
+
+    const result = await client.callTool({
+      name: 'codegraphy_impact_set',
+      arguments: {
+        seed: 'packages/shared/src/types.ts',
+        direction: 'incoming',
+        kinds: ['type-import'],
+      },
+    });
+
+    expect(result.structuredContent).toMatchObject({
+      summary: {
+        direction: 'incoming',
+        relationCount: 1,
+        kinds: ['type-import'],
+      },
+    });
+    expect((result.structuredContent as { nodes: Array<{ id: string }> }).nodes.map((node) => node.id)).toEqual(
+      expect.arrayContaining([
+        'packages/shared/src/types.ts',
+        'symbol:packages/shared/src/types.ts:type:UserName',
+        'symbol:packages/app/src/index.ts:function:bootstrap',
+      ]),
+    );
   });
 
   it('projects a saved CodeGraphy view graph through MCP', async () => {

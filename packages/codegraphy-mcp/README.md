@@ -60,7 +60,7 @@ args = ["mcp"]
 | `codegraphy_file_dependents` | Lists incoming file relationships |
 | `codegraphy_symbol_dependencies` | Lists outgoing symbol relationships |
 | `codegraphy_symbol_dependents` | Lists incoming symbol relationships |
-| `codegraphy_impact_set` | Returns bounded transitive impact |
+| `codegraphy_impact_set` | Returns bounded transitive impact with optional `direction` and `kinds` filters |
 | `codegraphy_explain_relationship` | Explains how files or symbols connect |
 | `codegraphy_view_graph` | Projects the saved depth/folder/package graph view |
 | `codegraphy_file_summary` | Summarizes symbols and relation counts for a file |
@@ -70,6 +70,7 @@ args = ["mcp"]
 - `Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.`
 - `Use CodeGraphy to show the saved graph view for this repo.`
 - `Use CodeGraphy to update UserName in types.ts to a FullName object with first and last strings, then fix the affected code.`
+- For narrower impact slices, ask for incoming dependents only or filter to kinds like `type-import` or `call`.
 
 ## Optional Skill
 

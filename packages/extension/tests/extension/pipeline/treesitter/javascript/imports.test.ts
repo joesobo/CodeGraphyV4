@@ -96,7 +96,24 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
           { type: 'from' },
           { type: 'string' },
         ],
-        namedChildren: [{ type: 'import_clause' }, { type: 'string' }],
+        namedChildren: [
+          {
+            type: 'import_clause',
+            namedChildren: [
+              {
+                type: 'named_imports',
+                namedChildren: [
+                  {
+                    type: 'import_specifier',
+                    children: [{ type: 'identifier' }],
+                    namedChildren: [{ type: 'identifier', text: 'Plugin' }],
+                  },
+                ],
+              },
+            ],
+          },
+          { type: 'string' },
+        ],
       } as never,
       '/workspace/packages/plugin-typescript/src/plugin.ts',
       relations,
@@ -110,6 +127,13 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
       '/workspace/packages/plugin-typescript/src/plugin.ts',
       '@codegraphy-vscode/plugin-api',
       '/workspace/packages/plugin-api/src/index.ts',
+      {
+        bindingKind: 'named',
+        importedName: 'Plugin',
+        localName: 'Plugin',
+        resolvedPath: '/workspace/packages/plugin-api/src/index.ts',
+        specifier: '@codegraphy-vscode/plugin-api',
+      },
     );
   });
 
@@ -138,8 +162,13 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
                     type: 'import_specifier',
                     text: 'type Foo',
                     children: [{ type: 'type' }, { type: 'identifier' }],
+                    namedChildren: [{ type: 'identifier', text: 'Foo' }],
                   },
-                  { type: 'import_specifier', text: 'Bar' },
+                  {
+                    type: 'import_specifier',
+                    text: 'Bar',
+                    namedChildren: [{ type: 'identifier', text: 'Bar' }],
+                  },
                 ],
               },
             ],
@@ -164,6 +193,13 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
       '/workspace/src/app.ts',
       './lib',
       '/workspace/src/lib.ts',
+      {
+        bindingKind: 'named',
+        importedName: 'Foo',
+        localName: 'Foo',
+        resolvedPath: '/workspace/src/lib.ts',
+        specifier: './lib',
+      },
     );
   });
 
@@ -192,6 +228,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
                     type: 'import_specifier',
                     text: 'type Plugin',
                     children: [{ type: 'type' }, { type: 'identifier' }],
+                    namedChildren: [{ type: 'identifier', text: 'Plugin' }],
                   },
                 ],
               },
@@ -212,6 +249,13 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
       '/workspace/packages/plugin-typescript/src/plugin.ts',
       '@codegraphy-vscode/plugin-api',
       '/workspace/packages/plugin-api/src/index.ts',
+      {
+        bindingKind: 'named',
+        importedName: 'Plugin',
+        localName: 'Plugin',
+        resolvedPath: '/workspace/packages/plugin-api/src/index.ts',
+        specifier: '@codegraphy-vscode/plugin-api',
+      },
     );
   });
 

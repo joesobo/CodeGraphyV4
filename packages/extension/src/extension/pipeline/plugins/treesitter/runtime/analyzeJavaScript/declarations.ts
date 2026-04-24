@@ -33,6 +33,20 @@ export function handleJavaScriptClassDeclaration(
   }
 }
 
+export function handleJavaScriptTypeDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): void {
+  const name = getIdentifierText(node.childForFieldName('name') ?? node.namedChildren[0]);
+  if (!name) {
+    return;
+  }
+
+  const kind = getJavaScriptTypeDeclarationKind(node);
+  symbols.push(createSymbol(filePath, kind, name, node));
+}
+
 export function handleJavaScriptMethodDefinition(
   node: Parser.SyntaxNode,
   filePath: string,
@@ -68,4 +82,17 @@ export function handleJavaScriptVariableDeclarator(
   }
 
   return { skipChildren: true };
+}
+
+function getJavaScriptTypeDeclarationKind(
+  node: Parser.SyntaxNode,
+): 'type' | 'interface' | 'enum' {
+  switch (node.type) {
+    case 'interface_declaration':
+      return 'interface';
+    case 'enum_declaration':
+      return 'enum';
+    default:
+      return 'type';
+  }
 }

@@ -1,6 +1,9 @@
 import type { GraphEdgeKind, IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-vscode/plugin-api';
 
+export type ImpactDirection = 'incoming' | 'outgoing' | 'both';
+
 export interface QueryOptions {
+  direction?: ImpactDirection;
   kinds?: GraphEdgeKind[];
   maxDepth?: number;
   maxResults?: number;
@@ -55,4 +58,5 @@ export interface QueryContext {
   outgoingSymbolRelations: Map<string, IAnalysisRelation[]>;
   incomingSymbolRelations: Map<string, IAnalysisRelation[]>;
   hybridOutgoing: Map<string, IAnalysisRelation[]>;
+  hybridIncoming: Map<string, IAnalysisRelation[]>;
 }

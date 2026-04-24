@@ -369,4 +369,80 @@ describe('pipeline/fileAnalysis', () => {
       ]),
     );
   });
+
+  it('resolves type-imported symbols across analyzed workspace files', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    const workspaceRoot = await createWorkspace({
+      'src/types.ts': [
+        'export type UserName = string;',
+        'export function formatUser(name: string): string {',
+        '  return name.toUpperCase();',
+        '}',
+        '',
+      ].join('\n'),
+      'src/index.ts': [
+        "import type { UserName } from './types';",
+        "import { formatUser } from './types';",
+        '',
+        'const currentUser: UserName = formatUser("Ada");',
+        'void currentUser;',
+        '',
+      ].join('\n'),
+    });
+    const files: IDiscoveredFile[] = [
+      {
+        absolutePath: path.join(workspaceRoot, 'src/index.ts'),
+        extension: '.ts',
+        name: 'index.ts',
+        relativePath: 'src/index.ts',
+      },
+      {
+        absolutePath: path.join(workspaceRoot, 'src/types.ts'),
+        extension: '.ts',
+        name: 'types.ts',
+        relativePath: 'src/types.ts',
+      },
+    ];
+    const contentByPath: Record<string, string> = {
+      'src/index.ts': await fs.readFile(path.join(workspaceRoot, 'src/index.ts'), 'utf8'),
+      'src/types.ts': await fs.readFile(path.join(workspaceRoot, 'src/types.ts'), 'utf8'),
+    };
+
+    const result = await analyzeWorkspaceFiles({
+      analyzeFile: (absolutePath, content, root) =>
+        analyzeFileWithTreeSitter(absolutePath, content, root).then((analysis) => analysis ?? ({
+          filePath: absolutePath,
+          relations: [],
+        })),
+      cache,
+      files,
+      getFileStat: vi.fn(async (filePath: string) => {
+        const stat = await fs.stat(filePath);
+        return {
+          mtime: stat.mtimeMs,
+          size: stat.size,
+        };
+      }),
+      readContent: vi.fn(async (file) => contentByPath[file.relativePath] ?? ''),
+      workspaceRoot,
+    });
+
+    const indexAnalysis = result.fileAnalysis.get('src/index.ts');
+    expect(indexAnalysis?.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'type-import',
+          fromFilePath: path.join(workspaceRoot, 'src/index.ts'),
+          toFilePath: path.join(workspaceRoot, 'src/types.ts'),
+          toSymbolId: `${path.join(workspaceRoot, 'src/types.ts')}:type:UserName`,
+        }),
+        expect.objectContaining({
+          kind: 'import',
+          fromFilePath: path.join(workspaceRoot, 'src/index.ts'),
+          toFilePath: path.join(workspaceRoot, 'src/types.ts'),
+          toSymbolId: `${path.join(workspaceRoot, 'src/types.ts')}:function:formatUser`,
+        }),
+      ]),
+    );
+  });
 });

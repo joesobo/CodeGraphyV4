@@ -42,6 +42,7 @@ Use CodeGraphy first when the question is about repo structure.
   Use for symbol-level blast radius.
 - `codegraphy_impact_set`
   Use for bounded transitive impact.
+  Prefer `direction: incoming` for change blast radius, `direction: outgoing` for dependency tracing, and `kinds` like `type-import` or `call` to reduce noise.
 - `codegraphy_explain_relationship`
   Use to explain how two files or symbols connect.
 - `codegraphy_view_graph`
@@ -53,6 +54,7 @@ Use CodeGraphy first when the question is about repo structure.
 
 - Prefer symbol-level queries when a named export, function, class, or type is the real change target.
 - Prefer file-level queries when the user asks about files, folders, modules, or broad refactors.
+- When impact results are noisy, narrow them with `kinds` and `direction` before switching to broader source-file reads.
 - Treat CodeGraphy as structure memory, not as a replacement for reading implementation details.
 - If the repo is missing `.codegraphy/graph.lbug`, tell the user to open the repo in VS Code with CodeGraphy installed and run indexing.
 

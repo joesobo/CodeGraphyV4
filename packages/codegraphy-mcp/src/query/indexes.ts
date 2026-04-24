@@ -22,6 +22,7 @@ export function createQueryContext(repo: string, snapshot: DatabaseSnapshot): Qu
   const outgoingSymbolRelations = new Map<string, IAnalysisRelation[]>();
   const incomingSymbolRelations = new Map<string, IAnalysisRelation[]>();
   const hybridOutgoing = new Map<string, IAnalysisRelation[]>();
+  const hybridIncoming = new Map<string, IAnalysisRelation[]>();
 
   for (const file of snapshot.files) {
     files.add(file.filePath);
@@ -57,6 +58,7 @@ export function createQueryContext(repo: string, snapshot: DatabaseSnapshot): Qu
     const toId = getRelationTargetId(relation);
     if (fromId && toId) {
       pushRelation(hybridOutgoing, fromId, relation);
+      pushRelation(hybridIncoming, toId, relation);
     }
   }
 
@@ -71,6 +73,7 @@ export function createQueryContext(repo: string, snapshot: DatabaseSnapshot): Qu
     outgoingSymbolRelations,
     incomingSymbolRelations,
     hybridOutgoing,
+    hybridIncoming,
   };
 }
 
