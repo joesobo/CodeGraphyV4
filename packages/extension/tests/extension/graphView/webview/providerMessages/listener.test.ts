@@ -7,6 +7,7 @@ import type { ISettingsSnapshot } from '../../../../../src/shared/settings/snaps
 import type { IViewContext } from '@/core/views/contracts';
 import type { IUndoableAction } from '../../../../../src/extension/undoManager';
 import type { GraphViewMessageListenerContext } from '../../../../../src/extension/graphView/webview/messages/listener';
+import { DEFAULT_MAX_FILES } from '../../../../../src/shared/settings/defaults';
 import {
   setGraphViewProviderMessageListener,
   type GraphViewProviderMessageListenerDependencies,
@@ -45,7 +46,7 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
-    maxFiles: 500,
+    maxFiles: DEFAULT_MAX_FILES,
     nodeSizeMode: 'connections',
     physics: {
       repelForce: 1,
@@ -433,11 +434,11 @@ describe('graph view provider listener bridge', () => {
     );
     expect(execute).toHaveBeenCalledTimes(1);
 
-    expect(context.getMaxFiles()).toBe(500);
+    expect(context.getMaxFiles()).toBe(DEFAULT_MAX_FILES);
     expect(context.getPlaybackSpeed()).toBe(1);
     expect(context.getDagMode()).toBe('td');
     expect(context.getNodeSizeMode()).toBe('file-size');
-    expect(configurationGet).toHaveBeenCalledWith('maxFiles', 500);
+    expect(configurationGet).toHaveBeenCalledWith('maxFiles', DEFAULT_MAX_FILES);
     expect(configurationGet).toHaveBeenCalledWith('timeline.playbackSpeed', 1.0);
   });
 

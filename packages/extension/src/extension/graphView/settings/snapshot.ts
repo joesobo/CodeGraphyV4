@@ -1,6 +1,7 @@
 import type { NodeSizeMode } from '../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
+import { DEFAULT_MAX_FILES } from '../../../shared/settings/defaults';
 import { readGraphViewSettings } from './reader';
 
 interface GraphViewSettingsConfig {
@@ -49,7 +50,7 @@ export function captureGraphViewSettingsSnapshot(
     particleSpeed: config.get('particleSpeed', 0.005),
     particleSize: config.get('particleSize', 4),
     showLabels: config.get('showLabels', true),
-    maxFiles: config.get('maxFiles', 500),
+    maxFiles: config.get('maxFiles', DEFAULT_MAX_FILES),
     nodeSizeMode,
   };
 }
