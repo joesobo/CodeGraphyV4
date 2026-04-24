@@ -23,11 +23,21 @@ Out:
 
 - Query the persisted index, not the current-view export.
 - Start at symbol level; derive file impact from symbols.
+- Ship one public npm package named `codegraphy`.
+- Public install target:
+  - `npm install -g codegraphy`
+  - `codegraphy setup`
+- MCP runs locally over repo-local `.codegraphy/graph.lbug` data; no hosted mode in scope.
+- Use a global registry so one CodeGraphy MCP install can serve many repos.
+- `codegraphy setup` may update Codex MCP config automatically.
+- Indexing and refresh should be callable by the agent through MCP tools.
+- No live extension bridge in MVP. The MCP reads repo state directly from disk.
+- MCP should detect when the CodeGraphy DB changed on disk and refresh its in-memory view.
 - Support 3 scopes:
   - `full-index`
   - `current-view`
   - `custom`
-- User view state is available as an optional scope input, not a hard default.
+- Defer `current-view` until a later bridge exists; MVP is effectively `full-index` + `custom`.
 - MCP transport starts as stdio because `codex mcp add <name> -- <command>` already supports it.
 - Keep responses small and tool-shaped:
   - `nodes`
@@ -52,10 +62,31 @@ Out:
   - edge kinds
   - node kinds
   - depth / hop limit
+  - repo selector
   - scope source
+
+### Repo Selection
+
+- One MCP server should serve all indexed repos from a global registry.
+- Default repo resolution order:
+  - explicit `repo` tool argument
+  - selected session repo
+  - current working directory if it is a registered repo
+- Add lightweight selection tools:
+  - `codegraphy_list_repos`
+  - `codegraphy_select_repo`
+- This allows Codex to start from `$HOME` and still query any indexed repo without `cd`.
 
 ### MCP Tools
 
+- `codegraphy_list_repos`
+  - list indexed repos from the global registry
+- `codegraphy_select_repo`
+  - set the default repo for later queries
+- `codegraphy_index_repo`
+  - index or re-index a repo
+- `codegraphy_repo_status`
+  - report whether a repo is indexed, stale, or missing
 - `codegraphy_file_dependencies`
   - given file path
   - return outgoing related files and supporting symbol relations
@@ -80,25 +111,32 @@ Out:
 
 ## Package Direction
 
+- public package: `packages/codegraphy`
+  - published as `codegraphy`
+  - owns CLI commands:
+    - `setup`
+    - `index`
+    - `mcp`
+    - `status`
+    - `list`
 - `packages/extension`
-  - owns query engine over persisted index
-  - owns current-view filter projection inputs if we need them
-- new package: `packages/mcp-server`
-  - owns stdio MCP wiring
-  - depends on query engine entrypoints
+  - remains the VS Code extension
+  - should share index/query code where that improves correctness, but the public CLI must not require a live VS Code session
 
-This keeps the index logic near the extension while keeping agent transport separate.
+This keeps the public install story simple and matches the GitNexus-style single-package UX.
 
 ## Work
 
 - `S1` define query contracts and scope/filter model
-- `S2` implement snapshot-backed symbol/file indexes
-- `S3` implement symbol-first query methods
-- `S4` add file projection helpers
-- `S5` expose MCP stdio server + tool schemas
-- `S6` add internal tests for query engine + MCP server
-- `S7` document Codex install / validation flow
-- `S8` run one manual complex-change validation using Codex + MCP
+- `S2` define global repo registry + repo selection rules
+- `S3` implement snapshot-backed symbol/file indexes
+- `S4` implement symbol-first query methods
+- `S5` add file projection helpers
+- `S6` expose CLI commands + MCP stdio server + tool schemas
+- `S7` add agent-callable indexing / status tools
+- `S8` add internal tests for query engine + CLI + MCP server
+- `S9` document public install, setup, and Codex validation flow
+- `S10` run one manual complex-change validation using Codex + MCP
 
 ## Internal Validation
 
@@ -114,12 +152,16 @@ This keeps the index logic near the extension while keeping agent transport sepa
   - argument validation
   - query result shaping
   - missing index / missing symbol / missing file errors
+- CLI/registry tests:
+  - repo registration
+  - repo selection precedence
+  - setup command config writing
+  - stale DB detection after index changes on disk
 
 Suggested commands:
 
 ```bash
-pnpm --filter @codegraphy/extension test
-pnpm --filter @codegraphy/mcp-server test
+pnpm --filter codegraphy test
 pnpm run typecheck
 pnpm run lint
 ```
@@ -131,15 +173,34 @@ Separate from internal tests. This is the user-facing proof that Codex can consu
 ### Setup
 
 1. Build the relevant packages.
-2. Open a real repo in VS Code with CodeGraphy installed.
-3. Run CodeGraphy indexing until `.codegraphy/graph.lbug` exists and the graph is populated.
-4. From a terminal, add the MCP server to Codex:
+2. Install the public CLI:
 
 ```bash
-codex mcp add codegraphy -- node /absolute/path/to/packages/mcp-server/dist/server.js
+npm install -g codegraphy
+codegraphy setup
 ```
 
-5. Verify Codex sees it:
+3. Open a real repo in VS Code with CodeGraphy installed.
+4. Run CodeGraphy indexing until `.codegraphy/graph.lbug` exists and the graph is populated, or index it from the CLI:
+
+```bash
+codegraphy index /absolute/path/to/repo
+```
+
+5. Verify the repo is registered:
+
+```bash
+codegraphy list
+codegraphy status /absolute/path/to/repo
+```
+
+6. If setup did not write Codex config automatically, add the MCP server to Codex manually:
+
+```bash
+codex mcp add codegraphy -- npx -y codegraphy@latest mcp
+```
+
+7. Verify Codex sees it:
 
 ```bash
 codex mcp list
@@ -148,36 +209,36 @@ codex mcp get codegraphy --json
 
 ### Query Validation
 
-Start a fresh Codex session in the indexed repo:
+Start a fresh Codex session anywhere, including outside the repo:
 
 ```bash
-codex -C /absolute/path/to/repo
+codex
 ```
 
 Ask:
 
+- `Use CodeGraphy MCP to list indexed repos, then select <repo>.`
 - `Use CodeGraphy MCP only to tell me what files depend on <file>.`
 - `Use CodeGraphy MCP to explain the relationship between <file A> and <file B>.`
 - `Use CodeGraphy MCP to list symbols declared by <file> and their dependents.`
 
 Expected:
 
+- Codex can discover and select the repo even when started outside the repo directory.
 - Codex reports CodeGraphy-derived structure before reading source files.
 - Returned files and symbols match the graph/index.
 - If the index lacks a relation, Codex says so instead of inventing one.
 
 ### Scope Validation
 
-Run the same query 3 ways:
+Run the same query 2 ways in MVP:
 
 - full index
-- current view
 - custom edge-kind filter such as `import,type-import`
 
 Expected:
 
 - full index returns the broadest result
-- current view respects the visible graph slice
 - custom scope/filter overrides the view when requested
 
 ### Complex Change Validation
@@ -204,6 +265,6 @@ Expected:
 
 ## Unresolved Questions
 
-- How should `current-view` scope be obtained outside VS Code: saved snapshot, live extension bridge, or not in MVP?
 - What symbol selector shape is best for users and agents when symbol IDs are opaque?
-- Should `packages/mcp-server` depend directly on `packages/extension`, or should shared query code move into a smaller package first?
+- How much of the existing extension indexing code can move into the public `codegraphy` package cleanly?
+- Should `codegraphy setup` write only global Codex config, or also project-local config when run inside a repo?
