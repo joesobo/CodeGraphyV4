@@ -5,6 +5,7 @@ import {
 } from '../../../../src/extension/graphView/settings/messages';
 import { captureGraphViewSettingsSnapshot } from '../../../../src/extension/graphView/settings/snapshot';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { DEFAULT_MAX_FILES } from '../../../../src/shared/settings/defaults';
 
 function createConfig(values: Record<string, unknown>) {
   return {
@@ -55,7 +56,7 @@ describe('graphView/settings/snapshotMessages', () => {
       particleSpeed: 0.005,
       particleSize: 4,
       showLabels: true,
-      maxFiles: 500,
+      maxFiles: DEFAULT_MAX_FILES,
       nodeSizeMode: 'uniform',
     });
   });

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { DEFAULT_MAX_FILES } from '../../../../src/shared/settings/defaults';
 import { createGraphStore } from '../../../../src/webview/store/state';
 
 describe('GraphStore initial state', () => {
@@ -35,7 +36,7 @@ describe('GraphStore initial state', () => {
     expect(state.depthLimit).toBe(1);
     expect(state.maxDepthLimit).toBe(10);
     expect(state.dagMode).toBeNull();
-    expect(state.maxFiles).toBe(500);
+    expect(state.maxFiles).toBe(DEFAULT_MAX_FILES);
   });
 
   it('starts with empty plugin decoration and context menu state', () => {

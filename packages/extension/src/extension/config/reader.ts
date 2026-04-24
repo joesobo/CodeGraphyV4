@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import type { IGroup } from '../../shared/settings/groups';
+import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import { getCodeGraphyConfiguration, onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
 import type { ICodeGraphyConfig } from './defaults';
 
@@ -42,10 +43,10 @@ export class Configuration {
   /**
    * Maximum number of files to analyze.
    * Shows a warning if the workspace exceeds this limit.
-   * @default 500
+   * @default 1000
    */
   get maxFiles(): number {
-    return this.config.get<number>('maxFiles', 500);
+    return this.config.get<number>('maxFiles', DEFAULT_MAX_FILES);
   }
 
   /**

@@ -1,6 +1,7 @@
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
+import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
   createDefaultEdgeVisibility,
   createDefaultNodeColorEnabled,
@@ -54,7 +55,7 @@ export interface ICodeGraphyRepoSettings {
 export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
   return {
     version: 1,
-    maxFiles: 500,
+    maxFiles: DEFAULT_MAX_FILES,
     include: ['**/*'],
     respectGitignore: true,
     showOrphans: true,

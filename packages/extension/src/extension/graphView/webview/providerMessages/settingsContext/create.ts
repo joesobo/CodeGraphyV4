@@ -1,4 +1,5 @@
 import type { GraphViewMessageListenerContext } from '../../messages/listener';
+import { DEFAULT_MAX_FILES } from '../../../../../shared/settings/defaults';
 import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
@@ -71,7 +72,7 @@ export function createGraphViewProviderMessageSettingsContext(
       );
       await dependencies.executeUndoAction(action);
     },
-    getMaxFiles: () => config.get<number>('maxFiles', 500) ?? 500,
+    getMaxFiles: () => config.get<number>('maxFiles', DEFAULT_MAX_FILES) ?? DEFAULT_MAX_FILES,
     getPlaybackSpeed: () => config.get<number>('timeline.playbackSpeed', 1.0) ?? 1.0,
     getDepthMode: () => source._depthMode,
     getDagMode: () => source._dagMode,

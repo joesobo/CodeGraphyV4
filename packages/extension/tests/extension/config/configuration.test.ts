@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Configuration } from '../../../src/extension/config/reader';
+import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 import {
   DEFAULT_EXCLUDE_PATTERNS,
   type ICodeGraphyConfig,
@@ -21,7 +22,7 @@ describe('Configuration', () => {
   beforeEach(() => {
     // Reset mock config to defaults
     mockConfig = {
-      maxFiles: 500,
+      maxFiles: DEFAULT_MAX_FILES,
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
@@ -37,9 +38,9 @@ describe('Configuration', () => {
   });
 
   describe('default values', () => {
-    it('should return default maxFiles of 500', () => {
+    it('should return default maxFiles of 1000', () => {
       const config = new Configuration();
-      expect(config.maxFiles).toBe(500);
+      expect(config.maxFiles).toBe(DEFAULT_MAX_FILES);
     });
 
     it('should return default include pattern', () => {
@@ -65,9 +66,9 @@ describe('Configuration', () => {
 
   describe('custom values', () => {
     it('should return custom maxFiles', () => {
-      mockConfig.maxFiles = 500;
+      mockConfig.maxFiles = 1200;
       const config = new Configuration();
-      expect(config.maxFiles).toBe(500);
+      expect(config.maxFiles).toBe(1200);
     });
 
     it('should return custom include patterns', () => {
@@ -101,7 +102,7 @@ describe('Configuration', () => {
       const all: ICodeGraphyConfig = config.getAll();
 
       expect(all).toEqual({
-        maxFiles: 500,
+        maxFiles: DEFAULT_MAX_FILES,
         include: ['**/*'],
         respectGitignore: true,
         showOrphans: true,
