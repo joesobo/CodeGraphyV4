@@ -30,9 +30,10 @@ Out:
 - MCP runs locally over repo-local `.codegraphy/graph.lbug` data; no hosted mode in scope.
 - Use a global registry so one CodeGraphy MCP install can serve many repos.
 - `codegraphy setup` may update Codex MCP config automatically.
-- Indexing and refresh should be callable by the agent through MCP tools.
 - No live extension bridge in MVP. The MCP reads repo state directly from disk.
-- MCP should detect when the CodeGraphy DB changed on disk and refresh its in-memory view.
+- No MCP-triggered indexing in MVP. If a repo has no DB, return setup instructions pointing users to the core extension.
+- Keep repo references as DB paths or repo paths, not cached snapshots.
+- Reload from disk on each query in MVP so saved DB changes are visible immediately.
 - Support 3 scopes:
   - `full-index`
   - `current-view`
@@ -83,8 +84,6 @@ Out:
   - list indexed repos from the global registry
 - `codegraphy_select_repo`
   - set the default repo for later queries
-- `codegraphy_index_repo`
-  - index or re-index a repo
 - `codegraphy_repo_status`
   - report whether a repo is indexed, stale, or missing
 - `codegraphy_file_dependencies`
@@ -115,13 +114,12 @@ Out:
   - published as `codegraphy`
   - owns CLI commands:
     - `setup`
-    - `index`
     - `mcp`
-    - `status`
     - `list`
+    - `status`
 - `packages/extension`
   - remains the VS Code extension
-  - should share index/query code where that improves correctness, but the public CLI must not require a live VS Code session
+  - remains the source of truth for creating and updating `.codegraphy/graph.lbug`
 
 This keeps the public install story simple and matches the GitNexus-style single-package UX.
 
@@ -133,10 +131,11 @@ This keeps the public install story simple and matches the GitNexus-style single
 - `S4` implement symbol-first query methods
 - `S5` add file projection helpers
 - `S6` expose CLI commands + MCP stdio server + tool schemas
-- `S7` add agent-callable indexing / status tools
+- `S7` add repo status + missing-DB guidance
 - `S8` add internal tests for query engine + CLI + MCP server
 - `S9` document public install, setup, and Codex validation flow
-- `S10` run one manual complex-change validation using Codex + MCP
+- `S10` test the unpublished package via packed tarball install
+- `S11` run one manual complex-change validation using Codex + MCP
 
 ## Internal Validation
 
@@ -156,7 +155,7 @@ This keeps the public install story simple and matches the GitNexus-style single
   - repo registration
   - repo selection precedence
   - setup command config writing
-  - stale DB detection after index changes on disk
+  - missing DB guidance
 
 Suggested commands:
 
@@ -173,34 +172,35 @@ Separate from internal tests. This is the user-facing proof that Codex can consu
 ### Setup
 
 1. Build the relevant packages.
-2. Install the public CLI:
+2. Pack the unpublished CLI package:
 
 ```bash
-npm install -g codegraphy
+pnpm --filter codegraphy pack
+```
+
+3. Install the packed tarball globally:
+
+```bash
+npm install -g /absolute/path/to/packages/codegraphy/codegraphy-<version>.tgz
 codegraphy setup
 ```
 
-3. Open a real repo in VS Code with CodeGraphy installed.
-4. Run CodeGraphy indexing until `.codegraphy/graph.lbug` exists and the graph is populated, or index it from the CLI:
-
-```bash
-codegraphy index /absolute/path/to/repo
-```
-
-5. Verify the repo is registered:
+4. Open a real repo in VS Code with CodeGraphy installed.
+5. Run CodeGraphy indexing in VS Code until `.codegraphy/graph.lbug` exists and the graph is populated.
+6. Verify the repo is registered:
 
 ```bash
 codegraphy list
 codegraphy status /absolute/path/to/repo
 ```
 
-6. If setup did not write Codex config automatically, add the MCP server to Codex manually:
+7. If setup did not write Codex config automatically, add the MCP server to Codex manually:
 
 ```bash
-codex mcp add codegraphy -- npx -y codegraphy@latest mcp
+codex mcp add codegraphy -- codegraphy mcp
 ```
 
-7. Verify Codex sees it:
+8. Verify Codex sees it:
 
 ```bash
 codex mcp list
@@ -228,6 +228,7 @@ Expected:
 - Codex reports CodeGraphy-derived structure before reading source files.
 - Returned files and symbols match the graph/index.
 - If the index lacks a relation, Codex says so instead of inventing one.
+- If the repo has no `.codegraphy/graph.lbug`, the MCP returns setup guidance pointing to the core extension.
 
 ### Scope Validation
 
@@ -254,17 +255,29 @@ Expected:
 - final changes include the obvious impact sites found via the graph
 - explanation references CodeGraphy findings as part of change planning
 
+### DB Refresh Validation
+
+1. Query a repo through CodeGraphy MCP.
+2. In VS Code, make a graph change that persists into `.codegraphy/graph.lbug`.
+3. Ask the same or related query again.
+
+Expected:
+
+- the second query reflects the saved DB change
+- MCP is not locked to the earlier result set
+
 ## PR Validation Checklist
 
 - [ ] query engine answers symbol-level impact from persisted index
 - [ ] MCP server registers and serves the planned tools
 - [ ] Codex CLI can add the server with `codex mcp add ...`
 - [ ] fresh Codex session can answer file/symbol dependency questions via CodeGraphy
+- [ ] missing DB returns setup guidance instead of trying to index
+- [ ] repeated queries see saved DB changes
 - [ ] fresh Codex session can use CodeGraphy findings to guide a non-trivial code change
 - [ ] docs include both internal test commands and manual user validation steps
 
 ## Unresolved Questions
 
-- What symbol selector shape is best for users and agents when symbol IDs are opaque?
-- How much of the existing extension indexing code can move into the public `codegraphy` package cleanly?
+- Should `codegraphy_explain_relationship` focus only on direct edges, or should it also summarize multi-hop paths by default?
 - Should `codegraphy setup` write only global Codex config, or also project-local config when run inside a repo?
