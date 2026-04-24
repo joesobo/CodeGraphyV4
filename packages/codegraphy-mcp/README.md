@@ -1,13 +1,20 @@
 # CodeGraphy MCP
 
-`@codegraphy-vscode/mcp` installs the `codegraphy` CLI.
+`@codegraphy-vscode/mcp` installs the `codegraphy` CLI and local MCP server.
 
-It gives agents a local MCP server that reads saved CodeGraphy data from:
+It gives agents read-only access to saved CodeGraphy data from:
 
 - `.codegraphy/graph.lbug`
 - `.codegraphy/settings.json`
 
-The MCP is read-only in this MVP. The VS Code extension still creates and updates the index.
+## Quick Start
+
+```bash
+npm install -g @codegraphy-vscode/mcp
+codegraphy setup
+codegraphy status .
+codex mcp list
+```
 
 ## Install
 
@@ -16,52 +23,47 @@ npm install -g @codegraphy-vscode/mcp
 codegraphy setup
 ```
 
-If `codegraphy setup` cannot add the MCP automatically, add it manually:
+If automatic setup fails:
 
 ```bash
 codex mcp add codegraphy -- codegraphy mcp
 ```
 
+## Manual Codex Config
+
+`~/.codex/config.toml`:
+
+```toml
+[mcp_servers.codegraphy]
+command = "codegraphy"
+args = ["mcp"]
+```
+
 ## Commands
 
-```bash
-codegraphy setup
-codegraphy list
-codegraphy status .
-codegraphy status /absolute/path/to/repo
-codegraphy mcp
-```
+| Command | What It Does |
+|---|---|
+| `codegraphy setup` | Adds the CodeGraphy MCP entry to Codex when possible |
+| `codegraphy list` | Lists locally known indexed repos |
+| `codegraphy status .` | Checks and registers the current repo |
+| `codegraphy status /path/to/repo` | Checks another repo from anywhere |
+| `codegraphy mcp` | Starts the local stdio MCP server |
 
-## Setup A Repo
+## MCP Tools
 
-1. Open VS Code.
-2. Install the [CodeGraphy extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
-3. Open the repo you want to use with the MCP.
-4. Run CodeGraphy indexing until the repo has `.codegraphy/graph.lbug`.
-5. Open a terminal in that repo.
-6. Install the npm package globally:
-
-```bash
-npm install -g @codegraphy-vscode/mcp
-```
-
-7. Run:
-
-```bash
-codegraphy setup
-codegraphy status .
-```
-
-8. Verify Codex sees the MCP:
-
-```bash
-codex mcp list
-codex mcp get codegraphy --json
-```
-
-9. Start a fresh Codex session and ask a short CodeGraphy question.
-
-The first successful `codegraphy status` call also registers that repo in `~/.codegraphy/registry.json`, so later MCP sessions can select it without `cd`-ing into the repo first.
+| Tool | What It Does |
+|---|---|
+| `codegraphy_list_repos` | Lists indexed repos |
+| `codegraphy_select_repo` | Selects the repo for the session |
+| `codegraphy_repo_status` | Checks DB availability and registration |
+| `codegraphy_file_dependencies` | Lists outgoing file relationships |
+| `codegraphy_file_dependents` | Lists incoming file relationships |
+| `codegraphy_symbol_dependencies` | Lists outgoing symbol relationships |
+| `codegraphy_symbol_dependents` | Lists incoming symbol relationships |
+| `codegraphy_impact_set` | Returns bounded transitive impact |
+| `codegraphy_explain_relationship` | Explains how files or symbols connect |
+| `codegraphy_view_graph` | Projects the saved depth/folder/package graph view |
+| `codegraphy_file_summary` | Summarizes symbols and relation counts for a file |
 
 ## Example Prompts
 
@@ -69,20 +71,8 @@ The first successful `codegraphy status` call also registers that repo in `~/.co
 - `Use CodeGraphy to show the saved graph view for this repo.`
 - `Use CodeGraphy to update UserName in types.ts to a FullName object with first and last strings, then fix the affected code.`
 
-## View-Aware Queries
+## Optional Skill
 
-`codegraphy_view_graph` projects a CodeGraphy-style view from the saved index plus `.codegraphy/settings.json`.
+This repo includes a reusable skill at [skills/codegraphy-mcp/SKILL.md](../../skills/codegraphy-mcp/SKILL.md).
 
-Use it when the agent needs the saved:
-
-- depth mode slice
-- folder nodes
-- package nodes
-- structural `codegraphy:nests` edges
-
-## Notes
-
-- Relative repo paths work. From a repo root, `codegraphy status .` is the shortest setup flow.
-- If a repo has no `.codegraphy/graph.lbug`, the MCP returns setup guidance pointing back to the core extension.
-- Queries reread the DB and saved settings from disk on each call, so later saved graph changes show up on the next query.
-- The full step-by-step setup guide lives in [docs/MCP.md](../../docs/MCP.md).
+For the full setup guide, step-by-step repo hookup, Codex config snippets, and verification flow, see [docs/MCP.md](../../docs/MCP.md).

@@ -147,8 +147,9 @@ Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLU
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
 | [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, and panels |
 | [Plugin Guide](./docs/PLUGINS.md) | Build and package plugins for CodeGraphy |
-| [MCP Setup](./docs/MCP.md) | Install the extension and npm package, run `codegraphy status .`, connect Codex, and verify the MCP |
-| [MCP Package](./packages/codegraphy-mcp/README.md) | Package-level install, commands, prompts, and view-aware MCP notes |
+| [MCP Setup](./docs/MCP.md) | Quick start, step-by-step setup, CLI/tool tables, manual Codex config, and verification flow |
+| [MCP Package](./packages/codegraphy-mcp/README.md) | Package-level install, commands table, MCP tools table, prompts, and skill link |
+| [CodeGraphy MCP Skill](./skills/codegraphy-mcp/SKILL.md) | Reusable skill that teaches agents to use CodeGraphy first for dependency and impact questions |
 | [Contributing](./CONTRIBUTING.md) | Development setup and contribution workflow |
 
 ## License

@@ -10,6 +10,7 @@ The rest of the docs are split by purpose:
 - `docs/plugin-api/` - plugin contract, lifecycle, and type reference
 - `docs/quality/` - quality-tooling docs and commands
 - `packages/codegraphy-mcp/README.md` - MCP package install, commands, prompts, and saved-view query notes
+- `skills/codegraphy-mcp/SKILL.md` - reusable agent skill for using CodeGraphy first on repo-structure and impact questions
 - `packages/plugin-*/README.md` and `packages/plugin-api/README.md` - release-facing package readmes for marketplace and npm
 - `packages/extension/docs/` - current extension-package architecture, messages, lifecycle, and testing notes
 - `docs/archive/` - historical plans, specs, and superseded guides
