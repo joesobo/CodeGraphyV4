@@ -41,6 +41,12 @@ Package boundaries are the primary entry point.
 4. **Commit frequently** — at minimum when subagent work is merged.
 5. **Deliver via PR** — push and open a GitHub PR for human review.
 
+## CodeGraphy MCP
+
+- When CodeGraphy MCP is available, use it first for repo structure, dependency, relationship, and impact questions before broad file search.
+- Use CodeGraphy to narrow the likely files and symbols first; then read source files for implementation details.
+- Prefer simple repo selection like `codegraphy status .` and `codegraphy_select_repo` with `.` when working from the target repo root.
+
 ### Worktree Safety
 
 - The user's open worktree is **protected** — never run `git switch`, `git checkout <branch>`, or `git rebase` there.

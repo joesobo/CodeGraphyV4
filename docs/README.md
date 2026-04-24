@@ -9,6 +9,7 @@ The rest of the docs are split by purpose:
 - `docs/plans/` - active task plans and working notes
 - `docs/plugin-api/` - plugin contract, lifecycle, and type reference
 - `docs/quality/` - quality-tooling docs and commands
+- `packages/codegraphy/README.md` - CLI and MCP setup, including `codegraphy status .` and Codex examples
 - `packages/plugin-*/README.md` and `packages/plugin-api/README.md` - release-facing package readmes for marketplace and npm
 - `packages/extension/docs/` - current extension-package architecture, messages, lifecycle, and testing notes
 - `docs/archive/` - historical plans, specs, and superseded guides

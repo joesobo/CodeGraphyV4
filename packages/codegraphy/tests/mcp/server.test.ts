@@ -9,14 +9,17 @@ import { createSampleSnapshot } from '../support/sampleGraph';
 describe('mcp/server', () => {
   let homePath: string;
   let originalHome: string | undefined;
+  let originalCwd: string;
 
   beforeEach(() => {
     originalHome = process.env.CODEGRAPHY_HOME;
+    originalCwd = process.cwd();
     homePath = createTempCodeGraphyHome();
     process.env.CODEGRAPHY_HOME = homePath;
   });
 
   afterEach(() => {
+    process.chdir(originalCwd);
     process.env.CODEGRAPHY_HOME = originalHome;
     fs.rmSync(homePath, { recursive: true, force: true });
   });
@@ -36,6 +39,12 @@ describe('mcp/server', () => {
       'codegraphy_select_repo',
       'codegraphy_file_dependencies',
     ]));
+    expect(tools.tools.find((tool) => tool.name === 'codegraphy_file_dependencies')?.description).toContain(
+      'Prefer this before broad source-file search',
+    );
+    expect(tools.tools.find((tool) => tool.name === 'codegraphy_select_repo')?.description).toContain(
+      'relative paths such as `.`',
+    );
 
     await client.callTool({
       name: 'codegraphy_select_repo',
@@ -52,6 +61,33 @@ describe('mcp/server', () => {
         filePath: 'src/b.ts',
         relatedFileCount: 1,
       },
+    });
+  });
+
+  it('accepts a relative repo path when selecting the session repo', async () => {
+    const repo = createTempRepo(createSampleSnapshot());
+    process.chdir(repo.workspaceRoot);
+    const resolvedWorkspaceRoot = process.cwd();
+    const server = createCodeGraphyMcpServer();
+    const client = new Client({ name: 'test-client', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+
+    await client.callTool({
+      name: 'codegraphy_select_repo',
+      arguments: { repo: '.' },
+    });
+
+    const result = await client.callTool({
+      name: 'codegraphy_repo_status',
+      arguments: {},
+    });
+
+    expect(result.structuredContent).toMatchObject({
+      workspaceRoot: resolvedWorkspaceRoot,
+      status: 'indexed',
     });
   });
 

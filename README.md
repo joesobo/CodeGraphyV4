@@ -54,6 +54,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 ## Monorepo
 
 - the core extension focused on graph rendering, repo-local indexing, and the VS Code/webview bridge
+- a local `codegraphy` CLI and MCP server for querying saved `.codegraphy/graph.lbug` data from agents
 - example language plugins for:
   - Typescript
   - C#
@@ -146,6 +147,7 @@ Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLU
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
 | [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, and panels |
 | [Plugin Guide](./docs/PLUGINS.md) | Build and package plugins for CodeGraphy |
+| [CLI + MCP](./packages/codegraphy/README.md) | Install the `codegraphy` CLI, run `codegraphy status .`, and connect Codex to the local MCP |
 | [Contributing](./CONTRIBUTING.md) | Development setup and contribution workflow |
 
 ## License

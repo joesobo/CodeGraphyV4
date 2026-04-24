@@ -115,7 +115,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_list_repos',
     {
-      description: 'List CodeGraphy repos from the local registry.',
+      description: 'List locally known CodeGraphy repos. Use this first when the target repo is unclear before broad file search.',
       inputSchema: z.object({}),
     },
     async () => {
@@ -130,7 +130,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_select_repo',
     {
-      description: 'Select a repo path for later CodeGraphy MCP queries in this session.',
+      description: 'Select the repo for later CodeGraphy MCP queries in this session. Accepts absolute or relative paths such as `.`.',
       inputSchema: z.object({
         repo: z.string(),
       }),
@@ -148,7 +148,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_repo_status',
     {
-      description: 'Report whether a repo has a CodeGraphy database and whether it is registered locally.',
+      description: 'Check whether a repo has a CodeGraphy database and whether it is registered locally. Accepts absolute or relative paths such as `.`.',
       inputSchema: z.object({
         repo: z.string().optional(),
       }),
@@ -165,7 +165,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_file_dependencies',
     {
-      description: 'List outgoing file dependencies from a repo-relative file path.',
+      description: 'List outgoing file dependencies from a repo-relative file path. Prefer this before broad source-file search when planning code changes.',
       inputSchema: z.object({
         repo: querySchema.repo,
         filePath: z.string(),
@@ -182,7 +182,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_file_dependents',
     {
-      description: 'List incoming file dependents for a repo-relative file path.',
+      description: 'List incoming file dependents for a repo-relative file path. Use this first to find what may break or need updates after a change.',
       inputSchema: z.object({
         repo: querySchema.repo,
         filePath: z.string(),
@@ -199,7 +199,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_symbol_dependencies',
     {
-      description: 'List outgoing relations for a CodeGraphy symbol ID.',
+      description: 'List outgoing relations for a CodeGraphy symbol ID. Use this before reading many files when tracing a symbol outward.',
       inputSchema: z.object({
         repo: querySchema.repo,
         symbolId: z.string(),
@@ -216,7 +216,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_symbol_dependents',
     {
-      description: 'List incoming relations for a CodeGraphy symbol ID.',
+      description: 'List incoming relations for a CodeGraphy symbol ID. Use this first for symbol-level impact analysis before editing.',
       inputSchema: z.object({
         repo: querySchema.repo,
         symbolId: z.string(),
@@ -233,7 +233,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_impact_set',
     {
-      description: 'Return a bounded transitive impact set from a file path or symbol ID.',
+      description: 'Return a bounded transitive impact set from a file path or symbol ID. Prefer this before broad repo search when scoping a change.',
       inputSchema: z.object({
         repo: querySchema.repo,
         seed: z.string(),
@@ -254,7 +254,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_explain_relationship',
     {
-      description: 'Explain the direct or bounded path relationship between two file paths or symbol IDs.',
+      description: 'Explain the direct or bounded path relationship between two file paths or symbol IDs. Use this first for dependency and connection questions.',
       inputSchema: z.object({
         repo: querySchema.repo,
         from: z.string(),
@@ -277,7 +277,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_file_summary',
     {
-      description: 'Summarize declared symbols and relation counts for one repo-relative file path.',
+      description: 'Summarize declared symbols and relation counts for one repo-relative file path after CodeGraphy has narrowed the likely files to inspect.',
       inputSchema: z.object({
         repo: querySchema.repo,
         filePath: z.string(),
