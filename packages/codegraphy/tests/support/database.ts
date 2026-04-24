@@ -53,11 +53,41 @@ export interface RepoFixture {
   databasePath: string;
 }
 
-export function createTempRepo(snapshot: Partial<DatabaseSnapshot> = {}): RepoFixture {
+export interface CreateTempRepoOptions {
+  absoluteRelationPaths?: boolean;
+  absoluteSymbolPaths?: boolean;
+}
+
+function toWorkspacePath(workspaceRoot: string, filePath: string | null | undefined): string | null | undefined {
+  if (!filePath) {
+    return filePath ?? undefined;
+  }
+
+  return path.join(workspaceRoot, filePath);
+}
+
+export function createTempRepo(
+  snapshot: Partial<DatabaseSnapshot> = {},
+  options: CreateTempRepoOptions = {},
+): RepoFixture {
   const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-repo-'));
   const databaseDirectory = path.join(workspaceRoot, '.codegraphy');
   const databasePath = path.join(databaseDirectory, 'graph.lbug');
   fs.mkdirSync(databaseDirectory, { recursive: true });
+  const symbols = options.absoluteSymbolPaths
+    ? (snapshot.symbols ?? []).map((symbol) => ({
+      ...symbol,
+      filePath: toWorkspacePath(workspaceRoot, symbol.filePath) ?? symbol.filePath,
+    }))
+    : (snapshot.symbols ?? []);
+  const relations = options.absoluteRelationPaths
+    ? (snapshot.relations ?? []).map((relation) => ({
+      ...relation,
+      fromFilePath: toWorkspacePath(workspaceRoot, relation.fromFilePath) ?? relation.fromFilePath,
+      toFilePath: toWorkspacePath(workspaceRoot, relation.toFilePath) ?? relation.toFilePath,
+      resolvedPath: toWorkspacePath(workspaceRoot, relation.resolvedPath) ?? relation.resolvedPath,
+    }))
+    : (snapshot.relations ?? []);
 
   const database = new Database(databasePath);
   const connection = new Connection(database);
@@ -69,10 +99,10 @@ export function createTempRepo(snapshot: Partial<DatabaseSnapshot> = {}): RepoFi
     runStatement(connection, 'CREATE NODE TABLE Relation(relationId STRING PRIMARY KEY, filePath STRING, kind STRING, pluginId STRING, sourceId STRING, fromFilePath STRING, toFilePath STRING, fromNodeId STRING, toNodeId STRING, fromSymbolId STRING, toSymbolId STRING, specifier STRING, relationType STRING, variant STRING, resolvedPath STRING, metadataJson STRING)');
 
     const filePaths = new Set<string>(snapshot.files?.map((file) => file.filePath) ?? []);
-    for (const symbol of snapshot.symbols ?? []) {
+    for (const symbol of symbols) {
       filePaths.add(symbol.filePath);
     }
-    for (const relation of snapshot.relations ?? []) {
+    for (const relation of relations) {
       filePaths.add(relation.fromFilePath);
       if (relation.toFilePath) {
         filePaths.add(relation.toFilePath);
@@ -83,11 +113,11 @@ export function createTempRepo(snapshot: Partial<DatabaseSnapshot> = {}): RepoFi
       runStatement(connection, createFileStatement(filePath));
     }
 
-    for (const symbol of snapshot.symbols ?? []) {
+    for (const symbol of symbols) {
       runStatement(connection, createSymbolStatement(symbol));
     }
 
-    for (const [index, relation] of (snapshot.relations ?? []).entries()) {
+    for (const [index, relation] of relations.entries()) {
       runStatement(connection, createRelationStatement(relation, index));
     }
   } finally {
