@@ -96,6 +96,46 @@ describe('routing/results/merge', () => {
     }]);
   });
 
+  it('keeps distinct import relations when only the target symbol differs', () => {
+    expect(
+      mergeRelations(
+        [{
+          kind: 'import',
+          sourceId: 'import:lib',
+          fromFilePath: 'src/app.ts',
+          specifier: './lib',
+          toFilePath: 'src/lib.ts',
+          toSymbolId: 'src/lib.ts:function:boot',
+        }],
+        [{
+          kind: 'import',
+          sourceId: 'import:lib',
+          fromFilePath: 'src/app.ts',
+          specifier: './lib',
+          toFilePath: 'src/lib.ts',
+          toSymbolId: 'src/lib.ts:function:shutdown',
+        }],
+      ),
+    ).toEqual([
+      {
+        kind: 'import',
+        sourceId: 'import:lib',
+        fromFilePath: 'src/app.ts',
+        specifier: './lib',
+        toFilePath: 'src/lib.ts',
+        toSymbolId: 'src/lib.ts:function:boot',
+      },
+      {
+        kind: 'import',
+        sourceId: 'import:lib',
+        fromFilePath: 'src/app.ts',
+        specifier: './lib',
+        toFilePath: 'src/lib.ts',
+        toSymbolId: 'src/lib.ts:function:shutdown',
+      },
+    ]);
+  });
+
   it('treats missing relation arrays as empty lists', () => {
     expect(mergeRelations(undefined, undefined)).toEqual([]);
   });

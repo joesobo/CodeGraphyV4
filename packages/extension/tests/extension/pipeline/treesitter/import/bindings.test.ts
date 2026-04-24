@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Parser from 'tree-sitter';
+import type { ImportedBinding } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/model';
 import { collectImportBindings } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeImportBinding/bindings';
 import { applyImportClauseBinding } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeImportBinding/clause';
 
@@ -42,6 +43,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/bindings', ()
 
   it('delegates each import clause child in order with the provided binding context', () => {
     const importedBindings = new Map();
+    const statementBindings: ImportedBinding[] = [];
     const defaultImport = createNode({ type: 'identifier' });
     const namedImports = createNode({ type: 'named_imports' });
 
@@ -67,6 +69,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/bindings', ()
       importedBindings,
       './lib',
       '/workspace/src/lib.ts',
+      statementBindings,
     );
     expect(applyImportClauseBinding).toHaveBeenNthCalledWith(
       2,
@@ -74,6 +77,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/bindings', ()
       importedBindings,
       './lib',
       '/workspace/src/lib.ts',
+      statementBindings,
     );
   });
 });

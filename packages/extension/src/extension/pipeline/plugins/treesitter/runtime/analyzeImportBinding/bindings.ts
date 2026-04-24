@@ -7,13 +7,16 @@ export function collectImportBindings(
   specifier: string,
   resolvedPath: string | null,
   importedBindings: Map<string, ImportedBinding>,
-): void {
+): ImportedBinding[] {
   const importClause = statement.namedChildren.find((child) => child.type === 'import_clause');
   if (!importClause) {
-    return;
+    return [];
   }
 
+  const statementBindings: ImportedBinding[] = [];
   for (const child of importClause.namedChildren) {
-    applyImportClauseBinding(child, importedBindings, specifier, resolvedPath);
+    applyImportClauseBinding(child, importedBindings, specifier, resolvedPath, statementBindings);
   }
+
+  return statementBindings;
 }

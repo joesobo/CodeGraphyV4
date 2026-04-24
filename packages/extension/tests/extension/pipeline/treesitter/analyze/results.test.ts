@@ -122,6 +122,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
         specifier: './dep',
         resolvedPath: '/workspace/dep.ts',
         toFilePath: '/workspace/dep.ts',
+        metadata: undefined,
         type: undefined,
       },
       {
@@ -131,6 +132,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
         specifier: './styles.css',
         resolvedPath: null,
         toFilePath: null,
+        metadata: undefined,
         type: 'style',
       },
     ]);
@@ -140,6 +142,19 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
     const relations: unknown[] = [];
 
     addTypeImportRelation(relations as never, '/workspace/app.ts', './types', '/workspace/types.ts');
+    addTypeImportRelation(
+      relations as never,
+      '/workspace/app.ts',
+      './types',
+      '/workspace/types.ts',
+      {
+        bindingKind: 'named',
+        importedName: 'UserName',
+        localName: 'UserName',
+        resolvedPath: '/workspace/types.ts',
+        specifier: './types',
+      },
+    );
 
     expect(relations).toEqual([
       {
@@ -149,6 +164,21 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
         specifier: './types',
         resolvedPath: '/workspace/types.ts',
         toFilePath: '/workspace/types.ts',
+        metadata: undefined,
+      },
+      {
+        kind: 'type-import',
+        sourceId: TREE_SITTER_SOURCE_IDS.typeImport,
+        fromFilePath: '/workspace/app.ts',
+        specifier: './types',
+        resolvedPath: '/workspace/types.ts',
+        toFilePath: '/workspace/types.ts',
+        metadata: {
+          bindingKind: 'named',
+          importedName: 'UserName',
+          localName: 'UserName',
+          memberName: null,
+        },
       },
     ]);
   });
@@ -180,6 +210,12 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
         specifier: 'run',
         resolvedPath: '/workspace/dep.ts',
         toFilePath: '/workspace/dep.ts',
+        metadata: {
+          bindingKind: null,
+          importedName: null,
+          localName: null,
+          memberName: null,
+        },
       },
       {
         kind: 'inherit',

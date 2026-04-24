@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ImportedBinding } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/model';
 import { addNamedImportBindings } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings';
 import { addCollectedImportBinding } from '../../../../../src/extension/pipeline/plugins/treesitter/runtime/analyzeImportBinding/collected';
 
@@ -28,6 +29,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
 
   it('collects import specifiers from identifiers and type identifiers', () => {
     const importedBindings = new Map();
+    const statementBindings: ImportedBinding[] = [];
 
     addNamedImportBindings(
       createNode({
@@ -50,6 +52,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       importedBindings,
       './lib',
       '/workspace/lib.ts',
+      statementBindings,
     );
 
     expect(addCollectedImportBinding).toHaveBeenNthCalledWith(
@@ -59,6 +62,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       'original',
       './lib',
       '/workspace/lib.ts',
+      'named',
     );
     expect(addCollectedImportBinding).toHaveBeenNthCalledWith(
       2,
@@ -67,11 +71,13 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       'Service',
       './lib',
       '/workspace/lib.ts',
+      'named',
     );
   });
 
   it('skips inline type-only import specifiers', () => {
     const importedBindings = new Map();
+    const statementBindings: ImportedBinding[] = [];
 
     addNamedImportBindings(
       createNode({
@@ -93,6 +99,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       importedBindings,
       './runtime',
       '/workspace/runtime.ts',
+      statementBindings,
     );
 
     expect(addCollectedImportBinding).toHaveBeenCalledOnce();
@@ -102,11 +109,13 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       'boot',
       './runtime',
       '/workspace/runtime.ts',
+      'named',
     );
   });
 
   it('collects value imports named type', () => {
     const importedBindings = new Map();
+    const statementBindings: ImportedBinding[] = [];
 
     addNamedImportBindings(
       createNode({
@@ -130,6 +139,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       importedBindings,
       './runtime',
       '/workspace/runtime.ts',
+      statementBindings,
     );
 
     expect(addCollectedImportBinding).toHaveBeenCalledOnce();
@@ -139,10 +149,13 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       'type',
       './runtime',
       '/workspace/runtime.ts',
+      'named',
     );
   });
 
   it('skips specifiers without a local identifier', () => {
+    const statementBindings: ImportedBinding[] = [];
+
     addNamedImportBindings(
       createNode({
         type: 'named_imports',
@@ -156,6 +169,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeImportBinding/namedBindings
       new Map(),
       './lib',
       null,
+      statementBindings,
     );
 
     expect(addCollectedImportBinding).not.toHaveBeenCalled();

@@ -4,10 +4,18 @@
  */
 
 import type { IDiscoveredFile } from '../../core/discovery/contracts';
-import type { IProjectedConnection, IFileAnalysisResult } from '../../core/plugins/types/contracts';
+import type {
+  IAnalysisRelation,
+  IAnalysisSymbol,
+  IProjectedConnection,
+  IFileAnalysisResult,
+} from '../../core/plugins/types/contracts';
 import { throwIfWorkspaceAnalysisAborted } from './abort';
 import type { IWorkspaceAnalysisCache } from './cache';
-import { projectProjectedConnectionsFromFileAnalysis } from './projection';
+import {
+  projectConnectionMapFromFileAnalysis,
+  projectProjectedConnectionsFromFileAnalysis,
+} from './projection';
 
 interface IWorkspaceFileProcessedConnection {
   resolvedPath: string | null;
@@ -40,6 +48,84 @@ export interface IWorkspaceFileAnalysisResult {
   cacheMisses: number;
   fileAnalysis: Map<string, IFileAnalysisResult>;
   fileConnections: Map<string, IProjectedConnection[]>;
+}
+
+function enrichWorkspaceFileAnalysis(
+  fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
+): Map<string, IFileAnalysisResult> {
+  const symbolsByFilePath = new Map<string, IAnalysisSymbol[]>();
+
+  for (const analysis of fileAnalysis.values()) {
+    if (!analysis.symbols?.length) {
+      continue;
+    }
+
+    symbolsByFilePath.set(analysis.filePath, analysis.symbols);
+  }
+
+  return new Map(
+    Array.from(fileAnalysis.entries()).map(([filePath, analysis]) => [
+      filePath,
+      {
+        ...analysis,
+        relations: (analysis.relations ?? []).map((relation) =>
+          enrichRelationTargetSymbol(relation, symbolsByFilePath),
+        ),
+      },
+    ]),
+  );
+}
+
+function enrichRelationTargetSymbol(
+  relation: IAnalysisRelation,
+  symbolsByFilePath: ReadonlyMap<string, IAnalysisSymbol[]>,
+): IAnalysisRelation {
+  if (relation.toSymbolId || !relation.toFilePath) {
+    return relation;
+  }
+
+  const targetSymbols = symbolsByFilePath.get(relation.toFilePath);
+  if (!targetSymbols?.length) {
+    return relation;
+  }
+
+  const resolvedSymbolId = resolveTargetSymbolId(relation, targetSymbols);
+  return resolvedSymbolId
+    ? {
+      ...relation,
+      toSymbolId: resolvedSymbolId,
+    }
+    : relation;
+}
+
+function resolveTargetSymbolId(
+  relation: IAnalysisRelation,
+  targetSymbols: readonly IAnalysisSymbol[],
+): string | undefined {
+  const memberName = readRelationMetadataString(relation, 'memberName');
+  const importedName = readRelationMetadataString(relation, 'importedName');
+  const symbolName = memberName ?? (
+    importedName && importedName !== '*' && importedName !== 'default'
+      ? importedName
+      : undefined
+  );
+
+  if (symbolName) {
+    const matches = targetSymbols.filter((symbol) => symbol.name === symbolName);
+    if (matches.length === 1) {
+      return matches[0].id;
+    }
+  }
+
+  return targetSymbols.length === 1 ? targetSymbols[0].id : undefined;
+}
+
+function readRelationMetadataString(
+  relation: IAnalysisRelation,
+  key: string,
+): string | undefined {
+  const value = relation.metadata?.[key];
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
 export async function analyzeWorkspaceFiles(
@@ -117,10 +203,19 @@ export async function analyzeWorkspaceFiles(
     };
   }
 
+  const enrichedFileAnalysis = enrichWorkspaceFileAnalysis(fileAnalysis);
+
+  for (const [relativePath, analysis] of enrichedFileAnalysis.entries()) {
+    const cached = cache.files[relativePath];
+    if (cached) {
+      cached.analysis = analysis;
+    }
+  }
+
   return {
     cacheHits,
     cacheMisses,
-    fileAnalysis,
-    fileConnections,
+    fileAnalysis: enrichedFileAnalysis,
+    fileConnections: projectConnectionMapFromFileAnalysis(enrichedFileAnalysis),
   };
 }

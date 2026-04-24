@@ -69,7 +69,20 @@ describe('routing/results/keys', () => {
     ).toBe('reference|reference:run|src/app.ts||||||src/lib.ts|||');
   });
 
-  it('omits resolved target fields for non-call relations', () => {
+  it('includes symbol target identity for non-call relations when present', () => {
+    expect(
+      getRelationKey({
+        kind: 'import',
+        sourceId: 'import:lib',
+        fromFilePath: 'src/app.ts',
+        specifier: './lib',
+        toFilePath: 'src/lib.ts',
+        toSymbolId: 'src/lib.ts:function:boot',
+      } as never),
+    ).toBe('import|import:lib|src/app.ts|||./lib||||src/lib.ts:function:boot');
+  });
+
+  it('omits file-only target differences for non-call relations', () => {
     const baseRelation = {
       kind: 'import' as const,
       sourceId: 'import:lib',
@@ -99,5 +112,13 @@ describe('routing/results/keys', () => {
         toFilePath: 'src/lib.ts',
       } as never).split('|'),
     ).toHaveLength(12);
+    expect(
+      getRelationKey({
+        kind: 'import',
+        sourceId: 'import:run',
+        fromFilePath: 'src/app.ts',
+        toFilePath: 'src/lib.ts',
+      } as never).split('|'),
+    ).toHaveLength(8);
   });
 });

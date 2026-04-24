@@ -221,6 +221,32 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
     );
   });
 
+  it('extracts TypeScript type alias, interface, and enum symbols', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const filePath = path.join(workspaceRoot, 'src/types.ts');
+    const source = [
+      'export type UserName = string;',
+      'export interface FullName {',
+      '  first: string;',
+      '  last: string;',
+      '}',
+      'export enum Role {',
+      '  Admin = "admin",',
+      '}',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.symbols).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'UserName', kind: 'type', filePath }),
+        expect.objectContaining({ name: 'FullName', kind: 'interface', filePath }),
+        expect.objectContaining({ name: 'Role', kind: 'enum', filePath }),
+      ]),
+    );
+  });
+
   it('extracts symbols from arrow function and function expression variable declarations', async () => {
     const workspaceRoot = await createWorkspace({});
     const filePath = path.join(workspaceRoot, 'src/createFolder.ts');

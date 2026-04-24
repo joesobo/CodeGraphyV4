@@ -57,6 +57,75 @@ function hasValueImport(node: Parser.SyntaxNode): boolean {
   return (importClause.namedChildren ?? []).some(isValueImportClauseChild);
 }
 
+function collectTypeImportBindings(
+  statement: Parser.SyntaxNode,
+  specifier: string,
+  resolvedPath: string | null,
+): ImportedBinding[] {
+  const importClause = getImportClause(statement);
+  if (!importClause) {
+    return [];
+  }
+
+  const directTypeImport = hasDirectTypeKeyword(statement);
+  const bindings: ImportedBinding[] = [];
+  for (const child of importClause.namedChildren ?? []) {
+    if (child.type === 'identifier' && directTypeImport) {
+      bindings.push({
+        bindingKind: 'default',
+        importedName: 'default',
+        localName: child.text,
+        resolvedPath,
+        specifier,
+      });
+      continue;
+    }
+
+    if (child.type === 'namespace_import' && directTypeImport) {
+      const localName = (child.namedChildren ?? []).find((namedChild) => namedChild.type === 'identifier')?.text;
+      if (localName) {
+        bindings.push({
+          bindingKind: 'namespace',
+          importedName: '*',
+          localName,
+          resolvedPath,
+          specifier,
+        });
+      }
+      continue;
+    }
+
+    if (child.type !== 'named_imports') {
+      continue;
+    }
+
+    for (const importSpecifier of child.namedChildren.filter((namedChild) => namedChild.type === 'import_specifier')) {
+      if (!directTypeImport && !isTypeImportSpecifier(importSpecifier)) {
+        continue;
+      }
+
+      const identifiers = importSpecifier.namedChildren.filter((namedChild) =>
+        namedChild.type === 'identifier' || namedChild.type === 'type_identifier',
+      );
+      const importedName = identifiers[0]?.text;
+      const localName = identifiers.at(-1)?.text;
+      if (!localName) {
+        continue;
+      }
+
+      bindings.push({
+        bindingKind: 'named',
+        importedName: importedName ?? localName,
+        localName,
+        resolvedPath,
+        specifier,
+      });
+    }
+  }
+
+  return bindings;
+}
+
 export function handleJavaScriptImportStatement(
   node: Parser.SyntaxNode,
   filePath: string,
@@ -67,11 +136,24 @@ export function handleJavaScriptImportStatement(
   if (specifier) {
     const resolvedPath = resolveTreeSitterImportPath(filePath, specifier);
     if (hasValueImport(node)) {
-      collectImportBindings(node, specifier, resolvedPath, importedBindings);
-      addImportRelation(relations, filePath, specifier, resolvedPath);
+      const statementBindings = collectImportBindings(node, specifier, resolvedPath, importedBindings);
+      if (statementBindings.length === 0) {
+        addImportRelation(relations, filePath, specifier, resolvedPath);
+      } else {
+        for (const binding of statementBindings) {
+          addImportRelation(relations, filePath, specifier, resolvedPath, undefined, undefined, binding);
+        }
+      }
     }
     if (hasDirectTypeKeyword(node) || hasTypeSpecifierImport(node)) {
-      addTypeImportRelation(relations, filePath, specifier, resolvedPath);
+      const typeBindings = collectTypeImportBindings(node, specifier, resolvedPath);
+      if (typeBindings.length === 0) {
+        addTypeImportRelation(relations, filePath, specifier, resolvedPath);
+      } else {
+        for (const binding of typeBindings) {
+          addTypeImportRelation(relations, filePath, specifier, resolvedPath, binding);
+        }
+      }
     }
   }
 

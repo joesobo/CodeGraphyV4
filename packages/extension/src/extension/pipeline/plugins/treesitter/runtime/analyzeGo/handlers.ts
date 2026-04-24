@@ -16,7 +16,7 @@ function getGoCallBinding(
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
   return (
     getImportedBindingByIdentifier(calleeNode, importedBindings)
-    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'selector_expression', 'operand')
+    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'selector_expression', 'operand', 'field')
   );
 }
 

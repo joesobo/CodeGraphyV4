@@ -1,0 +1,164 @@
+# CodeGraphy MCP Setup
+
+CodeGraphy MCP gives an agent read-only access to a repo's saved CodeGraphy index.
+
+It reads:
+
+- `.codegraphy/graph.lbug`
+- `.codegraphy/settings.json`
+
+It does not index repos itself in this MVP. The VS Code extension still does that.
+
+## Quick Start
+
+```bash
+# 1. Install the MCP package
+npm install -g @codegraphy-vscode/mcp
+
+# 2. Configure Codex
+codegraphy setup
+
+# 3. Register the current indexed repo
+codegraphy status .
+
+# 4. Verify Codex sees it
+codex mcp list
+codex mcp get codegraphy --json
+```
+
+Then start a fresh Codex session and ask:
+
+```text
+Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.
+```
+
+## Step By Step
+
+1. Open VS Code.
+2. Install the [CodeGraphy extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+3. Open the repo you want to use.
+4. Open the CodeGraphy graph.
+5. Run CodeGraphy indexing until the repo has `.codegraphy/graph.lbug`.
+6. Open a terminal in that repo.
+7. Install the npm package globally:
+
+```bash
+npm install -g @codegraphy-vscode/mcp
+```
+
+8. Set up the Codex MCP entry:
+
+```bash
+codegraphy setup
+```
+
+9. Register the repo:
+
+```bash
+codegraphy status .
+```
+
+10. Verify the repo and MCP:
+
+```bash
+codegraphy list
+codex mcp list
+codex mcp get codegraphy --json
+```
+
+11. Start a fresh Codex session:
+
+```bash
+codex
+```
+
+## Codex Manual Setup
+
+If `codegraphy setup` cannot add the MCP entry automatically, use one of these.
+
+One-off command:
+
+```bash
+codex mcp add codegraphy -- codegraphy mcp
+```
+
+Global Codex config in `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.codegraphy]
+command = "codegraphy"
+args = ["mcp"]
+```
+
+Project-local Codex config in `.codex/config.toml`:
+
+```toml
+[mcp_servers.codegraphy]
+command = "codegraphy"
+args = ["mcp"]
+```
+
+## CLI Commands
+
+| Command | What It Does | Typical Use |
+|---|---|---|
+| `codegraphy setup` | Configures the local CodeGraphy MCP entry for Codex | one-time machine setup |
+| `codegraphy list` | Lists locally known indexed repos from `~/.codegraphy/registry.json` | verify repo discovery |
+| `codegraphy status .` | Checks the current repo and registers it if indexed | shortest repo setup flow |
+| `codegraphy status /path/to/repo` | Checks another repo from anywhere | multi-repo use |
+| `codegraphy mcp` | Starts the local stdio MCP server | manual MCP runtime |
+
+## MCP Tools
+
+| Tool | What It Does | Typical Use |
+|---|---|---|
+| `codegraphy_list_repos` | Lists indexed repos | find the right repo first |
+| `codegraphy_select_repo` | Selects the repo for this MCP session | session setup |
+| `codegraphy_repo_status` | Checks DB availability and registration | verify setup |
+| `codegraphy_file_dependencies` | Lists outgoing file relationships | plan a change |
+| `codegraphy_file_dependents` | Lists incoming file relationships | blast radius |
+| `codegraphy_symbol_dependencies` | Lists outgoing symbol relationships | trace a symbol outward |
+| `codegraphy_symbol_dependents` | Lists incoming symbol relationships | symbol-level impact |
+| `codegraphy_impact_set` | Returns bounded transitive impact with optional `direction` and `kinds` filters | scoped change planning |
+| `codegraphy_explain_relationship` | Explains how two files or symbols connect | dependency questions |
+| `codegraphy_view_graph` | Projects the saved CodeGraphy depth/folder/package graph view | graph-aware context |
+| `codegraphy_file_summary` | Summarizes symbols and relation counts for a file | targeted inspection |
+
+## Optional Skill
+
+This repo also ships a reusable skill at [skills/codegraphy-mcp/SKILL.md](/Users/poleski/Desktop/Projects/CodeGraphyV4-codex-codegraphy-mcp/skills/codegraphy-mcp/SKILL.md).
+
+If you want Codex to use CodeGraphy more consistently from short prompts, copy `skills/codegraphy-mcp/` into your Codex skills directory, such as:
+
+```bash
+mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+cp -R skills/codegraphy-mcp "${CODEX_HOME:-$HOME/.codex}/skills/"
+```
+
+## Quick Verification
+
+Try one simple structure prompt:
+
+```text
+Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.
+```
+
+Try one saved-view prompt:
+
+```text
+Use CodeGraphy to show the saved graph view for this repo.
+```
+
+Try one real code-change prompt:
+
+```text
+Use CodeGraphy to update UserName in types.ts to a FullName object with first and last strings, then fix the affected code.
+```
+
+## Notes
+
+- `codegraphy status .` both checks the repo and registers it in `~/.codegraphy/registry.json`.
+- Later Codex sessions can select that repo even if they start from another directory.
+- Every MCP query rereads the DB and saved settings from disk, so saved graph changes show up on the next query.
+- If the repo has no `.codegraphy/graph.lbug`, the MCP returns setup guidance pointing back to the extension.
+- For noisy refactors, prefer `codegraphy_impact_set` with `kinds` like `["type-import"]` or `["call"]`, and use `direction` to choose incoming dependents, outgoing dependencies, or both.
