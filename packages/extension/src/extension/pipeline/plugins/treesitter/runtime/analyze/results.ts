@@ -74,6 +74,7 @@ export function addImportRelation(
   resolvedPath: string | null,
   type?: string,
   sourceId: string = TREE_SITTER_SOURCE_IDS.import,
+  binding?: ImportedBinding,
 ): void {
   addRelation(relations, {
     kind: 'import',
@@ -83,6 +84,7 @@ export function addImportRelation(
     resolvedPath,
     toFilePath: resolvedPath,
     type,
+    metadata: createBindingMetadata(binding),
   });
 }
 
@@ -116,7 +118,21 @@ export function addCallRelation(
     specifier: binding.specifier,
     resolvedPath: binding.resolvedPath,
     toFilePath: binding.resolvedPath,
+    metadata: createBindingMetadata(binding),
   });
+}
+
+function createBindingMetadata(binding?: ImportedBinding): IAnalysisRelation['metadata'] | undefined {
+  if (!binding) {
+    return undefined;
+  }
+
+  return {
+    bindingKind: binding.bindingKind ?? null,
+    importedName: binding.importedName ?? null,
+    localName: binding.localName ?? null,
+    memberName: binding.memberName ?? null,
+  };
 }
 
 export function addInheritRelation(

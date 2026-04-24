@@ -47,6 +47,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     addImportRelation.mockReset();
     addTypeImportRelation.mockReset();
     addRelation.mockReset();
+    collectImportBindings.mockReturnValue([]);
   });
 
   it('collects bindings and import relations when an import specifier exists', () => {

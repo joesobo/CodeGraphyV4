@@ -1,7 +1,10 @@
 import type Parser from 'tree-sitter';
 
 export interface ImportedBinding {
+  bindingKind?: 'default' | 'module' | 'named' | 'namespace';
   importedName?: string;
+  localName?: string;
+  memberName?: string;
   resolvedPath: string | null;
   specifier: string;
 }

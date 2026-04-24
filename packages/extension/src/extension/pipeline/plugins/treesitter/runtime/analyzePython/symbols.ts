@@ -16,7 +16,7 @@ function getPythonCallBinding(
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
   return (
     getImportedBindingByIdentifier(calleeNode, importedBindings)
-    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'attribute', 'object')
+    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'attribute', 'object', 'attribute')
   );
 }
 

@@ -180,6 +180,12 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
         specifier: 'run',
         resolvedPath: '/workspace/dep.ts',
         toFilePath: '/workspace/dep.ts',
+        metadata: {
+          bindingKind: null,
+          importedName: null,
+          localName: null,
+          memberName: null,
+        },
       },
       {
         kind: 'inherit',

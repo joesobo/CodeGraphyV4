@@ -67,8 +67,14 @@ export function handleJavaScriptImportStatement(
   if (specifier) {
     const resolvedPath = resolveTreeSitterImportPath(filePath, specifier);
     if (hasValueImport(node)) {
-      collectImportBindings(node, specifier, resolvedPath, importedBindings);
-      addImportRelation(relations, filePath, specifier, resolvedPath);
+      const statementBindings = collectImportBindings(node, specifier, resolvedPath, importedBindings);
+      if (statementBindings.length === 0) {
+        addImportRelation(relations, filePath, specifier, resolvedPath);
+      } else {
+        for (const binding of statementBindings) {
+          addImportRelation(relations, filePath, specifier, resolvedPath, undefined, undefined, binding);
+        }
+      }
     }
     if (hasDirectTypeKeyword(node) || hasTypeSpecifierImport(node)) {
       addTypeImportRelation(relations, filePath, specifier, resolvedPath);

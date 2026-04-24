@@ -7,6 +7,7 @@ export function addNamedImportBindings(
   importedBindings: Map<string, ImportedBinding>,
   specifier: string,
   resolvedPath: string | null,
+  statementBindings: ImportedBinding[],
 ): void {
   for (const importSpecifier of node.namedChildren.filter((child) => child.type === 'import_specifier')) {
     if ((importSpecifier.children ?? []).some((child) => child.type === 'type')) {
@@ -22,6 +23,15 @@ export function addNamedImportBindings(
       continue;
     }
 
-    addCollectedImportBinding(importedBindings, localName, importedName ?? localName, specifier, resolvedPath);
+    statementBindings.push(
+      addCollectedImportBinding(
+        importedBindings,
+        localName,
+        importedName ?? localName,
+        specifier,
+        resolvedPath,
+        'named',
+      ),
+    );
   }
 }
