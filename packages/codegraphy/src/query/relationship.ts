@@ -68,12 +68,69 @@ function reconstructPath(targetId: string, previous: Map<string, { parent: strin
   return path.reverse();
 }
 
+type MatchedDirection = 'forward' | 'reverse' | 'none';
+
+interface MatchedRelationship {
+  direct: boolean;
+  matchedDirection: MatchedDirection;
+  relations: IAnalysisRelation[];
+}
+
+function matchRelationship(
+  from: string,
+  to: string,
+  context: QueryContext,
+  input: ExplainRelationshipInput,
+): MatchedRelationship {
+  const forwardDirect = readDirectRelations(from, to, context, input);
+  if (forwardDirect.length > 0) {
+    return {
+      direct: true,
+      matchedDirection: 'forward',
+      relations: forwardDirect,
+    };
+  }
+
+  const forwardPath = readShortestPath(from, to, context, input);
+  if (forwardPath.length > 0) {
+    return {
+      direct: false,
+      matchedDirection: 'forward',
+      relations: forwardPath,
+    };
+  }
+
+  const reverseDirect = readDirectRelations(to, from, context, input);
+  if (reverseDirect.length > 0) {
+    return {
+      direct: true,
+      matchedDirection: 'reverse',
+      relations: reverseDirect,
+    };
+  }
+
+  const reversePath = readShortestPath(to, from, context, input);
+  if (reversePath.length > 0) {
+    return {
+      direct: false,
+      matchedDirection: 'reverse',
+      relations: reversePath,
+    };
+  }
+
+  return {
+    direct: false,
+    matchedDirection: 'none',
+    relations: [],
+  };
+}
+
 export function explainRelationship(
   input: ExplainRelationshipInput,
   context: QueryContext,
 ): QueryResult {
-  const directRelations = readDirectRelations(input.from, input.to, context, input);
-  const pathRelations = directRelations.length > 0 ? directRelations : readShortestPath(input.from, input.to, context, input);
+  const matched = matchRelationship(input.from, input.to, context, input);
+  const pathRelations = matched.relations;
   const ids = new Set<string>([input.from, input.to]);
 
   for (const relation of pathRelations) {
@@ -115,7 +172,8 @@ export function explainRelationship(
     summary: {
       from: input.from,
       to: input.to,
-      direct: directRelations.length > 0,
+      direct: matched.direct,
+      matchedDirection: matched.matchedDirection,
       relationCount: pathRelations.length,
       kinds: [...new Set(pathRelations.map((relation) => relation.kind))],
     },

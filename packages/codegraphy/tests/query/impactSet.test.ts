@@ -1,10 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadQueryContext } from '../../src/query/load';
 import { readImpactSet } from '../../src/query/impactSet';
-import { createTempRepo } from '../support/database';
+import { createTempCodeGraphyHome, createTempRepo } from '../support/database';
 import { createSampleSnapshot } from '../support/sampleGraph';
 
 describe('query/impactSet', () => {
+  let originalHome: string | undefined;
+
+  beforeEach(() => {
+    originalHome = process.env.CODEGRAPHY_HOME;
+    process.env.CODEGRAPHY_HOME = createTempCodeGraphyHome();
+  });
+
+  afterEach(() => {
+    process.env.CODEGRAPHY_HOME = originalHome;
+  });
+
   it('walks a bounded transitive symbol impact path', () => {
     const repo = createTempRepo(createSampleSnapshot());
     const context = loadQueryContext(repo.workspaceRoot);
