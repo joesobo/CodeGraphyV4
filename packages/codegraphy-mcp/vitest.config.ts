@@ -8,7 +8,7 @@ export default defineConfig({
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
-      reportsDirectory: resolve(__dirname, '../../coverage/codegraphy'),
+      reportsDirectory: resolve(__dirname, '../../coverage/codegraphy-mcp'),
       include: ['src/**/*.ts'],
       exclude: ['tests/**/*.ts'],
     },

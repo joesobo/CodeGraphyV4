@@ -107,11 +107,14 @@ Out:
 - `codegraphy_file_summary`
   - given file path
   - return declared symbols, incoming/outgoing counts, top relation kinds
+- `codegraphy_view_graph`
+  - project the saved CodeGraphy graph view from `.codegraphy/graph.lbug` and `.codegraphy/settings.json`
+  - include saved depth mode, folder nodes, package nodes, and structural nests edges
 
 ## Package Direction
 
-- public package: `packages/codegraphy`
-  - workspace package: `@codegraphy-vscode/cli`
+- public package: `packages/codegraphy-mcp`
+  - workspace package: `@codegraphy-vscode/mcp`
   - installs the `codegraphy` binary
   - owns CLI commands:
     - `setup`
@@ -161,7 +164,7 @@ This keeps the public install story simple and matches the GitNexus-style single
 Suggested commands:
 
 ```bash
-pnpm --filter @codegraphy-vscode/cli test
+pnpm --filter @codegraphy-vscode/mcp test
 pnpm run typecheck
 pnpm run lint
 ```
@@ -176,13 +179,13 @@ Separate from internal tests. This is the user-facing proof that Codex can consu
 2. Pack the unpublished CLI package:
 
 ```bash
-pnpm --filter @codegraphy-vscode/cli pack
+pnpm --filter @codegraphy-vscode/mcp pack
 ```
 
 3. Install the packed tarball globally:
 
 ```bash
-npm install -g /absolute/path/to/CodeGraphyV4/codegraphy-vscode-cli-<version>.tgz
+npm install -g /absolute/path/to/CodeGraphyV4/codegraphy-vscode-mcp-<version>.tgz
 codegraphy setup
 ```
 
@@ -222,6 +225,7 @@ Ask:
 - `Use CodeGraphy MCP only to tell me what files depend on <file>.`
 - `Use CodeGraphy MCP to explain the relationship between <file A> and <file B>.`
 - `Use CodeGraphy MCP to list symbols declared by <file> and their dependents.`
+- `Use CodeGraphy MCP to show the saved graph view for <repo>.`
 
 Expected:
 

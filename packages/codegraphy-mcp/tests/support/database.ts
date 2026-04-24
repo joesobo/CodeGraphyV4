@@ -144,3 +144,11 @@ export function appendRelationToRepo(repo: RepoFixture, relation: IAnalysisRelat
     database.closeSync();
   }
 }
+
+export function writeRepoSettings(repo: RepoFixture, settings: Record<string, unknown>): void {
+  fs.writeFileSync(
+    path.join(repo.workspaceRoot, '.codegraphy', 'settings.json'),
+    JSON.stringify(settings, null, 2),
+    'utf8',
+  );
+}

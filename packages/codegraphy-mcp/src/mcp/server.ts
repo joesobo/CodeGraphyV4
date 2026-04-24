@@ -14,7 +14,8 @@ import { loadQueryContext } from '../query/load';
 import { explainRelationship } from '../query/relationship';
 import { readSymbolDependencies } from '../query/symbolDependencies';
 import { readSymbolDependents } from '../query/symbolDependents';
-import type { QueryOptions, QueryResult } from '../query/model';
+import type { QueryOptions } from '../query/model';
+import { readViewGraph } from '../viewGraph/read';
 
 const querySchema = {
   repo: z.string().optional(),
@@ -57,7 +58,7 @@ function createMissingDatabaseResult(error: MissingDatabaseError) {
   };
 }
 
-function createQueryToolResult(result: QueryResult) {
+function createToolResult<T extends Record<string, unknown>>(result: T) {
   return {
     structuredContent: result,
     content: [{ type: 'text' as const, text: renderToolText(result) }],
@@ -91,15 +92,15 @@ function normalizeFilePath(filePath: string, repo: string): string {
 async function runRepoQuery<TInput extends { repo?: string }>(
   input: TInput,
   session: SessionState,
-  query: (repo: string) => QueryResult,
+  query: (repo: string) => Record<string, unknown>,
 ) {
   const repo = resolveRepo(input.repo, session);
 
   try {
-    return createQueryToolResult(query(repo));
+    return createToolResult(query(repo));
   } catch (error) {
     if (error instanceof MissingDatabaseError) {
-      return createQueryToolResult(createMissingDatabaseResult(error));
+      return createToolResult(createMissingDatabaseResult(error));
     }
 
     throw error;
@@ -271,6 +272,41 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
         from: input.from.startsWith('symbol:') ? input.from : normalizeFilePath(input.from, repo),
         to: input.to.startsWith('symbol:') ? input.to : normalizeFilePath(input.to, repo),
       }, context);
+    }),
+  );
+
+  server.registerTool(
+    'codegraphy_view_graph',
+    {
+      description: 'Project a saved CodeGraphy-style graph view from the repo DB and `.codegraphy/settings.json`, including depth mode, folder nodes, package nodes, and their structural edges.',
+      inputSchema: z.object({
+        repo: querySchema.repo,
+        focus: z.string().optional(),
+        kinds: querySchema.kinds,
+        maxResults: querySchema.maxResults,
+        depthMode: z.boolean().optional(),
+        depthLimit: z.number().int().positive().optional(),
+        includeFolders: z.boolean().optional(),
+        includePackages: z.boolean().optional(),
+        showOrphans: z.boolean().optional(),
+      }),
+    },
+    async (input) => runRepoQuery(input, session, (repo) => {
+      const context = loadQueryContext(repo);
+      return readViewGraph(context, {
+        focus: input.focus?.startsWith('symbol:')
+          ? input.focus
+          : input.focus
+            ? normalizeFilePath(input.focus, repo)
+            : undefined,
+        kinds: normalizeKinds(input.kinds),
+        maxResults: input.maxResults,
+        depthMode: input.depthMode,
+        depthLimit: input.depthLimit,
+        includeFolders: input.includeFolders,
+        includePackages: input.includePackages,
+        showOrphans: input.showOrphans,
+      });
     }),
   );
 

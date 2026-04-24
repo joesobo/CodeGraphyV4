@@ -46,6 +46,7 @@ Package boundaries are the primary entry point.
 - When CodeGraphy MCP is available, use it first for repo structure, dependency, relationship, and impact questions before broad file search.
 - Use CodeGraphy to narrow the likely files and symbols first; then read source files for implementation details.
 - Prefer simple repo selection like `codegraphy status .` and `codegraphy_select_repo` with `.` when working from the target repo root.
+- Use `codegraphy_view_graph` when the saved CodeGraphy view matters, including depth mode, folder nodes, package nodes, and structural edges from `.codegraphy/settings.json`.
 
 ### Worktree Safety
 

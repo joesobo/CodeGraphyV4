@@ -3,7 +3,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createCodeGraphyMcpServer } from '../../src/mcp/server';
-import { appendRelationToRepo, createTempCodeGraphyHome, createTempRepo } from '../support/database';
+import { appendRelationToRepo, createTempCodeGraphyHome, createTempRepo, writeRepoSettings } from '../support/database';
 import { createSampleSnapshot } from '../support/sampleGraph';
 
 describe('mcp/server', () => {
@@ -38,12 +38,16 @@ describe('mcp/server', () => {
       'codegraphy_list_repos',
       'codegraphy_select_repo',
       'codegraphy_file_dependencies',
+      'codegraphy_view_graph',
     ]));
     expect(tools.tools.find((tool) => tool.name === 'codegraphy_file_dependencies')?.description).toContain(
       'Prefer this before broad source-file search',
     );
     expect(tools.tools.find((tool) => tool.name === 'codegraphy_select_repo')?.description).toContain(
       'relative paths such as `.`',
+    );
+    expect(tools.tools.find((tool) => tool.name === 'codegraphy_view_graph')?.description).toContain(
+      'depth mode, folder nodes, package nodes',
     );
 
     await client.callTool({
@@ -155,5 +159,74 @@ describe('mcp/server', () => {
         relatedFileCount: 2,
       },
     });
+  });
+
+  it('projects a saved CodeGraphy view graph through MCP', async () => {
+    const repo = createTempRepo({
+      symbols: [
+        {
+          id: 'symbol:packages/feature-depth/src/deep.ts:getDepthTarget',
+          name: 'getDepthTarget',
+          kind: 'function',
+          filePath: 'packages/feature-depth/src/deep.ts',
+        },
+        {
+          id: 'symbol:packages/feature-depth/src/leaf.ts:getLeafName',
+          name: 'getLeafName',
+          kind: 'function',
+          filePath: 'packages/feature-depth/src/leaf.ts',
+        },
+      ],
+      relations: [
+        {
+          kind: 'import',
+          sourceId: 'ts:import',
+          fromFilePath: 'packages/feature-depth/src/deep.ts',
+          toFilePath: 'packages/feature-depth/src/leaf.ts',
+          fromSymbolId: 'symbol:packages/feature-depth/src/deep.ts:getDepthTarget',
+          toSymbolId: 'symbol:packages/feature-depth/src/leaf.ts:getLeafName',
+        },
+      ],
+      files: [
+        { filePath: 'package.json', mtime: 1, size: 1 },
+        { filePath: 'packages/feature-depth/package.json', mtime: 1, size: 1 },
+      ],
+    });
+    writeRepoSettings(repo, {
+      showOrphans: false,
+      nodeVisibility: {
+        folder: true,
+        package: true,
+      },
+    });
+    const server = createCodeGraphyMcpServer();
+    const client = new Client({ name: 'test-client', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    await client.callTool({
+      name: 'codegraphy_select_repo',
+      arguments: { repo: repo.workspaceRoot },
+    });
+
+    const result = await client.callTool({
+      name: 'codegraphy_view_graph',
+      arguments: {},
+    });
+
+    expect(result.structuredContent).toMatchObject({
+      summary: {
+        includeFolders: true,
+        includePackages: true,
+        edgeKindCounts: {
+          import: 1,
+          'codegraphy:nests': expect.any(Number),
+        },
+      },
+    });
+    expect((result.structuredContent as { nodes: Array<{ id: string }> }).nodes.map((node) => node.id)).toEqual(
+      expect.arrayContaining(['packages', 'pkg:workspace:packages/feature-depth']),
+    );
   });
 });

@@ -1,7 +1,7 @@
 {
-  "name": "@codegraphy-vscode/cli",
+  "name": "@codegraphy-vscode/mcp",
   "version": "0.1.0",
-  "description": "CodeGraphy CLI and MCP server",
+  "description": "CodeGraphy MCP CLI and local query server",
   "license": "MIT",
   "type": "module",
   "engines": {

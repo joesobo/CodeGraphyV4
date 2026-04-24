@@ -147,7 +147,8 @@ Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLU
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
 | [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, and panels |
 | [Plugin Guide](./docs/PLUGINS.md) | Build and package plugins for CodeGraphy |
-| [CLI + MCP](./packages/codegraphy/README.md) | Install the `codegraphy` CLI, run `codegraphy status .`, and connect Codex to the local MCP |
+| [MCP Setup](./docs/MCP.md) | Install the extension and npm package, run `codegraphy status .`, connect Codex, and verify the MCP |
+| [MCP Package](./packages/codegraphy-mcp/README.md) | Package-level install, commands, prompts, and view-aware MCP notes |
 | [Contributing](./CONTRIBUTING.md) | Development setup and contribution workflow |
 
 ## License

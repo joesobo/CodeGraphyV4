@@ -1,4 +1,4 @@
-# @codegraphy-vscode/cli
+# @codegraphy-vscode/mcp
 
 ## 0.1.0
 
