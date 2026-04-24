@@ -23,7 +23,7 @@ Out:
 
 - Query the persisted index, not the current-view export.
 - Start at symbol level; derive file impact from symbols.
-- Ship one public npm package named `codegraphy`.
+- Ship a `codegraphy` CLI binary.
 - Public install target:
   - `npm install -g codegraphy`
   - `codegraphy setup`
@@ -111,7 +111,8 @@ Out:
 ## Package Direction
 
 - public package: `packages/codegraphy`
-  - published as `codegraphy`
+  - workspace package: `@codegraphy-vscode/cli`
+  - installs the `codegraphy` binary
   - owns CLI commands:
     - `setup`
     - `mcp`
@@ -160,7 +161,7 @@ This keeps the public install story simple and matches the GitNexus-style single
 Suggested commands:
 
 ```bash
-pnpm --filter codegraphy test
+pnpm --filter @codegraphy-vscode/cli test
 pnpm run typecheck
 pnpm run lint
 ```
@@ -175,13 +176,13 @@ Separate from internal tests. This is the user-facing proof that Codex can consu
 2. Pack the unpublished CLI package:
 
 ```bash
-pnpm --filter codegraphy pack
+pnpm --filter @codegraphy-vscode/cli pack
 ```
 
 3. Install the packed tarball globally:
 
 ```bash
-npm install -g /absolute/path/to/packages/codegraphy/codegraphy-<version>.tgz
+npm install -g /absolute/path/to/CodeGraphyV4/codegraphy-vscode-cli-<version>.tgz
 codegraphy setup
 ```
 
@@ -279,5 +280,6 @@ Expected:
 
 ## Unresolved Questions
 
+- Can the root package name eventually move so the published npm package can also be named `codegraphy`, not only the installed binary?
 - Should `codegraphy_explain_relationship` focus only on direct edges, or should it also summarize multi-hop paths by default?
 - Should `codegraphy setup` write only global Codex config, or also project-local config when run inside a repo?
