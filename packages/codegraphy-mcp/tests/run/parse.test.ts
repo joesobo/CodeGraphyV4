@@ -11,6 +11,10 @@ describe('run/parse', () => {
     expect(parseCliCommand(['status', '/repo'])).toEqual({ name: 'status', repoPath: '/repo' });
   });
 
+  it('parses reindex with an optional repo path', () => {
+    expect(parseCliCommand(['reindex', '/repo'])).toEqual({ name: 'reindex', repoPath: '/repo' });
+  });
+
   it('falls back to help for unknown commands', () => {
     expect(parseCliCommand(['wat'])).toEqual({ name: 'help' });
   });

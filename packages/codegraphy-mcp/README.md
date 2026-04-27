@@ -2,10 +2,12 @@
 
 `@codegraphy-vscode/mcp` installs the `codegraphy` CLI and local MCP server.
 
-It gives agents read-only access to saved CodeGraphy data from:
+It gives agents access to saved CodeGraphy data from:
 
 - `.codegraphy/graph.lbug`
 - `.codegraphy/settings.json`
+
+It can also ask the running CodeGraphy VS Code extension to reindex a repo. The extension still owns indexing; the MCP only focuses/opens VS Code and sends a repo-scoped URI request.
 
 ## Quick Start
 
@@ -13,10 +15,11 @@ It gives agents read-only access to saved CodeGraphy data from:
 npm install -g @codegraphy-vscode/mcp
 codegraphy setup
 codegraphy status .
+codegraphy reindex .
 codex mcp list
 ```
 
-`codegraphy status .` now reports whether the saved index is `fresh`, `stale`, or `missing`.
+`codegraphy status .` reports whether the saved index is `fresh`, `stale`, or `missing`. Use `codegraphy reindex .` when it is stale.
 
 ## Install
 
@@ -49,6 +52,8 @@ args = ["mcp"]
 | `codegraphy list` | Lists locally known indexed repos |
 | `codegraphy status .` | Checks, registers, and reports fresh/stale index status for the current repo |
 | `codegraphy status /path/to/repo` | Checks another repo from anywhere and reports fresh/stale status |
+| `codegraphy reindex .` | Focuses/opens VS Code for the repo, sends a CodeGraphy reindex URI, and waits for fresh status |
+| `codegraphy reindex /path/to/repo` | Requests a VS Code extension reindex for another repo from anywhere |
 | `codegraphy mcp` | Starts the local stdio MCP server |
 
 ## MCP Tools
@@ -58,6 +63,7 @@ args = ["mcp"]
 | `codegraphy_list_repos` | Lists indexed repos |
 | `codegraphy_select_repo` | Selects the repo for the session |
 | `codegraphy_repo_status` | Checks DB availability, registration, and fresh/stale status |
+| `codegraphy_request_reindex` | Asks the running CodeGraphy VS Code extension to reindex a repo, optionally waiting for fresh status |
 | `codegraphy_file_dependencies` | Lists outgoing file relationships |
 | `codegraphy_file_dependents` | Lists incoming file relationships |
 | `codegraphy_symbol_dependencies` | Lists outgoing symbol relationships |
@@ -74,7 +80,9 @@ args = ["mcp"]
 - `Use CodeGraphy to update UserName in types.ts to a FullName object with first and last strings, then fix the affected code.`
 - For narrower impact slices, ask for incoming dependents only or filter to kinds like `type-import` or `call`.
 
-If the repo status is `stale`, reindex in VS Code first. The MCP rereads the DB on each query, but it can only see what the extension has already persisted.
+If the repo status is `stale`, use `codegraphy_request_reindex` or `codegraphy reindex .` first. The MCP rereads the DB on each query, but it can only see what the extension has already persisted.
+
+`codegraphy_request_reindex` runs `code <repo>`, sends `vscode://codegraphy.codegraphy/reindex?...`, and polls freshness until the DB reports fresh or the timeout is reached. The extension verifies the receiving VS Code window matches the requested repo before reindexing.
 
 ## Optional Skill
 

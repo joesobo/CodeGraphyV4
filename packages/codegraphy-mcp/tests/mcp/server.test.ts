@@ -89,6 +89,7 @@ describe('mcp/server', () => {
       'codegraphy_list_repos',
       'codegraphy_select_repo',
       'codegraphy_file_dependencies',
+      'codegraphy_request_reindex',
       'codegraphy_view_graph',
     ]));
     expect(tools.tools.find((tool) => tool.name === 'codegraphy_file_dependencies')?.description).toContain(
@@ -99,6 +100,9 @@ describe('mcp/server', () => {
     );
     expect(tools.tools.find((tool) => tool.name === 'codegraphy_view_graph')?.description).toContain(
       'depth mode, folder nodes, package nodes',
+    );
+    expect(tools.tools.find((tool) => tool.name === 'codegraphy_request_reindex')?.description).toContain(
+      'Ask the running CodeGraphy VS Code extension to reindex',
     );
 
     await client.callTool({
@@ -143,6 +147,64 @@ describe('mcp/server', () => {
     expect(result.structuredContent).toMatchObject({
       workspaceRoot: resolvedWorkspaceRoot,
       status: 'indexed',
+    });
+  });
+
+  it('requests a VS Code extension reindex through MCP', async () => {
+    const repo = createTempRepo(createSampleSnapshot());
+    const server = createCodeGraphyMcpServer({}, {
+      requestCodeGraphyReindex: async (input) => ({
+        repo: input.repoPath,
+        requestId: 'request-1',
+        uri: 'vscode://codegraphy.codegraphy/reindex?repo=test&requestId=request-1',
+        status: 'requested',
+        waited: false,
+        timeoutMs: input.timeoutMs ?? 600000,
+        pollIntervalMs: input.pollIntervalMs ?? 1000,
+        before: {
+          workspaceRoot: input.repoPath,
+          databasePath: `${input.repoPath}/.codegraphy/graph.lbug`,
+          registered: true,
+          status: 'stale',
+          freshness: 'stale',
+          detail: 'stale',
+          lastIndexedAt: null,
+          lastIndexedCommit: null,
+          currentCommit: null,
+          pendingChangedFiles: [],
+          staleReasons: ['commit-changed'],
+        },
+        after: {
+          workspaceRoot: input.repoPath,
+          databasePath: `${input.repoPath}/.codegraphy/graph.lbug`,
+          registered: true,
+          status: 'stale',
+          freshness: 'stale',
+          detail: 'requested',
+          lastIndexedAt: null,
+          lastIndexedCommit: null,
+          currentCommit: null,
+          pendingChangedFiles: [],
+          staleReasons: ['commit-changed'],
+        },
+        limitations: [],
+      }),
+    });
+    const client = new Client({ name: 'test-client', version: '1.0.0' });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+
+    const result = await client.callTool({
+      name: 'codegraphy_request_reindex',
+      arguments: { repo: repo.workspaceRoot, wait: false },
+    });
+
+    expect(result.structuredContent).toMatchObject({
+      repo: repo.workspaceRoot,
+      status: 'requested',
+      waited: false,
     });
   });
 

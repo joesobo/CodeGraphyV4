@@ -1,13 +1,13 @@
 # CodeGraphy MCP Setup
 
-CodeGraphy MCP gives an agent read-only access to a repo's saved CodeGraphy index.
+CodeGraphy MCP gives an agent access to a repo's saved CodeGraphy index and can ask the CodeGraphy VS Code extension to reindex that repo.
 
 It reads:
 
 - `.codegraphy/graph.lbug`
 - `.codegraphy/settings.json`
 
-It does not index repos itself in this MVP. The VS Code extension still does that.
+It does not contain indexing logic. The VS Code extension still owns indexing; the MCP only sends a repo-scoped request to the extension.
 
 ## Quick Start
 
@@ -21,7 +21,10 @@ codegraphy setup
 # 3. Register the current indexed repo
 codegraphy status .
 
-# 4. Verify Codex sees it
+# 4. Ask VS Code to refresh the repo if status is stale
+codegraphy reindex .
+
+# 5. Verify Codex sees it
 codex mcp list
 codex mcp get codegraphy --json
 ```
@@ -32,7 +35,7 @@ Then start a fresh Codex session and ask:
 Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.
 ```
 
-If `codegraphy status .` reports `freshness: stale`, reindex in VS Code before relying on the graph for a large refactor.
+If `codegraphy status .` reports `freshness: stale`, run `codegraphy reindex .` or ask the agent to use `codegraphy_request_reindex` before relying on the graph for a large refactor.
 
 ## Step By Step
 
@@ -41,20 +44,22 @@ If `codegraphy status .` reports `freshness: stale`, reindex in VS Code before r
 3. Open the repo you want to use.
 4. Open the CodeGraphy graph.
 5. Run CodeGraphy indexing until the repo has `.codegraphy/graph.lbug`.
-6. Open a terminal in that repo.
-7. Install the npm package globally:
+6. Make sure the VS Code `code` shell command is installed and available in your terminal.
+   On macOS, use VS Code's command palette action `Shell Command: Install 'code' command in PATH` if needed.
+7. Open a terminal in that repo.
+8. Install the npm package globally:
 
 ```bash
 npm install -g @codegraphy-vscode/mcp
 ```
 
-8. Set up the Codex MCP entry:
+9. Set up the Codex MCP entry:
 
 ```bash
 codegraphy setup
 ```
 
-9. Register the repo:
+10. Register the repo:
 
 ```bash
 codegraphy status .
@@ -62,7 +67,15 @@ codegraphy status .
 
 That command also reports whether the saved index is `fresh`, `stale`, or `missing`.
 
-10. Verify the repo and MCP:
+11. If the repo is stale, ask VS Code to reindex it:
+
+```bash
+codegraphy reindex .
+```
+
+This runs `code <repo>`, sends `vscode://codegraphy.codegraphy/reindex?...`, and waits until the saved DB reports `fresh` or the timeout is reached.
+
+12. Verify the repo and MCP:
 
 ```bash
 codegraphy list
@@ -70,7 +83,7 @@ codex mcp list
 codex mcp get codegraphy --json
 ```
 
-11. Start a fresh Codex session:
+13. Start a fresh Codex session:
 
 ```bash
 codex
@@ -110,6 +123,8 @@ args = ["mcp"]
 | `codegraphy list` | Lists locally known indexed repos from `~/.codegraphy/registry.json` | verify repo discovery |
 | `codegraphy status .` | Checks the current repo, registers it if indexed, and reports fresh/stale status | shortest repo setup flow |
 | `codegraphy status /path/to/repo` | Checks another repo from anywhere and reports fresh/stale status | multi-repo use |
+| `codegraphy reindex .` | Focuses/opens VS Code for the repo, sends a CodeGraphy reindex URI, and waits for fresh status | refresh stale graph data |
+| `codegraphy reindex /path/to/repo` | Requests a VS Code extension reindex for another repo from anywhere | multi-repo refresh |
 | `codegraphy mcp` | Starts the local stdio MCP server | manual MCP runtime |
 
 ## MCP Tools
@@ -119,6 +134,7 @@ args = ["mcp"]
 | `codegraphy_list_repos` | Lists indexed repos | find the right repo first |
 | `codegraphy_select_repo` | Selects the repo for this MCP session | session setup |
 | `codegraphy_repo_status` | Checks DB availability, registration, and fresh/stale status | verify setup |
+| `codegraphy_request_reindex` | Asks the running CodeGraphy VS Code extension to reindex a repo, optionally waiting for fresh status | refresh stale graph data |
 | `codegraphy_file_dependencies` | Lists outgoing file relationships | plan a change |
 | `codegraphy_file_dependents` | Lists incoming file relationships | blast radius |
 | `codegraphy_symbol_dependencies` | Lists outgoing symbol relationships | trace a symbol outward |
@@ -130,7 +146,7 @@ args = ["mcp"]
 
 ## Optional Skill
 
-This repo also ships a reusable skill at [skills/codegraphy-mcp/SKILL.md](/Users/poleski/Desktop/Projects/CodeGraphyV4-codex-codegraphy-mcp/skills/codegraphy-mcp/SKILL.md).
+This repo also ships a reusable skill at [skills/codegraphy-mcp/SKILL.md](../skills/codegraphy-mcp/SKILL.md).
 
 If you want Codex to use CodeGraphy more consistently from short prompts, copy `skills/codegraphy-mcp/` into your Codex skills directory, such as:
 
@@ -163,6 +179,9 @@ Use CodeGraphy to update UserName in types.ts to a FullName object with first an
 
 - `codegraphy status .` both checks the repo and registers it in `~/.codegraphy/registry.json`.
 - `codegraphy status .` also reports `lastIndexedCommit`, `currentCommit`, and stale reasons when the saved index is behind the repo.
+- Freshness compares saved CodeGraphy metadata against the current repo state, including the last indexed commit, current `HEAD`, and pending file changes recorded by the extension.
+- `codegraphy reindex .` and `codegraphy_request_reindex` do not index directly. They focus/open VS Code with `code <repo>`, send a repo-scoped URI to the CodeGraphy extension, then poll `codegraphy_repo_status`-equivalent freshness.
+- The extension verifies the URI target matches the workspace in the receiving VS Code window before reindexing. If the wrong window receives the URI, it warns instead of indexing the wrong repo.
 - Later Codex sessions can select that repo even if they start from another directory.
 - Every MCP query rereads the DB and saved settings from disk, so saved graph changes show up on the next query.
 - If the repo has no `.codegraphy/graph.lbug`, the MCP returns setup guidance pointing back to the extension.

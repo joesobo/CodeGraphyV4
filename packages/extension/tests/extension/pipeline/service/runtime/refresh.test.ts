@@ -80,7 +80,7 @@ describe('pipeline/service/refresh', () => {
     expect(graph).toEqual({ nodes: [{ id: 'full' }], edges: [] });
   });
 
-  it('returns graph data from cached analysis when no files remain to analyze', async () => {
+  it('falls back to a full analyze run when changed paths are no longer discovered', async () => {
     const source = createSource();
     const dependencies = createDependencies();
     dependencies.filePaths = ['/workspace/missing.ts'];
@@ -89,6 +89,7 @@ describe('pipeline/service/refresh', () => {
       requiresFullRefresh: false,
     });
     source._readAnalysisFiles.mockResolvedValue([]);
+    source.analyze.mockResolvedValue({ nodes: [{ id: 'full' }], edges: [] });
     source._lastFileAnalysis.set('src/existing.ts', {
       filePath: '/workspace/src/existing.ts',
       relations: [],
@@ -96,14 +97,17 @@ describe('pipeline/service/refresh', () => {
 
     const graph = await refreshWorkspacePipelineChangedFiles(source as never, dependencies as never);
 
-    expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
-      source._lastFileAnalysis,
-      '/workspace',
-      true,
+    expect(source.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/missing.ts']);
+    expect(source._readAnalysisFiles).not.toHaveBeenCalled();
+    expect(dependencies.notifyFilesChanged).not.toHaveBeenCalled();
+    expect(source._buildGraphDataFromAnalysis).not.toHaveBeenCalled();
+    expect(source.analyze).toHaveBeenCalledWith(
+      ['**/*.ts'],
       dependencies.disabledPlugins,
+      dependencies.signal,
+      expect.any(Function),
     );
-    expect(source.invalidateWorkspaceFiles).not.toHaveBeenCalled();
-    expect(graph).toEqual({ nodes: [{ id: 'node' }], edges: [] });
+    expect(graph).toEqual({ nodes: [{ id: 'full' }], edges: [] });
   });
 
   it('reanalyzes changed files and plugin-requested dependents, then persists the refreshed state', async () => {

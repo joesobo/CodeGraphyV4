@@ -15,6 +15,7 @@ import { explainRelationship } from '../query/relationship';
 import { readSymbolDependencies } from '../query/symbolDependencies';
 import { readSymbolDependents } from '../query/symbolDependents';
 import type { QueryOptions } from '../query/model';
+import { requestCodeGraphyReindex, type ReindexRequestInput, type ReindexRequestResult } from '../reindex/request';
 import { readViewGraph } from '../viewGraph/read';
 
 const querySchema = {
@@ -28,6 +29,14 @@ const querySchema = {
 interface SessionState {
   selectedRepo?: string;
 }
+
+interface CodeGraphyMcpServerDependencies {
+  requestCodeGraphyReindex(input: ReindexRequestInput): Promise<ReindexRequestResult>;
+}
+
+const DEFAULT_DEPENDENCIES: CodeGraphyMcpServerDependencies = {
+  requestCodeGraphyReindex,
+};
 
 function renderToolText(result: unknown): string {
   return JSON.stringify(result, null, 2);
@@ -109,7 +118,10 @@ async function runRepoQuery<TInput extends { repo?: string }>(
   }
 }
 
-export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer {
+export function createCodeGraphyMcpServer(
+  session: SessionState = {},
+  dependencies: CodeGraphyMcpServerDependencies = DEFAULT_DEPENDENCIES,
+): McpServer {
   const server = new McpServer({
     name: 'codegraphy',
     version: '0.1.0',
@@ -163,6 +175,25 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
         content: [{ type: 'text', text: renderToolText(status) }],
       };
     },
+  );
+
+  server.registerTool(
+    'codegraphy_request_reindex',
+    {
+      description: 'Ask the running CodeGraphy VS Code extension to reindex a repo. Use when CodeGraphy status is stale or missing before relying on graph queries. The request focuses VS Code with `code <repo>`, sends a repo-scoped CodeGraphy URI, and can wait until the saved DB reports fresh.',
+      inputSchema: z.object({
+        repo: z.string().optional(),
+        wait: z.boolean().optional(),
+        timeoutMs: z.number().int().positive().optional(),
+        pollIntervalMs: z.number().int().positive().optional(),
+      }),
+    },
+    async (input) => createToolResult(await dependencies.requestCodeGraphyReindex({
+      repoPath: resolveRepo(input.repo, session),
+      wait: input.wait,
+      timeoutMs: input.timeoutMs,
+      pollIntervalMs: input.pollIntervalMs,
+    })),
   );
 
   server.registerTool(

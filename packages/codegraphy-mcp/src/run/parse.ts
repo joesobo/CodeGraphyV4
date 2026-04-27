@@ -1,4 +1,4 @@
-export type CliCommandName = 'help' | 'list' | 'mcp' | 'setup' | 'status';
+export type CliCommandName = 'help' | 'list' | 'mcp' | 'reindex' | 'setup' | 'status';
 
 export interface CliCommand {
   name: CliCommandName;
@@ -20,6 +20,8 @@ export function parseCliCommand(argv: string[]): CliCommand {
       return { name: 'list' };
     case 'status':
       return { name: 'status', repoPath: rest[0] };
+    case 'reindex':
+      return { name: 'reindex', repoPath: rest[0] };
     case 'mcp':
       return { name: 'mcp' };
     default:
