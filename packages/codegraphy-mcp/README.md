@@ -16,6 +16,8 @@ codegraphy status .
 codex mcp list
 ```
 
+`codegraphy status .` now reports whether the saved index is `fresh`, `stale`, or `missing`.
+
 ## Install
 
 ```bash
@@ -45,8 +47,8 @@ args = ["mcp"]
 |---|---|
 | `codegraphy setup` | Adds the CodeGraphy MCP entry to Codex when possible |
 | `codegraphy list` | Lists locally known indexed repos |
-| `codegraphy status .` | Checks and registers the current repo |
-| `codegraphy status /path/to/repo` | Checks another repo from anywhere |
+| `codegraphy status .` | Checks, registers, and reports fresh/stale index status for the current repo |
+| `codegraphy status /path/to/repo` | Checks another repo from anywhere and reports fresh/stale status |
 | `codegraphy mcp` | Starts the local stdio MCP server |
 
 ## MCP Tools
@@ -55,7 +57,7 @@ args = ["mcp"]
 |---|---|
 | `codegraphy_list_repos` | Lists indexed repos |
 | `codegraphy_select_repo` | Selects the repo for the session |
-| `codegraphy_repo_status` | Checks DB availability and registration |
+| `codegraphy_repo_status` | Checks DB availability, registration, and fresh/stale status |
 | `codegraphy_file_dependencies` | Lists outgoing file relationships |
 | `codegraphy_file_dependents` | Lists incoming file relationships |
 | `codegraphy_symbol_dependencies` | Lists outgoing symbol relationships |
@@ -71,6 +73,8 @@ args = ["mcp"]
 - `Use CodeGraphy to show the saved graph view for this repo.`
 - `Use CodeGraphy to update UserName in types.ts to a FullName object with first and last strings, then fix the affected code.`
 - For narrower impact slices, ask for incoming dependents only or filter to kinds like `type-import` or `call`.
+
+If the repo status is `stale`, reindex in VS Code first. The MCP rereads the DB on each query, but it can only see what the extension has already persisted.
 
 ## Optional Skill
 

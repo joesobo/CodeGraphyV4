@@ -26,6 +26,8 @@ function createState(
   return {
     graphData: null,
     graphHasIndex: false,
+    graphIndexFreshness: 'missing',
+    graphIndexDetail: null,
     graphIsIndexing: false,
     graphIndexProgress: null,
     isLoading: true,
@@ -95,8 +97,16 @@ describe('webview/store/messageHandlers/graph', () => {
   it('maps graph index status and progress payloads', () => {
     expect(handleGraphIndexStatusUpdated({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
-      payload: { hasIndex: true },
-    })).toEqual({ graphHasIndex: true });
+      payload: {
+        hasIndex: true,
+        freshness: 'fresh',
+        detail: 'CodeGraphy index is fresh.',
+      },
+    })).toEqual({
+      graphHasIndex: true,
+      graphIndexFreshness: 'fresh',
+      graphIndexDetail: 'CodeGraphy index is fresh.',
+    });
 
     expect(handleGraphIndexProgress({
       type: 'GRAPH_INDEX_PROGRESS',

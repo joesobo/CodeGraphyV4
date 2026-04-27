@@ -151,7 +151,7 @@ export function createCodeGraphyMcpServer(session: SessionState = {}): McpServer
   server.registerTool(
     'codegraphy_repo_status',
     {
-      description: 'Check whether a repo has a CodeGraphy database and whether it is registered locally. Accepts absolute or relative paths such as `.`.',
+      description: 'Check whether a repo has a CodeGraphy database, whether it is registered locally, and whether the saved index is fresh or stale. Accepts absolute or relative paths such as `.`.',
       inputSchema: z.object({
         repo: z.string().optional(),
       }),

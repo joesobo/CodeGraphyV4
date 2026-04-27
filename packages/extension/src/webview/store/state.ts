@@ -27,6 +27,8 @@ import type {
 export interface GraphState {
   graphData: IGraphData | null;
   graphHasIndex: boolean;
+  graphIndexFreshness: 'fresh' | 'stale' | 'missing';
+  graphIndexDetail: string | null;
   graphIsIndexing: boolean;
   graphIndexProgress: { phase: string; current: number; total: number } | null;
   isLoading: boolean;

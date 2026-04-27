@@ -32,6 +32,8 @@ Then start a fresh Codex session and ask:
 Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.
 ```
 
+If `codegraphy status .` reports `freshness: stale`, reindex in VS Code before relying on the graph for a large refactor.
+
 ## Step By Step
 
 1. Open VS Code.
@@ -57,6 +59,8 @@ codegraphy setup
 ```bash
 codegraphy status .
 ```
+
+That command also reports whether the saved index is `fresh`, `stale`, or `missing`.
 
 10. Verify the repo and MCP:
 
@@ -104,8 +108,8 @@ args = ["mcp"]
 |---|---|---|
 | `codegraphy setup` | Configures the local CodeGraphy MCP entry for Codex | one-time machine setup |
 | `codegraphy list` | Lists locally known indexed repos from `~/.codegraphy/registry.json` | verify repo discovery |
-| `codegraphy status .` | Checks the current repo and registers it if indexed | shortest repo setup flow |
-| `codegraphy status /path/to/repo` | Checks another repo from anywhere | multi-repo use |
+| `codegraphy status .` | Checks the current repo, registers it if indexed, and reports fresh/stale status | shortest repo setup flow |
+| `codegraphy status /path/to/repo` | Checks another repo from anywhere and reports fresh/stale status | multi-repo use |
 | `codegraphy mcp` | Starts the local stdio MCP server | manual MCP runtime |
 
 ## MCP Tools
@@ -114,7 +118,7 @@ args = ["mcp"]
 |---|---|---|
 | `codegraphy_list_repos` | Lists indexed repos | find the right repo first |
 | `codegraphy_select_repo` | Selects the repo for this MCP session | session setup |
-| `codegraphy_repo_status` | Checks DB availability and registration | verify setup |
+| `codegraphy_repo_status` | Checks DB availability, registration, and fresh/stale status | verify setup |
 | `codegraphy_file_dependencies` | Lists outgoing file relationships | plan a change |
 | `codegraphy_file_dependents` | Lists incoming file relationships | blast radius |
 | `codegraphy_symbol_dependencies` | Lists outgoing symbol relationships | trace a symbol outward |
@@ -158,7 +162,9 @@ Use CodeGraphy to update UserName in types.ts to a FullName object with first an
 ## Notes
 
 - `codegraphy status .` both checks the repo and registers it in `~/.codegraphy/registry.json`.
+- `codegraphy status .` also reports `lastIndexedCommit`, `currentCommit`, and stale reasons when the saved index is behind the repo.
 - Later Codex sessions can select that repo even if they start from another directory.
 - Every MCP query rereads the DB and saved settings from disk, so saved graph changes show up on the next query.
 - If the repo has no `.codegraphy/graph.lbug`, the MCP returns setup guidance pointing back to the extension.
+- If the repo is stale, the VS Code toolbar shows **Reindex Repo** with a warning dot and the button forces a refresh rebuild.
 - For noisy refactors, prefer `codegraphy_impact_set` with `kinds` like `["type-import"]` or `["call"]`, and use `direction` to choose incoming dependents, outgoing dependencies, or both.

@@ -74,7 +74,7 @@ The toolbar lives in a left-side rail beside the graph. Buttons stay stacked in 
 | Node size buttons | Switch node sizing: Connections, File Size, Access Count, or Uniform. |
 | Nodes | Opens node visibility controls for core and plugin-added node kinds. |
 | Edges | Opens edge visibility controls and shows current edge colors. |
-| Index Repo / Refresh | Before indexing: builds the repo index. After indexing: forces a full re-index. |
+| Index Repo / Refresh | Before indexing: builds the repo index. After indexing: forces a full re-index. When the saved index is stale, this becomes **Reindex Repo** and shows a warning dot. |
 | Export | Dropdown for exporting as PNG, SVG, JPEG, graph JSON, graph Markdown, or symbol JSON. |
 | Legends | Opens legend rule editing and color priority controls. |
 | Plugins | Opens the plugins panel. |
@@ -110,7 +110,7 @@ Toggle whole plugins on or off and drag them to change processing priority. Plug
 
 ### Index / Refresh (autorenew icon)
 
-Before the repo has an index, this button is **Index Repo**. After the repo is indexed, it becomes **Refresh** and forces a full re-index.
+Before the repo has an index, this button is **Index Repo**. After the repo is indexed, it becomes **Refresh** and forces a full re-index. If CodeGraphy detects a stale saved index, it becomes **Reindex Repo** and shows a warning dot until the repo is reindexed.
 
 ## Timeline
 

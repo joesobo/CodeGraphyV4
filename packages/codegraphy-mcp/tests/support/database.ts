@@ -125,6 +125,18 @@ export function createTempRepo(
     database.closeSync();
   }
 
+  writeRepoMeta(
+    { workspaceRoot, databasePath },
+    {
+      version: 1,
+      lastIndexedAt: new Date().toISOString(),
+      lastIndexedCommit: null,
+      pluginSignature: null,
+      settingsSignature: null,
+      pendingChangedFiles: [],
+    },
+  );
+
   return { workspaceRoot, databasePath };
 }
 
@@ -149,6 +161,24 @@ export function writeRepoSettings(repo: RepoFixture, settings: Record<string, un
   fs.writeFileSync(
     path.join(repo.workspaceRoot, '.codegraphy', 'settings.json'),
     JSON.stringify(settings, null, 2),
+    'utf8',
+  );
+}
+
+export function writeRepoMeta(
+  repo: RepoFixture,
+  meta: {
+    version: 1;
+    lastIndexedAt: string | null;
+    lastIndexedCommit: string | null;
+    pluginSignature: string | null;
+    settingsSignature: string | null;
+    pendingChangedFiles: string[];
+  },
+): void {
+  fs.writeFileSync(
+    path.join(repo.workspaceRoot, '.codegraphy', 'meta.json'),
+    JSON.stringify(meta, null, 2),
     'utf8',
   );
 }

@@ -18,6 +18,8 @@ import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
 } from './runtime/run';
+import { evaluateCodeGraphyIndexStatus } from '../../repoSettings/freshness';
+import { readCodeGraphyRepoMeta } from '../../repoSettings/meta';
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   async initialize(): Promise<void> {
@@ -57,6 +59,28 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       getPluginSignature: () => this._getPluginSignature(),
       getSettingsSignature: () => this._getSettingsSignature(),
     });
+  }
+
+  getIndexStatus(): { freshness: 'fresh' | 'stale' | 'missing'; detail: string } {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return {
+        freshness: 'missing',
+        detail: 'CodeGraphy index is missing. Index the repo to build the graph.',
+      };
+    }
+
+    const status = evaluateCodeGraphyIndexStatus({
+      meta: readCodeGraphyRepoMeta(workspaceRoot),
+      currentCommit: this._getCurrentCommitShaSync(workspaceRoot),
+      pluginSignature: this._getPluginSignature(),
+      settingsSignature: this._getSettingsSignature(),
+    });
+
+    return {
+      freshness: status.freshness,
+      detail: status.detail,
+    };
   }
 
   async discoverGraph(

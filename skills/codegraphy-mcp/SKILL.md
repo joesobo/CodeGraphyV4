@@ -15,6 +15,7 @@ Use CodeGraphy first when the question is about repo structure.
 
 2. Check the saved index if setup is unclear.
    Use `codegraphy_repo_status` before assuming the repo is indexed.
+   If freshness is `stale`, ask for a reindex in VS Code before trusting broad graph impact.
 
 3. Choose the narrowest graph tool that answers the question.
    Use file tools for file impact.
@@ -31,7 +32,7 @@ Use CodeGraphy first when the question is about repo structure.
 - `codegraphy_select_repo`
   Use to set the repo for the session.
 - `codegraphy_repo_status`
-  Use to confirm the repo has `.codegraphy/graph.lbug`.
+  Use to confirm the repo has `.codegraphy/graph.lbug` and to check whether the saved index is fresh or stale.
 - `codegraphy_file_dependencies`
   Use for outgoing file relationships.
 - `codegraphy_file_dependents`
@@ -56,6 +57,7 @@ Use CodeGraphy first when the question is about repo structure.
 - Prefer file-level queries when the user asks about files, folders, modules, or broad refactors.
 - When impact results are noisy, narrow them with `kinds` and `direction` before switching to broader source-file reads.
 - Treat CodeGraphy as structure memory, not as a replacement for reading implementation details.
+- If CodeGraphy reports a stale index, prefer reindexing before major graph-driven refactors. After you edit files, the DB can lag behind source until VS Code refreshes it.
 - If the repo is missing `.codegraphy/graph.lbug`, tell the user to open the repo in VS Code with CodeGraphy installed and run indexing.
 
 ## Example Prompts

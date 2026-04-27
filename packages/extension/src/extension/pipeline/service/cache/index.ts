@@ -1,4 +1,5 @@
 import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSettings/meta';
+import { evaluateCodeGraphyIndexStatus } from '../../../repoSettings/freshness';
 
 interface WorkspacePipelineSignatureDependencies {
   getPluginSignature(): string | null;
@@ -29,19 +30,22 @@ export function hasWorkspacePipelineIndex(
     return false;
   }
 
-  const signaturesMatch =
-    meta.pluginSignature === dependencies.getPluginSignature()
-    && meta.settingsSignature === dependencies.getSettingsSignature();
-  if (!signaturesMatch) {
+  const pluginSignature = dependencies.getPluginSignature();
+  const settingsSignature = dependencies.getSettingsSignature();
+  if (meta.pluginSignature !== pluginSignature || meta.settingsSignature !== settingsSignature) {
     return false;
   }
 
-  const currentCommit = dependencies.getCurrentCommitShaSync(workspaceRoot);
-  if (currentCommit === null) {
-    return meta.lastIndexedCommit === null;
+  if (meta.pendingChangedFiles.length > 0) {
+    return false;
   }
 
-  return meta.lastIndexedCommit === currentCommit;
+  return evaluateCodeGraphyIndexStatus({
+    meta,
+    currentCommit: dependencies.getCurrentCommitShaSync(workspaceRoot),
+    pluginSignature,
+    settingsSignature,
+  }).hasIndex;
 }
 
 export async function persistWorkspacePipelineIndexMetadata(

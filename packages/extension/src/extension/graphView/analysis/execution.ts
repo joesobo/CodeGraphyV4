@@ -2,6 +2,7 @@ import type { IGraphData } from '../../../shared/graph/contracts';
 import { publishAnalysisFailure } from './execution/publish';
 import { prepareGraphViewAnalysis } from './execution/prepare';
 import { runGraphViewAnalysis } from './execution/run';
+import type { CodeGraphyIndexFreshness } from '../../repoSettings/freshness';
 
 export type GraphViewAnalysisMode = 'analyze' | 'load' | 'index' | 'refresh' | 'incremental';
 export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
@@ -9,6 +10,10 @@ export type GraphViewIndexingProgress = { phase: string; current: number; total:
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
   hasIndex(): boolean;
+  getIndexStatus?(): {
+    freshness: CodeGraphyIndexFreshness;
+    detail: string;
+  };
   discoverGraph(
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
@@ -64,7 +69,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendPluginStatuses(): void;
   sendDecorations(): void;
   sendContextMenuItems(): void;
-  sendGraphIndexStatusUpdated(hasIndex: boolean): void;
+  sendGraphIndexStatusUpdated(hasIndex: boolean, freshness: CodeGraphyIndexFreshness, detail: string): void;
   sendIndexProgress?(progress: GraphViewIndexingProgress): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;

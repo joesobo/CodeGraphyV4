@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { runStatusCommand } from '../../src/status/command';
-import { createTempCodeGraphyHome } from '../support/database';
+import { createTempCodeGraphyHome, writeRepoMeta } from '../support/database';
 
 describe('status/command', () => {
   let homePath: string;
@@ -37,6 +37,14 @@ describe('status/command', () => {
     const databaseDirectory = path.join(workspaceRoot, '.codegraphy');
     fs.mkdirSync(databaseDirectory, { recursive: true });
     fs.writeFileSync(path.join(databaseDirectory, 'graph.lbug'), '');
+    writeRepoMeta({ workspaceRoot, databasePath: path.join(databaseDirectory, 'graph.lbug') }, {
+      version: 1,
+      lastIndexedAt: '2026-04-27T12:00:00.000Z',
+      lastIndexedCommit: null,
+      pluginSignature: null,
+      settingsSignature: null,
+      pendingChangedFiles: [],
+    });
     process.chdir(workspaceRoot);
     const resolvedWorkspaceRoot = process.cwd();
 
@@ -45,5 +53,30 @@ describe('status/command', () => {
     expect(result.exitCode).toBe(0);
     expect(result.output).toContain(`repo: ${resolvedWorkspaceRoot}`);
     expect(result.output).toContain('status: indexed');
+  });
+
+  it('prints freshness details and exits non-zero when the repo is stale', () => {
+    const workspaceRoot = fs.mkdtempSync(path.join(homePath, 'stale-repo-'));
+    const databaseDirectory = path.join(workspaceRoot, '.codegraphy');
+    fs.mkdirSync(databaseDirectory, { recursive: true });
+    fs.writeFileSync(path.join(databaseDirectory, 'graph.lbug'), '');
+    writeRepoMeta({ workspaceRoot, databasePath: path.join(databaseDirectory, 'graph.lbug') }, {
+      version: 1,
+      lastIndexedAt: '2026-04-27T12:00:00.000Z',
+      lastIndexedCommit: 'old-commit',
+      pluginSignature: null,
+      settingsSignature: null,
+      pendingChangedFiles: ['src/types.ts'],
+    });
+
+    const result = runStatusCommand(workspaceRoot, {
+      readCurrentCommitSha: () => 'new-commit',
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output).toContain('status: stale');
+    expect(result.output).toContain('freshness: stale');
+    expect(result.output).toContain('currentCommit: new-commit');
+    expect(result.output).toContain('staleReasons: pending-changed-files, commit-changed');
   });
 });

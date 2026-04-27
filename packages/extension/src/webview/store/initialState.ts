@@ -5,6 +5,8 @@ import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
   graphHasIndex: false,
+  graphIndexFreshness: 'missing' as const,
+  graphIndexDetail: null,
   graphIsIndexing: false,
   graphIndexProgress: null,
   isLoading: true,
