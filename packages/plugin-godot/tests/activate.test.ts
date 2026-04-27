@@ -7,6 +7,7 @@ const installedWithCoreTimeoutMs = 15_000;
 
 const mockState = vi.hoisted(() => ({
   getExtension: vi.fn(),
+  registerUriHandler: vi.fn(() => ({ dispose: vi.fn() })),
   registerWebviewViewProvider: vi.fn(() => ({ dispose: vi.fn() })),
   registerCommand: vi.fn(() => ({ dispose: vi.fn() })),
   getConfiguration: vi.fn(),
@@ -91,6 +92,7 @@ vi.mock('vscode', () => ({
     all: [],
   },
   window: {
+    registerUriHandler: mockState.registerUriHandler,
     registerWebviewViewProvider: mockState.registerWebviewViewProvider,
     showInformationMessage: vi.fn(),
     showErrorMessage: vi.fn(),
