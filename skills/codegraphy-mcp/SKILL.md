@@ -60,7 +60,7 @@ Use CodeGraphy first when the question is about repo structure.
 - Prefer file-level queries when the user asks about files, folders, modules, or broad refactors.
 - When impact results are noisy, narrow them with `kinds` and `direction` before switching to broader source-file reads.
 - Treat CodeGraphy as structure memory, not as a replacement for reading implementation details.
-- If CodeGraphy reports a stale index, request reindexing before major graph-driven refactors. After you edit files, the DB can lag behind source until VS Code refreshes it.
+- If CodeGraphy reports a stale index, treat it as a usable saved snapshot but request reindexing before major graph-driven refactors. After you edit files, the DB can lag behind source until VS Code refreshes it.
 - If the repo is missing `.codegraphy/graph.lbug`, tell the user to open the repo in VS Code with CodeGraphy installed and run indexing.
 
 ## Example Prompts

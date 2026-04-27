@@ -82,6 +82,8 @@ args = ["mcp"]
 
 If the repo status is `stale`, use `codegraphy_request_reindex` or `codegraphy reindex .` first. The MCP rereads the DB on each query, but it can only see what the extension has already persisted.
 
+Stale indexes are still usable snapshots. CodeGraphy should load saved nodes and edges while showing a stale warning. If `.codegraphy/graph.lbug` is missing, the repo is treated as missing even when old metadata remains.
+
 `codegraphy_request_reindex` runs `code <repo>`, sends `vscode://codegraphy.codegraphy/reindex?...`, and polls freshness until the DB reports fresh or the timeout is reached. The extension verifies the receiving VS Code window matches the requested repo before reindexing.
 
 ## Optional Skill

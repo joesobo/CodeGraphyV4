@@ -54,16 +54,19 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
   }
 
   hasIndex(): boolean {
-    return hasWorkspacePipelineIndex(this._getWorkspaceRoot(), {
-      getCurrentCommitShaSync: workspaceRoot => this._getCurrentCommitShaSync(workspaceRoot),
-      getPluginSignature: () => this._getPluginSignature(),
-      getSettingsSignature: () => this._getSettingsSignature(),
-    });
+    return hasWorkspacePipelineIndex(this._getWorkspaceRoot());
   }
 
   getIndexStatus(): { freshness: 'fresh' | 'stale' | 'missing'; detail: string } {
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
+      return {
+        freshness: 'missing',
+        detail: 'CodeGraphy index is missing. Index the repo to build the graph.',
+      };
+    }
+
+    if (!this.hasIndex()) {
       return {
         freshness: 'missing',
         detail: 'CodeGraphy index is missing. Index the repo to build the graph.',

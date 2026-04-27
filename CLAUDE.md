@@ -48,7 +48,7 @@ Package boundaries are the primary entry point.
 - When CodeGraphy MCP is available, use it first for repo structure, dependency, relationship, and impact questions before broad file search.
 - Use CodeGraphy to narrow the likely files and symbols first; then read source files for implementation details.
 - Prefer simple repo selection like `codegraphy status .` and `codegraphy_select_repo` with `.` when working from the target repo root.
-- Check CodeGraphy freshness with `codegraphy status .` or `codegraphy_repo_status` before relying on graph results for large refactors. If the index is stale, use `codegraphy_request_reindex` or `codegraphy reindex .` before graph-driven work, then treat source files as the source of truth after edits until the DB refreshes again.
+- Check CodeGraphy freshness with `codegraphy status .` or `codegraphy_repo_status` before relying on graph results for large refactors. A stale index is still a usable saved snapshot, but use `codegraphy_request_reindex` or `codegraphy reindex .` before graph-driven work, then treat source files as the source of truth after edits until the DB refreshes again.
 - Use `codegraphy_view_graph` when the saved CodeGraphy view matters, including depth mode, folder nodes, package nodes, and structural edges from `.codegraphy/settings.json`.
 
 ### Worktree Safety

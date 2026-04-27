@@ -180,10 +180,12 @@ Use CodeGraphy to update UserName in types.ts to a FullName object with first an
 - `codegraphy status .` both checks the repo and registers it in `~/.codegraphy/registry.json`.
 - `codegraphy status .` also reports `lastIndexedCommit`, `currentCommit`, and stale reasons when the saved index is behind the repo.
 - Freshness compares saved CodeGraphy metadata against the current repo state, including the last indexed commit, current `HEAD`, and pending file changes recorded by the extension.
+- A stale saved index is still loadable. CodeGraphy should show its saved nodes and edges with a stale warning until reindex completes.
+- If `.codegraphy/graph.lbug` is deleted or missing, CodeGraphy treats the index as missing even if old metadata still exists.
 - `codegraphy reindex .` and `codegraphy_request_reindex` do not index directly. They focus/open VS Code with `code <repo>`, send a repo-scoped URI to the CodeGraphy extension, then poll `codegraphy_repo_status`-equivalent freshness.
 - The extension verifies the URI target matches the workspace in the receiving VS Code window before reindexing. If the wrong window receives the URI, it warns instead of indexing the wrong repo.
 - Later Codex sessions can select that repo even if they start from another directory.
 - Every MCP query rereads the DB and saved settings from disk, so saved graph changes show up on the next query.
 - If the repo has no `.codegraphy/graph.lbug`, the MCP returns setup guidance pointing back to the extension.
-- If the repo is stale, the VS Code toolbar shows **Reindex Repo** with a warning dot and the button forces a refresh rebuild.
+- If the repo is stale, the VS Code toolbar shows **Reindex Repo** with a warning dot and the button forces a refresh rebuild. A successful full reindex clears pending changed-file markers.
 - For noisy refactors, prefer `codegraphy_impact_set` with `kinds` like `["type-import"]` or `["call"]`, and use `direction` to choose incoming dependents, outgoing dependencies, or both.

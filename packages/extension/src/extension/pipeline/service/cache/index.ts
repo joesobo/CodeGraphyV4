@@ -1,14 +1,10 @@
+import * as fs from 'node:fs';
 import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSettings/meta';
-import { evaluateCodeGraphyIndexStatus } from '../../../repoSettings/freshness';
+import { getWorkspaceAnalysisDatabasePath } from '../../database/cache/storage';
 
 interface WorkspacePipelineSignatureDependencies {
   getPluginSignature(): string | null;
   getSettingsSignature(): string;
-}
-
-interface WorkspacePipelineHasIndexDependencies
-  extends WorkspacePipelineSignatureDependencies {
-  getCurrentCommitShaSync(workspaceRoot: string): string | null;
 }
 
 interface WorkspacePipelinePersistIndexDependencies
@@ -19,7 +15,6 @@ interface WorkspacePipelinePersistIndexDependencies
 
 export function hasWorkspacePipelineIndex(
   workspaceRoot: string | undefined,
-  dependencies: WorkspacePipelineHasIndexDependencies,
 ): boolean {
   if (!workspaceRoot) {
     return false;
@@ -30,22 +25,7 @@ export function hasWorkspacePipelineIndex(
     return false;
   }
 
-  const pluginSignature = dependencies.getPluginSignature();
-  const settingsSignature = dependencies.getSettingsSignature();
-  if (meta.pluginSignature !== pluginSignature || meta.settingsSignature !== settingsSignature) {
-    return false;
-  }
-
-  if (meta.pendingChangedFiles.length > 0) {
-    return false;
-  }
-
-  return evaluateCodeGraphyIndexStatus({
-    meta,
-    currentCommit: dependencies.getCurrentCommitShaSync(workspaceRoot),
-    pluginSignature,
-    settingsSignature,
-  }).hasIndex;
+  return fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
 }
 
 export async function persistWorkspacePipelineIndexMetadata(
@@ -64,6 +44,7 @@ export async function persistWorkspacePipelineIndexMetadata(
       lastIndexedCommit: await dependencies.getCurrentCommitSha(workspaceRoot),
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
+      pendingChangedFiles: [],
     });
   } catch (error) {
     dependencies.warn('[CodeGraphy] Failed to update repo index metadata.', error);
