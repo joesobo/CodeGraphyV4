@@ -8,7 +8,7 @@ import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import {
   mapDiscoveredWorkspaceFilesByRelativePath,
   mergeDiscoveredWorkspaceFiles,
-  selectDiscoveredWorkspaceFiles,
+  selectDiscoveredWorkspaceFileChanges,
 } from '../cache/changedFiles';
 
 interface WorkspacePipelineRefreshSource {
@@ -65,13 +65,30 @@ export async function refreshWorkspacePipelineChangedFiles(
   const discoveredByRelativePath = mapDiscoveredWorkspaceFilesByRelativePath(
     dependencies.discoveredFiles,
   );
-  const changedFiles = selectDiscoveredWorkspaceFiles(
+  const changeSelection = selectDiscoveredWorkspaceFileChanges(
     dependencies.workspaceRoot,
     dependencies.filePaths,
     discoveredByRelativePath,
     (workspaceRoot, filePath) =>
       dependencies.toWorkspaceRelativePath(workspaceRoot, filePath),
   );
+  const changedFiles = changeSelection.files;
+
+  if (changeSelection.unmatchedFilePaths.length > 0) {
+    source.invalidateWorkspaceFiles(changeSelection.unmatchedFilePaths);
+    return source.analyze(
+      dependencies.filterPatterns,
+      dependencies.disabledPlugins,
+      dependencies.signal,
+      progress => {
+        dependencies.onProgress?.({
+          ...progress,
+          phase: 'Applying Changes',
+        });
+      },
+    );
+  }
+
   const changedAnalysisFiles = await source._readAnalysisFiles(changedFiles);
   const incrementalLifecycle = await dependencies.notifyFilesChanged(
     changedAnalysisFiles,
