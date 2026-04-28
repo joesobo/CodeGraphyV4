@@ -9,6 +9,25 @@ It gives agents access to saved CodeGraphy data from:
 
 It can also ask the running CodeGraphy VS Code extension to reindex a repo. The extension still owns indexing; the MCP only focuses/opens VS Code and sends a repo-scoped URI request.
 
+## How It Fits
+
+| Piece | Responsibility |
+|---|---|
+| CodeGraphy VS Code extension | indexes repos, owns graph refresh, writes `.codegraphy/graph.lbug` |
+| `codegraphy` CLI | setup, repo status, repo list, and reindex requests |
+| `codegraphy mcp` | stdio MCP server launched by Codex or another agent |
+| optional CodeGraphy skill | agent instructions for when and how to use the tools |
+
+This package does not index source files directly. It reads the saved DB and asks the extension to refresh it when needed.
+
+## Prerequisites
+
+- Node `22.22.0` or newer within the supported Node 22 range.
+- VS Code with the CodeGraphy extension installed.
+- The VS Code `code` shell command available.
+- A repo that has already been indexed by CodeGraphy, creating `.codegraphy/graph.lbug`.
+- Codex or another MCP-capable agent.
+
 ## Quick Start
 
 ```bash
@@ -84,6 +103,15 @@ File path inputs for file-oriented tools can use absolute paths, repo-relative p
 - `Use CodeGraphy to show the saved graph view for this repo.`
 - `Use CodeGraphy to update UserName in types.ts to a FullName object with first and last strings, then fix the affected code.`
 - For narrower impact slices, ask for incoming dependents only or filter to kinds like `type-import` or `call`.
+
+## Expected Agent Flow
+
+1. Select or check the repo with `codegraphy_select_repo` or `codegraphy_repo_status`.
+2. If the index is stale, call `codegraphy_request_reindex` before graph-driven planning.
+3. Use symbol-level tools for named exports, functions, classes, interfaces, type aliases, and enums.
+4. Use file-level tools for broad module or folder changes.
+5. Use `direction`, `kinds`, `maxDepth`, and `maxResults` filters to keep impact results focused.
+6. Read source files only after CodeGraphy narrows the likely files and symbols.
 
 If the repo status is `stale`, use `codegraphy_request_reindex` or `codegraphy reindex .` first. The MCP rereads the DB on each query, but it can only see what the extension has already persisted.
 

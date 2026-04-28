@@ -9,6 +9,25 @@ It reads:
 
 It does not contain indexing logic. The VS Code extension still owns indexing; the MCP only sends a repo-scoped request to the extension.
 
+## Package Roles
+
+| Piece | Installed From | Role |
+|---|---|---|
+| CodeGraphy core extension | VS Code Marketplace | indexes the repo, renders the graph, and writes `.codegraphy/graph.lbug` |
+| `@codegraphy-vscode/mcp` | npm | installs the `codegraphy` CLI and local stdio MCP server |
+| Codex MCP entry | `codegraphy setup` or manual config | lets Codex launch `codegraphy mcp` |
+| optional Codex skill | `skills/codegraphy-mcp/` | teaches agents when to use CodeGraphy first |
+
+The MCP package is not a replacement for the VS Code extension. It is a local bridge between an agent and the saved CodeGraphy DB.
+
+## Prerequisites
+
+- Node `22.22.0` or newer within the supported Node 22 range.
+- VS Code with the CodeGraphy core extension installed.
+- The VS Code `code` shell command available in your terminal.
+- A repo that has been opened in VS Code and indexed at least once, producing `.codegraphy/graph.lbug`.
+- Codex or another MCP-capable agent.
+
 ## Quick Start
 
 ```bash
@@ -159,6 +178,8 @@ File path inputs for `codegraphy_file_dependencies`, `codegraphy_file_dependents
 ## Optional Skill
 
 This repo also ships a reusable skill at [skills/codegraphy-mcp/SKILL.md](../skills/codegraphy-mcp/SKILL.md).
+
+MCP tool descriptions are enough for basic tool calls, but the skill improves behavior from short prompts because it tells the agent to check freshness, prefer symbol-level impact for named exports, use filters to reduce noise, and read source only after CodeGraphy narrows the likely files.
 
 If you want Codex to use CodeGraphy more consistently from short prompts, copy `skills/codegraphy-mcp/` into your Codex skills directory, such as:
 

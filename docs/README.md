@@ -18,3 +18,14 @@ The rest of the docs are split by purpose:
 If a doc describes old refactor intent instead of current behavior, it belongs in `docs/archive/`.
 
 Historical plans, specs, and superseded guides live under `docs/archive/`.
+
+## Public Package Guide
+
+| Package | Where To Start | Role |
+|---|---|---|
+| CodeGraphy core extension | [root README](../README.md) and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, indexing, repo-local cache, settings, exports |
+| `@codegraphy-vscode/mcp` | [MCP setup](./MCP.md) and [package README](../packages/codegraphy-mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
+| `@codegraphy-vscode/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | build external CodeGraphy plugins |
+| language plugins | `packages/plugin-*/README.md` | optional language-specific graph enrichment |
+
+The extension must be installed and index a repo before the MCP package can answer graph queries for that repo.

@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://img.shields.io/visual-studio-marketplace/v/codegraphy.codegraphy?label=core%20extension" alt="Core extension version" /></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://img.shields.io/visual-studio-marketplace/d/codegraphy.codegraphy?label=downloads" alt="Core extension downloads" /></a>
+  <a href="https://www.npmjs.com/package/@codegraphy-vscode/mcp"><img src="https://img.shields.io/npm/v/%40codegraphy-vscode%2Fmcp?label=mcp" alt="MCP package version" /></a>
   <a href="https://www.npmjs.com/package/@codegraphy-vscode/plugin-api"><img src="https://img.shields.io/npm/v/%40codegraphy-vscode%2Fplugin-api?label=plugin%20api" alt="Plugin API version" /></a>
   <a href="https://github.com/joesobo/CodeGraphyV2"><img src="https://img.shields.io/badge/CodeGraphy-V2%20archive-0b7285" alt="CodeGraphy V2 archive" /></a>
 </p>
@@ -26,10 +27,14 @@
   ·
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot">GDScript Plugin</a>
   ·
+  <a href="https://www.npmjs.com/package/@codegraphy-vscode/mcp">MCP</a>
+  ·
   <a href="https://www.npmjs.com/package/@codegraphy-vscode/plugin-api">Plugin API</a>
 </p>
 
 CodeGraphy turns repository structure and code relationships into an interactive force graph inside VS Code. Files start as nodes, indexing projects richer edges into that graph, and the whole repo becomes something you can inspect, filter, and navigate instead of infer.
+
+The same saved graph can now be used as local agent context through the `@codegraphy-vscode/mcp` package. Codex and other MCP clients can ask CodeGraphy what files and symbols are connected, what a change may impact, whether the index is stale, and can request VS Code to reindex the repo before continuing.
 
 ![CodeGraphy dependency graph](./docs/media/node-drag.gif)
 
@@ -69,6 +74,17 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
   - CRAP
   - SCRAP
 
+## Package Map
+
+| Package | Install | What It Is For |
+|---|---|---|
+| CodeGraphy core extension | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, indexing, repo-local settings, and saved `.codegraphy/graph.lbug` data |
+| `@codegraphy-vscode/mcp` | `npm install -g @codegraphy-vscode/mcp` | `codegraphy` CLI plus local MCP server for agents |
+| `@codegraphy-vscode/plugin-api` | `npm install @codegraphy-vscode/plugin-api` | typed API for building external CodeGraphy plugins |
+| language plugins | VS Code Marketplace | optional language-specific enrichment for CodeGraphy |
+
+The MCP package is an agent companion, not the core VS Code extension. The extension owns indexing and writes the repo-local DB. The MCP server reads that DB on demand and can ask the extension to reindex through VS Code.
+
 ## Core Stack
 
 - TypeScript
@@ -100,6 +116,8 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 **Repo-local graph settings and cache** CodeGraphy stores its index and repo-specific settings under `.codegraphy/`, so graph behavior, colors, toggles, and cached analysis stay with the repo instead of polluting `.vscode/settings.json`.
 
+**Agent-readable graph memory** Install `@codegraphy-vscode/mcp` to expose the saved graph to Codex or any MCP-capable agent. Agents can select repos from anywhere, query file and symbol relationships, inspect impact sets, project saved depth/folder/package views, check freshness, and request a VS Code-owned reindex when the graph is stale.
+
 **Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign glob-based legend rules, and filter out noise.
 
 **Exports from cached graph data** Export the current graph as JSON/Markdown/image output, and export lightweight symbol JSON from the warmed index without re-scanning the repo.
@@ -119,6 +137,26 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 3. Click the **CodeGraphy** activity bar icon in VS Code.
 4. Open the graph.
 5. Click **Index Repo** when you want to visualize connections.
+
+## Agent Setup
+
+Use this after the VS Code extension has indexed the repo at least once.
+
+```bash
+npm install -g @codegraphy-vscode/mcp
+codegraphy setup
+codegraphy status .
+codegraphy reindex .
+codex mcp list
+```
+
+Then start a fresh agent session and ask something short:
+
+```text
+Use CodeGraphy to explain the relationship between deep.ts and branch.ts.
+```
+
+For the full setup flow, Codex config snippets, CLI table, MCP tool table, and verification prompts, see [MCP Setup](./docs/MCP.md).
 
 ## Legend Precedence
 
