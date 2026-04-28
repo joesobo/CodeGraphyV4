@@ -2,4 +2,4 @@
 "@codegraphy/extension": patch
 ---
 
-Prevent graph reloads and webview-ready loads from interrupting an agent-triggered reindex while the saved index is temporarily cleared.
+Prevent agent-triggered reindex from crashing or being interrupted by graph reloads while the saved index is temporarily cleared.

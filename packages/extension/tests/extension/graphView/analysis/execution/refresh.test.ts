@@ -28,6 +28,32 @@ describe('graph view analysis execution refresh', () => {
     expect(analyze).not.toHaveBeenCalled();
   });
 
+  it('preserves analyzer method context when running explicit full refresh', async () => {
+    const graphData = {
+      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const context = {
+      analyzer: undefined as ReturnType<typeof createExecutionAnalyzer> | undefined,
+    };
+    const refreshIndex = vi.fn(async function(this: unknown) {
+      expect(this).toBe(context.analyzer);
+      return graphData;
+    });
+    context.analyzer = createExecutionAnalyzer({ refreshIndex });
+    const state = createExecutionState({
+      mode: 'refresh',
+      analyzer: context.analyzer,
+      analyzerInitialized: true,
+    });
+
+    await expect(
+      refreshGraphViewRawData(new AbortController().signal, state, vi.fn()),
+    ).resolves.toBe(graphData);
+
+    expect(refreshIndex).toHaveBeenCalledOnce();
+  });
+
   it('falls back to analyzer analyze for full refreshes when refreshIndex is unavailable', async () => {
     const analyze = vi.fn(async () => ({ nodes: [], edges: [] }));
     const state = createExecutionState({
