@@ -3,7 +3,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { GraphEdgeKind } from '@codegraphy-vscode/plugin-api';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as z from 'zod/v4';
-import { toRepoRelativeFilePath } from '../database/paths';
 import { listRegisteredRepoStatuses, readRepoStatus } from '../repoStatus/read';
 import { readFileDependencies } from '../query/fileDependencies';
 import { readFileDependents } from '../query/fileDependents';
@@ -11,10 +10,12 @@ import { readFileSummary } from '../query/fileSummary';
 import { readImpactSet } from '../query/impactSet';
 import { MissingDatabaseError } from '../query/errors';
 import { loadQueryContext } from '../query/load';
+import { createFileNode } from '../query/indexes';
+import { AmbiguousQueryFilePathError, resolveQueryFilePath, type ResolvedQueryFilePath } from '../query/pathResolver';
 import { explainRelationship } from '../query/relationship';
 import { readSymbolDependencies } from '../query/symbolDependencies';
 import { readSymbolDependents } from '../query/symbolDependents';
-import type { QueryOptions } from '../query/model';
+import type { QueryContext, QueryOptions } from '../query/model';
 import { requestCodeGraphyReindex, type ReindexRequestInput, type ReindexRequestResult } from '../reindex/request';
 import { readViewGraph } from '../viewGraph/read';
 
@@ -69,10 +70,46 @@ function createMissingDatabaseResult(error: MissingDatabaseError) {
   };
 }
 
+function createAmbiguousFilePathResult(repo: string, error: AmbiguousQueryFilePathError) {
+  return {
+    repo,
+    nodes: error.candidates.map((candidate) => createFileNode(candidate)),
+    edges: [],
+    symbols: [],
+    summary: {
+      status: 'ambiguous-file-path',
+      input: error.input,
+      candidateCount: error.candidates.length,
+      candidates: error.candidates,
+    },
+    limitations: [
+      error.message,
+    ],
+  };
+}
+
 function createToolResult<T extends Record<string, unknown>>(result: T) {
   return {
     structuredContent: result,
     content: [{ type: 'text' as const, text: renderToolText(result) }],
+  };
+}
+
+function withPathResolutionLimitations<T extends { limitations: string[] }>(
+  result: T,
+  ...resolvedPaths: ResolvedQueryFilePath[]
+): T {
+  const limitations = resolvedPaths.flatMap((resolvedPath) => resolvedPath.limitations);
+  if (limitations.length === 0) {
+    return result;
+  }
+
+  return {
+    ...result,
+    limitations: [
+      ...result.limitations,
+      ...limitations,
+    ],
   };
 }
 
@@ -96,8 +133,8 @@ function resolveRepo(
   throw new Error('No CodeGraphy repo selected. Pass `repo` or call `codegraphy_select_repo` first.');
 }
 
-function normalizeFilePath(filePath: string, repo: string): string {
-  return toRepoRelativeFilePath(filePath, repo);
+function isSymbolId(id: string, context: QueryContext): boolean {
+  return id.startsWith('symbol:') || context.symbols.has(id);
 }
 
 async function runRepoQuery<TInput extends { repo?: string }>(
@@ -112,6 +149,10 @@ async function runRepoQuery<TInput extends { repo?: string }>(
   } catch (error) {
     if (error instanceof MissingDatabaseError) {
       return createToolResult(createMissingDatabaseResult(error));
+    }
+
+    if (error instanceof AmbiguousQueryFilePathError) {
+      return createToolResult(createAmbiguousFilePathResult(repo, error));
     }
 
     throw error;
@@ -199,7 +240,7 @@ export function createCodeGraphyMcpServer(
   server.registerTool(
     'codegraphy_file_dependencies',
     {
-      description: 'List outgoing file dependencies from a repo-relative file path. Prefer this before broad source-file search when planning code changes.',
+      description: 'List outgoing file dependencies from a file path. Accepts absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. Prefer this before broad source-file search when planning code changes.',
       inputSchema: z.object({
         repo: querySchema.repo,
         filePath: z.string(),
@@ -209,14 +250,18 @@ export function createCodeGraphyMcpServer(
     },
     async (input) => runRepoQuery(input, session, (repo) => {
       const context = loadQueryContext(repo);
-      return readFileDependencies(normalizeFilePath(input.filePath, repo), context, createQueryOptions(input));
+      const filePath = resolveQueryFilePath(input.filePath, repo, context);
+      return withPathResolutionLimitations(
+        readFileDependencies(filePath.filePath, context, createQueryOptions(input)),
+        filePath,
+      );
     }),
   );
 
   server.registerTool(
     'codegraphy_file_dependents',
     {
-      description: 'List incoming file dependents for a repo-relative file path. Use this first to find what may break or need updates after a change.',
+      description: 'List incoming file dependents for a file path. Accepts absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. Use this first to find what may break or need updates after a change.',
       inputSchema: z.object({
         repo: querySchema.repo,
         filePath: z.string(),
@@ -226,7 +271,11 @@ export function createCodeGraphyMcpServer(
     },
     async (input) => runRepoQuery(input, session, (repo) => {
       const context = loadQueryContext(repo);
-      return readFileDependents(normalizeFilePath(input.filePath, repo), context, createQueryOptions(input));
+      const filePath = resolveQueryFilePath(input.filePath, repo, context);
+      return withPathResolutionLimitations(
+        readFileDependents(filePath.filePath, context, createQueryOptions(input)),
+        filePath,
+      );
     }),
   );
 
@@ -267,7 +316,7 @@ export function createCodeGraphyMcpServer(
   server.registerTool(
     'codegraphy_impact_set',
     {
-      description: 'Return a bounded transitive impact set from a file path or symbol ID. File seeds expand through declared symbols, and agents can filter by edge kinds to reduce noise before broad repo search.',
+      description: 'Return a bounded transitive impact set from a file path or symbol ID. File paths accept absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. File seeds expand through declared symbols, and agents can filter by edge kinds to reduce noise before broad repo search.',
       inputSchema: z.object({
         repo: querySchema.repo,
         seed: z.string(),
@@ -279,17 +328,22 @@ export function createCodeGraphyMcpServer(
     },
     async (input) => runRepoQuery(input, session, (repo) => {
       const context = loadQueryContext(repo);
-      const seed = input.seed.startsWith('symbol:')
-        ? input.seed
-        : normalizeFilePath(input.seed, repo);
-      return readImpactSet(seed, context, createQueryOptions(input));
+      if (isSymbolId(input.seed, context)) {
+        return readImpactSet(input.seed, context, createQueryOptions(input));
+      }
+
+      const seed = resolveQueryFilePath(input.seed, repo, context);
+      return withPathResolutionLimitations(
+        readImpactSet(seed.filePath, context, createQueryOptions(input)),
+        seed,
+      );
     }),
   );
 
   server.registerTool(
     'codegraphy_explain_relationship',
     {
-      description: 'Explain the direct or bounded path relationship between two file paths or symbol IDs. Use this first for dependency and connection questions.',
+      description: 'Explain the direct or bounded path relationship between two file paths or symbol IDs. File paths accept absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. Use this first for dependency and connection questions.',
       inputSchema: z.object({
         repo: querySchema.repo,
         from: z.string(),
@@ -301,18 +355,28 @@ export function createCodeGraphyMcpServer(
     },
     async (input) => runRepoQuery(input, session, (repo) => {
       const context = loadQueryContext(repo);
-      return explainRelationship({
-        ...createQueryOptions(input),
-        from: input.from.startsWith('symbol:') ? input.from : normalizeFilePath(input.from, repo),
-        to: input.to.startsWith('symbol:') ? input.to : normalizeFilePath(input.to, repo),
-      }, context);
+      const from = isSymbolId(input.from, context)
+        ? { filePath: input.from, limitations: [] }
+        : resolveQueryFilePath(input.from, repo, context);
+      const to = isSymbolId(input.to, context)
+        ? { filePath: input.to, limitations: [] }
+        : resolveQueryFilePath(input.to, repo, context);
+      return withPathResolutionLimitations(
+        explainRelationship({
+          ...createQueryOptions(input),
+          from: from.filePath,
+          to: to.filePath,
+        }, context),
+        from,
+        to,
+      );
     }),
   );
 
   server.registerTool(
     'codegraphy_view_graph',
     {
-      description: 'Project a saved CodeGraphy-style graph view from the repo DB and `.codegraphy/settings.json`, including depth mode, folder nodes, package nodes, and their structural edges.',
+      description: 'Project a saved CodeGraphy-style graph view from the repo DB and `.codegraphy/settings.json`, including depth mode, folder nodes, package nodes, and their structural edges. Focus accepts symbol IDs or file paths, including unique suffixes like `src/a.ts` or `a.ts`.',
       inputSchema: z.object({
         repo: querySchema.repo,
         focus: z.string().optional(),
@@ -327,27 +391,31 @@ export function createCodeGraphyMcpServer(
     },
     async (input) => runRepoQuery(input, session, (repo) => {
       const context = loadQueryContext(repo);
-      return readViewGraph(context, {
-        focus: input.focus?.startsWith('symbol:')
-          ? input.focus
-          : input.focus
-            ? normalizeFilePath(input.focus, repo)
-            : undefined,
-        kinds: normalizeKinds(input.kinds),
-        maxResults: input.maxResults,
-        depthMode: input.depthMode,
-        depthLimit: input.depthLimit,
-        includeFolders: input.includeFolders,
-        includePackages: input.includePackages,
-        showOrphans: input.showOrphans,
-      });
+      const focus = input.focus
+        ? isSymbolId(input.focus, context)
+          ? { filePath: input.focus, limitations: [] }
+          : resolveQueryFilePath(input.focus, repo, context)
+        : undefined;
+      return withPathResolutionLimitations(
+        readViewGraph(context, {
+          focus: focus?.filePath,
+          kinds: normalizeKinds(input.kinds),
+          maxResults: input.maxResults,
+          depthMode: input.depthMode,
+          depthLimit: input.depthLimit,
+          includeFolders: input.includeFolders,
+          includePackages: input.includePackages,
+          showOrphans: input.showOrphans,
+        }),
+        ...(focus ? [focus] : []),
+      );
     }),
   );
 
   server.registerTool(
     'codegraphy_file_summary',
     {
-      description: 'Summarize declared symbols and relation counts for one repo-relative file path after CodeGraphy has narrowed the likely files to inspect.',
+      description: 'Summarize declared symbols and relation counts for one file path after CodeGraphy has narrowed the likely files to inspect. Accepts absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`.',
       inputSchema: z.object({
         repo: querySchema.repo,
         filePath: z.string(),
@@ -357,7 +425,11 @@ export function createCodeGraphyMcpServer(
     },
     async (input) => runRepoQuery(input, session, (repo) => {
       const context = loadQueryContext(repo);
-      return readFileSummary(normalizeFilePath(input.filePath, repo), context, createQueryOptions(input));
+      const filePath = resolveQueryFilePath(input.filePath, repo, context);
+      return withPathResolutionLimitations(
+        readFileSummary(filePath.filePath, context, createQueryOptions(input)),
+        filePath,
+      );
     }),
   );
 

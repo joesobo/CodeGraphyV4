@@ -37,6 +37,16 @@ Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.
 
 If `codegraphy status .` reports `freshness: stale`, run `codegraphy reindex .` or ask the agent to use `codegraphy_request_reindex` before relying on the graph for a large refactor.
 
+## File Path Inputs
+
+File-oriented MCP tools accept:
+
+- absolute paths
+- repo-relative paths, such as `example-typescript/packages/feature-depth/src/deep.ts`
+- unique suffixes or basenames, such as `feature-depth/src/deep.ts` or `deep.ts`
+
+If a short name matches more than one indexed file, the MCP returns an `ambiguous-file-path` result with candidate paths instead of guessing.
+
 ## Step By Step
 
 1. Open VS Code.
@@ -144,6 +154,8 @@ args = ["mcp"]
 | `codegraphy_view_graph` | Projects the saved CodeGraphy depth/folder/package graph view | graph-aware context |
 | `codegraphy_file_summary` | Summarizes symbols and relation counts for a file | targeted inspection |
 
+File path inputs for `codegraphy_file_dependencies`, `codegraphy_file_dependents`, `codegraphy_impact_set`, `codegraphy_explain_relationship`, `codegraphy_view_graph`, and `codegraphy_file_summary` can use absolute paths, repo-relative paths, or unique suffixes.
+
 ## Optional Skill
 
 This repo also ships a reusable skill at [skills/codegraphy-mcp/SKILL.md](../skills/codegraphy-mcp/SKILL.md).
@@ -161,6 +173,12 @@ Try one simple structure prompt:
 
 ```text
 Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.
+```
+
+If the filenames are unique in the indexed repo, short prompts also work:
+
+```text
+Using CodeGraphy only, explain the relationship between deep.ts and branch.ts.
 ```
 
 Try one saved-view prompt:
@@ -186,6 +204,7 @@ Use CodeGraphy to update UserName in types.ts to a FullName object with first an
 - The extension verifies the URI target matches the workspace in the receiving VS Code window before reindexing. If the wrong window receives the URI, it warns instead of indexing the wrong repo.
 - Later Codex sessions can select that repo even if they start from another directory.
 - Every MCP query rereads the DB and saved settings from disk, so saved graph changes show up on the next query.
+- Short file names are resolved against the saved index on each query. If the name is ambiguous, pass one of the returned candidate repo-relative paths.
 - If the repo has no `.codegraphy/graph.lbug`, the MCP returns setup guidance pointing back to the extension.
 - If the repo is stale, the VS Code toolbar shows **Reindex Repo** with a warning dot and the button forces a refresh rebuild. A successful full reindex clears pending changed-file markers.
 - For noisy refactors, prefer `codegraphy_impact_set` with `kinds` like `["type-import"]` or `["call"]`, and use `direction` to choose incoming dependents, outgoing dependencies, or both.

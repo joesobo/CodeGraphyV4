@@ -21,6 +21,8 @@ codex mcp list
 
 `codegraphy status .` reports whether the saved index is `fresh`, `stale`, or `missing`. Use `codegraphy reindex .` when it is stale.
 
+File-oriented MCP tools accept absolute paths, repo-relative paths, and unique suffixes or basenames. For example, `deep.ts` resolves to `example-typescript/packages/feature-depth/src/deep.ts` when it is the only indexed `deep.ts`. Ambiguous short names return candidate paths instead of guessing.
+
 ## Install
 
 ```bash
@@ -73,9 +75,12 @@ args = ["mcp"]
 | `codegraphy_view_graph` | Projects the saved depth/folder/package graph view |
 | `codegraphy_file_summary` | Summarizes symbols and relation counts for a file |
 
+File path inputs for file-oriented tools can use absolute paths, repo-relative paths, or unique suffixes. If a suffix is ambiguous, pass one of the returned candidate repo-relative paths.
+
 ## Example Prompts
 
 - `Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.`
+- `Using CodeGraphy only, explain the relationship between deep.ts and branch.ts.`
 - `Use CodeGraphy to show the saved graph view for this repo.`
 - `Use CodeGraphy to update UserName in types.ts to a FullName object with first and last strings, then fix the affected code.`
 - For narrower impact slices, ask for incoming dependents only or filter to kinds like `type-import` or `call`.

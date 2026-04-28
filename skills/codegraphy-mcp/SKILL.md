@@ -58,6 +58,7 @@ Use CodeGraphy first when the question is about repo structure.
 
 - Prefer symbol-level queries when a named export, function, class, or type is the real change target.
 - Prefer file-level queries when the user asks about files, folders, modules, or broad refactors.
+- File-oriented tools accept absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. If CodeGraphy returns `ambiguous-file-path`, retry with one of the candidate repo-relative paths.
 - When impact results are noisy, narrow them with `kinds` and `direction` before switching to broader source-file reads.
 - Treat CodeGraphy as structure memory, not as a replacement for reading implementation details.
 - If CodeGraphy reports a stale index, treat it as a usable saved snapshot but request reindexing before major graph-driven refactors. After you edit files, the DB can lag behind source until VS Code refreshes it.
@@ -66,5 +67,6 @@ Use CodeGraphy first when the question is about repo structure.
 ## Example Prompts
 
 - `Use CodeGraphy to explain the relationship between src/a.ts and src/b.ts.`
+- `Using CodeGraphy only, explain the relationship between deep.ts and branch.ts.`
 - `Use CodeGraphy to show the saved graph view for this repo.`
 - `Use CodeGraphy to update UserName in types.ts to a FullName object with first and last strings, then fix the affected code.`
