@@ -167,6 +167,38 @@ describe('graphView/provider/refresh', () => {
     expect(incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/branch.ts']);
   });
 
+  it('prevents normal graph refreshes from interrupting a full index refresh', async () => {
+    let finishRefreshIndex: (() => void) | undefined;
+    const refreshAndSendData = vi.fn(async () => {
+      await new Promise<void>(resolve => {
+        finishRefreshIndex = resolve;
+      });
+    });
+    const loadAndSendData = vi.fn(async () => undefined);
+    const source = createSource({
+      _refreshAndSendData: refreshAndSendData,
+      _loadAndSendData: loadAndSendData,
+    });
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    const refreshIndex = methods.refreshIndex();
+    await Promise.resolve();
+    const refresh = methods.refresh();
+
+    expect(loadAndSendData).not.toHaveBeenCalled();
+
+    finishRefreshIndex?.();
+    await refreshIndex;
+    await refresh;
+
+    expect(refreshAndSendData).toHaveBeenCalledOnce();
+    expect(loadAndSendData).not.toHaveBeenCalled();
+  });
+
   it('refreshChangedFiles reloads discovered nodes instead of indexing when no index exists yet', async () => {
     const source = createSource();
     source._analyzer.hasIndex.mockReturnValue(false);

@@ -77,12 +77,17 @@ export function createGraphViewProviderRefreshMethods(
   const rebuildSenders = createRebuildSenders(source, dependencies);
   const _rebuildAndSend = (): void => rebuildSenders.rebuildAndSend();
   const _smartRebuild = (id: string): void => rebuildSenders.smartRebuild(id);
-  // Full reindex clears the persisted cache first, so file watcher refreshes
+  // Full reindex clears the persisted cache first, so competing refreshes
   // must wait or they can rebuild from an empty intermediate index.
   let indexRefreshPromise: Promise<void> | undefined;
   let queuedChangedFilePaths = new Set<string>();
 
   const refresh = async (): Promise<void> => {
+    if (indexRefreshPromise) {
+      await indexRefreshPromise;
+      return;
+    }
+
     source._loadDisabledRulesAndPlugins();
     source._loadGroupsAndFilterPatterns();
     await runPrimaryRefresh(source);
