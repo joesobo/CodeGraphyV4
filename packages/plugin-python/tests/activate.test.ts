@@ -3,10 +3,11 @@ import * as path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fixtureWorkspacePath = path.resolve(__dirname, '../../../examples/example-python');
-const installedWithCoreTimeoutMs = 15_000;
+const installedWithCoreTimeoutMs = 30_000;
 
 const mockState = vi.hoisted(() => ({
   getExtension: vi.fn(),
+  registerUriHandler: vi.fn(() => ({ dispose: vi.fn() })),
   registerWebviewViewProvider: vi.fn(() => ({ dispose: vi.fn() })),
   registerCommand: vi.fn(() => ({ dispose: vi.fn() })),
   getConfiguration: vi.fn(),
@@ -60,6 +61,7 @@ vi.mock('vscode', () => ({
     all: [],
   },
   window: {
+    registerUriHandler: mockState.registerUriHandler,
     registerWebviewViewProvider: mockState.registerWebviewViewProvider,
     showInformationMessage: vi.fn(),
     showErrorMessage: vi.fn(),

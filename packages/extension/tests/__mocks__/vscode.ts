@@ -9,8 +9,10 @@ export const Uri = {
 
 export const window = {
   registerWebviewViewProvider: vi.fn(),
+  registerUriHandler: vi.fn(),
   showInformationMessage: vi.fn(),
   showErrorMessage: vi.fn(),
+  showWarningMessage: vi.fn(),
   onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
 };
 

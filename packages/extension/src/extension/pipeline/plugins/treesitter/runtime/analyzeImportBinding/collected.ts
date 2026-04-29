@@ -6,10 +6,15 @@ export function addCollectedImportBinding(
   importedName: string,
   specifier: string,
   resolvedPath: string | null,
-): void {
-  importedBindings.set(localName, {
+  bindingKind: ImportedBinding['bindingKind'],
+): ImportedBinding {
+  const binding: ImportedBinding = {
+    bindingKind,
     importedName,
+    localName,
     resolvedPath,
     specifier,
-  });
+  };
+  importedBindings.set(localName, binding);
+  return binding;
 }

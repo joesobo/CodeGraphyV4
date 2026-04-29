@@ -42,6 +42,7 @@ export function readWorkspacePipelineCurrentCommitShaSync(
     return execFileSync('git', ['rev-parse', 'HEAD'], {
       cwd: workspaceRoot,
       encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
   } catch {
     return null;

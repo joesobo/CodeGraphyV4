@@ -28,14 +28,19 @@ describe('webview/toolbar/refresh', () => {
   });
 
   it('creates index and refresh configs from graph state', () => {
-    expect(createRefreshConfig(false)).toEqual({
+    expect(createRefreshConfig(false, 'missing')).toEqual({
       phase: 'Indexing Repo',
       title: 'Index Repo',
       type: 'INDEX_GRAPH',
     });
-    expect(createRefreshConfig(true)).toEqual({
+    expect(createRefreshConfig(true, 'fresh')).toEqual({
       phase: 'Refreshing Index',
       title: 'Refresh',
+      type: 'REFRESH_GRAPH',
+    });
+    expect(createRefreshConfig(false, 'stale')).toEqual({
+      phase: 'Refreshing Index',
+      title: 'Reindex Repo',
       type: 'REFRESH_GRAPH',
     });
   });
@@ -43,7 +48,7 @@ describe('webview/toolbar/refresh', () => {
   it('starts optimistic indexing and clears it when the host stays silent', () => {
     const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
 
-    requestGraphIndex(false, timeoutRef);
+    requestGraphIndex(false, 'missing', timeoutRef);
     expect(postMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
     expect(graphStore.getState().graphIsIndexing).toBe(true);
 
@@ -76,7 +81,7 @@ describe('webview/toolbar/refresh', () => {
   it('keeps optimistic indexing when the host reports real progress before the fallback timeout', () => {
     const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
 
-    requestGraphIndex(false, timeoutRef);
+    requestGraphIndex(false, 'missing', timeoutRef);
     graphStore.setState({
       graphIndexProgress: {
         phase: 'Indexing Repo',
@@ -98,7 +103,7 @@ describe('webview/toolbar/refresh', () => {
   it('keeps optimistic indexing when the host clears progress before the fallback timeout fires', () => {
     const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
 
-    requestGraphIndex(false, timeoutRef);
+    requestGraphIndex(false, 'missing', timeoutRef);
     graphStore.setState({
       graphIndexProgress: null,
     });
@@ -111,7 +116,7 @@ describe('webview/toolbar/refresh', () => {
   it('keeps optimistic indexing when the phase changes before the fallback timeout fires', () => {
     const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
 
-    requestGraphIndex(false, timeoutRef);
+    requestGraphIndex(false, 'missing', timeoutRef);
     graphStore.setState({
       graphIndexProgress: {
         phase: 'Scanning Files',
@@ -133,7 +138,7 @@ describe('webview/toolbar/refresh', () => {
   it('keeps optimistic indexing when the indexer is no longer marked active before the timeout fires', () => {
     const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
 
-    requestGraphIndex(false, timeoutRef);
+    requestGraphIndex(false, 'missing', timeoutRef);
     graphStore.setState({
       graphIsIndexing: false,
       graphIndexProgress: {
@@ -156,7 +161,7 @@ describe('webview/toolbar/refresh', () => {
   it('replaces the previous timeout and sends a refresh message when an index already exists', () => {
     const timeoutRef = { current: setTimeout(() => undefined, 5_000) };
 
-    requestGraphIndex(true, timeoutRef);
+    requestGraphIndex(true, 'fresh', timeoutRef);
 
     expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
     expect(graphStore.getState().graphIndexProgress).toEqual({
@@ -170,7 +175,7 @@ describe('webview/toolbar/refresh', () => {
   it('keeps optimistic indexing when the placeholder total changes before the timeout fires', () => {
     const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
 
-    requestGraphIndex(true, timeoutRef);
+    requestGraphIndex(true, 'fresh', timeoutRef);
     graphStore.setState({
       graphIndexProgress: {
         phase: 'Refreshing Index',

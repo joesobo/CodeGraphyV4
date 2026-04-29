@@ -21,7 +21,11 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.setRawGraphData).toHaveBeenCalledWith({ nodes: [], edges: [] });
     expect(handlers.setGraphData).toHaveBeenCalledWith({ nodes: [], edges: [] });
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith({ nodes: [], edges: [] });
-    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(true);
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
+      true,
+      'fresh',
+      'CodeGraphy index is fresh.',
+    );
     expect(handlers.sendDepthState).toHaveBeenCalledOnce();
   });
 
@@ -30,7 +34,11 @@ describe('graph view analysis execution publish', () => {
 
     publishEmptyGraph(handlers);
 
-    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(false);
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
+      false,
+      'missing',
+      'CodeGraphy index is missing. Index the repo to build the graph.',
+    );
   });
 
   it('publishes the transformed graph and notifies post-analyze hooks', () => {
@@ -112,7 +120,11 @@ describe('graph view analysis execution publish', () => {
 
     expect(() => publishAnalyzedGraph(state, handlers, rawGraphData, false)).not.toThrow();
 
-    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(false);
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
+      false,
+      'missing',
+      'CodeGraphy index is missing. Index the repo to build the graph.',
+    );
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(getGraphData());
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
   });

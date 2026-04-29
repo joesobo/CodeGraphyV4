@@ -9,6 +9,7 @@ import {
   handleJavaScriptClassDeclaration,
   handleJavaScriptFunctionDeclaration,
   handleJavaScriptMethodDefinition,
+  handleJavaScriptTypeDeclaration,
   handleJavaScriptVariableDeclarator,
 } from './declarations';
 import {
@@ -41,6 +42,12 @@ function visitJavaScriptNode(
     }
     case 'class_declaration': {
       handleJavaScriptClassDeclaration(node, filePath, symbols);
+      return;
+    }
+    case 'type_alias_declaration':
+    case 'interface_declaration':
+    case 'enum_declaration': {
+      handleJavaScriptTypeDeclaration(node, filePath, symbols);
       return;
     }
     case 'method_definition': {

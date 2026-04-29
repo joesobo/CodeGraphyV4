@@ -80,6 +80,8 @@ describe('ToolbarActions', () => {
       pluginExporters: [],
       pluginToolbarActions: [],
       graphHasIndex: false,
+      graphIndexFreshness: 'missing',
+      graphIndexDetail: null,
       graphIsIndexing: false,
       graphIndexProgress: null,
     });
@@ -107,6 +109,36 @@ describe('ToolbarActions', () => {
     expect(graphStore.getState().graphIsIndexing).toBe(true);
     expect(graphStore.getState().graphIndexProgress).toEqual({
       phase: 'Indexing Repo',
+      current: 0,
+      total: 1,
+    });
+  });
+
+  it('renders a reindex button title when the saved index is stale', () => {
+    graphStore.setState({
+      graphHasIndex: false,
+      graphIndexFreshness: 'stale',
+      graphIndexDetail: 'Commit changed since last index.',
+    });
+
+    renderWithProviders();
+
+    expect(screen.getByTitle('Reindex Repo')).toBeInTheDocument();
+  });
+
+  it('sends REFRESH_GRAPH when a stale index should be rebuilt', () => {
+    graphStore.setState({
+      graphHasIndex: false,
+      graphIndexFreshness: 'stale',
+      graphIndexDetail: 'Commit changed since last index.',
+    });
+
+    renderWithProviders();
+    clickAction('Reindex Repo');
+
+    expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
+    expect(graphStore.getState().graphIndexProgress).toEqual({
+      phase: 'Refreshing Index',
       current: 0,
       total: 1,
     });

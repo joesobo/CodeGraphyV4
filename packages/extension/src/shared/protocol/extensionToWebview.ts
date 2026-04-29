@@ -24,7 +24,14 @@ export interface IPluginFilterPatternGroup {
 
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
-  | { type: 'GRAPH_INDEX_STATUS_UPDATED'; payload: { hasIndex: boolean } }
+  | {
+      type: 'GRAPH_INDEX_STATUS_UPDATED';
+      payload: {
+        hasIndex: boolean;
+        freshness: 'fresh' | 'stale' | 'missing';
+        detail: string;
+      };
+    }
   | { type: 'GRAPH_INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'GRAPH_CONTROLS_UPDATED'; payload: IGraphControlsSnapshot }
   | { type: 'FIT_VIEW' }
