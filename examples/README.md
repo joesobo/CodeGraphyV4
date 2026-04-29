@@ -11,4 +11,4 @@ Small repo fixtures for manual testing, screenshots, and extension-host e2e work
 - `example-java` — Java import/inheritance example
 - `example-go` — Go package/import example
 
-These examples are intentionally small. The goal is to keep the graph predictable.
+These examples are intentionally small. The goal is to keep the Relationship Graph predictable.

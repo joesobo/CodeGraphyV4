@@ -8,7 +8,7 @@ A small C# workspace for manual checks of CodeGraphy's C# support.
 src/
 ├── Program.cs         # Entry point
 ├── Config.cs          # Configuration
-├── Orphan.cs          # No connections (test showOrphans)
+├── Orphan.cs          # No relationships (test showOrphans)
 ├── Utils/
 │   ├── Helpers.cs     # Utility functions
 │   └── Formatter.cs   # Formatting utilities
@@ -25,7 +25,7 @@ Program.cs ────┬──▶ Config.cs
                │
                └──▶ Utils/Helpers.cs
 
-Orphan.cs (no connections - only visible with showOrphans=true)
+Orphan.cs (Orphan Node - only visible with showOrphans=true)
 ```
 
 ## Using Patterns Tested

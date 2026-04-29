@@ -2,7 +2,7 @@
 
 ## Graph navigation
 
-These shortcuts work when the graph view is focused and no text input is active.
+These shortcuts work when the Graph View is focused and no text input is active.
 
 | Shortcut | Action |
 |----------|--------|
@@ -14,7 +14,7 @@ These shortcuts work when the graph view is focused and no text input is active.
 | `Enter` | Open selected node(s) in editor |
 | `Ctrl+Click` | Add/remove node from selection |
 | `Shift+Drag` | Box selection |
-| `V` | Toggle depth mode |
+| `V` | Toggle Depth Mode |
 | `L` | Cycle layout (Default → Radial → Top Down → Left to Right) |
 | `T` | Toggle 2D/3D mode |
 | `Right-click` | Open context menu |

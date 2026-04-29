@@ -22,31 +22,31 @@ import type { CodeGraphyAPI, IPlugin } from '@codegraphy-vscode/plugin-api';
 
 This package is type-only. Use `import type` in plugin code.
 
-Main seams in the current API:
+Main surfaces in the current API:
 
-- per-file analysis objects with symbols, relations, and node/edge type contributions
+- per-file analysis objects with symbols, relationships, and Node Type / Edge Type contributions
 - graph queries backed by the projected repo-local index and current graph state: `getGraph`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getSubgraph`, `findPath`
 - registrations: `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`, and the compatibility `registerView` hook
 - host-side export saving: `saveExport`
-- graph/webview product surfaces: plugin toolbar buttons, plugin slots, tooltip actions, and optional future-facing view transforms
-- default styling via `fileColors`, which already lets a plugin act like a file-theme layer for extension matches, exact file names, and glob patterns
+- Graph View / webview product surfaces: plugin toolbar buttons, plugin slots, tooltip actions, and optional future-facing view transforms
+- default styling via `fileColors`, which already lets a plugin contribute Legend styling for extension matches, exact file names, and glob patterns
 - analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
 
 Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged on top in plugin order, with higher-priority plugins winning conflicts.
 
-Current legend/style precedence in the host is:
+Current Legend Layer precedence in the host is:
 
 1. core defaults
 2. plugin defaults
-3. custom user rules
+3. custom user Legend Entries
 
-That means a plugin can already behave like a theme pack for file nodes by shipping `fileColors`, and a user can layer that above or below the built-in Material defaults through the Legends and Plugins popups.
+That means a plugin can already behave like a theme pack for File Nodes by shipping `fileColors`, and a user can layer that above or below the built-in Material defaults through the Legends and Plugins popups.
 Current limitation: the public API does not yet expose a first-class folder-theme contract like the core Material layer, so full file-explorer parity would need an API extension.
 
 Exact merge behavior:
 
 - `nodeTypes`, `edgeTypes`, `nodes`, `symbols`: merge by `id`
-- `relations`: merge by relation identity
+- `relations`: merge by relationship identity
   - imports/reexports/loads/inherits override by shared source identity
   - distinct call/reference targets coexist
 

@@ -56,11 +56,11 @@ Defined in `plugin.ts`.
 Key points:
 - `apiVersion: string` is required (for example `'^2.0.0'`).
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
-- `sources?: IConnectionSource[]` declares the plugin’s relation provenance/source families.
+- `sources?: IConnectionSource[]` declares the plugin's Relationship Source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
-- `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relations, symbols, and contributed node or edge types.
+- `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relationships, symbols, and contributed Node Types or Edge Types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
-- `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
+- `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, and defaults.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### `IPluginAnalysisContext`
@@ -81,9 +81,9 @@ Use this instead of raw Node `fs` when your plugin needs sibling files, config f
 Higher-priority plugins only override data when both sides hit the same merge key.
 
 - `nodeTypes`, `edgeTypes`, `nodes`, and `symbols` merge by `id`
-- `relations` merge by relation identity
+- `relations` merge by relationship identity
 
-Current relation identity:
+Current relationship identity:
 
 - always: `kind`, `sourceId`, `fromFilePath`, `fromNodeId`, `fromSymbolId`, `specifier`, `type`, `variant`
 - additionally for `call` and `reference`: `toFilePath`, `toNodeId`, `toSymbolId`, `resolvedPath`
@@ -137,8 +137,8 @@ Example:
 Merged result:
 
 - the import keeps only the higher-priority plugin target
-- call/reference relations with different targets remain separate
-- graph edges also stay separate when relation `type` or `variant` differs, even if `from`, `to`, and `kind` match
+- call/reference relationships with different targets remain separate
+- graph edges also stay separate when relationship `type` or `variant` differs, even if `from`, `to`, and `kind` match
 
 ### `IAnalysisFile`
 
@@ -162,7 +162,7 @@ Main areas:
 - Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`
   - these read from the projected repo-local index and current graph state, not only transient in-memory plugin output
 - Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
-  - `registerView` is a compatibility / future-facing hook for plugin-defined graph transforms; the current built-in product stays on one unified graph surface rather than exposing separate core Connections/Folder/Depth views
+  - `registerView` is a compatibility / future-facing hook for plugin-defined graph transforms; the current built-in product stays centered on the Graph View and Visible Graph rather than exposing separate core graph views
 - Tier 2 bridge: `sendToWebview`, `onWebviewMessage`
 - Export saving: `saveExport`
 - Utilities: `getWorkspaceRoot`, `log`
@@ -178,14 +178,14 @@ Main areas:
 - `IPluginNodeType`
 - `IPluginEdgeType`
 
-### Connections and Provenance (`connection.ts`)
+### Relationship Provenance (`connection.ts`)
 
 - `IConnectionSource`
 - `IPluginFileColorDefinition` with `color`, optional `shape2D`, optional `shape3D`, and optional `imagePath`
 
-`connection.ts` is now only about source metadata: the relation families a plugin declares in `sources` so the host can preserve provenance in graph edges, inspectors, and exports.
+`connection.ts` is now only about source metadata: the relationship families a plugin declares in `sources` so the host can preserve Relationship Source provenance in graph edges, inspectors, and exports.
 
-The public plugin API no longer exposes the old `IConnection` / `IConnectionDetector` analysis types. Plugins return `IFileAnalysisResult` objects from `analyzeFile(...)`, with relations expressed through `IAnalysisRelation`.
+The public plugin API no longer exposes the old `IConnection` / `IConnectionDetector` analysis types. Plugins return `IFileAnalysisResult` objects from `analyzeFile(...)`, with relationships expressed through the `relations` field and `IAnalysisRelation` type.
 
 `sourceId` is plugin-local. Use ids like `wikilink`, `import`, `preload`, or `call`.
 
@@ -196,13 +196,13 @@ If you see projected file-to-file edges inside the extension codebase, those are
 
 ### Graph (`graph.ts`)
 
-- `NodeType` = core `file | folder | package` plus plugin-defined string node kinds
+- `NodeType` = core `file | folder | package` plus plugin-defined string Node Types
 - `IGraphNode` (id/label/color + optional position/favorite/size/access/depth fields)
 - `IGraphEdge` (`id`, `from`, `to`, `kind`, `sources[]`)
 - `IGraphEdgeSource` (`id`, `pluginId`, `sourceId`, `label`, optional `variant`, optional scalar `metadata`)
 - `IGraphData` (`nodes`, `edges`)
 - `GraphEdgeKind` = reserved core kinds plus namespaced custom kinds (`pluginId:kind`)
-- Synthetic package nodes let plugins and host views include unresolved external imports like `fs` or `react` without pretending they are workspace files.
+- External Package nodes let plugins and host views include unresolved external imports like `fs` or `react` without pretending they are workspace files.
 
 ### Decorations (`decorations.ts`)
 
@@ -217,7 +217,7 @@ If you see projected file-to-file edges inside the extension codebase, those are
 - `IExporter`, `ExportRequest`, `IToolbarAction`, `IToolbarActionItem` in `api.ts`
 - `Disposable` in `disposable.ts`
 
-Plugin views are an optional compatibility surface for graph transforms layered on top of the unified graph. They are not the built-in way users switch the graph anymore, and the current host experience stays centered on one unified surface.
+Plugin views are an optional compatibility surface for graph transforms layered on top of the Visible Graph. They are not the built-in way users switch the graph anymore, and the current host experience stays centered on the Graph View.
 
 ## Theme-Style Plugins
 
@@ -228,7 +228,7 @@ The current public API already supports a file-theme style plugin through `fileC
 - glob patterns like `**/*.stories.tsx`
 - optional `shape2D`, `shape3D`, and `imagePath`
 
-Those plugin defaults sit above core defaults and below custom legend rules, so a user can treat them like an installable theme layer for file nodes. In the current UI that means Material Icon Theme stays in the core layer, plugin defaults are grouped separately, and custom rules still win last.
+Those plugin defaults sit above core defaults and below custom Legend Entries, so a user can treat them like an installable theme layer for File Nodes. In the current UI that means Material Icon Theme stays in the core layer, plugin defaults are grouped separately, and custom entries still win last.
 
 Current limitation: folder icon theming is still core-only. The API does not yet expose a folder-name or folder-icon contract comparable to the built-in Material Icon Theme integration.
 

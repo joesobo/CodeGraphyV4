@@ -1,6 +1,6 @@
 # CodeGraphy Godot
 
-Adds Godot GDScript dependency analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - Marketplace plugin: [CodeGraphy GDScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot)
@@ -31,7 +31,7 @@ Adds Godot GDScript dependency analysis to [CodeGraphy](https://marketplace.visu
 - `project.godot` resource-bearing settings are also emitted as normal static `load` edges.
 - The finer-grained plugin provenance is `sourceId: "ext-resource"` for `.tscn`/`.tres` files and `sourceId: "project-settings"` for `project.godot`.
 - The detector follows Godot's text-loader behavior more closely by accepting relative `path=` values and preferring a matching `uid=` target when one is known in the workspace.
-- This means they participate in the existing load-edge graph controls while still being attributable to Godot text-resource parsing.
+- This means they participate in the existing `load` Edge Type Graph Scope settings while still being attributable to Godot text-resource parsing.
 
 ## Example workspace
 

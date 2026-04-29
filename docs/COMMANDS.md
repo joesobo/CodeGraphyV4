@@ -16,10 +16,10 @@ All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift
 | `CodeGraphy: Export as JPEG` | Save the graph as a JPEG image |
 | `CodeGraphy: Export Graph as JSON` | Save the current graph data as structured JSON |
 | `CodeGraphy: Export Graph as Markdown` | Save the current graph data as markdown |
-| `CodeGraphy: Toggle Depth Mode` | Toggle depth mode on the unified graph surface |
+| `CodeGraphy: Toggle Depth Mode` | Toggle Depth Mode on the Visible Graph |
 | `CodeGraphy: Cycle Layout` | Cycle through DAG layouts (Default → Radial → Top Down → Left to Right) |
 | `CodeGraphy: Toggle 2D/3D` | Switch between 2D canvas and 3D WebGL rendering |
-| `CodeGraphy: Clear Cache and Refresh` | Clear cached graph data and force a full refresh |
+| `CodeGraphy: Clear Cache and Refresh` | Clear cached graph data and force graph data to rebuild |
 
 ## Command IDs
 

@@ -1,4 +1,3 @@
 # Architecture
 
-The graph starts with files, then connections are indexed.
-
+The Relationship Graph starts with files, then relationships are indexed.

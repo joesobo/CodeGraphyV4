@@ -1,6 +1,6 @@
 # Git Timeline
 
-The timeline lets you visualize how your codebase's dependency graph evolved over git history.
+The Timeline View lets you visualize how your codebase's Relationship Graph evolved over git history.
 
 ![Timeline](./media/timeline-playback.gif)
 
@@ -14,9 +14,9 @@ The timeline lets you visualize how your codebase's dependency graph evolved ove
 
 ## How it works
 
-Indexing analyzes the main branch's commit history (up to 500 commits) and caches timeline snapshots to disk so reopening the extension does not need to rebuild unchanged history.
+Indexing analyzes the main branch's commit history (up to 500 commits) and caches Timeline Snapshots to disk so reopening the extension does not need to rebuild unchanged history.
 
-Timeline state is stored under `.codegraphy/` alongside the live repo index and repo-local settings.
+Timeline state is stored under `.codegraphy/` alongside the live Graph Cache and repo-local Settings.
 
 Plugin analysis runs during timeline indexing too. Plugins that use the public analysis-hook `context.fileSystem` read files from the selected commit, so third-party plugins can contribute nodes and edges to historical snapshots without depending on the current `HEAD` workspace state.
 
@@ -44,9 +44,9 @@ Click or drag anywhere on the track to position the time cursor at that exact po
 
 ## Node click behavior in timeline mode
 
-Single-clicking a node opens that file at the selected commit in temporary preview mode while keeping graph focus.
+Single-clicking a File Node opens that file at the selected commit in temporary preview mode while keeping graph focus. Non-file nodes can still be selected and focused.
 
-Double-clicking a node opens that file at the selected commit as a permanent editor tab and focuses the node in the graph.
+Double-clicking a File Node opens that file at the selected commit as a persistent editor tab and focuses the node in the graph.
 
 ## Context menu
 
@@ -54,8 +54,9 @@ During timeline mode, destructive file actions (Delete, Rename, Create File, Add
 
 ## Refreshing
 
-CodeGraphy keeps using the cached timeline data until you intentionally ask for a full rebuild.
+CodeGraphy keeps using cached Timeline Snapshot data until you intentionally ask for a full rebuild.
 
-- Click **Refresh** to force a full re-index from scratch.
-- While CodeGraphy is open, normal file saves update the live index incrementally.
+- Click **Re-index Repo** to force a full re-index from scratch.
+- Click **Refresh Graph** to rerun graph physics/layout without rebuilding timeline or graph data.
+- While CodeGraphy is open, normal file saves update the live Graph Cache incrementally.
 - If files changed while CodeGraphy was closed, those pending changes are applied the next time you open it.

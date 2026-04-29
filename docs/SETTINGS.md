@@ -4,7 +4,7 @@ CodeGraphy now keeps repo-specific graph settings under `.codegraphy/settings.js
 
 - The graph UI writes to that file for you.
 - The file is mostly internal, but still human-editable.
-- CodeGraphy watches it for changes and refreshes relevant graph state when it changes.
+- CodeGraphy watches it for changes and updates relevant graph state when it changes.
 - `.codegraphy/settings.json` is the source of truth for repo-local behavior.
 - These settings are no longer intended to be managed from VS Code's built-in Settings UI.
 
@@ -22,7 +22,7 @@ Common top-level sections include:
 - `nodeColors`
 - `edgeVisibility`
 - `edgeColors`
-- `legend` (the stored legend rule list used by the Legends popup)
+- `legend` (the stored Legend Entry list used by the Legends popup)
 - `pluginOrder`
 - `disabledPlugins`
 - `physics`
@@ -64,9 +64,9 @@ Example:
 |---------|------|---------|-------------|
 | `maxFiles` | number | `1000` | Maximum files to discover/analyze |
 | `include` | string[] | `["**/*"]` | Glob patterns for files to include |
-| `filterPatterns` | string[] | `[]` | Glob patterns for files to exclude |
+| `filterPatterns` | string[] | `[]` | Filter Settings for files to exclude |
 | `respectGitignore` | boolean | `true` | Honor `.gitignore` patterns |
-| `showOrphans` | boolean | `true` | Show files with no edges |
+| `showOrphans` | boolean | `true` | Keep Orphan Nodes after final graph stages |
 | `showLabels` | boolean | `true` | Show file name labels on nodes |
 | `bidirectionalEdges` | string | `"separate"` | How to render bidirectional file edges |
 | `directionMode` | string | `"arrows"` | Direction indicator mode |
@@ -74,12 +74,12 @@ Example:
 | `particleSpeed` | number | `0.005` | Particle direction speed |
 | `particleSize` | number | `4` | Particle size in pixels |
 | `favorites` | string[] | `[]` | Favorite file paths |
-| `legend` | object[] | `[]` | Stored legend rules: `{ id, pattern, color, ... }` |
+| `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
 | `pluginOrder` | string[] | `[]` | Plugin processing order, bottom-to-top |
 | `disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
-| `nodeVisibility` | object | generated | Node-type visibility by id |
+| `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
-| `edgeVisibility` | object | generated | Edge-kind visibility by id |
+| `edgeVisibility` | object | generated | Graph Scope by Edge Type id |
 | `edgeColors` | object | generated | Edge-kind colors by id |
 | `physics.*` | object | see file | Force simulation controls |
 | `timeline.*` | object | see file | Timeline indexing/playback controls |
@@ -95,7 +95,7 @@ Timeline indexing also respects the repo-local filter and plugin settings. See [
 
 ## Settings Panel
 
-Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while node/edge visibility and legend coloring live in their own dedicated panels on the right side.
+Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while Graph Scope and Legend styling live in their own dedicated panels on the right side.
 
 ![Settings panel](./media/settings-panel.png)
 
@@ -112,7 +112,7 @@ Adjusts the physics simulation in real time.
 
 ### Legends
 
-Legend rules now live in their own **Legends** popup, not inside the settings panel.
+Legend Entries now live in their own **Legends** popup, not inside the settings panel.
 The popup label and persisted key are both **Legends** / `legend`.
 
 For node styling, the popup is split into these subsections from top to bottom:
@@ -122,35 +122,35 @@ For node styling, the popup is split into these subsections from top to bottom:
 3. `Material Icon Theme`
 4. `Defaults`
 
-`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin defaults sit above core. Custom rules sit above both.
+`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin defaults sit above core. Custom Legend Entries sit above both.
 
 Legend styling resolves in this order:
 
 1. core defaults
 2. plugin defaults
-3. custom rules
+3. custom Legend Entries
 
-Higher layers override lower ones only for the fields they set. A plugin can override a core node color without replacing the core icon, and a custom rule can add an icon on top of an existing color choice.
+Higher layers override lower ones only for the fields they set. A plugin can override a core node color without replacing the core icon, and a custom Legend Entry can add an icon on top of an existing color choice.
 
-Custom legend rules use glob matching and are applied in drag order:
+Custom Legend Entries use glob matching and are applied in drag order:
 
-- bottom rule applies first
-- top rule applies last
-- top rules can override lower rules
+- bottom entry applies first
+- top entry applies last
+- top entries can override lower entries
 
-Custom rules can target files, folders, packages, and plugin-added node types through one shared priority system.
+Custom Legend Entries can target files, folders, packages, and plugin-added Node Types through one shared priority system.
 
 - Enter a glob pattern and choose a color, optional shape, and optional icon, then click Add.
-- Click the x button next to a custom legend rule to delete it.
-- Lower rules apply first, higher rules apply last.
-- Drag custom rules to reorder priority.
+- Click the x button next to a custom Legend Entry to delete it.
+- Lower entries apply first, higher entries apply last.
+- Drag custom entries to reorder priority.
 - Changes sync back to the extension immediately.
 
 Legend colors support opacity. The color popover stores opaque colors as `#RRGGBB` and transparent colors as `rgba(...)`.
 
 Group patterns match by basename or path suffix. Simple extension patterns like `*.ts` match files at any depth, `src/*` matches files directly inside any `src/` folder, and `src/**` matches files at any depth under any `src/` folder.
 
-**Example custom legend rules:**
+**Example custom Legend Entries:**
 ```
 Pattern: src/**    Color: #3B82F6        (blue, all source files)
 Pattern: *.test.*  Color: #10B981        (green, test files)
@@ -158,9 +158,9 @@ Pattern: *.md      Color: rgba(107, 114, 128, 0.65)  (faded documentation)
 Pattern: tests/*   Color: #F59E0B        (amber, files directly inside any tests folder)
 ```
 
-Top-level toggles for `Plugin Defaults`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
+Legend Entry Toggles for `Plugin Defaults`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Turning a Legend Entry off disables its styling only; matching graph items remain and fall back to lower-priority styling. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
 
-To reuse custom legend rules across repos or teammates, copy the relevant entries from `.codegraphy/settings.json`:
+To reuse custom Legend Entries across repos or teammates, copy the relevant entries from `.codegraphy/settings.json`:
 ```json
 {
   "legend": [
@@ -172,11 +172,11 @@ To reuse custom legend rules across repos or teammates, copy the relevant entrie
 
 ### Filters
 
-Controls which files appear in the graph. These are applied during file discovery, not as a visual filter.
+Controls Filter Settings for durable noise removal. These are applied during File Discovery, not as a temporary Search.
 
-- **Show Orphans** toggles files with no visible edges.
+- **Show Orphans** keeps or removes Orphan Nodes after Graph Scope, filtering, search, and view settings have been applied.
 - **Max Files** limits how many files are analyzed.
-- **Exclude patterns** are glob patterns for files to hide entirely. Patterns support `matchBase`, so `*.png` excludes PNG files at any depth.
+- **Exclude patterns** are Filter Settings for files to remove entirely. Patterns support `matchBase`, so `*.png` excludes PNG files at any depth.
 
 Exclude patterns are appended to the built-in excludes (`node_modules`, `dist`, `build`, etc.).
 
@@ -203,15 +203,15 @@ To version-control filter patterns, add them to `settings.json`:
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
 - **Node / edge colors** now live in the **Legends** popup and are stored under `nodeColors` / `edgeColors`.
 
-Node, edge, legend, and plugin controls are in dedicated toolbar popups. The graph no longer switches between separate built-in Connections, Depth, and Folder views.
+Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups. The Graph View no longer switches between separate built-in graph views.
 
-## Unified graph controls
+## Graph scope and settings controls
 
-- **Nodes**: toggle file, folder, package, and plugin-added node types
-- **Edges**: toggle `NESTS`, semantic edge kinds, and plugin-added edge kinds
-- **Legends**: edit regex/group color rules and their priority
+- **Nodes**: choose Graph Scope for file, folder, package, and plugin-added Node Types
+- **Edges**: choose Graph Scope for `NESTS`, semantic Edge Types, and plugin-added Edge Types
+- **Legends**: edit Legend Entries and their priority
 - **Plugins**: enable/disable plugins and reorder them
-- **Depth mode**: optional toolbar mode that brings back the old focused depth behavior on top of the unified graph
+- **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
 
 ## File discovery settings
 
@@ -277,7 +277,7 @@ When `true`, reads `.gitignore` and excludes matching files automatically.
 
 ### `bidirectionalEdges`
 
-Controls how mutual imports (A imports B and B imports A) are drawn.
+Controls how mutual import relationships (A imports B and B imports A) are drawn.
 
 ```json
 { "bidirectionalEdges": "combined" }
@@ -316,7 +316,7 @@ This setting is also accessible from the Settings panel.
 }
 ```
 
-### Team-shared legend rules
+### Team-shared Legend Entries
 ```json
 {
   "legend": [
@@ -340,15 +340,15 @@ CodeGraphy’s graph/index behavior lives with the repo under `.codegraphy/`. By
 
 **Nodes are all grey**
 
-No legend rules are configured. Add them in the **Legends** popup or directly in `.codegraphy/settings.json`.
+No Legend Entries are configured. Add them in the **Legends** popup or directly in `.codegraphy/settings.json`.
 
 **Too many files**
 1. Add exclusion patterns in the Filters section or `filterPatterns`
 2. Narrow `include` to specific directories
 3. Lower `maxFiles`
 
-**Missing connections**
+**Missing relationships**
 1. Make sure the file type has a supported plugin (TypeScript/JS, Python, C#, GDScript, Markdown)
 2. Check that imported files are within the `include` patterns
 3. `node_modules` imports are intentionally excluded
-4. Check `.codegraphy/settings.json` for an unintended disabled plugin, node kind, or edge kind
+4. Check `.codegraphy/settings.json` for an unintended disabled plugin, Node Type, or Edge Type

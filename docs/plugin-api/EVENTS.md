@@ -55,7 +55,7 @@ Notes:
 | `analysis:error` | `{ error, filePath? }` |
 
 Notes:
-- `analysis:fileProcessed` currently emits a lightweight compatibility summary derived from the per-file analysis result. It is progress-oriented, not the full symbol/relation payload.
+- `analysis:fileProcessed` currently emits a lightweight compatibility summary derived from the per-file analysis result. Its `connections` field is a legacy payload name; conceptually it reports discovered relationships, and it is progress-oriented, not the full symbol/relationship payload.
 
 ### Workspace / Files (6)
 

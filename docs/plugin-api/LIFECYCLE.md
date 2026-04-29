@@ -118,7 +118,7 @@ onLoad(api: CodeGraphyAPI) {
 }
 ```
 
-`registerView(...)` still exists in the API, but treat it as a compatibility / future-facing hook. The current built-in UI stays on one unified graph surface instead of surfacing plugin-defined views as a primary product concept.
+`registerView(...)` still exists in the API, but treat it as a compatibility / future-facing hook. The current built-in UI stays centered on the Graph View and Visible Graph instead of surfacing plugin-defined views as a primary product concept.
 
 Every `api.on()`, `api.register*()`, and `api.decorateNode/Edge()` call returns a `Disposable`. See [Auto-Cleanup](#auto-cleanup-disposable-pattern) below.
 
@@ -153,7 +153,7 @@ Called when the plugin is deactivating. All registered Disposables are auto-clea
 
 ```typescript
 onUnload() {
-  // Optional: close external connections, flush caches, etc.
+  // Optional: close external resources, flush caches, etc.
 }
 ```
 
@@ -181,7 +181,7 @@ onPreAnalyze(files, workspaceRoot, context) {
 
 ### onFilesChanged(files, workspaceRoot, context?)
 
-Called before an incremental save-driven refresh when CodeGraphy already has a warmed repo index.
+Called before an incremental save-driven Live Update when CodeGraphy already has a warmed Graph Cache.
 
 Use this when your plugin keeps cross-file state that can be updated from a small changed-file set. Return additional workspace-relative file paths when those dependents also need re-analysis.
 
@@ -204,8 +204,8 @@ Behavior:
 
 - return `[]` or `undefined` when re-analyzing only the changed files is enough
 - return workspace-relative file paths when dependents should also be re-analyzed
-- if your plugin only implements `onPreAnalyze(...)` and not `onFilesChanged(...)`, CodeGraphy falls back to a full refresh for safety
-- if `onFilesChanged(...)` throws, CodeGraphy also falls back to a full refresh
+- if your plugin only implements `onPreAnalyze(...)` and not `onFilesChanged(...)`, CodeGraphy falls back to a full re-index for safety
+- if `onFilesChanged(...)` throws, CodeGraphy also falls back to a full re-index
 
 ### analyzeFile(filePath, content, workspaceRoot, context?)
 
@@ -215,7 +215,7 @@ Called for each file after the core has prepared the file payload. Plugins retur
 - edge type contributions
 - analysis nodes
 - symbols
-- relations
+- relationships through the `relations` field
 
 The host merges core output first and then plugin output in plugin priority order.
 
@@ -330,7 +330,7 @@ onPostAnalyze(graph: IGraphData) {
 
 ### onGraphRebuild(graph)
 
-Called when the graph is rebuilt without re-analysis (for example after graph-control toggles or plugin toggles). The cached connection data is used to rebuild the graph. Plugins should re-apply their decorations since the rendered node set may have changed.
+Called when the graph is rebuilt without re-analysis (for example after Graph Scope settings or plugin toggles change). Cached relationship data is used to rebuild the graph. Plugins should re-apply their decorations since the rendered node set may have changed.
 
 ```typescript
 onGraphRebuild(graph: IGraphData) {

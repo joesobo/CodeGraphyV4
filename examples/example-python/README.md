@@ -10,7 +10,7 @@ src/
 ├── member_imports.py # from pkg import member + unresolved external example
 ├── namespace_consumer.py
 ├── config.py         # Configuration
-├── orphan.py         # No connections (test showOrphans)
+├── orphan.py         # No relationships (test showOrphans)
 ├── ns_pkg/
 │   └── member.py     # Namespace package module (no __init__.py)
 ├── utils/
@@ -32,7 +32,7 @@ member_imports.py ───▶ services/api.py
 member_imports.py ───▶ utils/helpers.py
 namespace_consumer.py ─▶ ns_pkg/member.py
 
-orphan.py (no connections - only visible with showOrphans=true)
+orphan.py (Orphan Node - only visible with showOrphans=true)
 ```
 
 ## Import Patterns Tested

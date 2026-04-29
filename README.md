@@ -5,7 +5,7 @@
 <h1 align="center">CodeGraphy</h1>
 
 <p align="center">
-  Visualize connections
+  Visualize relationships
 </p>
 
 <p align="center">
@@ -29,9 +29,9 @@
   <a href="https://www.npmjs.com/package/@codegraphy-vscode/plugin-api">Plugin API</a>
 </p>
 
-CodeGraphy turns repository structure and code relationships into an interactive force graph inside VS Code. Files start as nodes, indexing projects richer edges into that graph, and the whole repo becomes something you can inspect, filter, and navigate instead of infer.
+CodeGraphy turns repository structure and code relationships into a Relationship Graph inside VS Code. Files start as File Nodes, indexing projects richer Edges into the graph, and the whole repo becomes something you can inspect, filter, and navigate instead of infer.
 
-![CodeGraphy dependency graph](./docs/media/node-drag.gif)
+![CodeGraphy Relationship Graph](./docs/media/node-drag.gif)
 
 Now with Material Icon Theme!
 
@@ -39,7 +39,7 @@ Now with Material Icon Theme!
 
 ## CodeGraphy History
 
-I originally came up with CodeGraphy back in college in 2021 after seeing ![Obsidian.md](https://obsidian.md/)'s graph. I've always been a very visual thinker and so Obsidians graph felt very intuitive to me. The clusters of nodes that appeared represented bundles of knowledge that was closely entangled. These clusters reminded me of the way that code worked and the way it connecting files (whether importing, extending, referencing). I wanted to see the way the my code naturally connected, just like in Obsidian's graph and see what insights I could learn from it. And thats where CodeGraphy was born.
+I originally came up with CodeGraphy back in college in 2021 after seeing ![Obsidian.md](https://obsidian.md/)'s graph. I've always been a very visual thinker and so Obsidians graph felt very intuitive to me. The clusters of nodes that appeared represented bundles of knowledge that was closely entangled. These clusters reminded me of the way that code worked and the way files related to each other (whether importing, extending, referencing). I wanted to see those relationships in my code, just like in Obsidian's graph, and see what insights I could learn from it. And thats where CodeGraphy was born.
 
 The first iteration was https://github.com/joesobo/CodeGraphy. Its pretty rough, but the core idea is there.
 
@@ -83,31 +83,31 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 ## What you get
 
-**A unified repo graph** Open any project and CodeGraphy shows discovered file nodes immediately. Index the repo to project richer edges into the same graph surface. Drag nodes, zoom, search, and filter without switching to a separate built-in view.
+**Relationship Graph** Open any project and CodeGraphy shows discovered File Nodes immediately. Index the repo to project richer Edges into the same Graph View. Drag nodes, zoom, search, and filter without switching to a separate built-in view.
 
-**Core pipeline, plugins for enrichment** The core extension owns discovery, caching, graph projection, repo-local settings, and export flow. Built-in and external plugins contribute per-file analysis results, richer relations, extra node/edge kinds, and UI integrations.
+**Core pipeline, plugins for enrichment** The Core Extension owns discovery, caching, Graph Projection, repo-local settings, and export flow. Built-in and external Plugins contribute per-file analysis results, richer Relationships, extra Node Types and Edge Types, and UI integrations.
 
 **Broad Tree-sitter baseline** The core now ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C#. That means many repos produce useful semantic edges before you install any language plugin at all.
 
 **Explorer-style theming in core** The core extension now vendors `material-icon-theme` and uses it as the default file and folder theming layer. File nodes take the Material icon color as their base node color and render the icon in white. Folder nodes keep the configured folder color and render the original Material folder icon as-is.
 
-**One graph, configurable surfaces** Use the `Nodes`, `Edges`, `Legends`, and `Plugins` popups to decide what kinds of nodes and edges are visible. Turn on depth mode from the toolbar when you want the old focused depth behavior.
+**One graph, configurable scope** Use the `Nodes`, `Edges`, `Legends`, and `Plugins` popups to choose Graph Scope, Legend styling, and Plugin state. Turn on Depth Mode from the toolbar when you want a focused local graph around the current Focused Node.
 
-**Git timeline playback** Index your repository history, scrub through commits, and watch the dependency graph evolve over time.
+**Git timeline playback** Index your repository history, scrub through commits, and watch the Relationship Graph evolve over time.
 
 ![Timeline playback](./docs/media/timeline-playback.gif)
 
-**Repo-local graph settings and cache** CodeGraphy stores its index and repo-specific settings under `.codegraphy/`, so graph behavior, colors, toggles, and cached analysis stay with the repo instead of polluting `.vscode/settings.json`.
+**Repo-local graph settings and cache** CodeGraphy stores its Graph Cache and repo-specific Settings under `.codegraphy/`, so graph behavior, styling, toggles, and cached analysis stay with the repo instead of polluting `.vscode/settings.json`.
 
-**Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign glob-based legend rules, and filter out noise.
+**Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, choose Graph Scope by Node Type and Edge Type, assign glob-based Legend Entries, and filter out noise.
 
-**Exports from cached graph data** Export the current graph as JSON/Markdown/image output, and export lightweight symbol JSON from the warmed index without re-scanning the repo.
+**Exports from cached graph data** Graph Export the current Visible Graph as JSON/Markdown/image output, and Index Export lightweight symbol JSON from the warmed index without re-scanning the repo.
 
 | 2D | 3D |
 |:--:|:--:|
 | ![2D graph](./docs/media/hero-graph.png) | ![3D graph](./docs/media/graph-3d.png) |
 
-**Actions from the graph** Open, rename, delete, favorite, and inspect files directly from the graph. Double-click to jump into source. Just like your normal file explorer, anything you can do there you should be able to do here.
+**Actions from the graph** Preview, open, rename, delete, favorite, and inspect File Nodes directly from the graph. Single-click previews a File Node, double-click opens it persistently, and non-file nodes can still be selected and focused.
 
 ![Context menu](./docs/media/context-menu.png)
 
@@ -117,17 +117,17 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 2. Optionally install plugins for unsupported languages or richer semantics. Core already handles JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C# through Tree-sitter, and Markdown ships built in.
 3. Click the **CodeGraphy** activity bar icon in VS Code.
 4. Open the graph.
-5. Click **Index Repo** when you want to visualize connections.
+5. Click **Index Repo** when you want to visualize relationships.
 
 ## Legend Precedence
 
-Node legend styling is cumulative and resolves in this order:
+Legend styling is cumulative and resolves in this order:
 
 1. Core defaults
    - Material Icon Theme file and folder matches
    - Defaults entries such as Files and Packages
 2. Plugin defaults
-3. Custom legend rules
+3. Custom Legend Entries
 
 Higher layers override lower ones only for the fields they set.
 
@@ -140,8 +140,8 @@ Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLU
 | | |
 |---|---|
 | [Timeline](./docs/TIMELINE.md) | Git history playback and incremental indexing |
-| [Settings](./docs/SETTINGS.md) | `.codegraphy/settings.json`, panels, and graph controls |
-| Export menu | Graph JSON/Markdown/image plus symbol JSON from the current index |
+| [Settings](./docs/SETTINGS.md) | `.codegraphy/settings.json`, panels, and Settings Controls |
+| Export menu | Graph Export JSON/Markdown/image plus Index Export symbol JSON |
 | [Commands](./docs/COMMANDS.md) | Command palette reference |
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
 | [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, and panels |

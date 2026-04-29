@@ -22,7 +22,7 @@ CodeGraphy has two plugin surfaces:
 
 The current plugin API supports more than file analysis:
 
-- per-file analysis objects with symbols, relations, node types, and edge types
+- per-file analysis objects with symbols, relationships, Node Types, and Edge Types
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
 - `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
 - analysis hooks receive an optional `context` object; use `context.fileSystem` for timeline-safe repo reads
@@ -66,15 +66,15 @@ Use `import type` because the package is type-only.
 
 ## Analysis model
 
-The core extension owns discovery, repo-local settings, caching, graph projection, and export flow. Plugins contribute analysis and UI on top of that pipeline and can:
+The Core Extension owns discovery, repo-local Settings, caching, Graph Projection, and export flow. Plugins contribute analysis and UI on top of that pipeline and can:
 
-- return per-file analysis results with relations, symbols, and extra nodes
+- return per-file analysis results with relationships, symbols, and extra nodes
 - override or enrich lower-priority plugin results for the same file
-- add node kinds
-- add edge kinds
+- add Node Types
+- add Edge Types
 - contribute language or framework-specific semantics
 - add exporters, commands, toolbar actions, and other UI surfaces through the host API
-- register optional view transforms for compatibility, even though the current built-in UI stays on one unified graph surface
+- register optional view transforms for compatibility, even though the current built-in UI stays centered on the Graph View and Visible Graph
 
 Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.
 
@@ -82,12 +82,12 @@ For node styling, the host resolves layers in this order:
 
 1. core defaults
 2. plugin defaults
-3. custom user rules
+3. custom user Legend Entries
 
 In practice, "win merge conflicts" means:
 
 - `nodes`, `symbols`, `nodeTypes`, and `edgeTypes` override by matching `id`
-- imports/reexports/loads/inherits override when they describe the same source relation
+- imports/reexports/loads/inherits override when they describe the same source relationship
 - distinct call/reference targets stay separate so symbol-aware routing is preserved
 
 Markdown-style wikilink scanning is implemented as a wildcard plugin so it can inspect any file, not just `.md` files.

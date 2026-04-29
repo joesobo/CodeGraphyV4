@@ -10,14 +10,14 @@ As codebases grow, the metaphor breaks down. Folder names become arbitrary. File
 
 ## The insight
 
-Code has a hidden structure that the file system obscures: the relationship graph. Files import other files. Functions call other functions. Types inherit from other types. Markdown notes link to other files. This web of connections is the real architecture of a codebase, but it's invisible unless you trace it manually.
+Code has a hidden structure that the file system obscures: the Relationship Graph. Files import other files. Functions call other functions. Types inherit from other types. Markdown notes link to other files. This web of Relationships is the real architecture of a codebase, but it's invisible unless you trace it manually.
 
 CodeGraphy makes that structure visible.
 
 ## The vision
 
 A force-directed graph where:
-- **Nodes start as files** and can expand to folders, packages, or plugin-defined node kinds
+- **Nodes start as files** and can expand to folders, packages, or plugin-defined Node Types
 - **Edges are relationships** projected from indexed code facts
 - **Physics creates meaning**: related code pulls together into stable shapes
 
@@ -27,17 +27,17 @@ Humans are spatial creatures. We remember where things are. Maps work because th
 
 ## Core principles
 
-### Connections over containers
+### Relationships over containers
 
-The file system groups files by folder. CodeGraphy groups files by relationship. A utility file in `src/utils/` that's imported by 30 components will appear at the center of those components in the graph, not hidden away in a utils folder.
+The file system groups files by folder. CodeGraphy groups files by Relationship. A utility file in `src/utils/` that's imported by 30 components will appear at the center of those components in the graph, not hidden away in a utils folder.
 
 ### Visual information density
 
 Every visual property carries meaning:
 - **Position**: Clusters emerge from force physics. Related files pull together.
-- **Size**: Configurable by connection count, file size, or access frequency.
-- **Color**: Encodes node kinds, edge kinds, or user-defined legend rules.
-- **Edges**: Show structural and semantic relationships between rendered nodes.
+- **Size**: Configurable by relationship count, file size, or access frequency.
+- **Color**: Encodes Node Types, Edge Types, or user-defined Legend Entries.
+- **Edges**: Render structural and semantic Relationships between nodes.
 
 ### Stability creates memory
 
@@ -57,8 +57,8 @@ That means the core is no longer "empty" until a language plugin shows up. You s
 Today that built-in baseline covers JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C#.
 
 Examples:
-- JavaScript/TypeScript: built-in Tree-sitter plugin finds baseline syntax and relations, plugins can add path alias or framework-aware semantics
-- Python, Go, Java, Rust, and C#: built-in Tree-sitter plugin finds baseline imports, symbols, and low-noise structural relations, plugins can add richer project-aware semantics
+- JavaScript/TypeScript: built-in Tree-sitter analysis finds baseline syntax and relationships, plugins can add path alias or framework-aware semantics
+- Python, Go, Java, Rust, and C#: built-in Tree-sitter analysis finds baseline imports, symbols, and low-noise structural relationships, plugins can add richer project-aware semantics
 - GDScript: plugin fills the gap where built-in Tree-sitter coverage is missing or weak
 - Markdown wikilinks: built-in wildcard plugin scans for Obsidian-style links across files
 
@@ -67,10 +67,10 @@ Examples:
 The graph reveals patterns that are invisible in the file tree:
 - **Central nodes**: Files imported by everything, potential bottlenecks or core utilities
 - **Isolated clusters**: Groups of files that only talk to each other, natural module boundaries
-- **Circular dependencies**: Loops that might indicate design issues
+- **Circular relationships**: Loops that might indicate design issues
 - **Bridge files**: Files that connect otherwise separate clusters
 - **Structural context**: Folders and packages can be shown as nodes with `NESTS` edges
-- **Focused traversal**: Depth mode filters the same graph surface instead of switching to a separate built-in view
+- **Focused traversal**: Depth Mode focuses the Visible Graph around the Focused Node instead of switching to a separate built-in view
 
 ## What CodeGraphy is not
 
@@ -81,6 +81,6 @@ The graph reveals patterns that are invisible in the file tree:
 
 ## Inspiration
 
-- **Obsidian.md**: Graph view for markdown notes, showing the power of visualizing connections
+- **Obsidian.md**: Graph view for markdown notes, showing the power of visualizing relationships
 - **Dependency graphs in package managers**: npm, cargo, etc., but at the file level instead of the package level
 - **City planning metaphors**: Codebases as cities, with neighborhoods, highways, and landmarks

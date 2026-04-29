@@ -12,8 +12,8 @@ These docs describe the current runtime seams after the graph-view/provider refa
 Current extension behavior to keep in mind while reading the package docs:
 
 - core owns the default file and folder icon/color theming through `material-icon-theme`
-- legend precedence is `core defaults -> plugin defaults -> custom rules`
-- the node legend popup is grouped as `Custom -> Plugin Defaults -> Material Icon Theme -> Defaults`
+- Legend Layer precedence is `core defaults -> plugin defaults -> custom Legend Entries`
+- the node Legend popup is grouped as `Custom -> Plugin Defaults -> Material Icon Theme -> Defaults`
 - the language plugins in `packages/plugin-*` are now mostly for ecosystem filters and optional semantic enrichment rather than baseline file coloring
 
 Local tooling and CI are pinned to Node `22.22.0` LTS.
