@@ -34,7 +34,7 @@
 
 CodeGraphy turns repository structure and code relationships into an interactive force graph inside VS Code. Files start as nodes, indexing projects richer edges into that graph, and the whole repo becomes something you can inspect, filter, and navigate instead of infer.
 
-The same saved graph can now be used as local agent context through the `@codegraphy-vscode/mcp` package. Codex and other MCP clients can ask CodeGraphy what files and symbols are connected, what a change may impact, whether the index is stale, and can request VS Code to reindex the repo before continuing.
+The same saved graph can now be used as local agent context through the `@codegraphy-vscode/mcp` package. Codex and other MCP clients can ask CodeGraphy what files and symbols are connected, what a change may impact, whether the saved DB is current, and can request VS Code to reindex only when the saved graph is missing or stale.
 
 ![CodeGraphy dependency graph](./docs/media/node-drag.gif)
 
@@ -83,7 +83,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 | `@codegraphy-vscode/plugin-api` | `npm install @codegraphy-vscode/plugin-api` | typed API for building external CodeGraphy plugins |
 | language plugins | VS Code Marketplace | optional language-specific enrichment for CodeGraphy |
 
-The MCP package is an agent companion, not the core VS Code extension. The extension owns indexing and writes the repo-local DB. The MCP server reads that DB on demand and can ask the extension to reindex through VS Code.
+The MCP package is an agent companion, not the core VS Code extension. The extension owns indexing, keeps the repo-local DB updated on normal saved file changes, and writes `.codegraphy/graph.lbug`. The MCP server reads that DB on demand and can ask the extension to reindex through VS Code when status reports stale or missing data.
 
 ## Core Stack
 
@@ -116,7 +116,7 @@ The MCP package is an agent companion, not the core VS Code extension. The exten
 
 **Repo-local graph settings and cache** CodeGraphy stores its index and repo-specific settings under `.codegraphy/`, so graph behavior, colors, toggles, and cached analysis stay with the repo instead of polluting `.vscode/settings.json`.
 
-**Agent-readable graph memory** Install `@codegraphy-vscode/mcp` to expose the saved graph to Codex or any MCP-capable agent. Agents can select repos from anywhere, query file and symbol relationships, inspect impact sets, project saved depth/folder/package views, check freshness, and request a VS Code-owned reindex when the graph is stale.
+**Agent-readable graph memory** Install `@codegraphy-vscode/mcp` to expose the saved graph to Codex or any MCP-capable agent. Agents can select repos from anywhere, query file and symbol relationships, inspect impact sets, project saved depth/folder/package views, check freshness, and request a VS Code-owned reindex when the saved graph is missing or stale.
 
 **Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign glob-based legend rules, and filter out noise.
 
@@ -146,7 +146,6 @@ Use this after the VS Code extension has indexed the repo at least once.
 npm install -g @codegraphy-vscode/mcp
 codegraphy setup
 codegraphy status .
-codegraphy reindex .
 codex mcp list
 ```
 

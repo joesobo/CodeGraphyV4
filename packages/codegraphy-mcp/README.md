@@ -7,7 +7,7 @@ It gives agents access to saved CodeGraphy data from:
 - `.codegraphy/graph.lbug`
 - `.codegraphy/settings.json`
 
-It can also ask the running CodeGraphy VS Code extension to reindex a repo. The extension still owns indexing; the MCP only focuses/opens VS Code and sends a repo-scoped URI request.
+It can also ask the running CodeGraphy VS Code extension to reindex a repo when the saved graph is missing or stale. The extension still owns indexing; the MCP only focuses/opens VS Code and sends a repo-scoped URI request.
 
 ## How It Fits
 
@@ -18,7 +18,7 @@ It can also ask the running CodeGraphy VS Code extension to reindex a repo. The 
 | `codegraphy mcp` | stdio MCP server launched by Codex or another agent |
 | optional CodeGraphy skill | agent instructions for when and how to use the tools |
 
-This package does not index source files directly. It reads the saved DB and asks the extension to refresh it when needed.
+This package does not index source files directly. It reads the saved DB on each query and asks the extension to refresh it when status shows stale or missing data. Normal saved file changes should already refresh the DB through the VS Code extension.
 
 ## Prerequisites
 
@@ -34,11 +34,10 @@ This package does not index source files directly. It reads the saved DB and ask
 npm install -g @codegraphy-vscode/mcp
 codegraphy setup
 codegraphy status .
-codegraphy reindex .
 codex mcp list
 ```
 
-`codegraphy status .` reports whether the saved index is `fresh`, `stale`, or `missing`. Use `codegraphy reindex .` when it is stale.
+`codegraphy status .` reports whether the saved index is `fresh`, `stale`, or `missing`. Use `codegraphy reindex .` when it is stale or missing.
 
 File-oriented MCP tools accept absolute paths, repo-relative paths, and unique suffixes or basenames. For example, `deep.ts` resolves to `example-typescript/packages/feature-depth/src/deep.ts` when it is the only indexed `deep.ts`. Ambiguous short names return candidate paths instead of guessing.
 
@@ -107,13 +106,13 @@ File path inputs for file-oriented tools can use absolute paths, repo-relative p
 ## Expected Agent Flow
 
 1. Select or check the repo with `codegraphy_select_repo` or `codegraphy_repo_status`.
-2. If the index is stale, call `codegraphy_request_reindex` before graph-driven planning.
+2. If the index is stale or missing, call `codegraphy_request_reindex` before graph-driven planning.
 3. Use symbol-level tools for named exports, functions, classes, interfaces, type aliases, and enums.
 4. Use file-level tools for broad module or folder changes.
 5. Use `direction`, `kinds`, `maxDepth`, and `maxResults` filters to keep impact results focused.
 6. Read source files only after CodeGraphy narrows the likely files and symbols.
 
-If the repo status is `stale`, use `codegraphy_request_reindex` or `codegraphy reindex .` first. The MCP rereads the DB on each query, but it can only see what the extension has already persisted.
+If the repo status is `stale` or `missing`, use `codegraphy_request_reindex` or `codegraphy reindex .` first. The MCP rereads the DB on each query, but it can only see what the extension has already persisted. In the normal VS Code workflow, saved file changes refresh the DB automatically.
 
 Stale indexes are still usable snapshots. CodeGraphy should load saved nodes and edges while showing a stale warning. If `.codegraphy/graph.lbug` is missing, the repo is treated as missing even when old metadata remains.
 

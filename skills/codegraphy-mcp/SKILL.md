@@ -15,7 +15,8 @@ Use CodeGraphy first when the question is about repo structure.
 
 2. Check the saved index if setup is unclear.
    Use `codegraphy_repo_status` before assuming the repo is indexed.
-   If freshness is `stale`, use `codegraphy_request_reindex` before trusting broad graph impact.
+   If freshness is `stale` or `missing`, use `codegraphy_request_reindex` before trusting broad graph impact.
+   Normal saved file changes should refresh the DB through the VS Code extension, so do not reindex after every edit.
    The request focuses/opens VS Code with `code <repo>`, sends a repo-scoped URI, and waits for the DB to report fresh.
 
 3. Choose the narrowest graph tool that answers the question.
@@ -61,7 +62,7 @@ Use CodeGraphy first when the question is about repo structure.
 - File-oriented tools accept absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. If CodeGraphy returns `ambiguous-file-path`, retry with one of the candidate repo-relative paths.
 - When impact results are noisy, narrow them with `kinds` and `direction` before switching to broader source-file reads.
 - Treat CodeGraphy as structure memory, not as a replacement for reading implementation details.
-- If CodeGraphy reports a stale index, treat it as a usable saved snapshot but request reindexing before major graph-driven refactors. After you edit files, the DB can lag behind source until VS Code refreshes it.
+- If CodeGraphy reports a stale index, treat it as a usable saved snapshot but request reindexing before major graph-driven refactors. After normal saved edits in VS Code, the extension should refresh the DB automatically; reindex only if status stays stale or queries do not reflect expected graph changes.
 - If the repo is missing `.codegraphy/graph.lbug`, tell the user to open the repo in VS Code with CodeGraphy installed and run indexing.
 
 ## Example Prompts

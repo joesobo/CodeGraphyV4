@@ -49,7 +49,7 @@ Package boundaries are the primary entry point.
 - Use CodeGraphy to narrow the likely files and symbols first; then read source files for implementation details.
 - Prefer simple repo selection like `codegraphy status .` and `codegraphy_select_repo` with `.` when working from the target repo root.
 - File-oriented MCP tools accept absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. If CodeGraphy returns `ambiguous-file-path`, retry with one of the candidate repo-relative paths.
-- Check CodeGraphy freshness with `codegraphy status .` or `codegraphy_repo_status` before relying on graph results for large refactors. A stale index is still a usable saved snapshot, but use `codegraphy_request_reindex` or `codegraphy reindex .` before graph-driven work, then treat source files as the source of truth after edits until the DB refreshes again.
+- Check CodeGraphy freshness with `codegraphy status .` or `codegraphy_repo_status` before relying on graph results for large refactors. Normal saved file changes refresh the saved DB through the VS Code extension, so reindex only when status is stale/missing or the graph did not pick up expected changes.
 - Use `codegraphy_view_graph` when the saved CodeGraphy view matters, including depth mode, folder nodes, package nodes, and structural edges from `.codegraphy/settings.json`.
 
 ### Worktree Safety
