@@ -1,11 +1,15 @@
-# Triage Labels
+# Triage Workflow
 
-| Label in mattpocock/skills | Label in our tracker | Meaning |
+Trello uses lists for workflow state and labels for package or area ownership.
+
+| Skill term | Trello mapping | Meaning |
 | --- | --- | --- |
-| `needs-triage` | `needs-triage` | Maintainer needs to evaluate this issue |
-| `needs-info` | `needs-info` | Waiting on reporter for more information |
-| `ready-for-agent` | `ready-for-agent` | Fully specified, ready for an AFK agent |
-| `ready-for-human` | `ready-for-human` | Requires human implementation |
-| `wontfix` | `wontfix` | Will not be actioned |
+| `needs-triage` | `Ideas` list | Maintainer needs to evaluate this card |
+| `needs-info` | `Ideas` list with a top-level `Needs info` note in the description | Waiting on more information |
+| `ready-for-agent` | `Todo` list | Fully specified, ready for an agent |
+| `ready-for-human` | `Todo` list with a top-level `Human review needed` note in the description | Requires human implementation or judgment |
+| `wontfix` | Comment with the reason, then archive the card | Will not be actioned |
+| `in-progress` | `In Progress` list | Active work |
+| `done` | `Done` list | Completed work |
 
-When a skill mentions a role, use the matching tracker label from this table.
+Use Trello labels only for package or area ownership, such as `Core`, `API`, `Godot Plugin`, `Markdown Plugin`, or `Docs`.

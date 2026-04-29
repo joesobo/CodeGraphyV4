@@ -4,11 +4,11 @@
 
 ### Issue tracker
 
-Issues and PRDs live in GitHub Issues for `joesobo/CodeGraphyV4`. See `docs/agents/issue-tracker.md`.
+Issues and PRDs live on the CodeGraphy Trello board. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Use the default canonical triage labels. See `docs/agents/triage-labels.md`.
+Use Trello lists for workflow state and Trello labels for package or area ownership. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
@@ -61,8 +61,8 @@ Package boundaries are the primary entry point.
 - Use CodeGraphy to narrow the likely files and symbols first; then read source files for implementation details.
 - Prefer simple repo selection like `codegraphy status .` and `codegraphy_select_repo` with `.` when working from the target repo root.
 - File-oriented MCP tools accept absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. If CodeGraphy returns `ambiguous-file-path`, retry with one of the candidate repo-relative paths.
-- Check CodeGraphy freshness with `codegraphy status .` or `codegraphy_repo_status` before relying on graph results for large refactors. Normal saved file changes refresh the saved DB through the VS Code extension, so reindex only when status is stale/missing or the graph did not pick up expected changes.
-- Use `codegraphy_view_graph` when the saved CodeGraphy view matters, including depth mode, folder nodes, package nodes, and structural edges from `.codegraphy/settings.json`.
+- Treat **Graph Cache** as the canonical term for `.codegraphy/graph.lbug`; CodeGraphy MCP reads the Graph Cache and does not own indexing.
+- Prefer **Graph Query** language for MCP graph results. Current implementation may still contain older `viewGraph` naming until the tracked cleanup is completed.
 
 ### Worktree Safety
 

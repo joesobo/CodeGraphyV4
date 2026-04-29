@@ -183,8 +183,8 @@ The indexing stage that turns discovered files and analysis results into graph n
 _Avoid_: Rendering
 
 **Graph Cache**:
-The repo-local LadybugDB graph data that lets CodeGraphy reopen or update a repo without repeating full indexing.
-_Avoid_: Settings, live graph
+The repo-local LadybugDB graph data at `.codegraphy/graph.lbug` that stores indexed Relationship Graph data for CodeGraphy and agent access.
+_Avoid_: Saved index, saved DB, CodeGraphy database when speaking in domain terms
 
 **Live Update**:
 An incremental graph update from repo changes after indexing has already produced a cache.
@@ -205,6 +205,16 @@ _Avoid_: Refresh when only rerunning graph physics
 **Re-index Repo**:
 The UI action that rebuilds Relationship Graph data by running indexing, saving the result, and then refreshing the graph.
 _Avoid_: Refresh Graph
+
+### Agent Access
+
+**CodeGraphy MCP**:
+The local MCP server and CLI that let agents query Relationship Graph data from the Graph Cache and request extension-owned re-indexing when the Graph Cache is missing or cannot answer.
+_Avoid_: Agent bridge, MCP indexer, MCP graph
+
+**Graph Query**:
+An agent request against Relationship Graph data that can apply Graph Scope, Filter, Search, traversal direction, depth, and result limits before returning graph data.
+_Avoid_: View graph, saved graph view, Visible Graph when the result is not the UI-rendered graph
 
 ### Views And Timeline
 
@@ -341,6 +351,10 @@ _Avoid_: Graph export
 - **Graph Cache** stores indexed graph data so reopening the repo does not require full **Indexing**.
 - **Live Updates** keep the **Graph Cache** and graph data current as files change.
 - Any graph-changing update from added files, renamed files, changed code, or settings that affect graph data should be saved to **Graph Cache**.
+- **CodeGraphy MCP** reads **Relationship Graph** data from the **Graph Cache** for agent access and does not own **Indexing**.
+- **CodeGraphy MCP** should not be limited to the **Visible Graph**; it should query the **Relationship Graph** and allow agent queries to apply **Graph Scope**, **Filter**, and **Search** to reduce noise.
+- A **Graph Query** is not a VS Code **View**; it is a narrowed agent-facing result from **Relationship Graph** data.
+- **Graph Queries** should reuse **Graph Scope**, **Filter**, and **Search** semantics instead of introducing MCP-specific equivalents for the same graph narrowing stages.
 - **Refresh Graph** and **Re-index Repo** should be distinct UI actions.
 - **Refresh** only reruns the force graph simulation and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
@@ -410,6 +424,9 @@ _Avoid_: Graph export
 > **Dev:** "Is Refresh the same as Re-index?"
 > **Domain expert:** "No. **Refresh** reruns the force graph simulation. **Re-index** rebuilds graph data, saves it, then refreshes the graph."
 >
+> **Dev:** "Does CodeGraphy MCP build its own graph?"
+> **Domain expert:** "No. **CodeGraphy MCP** reads the **Graph Cache** produced by the **Core Extension** and can ask the extension to re-index when the cache is missing or cannot answer."
+>
 > **Dev:** "Is the current collapsed graph a view?"
 > **Domain expert:** "No. Use **Visible Graph** for graph state. A **View** is the VS Code UI container, such as the **Graph View** or **Timeline View**."
 >
@@ -433,7 +450,8 @@ _Avoid_: Graph export
 - "dependency" is not generic relationship direction; resolved: use **Dependency** only when the edge type specifically means one node needs another.
 - "downstream" is directional only; resolved: it says a relationship exists in that direction, not what kind of relationship the edge represents.
 - "connection" is acceptable in conversation as an informal synonym for **Relationship**, but docs and code should prefer **Relationship**.
-- MCP language from PR #185 is still WIP; do not treat MCP-specific terms as canonical until that PR settles.
+- MCP reads the **Graph Cache** for agent access and does not own **Indexing**.
+- Current MCP and extension code exposes freshness/staleness language; resolved: **Graph Cache** is expected to auto-update with graph changes, so freshness/staleness should not be treated as canonical domain language.
 - "package" can be local or external; resolved: use **Workspace Package** when CodeGraphy can read and expand it, and **External Package** when the package is outside the local context and represented as one node.
 - "collapse dependents" was ambiguous; resolved: **Collapse** absorbs downstream relationship nodes, not upstream nodes.
 - Shared downstream relationship targets stay visible when they are still related to by visible nodes outside the collapsed subgraph.
