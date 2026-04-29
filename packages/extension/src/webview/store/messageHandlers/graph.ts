@@ -20,7 +20,11 @@ export function handleGraphDataUpdated(
 export function handleGraphIndexStatusUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>,
 ): PartialState {
-  return { graphHasIndex: message.payload.hasIndex };
+  return {
+    graphHasIndex: message.payload.hasIndex,
+    graphIndexFreshness: message.payload.freshness,
+    graphIndexDetail: message.payload.detail,
+  };
 }
 
 export function handleGraphIndexProgress(

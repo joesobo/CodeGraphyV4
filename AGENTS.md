@@ -41,6 +41,15 @@ Package boundaries are the primary entry point.
 4. **Commit frequently** — at minimum when subagent work is merged.
 5. **Deliver via PR** — push and open a GitHub PR for human review.
 
+## CodeGraphy MCP
+
+- When CodeGraphy MCP is available, use it first for repo structure, dependency, relationship, and impact questions before broad file search.
+- Use CodeGraphy to narrow the likely files and symbols first; then read source files for implementation details.
+- Prefer simple repo selection like `codegraphy status .` and `codegraphy_select_repo` with `.` when working from the target repo root.
+- File-oriented MCP tools accept absolute paths, repo-relative paths, and unique suffixes like `src/a.ts` or `a.ts`. If CodeGraphy returns `ambiguous-file-path`, retry with one of the candidate repo-relative paths.
+- Check CodeGraphy freshness with `codegraphy status .` or `codegraphy_repo_status` before relying on graph results for large refactors. Normal saved file changes refresh the saved DB through the VS Code extension, so reindex only when status is stale/missing or the graph did not pick up expected changes.
+- Use `codegraphy_view_graph` when the saved CodeGraphy view matters, including depth mode, folder nodes, package nodes, and structural edges from `.codegraphy/settings.json`.
+
 ### Worktree Safety
 
 - The user's open worktree is **protected** — never run `git switch`, `git checkout <branch>`, or `git rebase` there.

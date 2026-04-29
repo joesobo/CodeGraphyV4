@@ -6,6 +6,7 @@ import { registerCommands } from './commands/register';
 import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed';
 import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
 import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
+import { createCodeGraphyAgentUriHandler } from './agentReindex/uri';
 import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
@@ -52,7 +53,8 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
           retainContextWhenHidden: true,
         },
       }
-    )
+    ),
+    vscode.window.registerUriHandler(createCodeGraphyAgentUriHandler(provider))
   );
 
   registerConfigHandler(context, provider);

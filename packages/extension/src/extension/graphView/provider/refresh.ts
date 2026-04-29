@@ -77,8 +77,17 @@ export function createGraphViewProviderRefreshMethods(
   const rebuildSenders = createRebuildSenders(source, dependencies);
   const _rebuildAndSend = (): void => rebuildSenders.rebuildAndSend();
   const _smartRebuild = (id: string): void => rebuildSenders.smartRebuild(id);
+  // Full reindex clears the persisted cache first, so competing refreshes
+  // must wait or they can rebuild from an empty intermediate index.
+  let indexRefreshPromise: Promise<void> | undefined;
+  let queuedChangedFilePaths = new Set<string>();
 
   const refresh = async (): Promise<void> => {
+    if (indexRefreshPromise) {
+      await indexRefreshPromise;
+      return;
+    }
+
     source._loadDisabledRulesAndPlugins();
     source._loadGroupsAndFilterPatterns();
     await runPrimaryRefresh(source);
@@ -86,10 +95,29 @@ export function createGraphViewProviderRefreshMethods(
   };
 
   const refreshIndex = async (): Promise<void> => {
-    source._loadDisabledRulesAndPlugins();
-    source._loadGroupsAndFilterPatterns();
-    await runIndexRefresh(source);
-    sendRefreshState(source);
+    if (indexRefreshPromise) {
+      await indexRefreshPromise;
+      return;
+    }
+
+    indexRefreshPromise = (async (): Promise<void> => {
+      source._loadDisabledRulesAndPlugins();
+      source._loadGroupsAndFilterPatterns();
+      await runIndexRefresh(source);
+      sendRefreshState(source);
+    })();
+
+    try {
+      await indexRefreshPromise;
+    } finally {
+      indexRefreshPromise = undefined;
+    }
+
+    const queuedFilePaths = [...queuedChangedFilePaths];
+    queuedChangedFilePaths = new Set<string>();
+    if (queuedFilePaths.length > 0) {
+      await refreshChangedFiles(queuedFilePaths);
+    }
   };
 
   const refreshPhysicsSettings = (): void => {
@@ -122,6 +150,11 @@ export function createGraphViewProviderRefreshMethods(
   };
 
   const refreshChangedFiles = async (filePaths: readonly string[]): Promise<void> => {
+    if (indexRefreshPromise) {
+      queuedChangedFilePaths = new Set([...queuedChangedFilePaths, ...filePaths]);
+      return;
+    }
+
     source._loadDisabledRulesAndPlugins();
     source._loadGroupsAndFilterPatterns();
     await runChangedFileRefresh(source, filePaths);

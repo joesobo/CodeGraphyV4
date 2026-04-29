@@ -12,7 +12,7 @@ function getImportedBindingForJavaScriptCall(
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
   return (
     getImportedBindingByIdentifier(calleeNode, importedBindings)
-    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'member_expression', 'object')
+    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'member_expression', 'object', 'property')
   );
 }
 

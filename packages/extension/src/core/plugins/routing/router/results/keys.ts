@@ -31,6 +31,8 @@ export function getRelationKey(relation: NonNullable<IFileAnalysisResult['relati
 
   if (relation.kind === 'call' || relation.kind === 'reference') {
     key.push(...getResolvedRelationKeyParts(relation));
+  } else if (relation.toNodeId || relation.toSymbolId) {
+    key.push(relation.toNodeId ?? '', relation.toSymbolId ?? '');
   }
 
   return key.join('|');

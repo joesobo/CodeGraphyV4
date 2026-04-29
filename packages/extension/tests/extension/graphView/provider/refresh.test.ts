@@ -19,6 +19,7 @@ function createSource(
   _loadDisabledRulesAndPlugins: ReturnType<typeof vi.fn>;
   _loadGroupsAndFilterPatterns: ReturnType<typeof vi.fn>;
   _loadAndSendData?: ReturnType<typeof vi.fn>;
+  _refreshAndSendData?: ReturnType<typeof vi.fn>;
   _incrementalAnalyzeAndSendData?: ReturnType<typeof vi.fn>;
   _analyzeAndSendData: ReturnType<typeof vi.fn>;
   _sendAllSettings: ReturnType<typeof vi.fn>;
@@ -133,6 +134,69 @@ describe('graphView/provider/refresh', () => {
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
     expect(source._sendAllSettings).toHaveBeenCalledOnce();
     expect(source._sendFavorites).toHaveBeenCalledOnce();
+  });
+
+  it('queues changed-file refreshes while a full index refresh is running', async () => {
+    let finishRefreshIndex: (() => void) | undefined;
+    const refreshAndSendData = vi.fn(async () => {
+      await new Promise<void>(resolve => {
+        finishRefreshIndex = resolve;
+      });
+    });
+    const incrementalAnalyzeAndSendData = vi.fn(async () => undefined);
+    const source = createSource({
+      _refreshAndSendData: refreshAndSendData,
+      _incrementalAnalyzeAndSendData: incrementalAnalyzeAndSendData,
+    });
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    const refreshIndex = methods.refreshIndex();
+    await Promise.resolve();
+    const changedFiles = methods.refreshChangedFiles(['src/branch.ts']);
+
+    expect(incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
+
+    finishRefreshIndex?.();
+    await refreshIndex;
+    await changedFiles;
+
+    expect(incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/branch.ts']);
+  });
+
+  it('prevents normal graph refreshes from interrupting a full index refresh', async () => {
+    let finishRefreshIndex: (() => void) | undefined;
+    const refreshAndSendData = vi.fn(async () => {
+      await new Promise<void>(resolve => {
+        finishRefreshIndex = resolve;
+      });
+    });
+    const loadAndSendData = vi.fn(async () => undefined);
+    const source = createSource({
+      _refreshAndSendData: refreshAndSendData,
+      _loadAndSendData: loadAndSendData,
+    });
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    const refreshIndex = methods.refreshIndex();
+    await Promise.resolve();
+    const refresh = methods.refresh();
+
+    expect(loadAndSendData).not.toHaveBeenCalled();
+
+    finishRefreshIndex?.();
+    await refreshIndex;
+    await refresh;
+
+    expect(refreshAndSendData).toHaveBeenCalledOnce();
+    expect(loadAndSendData).not.toHaveBeenCalled();
   });
 
   it('refreshChangedFiles reloads discovered nodes instead of indexing when no index exists yet', async () => {

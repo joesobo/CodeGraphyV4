@@ -45,10 +45,15 @@ describe('GraphStore', () => {
   it('handles GRAPH_INDEX_STATUS_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
-      payload: { hasIndex: true },
+      payload: {
+        hasIndex: true,
+        freshness: 'fresh',
+        detail: 'CodeGraphy index is fresh.',
+      },
     });
 
     expect(store.getState().graphHasIndex).toBe(true);
+    expect(store.getState().graphIndexFreshness).toBe('fresh');
   });
 
   it('handles FAVORITES_UPDATED message', () => {
@@ -254,7 +259,11 @@ describe('GraphStore', () => {
   it('TOGGLE_DEPTH_MODE enables depth mode when an index exists', () => {
     store.getState().handleExtensionMessage({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
-      payload: { hasIndex: true },
+      payload: {
+        hasIndex: true,
+        freshness: 'fresh',
+        detail: 'CodeGraphy index is fresh.',
+      },
     });
     store.getState().handleExtensionMessage({ type: 'TOGGLE_DEPTH_MODE' });
     const msg = findMessage('UPDATE_DEPTH_MODE');
@@ -265,7 +274,11 @@ describe('GraphStore', () => {
   it('TOGGLE_DEPTH_MODE returns to the main graph when depth mode is already active', () => {
     store.getState().handleExtensionMessage({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
-      payload: { hasIndex: true },
+      payload: {
+        hasIndex: true,
+        freshness: 'fresh',
+        detail: 'CodeGraphy index is fresh.',
+      },
     });
     store.getState().handleExtensionMessage({
       type: 'DEPTH_MODE_UPDATED',

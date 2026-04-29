@@ -1,13 +1,10 @@
+import * as fs from 'node:fs';
 import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSettings/meta';
+import { getWorkspaceAnalysisDatabasePath } from '../../database/cache/storage';
 
 interface WorkspacePipelineSignatureDependencies {
   getPluginSignature(): string | null;
   getSettingsSignature(): string;
-}
-
-interface WorkspacePipelineHasIndexDependencies
-  extends WorkspacePipelineSignatureDependencies {
-  getCurrentCommitShaSync(workspaceRoot: string): string | null;
 }
 
 interface WorkspacePipelinePersistIndexDependencies
@@ -18,7 +15,6 @@ interface WorkspacePipelinePersistIndexDependencies
 
 export function hasWorkspacePipelineIndex(
   workspaceRoot: string | undefined,
-  dependencies: WorkspacePipelineHasIndexDependencies,
 ): boolean {
   if (!workspaceRoot) {
     return false;
@@ -29,19 +25,7 @@ export function hasWorkspacePipelineIndex(
     return false;
   }
 
-  const signaturesMatch =
-    meta.pluginSignature === dependencies.getPluginSignature()
-    && meta.settingsSignature === dependencies.getSettingsSignature();
-  if (!signaturesMatch) {
-    return false;
-  }
-
-  const currentCommit = dependencies.getCurrentCommitShaSync(workspaceRoot);
-  if (currentCommit === null) {
-    return meta.lastIndexedCommit === null;
-  }
-
-  return meta.lastIndexedCommit === currentCommit;
+  return fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot));
 }
 
 export async function persistWorkspacePipelineIndexMetadata(
@@ -60,6 +44,7 @@ export async function persistWorkspacePipelineIndexMetadata(
       lastIndexedCommit: await dependencies.getCurrentCommitSha(workspaceRoot),
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
+      pendingChangedFiles: [],
     });
   } catch (error) {
     dependencies.warn('[CodeGraphy] Failed to update repo index metadata.', error);

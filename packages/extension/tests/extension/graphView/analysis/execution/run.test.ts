@@ -35,7 +35,11 @@ describe('graph view analysis execution run', () => {
 
     expect(state.analyzer?.analyze).toHaveBeenCalledOnce();
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(transformedGraphData);
-    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(true);
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
+      true,
+      'fresh',
+      'CodeGraphy index is fresh.',
+    );
   });
 
   it('drops analyzed graph results when the request turns stale after analyze resolves', async () => {

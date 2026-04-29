@@ -140,32 +140,12 @@ describe('pipeline/service/discoveryFacade', () => {
   it('delegates plugin filters and index checks through the shared helpers', () => {
     const facade = new TestDiscoveryFacade();
     const disabledPlugins = new Set(['plugin.disabled']);
-    const getCurrentCommitShaSync = vi
-      .spyOn(facade as never, '_getCurrentCommitShaSync')
-      .mockReturnValue('abc123');
-    const getPluginSignature = vi
-      .spyOn(facade as never, '_getPluginSignature')
-      .mockReturnValue('plugin-signature');
-    const getSettingsSignature = vi
-      .spyOn(facade as never, '_getSettingsSignature')
-      .mockReturnValue('settings-signature');
 
     expect(facade.getPluginFilterPatterns(disabledPlugins)).toEqual(['plugin-filter']);
     expect(getWorkspacePipelinePluginFilterPatterns).toHaveBeenCalledWith(facade._registry, disabledPlugins);
 
     expect(facade.hasIndex()).toBe(true);
-    const dependencies = vi.mocked(hasWorkspacePipelineIndex).mock.calls[0][1];
-    expect(hasWorkspacePipelineIndex).toHaveBeenCalledWith('/workspace', {
-      getCurrentCommitShaSync: expect.any(Function),
-      getPluginSignature: expect.any(Function),
-      getSettingsSignature: expect.any(Function),
-    });
-    expect(dependencies.getCurrentCommitShaSync('/workspace')).toBe('abc123');
-    expect(getCurrentCommitShaSync).toHaveBeenCalledWith('/workspace');
-    expect(dependencies.getPluginSignature()).toBe('plugin-signature');
-    expect(getPluginSignature).toHaveBeenCalledOnce();
-    expect(dependencies.getSettingsSignature()).toBe('settings-signature');
-    expect(getSettingsSignature).toHaveBeenCalledOnce();
+    expect(hasWorkspacePipelineIndex).toHaveBeenCalledWith('/workspace');
   });
 
   it('returns an empty graph immediately when no workspace root exists', async () => {

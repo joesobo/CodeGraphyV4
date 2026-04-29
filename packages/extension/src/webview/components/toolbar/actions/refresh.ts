@@ -19,7 +19,14 @@ export function clearPendingIndexTimeout(
   timeoutRef.current = null;
 }
 
-export function createRefreshConfig(graphHasIndex: boolean): ToolbarRefreshConfig {
+export function createRefreshConfig(
+  graphHasIndex: boolean,
+  graphIndexFreshness: 'fresh' | 'stale' | 'missing',
+): ToolbarRefreshConfig {
+  if (graphIndexFreshness === 'stale') {
+    return { phase: 'Refreshing Index', title: 'Reindex Repo', type: 'REFRESH_GRAPH' };
+  }
+
   return graphHasIndex
     ? { phase: 'Refreshing Index', title: 'Refresh', type: 'REFRESH_GRAPH' }
     : { phase: 'Indexing Repo', title: 'Index Repo', type: 'INDEX_GRAPH' };
@@ -27,9 +34,10 @@ export function createRefreshConfig(graphHasIndex: boolean): ToolbarRefreshConfi
 
 export function requestGraphIndex(
   graphHasIndex: boolean,
+  graphIndexFreshness: 'fresh' | 'stale' | 'missing',
   timeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
 ): void {
-  const refresh = createRefreshConfig(graphHasIndex);
+  const refresh = createRefreshConfig(graphHasIndex, graphIndexFreshness);
 
   clearPendingIndexTimeout(timeoutRef);
   graphStore.setState({

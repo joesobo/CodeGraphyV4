@@ -15,12 +15,16 @@ export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
+  const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
+  const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
 
   return (
     <div className="flex flex-col items-center gap-1.5">
       <IndexToolbarAction
         graphHasIndex={graphHasIndex}
+        graphIndexFreshness={graphIndexFreshness}
+        graphIndexDetail={graphIndexDetail}
         graphIsIndexing={graphIsIndexing}
       />
       <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />

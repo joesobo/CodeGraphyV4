@@ -1,0 +1,4 @@
+interface:
+  display_name: "CodeGraphy MCP"
+  short_description: "Use saved CodeGraphy graph context"
+  default_prompt: "Use $codegraphy-mcp to answer dependency and impact questions from a repo's saved CodeGraphy index before broad file search."

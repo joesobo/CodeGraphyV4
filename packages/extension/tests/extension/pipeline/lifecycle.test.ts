@@ -44,6 +44,27 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     return workspaceRoot;
   }
 
+  function createIndexedWorkspaceRoot(): string {
+    const workspaceRoot = createWorkspaceRoot();
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 42,
+          size: 10,
+          analysis: {
+            filePath: `${workspaceRoot}/src/index.ts`,
+            relations: [],
+          },
+        },
+      },
+    });
+    return workspaceRoot;
+  }
+
   it('clears the cache and persists the empty state', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const context = {
@@ -293,6 +314,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
   });
 
   it('reports whether the repo already has an indexed graph', () => {
+    createIndexedWorkspaceRoot();
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
@@ -465,7 +487,8 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     ]);
   });
 
-  it('treats an index as stale when plugin or settings signatures no longer match', () => {
+  it('reports an existing index as stale when plugin or settings signatures no longer match', () => {
+    createIndexedWorkspaceRoot();
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
@@ -496,10 +519,15 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       '_getSettingsSignature',
     ).mockReturnValue('settings-signature');
 
-    expect(analyzer.hasIndex()).toBe(false);
+    expect(analyzer.hasIndex()).toBe(true);
+    expect(analyzer.getIndexStatus()).toEqual({
+      freshness: 'stale',
+      detail: 'CodeGraphy index is stale: installed CodeGraphy plugins changed.',
+    });
   });
 
-  it('treats an index as stale when the workspace commit has changed since indexing', () => {
+  it('reports an existing index as stale when the workspace commit has changed since indexing', () => {
+    createIndexedWorkspaceRoot();
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
@@ -536,10 +564,15 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       '_getCurrentCommitShaSync',
     ).mockReturnValue('new-commit');
 
-    expect(analyzer.hasIndex()).toBe(false);
+    expect(analyzer.hasIndex()).toBe(true);
+    expect(analyzer.getIndexStatus()).toEqual({
+      freshness: 'stale',
+      detail: 'CodeGraphy index is stale: the workspace commit changed since the last index.',
+    });
   });
 
-  it('treats an index as stale when a repo index recorded a commit but the current commit cannot be resolved', () => {
+  it('reports an existing index as stale when a repo index recorded a commit but the current commit cannot be resolved', () => {
+    createIndexedWorkspaceRoot();
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
@@ -576,7 +609,11 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       '_getCurrentCommitShaSync',
     ).mockReturnValue(null);
 
-    expect(analyzer.hasIndex()).toBe(false);
+    expect(analyzer.hasIndex()).toBe(true);
+    expect(analyzer.getIndexStatus()).toEqual({
+      freshness: 'stale',
+      detail: 'CodeGraphy index is stale: the current workspace commit could not be resolved.',
+    });
   });
 
   it('invalidates selected workspace files from the cache and persists the updated cache', () => {

@@ -1,0 +1,35 @@
+{
+  "name": "@codegraphy-vscode/mcp",
+  "version": "0.1.0",
+  "description": "CodeGraphy MCP CLI and local query server",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.22.0 <23"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "codegraphy": "./dist/main.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "lint": "eslint src tests scripts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy-vscode/plugin-api": "workspace:*",
+    "@ladybugdb/core": "^0.15.3",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.1.12"
+  }
+}

@@ -112,6 +112,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJavaScript/calls', () => {
       expect.any(Map),
       'member_expression',
       'object',
+      'property',
     );
     expect(addCallRelation).not.toHaveBeenCalled();
   });

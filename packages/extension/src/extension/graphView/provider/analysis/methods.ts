@@ -119,6 +119,48 @@ export function createGraphViewProviderAnalysisMethods(
   dependencies: GraphViewProviderAnalysisMethodDependencies =
     createDefaultGraphViewProviderAnalysisMethodDependencies(),
 ): GraphViewProviderAnalysisMethods {
+  let fullIndexAnalysisPromise: Promise<void> | undefined;
+
+  const waitForFullIndexAnalysis = async (): Promise<boolean> => {
+    if (!fullIndexAnalysisPromise) {
+      return false;
+    }
+
+    try {
+      await fullIndexAnalysisPromise;
+    } catch {
+      // The request that owns the reindex reports the failure. Competing
+      // fire-and-forget webview loads should not create duplicate errors.
+    }
+    return true;
+  };
+
+  const runFullIndexAnalysis = async (
+    runAnalysis: () => Promise<void>,
+  ): Promise<void> => {
+    if (fullIndexAnalysisPromise) {
+      await fullIndexAnalysisPromise;
+      return;
+    }
+
+    const analysisPromise = runAnalysis();
+    fullIndexAnalysisPromise = analysisPromise;
+    try {
+      await analysisPromise;
+    } finally {
+      if (fullIndexAnalysisPromise === analysisPromise) {
+        fullIndexAnalysisPromise = undefined;
+      }
+    }
+  };
+
+  const runAfterFullIndexAnalysis = async (
+    runAnalysis: () => Promise<void>,
+  ): Promise<void> => {
+    await waitForFullIndexAnalysis();
+    await runAnalysis();
+  };
+
   const _markWorkspaceReady = (graph: IGraphData): void => {
     const state = createGraphViewProviderWorkspaceReadyState(source);
 
@@ -143,18 +185,18 @@ export function createGraphViewProviderAnalysisMethods(
     delegates,
     'load',
   );
-  const _doAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
-    source,
-    dependencies,
-    delegates,
-    'analyze',
-  );
   const _loadAndSendData = createGraphViewProviderAnalyzeAndSendData(
     source,
     dependencies,
     delegates,
     _doLoadAndSendData,
     'load',
+  );
+  const _doAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    'analyze',
   );
   const _analyzeAndSendData = createGraphViewProviderAnalyzeAndSendData(
     source,
@@ -190,6 +232,7 @@ export function createGraphViewProviderAnalysisMethods(
     'refresh',
   );
   const _incrementalAnalyzeAndSendData = async (filePaths: readonly string[]): Promise<void> => {
+    await waitForFullIndexAnalysis();
     source._changedFilePaths = [...filePaths];
     const doIncrementalAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
       source,
@@ -209,10 +252,16 @@ export function createGraphViewProviderAnalysisMethods(
   };
 
   const methods: GraphViewProviderAnalysisMethods = {
-    _loadAndSendData,
-    _indexAndSendData,
-    _analyzeAndSendData,
-    _refreshAndSendData,
+    _loadAndSendData: async () => {
+      if (await waitForFullIndexAnalysis()) {
+        return;
+      }
+
+      await _loadAndSendData();
+    },
+    _indexAndSendData: () => runFullIndexAnalysis(_indexAndSendData),
+    _analyzeAndSendData: () => runAfterFullIndexAnalysis(_analyzeAndSendData),
+    _refreshAndSendData: () => runFullIndexAnalysis(_refreshAndSendData),
     _incrementalAnalyzeAndSendData,
     _doAnalyzeAndSendData,
     _markWorkspaceReady,

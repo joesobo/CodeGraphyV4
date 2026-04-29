@@ -161,7 +161,7 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(handlers.getGraphData()).toBe(source._graphData);
 
     handlers.sendGraphDataUpdated(graphData);
-    handlers.sendGraphIndexStatusUpdated(true);
+    handlers.sendGraphIndexStatusUpdated(true, 'fresh', 'CodeGraphy index is fresh.');
     if (handlers.sendIndexProgress) {
       handlers.sendIndexProgress(progress);
     }
@@ -190,7 +190,11 @@ describe('graphView/provider/analysis/handlers', () => {
     });
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
-      payload: { hasIndex: true },
+      payload: {
+        hasIndex: true,
+        freshness: 'fresh',
+        detail: 'CodeGraphy index is fresh.',
+      },
     });
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_INDEX_PROGRESS',

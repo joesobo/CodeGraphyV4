@@ -10,7 +10,21 @@ export async function refreshGraphViewRawData(
   state: GraphViewAnalysisExecutionState,
   forwardProgress: (progress: GraphViewIndexingProgress) => void,
 ): Promise<IGraphData> {
-  return (await (state.analyzer?.refreshIndex ?? state.analyzer?.analyze)?.(
+  const analyzer = state.analyzer;
+  if (!analyzer) {
+    return EMPTY_GRAPH_DATA;
+  }
+
+  if (analyzer.refreshIndex) {
+    return (await analyzer.refreshIndex(
+      state.filterPatterns,
+      state.disabledPlugins,
+      signal,
+      forwardProgress,
+    )) ?? EMPTY_GRAPH_DATA;
+  }
+
+  return (await analyzer.analyze?.(
     state.filterPatterns,
     state.disabledPlugins,
     signal,
