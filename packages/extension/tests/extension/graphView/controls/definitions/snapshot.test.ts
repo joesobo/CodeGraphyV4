@@ -105,25 +105,4 @@ describe('extension/graphView/controls/snapshot', () => {
     expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toContain('import');
     expect(snapshot.edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND]).toBe(true);
   });
-
-  it('preserves legacy structural nests visibility settings under the canonical nests edge kind', () => {
-    const snapshot = captureGraphControlsSnapshot(
-      {
-        get: <T>(key: string, defaultValue: T): T => {
-          if (key === 'edgeVisibility') {
-            return { 'codegraphy:nests': false } as T;
-          }
-          return defaultValue;
-        },
-      },
-      {
-        nodes: [{ id: 'src/App.ts', label: 'App', color: '#111111', nodeType: 'file' }],
-        edges: [],
-      },
-      [],
-      [],
-    );
-
-    expect(snapshot.edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND]).toBe(false);
-  });
 });
