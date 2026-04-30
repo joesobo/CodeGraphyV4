@@ -24,6 +24,7 @@ export type GraphNodeShape3D =
   | 'icosahedron';
 
 export type CoreEdgeKind =
+  | 'nests'
   | 'import'
   | 'type-import'
   | 'reexport'

@@ -103,11 +103,11 @@ The Filtered Graph after temporary search criteria have narrowed it.
 _Avoid_: Filtered graph
 
 **Visible Graph**:
-The graph shown on screen after **Graph Scope**, **Filter**, **Search**, and view settings have been applied.
+The graph shown on screen after **Graph Scope**, **Filter**, **Search**, and final view settings such as **Show Orphans** have been applied.
 _Avoid_: Relationship graph, filtered graph when collapse or search is also active
 
 **Orphan Node**:
-A node with no edges after all **Graph Scope**, **Filter**, **Search**, and view settings have been applied.
+A node with no edges after **Graph Scope**, **Filter**, **Search**, and structural view settings have been applied, before **Show Orphans** decides whether it remains visible.
 _Avoid_: Isolated file if the node is not a file
 
 **Show Orphans**:
@@ -133,7 +133,7 @@ The CodeGraphy-owned graph transformation, implemented using the force graph's d
 _Avoid_: Renderer-owned collapse, tree-only collapse
 
 **Depth Mode**:
-A graph interaction mode that focuses the graph around the currently selected node by depth measured in edge hops.
+A **Graph View** interaction mode applied after the **Visible Graph** exists, focusing the graph around the currently selected node by depth measured in edge hops.
 _Avoid_: Separate view
 
 **Focused Node**:
@@ -330,6 +330,7 @@ _Avoid_: Graph export
 - A **Dependency** is only present when an **Edge Type** specifically says one node needs another; many relationships are not dependencies.
 - **Relationship Source** is provenance for a relationship and is distinct from the source node in **Edge Direction**.
 - **Depth Mode** narrows attention to nodes within a configured edge-hop distance of the **Focused Node**.
+- **Depth Mode** is a user-facing **Graph View** aid applied after the **Visible Graph** pipeline; agent **Graph Queries** do not need to apply it by default.
 - **Depth Mode** does not depend on **Edge Type** when counting edge hops.
 - Nodes outside the configured depth may remain visible but faded, preserving graph context while reducing focus noise.
 - The **Active File** and **Focused Node** are linked for File Nodes: opening a file in VS Code should focus its node, and selecting a File Node should preview or open it in VS Code.
@@ -361,6 +362,14 @@ _Avoid_: Graph export
 - CodeGraphy has two **Views**: the **Graph View** and the **Timeline View**.
 - The **Graph View** contains the **Visible Graph**, search, filters, popups, settings UI, and overlay controls.
 - The **Visible Graph** is graph data shown inside the **Graph View**, not the whole view.
+- **Visible Graph** derivation should live in a pure shared **Module** so the **Graph View** can use it first and **CodeGraphy MCP** can later reuse the same **Graph Scope**, **Filter**, and **Search** semantics for **Graph Queries**.
+- The shared **Visible Graph** derivation **Module** should return the core graph data callers need, while exposing opt-in derivation stages that can be enabled by passing stage-specific configuration such as **Graph Scope** Node Type and Edge Type enablement, **Filter** patterns, or a **Search** query and options.
+- Shared **Graph Scope** derivation is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.
+- Core **Edge Types** should use canonical core ids such as `nests`; namespaced ids are appropriate for plugin-owned **Edge Types**.
+- A shared derivation configuration should keep stage inputs together: `scope.nodes`, `scope.edges`, `filter.patterns`, `search.query`, `search.options`, and `showOrphans`.
+- **Show Orphans** remains a boolean view setting in derivation configuration.
+- Structural **Folder Node** and **Workspace Package** projection belongs inside the shared **Visible Graph** derivation **Module**, so the **Graph View** and later **Graph Queries** use the same structural graph behavior.
+- When callers opt in to multiple derivation stages, the shared **Module** must apply them in canonical order so stages compound correctly: **Graph Scope** before **Filter**, **Filter** before **Search**, and **Show Orphans** last.
 - The **Timeline View** lets users jump through commits in git history.
 - Selecting a **Timeline Snapshot** changes the nodes and edges rendered in the **Visible Graph** inside the **Graph View**.
 - **Timeline Snapshots** still flow through the same **Graph Scope**, **Filter**, **Search**, and view setting stages as the current workspace **Relationship Graph**.
@@ -459,4 +468,5 @@ _Avoid_: Graph export
 - Collapse behavior is not renderer-owned; resolved: CodeGraphy owns **Collapse Projection**, it runs after the **Visible Graph** exists, and the force graph renderer displays the resulting graph.
 - Do not introduce "Collapsed Graph" as a separate pipeline term for now; resolved: the user still sees the **Visible Graph**, updated by **Collapse Projection**.
 - "filter" and "collapse" both reduce **Visible Graph** detail but are not synonyms; resolved: **Filter** means ignore noise, while **Collapse** means summarize relevant hidden detail.
-- Current implementation applies filter patterns before node/edge type controls, but the desired domain pipeline is **Relationship Graph** -> **Scoped Graph** -> **Filtered Graph** -> **Searched Graph** -> **Visible Graph**.
+- Graph Scope before Filter is load-bearing: disabled **Node Types** and **Edge Types** must be removed before filter patterns are evaluated.
+- **Show Orphans** is a final view setting because orphan status can only be known after **Graph Scope**, **Filter**, **Search**, and structural view settings have run.

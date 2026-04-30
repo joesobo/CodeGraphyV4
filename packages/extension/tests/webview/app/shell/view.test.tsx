@@ -3,6 +3,7 @@ import { render, screen, act } from '@testing-library/react';
 import App from '../../../../src/webview/app/view';
 import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../src/shared/graphControls/defaults/definitions';
 
 // Mock window message listeners
 const messageListeners: ((event: MessageEvent) => void)[] = [];
@@ -198,6 +199,35 @@ describe('App', () => {
     });
 
     expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
+  });
+
+  it('counts filters against the scoped visible graph instead of raw graph data', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'src/lib/a.ts', label: 'a.ts', color: '#3B82F6', nodeType: 'file' },
+          { id: 'README.md', label: 'README.md', color: '#3B82F6', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      graphEdgeTypes: [
+        { id: STRUCTURAL_NESTS_EDGE_KIND, label: 'Nests', defaultColor: '#222222', defaultVisible: true },
+      ],
+      filterPatterns: ['src/lib'],
+      isLoading: false,
+      nodeVisibility: {
+        file: false,
+        folder: true,
+      },
+      edgeVisibility: {
+        [STRUCTURAL_NESTS_EDGE_KIND]: true,
+      },
+      showOrphans: true,
+    });
+
+    render(<App />);
+
+    expect(screen.getByText('2 of 3')).toBeInTheDocument();
   });
 
   it('should hide graph corner controls while a right-side popup is open', async () => {
