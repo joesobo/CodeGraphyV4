@@ -209,11 +209,11 @@ _Avoid_: Refresh Graph
 ### Agent Access
 
 **CodeGraphy MCP**:
-The local MCP server and CLI that let agents query Relationship Graph data from the Graph Cache and request extension-owned re-indexing when the Graph Cache is missing or cannot answer.
+The local MCP server and CLI that let agents open a repo in the Core Extension, ask the Core Extension to run Indexing, and request focused Graph Query results from the Core Extension.
 _Avoid_: Agent bridge, MCP indexer, MCP graph
 
 **Graph Query**:
-An agent request against Relationship Graph data that can apply Graph Scope, Filter, Search, traversal direction, depth, and result limits before returning graph data.
+An agent or Graph View request against Relationship Graph data that can apply Graph Scope, Filter, Search, sorting, pagination, traversal, and result limits before returning graph data.
 _Avoid_: View graph, saved graph view, Visible Graph when the result is not the UI-rendered graph
 
 ### Views And Timeline
@@ -352,24 +352,25 @@ _Avoid_: Graph export
 - **Graph Cache** stores indexed graph data so reopening the repo does not require full **Indexing**.
 - **Live Updates** keep the **Graph Cache** and graph data current as files change.
 - Any graph-changing update from added files, renamed files, changed code, or settings that affect graph data should be saved to **Graph Cache**.
-- **CodeGraphy MCP** reads **Relationship Graph** data from the **Graph Cache** for agent access and does not own **Indexing**.
-- **CodeGraphy MCP** should not be limited to the **Visible Graph**; it should query the **Relationship Graph** and allow agent queries to apply **Graph Scope**, **Filter**, and **Search** to reduce noise.
+- **CodeGraphy MCP** is a lightweight command and query Adapter; the **Core Extension** owns **Graph Cache** access, **Indexing**, plugin wiring, and Graph Query execution.
+- **CodeGraphy MCP** opens or focuses a repo in the **Core Extension**, establishes the active repo connection, asks the **Core Extension** to run **Indexing**, and returns Graph Query results.
+- **CodeGraphy MCP** should not be limited to the **Visible Graph**; it should ask the **Core Extension** for **Relationship Graph** data and allow agent queries to apply **Graph Scope**, **Filter**, and **Search** to reduce noise.
 - A **Graph Query** is not a VS Code **View**; it is a narrowed agent-facing result from **Relationship Graph** data.
-- **Graph Queries** should reuse **Graph Scope**, **Filter**, and **Search** semantics instead of introducing MCP-specific equivalents for the same graph narrowing stages.
+- **Graph Queries** should reuse **Graph Scope**, **Filter**, **Search**, sorting, and pagination semantics instead of introducing MCP-specific equivalents for the same graph narrowing stages.
 - **Refresh Graph** and **Re-index Repo** should be distinct UI actions.
 - **Refresh** only reruns the force graph simulation and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
 - CodeGraphy has two **Views**: the **Graph View** and the **Timeline View**.
 - The **Graph View** contains the **Visible Graph**, search, filters, popups, settings UI, and overlay controls.
 - The **Visible Graph** is graph data shown inside the **Graph View**, not the whole view.
-- **Visible Graph** derivation should live in a pure shared **Module** so the **Graph View** can use it first and **CodeGraphy MCP** can later reuse the same **Graph Scope**, **Filter**, and **Search** semantics for **Graph Queries**.
-- The shared **Visible Graph** derivation **Module** should return the core graph data callers need, while exposing opt-in derivation stages that can be enabled by passing stage-specific configuration such as **Graph Scope** Node Type and Edge Type enablement, **Filter** patterns, or a **Search** query and options.
-- Shared **Graph Scope** derivation is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.
+- **Graph Query** behavior should live in a Core Extension **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
+- The **Graph Query** **Module** should return the graph data callers ask for while exposing opt-in query stages such as **Graph Scope** Node Type and Edge Type enablement, **Filter** conditions, **Search**, sorting, pagination, and **Show Orphans** where applicable.
+- **Graph Scope** query behavior is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.
 - Core **Edge Types** should use canonical core ids such as `nests`; namespaced ids are appropriate for plugin-owned **Edge Types**.
-- A shared derivation configuration should keep stage inputs together: `scope.nodes`, `scope.edges`, `filter.patterns`, `search.query`, `search.options`, and `showOrphans`.
-- **Show Orphans** remains a boolean view setting in derivation configuration.
-- Structural **Folder Node** and **Workspace Package** projection belongs inside the shared **Visible Graph** derivation **Module**, so the **Graph View** and later **Graph Queries** use the same structural graph behavior.
-- When callers opt in to multiple derivation stages, the shared **Module** must apply them in canonical order so stages compound correctly: **Graph Scope** before **Filter**, **Filter** before **Search**, and **Show Orphans** last.
+- A **Graph Query** configuration should keep stage inputs together: `scope.nodes`, `scope.edges`, `filters`, `search`, `sort`, `limit`, `offset`, and `showOrphans` where applicable.
+- **Show Orphans** remains a boolean view setting in **Graph Query** configuration.
+- Structural **Folder Node** and **Workspace Package** projection belongs inside the **Graph Query** **Module**, so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same structural graph behavior.
+- When callers opt in to multiple query stages, the **Graph Query** **Module** must apply them in canonical order so stages compound correctly: **Graph Scope** before **Filter**, **Filter** before **Search**, **Show Orphans** last where applicable, then sorting and pagination.
 - The **Timeline View** lets users jump through commits in git history.
 - Selecting a **Timeline Snapshot** changes the nodes and edges rendered in the **Visible Graph** inside the **Graph View**.
 - **Timeline Snapshots** still flow through the same **Graph Scope**, **Filter**, **Search**, and view setting stages as the current workspace **Relationship Graph**.
@@ -434,7 +435,7 @@ _Avoid_: Graph export
 > **Domain expert:** "No. **Refresh** reruns the force graph simulation. **Re-index** rebuilds graph data, saves it, then refreshes the graph."
 >
 > **Dev:** "Does CodeGraphy MCP build its own graph?"
-> **Domain expert:** "No. **CodeGraphy MCP** reads the **Graph Cache** produced by the **Core Extension** and can ask the extension to re-index when the cache is missing or cannot answer."
+> **Domain expert:** "No. **CodeGraphy MCP** opens a repo in the **Core Extension**, asks the extension to run **Indexing** when needed, and returns **Graph Query** results produced by the **Core Extension**."
 >
 > **Dev:** "Is the current collapsed graph a view?"
 > **Domain expert:** "No. Use **Visible Graph** for graph state. A **View** is the VS Code UI container, such as the **Graph View** or **Timeline View**."
@@ -459,7 +460,7 @@ _Avoid_: Graph export
 - "dependency" is not generic relationship direction; resolved: use **Dependency** only when the edge type specifically means one node needs another.
 - "downstream" is directional only; resolved: it says a relationship exists in that direction, not what kind of relationship the edge represents.
 - "connection" is acceptable in conversation as an informal synonym for **Relationship**, but docs and code should prefer **Relationship**.
-- MCP reads the **Graph Cache** for agent access and does not own **Indexing**.
+- **CodeGraphy MCP** does not read or manipulate **Graph Cache** data directly; the **Core Extension** owns Graph Cache access and **Graph Query** execution.
 - Current MCP and extension code exposes freshness/staleness language; resolved: **Graph Cache** is expected to auto-update with graph changes, so freshness/staleness should not be treated as canonical domain language.
 - "package" can be local or external; resolved: use **Workspace Package** when CodeGraphy can read and expand it, and **External Package** when the package is outside the local context and represented as one node.
 - "collapse dependents" was ambiguous; resolved: **Collapse** absorbs downstream relationship nodes, not upstream nodes.
