@@ -58,8 +58,8 @@ describe('EdgesPanel', () => {
   it('posts edge visibility updates when a toggle changes', () => {
     sentMessages.length = 0;
     graphStore.setState({
-      graphEdgeTypes: [{ id: 'codegraphy:nests', label: 'Nests', defaultColor: '#222222', defaultVisible: true }],
-      edgeVisibility: { 'codegraphy:nests': true },
+      graphEdgeTypes: [{ id: 'nests', label: 'Nests', defaultColor: '#222222', defaultVisible: true }],
+      edgeVisibility: { 'nests': true },
       legends: [],
     });
 
@@ -69,7 +69,7 @@ describe('EdgesPanel', () => {
 
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_EDGE_VISIBILITY',
-      payload: { edgeKind: 'codegraphy:nests', visible: false },
+      payload: { edgeKind: 'nests', visible: false },
     });
   });
 

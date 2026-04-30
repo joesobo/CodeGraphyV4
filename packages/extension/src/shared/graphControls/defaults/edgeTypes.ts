@@ -1,6 +1,6 @@
 import type { IGraphEdgeTypeDefinition } from '../contracts';
 
-export const STRUCTURAL_NESTS_EDGE_KIND = 'codegraphy:nests' as const;
+export const STRUCTURAL_NESTS_EDGE_KIND = 'nests' as const;
 
 export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
   return [
