@@ -55,6 +55,12 @@ Package boundaries are the primary entry point.
 4. **Commit frequently** — at minimum when subagent work is merged.
 5. **Deliver via PR** — push and open a GitHub PR for human review.
 
+### Refactors and migrations
+
+- When an intentional refactor changes a contract, move the codebase to the new canonical contract directly.
+- Update callers, tests, docs, and changesets to describe the new behavior and any required migration.
+- Prefer one clear forward path through the new domain model so future agents can reason from the current contract.
+
 ## CodeGraphy MCP
 
 - When CodeGraphy MCP is available, use it first for repo structure, dependency, relationship, and impact questions before broad file search.
