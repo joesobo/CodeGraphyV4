@@ -6,14 +6,21 @@
 
 import { useMemo } from 'react';
 import type { SearchOptions } from '../components/searchBar/field/model';
-import { applyFilterPatterns } from './filtering/patterns';
 import { applyLegendRules } from './filtering/rules';
-import { filterGraphData } from './filtering/graph';
+import { deriveVisibleGraph } from '../../shared/visibleGraph';
 import type { IGraphData } from '../../shared/graph/contracts';
 import type { IGraphEdgeTypeDefinition } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
-import { applyGraphControls } from '../graphControls/filtering';
+import {
+  applyEdgeTypeDefaultColors,
+  filterVisibleEdgeDecorations,
+} from '../graphControls/filtering/edges';
+import { applyNodeTypeColors, withResolvedNodeTypes } from '../graphControls/filtering/nodes';
+import {
+  buildVisibleGraphConfig,
+  withSharedEdgeTypeAliases,
+} from './visibleGraphConfig';
 
 export interface IFilteredGraph {
   /** Graph after node/edge search filtering (null when no graph data). */
@@ -41,39 +48,56 @@ export function useFilteredGraph(
   edgeTypes: IGraphEdgeTypeDefinition[] = [],
   edgeDecorations?: Record<string, EdgeDecorationPayload>,
   filterPatterns: readonly string[] = [],
+  showOrphans = true,
 ): IFilteredGraph {
-  const filteredGraphData = useMemo(
-    () => applyFilterPatterns(graphData, filterPatterns),
-    [filterPatterns, graphData],
-  );
+  const visibleGraph = useMemo(() => {
+    return deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+      edgeTypes,
+      edgeVisibility,
+      filterPatterns,
+      nodeVisibility,
+      searchOptions,
+      searchQuery,
+      showOrphans,
+    }));
+  }, [
+    edgeTypes,
+    edgeVisibility,
+    filterPatterns,
+    graphData,
+    nodeVisibility,
+    searchOptions,
+    searchQuery,
+    showOrphans,
+  ]);
 
-  const { graphData: controlsData, edgeDecorations: controlsEdgeDecorations } = useMemo(
-    () =>
-      applyGraphControls({
-        graphData: filteredGraphData,
-        nodeColors,
-        nodeVisibility,
-        edgeVisibility,
-        edgeTypes,
-        edgeDecorations,
-      }),
-    [edgeDecorations, edgeTypes, edgeVisibility, filteredGraphData, nodeColors, nodeVisibility],
-  );
+  const filteredData = useMemo(() => {
+    if (!visibleGraph.graphData) {
+      return null;
+    }
 
-  const { filteredData, regexError } = useMemo(
-    () => filterGraphData(controlsData, searchQuery, searchOptions),
-    [controlsData, searchQuery, searchOptions],
-  );
+    const edgeTypesForStyling = withSharedEdgeTypeAliases(edgeTypes);
+
+    return {
+      nodes: applyNodeTypeColors(withResolvedNodeTypes(visibleGraph.graphData.nodes), nodeColors),
+      edges: applyEdgeTypeDefaultColors(visibleGraph.graphData.edges, edgeTypesForStyling),
+    };
+  }, [edgeTypes, nodeColors, visibleGraph.graphData]);
 
   const coloredData = useMemo(
     () => applyLegendRules(filteredData, legends),
     [filteredData, legends],
   );
 
+  const controlsEdgeDecorations = useMemo(
+    () => filterVisibleEdgeDecorations(filteredData?.edges ?? [], edgeDecorations),
+    [edgeDecorations, filteredData],
+  );
+
   return {
     filteredData,
     coloredData,
     edgeDecorations: controlsEdgeDecorations,
-    regexError,
+    regexError: visibleGraph.regexError,
   };
 }

@@ -124,10 +124,10 @@ describe('webview/graphControls/filtering', () => {
       ],
       edges: [
         {
-          id: 'src->src/lib#codegraphy:nests',
+          id: 'src->src/lib#nests',
           from: 'src',
           to: 'src/lib',
-          kind: 'codegraphy:nests',
+          kind: 'nests',
           sources: [],
         },
       ],

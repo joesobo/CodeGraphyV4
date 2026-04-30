@@ -16,9 +16,10 @@ import { SearchHeader } from './panel/search';
 import { ToolbarRail } from './panel/toolbar';
 import { useFilterLegendInputs } from './derivedState';
 import { useRulePromptHandlers } from '../rulePrompt/handlers';
-import { applyFilterPatterns } from '../../search/filtering/patterns';
+import { deriveVisibleGraph } from '../../../shared/visibleGraph';
 import { getFilterCountState } from '../../components/searchBar/filters/countState';
 import { toFilterGlob } from '../../components/searchBar/filters/model';
+import { buildVisibleGraphConfig } from '../../search/visibleGraphConfig';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
@@ -68,9 +69,29 @@ export default function App(): React.ReactElement {
     disabledPluginFilterPatterns,
     legends,
   );
+  const countBaseData = useMemo(
+    () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+      edgeTypes: graphEdgeTypes,
+      edgeVisibility,
+      filterPatterns: [],
+      nodeVisibility,
+      searchOptions,
+      searchQuery: '',
+      showOrphans,
+    })).graphData,
+    [edgeVisibility, graphData, graphEdgeTypes, nodeVisibility, searchOptions, showOrphans],
+  );
   const filterVisibleData = useMemo(
-    () => applyFilterPatterns(graphData, activeFilterPatterns),
-    [activeFilterPatterns, graphData],
+    () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+      edgeTypes: graphEdgeTypes,
+      edgeVisibility,
+      filterPatterns: activeFilterPatterns,
+      nodeVisibility,
+      searchOptions,
+      searchQuery: '',
+      showOrphans,
+    })).graphData,
+    [activeFilterPatterns, edgeVisibility, graphData, graphEdgeTypes, nodeVisibility, searchOptions, showOrphans],
   );
   const {
     filteredData,
@@ -88,6 +109,7 @@ export default function App(): React.ReactElement {
     graphEdgeTypes,
     edgeDecorations,
     activeFilterPatterns,
+    showOrphans,
   );
 
   const {
@@ -115,14 +137,16 @@ export default function App(): React.ReactElement {
   const displayGraphData = coloredData || graphData;
   const graphStatsLabel = buildGraphStatsLabel(displayGraphData.nodes.length, displayGraphData.edges.length);
   const closeActivePanel = () => setActivePanel('none');
-  const excludedCount = graphData.nodes.length - (filterVisibleData?.nodes.length ?? graphData.nodes.length);
+  const countTotal = countBaseData?.nodes.length ?? graphData.nodes.length;
+  const filterVisibleCount = filterVisibleData?.nodes.length ?? countTotal;
+  const excludedCount = Math.max(0, countTotal - filterVisibleCount);
   const countState = getFilterCountState({
     excludedCount,
-    filterVisibleCount: filterVisibleData?.nodes.length ?? graphData.nodes.length,
+    filterVisibleCount,
     regexError,
     resultCount: filteredData?.nodes.length,
     searchActive: searchQuery.length > 0,
-    totalCount: graphData.nodes.length,
+    totalCount: countTotal,
   });
   const openFilterPopoverWithPatterns = (patterns: string[]) => {
     setPendingFilterPatterns(patterns.map(toFilterGlob).filter(Boolean));
@@ -135,7 +159,7 @@ export default function App(): React.ReactElement {
         searchQuery={searchQuery}
         searchOptions={searchOptions}
         resultCount={filteredData?.nodes.length}
-        totalCount={graphData.nodes.length}
+        totalCount={countTotal}
         activeFilePath={activeFilePath}
         countLabel={countState.label}
         filterPopover={{

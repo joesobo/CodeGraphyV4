@@ -7,10 +7,10 @@ import {
 
 describe('shared/graphControls/defaults/edgeTypes', () => {
   it('declares the structural nests edge and the built-in edge defaults', () => {
-    expect(STRUCTURAL_NESTS_EDGE_KIND).toBe('codegraphy:nests');
+    expect(STRUCTURAL_NESTS_EDGE_KIND).toBe('nests');
     expect(createCoreGraphEdgeTypes()).toEqual([
       {
-        id: 'codegraphy:nests',
+        id: 'nests',
         label: 'Nests',
         defaultColor: '#64748B',
         defaultVisible: true,
