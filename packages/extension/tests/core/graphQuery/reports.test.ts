@@ -1,0 +1,117 @@
+import { describe, expect, it } from 'vitest';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../../src/shared/graph/contracts';
+import { listGraphEdges, listGraphNodes } from '../../../src/core/graphQuery';
+
+function node(id: string, nodeType = 'file'): IGraphNode {
+  return {
+    id,
+    label: id.split('/').pop() ?? id,
+    color: '#111111',
+    nodeType,
+  };
+}
+
+function edge(from: string, to: string, kind: IGraphEdge['kind']): IGraphEdge {
+  return {
+    id: `${from}->${to}#${kind}`,
+    from,
+    to,
+    kind,
+    sources: [],
+  };
+}
+
+const graphData: IGraphData = {
+  nodes: [
+    node('packages/app/src/b.ts'),
+    node('packages/app/src/a.ts'),
+    node('packages/app/src/route', 'plugin-route'),
+    node('packages/app/package.json'),
+  ],
+  edges: [
+    edge('packages/app/src/a.ts', 'packages/app/src/b.ts', 'import'),
+    edge('packages/app/src/a.ts', 'packages/app/src/b.ts', 'type-import'),
+    edge('packages/app/src/route', 'packages/app/src/a.ts', 'reference'),
+  ],
+};
+
+describe('core/graphQuery reports', () => {
+  it('lists file nodes by default with deterministic pagination', () => {
+    const result = listGraphNodes(graphData, { limit: 2 });
+
+    expect(result).toEqual({
+      nodes: [
+        { path: 'packages/app/package.json', nodeType: 'file' },
+        { path: 'packages/app/src/a.ts', nodeType: 'file' },
+      ],
+      page: {
+        offset: 0,
+        limit: 2,
+        returned: 2,
+        total: 3,
+      },
+    });
+  });
+
+  it('includes structural folder nodes and nests edges when graph scope opts in', () => {
+    const config = {
+      scope: {
+        nodes: { file: true, folder: true },
+        edges: { nests: true },
+      },
+      sort: [{ by: 'path', direction: 'asc' as const }],
+      limit: 100,
+    };
+
+    expect(listGraphNodes(graphData, config).nodes).toEqual(
+      expect.arrayContaining([
+        { path: 'packages/app/src', nodeType: 'folder' },
+        { path: 'packages/app/src/a.ts', nodeType: 'file' },
+      ]),
+    );
+    expect(listGraphEdges(graphData, config).edges).toEqual(
+      expect.arrayContaining([
+        {
+          from: 'packages/app/src',
+          to: 'packages/app/src/a.ts',
+          edgeTypes: ['nests'],
+        },
+      ]),
+    );
+  });
+
+  it('groups high-level edges by node pair with all edge types', () => {
+    const result = listGraphEdges(graphData);
+
+    expect(result.edges).toEqual([
+      {
+        from: 'packages/app/src/a.ts',
+        to: 'packages/app/src/b.ts',
+        edgeTypes: ['import', 'type-import'],
+      },
+    ]);
+    expect(result.page).toEqual({
+      offset: 0,
+      limit: 500,
+      returned: 1,
+      total: 1,
+    });
+  });
+
+  it('filters edges by exact endpoint and edge type before pagination', () => {
+    const result = listGraphEdges(graphData, {
+      filters: [
+        { field: 'from', op: 'equals', value: 'packages/app/src/a.ts' },
+        { field: 'edgeTypes', op: 'includes', value: 'type-import' },
+      ],
+    });
+
+    expect(result.edges).toEqual([
+      {
+        from: 'packages/app/src/a.ts',
+        to: 'packages/app/src/b.ts',
+        edgeTypes: ['type-import'],
+      },
+    ]);
+  });
+});
