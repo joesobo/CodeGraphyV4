@@ -7,12 +7,17 @@ describe('run/parse', () => {
     expect(parseCliCommand(['setup'])).toEqual({ name: 'setup' });
   });
 
-  it('parses status with an optional repo path', () => {
-    expect(parseCliCommand(['status', '/repo'])).toEqual({ name: 'status', repoPath: '/repo' });
+  it('parses open with a repo path', () => {
+    expect(parseCliCommand(['open', '/repo'])).toEqual({ name: 'open', repoPath: '/repo' });
   });
 
-  it('parses reindex with an optional repo path', () => {
-    expect(parseCliCommand(['reindex', '/repo'])).toEqual({ name: 'reindex', repoPath: '/repo' });
+  it('parses index without repo arguments', () => {
+    expect(parseCliCommand(['index'])).toEqual({ name: 'index' });
+  });
+
+  it('does not parse old status and reindex commands', () => {
+    expect(parseCliCommand(['status', '/repo'])).toEqual({ name: 'help' });
+    expect(parseCliCommand(['reindex', '/repo'])).toEqual({ name: 'help' });
   });
 
   it('falls back to help for unknown commands', () => {

@@ -5,5 +5,6 @@ export interface RepoRegistryEntry {
 }
 
 export interface RepoRegistryFile {
+  activeRepo?: string;
   repos: RepoRegistryEntry[];
 }
