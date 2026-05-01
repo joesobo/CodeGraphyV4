@@ -66,6 +66,7 @@ describe('runtime package build support', () => {
         '@tree-sitter-grammars/tree-sitter-kotlin',
         'tree-sitter-php',
         'tree-sitter-python',
+        'tree-sitter-ruby',
         'tree-sitter-rust',
         'tree-sitter-typescript',
       ]),

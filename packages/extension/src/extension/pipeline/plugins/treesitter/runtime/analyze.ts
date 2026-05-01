@@ -9,6 +9,7 @@ import { analyzeJavaScriptFamilyFile } from './analyzeJavaScript/file';
 import { analyzeKotlinFile } from './analyzeKotlin/file';
 import { analyzePhpFile } from './analyzePhp/file';
 import { analyzePythonFile } from './analyzePython/file';
+import { analyzeRubyFile } from './analyzeRuby/file';
 import { analyzeRustFile } from './analyzeRust/file';
 import {
   createTreeSitterRuntime,
@@ -77,6 +78,10 @@ function analyzeTreeSitterTree(
 
   if (languageKind === 'python') {
     return analyzePythonFile(filePath, tree, workspaceRoot);
+  }
+
+  if (languageKind === 'ruby') {
+    return analyzeRubyFile(filePath, tree, workspaceRoot);
   }
 
   return null;

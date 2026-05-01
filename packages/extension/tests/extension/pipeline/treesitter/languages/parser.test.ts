@@ -87,6 +87,20 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
     });
   });
 
+  it('returns configured parsers for Ruby files', async () => {
+    loadTreeSitterBindings.mockResolvedValue({
+      ParserCtor: MockParser,
+      ruby: { id: 'ruby' },
+    });
+
+    const rubyRuntime = await createTreeSitterRuntime('/workspace/lib/app/runner.rb');
+
+    expect(rubyRuntime?.languageKind).toBe('ruby');
+    expect((rubyRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({
+      id: 'ruby',
+    });
+  });
+
   it('returns a runtime with the parser and language kind for supported files', async () => {
     loadTreeSitterBindings.mockResolvedValue({
       ParserCtor: MockParser,

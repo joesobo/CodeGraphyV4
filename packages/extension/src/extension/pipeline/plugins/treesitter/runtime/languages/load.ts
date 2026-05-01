@@ -13,6 +13,7 @@ export interface ITreeSitterBindings {
   kotlin: Parser.Language;
   php: Parser.Language;
   python: Parser.Language;
+  ruby: Parser.Language;
   rust: Parser.Language;
   tsx: Parser.Language;
   typeScript: Parser.Language;
@@ -31,6 +32,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
     import('@tree-sitter-grammars/tree-sitter-kotlin'),
     import('tree-sitter-php'),
     import('tree-sitter-python'),
+    import('tree-sitter-ruby'),
     import('tree-sitter-rust'),
     import('tree-sitter-typescript'),
   ])
@@ -45,6 +47,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
       kotlinModule,
       phpModule,
       pythonModule,
+      rubyModule,
       rustModule,
       typeScriptModule,
     ]) => {
@@ -65,6 +68,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
         kotlin: kotlinModule.default as unknown as Parser.Language,
         php: (phpModule.default as unknown as { php: Parser.Language }).php,
         python: pythonModule.default as unknown as Parser.Language,
+        ruby: rubyModule.default as unknown as Parser.Language,
         rust: rustModule.default as unknown as Parser.Language,
         tsx: typeScriptLanguages.tsx,
         typeScript: typeScriptLanguages.typescript,

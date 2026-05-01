@@ -10,6 +10,7 @@ export type TreeSitterLanguageKind =
   | 'kotlin'
   | 'php'
   | 'python'
+  | 'ruby'
   | 'rust'
   | 'tsx'
   | 'typescript';
@@ -26,6 +27,7 @@ export type TreeSitterRuntimeBinding = {
     | 'kotlin'
     | 'php'
     | 'python'
+    | 'ruby'
     | 'rust'
     | 'tsx'
     | 'typeScript';
@@ -66,6 +68,7 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.php',
   '.py',
   '.pyi',
+  '.rb',
   '.rs',
   '.ts',
   '.tsx',
@@ -97,6 +100,7 @@ export const TREE_SITTER_RUNTIME_BINDINGS: Record<
   '.php': { languageKind: 'php', language: 'php' },
   '.py': { languageKind: 'python', language: 'python' },
   '.pyi': { languageKind: 'python', language: 'python' },
+  '.rb': { languageKind: 'ruby', language: 'ruby' },
   '.rs': { languageKind: 'rust', language: 'rust' },
   '.ts': { languageKind: 'typescript', language: 'typeScript' },
   '.tsx': { languageKind: 'tsx', language: 'tsx' },
