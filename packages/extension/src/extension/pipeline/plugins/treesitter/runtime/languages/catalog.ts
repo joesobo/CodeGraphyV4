@@ -7,6 +7,7 @@ export type TreeSitterLanguageKind =
   | 'go'
   | 'java'
   | 'javascript'
+  | 'kotlin'
   | 'python'
   | 'rust'
   | 'tsx'
@@ -21,6 +22,7 @@ export type TreeSitterRuntimeBinding = {
     | 'go'
     | 'java'
     | 'javaScript'
+    | 'kotlin'
     | 'python'
     | 'rust'
     | 'tsx'
@@ -55,6 +57,8 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.java',
   '.js',
   '.jsx',
+  '.kt',
+  '.kts',
   '.mjs',
   '.mts',
   '.py',
@@ -83,6 +87,8 @@ export const TREE_SITTER_RUNTIME_BINDINGS: Record<
   '.java': { languageKind: 'java', language: 'java' },
   '.js': { languageKind: 'javascript', language: 'javaScript' },
   '.jsx': { languageKind: 'javascript', language: 'javaScript' },
+  '.kt': { languageKind: 'kotlin', language: 'kotlin' },
+  '.kts': { languageKind: 'kotlin', language: 'kotlin' },
   '.mjs': { languageKind: 'javascript', language: 'javaScript' },
   '.mts': { languageKind: 'typescript', language: 'typeScript' },
   '.py': { languageKind: 'python', language: 'python' },

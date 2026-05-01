@@ -14,6 +14,7 @@ function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
   vi.doMock('tree-sitter-go', () => ({ default: { id: 'go' } }));
   vi.doMock('tree-sitter-java', () => ({ default: { id: 'java' } }));
   vi.doMock('tree-sitter-javascript', () => ({ default: { id: 'javascript' } }));
+  vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: { id: 'kotlin' } }));
   vi.doMock('tree-sitter-python', () => ({ default: { id: 'python' } }));
   vi.doMock('tree-sitter-rust', () => ({ default: { id: 'rust' } }));
   vi.doMock('tree-sitter-typescript', () => ({
@@ -40,6 +41,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doUnmock('tree-sitter-go');
     vi.doUnmock('tree-sitter-java');
     vi.doUnmock('tree-sitter-javascript');
+    vi.doUnmock('@tree-sitter-grammars/tree-sitter-kotlin');
     vi.doUnmock('tree-sitter-python');
     vi.doUnmock('tree-sitter-rust');
     vi.doUnmock('tree-sitter-typescript');
@@ -59,6 +61,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doMock('tree-sitter-javascript', () => ({
       default: {},
     }));
+    vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: {} }));
     vi.doMock('tree-sitter-python', () => ({ default: {} }));
     vi.doMock('tree-sitter-rust', () => ({ default: {} }));
     vi.doMock('tree-sitter-typescript', () => ({
@@ -99,6 +102,8 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     expect(supportsTreeSitterFile('/workspace/src/main.hpp')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.hh')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.hxx')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.kt')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.kts')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/README.md')).toBe(false);
   });
 
@@ -125,6 +130,8 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     ['/workspace/src/main.hpp', 'cpp', 'cpp'],
     ['/workspace/src/main.hh', 'cpp', 'cpp'],
     ['/workspace/src/main.hxx', 'cpp', 'cpp'],
+    ['/workspace/src/App.kt', 'kotlin', 'kotlin'],
+    ['/workspace/src/App.kts', 'kotlin', 'kotlin'],
   ])(
     'creates a runtime for %s with %s bindings',
     async (filePath, languageKind, languageId) => {

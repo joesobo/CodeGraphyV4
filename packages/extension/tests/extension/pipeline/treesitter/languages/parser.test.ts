@@ -54,6 +54,25 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
     expect((cppRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({ id: 'cpp' });
   });
 
+  it('returns configured parsers for Kotlin files', async () => {
+    loadTreeSitterBindings.mockResolvedValue({
+      ParserCtor: MockParser,
+      kotlin: { id: 'kotlin' },
+    });
+
+    const kotlinRuntime = await createTreeSitterRuntime('/workspace/src/App.kt');
+    const kotlinScriptRuntime = await createTreeSitterRuntime('/workspace/src/App.kts');
+
+    expect(kotlinRuntime?.languageKind).toBe('kotlin');
+    expect((kotlinRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({
+      id: 'kotlin',
+    });
+    expect(kotlinScriptRuntime?.languageKind).toBe('kotlin');
+    expect(
+      (kotlinScriptRuntime?.parser as unknown as MockParser).setLanguage,
+    ).toHaveBeenCalledWith({ id: 'kotlin' });
+  });
+
   it('returns a runtime with the parser and language kind for supported files', async () => {
     loadTreeSitterBindings.mockResolvedValue({
       ParserCtor: MockParser,
