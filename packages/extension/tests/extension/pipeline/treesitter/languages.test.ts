@@ -21,6 +21,7 @@ function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
     },
   }));
   vi.doMock('tree-sitter-python', () => ({ default: { id: 'python' } }));
+  vi.doMock('tree-sitter-ruby', () => ({ default: { id: 'ruby' } }));
   vi.doMock('tree-sitter-rust', () => ({ default: { id: 'rust' } }));
   vi.doMock('tree-sitter-typescript', () => ({
     default: {
@@ -49,6 +50,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doUnmock('@tree-sitter-grammars/tree-sitter-kotlin');
     vi.doUnmock('tree-sitter-php');
     vi.doUnmock('tree-sitter-python');
+    vi.doUnmock('tree-sitter-ruby');
     vi.doUnmock('tree-sitter-rust');
     vi.doUnmock('tree-sitter-typescript');
     vi.restoreAllMocks();
@@ -74,6 +76,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
       },
     }));
     vi.doMock('tree-sitter-python', () => ({ default: {} }));
+    vi.doMock('tree-sitter-ruby', () => ({ default: {} }));
     vi.doMock('tree-sitter-rust', () => ({ default: {} }));
     vi.doMock('tree-sitter-typescript', () => ({
       default: {
@@ -116,6 +119,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     expect(supportsTreeSitterFile('/workspace/src/App.kt')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/App.kts')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/App.php')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/lib/app/runner.rb')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/README.md')).toBe(false);
   });
 
@@ -145,6 +149,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     ['/workspace/src/App.kt', 'kotlin', 'kotlin'],
     ['/workspace/src/App.kts', 'kotlin', 'kotlin'],
     ['/workspace/src/App.php', 'php', 'php'],
+    ['/workspace/lib/app/runner.rb', 'ruby', 'ruby'],
   ])(
     'creates a runtime for %s with %s bindings',
     async (filePath, languageKind, languageId) => {

@@ -20,6 +20,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.unmock('@tree-sitter-grammars/tree-sitter-kotlin');
     vi.unmock('tree-sitter-php');
     vi.unmock('tree-sitter-python');
+    vi.unmock('tree-sitter-ruby');
     vi.unmock('tree-sitter-rust');
     vi.unmock('tree-sitter-typescript');
   });
@@ -35,6 +36,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     const kotlin = { name: 'kotlin' };
     const php = { name: 'php' };
     const python = { name: 'python' };
+    const ruby = { name: 'ruby' };
     const rust = { name: 'rust' };
     const tsx = { name: 'tsx' };
     const typeScript = { name: 'typescript' };
@@ -49,6 +51,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: kotlin }));
     vi.doMock('tree-sitter-php', () => ({ default: { php } }));
     vi.doMock('tree-sitter-python', () => ({ default: python }));
+    vi.doMock('tree-sitter-ruby', () => ({ default: ruby }));
     vi.doMock('tree-sitter-rust', () => ({ default: rust }));
     vi.doMock('tree-sitter-typescript', () => ({
       default: {
@@ -73,6 +76,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
       kotlin,
       php,
       python,
+      ruby,
       rust,
       tsx,
       typeScript,
