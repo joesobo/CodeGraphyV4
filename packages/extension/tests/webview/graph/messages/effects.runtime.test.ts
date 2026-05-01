@@ -23,11 +23,11 @@ describe('graph/messages/effects/runtime', () => {
     expect(getExportEffects('REQUEST_OPEN_IN_EDITOR')).toEqual([{ kind: 'openInEditor' }]);
   });
 
-  it('creates zoom effects only for 2d mode', () => {
+  it('creates zoom effects for graph view zoom in every graph mode', () => {
     expect(getZoomEffects('2d', 'ZOOM_IN')).toEqual([{ kind: 'zoom', factor: 1.2 }]);
     expect(getZoomEffects('2d', 'ZOOM_OUT')).toEqual([{ kind: 'zoom', factor: 1 / 1.2 }]);
-    expect(getZoomEffects('3d', 'ZOOM_IN')).toBe(EMPTY_EFFECTS);
-    expect(getZoomEffects('3d', 'ZOOM_OUT')).toBe(EMPTY_EFFECTS);
+    expect(getZoomEffects('3d', 'ZOOM_IN')).toEqual([{ kind: 'zoom', factor: 1.2 }]);
+    expect(getZoomEffects('3d', 'ZOOM_OUT')).toEqual([{ kind: 'zoom', factor: 1 / 1.2 }]);
   });
 
   it('creates node bounds effects with zero defaults for missing coordinates', () => {

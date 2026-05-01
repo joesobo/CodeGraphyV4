@@ -81,7 +81,7 @@ interface MessageEffectHandlers {
   postMessage: typeof eventEffectsHarness.postMessage;
   updateAccessCount: (nodeId: string, accessCount: number) => void;
   updateTooltipInfo: (info: IFileInfo) => void;
-  zoom2d: (factor: number) => void;
+  zoomGraphView: (factor: number) => void;
 }
 
 interface GraphEventHookProps {
@@ -111,7 +111,7 @@ function createInteractionHandlers(): GraphInteractionHandlers {
     setHighlight: vi.fn(),
     setSelection: vi.fn(),
     updateAccessCount: vi.fn(),
-    zoom2d: vi.fn(),
+    zoomGraphView: vi.fn(),
   };
 }
 
@@ -230,13 +230,13 @@ describe('graph/runtime/useGraphEventEffects', () => {
         postMessage: eventEffectsHarness.postMessage,
         updateAccessCount: expect.any(Function),
         updateTooltipInfo: expect.any(Function),
-        zoom2d: expect.any(Function),
+        zoomGraphView: expect.any(Function),
       }),
     );
 
     const fileInfo = { path: 'src/tooltip.ts' } as IFileInfo;
     capturedHandlers?.fitView();
-    capturedHandlers?.zoom2d(1.5);
+    capturedHandlers?.zoomGraphView(1.5);
     capturedHandlers?.cacheFileInfo(fileInfo);
     capturedHandlers?.updateTooltipInfo(fileInfo);
     capturedHandlers?.postMessage({ type: 'PING' });
@@ -248,7 +248,7 @@ describe('graph/runtime/useGraphEventEffects', () => {
     capturedHandlers?.updateAccessCount('src/initial.ts', 3);
 
     expect(interactionHandlers.fitView).toHaveBeenCalledTimes(1);
-    expect(interactionHandlers.zoom2d).toHaveBeenCalledWith(1.5);
+    expect(interactionHandlers.zoomGraphView).toHaveBeenCalledWith(1.5);
     expect(fileInfoCacheRef.current.get(fileInfo.path)).toBe(fileInfo);
     expect(tooltip.getTooltipData()).toMatchObject({ info: fileInfo });
     expect(eventEffectsHarness.postMessage).toHaveBeenCalledWith({ type: 'PING' });
@@ -350,14 +350,14 @@ describe('graph/runtime/useGraphEventEffects', () => {
     keyboardOptions.fitView();
     keyboardOptions.setSelection(['src/three.ts']);
     keyboardOptions.openNode('src/four.ts');
-    keyboardOptions.zoom2d(1.5);
+    keyboardOptions.zoomGraphView(1.5);
     keyboardOptions.postMessage({ type: 'PING' });
     keyboardOptions.dispatchStoreMessage({ type: 'SET_GRAPH_MODE', payload: '2d' });
 
     expect(updatedInteractionHandlers.fitView).toHaveBeenCalledTimes(1);
     expect(updatedInteractionHandlers.setSelection).toHaveBeenCalledWith(['src/three.ts']);
     expect(updatedInteractionHandlers.requestNodeOpenById).toHaveBeenCalledWith('src/four.ts');
-    expect(updatedInteractionHandlers.zoom2d).toHaveBeenCalledWith(1.5);
+    expect(updatedInteractionHandlers.zoomGraphView).toHaveBeenCalledWith(1.5);
     expect(eventEffectsHarness.postMessage).toHaveBeenCalledWith({ type: 'PING' });
     expect(eventEffectsHarness.handleExtensionMessage).toHaveBeenCalledWith({
       payload: '2d',

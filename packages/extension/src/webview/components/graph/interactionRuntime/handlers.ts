@@ -64,7 +64,7 @@ export interface GraphInteractionHandlers {
   setHighlight: (this: void, nodeId: string | null) => void;
   setSelection: (this: void, nodeIds: string[]) => void;
   updateAccessCount: (this: void, nodeId: string, accessCount: number) => void;
-  zoom2d: (this: void, factor: number) => void;
+  zoomGraphView: (this: void, factor: number) => void;
 }
 
 export function createGraphInteractionHandlers(
@@ -116,6 +116,6 @@ export function createGraphInteractionHandlers(
     setHighlight: selectionHandlers.setHighlight,
     setSelection: selectionHandlers.setSelection,
     updateAccessCount: viewHandlers.updateAccessCount,
-    zoom2d: viewHandlers.zoom2d,
+    zoomGraphView: viewHandlers.zoomGraphView,
   };
 }

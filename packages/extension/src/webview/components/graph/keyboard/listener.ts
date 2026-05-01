@@ -16,7 +16,7 @@ export interface GraphKeyboardListenerOptions {
   ) => void;
   selectedNodeIds: string[];
   setSelection: (nodeIds: string[]) => void;
-  zoom2d: (factor: number) => void;
+  zoomGraphView: (factor: number) => void;
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -33,7 +33,7 @@ export function createGraphKeyboardListener({
   runEffects,
   selectedNodeIds,
   setSelection,
-  zoom2d,
+  zoomGraphView,
 }: GraphKeyboardListenerOptions): (event: KeyboardEvent) => void {
   return (event) => {
     const command = getGraphKeyboardCommand({
@@ -59,7 +59,7 @@ export function createGraphKeyboardListener({
         });
       },
       selectAll: setSelection,
-      zoom2d,
+      zoomGraphView,
       postMessage,
       dispatchStoreMessage,
     });

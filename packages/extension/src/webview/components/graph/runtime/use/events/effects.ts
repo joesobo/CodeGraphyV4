@@ -51,7 +51,7 @@ export function useGraphEventEffects({
   const applyWebviewMessageEffects = useCallback((effects: GraphWebviewMessageEffect[]) => {
     runWebviewMessageEffects(effects, {
       fitView: () => interactionHandlers.fitView(),
-      zoom2d: factor => interactionHandlers.zoom2d(factor),
+      zoomGraphView: factor => interactionHandlers.zoomGraphView(factor),
       cacheFileInfo: info => fileInfoCacheRef.current.set(info.path, info),
       updateTooltipInfo: info => setTooltipData(previous => ({ ...previous, info })),
       postMessage,
@@ -100,7 +100,7 @@ export function useGraphEventEffects({
       fitView: () => interactionHandlers.fitView(),
       setSelection: nodeIds => interactionHandlers.setSelection(nodeIds),
       openNode: nodeId => interactionHandlers.requestNodeOpenById(nodeId),
-      zoom2d: factor => interactionHandlers.zoom2d(factor),
+      zoomGraphView: factor => interactionHandlers.zoomGraphView(factor),
       postMessage,
       dispatchStoreMessage: message => {
         graphStore.getState().handleExtensionMessage(message);

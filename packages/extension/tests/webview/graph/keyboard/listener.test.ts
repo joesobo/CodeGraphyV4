@@ -40,7 +40,7 @@ describe('graph/keyboardListener', () => {
       runEffects: runEffects as never,
       selectedNodeIds: ['a.ts'],
       setSelection,
-      zoom2d: vi.fn(),
+      zoomGraphView: vi.fn(),
     });
 
     handleKeyDown(createKeyboardEvent('a', { ctrlKey: true }));
@@ -67,7 +67,7 @@ describe('graph/keyboardListener', () => {
       runEffects: runEffects as never,
       selectedNodeIds: ['a.ts'],
       setSelection: vi.fn(),
-      zoom2d: vi.fn(),
+      zoomGraphView: vi.fn(),
     });
 
     handleKeyDown(createKeyboardEvent('a', { ctrlKey: true, target: document.createElement('input') }));
@@ -92,7 +92,7 @@ describe('graph/keyboardListener', () => {
       },
       selectedNodeIds: ['a.ts', 'b.ts'],
       setSelection: vi.fn(),
-      zoom2d: vi.fn(),
+      zoomGraphView: vi.fn(),
     });
 
     handleKeyDown(createKeyboardEvent('Enter'));
@@ -115,7 +115,7 @@ describe('graph/keyboardListener', () => {
       runEffects: runEffects as never,
       selectedNodeIds: ['a.ts'],
       setSelection: vi.fn(),
-      zoom2d: vi.fn(),
+      zoomGraphView: vi.fn(),
     });
     const event = createKeyboardEvent('a');
 
@@ -143,7 +143,7 @@ describe('graph/keyboardListener', () => {
       },
       selectedNodeIds: ['a.ts'],
       setSelection: vi.fn(),
-      zoom2d: vi.fn(),
+      zoomGraphView: vi.fn(),
     });
     const event = createKeyboardEvent('z', { metaKey: true });
 
@@ -173,7 +173,7 @@ describe('graph/keyboardListener', () => {
       },
       selectedNodeIds: ['a.ts'],
       setSelection,
-      zoom2d: vi.fn(),
+      zoomGraphView: vi.fn(),
     });
     const event = createKeyboardEvent('Escape');
 
@@ -203,7 +203,7 @@ describe('graph/keyboardListener', () => {
       runEffects: runEffects as never,
       selectedNodeIds: ['a.ts'],
       setSelection: vi.fn(),
-      zoom2d: vi.fn(),
+      zoomGraphView: vi.fn(),
     });
     const event = createKeyboardEvent('f');
 

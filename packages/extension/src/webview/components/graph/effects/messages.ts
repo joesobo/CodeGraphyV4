@@ -4,7 +4,7 @@ import type { GraphWebviewMessageEffect } from '../messages/effects/routing';
 
 export interface GraphWebviewMessageEffectHandlers {
   fitView(): void;
-  zoom2d(factor: number): void;
+  zoomGraphView(factor: number): void;
   cacheFileInfo(info: IFileInfo): void;
   updateTooltipInfo(info: IFileInfo): void;
   postMessage(message: WebviewToExtensionMessage): void;
@@ -33,7 +33,7 @@ const WEBVIEW_MESSAGE_EFFECT_HANDLERS = {
     handlers.fitView();
   },
   zoom: (effect, handlers) => {
-    handlers.zoom2d((effect as ZoomEffect).factor);
+    handlers.zoomGraphView((effect as ZoomEffect).factor);
   },
   cacheFileInfo: (effect, handlers) => {
     handlers.cacheFileInfo((effect as CacheFileInfoEffect).info);

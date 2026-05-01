@@ -11,7 +11,7 @@ describe('graph/messages/effects/routing', () => {
     })).toEqual([{ kind: 'fitView' }]);
   });
 
-  it('zooms only in 2d mode for zoom messages', () => {
+  it('zooms in any graph mode for zoom messages', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'ZOOM_IN' },
       graphMode: '2d',
@@ -31,14 +31,14 @@ describe('graph/messages/effects/routing', () => {
       graphMode: '3d',
       tooltipPath: null,
       graphNodes: [],
-    })).toEqual([]);
+    })).toEqual([{ kind: 'zoom', factor: 1.2 }]);
 
     expect(getGraphWebviewMessageEffects({
       message: { type: 'ZOOM_OUT' },
       graphMode: '3d',
       tooltipPath: null,
       graphNodes: [],
-    })).toEqual([]);
+    })).toEqual([{ kind: 'zoom', factor: 1 / 1.2 }]);
   });
 
   it('caches file info and updates the tooltip when the paths match', () => {

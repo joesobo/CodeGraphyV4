@@ -109,7 +109,7 @@ describe('webview/graph/debug/install', () => {
       x: x + z,
       y: y + z,
     }));
-    const zoom2d = vi.fn(() => 3);
+    const zoomGraphView = vi.fn(() => 3);
     const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
 
     installGraphDebugApi({
@@ -122,7 +122,7 @@ describe('webview/graph/debug/install', () => {
       fg2dRef: {
         current: {
           graph2ScreenCoords: graph2ScreenCoords2d,
-          zoom: zoom2d,
+          zoom: zoomGraphView,
           zoomToFit: zoomToFit2d,
         },
       },
