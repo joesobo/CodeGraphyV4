@@ -11,6 +11,7 @@ function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
   vi.doMock('tree-sitter-c', () => ({ default: { id: 'c' } }));
   vi.doMock('tree-sitter-cpp', () => ({ default: { id: 'cpp' } }));
   vi.doMock('tree-sitter-c-sharp', () => ({ default: { id: 'csharp' } }));
+  vi.doMock('@driftlog/tree-sitter-dart', () => ({ default: { id: 'dart' } }));
   vi.doMock('tree-sitter-go', () => ({ default: { id: 'go' } }));
   vi.doMock('tree-sitter-haskell', () => ({ default: { id: 'haskell' } }));
   vi.doMock('tree-sitter-java', () => ({ default: { id: 'java' } }));
@@ -47,6 +48,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doUnmock('tree-sitter-c');
     vi.doUnmock('tree-sitter-cpp');
     vi.doUnmock('tree-sitter-c-sharp');
+    vi.doUnmock('@driftlog/tree-sitter-dart');
     vi.doUnmock('tree-sitter-go');
     vi.doUnmock('tree-sitter-haskell');
     vi.doUnmock('tree-sitter-java');
@@ -70,6 +72,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doMock('tree-sitter-c', () => ({ default: {} }));
     vi.doMock('tree-sitter-cpp', () => ({ default: {} }));
     vi.doMock('tree-sitter-c-sharp', () => ({ default: {} }));
+    vi.doMock('@driftlog/tree-sitter-dart', () => ({ default: {} }));
     vi.doMock('tree-sitter-go', () => ({ default: {} }));
     vi.doMock('tree-sitter-haskell', () => ({ default: {} }));
     vi.doMock('tree-sitter-java', () => ({ default: {} }));
@@ -117,6 +120,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     expect(supportsTreeSitterFile('/workspace/src/App.java')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/lib.rs')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/App.cs')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/lib/app/runner.dart')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.c')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.h')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/App.hs')).toBe(true);
@@ -151,6 +155,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     ['/workspace/src/App.java', 'java', 'java'],
     ['/workspace/src/lib.rs', 'rust', 'rust'],
     ['/workspace/src/App.cs', 'csharp', 'csharp'],
+    ['/workspace/lib/app/runner.dart', 'dart', 'dart'],
     ['/workspace/src/main.c', 'c', 'c'],
     ['/workspace/src/main.h', 'c', 'c'],
     ['/workspace/src/App.hs', 'haskell', 'haskell'],

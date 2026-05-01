@@ -25,6 +25,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tests/playwright/tsconfig.json"
   },
   "dependencies": {
+    "@driftlog/tree-sitter-dart": "1.0.4",
     "@floating-ui/react": "^0.27.19",
     "@ladybugdb/core": "^0.15.3",
     "@mdi/js": "^7.4.47",
@@ -48,6 +49,7 @@
     "ignore": "^7.0.5",
     "material-icon-theme": "5.33.1",
     "minimatch": "^10.1.1",
+    "node-gyp-build": "4.8.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-force-graph-2d": "^1.29.1",

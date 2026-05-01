@@ -14,6 +14,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.unmock('tree-sitter-c');
     vi.unmock('tree-sitter-cpp');
     vi.unmock('tree-sitter-c-sharp');
+    vi.unmock('@driftlog/tree-sitter-dart');
     vi.unmock('tree-sitter-go');
     vi.unmock('tree-sitter-haskell');
     vi.unmock('tree-sitter-java');
@@ -33,6 +34,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     const cLanguage = { name: 'c' };
     const cpp = { name: 'cpp' };
     const csharp = { name: 'csharp' };
+    const dart = { name: 'dart' };
     const go = { name: 'go' };
     const haskell = { name: 'haskell' };
     const java = { name: 'java' };
@@ -51,6 +53,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.doMock('tree-sitter-c', () => ({ default: cLanguage }));
     vi.doMock('tree-sitter-cpp', () => ({ default: cpp }));
     vi.doMock('tree-sitter-c-sharp', () => ({ default: csharp }));
+    vi.doMock('@driftlog/tree-sitter-dart', () => ({ default: dart }));
     vi.doMock('tree-sitter-go', () => ({ default: go }));
     vi.doMock('tree-sitter-haskell', () => ({ default: haskell }));
     vi.doMock('tree-sitter-java', () => ({ default: java }));
@@ -79,6 +82,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
       cLanguage,
       cpp,
       csharp,
+      dart,
       go,
       haskell,
       java,

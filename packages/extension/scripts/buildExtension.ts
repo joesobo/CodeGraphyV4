@@ -17,6 +17,7 @@ const buildOptions: esbuild.BuildOptions = {
     'tree-sitter-c',
     'tree-sitter-cpp',
     'tree-sitter-c-sharp',
+    '@driftlog/tree-sitter-dart',
     'tree-sitter-go',
     'tree-sitter-haskell',
     'tree-sitter-java',

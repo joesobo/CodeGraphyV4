@@ -1,6 +1,7 @@
 packages:
   - "packages/*"
 allowBuilds:
+  '@driftlog/tree-sitter-dart': true
   '@ladybugdb/core': true
   tree-sitter: true
   tree-sitter-c-sharp: true

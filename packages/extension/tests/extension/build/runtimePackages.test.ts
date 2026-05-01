@@ -60,6 +60,7 @@ describe('runtime package build support', () => {
         'tree-sitter-c',
         'tree-sitter-cpp',
         'tree-sitter-c-sharp',
+        '@driftlog/tree-sitter-dart',
         'tree-sitter-go',
         'tree-sitter-haskell',
         'tree-sitter-java',
@@ -74,5 +75,11 @@ describe('runtime package build support', () => {
         'tree-sitter-typescript',
       ]),
     );
+  });
+
+  it('resolves every vendored runtime package from the extension package', () => {
+    for (const packageName of EXTENSION_RUNTIME_PACKAGE_NAMES) {
+      expect(() => resolveRuntimePackageRootPath(packageName)).not.toThrow();
+    }
   });
 });
