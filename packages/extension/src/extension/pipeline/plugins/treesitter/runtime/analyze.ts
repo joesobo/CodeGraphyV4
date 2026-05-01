@@ -7,6 +7,7 @@ import { analyzeGoFile } from './analyzeGo/file';
 import { analyzeJavaFile } from './analyzeJava/file';
 import { analyzeJavaScriptFamilyFile } from './analyzeJavaScript/file';
 import { analyzeKotlinFile } from './analyzeKotlin/file';
+import { analyzePhpFile } from './analyzePhp/file';
 import { analyzePythonFile } from './analyzePython/file';
 import { analyzeRustFile } from './analyzeRust/file';
 import {
@@ -64,6 +65,10 @@ function analyzeTreeSitterTree(
 
   if (languageKind === 'kotlin') {
     return analyzeKotlinFile(filePath, tree);
+  }
+
+  if (languageKind === 'php') {
+    return analyzePhpFile(filePath, tree);
   }
 
   if (JAVASCRIPT_FAMILY_LANGUAGE_KINDS.has(languageKind)) {

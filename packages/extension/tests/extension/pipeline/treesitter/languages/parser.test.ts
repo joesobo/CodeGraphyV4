@@ -73,6 +73,20 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
     ).toHaveBeenCalledWith({ id: 'kotlin' });
   });
 
+  it('returns configured parsers for PHP files', async () => {
+    loadTreeSitterBindings.mockResolvedValue({
+      ParserCtor: MockParser,
+      php: { id: 'php' },
+    });
+
+    const phpRuntime = await createTreeSitterRuntime('/workspace/src/App.php');
+
+    expect(phpRuntime?.languageKind).toBe('php');
+    expect((phpRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({
+      id: 'php',
+    });
+  });
+
   it('returns a runtime with the parser and language kind for supported files', async () => {
     loadTreeSitterBindings.mockResolvedValue({
       ParserCtor: MockParser,

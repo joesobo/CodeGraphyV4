@@ -8,6 +8,7 @@ export type TreeSitterLanguageKind =
   | 'java'
   | 'javascript'
   | 'kotlin'
+  | 'php'
   | 'python'
   | 'rust'
   | 'tsx'
@@ -23,6 +24,7 @@ export type TreeSitterRuntimeBinding = {
     | 'java'
     | 'javaScript'
     | 'kotlin'
+    | 'php'
     | 'python'
     | 'rust'
     | 'tsx'
@@ -61,6 +63,7 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.kts',
   '.mjs',
   '.mts',
+  '.php',
   '.py',
   '.pyi',
   '.rs',
@@ -91,6 +94,7 @@ export const TREE_SITTER_RUNTIME_BINDINGS: Record<
   '.kts': { languageKind: 'kotlin', language: 'kotlin' },
   '.mjs': { languageKind: 'javascript', language: 'javaScript' },
   '.mts': { languageKind: 'typescript', language: 'typeScript' },
+  '.php': { languageKind: 'php', language: 'php' },
   '.py': { languageKind: 'python', language: 'python' },
   '.pyi': { languageKind: 'python', language: 'python' },
   '.rs': { languageKind: 'rust', language: 'rust' },

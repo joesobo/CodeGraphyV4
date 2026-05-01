@@ -16,6 +16,7 @@ export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
   'tree-sitter-java',
   'tree-sitter-javascript',
   '@tree-sitter-grammars/tree-sitter-kotlin',
+  'tree-sitter-php',
   'tree-sitter-python',
   'tree-sitter-rust',
   'tree-sitter-typescript',
