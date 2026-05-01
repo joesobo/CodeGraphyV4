@@ -27,7 +27,7 @@ export function handleLuaFunctionCall(
     relations,
     filePath,
     specifier,
-    resolveLuaModulePath(workspaceRoot, specifier),
+    resolveLuaModulePath(filePath, workspaceRoot, specifier),
   );
   return true;
 }

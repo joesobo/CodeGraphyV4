@@ -1,6 +1,6 @@
 # Example Workspaces
 
-Small repo fixtures for manual testing, screenshots, and extension-host e2e work.
+Small repo fixtures for manual testing, screenshots, and extension-host e2e work. Each folder is a tiny recognizable project for its language, with just enough source and project metadata to make its CodeGraphy relationships obvious.
 
 - `example-typescript` — monorepo-style TypeScript workspace used by extension e2e
 - `example-godot` — Godot/GDScript workspace used by plugin e2e

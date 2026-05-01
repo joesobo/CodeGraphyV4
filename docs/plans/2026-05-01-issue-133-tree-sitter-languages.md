@@ -91,7 +91,7 @@ List supported language names only:
 ## Implementation Status
 
 - C/C++, Kotlin, PHP, Ruby, Haskell, Lua, Swift, and Dart are implemented in this PR.
-- `examples/` now includes a small fake project for each new language so opening the repo-root examples folder shows each language connected in the Relationship Graph.
+- `examples/` now includes a small recognizable project for each new language so opening the repo-root examples folder shows each language connected in the Relationship Graph.
 
 ## Future Candidates
 

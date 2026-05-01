@@ -1,4 +1,4 @@
-local user = require("example-lua.app.model.user")
+local user = require("app.model.user")
 
 local Runner = {}
 
