@@ -70,6 +70,7 @@ describe('runtime package build support', () => {
         'tree-sitter-python',
         'tree-sitter-ruby',
         'tree-sitter-rust',
+        'tree-sitter-swift',
         'tree-sitter-typescript',
       ]),
     );

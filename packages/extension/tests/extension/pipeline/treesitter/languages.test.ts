@@ -25,6 +25,7 @@ function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
   vi.doMock('tree-sitter-python', () => ({ default: { id: 'python' } }));
   vi.doMock('tree-sitter-ruby', () => ({ default: { id: 'ruby' } }));
   vi.doMock('tree-sitter-rust', () => ({ default: { id: 'rust' } }));
+  vi.doMock('tree-sitter-swift', () => ({ default: { id: 'swift' } }));
   vi.doMock('tree-sitter-typescript', () => ({
     default: {
       tsx: { id: 'tsx' },
@@ -56,6 +57,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doUnmock('tree-sitter-python');
     vi.doUnmock('tree-sitter-ruby');
     vi.doUnmock('tree-sitter-rust');
+    vi.doUnmock('tree-sitter-swift');
     vi.doUnmock('tree-sitter-typescript');
     vi.restoreAllMocks();
     vi.resetModules();
@@ -84,6 +86,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doMock('tree-sitter-python', () => ({ default: {} }));
     vi.doMock('tree-sitter-ruby', () => ({ default: {} }));
     vi.doMock('tree-sitter-rust', () => ({ default: {} }));
+    vi.doMock('tree-sitter-swift', () => ({ default: {} }));
     vi.doMock('tree-sitter-typescript', () => ({
       default: {
         tsx: {},
@@ -129,6 +132,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     expect(supportsTreeSitterFile('/workspace/src/app.lua')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/App.php')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/lib/app/runner.rb')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/Sources/App/Runner.swift')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/README.md')).toBe(false);
   });
 
@@ -162,6 +166,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     ['/workspace/src/app.lua', 'lua', 'lua'],
     ['/workspace/src/App.php', 'php', 'php'],
     ['/workspace/lib/app/runner.rb', 'ruby', 'ruby'],
+    ['/workspace/Sources/App/Runner.swift', 'swift', 'swift'],
   ])(
     'creates a runtime for %s with %s bindings',
     async (filePath, languageKind, languageId) => {

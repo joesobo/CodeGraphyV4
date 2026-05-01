@@ -13,6 +13,7 @@ import { analyzePhpFile } from './analyzePhp/file';
 import { analyzePythonFile } from './analyzePython/file';
 import { analyzeRubyFile } from './analyzeRuby/file';
 import { analyzeRustFile } from './analyzeRust/file';
+import { analyzeSwiftFile } from './analyzeSwift/file';
 import {
   createTreeSitterRuntime,
 } from './languages/parser';
@@ -92,6 +93,10 @@ function analyzeTreeSitterTree(
 
   if (languageKind === 'ruby') {
     return analyzeRubyFile(filePath, tree, workspaceRoot);
+  }
+
+  if (languageKind === 'swift') {
+    return analyzeSwiftFile(filePath, tree);
   }
 
   return null;

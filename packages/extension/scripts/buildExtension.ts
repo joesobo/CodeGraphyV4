@@ -27,6 +27,7 @@ const buildOptions: esbuild.BuildOptions = {
     'tree-sitter-python',
     'tree-sitter-ruby',
     'tree-sitter-rust',
+    'tree-sitter-swift',
     'tree-sitter-typescript',
   ],
   format: 'cjs',

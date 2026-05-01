@@ -67,6 +67,7 @@
     "tree-sitter-python": "0.25.0",
     "tree-sitter-ruby": "0.23.1",
     "tree-sitter-rust": "0.24.0",
+    "tree-sitter-swift": "0.7.1",
     "tree-sitter-typescript": "^0.23.2",
     "zustand": "^5.0.11"
   },

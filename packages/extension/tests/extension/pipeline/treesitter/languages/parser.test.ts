@@ -134,6 +134,20 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
     });
   });
 
+  it('returns configured parsers for Swift files', async () => {
+    loadTreeSitterBindings.mockResolvedValue({
+      ParserCtor: MockParser,
+      swift: { id: 'swift' },
+    });
+
+    const swiftRuntime = await createTreeSitterRuntime('/workspace/Sources/App/Runner.swift');
+
+    expect(swiftRuntime?.languageKind).toBe('swift');
+    expect((swiftRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({
+      id: 'swift',
+    });
+  });
+
   it('returns a runtime with the parser and language kind for supported files', async () => {
     loadTreeSitterBindings.mockResolvedValue({
       ParserCtor: MockParser,

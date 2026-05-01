@@ -17,6 +17,7 @@ export interface ITreeSitterBindings {
   python: Parser.Language;
   ruby: Parser.Language;
   rust: Parser.Language;
+  swift: Parser.Language;
   tsx: Parser.Language;
   typeScript: Parser.Language;
 }
@@ -38,6 +39,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
     import('tree-sitter-python'),
     import('tree-sitter-ruby'),
     import('tree-sitter-rust'),
+    import('tree-sitter-swift'),
     import('tree-sitter-typescript'),
   ])
     .then(([
@@ -55,6 +57,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
       pythonModule,
       rubyModule,
       rustModule,
+      swiftModule,
       typeScriptModule,
     ]) => {
       const ParserCtor = parserModule.default;
@@ -78,6 +81,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
         python: pythonModule.default as unknown as Parser.Language,
         ruby: rubyModule.default as unknown as Parser.Language,
         rust: rustModule.default as unknown as Parser.Language,
+        swift: swiftModule.default as unknown as Parser.Language,
         tsx: typeScriptLanguages.tsx,
         typeScript: typeScriptLanguages.typescript,
       };

@@ -224,6 +224,9 @@ importers:
       tree-sitter-rust:
         specifier: 0.24.0
         version: 0.24.0(tree-sitter@0.25.0)
+      tree-sitter-swift:
+        specifier: 0.7.1
+        version: 0.7.1(tree-sitter@0.25.0)
       tree-sitter-typescript:
         specifier: ^0.23.2
         version: 0.23.2(tree-sitter@0.25.0)
@@ -5205,6 +5208,11 @@ packages:
       tree-sitter:
         optional: true
 
+  tree-sitter-cli@0.23.2:
+    resolution: {integrity: sha512-kPPXprOqREX+C/FgUp2Qpt9jd0vSwn+hOgjzVv/7hapdoWpa+VeWId53rf4oNNd29ikheF12BYtGD/W90feMbA==}
+    engines: {node: '>=12.0.0'}
+    hasBin: true
+
   tree-sitter-cpp@0.23.4:
     resolution: {integrity: sha512-qR5qUDyhZ5jJ6V8/umiBxokRbe89bCGmcq/dk94wI4kN86qfdV8k0GHIUEKaqWgcu42wKal5E97LKpLeVW8sKw==}
     peerDependencies:
@@ -5283,6 +5291,15 @@ packages:
       tree-sitter: ^0.22.1
     peerDependenciesMeta:
       tree-sitter:
+        optional: true
+
+  tree-sitter-swift@0.7.1:
+    resolution: {integrity: sha512-pneKVTuGamaBsqqqfB9BvNQjktzh/0IVPR54jLB5Fq/JTDQwYHd0Wo6pVyZ5jAYpbztzq+rJ/rpL9ruxTmSoKw==}
+    peerDependencies:
+      tree-sitter: ^0.22.1
+      tree_sitter: '*'
+    peerDependenciesMeta:
+      tree_sitter:
         optional: true
 
   tree-sitter-typescript@0.23.2:
@@ -11164,6 +11181,8 @@ snapshots:
     optionalDependencies:
       tree-sitter: 0.25.0
 
+  tree-sitter-cli@0.23.2: {}
+
   tree-sitter-cpp@0.23.4(tree-sitter@0.25.0):
     dependencies:
       node-addon-api: 8.7.0
@@ -11234,6 +11253,14 @@ snapshots:
       node-gyp-build: 4.8.4
     optionalDependencies:
       tree-sitter: 0.25.0
+
+  tree-sitter-swift@0.7.1(tree-sitter@0.25.0):
+    dependencies:
+      node-addon-api: 8.7.0
+      node-gyp-build: 4.8.4
+      tree-sitter: 0.25.0
+      tree-sitter-cli: 0.23.2
+      which: 2.0.2
 
   tree-sitter-typescript@0.23.2(tree-sitter@0.25.0):
     dependencies:

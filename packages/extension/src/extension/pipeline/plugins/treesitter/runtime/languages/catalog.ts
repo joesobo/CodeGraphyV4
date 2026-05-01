@@ -14,6 +14,7 @@ export type TreeSitterLanguageKind =
   | 'python'
   | 'ruby'
   | 'rust'
+  | 'swift'
   | 'tsx'
   | 'typescript';
 
@@ -33,6 +34,7 @@ export type TreeSitterRuntimeBinding = {
     | 'python'
     | 'ruby'
     | 'rust'
+    | 'swift'
     | 'tsx'
     | 'typeScript';
 };
@@ -77,6 +79,7 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.pyi',
   '.rb',
   '.rs',
+  '.swift',
   '.ts',
   '.tsx',
 ] as const;
@@ -112,6 +115,7 @@ export const TREE_SITTER_RUNTIME_BINDINGS: Record<
   '.pyi': { languageKind: 'python', language: 'python' },
   '.rb': { languageKind: 'ruby', language: 'ruby' },
   '.rs': { languageKind: 'rust', language: 'rust' },
+  '.swift': { languageKind: 'swift', language: 'swift' },
   '.ts': { languageKind: 'typescript', language: 'typeScript' },
   '.tsx': { languageKind: 'tsx', language: 'tsx' },
 };
