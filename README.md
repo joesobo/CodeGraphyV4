@@ -104,7 +104,7 @@ The MCP package is an agent companion, not a second indexer. The Core Extension 
 
 **Core pipeline, plugins for enrichment** The Core Extension owns discovery, caching, Graph Projection, repo-local settings, and export flow. Built-in and external Plugins contribute per-file analysis results, richer Relationships, extra Node Types and Edge Types, and UI integrations.
 
-**Broad Tree-sitter baseline** The core now ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Java, Rust, C#, C, and C++. That means many repos produce useful semantic edges before you install any language plugin at all.
+**Broad Tree-sitter baseline** The core now ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Java, Kotlin, Rust, C#, C, and C++. That means many repos produce useful semantic edges before you install any language plugin at all.
 
 **Explorer-style theming in core** The core extension now vendors `material-icon-theme` and uses it as the default file and folder theming layer. File nodes take the Material icon color as their base node color and render the icon in white. Folder nodes keep the configured folder color and render the original Material folder icon as-is.
 
@@ -133,7 +133,7 @@ The MCP package is an agent companion, not a second indexer. The Core Extension 
 ## Install
 
 1. Install the [CodeGraphy core extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
-2. Optionally install plugins for unsupported languages or richer semantics. Core already handles JavaScript, TypeScript, TSX, Python, Go, Java, Rust, C#, C, and C++ through Tree-sitter, and Markdown ships built in.
+2. Optionally install plugins for unsupported languages or richer semantics. Core already handles JavaScript, TypeScript, TSX, Python, Go, Java, Kotlin, Rust, C#, C, and C++ through Tree-sitter, and Markdown ships built in.
 3. Click the **CodeGraphy** activity bar icon in VS Code.
 4. Open the graph.
 5. Click **Index Repo** when you want to visualize relationships.

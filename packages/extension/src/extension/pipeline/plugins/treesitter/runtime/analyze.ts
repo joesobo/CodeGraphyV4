@@ -6,6 +6,7 @@ import { analyzeCSharpFile } from './analyzeCSharp/file';
 import { analyzeGoFile } from './analyzeGo/file';
 import { analyzeJavaFile } from './analyzeJava/file';
 import { analyzeJavaScriptFamilyFile } from './analyzeJavaScript/file';
+import { analyzeKotlinFile } from './analyzeKotlin/file';
 import { analyzePythonFile } from './analyzePython/file';
 import { analyzeRustFile } from './analyzeRust/file';
 import {
@@ -59,6 +60,10 @@ function analyzeTreeSitterTree(
 
   if (languageKind === 'java') {
     return analyzeJavaFile(filePath, tree);
+  }
+
+  if (languageKind === 'kotlin') {
+    return analyzeKotlinFile(filePath, tree);
   }
 
   if (JAVASCRIPT_FAMILY_LANGUAGE_KINDS.has(languageKind)) {

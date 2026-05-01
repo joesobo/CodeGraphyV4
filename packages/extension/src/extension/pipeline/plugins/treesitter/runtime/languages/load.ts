@@ -10,6 +10,7 @@ export interface ITreeSitterBindings {
   go: Parser.Language;
   java: Parser.Language;
   javaScript: Parser.Language;
+  kotlin: Parser.Language;
   python: Parser.Language;
   rust: Parser.Language;
   tsx: Parser.Language;
@@ -26,6 +27,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
     import('tree-sitter-go'),
     import('tree-sitter-java'),
     import('tree-sitter-javascript'),
+    import('@tree-sitter-grammars/tree-sitter-kotlin'),
     import('tree-sitter-python'),
     import('tree-sitter-rust'),
     import('tree-sitter-typescript'),
@@ -38,6 +40,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
       goModule,
       javaModule,
       javaScriptModule,
+      kotlinModule,
       pythonModule,
       rustModule,
       typeScriptModule,
@@ -56,6 +59,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
         go: goModule.default as unknown as Parser.Language,
         java: javaModule.default as unknown as Parser.Language,
         javaScript: javaScriptModule.default as unknown as Parser.Language,
+        kotlin: kotlinModule.default as unknown as Parser.Language,
         python: pythonModule.default as unknown as Parser.Language,
         rust: rustModule.default as unknown as Parser.Language,
         tsx: typeScriptLanguages.tsx,

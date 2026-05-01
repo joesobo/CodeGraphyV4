@@ -17,6 +17,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.unmock('tree-sitter-go');
     vi.unmock('tree-sitter-java');
     vi.unmock('tree-sitter-javascript');
+    vi.unmock('@tree-sitter-grammars/tree-sitter-kotlin');
     vi.unmock('tree-sitter-python');
     vi.unmock('tree-sitter-rust');
     vi.unmock('tree-sitter-typescript');
@@ -30,6 +31,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     const go = { name: 'go' };
     const java = { name: 'java' };
     const javaScript = { name: 'javascript' };
+    const kotlin = { name: 'kotlin' };
     const python = { name: 'python' };
     const rust = { name: 'rust' };
     const tsx = { name: 'tsx' };
@@ -42,6 +44,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     vi.doMock('tree-sitter-go', () => ({ default: go }));
     vi.doMock('tree-sitter-java', () => ({ default: java }));
     vi.doMock('tree-sitter-javascript', () => ({ default: javaScript }));
+    vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: kotlin }));
     vi.doMock('tree-sitter-python', () => ({ default: python }));
     vi.doMock('tree-sitter-rust', () => ({ default: rust }));
     vi.doMock('tree-sitter-typescript', () => ({
@@ -64,6 +67,7 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
       go,
       java,
       javaScript,
+      kotlin,
       python,
       rust,
       tsx,
