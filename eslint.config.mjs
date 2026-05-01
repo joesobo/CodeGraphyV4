@@ -27,10 +27,6 @@ export default defineConfig(
   },
   {
     files: ['**/*.{ts,tsx}'],
-    plugins: {
-      react: reactPlugin,
-      'react-hooks': reactHooksPlugin,
-    },
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: 'module',
@@ -46,9 +42,21 @@ export default defineConfig(
         },
       },
     },
+    rules: {
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'id-length': ['error', { min: 2, exceptions: ['i', 'j', 'x', 'y', 'z', 'w', 'h', '_', 'e', 'n', 'r', 'g', 'b', 's'] }],
+    },
+  },
+  {
+    files: ['packages/extension/**/*.{ts,tsx}'],
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+    },
     settings: {
       react: {
-        version: 'detect',
+        version: '18.3',
       },
     },
     rules: {
@@ -56,9 +64,6 @@ export default defineConfig(
       ...reactHooksPlugin.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      '@typescript-eslint/require-await': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      'id-length': ['error', { min: 2, exceptions: ['i', 'j', 'x', 'y', 'z', 'w', 'h', '_', 'e', 'n', 'r', 'g', 'b', 's'] }],
     },
   },
   {
