@@ -87,6 +87,20 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
     });
   });
 
+  it('returns configured parsers for Dart files', async () => {
+    loadTreeSitterBindings.mockResolvedValue({
+      ParserCtor: MockParser,
+      dart: { id: 'dart' },
+    });
+
+    const dartRuntime = await createTreeSitterRuntime('/workspace/lib/app/runner.dart');
+
+    expect(dartRuntime?.languageKind).toBe('dart');
+    expect((dartRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({
+      id: 'dart',
+    });
+  });
+
   it('returns configured parsers for Ruby files', async () => {
     loadTreeSitterBindings.mockResolvedValue({
       ParserCtor: MockParser,

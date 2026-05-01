@@ -88,6 +88,10 @@ List supported language names only:
 7. Swift
 8. Dart
 
+## Implementation Status
+
+- C/C++, Kotlin, PHP, Ruby, Haskell, Lua, Swift, and Dart are implemented in this PR.
+
 ## Future Candidates
 
 - OCaml: `tree-sitter-ocaml` is available, but OCaml is not in the GitNexus README supported-language table.

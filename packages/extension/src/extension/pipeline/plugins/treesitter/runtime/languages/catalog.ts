@@ -4,6 +4,7 @@ export type TreeSitterLanguageKind =
   | 'c'
   | 'cpp'
   | 'csharp'
+  | 'dart'
   | 'go'
   | 'haskell'
   | 'java'
@@ -24,6 +25,7 @@ export type TreeSitterRuntimeBinding = {
     | 'cLanguage'
     | 'cpp'
     | 'csharp'
+    | 'dart'
     | 'go'
     | 'haskell'
     | 'java'
@@ -59,6 +61,7 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.cs',
   '.cts',
   '.cxx',
+  '.dart',
   '.go',
   '.h',
   '.hh',
@@ -95,6 +98,7 @@ export const TREE_SITTER_RUNTIME_BINDINGS: Record<
   '.cs': { languageKind: 'csharp', language: 'csharp' },
   '.cts': { languageKind: 'typescript', language: 'typeScript' },
   '.cxx': { languageKind: 'cpp', language: 'cpp' },
+  '.dart': { languageKind: 'dart', language: 'dart' },
   '.go': { languageKind: 'go', language: 'go' },
   '.h': { languageKind: 'c', language: 'cLanguage' },
   '.hh': { languageKind: 'cpp', language: 'cpp' },

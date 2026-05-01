@@ -3,6 +3,7 @@ import type { IFileAnalysisResult } from '../../../../../core/plugins/types/cont
 import { analyzeCFile } from './analyzeC/file';
 import { analyzeCppFile } from './analyzeCpp/file';
 import { analyzeCSharpFile } from './analyzeCSharp/file';
+import { analyzeDartFile } from './analyzeDart/file';
 import { analyzeGoFile } from './analyzeGo/file';
 import { analyzeHaskellFile } from './analyzeHaskell/file';
 import { analyzeJavaFile } from './analyzeJava/file';
@@ -57,6 +58,10 @@ function analyzeTreeSitterTree(
 
   if (languageKind === 'csharp') {
     return analyzeCSharpFile(filePath, tree, workspaceRoot);
+  }
+
+  if (languageKind === 'dart') {
+    return analyzeDartFile(filePath, tree, workspaceRoot);
   }
 
   if (languageKind === 'go') {
