@@ -76,6 +76,11 @@ Package boundaries are the primary entry point.
 - Create a separate agent worktree for all branch operations.
 - If the protected worktree's branch is changed by mistake, restore it immediately and report what happened.
 
+## General Monorepo Rules
+
+- External dependencies belong in the package that directly owns/imports them.
+- Keep a dependency in the root manifest when multiple internal packages use it, or when it is repo-level tooling/config owned at the workspace root.
+
 ## Repo Organization
 
 Organize by feature and behavior, not by technical layer.

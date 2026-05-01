@@ -75,7 +75,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browser + system deps
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --filter @codegraphy/extension exec playwright install --with-deps chromium
 
       - name: Run Playwright smoke tests
         run: pnpm run test:playwright

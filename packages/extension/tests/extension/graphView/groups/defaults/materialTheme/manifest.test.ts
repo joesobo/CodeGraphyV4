@@ -25,16 +25,19 @@ afterEach(() => {
 });
 
 describe('graphView/materialTheme/manifest', () => {
-  it('resolves package roots from node_modules and dist/node_modules', () => {
+  it('resolves package roots from source and runtime extension layouts', () => {
     const emptyRoot = createTempDir();
-    fs.mkdirSync(path.join(emptyRoot, 'node_modules', 'material-icon-theme'), { recursive: true });
+    fs.mkdirSync(path.join(emptyRoot, 'packages', 'extension', 'node_modules', 'material-icon-theme'), { recursive: true });
     expect(resolveMaterialThemeRoot(vscode.Uri.file(emptyRoot))).toBeUndefined();
 
-    const nodeModulesRoot = createTempDir();
-    fs.mkdirSync(path.join(nodeModulesRoot, 'node_modules', 'material-icon-theme'), { recursive: true });
-    fs.writeFileSync(path.join(nodeModulesRoot, 'node_modules', 'material-icon-theme', 'package.json'), '{}');
-    expect(resolveMaterialThemeRoot(vscode.Uri.file(nodeModulesRoot))).toBe(
-      path.join(nodeModulesRoot, 'node_modules', 'material-icon-theme'),
+    const monorepoRoot = createTempDir();
+    fs.mkdirSync(path.join(monorepoRoot, 'packages', 'extension', 'node_modules', 'material-icon-theme'), { recursive: true });
+    fs.writeFileSync(
+      path.join(monorepoRoot, 'packages', 'extension', 'node_modules', 'material-icon-theme', 'package.json'),
+      '{}',
+    );
+    expect(resolveMaterialThemeRoot(vscode.Uri.file(monorepoRoot))).toBe(
+      path.join(monorepoRoot, 'packages', 'extension', 'node_modules', 'material-icon-theme'),
     );
 
     const distRoot = createTempDir();
@@ -45,13 +48,21 @@ describe('graphView/materialTheme/manifest', () => {
     );
   });
 
+  it('ignores root node_modules when the extension root is the monorepo root', () => {
+    const monorepoRoot = createTempDir();
+    fs.mkdirSync(path.join(monorepoRoot, 'node_modules', 'material-icon-theme'), { recursive: true });
+    fs.writeFileSync(path.join(monorepoRoot, 'node_modules', 'material-icon-theme', 'package.json'), '{}');
+
+    expect(resolveMaterialThemeRoot(vscode.Uri.file(monorepoRoot))).toBeUndefined();
+  });
+
   it('loads and caches the material icon manifest and caches missing roots as null', () => {
     const missingRoot = createTempDir();
     expect(loadMaterialTheme(vscode.Uri.file(missingRoot))).toBeNull();
     expect(loadMaterialTheme(vscode.Uri.file(missingRoot))).toBeNull();
 
     const extensionRoot = createTempDir();
-    const packageRoot = path.join(extensionRoot, 'node_modules', 'material-icon-theme');
+    const packageRoot = path.join(extensionRoot, 'packages', 'extension', 'node_modules', 'material-icon-theme');
     fs.mkdirSync(path.join(packageRoot, 'dist'), { recursive: true });
     fs.writeFileSync(path.join(packageRoot, 'package.json'), '{}');
     expect(loadMaterialTheme(vscode.Uri.file(extensionRoot))).toBeNull();
