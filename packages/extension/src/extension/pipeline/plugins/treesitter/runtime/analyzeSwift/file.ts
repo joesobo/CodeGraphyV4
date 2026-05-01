@@ -21,11 +21,12 @@ const SWIFT_TYPE_DECLARATION_NODE_TYPES = new Set([
 function visitSwiftNode(
   node: Parser.SyntaxNode,
   filePath: string,
+  workspaceRoot: string,
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'import_declaration') {
-    handleSwiftImportDeclaration(node, filePath, relations);
+    handleSwiftImportDeclaration(node, filePath, workspaceRoot, relations);
     return { skipChildren: true };
   }
 
@@ -44,11 +45,12 @@ function visitSwiftNode(
 export function analyzeSwiftFile(
   filePath: string,
   tree: Parser.Tree,
+  workspaceRoot: string,
 ): IFileAnalysisResult {
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
   walkTree(tree.rootNode, {}, (node) =>
-    visitSwiftNode(node, filePath, relations, symbols),
+    visitSwiftNode(node, filePath, workspaceRoot, relations, symbols),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);
 }

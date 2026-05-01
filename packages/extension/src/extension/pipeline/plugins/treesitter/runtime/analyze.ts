@@ -101,7 +101,7 @@ function analyzeTreeSitterTree(
   }
 
   if (languageKind === 'swift') {
-    return analyzeSwiftFile(filePath, tree);
+    return analyzeSwiftFile(filePath, tree, workspaceRoot);
   }
 
   return null;

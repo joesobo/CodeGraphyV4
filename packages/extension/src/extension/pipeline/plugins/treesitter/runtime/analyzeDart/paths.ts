@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { findExistingFile } from '../analyze/existingFile';
+import { findNearestProjectRoot } from '../projectRoots/search';
 
 function resolveDartPackageImport(workspaceRoot: string, specifier: string): string | null {
   const packagePath = specifier.slice('package:'.length);
@@ -28,7 +29,9 @@ export function resolveDartImportPath(
   }
 
   if (specifier.startsWith('package:')) {
-    return resolveDartPackageImport(workspaceRoot, specifier);
+    const projectRoot = findNearestProjectRoot(filePath, ['pubspec.yaml'], workspaceRoot)
+      ?? workspaceRoot;
+    return resolveDartPackageImport(projectRoot, specifier);
   }
 
   if (specifier.includes(':')) {
