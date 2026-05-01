@@ -21,7 +21,7 @@ function createTempDir(): string {
 }
 
 function writeMaterialPackage(extensionRoot: string, manifest: object, icons: Record<string, string>): void {
-  const packageRoot = path.join(extensionRoot, 'node_modules', 'material-icon-theme');
+  const packageRoot = path.join(extensionRoot, 'packages', 'extension', 'node_modules', 'material-icon-theme');
   const distRoot = path.join(packageRoot, 'dist');
   const iconsRoot = path.join(packageRoot, 'icons');
   fs.mkdirSync(distRoot, { recursive: true });
