@@ -127,4 +127,29 @@ describe('mcp/server', () => {
       message: 'Open a repo first with `codegraphy_open_repo({"repo":"/absolute/path/to/repo"})`.',
     });
   });
+
+  it('tells the agent to index when the active repo has no Graph Cache', async () => {
+    const client = await connectServer({
+      ...createDependencies(),
+      openRepo: async ({ repoPath }) => ({
+        repo: repoPath,
+        graphCacheExists: false,
+        message: 'Graph Cache has not been created yet. Run `codegraphy_index_repo()` before querying.',
+      }),
+    });
+
+    await client.callTool({
+      name: 'codegraphy_open_repo',
+      arguments: { repo: '/workspace/project' },
+    });
+    const result = await client.callTool({
+      name: 'codegraphy_list_nodes',
+      arguments: {},
+    });
+
+    expect(result.structuredContent).toEqual({
+      error: 'graph_cache_not_found',
+      message: 'This repo has not been indexed by CodeGraphy yet. Run `codegraphy_index_repo()`, then retry this query.',
+    });
+  });
 });

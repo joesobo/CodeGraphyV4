@@ -1,13 +1,13 @@
 import * as path from 'node:path';
-import { requestCodeGraphyReindex, type ReindexRequestResult } from '../reindex/request';
+import { sendCoreExtensionRequest, type CoreExtensionBridgeResponse } from './bridge';
 import type { IndexRepoInput, IndexRepoResult, ToolErrorResult } from './model';
 
 export interface IndexRepoDependencies {
-  requestIndex(repo: string): Promise<ReindexRequestResult>;
+  sendIndexRequest(repo: string): Promise<CoreExtensionBridgeResponse>;
 }
 
 const DEFAULT_DEPENDENCIES: IndexRepoDependencies = {
-  requestIndex: (repo) => requestCodeGraphyReindex({ repoPath: repo }),
+  sendIndexRequest: (repo) => sendCoreExtensionRequest({ action: 'index', repo }),
 };
 
 function graphCachePath(repo: string): string {
@@ -19,12 +19,12 @@ export async function requestCodeGraphyIndexRepo(
   dependencies: IndexRepoDependencies = DEFAULT_DEPENDENCIES,
 ): Promise<IndexRepoResult | ToolErrorResult> {
   const repo = path.resolve(input.repo);
-  const result = await dependencies.requestIndex(repo);
+  const result = await dependencies.sendIndexRequest(repo);
 
-  if (result.status !== 'fresh') {
+  if (result.status !== 'indexed') {
     return {
       error: 'indexing_failed',
-      message: result.limitations[0] ?? 'CodeGraphy indexing did not complete.',
+      message: result.status === 'failed' ? result.error : 'CodeGraphy indexing did not complete.',
       repo,
     };
   }

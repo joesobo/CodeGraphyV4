@@ -19,6 +19,7 @@ import { requestGraphQuery } from '../coreExtension/query';
 
 interface SessionState {
   activeRepo?: string;
+  graphCacheExists?: boolean;
 }
 
 interface CodeGraphyMcpServerDependencies {
@@ -74,6 +75,13 @@ function createRepoNotOpenResult(): ToolErrorResult {
   };
 }
 
+function createGraphCacheNotFoundResult(): ToolErrorResult {
+  return {
+    error: 'graph_cache_not_found',
+    message: 'This repo has not been indexed by CodeGraphy yet. Run `codegraphy_index_repo()`, then retry this query.',
+  };
+}
+
 function isToolError(result: Record<string, unknown>): result is ToolErrorResult {
   return typeof result.error === 'string';
 }
@@ -96,6 +104,9 @@ function registerGraphQueryTool(
     async (input) => {
       if (!session.activeRepo) {
         return createToolResult(createRepoNotOpenResult());
+      }
+      if (session.graphCacheExists === false) {
+        return createToolResult(createGraphCacheNotFoundResult());
       }
 
       return createToolResult(await dependencies.runGraphQuery({
@@ -128,6 +139,7 @@ export function createCodeGraphyMcpServer(
       const result = await dependencies.openRepo({ repoPath: repo });
       if (!isToolError(result)) {
         session.activeRepo = result.repo;
+        session.graphCacheExists = result.graphCacheExists;
       }
 
       return createToolResult(result);
@@ -145,7 +157,12 @@ export function createCodeGraphyMcpServer(
         return createToolResult(createRepoNotOpenResult());
       }
 
-      return createToolResult(await dependencies.indexRepo({ repo: session.activeRepo }));
+      const result = await dependencies.indexRepo({ repo: session.activeRepo });
+      if (!isToolError(result)) {
+        session.graphCacheExists = true;
+      }
+
+      return createToolResult(result);
     },
   );
 
