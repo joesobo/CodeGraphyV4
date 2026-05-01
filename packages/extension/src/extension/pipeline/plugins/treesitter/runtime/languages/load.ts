@@ -4,6 +4,8 @@ type TreeSitterConstructor = new () => Parser;
 
 export interface ITreeSitterBindings {
   ParserCtor: TreeSitterConstructor;
+  cLanguage: Parser.Language;
+  cpp: Parser.Language;
   csharp: Parser.Language;
   go: Parser.Language;
   java: Parser.Language;
@@ -18,6 +20,8 @@ let treeSitterBindingsPromise: Promise<ITreeSitterBindings | null> | undefined;
 export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | null> {
   treeSitterBindingsPromise ??= Promise.all([
     import('tree-sitter'),
+    import('tree-sitter-c'),
+    import('tree-sitter-cpp'),
     import('tree-sitter-c-sharp'),
     import('tree-sitter-go'),
     import('tree-sitter-java'),
@@ -28,6 +32,8 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
   ])
     .then(([
       parserModule,
+      cModule,
+      cppModule,
       csharpModule,
       goModule,
       javaModule,
@@ -44,6 +50,8 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
 
       return {
         ParserCtor,
+        cLanguage: cModule.default as unknown as Parser.Language,
+        cpp: cppModule.default as unknown as Parser.Language,
         csharp: csharpModule.default as unknown as Parser.Language,
         go: goModule.default as unknown as Parser.Language,
         java: javaModule.default as unknown as Parser.Language,

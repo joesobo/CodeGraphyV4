@@ -14,6 +14,8 @@ const buildOptions: esbuild.BuildOptions = {
     'vscode',
     '@ladybugdb/core',
     'tree-sitter',
+    'tree-sitter-c',
+    'tree-sitter-cpp',
     'tree-sitter-c-sharp',
     'tree-sitter-go',
     'tree-sitter-java',

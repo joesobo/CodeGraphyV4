@@ -57,6 +57,8 @@ describe('runtime package build support', () => {
       expect.arrayContaining([
         'material-icon-theme',
         'tree-sitter',
+        'tree-sitter-c',
+        'tree-sitter-cpp',
         'tree-sitter-c-sharp',
         'tree-sitter-go',
         'tree-sitter-java',
