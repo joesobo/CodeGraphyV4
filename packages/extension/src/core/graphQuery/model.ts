@@ -1,4 +1,5 @@
 import type { GraphEdgeKind, NodeType } from '../../shared/graph/contracts';
+import type { IAnalysisRange } from '../plugins/types/contracts';
 
 export type GraphQueryFilterOperator =
   | 'equals'
@@ -33,6 +34,26 @@ export interface GraphQueryConfig {
   showOrphans?: boolean;
 }
 
+export interface GraphQueryConnectionConfig extends GraphQueryConfig {
+  from?: string;
+  to?: string;
+  edgeType?: GraphEdgeKind;
+}
+
+export interface GraphQuerySymbolsConfig extends GraphQueryConfig {
+  filePath?: string;
+  relatedFrom?: string;
+  relatedTo?: string;
+  edgeType?: GraphEdgeKind;
+}
+
+export interface GraphQueryPathConfig {
+  from: string;
+  to: string;
+  maxDepth?: number;
+  maxPaths?: number;
+}
+
 export interface GraphQueryPage {
   offset: number;
   limit: number;
@@ -59,4 +80,54 @@ export interface GraphQueryNodeReport {
 export interface GraphQueryEdgeReport {
   edges: GraphQueryEdgeReportItem[];
   page: GraphQueryPage;
+}
+
+export interface GraphQueryRelationshipSymbol {
+  name: string;
+  kind?: string;
+  range?: IAnalysisRange;
+}
+
+export interface GraphQueryRelationshipProvenance {
+  pluginId: string;
+  sourceId: string;
+}
+
+export interface GraphQueryRelationshipKindGroup {
+  edgeType: GraphEdgeKind;
+  provenance?: GraphQueryRelationshipProvenance;
+  symbols: GraphQueryRelationshipSymbol[];
+}
+
+export interface GraphQueryRelationshipReportItem {
+  from: string;
+  to: string;
+  relationships: GraphQueryRelationshipKindGroup[];
+}
+
+export interface GraphQueryRelationshipReport {
+  relationships: GraphQueryRelationshipReportItem[];
+  page: GraphQueryPage;
+}
+
+export interface GraphQuerySymbolReportItem {
+  filePath?: string;
+  name: string;
+  kind?: string;
+  range?: IAnalysisRange;
+}
+
+export interface GraphQuerySymbolReport {
+  symbols: GraphQuerySymbolReportItem[];
+  page: GraphQueryPage;
+}
+
+export interface GraphQueryPathReport {
+  from: string;
+  to: string;
+  paths: string[][];
+  limits: {
+    maxDepth: number;
+    maxPaths: number;
+  };
 }
