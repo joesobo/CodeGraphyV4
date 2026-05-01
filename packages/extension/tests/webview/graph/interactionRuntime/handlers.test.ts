@@ -273,7 +273,7 @@ describe('graph/interactionRuntime/handlers', () => {
       fitView: vi.fn(),
       focusNodeById: vi.fn(),
       updateAccessCount: vi.fn(),
-      zoom2d: vi.fn(),
+      zoomGraphView: vi.fn(),
     };
     const effectHandlers = {
       applyGraphInteractionEffects: vi.fn(),
@@ -372,7 +372,7 @@ describe('graph/interactionRuntime/handlers', () => {
     expect(handlers.setHighlight).toBe(selectionHandlers.setHighlight);
     expect(handlers.setSelection).toBe(selectionHandlers.setSelection);
     expect(handlers.updateAccessCount).toBe(viewHandlers.updateAccessCount);
-    expect(handlers.zoom2d).toBe(viewHandlers.zoom2d);
+    expect(handlers.zoomGraphView).toBe(viewHandlers.zoomGraphView);
 
     handlers.setGraphCursor('pointer');
 

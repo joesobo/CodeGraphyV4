@@ -57,10 +57,9 @@ export function getFitViewEffects(): GraphWebviewMessageEffect[] {
 }
 
 export function getZoomEffects(
-  graphMode: '2d' | '3d',
+  _graphMode: '2d' | '3d',
   messageType: ZoomMessageType,
 ): GraphWebviewMessageEffect[] {
-  if (graphMode !== '2d') return EMPTY_EFFECTS;
   return [{ kind: 'zoom', factor: ZOOM_FACTOR_BY_MESSAGE[messageType] }];
 }
 

@@ -201,7 +201,7 @@ describe('graph/viewHandlers', () => {
     const zoom = dependencies.fg2dRef.current!.zoom!;
     zoom.mockImplementationOnce?.(() => 1.5);
 
-    createViewHandlers(dependencies).zoom2d(0.5);
+    createViewHandlers(dependencies).zoomGraphView(0.5);
 
     expect(dependencies.fg2dRef.current?.zoom).toHaveBeenNthCalledWith(1);
     expect(dependencies.fg2dRef.current?.zoom).toHaveBeenNthCalledWith(2, 0.75, 150);
@@ -212,7 +212,7 @@ describe('graph/viewHandlers', () => {
       fg2dRef: { current: undefined },
     });
 
-    expect(() => createViewHandlers(dependencies).zoom2d(2)).not.toThrow();
+    expect(() => createViewHandlers(dependencies).zoomGraphView(2)).not.toThrow();
   });
 
   it('updates the access count for the matching node only', () => {

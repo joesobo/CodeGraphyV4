@@ -122,7 +122,7 @@ describe('graph/keyboard/effects', () => {
     });
   });
 
-  it('zooms only in 2d mode for plus and minus shortcuts', () => {
+  it('zooms in graph view modes for plus and minus shortcuts', () => {
     expect(getGraphKeyboardCommand({
       key: '+',
       isMod: false,
@@ -159,10 +159,12 @@ describe('graph/keyboard/effects', () => {
       selectedNodeIds: [],
       allNodeIds: [],
       targetIsEditable: false,
-    })).toBeNull();
-  });
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: false,
+      effects: [{ kind: 'zoom', factor: 1.2 }],
+    });
 
-  it('ignores zoom-out when the graph is not 2d', () => {
     expect(getGraphKeyboardCommand({
       key: '-',
       isMod: false,
@@ -171,7 +173,11 @@ describe('graph/keyboard/effects', () => {
       selectedNodeIds: [],
       allNodeIds: [],
       targetIsEditable: false,
-    })).toBeNull();
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: false,
+      effects: [{ kind: 'zoom', factor: 1 / 1.2 }],
+    });
   });
 
   it('maps modifier+z and modifier+y to undo and redo messages', () => {

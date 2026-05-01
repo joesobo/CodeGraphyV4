@@ -7,7 +7,7 @@ export interface GraphKeyboardEffectHandlers {
   clearSelection(): void;
   openSelectedNodes(nodeIds: string[]): void;
   selectAll(nodeIds: string[]): void;
-  zoom2d(factor: number): void;
+  zoomGraphView(factor: number): void;
   postMessage(message: WebviewToExtensionMessage): void;
   dispatchStoreMessage(message: ExtensionToWebviewMessage): void;
 }
@@ -30,7 +30,7 @@ function applyKeyboardEffect(
       handlers.selectAll(effect.nodeIds);
       return;
     case 'zoom':
-      handlers.zoom2d(effect.factor);
+      handlers.zoomGraphView(effect.factor);
       return;
     case 'postMessage':
       handlers.postMessage(effect.message);

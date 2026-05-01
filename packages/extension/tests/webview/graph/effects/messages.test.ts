@@ -5,7 +5,7 @@ import type { GraphWebviewMessageEffect } from '../../../../src/webview/componen
 function createHandlers() {
   return {
     fitView: vi.fn(),
-    zoom2d: vi.fn(),
+    zoomGraphView: vi.fn(),
     cacheFileInfo: vi.fn(),
     updateTooltipInfo: vi.fn(),
     postMessage: vi.fn(),
@@ -28,12 +28,12 @@ describe('graph effects messages', () => {
     expect(handlers.fitView).toHaveBeenCalledOnce();
   });
 
-  it('zooms the 2d graph', () => {
+  it('zooms the graph view', () => {
     const handlers = createHandlers();
 
     applyWebviewMessageEffects([{ kind: 'zoom', factor: 1.2 }], handlers);
 
-    expect(handlers.zoom2d).toHaveBeenCalledWith(1.2);
+    expect(handlers.zoomGraphView).toHaveBeenCalledWith(1.2);
   });
 
   it('caches file info', () => {

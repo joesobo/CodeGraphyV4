@@ -226,6 +226,22 @@ _Avoid_: Graph state, projection, filtered graph
 The CodeGraphy view where users interact with the Relationship Graph and its surrounding controls.
 _Avoid_: Visible graph
 
+**Graph View Zoom**:
+A Graph View interaction that changes how close the user is to the rendered graph without changing graph data.
+_Avoid_: Graph Scope, Filter, Search, Refresh
+
+**2D Zoom**:
+Graph View Zoom in two-dimensional mode, where zoom changes the rendered graph scale.
+_Avoid_: Camera distance
+
+**3D Zoom**:
+Graph View Zoom in three-dimensional mode, where zoom changes camera distance while preserving the current camera direction and target.
+_Avoid_: Graph scale
+
+**Continuous Zoom**:
+Graph View Zoom that repeats while the user holds a zoom control.
+_Avoid_: Fit View, Refresh
+
 **Timeline View**:
 The CodeGraphy view where users inspect how the graph changes across git history.
 _Avoid_: Git history cache, graph view
@@ -363,6 +379,10 @@ _Avoid_: Graph export
 - CodeGraphy has two **Views**: the **Graph View** and the **Timeline View**.
 - The **Graph View** contains the **Visible Graph**, search, filters, popups, settings UI, and overlay controls.
 - The **Visible Graph** is graph data shown inside the **Graph View**, not the whole view.
+- **Graph View Zoom** is a view interaction only; it does not change **Relationship Graph** data, **Graph Scope**, **Filter**, or **Search**.
+- **2D Zoom** changes rendered graph scale, while **3D Zoom** changes camera distance.
+- **Continuous Zoom** should use the same zoom step as repeated single zoom actions.
+- **3D Zoom** should clamp camera distance relative to the current graph context so holding zoom out does not make the graph effectively disappear.
 - **Graph Query** behavior should live in a Core Extension **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
 - The **Graph Query** **Module** should return the graph data callers ask for while exposing opt-in query stages such as **Graph Scope** Node Type and Edge Type enablement, **Filter** conditions, **Search**, sorting, pagination, and **Show Orphans** where applicable.
 - **Graph Scope** query behavior is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.

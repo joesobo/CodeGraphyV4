@@ -10,14 +10,14 @@ const ZOOM_OUT_FACTOR = 1 / ZOOM_IN_FACTOR;
 export function getZoomShortcutCommand(
   key: string,
   isMod: boolean,
-  graphMode: GraphKeyboardOptions['graphMode']
+  _graphMode: GraphKeyboardOptions['graphMode']
 ): GraphKeyboardCommand | null {
   switch (key) {
     case '=':
     case '+':
-      return !isMod && graphMode === '2d' ? createZoomCommand(ZOOM_IN_FACTOR) : null;
+      return !isMod ? createZoomCommand(ZOOM_IN_FACTOR) : null;
     case '-':
-      return !isMod && graphMode === '2d' ? createZoomCommand(ZOOM_OUT_FACTOR) : null;
+      return !isMod ? createZoomCommand(ZOOM_OUT_FACTOR) : null;
     default:
       return null;
   }

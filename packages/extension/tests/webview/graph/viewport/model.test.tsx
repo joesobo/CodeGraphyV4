@@ -91,7 +91,7 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
 			setGraphCursor: vi.fn(),
 			setSelection: vi.fn(),
 			updateAccessCount: vi.fn(),
-			zoom2d: vi.fn(),
+			zoomGraphView: vi.fn(),
 		},
 		setTooltipData: vi.fn(),
 		stopTooltipTracking: vi.fn(),

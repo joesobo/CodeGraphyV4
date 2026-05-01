@@ -8,7 +8,7 @@ function createHandlers() {
     clearSelection: vi.fn(),
     openSelectedNodes: vi.fn(),
     selectAll: vi.fn(),
-    zoom2d: vi.fn(),
+    zoomGraphView: vi.fn(),
     postMessage: vi.fn(),
     dispatchStoreMessage: vi.fn(),
   };
@@ -47,12 +47,12 @@ describe('graph effects keyboard', () => {
     expect(handlers.selectAll).toHaveBeenCalledWith(['a', 'b']);
   });
 
-  it('zooms the 2d graph', () => {
+  it('zooms the graph view', () => {
     const handlers = createHandlers();
 
     applyKeyboardEffects([{ kind: 'zoom', factor: 1.2 }], handlers);
 
-    expect(handlers.zoom2d).toHaveBeenCalledWith(1.2);
+    expect(handlers.zoomGraphView).toHaveBeenCalledWith(1.2);
   });
 
   it('posts extension messages', () => {
