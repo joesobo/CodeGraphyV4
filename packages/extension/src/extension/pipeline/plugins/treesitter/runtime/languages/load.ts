@@ -8,6 +8,7 @@ export interface ITreeSitterBindings {
   cpp: Parser.Language;
   csharp: Parser.Language;
   go: Parser.Language;
+  haskell: Parser.Language;
   java: Parser.Language;
   javaScript: Parser.Language;
   kotlin: Parser.Language;
@@ -27,6 +28,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
     import('tree-sitter-cpp'),
     import('tree-sitter-c-sharp'),
     import('tree-sitter-go'),
+    import('tree-sitter-haskell'),
     import('tree-sitter-java'),
     import('tree-sitter-javascript'),
     import('@tree-sitter-grammars/tree-sitter-kotlin'),
@@ -42,6 +44,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
       cppModule,
       csharpModule,
       goModule,
+      haskellModule,
       javaModule,
       javaScriptModule,
       kotlinModule,
@@ -63,6 +66,7 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
         cpp: cppModule.default as unknown as Parser.Language,
         csharp: csharpModule.default as unknown as Parser.Language,
         go: goModule.default as unknown as Parser.Language,
+        haskell: haskellModule.default as unknown as Parser.Language,
         java: javaModule.default as unknown as Parser.Language,
         javaScript: javaScriptModule.default as unknown as Parser.Language,
         kotlin: kotlinModule.default as unknown as Parser.Language,
