@@ -2,12 +2,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
-const root = resolve(__dirname, '../..');
+const workspaceRoot = resolve(__dirname, '../..');
 
 export default defineConfig({
+  root: __dirname,
   plugins: [react()],
   build: {
-    outDir: resolve(root, 'dist/webview'),
+    outDir: resolve(workspaceRoot, 'dist/webview'),
     rollupOptions: {
       input: resolve(__dirname, 'src/webview/main.tsx'),
       output: {

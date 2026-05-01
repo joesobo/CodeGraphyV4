@@ -4,6 +4,8 @@
     "package-lock.json",
     "tsconfig*.json",
     "packages/**/tsconfig*.json",
+    "packages/extension/postcss.config.cjs",
+    "packages/extension/tailwind.config.cjs",
     "packages/extension/vite.config.ts"
   ],
   "tasks": {
