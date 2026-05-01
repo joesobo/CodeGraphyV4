@@ -37,6 +37,10 @@ import type {
   GraphViewProviderPluginResourceMethodsSource,
 } from '../plugin/resources';
 import type {
+  GraphViewProviderQueryMethods,
+  GraphViewProviderQueryMethodsSource,
+} from '../query/methods';
+import type {
   GraphViewProviderRefreshMethods,
   GraphViewProviderRefreshMethodsSource,
 } from '../refresh';
@@ -78,6 +82,8 @@ export type GraphViewProviderMethodSource =
   & GraphViewProviderPluginResourceMethodsSource
   & GraphViewProviderPhysicsSettingsMethods
   & GraphViewProviderPhysicsSettingsMethodsSource
+  & GraphViewProviderQueryMethods
+  & GraphViewProviderQueryMethodsSource
   & GraphViewProviderRefreshMethods
   & GraphViewProviderRefreshMethodsSource
   & GraphViewProviderSettingsStateMethods
@@ -135,6 +141,7 @@ export interface GraphViewProviderMethodSourceOwner {
   readonly _pluginMethods: GraphViewProviderMethodContainers['plugin'];
   readonly _pluginResourceMethods: GraphViewProviderMethodContainers['pluginResource'];
   readonly _physicsSettingsMethods: GraphViewProviderMethodContainers['physicsSettings'];
+  readonly _queryMethods: GraphViewProviderMethodContainers['query'];
   readonly _refreshMethods: GraphViewProviderMethodContainers['refresh'];
   readonly _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
   readonly _timelineMethods: GraphViewProviderMethodContainers['timeline'];
