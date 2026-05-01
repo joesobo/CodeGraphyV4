@@ -34,6 +34,7 @@ export function readRepoRegistry(): RepoRegistryFile {
     const raw = fs.readFileSync(filePath, 'utf8');
     const parsed = JSON.parse(raw) as Partial<RepoRegistryFile>;
     return {
+      activeRepo: typeof parsed.activeRepo === 'string' ? parsed.activeRepo : undefined,
       repos: Array.isArray(parsed.repos) ? parsed.repos.filter(isRepoRegistryEntry) : [],
     };
   } catch {
@@ -62,7 +63,14 @@ export function upsertRepoRegistryEntry(entry: RepoRegistryEntry): RepoRegistryF
   const nextRepos = registry.repos.filter((repo) => repo.workspaceRoot !== entry.workspaceRoot);
   nextRepos.push(entry);
   nextRepos.sort((left, right) => left.workspaceRoot.localeCompare(right.workspaceRoot));
-  const nextRegistry = { repos: nextRepos };
+  const nextRegistry = { ...registry, repos: nextRepos };
+  writeRepoRegistry(nextRegistry);
+  return nextRegistry;
+}
+
+export function setActiveRepo(workspaceRoot: string): RepoRegistryFile {
+  const registry = readRepoRegistry();
+  const nextRegistry = { ...registry, activeRepo: workspaceRoot };
   writeRepoRegistry(nextRegistry);
   return nextRegistry;
 }
