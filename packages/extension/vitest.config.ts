@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { resolveMutationVitestIncludes } from './vitest.includes';
 
 const workspaceRoot = resolve(__dirname, '../..');
+const extensionNodeModules = resolve(__dirname, 'node_modules');
 const vitestScope = process.env.CODEGRAPHY_VITEST_SCOPE ?? 'extension';
 const include = resolveMutationVitestIncludes(process.env);
 const coverageInclude = vitestScope === 'workspace'
@@ -35,6 +36,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      react: resolve(extensionNodeModules, 'react'),
+      'react-dom': resolve(extensionNodeModules, 'react-dom'),
       vscode: resolve(__dirname, 'tests/__mocks__/vscode.ts'),
     },
   },
