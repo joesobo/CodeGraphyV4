@@ -61,6 +61,7 @@ describe('runtime package build support', () => {
         'tree-sitter-cpp',
         'tree-sitter-c-sharp',
         'tree-sitter-go',
+        'tree-sitter-haskell',
         'tree-sitter-java',
         'tree-sitter-javascript',
         '@tree-sitter-grammars/tree-sitter-kotlin',

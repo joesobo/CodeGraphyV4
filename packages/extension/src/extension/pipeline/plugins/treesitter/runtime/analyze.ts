@@ -4,6 +4,7 @@ import { analyzeCFile } from './analyzeC/file';
 import { analyzeCppFile } from './analyzeCpp/file';
 import { analyzeCSharpFile } from './analyzeCSharp/file';
 import { analyzeGoFile } from './analyzeGo/file';
+import { analyzeHaskellFile } from './analyzeHaskell/file';
 import { analyzeJavaFile } from './analyzeJava/file';
 import { analyzeJavaScriptFamilyFile } from './analyzeJavaScript/file';
 import { analyzeKotlinFile } from './analyzeKotlin/file';
@@ -58,6 +59,10 @@ function analyzeTreeSitterTree(
 
   if (languageKind === 'go') {
     return analyzeGoFile(filePath, tree, workspaceRoot);
+  }
+
+  if (languageKind === 'haskell') {
+    return analyzeHaskellFile(filePath, tree);
   }
 
   if (languageKind === 'java') {

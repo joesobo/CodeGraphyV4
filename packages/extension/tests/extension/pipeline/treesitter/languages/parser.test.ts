@@ -101,6 +101,25 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
     });
   });
 
+  it('returns configured parsers for Haskell files', async () => {
+    loadTreeSitterBindings.mockResolvedValue({
+      ParserCtor: MockParser,
+      haskell: { id: 'haskell' },
+    });
+
+    const haskellRuntime = await createTreeSitterRuntime('/workspace/src/App.hs');
+    const literateHaskellRuntime = await createTreeSitterRuntime('/workspace/src/App.lhs');
+
+    expect(haskellRuntime?.languageKind).toBe('haskell');
+    expect((haskellRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({
+      id: 'haskell',
+    });
+    expect(literateHaskellRuntime?.languageKind).toBe('haskell');
+    expect(
+      (literateHaskellRuntime?.parser as unknown as MockParser).setLanguage,
+    ).toHaveBeenCalledWith({ id: 'haskell' });
+  });
+
   it('returns a runtime with the parser and language kind for supported files', async () => {
     loadTreeSitterBindings.mockResolvedValue({
       ParserCtor: MockParser,

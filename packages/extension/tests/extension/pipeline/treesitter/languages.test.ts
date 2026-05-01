@@ -12,6 +12,7 @@ function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
   vi.doMock('tree-sitter-cpp', () => ({ default: { id: 'cpp' } }));
   vi.doMock('tree-sitter-c-sharp', () => ({ default: { id: 'csharp' } }));
   vi.doMock('tree-sitter-go', () => ({ default: { id: 'go' } }));
+  vi.doMock('tree-sitter-haskell', () => ({ default: { id: 'haskell' } }));
   vi.doMock('tree-sitter-java', () => ({ default: { id: 'java' } }));
   vi.doMock('tree-sitter-javascript', () => ({ default: { id: 'javascript' } }));
   vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: { id: 'kotlin' } }));
@@ -45,6 +46,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doUnmock('tree-sitter-cpp');
     vi.doUnmock('tree-sitter-c-sharp');
     vi.doUnmock('tree-sitter-go');
+    vi.doUnmock('tree-sitter-haskell');
     vi.doUnmock('tree-sitter-java');
     vi.doUnmock('tree-sitter-javascript');
     vi.doUnmock('@tree-sitter-grammars/tree-sitter-kotlin');
@@ -65,6 +67,7 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doMock('tree-sitter-cpp', () => ({ default: {} }));
     vi.doMock('tree-sitter-c-sharp', () => ({ default: {} }));
     vi.doMock('tree-sitter-go', () => ({ default: {} }));
+    vi.doMock('tree-sitter-haskell', () => ({ default: {} }));
     vi.doMock('tree-sitter-java', () => ({ default: {} }));
     vi.doMock('tree-sitter-javascript', () => ({
       default: {},
@@ -110,6 +113,8 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     expect(supportsTreeSitterFile('/workspace/src/App.cs')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.c')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.h')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.hs')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.lhs')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.cpp')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.cc')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/main.cxx')).toBe(true);
@@ -140,6 +145,8 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     ['/workspace/src/App.cs', 'csharp', 'csharp'],
     ['/workspace/src/main.c', 'c', 'c'],
     ['/workspace/src/main.h', 'c', 'c'],
+    ['/workspace/src/App.hs', 'haskell', 'haskell'],
+    ['/workspace/src/App.lhs', 'haskell', 'haskell'],
     ['/workspace/src/main.cpp', 'cpp', 'cpp'],
     ['/workspace/src/main.cc', 'cpp', 'cpp'],
     ['/workspace/src/main.cxx', 'cpp', 'cpp'],

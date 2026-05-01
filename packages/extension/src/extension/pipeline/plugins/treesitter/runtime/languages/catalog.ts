@@ -5,6 +5,7 @@ export type TreeSitterLanguageKind =
   | 'cpp'
   | 'csharp'
   | 'go'
+  | 'haskell'
   | 'java'
   | 'javascript'
   | 'kotlin'
@@ -22,6 +23,7 @@ export type TreeSitterRuntimeBinding = {
     | 'cpp'
     | 'csharp'
     | 'go'
+    | 'haskell'
     | 'java'
     | 'javaScript'
     | 'kotlin'
@@ -56,6 +58,7 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.go',
   '.h',
   '.hh',
+  '.hs',
   '.hpp',
   '.hxx',
   '.java',
@@ -63,6 +66,7 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.jsx',
   '.kt',
   '.kts',
+  '.lhs',
   '.mjs',
   '.mts',
   '.php',
@@ -88,6 +92,7 @@ export const TREE_SITTER_RUNTIME_BINDINGS: Record<
   '.go': { languageKind: 'go', language: 'go' },
   '.h': { languageKind: 'c', language: 'cLanguage' },
   '.hh': { languageKind: 'cpp', language: 'cpp' },
+  '.hs': { languageKind: 'haskell', language: 'haskell' },
   '.hpp': { languageKind: 'cpp', language: 'cpp' },
   '.hxx': { languageKind: 'cpp', language: 'cpp' },
   '.java': { languageKind: 'java', language: 'java' },
@@ -95,6 +100,7 @@ export const TREE_SITTER_RUNTIME_BINDINGS: Record<
   '.jsx': { languageKind: 'javascript', language: 'javaScript' },
   '.kt': { languageKind: 'kotlin', language: 'kotlin' },
   '.kts': { languageKind: 'kotlin', language: 'kotlin' },
+  '.lhs': { languageKind: 'haskell', language: 'haskell' },
   '.mjs': { languageKind: 'javascript', language: 'javaScript' },
   '.mts': { languageKind: 'typescript', language: 'typeScript' },
   '.php': { languageKind: 'php', language: 'php' },
