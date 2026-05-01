@@ -7,6 +7,7 @@ import { createGraphViewProviderFileVisitMethods } from '../file/visits';
 import { createGraphViewProviderPhysicsSettingsMethods } from '../physicsSettings';
 import { createGraphViewProviderPluginMethods } from '../plugin/methods';
 import { createGraphViewProviderPluginResourceMethods } from '../plugin/resources';
+import { createGraphViewProviderQueryMethods } from '../query/methods';
 import { createGraphViewProviderRefreshMethods } from '../refresh';
 import { createGraphViewProviderSettingsStateMethods } from '../settingsState';
 import {
@@ -26,6 +27,7 @@ export interface GraphViewProviderMethodContainers {
   physicsSettings: ReturnType<typeof createGraphViewProviderPhysicsSettingsMethods>;
   plugin: ReturnType<typeof createGraphViewProviderPluginMethods>;
   pluginResource: ReturnType<typeof createGraphViewProviderPluginResourceMethods>;
+  query: ReturnType<typeof createGraphViewProviderQueryMethods>;
   refresh: ReturnType<typeof createGraphViewProviderRefreshMethods>;
   settingsState: ReturnType<typeof createGraphViewProviderSettingsStateMethods>;
   timeline: ReturnType<typeof createGraphViewProviderTimelineMethods>;
@@ -47,6 +49,7 @@ export function createGraphViewProviderMethodContainers(
     physicsSettings: createGraphViewProviderPhysicsSettingsMethods(methodSource),
     plugin: createGraphViewProviderPluginMethods(methodSource),
     pluginResource: createGraphViewProviderPluginResourceMethods(methodSource),
+    query: createGraphViewProviderQueryMethods(methodSource),
     refresh: createGraphViewProviderRefreshMethods(methodSource),
     settingsState: createGraphViewProviderSettingsStateMethods(methodSource),
     timeline: createGraphViewProviderTimelineMethods(methodSource),

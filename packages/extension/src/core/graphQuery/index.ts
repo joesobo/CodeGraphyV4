@@ -10,6 +10,8 @@ export type {
   GraphQueryPage,
   GraphQueryPathConfig,
   GraphQueryPathReport,
+  GraphQueryReport,
+  GraphQueryRequest,
   GraphQueryRelationshipKindGroup,
   GraphQueryRelationshipProvenance,
   GraphQueryRelationshipReport,
@@ -17,11 +19,13 @@ export type {
   GraphQueryRelationshipSymbol,
   GraphQueryScope,
   GraphQuerySort,
+  GraphQueryResult,
   GraphQuerySymbolReport,
   GraphQuerySymbolReportItem,
   GraphQuerySymbolsConfig,
 } from './model';
 export type { GraphQueryData } from './data';
+export { executeGraphQuery } from './execute';
 export { findGraphPaths } from './paths';
 export { listGraphEdges, listGraphNodes } from './reports';
 export { listGraphRelationships } from './relationships';

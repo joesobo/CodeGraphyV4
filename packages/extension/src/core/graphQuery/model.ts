@@ -131,3 +131,24 @@ export interface GraphQueryPathReport {
     maxPaths: number;
   };
 }
+
+export type GraphQueryReport =
+  | 'nodes'
+  | 'edges'
+  | 'relationships'
+  | 'symbols'
+  | 'paths';
+
+export type GraphQueryRequest =
+  | { report: 'nodes'; arguments?: GraphQueryConfig }
+  | { report: 'edges'; arguments?: GraphQueryConnectionConfig }
+  | { report: 'relationships'; arguments?: GraphQueryConnectionConfig }
+  | { report: 'symbols'; arguments?: GraphQuerySymbolsConfig }
+  | { report: 'paths'; arguments: GraphQueryPathConfig };
+
+export type GraphQueryResult =
+  | GraphQueryNodeReport
+  | GraphQueryEdgeReport
+  | GraphQueryRelationshipReport
+  | GraphQuerySymbolReport
+  | GraphQueryPathReport;

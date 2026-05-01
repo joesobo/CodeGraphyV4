@@ -91,6 +91,7 @@ export class GraphViewProviderRuntime {
   declare protected readonly _pluginMethods: GraphViewProviderMethodContainers['plugin'];
   declare protected readonly _pluginResourceMethods: GraphViewProviderMethodContainers['pluginResource'];
   declare protected readonly _physicsSettingsMethods: GraphViewProviderMethodContainers['physicsSettings'];
+  declare protected readonly _queryMethods: GraphViewProviderMethodContainers['query'];
   declare protected readonly _refreshMethods: GraphViewProviderMethodContainers['refresh'];
   declare protected readonly _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
   declare protected readonly _timelineMethods: GraphViewProviderMethodContainers['timeline'];

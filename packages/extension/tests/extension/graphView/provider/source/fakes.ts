@@ -60,6 +60,12 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _updatePhysicsSetting: vi.fn(),
     _resetPhysicsSettings: vi.fn(),
   };
+  const queryMethods = {
+    queryGraph: vi.fn(() => ({
+      nodes: [],
+      page: { offset: 0, limit: 500, returned: 0, total: 0 },
+    })),
+  };
   const refreshMethods = {
     _rebuildAndSend: vi.fn(async () => undefined),
     _smartRebuild: vi.fn(async () => undefined),
@@ -152,6 +158,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
       physicsSettings: physicsSettingsMethods,
       plugin: pluginMethods,
       pluginResource: pluginResourceMethods,
+      query: queryMethods,
       refresh: refreshMethods,
       settingsState: settingsStateMethods,
       timeline: timelineMethods,
@@ -166,6 +173,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _pluginMethods: pluginMethods,
     _pluginResourceMethods: pluginResourceMethods,
     _physicsSettingsMethods: physicsSettingsMethods,
+    _queryMethods: queryMethods,
     _refreshMethods: refreshMethods,
     _settingsStateMethods: settingsStateMethods,
     _timelineMethods: timelineMethods,

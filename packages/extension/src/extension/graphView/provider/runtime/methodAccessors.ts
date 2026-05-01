@@ -29,6 +29,9 @@ export function defineGraphViewProviderMethodAccessors(
     _physicsSettingsMethods: {
       get: () => target._methodContainers.physicsSettings,
     },
+    _queryMethods: {
+      get: () => target._methodContainers.query,
+    },
     _refreshMethods: {
       get: () => target._methodContainers.refresh,
     },
