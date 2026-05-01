@@ -9,6 +9,8 @@ export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
   'material-icon-theme',
   'node-gyp-build',
   'tree-sitter',
+  'tree-sitter-c',
+  'tree-sitter-cpp',
   'tree-sitter-c-sharp',
   'tree-sitter-go',
   'tree-sitter-java',

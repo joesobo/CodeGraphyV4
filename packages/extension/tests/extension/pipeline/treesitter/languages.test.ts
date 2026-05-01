@@ -8,6 +8,8 @@ function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
       setLanguage = setLanguage;
     },
   }));
+  vi.doMock('tree-sitter-c', () => ({ default: { id: 'c' } }));
+  vi.doMock('tree-sitter-cpp', () => ({ default: { id: 'cpp' } }));
   vi.doMock('tree-sitter-c-sharp', () => ({ default: { id: 'csharp' } }));
   vi.doMock('tree-sitter-go', () => ({ default: { id: 'go' } }));
   vi.doMock('tree-sitter-java', () => ({ default: { id: 'java' } }));
@@ -32,6 +34,8 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
 
   afterEach(() => {
     vi.doUnmock('tree-sitter');
+    vi.doUnmock('tree-sitter-c');
+    vi.doUnmock('tree-sitter-cpp');
     vi.doUnmock('tree-sitter-c-sharp');
     vi.doUnmock('tree-sitter-go');
     vi.doUnmock('tree-sitter-java');
@@ -47,6 +51,8 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doMock('tree-sitter', () => {
       throw new Error('native bindings missing');
     });
+    vi.doMock('tree-sitter-c', () => ({ default: {} }));
+    vi.doMock('tree-sitter-cpp', () => ({ default: {} }));
     vi.doMock('tree-sitter-c-sharp', () => ({ default: {} }));
     vi.doMock('tree-sitter-go', () => ({ default: {} }));
     vi.doMock('tree-sitter-java', () => ({ default: {} }));
@@ -85,6 +91,14 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     expect(supportsTreeSitterFile('/workspace/src/App.java')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/lib.rs')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/App.cs')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.c')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.h')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.cpp')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.cc')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.cxx')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.hpp')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.hh')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.hxx')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/README.md')).toBe(false);
   });
 
@@ -103,6 +117,14 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     ['/workspace/src/App.java', 'java', 'java'],
     ['/workspace/src/lib.rs', 'rust', 'rust'],
     ['/workspace/src/App.cs', 'csharp', 'csharp'],
+    ['/workspace/src/main.c', 'c', 'c'],
+    ['/workspace/src/main.h', 'c', 'c'],
+    ['/workspace/src/main.cpp', 'cpp', 'cpp'],
+    ['/workspace/src/main.cc', 'cpp', 'cpp'],
+    ['/workspace/src/main.cxx', 'cpp', 'cpp'],
+    ['/workspace/src/main.hpp', 'cpp', 'cpp'],
+    ['/workspace/src/main.hh', 'cpp', 'cpp'],
+    ['/workspace/src/main.hxx', 'cpp', 'cpp'],
   ])(
     'creates a runtime for %s with %s bindings',
     async (filePath, languageKind, languageId) => {

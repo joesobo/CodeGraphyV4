@@ -11,6 +11,8 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
 
   afterEach(() => {
     vi.unmock('tree-sitter');
+    vi.unmock('tree-sitter-c');
+    vi.unmock('tree-sitter-cpp');
     vi.unmock('tree-sitter-c-sharp');
     vi.unmock('tree-sitter-go');
     vi.unmock('tree-sitter-java');
@@ -22,6 +24,8 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
 
   it('loads and caches tree-sitter bindings from the language modules', async () => {
     class FakeParser {}
+    const cLanguage = { name: 'c' };
+    const cpp = { name: 'cpp' };
     const csharp = { name: 'csharp' };
     const go = { name: 'go' };
     const java = { name: 'java' };
@@ -32,6 +36,8 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
     const typeScript = { name: 'typescript' };
 
     vi.doMock('tree-sitter', () => ({ default: FakeParser }));
+    vi.doMock('tree-sitter-c', () => ({ default: cLanguage }));
+    vi.doMock('tree-sitter-cpp', () => ({ default: cpp }));
     vi.doMock('tree-sitter-c-sharp', () => ({ default: csharp }));
     vi.doMock('tree-sitter-go', () => ({ default: go }));
     vi.doMock('tree-sitter-java', () => ({ default: java }));
@@ -52,6 +58,8 @@ describe('pipeline/plugins/treesitter/runtime/languages/load', () => {
 
     expect(first).toEqual({
       ParserCtor: FakeParser,
+      cLanguage,
+      cpp,
       csharp,
       go,
       java,

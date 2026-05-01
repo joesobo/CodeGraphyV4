@@ -1,5 +1,7 @@
 import type Parser from 'tree-sitter';
 import type { IFileAnalysisResult } from '../../../../../core/plugins/types/contracts';
+import { analyzeCFile } from './analyzeC/file';
+import { analyzeCppFile } from './analyzeCpp/file';
 import { analyzeCSharpFile } from './analyzeCSharp/file';
 import { analyzeGoFile } from './analyzeGo/file';
 import { analyzeJavaFile } from './analyzeJava/file';
@@ -35,6 +37,14 @@ function analyzeTreeSitterTree(
   workspaceRoot: string,
   languageKind: string,
 ): IFileAnalysisResult | null {
+  if (languageKind === 'c') {
+    return analyzeCFile(filePath, tree, workspaceRoot);
+  }
+
+  if (languageKind === 'cpp') {
+    return analyzeCppFile(filePath, tree, workspaceRoot);
+  }
+
   if (languageKind === 'rust') {
     return analyzeRustFile(filePath, tree, workspaceRoot);
   }
