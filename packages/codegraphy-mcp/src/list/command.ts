@@ -1,4 +1,4 @@
-import { listRegisteredRepoStatuses } from '../repoStatus/read';
+import { readRepoRegistry } from '../repoRegistry/file';
 
 export interface ListCommandResult {
   exitCode: number;
@@ -6,15 +6,18 @@ export interface ListCommandResult {
 }
 
 export function runListCommand(): ListCommandResult {
-  const repos = listRegisteredRepoStatuses();
-  if (repos.length === 0) {
+  const registry = readRepoRegistry();
+  if (registry.repos.length === 0) {
     return {
       exitCode: 0,
-      output: 'No indexed CodeGraphy repos are registered yet.',
+      output: 'No CodeGraphy repos are registered yet.',
     };
   }
 
-  const lines = repos.map((repo) => `${repo.status}\t${repo.workspaceRoot}\t${repo.databasePath}`);
+  const lines = registry.repos.map((repo) => {
+    const activeMarker = repo.workspaceRoot === registry.activeRepo ? '*' : '-';
+    return `${activeMarker}\t${repo.workspaceRoot}`;
+  });
   return {
     exitCode: 0,
     output: lines.join('\n'),
