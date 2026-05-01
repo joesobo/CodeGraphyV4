@@ -1,9 +1,9 @@
 import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { runListCommand } from '../../src/list/command';
-import { readRepoStatus } from '../../src/repoStatus/read';
-import { createTempCodeGraphyHome, createTempRepo } from '../support/database';
-import { createSampleSnapshot } from '../support/sampleGraph';
+import { setActiveRepo, upsertRepoRegistryEntry } from '../../src/repoRegistry/file';
 
 describe('list/command', () => {
   let homePath: string;
@@ -11,7 +11,7 @@ describe('list/command', () => {
 
   beforeEach(() => {
     originalHome = process.env.CODEGRAPHY_HOME;
-    homePath = createTempCodeGraphyHome();
+    homePath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-home-'));
     process.env.CODEGRAPHY_HOME = homePath;
   });
 
@@ -20,14 +20,17 @@ describe('list/command', () => {
     fs.rmSync(homePath, { recursive: true, force: true });
   });
 
-  it('prints registered repos with status', () => {
-    const repo = createTempRepo(createSampleSnapshot());
-    readRepoStatus(repo.workspaceRoot);
+  it('prints registered repos without status or freshness concepts', () => {
+    upsertRepoRegistryEntry({
+      workspaceRoot: '/workspace/project',
+      databasePath: '/workspace/project/.codegraphy/graph.lbug',
+      lastSeenAt: '2026-04-30T00:00:00.000Z',
+    });
+    setActiveRepo('/workspace/project');
 
     const result = runListCommand();
 
     expect(result.exitCode).toBe(0);
-    expect(result.output).toContain('indexed');
-    expect(result.output).toContain(repo.workspaceRoot);
+    expect(result.output).toBe('*\t/workspace/project');
   });
 });

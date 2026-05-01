@@ -50,4 +50,20 @@ describe('activate', () => {
     expect(api.onExtensionMessage(handler)).toBe(disposable);
     expect(onExtensionMessageSpy).toHaveBeenCalledWith(handler);
   });
+
+  it('delegates graph queries through the provider', () => {
+    const api = activate(makeMockContext() as unknown as vscode.ExtensionContext);
+    const provider = getRegisteredProvider();
+    const query = { report: 'nodes' as const, arguments: {} };
+    const queryGraphSpy = vi.spyOn(provider, 'queryGraph').mockReturnValue({
+      nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
+      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+    });
+
+    expect(api.queryGraph(query)).toEqual({
+      nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
+      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+    });
+    expect(queryGraphSpy).toHaveBeenCalledWith(query);
+  });
 });

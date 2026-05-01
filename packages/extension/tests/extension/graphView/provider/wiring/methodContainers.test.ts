@@ -9,6 +9,7 @@ const mockedFactories = vi.hoisted(() => {
   const physicsSettings = { kind: 'physicsSettings' };
   const plugin = { kind: 'plugin' };
   const pluginResource = { kind: 'pluginResource' };
+  const query = { kind: 'query' };
   const refresh = { kind: 'refresh' };
   const settingsState = { kind: 'settingsState' };
   const timeline = { kind: 'timeline' };
@@ -25,6 +26,7 @@ const mockedFactories = vi.hoisted(() => {
     physicsSettings,
     plugin,
     pluginResource,
+    query,
     refresh,
     settingsState,
     timeline,
@@ -39,6 +41,7 @@ const mockedFactories = vi.hoisted(() => {
     createGraphViewProviderPhysicsSettingsMethods: vi.fn(() => physicsSettings),
     createGraphViewProviderPluginMethods: vi.fn(() => plugin),
     createGraphViewProviderPluginResourceMethods: vi.fn(() => pluginResource),
+    createGraphViewProviderQueryMethods: vi.fn(() => query),
     createGraphViewProviderRefreshMethods: vi.fn(() => refresh),
     createGraphViewProviderSettingsStateMethods: vi.fn(() => settingsState),
     createGraphViewProviderTimelineMethods: vi.fn(() => timeline),
@@ -73,6 +76,9 @@ vi.mock('../../../../../src/extension/graphView/provider/plugin/methods', () => 
 vi.mock('../../../../../src/extension/graphView/provider/plugin/resources', () => ({
   createGraphViewProviderPluginResourceMethods:
     mockedFactories.createGraphViewProviderPluginResourceMethods,
+}));
+vi.mock('../../../../../src/extension/graphView/provider/query/methods', () => ({
+  createGraphViewProviderQueryMethods: mockedFactories.createGraphViewProviderQueryMethods,
 }));
 vi.mock('../../../../../src/extension/graphView/provider/refresh', () => ({
   createGraphViewProviderRefreshMethods: mockedFactories.createGraphViewProviderRefreshMethods,
@@ -130,6 +136,9 @@ describe('graphView/provider/wiring/methodContainers', () => {
     expect(mockedFactories.createGraphViewProviderPluginResourceMethods).toHaveBeenCalledWith(
       mockedFactories.methodSource,
     );
+    expect(mockedFactories.createGraphViewProviderQueryMethods).toHaveBeenCalledWith(
+      mockedFactories.methodSource,
+    );
     expect(mockedFactories.createGraphViewProviderRefreshMethods).toHaveBeenCalledWith(
       mockedFactories.methodSource,
     );
@@ -156,6 +165,7 @@ describe('graphView/provider/wiring/methodContainers', () => {
       physicsSettings: mockedFactories.physicsSettings,
       plugin: mockedFactories.plugin,
       pluginResource: mockedFactories.pluginResource,
+      query: mockedFactories.query,
       refresh: mockedFactories.refresh,
       settingsState: mockedFactories.settingsState,
       timeline: mockedFactories.timeline,

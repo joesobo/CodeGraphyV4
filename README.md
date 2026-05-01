@@ -34,7 +34,7 @@
 
 CodeGraphy turns repository structure and code relationships into a Relationship Graph inside VS Code. Files start as File Nodes, indexing projects richer Edges into the graph, and the whole repo becomes something you can inspect, filter, and navigate instead of infer.
 
-The same saved graph can now be used as local agent context through the `@codegraphy-vscode/mcp` package. Codex and other MCP clients can ask CodeGraphy what files and symbols are connected, what a change may impact, whether the saved DB is current, and can request VS Code to reindex only when the saved graph is missing or stale.
+The same Relationship Graph can be used as local agent context through the `@codegraphy-vscode/mcp` package. Codex and other MCP clients can open a repo in the Core Extension, ask it to run Indexing, and query nodes, edges, relationships, symbols, and bounded paths without reading the whole repo into context.
 
 ![CodeGraphy dependency graph](./docs/media/node-drag.gif)
 
@@ -59,7 +59,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 ## Monorepo
 
 - the core extension focused on graph rendering, repo-local indexing, and the VS Code/webview bridge
-- a local `codegraphy` CLI and MCP server for querying saved `.codegraphy/graph.lbug` data from agents
+- a local `codegraphy` CLI and MCP server for agent Graph Query access through the Core Extension
 - example language plugins for:
   - Typescript
   - C#
@@ -78,12 +78,12 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 | Package | Install | What It Is For |
 |---|---|---|
-| CodeGraphy core extension | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, indexing, repo-local settings, and saved `.codegraphy/graph.lbug` data |
+| CodeGraphy core extension | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, Indexing, repo-local settings, Graph Cache, and Graph Query execution |
 | `@codegraphy-vscode/mcp` | `npm install -g @codegraphy-vscode/mcp` | `codegraphy` CLI plus local MCP server for agents |
 | `@codegraphy-vscode/plugin-api` | `npm install @codegraphy-vscode/plugin-api` | typed API for building external CodeGraphy plugins |
 | language plugins | VS Code Marketplace | optional language-specific enrichment for CodeGraphy |
 
-The MCP package is an agent companion, not the core VS Code extension. The extension owns indexing, keeps the repo-local DB updated on normal saved file changes, and writes `.codegraphy/graph.lbug`. The MCP server reads that DB on demand and can ask the extension to reindex through VS Code when status reports stale or missing data.
+The MCP package is an agent companion, not a second indexer. The Core Extension owns Indexing, Graph Cache access, plugin wiring, and Graph Query execution. The MCP server opens/focuses the repo, forwards Indexing and Graph Query requests to the Core Extension, and returns the response to the agent.
 
 ## Core Stack
 
@@ -116,7 +116,7 @@ The MCP package is an agent companion, not the core VS Code extension. The exten
 
 **Repo-local graph settings and cache** CodeGraphy stores its Graph Cache and repo-specific Settings under `.codegraphy/`, so graph behavior, styling, toggles, and cached analysis stay with the repo instead of polluting `.vscode/settings.json`.
 
-**Agent-readable graph memory** Install `@codegraphy-vscode/mcp` to expose the saved graph to Codex or any MCP-capable agent. Agents can select repos from anywhere, query file and symbol relationships, inspect impact sets, project saved depth/folder/package views, check freshness, and request a VS Code-owned reindex when the saved graph is missing or stale.
+**Agent-readable graph memory** Install `@codegraphy-vscode/mcp` to expose Graph Query to Codex or any MCP-capable agent. Agents open a repo, index it when needed, list nodes and edges, inspect detailed relationships and symbols, and find bounded directed paths while the Core Extension keeps the graph logic centralized.
 
 **Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign glob-based legend rules, and filter out noise.
 
@@ -140,16 +140,16 @@ The MCP package is an agent companion, not the core VS Code extension. The exten
 
 ## Agent Setup
 
-Use this after the VS Code extension has indexed the repo at least once.
+Use this to let an agent open or focus the repo, ask the Core Extension to index when needed, and query the Relationship Graph.
 
 ```bash
 npm install -g @codegraphy-vscode/mcp
 codegraphy setup
-codegraphy status .
+codegraphy open .
 codex mcp list
 ```
 
-Then start a fresh agent session and ask something short:
+Then start a new agent session and ask something short:
 
 ```text
 Use CodeGraphy to explain the relationship between deep.ts and branch.ts.

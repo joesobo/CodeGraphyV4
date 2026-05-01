@@ -111,6 +111,25 @@ describe('GraphViewProvider public API', () => {
     expect(sendPlaybackSpeedSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('queryGraph delegates to the query method container', () => {
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const internals = getGraphViewProviderInternals(provider);
+    const querySpy = vi.spyOn(internals._queryMethods, 'queryGraph').mockReturnValue({
+      nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
+      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+    });
+    const query = { report: 'nodes' as const, arguments: {} };
+
+    expect(provider.queryGraph(query)).toEqual({
+      nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
+      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+    });
+    expect(querySpy).toHaveBeenCalledWith(query);
+  });
+
   it('invalidateTimelineCache delegates to the timeline method container', async () => {
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),

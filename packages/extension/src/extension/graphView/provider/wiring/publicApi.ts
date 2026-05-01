@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { GraphQueryRequest, GraphQueryResult } from '../../../../core/graphQuery';
 import type { EventName, EventPayloads } from '../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
@@ -17,6 +18,7 @@ interface GraphViewProviderPublicMethodsOwner {
     | 'command'
     | 'fileVisit'
     | 'plugin'
+    | 'query'
     | 'refresh'
     | 'timeline'
     | 'viewContext'
@@ -70,6 +72,7 @@ export interface GraphViewProviderPublicMethods {
     plugin: unknown,
     options?: GraphViewExternalPluginRegistrationOptions,
   ) => void;
+  queryGraph: (request: GraphQueryRequest) => GraphQueryResult;
   setDepthMode: (depthMode: boolean) => Promise<void>;
   setFocusedFile: (filePath: string | undefined) => void;
   setDepthLimit: (depthLimit: number) => Promise<void>;
@@ -119,6 +122,7 @@ export function assignGraphViewProviderPublicMethods(
   target.trackFileVisit = filePath => target._methodContainers.fileVisit.trackFileVisit(filePath);
   target.registerExternalPlugin = (plugin, options) =>
     target._methodContainers.plugin.registerExternalPlugin(plugin, options);
+  target.queryGraph = request => target._methodContainers.query.queryGraph(request);
   target.setDepthMode = depthMode => target._methodContainers.viewSelection.setDepthMode(depthMode);
   target.setFocusedFile = filePath => target._methodContainers.viewSelection.setFocusedFile(filePath);
   target.setDepthLimit = depthLimit => target._methodContainers.viewSelection.setDepthLimit(depthLimit);

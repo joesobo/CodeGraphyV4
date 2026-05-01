@@ -6,7 +6,8 @@ import { registerCommands } from './commands/register';
 import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed';
 import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
 import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
-import { createCodeGraphyAgentUriHandler } from './agentReindex/uri';
+import { createCodeGraphyAgentUriHandler } from './agentBridge/uri';
+import type { GraphQueryRequest, GraphQueryResult } from '../core/graphQuery';
 import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
@@ -26,6 +27,8 @@ export interface CodeGraphyAPI {
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
   /** Register an external v2 plugin. */
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;
+  /** Query the current Relationship Graph through the Core Extension. */
+  queryGraph(request: GraphQueryRequest): GraphQueryResult;
 }
 
 export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
@@ -71,6 +74,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     onExtensionMessage: (handler) => provider.onExtensionMessage(handler),
     registerPlugin: (plugin: unknown, options?: { extensionUri?: vscode.Uri | string }) =>
       provider.registerExternalPlugin(plugin, options),
+    queryGraph: (request) => provider.queryGraph(request),
   };
 }
 

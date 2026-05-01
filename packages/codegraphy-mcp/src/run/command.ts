@@ -1,8 +1,8 @@
 import { runListCommand } from '../list/command';
 import { runMcpServer } from '../mcp/server';
-import { runReindexCommand } from '../reindex/command';
+import { runIndexCommand } from '../index/command';
+import { runOpenCommand } from '../open/command';
 import { runSetupCommand } from '../setup/command';
-import { runStatusCommand } from '../status/command';
 import type { CliCommand } from './parse';
 
 export interface CommandExecutionResult {
@@ -19,8 +19,8 @@ function createHelpResult(): CommandExecutionResult {
       'Commands:',
       '  codegraphy setup',
       '  codegraphy list',
-      '  codegraphy status [path]',
-      '  codegraphy reindex [path]',
+      '  codegraphy open <repo>',
+      '  codegraphy index',
       '  codegraphy mcp',
     ].join('\n'),
   };
@@ -32,10 +32,10 @@ export async function runCliCommand(command: CliCommand): Promise<CommandExecuti
       return runSetupCommand();
     case 'list':
       return runListCommand();
-    case 'status':
-      return runStatusCommand(command.repoPath);
-    case 'reindex':
-      return runReindexCommand(command.repoPath);
+    case 'open':
+      return runOpenCommand(command.repoPath);
+    case 'index':
+      return runIndexCommand();
     case 'mcp':
       await runMcpServer();
       return { exitCode: 0, output: '' };

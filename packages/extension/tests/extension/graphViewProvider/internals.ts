@@ -10,6 +10,7 @@ export interface GraphViewProviderInternals {
   _physicsSettingsMethods: GraphViewProviderMethodContainers['physicsSettings'];
   _pluginMethods: GraphViewProviderMethodContainers['plugin'];
   _pluginResourceMethods: GraphViewProviderMethodContainers['pluginResource'];
+  _queryMethods: GraphViewProviderMethodContainers['query'];
   _refreshMethods: GraphViewProviderMethodContainers['refresh'];
   _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
   _timelineMethods: GraphViewProviderMethodContainers['timeline'];
@@ -35,6 +36,7 @@ export function getGraphViewProviderInternals(
     _physicsSettingsMethods: runtime._methodContainers.physicsSettings,
     _pluginMethods: runtime._methodContainers.plugin,
     _pluginResourceMethods: runtime._methodContainers.pluginResource,
+    _queryMethods: runtime._methodContainers.query,
     _refreshMethods: runtime._methodContainers.refresh,
     _settingsStateMethods: runtime._methodContainers.settingsState,
     _timelineMethods: runtime._methodContainers.timeline,

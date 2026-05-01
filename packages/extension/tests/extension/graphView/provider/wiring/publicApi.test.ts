@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import type { GraphQueryRequest } from '../../../../../src/core/graphQuery';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import {
   assignGraphViewProviderPublicMethods,
@@ -40,6 +41,12 @@ function createTarget() {
   };
   const pluginMethods = {
     registerExternalPlugin: vi.fn(),
+  };
+  const queryMethods = {
+    queryGraph: vi.fn(() => ({
+      nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
+      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+    })),
   };
   const timelineMethods = {
     sendPlaybackSpeed: vi.fn(),
@@ -87,6 +94,7 @@ function createTarget() {
     invalidateTimelineCache: vi.fn(async () => undefined),
     trackFileVisit: vi.fn(async () => undefined),
     registerExternalPlugin: vi.fn(),
+    queryGraph: vi.fn(),
     setDepthMode: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
     setDepthLimit: vi.fn(async () => undefined),
@@ -99,6 +107,7 @@ function createTarget() {
       command: commandMethods,
       fileVisit: fileVisitMethods,
       plugin: pluginMethods,
+      query: queryMethods,
       timeline: timelineMethods,
       viewContext: viewContextMethods,
       viewSelection: viewSelectionMethods,
@@ -106,7 +115,7 @@ function createTarget() {
     },
   } as unknown as GraphViewProviderPublicMethodsTarget;
 
-  return { target, graphData, disposable, getGraphData, onWebviewMessage };
+  return { target, graphData, disposable, getGraphData, onWebviewMessage, queryMethods };
 }
 
 describe('assignGraphViewProviderPublicMethods', () => {
@@ -162,11 +171,12 @@ describe('assignGraphViewProviderPublicMethods', () => {
   });
 
   it('assigns graph, timeline, plugin, and selection delegates', async () => {
-    const { target, graphData: previousGraphData, getGraphData } = createTarget();
+    const { target, graphData: previousGraphData, getGraphData, queryMethods } = createTarget();
     const graphData: IGraphData = {
       nodes: [{ id: 'src/feature.ts', label: 'feature.ts', color: '#123456' }],
       edges: [],
     };
+    const query: GraphQueryRequest = { report: 'nodes', arguments: {} };
 
     assignGraphViewProviderPublicMethods(target);
 
@@ -176,6 +186,10 @@ describe('assignGraphViewProviderPublicMethods', () => {
     await target.invalidateTimelineCache();
     await target.trackFileVisit('src/feature.ts');
     target.registerExternalPlugin({ id: 'plugin.test' });
+    expect(target.queryGraph(query)).toEqual({
+      nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
+      page: { offset: 0, limit: 500, returned: 1, total: 1 },
+    });
     await target.setDepthMode(true);
     target.setFocusedFile('src/feature.ts');
     await target.setDepthLimit(3);
@@ -192,6 +206,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
       { id: 'plugin.test' },
       undefined,
     );
+    expect(queryMethods.queryGraph).toHaveBeenCalledWith(query);
     expect(target._methodContainers.viewSelection.setDepthMode).toHaveBeenCalledWith(true);
     expect(target._methodContainers.viewSelection.setFocusedFile).toHaveBeenCalledWith(
       'src/feature.ts',
