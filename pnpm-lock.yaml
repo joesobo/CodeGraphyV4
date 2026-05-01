@@ -143,6 +143,9 @@ importers:
       '@tree-sitter-grammars/tree-sitter-kotlin':
         specifier: 1.1.0
         version: 1.1.0(tree-sitter@0.25.0)
+      '@tree-sitter-grammars/tree-sitter-lua':
+        specifier: 0.4.1
+        version: 0.4.1(tree-sitter@0.25.0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1960,6 +1963,14 @@ packages:
 
   '@tree-sitter-grammars/tree-sitter-kotlin@1.1.0':
     resolution: {integrity: sha512-vlVXaxEE8t2kpJgfZpa8XVvxcnKw9AYtRTgy7KWjsDmAsadk06RxAT80IXOgGQnmM9i/orQn1nD84gPNUHu6DQ==}
+    peerDependencies:
+      tree-sitter: ^0.22.4
+    peerDependenciesMeta:
+      tree-sitter:
+        optional: true
+
+  '@tree-sitter-grammars/tree-sitter-lua@0.4.1':
+    resolution: {integrity: sha512-EwagFaU6ZveVk18/Y8qUhZkkiBKnQ7dSCHbm//TUroLVKy3i1rOYGy/cNHtSkAb1eDvS1HhCLybH2S541Cya/g==}
     peerDependencies:
       tree-sitter: ^0.22.4
     peerDependenciesMeta:
@@ -7456,6 +7467,13 @@ snapshots:
       node-addon-api: 8.7.0
       node-gyp-build: 4.8.4
       npm-check-updates: 17.1.18
+    optionalDependencies:
+      tree-sitter: 0.25.0
+
+  '@tree-sitter-grammars/tree-sitter-lua@0.4.1(tree-sitter@0.25.0)':
+    dependencies:
+      node-addon-api: 8.7.0
+      node-gyp-build: 4.8.4
     optionalDependencies:
       tree-sitter: 0.25.0
 

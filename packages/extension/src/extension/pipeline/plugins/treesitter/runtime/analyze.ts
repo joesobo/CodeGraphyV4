@@ -8,6 +8,7 @@ import { analyzeHaskellFile } from './analyzeHaskell/file';
 import { analyzeJavaFile } from './analyzeJava/file';
 import { analyzeJavaScriptFamilyFile } from './analyzeJavaScript/file';
 import { analyzeKotlinFile } from './analyzeKotlin/file';
+import { analyzeLuaFile } from './analyzeLua/file';
 import { analyzePhpFile } from './analyzePhp/file';
 import { analyzePythonFile } from './analyzePython/file';
 import { analyzeRubyFile } from './analyzeRuby/file';
@@ -75,6 +76,10 @@ function analyzeTreeSitterTree(
 
   if (languageKind === 'php') {
     return analyzePhpFile(filePath, tree);
+  }
+
+  if (languageKind === 'lua') {
+    return analyzeLuaFile(filePath, tree, workspaceRoot);
   }
 
   if (JAVASCRIPT_FAMILY_LANGUAGE_KINDS.has(languageKind)) {

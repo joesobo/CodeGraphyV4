@@ -9,6 +9,7 @@ export type TreeSitterLanguageKind =
   | 'java'
   | 'javascript'
   | 'kotlin'
+  | 'lua'
   | 'php'
   | 'python'
   | 'ruby'
@@ -27,6 +28,7 @@ export type TreeSitterRuntimeBinding = {
     | 'java'
     | 'javaScript'
     | 'kotlin'
+    | 'lua'
     | 'php'
     | 'python'
     | 'ruby'
@@ -67,6 +69,7 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.kt',
   '.kts',
   '.lhs',
+  '.lua',
   '.mjs',
   '.mts',
   '.php',
@@ -101,6 +104,7 @@ export const TREE_SITTER_RUNTIME_BINDINGS: Record<
   '.kt': { languageKind: 'kotlin', language: 'kotlin' },
   '.kts': { languageKind: 'kotlin', language: 'kotlin' },
   '.lhs': { languageKind: 'haskell', language: 'haskell' },
+  '.lua': { languageKind: 'lua', language: 'lua' },
   '.mjs': { languageKind: 'javascript', language: 'javaScript' },
   '.mts': { languageKind: 'typescript', language: 'typeScript' },
   '.php': { languageKind: 'php', language: 'php' },

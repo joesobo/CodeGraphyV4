@@ -40,6 +40,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",
+    "@tree-sitter-grammars/tree-sitter-lua": "0.4.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3-force": "^3.0.0",

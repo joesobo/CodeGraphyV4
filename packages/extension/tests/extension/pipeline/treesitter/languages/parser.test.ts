@@ -120,6 +120,20 @@ describe('pipeline/plugins/treesitter/runtime/languages/parser', () => {
     ).toHaveBeenCalledWith({ id: 'haskell' });
   });
 
+  it('returns configured parsers for Lua files', async () => {
+    loadTreeSitterBindings.mockResolvedValue({
+      ParserCtor: MockParser,
+      lua: { id: 'lua' },
+    });
+
+    const luaRuntime = await createTreeSitterRuntime('/workspace/src/app.lua');
+
+    expect(luaRuntime?.languageKind).toBe('lua');
+    expect((luaRuntime?.parser as unknown as MockParser).setLanguage).toHaveBeenCalledWith({
+      id: 'lua',
+    });
+  });
+
   it('returns a runtime with the parser and language kind for supported files', async () => {
     loadTreeSitterBindings.mockResolvedValue({
       ParserCtor: MockParser,
