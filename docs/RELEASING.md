@@ -8,6 +8,7 @@ Release-facing metadata is not all in one package:
 - Core extension versioning lives in [`packages/extension/package.json`](../packages/extension/package.json)
 - Plugin extension marketplace metadata lives in each `packages/plugin-*/package.json`
 - Plugin API npm metadata lives in [`packages/plugin-api/package.json`](../packages/plugin-api/package.json)
+- MCP npm metadata lives in [`packages/codegraphy-mcp/package.json`](../packages/codegraphy-mcp/package.json)
 - The core extension icon source lives at [`assets/icon.svg`](../assets/icon.svg)
 - Each published plugin ships its own badged icon at `packages/plugin-*/assets/icon.svg`
 
@@ -27,10 +28,14 @@ Run the full release gate first:
 pnpm run release:check
 ```
 
-Package VSIX files locally:
+Package release artifacts locally:
 
 ```bash
 pnpm run release:package core
+pnpm run release:package mcp
+pnpm run release:package plugin-api
+pnpm run release:package npm
+pnpm run release:package vsce
 pnpm run release:package typescript
 pnpm run release:package python
 pnpm run release:package csharp
@@ -38,12 +43,15 @@ pnpm run release:package godot
 pnpm run release:package all
 ```
 
-`core` release packaging rebuilds `@codegraphy/extension` from source first, so it does not rely on whatever `dist/` happened to be left in the repo.
+`core` release packaging rebuilds `@codegraphy/extension` from source first, so it does not rely on whatever `dist/` happened to be left in the repo. npm packages are packed into `artifacts/npm/`; VS Code extensions are packed into `artifacts/vsix/`.
 
 Publish from a machine that already has `VSCE_PAT` and npm auth configured:
 
 ```bash
 pnpm run release:publish plugin-api
+pnpm run release:publish mcp
+pnpm run release:publish npm
+pnpm run release:publish vsce
 pnpm run release:publish core
 pnpm run release:publish typescript
 pnpm run release:publish python
@@ -52,7 +60,7 @@ pnpm run release:publish godot
 pnpm run release:publish all
 ```
 
-`pnpm run release:publish core` also rebuilds the core extension before staging and publishing.
+`pnpm run release:publish core` also rebuilds the core extension before staging and publishing. `all` and `npm` discover publishable workspace packages from `package.json` metadata, publish npm packages before Marketplace packages, and skip npm versions that already exist.
 
 Before the first local publish from this release setup, verify the authenticated publisher:
 
@@ -74,29 +82,33 @@ vsce verify-pat codegraphy
 8. If the core Marketplace extension changed, verify `packages/extension/package.json` and [`packages/extension/CHANGELOG.md`](../packages/extension/CHANGELOG.md) have matching top entries.
 9. Commit the generated version and changelog updates.
 10. Run `pnpm run release:check`.
-11. Publish `@codegraphy-vscode/plugin-api` with `pnpm run release:publish plugin-api`.
-12. Publish the core extension with `pnpm run release:publish core`.
-13. Publish each plugin extension separately:
+11. Publish every release target with `pnpm run release:publish all`.
+12. Or publish npm packages first with `pnpm run release:publish npm`, then publish Marketplace packages with `pnpm run release:publish vsce`.
+13. To publish separately, publish npm packages before Marketplace packages:
+   - `pnpm run release:publish plugin-api`
+   - `pnpm run release:publish mcp`
+14. Publish the core extension with `pnpm run release:publish core`.
+15. Publish each plugin extension separately:
    - `pnpm run release:publish typescript`
    - `pnpm run release:publish python`
    - `pnpm run release:publish csharp`
    - `pnpm run release:publish godot`
-14. Open each Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
-15. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
-16. Open the npm package page for [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api) and verify the README and repository links.
+16. Open each Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
+17. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
+18. Open the npm package pages for [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api) and [`@codegraphy-vscode/mcp`](https://www.npmjs.com/package/@codegraphy-vscode/mcp), then verify the README and repository links.
 
 ## GitHub Actions
 
 Use the `Release` workflow with `workflow_dispatch`.
 
-- `mode=package` builds and uploads VSIX artifacts.
-- `target` can be `core`, `typescript`, `python`, `csharp`, `godot`, `plugin-api`, or `all`.
-- `mode=publish` runs the same checks, packages VSIX files, publishes the selected VS Code extension target, and publishes `@codegraphy-vscode/plugin-api` when requested.
+- `mode=package` builds and uploads release artifacts.
+- `target` can be `all`, `npm`, `vsce`, `core`, `mcp`, `plugin-api`, `typescript`, `python`, `csharp`, or `godot`.
+- `mode=publish` runs the same checks, packages release artifacts, publishes selected Marketplace targets, and publishes selected npm packages.
 
 Required secrets:
 
 - `VSCE_PAT` for Marketplace publishing
-- `NPM_TOKEN` for `@codegraphy-vscode/plugin-api`
+- `NPM_TOKEN` for npm packages under the `@codegraphy-vscode` scope
 
 ## Marketplace migration note
 
@@ -116,3 +128,4 @@ If you ever move the core to a different publisher later, that would require a n
 - C# plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp>
 - GDScript plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot>
 - Plugin API: <https://www.npmjs.com/package/@codegraphy-vscode/plugin-api>
+- MCP: <https://www.npmjs.com/package/@codegraphy-vscode/mcp>
