@@ -1,5 +1,11 @@
 # @codegraphy-vscode/mcp
 
+## 1.0.2
+
+### Patch Changes
+
+- [#195](https://github.com/joesobo/CodeGraphyV4/pull/195) [`abdc884`](https://github.com/joesobo/CodeGraphyV4/commit/abdc884d1e75b9072a67e57625e9d1487b8c2056) Thanks [@joesobo](https://github.com/joesobo)! - Ignore Turbo cache churn during graph refresh and show CLI indexing wait feedback.
+
 ## 1.0.1
 
 ### Patch Changes
