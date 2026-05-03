@@ -4,6 +4,7 @@ import {
   type GraphViewTimelineIndexHandlers,
   type GraphViewTimelineIndexState,
 } from '../../../../../src/extension/graphView/timeline/indexing/repository';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../../src/extension/config/defaults';
 
 afterEach(() => {
   vi.doUnmock('../../../../../src/extension/graphView/timeline/indexing/setup');
@@ -149,16 +150,7 @@ describe('graph view timeline repository', () => {
 
     expect(handlers.verifyGitRepository).toHaveBeenCalledWith('/test/workspace');
     expect(handlers.createGitAnalyzer).toHaveBeenCalledWith('/test/workspace', [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/out/**',
-      '**/.git/**',
-      '**/.codegraphy/**',
-      '**/coverage/**',
-      '**/*.min.js',
-      '**/*.bundle.js',
-      '**/*.map',
+      ...DEFAULT_EXCLUDE_PATTERNS,
     ]);
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'TIMELINE_DATA',

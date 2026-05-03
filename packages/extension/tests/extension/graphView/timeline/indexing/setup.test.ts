@@ -4,6 +4,7 @@ import {
   type GraphViewTimelineIndexSetupHandlers,
   type GraphViewTimelineIndexSetupState,
 } from '../../../../../src/extension/graphView/timeline/indexing/setup';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../../src/extension/config/defaults';
 
 function createState(
   overrides: Partial<GraphViewTimelineIndexSetupState> = {},
@@ -82,16 +83,7 @@ describe('graph view timeline setup', () => {
     expect(state.analyzerInitialized).toBe(true);
     expect(state.gitAnalyzer).toBe(gitAnalyzer);
     expect(handlers.createGitAnalyzer).toHaveBeenCalledWith('/workspace', [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/out/**',
-      '**/.git/**',
-      '**/.codegraphy/**',
-      '**/coverage/**',
-      '**/*.min.js',
-      '**/*.bundle.js',
-      '**/*.map',
+      ...DEFAULT_EXCLUDE_PATTERNS,
       '**/*.generated.ts',
       'src/generated/**',
     ]);
@@ -117,16 +109,7 @@ describe('graph view timeline setup', () => {
 
     expect(ready).toBe(true);
     expect(handlers.createGitAnalyzer).toHaveBeenCalledWith('/workspace', [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/out/**',
-      '**/.git/**',
-      '**/.codegraphy/**',
-      '**/coverage/**',
-      '**/*.min.js',
-      '**/*.bundle.js',
-      '**/*.map',
+      ...DEFAULT_EXCLUDE_PATTERNS,
     ]);
   });
 
