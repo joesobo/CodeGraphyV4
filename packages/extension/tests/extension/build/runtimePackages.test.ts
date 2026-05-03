@@ -57,14 +57,29 @@ describe('runtime package build support', () => {
       expect.arrayContaining([
         'material-icon-theme',
         'tree-sitter',
+        'tree-sitter-c',
+        'tree-sitter-cpp',
         'tree-sitter-c-sharp',
+        '@driftlog/tree-sitter-dart',
         'tree-sitter-go',
+        'tree-sitter-haskell',
         'tree-sitter-java',
         'tree-sitter-javascript',
+        '@tree-sitter-grammars/tree-sitter-kotlin',
+        '@tree-sitter-grammars/tree-sitter-lua',
+        'tree-sitter-php',
         'tree-sitter-python',
+        'tree-sitter-ruby',
         'tree-sitter-rust',
+        'tree-sitter-swift',
         'tree-sitter-typescript',
       ]),
     );
+  });
+
+  it('resolves every vendored runtime package from the extension package', () => {
+    for (const packageName of EXTENSION_RUNTIME_PACKAGE_NAMES) {
+      expect(() => resolveRuntimePackageRootPath(packageName)).not.toThrow();
+    }
   });
 });

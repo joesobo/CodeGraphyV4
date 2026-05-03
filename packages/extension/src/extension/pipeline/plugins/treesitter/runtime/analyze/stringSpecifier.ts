@@ -18,6 +18,9 @@ export function getStringSpecifier(node: Parser.SyntaxNode | null | undefined): 
       const fragment = node.namedChildren.find((child) => child.type === 'interpreted_string_literal_content');
       return fragment?.text ?? null;
     }
+    case 'string_literal': {
+      return node.text.length >= 2 ? node.text.slice(1, -1) : null;
+    }
     default:
       return null;
   }

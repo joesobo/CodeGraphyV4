@@ -77,4 +77,16 @@ describe('pipeline/plugins/treesitter/runtime/analyze/stringSpecifier', () => {
     expect(getStringSpecifier(createNode({ type: 'identifier', text: 'pkg', namedChildren: [] }) as never)).toBeNull();
     expect(getStringSpecifier(null)).toBeNull();
   });
+
+  it('reads Dart-style string literal content by stripping quotes', () => {
+    expect(
+      getStringSpecifier(
+        createNode({
+          type: 'string_literal',
+          text: "'package:codegraphy/model.dart'",
+          namedChildren: [],
+        }) as never,
+      ),
+    ).toBe('package:codegraphy/model.dart');
+  });
 });
