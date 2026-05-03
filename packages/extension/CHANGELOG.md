@@ -1,5 +1,25 @@
 # @codegraphy/extension
 
+## 5.3.0
+
+### Minor Changes
+
+- [#185](https://github.com/joesobo/CodeGraphyV4/pull/185) [`d64701d`](https://github.com/joesobo/CodeGraphyV4/commit/d64701df5eefa3922651480b54417cf2cc9e5d90) Thanks [@joesobo](https://github.com/joesobo)! - Add the CodeGraphy MCP package and agent workflow for querying the Relationship Graph from Codex and other MCP-capable agents.
+
+  The extension now exposes Core Extension Graph Query for agent use, including node, edge, relationship, symbol, and path reports. The MCP package opens or focuses the repo in VS Code, asks the Core Extension to run Indexing when needed, and forwards Graph Query requests instead of owning graph-cache reads itself.
+
+- [#188](https://github.com/joesobo/CodeGraphyV4/pull/188) [`2f81974`](https://github.com/joesobo/CodeGraphyV4/commit/2f819740837de3f77b6717f4af3894e30e167e1f) Thanks [@joesobo](https://github.com/joesobo)! - Apply graph scope, structural projection, filters, search, and orphan visibility through one shared visible graph derivation pipeline.
+
+  Core structural nesting edges now use the `nests` edge kind. Namespaced edge kinds remain reserved for plugin-owned relationships.
+
+- [#192](https://github.com/joesobo/CodeGraphyV4/pull/192) [`2c76df7`](https://github.com/joesobo/CodeGraphyV4/commit/2c76df70bacf129622dd6a2c5349315ed4258bab) Thanks [@joesobo](https://github.com/joesobo)! - Add core Tree-sitter support for C, C++, Dart, Haskell, Kotlin, Lua, PHP, Ruby, and Swift relationships and symbols.
+
+### Patch Changes
+
+- [#184](https://github.com/joesobo/CodeGraphyV4/pull/184) [`10dacdb`](https://github.com/joesobo/CodeGraphyV4/commit/10dacdb2e33efeba9293d234bc46dd86c82e5ade) Thanks [@joesobo](https://github.com/joesobo)! - Increase the default `maxFiles` setting from 500 to 1000.
+
+- [#191](https://github.com/joesobo/CodeGraphyV4/pull/191) [`b0408d5`](https://github.com/joesobo/CodeGraphyV4/commit/b0408d5222b4c81a387abae91c70ec59e513ee77) Thanks [@joesobo](https://github.com/joesobo)! - Fix Graph View zoom controls in 3D mode and allow holding the zoom buttons to continuously zoom.
+
 ## 5.2.1
 
 ### Patch Changes
