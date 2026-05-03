@@ -185,6 +185,10 @@ describe('Configuration', () => {
       expect(DEFAULT_EXCLUDE_PATTERNS).toContain('**/.git/**');
     });
 
+    it('should include turbo cache artifacts', () => {
+      expect(DEFAULT_EXCLUDE_PATTERNS).toContain('**/.turbo/**');
+    });
+
     it('should include minified files', () => {
       expect(DEFAULT_EXCLUDE_PATTERNS).toContain('**/*.min.js');
     });

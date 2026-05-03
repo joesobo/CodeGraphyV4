@@ -15,6 +15,7 @@ export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = [
   '**/out/**',
   '**/.git/**',
   '**/.codegraphy/**',
+  '**/.turbo/**',
   '**/coverage/**',
   '**/*.min.js',
   '**/*.bundle.js',

@@ -15,6 +15,7 @@ describe('pathMatching', () => {
       '**/out/**',
       '**/.git/**',
       '**/.codegraphy/**',
+      '**/.turbo/**',
       '**/coverage/**',
       '**/*.min.js',
       '**/*.bundle.js',
