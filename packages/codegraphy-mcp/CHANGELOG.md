@@ -1,5 +1,11 @@
 # @codegraphy-vscode/mcp
 
+## 1.0.1
+
+### Patch Changes
+
+- Rebuild the CLI bundle before publishing the MCP package so global installs include the `codegraphy` executable.
+
 ## 1.0.0
 
 ### Major Changes
