@@ -95,6 +95,7 @@ test('npm package release creates a tarball artifact', () => {
 
 test('npm package publish builds before publishing', () => {
   const calls = [];
+  const [mcpTarget] = resolveReleaseTargets('mcp', repoRoot);
 
   runRelease('publish', 'mcp', repoRoot, (command, args, options = {}) => {
     calls.push({ command, args, options });
@@ -109,7 +110,7 @@ test('npm package publish builds before publishing', () => {
   assert.deepEqual(calls, [
     {
       command: 'npm',
-      args: ['view', '@codegraphy-vscode/mcp@1.0.1', 'version', '--json'],
+      args: ['view', `${mcpTarget.packageName}@${mcpTarget.version}`, 'version', '--json'],
       options: { cwd: repoRoot, stdio: 'pipe' },
     },
     {
