@@ -101,4 +101,37 @@ describe('coreExtension/bridge', () => {
       error: 'CodeGraphy Core Extension did not write a response: Timed out waiting for response',
     });
   });
+
+  it('waits for the Core Extension response file to contain complete JSON', async () => {
+    const responses = [
+      '',
+      '{',
+      JSON.stringify({
+        requestId: 'request-4',
+        repo: '/workspace/project',
+        status: 'indexed',
+      }),
+    ];
+
+    const result = await sendCoreExtensionRequest(
+      {
+        action: 'index',
+        repo: '/workspace/project',
+      },
+      {
+        createRequestId: () => 'request-4',
+        createTempDir: async () => '/tmp/codegraphy-request-4',
+        platform: 'darwin',
+        runCommand: () => ({ status: 0 }),
+        waitForResponseFile: async () => responses.shift() ?? '',
+        writeFile: async () => undefined,
+      },
+    );
+
+    expect(result).toEqual({
+      requestId: 'request-4',
+      repo: '/workspace/project',
+      status: 'indexed',
+    });
+  });
 });

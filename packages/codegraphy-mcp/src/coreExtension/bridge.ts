@@ -39,6 +39,8 @@ interface CommandResult {
 }
 
 const DEFAULT_RESPONSE_TIMEOUT_MS = 5 * 60 * 1000;
+const DEFAULT_RESPONSE_PARSE_TIMEOUT_MS = 5 * 1000;
+const RESPONSE_PARSE_RETRY_INTERVAL_MS = 50;
 
 export interface CoreExtensionBridgeDependencies {
   createRequestId(): string;
@@ -139,6 +141,31 @@ function formatErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+async function waitForCompleteResponse(
+  filePath: string,
+  dependencies: CoreExtensionBridgeDependencies,
+): Promise<CoreExtensionBridgeResponse> {
+  const deadline = Date.now() + DEFAULT_RESPONSE_PARSE_TIMEOUT_MS;
+  let lastParseError: SyntaxError | undefined;
+
+  while (Date.now() < deadline) {
+    const responseText = await dependencies.waitForResponseFile(filePath);
+
+    try {
+      return JSON.parse(responseText) as CoreExtensionBridgeResponse;
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) {
+        throw new Error(formatErrorMessage(error));
+      }
+
+      lastParseError = error;
+      await sleep(RESPONSE_PARSE_RETRY_INTERVAL_MS);
+    }
+  }
+
+  throw lastParseError ?? new Error(`Timed out waiting for a complete response in ${filePath}`);
+}
+
 export async function sendCoreExtensionRequest(
   input: CoreExtensionBridgeInput,
   dependencies: CoreExtensionBridgeDependencies = DEFAULT_DEPENDENCIES,
@@ -173,7 +200,7 @@ export async function sendCoreExtensionRequest(
   }
 
   try {
-    return JSON.parse(await dependencies.waitForResponseFile(responsePath)) as CoreExtensionBridgeResponse;
+    return await waitForCompleteResponse(responsePath, dependencies);
   } catch (error) {
     return {
       requestId,
