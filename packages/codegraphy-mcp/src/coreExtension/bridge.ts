@@ -38,6 +38,8 @@ interface CommandResult {
   error?: Error;
 }
 
+const DEFAULT_RESPONSE_TIMEOUT_MS = 5 * 60 * 1000;
+
 export interface CoreExtensionBridgeDependencies {
   createRequestId(): string;
   createTempDir(): Promise<string>;
@@ -65,7 +67,9 @@ function sleep(ms: number): Promise<void> {
 }
 
 async function waitForResponseFile(filePath: string): Promise<string> {
-  while (true) {
+  const deadline = Date.now() + DEFAULT_RESPONSE_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
     try {
       return await fs.readFile(filePath, 'utf8');
     } catch (error) {
@@ -82,6 +86,10 @@ async function waitForResponseFile(filePath: string): Promise<string> {
       throw error;
     }
   }
+
+  throw new Error(
+    `Timed out after ${Math.round(DEFAULT_RESPONSE_TIMEOUT_MS / 1000)}s waiting for ${filePath}`,
+  );
 }
 
 const DEFAULT_DEPENDENCIES: CoreExtensionBridgeDependencies = {
@@ -127,6 +135,10 @@ function formatCommandFailure(command: string, args: string[], result: CommandRe
   return `\`${[command, ...args].join(' ')}\` failed: ${detail}`;
 }
 
+function formatErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export async function sendCoreExtensionRequest(
   input: CoreExtensionBridgeInput,
   dependencies: CoreExtensionBridgeDependencies = DEFAULT_DEPENDENCIES,
@@ -160,5 +172,14 @@ export async function sendCoreExtensionRequest(
     };
   }
 
-  return JSON.parse(await dependencies.waitForResponseFile(responsePath)) as CoreExtensionBridgeResponse;
+  try {
+    return JSON.parse(await dependencies.waitForResponseFile(responsePath)) as CoreExtensionBridgeResponse;
+  } catch (error) {
+    return {
+      requestId,
+      repo,
+      status: 'failed',
+      error: `CodeGraphy Core Extension did not write a response: ${formatErrorMessage(error)}`,
+    };
+  }
 }

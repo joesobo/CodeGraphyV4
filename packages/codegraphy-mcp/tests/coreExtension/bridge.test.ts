@@ -75,4 +75,30 @@ describe('coreExtension/bridge', () => {
       error: '`open vscode://codegraphy.codegraphy/index?request=%2Ftmp%2Fcodegraphy-request-2%2Frequest.json` failed: open failed',
     });
   });
+
+  it('returns a failed response when the Core Extension response cannot be read', async () => {
+    const result = await sendCoreExtensionRequest(
+      {
+        action: 'index',
+        repo: '/workspace/project',
+      },
+      {
+        createRequestId: () => 'request-3',
+        createTempDir: async () => '/tmp/codegraphy-request-3',
+        platform: 'darwin',
+        runCommand: () => ({ status: 0 }),
+        waitForResponseFile: async () => {
+          throw new Error('Timed out waiting for response');
+        },
+        writeFile: async () => undefined,
+      },
+    );
+
+    expect(result).toEqual({
+      requestId: 'request-3',
+      repo: '/workspace/project',
+      status: 'failed',
+      error: 'CodeGraphy Core Extension did not write a response: Timed out waiting for response',
+    });
+  });
 });

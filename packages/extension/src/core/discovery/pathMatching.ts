@@ -12,6 +12,7 @@ export const DEFAULT_EXCLUDE = [
   '**/out/**',
   '**/.git/**',
   '**/.codegraphy/**',
+  '**/.turbo/**',
   '**/coverage/**',
   '**/*.min.js',
   '**/*.bundle.js',
