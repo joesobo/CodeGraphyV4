@@ -35,7 +35,7 @@
 		"release:check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
 		"release:package": "node scripts/release.mjs package",
 		"release:publish": "node scripts/release.mjs publish",
-		"test:release": "node --test tests/release/changesets.test.mjs",
+		"test:release": "node --test tests/release/*.test.mjs",
 		"typecheck": "turbo run typecheck",
 		"typecheck:extension": "pnpm --filter @codegraphy/extension run typecheck",
 		"typecheck:plugin-api": "pnpm --filter @codegraphy-vscode/plugin-api run typecheck",

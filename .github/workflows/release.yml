@@ -18,11 +18,14 @@ on:
         type: choice
         options:
           - core
+          - mcp
           - typescript
           - python
           - csharp
           - godot
           - plugin-api
+          - npm
+          - vsce
           - all
 
 permissions:
@@ -62,16 +65,14 @@ jobs:
       - name: Release checks
         run: pnpm run release:check
 
-      - name: Package selected VS Code extension artifacts
-        if: ${{ inputs.target != 'plugin-api' }}
+      - name: Package selected release artifacts
         run: pnpm run release:package ${{ inputs.target }}
 
-      - name: Upload VSIX artifacts
-        if: ${{ inputs.target != 'plugin-api' }}
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: vsix-artifacts
-          path: artifacts/vsix/
+          name: release-artifacts
+          path: artifacts/
           retention-days: 30
 
       - name: Publish selected target
