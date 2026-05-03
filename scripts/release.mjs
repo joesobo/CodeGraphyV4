@@ -138,6 +138,7 @@ function toWorkspaceReleaseTarget(workspacePackage) {
     kind: hasVsceRelease ? 'vsce' : 'npm',
     packageName: manifest.name,
     version: manifest.version,
+    hasBuildScript: Boolean(manifest.scripts?.build),
     access: manifest.publishConfig?.access ?? 'public',
   };
 }
@@ -216,17 +217,25 @@ function runCoreRelease(mode, baseDir, runCommand) {
 }
 
 function runNpmRelease(mode, target, baseDir, runCommand) {
+  if (mode === 'publish' && npmVersionExists(target, baseDir, runCommand)) {
+    console.log(`${target.packageName}@${target.version} already exists on npm; skipping.`);
+    return { status: 0 };
+  }
+
+  const buildResult = target.hasBuildScript
+    ? runCommand('pnpm', ['--filter', target.packageName, 'run', 'build'], { cwd: baseDir })
+    : { status: 0 };
+
+  if (buildResult.status !== 0) {
+    return buildResult;
+  }
+
   if (mode === 'package') {
     const artifactDir = path.join(baseDir, 'artifacts', 'npm');
     mkdirSync(artifactDir, { recursive: true });
     return runCommand('pnpm', ['--filter', target.packageName, 'pack', '--pack-destination', artifactDir], {
       cwd: baseDir,
     });
-  }
-
-  if (npmVersionExists(target, baseDir, runCommand)) {
-    console.log(`${target.packageName}@${target.version} already exists on npm; skipping.`);
-    return { status: 0 };
   }
 
   return runCommand(
