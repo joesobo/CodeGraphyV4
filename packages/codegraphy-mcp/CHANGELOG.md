@@ -1,5 +1,11 @@
 # @codegraphy-vscode/mcp
 
+## 1.0.3
+
+### Patch Changes
+
+- [#196](https://github.com/joesobo/CodeGraphyV4/pull/196) [`8fd9ac7`](https://github.com/joesobo/CodeGraphyV4/commit/8fd9ac73eba6071482415de53aae25be798cfd7b) Thanks [@joesobo](https://github.com/joesobo)! - Retry partial Core Extension response-file reads during indexing.
+
 ## 1.0.2
 
 ### Patch Changes
