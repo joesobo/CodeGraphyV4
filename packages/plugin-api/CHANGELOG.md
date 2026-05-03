@@ -1,5 +1,13 @@
 # @codegraphy-vscode/plugin-api
 
+## 1.2.0
+
+### Minor Changes
+
+- [#188](https://github.com/joesobo/CodeGraphyV4/pull/188) [`2f81974`](https://github.com/joesobo/CodeGraphyV4/commit/2f819740837de3f77b6717f4af3894e30e167e1f) Thanks [@joesobo](https://github.com/joesobo)! - Apply graph scope, structural projection, filters, search, and orphan visibility through one shared visible graph derivation pipeline.
+
+  Core structural nesting edges now use the `nests` edge kind. Namespaced edge kinds remain reserved for plugin-owned relationships.
+
 ## 1.1.0
 
 ### Minor Changes
