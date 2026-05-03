@@ -174,6 +174,14 @@ _Avoid_: Indexing when only collecting paths
 The built-in analysis pass that uses Tree-sitter to produce baseline relationships before plugin enrichment.
 _Avoid_: Plugin analysis
 
+**Tree-sitter Runtime**:
+The parser engine CodeGraphy uses to run language grammars during Tree-sitter Analysis.
+_Avoid_: Language coverage, analyzer
+
+**Core Tree-sitter Language Coverage**:
+A language grammar and CodeGraphy analyzer path bundled in the Core Extension that produces baseline relationships during Tree-sitter Analysis.
+_Avoid_: Tree-sitter support when only the parser runtime or grammar package is present
+
 **Plugin Analysis**:
 The indexing stage where plugins add or adjust **Nodes**, **Relationships**, and **Edge Types** after the built-in baseline analysis.
 _Avoid_: Tree-sitter analysis
@@ -364,6 +372,13 @@ _Avoid_: Graph export
 - The force graph renderer handles layout, physics, and interaction for the graph produced by **Collapse Projection**.
 - **Filter** removes graph items from consideration; **Collapse** keeps important graph items available behind a collapsed node.
 - **Indexing** starts with **File Discovery**, then runs **Tree-sitter Analysis**, then **Plugin Analysis**, then **Graph Projection**.
+- The **Tree-sitter Runtime** alone does not create **Relationships**; CodeGraphy needs **Core Tree-sitter Language Coverage** or **Plugin Analysis** to produce useful graph data for a language.
+- A language has **Core Tree-sitter Language Coverage** when the **Core Extension** bundles its grammar, maps its file extensions, and extracts baseline relationships that project into the **Relationship Graph**.
+- **Core Tree-sitter Language Coverage** should be depth-first: a smaller set of languages with meaningful baseline relationships is better than a broad set of parser-only languages.
+- **Core Tree-sitter Language Coverage** should reuse shared Tree-sitter analysis code where languages follow the same parser-backed patterns, keeping language-specific code small.
+- When a language or ecosystem needs complex project-aware semantics, shallow **Core Tree-sitter Language Coverage** can provide baseline relationships while deeper support belongs in **Plugin Analysis**.
+- Structured data and styling formats such as JSON and CSS are outside **Core Tree-sitter Language Coverage** unless a separate relationship model is defined for them.
+- C and C++ **Core Tree-sitter Language Coverage** should include local include relationships, useful code symbols, examples, and docs; full compiler include-path semantics, macros, templates, and conditional compilation are deeper project-aware work.
 - **Graph Projection** produces the **Relationship Graph** data that later flows through **Graph Scope**, **Filter**, **Search**, and view settings.
 - **Graph Cache** stores indexed graph data so reopening the repo does not require full **Indexing**.
 - **Live Updates** keep the **Graph Cache** and graph data current as files change.

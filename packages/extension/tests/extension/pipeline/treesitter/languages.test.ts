@@ -8,12 +8,25 @@ function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
       setLanguage = setLanguage;
     },
   }));
+  vi.doMock('tree-sitter-c', () => ({ default: { id: 'c' } }));
+  vi.doMock('tree-sitter-cpp', () => ({ default: { id: 'cpp' } }));
   vi.doMock('tree-sitter-c-sharp', () => ({ default: { id: 'csharp' } }));
+  vi.doMock('@driftlog/tree-sitter-dart', () => ({ default: { id: 'dart' } }));
   vi.doMock('tree-sitter-go', () => ({ default: { id: 'go' } }));
+  vi.doMock('tree-sitter-haskell', () => ({ default: { id: 'haskell' } }));
   vi.doMock('tree-sitter-java', () => ({ default: { id: 'java' } }));
   vi.doMock('tree-sitter-javascript', () => ({ default: { id: 'javascript' } }));
+  vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: { id: 'kotlin' } }));
+  vi.doMock('@tree-sitter-grammars/tree-sitter-lua', () => ({ default: { id: 'lua' } }));
+  vi.doMock('tree-sitter-php', () => ({
+    default: {
+      php: { id: 'php' },
+    },
+  }));
   vi.doMock('tree-sitter-python', () => ({ default: { id: 'python' } }));
+  vi.doMock('tree-sitter-ruby', () => ({ default: { id: 'ruby' } }));
   vi.doMock('tree-sitter-rust', () => ({ default: { id: 'rust' } }));
+  vi.doMock('tree-sitter-swift', () => ({ default: { id: 'swift' } }));
   vi.doMock('tree-sitter-typescript', () => ({
     default: {
       tsx: { id: 'tsx' },
@@ -32,12 +45,21 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
 
   afterEach(() => {
     vi.doUnmock('tree-sitter');
+    vi.doUnmock('tree-sitter-c');
+    vi.doUnmock('tree-sitter-cpp');
     vi.doUnmock('tree-sitter-c-sharp');
+    vi.doUnmock('@driftlog/tree-sitter-dart');
     vi.doUnmock('tree-sitter-go');
+    vi.doUnmock('tree-sitter-haskell');
     vi.doUnmock('tree-sitter-java');
     vi.doUnmock('tree-sitter-javascript');
+    vi.doUnmock('@tree-sitter-grammars/tree-sitter-kotlin');
+    vi.doUnmock('@tree-sitter-grammars/tree-sitter-lua');
+    vi.doUnmock('tree-sitter-php');
     vi.doUnmock('tree-sitter-python');
+    vi.doUnmock('tree-sitter-ruby');
     vi.doUnmock('tree-sitter-rust');
+    vi.doUnmock('tree-sitter-swift');
     vi.doUnmock('tree-sitter-typescript');
     vi.restoreAllMocks();
     vi.resetModules();
@@ -47,14 +69,27 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     vi.doMock('tree-sitter', () => {
       throw new Error('native bindings missing');
     });
+    vi.doMock('tree-sitter-c', () => ({ default: {} }));
+    vi.doMock('tree-sitter-cpp', () => ({ default: {} }));
     vi.doMock('tree-sitter-c-sharp', () => ({ default: {} }));
+    vi.doMock('@driftlog/tree-sitter-dart', () => ({ default: {} }));
     vi.doMock('tree-sitter-go', () => ({ default: {} }));
+    vi.doMock('tree-sitter-haskell', () => ({ default: {} }));
     vi.doMock('tree-sitter-java', () => ({ default: {} }));
     vi.doMock('tree-sitter-javascript', () => ({
       default: {},
     }));
+    vi.doMock('@tree-sitter-grammars/tree-sitter-kotlin', () => ({ default: {} }));
+    vi.doMock('@tree-sitter-grammars/tree-sitter-lua', () => ({ default: {} }));
+    vi.doMock('tree-sitter-php', () => ({
+      default: {
+        php: {},
+      },
+    }));
     vi.doMock('tree-sitter-python', () => ({ default: {} }));
+    vi.doMock('tree-sitter-ruby', () => ({ default: {} }));
     vi.doMock('tree-sitter-rust', () => ({ default: {} }));
+    vi.doMock('tree-sitter-swift', () => ({ default: {} }));
     vi.doMock('tree-sitter-typescript', () => ({
       default: {
         tsx: {},
@@ -85,6 +120,23 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     expect(supportsTreeSitterFile('/workspace/src/App.java')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/lib.rs')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/App.cs')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/lib/app/runner.dart')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.c')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.h')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.hs')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.lhs')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.cpp')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.cc')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.cxx')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.hpp')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.hh')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/main.hxx')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.kt')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.kts')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/app.lua')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/src/App.php')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/lib/app/runner.rb')).toBe(true);
+    expect(supportsTreeSitterFile('/workspace/Sources/App/Runner.swift')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/README.md')).toBe(false);
   });
 
@@ -103,6 +155,23 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     ['/workspace/src/App.java', 'java', 'java'],
     ['/workspace/src/lib.rs', 'rust', 'rust'],
     ['/workspace/src/App.cs', 'csharp', 'csharp'],
+    ['/workspace/lib/app/runner.dart', 'dart', 'dart'],
+    ['/workspace/src/main.c', 'c', 'c'],
+    ['/workspace/src/main.h', 'c', 'c'],
+    ['/workspace/src/App.hs', 'haskell', 'haskell'],
+    ['/workspace/src/App.lhs', 'haskell', 'haskell'],
+    ['/workspace/src/main.cpp', 'cpp', 'cpp'],
+    ['/workspace/src/main.cc', 'cpp', 'cpp'],
+    ['/workspace/src/main.cxx', 'cpp', 'cpp'],
+    ['/workspace/src/main.hpp', 'cpp', 'cpp'],
+    ['/workspace/src/main.hh', 'cpp', 'cpp'],
+    ['/workspace/src/main.hxx', 'cpp', 'cpp'],
+    ['/workspace/src/App.kt', 'kotlin', 'kotlin'],
+    ['/workspace/src/App.kts', 'kotlin', 'kotlin'],
+    ['/workspace/src/app.lua', 'lua', 'lua'],
+    ['/workspace/src/App.php', 'php', 'php'],
+    ['/workspace/lib/app/runner.rb', 'ruby', 'ruby'],
+    ['/workspace/Sources/App/Runner.swift', 'swift', 'swift'],
   ])(
     'creates a runtime for %s with %s bindings',
     async (filePath, languageKind, languageId) => {
