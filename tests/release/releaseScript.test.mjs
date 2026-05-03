@@ -76,12 +76,56 @@ test('npm package release creates a tarball artifact', () => {
   assert.deepEqual(calls, [
     {
       command: 'pnpm',
+      args: ['--filter', '@codegraphy-vscode/mcp', 'run', 'build'],
+      options: { cwd: repoRoot },
+    },
+    {
+      command: 'pnpm',
       args: [
         '--filter',
         '@codegraphy-vscode/mcp',
         'pack',
         '--pack-destination',
         path.join(repoRoot, 'artifacts', 'npm'),
+      ],
+      options: { cwd: repoRoot },
+    },
+  ]);
+});
+
+test('npm package publish builds before publishing', () => {
+  const calls = [];
+
+  runRelease('publish', 'mcp', repoRoot, (command, args, options = {}) => {
+    calls.push({ command, args, options });
+
+    if (command === 'npm' && args[0] === 'view') {
+      return { status: 1 };
+    }
+
+    return { status: 0 };
+  });
+
+  assert.deepEqual(calls, [
+    {
+      command: 'npm',
+      args: ['view', '@codegraphy-vscode/mcp@1.0.1', 'version', '--json'],
+      options: { cwd: repoRoot, stdio: 'pipe' },
+    },
+    {
+      command: 'pnpm',
+      args: ['--filter', '@codegraphy-vscode/mcp', 'run', 'build'],
+      options: { cwd: repoRoot },
+    },
+    {
+      command: 'pnpm',
+      args: [
+        '--filter',
+        '@codegraphy-vscode/mcp',
+        'publish',
+        '--access',
+        'public',
+        '--no-git-checks',
       ],
       options: { cwd: repoRoot },
     },
