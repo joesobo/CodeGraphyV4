@@ -4,8 +4,9 @@
 
 - Worktree: `/Users/poleski/Desktop/Projects/CodeGraphyV4-graph-context-menu-architecture`
 - Branch: `codex/graph-context-menu-architecture`
-- Base branch: `codex/access-count-history-grill`
+- PR base branch: `main`
 - Stacked on: PR 198, `Replace access-count sizing with Git history churn`
+- Note: the branch starts from PR 198 so PR 199 includes those commits until PR 198 lands. The PR targets `main` because the repo CI workflow only runs for pull requests into `main`.
 - Domain source: `CONTEXT.md`
 - Related plan: `docs/plans/2026-05-04-issue-128-context-window-folder-create.md`
 
