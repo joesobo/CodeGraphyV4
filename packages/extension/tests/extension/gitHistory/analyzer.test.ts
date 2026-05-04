@@ -461,6 +461,11 @@ describe('GitHistoryAnalyzer', () => {
           expect.objectContaining({ id: 'src/c.ts', churn: 1 }),
         ]),
       );
+      expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineChurnCounts', {
+        'src/a.ts': 2,
+        'src/b.ts': 1,
+        'src/c.ts': 1,
+      });
     });
 
     it('should handle Added files in diff', async () => {
@@ -896,7 +901,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return true when correct cache version and plugin signature are stored', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
@@ -909,7 +914,7 @@ describe('GitHistoryAnalyzer', () => {
         { plugin: { id: 'z.plugin', version: '2.0.0' } },
         { plugin: { id: 'a.plugin', version: '1.0.0' } },
       ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'a.plugin@1.0.0|z.plugin@2.0.0',
@@ -924,7 +929,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return false when plugin signature does not match the current registry', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'stale.plugin@1.0.0',
@@ -943,7 +948,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
@@ -961,7 +966,7 @@ describe('GitHistoryAnalyzer', () => {
         { plugin: { id: 'z.plugin', version: '2.0.0' } },
         { plugin: { id: 'a.plugin', version: '1.0.0' } },
       ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'a.plugin@1.0.0|z.plugin@2.0.0',
@@ -975,7 +980,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'stale.plugin@1.0.0',

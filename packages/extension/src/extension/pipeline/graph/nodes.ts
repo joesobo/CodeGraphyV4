@@ -17,11 +17,11 @@ import {
 
 export interface IWorkspaceGraphNodesOptions {
   cacheFiles: Record<string, { size?: number }>;
+  churnCounts: Record<string, number>;
   connectedIds: ReadonlySet<string>;
   directoryPaths?: readonly string[];
   nodeIds: ReadonlySet<string>;
   showOrphans: boolean;
-  visitCounts: Record<string, number>;
 }
 
 function normalizeDirectoryPath(directoryPath: string): string {
@@ -76,11 +76,11 @@ export function buildWorkspaceGraphNodes(
 ): IGraphNode[] {
   const {
     cacheFiles,
+    churnCounts,
     connectedIds,
     directoryPaths = [],
     nodeIds,
     showOrphans,
-    visitCounts,
   } = options;
 
   const nodes: IGraphNode[] = [];
@@ -98,7 +98,6 @@ export function buildWorkspaceGraphNodes(
         nodeType: 'package',
         shape2D: 'hexagon',
         shape3D: 'cube',
-        accessCount: 0,
       });
       continue;
     }
@@ -108,7 +107,7 @@ export function buildWorkspaceGraphNodes(
       label: path.basename(filePath),
       color: DEFAULT_NODE_COLOR,
       fileSize: cacheFiles[filePath]?.size,
-      accessCount: visitCounts[filePath] ?? 0,
+      churn: churnCounts[filePath] ?? 0,
     });
   }
 

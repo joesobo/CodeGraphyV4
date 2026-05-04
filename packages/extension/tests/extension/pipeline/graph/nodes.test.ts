@@ -3,7 +3,7 @@ import { DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
 import { buildWorkspaceGraphNodes } from '../../../../src/extension/pipeline/graph/nodes';
 
 describe('pipeline/graph/nodes', () => {
-  it('builds nodes with labels, sizes, and access counts', () => {
+  it('builds nodes with labels, sizes, and churn counts', () => {
     const nodes = buildWorkspaceGraphNodes({
       cacheFiles: {
         'src/index.ts': { size: 12 },
@@ -12,7 +12,7 @@ describe('pipeline/graph/nodes', () => {
       connectedIds: new Set<string>(['src/index.ts']),
       nodeIds: new Set<string>(['src/index.ts', 'src/utils.ts']),
       showOrphans: true,
-      visitCounts: {
+      churnCounts: {
         'src/index.ts': 3,
       },
     });
@@ -23,14 +23,14 @@ describe('pipeline/graph/nodes', () => {
         label: 'index.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: 12,
-        accessCount: 3,
+        churn: 3,
       },
       {
         id: 'src/utils.ts',
         label: 'utils.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: 7,
-        accessCount: 0,
+        churn: 0,
       },
     ]);
   });
@@ -41,7 +41,7 @@ describe('pipeline/graph/nodes', () => {
       connectedIds: new Set<string>(['src/index.ts']),
       nodeIds: new Set<string>(['src/index.ts', 'src/orphan.ts']),
       showOrphans: false,
-      visitCounts: {},
+      churnCounts: {},
     });
 
     expect(nodes).toEqual([
@@ -50,7 +50,7 @@ describe('pipeline/graph/nodes', () => {
         label: 'index.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: undefined,
-        accessCount: 0,
+        churn: 0,
       },
     ]);
   });

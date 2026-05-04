@@ -5,6 +5,8 @@ import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { IProjectedConnection } from '../../core/plugins/types/contracts';
 import type { IGraphData } from '../../shared/graph/contracts';
+import { getCachedGitHistoryChurnCounts } from '../gitHistory/cache/state';
+import { createGitHistoryPluginSignature } from '../gitHistory/pluginSignature';
 import type { IWorkspaceAnalysisCache } from './cache';
 import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import {
@@ -83,10 +85,13 @@ export function buildWorkspacePipelineGraphData(
 ): IGraphData {
   const source: WorkspacePipelineGraphSource = {
     _cache: cache,
-    _context: context,
     _lastDiscoveredDirectories: directoryPaths,
     _registry: registry,
   };
+  const churnCounts = getCachedGitHistoryChurnCounts(
+    context.workspaceState,
+    createGitHistoryPluginSignature(registry),
+  ) ?? {};
 
   return buildWorkspacePipelineGraphForSource(
     source,
@@ -94,6 +99,7 @@ export function buildWorkspacePipelineGraphData(
     workspaceRoot,
     showOrphans,
     disabledPlugins,
+    churnCounts,
   );
 }
 
