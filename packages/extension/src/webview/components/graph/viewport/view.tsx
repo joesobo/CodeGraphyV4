@@ -23,6 +23,7 @@ import {
   type Surface3dProps,
 } from '../rendering/surface/view/threeDimensional';
 import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBoundary';
+import type { GraphSurfaceSharedProps } from '../rendering/surface/sharedProps';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
 
@@ -46,6 +47,10 @@ export interface ViewportProps {
   pluginHost?: WebviewPluginHost;
 }
 
+function hasMeasuredGraphSurfaceSize(sharedProps: GraphSurfaceSharedProps): boolean {
+  return sharedProps.width !== undefined && sharedProps.height !== undefined;
+}
+
 export function Viewport({
   backgroundColor,
   borderColor,
@@ -65,6 +70,8 @@ export function Viewport({
   onSurface3dError,
   pluginHost,
 }: ViewportProps): ReactElement {
+  const canMountSurface3d = hasMeasuredGraphSurfaceSize(surface3dProps.sharedProps);
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -97,18 +104,26 @@ export function Viewport({
                 />
               )}
             >
-              <DeferredSurface3d
-                {...surface3dProps}
-                backgroundColor={backgroundColor}
-                directionMode={directionMode}
-                fallback={(
-                  <Surface2d
-                    {...surface2dProps}
-                    backgroundColor={backgroundColor}
-                    directionMode={directionMode}
-                  />
-                )}
-              />
+              {canMountSurface3d ? (
+                <DeferredSurface3d
+                  {...surface3dProps}
+                  backgroundColor={backgroundColor}
+                  directionMode={directionMode}
+                  fallback={(
+                    <Surface2d
+                      {...surface2dProps}
+                      backgroundColor={backgroundColor}
+                      directionMode={directionMode}
+                    />
+                  )}
+                />
+              ) : (
+                <Surface2d
+                  {...surface2dProps}
+                  backgroundColor={backgroundColor}
+                  directionMode={directionMode}
+                />
+              )}
             </SurfaceFallbackBoundary>
           )}
           {pluginHost ? (
