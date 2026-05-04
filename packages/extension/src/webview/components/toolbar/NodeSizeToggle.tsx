@@ -1,12 +1,12 @@
 /**
  * @fileoverview Node size mode toggle button group.
- * Allows switching between connection-based, file-size, access-count, and uniform sizing.
+ * Allows switching between connection-based, file-size, churn, and uniform sizing.
  * @module webview/components/toolbar/NodeSizeToggle
  */
 
 import React from 'react';
 import type { NodeSizeMode } from '../../../shared/settings/modes';
-import { mdiHubOutline, mdiFileOutline, mdiEyeOutline, mdiCircleMultipleOutline } from '@mdi/js';
+import { mdiHubOutline, mdiFileOutline, mdiChartLine, mdiCircleMultipleOutline } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
@@ -16,12 +16,14 @@ import { postMessage } from '../../vscodeApi';
 const NODE_SIZE_MODES: { mode: NodeSizeMode; label: string; icon: string }[] = [
   { mode: 'connections', label: 'Size by Connections', icon: mdiHubOutline },
   { mode: 'file-size', label: 'Size by File Size', icon: mdiFileOutline },
-  { mode: 'access-count', label: 'Size by Access Count', icon: mdiEyeOutline },
+  { mode: 'churn', label: 'Size by Churn', icon: mdiChartLine },
   { mode: 'uniform', label: 'Uniform Size', icon: mdiCircleMultipleOutline },
 ];
 
 export function NodeSizeToggle(): React.ReactElement {
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
+  const hasGitHistoryIndex = useGraphStore(s => s.timelineCommits.length > 0);
+  const sizeModes = NODE_SIZE_MODES.filter(({ mode }) => mode !== 'churn' || hasGitHistoryIndex);
 
   const handleNodeSizeModeChange = (mode: NodeSizeMode) => {
     postMessage({ type: 'UPDATE_NODE_SIZE_MODE', payload: { nodeSizeMode: mode } });
@@ -29,7 +31,7 @@ export function NodeSizeToggle(): React.ReactElement {
 
   return (
     <div data-testid="node-size-buttons" className="flex flex-col items-center gap-1">
-      {NODE_SIZE_MODES.map(({ mode, label, icon }) => (
+      {sizeModes.map(({ mode, label, icon }) => (
         <Tooltip key={mode}>
           <TooltipTrigger asChild>
             <Button
