@@ -144,6 +144,13 @@ Direction:
 - Add scenario-focused tests for background, File Node, Folder Node, Edge, mixed selection, current Graph Revision, and historical Timeline Snapshot behavior.
 - Keep helper tests where they kill meaningful mutations.
 
+Status:
+
+- Done in this branch.
+- Added `contextMenu/scenarios.test.ts` with product scenarios for live background actions, historical Timeline Snapshot mutability, historical File Node inspection, current Graph Revision Folder Node mutation, Edge source/target effects, and mixed selection bulk safety.
+- Verified with:
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/scenarios.test.ts tests/webview/graph/contextMenu/model.test.ts tests/webview/graph/contextActions/effects.test.ts`
+
 ## Quality Gates
 
 - Run targeted tests after each slice.
