@@ -125,8 +125,20 @@ Decision: **Timeline Snapshots** show cumulative churn as of their selected comm
 
 Recommendation: tie churn invalidation to Timeline cache invalidation for this slice. Git history touch counts are derived from the same commit walk, graphability rules, filters, and plugin signature as Timeline indexing, so the existing Timeline cache version/signature boundary should own it. If a later implementation stores churn somewhere separate from Timeline snapshots, it should still include the same invalidation inputs.
 
+Decision: cached churn counts use the Timeline cache invalidation boundary for this slice.
+
+### Question 10: Does **Size by Churn** require Git history indexing first?
+
+Recommendation: yes. Do not make normal graph indexing run a Git history walk just because the user selected **Size by Churn**. If no valid Timeline/churn cache exists, the UI should make that dependency clear rather than silently showing misleading uniform/min-sized nodes.
+
+Possible UX:
+
+- Keep **Size by Churn** visible but disabled until Git history has been indexed.
+- If a saved setting points at `churn` but the cache is missing or invalid, fall back to a neutral sizing mode and surface a lightweight prompt to index Git history.
+- The **Timeline View** and **Size by Churn** should share the same "index Git history" workflow and cache.
+
 Pending user decision.
 
 ## Open Questions
 
-1. What invalidates the cached touch count?
+1. Does **Size by Churn** require Git history indexing first?
