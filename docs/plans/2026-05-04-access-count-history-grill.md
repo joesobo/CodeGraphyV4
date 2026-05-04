@@ -101,12 +101,17 @@ Code check: current graph sizing operates on rendered graph nodes. **Folder Node
 
 Recommendation: count only graphable **File Nodes** for this slice. **Size by Churn** should explain why visible file nodes are large or small, not keep hidden churn state for paths the **Relationship Graph** does not represent.
 
+Decision: count only graphable **File Nodes**. Ignore paths that are not represented as file nodes in the graph for that graph revision.
+
+### Question 6: Should history touches count commits that touched a file, raw file-change events, or both?
+
+Recommendation: count commits that touched a graphable file node. If one commit changes `a.ts`, that is one touch for `a.ts`, even if the file has many line changes. This matches the product read: "which files keep coming up across repo history?" It also matches the example where 5 commits out of 10 touching `a.ts` should make it roughly 50% of the size range.
+
 Pending user decision.
 
 ## Open Questions
 
-1. Should touch counts include only files present as graphable **File Nodes**, or any path from git history?
-2. Should history touches count commits that touched a file, raw file-change events, or both?
-3. How should renames count?
-4. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
-5. What invalidates the cached touch count?
+1. Should history touches count commits that touched a file, raw file-change events, or both?
+2. How should renames count?
+3. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
+4. What invalidates the cached touch count?
