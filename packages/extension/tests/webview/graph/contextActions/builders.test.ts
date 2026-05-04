@@ -83,4 +83,13 @@ describe('graph/contextActions/builders', () => {
       { kind: 'postMessage', message: { type: 'CREATE_FILE', payload: { directory: '.' } } },
     ]);
   });
+
+  it('maps the synthetic root folder node to the workspace root for creation effects', () => {
+    expect(getBuiltInContextActionEffects('createFile', ['(root)'])).toEqual([
+      { kind: 'postMessage', message: { type: 'CREATE_FILE', payload: { directory: '.' } } },
+    ]);
+    expect(getBuiltInContextActionEffects('createFolder', ['(root)'])).toEqual([
+      { kind: 'postMessage', message: { type: 'CREATE_FOLDER', payload: { directory: '.' } } },
+    ]);
+  });
 });
