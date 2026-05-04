@@ -122,6 +122,29 @@ describe('graph view provider bootstrap helper', () => {
     });
   });
 
+  it('migrates the old access-count node size mode to churn', () => {
+    expect(
+      restoreGraphViewProviderState({
+        configuration: {
+          get<T>(key: string, defaultValue: T): T {
+            if (key === 'size') {
+              return 'access-count' as T;
+            }
+            return defaultValue;
+          },
+        },
+        dagModeKey: 'dag',
+        nodeSizeModeKey: 'size',
+        depthModeKey: 'depth',
+        fallbackNodeSizeMode: 'connections',
+      }),
+    ).toEqual({
+      depthMode: false,
+      dagMode: null,
+      nodeSizeMode: 'churn',
+    });
+  });
+
   it('uses the default depth mode key when no custom depth key is provided', () => {
     expect(
       restoreGraphViewProviderState({
