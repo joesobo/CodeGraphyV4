@@ -38,8 +38,8 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   delete: (targetPaths: string[]) => createPathListMessageEffects('DELETE_FILES', targetPaths),
   refresh: () => createRefreshEffects(),
   fitView: () => createFitViewEffects(),
-  createFile: (targetPaths: string[]) => createCreateFileEffects(targetPaths[0] ?? '.'),
-  createFolder: (targetPaths: string[]) => createCreateFolderEffects(targetPaths[0] ?? '.'),
+  createFile: (targetPaths: string[]) => createCreateFileEffects(getMutationDirectory(targetPaths)),
+  createFolder: (targetPaths: string[]) => createCreateFolderEffects(getMutationDirectory(targetPaths)),
 } satisfies Record<BuiltInContextMenuAction, (targetPaths: string[]) => GraphContextEffect[]>;
 
 export function getBuiltInContextActionEffectsImpl(
@@ -47,4 +47,9 @@ export function getBuiltInContextActionEffectsImpl(
   targetPaths: string[]
 ): GraphContextEffect[] {
   return BUILT_IN_CONTEXT_ACTION_EFFECTS[action](targetPaths);
+}
+
+function getMutationDirectory(targetPaths: string[]): string {
+  const directory = targetPaths[0] ?? '.';
+  return directory === '(root)' ? '.' : directory;
 }

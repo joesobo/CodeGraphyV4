@@ -50,6 +50,17 @@ describe('graph view provider listener primary actions', () => {
     expect(source._getFileInfo).toHaveBeenCalledWith('src/app.ts');
   });
 
+  it('maps the synthetic root folder node to the workspace root for creation actions', async () => {
+    const source = createSource();
+    const actions = createActions(source);
+
+    await actions.createFile('(root)');
+    await actions.createFolder('(root)');
+
+    expect(source._createFile).toHaveBeenCalledWith('.');
+    expect(source._createFolder).toHaveBeenCalledWith('.');
+  });
+
   it('delegates provider state and timeline actions', async () => {
     const source = createSource();
     const actions = createActions(source);

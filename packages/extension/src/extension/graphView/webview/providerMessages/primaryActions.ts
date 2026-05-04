@@ -77,8 +77,8 @@ export function createGraphViewProviderMessagePrimaryActions(
     copyToClipboard: text => source._copyToClipboard(text),
     deleteFiles: paths => source._deleteFiles(paths),
     renameFile: filePath => source._renameFile(filePath),
-    createFile: directory => source._createFile(directory),
-    createFolder: directory => source._createFolder(directory),
+    createFile: directory => source._createFile(normalizeGraphMutationDirectory(directory)),
+    createFolder: directory => source._createFolder(normalizeGraphMutationDirectory(directory)),
     toggleFavorites: paths => source._toggleFavorites(paths),
     addToExclude: patterns => source._addToExclude(patterns),
     loadAndSendData: () => source._loadAndSendData(),
@@ -133,6 +133,10 @@ export function createGraphViewProviderMessagePrimaryActions(
     applyViewTransform: () => source._applyViewTransform(),
     smartRebuild: id => source._smartRebuild(id),
   };
+}
+
+function normalizeGraphMutationDirectory(directory: string): string {
+  return directory === '(root)' ? '.' : directory;
 }
 
 function canOpenGraphPath(
