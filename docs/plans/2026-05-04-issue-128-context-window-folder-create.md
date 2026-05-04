@@ -185,3 +185,27 @@ This slice is intentionally narrow until the product questions below are answere
    - Keep Folder Nodes structural and connected through `nests` relationships.
 
 5. Verify with targeted tests first, then broader extension checks.
+
+## Follow-Up Context Menu Candidates
+
+These are intentionally parked as product follow-ups, not part of the first folder-create slice.
+
+1. Add graph-native exploration actions for File Nodes.
+   - Candidate labels: `Show Dependencies`, `Show Dependents`, `Focus Neighborhood`.
+   - Why: these match CodeGraphy's core job better than generic file operations.
+
+2. Add reset/clear actions when there is active view context.
+   - Candidate labels: `Clear Focus`, `Clear Search`, `Return to Current Graph`.
+   - Why: the graph already has focus, search, and Timeline state, but those states are easier to enter than to escape from the context menu.
+
+3. Add richer Edge actions.
+   - Candidate labels: `Open Source`, `Open Target`, `Reveal Source`, `Reveal Target`.
+   - Why: the edge menu currently only copies endpoint paths, while edges are often used as navigation affordances.
+
+4. Add folder mutation parity only after a safe action model exists.
+   - Candidate labels: `Rename Folder...`, `Delete Folder...`.
+   - Why: users expect Folder Nodes to behave like Explorer folders, but recursive delete and undo/trash semantics need their own tests before being exposed.
+
+5. Add multi-selection group actions.
+   - Candidate labels: `Add Selection to Legend Group`, `Focus Selection`.
+   - Why: multi-select already supports filters and favorites, but not graph organization workflows.
