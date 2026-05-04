@@ -124,6 +124,14 @@ Direction:
 - Extract a deeper module for Graph Context Menu opening mechanics.
 - Keep menu decision and menu rendering separate from pointer and selection mechanics.
 
+Status:
+
+- Done in this branch.
+- Added `contextMenuOpening/runtime.ts` as the module that owns Graph Context Menu opening handlers, pointer-event translation, graph right-click adapters, runtime dependency wiring, and action-context dispatch.
+- `useGraphInteractionRuntime` now composes that module instead of keeping Graph Context Menu opening mechanics inline with tooltip and cursor effects.
+- Verified with:
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenuOpening/runtime.test.ts tests/webview/graph/runtime/use/interaction.test.tsx tests/webview/graph/contextMenuRuntime/controller.test.ts tests/webview/graph/contextMenuRuntime/effects.test.ts`
+
 ## Slice 5: Product Scenario Tests
 
 Problem:
