@@ -83,9 +83,12 @@ export interface IGraphNode {
   /** File size in bytes. Used for 'file-size' node sizing mode. */
   fileSize?: number;
 
+  /** Number of Git history touches used for 'churn' node sizing mode. */
+  churn?: number;
+
   /**
    * Number of times this file has been opened.
-   * Used for 'access-count' node sizing mode.
+   * @deprecated Use churn for graph sizing.
    */
   accessCount?: number;
 

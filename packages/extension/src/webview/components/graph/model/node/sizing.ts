@@ -2,6 +2,7 @@ import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contrac
 import type { NodeSizeMode } from '../../../../../shared/settings/modes';
 import { computeConnectionSizes } from '../sizing/calculations';
 import { computeAccessCountSizes } from '../sizing/access/count';
+import { computeChurnSizes } from '../sizing/churn/count';
 import { computeFileSizeSizes } from '../sizing/fileSize';
 import { DEFAULT_NODE_SIZE } from './display';
 
@@ -16,6 +17,7 @@ export function calculateNodeSizes(
   mode: NodeSizeMode
 ): Map<string, number> {
   if (mode === 'connections') return computeConnectionSizes(nodes, edges);
+  if (mode === 'churn') return computeChurnSizes(nodes);
   if (mode === 'access-count') return computeAccessCountSizes(nodes);
   if (mode === 'file-size') return computeFileSizeSizes(nodes);
 
