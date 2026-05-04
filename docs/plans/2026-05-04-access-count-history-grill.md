@@ -41,7 +41,7 @@ These terms already exist in `CONTEXT.md` and should stay canonical:
 
 Working terms for this plan:
 
-- **Editor visit count**: the existing current-session/local visit source stored as `codegraphy.fileVisits`.
+- **Editor visit count**: the existing current-session/local visit source stored as `codegraphy.fileVisits`; this is slated for removal in this feature.
 - **Git history touch count**: a derived count of how often a file appears as added, modified, or renamed while CodeGraphy indexes git history.
 - **Churn**: the user-facing graph-sizing concept that makes high-change files visually stand out.
 
@@ -51,6 +51,7 @@ Start with the smallest user-visible change:
 
 - Replace the existing **Size by Access Count** control with **Size by Churn**.
 - Use Git history touches as the sizing metric.
+- Remove editor visit tracking and the `Visits` file-info/tooltip surface.
 - Do not add a new UI control in the first slice.
 - Do not run new git-history commands during normal graph refresh; only reuse valid data produced by Timeline indexing.
 
@@ -62,7 +63,7 @@ Recommendation: fold them into `accessCount` for the first slice.
 
 Reasoning: A user choosing **Size by Access Count** is probably asking, "which files are active enough to deserve visual weight?" Editor visits are one signal, but Git history touches are another strong activity signal. A separate sizing mode adds UI surface before we know users need to distinguish "I opened this" from "the repo changed this."
 
-Decision: fold Git history touches into existing `accessCount`. Do not add a separate sizing mode in this slice.
+Superseded by the churn pivot. The user-facing mode is now **Size by Churn**, not **Size by Access Count**. The remaining implementation question is whether the code keeps a compatibility-shaped internal field/mode id temporarily or moves directly to churn naming.
 
 ### Question 2: If folded in, should there be a visible way to explain the source breakdown later?
 
@@ -86,13 +87,19 @@ Code check: editor visits currently update `accessCount` and show separately as 
 
 Recommendation: remove editor visits from graph sizing, but do not delete visit tracking in this slice. **Size by Churn** should be history-only. Existing editor visit tracking can stay available for file info/tooltips until a separate cleanup decides whether it still earns its keep.
 
+Decision: remove editor visits entirely. The implementation should remove editor visit tracking, the `codegraphy.fileVisits` usage, access-count update messages, and the `Visits` file-info/tooltip surface unless code exploration finds another required reason to keep a small compatibility adapter.
+
+### Question 4: Should the implementation rename the internal field/mode from access count to churn?
+
+Recommendation: yes, move to churn naming directly. If the feature is no longer about editor access, keeping `accessCount` and `access-count` as canonical names will confuse future work. If persisted settings need a transition, handle the old `access-count` value as a one-time migration to `churn`, not as an ongoing compatibility concept.
+
 Pending user decision.
 
 ## Open Questions
 
-1. Should editor visits be removed entirely from graph sizing?
-3. Should touch counts include only files present as graphable **File Nodes**, or any path from git history?
-4. Should history touches count commits that touched a file, raw file-change events, or both?
-5. How should renames count?
-6. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
-7. What invalidates the cached touch count?
+1. Should the implementation rename the internal field/mode from access count to churn?
+2. Should touch counts include only files present as graphable **File Nodes**, or any path from git history?
+3. Should history touches count commits that touched a file, raw file-change events, or both?
+4. How should renames count?
+5. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
+6. What invalidates the cached touch count?
