@@ -9,15 +9,14 @@ export function buildGraphContextMenuEntries(
   options: BuildGraphContextMenuOptions
 ): GraphContextMenuEntry[] {
   const { selection, timelineActive, favorites, pluginItems, nodes } = options;
-  const mutationAvailability = options.mutationAvailability
-    ?? (timelineActive ? 'hidden' : 'enabled');
+  const mutationAvailability = options.mutationAvailability ?? 'enabled';
   const decision = decideGraphContextMenu(selection, nodes);
   const baseEntries = decision.kind === 'background'
-    ? buildBackgroundEntries(timelineActive)
+    ? buildBackgroundEntries(mutationAvailability)
     : decision.kind === 'singleFolderNode'
       ? buildSingleFolderNodeEntries(decision.target, mutationAvailability, favorites)
-      : decision.kind === 'node'
-        ? buildNodeEntries(decision.targets, timelineActive, favorites)
+    : decision.kind === 'node'
+        ? buildNodeEntries(decision.targets, timelineActive, mutationAvailability, favorites)
         : buildEdgeEntries(decision.targets);
   return [...baseEntries, ...buildPluginEntries(selection, pluginItems)];
 }

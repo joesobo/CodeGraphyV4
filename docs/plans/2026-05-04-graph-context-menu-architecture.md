@@ -51,6 +51,17 @@ Verification:
 - Broader webview or extension tests run after the slice.
 - Push the slice and confirm PR CI passes before continuing.
 
+Status:
+
+- Done in this branch.
+- `buildGraphContextMenuEntries` now treats mutation availability as the single mutation input instead of deriving hidden actions from `timelineActive`.
+- Background, File Node, Folder Node, and multi-node mutation entries consistently stay visible when disabled by a historical Timeline Snapshot.
+- `timelineActive` still drives timeline-specific non-mutation behavior such as hiding `Reveal in Explorer`.
+- Verified with:
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/model.test.ts`
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu`
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/viewport/model.test.tsx`
+
 ## Slice 1: Context Selection Classification
 
 Problem:

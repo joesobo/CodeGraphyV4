@@ -14,8 +14,8 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
    * Kill L8:28 StringLiteral: "" — mutant replaces 'createFile' action with ''
    * Verify exact label AND action strings for the "New File..." entry.
    */
-  it('produces exact label "New File..." with action "createFile" when timeline is inactive', () => {
-    const entries = buildBackgroundEntries(false);
+  it('produces exact label "New File..." with action "createFile" when mutation is enabled', () => {
+    const entries = buildBackgroundEntries('enabled');
     const items = getItems(entries);
     const newFileItem = items.find(item => item.id === 'background-create-file');
 
@@ -30,7 +30,7 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
    * Verify exact label AND action strings for Refresh and Fit entries.
    */
   it('produces exact label "Refresh" with action "refresh"', () => {
-    const entries = buildBackgroundEntries(false);
+    const entries = buildBackgroundEntries('enabled');
     const items = getItems(entries);
     const refreshItem = items.find(item => item.id === 'background-refresh');
 
@@ -40,7 +40,7 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
   });
 
   it('produces exact label "Fit All Nodes" with action "fitView"', () => {
-    const entries = buildBackgroundEntries(false);
+    const entries = buildBackgroundEntries('enabled');
     const items = getItems(entries);
     const fitItem = items.find(item => item.id === 'background-fit');
 
@@ -49,19 +49,25 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
     expect(fitItem!.action).toEqual({ kind: 'builtin', action: 'fitView' });
   });
 
-  it('produces same labels and actions when timeline is active (minus New File)', () => {
-    const entries = buildBackgroundEntries(true);
+  it('keeps creation actions visible but disabled when mutation is disabled', () => {
+    const entries = buildBackgroundEntries('disabled');
     const items = getItems(entries);
 
-    expect(items).toHaveLength(2);
-    expect(items[0].label).toBe('Refresh');
-    expect(items[0].action).toEqual({ kind: 'builtin', action: 'refresh' });
-    expect(items[1].label).toBe('Fit All Nodes');
-    expect(items[1].action).toEqual({ kind: 'builtin', action: 'fitView' });
+    expect(items).toHaveLength(4);
+    expect(items[0].label).toBe('New File...');
+    expect(items[0].action).toEqual({ kind: 'builtin', action: 'createFile' });
+    expect(items[0].disabled).toBe(true);
+    expect(items[1].label).toBe('New Folder...');
+    expect(items[1].action).toEqual({ kind: 'builtin', action: 'createFolder' });
+    expect(items[1].disabled).toBe(true);
+    expect(items[2].label).toBe('Refresh');
+    expect(items[2].action).toEqual({ kind: 'builtin', action: 'refresh' });
+    expect(items[3].label).toBe('Fit All Nodes');
+    expect(items[3].action).toEqual({ kind: 'builtin', action: 'fitView' });
   });
 
   it('uses non-empty id strings for all entries', () => {
-    const entries = buildBackgroundEntries(false);
+    const entries = buildBackgroundEntries('enabled');
     for (const entry of entries) {
       expect(entry.id).not.toBe('');
       expect(entry.id.length).toBeGreaterThan(0);
