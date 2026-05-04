@@ -214,22 +214,4 @@ describe('graph/viewHandlers', () => {
 
     expect(() => createViewHandlers(dependencies).zoomGraphView(2)).not.toThrow();
   });
-
-  it('updates the access count for the matching node only', () => {
-    const dependencies = createInteractionDependencies();
-
-    createViewHandlers(dependencies).updateAccessCount('src/app.ts', 7);
-
-    expect(dependencies.dataRef.current.nodes[0]?.accessCount).toBe(7);
-    expect(dependencies.dataRef.current.nodes[1]?.accessCount).toBeUndefined();
-  });
-
-  it('does nothing when updating the access count for a missing node', () => {
-    const dependencies = createInteractionDependencies();
-    const originalNodes = dependencies.dataRef.current.nodes.map((node) => ({ ...node }));
-
-    createViewHandlers(dependencies).updateAccessCount('src/missing.ts', 7);
-
-    expect(dependencies.dataRef.current.nodes).toEqual(originalNodes);
-  });
 });

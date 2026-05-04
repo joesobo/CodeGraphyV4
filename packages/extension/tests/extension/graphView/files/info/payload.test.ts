@@ -15,7 +15,6 @@ describe('graphViewFileInfo', () => {
         ],
       },
       'TypeScript',
-      5
     );
 
     expect(payload).toEqual({
@@ -25,7 +24,6 @@ describe('graphViewFileInfo', () => {
       incomingCount: 1,
       outgoingCount: 2,
       plugin: 'TypeScript',
-      visits: 5,
     });
   });
 
@@ -38,7 +36,6 @@ describe('graphViewFileInfo', () => {
         edges: [{ id: 'a', from: 'src/other.ts', to: 'src/lib.ts' , kind: 'import', sources: [] }],
       },
       undefined,
-      0
     );
 
     expect(payload).toEqual({
@@ -48,7 +45,6 @@ describe('graphViewFileInfo', () => {
       incomingCount: 0,
       outgoingCount: 0,
       plugin: undefined,
-      visits: 0,
     });
   });
 });

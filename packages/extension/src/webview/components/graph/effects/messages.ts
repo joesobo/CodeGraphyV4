@@ -14,7 +14,6 @@ export interface GraphWebviewMessageEffectHandlers {
   exportJpeg(): void;
   exportJson(): void;
   exportMarkdown(): void;
-  updateAccessCount(nodeId: string, accessCount: number): void;
 }
 
 type WebviewMessageEffectHandler = (
@@ -26,7 +25,6 @@ type ZoomEffect = Extract<GraphWebviewMessageEffect, { kind: 'zoom' }>;
 type CacheFileInfoEffect = Extract<GraphWebviewMessageEffect, { kind: 'cacheFileInfo' }>;
 type UpdateTooltipInfoEffect = Extract<GraphWebviewMessageEffect, { kind: 'updateTooltipInfo' }>;
 type PostMessageEffect = Extract<GraphWebviewMessageEffect, { kind: 'postMessage' }>;
-type UpdateAccessCountEffect = Extract<GraphWebviewMessageEffect, { kind: 'updateAccessCount' }>;
 
 const WEBVIEW_MESSAGE_EFFECT_HANDLERS = {
   fitView: (_effect, handlers) => {
@@ -61,10 +59,6 @@ const WEBVIEW_MESSAGE_EFFECT_HANDLERS = {
   },
   exportMarkdown: (_effect, handlers) => {
     handlers.exportMarkdown();
-  },
-  updateAccessCount: (effect, handlers) => {
-    const accessCountEffect = effect as UpdateAccessCountEffect;
-    handlers.updateAccessCount(accessCountEffect.nodeId, accessCountEffect.accessCount);
   },
 } satisfies Record<GraphWebviewMessageEffect['kind'], WebviewMessageEffectHandler>;
 

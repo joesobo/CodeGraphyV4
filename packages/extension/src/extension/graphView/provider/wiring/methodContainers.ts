@@ -3,7 +3,7 @@ import {
 } from '../analysis/methods';
 import { createGraphViewProviderCommandMethods } from '../commands';
 import { createGraphViewProviderFileActionMethods } from '../file/actions';
-import { createGraphViewProviderFileVisitMethods } from '../file/visits';
+import { createGraphViewProviderFileInfoMethods } from '../file/info';
 import { createGraphViewProviderPhysicsSettingsMethods } from '../physicsSettings';
 import { createGraphViewProviderPluginMethods } from '../plugin/methods';
 import { createGraphViewProviderPluginResourceMethods } from '../plugin/resources';
@@ -23,7 +23,7 @@ export interface GraphViewProviderMethodContainers {
   analysis: ReturnType<typeof createGraphViewProviderAnalysisMethods>;
   command: ReturnType<typeof createGraphViewProviderCommandMethods>;
   fileAction: ReturnType<typeof createGraphViewProviderFileActionMethods>;
-  fileVisit: ReturnType<typeof createGraphViewProviderFileVisitMethods>;
+  fileInfo: ReturnType<typeof createGraphViewProviderFileInfoMethods>;
   physicsSettings: ReturnType<typeof createGraphViewProviderPhysicsSettingsMethods>;
   plugin: ReturnType<typeof createGraphViewProviderPluginMethods>;
   pluginResource: ReturnType<typeof createGraphViewProviderPluginResourceMethods>;
@@ -45,7 +45,7 @@ export function createGraphViewProviderMethodContainers(
     analysis: createGraphViewProviderAnalysisMethods(methodSource),
     command: createGraphViewProviderCommandMethods(methodSource),
     fileAction: createGraphViewProviderFileActionMethods(methodSource),
-    fileVisit: createGraphViewProviderFileVisitMethods(methodSource),
+    fileInfo: createGraphViewProviderFileInfoMethods(methodSource),
     physicsSettings: createGraphViewProviderPhysicsSettingsMethods(methodSource),
     plugin: createGraphViewProviderPluginMethods(methodSource),
     pluginResource: createGraphViewProviderPluginResourceMethods(methodSource),

@@ -11,7 +11,6 @@ import { hasVisibleWorkspaceFileEditor } from '../../../src/extension/workspaceF
 
 function makeProvider() {
   return {
-    trackFileVisit: vi.fn().mockResolvedValue(undefined),
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
@@ -77,7 +76,7 @@ describe('workspaceFiles/focus', () => {
     ).toBe(false);
   });
 
-  it('tracks a visible workspace file editor and clears pending focus resets', async () => {
+  it('sets a visible workspace file editor as focused and clears pending focus resets', async () => {
     const provider = makeProvider();
     (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
       { uri: { fsPath: '/workspace' } },
@@ -88,8 +87,6 @@ describe('workspaceFiles/focus', () => {
         uri: { scheme: 'file', fsPath: '/workspace/src/app.ts' },
       },
     } as never);
-
-    expect(provider.trackFileVisit).toHaveBeenCalledWith('src/app.ts');
     expect(provider.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
       filePath: 'src/app.ts',

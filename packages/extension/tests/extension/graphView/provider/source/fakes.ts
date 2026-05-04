@@ -30,10 +30,8 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _createFolder: vi.fn(async () => undefined),
     _toggleFavorites: vi.fn(),
   };
-  const fileVisitMethods = {
+  const fileInfoMethods = {
     _getFileInfo: vi.fn(() => ({ filePath: 'src/app.ts' })),
-    _getVisitCount: vi.fn(() => 3),
-    _incrementVisitCount: vi.fn(),
     _addToExclude: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
   };
@@ -155,7 +153,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
       analysis: analysisMethods,
       command: commandMethods,
       fileAction: fileActionMethods,
-      fileVisit: fileVisitMethods,
+      fileInfo: fileInfoMethods,
       physicsSettings: physicsSettingsMethods,
       plugin: pluginMethods,
       pluginResource: pluginResourceMethods,
@@ -170,7 +168,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _analysisMethods: analysisMethods,
     _commandMethods: commandMethods,
     _fileActionMethods: fileActionMethods,
-    _fileVisitMethods: fileVisitMethods,
+    _fileInfoMethods: fileInfoMethods,
     _pluginMethods: pluginMethods,
     _pluginResourceMethods: pluginResourceMethods,
     _physicsSettingsMethods: physicsSettingsMethods,

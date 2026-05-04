@@ -6,8 +6,8 @@ describe('graph/model/build', () => {
   it('builds nodes and links from the graph data options', () => {
     const data: IGraphData = {
       nodes: [
-        { id: 'focus.ts', label: 'focus.ts', color: '#80c0ff', depthLevel: 0, accessCount: 1 },
-        { id: 'favorite.ts', label: 'favorite.ts', color: '#80c0ff', accessCount: 5 },
+        { id: 'focus.ts', label: 'focus.ts', color: '#80c0ff', depthLevel: 0, churn: 1 },
+        { id: 'favorite.ts', label: 'favorite.ts', color: '#80c0ff', churn: 5 },
       ],
       edges: [
         { id: 'focus.ts->favorite.ts', from: 'focus.ts', to: 'favorite.ts' , kind: 'import', sources: [] },
@@ -17,7 +17,7 @@ describe('graph/model/build', () => {
 
     const graphData = buildGraphData({
       data,
-      nodeSizeMode: 'access-count',
+      nodeSizeMode: 'churn',
       theme: 'dark',
       favorites: new Set(['favorite.ts']),
       bidirectionalMode: 'combined',

@@ -17,8 +17,8 @@ export function defineGraphViewProviderMethodAccessors(
     _fileActionMethods: {
       get: () => target._methodContainers.fileAction,
     },
-    _fileVisitMethods: {
-      get: () => target._methodContainers.fileVisit,
+    _fileInfoMethods: {
+      get: () => target._methodContainers.fileInfo,
     },
     _pluginMethods: {
       get: () => target._methodContainers.plugin,

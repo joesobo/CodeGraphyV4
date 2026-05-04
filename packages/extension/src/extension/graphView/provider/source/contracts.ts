@@ -21,9 +21,9 @@ import type {
   GraphViewProviderFileActionMethodsSource,
 } from '../file/actions';
 import type {
-  GraphViewProviderFileVisitMethods,
-  GraphViewProviderFileVisitMethodsSource,
-} from '../file/visits';
+  GraphViewProviderFileInfoMethods,
+  GraphViewProviderFileInfoMethodsSource,
+} from '../file/info';
 import type {
   GraphViewProviderPhysicsSettingsMethods,
   GraphViewProviderPhysicsSettingsMethodsSource,
@@ -74,8 +74,8 @@ export type GraphViewProviderMethodSource =
   & GraphViewProviderCommandMethodsSource
   & GraphViewProviderFileActionMethods
   & GraphViewProviderFileActionMethodsSource
-  & GraphViewProviderFileVisitMethods
-  & GraphViewProviderFileVisitMethodsSource
+  & GraphViewProviderFileInfoMethods
+  & GraphViewProviderFileInfoMethodsSource
   & GraphViewProviderPluginMethods
   & GraphViewProviderPluginMethodsSource
   & GraphViewProviderPluginResourceMethods
@@ -137,7 +137,7 @@ export interface GraphViewProviderMethodSourceOwner {
   readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
   readonly _commandMethods: GraphViewProviderMethodContainers['command'];
   readonly _fileActionMethods: GraphViewProviderMethodContainers['fileAction'];
-  readonly _fileVisitMethods: GraphViewProviderMethodContainers['fileVisit'];
+  readonly _fileInfoMethods: GraphViewProviderMethodContainers['fileInfo'];
   readonly _pluginMethods: GraphViewProviderMethodContainers['plugin'];
   readonly _pluginResourceMethods: GraphViewProviderMethodContainers['pluginResource'];
   readonly _physicsSettingsMethods: GraphViewProviderMethodContainers['physicsSettings'];

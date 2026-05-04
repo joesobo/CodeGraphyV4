@@ -18,7 +18,7 @@ export function buildExportNodes(graphData: IGraphData, activeLegendRules: IGrou
       color: node.color,
       legendIds: getNodeLegendIds(node.id, activeLegendRules),
       fileSize: node.fileSize,
-      accessCount: node.accessCount,
+      churn: node.churn,
       x: node.x,
       y: node.y,
     }));

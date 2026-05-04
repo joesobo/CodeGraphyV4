@@ -96,35 +96,6 @@ describe('NodeTooltip (mutation targets)', () => {
     expect(screen.getByText('95%')).toBeInTheDocument();
   });
 
-  it('omits Visits row when visits is 0', () => {
-    render(
-      <NodeTooltip
-        path="src/App.ts"
-        incomingCount={0}
-        outgoingCount={0}
-        visits={0}
-        nodeRect={defaultNodeRect}
-        visible={true}
-      />,
-    );
-    expect(screen.queryByText('Visits')).not.toBeInTheDocument();
-  });
-
-  it('shows Visits row when visits is positive', () => {
-    render(
-      <NodeTooltip
-        path="src/App.ts"
-        incomingCount={0}
-        outgoingCount={0}
-        visits={5}
-        nodeRect={defaultNodeRect}
-        visible={true}
-      />,
-    );
-    expect(screen.getByText('Visits')).toBeInTheDocument();
-    expect(screen.getByText('5')).toBeInTheDocument();
-  });
-
   it('omits Plugin row when plugin is undefined', () => {
     render(
       <NodeTooltip

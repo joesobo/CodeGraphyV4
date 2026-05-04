@@ -20,8 +20,6 @@ describe('source/delegates/fileTimeline', () => {
     delegates._setFocusedFile('src/app.ts');
     expect(delegates._getFocusedFile!()).toBe('src/focused.ts');
     expect(delegates._getFileInfo!('src/app.ts')).toEqual({ filePath: 'src/app.ts' });
-    expect(delegates._getVisitCount!('src/app.ts')).toBe(3);
-    delegates._incrementVisitCount!('src/app.ts');
     await delegates._addToExclude(['dist/**']);
     await delegates._indexRepository();
     await delegates._jumpToCommit('abc123');
@@ -41,10 +39,8 @@ describe('source/delegates/fileTimeline', () => {
     expect(owner._fileActionMethods._createFolder).toHaveBeenCalledWith('src');
     expect(owner._fileActionMethods._toggleFavorites).toHaveBeenCalledWith(['src/app.ts']);
     expect(owner._viewSelectionMethods.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
-    expect(owner._fileVisitMethods._getFileInfo).toHaveBeenCalledWith('src/app.ts');
-    expect(owner._fileVisitMethods._getVisitCount).toHaveBeenCalledWith('src/app.ts');
-    expect(owner._fileVisitMethods._incrementVisitCount).toHaveBeenCalledWith('src/app.ts');
-    expect(owner._fileVisitMethods._addToExclude).toHaveBeenCalledWith(['dist/**']);
+    expect(owner._fileInfoMethods._getFileInfo).toHaveBeenCalledWith('src/app.ts');
+    expect(owner._fileInfoMethods._addToExclude).toHaveBeenCalledWith(['dist/**']);
     expect(owner._timelineMethods._indexRepository).toHaveBeenCalledTimes(1);
     expect(owner._timelineMethods._jumpToCommit).toHaveBeenCalledWith('abc123');
     expect(owner._timelineMethods._resetTimeline).toHaveBeenCalledTimes(1);

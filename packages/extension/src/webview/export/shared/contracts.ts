@@ -24,7 +24,7 @@ export interface ExportNodeEntry {
   color: string;
   legendIds: string[];
   fileSize?: number;
-  accessCount?: number;
+  churn?: number;
   x?: number;
   y?: number;
 }

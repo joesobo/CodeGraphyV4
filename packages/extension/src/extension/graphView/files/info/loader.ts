@@ -14,7 +14,6 @@ interface GraphViewFileInfoOptions {
   statFile(uri: vscode.Uri): PromiseLike<{ size: number; mtime: number }>;
   ensureAnalyzerReady(): PromiseLike<GraphViewFileInfoAnalyzer | undefined>;
   graphData: IGraphData;
-  getVisitCount(filePath: string): number;
 }
 
 export async function loadGraphViewFileInfo(
@@ -27,13 +26,11 @@ export async function loadGraphViewFileInfo(
   const stat = await options.statFile(fileUri);
   const analyzer = await options.ensureAnalyzerReady();
   const plugin = analyzer?.getPluginNameForFile(filePath);
-  const visits = options.getVisitCount(filePath);
 
   return buildGraphViewFileInfoPayload(
     filePath,
     stat,
     options.graphData,
     plugin,
-    visits,
   );
 }

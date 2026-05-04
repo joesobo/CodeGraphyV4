@@ -36,9 +36,6 @@ function createTarget() {
     requestExportMarkdown: vi.fn(),
     emitEvent: vi.fn(),
   };
-  const fileVisitMethods = {
-    trackFileVisit: vi.fn(async () => undefined),
-  };
   const pluginMethods = {
     registerExternalPlugin: vi.fn(),
   };
@@ -92,7 +89,6 @@ function createTarget() {
     getGraphData,
     sendPlaybackSpeed: vi.fn(),
     invalidateTimelineCache: vi.fn(async () => undefined),
-    trackFileVisit: vi.fn(async () => undefined),
     registerExternalPlugin: vi.fn(),
     queryGraph: vi.fn(),
     setDepthMode: vi.fn(async () => undefined),
@@ -105,7 +101,6 @@ function createTarget() {
     _methodContainers: {
       refresh: refreshMethods,
       command: commandMethods,
-      fileVisit: fileVisitMethods,
       plugin: pluginMethods,
       query: queryMethods,
       timeline: timelineMethods,
@@ -184,7 +179,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(target.getGraphData()).toBe(previousGraphData);
     target.sendPlaybackSpeed();
     await target.invalidateTimelineCache();
-    await target.trackFileVisit('src/feature.ts');
     target.registerExternalPlugin({ id: 'plugin.test' });
     expect(target.queryGraph(query)).toEqual({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
@@ -199,9 +193,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(getGraphData).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.timeline.sendPlaybackSpeed).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.timeline.invalidateTimelineCache).toHaveBeenCalledTimes(1);
-    expect(target._methodContainers.fileVisit.trackFileVisit).toHaveBeenCalledWith(
-      'src/feature.ts',
-    );
     expect(target._methodContainers.plugin.registerExternalPlugin).toHaveBeenCalledWith(
       { id: 'plugin.test' },
       undefined,

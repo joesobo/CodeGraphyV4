@@ -50,7 +50,6 @@ export type ExtensionToWebviewMessage =
   | { type: 'REQUEST_EXPORT_JSON' }
   | { type: 'REQUEST_EXPORT_MD' }
   | { type: 'REQUEST_OPEN_IN_EDITOR' }
-  | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
   | { type: 'DEPTH_MODE_UPDATED'; payload: { depthMode: boolean } }
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }

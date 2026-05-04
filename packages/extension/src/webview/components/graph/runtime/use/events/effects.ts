@@ -66,7 +66,6 @@ export function useGraphEventEffects({
       exportJpeg: () => exportAsJpeg(containerRef.current),
       exportJson: () => exportAsJson(dataRef.current),
       exportMarkdown: () => exportAsMarkdown(dataRef.current),
-      updateAccessCount: (nodeId, accessCount) => interactionHandlers.updateAccessCount(nodeId, accessCount),
     });
   }, [
     containerRef,

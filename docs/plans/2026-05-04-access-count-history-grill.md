@@ -2,7 +2,9 @@
 
 ## Status
 
-Discussion branch. No implementation yet.
+Implementation in progress on `codex/access-count-history-grill` with PR tracking in GitHub.
+
+Core decisions are resolved. The branch now computes Git history touch counts during Timeline indexing, writes cumulative churn onto **Timeline Snapshots**, persists the latest churn for current graphs, hides **Size by Churn** until Git history has been indexed, migrates old `access-count` settings to `churn`, and removes editor visit tracking from graph sizing/file info/tooltips.
 
 ## Task Pick
 
@@ -145,12 +147,12 @@ None. Major product decisions are resolved.
 
 ## Implementation Plan
 
-1. Replace the **Size by Access Count** mode with **Size by Churn**.
-2. Rename canonical internal types/fields from access count to churn, including node sizing mode ids and graph node metric fields. Migrate old persisted `access-count` settings once to `churn`.
-3. Remove editor visit tracking, `codegraphy.fileVisits`, access-count update messages, and the `Visits` file-info/tooltip surface.
-4. During Timeline indexing, compute Git history touch counts for graphable **File Nodes** only.
-5. Count one touch per graphable file per commit.
-6. Carry churn forward across Git-reported renames, count the rename commit once for the new path, and treat delete plus add as separate histories when Git does not report a rename.
-7. Store cumulative churn on each **Timeline Snapshot** as of that commit, and store the latest churn for the current/default **Graph Revision**.
-8. Invalidate churn with the Timeline cache boundary.
-9. Hide **Size by Churn** until valid Git history indexing exists.
+1. [x] Replace the **Size by Access Count** mode with **Size by Churn**.
+2. [x] Rename canonical internal types/fields from access count to churn, including node sizing mode ids and graph node metric fields. Migrate old persisted `access-count` settings once to `churn`.
+3. [x] Remove editor visit tracking, `codegraphy.fileVisits`, access-count update messages, and the `Visits` file-info/tooltip surface.
+4. [x] During Timeline indexing, compute Git history touch counts for graphable **File Nodes** only.
+5. [x] Count one touch per graphable file per commit.
+6. [x] Carry churn forward across Git-reported renames, count the rename commit once for the new path, and treat delete plus add as separate histories when Git does not report a rename.
+7. [x] Store cumulative churn on each **Timeline Snapshot** as of that commit, and store the latest churn for the current/default **Graph Revision**.
+8. [x] Invalidate churn with the Timeline cache boundary.
+9. [x] Hide **Size by Churn** until valid Git history indexing exists.

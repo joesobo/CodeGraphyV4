@@ -6,7 +6,7 @@ export interface GraphViewProviderInternals {
   _analysisMethods: GraphViewProviderMethodContainers['analysis'];
   _commandMethods: GraphViewProviderMethodContainers['command'];
   _fileActionMethods: GraphViewProviderMethodContainers['fileAction'];
-  _fileVisitMethods: GraphViewProviderMethodContainers['fileVisit'];
+  _fileInfoMethods: GraphViewProviderMethodContainers['fileInfo'];
   _physicsSettingsMethods: GraphViewProviderMethodContainers['physicsSettings'];
   _pluginMethods: GraphViewProviderMethodContainers['plugin'];
   _pluginResourceMethods: GraphViewProviderMethodContainers['pluginResource'];
@@ -32,7 +32,7 @@ export function getGraphViewProviderInternals(
     _analysisMethods: runtime._methodContainers.analysis,
     _commandMethods: runtime._methodContainers.command,
     _fileActionMethods: runtime._methodContainers.fileAction,
-    _fileVisitMethods: runtime._methodContainers.fileVisit,
+    _fileInfoMethods: runtime._methodContainers.fileInfo,
     _physicsSettingsMethods: runtime._methodContainers.physicsSettings,
     _pluginMethods: runtime._methodContainers.plugin,
     _pluginResourceMethods: runtime._methodContainers.pluginResource,

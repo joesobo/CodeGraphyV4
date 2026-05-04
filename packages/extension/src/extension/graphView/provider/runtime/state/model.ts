@@ -87,7 +87,7 @@ export class GraphViewProviderRuntime {
   declare protected readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
   declare protected readonly _commandMethods: GraphViewProviderMethodContainers['command'];
   declare protected readonly _fileActionMethods: GraphViewProviderMethodContainers['fileAction'];
-  declare protected readonly _fileVisitMethods: GraphViewProviderMethodContainers['fileVisit'];
+  declare protected readonly _fileInfoMethods: GraphViewProviderMethodContainers['fileInfo'];
   declare protected readonly _pluginMethods: GraphViewProviderMethodContainers['plugin'];
   declare protected readonly _pluginResourceMethods: GraphViewProviderMethodContainers['pluginResource'];
   declare protected readonly _physicsSettingsMethods: GraphViewProviderMethodContainers['physicsSettings'];

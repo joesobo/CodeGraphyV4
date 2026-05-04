@@ -26,7 +26,6 @@ describe('nodeTooltipContent', () => {
         incomingCount={2}
         size={1536}
         lastModified={Date.parse('2026-01-08T11:55:00Z')}
-        visits={4}
         plugin="typescript"
       />,
     );
@@ -37,8 +36,6 @@ describe('nodeTooltipContent', () => {
     expect(screen.getByText('1.5 KB')).toBeInTheDocument();
     expect(screen.getByText('Modified')).toBeInTheDocument();
     expect(screen.getByText('5m ago')).toBeInTheDocument();
-    expect(screen.getByText('Visits')).toBeInTheDocument();
-    expect(screen.getByText('4')).toBeInTheDocument();
     expect(screen.getByText('Plugin')).toBeInTheDocument();
     expect(screen.getByText('typescript')).toBeInTheDocument();
   });
@@ -54,7 +51,6 @@ describe('nodeTooltipContent', () => {
     expect(screen.getByText('Connections')).toBeInTheDocument();
     expect(screen.queryByText('Size')).not.toBeInTheDocument();
     expect(screen.queryByText('Modified')).not.toBeInTheDocument();
-    expect(screen.queryByText('Visits')).not.toBeInTheDocument();
     expect(screen.queryByText('Plugin')).not.toBeInTheDocument();
   });
 

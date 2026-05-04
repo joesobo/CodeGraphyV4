@@ -87,12 +87,6 @@ export interface IGraphNode {
   churn?: number;
 
   /**
-   * Number of times this file has been opened.
-   * @deprecated Use churn for graph sizing.
-   */
-  accessCount?: number;
-
-  /**
    * Distance from the focused node when depth mode is active.
    * 0 = the focused node, 1 = direct neighbors, 2 = two hops away, etc.
    */

@@ -5,19 +5,16 @@ const mocks = vi.hoisted(() => {
   let workspaceFolders: { uri: { fsPath: string } }[] | undefined = undefined;
   const configuration = { get: vi.fn((_: string, fallback: unknown) => fallback) };
   const undoExecute = vi.fn(async () => undefined);
-  const getVisitCount = vi.fn(() => 7);
-  const incrementVisitCount = vi.fn(async (_filePath, handlers) => {
-    handlers.sendMessage({ type: 'VISIT_COUNT_UPDATED' });
-  });
-  const trackFileVisit = vi.fn(async (_filePath, handlers) => {
-    await handlers.incrementVisitCount('src/index.ts');
-  });
   const addExcludeWithUndo = vi.fn(async (patterns, handlers) => {
     await handlers.analyzeAndSendData();
     const action = handlers.createAction(patterns, handlers.analyzeAndSendData);
     await handlers.executeAction(action);
   });
-  const addToExcludeAction = vi.fn(function MockAddToExcludeAction(this: Record<string, unknown>, patterns, analyzeAndSendData) {
+  const addToExcludeAction = vi.fn(function MockAddToExcludeAction(
+    this: Record<string, unknown>,
+    patterns,
+    analyzeAndSendData,
+  ) {
     this.patterns = patterns;
     this.analyzeAndSendData = analyzeAndSendData;
   });
@@ -35,9 +32,6 @@ const mocks = vi.hoisted(() => {
     sendFileInfoMessage: vi.fn(),
     sendFavorites: vi.fn(),
     undoExecute,
-    getVisitCount,
-    incrementVisitCount,
-    trackFileVisit,
     addExcludeWithUndo,
     addToExcludeAction,
   };
@@ -63,12 +57,6 @@ vi.mock('../../../../../src/extension/graphView/favorites', () => ({
   sendGraphViewFavorites: mocks.sendFavorites,
 }));
 
-vi.mock('../../../../../src/extension/graphView/files/visits/tracking', () => ({
-  getGraphViewVisitCount: mocks.getVisitCount,
-  incrementGraphViewVisitCount: mocks.incrementVisitCount,
-  trackGraphViewFileVisit: mocks.trackFileVisit,
-}));
-
 vi.mock('../../../../../src/extension/graphView/excludePatterns', () => ({
   addGraphViewExcludePatternsWithUndo: mocks.addExcludeWithUndo,
 }));
@@ -83,9 +71,19 @@ vi.mock('../../../../../src/extension/actions/addToExclude', () => ({
   AddToExcludeAction: mocks.addToExcludeAction,
 }));
 
-import { createGraphViewProviderFileVisitMethods } from '../../../../../src/extension/graphView/provider/file/visits';
+import { createGraphViewProviderFileInfoMethods } from '../../../../../src/extension/graphView/provider/file/info';
 
-describe('graphView/provider/file/visits default dependencies', () => {
+function createSource() {
+  return {
+    _analyzer: undefined,
+    _analyzerInitialized: false,
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _sendMessage: vi.fn(),
+    _analyzeAndSendData: vi.fn(async () => undefined),
+  };
+}
+
+describe('graphView/provider/file/info default dependencies', () => {
   beforeEach(() => {
     mocks.workspaceFolders = undefined;
     mocks.configuration.get.mockClear();
@@ -94,27 +92,12 @@ describe('graphView/provider/file/visits default dependencies', () => {
     mocks.sendFileInfoMessage.mockReset();
     mocks.sendFavorites.mockReset();
     mocks.undoExecute.mockClear();
-    mocks.getVisitCount.mockClear();
-    mocks.incrementVisitCount.mockClear();
-    mocks.trackFileVisit.mockClear();
     mocks.addExcludeWithUndo.mockClear();
     mocks.addToExcludeAction.mockClear();
   });
 
   it('passes the current workspace folder and default logError through file info requests', async () => {
-    const source = {
-      _context: {
-        workspaceState: {
-          get: vi.fn(),
-          update: vi.fn(() => Promise.resolve()),
-        },
-      },
-      _analyzer: undefined,
-      _analyzerInitialized: false,
-      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _sendMessage: vi.fn(),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-    };
+    const source = createSource();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const workspaceFolder = {
       uri: { fsPath: '/workspace' },
@@ -129,7 +112,7 @@ describe('graphView/provider/file/visits default dependencies', () => {
       handlers.logError('file info failed', 'boom');
     });
 
-    const methods = createGraphViewProviderFileVisitMethods(source as never);
+    const methods = createGraphViewProviderFileInfoMethods(source as never);
 
     await methods._getFileInfo('src/index.ts');
 
@@ -140,88 +123,22 @@ describe('graphView/provider/file/visits default dependencies', () => {
   });
 
   it('passes an undefined workspace folder when no workspace is open', async () => {
-    const source = {
-      _context: {
-        workspaceState: {
-          get: vi.fn(),
-          update: vi.fn(() => Promise.resolve()),
-        },
-      },
-      _analyzer: undefined,
-      _analyzerInitialized: false,
-      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _sendMessage: vi.fn(),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-    };
+    const source = createSource();
 
     mocks.sendFileInfoMessage.mockImplementation(async (_filePath, _state, handlers) => {
       expect(handlers.workspaceFolder).toBeUndefined();
     });
 
-    const methods = createGraphViewProviderFileVisitMethods(source as never);
+    const methods = createGraphViewProviderFileInfoMethods(source as never);
 
     await methods._getFileInfo('src/index.ts');
 
     expect(mocks.sendFileInfoMessage).toHaveBeenCalledOnce();
   });
 
-  it('uses the default visit tracking dependencies when no overrides are installed', async () => {
-    const source = {
-      _context: {
-        workspaceState: {
-          get: vi.fn(),
-          update: vi.fn(() => Promise.resolve()),
-        },
-      },
-      _analyzer: undefined,
-      _analyzerInitialized: false,
-      _graphData: {
-        nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
-        edges: [],
-      } satisfies IGraphData,
-      _sendMessage: vi.fn(),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-    };
-    const methods = createGraphViewProviderFileVisitMethods(source as never);
-
-    expect(methods._getVisitCount('src/index.ts')).toBe(7);
-
-    await methods._incrementVisitCount('src/index.ts');
-    await methods.trackFileVisit('src/index.ts');
-
-    expect(mocks.getVisitCount).toHaveBeenCalledWith(source._context.workspaceState, 'src/index.ts');
-    expect(mocks.incrementVisitCount).toHaveBeenCalledWith(
-      'src/index.ts',
-      expect.objectContaining({
-        workspaceState: source._context.workspaceState,
-        sendMessage: expect.any(Function),
-      }),
-    );
-    expect(mocks.trackFileVisit).toHaveBeenCalledWith(
-      'src/index.ts',
-      expect.objectContaining({
-        graphData: source._graphData,
-        incrementVisitCount: expect.any(Function),
-      }),
-    );
-    expect(source._sendMessage).toHaveBeenCalledWith({ type: 'VISIT_COUNT_UPDATED' });
-  });
-
   it('uses the default exclude action and undo manager when adding exclude patterns', async () => {
-    const source = {
-      _context: {
-        workspaceState: {
-          get: vi.fn(),
-          update: vi.fn(() => Promise.resolve()),
-        },
-      },
-      _analyzer: undefined,
-      _analyzerInitialized: false,
-      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _sendMessage: vi.fn(),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-    };
-    const methods = createGraphViewProviderFileVisitMethods(source as never);
+    const source = createSource();
+    const methods = createGraphViewProviderFileInfoMethods(source as never);
 
     await methods._addToExclude(['dist/**']);
 
@@ -237,25 +154,13 @@ describe('graphView/provider/file/visits default dependencies', () => {
   });
 
   it('uses the default favorites configuration when sending favorites', () => {
-    const source = {
-      _context: {
-        workspaceState: {
-          get: vi.fn(),
-          update: vi.fn(() => Promise.resolve()),
-        },
-      },
-      _analyzer: undefined,
-      _analyzerInitialized: false,
-      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _sendMessage: vi.fn(),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-    };
+    const source = createSource();
     mocks.sendFavorites.mockImplementation((_configuration, sendMessage) => {
       expect(_configuration).toBe(mocks.configuration);
       sendMessage({ type: 'FAVORITES_UPDATED' });
     });
 
-    const methods = createGraphViewProviderFileVisitMethods(source as never);
+    const methods = createGraphViewProviderFileInfoMethods(source as never);
 
     methods._sendFavorites();
 

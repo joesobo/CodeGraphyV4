@@ -32,8 +32,6 @@ interface NodeTooltipProps {
   outgoingCount: number;
   /** Plugin that handles this file */
   plugin?: string;
-  /** Number of times this file has been visited/opened */
-  visits?: number;
   /** Node bounding circle in screen coordinates */
   nodeRect: { x: number; y: number; radius: number };
   /** Whether tooltip is visible */
@@ -53,7 +51,6 @@ export function NodeTooltip({
   incomingCount,
   outgoingCount,
   plugin,
-  visits,
   nodeRect,
   visible,
   extraActions = [],
@@ -115,7 +112,6 @@ export function NodeTooltip({
         incomingCount={incomingCount}
         size={size}
         lastModified={lastModified}
-        visits={visits}
         plugin={plugin}
       />
 
