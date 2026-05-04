@@ -12,6 +12,10 @@ import {
   createGraphContextMenuRuntime,
   type GraphContextMenuRuntimeDependencies,
 } from '../../contextMenuRuntime/controller';
+import {
+  resolveGraphContextActionContext,
+  type GraphContextActionContext,
+} from '../../contextActions/context';
 import { createGraphInteractionHandlers } from '../../interactionRuntime/handlers';
 import type { GraphCursorStyle } from '../../support/dom';
 import { applyCursorToGraphSurface } from '../../support/dom';
@@ -141,7 +145,7 @@ function buildContextMenuRuntimeDependencies({
 
 function buildContextMenuRuntimeHandlers(
   contextMenuRuntime: GraphContextMenuRuntime,
-  targetPaths: string[],
+  actionContext: GraphContextActionContext,
 ): Pick<
   UseGraphInteractionRuntimeResult,
   | 'handleContextMenu'
@@ -155,7 +159,7 @@ function buildContextMenuRuntimeHandlers(
       contextMenuRuntime.handleContextMenu();
     },
     handleMenuAction: action => {
-      contextMenuRuntime.handleMenuAction(action, targetPaths);
+      contextMenuRuntime.handleMenuAction(action, actionContext);
     },
     handleMouseDownCapture: event => {
       contextMenuRuntime.handleMouseDownCapture({
@@ -316,9 +320,14 @@ export function useGraphInteractionRuntime({
     ],
   );
 
+  const actionContext = useMemo(
+    () => resolveGraphContextActionContext(graphContextSelection),
+    [graphContextSelection],
+  );
+
   const contextMenuHandlers = useMemo(
-    () => buildContextMenuRuntimeHandlers(contextMenuRuntime, graphContextSelection.targets),
-    [contextMenuRuntime, graphContextSelection.targets],
+    () => buildContextMenuRuntimeHandlers(contextMenuRuntime, actionContext),
+    [actionContext, contextMenuRuntime],
   );
 
   const interactionRuntimeHandlers = useMemo(

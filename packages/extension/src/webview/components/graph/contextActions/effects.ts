@@ -1,5 +1,6 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { BuiltInContextMenuAction, GraphContextMenuAction } from '../contextMenu/contracts';
+import type { GraphContextActionContext } from './context';
 import { getBuiltInContextActionEffectsImpl } from './builtin/effects';
 import { createPluginContextActionEffects } from './pluginEffects';
 
@@ -13,17 +14,17 @@ export type GraphContextEffect =
 
 export function getBuiltInContextActionEffects(
   action: BuiltInContextMenuAction,
-  targetPaths: string[]
+  context: GraphContextActionContext
 ): GraphContextEffect[] {
-  return getBuiltInContextActionEffectsImpl(action, targetPaths);
+  return getBuiltInContextActionEffectsImpl(action, context);
 }
 
 export function getGraphContextActionEffects(
   action: GraphContextMenuAction,
-  targetPaths: string[]
+  context: GraphContextActionContext
 ): GraphContextEffect[] {
   if (action.kind === 'builtin') {
-    return getBuiltInContextActionEffects(action.action, targetPaths);
+    return getBuiltInContextActionEffects(action.action, context);
   }
 
   return createPluginContextActionEffects(action);

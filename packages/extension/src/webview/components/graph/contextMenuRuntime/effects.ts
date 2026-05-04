@@ -2,6 +2,7 @@ import {
   getGraphContextActionEffects,
   type GraphContextEffect,
 } from '../contextActions/effects';
+import type { GraphContextActionContext } from '../contextActions/context';
 import type { GraphContextMenuAction } from '../contextMenu/contracts';
 import { applyContextEffects as runContextEffects } from '../effects/contextMenu';
 import type { GraphContextMenuRuntimeDependencies } from './controller';
@@ -18,7 +19,7 @@ type GraphContextMenuEffectDependencies = Pick<
 
 export interface GraphContextMenuEffectRuntime {
   applyContextEffects(effects: GraphContextEffect[]): void;
-  handleMenuAction(action: GraphContextMenuAction, targetPaths: string[]): void;
+  handleMenuAction(action: GraphContextMenuAction, context: GraphContextActionContext): void;
 }
 
 export function createContextMenuEffectRuntime(
@@ -37,9 +38,9 @@ export function createContextMenuEffectRuntime(
 
   const handleMenuAction = (
     action: GraphContextMenuAction,
-    targetPaths: string[],
+    context: GraphContextActionContext,
   ): void => {
-    applyContextEffects(getGraphContextActionEffects(action, targetPaths));
+    applyContextEffects(getGraphContextActionEffects(action, context));
   };
 
   return {

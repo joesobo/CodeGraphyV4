@@ -99,6 +99,16 @@ Direction:
 - Route built-in actions through resolved context facts derived from the Graph Context Menu decision.
 - Keep extension-side defensive checks, but make the webview action effect seam less string-position dependent.
 
+Status:
+
+- Done in this branch.
+- Added a resolved `GraphContextActionContext` for menu actions.
+- Built-in action effects now consume named context facts such as `primaryTargetId`, `edgeSourceId`, `edgeTargetId`, and `mutationDirectory`.
+- The interaction runtime resolves the current `Context Selection` into action context before dispatching a Graph Context Menu action.
+- Verified with:
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextActions/effects.test.ts tests/webview/graph/contextActions/builders.test.ts tests/webview/graph/contextMenuRuntime/effects.test.ts tests/webview/graph/contextMenuRuntime/controller.test.ts tests/webview/graph/runtime/use/interaction.test.tsx`
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextActions tests/webview/graph/contextMenuRuntime tests/webview/graph/contextMenu tests/webview/graph/runtime/use/interaction.test.tsx`
+
 ## Slice 4: Opening Mechanics
 
 Problem:
