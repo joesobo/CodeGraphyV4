@@ -14,6 +14,20 @@ I picked this ahead of collapsible folder nodes because it strengthens an existi
 
 Make **Size by Access Count** highlight files that are repeatedly active in repo history, even before the user opens those files in the current VS Code session.
 
+## Product Pivot Under Discussion
+
+After Question 1, the direction shifted: editor visits may not be the right primary signal. The more valuable graph read may be "which files have high churn across repo history?"
+
+Under this framing, the sizing mode would stop mixing editor visits with history. Instead, it would use Git history touches only:
+
+- A file touched in more commits should render larger.
+- A file touched in fewer commits should render smaller.
+- The scale should use the repo's observed min and max history-touch counts so node size expresses relative churn.
+- Example: if the indexed history has 10 commits and `a.ts` appears in 5 changed commits, `a.ts` should land around the middle of the size range.
+- A file touched in only 1 commit should land at the minimum size.
+
+This suggests the user-facing concept may need a new name. **Access Count** implies "I opened this file." The proposed behavior is closer to **Churn** or **History Touches**.
+
 ## Glossary Alignment
 
 These terms already exist in `CONTEXT.md` and should stay canonical:
@@ -57,13 +71,22 @@ Recommendation: keep the first slice quiet in the graph controls, but preserve t
 
 Reasoning: the node sizing mode should stay simple. However, if users notice a file is large even though they have not opened it, CodeGraphy should eventually be able to say something like "Access Count: 12, from 2 editor visits and 10 Git history touches." That means the implementation should not throw away the source breakdown too early, even though the graph node still exposes one combined `accessCount`.
 
+Superseded by the product pivot above. If editor visits are removed from this sizing mode, there is no editor/history source breakdown to preserve for the first slice.
+
+### Question 2: Is the user-facing metric still **Access Count**, or should this become **Churn** / **History Touches**?
+
+Recommendation: rename the sizing mode away from **Access Count**. Use **Size by Churn** if we want the product language to describe the user's interpretation, or **Size by History Touches** if we want the product language to describe the exact measurement.
+
+My preference: **Size by Churn** for the UI, with **Git history touch count** as the implementation/domain term in the plan. Users care that high-churn files stand out; "history touches" is precise but a little mechanical.
+
 Pending user decision.
 
 ## Open Questions
 
-1. Should there be a visible way to explain the source breakdown later?
+1. Is the user-facing metric still **Access Count**, or should this become **Churn** / **History Touches**?
+2. Should editor visits be removed entirely from this sizing mode?
 3. Should touch counts include only files present as graphable **File Nodes**, or any path from git history?
-4. How should renames count?
-5. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
-6. What invalidates the cached touch count?
-7. Does this need a new user-facing setting or can the existing sizing mode carry it?
+4. Should history touches count commits that touched a file, raw file-change events, or both?
+5. How should renames count?
+6. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
+7. What invalidates the cached touch count?
