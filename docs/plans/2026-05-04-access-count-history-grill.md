@@ -93,13 +93,20 @@ Decision: remove editor visits entirely. The implementation should remove editor
 
 Recommendation: yes, move to churn naming directly. If the feature is no longer about editor access, keeping `accessCount` and `access-count` as canonical names will confuse future work. If persisted settings need a transition, handle the old `access-count` value as a one-time migration to `churn`, not as an ongoing compatibility concept.
 
+Decision: rename the internal field/mode from access count to churn. Replace `accessCount` / `access-count` as canonical names. Old persisted settings may migrate once to `churn`, but ongoing code should use churn language.
+
+### Question 5: Should touch counts include only graphable **File Nodes**, or any path from git history?
+
+Code check: current graph sizing operates on rendered graph nodes. **Folder Nodes** and **Package** nodes have different semantics from **File Nodes**, and git history can include paths CodeGraphy deliberately does not graph because of filters, unsupported file types, generated files, or disabled graph scope.
+
+Recommendation: count only graphable **File Nodes** for this slice. **Size by Churn** should explain why visible file nodes are large or small, not keep hidden churn state for paths the **Relationship Graph** does not represent.
+
 Pending user decision.
 
 ## Open Questions
 
-1. Should the implementation rename the internal field/mode from access count to churn?
-2. Should touch counts include only files present as graphable **File Nodes**, or any path from git history?
-3. Should history touches count commits that touched a file, raw file-change events, or both?
-4. How should renames count?
-5. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
-6. What invalidates the cached touch count?
+1. Should touch counts include only files present as graphable **File Nodes**, or any path from git history?
+2. Should history touches count commits that touched a file, raw file-change events, or both?
+3. How should renames count?
+4. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
+5. What invalidates the cached touch count?
