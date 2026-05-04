@@ -14,7 +14,7 @@ function getItems(entries: GraphContextMenuEntry[]): ItemEntry[] {
 describe('buildDestructiveBlock (mutation kill tests)', () => {
   /**
    * Kill L16:17 StringLiteral: "" — mutant replaces 'addToFilter' with ''
-   * Verify exact action string for the Add to Filter entry.
+   * Verify exact action string for the Add Filter Pattern... entry.
    */
   it('produces action "addToFilter" for single-target filter entry', () => {
     const entries = buildFilterBlock(['a.ts']);
@@ -22,7 +22,7 @@ describe('buildDestructiveBlock (mutation kill tests)', () => {
     const filterItem = items.find(item => item.id === 'node-add-filter');
 
     expect(filterItem).toBeDefined();
-    expect(filterItem!.label).toBe('Add to Filter');
+    expect(filterItem!.label).toBe('Add Filter Pattern...');
     expect(filterItem!.action).toEqual({ kind: 'builtin', action: 'addToFilter' });
   });
 
@@ -32,7 +32,7 @@ describe('buildDestructiveBlock (mutation kill tests)', () => {
     const filterItem = items.find(item => item.id === 'node-add-filter');
 
     expect(filterItem).toBeDefined();
-    expect(filterItem!.label).toBe('Add All to Filter');
+    expect(filterItem!.label).toBe('Add Filter Patterns...');
     expect(filterItem!.action).toEqual({ kind: 'builtin', action: 'addToFilter' });
   });
 

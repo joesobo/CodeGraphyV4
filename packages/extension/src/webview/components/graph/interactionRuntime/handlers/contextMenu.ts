@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom';
 import {
   makeBackgroundContextSelection,
   makeEdgeContextSelection,
@@ -12,6 +13,11 @@ export interface ContextMenuHandlers {
   openBackgroundContextMenu(this: void, event: MouseEvent): void;
   openEdgeContextMenu(this: void, link: FGLink, event: MouseEvent): void;
   openNodeContextMenu(this: void, nodeId: string, event: MouseEvent): void;
+}
+
+export interface ContextMenuSelectionHandlers {
+  setHighlight(this: void, nodeId: string | null): void;
+  setSelection(this: void, nodeIds: string[]): void;
 }
 
 export interface ContextMenuPointerState {
@@ -61,7 +67,7 @@ function openContextMenuFromGraphCallback(
 
 export function createContextMenuHandlers(
   dependencies: GraphInteractionHandlersDependencies,
-  setSelection: (nodeIds: string[]) => void,
+  selectionHandlers: ContextMenuSelectionHandlers,
 ): ContextMenuHandlers {
   const openNodeContextMenu = (nodeId: string, event: MouseEvent): void => {
     const selection = getNodeContextMenuSelection(
@@ -69,13 +75,16 @@ export function createContextMenuHandlers(
       dependencies.selectedNodesSetRef.current,
     );
 
-    if (selection.shouldUpdateSelection) {
-      setSelection(selection.nodeIds);
-    }
+    flushSync(() => {
+      selectionHandlers.setHighlight(nodeId);
+      if (selection.shouldUpdateSelection) {
+        selectionHandlers.setSelection(selection.nodeIds);
+      }
 
-    dependencies.setContextSelection(
-      makeNodeContextSelection(nodeId, new Set(selection.nodeIds)),
-    );
+      dependencies.setContextSelection(
+        makeNodeContextSelection(nodeId, new Set(selection.nodeIds)),
+      );
+    });
     dependencies.lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(dependencies, event);
   };
@@ -96,15 +105,19 @@ export function createContextMenuHandlers(
       dependencies.dataRef.current.edges,
     );
 
-    dependencies.setContextSelection(
-      makeEdgeContextSelection(edgeId, sourceId, targetId),
-    );
+    flushSync(() => {
+      dependencies.setContextSelection(
+        makeEdgeContextSelection(edgeId, sourceId, targetId),
+      );
+    });
     dependencies.lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(dependencies, event);
   };
 
   const openBackgroundContextMenu = (event: MouseEvent): void => {
-    dependencies.setContextSelection(makeBackgroundContextSelection());
+    flushSync(() => {
+      dependencies.setContextSelection(makeBackgroundContextSelection());
+    });
     dependencies.lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(dependencies, event);
   };

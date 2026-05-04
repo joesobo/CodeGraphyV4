@@ -80,7 +80,7 @@ export function createGraphInteractionHandlers(
   const selectionHandlers = createSelectionHandlers(dependencies);
   const contextMenuHandlers = createContextMenuHandlers(
     dependencies,
-    selectionHandlers.setSelection,
+    selectionHandlers,
   );
   const viewHandlers = createViewHandlers(dependencies);
   const effectHandlers = createEffectHandlers(dependencies, {

@@ -18,6 +18,18 @@ function itemActions(entries: GraphContextMenuEntry[]): string[] {
 }
 
 describe('buildEdgeEntries', () => {
+  it('includes Open Source and Open Target when both endpoints are present', () => {
+    const entries = buildEdgeEntries(['a.ts', 'b.ts']);
+
+    expect(itemLabels(entries)).toEqual([
+      'Open Source',
+      'Open Target',
+      'Copy Source Path',
+      'Copy Target Path',
+      'Copy Both Paths',
+    ]);
+  });
+
   it('includes Copy Source Path when sourceId is present', () => {
     const entries = buildEdgeEntries(['a.ts', 'b.ts']);
     expect(itemLabels(entries)).toContain('Copy Source Path');
@@ -55,6 +67,12 @@ describe('buildEdgeEntries', () => {
 
   it('uses correct built-in action ids', () => {
     const entries = buildEdgeEntries(['a.ts', 'b.ts']);
-    expect(itemActions(entries)).toEqual(['copyEdgeSource', 'copyEdgeTarget', 'copyEdgeBoth']);
+    expect(itemActions(entries)).toEqual([
+      'openEdgeSource',
+      'openEdgeTarget',
+      'copyEdgeSource',
+      'copyEdgeTarget',
+      'copyEdgeBoth',
+    ]);
   });
 });

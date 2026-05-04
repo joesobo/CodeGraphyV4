@@ -5,6 +5,8 @@ export type GraphContextMutationAvailability = 'enabled' | 'disabled' | 'hidden'
 
 export type BuiltInContextMenuAction =
   | 'open'
+  | 'openEdgeSource'
+  | 'openEdgeTarget'
   | 'reveal'
   | 'copyRelative'
   | 'copyAbsolute'

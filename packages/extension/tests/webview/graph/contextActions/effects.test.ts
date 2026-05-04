@@ -51,6 +51,15 @@ describe('graph/contextActions/effects', () => {
     expect(getBuiltInContextActionEffects('copyEdgeSource', [])).toEqual([]);
   });
 
+  it('opens edge source and target endpoints independently', () => {
+    expect(getBuiltInContextActionEffects('openEdgeSource', ['from.ts', 'to.ts'])).toEqual([
+      { kind: 'openFile', path: 'from.ts' },
+    ]);
+    expect(getBuiltInContextActionEffects('openEdgeTarget', ['from.ts', 'to.ts'])).toEqual([
+      { kind: 'openFile', path: 'to.ts' },
+    ]);
+  });
+
   it('copies edge target only when a second path exists', () => {
     expect(getBuiltInContextActionEffects('copyEdgeTarget', ['from.ts'])).toEqual([]);
     expect(getBuiltInContextActionEffects('copyEdgeTarget', ['from.ts', 'to.ts'])).toEqual([

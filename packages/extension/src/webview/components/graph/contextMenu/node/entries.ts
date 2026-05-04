@@ -5,7 +5,11 @@ import {
   buildCopyBlock,
 } from './openCopyBlocks';
 import { buildFavoriteBlock } from './destructive/favoritesBlocks';
-import { buildDestructiveBlock, buildFilterBlock } from './destructive/block';
+import {
+  buildDestructiveBlock,
+  buildFilterBlock,
+  buildFolderDestructiveBlock,
+} from './destructive/block';
 
 export function buildNodeEntries(
   targets: readonly string[],
@@ -49,6 +53,10 @@ export function buildSingleFolderNodeEntries(
     ...buildFavoriteBlock(targets, favorites),
     ...buildFilterBlock(targets),
   );
+
+  if (target !== '(root)' && mutationAvailability !== 'hidden') {
+    entries.push(...buildFolderDestructiveBlock(mutationAvailability === 'disabled'));
+  }
 
   return entries;
 }

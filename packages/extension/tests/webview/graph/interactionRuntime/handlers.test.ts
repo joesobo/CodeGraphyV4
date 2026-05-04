@@ -337,7 +337,7 @@ describe('graph/interactionRuntime/handlers', () => {
     expect(createSelectionHandlers).toHaveBeenCalledWith(dependencies);
     expect(createContextMenuHandlers).toHaveBeenCalledWith(
       dependencies,
-      selectionHandlers.setSelection,
+      selectionHandlers,
     );
     expect(createViewHandlers).toHaveBeenCalledWith(dependencies);
     expect(createEffectHandlers).toHaveBeenCalledWith(dependencies, {

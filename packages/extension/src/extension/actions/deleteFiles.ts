@@ -25,6 +25,8 @@ export class DeleteFilesAction implements IUndoableAction {
 
   /** Stored file contents for restoration */
   private _storedFiles: StoredFile[] = [];
+  /** Stored folder paths for restoration */
+  private _storedDirectories: string[] = [];
   /** Full favorites state BEFORE this action was executed */
   private _favoritesBefore: string[] = [];
   /** Full favorites state AFTER this action was executed */
@@ -50,22 +52,30 @@ export class DeleteFilesAction implements IUndoableAction {
   async execute(): Promise<void> {
     // Store file contents before deletion
     this._storedFiles = [];
+    this._storedDirectories = [];
 
     // Store favorites state before deletion
     const config = getCodeGraphyConfiguration();
     this._favoritesBefore = [...config.get<string[]>('favorites', [])];
     
     // Calculate new favorites (remove deleted files)
-    const deletedPaths = new Set(this._paths);
-    this._favoritesAfter = this._favoritesBefore.filter(fav => !deletedPaths.has(fav));
+    this._favoritesAfter = this._favoritesBefore.filter(fav =>
+      !this._paths.some(deletedPath => isPathWithinDeletedPath(fav, deletedPath))
+    );
 
     for (const filePath of this._paths) {
       const fileUri = vscode.Uri.joinPath(this._workspaceFolder, filePath);
       try {
-        const content = await vscode.workspace.fs.readFile(fileUri);
-        this._storedFiles.push({ path: filePath, content });
-        // Delete to trash for extra safety
-        await vscode.workspace.fs.delete(fileUri, { useTrash: true });
+        const stat = await vscode.workspace.fs.stat(fileUri);
+        if (isDirectoryStat(stat)) {
+          await this._storeDirectory(filePath, fileUri);
+          await vscode.workspace.fs.delete(fileUri, { recursive: true, useTrash: true });
+        } else {
+          const content = await vscode.workspace.fs.readFile(fileUri);
+          this._storedFiles.push({ path: filePath, content });
+          // Delete to trash for extra safety
+          await vscode.workspace.fs.delete(fileUri, { useTrash: true });
+        }
       } catch (error) {
         console.error(`[CodeGraphy] Failed to delete ${filePath}:`, error);
         // Continue with other files
@@ -79,6 +89,17 @@ export class DeleteFilesAction implements IUndoableAction {
   }
 
   async undo(): Promise<void> {
+    // Restore directories first so nested files have parents.
+    for (const directoryPath of [...this._storedDirectories].sort(comparePathDepth)) {
+      const directoryUri = vscode.Uri.joinPath(this._workspaceFolder, directoryPath);
+      try {
+        await vscode.workspace.fs.createDirectory(directoryUri);
+      } catch (error) {
+        console.error(`[CodeGraphy] Failed to restore ${directoryPath}:`, error);
+        vscode.window.showErrorMessage(`Failed to restore ${directoryPath}`);
+      }
+    }
+
     // Restore all stored files
     for (const storedFile of this._storedFiles) {
       const fileUri = vscode.Uri.joinPath(this._workspaceFolder, storedFile.path);
@@ -96,4 +117,34 @@ export class DeleteFilesAction implements IUndoableAction {
 
     await this._refreshGraph();
   }
+
+  private async _storeDirectory(directoryPath: string, directoryUri: vscode.Uri): Promise<void> {
+    this._storedDirectories.push(directoryPath);
+
+    const entries = await vscode.workspace.fs.readDirectory(directoryUri);
+    for (const [entryName, entryType] of entries) {
+      const entryPath = `${directoryPath}/${entryName}`;
+      const entryUri = vscode.Uri.joinPath(directoryUri, entryName);
+
+      if ((entryType & vscode.FileType.Directory) !== 0) {
+        await this._storeDirectory(entryPath, entryUri);
+        continue;
+      }
+
+      const content = await vscode.workspace.fs.readFile(entryUri);
+      this._storedFiles.push({ path: entryPath, content });
+    }
+  }
+}
+
+function isDirectoryStat(stat: vscode.FileStat): boolean {
+  return (stat.type & vscode.FileType.Directory) !== 0;
+}
+
+function isPathWithinDeletedPath(path: string, deletedPath: string): boolean {
+  return path === deletedPath || path.startsWith(`${deletedPath}/`);
+}
+
+function comparePathDepth(left: string, right: string): number {
+  return left.split('/').length - right.split('/').length;
 }

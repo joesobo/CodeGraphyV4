@@ -53,7 +53,7 @@ export class RenameFileAction implements IUndoableAction {
       
       // Calculate new favorites state (update path if file was favorited)
       this._favoritesAfter = currentFavorites.map(fav =>
-        fav === this._oldPath ? this._newPath : fav
+        renameFavoritePath(fav, this._oldPath, this._newPath)
       );
       this._hasExecuted = true;
     }
@@ -62,7 +62,9 @@ export class RenameFileAction implements IUndoableAction {
     await vscode.workspace.fs.rename(oldUri, newUri);
 
     // Only update favorites if the file was in favorites (state actually changed)
-    const favoritesChanged = this._favoritesBefore.includes(this._oldPath);
+    const favoritesChanged = this._favoritesBefore.some(fav =>
+      isPathWithinRenamedPath(fav, this._oldPath)
+    );
     if (favoritesChanged) {
       await config.update('favorites', this._favoritesAfter);
     }
@@ -78,7 +80,9 @@ export class RenameFileAction implements IUndoableAction {
     await vscode.workspace.fs.rename(newUri, oldUri);
 
     // Only restore favorites if the file was originally in favorites
-    const favoritesChanged = this._favoritesBefore.includes(this._oldPath);
+    const favoritesChanged = this._favoritesBefore.some(fav =>
+      isPathWithinRenamedPath(fav, this._oldPath)
+    );
     if (favoritesChanged) {
       const config = getCodeGraphyConfiguration();
       await config.update('favorites', this._favoritesBefore);
@@ -86,4 +90,20 @@ export class RenameFileAction implements IUndoableAction {
 
     await this._refreshGraph();
   }
+}
+
+function renameFavoritePath(favoritePath: string, oldPath: string, newPath: string): string {
+  if (favoritePath === oldPath) {
+    return newPath;
+  }
+
+  if (favoritePath.startsWith(`${oldPath}/`)) {
+    return `${newPath}${favoritePath.slice(oldPath.length)}`;
+  }
+
+  return favoritePath;
+}
+
+function isPathWithinRenamedPath(path: string, oldPath: string): boolean {
+  return path === oldPath || path.startsWith(`${oldPath}/`);
 }

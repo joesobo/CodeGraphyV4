@@ -6,6 +6,12 @@ export function buildEdgeEntries(targets: readonly string[]): GraphContextMenuEn
   const entries: GraphContextMenuEntry[] = [];
 
   if (sourceId) {
+    entries.push(builtInItem('edge-open-source', 'Open Source', 'openEdgeSource'));
+  }
+  if (targetId) {
+    entries.push(builtInItem('edge-open-target', 'Open Target', 'openEdgeTarget'));
+  }
+  if (sourceId) {
     entries.push(builtInItem('edge-copy-source', 'Copy Source Path', 'copyEdgeSource'));
   }
   if (targetId) {

@@ -25,6 +25,11 @@ Trello: https://trello.com/c/GOvvj15w/128-create-new-folder-when-folder-nodes-ac
 - Mutation actions such as `New File...` and `New Folder...` should stay enabled for the default Graph Revision, including current `HEAD` plus working tree state.
 - Mutation actions should be disabled, not hidden, when the Graph Context Menu is opened from a historical Timeline Snapshot.
 - Undo for `New Folder...` should move the created folder to trash only while the folder is still empty.
+- Folder Node menus should include Explorer parity actions: `Reveal in Explorer`, path copy actions, `Rename Folder...`, and `Delete Folder`.
+- The synthetic `(root)` Folder Node should remain protected from folder rename/delete actions.
+- Edge menus should include direct endpoint navigation actions: `Open Source` and `Open Target`.
+- `Add Filter Pattern...` / `Add Filter Patterns...` and `Add Legend Group...` should be separate menu blocks because filters and legend groups are different graph organization concepts.
+- Node right-click should synchronously update the Context Selection and highlighted node before opening the Graph Context Menu so the menu matches the node under the pointer.
 
 ## Current Behavior
 
@@ -188,7 +193,7 @@ This slice is intentionally narrow until the product questions below are answere
 
 ## Follow-Up Context Menu Candidates
 
-These are intentionally parked as product follow-ups, not part of the first folder-create slice.
+These are intentionally parked as product follow-ups, or completed additions that came out of the context-menu pass.
 
 1. Add graph-native exploration actions for File Nodes.
    - Candidate labels: `Show Dependencies`, `Show Dependents`, `Focus Neighborhood`.
@@ -200,10 +205,12 @@ These are intentionally parked as product follow-ups, not part of the first fold
 
 3. Add richer Edge actions.
    - Candidate labels: `Open Source`, `Open Target`, `Reveal Source`, `Reveal Target`.
-   - Why: the edge menu currently only copies endpoint paths, while edges are often used as navigation affordances.
+   - Status: `Open Source` and `Open Target` are included in this slice. `Reveal Source` and `Reveal Target` remain candidates.
+   - Why: edges are often used as navigation affordances, not only copy targets.
 
 4. Add folder mutation parity only after a safe action model exists.
    - Candidate labels: `Rename Folder...`, `Delete Folder...`.
+   - Status: included in this slice with recursive trash/delete support, undo backup coverage, nested favorite path updates, and `(root)` protection.
    - Why: users expect Folder Nodes to behave like Explorer folders, but recursive delete and undo/trash semantics need their own tests before being exposed.
 
 5. Add multi-selection group actions.

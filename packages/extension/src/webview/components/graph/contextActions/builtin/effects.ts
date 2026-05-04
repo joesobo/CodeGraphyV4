@@ -19,6 +19,10 @@ import {
 
 const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   open: (targetPaths: string[]) => createOpenFileEffects(targetPaths),
+  openEdgeSource: (targetPaths: string[]) =>
+    createOpenFileEffects(targetPaths[0] ? [targetPaths[0]] : []),
+  openEdgeTarget: (targetPaths: string[]) =>
+    createOpenFileEffects(targetPaths[1] ? [targetPaths[1]] : []),
   reveal: (targetPaths: string[]) =>
     createOptionalSinglePathMessageEffects(targetPaths[0], 'REVEAL_IN_EXPLORER'),
   copyRelative: (targetPaths: string[]) => createClipboardEffects(targetPaths.join('\n')),

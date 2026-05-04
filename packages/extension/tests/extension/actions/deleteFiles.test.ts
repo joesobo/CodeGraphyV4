@@ -5,8 +5,11 @@ import { DeleteFilesAction } from '../../../src/extension/actions/deleteFiles';
 vi.mock('vscode', () => ({
   workspace: {
     fs: {
+      stat: vi.fn(),
+      readDirectory: vi.fn(),
       readFile: vi.fn(),
       writeFile: vi.fn().mockResolvedValue(undefined),
+      createDirectory: vi.fn().mockResolvedValue(undefined),
       delete: vi.fn().mockResolvedValue(undefined),
     },
     getConfiguration: vi.fn(),
@@ -19,6 +22,10 @@ vi.mock('vscode', () => ({
       fsPath: `${base.fsPath}/${pathSegments.join('/')}`,
       toString: () => `file://${base.fsPath}/${pathSegments.join('/')}`,
     })),
+  },
+  FileType: {
+    File: 1,
+    Directory: 2,
   },
   ConfigurationTarget: {
     Global: 1,
@@ -41,8 +48,13 @@ describe('DeleteFilesAction', () => {
     vi.mocked(vscode.workspace.fs.readFile).mockResolvedValue(
       new Uint8Array([72, 101, 108, 108, 111])
     );
+    vi.mocked(vscode.workspace.fs.stat).mockResolvedValue({
+      type: vscode.FileType.File,
+    } as vscode.FileStat);
+    vi.mocked(vscode.workspace.fs.readDirectory).mockResolvedValue([]);
     vi.mocked(vscode.workspace.fs.delete).mockResolvedValue(undefined);
     vi.mocked(vscode.workspace.fs.writeFile).mockResolvedValue(undefined);
+    vi.mocked(vscode.workspace.fs.createDirectory).mockResolvedValue(undefined);
 
     mockConfigUpdate = vi.fn().mockResolvedValue(undefined);
     vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
@@ -162,6 +174,52 @@ describe('DeleteFilesAction', () => {
       await action.execute();
 
       expect(mockRefreshGraph).toHaveBeenCalledOnce();
+    });
+
+    it('deletes folders recursively after backing up nested files', async () => {
+      vi.mocked(vscode.workspace.fs.stat).mockResolvedValue({
+        type: vscode.FileType.Directory,
+      } as vscode.FileStat);
+      vi.mocked(vscode.workspace.fs.readDirectory).mockImplementation(async (uri: vscode.Uri) => {
+        if (uri.fsPath === '/workspace/src') {
+          return [
+            ['app.ts', vscode.FileType.File],
+            ['nested', vscode.FileType.Directory],
+          ];
+        }
+        if (uri.fsPath === '/workspace/src/nested') {
+          return [['leaf.ts', vscode.FileType.File]];
+        }
+        return [];
+      });
+      vi.mocked(vscode.workspace.fs.readFile).mockImplementation(async (uri: vscode.Uri) =>
+        uri.fsPath.endsWith('leaf.ts')
+          ? new Uint8Array([2])
+          : new Uint8Array([1])
+      );
+      const action = new DeleteFilesAction(['src'], mockWorkspaceFolder, mockRefreshGraph);
+
+      await action.execute();
+      await action.undo();
+
+      expect(vscode.workspace.fs.delete).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: '/workspace/src' }),
+        { recursive: true, useTrash: true },
+      );
+      expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: '/workspace/src' }),
+      );
+      expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: '/workspace/src/nested' }),
+      );
+      expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: '/workspace/src/app.ts' }),
+        new Uint8Array([1]),
+      );
+      expect(vscode.workspace.fs.writeFile).toHaveBeenCalledWith(
+        expect.objectContaining({ fsPath: '/workspace/src/nested/leaf.ts' }),
+        new Uint8Array([2]),
+      );
     });
   });
 
