@@ -5,14 +5,8 @@ import {
 } from '../../../../src/extension/pipeline/graph/build';
 import * as workspaceGraphDataModule from '../../../../src/extension/pipeline/graph/data';
 
-function createWorkspaceState(value: Record<string, number>) {
-  return {
-    get: <T>(_key: string) => value as T,
-  };
-}
-
 describe('pipeline/graph', () => {
-  it('reads visit counts from workspace state before building graph data', () => {
+  it('passes churn counts through before building graph data', () => {
     vi.spyOn(workspaceGraphDataModule, 'buildWorkspaceGraphData').mockReturnValue({
       nodes: [],
       edges: [],
@@ -21,12 +15,12 @@ describe('pipeline/graph', () => {
     expect(
       buildWorkspacePipelineGraph({
         cacheFiles: {},
+        churnCounts: { 'src/index.ts': 3 },
         disabledPlugins: new Set<string>(['plugin.python']),
         fileConnections: new Map([['src/index.ts', []]]),
         getPluginForFile: vi.fn(),
         showOrphans: true,
         workspaceRoot: '/workspace',
-        workspaceState: createWorkspaceState({ 'src/index.ts': 3 }),
       }),
     ).toEqual({ nodes: [], edges: [] });
 
@@ -37,7 +31,7 @@ describe('pipeline/graph', () => {
       fileConnections: new Map([['src/index.ts', []]]),
       getPluginForFile: expect.any(Function),
       showOrphans: true,
-      visitCounts: { 'src/index.ts': 3 },
+      churnCounts: { 'src/index.ts': 3 },
       workspaceRoot: '/workspace',
     });
   });
@@ -51,9 +45,6 @@ describe('pipeline/graph', () => {
       buildWorkspacePipelineGraphForSource(
         {
           _cache: { files: { 'src/index.ts': { size: 5 } } },
-          _context: {
-            workspaceState: createWorkspaceState({ 'src/index.ts': 1 }),
-          },
           _lastDiscoveredDirectories: ['src/new-folder'],
           _registry: { getPluginForFile: vi.fn() },
         } as never,
@@ -61,6 +52,7 @@ describe('pipeline/graph', () => {
         '/workspace',
         true,
         new Set(),
+        { 'src/index.ts': 1 },
       ),
     ).toEqual({ nodes: [], edges: [] });
 
@@ -71,7 +63,7 @@ describe('pipeline/graph', () => {
       fileConnections: new Map([['src/index.ts', []]]),
       getPluginForFile: expect.any(Function),
       showOrphans: true,
-      visitCounts: { 'src/index.ts': 1 },
+      churnCounts: { 'src/index.ts': 1 },
       workspaceRoot: '/workspace',
     });
   });

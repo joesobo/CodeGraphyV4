@@ -29,6 +29,7 @@ import { execGitCommand } from './exec';
 import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from './files';
 import { analyzeFullCommitGraph } from './fullCommitAnalysis';
 import { indexGitHistory } from './indexer';
+import { createGitHistoryPluginSignature } from './pluginSignature';
 
 /**
  * Service that analyzes git history and builds per-commit graph data
@@ -134,6 +135,7 @@ export class GitHistoryAnalyzer {
             this._context.workspaceState,
             commits,
             this._getPluginSignature(),
+            churnCounts,
           ),
         writeCachedGraphData: (sha, graphData) =>
           writeCachedGraphData(this._context.storageUri, sha, graphData),
@@ -259,10 +261,6 @@ export class GitHistoryAnalyzer {
   }
 
   private _getPluginSignature(): string {
-    return this._registry
-      .list()
-      .map(({ plugin }) => `${plugin.id}@${plugin.version}`)
-      .sort((left, right) => left.localeCompare(right))
-      .join('|');
+    return createGitHistoryPluginSignature(this._registry);
   }
 }
