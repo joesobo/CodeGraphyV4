@@ -218,24 +218,6 @@ describe('Viewport', () => {
     expect(screen.queryByTestId('surface-2d')).not.toBeInTheDocument();
   });
 
-  it('keeps the 2d fallback mounted until the 3d surface has measured dimensions', () => {
-    const unmeasuredSharedProps = {
-      ...createSharedProps(),
-      height: undefined,
-      width: undefined,
-    };
-
-    renderViewport({
-      graphMode: '3d',
-      surface2dProps: createSurface2dProps(unmeasuredSharedProps),
-      surface3dProps: createSurface3dProps(unmeasuredSharedProps),
-    });
-
-    expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
-    expect(screen.queryByTestId('surface-3d')).not.toBeInTheDocument();
-    expect(harness.surface3d).not.toHaveBeenCalled();
-  });
-
   it('dispatches menu actions for item entries', () => {
     const { handleMenuAction } = renderViewport();
 

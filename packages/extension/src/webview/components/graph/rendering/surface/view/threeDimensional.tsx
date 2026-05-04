@@ -10,6 +10,7 @@ import { DEFAULT_NODE_SIZE, type FGLink, type FGNode } from '../../../model/buil
 import type { GraphSurfaceSharedProps } from '../sharedProps';
 
 type ForceGraph3DRef = MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
+type Surface3dMeasurementKey = 'measured' | 'unmeasured';
 
 export interface Surface3dProps {
   backgroundColor: string;
@@ -28,6 +29,14 @@ export interface Surface3dProps {
 
 export interface DeferredSurface3dProps extends Surface3dProps {
   fallback: ReactElement;
+}
+
+export function getSurface3dMeasurementKey(
+  sharedProps: Pick<GraphSurfaceSharedProps, 'height' | 'width'>,
+): Surface3dMeasurementKey {
+  return sharedProps.width === undefined || sharedProps.height === undefined
+    ? 'unmeasured'
+    : 'measured';
 }
 
 export function useDeferredSurface3dMount(enabled: boolean): boolean {
@@ -75,6 +84,7 @@ export function Surface3d({
 }: Surface3dProps): ReactElement {
   return (
     <ForceGraph3D
+      key={getSurface3dMeasurementKey(sharedProps)}
       ref={fg3dRef as unknown as ForceGraph3DRef}
       {...sharedProps}
       backgroundColor={backgroundColor}
