@@ -113,10 +113,15 @@ Decision: count one touch per graphable file per commit. A file changed in five 
 
 Recommendation: follow Git rename status and carry the previous path's touch count forward to the new path, then count the rename commit as one touch for the new path. If Git does not report a rename, treat delete plus add as separate file histories.
 
+Decision: follow Git rename status. Carry the old path's touch count to the new path, count the rename commit once for the new path, and treat delete plus add as separate histories when Git does not report a rename.
+
+### Question 8: Should **Timeline Snapshots** show cumulative churn as of that commit, or the final cached churn value?
+
+Recommendation: **Timeline Snapshots** should show cumulative churn as of that commit. If a user scrubs through history, node size should tell the truth for the selected **Graph Revision** rather than leaking future churn into the past.
+
 Pending user decision.
 
 ## Open Questions
 
-1. How should renames count?
-2. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
-3. What invalidates the cached touch count?
+1. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
+2. What invalidates the cached touch count?
