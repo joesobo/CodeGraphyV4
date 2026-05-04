@@ -181,12 +181,12 @@ describe('registerFileWatcher', () => {
     vi.clearAllMocks();
   });
 
-  it('adds three subscriptions (create, delete, watcher itself)', () => {
+  it('adds watcher and workspace file-operation subscriptions', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-    expect(context.subscriptions.length).toBe(3);
+    expect(context.subscriptions.length).toBe(6);
   });
 });

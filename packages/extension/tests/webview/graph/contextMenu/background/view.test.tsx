@@ -242,6 +242,29 @@ describe('Graph context menu (background)', () => {
     expect(createMsg!.payload.directory).toBe('.');
   });
 
+  it('sends CREATE_FOLDER message when clicking New Folder...', async () => {
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
+      fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('New Folder...')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('New Folder...'));
+    });
+
+    const createMsg = findMessage('CREATE_FOLDER');
+    expect(createMsg).toBeTruthy();
+    expect(createMsg!.payload.directory).toBe('.');
+  });
+
   it('fits view in 2d when clicking Fit All Nodes', async () => {
     const methods = ForceGraph2D.getMockMethods();
     methods.zoomToFit.mockClear();

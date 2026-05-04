@@ -419,13 +419,13 @@ describe('registerFileWatcher', () => {
     vi.useRealTimers();
   });
 
-  it('adds three subscriptions (create, delete, watcher)', () => {
+  it('adds file watcher and workspace file-operation subscriptions', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
-    expect(context.subscriptions.length).toBe(3);
+    expect(context.subscriptions.length).toBe(6);
   });
 
   it('refreshes graph and emits event on file creation', () => {
@@ -482,6 +482,29 @@ describe('registerFileWatcher', () => {
     expect(provider.refresh).toHaveBeenCalledOnce();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileDeleted', {
       filePath: '/workspace/deleted-file.ts',
+    });
+  });
+
+  it('refreshes graph and emits events when a folder is deleted through the workspace explorer', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const mock = vscode.workspace.onDidDeleteFiles as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const listener = mock.mock.calls[0]?.[0] as (event: {
+      files: Array<{ fsPath: string }>;
+    }) => void;
+
+    listener({ files: [{ fsPath: '/workspace/test' }] });
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileDeleted', {
+      filePath: '/workspace/test',
     });
   });
 

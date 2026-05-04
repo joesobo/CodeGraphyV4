@@ -171,7 +171,7 @@ describe('workspaceFiles/refresh', () => {
     registerSaveHandler(context as never, provider as never);
     registerFileWatcher(context as never, provider as never);
 
-    expect(context.subscriptions).toHaveLength(4);
+    expect(context.subscriptions).toHaveLength(7);
     expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith('**/*');
   });
 });
