@@ -2,4 +2,4 @@
 "@codegraphy/extension": patch
 ---
 
-Keep the graph in its 2D fallback until the 3D viewport has measured dimensions, preventing blank WebGL recovery after temporary zero-size layouts.
+Remount the 3D graph surface when viewport dimensions recover, preventing blank WebGL after temporary zero-size layouts.
