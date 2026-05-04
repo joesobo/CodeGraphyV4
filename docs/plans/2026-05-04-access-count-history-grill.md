@@ -119,9 +119,14 @@ Decision: follow Git rename status. Carry the old path's touch count to the new 
 
 Recommendation: **Timeline Snapshots** should show cumulative churn as of that commit. If a user scrubs through history, node size should tell the truth for the selected **Graph Revision** rather than leaking future churn into the past.
 
+Decision: **Timeline Snapshots** show cumulative churn as of their selected commit. The current/default graph uses the latest cached churn for the current **Graph Revision**.
+
+### Question 9: What invalidates cached churn counts?
+
+Recommendation: tie churn invalidation to Timeline cache invalidation for this slice. Git history touch counts are derived from the same commit walk, graphability rules, filters, and plugin signature as Timeline indexing, so the existing Timeline cache version/signature boundary should own it. If a later implementation stores churn somewhere separate from Timeline snapshots, it should still include the same invalidation inputs.
+
 Pending user decision.
 
 ## Open Questions
 
-1. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
-2. What invalidates the cached touch count?
+1. What invalidates the cached touch count?
