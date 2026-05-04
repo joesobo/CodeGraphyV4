@@ -13,15 +13,17 @@ function separatorCount(entries: GraphContextMenuEntry[]): number {
 }
 
 describe('buildBackgroundEntries', () => {
-  it('includes New File and separator when timeline is not active', () => {
+  it('includes New File, New Folder, and separator when timeline is not active', () => {
     const entries = buildBackgroundEntries(false);
     expect(itemLabels(entries)).toContain('New File...');
+    expect(itemLabels(entries)).toContain('New Folder...');
     expect(separatorCount(entries)).toBe(1);
   });
 
-  it('omits New File and separator when timeline is active', () => {
+  it('omits New File, New Folder, and separator when timeline is active', () => {
     const entries = buildBackgroundEntries(true);
     expect(itemLabels(entries)).not.toContain('New File...');
+    expect(itemLabels(entries)).not.toContain('New Folder...');
     expect(separatorCount(entries)).toBe(0);
   });
 
@@ -35,9 +37,9 @@ describe('buildBackgroundEntries', () => {
     expect(itemLabels(buildBackgroundEntries(true))).toContain('Fit All Nodes');
   });
 
-  it('returns 4 entries when timeline is not active', () => {
+  it('returns 5 entries when timeline is not active', () => {
     const entries = buildBackgroundEntries(false);
-    expect(entries).toHaveLength(4);
+    expect(entries).toHaveLength(5);
   });
 
   it('returns 2 entries when timeline is active', () => {

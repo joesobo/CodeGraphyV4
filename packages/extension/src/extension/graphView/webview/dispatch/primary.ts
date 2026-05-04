@@ -14,6 +14,7 @@ import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 export interface GraphViewPrimaryMessageContext {
   getTimelineActive(): boolean;
   getCurrentCommitSha(): string | undefined;
+  getCanMutateGraphRevision(): boolean;
   getUserGroups(): IGroup[];
   getDisabledPlugins(): Set<string>;
   getFilterPatterns(): string[];
@@ -37,6 +38,7 @@ export interface GraphViewPrimaryMessageContext {
   deleteFiles(paths: string[]): Promise<void>;
   renameFile(filePath: string): Promise<void>;
   createFile(directory: string): Promise<void>;
+  createFolder(directory: string): Promise<void>;
   toggleFavorites(paths: string[]): Promise<void>;
   addToExclude(patterns: string[]): Promise<void>;
   indexAndSendData(): Promise<void>;

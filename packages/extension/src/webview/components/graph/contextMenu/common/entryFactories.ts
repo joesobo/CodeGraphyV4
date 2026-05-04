@@ -5,6 +5,7 @@ import type {
 
 interface BuiltInItemOptions {
   destructive?: boolean;
+  disabled?: boolean;
   shortcut?: string;
 }
 
@@ -24,6 +25,7 @@ export function builtInItem(
     label,
     action: { kind: 'builtin', action },
     destructive: options?.destructive,
+    disabled: options?.disabled,
     shortcut: options?.shortcut,
   };
 }

@@ -2,9 +2,11 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 
 export interface GraphViewNodeFileEditHandlers {
   timelineActive: boolean;
+  canMutateGraphRevision: boolean;
   deleteFiles(paths: string[]): Promise<void>;
   renameFile(filePath: string): Promise<void>;
   createFile(directory: string): Promise<void>;
+  createFolder(directory: string): Promise<void>;
   toggleFavorites(paths: string[]): Promise<void>;
   addToExclude(patterns: string[]): Promise<void>;
 }
@@ -14,6 +16,7 @@ function isTimelineBoundEditMessage(message: WebviewToExtensionMessage): boolean
     message.type === 'DELETE_FILES'
     || message.type === 'RENAME_FILE'
     || message.type === 'CREATE_FILE'
+    || message.type === 'CREATE_FOLDER'
     || message.type === 'ADD_TO_EXCLUDE'
   );
 }
@@ -22,7 +25,7 @@ function applyTimelineBoundEditMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewNodeFileEditHandlers,
 ): boolean {
-  if (handlers.timelineActive) {
+  if (!handlers.canMutateGraphRevision) {
     return isTimelineBoundEditMessage(message);
   }
 
@@ -35,6 +38,9 @@ function applyTimelineBoundEditMessage(
       return true;
     case 'CREATE_FILE':
       void handlers.createFile(message.payload.directory);
+      return true;
+    case 'CREATE_FOLDER':
+      void handlers.createFolder(message.payload.directory);
       return true;
     case 'ADD_TO_EXCLUDE':
       void handlers.addToExclude(message.payload.patterns);

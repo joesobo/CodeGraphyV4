@@ -29,6 +29,7 @@ describe('graph view provider listener primary actions', () => {
     await actions.deleteFiles(['src/app.ts']);
     await actions.renameFile('src/app.ts');
     await actions.createFile('src');
+    await actions.createFolder('src');
     await actions.toggleFavorites(['src/app.ts']);
     await actions.addToExclude(['dist/**']);
     await actions.getFileInfo('src/app.ts');
@@ -43,9 +44,21 @@ describe('graph view provider listener primary actions', () => {
     expect(source._deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
     expect(source._renameFile).toHaveBeenCalledWith('src/app.ts');
     expect(source._createFile).toHaveBeenCalledWith('src');
+    expect(source._createFolder).toHaveBeenCalledWith('src');
     expect(source._toggleFavorites).toHaveBeenCalledWith(['src/app.ts']);
     expect(source._addToExclude).toHaveBeenCalledWith(['dist/**']);
     expect(source._getFileInfo).toHaveBeenCalledWith('src/app.ts');
+  });
+
+  it('maps the synthetic root folder node to the workspace root for creation actions', async () => {
+    const source = createSource();
+    const actions = createActions(source);
+
+    await actions.createFile('(root)');
+    await actions.createFolder('(root)');
+
+    expect(source._createFile).toHaveBeenCalledWith('.');
+    expect(source._createFolder).toHaveBeenCalledWith('.');
   });
 
   it('delegates provider state and timeline actions', async () => {
@@ -307,6 +320,7 @@ function createSource(overrides: Record<string, unknown> = {}) {
     _deleteFiles: vi.fn(() => Promise.resolve()),
     _renameFile: vi.fn(() => Promise.resolve()),
     _createFile: vi.fn(() => Promise.resolve()),
+    _createFolder: vi.fn(() => Promise.resolve()),
     _toggleFavorites: vi.fn(() => Promise.resolve()),
     _addToExclude: vi.fn(() => Promise.resolve()),
     _loadAndSendData: vi.fn(() => Promise.resolve()),

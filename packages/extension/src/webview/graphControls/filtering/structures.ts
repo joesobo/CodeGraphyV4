@@ -1,5 +1,5 @@
 import {
-  collectFolderPaths,
+  collectStructuralFolderPaths,
   createFolderNodes,
 } from '../../../shared/graphControls/nests/folders';
 import { buildContainmentEdges } from '../../../shared/graphControls/nests/edges';
@@ -17,16 +17,23 @@ import {
 
 function buildFolderStructuralNodes(
   fileNodes: IGraphNode[],
+  sourceFolderNodes: IGraphNode[],
   nodeVisibility: Record<string, boolean>,
   nodeColors: Record<string, string>,
 ): { folderNodes: IGraphNode[]; folderPaths: Set<string> } {
   const folderEnabled = nodeVisibility.folder ?? false;
-  const folderPaths = folderEnabled ? collectFolderPaths(fileNodes).paths : new Set<string>();
+  const folderPaths = folderEnabled
+    ? collectStructuralFolderPaths(fileNodes, sourceFolderNodes).paths
+    : new Set<string>();
+  const sourceFolderNodeIds = new Set(sourceFolderNodes.map((node) => node.id));
+  const generatedFolderPaths = new Set(
+    Array.from(folderPaths).filter((folderPath) => !sourceFolderNodeIds.has(folderPath)),
+  );
 
   return {
     folderPaths,
     folderNodes: folderEnabled
-      ? createFolderNodes(folderPaths, nodeColors.folder ?? DEFAULT_FOLDER_NODE_COLOR)
+      ? createFolderNodes(generatedFolderPaths, nodeColors.folder ?? DEFAULT_FOLDER_NODE_COLOR)
       : [],
   };
 }
@@ -56,13 +63,14 @@ export function buildStructuralGraphNodes(
   fileNodes: IGraphNode[],
   nodeVisibility: Record<string, boolean>,
   nodeColors: Record<string, string>,
+  sourceFolderNodes: IGraphNode[] = [],
 ): {
   folderPaths: Set<string>;
   folderNodes: IGraphNode[];
   packageNodes: IGraphNode[];
   workspacePackageRoots: Set<string>;
 } {
-  const { folderNodes, folderPaths } = buildFolderStructuralNodes(fileNodes, nodeVisibility, nodeColors);
+  const { folderNodes, folderPaths } = buildFolderStructuralNodes(fileNodes, sourceFolderNodes, nodeVisibility, nodeColors);
   const { packageNodes, workspacePackageRoots } = buildPackageStructuralNodes(fileNodes, nodeVisibility, nodeColors);
 
   return {

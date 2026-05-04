@@ -71,8 +71,10 @@ describe('Graph context menu (edge)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+      expect(screen.getByText('Open Source')).toBeInTheDocument();
     });
+    expect(screen.getByText('Open Target')).toBeInTheDocument();
+    expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
   });
@@ -89,8 +91,10 @@ describe('Graph context menu (edge)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+      expect(screen.getByText('Open Source')).toBeInTheDocument();
     });
+    expect(screen.getByText('Open Target')).toBeInTheDocument();
+    expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
   });
@@ -105,8 +109,10 @@ describe('Graph context menu (edge)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+        expect(screen.getByText('Open Source')).toBeInTheDocument();
       });
+      expect(screen.getByText('Open Target')).toBeInTheDocument();
+      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
       expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
       expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
     } finally {
@@ -128,8 +134,10 @@ describe('Graph context menu (edge)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+        expect(screen.getByText('Open Source')).toBeInTheDocument();
       });
+      expect(screen.getByText('Open Target')).toBeInTheDocument();
+      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
       expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
       expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
     } finally {
@@ -147,8 +155,10 @@ describe('Graph context menu (edge)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+      expect(screen.getByText('Open Source')).toBeInTheDocument();
     });
+    expect(screen.getByText('Open Target')).toBeInTheDocument();
+    expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
@@ -166,10 +176,58 @@ describe('Graph context menu (edge)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+      expect(screen.getByText('Open Source')).toBeInTheDocument();
     });
+    expect(screen.getByText('Open Target')).toBeInTheDocument();
+    expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
+  });
+
+  it('sends OPEN_FILE source path when clicking Open Source', async () => {
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick(edge);
+      fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Open Source')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Open Source'));
+    });
+
+    const openMsg = findMessage('OPEN_FILE');
+    expect(openMsg).toBeTruthy();
+    expect(openMsg!.payload.path).toBe('src/app.ts');
+  });
+
+  it('sends OPEN_FILE target path when clicking Open Target', async () => {
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick(edge);
+      fireEvent.contextMenu(graphContainer, { clientX: 200, clientY: 180 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Open Target')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Open Target'));
+    });
+
+    const openMsg = findMessage('OPEN_FILE');
+    expect(openMsg).toBeTruthy();
+    expect(openMsg!.payload.path).toBe('src/utils.ts');
   });
 
   it('sends COPY_TO_CLIPBOARD source path when clicking Copy Source Path', async () => {

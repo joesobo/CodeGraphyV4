@@ -36,6 +36,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         vscode.window.showWarningMessage(message);
       },
     );
+    this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
 
     return refreshWorkspacePipelineChangedFiles(((current) => ({
       _analyzeFiles: (files, root, progress, abortSignal) =>

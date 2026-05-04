@@ -114,6 +114,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       discoveryResult.files.map(file => [file.relativePath, []]),
     );
 
+    this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
     this._lastDiscoveredFiles = discoveryResult.files;
     this._lastFileAnalysis = new Map();
     this._lastFileConnections = fileConnections;

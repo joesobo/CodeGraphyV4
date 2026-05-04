@@ -9,6 +9,7 @@ function createHandlers(
 ): GraphViewNodeFileHandlers {
   return {
     timelineActive: false,
+    canMutateGraphRevision: true,
     currentCommitSha: undefined,
     setFocusedFile: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
@@ -20,6 +21,7 @@ function createHandlers(
     deleteFiles: vi.fn(() => Promise.resolve()),
     renameFile: vi.fn(() => Promise.resolve()),
     createFile: vi.fn(() => Promise.resolve()),
+    createFolder: vi.fn(() => Promise.resolve()),
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     indexGraph: vi.fn(() => Promise.resolve()),
@@ -33,6 +35,7 @@ describe('graph view node/file router', () => {
   it('opens files at the current commit when timeline mode is active', async () => {
     const handlers = createHandlers({
       timelineActive: true,
+      canMutateGraphRevision: false,
       currentCommitSha: 'abc123',
     });
 
@@ -50,6 +53,7 @@ describe('graph view node/file router', () => {
   it('skips destructive file edits while timeline mode is active', async () => {
     const handlers = createHandlers({
       timelineActive: true,
+      canMutateGraphRevision: false,
       currentCommitSha: 'abc123',
     });
 
@@ -73,6 +77,12 @@ describe('graph view node/file router', () => {
     ).resolves.toBe(true);
     await expect(
       applyNodeFileMessage(
+        { type: 'CREATE_FOLDER', payload: { directory: 'src' } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+    await expect(
+      applyNodeFileMessage(
         { type: 'ADD_TO_EXCLUDE', payload: { patterns: ['dist/**'] } },
         handlers,
       ),
@@ -81,6 +91,7 @@ describe('graph view node/file router', () => {
     expect(handlers.deleteFiles).not.toHaveBeenCalled();
     expect(handlers.renameFile).not.toHaveBeenCalled();
     expect(handlers.createFile).not.toHaveBeenCalled();
+    expect(handlers.createFolder).not.toHaveBeenCalled();
     expect(handlers.addToExclude).not.toHaveBeenCalled();
   });
 

@@ -16,8 +16,16 @@ export async function walkDirectory(
   rootPath: string,
   currentPath: string,
   onFile: (relativePath: string, absolutePath: string) => boolean,
-  signal?: AbortSignal,
+  onDirectoryOrSignal?: ((relativePath: string, absolutePath: string) => void) | AbortSignal,
+  nextSignal?: AbortSignal,
 ): Promise<boolean> {
+  const onDirectory = typeof onDirectoryOrSignal === 'function'
+    ? onDirectoryOrSignal
+    : undefined;
+  const signal = typeof onDirectoryOrSignal === 'function'
+    ? nextSignal
+    : onDirectoryOrSignal;
+
   throwIfAborted(signal);
 
   let entries: fs.Dirent[];
@@ -38,7 +46,8 @@ export async function walkDirectory(
       if (shouldSkipKnownDirectory(relativePath)) {
         continue;
       }
-      const shouldContinue = await walkDirectory(rootPath, absolutePath, onFile, signal);
+      onDirectory?.(relativePath, absolutePath);
+      const shouldContinue = await walkDirectory(rootPath, absolutePath, onFile, onDirectory, signal);
       if (!shouldContinue) {
         return false;
       }

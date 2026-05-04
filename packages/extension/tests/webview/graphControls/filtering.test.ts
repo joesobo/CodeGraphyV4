@@ -133,4 +133,49 @@ describe('webview/graphControls/filtering', () => {
       ],
     });
   });
+
+  it('connects discovered empty folder nodes through visible folder nests edges', () => {
+    const result = applyGraphControls({
+      graphData: {
+        nodes: [
+          { id: 'src/app.ts', label: 'app.ts', color: '#111111', nodeType: 'file' },
+          { id: 'src/new-folder', label: 'new-folder', color: '#222222', nodeType: 'folder' },
+        ],
+        edges: [],
+      },
+      nodeColors: {},
+      nodeVisibility: {
+        file: true,
+        folder: true,
+      },
+      edgeVisibility: {
+        [STRUCTURAL_NESTS_EDGE_KIND]: true,
+      },
+      edgeTypes: [],
+    });
+
+    expect(result.graphData).toEqual({
+      nodes: [
+        { id: 'src/app.ts', label: 'app.ts', color: '#111111', nodeType: 'file' },
+        { id: 'src/new-folder', label: 'new-folder', color: '#222222', nodeType: 'folder' },
+        { id: 'src', label: 'src', color: DEFAULT_FOLDER_NODE_COLOR, nodeType: 'folder' },
+      ],
+      edges: [
+        {
+          id: 'src->src/new-folder#nests',
+          from: 'src',
+          to: 'src/new-folder',
+          kind: 'nests',
+          sources: [],
+        },
+        {
+          id: 'src->src/app.ts#nests',
+          from: 'src',
+          to: 'src/app.ts',
+          kind: 'nests',
+          sources: [],
+        },
+      ],
+    });
+  });
 });

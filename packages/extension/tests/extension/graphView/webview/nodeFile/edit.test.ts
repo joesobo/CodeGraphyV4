@@ -9,9 +9,11 @@ function createHandlers(
 ): GraphViewNodeFileEditHandlers {
   return {
     timelineActive: false,
+    canMutateGraphRevision: true,
     deleteFiles: vi.fn(() => Promise.resolve()),
     renameFile: vi.fn(() => Promise.resolve()),
     createFile: vi.fn(() => Promise.resolve()),
+    createFolder: vi.fn(() => Promise.resolve()),
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     ...overrides,
@@ -30,8 +32,11 @@ describe('graph view node/file edit message', () => {
     expect(handlers.deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
   });
 
-  it('skips deletes while timeline mode is active', async () => {
-    const handlers = createHandlers({ timelineActive: true });
+  it('skips deletes when the graph revision is not mutable', async () => {
+    const handlers = createHandlers({
+      timelineActive: true,
+      canMutateGraphRevision: false,
+    });
 
     await applyNodeFileEditMessage(
       { type: 'DELETE_FILES', payload: { paths: ['src/app.ts'] } },
@@ -63,6 +68,31 @@ describe('graph view node/file edit message', () => {
     expect(handlers.createFile).toHaveBeenCalledWith('src');
   });
 
+  it('creates folders outside timeline mode', async () => {
+    const handlers = createHandlers();
+
+    await expect(applyNodeFileEditMessage(
+      { type: 'CREATE_FOLDER', payload: { directory: 'src' } },
+      handlers,
+    )).resolves.toBe(true);
+
+    expect(handlers.createFolder).toHaveBeenCalledWith('src');
+  });
+
+  it('creates folders in timeline mode when the graph revision is mutable', async () => {
+    const handlers = createHandlers({
+      timelineActive: true,
+      canMutateGraphRevision: true,
+    });
+
+    await expect(applyNodeFileEditMessage(
+      { type: 'CREATE_FOLDER', payload: { directory: 'src' } },
+      handlers,
+    )).resolves.toBe(true);
+
+    expect(handlers.createFolder).toHaveBeenCalledWith('src');
+  });
+
   it('toggles favorites even in timeline mode', async () => {
     const handlers = createHandlers({ timelineActive: true });
 
@@ -85,8 +115,11 @@ describe('graph view node/file edit message', () => {
     expect(handlers.addToExclude).toHaveBeenCalledWith(['dist/**']);
   });
 
-  it('skips exclude updates while timeline mode is active', async () => {
-    const handlers = createHandlers({ timelineActive: true });
+  it('skips exclude updates when the graph revision is not mutable', async () => {
+    const handlers = createHandlers({
+      timelineActive: true,
+      canMutateGraphRevision: false,
+    });
 
     await applyNodeFileEditMessage(
       { type: 'ADD_TO_EXCLUDE', payload: { patterns: ['dist/**'] } },

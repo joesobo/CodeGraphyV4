@@ -61,29 +61,40 @@ describe('filter block', () => {
     expect(entries[0]).toEqual({ kind: 'separator', id: 'node-separator-filter' });
   });
 
-  it('includes Add to Filter for single target', () => {
-    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add to Filter');
+  it('includes Add Filter Pattern... for single target', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add Filter Pattern...');
   });
 
-  it('includes Add All to Filter for multi-select', () => {
-    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).toContain('Add All to Filter');
+  it('includes Add Filter Patterns... for multi-select', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).toContain('Add Filter Patterns...');
   });
 
-  it('includes Add Legend Group for single target', () => {
-    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add Legend Group');
+  it('includes Add Legend Group... for single target', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add Legend Group...');
   });
 
-  it('omits Add Legend Group for multi-select', () => {
-    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).not.toContain('Add Legend Group');
+  it('separates filter and legend actions into distinct blocks', () => {
+    const entries = buildFilterBlock(['a.ts']);
+
+    expect(entries).toEqual([
+      { kind: 'separator', id: 'node-separator-filter' },
+      expect.objectContaining({ kind: 'item', label: 'Add Filter Pattern...' }),
+      { kind: 'separator', id: 'node-separator-legend' },
+      expect.objectContaining({ kind: 'item', label: 'Add Legend Group...' }),
+    ]);
+  });
+
+  it('omits Add Legend Group... for multi-select', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).not.toContain('Add Legend Group...');
   });
 
   it('uses addToFilter action for the filter entry', () => {
-    const entry = findItem(buildFilterBlock(['a.ts']), 'Add to Filter');
+    const entry = findItem(buildFilterBlock(['a.ts']), 'Add Filter Pattern...');
     expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addToFilter' });
   });
 
   it('uses addNodeLegend action for the add legend entry', () => {
-    const entry = findItem(buildFilterBlock(['a.ts']), 'Add Legend Group');
+    const entry = findItem(buildFilterBlock(['a.ts']), 'Add Legend Group...');
     expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addNodeLegend' });
   });
 });

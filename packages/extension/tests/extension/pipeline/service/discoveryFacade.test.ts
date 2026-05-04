@@ -96,9 +96,11 @@ describe('pipeline/service/discoveryFacade', () => {
   const discoveryState = (
     facade: TestDiscoveryFacade,
   ): {
+    _lastDiscoveredDirectories: string[];
     _lastDiscoveredFiles: IDiscoveredFile[];
     _lastWorkspaceRoot: string;
   } => facade as unknown as {
+    _lastDiscoveredDirectories: string[];
     _lastDiscoveredFiles: IDiscoveredFile[];
     _lastWorkspaceRoot: string;
   };
@@ -107,6 +109,7 @@ describe('pipeline/service/discoveryFacade', () => {
     vi.clearAllMocks();
     vi.mocked(createWorkspacePipelineDiscoveryDependencies).mockReturnValue('discovery-deps' as never);
     vi.mocked(discoverWorkspacePipelineFilesWithWarnings).mockResolvedValue({
+      directories: ['src/new-folder'],
       files: [
         { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
         { absolutePath: '/workspace/src/b.ts', relativePath: 'src/b.ts' },
@@ -193,6 +196,7 @@ describe('pipeline/service/discoveryFacade', () => {
       { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
       { absolutePath: '/workspace/src/b.ts', relativePath: 'src/b.ts' },
     ]);
+    expect(discoveryState(facade)._lastDiscoveredDirectories).toEqual(['src/new-folder']);
     expect(discoveryState(facade)._lastWorkspaceRoot).toBe('/workspace');
     expect(buildGraphData).toHaveBeenCalledWith(
       new Map([

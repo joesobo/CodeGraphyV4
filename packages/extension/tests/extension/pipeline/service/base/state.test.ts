@@ -47,12 +47,14 @@ describe('extension/pipeline/service/stateBase', () => {
     const state = new TestWorkspacePipelineState(createContext()) as TestWorkspacePipelineState & {
       _cache: unknown;
       _eventBus?: EventBus;
+      _lastDiscoveredDirectories: string[];
       _lastDiscoveredFiles: unknown[];
       _lastWorkspaceRoot: string;
     };
 
     expect(state.registry).toBeInstanceOf(PluginRegistry);
     expect(state.lastFileAnalysis).toEqual(new Map());
+    expect(state._lastDiscoveredDirectories).toEqual([]);
     expect(state._lastDiscoveredFiles).toEqual([]);
     expect(state._lastWorkspaceRoot).toBe('');
     expect(state.readStructuredAnalysisSnapshot()).toEqual({

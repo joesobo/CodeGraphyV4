@@ -14,6 +14,7 @@ function createContext(
   const context = {
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
+    getCanMutateGraphRevision: vi.fn(() => true),
     getUserGroups: vi.fn(() => []),
     getDisabledPlugins: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
@@ -30,6 +31,7 @@ function createContext(
     deleteFiles: vi.fn(() => Promise.resolve()),
     renameFile: vi.fn(() => Promise.resolve()),
     createFile: vi.fn(() => Promise.resolve()),
+    createFolder: vi.fn(() => Promise.resolve()),
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),

@@ -60,6 +60,7 @@ describe('pipeline/analysis/state', () => {
           _buildGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
           _lastFileAnalysis: new Map(),
           _lastFileConnections: new Map([['src/index.ts', []]]),
+          _lastDiscoveredDirectories: [],
           _lastWorkspaceRoot: '/workspace',
         },
         new Set(['plugin.python']),

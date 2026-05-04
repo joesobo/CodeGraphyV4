@@ -115,19 +115,22 @@ describe('buildFilterBlock', () => {
     expect(entries[0].id).toBe('node-separator-filter');
   });
 
-  it('includes Add to Filter for single target', () => {
+  it('includes Add Filter Pattern... for single target', () => {
     const labels = itemLabels(buildFilterBlock(['a.ts']));
-    expect(labels).toContain('Add to Filter');
+    expect(labels).toContain('Add Filter Pattern...');
   });
 
-  it('includes Add All to Filter for multi-select', () => {
+  it('includes Add Filter Patterns... for multi-select', () => {
     const labels = itemLabels(buildFilterBlock(['a.ts', 'b.ts']));
-    expect(labels).toContain('Add All to Filter');
+    expect(labels).toContain('Add Filter Patterns...');
   });
 
-  it('contains one separator in the filter block', () => {
+  it('separates filter and legend actions', () => {
     const entries = buildFilterBlock(['a.ts']);
     const separators = entries.filter(e => e.kind === 'separator');
-    expect(separators).toHaveLength(1);
+    expect(separators).toEqual([
+      { kind: 'separator', id: 'node-separator-filter' },
+      { kind: 'separator', id: 'node-separator-legend' },
+    ]);
   });
 });

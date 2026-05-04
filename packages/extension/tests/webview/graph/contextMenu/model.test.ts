@@ -37,7 +37,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(liveEntries)).toEqual(['New File...', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(liveEntries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
 
     const timelineEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -64,8 +64,8 @@ describe('graph/contextMenuModel', () => {
       'Copy Absolute Path',
       'Remove from Favorites',
       'Focus Node',
-      'Add to Filter',
-      'Add Legend Group',
+      'Add Filter Pattern...',
+      'Add Legend Group...',
       'Rename...',
       'Delete File',
     ]);
@@ -82,9 +82,75 @@ describe('graph/contextMenuModel', () => {
       'Copy Absolute Path',
       'Remove from Favorites',
       'Focus Node',
-      'Add to Filter',
-      'Add Legend Group',
+      'Add Filter Pattern...',
+      'Add Legend Group...',
     ]);
+  });
+
+  it('builds single-folder-node menu with child creation actions', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pluginItems: [],
+      nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
+    });
+
+    expect(menuLabels(entries)).toEqual([
+      'New File...',
+      'New Folder...',
+      'Reveal in Explorer',
+      'Copy Relative Path',
+      'Copy Absolute Path',
+      'Add to Favorites',
+      'Focus Node',
+      'Add Filter Pattern...',
+      'Add Legend Group...',
+      'Rename Folder...',
+      'Delete Folder',
+    ]);
+  });
+
+  it('disables folder-node child creation actions for historical snapshots', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src', new Set<string>()),
+      timelineActive: true,
+      mutationAvailability: 'disabled',
+      favorites: new Set<string>(),
+      pluginItems: [],
+      nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
+    });
+
+    const creationEntries = menuItems(entries).filter(entry =>
+      entry.action.kind === 'builtin'
+      && (
+        entry.action.action === 'createFile'
+        || entry.action.action === 'createFolder'
+        || entry.action.action === 'rename'
+        || entry.action.action === 'delete'
+      )
+    );
+
+    expect(creationEntries.map(entry => entry.label)).toEqual([
+      'New File...',
+      'New Folder...',
+      'Rename Folder...',
+      'Delete Folder',
+    ]);
+    expect(creationEntries.every(entry => entry.disabled)).toBe(true);
+  });
+
+  it('does not show rename or delete actions for the synthetic root folder node', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('(root)', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pluginItems: [],
+      nodes: [{ id: '(root)', label: '(root)', color: '#94a3b8', nodeType: 'folder' }],
+    });
+
+    expect(menuLabels(entries)).not.toContain('Rename Folder...');
+    expect(menuLabels(entries)).not.toContain('Delete Folder');
   });
 
   it('builds multi-node menu with only valid actions', () => {
@@ -99,7 +165,7 @@ describe('graph/contextMenuModel', () => {
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
-      'Add All to Filter',
+      'Add Filter Patterns...',
       'Delete 2 Files',
     ]);
   });
@@ -111,7 +177,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(builtInActions(backgroundLive)).toEqual(['createFile', 'refresh', 'fitView']);
+    expect(builtInActions(backgroundLive)).toEqual(['createFile', 'createFolder', 'refresh', 'fitView']);
 
     const backgroundTimeline = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -193,11 +259,15 @@ describe('graph/contextMenuModel', () => {
       pluginItems: [],
     });
     expect(menuLabels(edgeLive)).toEqual([
+      'Open Source',
+      'Open Target',
       'Copy Source Path',
       'Copy Target Path',
       'Copy Both Paths',
     ]);
     expect(builtInActions(edgeLive)).toEqual([
+      'openEdgeSource',
+      'openEdgeTarget',
       'copyEdgeSource',
       'copyEdgeTarget',
       'copyEdgeBoth',
@@ -210,6 +280,8 @@ describe('graph/contextMenuModel', () => {
       pluginItems: [],
     });
     expect(builtInActions(edgeTimeline)).toEqual([
+      'openEdgeSource',
+      'openEdgeTarget',
       'copyEdgeSource',
       'copyEdgeTarget',
       'copyEdgeBoth',

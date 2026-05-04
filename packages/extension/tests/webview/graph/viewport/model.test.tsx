@@ -109,7 +109,14 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'dagMode' | 'favorites' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'timelineActive'
+	| 'currentCommitSha'
+	| 'dagMode'
+	| 'favorites'
+	| 'physicsSettings'
+	| 'pluginContextMenuItems'
+	| 'setGraphMode'
+	| 'timelineActive'
+	| 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -126,6 +133,11 @@ function createViewState(): Pick<
 		pluginContextMenuItems: [],
 		setGraphMode: vi.fn(),
 		timelineActive: true,
+		timelineCommits: [
+			{ sha: 'old', timestamp: 1, message: 'old', author: 'Ada', parents: [] },
+			{ sha: 'current', timestamp: 2, message: 'current', author: 'Ada', parents: ['old'] },
+		],
+		currentCommitSha: 'current',
 	};
 }
 
@@ -177,6 +189,8 @@ describe('graph/viewport/model', () => {
 		}));
 		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith({
 			favorites: viewState.favorites,
+			mutationAvailability: 'enabled',
+			nodes: graphData.nodes,
 			pluginItems: [],
 			selection: { kind: 'background', targets: [] },
 			timelineActive: true,
@@ -245,6 +259,33 @@ describe('graph/viewport/model', () => {
 			damping: 0.6,
 			graphData: nextGraphData,
 			timelineActive: false,
+		}));
+	});
+
+	it('disables mutation menu actions for historical timeline snapshots', () => {
+		const graphData = createGraphData();
+		const interactions = createInteractions();
+		const handleEngineStop = vi.fn();
+		const viewState = {
+			...createViewState(),
+			currentCommitSha: 'old',
+		};
+
+		renderHook(() => useGraphViewportModel({
+			graphState: {
+				contextSelection: { kind: 'background', targets: [] },
+				graphData,
+			},
+			handleEngineStop,
+			interactions,
+			theme: 'light',
+			viewportRuntime: { containerSize: { width: 480, height: 320 } },
+			viewState,
+		}));
+
+		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith(expect.objectContaining({
+			mutationAvailability: 'disabled',
+			nodes: graphData.nodes,
 		}));
 	});
 });

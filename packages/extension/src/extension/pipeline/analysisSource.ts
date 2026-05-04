@@ -39,6 +39,7 @@ export interface WorkspacePipelineSourceOwner {
     nextSignal?: AbortSignal,
   ): Promise<void>;
   _eventBus?: EventBus;
+  _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
@@ -107,6 +108,12 @@ export function createWorkspacePipelineAnalysisSource(
         owner._lastDiscoveredFiles = files;
       },
     },
+    _lastDiscoveredDirectories: {
+      get: () => owner._lastDiscoveredDirectories,
+      set: (directories: string[]) => {
+        owner._lastDiscoveredDirectories = directories;
+      },
+    },
     _lastFileConnections: {
       get: () => owner._lastFileConnections,
       set: (fileConnections: Map<string, IProjectedConnection[]>) => {
@@ -173,6 +180,9 @@ export function createWorkspacePipelineRebuildSource(
     },
     _lastWorkspaceRoot: {
       get: () => owner._lastWorkspaceRoot,
+    },
+    _lastDiscoveredDirectories: {
+      get: () => owner._lastDiscoveredDirectories,
     },
   });
 

@@ -14,10 +14,13 @@ import { getUndoManager, resetUndoManager } from '../../../src/extension/undoMan
 vi.mock('vscode', () => ({
   workspace: {
     fs: {
+      stat: vi.fn(),
       readFile: vi.fn(),
       writeFile: vi.fn(),
       delete: vi.fn(),
       rename: vi.fn(),
+      readDirectory: vi.fn(),
+      createDirectory: vi.fn(),
     },
     openTextDocument: vi.fn(),
     getConfiguration: vi.fn(() => ({
@@ -32,6 +35,12 @@ vi.mock('vscode', () => ({
   },
   commands: {
     executeCommand: vi.fn(),
+  },
+  FileType: {
+    Unknown: 0,
+    File: 1,
+    Directory: 2,
+    SymbolicLink: 64,
   },
   Uri: {
     joinPath: vi.fn((base, ...pathSegments) => ({
@@ -55,6 +64,9 @@ describe('DeleteFilesAction', () => {
     mockRefreshGraph = vi.fn().mockResolvedValue(undefined);
     
     // Setup default mock implementations
+    (vscode.workspace.fs.stat as ReturnType<typeof vi.fn>).mockResolvedValue({
+      type: vscode.FileType.File,
+    });
     (vscode.workspace.fs.readFile as ReturnType<typeof vi.fn>).mockResolvedValue(
       new Uint8Array([104, 101, 108, 108, 111]) // "hello"
     );

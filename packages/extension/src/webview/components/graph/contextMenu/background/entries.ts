@@ -5,6 +5,7 @@ export function buildBackgroundEntries(timelineActive: boolean): GraphContextMen
   const entries: GraphContextMenuEntry[] = [];
   if (!timelineActive) {
     entries.push(builtInItem('background-create-file', 'New File...', 'createFile'));
+    entries.push(builtInItem('background-create-folder', 'New Folder...', 'createFolder'));
     entries.push(separator('background-separator-primary'));
   }
   entries.push(

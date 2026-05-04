@@ -1,9 +1,12 @@
 import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextMenu';
 
 export type GraphContextTargetKind = 'background' | 'node' | 'edge';
+export type GraphContextMutationAvailability = 'enabled' | 'disabled' | 'hidden';
 
 export type BuiltInContextMenuAction =
   | 'open'
+  | 'openEdgeSource'
+  | 'openEdgeTarget'
   | 'reveal'
   | 'copyRelative'
   | 'copyAbsolute'
@@ -18,7 +21,8 @@ export type BuiltInContextMenuAction =
   | 'delete'
   | 'refresh'
   | 'fitView'
-  | 'createFile';
+  | 'createFile'
+  | 'createFolder';
 
 export type GraphContextMenuAction =
   | { kind: 'builtin'; action: BuiltInContextMenuAction }
@@ -31,6 +35,7 @@ export type GraphContextMenuEntry =
       label: string;
       action: GraphContextMenuAction;
       destructive?: boolean;
+      disabled?: boolean;
       shortcut?: string;
     }
   | {
@@ -44,9 +49,18 @@ export interface GraphContextSelection {
   edgeId?: string;
 }
 
+export interface GraphContextMenuNode {
+  id: string;
+  label?: string;
+  color?: string;
+  nodeType?: string;
+}
+
 export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
   timelineActive: boolean;
+  mutationAvailability?: GraphContextMutationAvailability;
   favorites: ReadonlySet<string>;
   pluginItems: readonly IPluginContextMenuItem[];
+  nodes?: readonly GraphContextMenuNode[];
 }

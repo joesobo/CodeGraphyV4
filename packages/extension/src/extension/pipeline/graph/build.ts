@@ -18,10 +18,12 @@ export interface WorkspacePipelineGraphSource {
   _registry: {
     getPluginForFile(absolutePath: string): IPlugin | undefined;
   };
+  _lastDiscoveredDirectories?: readonly string[];
 }
 
 export interface WorkspacePipelineGraphDependencies {
   cacheFiles: Record<string, { size?: number }>;
+  directoryPaths?: readonly string[];
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
@@ -38,6 +40,7 @@ export function buildWorkspacePipelineGraph(
 
   return buildWorkspaceGraphData({
     cacheFiles: dependencies.cacheFiles,
+    directoryPaths: dependencies.directoryPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
     fileConnections: dependencies.fileConnections,
     showOrphans: dependencies.showOrphans,
@@ -56,6 +59,7 @@ export function buildWorkspacePipelineGraphForSource(
 ): IGraphData {
   return buildWorkspacePipelineGraph({
     cacheFiles: source._cache.files,
+    directoryPaths: source._lastDiscoveredDirectories ?? [],
     disabledPlugins,
     fileConnections,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),

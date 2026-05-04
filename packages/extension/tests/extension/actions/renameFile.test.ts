@@ -132,6 +132,20 @@ describe('RenameFileAction', () => {
         undefined,
       );
     });
+
+    it('updates nested favorites when renaming a folder path', async () => {
+      currentFavorites = ['src/app.ts', 'src/nested/leaf.ts', 'other.ts'];
+
+      const action = new RenameFileAction('src', 'lib', mockWorkspaceFolder, mockRefreshGraph);
+
+      await action.execute();
+
+      expect(mockConfigUpdate).toHaveBeenCalledWith(
+        'favorites',
+        ['lib/app.ts', 'lib/nested/leaf.ts', 'other.ts'],
+        undefined,
+      );
+    });
   });
 
   describe('undo', () => {

@@ -24,6 +24,7 @@ export type WebviewToExtensionMessage =
   | { type: 'DELETE_FILES'; payload: { paths: string[] } }
   | { type: 'RENAME_FILE'; payload: { path: string } }
   | { type: 'CREATE_FILE'; payload: { directory: string } }
+  | { type: 'CREATE_FOLDER'; payload: { directory: string } }
   | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
   | { type: 'REFRESH_GRAPH' }

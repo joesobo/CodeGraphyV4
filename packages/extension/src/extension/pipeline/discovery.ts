@@ -7,6 +7,7 @@ export interface WorkspacePipelineDiscoveryConfig {
 }
 
 export interface WorkspacePipelineDiscoveryResult<TFile> {
+  directories?: string[];
   durationMs: number;
   files: TFile[];
   limitReached: boolean;

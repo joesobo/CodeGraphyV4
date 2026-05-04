@@ -66,6 +66,9 @@ export interface GraphViewProviderMessageListenerDependencies {
 export interface GraphViewProviderMessageListenerSource {
   _timelineActive: boolean;
   _currentCommitSha: string | undefined;
+  _gitAnalyzer?: {
+    getCachedCommitList(): Array<{ sha: string }> | null | undefined;
+  };
   _userGroups: IGroup[];
   _disabledPlugins: Set<string>;
   _filterPatterns: string[];
@@ -113,6 +116,7 @@ export interface GraphViewProviderMessageListenerSource {
   _deleteFiles(paths: string[]): Promise<void>;
   _renameFile(filePath: string): Promise<void>;
   _createFile(directory: string): Promise<void>;
+  _createFolder(directory: string): Promise<void>;
   _toggleFavorites(paths: string[]): Promise<void>;
   _addToExclude(patterns: string[]): Promise<void>;
   _loadAndSendData(): Promise<void>;

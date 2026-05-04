@@ -41,6 +41,10 @@ export function createRefreshEffects(): GraphContextEffect[] {
   return [createPostMessageEffect({ type: 'REFRESH_GRAPH' })];
 }
 
-export function createCreateFileEffects(): GraphContextEffect[] {
-  return [createPostMessageEffect({ type: 'CREATE_FILE', payload: { directory: '.' } })];
+export function createCreateFileEffects(directory = '.'): GraphContextEffect[] {
+  return [createPostMessageEffect({ type: 'CREATE_FILE', payload: { directory } })];
+}
+
+export function createCreateFolderEffects(directory = '.'): GraphContextEffect[] {
+  return [createPostMessageEffect({ type: 'CREATE_FOLDER', payload: { directory } })];
 }

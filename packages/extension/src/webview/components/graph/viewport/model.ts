@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import type { GraphViewStoreState } from '../view/store';
-import type { GraphContextMenuEntry } from '../contextMenu/contracts';
+import type {
+  GraphContextMenuEntry,
+  GraphContextMutationAvailability,
+} from '../contextMenu/contracts';
 import { buildGraphContextMenuEntries } from '../contextMenu/build/entries';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
@@ -28,8 +31,28 @@ export interface GraphViewportModelOptions {
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
   viewState: Pick<
     GraphViewStoreState,
-    'dagMode' | 'favorites' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'timelineActive'
+    | 'currentCommitSha'
+    | 'dagMode'
+    | 'favorites'
+    | 'physicsSettings'
+    | 'pluginContextMenuItems'
+    | 'setGraphMode'
+    | 'timelineActive'
+    | 'timelineCommits'
   >;
+}
+
+export function getGraphContextMutationAvailability(
+  viewState: Pick<GraphViewStoreState, 'currentCommitSha' | 'timelineActive' | 'timelineCommits'>,
+): GraphContextMutationAvailability {
+  if (!viewState.timelineActive) {
+    return 'enabled';
+  }
+
+  const currentHeadSha = viewState.timelineCommits.at(-1)?.sha;
+  return currentHeadSha && viewState.currentCommitSha === currentHeadSha
+    ? 'enabled'
+    : 'disabled';
 }
 
 export function useGraphViewportModel({
@@ -64,8 +87,10 @@ export function useGraphViewportModel({
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
     timelineActive: viewState.timelineActive,
+    mutationAvailability: getGraphContextMutationAvailability(viewState),
     favorites: viewState.favorites,
     pluginItems: viewState.pluginContextMenuItems,
+    nodes: graphState.graphData.nodes,
   });
 
   const { backgroundColor, borderColor } = getGraphSurfaceColors(theme);

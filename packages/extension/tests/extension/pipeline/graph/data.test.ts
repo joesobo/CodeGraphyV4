@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
-import { DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
+import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
 import { buildWorkspaceGraphData } from '../../../../src/extension/pipeline/graph/data';
 
 function createPlugin(id: string): IPlugin {
@@ -356,6 +356,39 @@ describe('pipeline/graph/data', () => {
             label: 'ES6 import',
           },
         ],
+      },
+    ]);
+  });
+
+  it('materializes discovered directories that have no file node descendants as folder nodes', () => {
+    const graph = buildWorkspaceGraphData({
+      cacheFiles: {
+        'src/app.ts': { size: 10 },
+      },
+      directoryPaths: ['src', 'src/new-folder'],
+      disabledPlugins: new Set(),
+      fileConnections: new Map<string, IProjectedConnection[]>([
+        ['src/app.ts', []],
+      ]),
+      showOrphans: true,
+      visitCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.typescript'),
+    });
+
+    expect(graph.nodes).toEqual([
+      {
+        id: 'src/app.ts',
+        label: 'app.ts',
+        color: DEFAULT_NODE_COLOR,
+        fileSize: 10,
+        accessCount: 0,
+      },
+      {
+        id: 'src/new-folder',
+        label: 'new-folder',
+        color: DEFAULT_FOLDER_NODE_COLOR,
+        nodeType: 'folder',
       },
     ]);
   });

@@ -2,10 +2,11 @@ import * as vscode from 'vscode';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
 import { CreateFileAction } from '../../../actions/createFile';
+import { CreateFolderAction } from '../../../actions/createFolder';
 import { DeleteFilesAction } from '../../../actions/deleteFiles';
 import { RenameFileAction } from '../../../actions/renameFile';
 import { ToggleFavoriteAction } from '../../../actions/toggleFavorite';
-import { createGraphViewFile, deleteGraphViewFiles } from '../../files/actions';
+import { createGraphViewFile, createGraphViewFolder, deleteGraphViewFiles } from '../../files/actions';
 import { renameGraphViewFile } from '../../files/rename';
 import { toggleGraphViewFavorites } from '../../favorites';
 import {
@@ -32,6 +33,7 @@ export interface GraphViewProviderFileActionMethods {
   _deleteFiles(paths: string[]): Promise<void>;
   _renameFile(filePath: string): Promise<void>;
   _createFile(directory: string): Promise<void>;
+  _createFolder(directory: string): Promise<void>;
   _toggleFavorites(paths: string[]): Promise<void>;
 }
 
@@ -42,6 +44,7 @@ export interface GraphViewProviderFileActionMethodDependencies {
   deleteFiles: typeof deleteGraphViewFiles;
   renameFile: typeof renameGraphViewFile;
   createFile: typeof createGraphViewFile;
+  createFolder: typeof createGraphViewFolder;
   toggleFavorites: typeof toggleGraphViewFavorites;
   getWorkspaceFolder(): vscode.WorkspaceFolder | undefined;
   showWarningMessage(
@@ -67,6 +70,11 @@ export interface GraphViewProviderFileActionMethodDependencies {
     workspaceFolderUri: vscode.Uri,
     analyzeAndSendData: () => Promise<void>,
   ): IUndoableAction;
+  createCreateFolderAction(
+    folderPath: string,
+    workspaceFolderUri: vscode.Uri,
+    analyzeAndSendData: () => Promise<void>,
+  ): IUndoableAction;
   createToggleFavoriteAction(paths: string[], sendFavorites: () => void): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
 }
@@ -78,6 +86,7 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
   deleteFiles: deleteGraphViewFiles,
   renameFile: renameGraphViewFile,
   createFile: createGraphViewFile,
+  createFolder: createGraphViewFolder,
   toggleFavorites: toggleGraphViewFavorites,
   getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
   showWarningMessage: (message, options, deleteAction) =>
@@ -94,6 +103,8 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
     new RenameFileAction(oldPath, newPath, workspaceFolderUri, analyzeAndSendData),
   createCreateAction: (filePath, workspaceFolderUri, analyzeAndSendData) =>
     new CreateFileAction(filePath, workspaceFolderUri, analyzeAndSendData),
+  createCreateFolderAction: (folderPath, workspaceFolderUri, analyzeAndSendData) =>
+    new CreateFolderAction(folderPath, workspaceFolderUri, analyzeAndSendData),
   createToggleFavoriteAction: (paths, sendFavorites) =>
     new ToggleFavoriteAction(paths, sendFavorites),
   executeUndoAction: action => getUndoManager().execute(action),
@@ -178,6 +189,24 @@ export function createGraphViewProviderFileActionMethods(
     });
   };
 
+  const _createFolder = async (directory: string): Promise<void> => {
+    await dependencies.createFolder(directory, {
+      workspaceFolder: dependencies.getWorkspaceFolder(),
+      showInputBox: options => dependencies.showInputBox(options),
+      executeCreateFolderAction: async (folderPath, workspaceFolderUri) => {
+        const action = dependencies.createCreateFolderAction(
+          folderPath,
+          workspaceFolderUri,
+          () => source._analyzeAndSendData(),
+        );
+        await dependencies.executeUndoAction(action);
+      },
+      showErrorMessage: message => {
+        dependencies.showErrorMessage(message);
+      },
+    });
+  };
+
   const _toggleFavorites = async (paths: string[]): Promise<void> => {
     await dependencies.toggleFavorites(paths, {
       executeToggleFavoritesAction: async nextPaths => {
@@ -196,6 +225,7 @@ export function createGraphViewProviderFileActionMethods(
     _deleteFiles,
     _renameFile,
     _createFile,
+    _createFolder,
     _toggleFavorites,
   };
 }

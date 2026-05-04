@@ -23,7 +23,7 @@ A node representing a concrete file in the workspace or selected graph revision.
 _Avoid_: Folder node, package node
 
 **Folder Node**:
-A structural node representing a directory in the workspace.
+A structural node representing a directory in the workspace, including an empty directory when folder nodes are active.
 _Avoid_: File node
 
 **Plugin Node**:
@@ -149,8 +149,12 @@ To mark a node as the current graph selection for actions, context menus, and fo
 _Avoid_: Open, preview
 
 **Context Selection**:
-The node or nodes targeted by a context menu action.
+The node or nodes targeted by a Graph Context Menu action.
 _Avoid_: Focused Node when right-click target differs from focus
+
+**Graph Context Menu**:
+The right-click menu opened from a **Context Selection** in the **Graph View**. The menu exposes actions that are valid for the selected graph target.
+_Avoid_: Context Window unless referring to a persistent panel or window
 
 **Preview File**:
 To open a file node in VS Code's temporary preview editor state.
@@ -363,6 +367,12 @@ _Avoid_: Graph export
 - Double-clicking a file node should select, focus, and **Open File** as a persistent tab.
 - Single-clicking a non-file node should select and focus it without opening a file.
 - Right-clicking an unselected node should select that node for **Context Selection** but should not preview or open it.
+- A **Graph Context Menu** is opened from the current **Context Selection** and should present actions that match that selection's target type.
+- Graph Context Menu action availability can be decided by an explicit menu decision model; that model owns which actions appear, not right-click selection mechanics.
+- A single **Folder Node** **Graph Context Menu** can offer child creation actions such as `New File...` and `New Folder...`; those actions target the selected folder.
+- A **File Node** **Graph Context Menu** stays file-focused and should not offer child creation actions by default.
+- Creating an empty directory from a **Folder Node** action should make that directory visible as a **Folder Node** after refresh or reindex.
+- Undoing a folder created from a **Folder Node** action should move the folder to trash only when it is still empty.
 - **Depth Mode** should use one **Focused Node**; if multi-selection conflicts with depth behavior, choose one selected node as the focus.
 - **Collapse** follows edge direction outward from the collapsed node and absorbs downstream relationship nodes.
 - Incoming edges to a **Collapsed Node** remain visible and target the collapsed marker.
@@ -411,6 +421,7 @@ _Avoid_: Graph export
 - **Timeline Snapshots** still flow through the same **Graph Scope**, **Filter**, **Search**, and view setting stages as the current workspace **Relationship Graph**.
 - A **Timeline Snapshot** uses a commit as its **Graph Revision** and should show the files and relationships from that commit only.
 - The default **Graph Revision** is the current `HEAD` plus working tree state, updated by **Live Updates**.
+- Graph Context Menu mutation actions should stay available for the default **Graph Revision** and should be disabled for historical **Timeline Snapshots**.
 - The **Core Extension** is the out-of-box Relationship Graph product and should work for most users without optional plugins.
 - The **Core Extension** uses Tree-sitter coverage, the bundled **Markdown Plugin**, and Material icon styling to provide a useful default graph.
 - A **Plugin** can add **Nodes**, **Node Types**, **Relationships**, **Edge Types**, preset filters, theming, exports, or UI.

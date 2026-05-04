@@ -91,16 +91,16 @@ describe('graph/contextMenu/node/openCopyBlocks', () => {
   });
 
   describe('buildFilterBlock', () => {
-    it('includes Add to Filter for single target', () => {
+    it('includes Add Filter Pattern... for single target', () => {
       const labels = itemLabels(buildFilterBlock(['src/app.ts']));
-      expect(labels).toContain('Add to Filter');
-      expect(labels).toContain('Add Legend Group');
+      expect(labels).toContain('Add Filter Pattern...');
+      expect(labels).toContain('Add Legend Group...');
     });
 
-    it('shows Add All to Filter and omits Add Legend Group for multi-select', () => {
+    it('shows Add Filter Patterns... and omits Add Legend Group... for multi-select', () => {
       const labels = itemLabels(buildFilterBlock(['src/a.ts', 'src/b.ts']));
-      expect(labels).toContain('Add All to Filter');
-      expect(labels).not.toContain('Add Legend Group');
+      expect(labels).toContain('Add Filter Patterns...');
+      expect(labels).not.toContain('Add Legend Group...');
     });
   });
 

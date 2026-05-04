@@ -17,14 +17,23 @@ import { DeleteFilesAction } from '../../../src/extension/actions/deleteFiles';
 vi.mock('vscode', () => ({
   workspace: {
     fs: {
+      stat: vi.fn(),
       readFile: vi.fn(),
       writeFile: vi.fn().mockResolvedValue(undefined),
       delete: vi.fn().mockResolvedValue(undefined),
+      readDirectory: vi.fn(),
+      createDirectory: vi.fn(),
     },
     getConfiguration: vi.fn(),
   },
   window: {
     showErrorMessage: vi.fn(),
+  },
+  FileType: {
+    Unknown: 0,
+    File: 1,
+    Directory: 2,
+    SymbolicLink: 64,
   },
   Uri: {
     joinPath: vi.fn((base: { fsPath: string }, ...pathSegments: string[]) => ({
@@ -51,6 +60,9 @@ describe('DeleteFilesAction (mutant coverage)', () => {
     mockConfigGet = vi.fn().mockReturnValue([]);
     mockConfigUpdate = vi.fn().mockResolvedValue(undefined);
 
+    vi.mocked(vscode.workspace.fs.stat).mockResolvedValue({
+      type: vscode.FileType.File,
+    } as vscode.FileStat);
     vi.mocked(vscode.workspace.fs.readFile).mockResolvedValue(
       new Uint8Array([72, 101, 108, 108, 111])
     );

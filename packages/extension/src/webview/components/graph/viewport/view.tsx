@@ -129,6 +129,7 @@ export function Viewport({
             <ContextMenuItem
               key={entry.id}
               className={entry.destructive ? 'text-red-400 focus:text-red-300' : undefined}
+              disabled={entry.disabled}
               onClick={() => handleMenuAction(entry.action)}
             >
               {entry.label}

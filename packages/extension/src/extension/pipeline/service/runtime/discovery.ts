@@ -15,6 +15,7 @@ export function createWorkspacePipelineDiscoveryDependencies(
     discover: async options => {
       const result = await discovery.discover(options);
       return {
+        directories: result.directories,
         durationMs: result.durationMs,
         files: result.files,
         limitReached: result.limitReached,

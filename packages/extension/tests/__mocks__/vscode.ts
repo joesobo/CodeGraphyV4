@@ -29,6 +29,9 @@ export const workspace = {
   })),
   onDidChangeConfiguration: vi.fn(() => ({ dispose: vi.fn() })),
   onDidSaveTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
+  onDidCreateFiles: vi.fn(() => ({ dispose: vi.fn() })),
+  onDidDeleteFiles: vi.fn(() => ({ dispose: vi.fn() })),
+  onDidRenameFiles: vi.fn(() => ({ dispose: vi.fn() })),
   createFileSystemWatcher: vi.fn(() => ({
     onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
     onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),

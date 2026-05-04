@@ -260,4 +260,24 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       expect.any(Function),
     );
   });
+
+  it('invalidates discovered empty directories below a deleted directory path', () => {
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const analyzerPrivate = analyzer as unknown as {
+      _lastDiscoveredDirectories: string[];
+    };
+
+    analyzerPrivate._lastDiscoveredDirectories = [
+      'src',
+      'src/keep',
+      'test',
+      'test/nested',
+    ];
+
+    analyzer.invalidateWorkspaceFiles(['/workspace/test']);
+
+    expect(analyzerPrivate._lastDiscoveredDirectories).toEqual(['src', 'src/keep']);
+  });
 });
