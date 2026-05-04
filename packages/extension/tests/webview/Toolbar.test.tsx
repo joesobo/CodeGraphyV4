@@ -60,6 +60,8 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     pluginExporters: [],
     pluginToolbarActions: [],
     graphHasIndex: false,
+    nodeSizeMode: 'connections',
+    timelineCommits: [],
     isIndexing: false,
     ...overrides,
   });
@@ -293,10 +295,26 @@ describe('Toolbar', () => {
   });
 
   describe('node size mode buttons', () => {
-    it('renders all four node size mode buttons', () => {
+    it('hides churn until Git history is indexed', () => {
       const { container } = render(<Toolbar />);
       const { nodeSizeButtons } = getButtonGroups(container);
+
+      expect(nodeSizeButtons).toHaveLength(3);
+      expect(screen.queryByText('Size by Churn')).toBeNull();
+    });
+
+    it('renders churn after Git history is indexed', () => {
+      setDefaultState({
+        timelineCommits: [
+          { sha: 'abc123', timestamp: 1, message: 'Initial commit', author: 'Test User', parents: [] },
+        ],
+      });
+
+      const { container } = render(<Toolbar />);
+      const { nodeSizeButtons } = getButtonGroups(container);
+
       expect(nodeSizeButtons).toHaveLength(4);
+      expect(screen.getByText('Size by Churn')).toBeTruthy();
     });
 
     it('active node size mode button has default variant', () => {
@@ -308,18 +326,34 @@ describe('Toolbar', () => {
       // Others should be ghost
       expect(nodeSizeButtons[0].className).toContain('hover:bg-accent');
       expect(nodeSizeButtons[2].className).toContain('hover:bg-accent');
-      expect(nodeSizeButtons[3].className).toContain('hover:bg-accent');
     });
 
     it('sends UPDATE_NODE_SIZE_MODE when a node size button is clicked', () => {
       setDefaultState({ nodeSizeMode: 'connections' });
       const { container } = render(<Toolbar />);
       const { nodeSizeButtons } = getButtonGroups(container);
-      // Click "Uniform" (index 3)
-      fireEvent.click(nodeSizeButtons[3]);
+      // Click "Uniform" (index 2 while churn is hidden)
+      fireEvent.click(nodeSizeButtons[2]);
       const msg = findMessage('UPDATE_NODE_SIZE_MODE');
       expect(msg).toBeTruthy();
       expect(msg!.payload.nodeSizeMode).toBe('uniform');
+    });
+
+    it('sends UPDATE_NODE_SIZE_MODE for churn after Git history is indexed', () => {
+      setDefaultState({
+        nodeSizeMode: 'connections',
+        timelineCommits: [
+          { sha: 'abc123', timestamp: 1, message: 'Initial commit', author: 'Test User', parents: [] },
+        ],
+      });
+      const { container } = render(<Toolbar />);
+      const { nodeSizeButtons } = getButtonGroups(container);
+
+      fireEvent.click(nodeSizeButtons[2]);
+
+      const msg = findMessage('UPDATE_NODE_SIZE_MODE');
+      expect(msg).toBeTruthy();
+      expect(msg!.payload.nodeSizeMode).toBe('churn');
     });
   });
 
