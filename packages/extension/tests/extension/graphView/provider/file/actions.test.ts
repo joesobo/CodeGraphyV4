@@ -27,6 +27,7 @@ describe('graphView/provider/file/actions', () => {
     vi.doUnmock('../../../../../src/extension/actions/deleteFiles');
     vi.doUnmock('../../../../../src/extension/actions/renameFile');
     vi.doUnmock('../../../../../src/extension/actions/createFile');
+    vi.doUnmock('../../../../../src/extension/actions/createFolder');
     vi.doUnmock('../../../../../src/extension/actions/toggleFavorite');
     vi.doUnmock('../../../../../src/extension/undoManager');
     vi.resetModules();
@@ -49,6 +50,7 @@ describe('graphView/provider/file/actions', () => {
       deleteFiles: vi.fn(async () => undefined),
       renameFile: vi.fn(async () => undefined),
       createFile: vi.fn(async () => undefined),
+      createFolder: vi.fn(async () => undefined),
       toggleFavorites: vi.fn(async () => undefined),
       getWorkspaceFolder: vi.fn(),
       showWarningMessage: vi.fn(),
@@ -57,6 +59,7 @@ describe('graphView/provider/file/actions', () => {
       createDeleteAction: vi.fn(() => createUndoableAction()),
       createRenameAction: vi.fn(() => createUndoableAction()),
       createCreateAction: vi.fn(() => createUndoableAction()),
+      createCreateFolderAction: vi.fn(() => createUndoableAction()),
       createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
       executeUndoAction: vi.fn(async () => undefined),
     });
@@ -84,6 +87,7 @@ describe('graphView/provider/file/actions', () => {
     const createDeleteAction = vi.fn(() => createUndoableAction({ type: 'delete' }));
     const createRenameAction = vi.fn(() => createUndoableAction({ type: 'rename' }));
     const createCreateAction = vi.fn(() => createUndoableAction({ type: 'create' }));
+    const createCreateFolderAction = vi.fn(() => createUndoableAction({ type: 'create-folder' }));
     const deleteFiles = vi.fn(async (_paths, handlers) => {
       await handlers.executeDeleteAction(['src/app.ts'], { fsPath: '/workspace' });
     });
@@ -92,6 +96,9 @@ describe('graphView/provider/file/actions', () => {
     });
     const createFile = vi.fn(async (_directory, handlers) => {
       await handlers.executeCreateAction('src/new.ts', { fsPath: '/workspace' });
+    });
+    const createFolder = vi.fn(async (_directory, handlers) => {
+      await handlers.executeCreateFolderAction('src/components', { fsPath: '/workspace' });
     });
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
@@ -106,6 +113,7 @@ describe('graphView/provider/file/actions', () => {
       deleteFiles,
       renameFile,
       createFile,
+      createFolder,
       toggleFavorites: vi.fn(async () => undefined),
       getWorkspaceFolder: vi.fn(() => ({
         uri: { fsPath: '/workspace' },
@@ -118,6 +126,7 @@ describe('graphView/provider/file/actions', () => {
       createDeleteAction,
       createRenameAction,
       createCreateAction,
+      createCreateFolderAction,
       createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
       executeUndoAction,
     });
@@ -125,6 +134,7 @@ describe('graphView/provider/file/actions', () => {
     await methods._deleteFiles(['src/app.ts']);
     await methods._renameFile('src/app.ts');
     await methods._createFile('src');
+    await methods._createFolder('src');
 
     expect(createDeleteAction).toHaveBeenCalledWith(
       ['src/app.ts'],
@@ -142,7 +152,12 @@ describe('graphView/provider/file/actions', () => {
       { fsPath: '/workspace' },
       expect.any(Function),
     );
-    expect(executeUndoAction).toHaveBeenCalledTimes(3);
+    expect(createCreateFolderAction).toHaveBeenCalledWith(
+      'src/components',
+      { fsPath: '/workspace' },
+      expect.any(Function),
+    );
+    expect(executeUndoAction).toHaveBeenCalledTimes(4);
   });
 
   it('creates undoable favorite toggles that resync favorites after completion', async () => {
@@ -167,6 +182,7 @@ describe('graphView/provider/file/actions', () => {
       deleteFiles: vi.fn(async () => undefined),
       renameFile: vi.fn(async () => undefined),
       createFile: vi.fn(async () => undefined),
+      createFolder: vi.fn(async () => undefined),
       toggleFavorites,
       getWorkspaceFolder: vi.fn(),
       showWarningMessage: vi.fn(),
@@ -175,6 +191,7 @@ describe('graphView/provider/file/actions', () => {
       createDeleteAction: vi.fn(() => createUndoableAction()),
       createRenameAction: vi.fn(() => createUndoableAction()),
       createCreateAction: vi.fn(() => createUndoableAction()),
+      createCreateFolderAction: vi.fn(() => createUndoableAction()),
       createToggleFavoriteAction,
       executeUndoAction,
     });
@@ -269,6 +286,23 @@ describe('graphView/provider/file/actions', () => {
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
+  it('uses vscode input and error defaults for create folder actions', async () => {
+    const { source, methods, showInputBox, showErrorMessage, CreateFolderAction, execute } =
+      await createDefaultDependencyHarness();
+
+    await methods._createFolder('src');
+
+    expect(showInputBox).toHaveBeenCalledWith({ prompt: 'Create folder' });
+    expect(showErrorMessage).toHaveBeenCalledWith('create folder failed');
+    expect(CreateFolderAction).toHaveBeenCalledWith(
+      'src/components',
+      { fsPath: '/workspace' },
+      expect.any(Function),
+    );
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+  });
+
   it('uses the undo manager default for favorite toggles', async () => {
     const { source, methods, ToggleFavoriteAction, execute } = await createDefaultDependencyHarness();
 
@@ -327,6 +361,17 @@ async function createDefaultDependencyHarness(
     await handlers.executeCreateAction('src/new.ts', { fsPath: '/workspace' });
     handlers.showErrorMessage('create failed');
   });
+  const createFolder = vi.fn(async (_directory: string, handlers: {
+    workspaceFolder: unknown;
+    showInputBox(options: { prompt: string }): PromiseLike<string | undefined>;
+    executeCreateFolderAction(folderPath: string, workspaceFolderUri: { fsPath: string }): Promise<void>;
+    showErrorMessage(message: string): void;
+  }) => {
+    expect(handlers.workspaceFolder).toEqual(workspaceFolder);
+    await handlers.showInputBox({ prompt: 'Create folder' });
+    await handlers.executeCreateFolderAction('src/components', { fsPath: '/workspace' });
+    handlers.showErrorMessage('create folder failed');
+  });
   const toggleFavorites = vi.fn(async (_paths: string[], handlers: {
     executeToggleFavoritesAction(paths: string[]): Promise<void>;
   }) => {
@@ -373,6 +418,17 @@ async function createDefaultDependencyHarness(
     this.undo = vi.fn(async () => undefined);
     this.analyzeAndSendData = analyzeAndSendData;
   });
+  const CreateFolderAction = vi.fn(function (
+    this: MockUndoableAction,
+    _folderPath: string,
+    _workspaceFolderUri: { fsPath: string },
+    analyzeAndSendData: () => Promise<void>,
+  ) {
+    Object.defineProperty(this, 'description', { value: 'create folder', configurable: true });
+    this.execute = vi.fn(async () => undefined);
+    this.undo = vi.fn(async () => undefined);
+    this.analyzeAndSendData = analyzeAndSendData;
+  });
   const ToggleFavoriteAction = vi.fn(function (
     this: MockUndoableAction,
     _paths: string[],
@@ -401,6 +457,7 @@ async function createDefaultDependencyHarness(
   }));
   vi.doMock('../../../../../src/extension/graphView/files/actions', () => ({
     createGraphViewFile: createFile,
+    createGraphViewFolder: createFolder,
     deleteGraphViewFiles: deleteFiles,
   }));
   vi.doMock('../../../../../src/extension/graphView/files/rename', () => ({
@@ -417,6 +474,9 @@ async function createDefaultDependencyHarness(
   }));
   vi.doMock('../../../../../src/extension/actions/createFile', () => ({
     CreateFileAction,
+  }));
+  vi.doMock('../../../../../src/extension/actions/createFolder', () => ({
+    CreateFolderAction,
   }));
   vi.doMock('../../../../../src/extension/actions/toggleFavorite', () => ({
     ToggleFavoriteAction,
@@ -450,6 +510,7 @@ async function createDefaultDependencyHarness(
     DeleteFilesAction,
     RenameFileAction,
     CreateFileAction,
+    CreateFolderAction,
     ToggleFavoriteAction,
   };
 }

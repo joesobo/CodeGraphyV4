@@ -2,7 +2,7 @@ import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import type { IGraphData } from '../../shared/graph/contracts';
 import type { IGraphEdgeTypeDefinition } from '../../shared/graphControls/contracts';
 import { applyEdgeTypeDefaultColors, filterSemanticEdges, filterVisibleEdgeDecorations, filterVisibleStructuralEdges } from './filtering/edges';
-import { applyNodeTypeColors, getFileNodes, isNodeVisible, withResolvedNodeTypes } from './filtering/nodes';
+import { applyNodeTypeColors, getFileNodes, getFolderNodes, isNodeVisible, withResolvedNodeTypes } from './filtering/nodes';
 import { buildStructuralEdges, buildStructuralGraphNodes } from './filtering/structures';
 
 export interface GraphControlsFilteringOptions {
@@ -36,7 +36,12 @@ export function applyGraphControls({
     folderNodes,
     packageNodes,
     workspacePackageRoots,
-  } = buildStructuralGraphNodes(getFileNodes(baseNodes), nodeVisibility, nodeColors);
+  } = buildStructuralGraphNodes(
+    getFileNodes(baseNodes),
+    nodeVisibility,
+    nodeColors,
+    getFolderNodes(baseNodes),
+  );
 
   const nodes = [...visibleBaseNodes, ...folderNodes, ...packageNodes];
   const visibleNodeIds = new Set(nodes.map((node) => node.id));

@@ -14,6 +14,7 @@ export function buildWorkspacePipelineGraph(
   workspaceRoot: string,
   showOrphans: boolean,
   disabledPlugins: Set<string>,
+  directoryPaths: readonly string[] = [],
 ): IGraphData {
   return buildWorkspacePipelineGraphData(
     cache,
@@ -23,6 +24,7 @@ export function buildWorkspacePipelineGraph(
     workspaceRoot,
     showOrphans,
     disabledPlugins,
+    directoryPaths,
   );
 }
 
@@ -34,6 +36,7 @@ export function buildWorkspacePipelineGraphFromAnalysis(
   workspaceRoot: string,
   showOrphans: boolean,
   disabledPlugins: Set<string>,
+  directoryPaths: readonly string[] = [],
 ): IGraphData {
   return buildWorkspacePipelineGraph(
     cache,
@@ -43,5 +46,6 @@ export function buildWorkspacePipelineGraphFromAnalysis(
     workspaceRoot,
     showOrphans,
     disabledPlugins,
+    directoryPaths,
   );
 }

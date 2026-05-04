@@ -10,6 +10,7 @@ import { buildWorkspaceGraphNodes } from './nodes';
 
 export interface IWorkspaceGraphDataOptions {
   cacheFiles: Record<string, { size?: number }>;
+  directoryPaths?: readonly string[];
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
   showOrphans: boolean;
@@ -21,6 +22,7 @@ export interface IWorkspaceGraphDataOptions {
 export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IGraphData {
   const {
     cacheFiles,
+    directoryPaths = [],
     disabledPlugins,
     fileConnections,
     showOrphans,
@@ -38,6 +40,7 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
   const nodes = buildWorkspaceGraphNodes({
     cacheFiles,
     connectedIds,
+    directoryPaths,
     nodeIds,
     showOrphans,
     visitCounts,

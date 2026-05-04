@@ -177,7 +177,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionColor' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive'
+	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionColor' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -189,6 +189,7 @@ function createViewState(): Pick<
 
 	return {
 		bidirectionalMode: 'separate',
+		currentCommitSha: 'commit-b',
 		dagMode: 'td',
 		depthMode: false,
 		directionColor: '#22c55e',
@@ -204,6 +205,10 @@ function createViewState(): Pick<
 		setGraphMode: vi.fn(),
 		showLabels: true,
 		timelineActive: true,
+		timelineCommits: [
+			{ sha: 'commit-a', message: 'A', author: 'Ada', parents: [], timestamp: 1 },
+			{ sha: 'commit-b', message: 'B', author: 'Ada', parents: ['commit-a'], timestamp: 2 },
+		],
 	};
 }
 

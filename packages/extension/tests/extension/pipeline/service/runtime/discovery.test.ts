@@ -21,6 +21,7 @@ describe('pipeline/service/discovery', () => {
   it('normalizes discovery results and falls back totalFound to the file count', async () => {
     const discovery = {
       discover: vi.fn(async () => ({
+        directories: ['src/new-folder'],
         durationMs: 12,
         files: [{ relativePath: 'src/a.ts' }],
         limitReached: false,
@@ -33,6 +34,7 @@ describe('pipeline/service/discovery', () => {
 
     expect(discovery.discover).toHaveBeenCalledWith({ workspaceRoot: '/workspace' });
     expect(result).toEqual({
+      directories: ['src/new-folder'],
       durationMs: 12,
       files: [{ relativePath: 'src/a.ts' }],
       limitReached: false,

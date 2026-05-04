@@ -24,6 +24,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'deleteFiles'
   | 'renameFile'
   | 'createFile'
+  | 'createFolder'
   | 'toggleFavorites'
   | 'addToExclude'
   | 'loadAndSendData'
@@ -77,6 +78,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     deleteFiles: paths => source._deleteFiles(paths),
     renameFile: filePath => source._renameFile(filePath),
     createFile: directory => source._createFile(directory),
+    createFolder: directory => source._createFolder(directory),
     toggleFavorites: paths => source._toggleFavorites(paths),
     addToExclude: patterns => source._addToExclude(patterns),
     loadAndSendData: () => source._loadAndSendData(),

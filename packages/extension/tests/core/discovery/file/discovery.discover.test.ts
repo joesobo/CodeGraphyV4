@@ -213,6 +213,7 @@ describe('FileDiscovery discover', () => {
     const result = await discovery.discover({ rootPath: tempDir });
 
     expect(result.files).toHaveLength(0);
+    expect(result.directories).toEqual(['empty']);
   });
 
   it('handles deeply nested files', async () => {

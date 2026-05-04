@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import {
   addGraphViewExcludePatterns,
   createGraphViewFile,
+  createGraphViewFolder,
   deleteGraphViewFiles,
 } from '../../../../src/extension/graphView/files/actions';
 
@@ -108,6 +109,28 @@ describe('graphView/files/actions', () => {
 
     expect(executeCreateAction).toHaveBeenCalledWith(
       'newfile.ts',
+      vscode.Uri.file('/workspace'),
+    );
+  });
+
+  it('creates the folder selected in the input box', async () => {
+    const executeCreateFolderAction = vi.fn(async () => undefined);
+    const showInputBox = vi.fn(async () => 'components');
+
+    await createGraphViewFolder('src', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox,
+      executeCreateFolderAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).toHaveBeenCalledWith({
+      prompt: 'Enter folder name',
+      placeHolder: 'new-folder',
+      ignoreFocusOut: true,
+    });
+    expect(executeCreateFolderAction).toHaveBeenCalledWith(
+      'src/components',
       vscode.Uri.file('/workspace'),
     );
   });

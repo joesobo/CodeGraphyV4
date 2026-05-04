@@ -3,6 +3,7 @@ import type { GraphContextEffect } from '../effects';
 import {
   createClipboardEffects,
   createCreateFileEffects,
+  createCreateFolderEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
@@ -37,7 +38,8 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   delete: (targetPaths: string[]) => createPathListMessageEffects('DELETE_FILES', targetPaths),
   refresh: () => createRefreshEffects(),
   fitView: () => createFitViewEffects(),
-  createFile: () => createCreateFileEffects(),
+  createFile: (targetPaths: string[]) => createCreateFileEffects(targetPaths[0] ?? '.'),
+  createFolder: (targetPaths: string[]) => createCreateFolderEffects(targetPaths[0] ?? '.'),
 } satisfies Record<BuiltInContextMenuAction, (targetPaths: string[]) => GraphContextEffect[]>;
 
 export function getBuiltInContextActionEffectsImpl(

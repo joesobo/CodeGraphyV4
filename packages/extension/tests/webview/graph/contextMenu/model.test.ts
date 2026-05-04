@@ -87,6 +87,47 @@ describe('graph/contextMenuModel', () => {
     ]);
   });
 
+  it('builds single-folder-node menu with child creation actions', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pluginItems: [],
+      nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
+    });
+
+    expect(menuLabels(entries)).toEqual([
+      'New File...',
+      'New Folder...',
+      'Reveal in Explorer',
+      'Copy Relative Path',
+      'Copy Absolute Path',
+      'Add to Favorites',
+      'Focus Node',
+      'Add to Filter',
+      'Add Legend Group',
+    ]);
+  });
+
+  it('disables folder-node child creation actions for historical snapshots', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src', new Set<string>()),
+      timelineActive: true,
+      mutationAvailability: 'disabled',
+      favorites: new Set<string>(),
+      pluginItems: [],
+      nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
+    });
+
+    const creationEntries = menuItems(entries).filter(entry =>
+      entry.action.kind === 'builtin'
+      && (entry.action.action === 'createFile' || entry.action.action === 'createFolder')
+    );
+
+    expect(creationEntries.map(entry => entry.label)).toEqual(['New File...', 'New Folder...']);
+    expect(creationEntries.every(entry => entry.disabled)).toBe(true);
+  });
+
   it('builds multi-node menu with only valid actions', () => {
     const selection = makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts']));
     const entries = buildGraphContextMenuEntries({

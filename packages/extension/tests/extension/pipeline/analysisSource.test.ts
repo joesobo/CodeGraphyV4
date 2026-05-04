@@ -6,6 +6,7 @@ describe('pipeline/analysisSource', () => {
   it('adapts analyzer state and delegates for the analysis runner', async () => {
     const analyzer = {
       _eventBus: { emit: vi.fn() },
+      _lastDiscoveredDirectories: [],
       _lastDiscoveredFiles: [],
       _lastFileAnalysis: new Map(),
       _lastFileConnections: new Map(),
@@ -38,11 +39,13 @@ describe('pipeline/analysisSource', () => {
     ).toEqual({ nodes: [], edges: [] });
 
     source._lastDiscoveredFiles = files as never;
+    source._lastDiscoveredDirectories = ['src/new-folder'];
     source._lastFileAnalysis = new Map([['a.ts', { filePath: '/workspace/a.ts', relations: [] }]]);
     source._lastFileConnections = new Map([['b.ts', []]]);
     source._lastWorkspaceRoot = '/workspace';
 
     expect(analyzer._lastDiscoveredFiles).toEqual(files);
+    expect(analyzer._lastDiscoveredDirectories).toEqual(['src/new-folder']);
     expect(analyzer._lastFileAnalysis).toEqual(
       new Map([['a.ts', { filePath: '/workspace/a.ts', relations: [] }]]),
     );
@@ -54,6 +57,7 @@ describe('pipeline/analysisSource', () => {
     const analyzer = {
       _lastFileAnalysis: new Map([['a.ts', { filePath: '/workspace/a.ts', relations: [] }]]),
       _lastFileConnections: new Map([['a.ts', []]]),
+      _lastDiscoveredDirectories: ['src/new-folder'],
       _lastWorkspaceRoot: '/workspace',
       _buildGraphDataFromAnalysis: vi.fn(() => ({ nodes: [], edges: [] })),
       _buildGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
@@ -65,6 +69,7 @@ describe('pipeline/analysisSource', () => {
       new Map([['a.ts', { filePath: '/workspace/a.ts', relations: [] }]]),
     );
     expect(source._lastFileConnections).toEqual(new Map([['a.ts', []]]));
+    expect(source._lastDiscoveredDirectories).toEqual(['src/new-folder']);
     expect(source._lastWorkspaceRoot).toBe('/workspace');
     expect(
       source._buildGraphDataFromAnalysis(

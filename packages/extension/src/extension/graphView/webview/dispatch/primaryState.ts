@@ -19,6 +19,7 @@ export function createGraphViewPrimaryNodeFileHandlers(
     indexGraph: () => context.indexAndSendData(),
     refreshGraph: () => context.refreshIndex(),
     timelineActive: context.getTimelineActive(),
+    canMutateGraphRevision: context.getCanMutateGraphRevision(),
     currentCommitSha: context.getCurrentCommitSha(),
   };
 }

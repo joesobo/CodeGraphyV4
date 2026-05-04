@@ -318,6 +318,7 @@ describe('graph view provider listener bridge', () => {
     expect(context.workspaceFolder).toEqual(workspaceFolders[0]);
     expect(context.getTimelineActive()).toBe(false);
     expect(context.getCurrentCommitSha()).toBeUndefined();
+    expect(context.getCanMutateGraphRevision()).toBe(true);
     expect(context.getUserGroups()).toEqual([]);
     expect(context.getFilterPatterns()).toEqual(['dist/**']);
     expect(context.findNode('node-1')).toEqual(source._graphData.nodes[0]);

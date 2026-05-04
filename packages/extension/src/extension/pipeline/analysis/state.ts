@@ -39,6 +39,7 @@ export interface WorkspacePipelineRebuildSource {
   ): IGraphData;
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
+  _lastDiscoveredDirectories: string[];
   _lastWorkspaceRoot: string;
 }
 

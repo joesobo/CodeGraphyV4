@@ -49,6 +49,7 @@ export class FileDiscovery {
     const allExclude = [...DEFAULT_EXCLUDE, ...excludePatterns];
     const gitignore = respectGitignore ? loadGitignore(rootPath) : null;
     const files: IDiscoveredFile[] = [];
+    const directories: string[] = [];
     let totalFound = 0;
     let limitReached = false;
 
@@ -77,12 +78,16 @@ export class FileDiscovery {
         totalFound++;
         return true;
       },
+      relativePath => {
+        directories.push(relativePath);
+      },
       signal,
     );
 
     const durationMs = Date.now() - startTime;
     return {
       files,
+      directories,
       limitReached,
       totalFound: limitReached ? totalFound : undefined,
       durationMs,

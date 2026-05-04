@@ -81,6 +81,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       workspaceRoot,
       showOrphans,
       disabledPlugins,
+      this._lastDiscoveredDirectories,
     );
   }
 
@@ -98,6 +99,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       workspaceRoot,
       showOrphans,
       disabledPlugins,
+      this._lastDiscoveredDirectories,
     );
   }
 

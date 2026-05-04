@@ -32,6 +32,7 @@ describe('pipeline/graph', () => {
 
     expect(workspaceGraphDataModule.buildWorkspaceGraphData).toHaveBeenCalledWith({
       cacheFiles: {},
+      directoryPaths: [],
       disabledPlugins: new Set<string>(['plugin.python']),
       fileConnections: new Map([['src/index.ts', []]]),
       getPluginForFile: expect.any(Function),
@@ -53,6 +54,7 @@ describe('pipeline/graph', () => {
           _context: {
             workspaceState: createWorkspaceState({ 'src/index.ts': 1 }),
           },
+          _lastDiscoveredDirectories: ['src/new-folder'],
           _registry: { getPluginForFile: vi.fn() },
         } as never,
         new Map([['src/index.ts', []]]),
@@ -62,6 +64,15 @@ describe('pipeline/graph', () => {
       ),
     ).toEqual({ nodes: [], edges: [] });
 
-    expect(buildWorkspaceGraphDataSpy).toHaveBeenCalledOnce();
+    expect(buildWorkspaceGraphDataSpy).toHaveBeenCalledWith({
+      cacheFiles: { 'src/index.ts': { size: 5 } },
+      directoryPaths: ['src/new-folder'],
+      disabledPlugins: new Set(),
+      fileConnections: new Map([['src/index.ts', []]]),
+      getPluginForFile: expect.any(Function),
+      showOrphans: true,
+      visitCounts: { 'src/index.ts': 1 },
+      workspaceRoot: '/workspace',
+    });
   });
 });

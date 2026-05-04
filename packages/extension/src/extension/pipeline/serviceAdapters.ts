@@ -79,10 +79,12 @@ export function buildWorkspacePipelineGraphData(
   workspaceRoot: string,
   showOrphans: boolean,
   disabledPlugins: Set<string> = new Set(),
+  directoryPaths: readonly string[] = [],
 ): IGraphData {
   const source: WorkspacePipelineGraphSource = {
     _cache: cache,
     _context: context,
+    _lastDiscoveredDirectories: directoryPaths,
     _registry: registry,
   };
 

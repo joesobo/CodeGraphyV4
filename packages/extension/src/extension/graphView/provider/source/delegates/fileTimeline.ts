@@ -16,6 +16,7 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
   | '_deleteFiles'
   | '_renameFile'
   | '_createFile'
+  | '_createFolder'
   | '_toggleFavorites'
   | '_setFocusedFile'
   | '_getFocusedFile'
@@ -40,6 +41,7 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
     _deleteFiles: paths => owner._methodContainers.fileAction._deleteFiles(paths),
     _renameFile: filePath => owner._methodContainers.fileAction._renameFile(filePath),
     _createFile: directory => owner._methodContainers.fileAction._createFile(directory),
+    _createFolder: directory => owner._methodContainers.fileAction._createFolder(directory),
     _toggleFavorites: paths => owner._methodContainers.fileAction._toggleFavorites(paths),
     _setFocusedFile: filePath => owner._methodContainers.viewSelection.setFocusedFile(filePath),
     _getFocusedFile: () => owner._viewContext.focusedFile,

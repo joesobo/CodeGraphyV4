@@ -21,6 +21,13 @@ export interface GraphViewFileCreateHandlers {
   showErrorMessage(message: string): void;
 }
 
+export interface GraphViewFolderCreateHandlers {
+  workspaceFolder?: GraphViewWorkspaceFolderRef;
+  showInputBox(options: vscode.InputBoxOptions): PromiseLike<string | undefined>;
+  executeCreateFolderAction(folderPath: string, workspaceFolderUri: vscode.Uri): PromiseLike<void>;
+  showErrorMessage(message: string): void;
+}
+
 export interface GraphViewExcludeHandlers {
   executeAddToExcludeAction(patterns: string[]): PromiseLike<void>;
 }
@@ -62,6 +69,28 @@ export async function createGraphViewFile(
     await handlers.executeCreateAction(filePath, handlers.workspaceFolder.uri);
   } catch (error) {
     handlers.showErrorMessage(`Failed to create file: ${toErrorMessage(error)}`);
+  }
+}
+
+export async function createGraphViewFolder(
+  directory: string,
+  handlers: GraphViewFolderCreateHandlers,
+): Promise<void> {
+  if (!handlers.workspaceFolder) return;
+
+  const folderName = await handlers.showInputBox({
+    prompt: 'Enter folder name',
+    placeHolder: 'new-folder',
+    ignoreFocusOut: true,
+  });
+  if (!folderName) return;
+
+  const folderPath = directory === '.' ? folderName : `${directory}/${folderName}`;
+
+  try {
+    await handlers.executeCreateFolderAction(folderPath, handlers.workspaceFolder.uri);
+  } catch (error) {
+    handlers.showErrorMessage(`Failed to create folder: ${toErrorMessage(error)}`);
   }
 }
 

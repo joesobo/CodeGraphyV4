@@ -23,6 +23,7 @@ export abstract class WorkspacePipelineStateBase {
   protected _cache: IWorkspaceAnalysisCache;
   protected _lastFileAnalysis: Map<string, IFileAnalysisResult> = new Map();
   protected _lastFileConnections: Map<string, IProjectedConnection[]> = new Map();
+  protected _lastDiscoveredDirectories: string[] = [];
   protected _lastDiscoveredFiles: IDiscoveredFile[] = [];
   protected _lastWorkspaceRoot = '';
   protected _eventBus?: EventBus;

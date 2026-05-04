@@ -4,9 +4,12 @@
  */
 
 import * as path from 'path';
-import { DEFAULT_NODE_COLOR } from '../../../shared/fileColors';
+import {
+  DEFAULT_FOLDER_NODE_COLOR,
+  DEFAULT_NODE_COLOR,
+  DEFAULT_PACKAGE_NODE_COLOR,
+} from '../../../shared/fileColors';
 import type { IGraphNode } from '../../../shared/graph/contracts';
-import { DEFAULT_PACKAGE_NODE_COLOR } from '../../../shared/fileColors';
 import {
   getExternalPackageLabelFromNodeId,
   isExternalPackageNodeId,
@@ -15,9 +18,57 @@ import {
 export interface IWorkspaceGraphNodesOptions {
   cacheFiles: Record<string, { size?: number }>;
   connectedIds: ReadonlySet<string>;
+  directoryPaths?: readonly string[];
   nodeIds: ReadonlySet<string>;
   showOrphans: boolean;
   visitCounts: Record<string, number>;
+}
+
+function normalizeDirectoryPath(directoryPath: string): string {
+  return directoryPath.replace(/\\/g, '/');
+}
+
+function collectFolderPathsFromFileNodes(nodeIds: ReadonlySet<string>): Set<string> {
+  const folderPaths = new Set<string>();
+
+  for (const nodeId of nodeIds) {
+    if (isExternalPackageNodeId(nodeId)) {
+      continue;
+    }
+
+    const segments = nodeId.split('/');
+    for (let index = 1; index < segments.length; index += 1) {
+      folderPaths.add(segments.slice(0, index).join('/'));
+    }
+  }
+
+  return folderPaths;
+}
+
+function buildDiscoveredDirectoryNodes(
+  directoryPaths: readonly string[],
+  nodeIds: ReadonlySet<string>,
+): IGraphNode[] {
+  const fileFolderPaths = collectFolderPathsFromFileNodes(nodeIds);
+  const seen = new Set<string>();
+  const nodes: IGraphNode[] = [];
+
+  for (const directoryPath of directoryPaths) {
+    const normalizedPath = normalizeDirectoryPath(directoryPath);
+    if (!normalizedPath || fileFolderPaths.has(normalizedPath) || seen.has(normalizedPath)) {
+      continue;
+    }
+
+    seen.add(normalizedPath);
+    nodes.push({
+      id: normalizedPath,
+      label: normalizedPath.split('/').pop() ?? normalizedPath,
+      color: DEFAULT_FOLDER_NODE_COLOR,
+      nodeType: 'folder',
+    });
+  }
+
+  return nodes;
 }
 
 export function buildWorkspaceGraphNodes(
@@ -26,6 +77,7 @@ export function buildWorkspaceGraphNodes(
   const {
     cacheFiles,
     connectedIds,
+    directoryPaths = [],
     nodeIds,
     showOrphans,
     visitCounts,
@@ -60,5 +112,8 @@ export function buildWorkspaceGraphNodes(
     });
   }
 
-  return nodes;
+  return [
+    ...nodes,
+    ...buildDiscoveredDirectoryNodes(directoryPaths, nodeIds),
+  ];
 }

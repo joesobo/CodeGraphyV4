@@ -15,6 +15,7 @@ describe('source/delegates/fileTimeline', () => {
     await delegates._deleteFiles(['src/app.ts']);
     await delegates._renameFile('src/app.ts');
     await delegates._createFile('src');
+    await delegates._createFolder('src');
     delegates._toggleFavorites(['src/app.ts']);
     delegates._setFocusedFile('src/app.ts');
     expect(delegates._getFocusedFile!()).toBe('src/focused.ts');
@@ -37,6 +38,7 @@ describe('source/delegates/fileTimeline', () => {
     expect(owner._fileActionMethods._deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
     expect(owner._fileActionMethods._renameFile).toHaveBeenCalledWith('src/app.ts');
     expect(owner._fileActionMethods._createFile).toHaveBeenCalledWith('src');
+    expect(owner._fileActionMethods._createFolder).toHaveBeenCalledWith('src');
     expect(owner._fileActionMethods._toggleFavorites).toHaveBeenCalledWith(['src/app.ts']);
     expect(owner._viewSelectionMethods.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(owner._fileVisitMethods._getFileInfo).toHaveBeenCalledWith('src/app.ts');

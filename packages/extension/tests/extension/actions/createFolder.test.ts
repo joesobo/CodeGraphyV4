@@ -1,0 +1,78 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
+import { CreateFolderAction } from '../../../src/extension/actions/createFolder';
+
+vi.mock('vscode', () => ({
+  workspace: {
+    fs: {
+      createDirectory: vi.fn().mockResolvedValue(undefined),
+      delete: vi.fn().mockResolvedValue(undefined),
+      readDirectory: vi.fn().mockResolvedValue([]),
+    },
+  },
+  Uri: {
+    joinPath: vi.fn((base: { fsPath: string }, ...pathSegments: string[]) => ({
+      fsPath: `${base.fsPath}/${pathSegments.join('/')}`,
+      toString: () => `file://${base.fsPath}/${pathSegments.join('/')}`,
+    })),
+  },
+  FileType: {
+    File: 1,
+  },
+}));
+
+describe('CreateFolderAction', () => {
+  const mockWorkspaceFolder = { fsPath: '/workspace' } as vscode.Uri;
+  let mockRefreshGraph: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockRefreshGraph = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(vscode.workspace.fs.readDirectory).mockResolvedValue([]);
+  });
+
+  it('uses the folder name in the description', () => {
+    const action = new CreateFolderAction('src/components', mockWorkspaceFolder, mockRefreshGraph);
+
+    expect(action.description).toBe('Create folder: components');
+  });
+
+  it('creates the folder and refreshes graph data', async () => {
+    const action = new CreateFolderAction('src/components', mockWorkspaceFolder, mockRefreshGraph);
+
+    await action.execute();
+
+    expect(vscode.Uri.joinPath).toHaveBeenCalledWith(mockWorkspaceFolder, 'src/components');
+    expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({ fsPath: '/workspace/src/components' }),
+    );
+    expect(mockRefreshGraph).toHaveBeenCalledOnce();
+  });
+
+  it('moves an empty created folder to trash on undo', async () => {
+    const action = new CreateFolderAction('src/components', mockWorkspaceFolder, mockRefreshGraph);
+
+    await action.undo();
+
+    expect(vscode.workspace.fs.readDirectory).toHaveBeenCalledWith(
+      expect.objectContaining({ fsPath: '/workspace/src/components' }),
+    );
+    expect(vscode.workspace.fs.delete).toHaveBeenCalledWith(
+      expect.objectContaining({ fsPath: '/workspace/src/components' }),
+      { recursive: false, useTrash: true },
+    );
+    expect(mockRefreshGraph).toHaveBeenCalledOnce();
+  });
+
+  it('does not remove a created folder that now contains files', async () => {
+    vi.mocked(vscode.workspace.fs.readDirectory).mockResolvedValue([
+      ['later.ts', vscode.FileType.File],
+    ]);
+    const action = new CreateFolderAction('src/components', mockWorkspaceFolder, mockRefreshGraph);
+
+    await action.undo();
+
+    expect(vscode.workspace.fs.delete).not.toHaveBeenCalled();
+    expect(mockRefreshGraph).not.toHaveBeenCalled();
+  });
+});

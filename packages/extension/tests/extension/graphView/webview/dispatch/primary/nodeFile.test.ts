@@ -12,6 +12,7 @@ function createContext(
   const context = {
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
+    getCanMutateGraphRevision: vi.fn(() => true),
     getUserGroups: vi.fn(() => []),
     getDisabledPlugins: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
@@ -29,6 +30,7 @@ function createContext(
     deleteFiles: vi.fn(() => Promise.resolve()),
     renameFile: vi.fn(() => Promise.resolve()),
     createFile: vi.fn(() => Promise.resolve()),
+    createFolder: vi.fn(() => Promise.resolve()),
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     indexAndSendData: vi.fn(() => Promise.resolve()),
@@ -83,11 +85,13 @@ describe('createGraphViewPrimaryNodeFileHandlers', () => {
     const handlers = createGraphViewPrimaryNodeFileHandlers(context);
 
     expect(handlers.timelineActive).toBe(true);
+    expect(handlers.canMutateGraphRevision).toBe(true);
     expect(handlers.currentCommitSha).toBe('abc123');
     expect(handlers.openSelectedNode).toBe(context.openSelectedNode);
     expect(handlers.setFocusedFile).toBe(context.setFocusedFile);
     expect(handlers.previewFileAtCommit).toBe(context.previewFileAtCommit);
     expect(handlers.getFileInfo).toBe(context.getFileInfo);
+    expect(handlers.createFolder).toBe(context.createFolder);
     expect(handlers.indexGraph).toBeDefined();
     expect(handlers.refreshGraph).toBeDefined();
   });

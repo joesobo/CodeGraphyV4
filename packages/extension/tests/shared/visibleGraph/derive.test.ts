@@ -203,6 +203,32 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     });
   });
 
+  it('connects discovered empty folder nodes through structural projection', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/app.ts'),
+          node('src/new-folder', 'folder'),
+        ],
+        edges: [],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'folder', enabled: true },
+          ],
+          edges: [{ type: STRUCTURAL_NESTS_EDGE_KIND, enabled: true }],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['src/app.ts', 'src/new-folder', 'src'],
+      edges: ['src->src/new-folder#nests', 'src->src/app.ts#nests'],
+    });
+  });
+
   it('returns regex errors from search without throwing', () => {
     const result = deriveVisibleGraph(
       {

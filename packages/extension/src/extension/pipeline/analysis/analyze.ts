@@ -31,6 +31,7 @@ export interface WorkspacePipelineAnalysisSource {
     disabledPlugins: Set<string>,
   ): IGraphData;
   _eventBus?: EventBus;
+  _lastDiscoveredDirectories: string[];
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
@@ -126,6 +127,7 @@ export async function analyzeWorkspaceWithAnalyzer(
 
   source._lastFileAnalysis = analysisResult.fileAnalysis;
   source._lastFileConnections = analysisResult.fileConnections;
+  source._lastDiscoveredDirectories = discoveryResult.directories ?? [];
   source._lastDiscoveredFiles = discoveryResult.files;
   source._lastWorkspaceRoot = workspaceRoot;
 

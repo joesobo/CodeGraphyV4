@@ -130,7 +130,12 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
     showOrphans: boolean,
     disabledPlugins?: Set<string>,
   ) {
-    return this._buildGraphData(fileConnections as never, workspaceRoot, showOrphans, disabledPlugins);
+    return this._buildGraphData(
+      fileConnections as never,
+      workspaceRoot,
+      showOrphans,
+      disabledPlugins,
+    );
   }
 
   public buildGraphDataFromAnalysis(
@@ -139,7 +144,16 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
     showOrphans: boolean,
     disabledPlugins?: Set<string>,
   ) {
-    return this._buildGraphDataFromAnalysis(fileAnalysis as never, workspaceRoot, showOrphans, disabledPlugins);
+    return this._buildGraphDataFromAnalysis(
+      fileAnalysis as never,
+      workspaceRoot,
+      showOrphans,
+      disabledPlugins,
+    );
+  }
+
+  public setLastDiscoveredDirectories(directoryPaths: string[]): void {
+    this._lastDiscoveredDirectories = directoryPaths;
   }
 
   public getFileStat(filePath: string) {
@@ -294,6 +308,8 @@ describe('extension/pipeline/service/internalBase', () => {
     const fileConnections = new Map([['src/a.ts', [{ from: 'a', to: 'b' }]]]);
     const fileAnalysis = new Map([['src/a.ts', { filePath: 'src/a.ts' }]]);
     const disabledPlugins = new Set(['plugin.disabled']);
+    const discoveredDirectories = ['src/generated'];
+    source.setLastDiscoveredDirectories(discoveredDirectories);
 
     expect(
       source.buildGraphData(fileConnections, '/workspace', true, disabledPlugins),
@@ -309,6 +325,7 @@ describe('extension/pipeline/service/internalBase', () => {
       '/workspace',
       true,
       disabledPlugins,
+      discoveredDirectories,
     );
 
     expect(
@@ -330,6 +347,7 @@ describe('extension/pipeline/service/internalBase', () => {
       '/workspace',
       false,
       disabledPlugins,
+      discoveredDirectories,
     );
   });
 

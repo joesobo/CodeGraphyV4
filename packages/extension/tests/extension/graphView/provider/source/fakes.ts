@@ -27,6 +27,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _deleteFiles: vi.fn(async () => undefined),
     _renameFile: vi.fn(async () => undefined),
     _createFile: vi.fn(async () => undefined),
+    _createFolder: vi.fn(async () => undefined),
     _toggleFavorites: vi.fn(),
   };
   const fileVisitMethods = {

@@ -20,6 +20,26 @@ export function collectFolderPaths(
   return { paths: folderPaths, hasRootFiles };
 }
 
+function addFolderPathWithAncestors(folderPaths: Set<string>, folderPath: string): void {
+  const segments = folderPath.split('/');
+  for (let index = 1; index <= segments.length; index += 1) {
+    folderPaths.add(segments.slice(0, index).join('/'));
+  }
+}
+
+export function collectStructuralFolderPaths(
+  fileNodes: IGraphData['nodes'],
+  folderNodes: IGraphData['nodes'],
+): { paths: Set<string>; hasRootFiles: boolean } {
+  const result = collectFolderPaths(fileNodes);
+
+  for (const folderNode of folderNodes) {
+    addFolderPathWithAncestors(result.paths, folderNode.id);
+  }
+
+  return result;
+}
+
 export function createFolderNodes(
   folderPaths: Set<string>,
   folderNodeColor: string,

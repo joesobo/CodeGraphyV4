@@ -49,3 +49,7 @@ function getFallbackColor(nodeType: string): string {
 export function getFileNodes(nodes: IGraphNode[]): IGraphNode[] {
   return nodes.filter((node) => getResolvedNodeType(node) === 'file');
 }
+
+export function getFolderNodes(nodes: IGraphNode[]): IGraphNode[] {
+  return nodes.filter((node) => getResolvedNodeType(node) === 'folder');
+}

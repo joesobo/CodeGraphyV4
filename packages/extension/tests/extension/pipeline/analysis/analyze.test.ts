@@ -30,6 +30,7 @@ function createSource() {
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     } satisfies IGraphData)),
     _eventBus: { emit },
+    _lastDiscoveredDirectories: [] as string[],
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
     _lastFileAnalysis: new Map(),
     _lastFileConnections: new Map<string, IProjectedConnection[]>(),
@@ -42,6 +43,7 @@ function createSource() {
 function createDependencies() {
   return {
     discover: vi.fn(async () => ({
+      directories: [] as string[],
       durationMs: 3,
       files: [] as IDiscoveredFile[],
       limitReached: false,
@@ -110,6 +112,7 @@ describe('pipeline/analysis/analyze', () => {
     };
 
     dependencies.discover.mockResolvedValue({
+      directories: ['src/new-folder'],
       durationMs: 4,
       files,
       limitReached: false,
@@ -159,6 +162,7 @@ describe('pipeline/analysis/analyze', () => {
       new Set<string>(['plugin.python']),
     );
     expect(source._lastDiscoveredFiles).toEqual(files);
+    expect(source._lastDiscoveredDirectories).toEqual(['src/new-folder']);
     expect(source._lastFileAnalysis).toBe(fileAnalysis);
     expect(source._lastFileConnections).toBe(fileConnections);
     expect(source._lastWorkspaceRoot).toBe('/workspace');
@@ -193,6 +197,7 @@ describe('pipeline/analysis/analyze', () => {
     const dependencies = createDependencies();
 
     dependencies.discover.mockResolvedValue({
+      directories: [],
       durationMs: 5,
       files: [] as IDiscoveredFile[],
       limitReached: true,
@@ -213,6 +218,7 @@ describe('pipeline/analysis/analyze', () => {
     (dependencies as { sendProgress?: (progress: { phase: string; current: number; total: number }) => void }).sendProgress = undefined;
 
     dependencies.discover.mockResolvedValue({
+      directories: [],
       durationMs: 2,
       files: [] as IDiscoveredFile[],
       limitReached: false,

@@ -43,6 +43,8 @@ export interface IDiscoveredFile {
 export interface IDiscoveryResult {
   /** Discovered files */
   files: IDiscoveredFile[];
+  /** Discovered directory paths relative to the workspace root */
+  directories: string[];
   /** Whether the max file limit was hit */
   limitReached: boolean;
   /** Total files found before limit (if limit was reached) */
