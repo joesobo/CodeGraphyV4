@@ -1,5 +1,7 @@
 import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextMenu';
 import type { GraphContextSelection } from './contracts';
+import { decideGraphContextMenu } from './decision/model';
+import type { GraphContextMenuDecision } from './decision/model';
 
 export interface ClassifiedTarget {
   targetId: string;
@@ -16,16 +18,26 @@ export function classifyTarget(
   selection: GraphContextSelection,
   pluginItems: readonly IPluginContextMenuItem[]
 ): ClassifiedTarget | null {
-  if (selection.kind === 'node' && selection.targets.length === 1) {
-    const targetId = selection.targets[0];
+  return classifyPluginTarget(decideGraphContextMenu(selection), pluginItems);
+}
+
+export function classifyPluginTarget(
+  decision: GraphContextMenuDecision,
+  pluginItems: readonly IPluginContextMenuItem[]
+): ClassifiedTarget | null {
+  if (
+    decision.kind === 'singleFileNode'
+    || decision.kind === 'singleFolderNode'
+    || decision.kind === 'singlePackageNode'
+    || decision.kind === 'singlePluginNode'
+  ) {
     const eligibleItems = pluginItems.filter(item => item.when === 'node' || item.when === 'both');
-    return { targetId, targetType: 'node', eligibleItems };
+    return { targetId: decision.target.id, targetType: 'node', eligibleItems };
   }
 
-  if (selection.kind === 'edge' && selection.edgeId) {
-    const targetId = selection.edgeId;
+  if (decision.kind === 'edge' && decision.edgeId) {
     const eligibleItems = pluginItems.filter(item => item.when === 'edge' || item.when === 'both');
-    return { targetId, targetType: 'edge', eligibleItems };
+    return { targetId: decision.edgeId, targetType: 'edge', eligibleItems };
   }
 
   return null;

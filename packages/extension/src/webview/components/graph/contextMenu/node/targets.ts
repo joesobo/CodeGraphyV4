@@ -1,6 +1,5 @@
-export function isPackageNodeId(nodeId: string): boolean {
-  return nodeId.startsWith('pkg:');
-}
+export { isPackageNodeId } from '../decision/targets';
+import { isPackageNodeId } from '../decision/targets';
 
 export function areOnlyPackageNodes(targets: readonly string[]): boolean {
   return targets.every((target) => isPackageNodeId(target));

@@ -3,7 +3,25 @@ import type { BuildGraphContextMenuOptions, GraphContextMenuEntry } from '../con
 import { decideGraphContextMenu } from '../decision/model';
 import { buildEdgeEntries } from '../edge/entries';
 import { buildNodeEntries, buildSingleFolderNodeEntries } from '../node/entries';
-import { buildPluginEntries } from '../plugin/entries';
+import { buildPluginEntriesForDecision } from '../plugin/entries';
+import type { GraphContextMenuDecision } from '../decision/model';
+
+function getNodeTargetIds(
+  decision: Extract<GraphContextMenuDecision, {
+    kind:
+      | 'singleFileNode'
+      | 'singlePackageNode'
+      | 'singlePluginNode'
+      | 'multiFileNodes'
+      | 'multiFolderNodes'
+      | 'multiPackageNodes'
+      | 'mixedNodeSelection';
+  }>
+): readonly string[] {
+  return 'target' in decision
+    ? [decision.target.id]
+    : decision.targets.map(target => target.id);
+}
 
 export function buildGraphContextMenuEntries(
   options: BuildGraphContextMenuOptions
@@ -14,9 +32,11 @@ export function buildGraphContextMenuEntries(
   const baseEntries = decision.kind === 'background'
     ? buildBackgroundEntries(mutationAvailability)
     : decision.kind === 'singleFolderNode'
-      ? buildSingleFolderNodeEntries(decision.target, mutationAvailability, favorites)
-    : decision.kind === 'node'
-        ? buildNodeEntries(decision.targets, timelineActive, mutationAvailability, favorites)
-        : buildEdgeEntries(decision.targets);
-  return [...baseEntries, ...buildPluginEntries(selection, pluginItems)];
+      ? buildSingleFolderNodeEntries(decision.target.id, mutationAvailability, favorites)
+      : decision.kind === 'edge'
+        ? buildEdgeEntries(decision.targets)
+        : decision.kind === 'emptyNodeSelection'
+          ? []
+          : buildNodeEntries(getNodeTargetIds(decision), timelineActive, mutationAvailability, favorites);
+  return [...baseEntries, ...buildPluginEntriesForDecision(decision, pluginItems)];
 }

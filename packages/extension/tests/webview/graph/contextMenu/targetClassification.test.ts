@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { classifyTarget } from '../../../../src/webview/components/graph/contextMenu/targetClassification';
+import {
+  classifyPluginTarget,
+  classifyTarget,
+} from '../../../../src/webview/components/graph/contextMenu/targetClassification';
 import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
 
 const pluginItems: IPluginContextMenuItem[] = [
@@ -67,5 +70,16 @@ describe('graph/contextMenu/targetClassification', () => {
     );
 
     expect(result?.eligibleItems).toHaveLength(0);
+  });
+
+  it('classifies single node decisions as plugin node targets', () => {
+    const result = classifyPluginTarget({
+      kind: 'singleFolderNode',
+      target: { id: 'src', nodeKind: 'folder', nodeType: 'folder' },
+    }, pluginItems);
+
+    expect(result?.targetId).toBe('src');
+    expect(result?.targetType).toBe('node');
+    expect(result?.eligibleItems.map(item => item.label)).toEqual(['Node Action', 'Both Action']);
   });
 });

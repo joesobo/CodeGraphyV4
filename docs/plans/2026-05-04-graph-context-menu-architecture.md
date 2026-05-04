@@ -76,6 +76,17 @@ Direction:
 - Keep right-click selection mechanics out of the decision model.
 - Reuse the classification for menu entries and plugin target eligibility where it improves locality.
 
+Status:
+
+- Done in this branch.
+- The decision model now classifies background, Edge, empty node selection, single File Node, single Folder Node, single Package, single Plugin Node, multi File Nodes, multi Folder Nodes, multi Package selections, and mixed node selections.
+- Package id detection is centralized in the decision target facts and re-exported for existing node menu helpers.
+- Plugin menu eligibility now uses the same decision model in the real Graph Context Menu build path.
+- Verified with:
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/decision/model.test.ts`
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/decision/model.test.ts tests/webview/graph/contextMenu/targetClassification.test.ts tests/webview/graph/contextMenu/pluginEntries.test.ts tests/webview/graph/contextMenu/model.test.ts`
+  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu`
+
 ## Slice 3: Built-In Action Context
 
 Problem:
