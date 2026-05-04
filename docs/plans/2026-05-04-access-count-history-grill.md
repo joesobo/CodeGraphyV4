@@ -1,4 +1,4 @@
-# Access Count From Git History Touches
+# Size By Churn From Git History Touches
 
 ## Status
 
@@ -6,13 +6,13 @@ Discussion branch. No implementation yet.
 
 ## Task Pick
 
-Pick: expand **Access Count** to include Git history touches.
+Pick: replace **Size by Access Count** with **Size by Churn** based on Git history touches.
 
 I picked this ahead of collapsible folder nodes because it strengthens an existing graph sizing mode with data CodeGraphy already collects for the **Timeline View**. Collapsible folder nodes are still valuable, but they are a larger **Collapse Projection** and **Folder Node** interaction design problem and should get their own focused pass.
 
 ## Goal
 
-Make **Size by Access Count** highlight files that are repeatedly active in repo history, even before the user opens those files in the current VS Code session.
+Make **Size by Churn** highlight files that are repeatedly active in repo history.
 
 ## Product Pivot Under Discussion
 
@@ -26,7 +26,7 @@ Under this framing, the sizing mode would stop mixing editor visits with history
 - Example: if the indexed history has 10 commits and `a.ts` appears in 5 changed commits, `a.ts` should land around the middle of the size range.
 - A file touched in only 1 commit should land at the minimum size.
 
-This suggests the user-facing concept may need a new name. **Access Count** implies "I opened this file." The proposed behavior is closer to **Churn** or **History Touches**.
+Decision: use **Size by Churn** in the UI. Use **Git history touch count** as the precise implementation/domain term.
 
 ## Glossary Alignment
 
@@ -43,15 +43,14 @@ Working terms for this plan:
 
 - **Editor visit count**: the existing current-session/local visit source stored as `codegraphy.fileVisits`.
 - **Git history touch count**: a derived count of how often a file appears as added, modified, or renamed while CodeGraphy indexes git history.
-- **Access Count**: the node metric used by the existing **Size by Access Count** mode.
+- **Churn**: the user-facing graph-sizing concept that makes high-change files visually stand out.
 
 ## Recommendation Before Grilling
 
 Start with the smallest user-visible change:
 
-- Keep the existing **Size by Access Count** control.
-- Keep `accessCount` as the node field.
-- Sum editor visits and cached Git history touches into that value.
+- Replace the existing **Size by Access Count** control with **Size by Churn**.
+- Use Git history touches as the sizing metric.
 - Do not add a new UI control in the first slice.
 - Do not run new git-history commands during normal graph refresh; only reuse valid data produced by Timeline indexing.
 
@@ -79,12 +78,19 @@ Recommendation: rename the sizing mode away from **Access Count**. Use **Size by
 
 My preference: **Size by Churn** for the UI, with **Git history touch count** as the implementation/domain term in the plan. Users care that high-churn files stand out; "history touches" is precise but a little mechanical.
 
+Decision: use **Size by Churn** for the UI and **Git history touch count** for the measurement/domain term.
+
+### Question 3: Should editor visits be removed entirely from graph sizing?
+
+Code check: editor visits currently update `accessCount` and show separately as `Visits` in file info/tooltips.
+
+Recommendation: remove editor visits from graph sizing, but do not delete visit tracking in this slice. **Size by Churn** should be history-only. Existing editor visit tracking can stay available for file info/tooltips until a separate cleanup decides whether it still earns its keep.
+
 Pending user decision.
 
 ## Open Questions
 
-1. Is the user-facing metric still **Access Count**, or should this become **Churn** / **History Touches**?
-2. Should editor visits be removed entirely from this sizing mode?
+1. Should editor visits be removed entirely from graph sizing?
 3. Should touch counts include only files present as graphable **File Nodes**, or any path from git history?
 4. Should history touches count commits that touched a file, raw file-change events, or both?
 5. How should renames count?
