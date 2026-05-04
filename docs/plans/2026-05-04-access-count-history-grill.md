@@ -107,11 +107,16 @@ Decision: count only graphable **File Nodes**. Ignore paths that are not represe
 
 Recommendation: count commits that touched a graphable file node. If one commit changes `a.ts`, that is one touch for `a.ts`, even if the file has many line changes. This matches the product read: "which files keep coming up across repo history?" It also matches the example where 5 commits out of 10 touching `a.ts` should make it roughly 50% of the size range.
 
+Decision: count one touch per graphable file per commit. A file changed in five indexed commits has a Git history touch count of five.
+
+### Question 7: How should renames count?
+
+Recommendation: follow Git rename status and carry the previous path's touch count forward to the new path, then count the rename commit as one touch for the new path. If Git does not report a rename, treat delete plus add as separate file histories.
+
 Pending user decision.
 
 ## Open Questions
 
-1. Should history touches count commits that touched a file, raw file-change events, or both?
-2. How should renames count?
-3. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
-4. What invalidates the cached touch count?
+1. How should renames count?
+2. Should current **Timeline Snapshots** show cumulative touch counts as of that commit, or only the final cached touch count?
+3. What invalidates the cached touch count?
