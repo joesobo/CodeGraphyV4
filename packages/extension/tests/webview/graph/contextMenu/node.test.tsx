@@ -677,7 +677,7 @@ describe('Graph context menu (node)', () => {
     expect(deleteMsg!.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
   });
 
-  it('keeps filter actions but hides file-changing single-node actions in timeline mode', async () => {
+  it('keeps filter actions but disables file-changing single-node actions in historical timeline snapshots', async () => {
     graphStore.setState({ timelineActive: true });
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
@@ -696,11 +696,11 @@ describe('Graph context menu (node)', () => {
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
     expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
     expect(screen.getByText('Add Legend Group...')).toBeInTheDocument();
-    expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
-    expect(screen.queryByText('Delete File')).not.toBeInTheDocument();
+    expect(screen.getByText('Rename...')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText('Delete File')).toHaveAttribute('aria-disabled', 'true');
   });
 
-  it('keeps filter actions but hides file-changing multi-node actions in timeline mode', async () => {
+  it('keeps filter actions but disables file-changing multi-node actions in historical timeline snapshots', async () => {
     graphStore.setState({ timelineActive: true });
     const { container } = render(<Graph data={selectionData} />);
     const graphContainer = getGraphContainer(container);
@@ -713,7 +713,7 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
-    expect(screen.queryByText('Delete 2 Files')).not.toBeInTheDocument();
+    expect(screen.getByText('Delete 2 Files')).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('keeps plugin node items visible in timeline mode', async () => {

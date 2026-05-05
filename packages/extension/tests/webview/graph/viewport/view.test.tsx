@@ -1,7 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
+import type { GraphSurfaceSharedProps } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
 
 const harness = vi.hoisted(() => ({
@@ -67,7 +68,7 @@ function createMenuEntries(): GraphContextMenuEntry[] {
   ];
 }
 
-function createSharedProps() {
+function createSharedProps(): GraphSurfaceSharedProps {
   return {
     cooldownTicks: 20,
     d3AlphaDecay: 0.0228,
@@ -90,6 +91,44 @@ function createSharedProps() {
   };
 }
 
+function createSurface2dProps(
+  sharedProps = createSharedProps(),
+): React.ComponentProps<typeof Viewport>['surface2dProps'] {
+  return {
+    fg2dRef: { current: undefined },
+    getArrowColor: vi.fn(),
+    getArrowRelPos: vi.fn(),
+    getLinkColor: vi.fn(),
+    getLinkParticles: vi.fn(),
+    getLinkWidth: vi.fn(),
+    getParticleColor: vi.fn(),
+    linkCanvasObject: vi.fn(),
+    nodeCanvasObject: vi.fn(),
+    nodePointerAreaPaint: vi.fn(),
+    onRenderFramePost: vi.fn(),
+    particleSize: 2,
+    particleSpeed: 0.1,
+    sharedProps,
+  };
+}
+
+function createSurface3dProps(
+  sharedProps = createSharedProps(),
+): React.ComponentProps<typeof Viewport>['surface3dProps'] {
+  return {
+    fg3dRef: { current: undefined },
+    getArrowColor: vi.fn(),
+    getLinkColor: vi.fn(),
+    getLinkParticles: vi.fn(),
+    getLinkWidth: vi.fn(),
+    getParticleColor: vi.fn(),
+    nodeThreeObject: vi.fn(),
+    particleSize: 2,
+    particleSpeed: 0.1,
+    sharedProps,
+  };
+}
+
 function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>> = {}): {
   handleMenuAction: ReturnType<typeof vi.fn>;
 } {
@@ -109,34 +148,8 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
       handleMouseMoveCapture={vi.fn()}
       handleMouseUpCapture={vi.fn()}
       menuEntries={createMenuEntries()}
-      surface2dProps={{
-        fg2dRef: { current: undefined },
-        getArrowColor: vi.fn(),
-        getArrowRelPos: vi.fn(),
-        getLinkColor: vi.fn(),
-        getLinkParticles: vi.fn(),
-        getLinkWidth: vi.fn(),
-        getParticleColor: vi.fn(),
-        linkCanvasObject: vi.fn(),
-        nodeCanvasObject: vi.fn(),
-        nodePointerAreaPaint: vi.fn(),
-        onRenderFramePost: vi.fn(),
-        particleSize: 2,
-        particleSpeed: 0.1,
-        sharedProps: createSharedProps(),
-      }}
-      surface3dProps={{
-        fg3dRef: { current: undefined },
-        getArrowColor: vi.fn(),
-        getLinkColor: vi.fn(),
-        getLinkParticles: vi.fn(),
-        getLinkWidth: vi.fn(),
-        getParticleColor: vi.fn(),
-        nodeThreeObject: vi.fn(),
-        particleSize: 2,
-        particleSpeed: 0.1,
-        sharedProps: createSharedProps(),
-      }}
+      surface2dProps={createSurface2dProps()}
+      surface3dProps={createSurface3dProps()}
       tooltipData={{
         visible: true,
         nodeRect: { x: 10, y: 20, radius: 30 },
@@ -152,6 +165,13 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 }
 
 describe('Viewport', () => {
+  beforeEach(() => {
+    harness.nodeTooltip.mockClear();
+    harness.surface2d.mockClear();
+    harness.surface3d.mockClear();
+    harness.throwSurface3d = false;
+  });
+
   it('falls back to the 2d surface when the 3d surface throws', async () => {
     harness.throwSurface3d = true;
     const onSurface3dError = vi.fn();

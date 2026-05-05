@@ -90,7 +90,7 @@ describe('graphView/settings/snapshotMessages', () => {
         damping: 0.7,
         centerForce: 0.1,
       },
-      'access-count',
+      'churn',
     );
 
     expect(snapshot).toEqual({
@@ -121,7 +121,7 @@ describe('graphView/settings/snapshotMessages', () => {
       particleSize: 6,
       showLabels: false,
       maxFiles: 250,
-      nodeSizeMode: 'access-count',
+      nodeSizeMode: 'churn',
     });
   });
 
@@ -188,7 +188,7 @@ describe('graphView/settings/snapshotMessages', () => {
           particleSize: 6,
           showLabels: false,
           maxFiles: 250,
-          nodeSizeMode: 'access-count',
+          nodeSizeMode: 'churn',
         },
         ['venv/**'],
       ),
@@ -239,7 +239,7 @@ describe('graphView/settings/snapshotMessages', () => {
         },
         {
           type: 'NODE_SIZE_MODE_UPDATED',
-          payload: { nodeSizeMode: 'access-count' },
+          payload: { nodeSizeMode: 'churn' },
         },
       ],
     });

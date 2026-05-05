@@ -5,5 +5,4 @@ export interface IFileInfo {
   plugin?: string;
   incomingCount: number;
   outgoingCount: number;
-  visits: number;
 }

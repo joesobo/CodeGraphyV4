@@ -47,6 +47,6 @@ export function createGraphViewProviderSettingsMethodDelegates(
     _updatePhysicsSetting: (key, value) =>
       owner._methodContainers.physicsSettings._updatePhysicsSetting(key, value),
     _resetPhysicsSettings: () => owner._methodContainers.physicsSettings._resetPhysicsSettings(),
-    _sendFavorites: () => owner._methodContainers.fileVisit._sendFavorites(),
+    _sendFavorites: () => owner._methodContainers.fileInfo._sendFavorites(),
   };
 }

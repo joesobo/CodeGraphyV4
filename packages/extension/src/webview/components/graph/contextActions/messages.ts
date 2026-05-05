@@ -28,13 +28,13 @@ export function createOptionalClipboardEffects(
 
 export function createPathListMessageEffects(
   type: PathListMessageType,
-  paths: string[],
+  paths: readonly string[],
 ): GraphContextEffect[] {
-  return [createPostMessageEffect({ type, payload: { paths } })];
+  return [createPostMessageEffect({ type, payload: { paths: [...paths] } })];
 }
 
-export function createPatternMessageEffects(patterns: string[]): GraphContextEffect[] {
-  return [createPostMessageEffect({ type: 'ADD_TO_EXCLUDE', payload: { patterns } })];
+export function createPatternMessageEffects(patterns: readonly string[]): GraphContextEffect[] {
+  return [createPostMessageEffect({ type: 'ADD_TO_EXCLUDE', payload: { patterns: [...patterns] } })];
 }
 
 export function createRefreshEffects(): GraphContextEffect[] {

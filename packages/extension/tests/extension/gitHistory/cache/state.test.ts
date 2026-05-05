@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   clearCachedCommitState,
+  getCachedGitHistoryChurnCounts,
   getCachedCommitList,
   hasCachedTimeline,
   persistCachedCommitState,
@@ -34,7 +35,9 @@ describe('gitHistory/cache/state', () => {
     const commits = [{ sha: 'abc', timestamp: 1, message: 'init', author: 'Dev', parents: [] }];
     const pluginSignature = 'codegraphy.markdown@1.0.0|codegraphy.typescript@1.0.0';
 
-    await persistCachedCommitState(workspaceState, commits, pluginSignature);
+    await persistCachedCommitState(workspaceState, commits, pluginSignature, {
+      'src/app.ts': 2,
+    });
 
     expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCommits', commits);
     expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCacheVersion', CACHE_VERSION);
@@ -42,6 +45,9 @@ describe('gitHistory/cache/state', () => {
       'codegraphy.timelinePluginSignature',
       pluginSignature,
     );
+    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineChurnCounts', {
+      'src/app.ts': 2,
+    });
 
     await clearCachedCommitState(workspaceState);
 
@@ -51,6 +57,7 @@ describe('gitHistory/cache/state', () => {
       'codegraphy.timelinePluginSignature',
       undefined,
     );
+    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineChurnCounts', undefined);
   });
 
   it('reports timeline cache availability from the stored version and plugin signature', () => {
@@ -92,5 +99,23 @@ describe('gitHistory/cache/state', () => {
     workspaceState.store.set('codegraphy.timelinePluginSignature', pluginSignature);
 
     expect(getCachedCommitList(workspaceState, pluginSignature)).toEqual(commits);
+  });
+
+  it('returns cached churn counts only when the timeline cache is valid', () => {
+    const workspaceState = createWorkspaceState();
+    const pluginSignature = 'codegraphy.markdown@1.0.0';
+    const churnCounts = { 'src/app.ts': 4 };
+
+    workspaceState.store.set('codegraphy.timelineChurnCounts', churnCounts);
+    workspaceState.store.set('codegraphy.timelineCacheVersion', '0.9.0');
+    workspaceState.store.set('codegraphy.timelinePluginSignature', pluginSignature);
+    expect(getCachedGitHistoryChurnCounts(workspaceState, pluginSignature)).toBeNull();
+
+    workspaceState.store.set('codegraphy.timelineCacheVersion', CACHE_VERSION);
+    workspaceState.store.set('codegraphy.timelinePluginSignature', 'codegraphy.markdown@0.9.0');
+    expect(getCachedGitHistoryChurnCounts(workspaceState, pluginSignature)).toBeNull();
+
+    workspaceState.store.set('codegraphy.timelinePluginSignature', pluginSignature);
+    expect(getCachedGitHistoryChurnCounts(workspaceState, pluginSignature)).toEqual(churnCounts);
   });
 });

@@ -29,8 +29,17 @@ function builtInActions(entries: GraphContextMenuEntry[]): BuiltInContextMenuAct
   return actions;
 }
 
+function builtInMenuItems(
+  entries: GraphContextMenuEntry[],
+  actions: readonly BuiltInContextMenuAction[],
+): Extract<GraphContextMenuEntry, { kind: 'item' }>[] {
+  return menuItems(entries).filter(entry =>
+    entry.action.kind === 'builtin' && actions.includes(entry.action.action)
+  );
+}
+
 describe('graph/contextMenuModel', () => {
-  it('builds background menu and hides destructive options in timeline', () => {
+  it('uses Graph Revision mutability for background creation actions', () => {
     const liveEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
       timelineActive: false,
@@ -39,16 +48,21 @@ describe('graph/contextMenuModel', () => {
     });
     expect(menuLabels(liveEntries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
 
-    const timelineEntries = buildGraphContextMenuEntries({
+    const historicalEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
       timelineActive: true,
+      mutationAvailability: 'disabled',
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(timelineEntries)).toEqual(['Refresh', 'Fit All Nodes']);
+    expect(menuLabels(historicalEntries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(
+      builtInMenuItems(historicalEntries, ['createFile', 'createFolder'])
+        .every(entry => entry.disabled)
+    ).toBe(true);
   });
 
-  it('builds single-node menu with timeline filtering', () => {
+  it('uses Graph Revision mutability for File Node mutation actions', () => {
     const selection = makeNodeContextSelection('src/app.ts', new Set<string>());
     const liveEntries = buildGraphContextMenuEntries({
       selection,
@@ -73,6 +87,7 @@ describe('graph/contextMenuModel', () => {
     const timelineEntries = buildGraphContextMenuEntries({
       selection,
       timelineActive: true,
+      mutationAvailability: 'disabled',
       favorites: new Set(['src/app.ts']),
       pluginItems: [],
     });
@@ -84,7 +99,13 @@ describe('graph/contextMenuModel', () => {
       'Focus Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
+      'Rename...',
+      'Delete File',
     ]);
+    expect(
+      builtInMenuItems(timelineEntries, ['rename', 'delete'])
+        .every(entry => entry.disabled)
+    ).toBe(true);
   });
 
   it('builds single-folder-node menu with child creation actions', () => {
@@ -121,15 +142,7 @@ describe('graph/contextMenuModel', () => {
       nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
     });
 
-    const creationEntries = menuItems(entries).filter(entry =>
-      entry.action.kind === 'builtin'
-      && (
-        entry.action.action === 'createFile'
-        || entry.action.action === 'createFolder'
-        || entry.action.action === 'rename'
-        || entry.action.action === 'delete'
-      )
-    );
+    const creationEntries = builtInMenuItems(entries, ['createFile', 'createFolder', 'rename', 'delete']);
 
     expect(creationEntries.map(entry => entry.label)).toEqual([
       'New File...',
@@ -182,10 +195,11 @@ describe('graph/contextMenuModel', () => {
     const backgroundTimeline = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
       timelineActive: true,
+      mutationAvailability: 'disabled',
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(builtInActions(backgroundTimeline)).toEqual(['refresh', 'fitView']);
+    expect(builtInActions(backgroundTimeline)).toEqual(['createFile', 'createFolder', 'refresh', 'fitView']);
 
     const singleSelection = makeNodeContextSelection('src/app.ts', new Set<string>());
     const singleLive = buildGraphContextMenuEntries({
@@ -210,6 +224,7 @@ describe('graph/contextMenuModel', () => {
     const singleTimeline = buildGraphContextMenuEntries({
       selection: singleSelection,
       timelineActive: true,
+      mutationAvailability: 'disabled',
       favorites: new Set<string>(),
       pluginItems: [],
     });
@@ -221,6 +236,8 @@ describe('graph/contextMenuModel', () => {
       'focus',
       'addToFilter',
       'addNodeLegend',
+      'rename',
+      'delete',
     ]);
 
     const multiSelection = makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts']));
@@ -241,6 +258,7 @@ describe('graph/contextMenuModel', () => {
     const multiTimeline = buildGraphContextMenuEntries({
       selection: multiSelection,
       timelineActive: true,
+      mutationAvailability: 'disabled',
       favorites: new Set<string>(),
       pluginItems: [],
     });
@@ -249,6 +267,7 @@ describe('graph/contextMenuModel', () => {
       'copyRelative',
       'toggleFavorite',
       'addToFilter',
+      'delete',
     ]);
 
     const edgeSelection = makeEdgeContextSelection('src/a.ts->src/b.ts', 'src/a.ts', 'src/b.ts');

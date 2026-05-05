@@ -21,8 +21,6 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
   | '_setFocusedFile'
   | '_getFocusedFile'
   | '_getFileInfo'
-  | '_getVisitCount'
-  | '_incrementVisitCount'
   | '_addToExclude'
   | '_indexRepository'
   | '_jumpToCommit'
@@ -45,10 +43,8 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
     _toggleFavorites: paths => owner._methodContainers.fileAction._toggleFavorites(paths),
     _setFocusedFile: filePath => owner._methodContainers.viewSelection.setFocusedFile(filePath),
     _getFocusedFile: () => owner._viewContext.focusedFile,
-    _getFileInfo: filePath => owner._methodContainers.fileVisit._getFileInfo(filePath),
-    _getVisitCount: filePath => owner._methodContainers.fileVisit._getVisitCount(filePath),
-    _incrementVisitCount: filePath => owner._methodContainers.fileVisit._incrementVisitCount(filePath),
-    _addToExclude: patterns => owner._methodContainers.fileVisit._addToExclude(patterns),
+    _getFileInfo: filePath => owner._methodContainers.fileInfo._getFileInfo(filePath),
+    _addToExclude: patterns => owner._methodContainers.fileInfo._addToExclude(patterns),
     _indexRepository: () => owner._methodContainers.timeline._indexRepository(),
     _jumpToCommit: sha => owner._methodContainers.timeline._jumpToCommit(sha),
     _resetTimeline: () => owner._methodContainers.timeline._resetTimeline(),

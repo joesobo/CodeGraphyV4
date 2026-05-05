@@ -27,7 +27,6 @@ const cachedInfo: IFileInfo = {
   plugin: 'typescript',
   incomingCount: 2,
   outgoingCount: 1,
-  visits: 9,
 };
 
 describe('tooltipModel', () => {

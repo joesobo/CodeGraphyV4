@@ -33,7 +33,7 @@ async function loadSubject(
       redo: vi.fn(async () => 'redo'),
     },
     fileAction: {},
-    fileVisit: {},
+    fileInfo: {},
     physicsSettings: {},
     plugin: {
       _sendDecorations: vi.fn(),
@@ -262,7 +262,7 @@ describe('graphView/provider/runtime', () => {
     expect(internals._analysisMethods).toBe(methodContainers.analysis);
     expect(internals._commandMethods).toBe(methodContainers.command);
     expect(internals._fileActionMethods).toBe(methodContainers.fileAction);
-    expect(internals._fileVisitMethods).toBe(methodContainers.fileVisit);
+    expect(internals._fileInfoMethods).toBe(methodContainers.fileInfo);
     expect(internals._pluginMethods).toBe(methodContainers.plugin);
     expect(internals._pluginResourceMethods).toBe(methodContainers.pluginResource);
     expect(internals._physicsSettingsMethods).toBe(methodContainers.physicsSettings);

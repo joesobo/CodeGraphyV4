@@ -146,7 +146,6 @@ export function Viewport({
         incomingCount={tooltipData.info?.incomingCount ?? 0}
         outgoingCount={tooltipData.info?.outgoingCount ?? 0}
         plugin={tooltipData.info?.plugin}
-        visits={tooltipData.info?.visits}
         nodeRect={tooltipData.nodeRect}
         visible={tooltipData.visible}
         extraActions={tooltipData.pluginActions}

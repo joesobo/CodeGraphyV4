@@ -14,7 +14,7 @@ export interface IWorkspaceGraphDataOptions {
   disabledPlugins: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
   showOrphans: boolean;
-  visitCounts: Record<string, number>;
+  churnCounts: Record<string, number>;
   workspaceRoot: string;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
 }
@@ -22,11 +22,11 @@ export interface IWorkspaceGraphDataOptions {
 export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IGraphData {
   const {
     cacheFiles,
+    churnCounts,
     directoryPaths = [],
     disabledPlugins,
     fileConnections,
     showOrphans,
-    visitCounts,
     workspaceRoot,
     getPluginForFile,
   } = options;
@@ -43,7 +43,7 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
     directoryPaths,
     nodeIds,
     showOrphans,
-    visitCounts,
+    churnCounts,
   });
 
   return { nodes, edges };

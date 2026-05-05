@@ -14,6 +14,7 @@ import {
 export function buildNodeEntries(
   targets: readonly string[],
   timelineActive: boolean,
+  mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [
@@ -23,8 +24,8 @@ export function buildNodeEntries(
     ...buildFilterBlock(targets),
   ];
 
-  if (!timelineActive) {
-    entries.push(...buildDestructiveBlock(targets));
+  if (mutationAvailability !== 'hidden') {
+    entries.push(...buildDestructiveBlock(targets, mutationAvailability === 'disabled'));
   }
 
   return entries;

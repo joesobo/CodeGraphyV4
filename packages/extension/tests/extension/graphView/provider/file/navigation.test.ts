@@ -9,7 +9,6 @@ import {
 describe('graphView/provider/file/navigation', () => {
   it('syncs the focused file after a successful open', async () => {
     const source = {
-      _incrementVisitCount: vi.fn(() => Promise.resolve()),
       _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _setFocusedFile: vi.fn(),
     };
@@ -40,7 +39,6 @@ describe('graphView/provider/file/navigation', () => {
 
   it('does not restore a stale focused file after selection moved elsewhere', async () => {
     const source = {
-      _incrementVisitCount: vi.fn(() => Promise.resolve()),
       _getFocusedFile: vi.fn(() => 'src/other.ts'),
       _setFocusedFile: vi.fn(),
     };
@@ -69,13 +67,11 @@ describe('graphView/provider/file/navigation', () => {
     expect(source._setFocusedFile).not.toHaveBeenCalled();
   });
 
-  it('opens files with the provider visit-count callback', async () => {
+  it('opens files through the provider file opener callback', async () => {
     const source = {
-      _incrementVisitCount: vi.fn(() => Promise.resolve()),
       _setFocusedFile: vi.fn(),
     };
-    const openFile = vi.fn(async (_filePath, handlers) => {
-      await handlers.incrementVisitCount('src/index.ts');
+    const openFile = vi.fn(async (_filePath, _handlers) => {
     });
 
     await openGraphViewProviderFile(
@@ -95,7 +91,6 @@ describe('graphView/provider/file/navigation', () => {
     );
 
     expect(openFile).toHaveBeenCalledOnce();
-    expect(source._incrementVisitCount).toHaveBeenCalledWith('src/index.ts');
   });
 
   it('forwards live navigation handlers through the file opener', async () => {
@@ -103,7 +98,6 @@ describe('graphView/provider/file/navigation', () => {
     const fileUri = vscode.Uri.file('/workspace/src/index.ts');
     const document = { uri: fileUri } as vscode.TextDocument;
     const source = {
-      _incrementVisitCount: vi.fn(() => Promise.resolve()),
       _setFocusedFile: vi.fn(),
     };
     const showInformationMessage = vi.fn();
@@ -133,7 +127,6 @@ describe('graphView/provider/file/navigation', () => {
           await handlers.statFile(fileUri);
           await handlers.openTextDocument(fileUri);
           await handlers.showTextDocument(document, { preview: true, preserveFocus: false });
-          await handlers.incrementVisitCount('src/other.ts');
           handlers.logError('open failed', 'boom');
         }),
         revealFile: vi.fn(),
@@ -151,7 +144,6 @@ describe('graphView/provider/file/navigation', () => {
       preview: true,
       preserveFocus: false,
     });
-    expect(source._incrementVisitCount).toHaveBeenCalledWith('src/other.ts');
     expect(logError).toHaveBeenCalledWith('open failed', 'boom');
   });
 

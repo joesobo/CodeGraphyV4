@@ -38,7 +38,6 @@ describe('graphView/provider/file/actions', () => {
     const revealFile = vi.fn(async () => undefined);
     const copyText = vi.fn(async () => undefined);
     const source = {
-      _incrementVisitCount: vi.fn(async () => undefined),
       _analyzeAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
       _setFocusedFile: vi.fn(),
@@ -70,7 +69,6 @@ describe('graphView/provider/file/actions', () => {
 
     expect(openFile).toHaveBeenCalledWith(
       expect.objectContaining({
-        _incrementVisitCount: expect.any(Function),
       }),
       'src/app.ts',
       {
@@ -101,7 +99,6 @@ describe('graphView/provider/file/actions', () => {
       await handlers.executeCreateFolderAction('src/components', { fsPath: '/workspace' });
     });
     const source = {
-      _incrementVisitCount: vi.fn(async () => undefined),
       _analyzeAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
       _setFocusedFile: vi.fn(),
@@ -170,7 +167,6 @@ describe('graphView/provider/file/actions', () => {
       await handlers.executeToggleFavoritesAction(['src/app.ts']);
     });
     const source = {
-      _incrementVisitCount: vi.fn(async () => undefined),
       _analyzeAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
       _setFocusedFile: vi.fn(),
@@ -215,7 +211,6 @@ describe('graphView/provider/file/actions', () => {
 
     expect(openFile).toHaveBeenCalledWith(
       expect.objectContaining({
-        _incrementVisitCount: expect.any(Function),
       }),
       'src/app.ts',
       {
@@ -490,7 +485,6 @@ async function createDefaultDependencyHarness(
   );
 
   const source = {
-    _incrementVisitCount: vi.fn(async () => undefined),
     _analyzeAndSendData: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
     _setFocusedFile: vi.fn(),

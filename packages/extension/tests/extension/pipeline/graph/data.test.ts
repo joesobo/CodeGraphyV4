@@ -20,7 +20,7 @@ function createPlugin(id: string): IPlugin {
 }
 
 describe('pipeline/graph/data', () => {
-  it('builds connected nodes and edges with cached size and visit counts', () => {
+  it('builds connected nodes and edges with cached size and churn counts', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const fileConnections = new Map<string, IProjectedConnection[]>([
       ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' }]],
@@ -35,7 +35,7 @@ describe('pipeline/graph/data', () => {
       disabledPlugins: new Set(),
       fileConnections,
       showOrphans: true,
-      visitCounts: {
+      churnCounts: {
         'src/index.ts': 2,
       },
       workspaceRoot: '/workspace',
@@ -48,14 +48,14 @@ describe('pipeline/graph/data', () => {
         label: 'index.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: 10,
-        accessCount: 2,
+        churn: 2,
       },
       {
         id: 'src/utils.ts',
         label: 'utils.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: 20,
-        accessCount: 0,
+        churn: 0,
       },
     ]);
     expect(graph.edges).toEqual([
@@ -95,7 +95,7 @@ describe('pipeline/graph/data', () => {
       disabledPlugins: new Set(['plugin.python']),
       fileConnections,
       showOrphans: true,
-      visitCounts: {},
+      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: (absolutePath) => {
         if (absolutePath.endsWith('.py')) {
@@ -153,7 +153,7 @@ describe('pipeline/graph/data', () => {
       disabledPlugins: new Set(),
       fileConnections,
       showOrphans: true,
-      visitCounts: {},
+      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => typescriptPlugin,
     });
@@ -206,7 +206,7 @@ describe('pipeline/graph/data', () => {
       disabledPlugins: new Set(),
       fileConnections,
       showOrphans: false,
-      visitCounts: {},
+      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => typescriptPlugin,
     });
@@ -239,7 +239,7 @@ describe('pipeline/graph/data', () => {
         ['src/utils.ts', []],
       ]),
       showOrphans: true,
-      visitCounts: {},
+      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('plugin.typescript'),
     });
@@ -259,7 +259,7 @@ describe('pipeline/graph/data', () => {
         ]],
       ]),
       showOrphans: true,
-      visitCounts: {
+      churnCounts: {
         'src/index.ts': 2,
       },
       workspaceRoot: '/workspace',
@@ -272,7 +272,7 @@ describe('pipeline/graph/data', () => {
         label: 'index.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: 10,
-        accessCount: 2,
+        churn: 2,
       },
       {
         id: 'pkg:fs',
@@ -281,8 +281,6 @@ describe('pipeline/graph/data', () => {
         nodeType: 'package',
         shape2D: 'hexagon',
         shape3D: 'cube',
-        fileSize: undefined,
-        accessCount: 0,
       },
     ]);
     expect(graph.edges).toEqual([
@@ -311,7 +309,7 @@ describe('pipeline/graph/data', () => {
         ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'es6-import' }]],
       ]),
       showOrphans: true,
-      visitCounts: {},
+      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('plugin.typescript'),
     });
@@ -331,7 +329,7 @@ describe('pipeline/graph/data', () => {
         ['src/utils.ts', []],
       ]),
       showOrphans: true,
-      visitCounts: {},
+      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('plugin.typescript'),
     });
@@ -371,7 +369,7 @@ describe('pipeline/graph/data', () => {
         ['src/app.ts', []],
       ]),
       showOrphans: true,
-      visitCounts: {},
+      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('plugin.typescript'),
     });
@@ -382,7 +380,7 @@ describe('pipeline/graph/data', () => {
         label: 'app.ts',
         color: DEFAULT_NODE_COLOR,
         fileSize: 10,
-        accessCount: 0,
+        churn: 0,
       },
       {
         id: 'src/new-folder',
@@ -402,7 +400,7 @@ describe('pipeline/graph/data', () => {
         ['src/utils.ts', []],
       ]),
       showOrphans: true,
-      visitCounts: {},
+      churnCounts: {},
       workspaceRoot: '/workspace',
       getPluginForFile: () => undefined,
     });

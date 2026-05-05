@@ -17,12 +17,19 @@ import {
   persistCachedCommitState,
 } from './cache/state';
 import { readCachedGraphData, removeGitCacheDir, writeCachedGraphData } from './cache/storage';
+import {
+  applyGitHistoryChurnToGraphData,
+  createInitialGitHistoryChurn,
+  updateGitHistoryChurnFromDiff,
+  type GitHistoryChurnCounts,
+} from './churn/model';
 import { getCommitList as getTimelineCommitList } from './commits/list';
 import { analyzeDiffCommitGraph } from './diff/analysis';
 import { execGitCommand } from './exec';
 import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from './files';
 import { analyzeFullCommitGraph } from './fullCommitAnalysis';
 import { indexGitHistory } from './indexer';
+import { createGitHistoryPluginSignature } from './pluginSignature';
 
 /**
  * Service that analyzes git history and builds per-commit graph data
@@ -102,17 +109,33 @@ export class GitHistoryAnalyzer {
     signal: AbortSignal,
     maxCommits: number = 500
   ): Promise<ICommitInfo[]> {
+    let churnCounts: GitHistoryChurnCounts = {};
+
     return indexGitHistory({
       dependencies: {
-        analyzeDiffCommit: (sha, parentSha, previousGraph, abortSignal) =>
-          this._analyzeDiffCommit(sha, parentSha, previousGraph, abortSignal),
-        analyzeFullCommit: (sha, abortSignal) => this._analyzeFullCommit(sha, abortSignal),
+        analyzeDiffCommit: async (sha, parentSha, previousGraph, abortSignal) => {
+          const result = await this._analyzeDiffCommit(
+            sha,
+            parentSha,
+            previousGraph,
+            churnCounts,
+            abortSignal,
+          );
+          churnCounts = result.churnCounts;
+          return result.graphData;
+        },
+        analyzeFullCommit: async (sha, abortSignal) => {
+          const graphData = await this._analyzeFullCommit(sha, abortSignal);
+          churnCounts = createInitialGitHistoryChurn(graphData);
+          return applyGitHistoryChurnToGraphData(graphData, churnCounts);
+        },
         getCommitList: (limit, abortSignal) => this.getCommitList(limit, abortSignal),
         persistCachedCommitState: (commits) =>
           persistCachedCommitState(
             this._context.workspaceState,
             commits,
             this._getPluginSignature(),
+            churnCounts,
           ),
         writeCachedGraphData: (sha, graphData) =>
           writeCachedGraphData(this._context.storageUri, sha, graphData),
@@ -177,15 +200,17 @@ export class GitHistoryAnalyzer {
     sha: string,
     parentSha: string,
     previousGraph: IGraphData,
+    previousChurnCounts: GitHistoryChurnCounts,
     signal: AbortSignal
-  ): Promise<IGraphData> {
-    return analyzeDiffCommitGraph({
-      diffOutput: await getDiffNameStatus(
-        (args, abortSignal) => this._execGit(args, abortSignal),
-        parentSha,
-        sha,
-        signal
-      ),
+  ): Promise<{ graphData: IGraphData; churnCounts: GitHistoryChurnCounts }> {
+    const diffOutput = await getDiffNameStatus(
+      (args, abortSignal) => this._execGit(args, abortSignal),
+      parentSha,
+      sha,
+      signal
+    );
+    const graphData = await analyzeDiffCommitGraph({
+      diffOutput,
       commitFiles: await getCommitTreeFiles(
         (args, abortSignal) => this._execGit(args, abortSignal),
         sha,
@@ -200,6 +225,16 @@ export class GitHistoryAnalyzer {
       signal,
       workspaceRoot: this._workspaceRoot,
     });
+    const churnCounts = updateGitHistoryChurnFromDiff(
+      previousChurnCounts,
+      diffOutput,
+      graphData,
+    );
+
+    return {
+      churnCounts,
+      graphData: applyGitHistoryChurnToGraphData(graphData, churnCounts),
+    };
   }
 
   /**
@@ -226,10 +261,6 @@ export class GitHistoryAnalyzer {
   }
 
   private _getPluginSignature(): string {
-    return this._registry
-      .list()
-      .map(({ plugin }) => `${plugin.id}@${plugin.version}`)
-      .sort((left, right) => left.localeCompare(right))
-      .join('|');
+    return createGitHistoryPluginSignature(this._registry);
   }
 }

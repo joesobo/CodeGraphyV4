@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuRuntimeDependencies } from '../../../../src/webview/components/graph/contextMenuRuntime/controller';
 import { createContextMenuEffectRuntime } from '../../../../src/webview/components/graph/contextMenuRuntime/effects';
+import { resolveGraphContextActionContext } from '../../../../src/webview/components/graph/contextActions/context';
+
+function nodeContext(targets: string[]) {
+  return resolveGraphContextActionContext({ kind: 'node', targets });
+}
 
 function createDependencies(
   overrides: Partial<GraphContextMenuRuntimeDependencies> = {},
@@ -26,7 +31,7 @@ describe('graph/contextMenuRuntime/effects', () => {
 
     runtime.handleMenuAction(
       { kind: 'builtin', action: 'open' },
-      ['src/app.ts'],
+      nodeContext(['src/app.ts']),
     );
 
     expect(dependencies.clearCachedFile).toHaveBeenCalledWith('src/app.ts');
@@ -48,7 +53,7 @@ describe('graph/contextMenuRuntime/effects', () => {
         targetId: 'src/app.ts',
         targetType: 'node',
       },
-      ['src/app.ts'],
+      nodeContext(['src/app.ts']),
     );
 
     expect(dependencies.postMessage).toHaveBeenCalledWith({
@@ -68,7 +73,7 @@ describe('graph/contextMenuRuntime/effects', () => {
 
     runtime.handleMenuAction(
       { kind: 'builtin', action: 'addToFilter' },
-      ['README.md'],
+      nodeContext(['README.md']),
     );
 
     expect(dependencies.openFilterPatternPrompt).toHaveBeenCalledWith(['README.md']);
@@ -81,7 +86,7 @@ describe('graph/contextMenuRuntime/effects', () => {
 
     runtime.handleMenuAction(
       { kind: 'builtin', action: 'addNodeLegend' },
-      ['src/Helper.java'],
+      nodeContext(['src/Helper.java']),
     );
 
     expect(dependencies.openLegendRulePrompt).toHaveBeenCalledWith({
@@ -101,13 +106,13 @@ describe('graph/contextMenuRuntime/effects', () => {
     expect(() =>
       runtime.handleMenuAction(
         { kind: 'builtin', action: 'addToFilter' },
-        ['README.md'],
+        nodeContext(['README.md']),
       ),
     ).not.toThrow();
     expect(() =>
       runtime.handleMenuAction(
         { kind: 'builtin', action: 'addNodeLegend' },
-        ['src/Helper.java'],
+        nodeContext(['src/Helper.java']),
       ),
     ).not.toThrow();
   });

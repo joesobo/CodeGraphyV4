@@ -148,6 +148,11 @@ function liveAbortSignal(): AbortSignal {
   return new AbortController().signal;
 }
 
+function getWrittenGraph(index: number): IGraphData {
+  const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[index];
+  return JSON.parse(writeCallArgs[1] as string) as IGraphData;
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -421,6 +426,48 @@ describe('GitHistoryAnalyzer', () => {
       );
     });
 
+    it('writes cumulative churn into each cached graph revision', async () => {
+      mockGitCommands([
+        { match: 'rev-parse', stdout: 'main\n' },
+        {
+          match: 'log',
+          stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
+        },
+        { match: /ls-tree -r --name-only sha1/, stdout: 'src/a.ts\nsrc/b.ts\n' },
+        { match: /ls-tree -r --name-only sha2/, stdout: 'src/a.ts\nsrc/b.ts\nsrc/c.ts\n' },
+        { match: /show sha1:/, stdout: '' },
+        {
+          match: /diff --name-status/,
+          stdout: 'M\tsrc/a.ts\nA\tsrc/c.ts\n',
+        },
+        { match: /show sha2:/, stdout: '' },
+      ]);
+
+      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
+
+      const firstGraph = getWrittenGraph(0);
+      expect(firstGraph.nodes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'src/a.ts', churn: 1 }),
+          expect.objectContaining({ id: 'src/b.ts', churn: 1 }),
+        ]),
+      );
+
+      const secondGraph = getWrittenGraph(1);
+      expect(secondGraph.nodes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'src/a.ts', churn: 2 }),
+          expect.objectContaining({ id: 'src/b.ts', churn: 1 }),
+          expect.objectContaining({ id: 'src/c.ts', churn: 1 }),
+        ]),
+      );
+      expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineChurnCounts', {
+        'src/a.ts': 2,
+        'src/b.ts': 1,
+        'src/c.ts': 1,
+      });
+    });
+
     it('should handle Added files in diff', async () => {
       mockGitCommands([
         { match: 'rev-parse', stdout: 'main\n' },
@@ -447,8 +494,7 @@ describe('GitHistoryAnalyzer', () => {
       expect(fs.promises.writeFile).toHaveBeenCalledTimes(2);
 
       // Parse the second commit's cached graph to verify the added node
-      const secondCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[1];
-      const secondGraph = JSON.parse(secondCallArgs[1] as string) as IGraphData;
+      const secondGraph = getWrittenGraph(1);
       const nodeIds = secondGraph.nodes.map((n) => n.id);
       expect(nodeIds).toContain('src/new.ts');
     });
@@ -472,8 +518,7 @@ describe('GitHistoryAnalyzer', () => {
       await analyzer.indexHistory(progress, liveAbortSignal());
 
       // Parse the second commit's cached graph
-      const secondCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[1];
-      const secondGraph = JSON.parse(secondCallArgs[1] as string) as IGraphData;
+      const secondGraph = getWrittenGraph(1);
       const nodeIds = secondGraph.nodes.map((n) => n.id);
       expect(nodeIds).not.toContain('src/b.ts');
       expect(nodeIds).toContain('src/a.ts');
@@ -546,8 +591,7 @@ describe('GitHistoryAnalyzer', () => {
       await analyzer.indexHistory(vi.fn(), liveAbortSignal());
 
       // Parse the second commit's graph
-      const secondCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[1];
-      const secondGraph = JSON.parse(secondCallArgs[1] as string) as IGraphData;
+      const secondGraph = getWrittenGraph(1);
       const edgeTargets = secondGraph.edges.filter((e) => e.from === 'src/a.ts').map((e) => e.to);
       expect(edgeTargets).toContain('src/b.ts');
       expect(edgeTargets).toContain('src/c.ts');
@@ -593,13 +637,11 @@ describe('GitHistoryAnalyzer', () => {
       await analyzer.indexHistory(vi.fn(), liveAbortSignal());
 
       // First commit should have old.ts
-      const firstCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
-      const firstGraph = JSON.parse(firstCallArgs[1] as string) as IGraphData;
+      const firstGraph = getWrittenGraph(0);
       expect(firstGraph.nodes.map((n) => n.id)).toContain('src/old.ts');
 
       // Second commit should have src/new.ts instead of src/old.ts
-      const secondCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[1];
-      const secondGraph = JSON.parse(secondCallArgs[1] as string) as IGraphData;
+      const secondGraph = getWrittenGraph(1);
       const nodeIds = secondGraph.nodes.map((n) => n.id);
       expect(nodeIds).toContain('src/new.ts');
       expect(nodeIds).not.toContain('src/old.ts');
@@ -607,6 +649,44 @@ describe('GitHistoryAnalyzer', () => {
       // Edge from main.ts should now point to new.ts
       const mainEdge = secondGraph.edges.find((e) => e.from === 'src/main.ts');
       expect(mainEdge?.to).toBe('src/new.ts');
+    });
+
+    it('carries churn forward when git reports a rename', async () => {
+      mockGitCommands([
+        { match: 'rev-parse', stdout: 'main\n' },
+        {
+          match: 'log',
+          stdout: 'sha3|3|third|A|sha2\nsha2|2|second|A|sha1\nsha1|1|first|B|\n',
+        },
+        { match: /ls-tree -r --name-only sha1/, stdout: 'src/old.ts\n' },
+        { match: /ls-tree -r --name-only sha2/, stdout: 'src/old.ts\n' },
+        { match: /ls-tree -r --name-only sha3/, stdout: 'src/new.ts\n' },
+        { match: /show sha1:/, stdout: '' },
+        { match: /show sha2:/, stdout: '' },
+        { match: /show sha3:/, stdout: '' },
+        {
+          match: /diff --name-status .*sha1 sha2/,
+          stdout: 'M\tsrc/old.ts\n',
+        },
+        {
+          match: /diff --name-status .*sha2 sha3/,
+          stdout: 'R100\tsrc/old.ts\tsrc/new.ts\n',
+        },
+      ]);
+
+      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
+
+      const renamedGraph = getWrittenGraph(2);
+      expect(renamedGraph.nodes).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'src/new.ts', churn: 3 }),
+        ]),
+      );
+      expect(renamedGraph.nodes).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: 'src/old.ts' }),
+        ]),
+      );
     });
   });
 
@@ -821,7 +901,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return true when correct cache version and plugin signature are stored', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
@@ -834,7 +914,7 @@ describe('GitHistoryAnalyzer', () => {
         { plugin: { id: 'z.plugin', version: '2.0.0' } },
         { plugin: { id: 'a.plugin', version: '1.0.0' } },
       ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'a.plugin@1.0.0|z.plugin@2.0.0',
@@ -849,7 +929,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return false when plugin signature does not match the current registry', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'stale.plugin@1.0.0',
@@ -868,7 +948,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
@@ -886,7 +966,7 @@ describe('GitHistoryAnalyzer', () => {
         { plugin: { id: 'z.plugin', version: '2.0.0' } },
         { plugin: { id: 'a.plugin', version: '1.0.0' } },
       ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'a.plugin@1.0.0|z.plugin@2.0.0',
@@ -900,7 +980,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.3.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'stale.plugin@1.0.0',

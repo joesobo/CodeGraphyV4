@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  getAccessCountEffects,
-  getFileInfoEffects,
-} from '../../../../../src/webview/components/graph/messages/fileInfo/effects';
+import { getFileInfoEffects } from '../../../../../src/webview/components/graph/messages/fileInfo/effects';
 
 describe('graph/messages/fileInfo/effects', () => {
   it('creates file info effects for matching and non-matching tooltips', () => {
@@ -12,7 +9,6 @@ describe('graph/messages/fileInfo/effects', () => {
       lastModified: 1704067200000,
       incomingCount: 2,
       outgoingCount: 3,
-      visits: 4,
     };
 
     expect(getFileInfoEffects('src/app.ts', info)).toEqual([
@@ -21,12 +17,6 @@ describe('graph/messages/fileInfo/effects', () => {
     ]);
     expect(getFileInfoEffects('src/utils.ts', info)).toEqual([
       { kind: 'cacheFileInfo', info },
-    ]);
-  });
-
-  it('creates access count update effects', () => {
-    expect(getAccessCountEffects({ nodeId: 'src/app.ts', accessCount: 7 })).toEqual([
-      { kind: 'updateAccessCount', nodeId: 'src/app.ts', accessCount: 7 },
     ]);
   });
 });

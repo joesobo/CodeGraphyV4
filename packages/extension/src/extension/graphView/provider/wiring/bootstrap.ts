@@ -60,6 +60,12 @@ interface RestoreGraphViewProviderStateOptions {
   fallbackNodeSizeMode: NodeSizeMode;
 }
 
+type PersistedNodeSizeMode = NodeSizeMode | 'access-count';
+
+function normalizeNodeSizeMode(mode: PersistedNodeSizeMode): NodeSizeMode {
+  return mode === 'access-count' ? 'churn' : mode;
+}
+
 export function initializeGraphViewProviderServices({
   analyzer,
   viewRegistry,
@@ -117,6 +123,8 @@ export function restoreGraphViewProviderState({
   return {
     depthMode,
     dagMode: configuration.get<DagMode>(dagModeKey, null),
-    nodeSizeMode: configuration.get<NodeSizeMode>(nodeSizeModeKey, fallbackNodeSizeMode),
+    nodeSizeMode: normalizeNodeSizeMode(
+      configuration.get<PersistedNodeSizeMode>(nodeSizeModeKey, fallbackNodeSizeMode),
+    ),
   };
 }

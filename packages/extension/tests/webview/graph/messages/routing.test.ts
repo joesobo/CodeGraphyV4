@@ -51,7 +51,6 @@ describe('graph/messages/effects/routing', () => {
           lastModified: 1704067200000,
           incomingCount: 2,
           outgoingCount: 3,
-          visits: 4,
         },
       },
       graphMode: '2d',
@@ -66,7 +65,6 @@ describe('graph/messages/effects/routing', () => {
           lastModified: 1704067200000,
           incomingCount: 2,
           outgoingCount: 3,
-          visits: 4,
         },
       },
       {
@@ -77,7 +75,6 @@ describe('graph/messages/effects/routing', () => {
           lastModified: 1704067200000,
           incomingCount: 2,
           outgoingCount: 3,
-          visits: 4,
         },
       },
     ]);
@@ -93,7 +90,6 @@ describe('graph/messages/effects/routing', () => {
           lastModified: 1704067200000,
           incomingCount: 2,
           outgoingCount: 3,
-          visits: 4,
         },
       },
       graphMode: '2d',
@@ -108,7 +104,6 @@ describe('graph/messages/effects/routing', () => {
           lastModified: 1704067200000,
           incomingCount: 2,
           outgoingCount: 3,
-          visits: 4,
         },
       },
     ]);
@@ -204,15 +199,6 @@ describe('graph/messages/effects/routing', () => {
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'openInEditor' }]);
-  });
-
-  it('updates cached node access counts', () => {
-    expect(getGraphWebviewMessageEffects({
-      message: { type: 'NODE_ACCESS_COUNT_UPDATED', payload: { nodeId: 'src/app.ts', accessCount: 7 } },
-      graphMode: '2d',
-      tooltipPath: null,
-      graphNodes: [],
-    })).toEqual([{ kind: 'updateAccessCount', nodeId: 'src/app.ts', accessCount: 7 }]);
   });
 
   it('ignores messages with no Graph-side effect', () => {

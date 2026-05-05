@@ -293,10 +293,10 @@ describe('GraphStore message routing', () => {
   it('handles NODE_SIZE_MODE_UPDATED messages', () => {
     store.getState().handleExtensionMessage({
       type: 'NODE_SIZE_MODE_UPDATED',
-      payload: { nodeSizeMode: 'access-count' },
+      payload: { nodeSizeMode: 'churn' },
     });
 
-    expect(store.getState().nodeSizeMode).toBe('access-count');
+    expect(store.getState().nodeSizeMode).toBe('churn');
   });
 
   it('CACHE_INVALIDATED clears indexing progress as well as timeline state', () => {

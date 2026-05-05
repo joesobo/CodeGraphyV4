@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  getAccessCountEffects,
-  getFileInfoEffects,
-} from '../../../../src/webview/components/graph/messages/fileInfo/effects';
+import { getFileInfoEffects } from '../../../../src/webview/components/graph/messages/fileInfo/effects';
 import {
   EMPTY_EFFECTS,
   getExportEffects,
@@ -21,6 +18,5 @@ describe('graph/messages/effectBuilders', () => {
     expect(typeof getNodeBoundsEffects).toBe('function');
     expect(typeof getGraphRuntimeStateEffects).toBe('function');
     expect(typeof getExportEffects).toBe('function');
-    expect(typeof getAccessCountEffects).toBe('function');
   });
 });

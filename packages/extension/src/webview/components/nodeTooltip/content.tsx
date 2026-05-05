@@ -16,7 +16,6 @@ export interface TooltipContentProps {
   incomingCount: number;
   outgoingCount: number;
   plugin?: string;
-  visits?: number;
   extraActions?: TooltipAction[];
   extraSections?: Array<{ title: string; content: string }>;
 }
@@ -36,7 +35,6 @@ export function TooltipStats({
   incomingCount,
   size,
   lastModified,
-  visits,
   plugin,
 }: Omit<TooltipContentProps, 'path' | 'extraSections'>): React.ReactElement {
   return (
@@ -44,7 +42,6 @@ export function TooltipStats({
       <Row label="Connections" value={`${outgoingCount} out \u00B7 ${incomingCount} in`} />
       {size !== undefined && <Row label="Size" value={formatSize(size)} />}
       {lastModified !== undefined && <Row label="Modified" value={formatRelativeTime(lastModified)} />}
-      {(visits ?? 0) > 0 && <Row label="Visits" value={String(visits)} />}
       {plugin && <Row label="Plugin" value={plugin} />}
     </div>
   );

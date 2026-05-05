@@ -2,10 +2,7 @@ import type { IFileInfo } from '../../../../../shared/files/info';
 import type { ExtensionToWebviewMessage } from '../../../../../shared/protocol/extensionToWebview';
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import type { FGNode } from '../../model/build';
-import {
-  getAccessCountEffects,
-  getFileInfoEffects,
-} from '../fileInfo/effects';
+import { getFileInfoEffects } from '../fileInfo/effects';
 import {
   EMPTY_EFFECTS,
   getExportEffects,
@@ -26,8 +23,7 @@ export type GraphWebviewMessageEffect =
   | { kind: 'exportSvg' }
   | { kind: 'exportJpeg' }
   | { kind: 'exportJson' }
-  | { kind: 'exportMarkdown' }
-  | { kind: 'updateAccessCount'; nodeId: string; accessCount: number };
+  | { kind: 'exportMarkdown' };
 
 export interface GraphWebviewMessageOptions {
   message: ExtensionToWebviewMessage;
@@ -50,8 +46,6 @@ type ExportMessage = Extract<
       | 'REQUEST_OPEN_IN_EDITOR';
   }
 >;
-type AccessCountMessage = Extract<ExtensionToWebviewMessage, { type: 'NODE_ACCESS_COUNT_UPDATED' }>;
-
 const GRAPH_WEBVIEW_MESSAGE_EFFECTS = {
   FIT_VIEW: () => getFitViewEffects(),
   ZOOM_IN: ({ graphMode, message }: GraphWebviewMessageOptions) =>
@@ -76,8 +70,6 @@ const GRAPH_WEBVIEW_MESSAGE_EFFECTS = {
     getExportEffects((message as ExportMessage).type),
   REQUEST_OPEN_IN_EDITOR: ({ message }: GraphWebviewMessageOptions) =>
     getExportEffects((message as ExportMessage).type),
-  NODE_ACCESS_COUNT_UPDATED: ({ message }: GraphWebviewMessageOptions) =>
-    getAccessCountEffects((message as AccessCountMessage).payload),
 } satisfies Partial<
   Record<ExtensionToWebviewMessage['type'], (options: GraphWebviewMessageOptions) => GraphWebviewMessageEffect[]>
 >;

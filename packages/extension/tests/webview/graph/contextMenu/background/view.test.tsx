@@ -182,7 +182,7 @@ describe('Graph context menu (background)', () => {
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
   });
 
-  it('hides New File... in timeline mode on background context', async () => {
+  it('disables creation actions for historical timeline snapshots on background context', async () => {
     graphStore.setState({ timelineActive: true });
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
@@ -196,7 +196,8 @@ describe('Graph context menu (background)', () => {
       expect(screen.getByText('Refresh')).toBeInTheDocument();
     });
     expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
-    expect(screen.queryByText('New File...')).not.toBeInTheDocument();
+    expect(screen.getByText('New File...')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText('New Folder...')).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('sends REFRESH_GRAPH message when clicking Refresh', async () => {

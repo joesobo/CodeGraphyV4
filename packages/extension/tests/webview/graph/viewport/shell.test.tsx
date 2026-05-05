@@ -142,7 +142,6 @@ function createInteractions(): UseGraphInteractionRuntimeResult {
 			zoomGraphView: vi.fn(),
 			setSelection: vi.fn(),
 			requestNodeOpenById: vi.fn(),
-			updateAccessCount: vi.fn(),
 		},
 		setTooltipData: vi.fn(),
 		tooltipData: {

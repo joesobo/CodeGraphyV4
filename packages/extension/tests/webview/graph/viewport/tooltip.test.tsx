@@ -237,7 +237,6 @@ describe('Viewport tooltip count mutations (L111-112)', () => {
           incomingCount: 3,
           outgoingCount: 5,
           plugin: 'TypeScript',
-          visits: 7,
         },
         pluginSections: [{ title: 'Coverage', content: '90%' }],
       },
@@ -252,7 +251,6 @@ describe('Viewport tooltip count mutations (L111-112)', () => {
         incomingCount: 3,
         outgoingCount: 5,
         plugin: 'TypeScript',
-        visits: 7,
         extraSections: [{ title: 'Coverage', content: '90%' }],
       }),
     );
@@ -307,7 +305,6 @@ describe('Viewport tooltip count mutations (L111-112)', () => {
           lastModified: 1700000000000,
           incomingCount: 7,
           outgoingCount: 2,
-          visits: 1,
         },
         pluginSections: [],
       },
@@ -349,22 +346,6 @@ describe('Viewport tooltip count mutations (L111-112)', () => {
     const calls = harness.nodeTooltip.mock.calls;
     const lastCallProps = calls[calls.length - 1][0];
     expect(lastCallProps.plugin).toBeUndefined();
-  });
-
-  it('passes undefined for visits when info is null', () => {
-    renderViewport({
-      tooltipData: {
-        visible: true,
-        nodeRect: { x: 10, y: 20, radius: 5 },
-        path: 'src/App.ts',
-        info: null,
-        pluginSections: [],
-      },
-    });
-
-    const calls = harness.nodeTooltip.mock.calls;
-    const lastCallProps = calls[calls.length - 1][0];
-    expect(lastCallProps.visits).toBeUndefined();
   });
 
   it('passes nodeRect from tooltipData to NodeTooltip', () => {

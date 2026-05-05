@@ -82,7 +82,7 @@ describe('graph view provider bootstrap helper', () => {
     const configuration = {
       get<T>(key: string, defaultValue: T): T {
         if (key === 'dag') return 'horizontal' as T;
-        if (key === 'size') return 'visits' as T;
+        if (key === 'size') return 'churn' as T;
         return defaultValue;
       },
     };
@@ -98,7 +98,7 @@ describe('graph view provider bootstrap helper', () => {
     ).toEqual({
       depthMode: false,
       dagMode: 'horizontal',
-      nodeSizeMode: 'visits',
+      nodeSizeMode: 'churn',
     });
   });
 
@@ -119,6 +119,29 @@ describe('graph view provider bootstrap helper', () => {
       depthMode: false,
       dagMode: null,
       nodeSizeMode: 'connections',
+    });
+  });
+
+  it('migrates the old access-count node size mode to churn', () => {
+    expect(
+      restoreGraphViewProviderState({
+        configuration: {
+          get<T>(key: string, defaultValue: T): T {
+            if (key === 'size') {
+              return 'access-count' as T;
+            }
+            return defaultValue;
+          },
+        },
+        dagModeKey: 'dag',
+        nodeSizeModeKey: 'size',
+        depthModeKey: 'depth',
+        fallbackNodeSizeMode: 'connections',
+      }),
+    ).toEqual({
+      depthMode: false,
+      dagMode: null,
+      nodeSizeMode: 'churn',
     });
   });
 
