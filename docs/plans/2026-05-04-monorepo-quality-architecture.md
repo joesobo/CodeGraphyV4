@@ -383,3 +383,37 @@ Validation:
 Scoped mutation:
 
 - `pnpm run mutate -- extension/src/extension/repoSettings/freshness`: pass, 100% mutation score, 87 killed, 0 survivors, 0 no coverage, every file under mutation-site threshold
+
+## Workspace Files Refresh Watchers Slice
+
+Architecture candidate: `packages/extension/src/extension/workspaceFiles/refresh`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged one anonymous workspace-file watcher callback at 8.1 after the repo-settings freshness split.
+- Workspace refresh is a core extension boundary: saved documents, file-system watcher events, workspace explorer events, and rename events all feed the Graph Cache refresh scheduler.
+- The watcher module mixed VS Code subscription wiring with refresh policy and event emission, which made the callback behavior harder to inspect and mutate directly.
+
+Changes made:
+
+- Kept `watchers.ts` focused on registering VS Code subscriptions and binding log messages/event names.
+- Added `operations.ts` for the refresh policy:
+  - saved-document refresh
+  - file create/delete refresh
+  - workspace explorer create/delete refresh
+  - rename refresh and event emission
+- Added file-mapped tests for both watcher wiring and operation behavior, including ignored saves, ignored file operations, ignored renames, and emitted workspace events.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/workspaceFiles/refresh`: pass, 4 files / 27 tests
+- `pnpm --filter @codegraphy/extension exec eslint src/extension/workspaceFiles/refresh tests/extension/workspaceFiles/refresh`: pass
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm run boundaries -- extension/src/extension/workspaceFiles/refresh`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/extension/workspaceFiles/refresh`: pass, all functions CRAP <= 8
+
+Scoped mutation:
+
+- `pnpm run mutate -- extension/src/extension/workspaceFiles/refresh/watchers.ts`: pass, 100% mutation score, 19 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/workspaceFiles/refresh/operations.ts`: pass, 100% mutation score, 35 killed, 0 survivors, under mutation-site threshold

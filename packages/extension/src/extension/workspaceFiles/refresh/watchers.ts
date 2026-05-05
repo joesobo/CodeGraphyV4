@@ -1,43 +1,10 @@
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../../graphViewProvider';
 import {
-  shouldIgnoreSaveForGraphRefresh,
-  shouldIgnoreWorkspaceFileWatcherRefresh,
-} from '../ignore';
-import { scheduleWorkspaceRefresh } from './scheduler';
-
-function refreshWorkspacePaths(
-  provider: GraphViewProvider,
-  logMessage: string,
-  filePaths: readonly string[],
-): string[] {
-  const refreshPaths = filePaths.filter(filePath =>
-    !shouldIgnoreWorkspaceFileWatcherRefresh(filePath),
-  );
-
-  if (refreshPaths.length > 0) {
-    scheduleWorkspaceRefresh(provider, logMessage, refreshPaths);
-  }
-
-  return refreshPaths;
-}
-
-function refreshWorkspaceFileOperation(
-  provider: GraphViewProvider,
-  logMessage: string,
-  files: readonly vscode.Uri[],
-  eventName: 'workspace:fileCreated' | 'workspace:fileDeleted',
-): void {
-  const refreshPaths = refreshWorkspacePaths(
-    provider,
-    logMessage,
-    files.map(uri => uri.fsPath),
-  );
-
-  for (const filePath of refreshPaths) {
-    provider.emitEvent(eventName, { filePath });
-  }
-}
+  refreshWorkspaceFileOperation,
+  refreshWorkspaceRenameOperation,
+  refreshWorkspaceSavedDocument,
+} from './operations';
 
 export function registerSaveHandler(
   context: vscode.ExtensionContext,
@@ -45,15 +12,7 @@ export function registerSaveHandler(
 ): void {
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((document) => {
-      if (shouldIgnoreSaveForGraphRefresh(document)) {
-        return;
-      }
-      scheduleWorkspaceRefresh(
-        provider,
-        '[CodeGraphy] File saved, refreshing graph',
-        [document.uri.fsPath],
-      );
-      provider.emitEvent('workspace:fileChanged', { filePath: document.uri.fsPath });
+      refreshWorkspaceSavedDocument(provider, document);
     }),
   );
 }
@@ -105,22 +64,7 @@ export function registerFileWatcher(
   );
   context.subscriptions.push(
     vscode.workspace.onDidRenameFiles((event) => {
-      const refreshPaths = refreshWorkspacePaths(
-        provider,
-        '[CodeGraphy] File renamed, refreshing graph',
-        event.files.flatMap(file => [file.oldUri.fsPath, file.newUri.fsPath]),
-      );
-
-      if (refreshPaths.length === 0) {
-        return;
-      }
-
-      for (const file of event.files) {
-        provider.emitEvent('workspace:fileRenamed', {
-          oldPath: file.oldUri.fsPath,
-          newPath: file.newUri.fsPath,
-        });
-      }
+      refreshWorkspaceRenameOperation(provider, event.files);
     }),
   );
   context.subscriptions.push(fileWatcher);
