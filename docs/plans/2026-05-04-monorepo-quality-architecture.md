@@ -189,3 +189,40 @@ Validation:
 - `pnpm run crap -- extension/src/webview/graphControls/filtering`: pass, all functions CRAP <= 8; `edges.ts` and `nodes.ts` at 100% statements, branches, functions, and lines
 - `pnpm run mutate -- extension/src/webview/graphControls/filtering`: pass, 100% mutation score, 71 killed, 0 survivors
 - `pnpm run lint`: pass
+
+## Tree-sitter JavaScript Type Import Slice
+
+Architecture candidate: `packages/extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged `visitJavaScriptNode` and `handleJavaScriptImportStatement`.
+- The JavaScript import analyzer treated type-only imports as an extension of the value-import path, which made the import module shallow and harder to test.
+- Scoped mutation on the first extracted type-import module showed 144 mutation sites and a 75.69% score, so the first split was still too broad.
+
+Changes made:
+
+- Replaced the JavaScript node visitor switch with a visitor table in `file.ts`.
+- Split type-import analysis into a small feature folder:
+  - `typeImports/clause.ts` locates import clauses and named import specifiers.
+  - `typeImports/markers.ts` detects top-level and inline `type` markers.
+  - `typeImports/binding.ts` turns syntax nodes into imported type bindings.
+  - `typeImports/collect.ts` orchestrates statement-level type binding collection.
+- Kept value-import and type-import relation emission separate in `imports.ts`.
+- Added file-mapped tests for each type-import module, plus integration assertions in the JavaScript import tests.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/javascript/typeImports tests/extension/pipeline/treesitter/javascript/imports.test.ts tests/extension/pipeline/treesitter/analyze.test.ts`: pass, 6 files / 37 tests
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy/extension exec eslint src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript tests/extension/pipeline/treesitter/javascript/typeImports tests/extension/pipeline/treesitter/javascript/imports.test.ts`: pass
+- `pnpm run boundaries -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript`: pass, all functions CRAP <= 8
+
+Scoped mutation:
+
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/typeImports/binding.ts`: pass, 100% mutation score, 46 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/typeImports/clause.ts`: pass, 100% mutation score, 29 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/typeImports/markers.ts`: pass, 100% mutation score, 15 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/typeImports/collect.ts`: pass, 100% mutation score, 39 killed, 0 survivors, under mutation-site threshold

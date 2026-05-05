@@ -55,10 +55,19 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     getStringSpecifier.mockReturnValue('./lib');
     const importedBindings = new Map();
     const relations: never[] = [];
+    const importNode = {
+      children: [
+        { type: 'import' },
+        { type: 'import_clause' },
+        { type: 'from' },
+        { type: 'string' },
+      ],
+      namedChildren: [{ type: 'identifier' }, { type: 'string' }],
+    };
 
     expect(
       handleJavaScriptImportStatement(
-        { namedChildren: [{ type: 'identifier' }, { type: 'string' }] } as never,
+        importNode as never,
         '/workspace/src/app.ts',
         relations,
         importedBindings as never,
@@ -67,7 +76,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(getStringSpecifier).toHaveBeenCalledWith({ type: 'string' });
     expect(resolveTreeSitterImportPath).toHaveBeenCalledWith('/workspace/src/app.ts', './lib');
     expect(collectImportBindings).toHaveBeenCalledWith(
-      { namedChildren: [{ type: 'identifier' }, { type: 'string' }] },
+      importNode,
       './lib',
       '/workspace/src/lib.ts',
       importedBindings,
@@ -167,6 +176,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
                   {
                     type: 'import_specifier',
                     text: 'Bar',
+                    children: [],
                     namedChildren: [{ type: 'identifier', text: 'Bar' }],
                   },
                 ],
