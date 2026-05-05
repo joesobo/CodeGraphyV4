@@ -66,8 +66,59 @@ Candidates should be accepted only when they improve locality or leverage enough
 
 ## Status
 
-- Setup: in progress.
-- Baseline gates: pending.
-- Architecture candidates: pending.
-- Implementation: pending.
+- Setup: complete.
+- Baseline gates: complete.
+- Architecture candidates: in progress.
+- Implementation: in progress.
 - Final CI: pending.
+
+## Completed Baseline
+
+- `pnpm install`
+- `pnpm run lint`
+- `pnpm run typecheck`
+- `pnpm run test`
+- `pnpm run build`
+
+All broad baseline gates passed before cleanup work started.
+
+## Package Quality Sweep
+
+The all-package sweep covered:
+
+- `pnpm run organize -- <package>`
+- `pnpm run boundaries -- <package>`
+- `pnpm run reachability -- <package> --strict`
+- `pnpm run crap -- <package>`
+- `pnpm run scrap -- <package>`
+
+Initial hard reachability failures:
+
+- `packages/extension`
+- `packages/codegraphy-mcp`
+
+`packages/codegraphy-mcp` was missing its CLI entrypoint in `quality.config.json`.
+
+`packages/extension` had a mix of real dead surfaces and hidden public barrel entrypoints:
+
+- Real dead surfaces removed:
+  - old settings-panel filter section
+  - legacy graph-control filtering facade
+  - legacy search filter graph
+  - duplicate structural-edge builders now owned by `shared/visibleGraph/structure.ts`
+  - duplicate webview search matching now owned by `shared/visibleGraph/search.ts`
+- Entrypoints documented in `quality.config.json`:
+  - `src/core/graphQuery/index.ts`
+  - `src/shared/visibleGraph/index.ts`
+
+Retested after cleanup:
+
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- codegraphy-mcp/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/shared/graphControls tests/shared/visibleGraph tests/webview/search tests/webview/settingsPanel`: pass, 42 files / 221 tests
+- `pnpm --filter @codegraphy/quality-tools exec vitest run --config vitest.config.ts tests/boundaries/selection.test.ts`: pass
+- `pnpm run mutate -- quality-tools/src/boundaries/selection.ts`: pass, 100% mutation score, 0 survivors
+- `pnpm run lint`: pass
+- `pnpm run typecheck`: pass
+
+`packages/extension` CRAP still reports existing over-threshold functions. The next cleanup slice will work from the highest-leverage entries rather than mixing that larger refactor into the dead-surface commit.

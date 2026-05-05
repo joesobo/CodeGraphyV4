@@ -5,7 +5,6 @@ import type { IGroup } from '../../../src/shared/settings/groups';
 import {
   applyLegendRules,
 } from '../../../src/webview/search/filtering/rules';
-import { filterGraphData } from '../../../src/webview/search/filtering/graph';
 
 const graphData: IGraphData = {
   nodes: [
@@ -19,48 +18,7 @@ const graphData: IGraphData = {
   ],
 };
 
-const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
-
 describe('search filtering', () => {
-  it('returns null when no graph data is available', () => {
-    expect(filterGraphData(null, 'App', defaultOptions)).toEqual({
-      filteredData: null,
-      regexError: null,
-    });
-  });
-
-  it('returns the original graph for an empty query', () => {
-    const result = filterGraphData(graphData, '   ', defaultOptions);
-
-    expect(result.filteredData).toBe(graphData);
-    expect(result.regexError).toBeNull();
-  });
-
-  it('filters nodes and only keeps edges whose endpoints still match', () => {
-    const result = filterGraphData(graphData, 'App', defaultOptions);
-
-    expect(result.regexError).toBeNull();
-    expect(result.filteredData?.nodes.map((node) => node.id)).toEqual(['src/App.ts']);
-    expect(result.filteredData?.edges).toEqual([]);
-  });
-
-  it('keeps edges whose endpoints both remain after filtering', () => {
-    const result = filterGraphData(graphData, 'src', defaultOptions);
-
-    expect(result.filteredData?.nodes.map((node) => node.id)).toEqual(['src/App.ts', 'src/util.ts']);
-    expect(result.filteredData?.edges).toEqual([
-      { id: 'edge-1', from: 'src/App.ts', to: 'src/util.ts', kind: 'import', sources: [] },
-    ]);
-  });
-
-  it('surfaces regex errors from the underlying matcher', () => {
-    const result = filterGraphData(graphData, '[invalid', { ...defaultOptions, regex: true });
-
-    expect(result.regexError).toBeTruthy();
-    expect(result.filteredData?.nodes).toEqual([]);
-    expect(result.filteredData?.edges).toEqual([]);
-  });
-
   it('returns null when applying group colors to null data', () => {
     expect(applyLegendRules(null, [])).toBeNull();
   });
