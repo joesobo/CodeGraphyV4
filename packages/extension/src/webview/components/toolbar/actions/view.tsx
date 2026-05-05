@@ -2,7 +2,10 @@ import React from 'react';
 import { useGraphStore } from '../../../store/state';
 import { IndexToolbarAction } from './indexAction';
 import { ToolbarPanelButtons } from './panelButtons';
+import { GRAPH_TOOL_PANEL_BUTTONS, SYSTEM_PANEL_BUTTONS } from './model';
 import { PluginToolbarActions } from '../plugin/Actions';
+import { LayoutModePopover } from '../LayoutModePopover';
+import { NodeSizeModePopover } from '../NodeSizeModePopover';
 
 export {
   getToolbarActionIconPath,
@@ -20,15 +23,34 @@ export function ToolbarActions(): React.ReactElement {
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
 
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className="flex flex-col items-center gap-2" data-testid="toolbar-actions">
+      <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-lifecycle-group">
       <IndexToolbarAction
         graphHasIndex={graphHasIndex}
         graphIndexFreshness={graphIndexFreshness}
         graphIndexDetail={graphIndexDetail}
         graphIsIndexing={graphIsIndexing}
       />
-      <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
-      <ToolbarPanelButtons activePanel={activePanel} setActivePanel={setActivePanel} />
+      </div>
+      <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />
+      <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-graph-tools-group">
+        <LayoutModePopover />
+        <NodeSizeModePopover />
+        <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
+        <ToolbarPanelButtons
+          activePanel={activePanel}
+          buttons={GRAPH_TOOL_PANEL_BUTTONS}
+          setActivePanel={setActivePanel}
+        />
+      </div>
+      <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />
+      <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-system-group">
+        <ToolbarPanelButtons
+          activePanel={activePanel}
+          buttons={SYSTEM_PANEL_BUTTONS}
+          setActivePanel={setActivePanel}
+        />
+      </div>
     </div>
   );
 }

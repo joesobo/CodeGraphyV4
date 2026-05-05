@@ -23,16 +23,8 @@ vi.mock('../../../../../src/webview/components/legends/panel/view', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="legends-panel" /> : null),
 }));
 
-vi.mock('../../../../../src/webview/components/nodes/Panel', () => ({
-  default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="nodes-panel" /> : null),
-}));
-
-vi.mock('../../../../../src/webview/components/edges/Panel', () => ({
-  default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="edges-panel" /> : null),
-}));
-
-vi.mock('../../../../../src/webview/components/export/Panel', () => ({
-  default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="export-panel" /> : null),
+vi.mock('../../../../../src/webview/components/graphScope/Panel', () => ({
+  default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="graph-scope-panel" /> : null),
 }));
 
 vi.mock('../../../../../src/webview/components/graphCornerControls/view', () => ({
@@ -88,9 +80,7 @@ describe('app/PanelStack', () => {
 
   it.each([
     ['settings', 'settings-panel'],
-    ['export', 'export-panel'],
-    ['nodes', 'nodes-panel'],
-    ['edges', 'edges-panel'],
+    ['graphScope', 'graph-scope-panel'],
     ['legends', 'legends-panel'],
   ])('renders the %s panel when it is active', (activePanel, testId) => {
     render(

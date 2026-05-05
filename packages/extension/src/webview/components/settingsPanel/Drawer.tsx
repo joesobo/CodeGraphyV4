@@ -1,6 +1,6 @@
 /**
  * @fileoverview Settings panel with collapsible accordion sections:
- * Forces and Display.
+ * Display, Forces, Performance, and Export.
  * @module webview/components/settingsPanel/Drawer
  */
 
@@ -12,7 +12,9 @@ import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/overlay/tooltip';
 import { DisplaySection } from './display/Section';
+import { SettingsExportSection } from './export/Section';
 import { ForcesSection } from './forces/Section';
+import { PerformanceSection } from './performance/Section';
 import { SectionHeader } from './SectionHeader';
 
 interface SettingsPanelProps {
@@ -21,8 +23,10 @@ interface SettingsPanelProps {
 }
 
 export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps): React.ReactElement | null {
-  const [forcesOpen, setForcesOpen] = useState(false);
   const [displayOpen, setDisplayOpen] = useState(false);
+  const [forcesOpen, setForcesOpen] = useState(false);
+  const [performanceOpen, setPerformanceOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   if (!isOpen) {
     return null;
@@ -62,11 +66,17 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps): 
 
       <ScrollArea className="flex-1 min-h-0">
         <div className="px-3 pb-3">
+          <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen((open) => !open)} />
+          {displayOpen && <DisplaySection />}
+
           <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen((open) => !open)} />
           {forcesOpen && <ForcesSection />}
 
-          <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen((open) => !open)} />
-          {displayOpen && <DisplaySection />}
+          <SectionHeader title="Performance" open={performanceOpen} onToggle={() => setPerformanceOpen((open) => !open)} />
+          {performanceOpen && <PerformanceSection />}
+
+          <SectionHeader title="Export" open={exportOpen} onToggle={() => setExportOpen((open) => !open)} />
+          {exportOpen && <SettingsExportSection />}
         </div>
       </ScrollArea>
     </div>

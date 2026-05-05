@@ -26,7 +26,7 @@ describe('SearchBar (CSS class mutations)', () => {
     vi.restoreAllMocks();
   });
 
-  it('applies relative and flex to the outer container', () => {
+  it('applies the themed container classes to the outer container', () => {
     const { container } = render(
       <SearchBar
         value=""
@@ -37,9 +37,26 @@ describe('SearchBar (CSS class mutations)', () => {
     );
     const outer = container.firstElementChild as HTMLElement;
     expect(outer.className).toContain('relative');
-    expect(outer.className).toContain('flex');
-    expect(outer.className).toContain('items-center');
-    expect(outer.className).toContain('gap-2');
+    expect(outer.className).toContain('rounded-md');
+    expect(outer.className).toContain('border-[var(--cg-border-subtle)]');
+    expect(outer.className).toContain('bg-[var(--cg-popover-translucent)]');
+    expect(outer.className).toContain('p-2');
+  });
+
+  it('applies wrapped row layout to the control row', () => {
+    const { container } = render(
+      <SearchBar
+        value=""
+        onChange={mockOnChange}
+        options={defaultOptions}
+        onOptionsChange={mockOnOptionsChange}
+      />,
+    );
+    const row = container.firstElementChild?.firstElementChild as HTMLElement;
+    expect(row.className).toContain('flex');
+    expect(row.className).toContain('flex-wrap');
+    expect(row.className).toContain('items-center');
+    expect(row.className).toContain('gap-2');
   });
 
   it('applies flex-1 to the inner container', () => {

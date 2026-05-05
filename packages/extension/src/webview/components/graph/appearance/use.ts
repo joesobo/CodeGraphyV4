@@ -4,20 +4,22 @@ import { isThemeChangedMessage } from '../../../theme/brightness/detection';
 import { resolveGraphAppearance } from './model';
 import type { GraphAppearance } from './model';
 
+const GRAPH_APPEARANCE_KEYS = [
+  'focusBorder',
+  'labelForeground',
+  'labelMutedForeground',
+  'linkHighlight',
+  'linkMuted',
+  'meshDimmed',
+  'meshSelected',
+  'nodeSelectionBorder',
+  'stageBackground',
+  'stageBorder',
+  'transparent',
+] as const satisfies readonly (keyof GraphAppearance)[];
+
 function graphAppearancesMatch(first: GraphAppearance, second: GraphAppearance): boolean {
-  return (
-    first.focusBorder === second.focusBorder
-    && first.labelForeground === second.labelForeground
-    && first.labelMutedForeground === second.labelMutedForeground
-    && first.linkHighlight === second.linkHighlight
-    && first.linkMuted === second.linkMuted
-    && first.meshDimmed === second.meshDimmed
-    && first.meshSelected === second.meshSelected
-    && first.nodeSelectionBorder === second.nodeSelectionBorder
-    && first.stageBackground === second.stageBackground
-    && first.stageBorder === second.stageBorder
-    && first.transparent === second.transparent
-  );
+  return GRAPH_APPEARANCE_KEYS.every((key) => first[key] === second[key]);
 }
 
 export function useGraphAppearance(theme: ThemeKind): GraphAppearance {

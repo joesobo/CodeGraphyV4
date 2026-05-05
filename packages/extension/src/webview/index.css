@@ -51,6 +51,7 @@
     --cg-focus-border: var(--vscode-focusBorder, Highlight);
     --cg-disabled-foreground: var(--vscode-disabledForeground, GrayText);
     --cg-error-foreground: var(--vscode-errorForeground, var(--cg-destructive-foreground));
+    --cg-warning: var(--vscode-editorWarning-foreground, var(--cg-primary));
     --cg-shadow: var(--vscode-widget-shadow, transparent);
     --cg-transparent: transparent;
     --cg-overlay-background: color-mix(in srgb, var(--cg-background) 70%, transparent);

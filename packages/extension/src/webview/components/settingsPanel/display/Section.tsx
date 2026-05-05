@@ -3,33 +3,34 @@ import type { BidirectionalEdgeMode, DirectionMode } from '../../../../shared/se
 import { postMessage } from '../../../vscodeApi';
 import { ColorField } from './ColorField';
 import { LabelsToggle } from './LabelsToggle';
-import { MaxFilesControl } from './MaxFilesControl';
 import { ModeButtons } from './ModeButtons';
 import { OrphansToggle } from './OrphansToggle';
 import { Particles } from './Particles';
+import { Label } from '../../ui/form/label';
+import { Slider } from '../../ui/controls/slider';
+import { Switch } from '../../ui/switch';
 import { useColorUpdates } from './use/colorUpdates';
 import { useDisplayStore } from './use/store';
 import { useParticleSettings } from './use/particles';
 import { getDisplayViewState } from './state/selectors';
-import {
-  decreaseMaxFiles,
-  increaseMaxFiles,
-  parseMaxFilesInput,
-  clampMaxFiles,
-} from './maxFiles';
 
 export function DisplaySection(): React.ReactElement {
   const {
     bidirectionalMode,
+    depthLimit,
+    depthMode,
     directionColor,
     directionMode,
-    maxFiles,
+    graphHasIndex,
+    graphMode,
+    maxDepthLimit,
     particleSize,
     particleSpeed,
     setBidirectionalMode,
+    setDepthMode,
     setDirectionColor,
     setDirectionMode,
-    setMaxFiles,
+    setGraphMode,
     setParticleSize,
     setParticleSpeed,
     setShowLabels,
@@ -72,15 +73,18 @@ export function DisplaySection(): React.ReactElement {
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
   };
 
+  const onGraphModeChange = (mode: '2d' | '3d') => {
+    setGraphMode(mode);
+  };
+
+  const onDepthModeChange = (checked: boolean) => {
+    setDepthMode(checked);
+    postMessage({ type: 'UPDATE_DEPTH_MODE', payload: { depthMode: checked } });
+  };
+
   const onShowLabelsChange = (checked: boolean) => {
     setShowLabels(checked);
     postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: checked } });
-  };
-
-  const commitMaxFiles = (value: number) => {
-    const clamped = clampMaxFiles(value);
-    setMaxFiles(clamped);
-    postMessage({ type: 'UPDATE_MAX_FILES', payload: { maxFiles: clamped } });
   };
 
   const onShowOrphansChange = (checked: boolean) => {
@@ -90,6 +94,57 @@ export function DisplaySection(): React.ReactElement {
 
   return (
     <div className="mb-2 space-y-3">
+      <ModeButtons
+        label="Renderer"
+        onSelect={onGraphModeChange}
+        options={[
+          {
+            label: '2D',
+            pressed: graphMode === '2d',
+            value: '2d',
+            variant: graphMode === '2d' ? 'secondary' : 'outline',
+          },
+          {
+            label: '3D',
+            pressed: graphMode === '3d',
+            value: '3d',
+            variant: graphMode === '3d' ? 'secondary' : 'outline',
+          },
+        ]}
+      />
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between py-0.5">
+          <Label htmlFor="depth-mode" className="text-xs">
+            Depth Mode
+          </Label>
+          <Switch
+            id="depth-mode"
+            checked={depthMode}
+            disabled={!graphHasIndex}
+            onCheckedChange={onDepthModeChange}
+          />
+        </div>
+        <div>
+          <div className="mb-1 flex items-center justify-between">
+            <Label className="text-xs text-muted-foreground">Depth Limit</Label>
+            <span className="font-mono text-xs text-muted-foreground">{depthLimit}</span>
+          </div>
+          <Slider
+            aria-label="Depth limit"
+            disabled={!graphHasIndex || !depthMode}
+            min={1}
+            max={maxDepthLimit}
+            step={1}
+            value={[Math.min(depthLimit, maxDepthLimit)]}
+            onValueChange={(values) => {
+              const nextDepthLimit = values[0] ?? depthLimit;
+              postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: nextDepthLimit } });
+            }}
+          />
+        </div>
+      </div>
+
       <ModeButtons
         label="Direction"
         onSelect={onDirectionModeChange}
@@ -112,24 +167,6 @@ export function DisplaySection(): React.ReactElement {
       <OrphansToggle
         onCheckedChange={onShowOrphansChange}
         showOrphans={showOrphans}
-      />
-
-      <MaxFilesControl
-        maxFiles={maxFiles}
-        onBlur={(value) => commitMaxFiles(parseMaxFilesInput(value) ?? 1)}
-        onChange={(value) => {
-          const parsed = parseMaxFilesInput(value);
-          if (parsed !== null) {
-            setMaxFiles(parsed);
-          }
-        }}
-        onDecrease={() => commitMaxFiles(decreaseMaxFiles(maxFiles))}
-        onIncrease={() => commitMaxFiles(increaseMaxFiles(maxFiles))}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            commitMaxFiles(parseMaxFilesInput(event.currentTarget.value) ?? 1);
-          }
-        }}
       />
 
       {showParticleControls && (
