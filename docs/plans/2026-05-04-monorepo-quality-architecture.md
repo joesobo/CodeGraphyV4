@@ -453,3 +453,46 @@ Scoped mutation:
 
 - First `pnpm run mutate -- extension/src/core/discovery/file/walk.ts`: pass at 92.31%, but left 3 survivors.
 - After tightening tests and the unreadable-directory helper: `pnpm run mutate -- extension/src/core/discovery/file/walk.ts`: pass, 100% mutation score, 35 killed, 0 survivors, under mutation-site threshold
+
+## Workspace File Analysis Slice
+
+Architecture candidate: `packages/extension/src/extension/pipeline/fileAnalysis`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged `analyzeWorkspaceFiles` at 9.0 after the discovery walker split.
+- The file-analysis runner is the narrow workspace-analysis loop that turns discovered files into per-file analysis, cache updates, progress events, processed-file payloads, and symbol-enriched relations.
+- A first helper extraction lowered CRAP, but scoped mutation exposed a test-mapping issue and an over-broad enrichment module:
+  - `run.ts` first reported 0% mutation because the behavior test still imported the compatibility facade, so Stryker did not map the test to the new runner module.
+  - `enrichment.ts` first reported 89.39% mutation and 66 mutation sites, over the 50-site threshold.
+
+Changes made:
+
+- Kept `fileAnalysis.ts` as the compatibility facade for existing callers.
+- Split the implementation into a feature-local folder:
+  - `types.ts` owns the runner contracts.
+  - `run.ts` owns cache hit/miss processing, progress events, processed-file payloads, and cache updates.
+  - `enrichment.ts` owns workspace-level relation enrichment orchestration.
+  - `symbols.ts` indexes symbols by owning file path.
+  - `targetSymbol.ts` owns relation-level target-symbol enrichment.
+  - `targetSymbolName.ts` owns metadata-to-symbol-name resolution and unique target selection.
+- Moved the runner behavior tests to `tests/extension/pipeline/fileAnalysis/run.test.ts` and imported `run.ts` directly so mutation maps to the module under test.
+- Added file-mapped tests for enrichment, symbol indexing, relation target enrichment, and target symbol-name resolution.
+- Removed a redundant defensive cache branch once mutation showed it guarded an unreachable state under the runner's own cache-write invariant.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/fileAnalysis`: pass, 5 files / 24 tests
+- `pnpm --filter @codegraphy/extension exec eslint src/extension/pipeline/fileAnalysis.ts src/extension/pipeline/fileAnalysis tests/extension/pipeline/fileAnalysis`: pass
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm run boundaries -- extension/src/extension/pipeline/fileAnalysis`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/extension/pipeline/fileAnalysis`: pass, all functions CRAP <= 8
+
+Scoped mutation:
+
+- After moving `run.test.ts` and removing the redundant cache branch: `pnpm run mutate -- extension/src/extension/pipeline/fileAnalysis/run.ts`: pass, 100% mutation score, 47 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/fileAnalysis/enrichment.ts`: pass, 100% mutation score, 7 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/fileAnalysis/targetSymbolName.ts`: pass, 100% mutation score, 42 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/fileAnalysis/targetSymbol.ts`: pass, 100% mutation score, 12 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/fileAnalysis/symbols.ts`: pass, 100% mutation score, 5 killed, 0 survivors, under mutation-site threshold

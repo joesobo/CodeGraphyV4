@@ -2,11 +2,11 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { IDiscoveredFile } from '../../../src/core/discovery/contracts';
-import type { IProjectedConnection, IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
-import { createEmptyWorkspaceAnalysisCache } from '../../../src/extension/pipeline/cache';
-import { analyzeWorkspaceFiles } from '../../../src/extension/pipeline/fileAnalysis';
-import { analyzeFileWithTreeSitter } from '../../../src/extension/pipeline/plugins/treesitter/runtime/analyze';
+import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
+import type { IProjectedConnection, IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
+import { createEmptyWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
+import { analyzeWorkspaceFiles } from '../../../../src/extension/pipeline/fileAnalysis/run';
+import { analyzeFileWithTreeSitter } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze';
 
 function createFile(relativePath: string): IDiscoveredFile {
   const extensionIndex = relativePath.lastIndexOf('.');
@@ -368,6 +368,7 @@ describe('pipeline/fileAnalysis', () => {
         }),
       ]),
     );
+    expect(cache.files['src/deep.ts'].analysis.relations).toEqual(deepAnalysis?.relations);
   });
 
   it('resolves type-imported symbols across analyzed workspace files', async () => {
