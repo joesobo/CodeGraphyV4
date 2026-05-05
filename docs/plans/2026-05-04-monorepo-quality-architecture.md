@@ -271,3 +271,46 @@ Scoped mutation:
 - `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily/emit.ts`: pass, 96.67% mutation score, 29 killed, 1 survivor, under mutation-site threshold
 - `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily/names.ts`: pass, 100% mutation score, 37 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeHaskell/symbols.ts`: pass, 96.97% mutation score, 32 killed, 1 survivor, under mutation-site threshold
+
+## Visible Graph Projection And Search Slice
+
+Architecture candidate: `packages/extension/src/shared/visibleGraph`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged `applyStructuralProjection` at 15.0 and `getMatchingNodeIds` at 8.6.
+- `shared/visibleGraph` is a public graph-shaping interface that combines scope, filters, search, orphan removal, and structural projection before the webview renders the graph.
+- CodeGraphy MCP was attempted first, but the active Graph Cache was still associated with the protected main worktree instead of this agent worktree. I pivoted to source inspection for this slice rather than trusting stale graph data.
+
+Changes made:
+
+- Split search into:
+  - `searchQuery/options.ts` for option normalization and pattern compilation
+  - `searchQuery/matching.ts` for node-match collection
+  - `search.ts` as the narrow `applySearch` wrapper
+- Split structural projection into:
+  - `structuralProjection/options.ts` for scope-derived feature flags
+  - `structuralProjection/folders.ts` for folder-node projection
+  - `structuralProjection/packages.ts` for workspace-package projection
+  - `structuralProjection/edges.ts` for generated `nests` edges
+  - `structure.ts` as the narrow `applyStructuralProjection` wrapper
+- Added file-mapped tests for each new source module plus wrapper tests for `search.ts` and `structure.ts`.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/shared/visibleGraph`: pass, 9 files / 50 tests
+- `pnpm --filter @codegraphy/extension exec eslint src/shared/visibleGraph tests/shared/visibleGraph`: pass
+- `pnpm run boundaries -- extension/src/shared/visibleGraph`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/shared/visibleGraph`: pass, all functions CRAP <= 8
+
+Scoped mutation:
+
+- `pnpm run mutate -- extension/src/shared/visibleGraph/search.ts`: pass, 100% mutation score, 11 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/shared/visibleGraph/searchQuery/options.ts`: pass, 96.97% mutation score, 32 killed, 1 no coverage, under mutation-site threshold
+- `pnpm run mutate -- extension/src/shared/visibleGraph/searchQuery/matching.ts`: pass, 95.00% mutation score, 19 killed, 1 survivor, under mutation-site threshold
+- `pnpm run mutate -- extension/src/shared/visibleGraph/structure.ts`: pass, 90.91% mutation score, 10 killed, 1 survivor, under mutation-site threshold
+- `pnpm run mutate -- extension/src/shared/visibleGraph/structuralProjection/options.ts`: pass, 100% mutation score, 13 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/shared/visibleGraph/structuralProjection/folders.ts`: pass, 100% mutation score, 20 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/shared/visibleGraph/structuralProjection/packages.ts`: pass, 100% mutation score, 9 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/shared/visibleGraph/structuralProjection/edges.ts`: pass, 92.68% mutation score, 38 killed, 1 survivor, 2 no coverage, under mutation-site threshold
