@@ -119,7 +119,7 @@ describe('DepthModeToggle', () => {
     });
     renderWithProviders();
 
-    expect(screen.getByTitle('Disable Depth Mode').className).toContain('hover:bg-primary/90');
+    expect(screen.getByTitle('Disable Depth Mode').className).toContain('hover:bg-[var(--cg-primary-hover)]');
     expect(screen.getByTitle('Disable Depth Mode')).toHaveAttribute('data-variant', 'default');
     expect(screen.getByTitle('Disable Depth Mode').className).toContain('text-primary-foreground');
   });

@@ -100,7 +100,7 @@ describe('NodeTooltip (CSS class mutations)', () => {
     expect(wrapper.className).toContain('pointer-events-none');
   });
 
-  it('applies VS Code hover widget background class', () => {
+  it('applies themed popover background class', () => {
     const { container } = render(
       <NodeTooltip
         path="src/App.ts"
@@ -111,10 +111,10 @@ describe('NodeTooltip (CSS class mutations)', () => {
       />,
     );
     const wrapper = container.firstElementChild as HTMLElement;
-    expect(wrapper.className).toContain('editorHoverWidget-background');
+    expect(wrapper.className).toContain('bg-popover');
   });
 
-  it('applies VS Code hover widget border class', () => {
+  it('applies themed popover border class', () => {
     const { container } = render(
       <NodeTooltip
         path="src/App.ts"
@@ -125,10 +125,10 @@ describe('NodeTooltip (CSS class mutations)', () => {
       />,
     );
     const wrapper = container.firstElementChild as HTMLElement;
-    expect(wrapper.className).toContain('editorHoverWidget-border');
+    expect(wrapper.className).toContain('border-border');
   });
 
-  it('applies VS Code hover widget foreground class', () => {
+  it('applies themed popover foreground class', () => {
     const { container } = render(
       <NodeTooltip
         path="src/App.ts"
@@ -139,7 +139,7 @@ describe('NodeTooltip (CSS class mutations)', () => {
       />,
     );
     const wrapper = container.firstElementChild as HTMLElement;
-    expect(wrapper.className).toContain('editorHoverWidget-foreground');
+    expect(wrapper.className).toContain('text-popover-foreground');
   });
 
   it('sets zIndex 1000 on the tooltip style', () => {

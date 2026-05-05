@@ -26,8 +26,8 @@ export function RulePromptDialog({
   onColorChange,
 }: RulePromptDialogProps): React.ReactElement {
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/30 px-4">
-      <div className="w-full max-w-sm rounded-lg border bg-popover/95 shadow-lg backdrop-blur-sm">
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-[var(--cg-overlay-background)] px-4">
+      <div className="w-full max-w-sm rounded-lg border bg-[var(--cg-popover-translucent)] shadow-lg backdrop-blur-sm">
         <div className="flex items-center justify-between border-b px-3 py-2">
           <span className="text-sm font-medium">{title}</span>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
@@ -57,7 +57,7 @@ export function RulePromptDialog({
                 type="color"
                 value={color}
                 onChange={(event) => onColorChange(event.target.value)}
-                className="h-8 w-10 cursor-pointer rounded border border-border/60 bg-transparent p-0"
+                className="h-8 w-10 cursor-pointer rounded border border-[var(--cg-border-subtle)] bg-transparent p-0"
               />
             </div>
           ) : null}

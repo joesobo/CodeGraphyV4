@@ -74,7 +74,7 @@ export function RuleColorControl({
   if (rule.isPluginDefault === true) {
     return (
       <span
-        className="h-5 w-8 shrink-0 rounded-sm border border-black/10"
+        className="h-3 w-3 shrink-0 rounded-full border border-border"
         style={{ backgroundColor: rule.color }}
         aria-hidden="true"
       />

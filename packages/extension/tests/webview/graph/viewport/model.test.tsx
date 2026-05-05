@@ -194,7 +194,7 @@ describe('graph/viewport/model', () => {
 			selection: { kind: 'background', targets: [] },
 			timelineActive: true,
 		});
-		expect(harness.getGraphSurfaceColors).toHaveBeenCalledWith('light');
+		expect(harness.getGraphSurfaceColors).toHaveBeenCalledWith(undefined);
 		expect(result.current.sharedProps).toEqual({ shared: true });
 		expect(result.current.backgroundColor).toBe('#f5f5f5');
 		expect(result.current.borderColor).toBe('#d4d4d4');

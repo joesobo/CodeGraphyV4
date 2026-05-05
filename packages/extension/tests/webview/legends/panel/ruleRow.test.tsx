@@ -73,7 +73,7 @@ describe('webview/components/legends/ruleRow', () => {
     });
     expect(handlers.onRemove).toHaveBeenCalledOnce();
     expect(screen.getByTestId('legend-rule-row').className).toBe(
-      'transition-colors bg-accent/30 opacity-60',
+      'transition-colors bg-[var(--cg-accent-strong)] opacity-60',
     );
     expect(screen.getByTitle('Drag legend rule')).toBeInTheDocument();
     expect(screen.getByTestId('legend-rule-row')).not.toHaveAttribute('draggable');

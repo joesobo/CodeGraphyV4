@@ -14,6 +14,7 @@ import { getImage } from '../../../../../src/webview/components/graph/rendering/
 import { drawShape } from '../../../../../src/webview/components/graph/rendering/shapes/draw/twoDimensional';
 import type { WebviewPluginHost } from '../../../../../src/webview/pluginHost/manager';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../../../src/webview/components/graph/appearance/model';
 import {
   paintNodePointerArea,
   renderNodeCanvas,
@@ -28,7 +29,15 @@ interface ContextOperation {
   text?: string;
 }
 
+const TEST_GRAPH_APPEARANCE: GraphAppearance = {
+  ...DEFAULT_GRAPH_APPEARANCE,
+  labelForeground: '#ffffff',
+  labelMutedForeground: '#a1a1aa',
+  nodeSelectionBorder: '#ffffff',
+};
+
 function createDependencies(overrides: Partial<{
+  graphAppearance: GraphAppearance;
   highlightedNeighborIds: Set<string>;
   highlightedNodeId: string | null;
   nodeDecoration: NodeDecorationPayload | undefined;
@@ -40,6 +49,7 @@ function createDependencies(overrides: Partial<{
   return {
     highlightedNeighborsRef: { current: overrides.highlightedNeighborIds ?? new Set<string>() },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
+    graphAppearanceRef: { current: overrides.graphAppearance ?? TEST_GRAPH_APPEARANCE },
     nodeDecorationsRef: {
       current: overrides.nodeDecoration
         ? { 'src/app.ts': overrides.nodeDecoration }

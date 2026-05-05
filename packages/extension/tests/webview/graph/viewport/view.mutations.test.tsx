@@ -147,7 +147,7 @@ describe('Viewport (mutation targets)', () => {
     renderViewport({ menuEntries: entries });
 
     const deleteButton = screen.getByRole('button', { name: /delete file/i });
-    expect(deleteButton.className).toContain('text-red');
+    expect(deleteButton.className).toContain('text-[var(--cg-error-foreground)]');
   });
 
   it('does not render destructive class on non-destructive items', () => {
@@ -163,7 +163,7 @@ describe('Viewport (mutation targets)', () => {
     renderViewport({ menuEntries: entries });
 
     const openButton = screen.getByRole('button', { name: /open file/i });
-    expect(openButton.className || '').not.toContain('text-red');
+    expect(openButton.className || '').not.toContain('text-[var(--cg-error-foreground)]');
   });
 
   it('renders shortcut text when entry has a shortcut', () => {

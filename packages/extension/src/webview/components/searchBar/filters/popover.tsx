@@ -94,7 +94,7 @@ function PatternList({
   empty: boolean;
 }): React.ReactElement {
   return (
-    <div className="max-h-32 overflow-y-auto rounded-md border border-[var(--vscode-panel-border,#3c3c3c)] bg-[var(--vscode-editor-background,#1f1f1f)] p-2">
+    <div className="max-h-32 overflow-y-auto rounded-md border border-border bg-background p-2">
       {empty ? (
         <p className="text-xs text-muted-foreground">No filters.</p>
       ) : (
@@ -478,10 +478,11 @@ export function FilterPopover({
           variant={enabledCount > 0 ? 'secondary' : 'outline'}
           size="sm"
           className="h-7 px-2 text-xs"
+          aria-label={`Filters, ${enabledCount} enabled`}
           title={formatExcludedCount(excludedCount)}
         >
           <MdiIcon path={mdiFilterVariant} size={14} />
-          Filters {enabledCount}
+          {enabledCount}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">

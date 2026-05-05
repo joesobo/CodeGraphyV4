@@ -25,7 +25,7 @@ export default function NodesPanel({
   }
 
   return (
-    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
+    <div className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Nodes</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
@@ -35,7 +35,7 @@ export default function NodesPanel({
 
       <ScrollArea className="flex-1 min-h-0">
         <div className="px-3 py-2">
-          <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
+          <div className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]">
             {nodeTypes.map((nodeType) => {
               const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
               const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
@@ -43,13 +43,13 @@ export default function NodesPanel({
               return (
                 <div
                   key={nodeType.id}
-                  className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-accent/20"
+                  className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-medium truncate">{nodeType.label}</div>
                   </div>
                   <span
-                    className="h-5 w-8 rounded-sm border border-black/10 shrink-0"
+                    className="h-3 w-3 rounded-full border border-border shrink-0"
                     style={{ backgroundColor: color }}
                     aria-hidden="true"
                   />

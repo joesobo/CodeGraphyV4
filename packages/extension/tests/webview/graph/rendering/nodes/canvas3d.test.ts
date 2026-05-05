@@ -29,6 +29,7 @@ import SpriteText from 'three-spritetext';
 import { createImageSprite, createNodeMesh } from '../../../../../src/webview/components/graph/rendering/shapes/draw/threeDimensional';
 import { setSpriteVisible } from '../../../../../src/webview/components/graph/support/contracts/forceGraph';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../src/webview/components/graph/appearance/model';
 import { createNodeThreeObject } from '../../../../../src/webview/components/graph/rendering/nodes/canvas3d';
 
 function createNode(overrides: Partial<FGNode> = {}): FGNode {
@@ -83,6 +84,7 @@ describe('graph/rendering/nodes/canvas3d', () => {
 
   it('positions the label sprite above the node using the scaled node size', () => {
     createNodeThreeObject({
+      graphAppearanceRef: { current: { ...DEFAULT_GRAPH_APPEARANCE, labelForeground: '#ffffff' } },
       meshesRef: { current: new Map() } as never,
       showLabelsRef: { current: true },
       spritesRef: { current: new Map() } as never,

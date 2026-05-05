@@ -58,7 +58,7 @@ describe('app/PanelStack', () => {
       pluginHost,
       slot: 'node-details',
       'data-testid': 'node-details-slot',
-      className: expect.stringContaining('bg-popover/95'),
+      className: expect.stringContaining('bg-[var(--cg-popover-translucent)]'),
     }));
   });
 

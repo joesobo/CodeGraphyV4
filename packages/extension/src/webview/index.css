@@ -20,26 +20,90 @@
 
 @layer base {
   :root {
-    /* shadcn/ui CSS variables — dark theme mapped to VS Code */
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 6% 14%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 17%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 240 4% 16%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 22%;
-    --input: 240 4% 22%;
-    --ring: 217 91% 60%;
+    --cg-background: var(--vscode-sideBar-background, Canvas);
+    --cg-foreground: var(--vscode-foreground, CanvasText);
+    --cg-panel-background: var(--vscode-panel-background, var(--cg-background));
+    --cg-panel-foreground: var(--cg-foreground);
+    --cg-popover: var(--vscode-editorHoverWidget-background, var(--cg-panel-background));
+    --cg-popover-foreground: var(--vscode-editorHoverWidget-foreground, var(--cg-foreground));
+    --cg-primary: var(--vscode-button-background, Highlight);
+    --cg-primary-foreground: var(--vscode-button-foreground, HighlightText);
+    --cg-primary-hover: var(--vscode-button-hoverBackground, var(--cg-primary));
+    --cg-secondary: var(--vscode-button-secondaryBackground, ButtonFace);
+    --cg-secondary-foreground: var(--vscode-button-secondaryForeground, ButtonText);
+    --cg-secondary-hover: var(--vscode-button-secondaryHoverBackground, var(--cg-secondary));
+    --cg-muted: var(--vscode-editor-inactiveSelectionBackground, ButtonFace);
+    --cg-muted-foreground: var(--vscode-descriptionForeground, GrayText);
+    --cg-accent: var(--vscode-toolbar-hoverBackground, var(--cg-muted));
+    --cg-accent-foreground: var(--vscode-toolbar-hoverForeground, var(--cg-foreground));
+    --cg-destructive: var(--vscode-inputValidation-errorBackground, var(--cg-background));
+    --cg-destructive-foreground: var(--vscode-errorForeground, CanvasText);
+    --cg-border: var(--vscode-panel-border, var(--vscode-sideBar-border, GrayText));
+    --cg-input: var(--vscode-input-background, Field);
+    --cg-input-foreground: var(--vscode-input-foreground, FieldText);
+    --cg-input-border: var(--vscode-input-border, var(--cg-border));
+    --cg-input-placeholder: var(--vscode-input-placeholderForeground, GrayText);
+    --cg-input-option-active-background: var(--vscode-inputOption-activeBackground, Highlight);
+    --cg-input-option-active-border: var(--vscode-inputOption-activeBorder, var(--cg-focus-border));
+    --cg-input-option-active-foreground: var(--vscode-inputOption-activeForeground, HighlightText);
+    --cg-input-error-background: var(--vscode-inputValidation-errorBackground, var(--cg-background));
+    --cg-input-error-border: var(--vscode-inputValidation-errorBorder, var(--cg-destructive-foreground));
+    --cg-focus-border: var(--vscode-focusBorder, Highlight);
+    --cg-disabled-foreground: var(--vscode-disabledForeground, GrayText);
+    --cg-error-foreground: var(--vscode-errorForeground, var(--cg-destructive-foreground));
+    --cg-shadow: var(--vscode-widget-shadow, transparent);
+    --cg-transparent: transparent;
+    --cg-overlay-background: color-mix(in srgb, var(--cg-background) 70%, transparent);
+    --cg-popover-translucent: color-mix(in srgb, var(--cg-popover) 95%, transparent);
+    --cg-surface-subtle: color-mix(in srgb, var(--cg-background) 10%, transparent);
+    --cg-surface-muted: color-mix(in srgb, var(--cg-muted) 70%, transparent);
+    --cg-border-subtle: color-mix(in srgb, var(--cg-border) 60%, transparent);
+    --cg-divider-subtle: color-mix(in srgb, var(--cg-border) 50%, transparent);
+    --cg-accent-faint: color-mix(in srgb, var(--cg-accent) 10%, transparent);
+    --cg-accent-subtle: color-mix(in srgb, var(--cg-accent) 20%, transparent);
+    --cg-accent-strong: color-mix(in srgb, var(--cg-accent) 30%, transparent);
+    --cg-primary-faint: color-mix(in srgb, var(--cg-primary) 15%, transparent);
+    --cg-primary-subtle: color-mix(in srgb, var(--cg-primary) 20%, transparent);
+    --cg-primary-ring: color-mix(in srgb, var(--cg-primary) 40%, transparent);
+    --cg-list-active-background: var(--vscode-list-activeSelectionBackground, Highlight);
+    --cg-list-active-foreground: var(--vscode-list-activeSelectionForeground, HighlightText);
+    --cg-list-hover-background: var(--vscode-list-hoverBackground, var(--cg-accent));
+    --cg-list-hover-foreground: var(--vscode-list-hoverForeground, var(--cg-foreground));
+    --cg-link: var(--vscode-textLink-foreground, var(--cg-primary));
+    --cg-graph-background: var(--vscode-editor-background, Canvas);
+    --cg-graph-border: var(--vscode-panel-border, var(--cg-border));
+    --cg-graph-label-foreground: var(--vscode-foreground, CanvasText);
+    --cg-graph-label-muted-foreground: var(--vscode-descriptionForeground, GrayText);
+    --cg-graph-link-highlight: var(--vscode-focusBorder, Highlight);
+    --cg-graph-link-muted: var(--vscode-disabledForeground, GrayText);
+    --cg-graph-node-selection-border: var(--vscode-contrastActiveBorder, var(--cg-focus-border));
+    --cg-graph-mesh-dimmed: var(--vscode-disabledForeground, GrayText);
+    --cg-graph-mesh-selected: var(--vscode-foreground, CanvasText);
+    --cg-menu-background: var(--vscode-menu-background, var(--cg-popover));
+    --cg-menu-foreground: var(--vscode-menu-foreground, var(--cg-popover-foreground));
+    --cg-menu-border: var(--vscode-menu-border, var(--cg-border));
+    --cg-menu-separator: var(--vscode-menu-separatorBackground, var(--cg-border));
+
+    /* shadcn/ui semantic variables mapped to CodeGraphy/VS Code tokens */
+    --background: var(--cg-background);
+    --foreground: var(--cg-foreground);
+    --card: var(--cg-panel-background);
+    --card-foreground: var(--cg-panel-foreground);
+    --popover: var(--cg-popover);
+    --popover-foreground: var(--cg-popover-foreground);
+    --primary: var(--cg-primary);
+    --primary-foreground: var(--cg-primary-foreground);
+    --secondary: var(--cg-secondary);
+    --secondary-foreground: var(--cg-secondary-foreground);
+    --muted: var(--cg-muted);
+    --muted-foreground: var(--cg-muted-foreground);
+    --accent: var(--cg-accent);
+    --accent-foreground: var(--cg-accent-foreground);
+    --destructive: var(--cg-destructive);
+    --destructive-foreground: var(--cg-destructive-foreground);
+    --border: var(--cg-border);
+    --input: var(--cg-input);
+    --ring: var(--cg-focus-border);
     --radius: 0.5rem;
   }
 
@@ -50,8 +114,8 @@
 
 /* VSCode theme integration */
 body {
-  background-color: var(--vscode-sideBar-background, hsl(var(--background)));
-  color: var(--vscode-foreground, hsl(var(--foreground)));
+  background-color: var(--cg-background);
+  color: var(--cg-foreground);
   font-family: var(--vscode-font-family, system-ui, -apple-system, sans-serif);
   font-size: var(--vscode-font-size, 13px);
   margin: 0;
@@ -76,31 +140,31 @@ body[data-codegraphy-view='timeline'] #root {
 
 @layer utilities {
   .text-primary {
-    color: var(--vscode-foreground, hsl(var(--foreground)));
+    color: var(--cg-foreground);
   }
   .text-secondary {
-    color: var(--vscode-descriptionForeground, hsl(var(--muted-foreground)));
+    color: var(--cg-muted-foreground);
   }
   .text-link {
-    color: var(--vscode-textLink-foreground, hsl(var(--primary)));
+    color: var(--cg-link);
   }
   .bg-surface {
-    background-color: var(--vscode-sideBar-background, hsl(var(--background)));
+    background-color: var(--cg-background);
   }
   .border-subtle {
-    border-color: var(--vscode-sideBar-border, hsl(var(--border)));
+    border-color: var(--cg-border);
   }
   /* Icon fill/stroke utilities */
   .fill-link {
-    fill: var(--vscode-textLink-foreground, hsl(var(--primary)));
+    fill: var(--cg-link);
   }
   .fill-secondary {
-    fill: var(--vscode-descriptionForeground, #9ca3af);
+    fill: var(--cg-muted-foreground);
   }
   .fill-muted {
-    fill: #6b7280;
+    fill: var(--cg-disabled-foreground);
   }
   .stroke-muted {
-    stroke: #4b5563;
+    stroke: var(--cg-disabled-foreground);
   }
 }

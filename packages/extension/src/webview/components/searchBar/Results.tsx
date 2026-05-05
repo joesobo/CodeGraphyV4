@@ -33,8 +33,8 @@ export function SearchBarResults({
         <span className={cn(
           'text-xs',
           regexError
-            ? 'text-[var(--vscode-errorForeground,#f48771)]'
-            : 'text-[var(--vscode-descriptionForeground,#8c8c8c)]'
+            ? 'text-[var(--cg-error-foreground)]'
+            : 'text-muted-foreground'
         )}>
           {countLabel ?? (regexError ? 'Invalid regex' : `${resultCount} of ${totalCount}`)}
         </span>
@@ -44,9 +44,9 @@ export function SearchBarResults({
         <button
           onClick={onClear}
           className={cn(
-            'p-0.5 rounded hover:bg-[var(--vscode-toolbar-hoverBackground,#5a5d5e)]',
-            'text-[var(--vscode-input-placeholderForeground,#6b7280)]',
-            'hover:text-[var(--vscode-input-foreground,#cccccc)]'
+            'p-0.5 rounded hover:bg-accent',
+            'text-[var(--cg-input-placeholder)]',
+            'hover:text-[var(--cg-input-foreground)]'
           )}
           title="Clear search (Escape)"
         >

@@ -121,7 +121,7 @@ describe('searchBar/filters/popover', () => {
   it('counts disabled rows as not enabled', () => {
     renderPopover({ disabledPluginPatterns: ['plugin/**'] });
 
-    expect(screen.getAllByText('Filters 1')[0]).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filters, 1 enabled' })).toBeInTheDocument();
     expect(screen.getByText('1 enabled')).toBeInTheDocument();
   });
 

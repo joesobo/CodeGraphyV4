@@ -20,7 +20,7 @@ describe('plugins panel model', () => {
   });
 
   it('highlights the active drop target row', () => {
-    expect(getPluginsPanelItemClassName(true, 1, 0, 1)).toBe('rounded-md ring-1 ring-primary/40');
+    expect(getPluginsPanelItemClassName(true, 1, 0, 1)).toBe('rounded-md ring-1 ring-[var(--cg-primary-ring)]');
   });
 
   it('dims the dragged row and skips the drop-target ring when hovering over itself', () => {

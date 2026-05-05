@@ -24,6 +24,7 @@ import { isPhysicsGraphReady, selectActivePhysicsGraph } from '../runtime/physic
 import { GraphViewportShell } from '../viewport/shell';
 import { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
+import { useGraphAppearance } from '../appearance/use';
 
 interface GraphProps {
   data: IGraphData;
@@ -45,8 +46,10 @@ export default function Graph({
   pluginHost,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
+  const appearance = useGraphAppearance(theme);
 
   const graphState = useGraphState({
+    appearance,
     bidirectionalMode: viewState.bidirectionalMode,
     data,
     directionColor: viewState.directionColor,
@@ -117,6 +120,7 @@ export default function Graph({
 
   return (
     <GraphViewportShell
+      appearance={appearance}
       callbacks={callbacks}
       graphLayoutKey={graphLayoutKey}
       graphState={graphState}

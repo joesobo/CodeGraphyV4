@@ -39,7 +39,7 @@ export function LegendRuleCreateRow({
   };
 
   return (
-    <div className="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-accent/20">
+    <div className="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]">
       <div className="min-w-0 flex-1">
         <Input
           value={pattern}
@@ -88,7 +88,7 @@ export function LegendRuleCreateRow({
       <Button
         variant="outline"
         size="icon"
-        className="h-7 w-7 shrink-0 border-border/60 bg-background/20 p-0 text-muted-foreground hover:bg-accent/20 hover:text-foreground"
+        className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] p-0 text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
         onClick={() => {
           const nextPattern = pattern.trim();
           if (!nextPattern) {

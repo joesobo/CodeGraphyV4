@@ -81,7 +81,7 @@ function ShapePreview({
   return (
     <span
       title={label}
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-border/60 bg-background/20 text-muted-foreground"
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] text-muted-foreground"
     >
       <MdiIcon path={option.icon} size={15} />
     </span>
@@ -113,7 +113,7 @@ export function LegendShapeControl({
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7 shrink-0 border-border/60 bg-background/20 text-muted-foreground hover:bg-accent/20 hover:text-foreground"
+          className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
           title={title}
         >
           <MdiIcon path={option.icon} size={15} />
@@ -182,7 +182,7 @@ function IconUploadPanel({
         aria-label={`Legend icon ${index + 1}`}
         type="file"
         accept=".svg,.png,image/svg+xml,image/png"
-        className="block w-full text-[11px] text-muted-foreground file:mr-2 file:rounded-sm file:border file:border-border/60 file:bg-background/30 file:px-2 file:py-1 file:text-[11px] file:text-foreground"
+        className="block w-full text-[11px] text-muted-foreground file:mr-2 file:rounded-sm file:border file:border-[var(--cg-border-subtle)] file:bg-[var(--cg-surface-muted)] file:px-2 file:py-1 file:text-[11px] file:text-foreground"
         onChange={(event) => {
           const file = event.currentTarget.files?.[0];
           if (file) {
@@ -223,7 +223,7 @@ export function LegendIconControl({
   if (!canEditRuleVisual(editable, rule)) {
     return rule.imageUrl
       ? (
-          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-border/60 bg-background/20 text-muted-foreground">
+          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] text-muted-foreground">
             <IconPreview rule={rule} />
           </span>
         )
@@ -237,7 +237,7 @@ export function LegendIconControl({
           type="button"
           variant="outline"
           size="icon"
-        className="h-7 w-7 shrink-0 border-border/60 bg-background/20 text-muted-foreground hover:bg-accent/20 hover:text-foreground"
+        className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
         title={title}
       >
           {rule.imageUrl ? <IconPreview rule={rule} /> : <MdiIcon path={mdiImagePlus} size={15} />}

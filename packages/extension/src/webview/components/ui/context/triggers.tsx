@@ -17,8 +17,8 @@ const ContextMenuSubTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none',
-      'focus:bg-[var(--vscode-list-hoverBackground)] focus:text-[var(--vscode-list-hoverForeground)]',
-      'data-[state=open]:bg-[var(--vscode-list-hoverBackground)]',
+      'focus:bg-[var(--cg-list-hover-background)] focus:text-[var(--cg-list-hover-foreground)]',
+      'data-[state=open]:bg-[var(--cg-list-hover-background)]',
       inset && 'pl-8',
       className
     )}
@@ -38,8 +38,8 @@ const ContextMenuSubContent = React.forwardRef<
     ref={ref}
     className={cn(
       'z-50 min-w-[8rem] overflow-hidden rounded-md border p-1',
-      'bg-[var(--vscode-menu-background,#252526)] text-[var(--vscode-menu-foreground,#cccccc)]',
-      'border-[var(--vscode-menu-border,#454545)]',
+      'bg-[var(--cg-menu-background)] text-[var(--cg-menu-foreground)]',
+      'border-[var(--cg-menu-border)]',
       'shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out',
       'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
       'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -59,8 +59,8 @@ const ContextMenuContent = React.forwardRef<
       ref={ref}
       className={cn(
         'z-50 min-w-[8rem] overflow-hidden rounded-md border p-1',
-        'bg-[var(--vscode-menu-background,#252526)] text-[var(--vscode-menu-foreground,#cccccc)]',
-        'border-[var(--vscode-menu-border,#454545)]',
+        'bg-[var(--cg-menu-background)] text-[var(--cg-menu-foreground)]',
+        'border-[var(--cg-menu-border)]',
         'shadow-md animate-in fade-in-80',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
