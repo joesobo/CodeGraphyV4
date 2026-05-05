@@ -79,6 +79,7 @@
           "src/extension/graphViewProvider.ts",
           "src/core/graphQuery/index.ts",
           "src/core/plugins/api/instance/index.ts",
+          "src/extension/repoSettings/freshness/index.ts",
           "src/extension/repoSettings/store/index.ts",
           "src/shared/visibleGraph/index.ts",
           "src/webview/pluginHost/api/registration/index.ts",

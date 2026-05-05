@@ -350,3 +350,36 @@ Scoped mutation:
 - `pnpm run mutate -- extension/src/webview/components/graphCornerControls/zoom/pointer.ts`: pass, 100% mutation score, 15 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/webview/components/graphCornerControls/zoom/timers.ts`: pass, 100% mutation score, 11 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/webview/components/graphCornerControls/zoom/hook.ts`: pass, 95.00% mutation score, 19 killed, 1 survivor, under mutation-site threshold
+
+## Repo Settings Freshness Slice
+
+Architecture candidate: `packages/extension/src/extension/repoSettings/freshness`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged `evaluateCodeGraphyIndexStatus` at 10.3 and `createStaleDetail` at 8.6.
+- The index-freshness policy is part of the Graph Cache trust boundary; it decides whether the saved index can be reused, whether changed files are pending, and which stale detail the user sees.
+- A first refactor passed mutation score but still left 104 mutation sites in one file, so the feature needed a real module split instead of only extra tests.
+
+Changes made:
+
+- Split freshness into a feature-local folder:
+  - `model.ts` owns the freshness and stale-reason contracts.
+  - `details.ts` owns user-facing fresh, missing, and stale detail messages.
+  - `reasons.ts` owns signature and commit stale-reason collection.
+  - `index.ts` owns the public `evaluateCodeGraphyIndexStatus` orchestration.
+- Added `src/extension/repoSettings/freshness/index.ts` as an explicit quality-tool entrypoint.
+- Moved the wrapper test into `tests/extension/repoSettings/freshness/index.test.ts` and added file-mapped tests for detail and reason behavior.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/repoSettings/freshness`: pass, 3 files / 18 tests
+- `pnpm --filter @codegraphy/extension exec eslint src/extension/repoSettings/freshness tests/extension/repoSettings/freshness`: pass
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm run boundaries -- extension/src/extension/repoSettings/freshness`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/extension/repoSettings/freshness`: pass, all functions CRAP <= 8
+
+Scoped mutation:
+
+- `pnpm run mutate -- extension/src/extension/repoSettings/freshness`: pass, 100% mutation score, 87 killed, 0 survivors, 0 no coverage, every file under mutation-site threshold
