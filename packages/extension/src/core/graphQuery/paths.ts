@@ -30,42 +30,53 @@ function createAdjacency(graphData: IGraphData): Map<string, string[]> {
   );
 }
 
+function graphHasEndpoints(graphData: IGraphData, config: GraphQueryPathConfig): boolean {
+  const nodeIds = new Set(graphData.nodes.map((node) => node.id));
+  return nodeIds.has(config.from) && nodeIds.has(config.to);
+}
+
+function nextAcyclicPaths(
+  path: readonly string[],
+  adjacency: ReadonlyMap<string, readonly string[]>,
+): string[][] {
+  const current = path[path.length - 1];
+  return (adjacency.get(current) ?? [])
+    .filter((next) => !path.includes(next))
+    .map((next) => [...path, next]);
+}
+
+function collectDirectedPaths(
+  graphData: IGraphData,
+  config: GraphQueryPathConfig,
+  maxDepth: number,
+  maxPaths: number,
+): string[][] {
+  const adjacency = createAdjacency(graphData);
+  const queue: string[][] = [[config.from]];
+  const paths: string[][] = [];
+
+  while (queue.length > 0 && paths.length < maxPaths) {
+    const path = queue.shift()!;
+    const current = path[path.length - 1];
+    if (current === config.to) {
+      paths.push(path);
+    } else if (path.length - 1 < maxDepth) {
+      queue.push(...nextAcyclicPaths(path, adjacency));
+    }
+  }
+
+  return paths;
+}
+
 export function findGraphPaths(
   graphData: IGraphData,
   config: GraphQueryPathConfig,
 ): GraphQueryPathReport {
   const maxDepth = normalizePositiveInteger(config.maxDepth, DEFAULT_MAX_DEPTH);
   const maxPaths = normalizePositiveInteger(config.maxPaths, DEFAULT_MAX_PATHS);
-  const nodeIds = new Set(graphData.nodes.map((node) => node.id));
-  const paths: string[][] = [];
-
-  if (nodeIds.has(config.from) && nodeIds.has(config.to)) {
-    const adjacency = createAdjacency(graphData);
-    const queue: string[][] = [[config.from]];
-
-    while (queue.length > 0 && paths.length < maxPaths) {
-      const path = queue.shift();
-      if (!path) {
-        continue;
-      }
-
-      const current = path[path.length - 1];
-      if (current === config.to) {
-        paths.push(path);
-        continue;
-      }
-
-      if (path.length - 1 >= maxDepth) {
-        continue;
-      }
-
-      for (const next of adjacency.get(current) ?? []) {
-        if (!path.includes(next)) {
-          queue.push([...path, next]);
-        }
-      }
-    }
-  }
+  const paths = graphHasEndpoints(graphData, config)
+    ? collectDirectedPaths(graphData, config, maxDepth, maxPaths)
+    : [];
 
   return {
     from: config.from,

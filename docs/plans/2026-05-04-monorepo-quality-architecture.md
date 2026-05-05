@@ -122,3 +122,42 @@ Retested after cleanup:
 - `pnpm run typecheck`: pass
 
 `packages/extension` CRAP still reports existing over-threshold functions. The next cleanup slice will work from the highest-leverage entries rather than mixing that larger refactor into the dead-surface commit.
+
+## Graph Query Cleanup Slice
+
+Architecture candidate: `packages/extension/src/core/graphQuery`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged multiple Graph Query report helpers above the CRAP threshold.
+- `pnpm run reachability -- extension/ --strict` required `src/core/graphQuery/index.ts` to be treated as a public entrypoint, which makes Graph Query an explicit interface.
+- The existing tests covered happy paths but mutation showed the report interface was not defending filtering, sorting, relation grouping, and path-limit behavior strongly enough.
+
+Changes made:
+
+- Replaced the `executeGraphQuery` report switch with a report-handler table.
+- Split Graph Query branch logic into named helpers for filter normalization, relationship symbol selection, and path collection.
+- Added file-mapped tests for:
+  - `execute.ts`
+  - `filter.ts`
+  - `pagination.ts`
+  - `sort.ts`
+  - `visible.ts`
+- Expanded public report tests for paths, relationships, reports, and symbols.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/core/graphQuery`: pass, 9 files / 54 tests
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm run crap -- extension/src/core/graphQuery`: pass, all functions CRAP <= 8
+- `pnpm run boundaries -- extension/src/core/graphQuery`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run lint`: pass after restoring scalar-only filter normalization
+
+Scoped mutation history:
+
+- First `pnpm run mutate -- extension/src/core/graphQuery`: 66.67% mutation score and 6 files over the 50 mutation-site threshold.
+- After Graph Query tests and refactors: 85.57% mutation score.
+- Current module scores above 90%: `execute.ts`, `filter.ts`, `pagination.ts`, `paths.ts`, `symbols.ts`, `visible.ts`.
+- Remaining below-standard areas are concentrated in `relationships.ts`, `reports.ts`, `sort.ts`, and a few equivalent-looking nullish/default branches.
+- The mutation-site threshold still flags `relationships.ts`, `symbols.ts`, `paths.ts`, `reports.ts`, and `visible.ts`; next cleanup should split the larger report modules into deeper modules before expecting the directory-level mutation score to clear 90%.
