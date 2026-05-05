@@ -3,6 +3,8 @@ import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextM
 export type GraphContextTargetKind = 'background' | 'node' | 'edge';
 export type GraphContextMutationAvailability = 'enabled' | 'disabled' | 'hidden';
 
+export const DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY: GraphContextMutationAvailability = 'enabled';
+
 export type BuiltInContextMenuAction =
   | 'open'
   | 'openEdgeSource'

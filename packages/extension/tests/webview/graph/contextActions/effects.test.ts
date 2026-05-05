@@ -118,13 +118,16 @@ describe('graph/contextActions/effects', () => {
   });
 
   it('creates plugin action messages for plugin menu items', () => {
-    expect(getGraphContextActionEffects({
+    const effects = getGraphContextActionEffects({
       kind: 'plugin',
       pluginId: 'plugin.test',
       index: 2,
       targetId: 'src/app.ts',
       targetType: 'node',
-    }, nodeContext(['src/app.ts']))).toEqual([
+    }, nodeContext(['src/app.ts']));
+
+    expect(effects).toHaveLength(1);
+    expect(effects).toEqual([
       {
         kind: 'postMessage',
         message: {

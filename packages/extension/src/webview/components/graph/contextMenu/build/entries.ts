@@ -1,5 +1,9 @@
 import { buildBackgroundEntries } from '../background/entries';
-import type { BuildGraphContextMenuOptions, GraphContextMenuEntry } from '../contracts';
+import {
+  DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY,
+  type BuildGraphContextMenuOptions,
+  type GraphContextMenuEntry,
+} from '../contracts';
 import { decideGraphContextMenu } from '../decision/model';
 import { buildEdgeEntries } from '../edge/entries';
 import { buildNodeEntries, buildSingleFolderNodeEntries } from '../node/entries';
@@ -27,7 +31,7 @@ export function buildGraphContextMenuEntries(
   options: BuildGraphContextMenuOptions
 ): GraphContextMenuEntry[] {
   const { selection, timelineActive, favorites, pluginItems, nodes } = options;
-  const mutationAvailability = options.mutationAvailability ?? 'enabled';
+  const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
   const decision = decideGraphContextMenu(selection, nodes);
   const baseEntries = decision.kind === 'background'
     ? buildBackgroundEntries(mutationAvailability)

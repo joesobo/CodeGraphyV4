@@ -4,6 +4,7 @@ import {
   classifyTarget,
 } from '../../../../src/webview/components/graph/contextMenu/targetClassification';
 import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
+import type { GraphContextMenuDecision } from '../../../../src/webview/components/graph/contextMenu/decision/model';
 
 const pluginItems: IPluginContextMenuItem[] = [
   { label: 'Node Action', when: 'node', pluginId: 'acme', index: 0 },
@@ -59,6 +60,17 @@ describe('graph/contextMenu/targetClassification', () => {
       { kind: 'edge', targets: [] },
       pluginItems
     );
+
+    expect(result).toBeNull();
+  });
+
+  it('only classifies edge ids from edge decisions', () => {
+    const malformedBackgroundDecision = {
+      kind: 'background',
+      edgeId: 'src/a.ts->src/b.ts',
+    } as unknown as GraphContextMenuDecision;
+
+    const result = classifyPluginTarget(malformedBackgroundDecision, pluginItems);
 
     expect(result).toBeNull();
   });

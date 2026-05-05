@@ -9,6 +9,36 @@ export interface ClassifiedTarget {
   eligibleItems: IPluginContextMenuItem[];
 }
 
+type PluginTargetType = ClassifiedTarget['targetType'];
+type SingleNodeDecision = Extract<GraphContextMenuDecision, { target: unknown }>;
+
+const SINGLE_NODE_DECISION_KINDS = new Set<SingleNodeDecision['kind']>([
+  'singleFileNode',
+  'singleFolderNode',
+  'singlePackageNode',
+  'singlePluginNode',
+]);
+
+function isSingleNodeDecision(decision: GraphContextMenuDecision): decision is SingleNodeDecision {
+  return SINGLE_NODE_DECISION_KINDS.has(decision.kind as SingleNodeDecision['kind']);
+}
+
+function itemMatchesTargetType(item: IPluginContextMenuItem, targetType: PluginTargetType): boolean {
+  return item.when === targetType || item.when === 'both';
+}
+
+function buildClassifiedTarget(
+  targetId: string,
+  targetType: PluginTargetType,
+  pluginItems: readonly IPluginContextMenuItem[],
+): ClassifiedTarget {
+  return {
+    targetId,
+    targetType,
+    eligibleItems: pluginItems.filter(item => itemMatchesTargetType(item, targetType)),
+  };
+}
+
 /**
  * Determines the target id, target type, and eligible plugin items for the given selection.
  * Returns null when the selection does not qualify for plugin context menu items
@@ -25,19 +55,12 @@ export function classifyPluginTarget(
   decision: GraphContextMenuDecision,
   pluginItems: readonly IPluginContextMenuItem[]
 ): ClassifiedTarget | null {
-  if (
-    decision.kind === 'singleFileNode'
-    || decision.kind === 'singleFolderNode'
-    || decision.kind === 'singlePackageNode'
-    || decision.kind === 'singlePluginNode'
-  ) {
-    const eligibleItems = pluginItems.filter(item => item.when === 'node' || item.when === 'both');
-    return { targetId: decision.target.id, targetType: 'node', eligibleItems };
+  if (isSingleNodeDecision(decision)) {
+    return buildClassifiedTarget(decision.target.id, 'node', pluginItems);
   }
 
   if (decision.kind === 'edge' && decision.edgeId) {
-    const eligibleItems = pluginItems.filter(item => item.when === 'edge' || item.when === 'both');
-    return { targetId: decision.edgeId, targetType: 'edge', eligibleItems };
+    return buildClassifiedTarget(decision.edgeId, 'edge', pluginItems);
   }
 
   return null;

@@ -33,7 +33,7 @@ function buildClassifiedPluginEntries(
 
   for (let idx = 0; idx < eligibleItems.length; idx++) {
     const item = eligibleItems[idx];
-    if (idx > 0 && item.group && previousGroup && item.group !== previousGroup) {
+    if (item.group && previousGroup && item.group !== previousGroup) {
       entries.push(separator(`plugins-group-separator-${idx}`));
     }
     previousGroup = item.group;

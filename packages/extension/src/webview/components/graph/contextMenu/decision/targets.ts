@@ -6,6 +6,11 @@ export interface GraphContextNodeTarget {
   nodeType: string;
 }
 
+export interface GraphContextNodeSource {
+  id: string;
+  nodeType?: string;
+}
+
 export function isPackageNodeId(nodeId: string): boolean {
   return nodeId.startsWith('pkg:');
 }
@@ -23,6 +28,20 @@ export function classifyGraphContextNodeTarget(
     nodeKind: resolveNodeKind(resolvedNodeType),
     nodeType: resolvedNodeType,
   };
+}
+
+export function classifyGraphContextNodeTargets(
+  targetIds: readonly string[],
+  nodes: readonly GraphContextNodeSource[] | undefined,
+): GraphContextNodeTarget[] {
+  const nodeTypes = nodes ? createNodeTypeMap(nodes) : undefined;
+  return targetIds.map(targetId =>
+    classifyGraphContextNodeTarget(targetId, nodeTypes?.get(targetId))
+  );
+}
+
+function createNodeTypeMap(nodes: readonly GraphContextNodeSource[]): Map<string, string> {
+  return new Map(nodes.map(node => [node.id, node.nodeType ?? 'file']));
 }
 
 function resolveNodeKind(nodeType: string): GraphContextNodeKind {
