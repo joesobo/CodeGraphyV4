@@ -12,6 +12,12 @@ CodeGraphy uses five complementary quality checks:
 The root commands are path-first:
 
 ```bash
+pnpm run organize -- .
+pnpm run boundaries -- . --strict
+pnpm run reachability -- . --strict
+pnpm run crap -- .
+pnpm run scrap -- .
+
 pnpm run boundaries -- extension/
 pnpm run reachability -- extension/ --strict
 pnpm run organize -- extension/
@@ -22,17 +28,21 @@ pnpm run scrap -- extension/
 
 Targets can be:
 
+- the repo root `.` for a monorepo-wide package-source sweep
 - a package shorthand like `extension/` or `quality-tools/`
 - a package-relative file or directory under `packages/...`
 - a specific file path
 
 Current command expectations:
 
-- `boundaries` expects a package root or a path inside a package `src/` tree
-- `reachability` expects a package root or a path inside a package `src/` tree
-- `crap` expects a package root or a path inside `src/`
+- `organize` can inspect the repo root, a package root, or a narrower directory
+- `boundaries` can inspect the repo root, a package root, or a path inside a package `src/` tree
+- `reachability` can inspect the repo root, a package root, or a path inside a package `src/` tree
+- `crap` can inspect the repo root, a package root, or a path inside `src/`
 - `mutate` expects a package root or a path inside `src/`
 - `scrap` works best on package roots and test files/directories
+
+Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed.
 
 Implementation now lives in `packages/quality-tools/`.
 

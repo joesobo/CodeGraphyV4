@@ -1,0 +1,138 @@
+import * as vscode from 'vscode';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  refreshWorkspaceFileOperation,
+  refreshWorkspaceRenameOperation,
+  refreshWorkspaceSavedDocument,
+} from '../../../../src/extension/workspaceFiles/refresh/operations';
+
+function makeProvider() {
+  return {
+    emitEvent: vi.fn(),
+    refresh: vi.fn().mockResolvedValue(undefined),
+    invalidateWorkspaceFiles: vi.fn(() => []),
+    isGraphOpen: vi.fn(() => true),
+    markWorkspaceRefreshPending: vi.fn(),
+  };
+}
+
+function uri(filePath: string): vscode.Uri {
+  return { fsPath: filePath } as vscode.Uri;
+}
+
+describe('workspaceFiles/refresh/operations', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('refreshes saved documents and emits file changed events', () => {
+    vi.useFakeTimers();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const provider = makeProvider();
+
+    refreshWorkspaceSavedDocument(
+      provider as never,
+      { uri: uri('/workspace/src/app.ts') } as vscode.TextDocument,
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/app.ts']);
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/src/app.ts',
+    });
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File saved, refreshing graph');
+  });
+
+  it('ignores saved workspace settings artifacts', () => {
+    const provider = makeProvider();
+
+    refreshWorkspaceSavedDocument(
+      provider as never,
+      { uri: uri('/workspace/.vscode/settings.json') } as vscode.TextDocument,
+    );
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+
+  it('refreshes file operations and emits an event for each refreshable path', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    refreshWorkspaceFileOperation(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      [uri('/workspace/src/a.ts'), uri('/workspace/src/b.ts')],
+      'workspace:fileCreated',
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith([
+      '/workspace/src/a.ts',
+      '/workspace/src/b.ts',
+    ]);
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/src/a.ts',
+    });
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/src/b.ts',
+    });
+  });
+
+  it('does not emit file operation events when every path is ignored', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    refreshWorkspaceFileOperation(
+      provider as never,
+      '[CodeGraphy] File deleted, refreshing graph',
+      [uri('/workspace/.vscode/settings.json')],
+      'workspace:fileDeleted',
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+
+  it('refreshes rename operations with old and new paths', () => {
+    vi.useFakeTimers();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const provider = makeProvider();
+
+    refreshWorkspaceRenameOperation(provider as never, [
+      {
+        oldUri: uri('/workspace/src/old.ts'),
+        newUri: uri('/workspace/src/new.ts'),
+      },
+    ]);
+    vi.advanceTimersByTime(500);
+
+    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith([
+      '/workspace/src/old.ts',
+      '/workspace/src/new.ts',
+    ]);
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileRenamed', {
+      oldPath: '/workspace/src/old.ts',
+      newPath: '/workspace/src/new.ts',
+    });
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File renamed, refreshing graph');
+  });
+
+  it('does not emit rename operations when every path is ignored', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+
+    refreshWorkspaceRenameOperation(provider as never, [
+      {
+        oldUri: uri('/workspace/.vscode/settings.json'),
+        newUri: uri('/workspace/.vscode/tasks.json'),
+      },
+    ]);
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+});

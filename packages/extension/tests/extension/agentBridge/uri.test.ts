@@ -28,6 +28,13 @@ function createUri(action: string) {
   };
 }
 
+function createUriWithoutRequest(action: string) {
+  return {
+    path: action,
+    query: '',
+  };
+}
+
 describe('agentBridge/uri', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -124,6 +131,121 @@ describe('agentBridge/uri', () => {
     );
   });
 
+  it('writes a failure when there is no workspace folder open', async () => {
+    const requestedRepo = path.resolve('/workspace/project');
+    const dependencies = createDependencies({
+      repo: requestedRepo,
+      requestId: 'request-4',
+      responsePath: '/tmp/codegraphy-response.json',
+    });
+
+    const result = await handleCodeGraphyAgentUri(
+      createUri('/index'),
+      { refreshIndex: vi.fn(), queryGraph: vi.fn() },
+      dependencies,
+    );
+
+    expect(result.status).toBe('missing-workspace');
+    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
+      '/tmp/codegraphy-response.json',
+      {
+        error: `CodeGraphy agent request for ${requestedRepo} needs a VS Code window opened on that repo.`,
+        repo: requestedRepo,
+        requestId: 'request-4',
+        status: 'failed',
+      },
+    );
+  });
+
+  it('ignores supported actions when no request file is provided', async () => {
+    const dependencies = createDependencies({
+      repo: path.resolve('/workspace/project'),
+      responsePath: '/tmp/codegraphy-response.json',
+    }, path.resolve('/workspace/project'));
+
+    const result = await handleCodeGraphyAgentUri(
+      createUriWithoutRequest('/index'),
+      { refreshIndex: vi.fn(), queryGraph: vi.fn() },
+      dependencies,
+    );
+
+    expect(result.status).toBe('missing-request');
+    expect(dependencies.readRequestFile).not.toHaveBeenCalled();
+    expect(dependencies.writeResponseFile).not.toHaveBeenCalled();
+    expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
+      expect.stringContaining('request file'),
+    );
+  });
+
+  it('writes a failure response when indexing throws', async () => {
+    const workspaceRoot = path.resolve('/workspace/project');
+    const dependencies = createDependencies({
+      repo: workspaceRoot,
+      requestId: 'request-5',
+      responsePath: '/tmp/codegraphy-response.json',
+    }, workspaceRoot);
+
+    const result = await handleCodeGraphyAgentUri(
+      createUri('/index'),
+      {
+        refreshIndex: vi.fn(async () => {
+          throw new Error('index failed');
+        }),
+        queryGraph: vi.fn(),
+      },
+      dependencies,
+    );
+
+    expect(result.status).toBe('failed');
+    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
+      '/tmp/codegraphy-response.json',
+      expect.objectContaining({
+        error: 'index failed',
+        repo: workspaceRoot,
+        requestId: 'request-5',
+        status: 'failed',
+      }),
+    );
+    expect(dependencies.showErrorMessage).toHaveBeenCalledWith(
+      expect.stringContaining('index failed'),
+    );
+  });
+
+  it('writes a failure response when querying throws', async () => {
+    const workspaceRoot = path.resolve('/workspace/project');
+    const dependencies = createDependencies({
+      repo: workspaceRoot,
+      requestId: 'request-6',
+      responsePath: '/tmp/codegraphy-response.json',
+      query: { report: 'nodes', arguments: {} },
+    }, workspaceRoot);
+
+    const result = await handleCodeGraphyAgentUri(
+      createUri('/query'),
+      {
+        refreshIndex: vi.fn(),
+        queryGraph: vi.fn(() => {
+          throw new Error('query failed');
+        }),
+      },
+      dependencies,
+    );
+
+    expect(result.status).toBe('failed');
+    expect(dependencies.writeResponseFile).toHaveBeenCalledWith(
+      '/tmp/codegraphy-response.json',
+      expect.objectContaining({
+        error: 'query failed',
+        repo: workspaceRoot,
+        requestId: 'request-6',
+        status: 'failed',
+      }),
+    );
+    expect(dependencies.showErrorMessage).toHaveBeenCalledWith(
+      expect.stringContaining('query failed'),
+    );
+  });
+
   it('ignores unsupported actions', async () => {
     const dependencies = createDependencies({
       repo: path.resolve('/workspace/project'),
@@ -139,7 +261,7 @@ describe('agentBridge/uri', () => {
     expect(result.status).toBe('unsupported-action');
     expect(dependencies.writeResponseFile).not.toHaveBeenCalled();
     expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
-      expect.stringContaining('unsupported'),
+      'CodeGraphy ignored unsupported agent request: /unknown.',
     );
   });
 });

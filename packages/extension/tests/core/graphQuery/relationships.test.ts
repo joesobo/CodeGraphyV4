@@ -50,6 +50,19 @@ const symbols: IAnalysisSymbol[] = [
     kind: 'function',
     range: { startLine: 20, endLine: 38 },
   },
+  {
+    id: 'packages/app/src/b.ts#buildUser',
+    filePath: 'packages/app/src/b.ts',
+    name: 'buildUser',
+    kind: 'function',
+    range: { startLine: 40, endLine: 58 },
+  },
+  {
+    id: 'packages/app/src/b.ts#anonymous',
+    filePath: 'packages/app/src/b.ts',
+    name: 'anonymous',
+    kind: '',
+  },
 ];
 
 const relations: IAnalysisRelation[] = [
@@ -70,11 +83,57 @@ const relations: IAnalysisRelation[] = [
     toSymbolId: 'packages/app/src/b.ts#createUser',
   },
   {
+    kind: 'import',
+    pluginId: 'codegraphy.treesitter',
+    sourceId: 'codegraphy.treesitter:import',
+    fromFilePath: 'packages/app/src/a.ts',
+    toFilePath: 'packages/app/src/b.ts',
+    toSymbolId: 'packages/app/src/b.ts#createUser',
+  },
+  {
+    kind: 'import',
+    pluginId: 'codegraphy.treesitter',
+    sourceId: 'codegraphy.treesitter:import',
+    fromFilePath: 'packages/app/src/a.ts',
+    toFilePath: 'packages/app/src/b.ts',
+    toSymbolId: 'packages/app/src/b.ts#buildUser',
+  },
+  {
+    kind: 'import',
+    pluginId: 'codegraphy.treesitter',
+    sourceId: 'codegraphy.treesitter:import',
+    fromFilePath: 'packages/app/src/a.ts',
+    toFilePath: 'packages/app/src/b.ts',
+    toSymbolId: 'packages/app/src/b.ts#anonymous',
+  },
+  {
     kind: 'reference',
     pluginId: 'plugin.routes',
     sourceId: 'route-reference',
     fromFilePath: 'packages/app/src/c.ts',
     toFilePath: 'packages/app/src/b.ts',
+  },
+  {
+    kind: 'reference',
+    pluginId: 'plugin.forms',
+    sourceId: 'form-reference',
+    fromFilePath: 'packages/app/src/c.ts',
+    toFilePath: 'packages/app/src/b.ts',
+    toSymbolId: 'packages/app/src/b.ts#missing',
+  },
+  {
+    kind: 'reference',
+    pluginId: 'plugin.routes',
+    sourceId: 'missing-target',
+    fromFilePath: 'packages/app/src/c.ts',
+  },
+  {
+    kind: 'import',
+    pluginId: 'codegraphy.treesitter',
+    sourceId: 'invisible-import',
+    fromFilePath: 'packages/app/src/b.ts',
+    toFilePath: 'packages/app/src/c.ts',
+    toSymbolId: 'packages/app/src/b.ts#createUser',
   },
 ];
 
@@ -101,6 +160,14 @@ describe('core/graphQuery relationships report', () => {
                 name: 'createUser',
                 kind: 'function',
                 range: { startLine: 20, endLine: 38 },
+              },
+              {
+                name: 'buildUser',
+                kind: 'function',
+                range: { startLine: 40, endLine: 58 },
+              },
+              {
+                name: 'anonymous',
               },
             ],
           },
@@ -146,6 +213,54 @@ describe('core/graphQuery relationships report', () => {
             },
             symbols: [],
           },
+          {
+            edgeType: 'reference',
+            provenance: {
+              pluginId: 'plugin.forms',
+              sourceId: 'form-reference',
+            },
+            symbols: [],
+          },
+        ],
+      },
+    ]);
+  });
+
+  it('filters relationship reports by endpoint and edge type fields', () => {
+    const result = listGraphRelationships({
+      graphData,
+      symbols,
+      relations,
+    }, {
+      filters: [
+        { field: 'from', op: 'equals', value: 'packages/app/src/c.ts' },
+        { field: 'to', op: 'endsWith', value: 'b.ts' },
+        { field: 'edgeTypes', op: 'includes', value: 'reference' },
+        { field: 'unknown', op: 'equals', value: '' },
+      ],
+    });
+
+    expect(result.relationships).toEqual([
+      {
+        from: 'packages/app/src/c.ts',
+        to: 'packages/app/src/b.ts',
+        relationships: [
+          {
+            edgeType: 'reference',
+            provenance: {
+              pluginId: 'plugin.routes',
+              sourceId: 'route-reference',
+            },
+            symbols: [],
+          },
+          {
+            edgeType: 'reference',
+            provenance: {
+              pluginId: 'plugin.forms',
+              sourceId: 'form-reference',
+            },
+            symbols: [],
+          },
         ],
       },
     ]);
@@ -179,5 +294,46 @@ describe('core/graphQuery relationships report', () => {
         },
       ]),
     );
+  });
+
+  it('filters out invisible relation evidence before grouping', () => {
+    const result = listGraphRelationships({
+      graphData,
+      symbols,
+      relations,
+    }, {
+      scope: {
+        nodes: { file: true },
+        edges: { import: false, reference: true },
+      },
+      from: 'packages/app/src/a.ts',
+      to: 'packages/app/src/b.ts',
+    });
+
+    expect(result.relationships).toEqual([]);
+  });
+
+  it('returns no relationships when relation or symbol indexes are absent', () => {
+    expect(listGraphRelationships({
+      graphData,
+      symbols,
+    }).relationships).toEqual([]);
+
+    expect(listGraphRelationships({
+      graphData,
+      relations,
+    }, {
+      from: 'packages/app/src/a.ts',
+      to: 'packages/app/src/b.ts',
+    }).relationships).toEqual([
+      {
+        from: 'packages/app/src/a.ts',
+        to: 'packages/app/src/b.ts',
+        relationships: [
+          { edgeType: 'import', symbols: [] },
+          { edgeType: 'type-import', symbols: [] },
+        ],
+      },
+    ]);
   });
 });

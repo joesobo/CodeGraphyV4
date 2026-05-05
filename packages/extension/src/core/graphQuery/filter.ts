@@ -3,46 +3,38 @@ import type { GraphQueryFilter } from './model';
 import type { SortValueReader } from './sort';
 
 type FilterableValue = ReturnType<SortValueReader<unknown>>;
+type ScalarFilter = (actual: string, expected: string) => boolean;
+
+const SCALAR_FILTERS: Record<GraphQueryFilter['op'], ScalarFilter> = {
+  equals: (actual, expected) => actual === expected,
+  includes: (actual, expected) => actual.includes(expected),
+  startsWith: (actual, expected) => actual.startsWith(expected),
+  endsWith: (actual, expected) => actual.endsWith(expected),
+  matches: (actual, expected) => globMatch(actual, expected),
+};
 
 function normalizeValue(value: unknown): string {
-  if (typeof value === 'string') {
-    return value;
+  switch (typeof value) {
+    case 'boolean':
+    case 'number':
+    case 'string':
+      return String(value);
+    default:
+      return '';
   }
-
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value);
-  }
-
-  return '';
 }
 
 function valueMatches(value: FilterableValue, filter: GraphQueryFilter): boolean {
   const expected = normalizeValue(filter.value);
 
   if (Array.isArray(value)) {
-    if (filter.op === 'includes') {
-      return value.includes(expected);
-    }
-
-    return valueMatches(value.join(' '), filter);
+    return filter.op === 'includes'
+      ? value.includes(expected)
+      : valueMatches(value.join(' '), filter);
   }
 
   const actual = normalizeValue(value);
-
-  switch (filter.op) {
-    case 'equals':
-      return actual === expected;
-    case 'includes':
-      return actual.includes(expected);
-    case 'startsWith':
-      return actual.startsWith(expected);
-    case 'endsWith':
-      return actual.endsWith(expected);
-    case 'matches':
-      return globMatch(actual, expected);
-    default:
-      return false;
-  }
+  return SCALAR_FILTERS[filter.op](actual, expected);
 }
 
 export function applyReportFilters<T>(
@@ -50,7 +42,7 @@ export function applyReportFilters<T>(
   filters: readonly GraphQueryFilter[] | undefined,
   readValue: SortValueReader<T>,
 ): T[] {
-  if (!filters || filters.length === 0) {
+  if (!filters) {
     return [...items];
   }
 

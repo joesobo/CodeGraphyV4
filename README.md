@@ -58,30 +58,29 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 ## Monorepo
 
-- the core extension focused on graph rendering, repo-local indexing, and the VS Code/webview bridge
-- a local `codegraphy` CLI and MCP server for agent Graph Query access through the Core Extension
-- example language plugins for:
-  - Typescript
-  - C#
-  - Python
-  - Godot
-  - Markdown
-- typed npm package [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api)
-- quality tooling so refactors can be enforced (based on some of Uncle Bob's ideas):
-  - boundaries
-  - organize checks
-  - mutation testing
-  - CRAP
-  - SCRAP
+CodeGraphy V4 is a pnpm monorepo with one Core Extension, one agent access package, one public Plugin API, optional language plugins, and repo-owned quality tooling.
+
+The Core Extension is the source of truth for graph behavior. It discovers files, runs built-in Tree-sitter Analysis and plugin analysis, writes the Graph Cache, projects the Relationship Graph, renders the Graph View, and executes Graph Query requests.
+
+The MCP package is the agent access layer. It does not index or parse code by itself; it opens or focuses the repo in VS Code, asks the Core Extension to run Indexing, and forwards Graph Query requests to the active Core Extension window.
+
+The optional language plugins add ecosystem-specific filters or enrichment on top of the Core Extension baseline. Markdown ships built in, while TypeScript/JavaScript, C#, Python, and GDScript/Godot are packaged as installable examples of the plugin surface.
+
+The quality tooling package owns the local architecture checks used by this repo: organize analysis, boundary checks, reachability, CRAP, scoped mutation, and SCRAP test-shape review.
 
 ## Package Map
 
-| Package | Install | What It Is For |
+| Package | Path | Install | What It Owns |
 |---|---|---|
-| CodeGraphy core extension | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, Indexing, repo-local settings, Graph Cache, and Graph Query execution |
-| `@codegraphy-vscode/mcp` | `npm install -g @codegraphy-vscode/mcp` | `codegraphy` CLI plus local MCP server for agents |
-| `@codegraphy-vscode/plugin-api` | `npm install @codegraphy-vscode/plugin-api` | typed API for building external CodeGraphy plugins |
-| language plugins | VS Code Marketplace | optional language-specific enrichment for CodeGraphy |
+| CodeGraphy core extension | `packages/extension` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | Graph View, Indexing, Tree-sitter Analysis, Graph Projection, repo-local Settings, Graph Cache, exports, and Graph Query execution |
+| `@codegraphy-vscode/mcp` | `packages/codegraphy-mcp` | `npm install -g @codegraphy-vscode/mcp` | `codegraphy` CLI and local MCP server for agent access through the Core Extension |
+| `@codegraphy-vscode/plugin-api` | `packages/plugin-api` | `npm install @codegraphy-vscode/plugin-api` | typed contracts for external CodeGraphy plugins and webview contributions |
+| TypeScript/JavaScript plugin | `packages/plugin-typescript` | VS Code Marketplace | optional TypeScript and JavaScript enrichment outside the built-in baseline |
+| C# plugin | `packages/plugin-csharp` | VS Code Marketplace | optional C# enrichment outside the built-in baseline |
+| Python plugin | `packages/plugin-python` | VS Code Marketplace | optional Python enrichment outside the built-in baseline |
+| GDScript/Godot plugin | `packages/plugin-godot` | VS Code Marketplace | optional Godot project, scene, resource, and script enrichment |
+| Markdown plugin | `packages/plugin-markdown` | bundled with the Core Extension | Markdown wikilink and note relationship enrichment |
+| Quality tools | `packages/quality-tools` | private workspace package | local architecture, coverage-risk, mutation, and test-shape checks |
 
 The MCP package is an agent companion, not a second indexer. The Core Extension owns Indexing, Graph Cache access, plugin wiring, and Graph Query execution. The MCP server opens/focuses the repo, forwards Indexing and Graph Query requests to the Core Extension, and returns the response to the agent.
 
