@@ -3,7 +3,6 @@ import { mdiClose, mdiFilterVariant } from '@mdi/js';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '../../ui/overlay/popover';
 import { Switch } from '../../ui/switch';
 import { cn } from '../../ui/cn';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
@@ -418,6 +417,12 @@ export function FilterPopover({
   pluginGroups,
   pluginPatterns,
 }: FilterPopoverProps): React.ReactElement {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open ?? internalOpen;
+  const setOpen = (nextOpen: boolean): void => {
+    setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const {
     addablePatterns,
     canAdd,
@@ -472,21 +477,25 @@ export function FilterPopover({
   };
 
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant={enabledCount > 0 ? 'secondary' : 'outline'}
-          size="sm"
-          className="h-7 px-2 text-xs"
-          aria-label={`Filters, ${enabledCount} enabled`}
-          title={formatExcludedCount(excludedCount)}
+    <>
+      <Button
+        variant={enabledCount > 0 ? 'secondary' : 'outline'}
+        size="sm"
+        className="h-7 px-2 text-xs"
+        aria-expanded={isOpen}
+        aria-label={`Filters, ${enabledCount} enabled`}
+        title={formatExcludedCount(excludedCount)}
+        onClick={() => setOpen(!isOpen)}
+      >
+        <MdiIcon path={mdiFilterVariant} size={14} />
+        {enabledCount}
+      </Button>
+      {isOpen ? (
+        <div
+          className="basis-full overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)]"
+          data-testid="filters-inline-surface"
         >
-          <MdiIcon path={mdiFilterVariant} size={14} />
-          {enabledCount}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end">
-        <div className="border-b px-3 py-2">
+          <div className="border-b px-3 py-2">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium">Filters</h2>
             <span className="text-xs text-muted-foreground">{enabledCount} enabled</span>
@@ -494,7 +503,7 @@ export function FilterPopover({
           <p className="text-[11px] text-muted-foreground">{formatExcludedCount(excludedCount)}</p>
         </div>
 
-        <div className="space-y-3 p-3">
+          <div className="max-h-[min(320px,35vh)] space-y-3 overflow-y-auto p-3">
           <CustomFiltersSection
             canAdd={canAdd}
             customPatterns={customPatterns}
@@ -518,8 +527,9 @@ export function FilterPopover({
             pluginPatterns={pluginPatterns}
             visiblePluginGroups={visiblePluginGroups}
           />
+          </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      ) : null}
+    </>
   );
 }

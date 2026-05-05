@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
 
 vi.mock('../../src/webview/components/ui/overlay/tooltip', async () => {
   const React = await import('react');
@@ -60,29 +59,15 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     pluginExporters: [],
     pluginToolbarActions: [],
     graphHasIndex: false,
+    graphIndexFreshness: 'missing',
+    graphIndexDetail: null,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
     nodeSizeMode: 'connections',
     timelineCommits: [],
     isIndexing: false,
     ...overrides,
   });
-}
-
-/**
- * Helper to get button groups from the toolbar DOM using data-testid attributes.
- * Layout: [dag-buttons] [depth-mode] [2d/3d] [node-size-buttons] [top-collapse] | [bottom-collapse] [refresh] [plugin-action] [export] [plugins] [settings]
- */
-function getButtonGroups(container: HTMLElement) {
-  const dagGroup = container.querySelector('[data-testid="dag-buttons"]');
-  const nodeSizeGroup = container.querySelector('[data-testid="node-size-buttons"]');
-  return {
-    depthButtons: Array.from(container.querySelectorAll('button[title="Enable Depth Mode"], button[title="Disable Depth Mode"]')),
-    dagButtons: dagGroup ? Array.from(dagGroup.querySelectorAll('button')) : [],
-    nodeSizeButtons: nodeSizeGroup ? Array.from(nodeSizeGroup.querySelectorAll('button')) : [],
-  };
-}
-
-function getIconPath(button: HTMLElement): string | null {
-  return button.querySelector('[data-testid="mdi-icon"]')?.getAttribute('data-icon-path') ?? null;
 }
 
 describe('Toolbar', () => {
@@ -95,299 +80,103 @@ describe('Toolbar', () => {
     vi.clearAllMocks();
   });
 
-  describe('layout', () => {
-    it('renders a vertical transparent toolbar with top and bottom groups', () => {
-      const { container } = render(<Toolbar />);
-      const toolbar = container.querySelector('[data-testid="toolbar"]') as HTMLElement | null;
-      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
-      const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]') as HTMLElement | null;
-      const dagButtons = container.querySelector('[data-testid="dag-buttons"]') as HTMLElement | null;
-      const nodeSizeButtons = container.querySelector('[data-testid="node-size-buttons"]') as HTMLElement | null;
+  it('renders the grouped Graph Tool Rail without legacy collapse stacks', () => {
+    const { container } = render(<Toolbar />);
+    const toolbar = screen.getByTestId('toolbar');
 
-      expect(toolbar).toBeTruthy();
-      expect(toolbar?.className).toContain('flex-col');
-      expect(toolbar?.className).toContain('items-center');
-      expect(toolbar?.className).toContain('bg-transparent');
-      expect(toolbar?.className).not.toContain('py-1');
-      expect(toolbar?.className).not.toContain('rounded-md');
-      expect(toolbar?.className).not.toContain('border');
-      expect(toolbar?.className).not.toContain('shadow-lg');
-      expect(topGroup).toBeTruthy();
-      expect(bottomGroup).toBeTruthy();
-      expect(topGroup?.className).toContain('flex-col');
-      expect(bottomGroup?.className).toContain('flex-col');
-      expect(topGroup?.querySelector('[data-testid="dag-buttons"]')).toBeTruthy();
-      expect(topGroup?.querySelector('[data-testid="node-size-buttons"]')).toBeTruthy();
-      expect(dagButtons?.className).toContain('flex-col');
-      expect(dagButtons?.className).not.toContain('bg-popover/80');
-      expect(dagButtons?.className).not.toContain('border');
-      expect(nodeSizeButtons?.className).toContain('flex-col');
-      expect(nodeSizeButtons?.className).not.toContain('bg-popover/80');
-      expect(nodeSizeButtons?.className).not.toContain('border');
-      expect(screen.getByTitle('Index Repo').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
-      expect(screen.getByTitle('Settings').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
-      expect(screen.getByTitle('Legends').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
-    });
+    expect(toolbar.className).toContain('flex-col');
+    expect(toolbar.className).toContain('bg-transparent');
+    expect(screen.getByTestId('toolbar-lifecycle-group')).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar-graph-tools-group')).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar-system-group')).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="toolbar-top-group"]')).toBeNull();
+    expect(container.querySelector('[data-testid="toolbar-bottom-group"]')).toBeNull();
+    expect(screen.queryByTitle('Enable Depth Mode')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Toggle 2D/3D Mode')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
+  });
 
-    it('renders separate collapse toggles for the top and bottom toolbar groups', () => {
-      const { container } = render(<Toolbar />);
-      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
-      const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]') as HTMLElement | null;
-      const topCollapseTrigger = screen.getByRole('button', { name: 'Collapse Top Toolbar' });
-      const bottomCollapseTrigger = screen.getByRole('button', { name: 'Collapse Bottom Toolbar' });
+  it('orders the core rail controls by lifecycle, graph tools, then system', () => {
+    render(<Toolbar />);
 
-      expect(topCollapseTrigger.closest('[data-testid="toolbar-top-group"]')).toBe(topGroup);
-      expect(bottomCollapseTrigger.closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
-      expect(topCollapseTrigger).toHaveAttribute('title', 'Collapse Top Toolbar');
-      expect(bottomCollapseTrigger).toHaveAttribute('title', 'Collapse Bottom Toolbar');
-      expect(getIconPath(topCollapseTrigger)).toBe(mdiChevronUp);
-      expect(getIconPath(bottomCollapseTrigger)).toBe(mdiChevronDown);
-    });
-
-    it('collapses only the top toolbar controls and keeps the bottom actions visible', () => {
-      const { container } = render(<Toolbar />);
-      const topControls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
-      const bottomControls = container.querySelector('[data-testid="toolbar-secondary-controls"]') as HTMLElement | null;
-
-      fireEvent.click(screen.getByRole('button', { name: 'Collapse Top Toolbar' }));
-
-      expect(screen.getByRole('button', { name: 'Expand Top Toolbar' })).toHaveAttribute('title', 'Expand Top Toolbar');
-      expect(topControls).toHaveClass(
-        'overflow-hidden',
-        'transition-[max-height,opacity,margin,transform]',
-        'duration-200',
-        'ease-out',
-        'mb-0',
-        'max-h-0',
-        'opacity-0',
-        '-translate-y-1',
-        'pointer-events-none',
+    const orderedTitles = screen
+      .getAllByRole('button')
+      .map((button) => button.getAttribute('title'))
+      .filter((title): title is string =>
+        ['Index Repo', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
       );
-      expect(bottomControls).toHaveClass('opacity-100');
-      expect(screen.getByTitle('Index Repo')).toBeTruthy();
-      expect(screen.getByTitle('Settings')).toBeTruthy();
-      expect(getIconPath(screen.getByRole('button', { name: 'Expand Top Toolbar' }))).toBe(mdiChevronDown);
-    });
 
-    it('collapses only the bottom toolbar controls and keeps the top actions visible', () => {
-      const { container } = render(<Toolbar />);
-      const topControls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
-      const bottomControls = container.querySelector('[data-testid="toolbar-secondary-controls"]') as HTMLElement | null;
-
-      fireEvent.click(screen.getByRole('button', { name: 'Collapse Bottom Toolbar' }));
-
-      expect(screen.getByRole('button', { name: 'Expand Bottom Toolbar' })).toHaveAttribute('title', 'Expand Bottom Toolbar');
-      expect(bottomControls).toHaveClass(
-        'overflow-hidden',
-        'transition-[max-height,opacity,margin,transform]',
-        'duration-200',
-        'ease-out',
-        'mt-0',
-        'max-h-0',
-        'opacity-0',
-        'translate-y-1',
-        'pointer-events-none',
-      );
-      expect(topControls).toHaveClass('opacity-100');
-      expect(screen.getByTitle('Toggle 2D/3D Mode')).toBeTruthy();
-      expect(getIconPath(screen.getByRole('button', { name: 'Expand Bottom Toolbar' }))).toBe(mdiChevronUp);
-    });
+    expect(orderedTitles).toEqual([
+      'Index Repo',
+      'Layout',
+      'Node Size',
+      'Graph Scope',
+      'Legends',
+      'Plugins',
+      'Settings',
+    ]);
   });
 
-  describe('depth mode button', () => {
-    it('renders a depth toggle button', () => {
-      const { container } = render(<Toolbar />);
-      const { depthButtons } = getButtonGroups(container);
-      expect(depthButtons).toHaveLength(1);
-    });
+  it('sends UPDATE_DAG_MODE from the layout popover', async () => {
+    render(<Toolbar />);
 
-    it('renders the depth toggle immediately before the dimension toggle', () => {
-      setDefaultState({ graphHasIndex: true });
-      render(<Toolbar />);
+    fireEvent.click(screen.getByTitle('Layout'));
+    fireEvent.click(await screen.findByRole('button', { name: /Radial Out/i }));
 
-      const depthButton = screen.getByTitle('Enable Depth Mode');
-      const dimensionButton = screen.getByTitle('Toggle 2D/3D Mode');
-
-      expect(
-        depthButton.compareDocumentPosition(dimensionButton) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
-    });
-
-    it('sends UPDATE_DEPTH_MODE when enabled after indexing', () => {
-      setDefaultState({ graphHasIndex: true });
-      render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Enable Depth Mode'));
-      const msg = findMessage('UPDATE_DEPTH_MODE');
-      expect(msg).toBeTruthy();
-      expect(msg!.payload.depthMode).toBe(true);
-    });
-
-    it('disables the depth button before indexing', () => {
-      render(<Toolbar />);
-      expect(screen.getByTitle('Enable Depth Mode')).toBeDisabled();
-    });
-
-    it('keeps the depth toggle in the on state while depth mode is enabled', () => {
-      setDefaultState({ graphHasIndex: true, depthMode: true });
-
-      render(<Toolbar />);
-
-      const button = screen.getByTitle('Disable Depth Mode');
-      expect(button).toHaveAttribute('aria-pressed', 'true');
-      expect(button.className).not.toContain('hover:bg-accent');
-      expect(button.className).toContain('bg-primary');
-    });
+    expect(findMessage('UPDATE_DAG_MODE')?.payload.dagMode).toBe('radialout');
   });
 
-  describe('DAG mode buttons', () => {
-    it('renders all four DAG mode buttons', () => {
-      const { container } = render(<Toolbar />);
-      const { dagButtons } = getButtonGroups(container);
-      expect(dagButtons).toHaveLength(4);
-    });
+  it('keeps churn visible but disabled until Git history is indexed', async () => {
+    render(<Toolbar />);
 
-    it('sends UPDATE_DAG_MODE when a DAG button is clicked', () => {
-      const { container } = render(<Toolbar />);
-      const { dagButtons } = getButtonGroups(container);
-      // Click "Radial Out" (index 1 in DAG_MODES: [null, radialout, td, lr])
-      fireEvent.click(dagButtons[1]);
-      const msg = findMessage('UPDATE_DAG_MODE');
-      expect(msg).toBeTruthy();
-      expect(msg!.payload.dagMode).toBe('radialout');
-    });
+    fireEvent.click(screen.getByTitle('Node Size'));
 
-    it('sends null dagMode when Default button is clicked', () => {
-      setDefaultState({ dagMode: 'td' });
-      const { container } = render(<Toolbar />);
-      const { dagButtons } = getButtonGroups(container);
-      fireEvent.click(dagButtons[0]);
-      const msg = findMessage('UPDATE_DAG_MODE');
-      expect(msg).toBeTruthy();
-      expect(msg!.payload.dagMode).toBeNull();
-    });
-
-    it('active DAG mode button has default variant', () => {
-      setDefaultState({ dagMode: 'td' });
-      const { container } = render(<Toolbar />);
-      const { dagButtons } = getButtonGroups(container);
-      // "Top Down" is index 2 — should be active (not ghost)
-      expect(dagButtons[2].className).not.toContain('hover:bg-accent');
-      // Others should be ghost
-      expect(dagButtons[0].className).toContain('hover:bg-accent');
-      expect(dagButtons[1].className).toContain('hover:bg-accent');
-      expect(dagButtons[3].className).toContain('hover:bg-accent');
-    });
+    expect(await screen.findByRole('button', { name: /Churn/i })).toBeDisabled();
   });
 
-  describe('2D/3D toggle', () => {
-    it('toggles graphMode from 2d to 3d', () => {
-      render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Toggle 2D/3D Mode'));
-      expect(graphStore.getState().graphMode).toBe('3d');
+  it('sends UPDATE_NODE_SIZE_MODE for churn after Git history is indexed', async () => {
+    setDefaultState({
+      timelineCommits: [
+        { sha: 'abc123', timestamp: 1, message: 'Initial commit', author: 'Test User', parents: [] },
+      ],
     });
 
-    it('toggles graphMode from 3d back to 2d', () => {
-      setDefaultState({ graphMode: '3d' });
-      render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Toggle 2D/3D Mode'));
-      expect(graphStore.getState().graphMode).toBe('2d');
-    });
+    render(<Toolbar />);
+    fireEvent.click(screen.getByTitle('Node Size'));
+    fireEvent.click(await screen.findByRole('button', { name: /Churn/i }));
+
+    expect(findMessage('UPDATE_NODE_SIZE_MODE')?.payload.nodeSizeMode).toBe('churn');
   });
 
-  describe('node size mode buttons', () => {
-    it('hides churn until Git history is indexed', () => {
-      const { container } = render(<Toolbar />);
-      const { nodeSizeButtons } = getButtonGroups(container);
+  it('opens graph-local panels from the rail buttons', () => {
+    render(<Toolbar />);
 
-      expect(nodeSizeButtons).toHaveLength(3);
-      expect(screen.queryByText('Size by Churn')).toBeNull();
-    });
+    fireEvent.click(screen.getByTitle('Graph Scope'));
+    expect(graphStore.getState().activePanel).toBe('graphScope');
 
-    it('renders churn after Git history is indexed', () => {
-      setDefaultState({
-        timelineCommits: [
-          { sha: 'abc123', timestamp: 1, message: 'Initial commit', author: 'Test User', parents: [] },
-        ],
-      });
+    fireEvent.click(screen.getByTitle('Legends'));
+    expect(graphStore.getState().activePanel).toBe('legends');
 
-      const { container } = render(<Toolbar />);
-      const { nodeSizeButtons } = getButtonGroups(container);
+    fireEvent.click(screen.getByTitle('Plugins'));
+    expect(graphStore.getState().activePanel).toBe('plugins');
 
-      expect(nodeSizeButtons).toHaveLength(4);
-      expect(screen.getByText('Size by Churn')).toBeTruthy();
-    });
-
-    it('active node size mode button has default variant', () => {
-      setDefaultState({ nodeSizeMode: 'file-size' });
-      const { container } = render(<Toolbar />);
-      const { nodeSizeButtons } = getButtonGroups(container);
-      // file-size is index 1 — should be active (not ghost)
-      expect(nodeSizeButtons[1].className).not.toContain('hover:bg-accent');
-      // Others should be ghost
-      expect(nodeSizeButtons[0].className).toContain('hover:bg-accent');
-      expect(nodeSizeButtons[2].className).toContain('hover:bg-accent');
-    });
-
-    it('sends UPDATE_NODE_SIZE_MODE when a node size button is clicked', () => {
-      setDefaultState({ nodeSizeMode: 'connections' });
-      const { container } = render(<Toolbar />);
-      const { nodeSizeButtons } = getButtonGroups(container);
-      // Click "Uniform" (index 2 while churn is hidden)
-      fireEvent.click(nodeSizeButtons[2]);
-      const msg = findMessage('UPDATE_NODE_SIZE_MODE');
-      expect(msg).toBeTruthy();
-      expect(msg!.payload.nodeSizeMode).toBe('uniform');
-    });
-
-    it('sends UPDATE_NODE_SIZE_MODE for churn after Git history is indexed', () => {
-      setDefaultState({
-        nodeSizeMode: 'connections',
-        timelineCommits: [
-          { sha: 'abc123', timestamp: 1, message: 'Initial commit', author: 'Test User', parents: [] },
-        ],
-      });
-      const { container } = render(<Toolbar />);
-      const { nodeSizeButtons } = getButtonGroups(container);
-
-      fireEvent.click(nodeSizeButtons[2]);
-
-      const msg = findMessage('UPDATE_NODE_SIZE_MODE');
-      expect(msg).toBeTruthy();
-      expect(msg!.payload.nodeSizeMode).toBe('churn');
-    });
+    fireEvent.click(screen.getByTitle('Settings'));
+    expect(graphStore.getState().activePanel).toBe('settings');
   });
 
-  describe('action buttons', () => {
-    it('refresh button sends INDEX_GRAPH before a graph index exists', () => {
-      render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Index Repo'));
-      expect(findMessage('INDEX_GRAPH')).toBeTruthy();
-    });
+  it('refresh button sends INDEX_GRAPH before a graph index exists', () => {
+    render(<Toolbar />);
 
-    it('shows Refresh when an index already exists', () => {
-      setDefaultState({ graphHasIndex: true });
+    fireEvent.click(screen.getByTitle('Index Repo'));
 
-      render(<Toolbar />);
+    expect(findMessage('INDEX_GRAPH')).toBeTruthy();
+  });
 
-      expect(screen.getByTitle('Refresh')).toBeTruthy();
-    });
+  it('shows Refresh when an index already exists', () => {
+    setDefaultState({ graphHasIndex: true });
 
-    it('settings button opens settings panel', () => {
-      render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Settings'));
-      expect(graphStore.getState().activePanel).toBe('settings');
-    });
+    render(<Toolbar />);
 
-    it('plugins button opens plugins panel', () => {
-      render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Plugins'));
-      expect(graphStore.getState().activePanel).toBe('plugins');
-    });
-
-    it('legends button opens legends panel', () => {
-      render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Legends'));
-      expect(graphStore.getState().activePanel).toBe('legends');
-    });
+    expect(screen.getByTitle('Refresh')).toBeInTheDocument();
   });
 });

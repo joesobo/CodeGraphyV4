@@ -70,7 +70,7 @@ export interface GraphState {
   nodeColorEnabled: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
-  activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges' | 'export';
+  activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
   activeFilePath: string | null;
   timelineActive: boolean;
@@ -84,7 +84,7 @@ export interface GraphState {
   setExpandedGroupId: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
-  setActivePanel: (panel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges' | 'export') => void;
+  setActivePanel: (panel: GraphState['activePanel']) => void;
   setGraphMode: (mode: '2d' | '3d') => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;
   setPhysicsSettings: (settings: IPhysicsSettings) => void;

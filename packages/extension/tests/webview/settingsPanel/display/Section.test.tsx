@@ -44,6 +44,17 @@ function renderContent(storeOverrides: Record<string, unknown> = {}) {
   return render(<DisplaySection />);
 }
 
+function getSliderByRange(min: string, max: string, occurrence = 0): HTMLElement {
+  const slider = screen.getAllByRole('slider').filter(
+    (element) =>
+      element.getAttribute('aria-valuemin') === min &&
+      element.getAttribute('aria-valuemax') === max,
+  )[occurrence];
+
+  expect(slider).toBeTruthy();
+  return slider;
+}
+
 describe('DisplaySection', () => {
   beforeEach(() => {
     sentMessages.length = 0;
@@ -52,9 +63,38 @@ describe('DisplaySection', () => {
   it('renders direction mode buttons', () => {
     renderContent();
 
+    expect(screen.getByRole('button', { name: /^2D$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^3D$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Arrows$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Particles$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^None$/i })).toBeInTheDocument();
+  });
+
+  it('updates renderer mode from Display settings', () => {
+    renderContent({ graphMode: '2d' });
+
+    fireEvent.click(screen.getByRole('button', { name: /^3D$/i }));
+
+    expect(graphStore.getState().graphMode).toBe('3d');
+  });
+
+  it('posts depth mode and depth limit updates from Display settings', () => {
+    renderContent({ graphHasIndex: true, depthMode: false, depthLimit: 2, maxDepthLimit: 5 });
+
+    fireEvent.click(screen.getByLabelText('Depth Mode'));
+    expect(graphStore.getState().depthMode).toBe(true);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_DEPTH_MODE',
+      payload: { depthMode: true },
+    });
+
+    const depthSlider = getSliderByRange('1', '5');
+    fireEvent.keyDown(depthSlider, { key: 'ArrowRight' });
+
+    expect(sentMessages).toContainEqual({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 3 },
+    });
   });
 
   it('marks the current direction mode button as pressed', () => {
@@ -169,15 +209,9 @@ describe('DisplaySection', () => {
     vi.useFakeTimers();
     renderContent({ directionMode: 'particles', particleSpeed: 0.0005 });
 
-    const speedSlider = screen.getAllByRole('slider').find(
-      (element) =>
-        element.getAttribute('aria-valuemin') === '1' &&
-        element.getAttribute('aria-valuemax') === '10'
-    );
+    const speedSlider = getSliderByRange('1', '10', 1);
 
-    expect(speedSlider).toBeTruthy();
-
-    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
+    fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
     expect(graphStore.getState().particleSpeed).toBeCloseTo(0.001, 6);
 
     act(() => {
@@ -195,16 +229,10 @@ describe('DisplaySection', () => {
     vi.useFakeTimers();
     renderContent({ directionMode: 'particles', particleSpeed: 0.0005 });
 
-    const speedSlider = screen.getAllByRole('slider').find(
-      (element) =>
-        element.getAttribute('aria-valuemin') === '1' &&
-        element.getAttribute('aria-valuemax') === '10'
-    );
+    const speedSlider = getSliderByRange('1', '10', 1);
 
-    expect(speedSlider).toBeTruthy();
-
-    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
-    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
+    fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
+    fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
 
     act(() => {
       vi.advanceTimersByTime(350);
@@ -282,15 +310,9 @@ describe('DisplaySection', () => {
       particleSpeed: 0.0005,
     });
 
-    const speedSlider = screen.getAllByRole('slider').find(
-      (element) =>
-        element.getAttribute('aria-valuemin') === '1' &&
-        element.getAttribute('aria-valuemax') === '10'
-    );
+    const speedSlider = getSliderByRange('1', '10', 1);
 
-    expect(speedSlider).toBeTruthy();
-
-    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
+    fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
     fireEvent.change(screen.getByLabelText('Direction Color'), {
       target: { value: '#abcdef' },
     });
@@ -329,24 +351,4 @@ describe('DisplaySection', () => {
     });
   });
 
-  it('commits max files through blur and enter handlers', () => {
-    renderContent({ maxFiles: 20 });
-
-    const input = screen.getByDisplayValue('20');
-    fireEvent.change(input, { target: { value: '42' } });
-    fireEvent.keyDown(input, { key: 'Enter', currentTarget: { value: '42' } });
-
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_MAX_FILES',
-      payload: { maxFiles: 42 },
-    });
-
-    fireEvent.change(input, { target: { value: '5' } });
-    fireEvent.blur(input, { target: { value: '5' } });
-
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_MAX_FILES',
-      payload: { maxFiles: 5 },
-    });
-  });
 });

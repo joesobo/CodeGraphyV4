@@ -320,3 +320,38 @@ Applied to CodeGraphy:
 ## Open Questions
 
 - None. The plan is ready for implementation; continue refining through code review and follow-up decisions as the UI cleanup lands.
+
+## Implementation Audit - 2026-05-05 Follow-up
+
+Current PR state already covers the VS Code token bridge, graph appearance adapter, broad production webview hardcoded-color guard, theme-oriented component cleanup, docs update, changeset, and a local before/after screenshot matrix.
+
+The follow-up implementation pass should close these remaining plan gaps before PR completion:
+
+- Replace the two collapsible toolbar stacks with the accepted grouped Graph Tool Rail: Lifecycle, Graph Tools, and System.
+- Move Layout and Node Size from vertical always-visible toggle groups into compact rail popovers with icon-and-label choices, active row treatment, and disabled Churn visibility when git history is unavailable.
+- Move Depth Mode and 2D/3D renderer mode out of the rail into Settings > Display.
+- Replace separate Nodes and Edges panels with one Graph Scope panel using Node Types and Edge Types segmented tabs plus one shared row treatment.
+- Remove Export as a direct rail panel and expose export actions from Settings.
+- Split Settings into Display, Forces, Performance, and Export sections, all collapsed by default and remembered while the webview session lives.
+- Rework the Filter trigger from a detached popover into an inline Search/Filters surface that expands under the Search header and pushes the Graph Stage down.
+- Preserve the current repo-local exclude filter contract in this PR unless the implementation migrates settings/protocol/storage directly. Full persisted Include criteria remain a separate contract migration if not implemented here.
+- Add tests for the missing toolbar, Graph Scope, Settings, and inline Search/Filters behavior before relying on manual screenshots.
+
+## Follow-up Completion - 2026-05-05
+
+The follow-up pass closed the implementation gaps above:
+
+- The left rail now uses Lifecycle, Graph Tools, and System grouping. Layout and Node Size use compact popovers, while Graph Scope, Legend, Plugins, and Settings remain right-side panels.
+- Depth Mode and 2D/3D renderer mode moved into Settings > Display. `maxFiles` moved into Settings > Performance, and export actions moved into Settings > Export.
+- Separate Nodes, Edges, and Export panels were removed. Graph Scope now combines Node Types and Edge Types with shared scope rows and read-only color swatches.
+- Search filters now expand inline under the Search header and keep the existing exclude-filter settings contract. Full persisted Include semantics remain a separate filter-contract migration.
+- The Graph Scope implementation was split into local panel, tab, and row modules after mutation testing flagged the first combined file as too dense.
+
+Verification evidence for this pass:
+
+- Focused webview behavior and hardcoded-color tests: 16 files, 135 tests passed.
+- Full extension CRAP run: 960 files, 5667 tests passed; all functions have CRAP score <= 8.
+- Scoped Graph Scope mutation run: 59 mutants killed, 100% mutation score, all files under the 50 mutation-site threshold.
+- Boundaries check for `extension/src/webview/`: 0 layer violations, 0 dead surfaces, 0 dead ends.
+- Extension lint and build passed. The Vite build still emits the existing large-chunk warning.
+- Before/after screenshots for Solarized Light, GitHub Dark, High Contrast, and Red themes were copied to `docs/media/pr-201-ui-theme/` for PR review.

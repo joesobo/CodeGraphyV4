@@ -143,7 +143,7 @@ describe('App', () => {
     expect(svg).toBeInTheDocument();
   });
 
-  it('should render the export button when graph is loaded', async () => {
+  it('should render graph-local and system toolbar buttons when graph is loaded', async () => {
     render(<App />);
     await act(async () => {
       messageListeners.forEach((listener) => listener(new MessageEvent('message', {
@@ -156,7 +156,11 @@ describe('App', () => {
         },
       })));
     });
-    expect(screen.getByTitle('Export')).toBeInTheDocument();
+    expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
+    expect(screen.getByTitle('Legends')).toBeInTheDocument();
+    expect(screen.getByTitle('Plugins')).toBeInTheDocument();
+    expect(screen.getByTitle('Settings')).toBeInTheDocument();
+    expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
   });
 
   it('should render graph corner controls when graph is loaded', async () => {
@@ -231,7 +235,7 @@ describe('App', () => {
   });
 
   it('should hide graph corner controls while a right-side popup is open', async () => {
-    graphStore.setState({ activePanel: 'edges' });
+    graphStore.setState({ activePanel: 'graphScope' });
 
     render(<App />);
     await act(async () => {
@@ -246,7 +250,7 @@ describe('App', () => {
       })));
     });
 
-    expect(screen.getByText('Edges')).toBeInTheDocument();
+    expect(screen.getByText('Graph Scope')).toBeInTheDocument();
     expect(screen.queryByTitle('Zoom In')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Zoom Out')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Fit to Screen')).not.toBeInTheDocument();
