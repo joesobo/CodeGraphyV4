@@ -37,8 +37,8 @@ import { NodeSizeToggle } from '../../../../src/webview/components/toolbar/NodeS
 import { graphStore } from '../../../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../../../helpers/sentMessages';
 
-function setDefaultState(nodeSizeMode: 'connections' | 'file-size' | 'access-count' | 'uniform' = 'connections'): void {
-  graphStore.setState({ nodeSizeMode });
+function setDefaultState(nodeSizeMode: 'connections' | 'file-size' | 'churn' | 'uniform' = 'connections'): void {
+  graphStore.setState({ nodeSizeMode, timelineCommits: [] });
 }
 
 describe('toolbar/NodeSizeToggle', () => {
@@ -51,17 +51,16 @@ describe('toolbar/NodeSizeToggle', () => {
     vi.clearAllMocks();
   });
 
-  it('renders every node size option with its tooltip label', () => {
+  it('hides churn sizing until git history has been indexed', () => {
     render(<NodeSizeToggle />);
 
     const buttons = screen.getAllByRole('button');
     const tooltips = screen.getAllByRole('tooltip');
 
-    expect(buttons).toHaveLength(4);
+    expect(buttons).toHaveLength(3);
     expect(tooltips.map(node => node.textContent)).toEqual([
       'Size by Connections',
       'Size by File Size',
-      'Size by Access Count',
       'Uniform Size',
     ]);
     buttons.forEach(button => {
@@ -69,8 +68,26 @@ describe('toolbar/NodeSizeToggle', () => {
     });
   });
 
+  it('shows churn sizing after git history has been indexed', () => {
+    graphStore.setState({
+      timelineCommits: [{ sha: 'abc', timestamp: 1, message: 'init', author: 'Dev', parents: [] }],
+    });
+
+    render(<NodeSizeToggle />);
+
+    expect(screen.getAllByRole('tooltip').map(node => node.textContent)).toEqual([
+      'Size by Connections',
+      'Size by File Size',
+      'Size by Churn',
+      'Uniform Size',
+    ]);
+  });
+
   it('marks only the active node size mode button as default', () => {
-    setDefaultState('access-count');
+    setDefaultState('churn');
+    graphStore.setState({
+      timelineCommits: [{ sha: 'abc', timestamp: 1, message: 'init', author: 'Dev', parents: [] }],
+    });
 
     render(<NodeSizeToggle />);
 
@@ -98,7 +115,7 @@ describe('toolbar/NodeSizeToggle', () => {
 
     render(<NodeSizeToggle />);
 
-    fireEvent.click(screen.getAllByRole('button')[3]);
+    fireEvent.click(screen.getAllByRole('button')[2]);
 
     expect(findMessage('UPDATE_NODE_SIZE_MODE')).toEqual({
       payload: { nodeSizeMode: 'uniform' },

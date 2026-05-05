@@ -53,14 +53,13 @@ describe('NodeTooltip', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  it('renders the file path, connection counts, visits, and plugin metadata', () => {
+  it('renders the file path, connection counts, and plugin metadata', () => {
     const { container } = render(
       <NodeTooltip
         path="src/App.ts"
         incomingCount={1}
         outgoingCount={2}
         plugin="TypeScript"
-        visits={3}
         nodeRect={defaultNodeRect}
         visible={true}
       />,
@@ -69,8 +68,6 @@ describe('NodeTooltip', () => {
     expect(screen.getByText('src/App.ts')).toBeInTheDocument();
     expect(screen.getByText('Connections')).toBeInTheDocument();
     expect(screen.getByText('2 out · 1 in')).toBeInTheDocument();
-    expect(screen.getByText('Visits')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('Plugin')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
     expect(container.firstElementChild).toHaveStyle({ zIndex: '1000', maxWidth: '280px' });
@@ -82,19 +79,17 @@ describe('NodeTooltip', () => {
     );
   });
 
-  it('omits optional rows when visits, plugin, size, and modified time are absent', () => {
+  it('omits optional rows when plugin, size, and modified time are absent', () => {
     render(
       <NodeTooltip
         path="src/App.ts"
         incomingCount={0}
         outgoingCount={0}
-        visits={0}
         nodeRect={defaultNodeRect}
         visible={true}
       />,
     );
 
-    expect(screen.queryByText('Visits')).not.toBeInTheDocument();
     expect(screen.queryByText('Plugin')).not.toBeInTheDocument();
     expect(screen.queryByText('Size')).not.toBeInTheDocument();
     expect(screen.queryByText('Modified')).not.toBeInTheDocument();

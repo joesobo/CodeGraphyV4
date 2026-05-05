@@ -49,6 +49,6 @@ describe('source/delegates/settings', () => {
       -180,
     );
     expect(owner._physicsSettingsMethods._resetPhysicsSettings).toHaveBeenCalledTimes(1);
-    expect(owner._fileVisitMethods._sendFavorites).toHaveBeenCalledTimes(1);
+    expect(owner._fileInfoMethods._sendFavorites).toHaveBeenCalledTimes(1);
   });
 });

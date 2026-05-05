@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { classifyTarget } from '../../../../src/webview/components/graph/contextMenu/targetClassification';
+import {
+  classifyPluginTarget,
+  classifyTarget,
+} from '../../../../src/webview/components/graph/contextMenu/targetClassification';
 import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
+import type { GraphContextMenuDecision } from '../../../../src/webview/components/graph/contextMenu/decision/model';
 
 const pluginItems: IPluginContextMenuItem[] = [
   { label: 'Node Action', when: 'node', pluginId: 'acme', index: 0 },
@@ -60,6 +64,17 @@ describe('graph/contextMenu/targetClassification', () => {
     expect(result).toBeNull();
   });
 
+  it('only classifies edge ids from edge decisions', () => {
+    const malformedBackgroundDecision = {
+      kind: 'background',
+      edgeId: 'src/a.ts->src/b.ts',
+    } as unknown as GraphContextMenuDecision;
+
+    const result = classifyPluginTarget(malformedBackgroundDecision, pluginItems);
+
+    expect(result).toBeNull();
+  });
+
   it('returns an empty eligibleItems array when no plugin items match the target type', () => {
     const result = classifyTarget(
       { kind: 'node', targets: ['src/app.ts'] },
@@ -67,5 +82,16 @@ describe('graph/contextMenu/targetClassification', () => {
     );
 
     expect(result?.eligibleItems).toHaveLength(0);
+  });
+
+  it('classifies single node decisions as plugin node targets', () => {
+    const result = classifyPluginTarget({
+      kind: 'singleFolderNode',
+      target: { id: 'src', nodeKind: 'folder', nodeType: 'folder' },
+    }, pluginItems);
+
+    expect(result?.targetId).toBe('src');
+    expect(result?.targetType).toBe('node');
+    expect(result?.eligibleItems.map(item => item.label)).toEqual(['Node Action', 'Both Action']);
   });
 });

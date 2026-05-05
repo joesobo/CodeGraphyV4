@@ -12,7 +12,6 @@ export interface IGraphViewFileInfoPayload {
   incomingCount: number;
   outgoingCount: number;
   plugin: string | undefined;
-  visits: number;
 }
 
 export function buildGraphViewFileInfoPayload(
@@ -20,7 +19,6 @@ export function buildGraphViewFileInfoPayload(
   stat: IFileStatLike,
   graphData: IGraphData,
   plugin: string | undefined,
-  visits: number
 ): IGraphViewFileInfoPayload {
   let incomingCount = 0;
   let outgoingCount = 0;
@@ -37,6 +35,5 @@ export function buildGraphViewFileInfoPayload(
     incomingCount,
     outgoingCount,
     plugin,
-    visits,
   };
 }

@@ -17,6 +17,11 @@ import {
   createPatternPromptEffects,
 } from '../../../../src/webview/components/graph/contextActions/prompts';
 import { getBuiltInContextActionEffects } from '../../../../src/webview/components/graph/contextActions/effects';
+import { resolveGraphContextActionContext } from '../../../../src/webview/components/graph/contextActions/context';
+
+function nodeContext(targets: string[]) {
+  return resolveGraphContextActionContext({ kind: 'node', targets });
+}
 
 describe('graph/contextActions/builders', () => {
   it('builds open-file and focus effects', () => {
@@ -73,22 +78,22 @@ describe('graph/contextActions/builders', () => {
       { kind: 'postMessage', message: { type: 'CREATE_FOLDER', payload: { directory: 'src' } } },
     ]);
 
-    expect(getBuiltInContextActionEffects('createFile', ['src'])).toEqual([
+    expect(getBuiltInContextActionEffects('createFile', nodeContext(['src']))).toEqual([
       { kind: 'postMessage', message: { type: 'CREATE_FILE', payload: { directory: 'src' } } },
     ]);
-    expect(getBuiltInContextActionEffects('createFolder', ['src'])).toEqual([
+    expect(getBuiltInContextActionEffects('createFolder', nodeContext(['src']))).toEqual([
       { kind: 'postMessage', message: { type: 'CREATE_FOLDER', payload: { directory: 'src' } } },
     ]);
-    expect(getBuiltInContextActionEffects('createFile', [])).toEqual([
+    expect(getBuiltInContextActionEffects('createFile', nodeContext([]))).toEqual([
       { kind: 'postMessage', message: { type: 'CREATE_FILE', payload: { directory: '.' } } },
     ]);
   });
 
   it('maps the synthetic root folder node to the workspace root for creation effects', () => {
-    expect(getBuiltInContextActionEffects('createFile', ['(root)'])).toEqual([
+    expect(getBuiltInContextActionEffects('createFile', nodeContext(['(root)']))).toEqual([
       { kind: 'postMessage', message: { type: 'CREATE_FILE', payload: { directory: '.' } } },
     ]);
-    expect(getBuiltInContextActionEffects('createFolder', ['(root)'])).toEqual([
+    expect(getBuiltInContextActionEffects('createFolder', nodeContext(['(root)']))).toEqual([
       { kind: 'postMessage', message: { type: 'CREATE_FOLDER', payload: { directory: '.' } } },
     ]);
   });

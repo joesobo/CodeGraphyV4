@@ -190,7 +190,7 @@ describe('node sizing', () => {
     expect(container.querySelector('div')).toBeInTheDocument();
   });
 
-  it('should handle access-count mode', () => {
+  it('should handle churn mode', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
@@ -198,7 +198,7 @@ describe('node sizing', () => {
       ],
       edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' , kind: 'import', sources: [] }],
     };
-    graphStore.setState({ nodeSizeMode: 'access-count' });
+    graphStore.setState({ nodeSizeMode: 'churn' });
     const { container } = render(<Graph data={data} />);
     expect(container.querySelector('div')).toBeInTheDocument();
   });
@@ -247,7 +247,7 @@ describe('Graph dagMode', () => {
 describe('Export Functionality', () => {
   const mockData: IGraphData = {
     nodes: [
-      { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', fileSize: 1234, accessCount: 5 },
+      { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', fileSize: 1234, churn: 5 },
       { id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9', fileSize: 567 },
     ],
     edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],

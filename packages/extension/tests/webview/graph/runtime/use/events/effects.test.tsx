@@ -79,7 +79,6 @@ interface MessageEffectHandlers {
   exportSvg: () => void;
   fitView: () => void;
   postMessage: typeof eventEffectsHarness.postMessage;
-  updateAccessCount: (nodeId: string, accessCount: number) => void;
   updateTooltipInfo: (info: IFileInfo) => void;
   zoomGraphView: (factor: number) => void;
 }
@@ -110,7 +109,6 @@ function createInteractionHandlers(): GraphInteractionHandlers {
     setGraphCursor: vi.fn(),
     setHighlight: vi.fn(),
     setSelection: vi.fn(),
-    updateAccessCount: vi.fn(),
     zoomGraphView: vi.fn(),
   };
 }
@@ -228,7 +226,6 @@ describe('graph/runtime/useGraphEventEffects', () => {
         exportSvg: expect.any(Function),
         fitView: expect.any(Function),
         postMessage: eventEffectsHarness.postMessage,
-        updateAccessCount: expect.any(Function),
         updateTooltipInfo: expect.any(Function),
         zoomGraphView: expect.any(Function),
       }),
@@ -245,7 +242,6 @@ describe('graph/runtime/useGraphEventEffects', () => {
     capturedHandlers?.exportJpeg();
     capturedHandlers?.exportJson();
     capturedHandlers?.exportMarkdown();
-    capturedHandlers?.updateAccessCount('src/initial.ts', 3);
 
     expect(interactionHandlers.fitView).toHaveBeenCalledTimes(1);
     expect(interactionHandlers.zoomGraphView).toHaveBeenCalledWith(1.5);
@@ -266,7 +262,6 @@ describe('graph/runtime/useGraphEventEffects', () => {
     expect(eventEffectsHarness.exportAsJpeg).toHaveBeenCalledWith(containerRef.current);
     expect(eventEffectsHarness.exportAsJson).toHaveBeenCalledWith(dataRef.current);
     expect(eventEffectsHarness.exportAsMarkdown).toHaveBeenCalledWith(dataRef.current);
-    expect(interactionHandlers.updateAccessCount).toHaveBeenCalledWith('src/initial.ts', 3);
 
     addEventListenerSpy.mockRestore();
   });

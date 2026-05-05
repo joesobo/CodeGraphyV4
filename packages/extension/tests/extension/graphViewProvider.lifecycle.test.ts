@@ -98,7 +98,7 @@ describe('GraphViewProvider lifecycle', () => {
       .spyOn(internals._analysisMethods, '_refreshAndSendData')
       .mockResolvedValue();
     vi.spyOn(internals._settingsStateMethods, '_sendAllSettings').mockImplementation(() => {});
-    vi.spyOn(internals._fileVisitMethods, '_sendFavorites').mockImplementation(() => {});
+    vi.spyOn(internals._fileInfoMethods, '_sendFavorites').mockImplementation(() => {});
 
     (provider as unknown as {
       _analyzer: { clearCache: () => void };

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
-import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -12,17 +11,12 @@ Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   configurable: true,
 });
 
-function createContext(visits: Record<string, number> = {}) {
+function createContext() {
   return {
     subscriptions: [],
     extensionUri: vscode.Uri.file('/test/extension'),
     workspaceState: {
-      get: vi.fn((key: string) => {
-        if (key === 'codegraphy.fileVisits') {
-          return visits;
-        }
-        return undefined;
-      }),
+      get: vi.fn(() => undefined),
       update: vi.fn(() => Promise.resolve()),
     },
   };
@@ -60,7 +54,7 @@ function resolveMessageHandler(provider: GraphViewProvider) {
   return { messageHandler: messageHandler!, postMessage };
 }
 
-describe('GraphViewProvider file info and visits', () => {
+describe('GraphViewProvider file info', () => {
   beforeEach(() => {
     workspaceFoldersValue = [
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
@@ -68,8 +62,8 @@ describe('GraphViewProvider file info and visits', () => {
     vi.clearAllMocks();
   });
 
-  it('reports connection counts, visits, and plugin names for GET_FILE_INFO', async () => {
-    const context = createContext({ 'src/main.py': 4 });
+  it('reports connection counts and plugin names for GET_FILE_INFO', async () => {
+    const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
@@ -130,66 +124,7 @@ describe('GraphViewProvider file info and visits', () => {
       incomingCount: 1,
       outgoingCount: 2,
       plugin: 'Python',
-      visits: 4,
     });
-  });
-
-  it('tracks file visits for visible graph nodes and sends access-count updates', async () => {
-    const context = createContext({ 'src/main.py': 2 });
-    const provider = new GraphViewProvider(
-      vscode.Uri.file('/test/extension'),
-      context as unknown as vscode.ExtensionContext
-    );
-    const internals = getGraphViewProviderInternals(provider);
-    const sendMessageSpy = vi.spyOn(
-      internals._webviewMethods,
-      '_sendMessage'
-    ).mockImplementation(() => {});
-
-    provider.updateGraphData({
-      nodes: [
-        { id: 'src/main.py', label: 'main.py', color: '#ffffff' },
-        { id: 'src/other.py', label: 'other.py', color: '#ffffff' },
-      ],
-      edges: [],
-    });
-
-    await provider.trackFileVisit('src/main.py');
-
-    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.fileVisits', {
-      'src/main.py': 3,
-    });
-    expect(sendMessageSpy).toHaveBeenCalledWith({
-      type: 'NODE_ACCESS_COUNT_UPDATED',
-      payload: { nodeId: 'src/main.py', accessCount: 3 },
-    });
-  });
-
-  it('ignores tracked file visits for nodes outside the current graph', async () => {
-    const context = createContext({ 'src/main.py': 2 });
-    const provider = new GraphViewProvider(
-      vscode.Uri.file('/test/extension'),
-      context as unknown as vscode.ExtensionContext
-    );
-    const internals = getGraphViewProviderInternals(provider);
-    const sendMessageSpy = vi.spyOn(
-      internals._webviewMethods,
-      '_sendMessage'
-    ).mockImplementation(() => {});
-
-    provider.updateGraphData({
-      nodes: [{ id: 'src/other.py', label: 'other.py', color: '#ffffff' }],
-      edges: [],
-    });
-
-    await provider.trackFileVisit('src/main.py');
-
-    expect(context.workspaceState.update).not.toHaveBeenCalledWith(
-      'codegraphy.fileVisits',
-      expect.anything()
-    );
-    expect(sendMessageSpy).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'NODE_ACCESS_COUNT_UPDATED' })
-    );
+    expect(fileInfoMessage?.payload).not.toHaveProperty('visits');
   });
 });

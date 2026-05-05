@@ -16,7 +16,6 @@ interface GraphViewProviderPublicMethodsOwner {
   _methodContainers: Pick<
     GraphViewProviderMethodContainers,
     | 'command'
-    | 'fileVisit'
     | 'plugin'
     | 'query'
     | 'refresh'
@@ -67,7 +66,6 @@ export interface GraphViewProviderPublicMethods {
   getGraphData: () => IGraphData;
   sendPlaybackSpeed: () => void;
   invalidateTimelineCache: () => Promise<void>;
-  trackFileVisit: (filePath: string) => Promise<void>;
   registerExternalPlugin: (
     plugin: unknown,
     options?: GraphViewExternalPluginRegistrationOptions,
@@ -119,7 +117,6 @@ export function assignGraphViewProviderPublicMethods(
   target.getGraphData = () => target._methodContainers.viewContext.getGraphData();
   target.sendPlaybackSpeed = () => target._methodContainers.timeline.sendPlaybackSpeed();
   target.invalidateTimelineCache = () => target._methodContainers.timeline.invalidateTimelineCache();
-  target.trackFileVisit = filePath => target._methodContainers.fileVisit.trackFileVisit(filePath);
   target.registerExternalPlugin = (plugin, options) =>
     target._methodContainers.plugin.registerExternalPlugin(plugin, options);
   target.queryGraph = request => target._methodContainers.query.queryGraph(request);

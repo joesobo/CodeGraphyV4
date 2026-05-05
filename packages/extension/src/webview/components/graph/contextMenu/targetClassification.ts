@@ -1,10 +1,42 @@
 import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextMenu';
 import type { GraphContextSelection } from './contracts';
+import { decideGraphContextMenu } from './decision/model';
+import type { GraphContextMenuDecision } from './decision/model';
 
 export interface ClassifiedTarget {
   targetId: string;
   targetType: 'node' | 'edge';
   eligibleItems: IPluginContextMenuItem[];
+}
+
+type PluginTargetType = ClassifiedTarget['targetType'];
+type SingleNodeDecision = Extract<GraphContextMenuDecision, { target: unknown }>;
+
+const SINGLE_NODE_DECISION_KINDS = new Set<SingleNodeDecision['kind']>([
+  'singleFileNode',
+  'singleFolderNode',
+  'singlePackageNode',
+  'singlePluginNode',
+]);
+
+function isSingleNodeDecision(decision: GraphContextMenuDecision): decision is SingleNodeDecision {
+  return SINGLE_NODE_DECISION_KINDS.has(decision.kind as SingleNodeDecision['kind']);
+}
+
+function itemMatchesTargetType(item: IPluginContextMenuItem, targetType: PluginTargetType): boolean {
+  return item.when === targetType || item.when === 'both';
+}
+
+function buildClassifiedTarget(
+  targetId: string,
+  targetType: PluginTargetType,
+  pluginItems: readonly IPluginContextMenuItem[],
+): ClassifiedTarget {
+  return {
+    targetId,
+    targetType,
+    eligibleItems: pluginItems.filter(item => itemMatchesTargetType(item, targetType)),
+  };
 }
 
 /**
@@ -16,16 +48,19 @@ export function classifyTarget(
   selection: GraphContextSelection,
   pluginItems: readonly IPluginContextMenuItem[]
 ): ClassifiedTarget | null {
-  if (selection.kind === 'node' && selection.targets.length === 1) {
-    const targetId = selection.targets[0];
-    const eligibleItems = pluginItems.filter(item => item.when === 'node' || item.when === 'both');
-    return { targetId, targetType: 'node', eligibleItems };
+  return classifyPluginTarget(decideGraphContextMenu(selection), pluginItems);
+}
+
+export function classifyPluginTarget(
+  decision: GraphContextMenuDecision,
+  pluginItems: readonly IPluginContextMenuItem[]
+): ClassifiedTarget | null {
+  if (isSingleNodeDecision(decision)) {
+    return buildClassifiedTarget(decision.target.id, 'node', pluginItems);
   }
 
-  if (selection.kind === 'edge' && selection.edgeId) {
-    const targetId = selection.edgeId;
-    const eligibleItems = pluginItems.filter(item => item.when === 'edge' || item.when === 'both');
-    return { targetId, targetType: 'edge', eligibleItems };
+  if (decision.kind === 'edge' && decision.edgeId) {
+    return buildClassifiedTarget(decision.edgeId, 'edge', pluginItems);
   }
 
   return null;

@@ -19,13 +19,11 @@ interface GraphViewFileInfoLoaderOptions {
   statFile: (fileUri: vscode.Uri) => PromiseLike<{ size: number; mtime: number }>;
   ensureAnalyzerReady: () => Promise<GraphViewFileInfoAnalyzerLike | undefined>;
   graphData: IGraphData;
-  getVisitCount: (filePath: string) => number;
 }
 
 interface SendGraphViewProviderFileInfoMessageOptions<TPayload> {
   workspaceFolder: vscode.WorkspaceFolder | undefined;
   statFile: (fileUri: vscode.Uri) => PromiseLike<{ size: number; mtime: number }>;
-  getVisitCount: (filePath: string) => number;
   sendMessage: (message: unknown) => void;
   logError: (label: string, error: unknown) => void;
   loadFileInfo?: (
@@ -40,7 +38,6 @@ export async function sendGraphViewProviderFileInfoMessage<TPayload>(
   {
     workspaceFolder,
     statFile,
-    getVisitCount,
     sendMessage,
     logError,
     loadFileInfo = loadGraphViewFileInfo as (
@@ -63,7 +60,6 @@ export async function sendGraphViewProviderFileInfoMessage<TPayload>(
           return state.analyzer;
         },
         graphData: state.graphData,
-        getVisitCount,
       }),
     sendMessage,
     logError,

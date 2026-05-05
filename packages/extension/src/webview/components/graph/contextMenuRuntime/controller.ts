@@ -1,6 +1,5 @@
-import {
-  type GraphContextEffect,
-} from '../contextActions/effects';
+import type { GraphContextActionContext } from '../contextActions/context';
+import type { GraphContextEffect } from '../contextActions/effects';
 import type {
   GraphContextMenuAction,
   GraphContextSelection,
@@ -68,7 +67,7 @@ export interface GraphContextMenuRuntime {
   clearRightClickFallbackTimer(): void;
   clearTooltipContext(): void;
   handleContextMenu(): void;
-  handleMenuAction(action: GraphContextMenuAction, targetPaths: string[]): void;
+  handleMenuAction(action: GraphContextMenuAction, context: GraphContextActionContext): void;
   handleMouseDownCapture(event: GraphRightClickPointerDownEvent): void;
   handleMouseMoveCapture(event: GraphRightClickPointerMoveEvent): void;
   handleMouseUpCapture(event: GraphRightClickPointerUpEvent): void;
@@ -86,8 +85,8 @@ export function createGraphContextMenuRuntime(
     clearRightClickFallbackTimer: () => pointerRuntime.clearRightClickFallbackTimer(),
     clearTooltipContext: () => tooltipRuntime.clearTooltipContext(),
     handleContextMenu: () => tooltipRuntime.handleContextMenu(),
-    handleMenuAction: (action, targetPaths) =>
-      effectRuntime.handleMenuAction(action, targetPaths),
+    handleMenuAction: (action, context) =>
+      effectRuntime.handleMenuAction(action, context),
     handleMouseDownCapture: (event) => pointerRuntime.handleMouseDownCapture(event),
     handleMouseMoveCapture: (event) => pointerRuntime.handleMouseMoveCapture(event),
     handleMouseUpCapture: (event) => pointerRuntime.handleMouseUpCapture(event),

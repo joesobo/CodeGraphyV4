@@ -5,7 +5,7 @@ const mockedFactories = vi.hoisted(() => {
   const analysis = { kind: 'analysis' };
   const command = { kind: 'command' };
   const fileAction = { kind: 'fileAction' };
-  const fileVisit = { kind: 'fileVisit' };
+  const fileInfo = { kind: 'fileInfo' };
   const physicsSettings = { kind: 'physicsSettings' };
   const plugin = { kind: 'plugin' };
   const pluginResource = { kind: 'pluginResource' };
@@ -22,7 +22,7 @@ const mockedFactories = vi.hoisted(() => {
     analysis,
     command,
     fileAction,
-    fileVisit,
+    fileInfo,
     physicsSettings,
     plugin,
     pluginResource,
@@ -37,7 +37,7 @@ const mockedFactories = vi.hoisted(() => {
     createGraphViewProviderAnalysisMethods: vi.fn(() => analysis),
     createGraphViewProviderCommandMethods: vi.fn(() => command),
     createGraphViewProviderFileActionMethods: vi.fn(() => fileAction),
-    createGraphViewProviderFileVisitMethods: vi.fn(() => fileVisit),
+    createGraphViewProviderFileInfoMethods: vi.fn(() => fileInfo),
     createGraphViewProviderPhysicsSettingsMethods: vi.fn(() => physicsSettings),
     createGraphViewProviderPluginMethods: vi.fn(() => plugin),
     createGraphViewProviderPluginResourceMethods: vi.fn(() => pluginResource),
@@ -63,8 +63,8 @@ vi.mock('../../../../../src/extension/graphView/provider/commands', () => ({
 vi.mock('../../../../../src/extension/graphView/provider/file/actions', () => ({
   createGraphViewProviderFileActionMethods: mockedFactories.createGraphViewProviderFileActionMethods,
 }));
-vi.mock('../../../../../src/extension/graphView/provider/file/visits', () => ({
-  createGraphViewProviderFileVisitMethods: mockedFactories.createGraphViewProviderFileVisitMethods,
+vi.mock('../../../../../src/extension/graphView/provider/file/info', () => ({
+  createGraphViewProviderFileInfoMethods: mockedFactories.createGraphViewProviderFileInfoMethods,
 }));
 vi.mock('../../../../../src/extension/graphView/provider/physicsSettings', () => ({
   createGraphViewProviderPhysicsSettingsMethods:
@@ -124,7 +124,7 @@ describe('graphView/provider/wiring/methodContainers', () => {
     expect(mockedFactories.createGraphViewProviderFileActionMethods).toHaveBeenCalledWith(
       mockedFactories.methodSource,
     );
-    expect(mockedFactories.createGraphViewProviderFileVisitMethods).toHaveBeenCalledWith(
+    expect(mockedFactories.createGraphViewProviderFileInfoMethods).toHaveBeenCalledWith(
       mockedFactories.methodSource,
     );
     expect(mockedFactories.createGraphViewProviderPhysicsSettingsMethods).toHaveBeenCalledWith(
@@ -161,7 +161,7 @@ describe('graphView/provider/wiring/methodContainers', () => {
       analysis: mockedFactories.analysis,
       command: mockedFactories.command,
       fileAction: mockedFactories.fileAction,
-      fileVisit: mockedFactories.fileVisit,
+      fileInfo: mockedFactories.fileInfo,
       physicsSettings: mockedFactories.physicsSettings,
       plugin: mockedFactories.plugin,
       pluginResource: mockedFactories.pluginResource,

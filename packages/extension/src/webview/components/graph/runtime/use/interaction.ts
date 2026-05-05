@@ -2,16 +2,18 @@ import {
   useEffect,
   useMemo,
   type Dispatch,
-  type MouseEvent as ReactMouseEvent,
   type MutableRefObject,
   type SetStateAction,
 } from 'react';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { GraphContextMenuAction, GraphContextSelection } from '../../contextMenu/contracts';
 import {
-  createGraphContextMenuRuntime,
-  type GraphContextMenuRuntimeDependencies,
-} from '../../contextMenuRuntime/controller';
+  resolveGraphContextActionContext,
+} from '../../contextActions/context';
+import {
+  createGraphContextMenuOpeningRuntime,
+  type GraphContextMenuOpeningRuntime,
+} from '../../contextMenuOpening/runtime';
 import { createGraphInteractionHandlers } from '../../interactionRuntime/handlers';
 import type { GraphCursorStyle } from '../../support/dom';
 import { applyCursorToGraphSurface } from '../../support/dom';
@@ -19,7 +21,7 @@ import {
   useGraphTooltip,
   type GraphTooltipInteractionDependencies,
 } from './tooltip/hook';
-import type { FGLink, FGNode } from '../../model/build';
+import type { FGNode } from '../../model/build';
 import type { UseGraphStateResult } from './state';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
 import { postMessage } from '../../../../vscodeApi';
@@ -56,18 +58,18 @@ export interface UseGraphInteractionRuntimeOptions {
 }
 
 export interface UseGraphInteractionRuntimeResult {
-  contextMenuRuntime: ReturnType<typeof createGraphContextMenuRuntime>;
-  handleBackgroundRightClick(this: void, event: MouseEvent): void;
-  handleContextMenu(this: void): void;
+  contextMenuRuntime: GraphContextMenuOpeningRuntime['contextMenuRuntime'];
+  handleBackgroundRightClick: GraphContextMenuOpeningRuntime['handleBackgroundRightClick'];
+  handleContextMenu: GraphContextMenuOpeningRuntime['handleContextMenu'];
   handleEngineStop(this: void): void;
-  handleLinkRightClick(this: void, link: FGLink, event: MouseEvent): void;
+  handleLinkRightClick: GraphContextMenuOpeningRuntime['handleLinkRightClick'];
   handleMenuAction(this: void, action: GraphContextMenuAction): void;
-  handleMouseDownCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
+  handleMouseDownCapture: GraphContextMenuOpeningRuntime['handleMouseDownCapture'];
   handleMouseLeave(this: void): void;
-  handleMouseMoveCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
-  handleMouseUpCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
+  handleMouseMoveCapture: GraphContextMenuOpeningRuntime['handleMouseMoveCapture'];
+  handleMouseUpCapture: GraphContextMenuOpeningRuntime['handleMouseUpCapture'];
   handleNodeHover(this: void, node: FGNode | null): void;
-  handleNodeRightClick(this: void, node: FGNode, event: MouseEvent): void;
+  handleNodeRightClick: GraphContextMenuOpeningRuntime['handleNodeRightClick'];
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: ReturnType<typeof createGraphInteractionHandlers>;
   setTooltipData: ReturnType<typeof useGraphTooltip>['setTooltipData'];
@@ -77,22 +79,6 @@ export interface UseGraphInteractionRuntimeResult {
 }
 
 type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
-type GraphContextMenuRuntime = ReturnType<typeof createGraphContextMenuRuntime>;
-
-interface BuildContextMenuRuntimeDependenciesOptions {
-  fileInfoCacheRef: UseGraphStateResult['fileInfoCacheRef'];
-  hoveredNodeRef: MutableRefObject<FGNode | null>;
-  interactionHandlers: GraphInteractionHandlersRuntime;
-  lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
-  lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
-  openFilterPatternPrompt?: (patterns: string[]) => void;
-  openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
-  refs: UseGraphInteractionRuntimeOptions['refs'];
-  setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
-  setTooltipData: ReturnType<typeof useGraphTooltip>['setTooltipData'];
-  stopTooltipTracking: ReturnType<typeof useGraphTooltip>['stopTooltipTracking'];
-  tooltipTimeoutRef: ReturnType<typeof useGraphTooltip>['tooltipTimeoutRef'];
-}
 
 function buildTooltipInteractionHandlers(
   interactionHandlers: GraphInteractionHandlersRuntime,
@@ -100,101 +86,6 @@ function buildTooltipInteractionHandlers(
   return {
     sendGraphInteraction: interactionHandlers.sendGraphInteraction,
     setGraphCursor: interactionHandlers.setGraphCursor,
-  };
-}
-
-function buildContextMenuRuntimeDependencies({
-  fileInfoCacheRef,
-  hoveredNodeRef,
-  interactionHandlers,
-  lastContainerContextMenuEventRef,
-  lastGraphContextEventRef,
-  openFilterPatternPrompt,
-  openLegendRulePrompt,
-  refs,
-  setContextSelection,
-  setTooltipData,
-  stopTooltipTracking,
-  tooltipTimeoutRef,
-}: BuildContextMenuRuntimeDependenciesOptions): GraphContextMenuRuntimeDependencies<FGNode> {
-  return {
-    hoveredNodeRef,
-    lastContainerContextMenuEventRef,
-    lastGraphContextEventRef,
-    rightClickFallbackTimerRef: refs.rightClickFallbackTimerRef,
-    rightMouseDownRef: refs.rightMouseDownRef,
-    tooltipTimeoutRef,
-    clearCachedFile: path => {
-      fileInfoCacheRef.current.delete(path);
-    },
-    fitView: interactionHandlers.fitView,
-    focusNode: interactionHandlers.focusNodeById,
-    openFilterPatternPrompt: openFilterPatternPrompt ?? (() => {}),
-    openLegendRulePrompt: openLegendRulePrompt ?? (() => {}),
-    openBackgroundContextMenu: interactionHandlers.openBackgroundContextMenu,
-    postMessage,
-    setContextSelection,
-    setTooltipData,
-    stopTooltipTracking,
-  };
-}
-
-function buildContextMenuRuntimeHandlers(
-  contextMenuRuntime: GraphContextMenuRuntime,
-  targetPaths: string[],
-): Pick<
-  UseGraphInteractionRuntimeResult,
-  | 'handleContextMenu'
-  | 'handleMenuAction'
-  | 'handleMouseDownCapture'
-  | 'handleMouseMoveCapture'
-  | 'handleMouseUpCapture'
-> {
-  return {
-    handleContextMenu: () => {
-      contextMenuRuntime.handleContextMenu();
-    },
-    handleMenuAction: action => {
-      contextMenuRuntime.handleMenuAction(action, targetPaths);
-    },
-    handleMouseDownCapture: event => {
-      contextMenuRuntime.handleMouseDownCapture({
-        button: event.button,
-        clientX: event.clientX,
-        clientY: event.clientY,
-        ctrlKey: event.ctrlKey,
-      });
-    },
-    handleMouseMoveCapture: event => {
-      contextMenuRuntime.handleMouseMoveCapture({
-        clientX: event.clientX,
-        clientY: event.clientY,
-      });
-    },
-    handleMouseUpCapture: event => {
-      contextMenuRuntime.handleMouseUpCapture({ button: event.button });
-    },
-  };
-}
-
-function buildInteractionRuntimeHandlers(
-  interactionHandlers: GraphInteractionHandlersRuntime,
-): Pick<
-  UseGraphInteractionRuntimeResult,
-  | 'handleBackgroundRightClick'
-  | 'handleLinkRightClick'
-  | 'handleNodeRightClick'
-> {
-  return {
-    handleBackgroundRightClick: event => {
-      interactionHandlers.openBackgroundContextMenu(event);
-    },
-    handleLinkRightClick: (link, event) => {
-      interactionHandlers.openEdgeContextMenu(link, event);
-    },
-    handleNodeRightClick: (node, event) => {
-      interactionHandlers.openNodeContextMenu(node.id, event);
-    },
   };
 }
 
@@ -285,8 +176,14 @@ export function useGraphInteractionRuntime({
     postMessage,
   });
 
-  const contextMenuRuntime = useMemo(
-    () => createGraphContextMenuRuntime(buildContextMenuRuntimeDependencies({
+  const actionContext = useMemo(
+    () => resolveGraphContextActionContext(graphContextSelection),
+    [graphContextSelection],
+  );
+
+  const contextMenuOpeningRuntime = useMemo(
+    () => createGraphContextMenuOpeningRuntime({
+      actionContext,
       fileInfoCacheRef,
       hoveredNodeRef,
       interactionHandlers,
@@ -299,8 +196,9 @@ export function useGraphInteractionRuntime({
       setTooltipData,
       stopTooltipTracking,
       tooltipTimeoutRef,
-    })),
+    }),
     [
+      actionContext,
       fileInfoCacheRef,
       hoveredNodeRef,
       interactionHandlers,
@@ -316,16 +214,6 @@ export function useGraphInteractionRuntime({
     ],
   );
 
-  const contextMenuHandlers = useMemo(
-    () => buildContextMenuRuntimeHandlers(contextMenuRuntime, graphContextSelection.targets),
-    [contextMenuRuntime, graphContextSelection.targets],
-  );
-
-  const interactionRuntimeHandlers = useMemo(
-    () => buildInteractionRuntimeHandlers(interactionHandlers),
-    [interactionHandlers],
-  );
-
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       const container = refs.containerRef.current;
@@ -337,15 +225,13 @@ export function useGraphInteractionRuntime({
 
   useEffect(
     () => () => {
-      contextMenuRuntime.clearRightClickFallbackTimer();
+      contextMenuOpeningRuntime.contextMenuRuntime.clearRightClickFallbackTimer();
     },
-    [contextMenuRuntime],
+    [contextMenuOpeningRuntime.contextMenuRuntime],
   );
 
   return {
-    contextMenuRuntime,
-    ...interactionRuntimeHandlers,
-    ...contextMenuHandlers,
+    ...contextMenuOpeningRuntime,
     handleEngineStop: handleGraphEngineStop,
     handleMouseLeave,
     handleNodeHover,

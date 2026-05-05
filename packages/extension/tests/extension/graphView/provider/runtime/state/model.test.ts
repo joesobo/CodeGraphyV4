@@ -52,7 +52,7 @@ const stateHarness = vi.hoisted(() => {
       analysis: {},
       command: {},
       fileAction: {},
-      fileVisit: {},
+      fileInfo: {},
       plugin: {},
       pluginResource: {},
       physicsSettings: {},

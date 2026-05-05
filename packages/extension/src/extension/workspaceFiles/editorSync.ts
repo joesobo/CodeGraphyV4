@@ -18,7 +18,6 @@ export async function syncActiveEditor(
       );
       if (!relativePath.startsWith('..')) {
         const normalizedPath = relativePath.replace(/\\/g, '/');
-        await provider.trackFileVisit(normalizedPath);
         provider.setFocusedFile(normalizedPath);
         provider.emitEvent('workspace:activeEditorChanged', { filePath: normalizedPath });
         return;

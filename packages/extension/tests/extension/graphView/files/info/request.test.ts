@@ -24,12 +24,10 @@ describe('graph view file-info request helper', () => {
     await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
       workspaceFolder,
       statFile: vi.fn(),
-      getVisitCount: vi.fn(() => 3),
       loadFileInfo: vi.fn(async (_filePath, options) => {
         await options.ensureAnalyzerReady();
         return {
           path: 'src/index.ts',
-          visitCount: options.getVisitCount('src/index.ts'),
         };
       }),
       sendMessage,
@@ -42,7 +40,6 @@ describe('graph view file-info request helper', () => {
       type: 'FILE_INFO',
       payload: {
         path: 'src/index.ts',
-        visitCount: 3,
       },
     });
     expect(logError).not.toHaveBeenCalled();
@@ -63,7 +60,6 @@ describe('graph view file-info request helper', () => {
     await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
       workspaceFolder,
       statFile: vi.fn(),
-      getVisitCount: vi.fn(() => 3),
       loadFileInfo,
       sendMessage,
       logError,
@@ -94,7 +90,6 @@ describe('graph view file-info request helper', () => {
     await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
       workspaceFolder,
       statFile: vi.fn(),
-      getVisitCount: vi.fn(() => 3),
       loadFileInfo: vi.fn(async (_filePath, options) => ({
         analyzer: await options.ensureAnalyzerReady(),
       })),

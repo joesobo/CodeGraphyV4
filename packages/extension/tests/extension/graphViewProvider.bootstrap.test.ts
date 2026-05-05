@@ -52,8 +52,8 @@ async function loadSubject(
   vi.doMock('../../src/extension/graphView/provider/file/actions', () => ({
     createGraphViewProviderFileActionMethods: () => ({}),
   }));
-  vi.doMock('../../src/extension/graphView/provider/file/visits', () => ({
-    createGraphViewProviderFileVisitMethods: () => ({}),
+  vi.doMock('../../src/extension/graphView/provider/file/info', () => ({
+    createGraphViewProviderFileInfoMethods: () => ({}),
   }));
   vi.doMock('../../src/extension/graphView/provider/plugins', () => ({
     createGraphViewProviderPluginMethods: () => ({
@@ -122,7 +122,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
     vi.doUnmock('../../src/extension/graphView/provider/analysis/methods');
     vi.doUnmock('../../src/extension/graphView/provider/commands');
     vi.doUnmock('../../src/extension/graphView/provider/file/actions');
-    vi.doUnmock('../../src/extension/graphView/provider/file/visits');
+    vi.doUnmock('../../src/extension/graphView/provider/file/info');
     vi.doUnmock('../../src/extension/graphView/provider/plugins');
     vi.doUnmock('../../src/extension/graphView/provider/pluginResources');
     vi.doUnmock('../../src/extension/graphView/provider/physicsSettings');

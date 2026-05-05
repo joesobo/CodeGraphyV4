@@ -13,37 +13,49 @@ function separatorCount(entries: GraphContextMenuEntry[]): number {
 }
 
 describe('buildBackgroundEntries', () => {
-  it('includes New File, New Folder, and separator when timeline is not active', () => {
-    const entries = buildBackgroundEntries(false);
+  it('includes New File, New Folder, and separator when mutation is enabled', () => {
+    const entries = buildBackgroundEntries('enabled');
     expect(itemLabels(entries)).toContain('New File...');
     expect(itemLabels(entries)).toContain('New Folder...');
     expect(separatorCount(entries)).toBe(1);
   });
 
-  it('omits New File, New Folder, and separator when timeline is active', () => {
-    const entries = buildBackgroundEntries(true);
+  it('disables New File and New Folder when mutation is disabled', () => {
+    const entries = buildBackgroundEntries('disabled');
+    const items = entries.filter(
+      (entry): entry is Extract<GraphContextMenuEntry, { kind: 'item' }> => entry.kind === 'item'
+    );
+    expect(items.find(item => item.label === 'New File...')?.disabled).toBe(true);
+    expect(items.find(item => item.label === 'New Folder...')?.disabled).toBe(true);
+    expect(separatorCount(entries)).toBe(1);
+  });
+
+  it('omits New File, New Folder, and separator when mutation is hidden', () => {
+    const entries = buildBackgroundEntries('hidden');
     expect(itemLabels(entries)).not.toContain('New File...');
     expect(itemLabels(entries)).not.toContain('New Folder...');
     expect(separatorCount(entries)).toBe(0);
   });
 
   it('always includes Refresh', () => {
-    expect(itemLabels(buildBackgroundEntries(false))).toContain('Refresh');
-    expect(itemLabels(buildBackgroundEntries(true))).toContain('Refresh');
+    expect(itemLabels(buildBackgroundEntries('enabled'))).toContain('Refresh');
+    expect(itemLabels(buildBackgroundEntries('disabled'))).toContain('Refresh');
+    expect(itemLabels(buildBackgroundEntries('hidden'))).toContain('Refresh');
   });
 
   it('always includes Fit All Nodes', () => {
-    expect(itemLabels(buildBackgroundEntries(false))).toContain('Fit All Nodes');
-    expect(itemLabels(buildBackgroundEntries(true))).toContain('Fit All Nodes');
+    expect(itemLabels(buildBackgroundEntries('enabled'))).toContain('Fit All Nodes');
+    expect(itemLabels(buildBackgroundEntries('disabled'))).toContain('Fit All Nodes');
+    expect(itemLabels(buildBackgroundEntries('hidden'))).toContain('Fit All Nodes');
   });
 
-  it('returns 5 entries when timeline is not active', () => {
-    const entries = buildBackgroundEntries(false);
+  it('returns 5 entries when mutation actions are visible', () => {
+    const entries = buildBackgroundEntries('enabled');
     expect(entries).toHaveLength(5);
   });
 
-  it('returns 2 entries when timeline is active', () => {
-    const entries = buildBackgroundEntries(true);
+  it('returns 2 entries when mutation actions are hidden', () => {
+    const entries = buildBackgroundEntries('hidden');
     expect(entries).toHaveLength(2);
   });
 });

@@ -262,8 +262,18 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     expect(interactionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith({ type: 'contextmenu' });
     expect(interactionHandlers.openEdgeContextMenu).toHaveBeenCalledWith(createLink('edge-a'), { type: 'contextmenu' });
     expect(contextMenuRuntime.handleContextMenu).toHaveBeenCalledTimes(1);
-    expect(contextMenuRuntime.handleMenuAction).toHaveBeenNthCalledWith(1, firstAction, ['src/one.ts']);
-    expect(contextMenuRuntime.handleMenuAction).toHaveBeenNthCalledWith(2, secondAction, ['src/two.ts']);
+    expect(contextMenuRuntime.handleMenuAction).toHaveBeenNthCalledWith(1, firstAction, expect.objectContaining({
+      mutationDirectory: 'src/one.ts',
+      primaryTargetId: 'src/one.ts',
+      selectionKind: 'node',
+      targetIds: ['src/one.ts'],
+    }));
+    expect(contextMenuRuntime.handleMenuAction).toHaveBeenNthCalledWith(2, secondAction, expect.objectContaining({
+      mutationDirectory: 'src/two.ts',
+      primaryTargetId: 'src/two.ts',
+      selectionKind: 'node',
+      targetIds: ['src/two.ts'],
+    }));
     expect(interactionRuntimeHarness.postMessage).toHaveBeenCalledWith({ type: 'PHYSICS_STABILIZED' });
   });
 

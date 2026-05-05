@@ -27,18 +27,22 @@ export function buildFilterBlock(targets: readonly string[]): GraphContextMenuEn
   return entries;
 }
 
-/** Builds file-changing actions hidden in timeline mode. */
-export function buildDestructiveBlock(targets: readonly string[]): GraphContextMenuEntry[] {
+/** Builds file-changing actions controlled by Graph Revision mutability. */
+export function buildDestructiveBlock(
+  targets: readonly string[],
+  disabled = false
+): GraphContextMenuEntry[] {
   const isMultiSelect = targets.length > 1;
   const entries: GraphContextMenuEntry[] = [separator('node-separator-destructive')];
 
   if (!isMultiSelect) {
-    entries.push(builtInItem('node-rename', 'Rename...', 'rename'));
+    entries.push(builtInItem('node-rename', 'Rename...', 'rename', { disabled }));
   }
 
   entries.push(
     builtInItem('node-delete', isMultiSelect ? `Delete ${targets.length} Files` : 'Delete File', 'delete', {
       destructive: true,
+      disabled,
     })
   );
 

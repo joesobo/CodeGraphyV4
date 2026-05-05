@@ -7,7 +7,7 @@ describe('graphView/provider/runtime/methodAccessors', () => {
       analysis: { id: 'analysis' },
       command: { id: 'command' },
       fileAction: { id: 'fileAction' },
-      fileVisit: { id: 'fileVisit' },
+      fileInfo: { id: 'fileInfo' },
       physicsSettings: { id: 'physicsSettings' },
       plugin: { id: 'plugin' },
       pluginResource: { id: 'pluginResource' },
@@ -33,8 +33,8 @@ describe('graphView/provider/runtime/methodAccessors', () => {
     expect((target as typeof target & { _fileActionMethods: unknown })._fileActionMethods).toBe(
       methodContainers.fileAction,
     );
-    expect((target as typeof target & { _fileVisitMethods: unknown })._fileVisitMethods).toBe(
-      methodContainers.fileVisit,
+    expect((target as typeof target & { _fileInfoMethods: unknown })._fileInfoMethods).toBe(
+      methodContainers.fileInfo,
     );
     expect(
       (target as typeof target & { _physicsSettingsMethods: unknown })._physicsSettingsMethods,

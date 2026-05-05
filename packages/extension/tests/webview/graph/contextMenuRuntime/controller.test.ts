@@ -7,6 +7,11 @@ import {
   type GraphRightMouseDownState,
   type GraphTimerHandle,
 } from '../../../../src/webview/components/graph/contextMenuRuntime/controller';
+import { resolveGraphContextActionContext } from '../../../../src/webview/components/graph/contextActions/context';
+
+function nodeContext(targets: string[]) {
+  return resolveGraphContextActionContext({ kind: 'node', targets });
+}
 
 function createRef<TValue>(current: TValue): GraphRef<TValue> {
   return { current };
@@ -302,7 +307,7 @@ describe('graph/contextMenuRuntime', () => {
 
     runtime.handleMenuAction(
       { kind: 'builtin', action: 'open' },
-      ['src/app.ts'],
+      nodeContext(['src/app.ts']),
     );
 
     expect(dependencies.clearCachedFile).toHaveBeenCalledWith('src/app.ts');
@@ -324,7 +329,7 @@ describe('graph/contextMenuRuntime', () => {
         targetId: 'src/app.ts',
         targetType: 'node',
       },
-      ['src/app.ts'],
+      nodeContext(['src/app.ts']),
     );
 
     expect(dependencies.postMessage).toHaveBeenCalledWith({

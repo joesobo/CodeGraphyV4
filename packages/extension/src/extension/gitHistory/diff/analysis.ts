@@ -13,6 +13,7 @@ import {
 } from './snapshot';
 import { deleteGitHistoryGraphFile, renameGitHistoryGraphFile } from './state';
 import { reanalyzeGraphFile } from '../reanalyzeGraphFile';
+import { parseDiffLine, type ParsedDiffLine } from './parse';
 
 interface DiffGraphRegistry {
   analyzeFileResult(
@@ -64,13 +65,6 @@ interface DiffAnalysisContext {
   trackedFiles: Set<string>;
   workspaceRoot: string;
 }
-
-type ParsedDiffLine =
-  | { kind: 'add'; filePath: string }
-  | { kind: 'delete'; filePath: string }
-  | { kind: 'modify'; filePath: string }
-  | { kind: 'rename'; oldPath: string; newPath: string }
-  | { kind: 'ignore' };
 
 export async function analyzeDiffCommitGraph(
   options: AnalyzeDiffCommitGraphOptions,
@@ -239,14 +233,6 @@ function buildTrackedFileOptions(filePath: string, context: DiffAnalysisContext)
   };
 }
 
-function parseDiffLine(line: string): ParsedDiffLine {
-  const [status, firstPath, secondPath] = line.split('\t');
-
-  return parseRenameDiffLine(status, firstPath, secondPath)
-    ?? parseSinglePathDiffLine(status, firstPath)
-    ?? { kind: 'ignore' };
-}
-
 function assertDiffAnalysisActive(signal: AbortSignal): void {
   if (!signal.aborted) {
     return;
@@ -256,39 +242,3 @@ function assertDiffAnalysisActive(signal: AbortSignal): void {
   error.name = 'AbortError';
   throw error;
 }
-
-function parseRenameDiffLine(
-  status: string,
-  oldPath?: string,
-  newPath?: string,
-): ParsedDiffLine | null {
-  if (!status.startsWith('R') || !oldPath || !newPath) {
-    return null;
-  }
-
-  return {
-    kind: 'rename',
-    oldPath,
-    newPath,
-  };
-}
-
-function parseSinglePathDiffLine(
-  status: string,
-  filePath?: string,
-): ParsedDiffLine | null {
-  if (!filePath) {
-    return null;
-  }
-
-  return singlePathDiffFactories[status]?.(filePath) ?? null;
-}
-
-const singlePathDiffFactories: Record<
-  string,
-  (filePath: string) => Extract<ParsedDiffLine, { filePath: string }>
-> = {
-  'A': (filePath) => ({ kind: 'add', filePath }),
-  'D': (filePath) => ({ kind: 'delete', filePath }),
-  'M': (filePath) => ({ kind: 'modify', filePath }),
-};

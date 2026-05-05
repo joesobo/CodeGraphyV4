@@ -14,7 +14,6 @@ import {
 
 function makeProvider() {
   return {
-    trackFileVisit: vi.fn().mockResolvedValue(undefined),
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),

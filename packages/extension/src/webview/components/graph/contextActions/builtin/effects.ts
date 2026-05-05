@@ -1,4 +1,5 @@
 import type { BuiltInContextMenuAction } from '../../contextMenu/contracts';
+import type { GraphContextActionContext } from '../context';
 import type { GraphContextEffect } from '../effects';
 import {
   createClipboardEffects,
@@ -18,42 +19,45 @@ import {
 } from '../prompts';
 
 const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
-  open: (targetPaths: string[]) => createOpenFileEffects(targetPaths),
-  openEdgeSource: (targetPaths: string[]) =>
-    createOpenFileEffects(targetPaths[0] ? [targetPaths[0]] : []),
-  openEdgeTarget: (targetPaths: string[]) =>
-    createOpenFileEffects(targetPaths[1] ? [targetPaths[1]] : []),
-  reveal: (targetPaths: string[]) =>
-    createOptionalSinglePathMessageEffects(targetPaths[0], 'REVEAL_IN_EXPLORER'),
-  copyRelative: (targetPaths: string[]) => createClipboardEffects(targetPaths.join('\n')),
-  copyAbsolute: (targetPaths: string[]) =>
-    createOptionalClipboardEffects(targetPaths[0], (path) => `absolute:${path}`),
-  copyEdgeSource: (targetPaths: string[]) => createOptionalClipboardEffects(targetPaths[0]),
-  copyEdgeTarget: (targetPaths: string[]) => createOptionalClipboardEffects(targetPaths[1]),
-  copyEdgeBoth: (targetPaths: string[]) => createClipboardEffects(targetPaths.join('\n')),
-  toggleFavorite: (targetPaths: string[]) =>
-    createPathListMessageEffects('TOGGLE_FAVORITE', targetPaths),
-  focus: (targetPaths: string[]) => createFocusEffects(targetPaths[0]),
-  addToFilter: (targetPaths: string[]) => createPatternPromptEffects(targetPaths),
-  addNodeLegend: (targetPaths: string[]) =>
-    createLegendPromptEffects(targetPaths[0], '#808080', 'node'),
-  rename: (targetPaths: string[]) =>
-    createOptionalSinglePathMessageEffects(targetPaths[0], 'RENAME_FILE'),
-  delete: (targetPaths: string[]) => createPathListMessageEffects('DELETE_FILES', targetPaths),
+  open: (context: GraphContextActionContext) => createOpenFileEffects(context.targetIds),
+  openEdgeSource: (context: GraphContextActionContext) =>
+    createOpenFileEffects(context.edgeSourceId ? [context.edgeSourceId] : []),
+  openEdgeTarget: (context: GraphContextActionContext) =>
+    createOpenFileEffects(context.edgeTargetId ? [context.edgeTargetId] : []),
+  reveal: (context: GraphContextActionContext) =>
+    createOptionalSinglePathMessageEffects(context.primaryTargetId, 'REVEAL_IN_EXPLORER'),
+  copyRelative: (context: GraphContextActionContext) =>
+    createClipboardEffects(context.targetIds.join('\n')),
+  copyAbsolute: (context: GraphContextActionContext) =>
+    createOptionalClipboardEffects(context.primaryTargetId, (path) => `absolute:${path}`),
+  copyEdgeSource: (context: GraphContextActionContext) =>
+    createOptionalClipboardEffects(context.edgeSourceId),
+  copyEdgeTarget: (context: GraphContextActionContext) =>
+    createOptionalClipboardEffects(context.edgeTargetId),
+  copyEdgeBoth: (context: GraphContextActionContext) =>
+    createClipboardEffects(context.targetIds.join('\n')),
+  toggleFavorite: (context: GraphContextActionContext) =>
+    createPathListMessageEffects('TOGGLE_FAVORITE', context.targetIds),
+  focus: (context: GraphContextActionContext) => createFocusEffects(context.primaryTargetId),
+  addToFilter: (context: GraphContextActionContext) =>
+    createPatternPromptEffects(context.targetIds),
+  addNodeLegend: (context: GraphContextActionContext) =>
+    createLegendPromptEffects(context.primaryTargetId, '#808080', 'node'),
+  rename: (context: GraphContextActionContext) =>
+    createOptionalSinglePathMessageEffects(context.primaryTargetId, 'RENAME_FILE'),
+  delete: (context: GraphContextActionContext) =>
+    createPathListMessageEffects('DELETE_FILES', context.targetIds),
   refresh: () => createRefreshEffects(),
   fitView: () => createFitViewEffects(),
-  createFile: (targetPaths: string[]) => createCreateFileEffects(getMutationDirectory(targetPaths)),
-  createFolder: (targetPaths: string[]) => createCreateFolderEffects(getMutationDirectory(targetPaths)),
-} satisfies Record<BuiltInContextMenuAction, (targetPaths: string[]) => GraphContextEffect[]>;
+  createFile: (context: GraphContextActionContext) =>
+    createCreateFileEffects(context.mutationDirectory),
+  createFolder: (context: GraphContextActionContext) =>
+    createCreateFolderEffects(context.mutationDirectory),
+} satisfies Record<BuiltInContextMenuAction, (context: GraphContextActionContext) => GraphContextEffect[]>;
 
 export function getBuiltInContextActionEffectsImpl(
   action: BuiltInContextMenuAction,
-  targetPaths: string[]
+  context: GraphContextActionContext
 ): GraphContextEffect[] {
-  return BUILT_IN_CONTEXT_ACTION_EFFECTS[action](targetPaths);
-}
-
-function getMutationDirectory(targetPaths: string[]): string {
-  const directory = targetPaths[0] ?? '.';
-  return directory === '(root)' ? '.' : directory;
+  return BUILT_IN_CONTEXT_ACTION_EFFECTS[action](context);
 }

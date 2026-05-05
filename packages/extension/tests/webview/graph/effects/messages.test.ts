@@ -15,7 +15,6 @@ function createHandlers() {
     exportJpeg: vi.fn(),
     exportJson: vi.fn(),
     exportMarkdown: vi.fn(),
-    updateAccessCount: vi.fn(),
   };
 }
 
@@ -44,7 +43,6 @@ describe('graph effects messages', () => {
       lastModified: 1704067200000,
       incomingCount: 1,
       outgoingCount: 2,
-      visits: 1,
     };
 
     applyWebviewMessageEffects([{ kind: 'cacheFileInfo', info }], handlers);
@@ -60,7 +58,6 @@ describe('graph effects messages', () => {
       lastModified: 1704067200000,
       incomingCount: 1,
       outgoingCount: 2,
-      visits: 1,
     };
 
     applyWebviewMessageEffects([{ kind: 'updateTooltipInfo', info }], handlers);
@@ -129,13 +126,5 @@ describe('graph effects messages', () => {
     applyWebviewMessageEffects([{ kind: 'exportMarkdown' }], handlers);
 
     expect(handlers.exportMarkdown).toHaveBeenCalledOnce();
-  });
-
-  it('updates access counts in the graph data', () => {
-    const handlers = createHandlers();
-
-    applyWebviewMessageEffects([{ kind: 'updateAccessCount', nodeId: 'src/app.ts', accessCount: 7 }], handlers);
-
-    expect(handlers.updateAccessCount).toHaveBeenCalledWith('src/app.ts', 7);
   });
 });

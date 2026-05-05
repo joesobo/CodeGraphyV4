@@ -10,7 +10,6 @@ import {
 
 function makeProvider() {
   return {
-    trackFileVisit: vi.fn().mockResolvedValue(undefined),
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
@@ -55,7 +54,7 @@ describe('registerEditorChangeHandler', () => {
     expect(context.subscriptions.length).toBe(1);
   });
 
-  it('tracks file visit and sets focused file for workspace-relative files', async () => {
+  it('sets focused file for workspace-relative files', async () => {
     const context = makeContext();
     const provider = makeProvider();
     let listener: ((editor: unknown) => Promise<void>) | undefined;
@@ -69,7 +68,6 @@ describe('registerEditorChangeHandler', () => {
     });
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
-    provider.trackFileVisit.mockClear();
     provider.setFocusedFile.mockClear();
     provider.emitEvent.mockClear();
 
@@ -78,8 +76,6 @@ describe('registerEditorChangeHandler', () => {
         uri: { scheme: 'file', fsPath: '/workspace/src/app.ts' },
       },
     });
-
-    expect(provider.trackFileVisit).toHaveBeenCalledWith('src/app.ts');
     expect(provider.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
       filePath: 'src/app.ts',
@@ -105,8 +101,6 @@ describe('registerEditorChangeHandler', () => {
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
     await Promise.resolve();
-
-    expect(provider.trackFileVisit).toHaveBeenCalledWith('src/game/player.gd');
     expect(provider.setFocusedFile).toHaveBeenCalledWith('src/game/player.gd');
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
       filePath: 'src/game/player.gd',
@@ -127,7 +121,6 @@ describe('registerEditorChangeHandler', () => {
     });
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
-    provider.trackFileVisit.mockClear();
     provider.setFocusedFile.mockClear();
     provider.emitEvent.mockClear();
 
@@ -136,8 +129,6 @@ describe('registerEditorChangeHandler', () => {
         uri: { scheme: 'file', fsPath: '/other-project/src/app.ts' },
       },
     });
-
-    expect(provider.trackFileVisit).not.toHaveBeenCalled();
     expect(provider.setFocusedFile).not.toHaveBeenCalled();
   });
 
@@ -161,8 +152,6 @@ describe('registerEditorChangeHandler', () => {
         uri: { scheme: 'untitled', fsPath: '/workspace/untitled' },
       },
     });
-
-    expect(provider.trackFileVisit).not.toHaveBeenCalled();
   });
 
   it('does not track when no workspace folders exist', async () => {
@@ -183,8 +172,6 @@ describe('registerEditorChangeHandler', () => {
         uri: { scheme: 'file', fsPath: '/workspace/src/app.ts' },
       },
     });
-
-    expect(provider.trackFileVisit).not.toHaveBeenCalled();
   });
 
   it('clears focused file when editor is undefined and no workspace editors remain visible', async () => {

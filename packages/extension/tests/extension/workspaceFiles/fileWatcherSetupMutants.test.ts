@@ -48,7 +48,6 @@ function captureEditorChangeListener(): (editor: unknown) => Promise<void> {
 
 function makeProvider() {
   return {
-    trackFileVisit: vi.fn().mockResolvedValue(undefined),
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
@@ -93,7 +92,6 @@ describe('fileWatcherSetup backslash normalization (L21 mutant)', () => {
 
     // If the '/' replacement string is mutated to '', backslashes would be removed instead
     // of replaced, resulting in 'srcutilshelper.ts' instead of 'src/utils/helper.ts'
-    expect(provider.trackFileVisit).toHaveBeenCalledWith('src/utils/helper.ts');
     expect(provider.setFocusedFile).toHaveBeenCalledWith('src/utils/helper.ts');
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
       filePath: 'src/utils/helper.ts',

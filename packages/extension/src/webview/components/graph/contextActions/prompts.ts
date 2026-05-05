@@ -1,6 +1,6 @@
 import type { GraphContextEffect } from './effects';
 
-export function createOpenFileEffects(paths: string[]): GraphContextEffect[] {
+export function createOpenFileEffects(paths: readonly string[]): GraphContextEffect[] {
   return paths.map((path) => ({ kind: 'openFile', path }));
 }
 
@@ -8,8 +8,8 @@ export function createFocusEffects(nodeId: string | undefined): GraphContextEffe
   return nodeId ? [{ kind: 'focusNode', nodeId }] : [];
 }
 
-export function createPatternPromptEffects(patterns: string[]): GraphContextEffect[] {
-  return patterns.length > 0 ? [{ kind: 'promptFilterPattern', patterns }] : [];
+export function createPatternPromptEffects(patterns: readonly string[]): GraphContextEffect[] {
+  return patterns.length > 0 ? [{ kind: 'promptFilterPattern', patterns: [...patterns] }] : [];
 }
 
 export function createLegendPromptEffects(

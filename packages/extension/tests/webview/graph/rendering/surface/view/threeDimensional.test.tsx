@@ -5,6 +5,7 @@ import ForceGraph3D from 'react-force-graph-3d';
 import {
   DeferredSurface3d,
   Surface3d,
+  getSurface3dMeasurementKey,
   useDeferredSurface3dMount,
 } from '../../../../../../src/webview/components/graph/rendering/surface/view/threeDimensional';
 
@@ -56,6 +57,11 @@ describe('Surface3d', () => {
   it('renders the force graph 3d element', () => {
     render(<Surface3d {...createDefaultProps()} />);
     expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
+  });
+
+  it('changes the surface measurement key after dimensions recover', () => {
+    expect(getSurface3dMeasurementKey({ height: undefined, width: undefined })).toBe('unmeasured');
+    expect(getSurface3dMeasurementKey({ height: 320, width: 480 })).toBe('measured');
   });
 
   it('passes backgroundColor to ForceGraph3D', () => {

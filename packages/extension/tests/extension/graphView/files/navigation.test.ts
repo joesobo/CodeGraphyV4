@@ -16,18 +16,16 @@ describe('graphView/files/navigation', () => {
       statFile: vi.fn(),
       openTextDocument: vi.fn(),
       showTextDocument: vi.fn(),
-      incrementVisitCount: vi.fn(),
       logError: vi.fn(),
     });
 
     expect(showInformationMessage).toHaveBeenCalledWith('Mock file: src/app.ts');
   });
 
-  it('opens an existing file and tracks the visit count', async () => {
+  it('opens an existing file', async () => {
     const document = { uri: vscode.Uri.file('/workspace/src/app.ts') } as vscode.TextDocument;
     const openTextDocument = vi.fn(async () => document);
     const showTextDocument = vi.fn(async () => undefined);
-    const incrementVisitCount = vi.fn(async () => undefined);
     const didOpenFile = vi.fn(async () => undefined);
 
     await openGraphViewFile(
@@ -39,7 +37,6 @@ describe('graphView/files/navigation', () => {
         statFile: vi.fn(async () => ({ type: 1 })),
         openTextDocument,
         showTextDocument,
-        incrementVisitCount,
         didOpenFile,
         logError: vi.fn(),
       },
@@ -51,7 +48,6 @@ describe('graphView/files/navigation', () => {
       { uri: vscode.Uri.file('/workspace/src/app.ts') },
       { preview: false, preserveFocus: false },
     );
-    expect(incrementVisitCount).toHaveBeenCalledWith('src/app.ts');
     expect(didOpenFile).toHaveBeenCalledWith('src/app.ts');
   });
 
@@ -65,7 +61,6 @@ describe('graphView/files/navigation', () => {
       statFile: vi.fn(async () => ({ type: 1 })),
       openTextDocument: vi.fn(async () => ({ uri: vscode.Uri.file('/workspace/src/app.ts') } as vscode.TextDocument)),
       showTextDocument,
-      incrementVisitCount: vi.fn(async () => undefined),
       logError: vi.fn(),
     });
 
@@ -89,7 +84,6 @@ describe('graphView/files/navigation', () => {
       }),
       openTextDocument,
       showTextDocument: vi.fn(),
-      incrementVisitCount: vi.fn(),
       didOpenFile,
       logError: vi.fn(),
     });
@@ -112,7 +106,6 @@ describe('graphView/files/navigation', () => {
         throw new Error('boom');
       }),
       showTextDocument: vi.fn(),
-      incrementVisitCount: vi.fn(),
       logError,
     });
 
