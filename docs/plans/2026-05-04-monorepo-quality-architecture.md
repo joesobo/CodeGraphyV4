@@ -314,3 +314,39 @@ Scoped mutation:
 - `pnpm run mutate -- extension/src/shared/visibleGraph/structuralProjection/folders.ts`: pass, 100% mutation score, 20 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/shared/visibleGraph/structuralProjection/packages.ts`: pass, 100% mutation score, 9 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/shared/visibleGraph/structuralProjection/edges.ts`: pass, 92.68% mutation score, 38 killed, 1 survivor, 2 no coverage, under mutation-site threshold
+
+## Graph Corner Controls Zoom Slice
+
+Architecture candidate: `packages/extension/src/webview/components/graphCornerControls`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged `useContinuousZoomControl` at 14.6 after the visible-graph refactor.
+- Continuous zoom is a small but user-facing interaction loop; pointer, keyboard, timer, and React lifecycle behavior were previously packed into one hook.
+- The hook needed direct mutation coverage for blur cleanup and foreign-pointer events so the UX contract is protected independently of the rendered corner-controls view.
+
+Changes made:
+
+- Split continuous zoom into a feature-local `zoom/` folder:
+  - `keyboard.ts` owns activation-key detection.
+  - `pointer.ts` owns active pointer capture, release, and stop filtering.
+  - `timers.ts` owns hold-delay and repeat scheduling.
+  - `hook.ts` wires the React lifecycle and returned handlers.
+- Kept `view.tsx` responsible for button rendering and message posting only.
+- Replaced the broad hook test with file-mapped tests for each module plus view-level regression coverage for the real buttons.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graphCornerControls`: pass, 5 files / 27 tests
+- `pnpm --filter @codegraphy/extension exec eslint src/webview/components/graphCornerControls tests/webview/graphCornerControls`: pass
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm run boundaries -- extension/src/webview/components/graphCornerControls`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/webview/components/graphCornerControls`: pass, all functions CRAP <= 8
+
+Scoped mutation:
+
+- `pnpm run mutate -- extension/src/webview/components/graphCornerControls/zoom/keyboard.ts`: pass, 100% mutation score, 7 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/webview/components/graphCornerControls/zoom/pointer.ts`: pass, 100% mutation score, 15 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/webview/components/graphCornerControls/zoom/timers.ts`: pass, 100% mutation score, 11 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/webview/components/graphCornerControls/zoom/hook.ts`: pass, 95.00% mutation score, 19 killed, 1 survivor, under mutation-site threshold

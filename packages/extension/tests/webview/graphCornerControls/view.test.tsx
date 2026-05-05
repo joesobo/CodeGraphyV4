@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GraphCornerControls } from '../../../src/webview/components/graphCornerControls/view';
 
@@ -7,6 +7,21 @@ afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
 });
+
+function firePointer(
+  target: Element,
+  type: 'pointerCancel' | 'pointerDown' | 'pointerLeave' | 'pointerUp',
+  options: { button?: number; pointerId?: number },
+): void {
+  const event = createEvent[type](target);
+  if (typeof options.button === 'number') {
+    Object.defineProperty(event, 'button', { value: options.button });
+  }
+  if (typeof options.pointerId === 'number') {
+    Object.defineProperty(event, 'pointerId', { value: options.pointerId });
+  }
+  fireEvent(target, event);
+}
 
 describe('graphCornerControls/view', () => {
   it('renders zoom, fit, and open in editor buttons', () => {
@@ -36,12 +51,22 @@ describe('graphCornerControls/view', () => {
     render(<GraphCornerControls />);
 
     const zoomIn = screen.getByTitle('Zoom In');
-    fireEvent.pointerDown(zoomIn, { button: 0, pointerId: 1 });
-    fireEvent.pointerUp(zoomIn, { pointerId: 1 });
+    firePointer(zoomIn, 'pointerDown', { button: 0, pointerId: 1 });
+    firePointer(zoomIn, 'pointerUp', { pointerId: 1 });
     fireEvent.click(zoomIn);
 
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(postMessage).toHaveBeenCalledWith({ type: 'ZOOM_IN' }, '*');
+  });
+
+  it('ignores non-primary pointer buttons', () => {
+    const postMessage = vi.spyOn(window, 'postMessage').mockImplementation(() => undefined);
+
+    render(<GraphCornerControls />);
+
+    firePointer(screen.getByTitle('Zoom In'), 'pointerDown', { button: 2, pointerId: 1 });
+
+    expect(postMessage).not.toHaveBeenCalled();
   });
 
   it('repeats zoom requests while the pointer is held', () => {
@@ -51,7 +76,7 @@ describe('graphCornerControls/view', () => {
     render(<GraphCornerControls />);
 
     const zoomOut = screen.getByTitle('Zoom Out');
-    fireEvent.pointerDown(zoomOut, { button: 0, pointerId: 1 });
+    firePointer(zoomOut, 'pointerDown', { button: 0, pointerId: 1 });
 
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(postMessage).toHaveBeenLastCalledWith({ type: 'ZOOM_OUT' }, '*');
@@ -65,9 +90,62 @@ describe('graphCornerControls/view', () => {
     vi.advanceTimersByTime(90);
     expect(postMessage).toHaveBeenCalledTimes(3);
 
-    fireEvent.pointerUp(zoomOut, { pointerId: 1 });
+    firePointer(zoomOut, 'pointerUp', { pointerId: 1 });
     vi.advanceTimersByTime(180);
     expect(postMessage).toHaveBeenCalledTimes(3);
+  });
+
+  it('keeps held zoom active when a different pointer leaves', () => {
+    vi.useFakeTimers();
+    const postMessage = vi.spyOn(window, 'postMessage').mockImplementation(() => undefined);
+
+    render(<GraphCornerControls />);
+
+    const zoomOut = screen.getByTitle('Zoom Out');
+    firePointer(zoomOut, 'pointerDown', { button: 0, pointerId: 1 });
+    firePointer(zoomOut, 'pointerLeave', { pointerId: 2 });
+    vi.advanceTimersByTime(340);
+
+    expect(postMessage).toHaveBeenCalledTimes(3);
+
+    firePointer(zoomOut, 'pointerUp', { pointerId: 1 });
+    vi.advanceTimersByTime(90);
+
+    expect(postMessage).toHaveBeenCalledTimes(3);
+  });
+
+  it('captures and releases the active pointer when available', () => {
+    const setPointerCapture = vi.fn();
+    const hasPointerCapture = vi.fn(() => true);
+    const releasePointerCapture = vi.fn();
+
+    render(<GraphCornerControls />);
+
+    const zoomIn = screen.getByTitle('Zoom In');
+    Object.assign(zoomIn, {
+      hasPointerCapture,
+      releasePointerCapture,
+      setPointerCapture,
+    });
+
+    firePointer(zoomIn, 'pointerDown', { button: 0, pointerId: 7 });
+    firePointer(zoomIn, 'pointerUp', { pointerId: 7 });
+
+    expect(setPointerCapture).toHaveBeenCalledWith(7);
+    expect(hasPointerCapture).toHaveBeenCalledWith(7);
+    expect(releasePointerCapture).toHaveBeenCalledWith(7);
+  });
+
+  it('posts zoom from keyboard activation', () => {
+    const postMessage = vi.spyOn(window, 'postMessage').mockImplementation(() => undefined);
+
+    render(<GraphCornerControls />);
+
+    const event = createEvent.keyDown(screen.getByTitle('Zoom In'), { key: 'Enter' });
+    fireEvent(screen.getByTitle('Zoom In'), event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(postMessage).toHaveBeenCalledWith({ type: 'ZOOM_IN' }, '*');
   });
 
   it('stops held zoom when the window blurs', () => {
@@ -76,7 +154,7 @@ describe('graphCornerControls/view', () => {
 
     render(<GraphCornerControls />);
 
-    fireEvent.pointerDown(screen.getByTitle('Zoom In'), { button: 0, pointerId: 1 });
+    firePointer(screen.getByTitle('Zoom In'), 'pointerDown', { button: 0, pointerId: 1 });
     fireEvent.blur(window);
     vi.advanceTimersByTime(500);
 
