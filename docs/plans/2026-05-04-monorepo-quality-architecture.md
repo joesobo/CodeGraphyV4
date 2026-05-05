@@ -161,3 +161,31 @@ Scoped mutation history:
 - Current module scores above 90%: `execute.ts`, `filter.ts`, `pagination.ts`, `paths.ts`, `symbols.ts`, `visible.ts`.
 - Remaining below-standard areas are concentrated in `relationships.ts`, `reports.ts`, `sort.ts`, and a few equivalent-looking nullish/default branches.
 - The mutation-site threshold still flags `relationships.ts`, `symbols.ts`, `paths.ts`, `reports.ts`, and `visible.ts`; next cleanup should split the larger report modules into deeper modules before expecting the directory-level mutation score to clear 90%.
+
+## Graph Controls Filtering Test Slice
+
+Architecture candidate: `packages/extension/src/webview/graphControls/filtering`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged `filterSemanticEdges` as over the CRAP threshold because the module had weak direct coverage.
+- This filtering module is a small but important webview boundary: it decides which graph nodes, semantic edges, structural edges, and decorations survive user visibility settings.
+- Improving the test surface here reduces risk before deeper UI architecture cleanup.
+
+Changes made:
+
+- Added file-mapped tests for:
+  - `edges.ts`
+  - `nodes.ts`
+- Covered disabled edge types, visible endpoints, structural edge visibility, edge default colors, visible edge decorations, default file-node typing, node-type color precedence, and file/folder partitions.
+- Added one mocked-defaults test for the node-type fallback contract because folder and generic fallback colors currently share the same hex value.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graphControls/filtering`: pass, 2 files / 12 tests
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm run boundaries -- extension/src/webview/graphControls/filtering`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/webview/graphControls/filtering`: pass, all functions CRAP <= 8; `edges.ts` and `nodes.ts` at 100% statements, branches, functions, and lines
+- `pnpm run mutate -- extension/src/webview/graphControls/filtering`: pass, 100% mutation score, 71 killed, 0 survivors
+- `pnpm run lint`: pass
