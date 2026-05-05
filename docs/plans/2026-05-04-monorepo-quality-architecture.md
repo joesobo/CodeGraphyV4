@@ -68,9 +68,10 @@ Candidates should be accepted only when they improve locality or leverage enough
 
 - Setup: complete.
 - Baseline gates: complete.
-- Architecture candidates: in progress.
-- Implementation: in progress.
-- Final CI: pending.
+- Architecture candidates: complete for this pass.
+- Implementation: complete for this pass.
+- Final local validation: complete.
+- Final CI: pending after docs push.
 
 ## Completed Baseline
 
@@ -531,3 +532,37 @@ Validation:
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/extension/agentBridge/uri`: pass, all functions CRAP <= 8
 - `pnpm run mutate -- extension/src/extension/agentBridge/uri`: pass, 100% mutation score, 111 killed, 0 survivors, 0 no coverage, every file under mutation-site threshold
+
+## Final Documentation Pass
+
+Docs updated after the cleanup:
+
+- `README.md` now describes the package map as Core Extension, MCP, Plugin API, language plugins, and quality tools.
+- `docs/README.md` now gives a repo-wide package orientation and links each package class to its starting docs.
+- `packages/extension/docs/boundaries.md` now names the current extension source ownership areas, including agent URI handling, Graph Query, Visible Graph projection, repo settings freshness, workspace refresh, and webview feature folders.
+- `docs/quality/README.md` now documents repo-root quality-tool targets and scoped mutation expectations.
+
+No changeset was added because the branch contains internal refactors, tests, and docs without a user-facing release behavior change.
+
+## Final Local Validation
+
+Broad gates:
+
+- `pnpm run lint`: pass
+- `pnpm run typecheck`: pass
+- `pnpm run test`: pass, 17 turbo tasks plus 11 release tests
+- `pnpm run build`: pass, 15 turbo tasks
+
+Repo-wide quality tools:
+
+- `pnpm run organize -- .`: pass, advisory structure output only
+- `pnpm run boundaries -- . --strict`: pass, 1,212 files, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- . --strict`: pass, 1,212 files, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- .`: pass, all functions CRAP <= 8
+- `pnpm run scrap -- .`: pass, advisory test-shape output only
+
+Scoped mutation strategy:
+
+- Full monorepo mutation remains intentionally expensive.
+- Every changed high-risk source slice in this pass was checked with scoped mutation.
+- The final changed slice, `extension/src/extension/agentBridge/uri`, passed at 100% mutation score with 111 killed mutants, 0 survivors, and every file under the 50 mutation-site threshold.
