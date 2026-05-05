@@ -2,7 +2,10 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { analyzeFileWithTreeSitter } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze';
+import {
+  analyzeFileWithTreeSitter,
+  analyzeTreeSitterTree,
+} from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze';
 import { preAnalyzeCSharpTreeSitterFiles } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
 
 const tempRoots: string[] = [];
@@ -37,6 +40,17 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
         '/workspace',
       ),
     ).resolves.toBeNull();
+  });
+
+  it('returns null when a parser runtime has no language analyzer', () => {
+    expect(
+      analyzeTreeSitterTree(
+        '/workspace/source.unknown',
+        { rootNode: {} } as never,
+        '/workspace',
+        'unknown',
+      ),
+    ).toBeNull();
   });
 
   it('extracts symbols plus import, reexport, require, dynamic-import, and imported-call relations for TypeScript files', async () => {

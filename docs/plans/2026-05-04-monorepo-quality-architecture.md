@@ -226,3 +226,48 @@ Scoped mutation:
 - `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/typeImports/clause.ts`: pass, 100% mutation score, 29 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/typeImports/markers.ts`: pass, 100% mutation score, 15 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript/typeImports/collect.ts`: pass, 100% mutation score, 39 killed, 0 survivors, under mutation-site threshold
+
+## Tree-sitter Runtime Dispatch Slice
+
+Architecture candidate: `packages/extension/src/extension/pipeline/plugins/treesitter/runtime`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged `analyzeTreeSitterTree`, `handleCFamilySymbol`, `handleHaskellDeclaration`, and `getStringSpecifier`.
+- The runtime analyzer was carrying multiple language and syntax dispatch decisions inside broad switch or if chains.
+- C-family symbol extraction had one large mutation surface, which made it harder to isolate tests for name lookup, symbol emission, and syntax-node dispatch.
+
+Changes made:
+
+- Replaced the runtime language `if` chain with a `TREE_SITTER_FILE_ANALYZERS` table.
+- Split string literal specifier extraction into a small reader table plus focused helpers.
+- Split C-family symbol handling into:
+  - `model.ts` for handler context contracts
+  - `names.ts` for syntax-node name discovery
+  - `emit.ts` for relation/symbol emission
+  - `handlers.ts` for node-type dispatch
+  - `symbols.ts` as the narrow public wrapper
+- Added direct tests for the C-family modules, Haskell symbol declarations, and unsupported runtime analyzer languages.
+- Kept the Haskell declaration dispatcher as a small switch after scoped mutation showed the table form produced low-value equivalent survivors.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/analyze.test.ts tests/extension/pipeline/treesitter/c/analyze.test.ts tests/extension/pipeline/treesitter/cpp/analyze.test.ts tests/extension/pipeline/treesitter/haskell/analyze.test.ts tests/extension/pipeline/treesitter/stringSpecifier.test.ts`: pass, 5 files / 18 tests
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/cfamily`: pass, 4 files / 14 tests
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/haskell/symbols.test.ts tests/extension/pipeline/treesitter/haskell/analyze.test.ts`: pass, 2 files / 5 tests
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy/extension exec eslint src/extension/pipeline/plugins/treesitter/runtime/analyze.ts src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily src/extension/pipeline/plugins/treesitter/runtime/analyzeHaskell/symbols.ts src/extension/pipeline/plugins/treesitter/runtime/analyze/stringSpecifier.ts tests/extension/pipeline/treesitter/analyze.test.ts tests/extension/pipeline/treesitter/cfamily tests/extension/pipeline/treesitter/haskell/symbols.test.ts`: pass
+- `pnpm run boundaries -- extension/src/extension/pipeline/plugins/treesitter/runtime`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/extension/pipeline/plugins/treesitter/runtime`: pass, all functions CRAP <= 8
+- `pnpm run crap -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily`: pass, all functions CRAP <= 8
+- `pnpm run crap -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeHaskell`: pass, all functions CRAP <= 8
+
+Scoped mutation:
+
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyze/stringSpecifier.ts`: pass, 100% mutation score, 30 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyze.ts`: pass, 100% mutation score, 10 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily/symbols.ts`: pass, 100% mutation score, 3 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily/handlers.ts`: pass, 95.45% mutation score, 21 killed, 1 survivor, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily/emit.ts`: pass, 96.67% mutation score, 29 killed, 1 survivor, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily/names.ts`: pass, 100% mutation score, 37 killed, 0 survivors, under mutation-site threshold
+- `pnpm run mutate -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeHaskell/symbols.ts`: pass, 96.97% mutation score, 32 killed, 1 survivor, under mutation-site threshold
