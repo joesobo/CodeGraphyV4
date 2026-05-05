@@ -496,3 +496,38 @@ Scoped mutation:
 - `pnpm run mutate -- extension/src/extension/pipeline/fileAnalysis/targetSymbolName.ts`: pass, 100% mutation score, 42 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/extension/pipeline/fileAnalysis/targetSymbol.ts`: pass, 100% mutation score, 12 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/extension/pipeline/fileAnalysis/symbols.ts`: pass, 100% mutation score, 5 killed, 0 survivors, under mutation-site threshold
+
+## Agent Bridge URI Slice
+
+Architecture candidate: `packages/extension/src/extension/agentBridge/uri.ts`.
+
+Why this slice:
+
+- The agent URI bridge is the extension-host interface that lets outside agent tooling ask VS Code to index or query the active repo.
+- The previous single file mixed URI action parsing, request-file IO, workspace guards, provider dispatch, response writing, and VS Code handler wiring.
+- Scoped mutation reported 113 mutation sites in the one file, above the repo threshold of 50, and an 83.33% mutation score. The bridge needed a deeper public interface with file-mapped behavior tests.
+
+Changes made:
+
+- Kept `src/extension/agentBridge/uri.ts` as the compatibility barrel for existing imports.
+- Split the implementation into a feature-local folder:
+  - `types.ts` owns the bridge contracts and response shapes.
+  - `dependencies.ts` adapts VS Code workspace, message, and request/response file IO.
+  - `paths.ts` owns platform-aware repo path normalization.
+  - `request.ts` owns URI action and request-file parsing.
+  - `workspace.ts` owns active-workspace validation and failure responses.
+  - `actions.ts` owns index/query provider dispatch and error responses.
+  - `handle.ts` owns request orchestration order.
+  - `handler.ts` owns the VS Code `UriHandler` adapter.
+  - `response.ts` owns failed-response construction.
+- Added file-mapped tests for each module and retained end-to-end bridge tests for public behavior and exact user-facing failure messages.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/agentBridge/uri.test.ts tests/extension/agentBridge/uri`: pass, 9 files / 34 tests
+- `pnpm --filter @codegraphy/extension exec eslint src/extension/agentBridge/uri.ts 'src/extension/agentBridge/uri/**/*.ts' tests/extension/agentBridge/uri.test.ts 'tests/extension/agentBridge/uri/**/*.ts'`: pass
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm run boundaries -- extension/src/extension/agentBridge/uri`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/extension/agentBridge/uri`: pass, all functions CRAP <= 8
+- `pnpm run mutate -- extension/src/extension/agentBridge/uri`: pass, 100% mutation score, 111 killed, 0 survivors, 0 no coverage, every file under mutation-site threshold
