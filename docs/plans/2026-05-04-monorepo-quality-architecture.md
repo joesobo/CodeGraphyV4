@@ -417,3 +417,39 @@ Scoped mutation:
 
 - `pnpm run mutate -- extension/src/extension/workspaceFiles/refresh/watchers.ts`: pass, 100% mutation score, 19 killed, 0 survivors, under mutation-site threshold
 - `pnpm run mutate -- extension/src/extension/workspaceFiles/refresh/operations.ts`: pass, 100% mutation score, 35 killed, 0 survivors, under mutation-site threshold
+
+## Discovery File Walker Slice
+
+Architecture candidate: `packages/extension/src/core/discovery/file/walk.ts`.
+
+Why this slice:
+
+- `pnpm run crap -- extension/` flagged `walkDirectory` at 10.0 after the workspace refresh split.
+- The exported walker is a low-level discovery interface, but path resolution, unreadable directory handling, skip rules, file callbacks, directory callbacks, recursion, and abort checks all lived in one loop.
+- Mutation initially found surviving skipped-directory and unreadable-directory branches, so this slice needed test tightening rather than only a mechanical helper extraction.
+
+Changes made:
+
+- Kept the `walkDirectory` overload and `true`/`false` traversal contract stable.
+- Added named helpers for:
+  - overload option resolution
+  - directory entry reads
+  - entry path resolution
+  - child-directory traversal
+  - individual entry dispatch
+- Made unreadable directories explicit as an empty entry list.
+- Added direct tests for directory notifications, fifth-argument abort-signal handling, and skipped-directory read avoidance.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/core/discovery/file/walk.test.ts`: pass, 1 file / 13 tests
+- `pnpm --filter @codegraphy/extension exec eslint src/core/discovery/file/walk.ts tests/core/discovery/file/walk.test.ts`: pass
+- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm run boundaries -- extension/src/core/discovery/file`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
+- `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
+- `pnpm run crap -- extension/src/core/discovery/file`: pass, all functions CRAP <= 8
+
+Scoped mutation:
+
+- First `pnpm run mutate -- extension/src/core/discovery/file/walk.ts`: pass at 92.31%, but left 3 survivors.
+- After tightening tests and the unreadable-directory helper: `pnpm run mutate -- extension/src/core/discovery/file/walk.ts`: pass, 100% mutation score, 35 killed, 0 survivors, under mutation-site threshold
