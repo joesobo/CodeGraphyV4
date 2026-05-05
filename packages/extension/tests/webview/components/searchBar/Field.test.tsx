@@ -235,6 +235,6 @@ describe('SearchBar', () => {
 
     const matchCaseButton = screen.getByTitle('Match Case (Alt+C)');
     // Check that the button has the active background color class
-    expect(matchCaseButton.className).toContain('bg-[var(--vscode-inputOption-activeBackground');
+    expect(matchCaseButton.className).toContain('bg-[var(--cg-input-option-active-background)]');
   });
 });

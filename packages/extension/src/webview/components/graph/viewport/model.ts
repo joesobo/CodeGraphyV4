@@ -13,6 +13,7 @@ import { buildGraphSharedPropsOptions } from '../view/sharedPropsOptions';
 import { handleGraphSurface3dError } from '../rendering/surface/error';
 import { getGraphSurfaceColors } from '../rendering/surface/colors';
 import type { ThemeKind } from '../../../theme/useTheme';
+import type { GraphAppearance } from '../appearance/model';
 import { postMessage } from '../../../vscodeApi';
 
 export interface GraphViewportModel {
@@ -27,7 +28,8 @@ export interface GraphViewportModelOptions {
   graphState: Pick<UseGraphStateResult, 'contextSelection' | 'graphData'>;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
-  theme: ThemeKind;
+  appearance?: GraphAppearance;
+  theme?: ThemeKind;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
   viewState: Pick<
     GraphViewStoreState,
@@ -59,7 +61,7 @@ export function useGraphViewportModel({
   graphState,
   interactions,
   handleEngineStop,
-  theme,
+  appearance,
   viewportRuntime,
   viewState,
 }: GraphViewportModelOptions): GraphViewportModel {
@@ -93,7 +95,7 @@ export function useGraphViewportModel({
     nodes: graphState.graphData.nodes,
   });
 
-  const { backgroundColor, borderColor } = getGraphSurfaceColors(theme);
+  const { backgroundColor, borderColor } = getGraphSurfaceColors(appearance);
   const onSurface3dError = (error: Error): void => {
     handleGraphSurface3dError({
       error,

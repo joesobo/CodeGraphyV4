@@ -36,7 +36,7 @@ export default function ExportPanel({
   const graphItems = buildGraphItems();
 
   return (
-    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
+    <div className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Export</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">

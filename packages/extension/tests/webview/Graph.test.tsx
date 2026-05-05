@@ -40,7 +40,7 @@ describe('Graph', () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('div');
     expect(graphContainer).toHaveClass('absolute', 'inset-0', 'rounded-lg', 'm-1');
-    expect(graphContainer).toHaveStyle({ backgroundColor: '#18181b' });
+    expect(graphContainer?.getAttribute('style')).toContain('background-color: canvas');
     expect(graphContainer).toHaveStyle({ borderWidth: '1px', borderStyle: 'solid' });
   });
 

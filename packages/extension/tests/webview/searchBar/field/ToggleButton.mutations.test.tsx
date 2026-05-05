@@ -11,7 +11,7 @@ describe('ToggleButton (mutation targets)', () => {
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).toContain('inputOption-activeBackground');
+    expect(button.className).toContain('bg-[var(--cg-input-option-active-background)]');
   });
 
   it('renders with inactive styling when active is false and no error', () => {
@@ -32,8 +32,8 @@ describe('ToggleButton (mutation targets)', () => {
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).toContain('errorBackground');
-    expect(button.className).toContain('errorBorder');
+    expect(button.className).toContain('bg-[var(--cg-input-error-background)]');
+    expect(button.className).toContain('border-[var(--cg-input-error-border)]');
   });
 
   it('does not apply active styling when hasError is true', () => {
@@ -43,7 +43,7 @@ describe('ToggleButton (mutation targets)', () => {
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).not.toContain('inputOption-activeBackground');
+    expect(button.className).not.toContain('cg-input-option-active-background');
   });
 
   it('does not apply inactive styling when hasError is true', () => {

@@ -303,7 +303,6 @@ describe('graph/viewport/shell', () => {
 			},
 			handleEngineStop,
 			interactions,
-			theme: 'light',
 			viewState,
 			viewportRuntime: expect.objectContaining({ containerSize: { height: 320, width: 480 } }),
 		}));

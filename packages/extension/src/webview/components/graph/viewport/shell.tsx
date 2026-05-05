@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import type { ThemeKind } from '../../../theme/useTheme';
+import type { GraphAppearance } from '../appearance/model';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { GraphViewStoreState } from '../view/store';
 import type { UseGraphCallbacksResult } from '../rendering/useGraphCallbacks';
@@ -12,6 +13,7 @@ import { Viewport } from './view';
 import { useGraphViewportModel } from './model';
 
 export interface GraphViewportShellProps {
+  appearance?: GraphAppearance;
   callbacks: UseGraphCallbacksResult;
   graphLayoutKey: string;
   graphState: UseGraphStateResult;
@@ -23,14 +25,16 @@ export interface GraphViewportShellProps {
 }
 
 function buildRenderingRuntimeOptions({
+  appearance,
   callbacks,
   graphLayoutKey,
   graphState,
   pluginHost,
   theme,
   viewState,
-}: Pick<GraphViewportShellProps, 'callbacks' | 'graphLayoutKey' | 'graphState' | 'pluginHost' | 'theme' | 'viewState'>) {
+}: Pick<GraphViewportShellProps, 'appearance' | 'callbacks' | 'graphLayoutKey' | 'graphState' | 'pluginHost' | 'theme' | 'viewState'>) {
   return {
+    appearance,
     containerRef: graphState.containerRef,
     dataRef: graphState.dataRef,
     fg2dRef: graphState.fg2dRef,
@@ -62,17 +66,17 @@ function buildRenderingRuntimeOptions({
 }
 
 function useGraphViewportModelOptions({
+  appearance,
   graphState,
   interactions,
   handleEngineStop,
-  theme,
   viewportRuntime,
   viewState,
 }: {
+  appearance?: GraphAppearance;
   graphState: UseGraphStateResult;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
-  theme: ThemeKind;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize' | 'renderPluginOverlays'>;
   viewState: GraphViewStoreState;
 }) {
@@ -82,14 +86,15 @@ function useGraphViewportModelOptions({
       graphData: graphState.graphData,
     },
     handleEngineStop,
+    appearance,
     interactions,
-    theme,
     viewportRuntime,
     viewState,
   });
 }
 
 export function GraphViewportShell({
+  appearance,
   callbacks,
   graphLayoutKey,
   graphState,
@@ -100,6 +105,7 @@ export function GraphViewportShell({
   viewState,
 }: GraphViewportShellProps): ReactElement {
   const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
+    appearance,
     callbacks,
     graphLayoutKey,
     graphState,
@@ -125,10 +131,10 @@ export function GraphViewportShell({
   });
 
   const viewportModel = useGraphViewportModelOptions({
+    appearance,
     graphState,
     handleEngineStop,
     interactions,
-    theme,
     viewportRuntime,
     viewState,
   });

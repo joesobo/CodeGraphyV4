@@ -167,14 +167,14 @@ describe('PluginsPanel', () => {
 
     const draggableRows = container.querySelectorAll('[draggable="true"]');
     fireEvent.dragOver(draggableRows[0]);
-    expect(draggableRows[0]?.className).toContain('ring-primary/40');
+    expect(draggableRows[0]?.className).toContain('ring-[var(--cg-primary-ring)]');
 
     fireEvent.drop(draggableRows[0]);
 
     expect(sentMessages).not.toContainEqual(
       expect.objectContaining({ type: 'UPDATE_PLUGIN_ORDER' }),
     );
-    expect(draggableRows[0]?.className).not.toContain('ring-primary/40');
+    expect(draggableRows[0]?.className).not.toContain('ring-[var(--cg-primary-ring)]');
   });
 
   it('clears drag state when dragging ends without dropping', () => {
@@ -205,7 +205,7 @@ describe('PluginsPanel', () => {
 
     expect(draggableRows[0]?.className).toContain('opacity-60');
     expect(draggableRows[0]?.className).toContain('opacity-50');
-    expect(draggableRows[1]?.className).toContain('ring-primary/40');
+    expect(draggableRows[1]?.className).toContain('ring-[var(--cg-primary-ring)]');
 
     fireEvent.dragEnd(draggableRows[0]);
 

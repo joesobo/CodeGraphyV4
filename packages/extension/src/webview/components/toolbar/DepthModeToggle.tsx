@@ -31,7 +31,7 @@ export function DepthModeToggle(): React.ReactElement {
           aria-pressed={depthModeActive}
           className={cn(
             'h-7 w-7',
-            depthModeActive ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-transparent',
+            depthModeActive ? 'bg-primary text-primary-foreground hover:bg-[var(--cg-primary-hover)]' : 'bg-transparent',
           )}
           onClick={handleToggleDepthMode}
           title={title}

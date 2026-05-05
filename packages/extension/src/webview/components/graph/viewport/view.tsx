@@ -128,7 +128,7 @@ export function Viewport({
           return (
             <ContextMenuItem
               key={entry.id}
-              className={entry.destructive ? 'text-red-400 focus:text-red-300' : undefined}
+              className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
               disabled={entry.disabled}
               onClick={() => handleMenuAction(entry.action)}
             >

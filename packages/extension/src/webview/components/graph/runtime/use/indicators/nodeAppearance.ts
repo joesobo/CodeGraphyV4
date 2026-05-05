@@ -4,6 +4,7 @@ import {
 } from 'react';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import { ThemeKind, adjustColorForLightTheme } from '../../../../../theme/useTheme';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../appearance/model';
 import {
 	calculateNodeSizes,
 	FAVORITE_BORDER_COLOR,
@@ -14,6 +15,7 @@ import {
 
 interface UseNodeAppearanceOptions {
 	dataRef: MutableRefObject<IGraphData>;
+	appearance?: GraphAppearance;
 	favorites: Set<string>;
 	graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
 	nodeSizeMode: string;
@@ -22,24 +24,21 @@ interface UseNodeAppearanceOptions {
 
 export interface ApplyNodeAppearanceOptions {
 	data: IGraphData;
+	appearance?: GraphAppearance;
 	favorites: ReadonlySet<string>;
 	graphNodes: FGNode[];
 	nodeSizeMode: Parameters<typeof calculateNodeSizes>[2];
 	theme: ThemeKind;
 }
 
-function getFocusedBorderColor(isLightTheme: boolean): string {
-	return isLightTheme ? '#2563eb' : '#60a5fa';
-}
-
 function getNodeBorderColor(options: {
+	appearance: Pick<GraphAppearance, 'focusBorder'>;
 	isFavorite: boolean;
 	isFocused: boolean;
-	isLightTheme: boolean;
 	nodeColor: string;
 }): string {
 	if (options.isFocused) {
-		return getFocusedBorderColor(options.isLightTheme);
+		return options.appearance.focusBorder;
 	}
 
 	if (options.isFavorite) {
@@ -63,6 +62,7 @@ function getNodeBorderWidth(options: { isFavorite: boolean; isFocused: boolean }
 
 export function applyNodeAppearance({
 	data,
+	appearance = DEFAULT_GRAPH_APPEARANCE,
 	favorites,
 	graphNodes,
 	nodeSizeMode,
@@ -87,9 +87,9 @@ export function applyNodeAppearance({
 		graphNode.color = nodeColor;
 		graphNode.isFavorite = isFavorite;
 		graphNode.borderColor = getNodeBorderColor({
+			appearance,
 			isFavorite,
 			isFocused,
-			isLightTheme,
 			nodeColor,
 		});
 		graphNode.borderWidth = getNodeBorderWidth({ isFavorite, isFocused });
@@ -98,6 +98,7 @@ export function applyNodeAppearance({
 
 export function useNodeAppearance({
 	dataRef,
+	appearance = DEFAULT_GRAPH_APPEARANCE,
 	favorites,
 	graphDataRef,
 	nodeSizeMode,
@@ -106,10 +107,11 @@ export function useNodeAppearance({
 	useEffect(() => {
 		applyNodeAppearance({
 			data: dataRef.current,
+			appearance,
 			favorites,
 			graphNodes: graphDataRef.current.nodes,
 			nodeSizeMode: nodeSizeMode as Parameters<typeof calculateNodeSizes>[2],
 			theme,
 		});
-	}, [dataRef, favorites, graphDataRef, nodeSizeMode, theme]);
+	}, [appearance, dataRef, favorites, graphDataRef, nodeSizeMode, theme]);
 }

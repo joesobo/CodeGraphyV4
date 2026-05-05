@@ -48,9 +48,9 @@ function ZoomButton({
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-8 w-8 bg-popover/95 backdrop-blur-sm"
+          className="h-8 w-8 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)]"
           title={title}
           {...zoomHandlers}
         >
@@ -77,9 +77,9 @@ export function GraphCornerControls(): ReactElement {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className="h-8 w-8 bg-popover/95 backdrop-blur-sm"
+              className="h-8 w-8 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)]"
               title="Fit to Screen"
               onClick={() => postGraphWindowMessage('FIT_VIEW')}
             >
@@ -92,9 +92,9 @@ export function GraphCornerControls(): ReactElement {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className="h-8 w-8 bg-popover/95 backdrop-blur-sm"
+              className="h-8 w-8 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)]"
               title="Open in Editor"
               onClick={() => postGraphWindowMessage('REQUEST_OPEN_IN_EDITOR')}
             >

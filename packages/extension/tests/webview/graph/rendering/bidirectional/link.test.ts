@@ -3,6 +3,7 @@ import type { EdgeDecorationPayload } from '../../../../../src/shared/plugins/de
 import type { DirectionMode } from '../../../../../src/shared/settings/modes';
 import type { ThemeKind } from '../../../../../src/webview/theme/useTheme';
 import type { FGLink } from '../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../../../src/webview/components/graph/appearance/model';
 import { renderBidirectionalLink } from '../../../../../src/webview/components/graph/rendering/bidirectional/link';
 
 interface ContextOperation {
@@ -13,10 +14,17 @@ interface ContextOperation {
   strokeStyle: string;
 }
 
+const TEST_GRAPH_APPEARANCE: GraphAppearance = {
+  ...DEFAULT_GRAPH_APPEARANCE,
+  linkHighlight: '#60a5fa',
+  linkMuted: '#8b949e',
+};
+
 function createDependencies(overrides: Partial<{
   directionColor: string;
   directionMode: DirectionMode;
   edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
+  graphAppearance: GraphAppearance;
   highlightedNodeId: string | null;
   theme: ThemeKind;
 }> = {}) {
@@ -24,6 +32,7 @@ function createDependencies(overrides: Partial<{
     directionColorRef: { current: overrides.directionColor ?? '#22c55e' },
     directionModeRef: { current: overrides.directionMode ?? 'arrows' },
     edgeDecorationsRef: { current: overrides.edgeDecorations },
+    graphAppearanceRef: { current: overrides.graphAppearance ?? TEST_GRAPH_APPEARANCE },
     highlightedNodeRef: { current: overrides.highlightedNodeId ?? null },
     themeRef: { current: overrides.theme ?? 'dark' },
   };
@@ -196,7 +205,7 @@ describe('graph/rendering/bidirectional/link', () => {
     ]));
   });
 
-  it('dims disconnected links with the light-theme default stroke color', () => {
+  it('dims disconnected links with the current appearance muted stroke color', () => {
     const { ctx, operations } = createContext();
 
     renderBidirectionalLink(
@@ -214,30 +223,7 @@ describe('graph/rendering/bidirectional/link', () => {
         globalAlpha: 0.15,
         kind: 'stroke',
         lineWidth: 2,
-        strokeStyle: '#d4d4d4',
-      }),
-    ]));
-  });
-
-  it('dims disconnected links with the dark-theme default stroke color', () => {
-    const { ctx, operations } = createContext();
-
-    renderBidirectionalLink(
-      createDependencies({
-        highlightedNodeId: 'src/other.ts',
-        theme: 'dark',
-      }),
-      createLink(),
-      ctx,
-      1,
-    );
-
-    expect(operations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        globalAlpha: 0.15,
-        kind: 'stroke',
-        lineWidth: 2,
-        strokeStyle: '#2d3748',
+        strokeStyle: '#8b949e',
       }),
     ]));
   });

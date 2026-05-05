@@ -75,7 +75,7 @@ describe('SearchBar (CSS class mutations)', () => {
     expect(input.className).toContain('text-sm');
   });
 
-  it('applies VS Code input background class', () => {
+  it('applies themed input background class', () => {
     render(
       <SearchBar
         value=""
@@ -85,10 +85,10 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).toContain('vscode-input-background');
+    expect(input.className).toContain('bg-input');
   });
 
-  it('applies VS Code input foreground class', () => {
+  it('applies themed input foreground class', () => {
     render(
       <SearchBar
         value=""
@@ -98,7 +98,7 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).toContain('vscode-input-foreground');
+    expect(input.className).toContain('text-[var(--cg-input-foreground)]');
   });
 
   it('applies focus:outline-none class to input', () => {
@@ -140,7 +140,7 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).toContain('inputValidation-errorBorder');
+    expect(input.className).toContain('border-[var(--cg-input-error-border)]');
   });
 
   it('does not apply error border when regexError is not set', () => {
@@ -153,7 +153,7 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).not.toContain('inputValidation-errorBorder');
+    expect(input.className).not.toContain('border-[var(--cg-input-error-border)]');
   });
 
   it('applies focus border when no regex error', () => {
@@ -182,7 +182,7 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).not.toContain('focusBorder');
+    expect(input.className).not.toContain('focus:border-[var(--cg-focus-border)]');
   });
 
   it('applies placeholder foreground class', () => {

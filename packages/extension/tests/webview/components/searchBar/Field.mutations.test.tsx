@@ -126,7 +126,7 @@ describe('SearchBar (mutation targets)', () => {
       />
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).toContain('inputValidation-errorBorder');
+    expect(input.className).toContain('border-[var(--cg-input-error-border)]');
   });
 
   it('applies normal border class when no regex error', () => {
@@ -139,7 +139,7 @@ describe('SearchBar (mutation targets)', () => {
       />
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).not.toContain('inputValidation-errorBorder');
+    expect(input.className).not.toContain('border-[var(--cg-input-error-border)]');
   });
 
   it('does not show clear button when value is empty', () => {
@@ -177,7 +177,7 @@ describe('SearchBar (mutation targets)', () => {
       />
     );
     const regexButton = screen.getByTitle('Use Regular Expression (Alt+R)');
-    expect(regexButton.className).toContain('errorBackground');
+    expect(regexButton.className).toContain('bg-[var(--cg-input-error-background)]');
   });
 
   it('does not pass hasError to regex toggle when no regex error', () => {
@@ -190,7 +190,7 @@ describe('SearchBar (mutation targets)', () => {
       />
     );
     const regexButton = screen.getByTitle('Use Regular Expression (Alt+R)');
-    expect(regexButton.className).not.toContain('errorBackground');
+    expect(regexButton.className).not.toContain('bg-[var(--cg-input-error-background)]');
   });
 
   it('toggles matchCase option from true to false', () => {

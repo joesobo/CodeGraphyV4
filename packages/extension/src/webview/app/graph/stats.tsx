@@ -13,7 +13,7 @@ export function buildGraphStatsLabel(nodeCount: number, edgeCount: number): stri
 
 export function GraphStatsBadge({ label }: { label: string }): React.ReactElement {
   return (
-    <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-md bg-background/50 px-2 py-1 text-xs text-muted-foreground backdrop-blur-sm">
+    <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-md bg-[var(--cg-popover-translucent)] px-2 py-1 text-xs text-muted-foreground backdrop-blur-sm">
       {label}
     </div>
   );

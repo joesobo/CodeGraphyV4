@@ -54,7 +54,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
   };
 
   return (
-    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
+    <div className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <div className="min-w-0">
@@ -74,7 +74,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
           {plugins.length === 0 ? (
             <p className="text-xs text-muted-foreground py-3 text-center">No plugins registered.</p>
           ) : (
-            <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
+            <div className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]">
               {plugins.map((plugin, index) => {
                 return (
                   <div
@@ -94,7 +94,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                       dragOverIndex,
                     )}
                   >
-                    <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-accent/20">
+                    <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]">
                       <div className="min-w-0 flex-1">
                         <span className="block truncate text-xs font-medium">{plugin.name}</span>
                       </div>

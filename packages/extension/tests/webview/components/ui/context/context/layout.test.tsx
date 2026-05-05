@@ -23,7 +23,7 @@ describe('ContextMenu layout wrappers', () => {
       'py-1.5',
       'text-sm',
       'font-semibold',
-      'text-[var(--vscode-descriptionForeground,#8c8c8c)]',
+      'text-muted-foreground',
       'pl-8',
       'custom-label',
     );
@@ -36,7 +36,7 @@ describe('ContextMenu layout wrappers', () => {
       '-mx-1',
       'my-1',
       'h-px',
-      'bg-[var(--vscode-menu-separatorBackground,#454545)]',
+      'bg-[var(--cg-menu-separator)]',
       'custom-separator',
     );
   });
@@ -53,7 +53,7 @@ describe('ContextMenu layout wrappers', () => {
       'ml-auto',
       'text-xs',
       'tracking-widest',
-      'text-[var(--vscode-descriptionForeground,#8c8c8c)]',
+      'text-muted-foreground',
       'custom-shortcut',
     );
   });

@@ -18,9 +18,9 @@ const ContextMenuItem = React.forwardRef<
     ref={ref}
     className={cn(
       'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none',
-      'focus:bg-[var(--vscode-list-hoverBackground,#2a2d2e)] focus:text-[var(--vscode-list-hoverForeground)]',
+      'focus:bg-[var(--cg-list-hover-background)] focus:text-[var(--cg-list-hover-foreground)]',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-      destructive && 'text-red-400 focus:text-red-300',
+      destructive && 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]',
       inset && 'pl-8',
       className
     )}
@@ -37,7 +37,7 @@ const ContextMenuCheckboxItem = React.forwardRef<
     ref={ref}
     className={cn(
       'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none',
-      'focus:bg-[var(--vscode-list-hoverBackground)] focus:text-[var(--vscode-list-hoverForeground)]',
+      'focus:bg-[var(--cg-list-hover-background)] focus:text-[var(--cg-list-hover-foreground)]',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className
     )}
@@ -62,7 +62,7 @@ const ContextMenuRadioItem = React.forwardRef<
     ref={ref}
     className={cn(
       'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none',
-      'focus:bg-[var(--vscode-list-hoverBackground)] focus:text-[var(--vscode-list-hoverForeground)]',
+      'focus:bg-[var(--cg-list-hover-background)] focus:text-[var(--cg-list-hover-foreground)]',
       'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
       className
     )}

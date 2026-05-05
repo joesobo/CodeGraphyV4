@@ -30,7 +30,7 @@ export function SearchBar({
   return (
     <div className={cn('relative flex items-center gap-2', className)}>
       <div className="relative flex-1 flex items-center">
-        <MdiIcon path={mdiMagnify} size={16} className="absolute left-3 text-[var(--vscode-input-placeholderForeground,#6b7280)]" />
+        <MdiIcon path={mdiMagnify} size={16} className="absolute left-3 text-[var(--cg-input-placeholder)]" />
         <input
           ref={inputRef}
           type="text"
@@ -39,13 +39,13 @@ export function SearchBar({
           placeholder={placeholder}
           className={cn(
             'w-full pl-10 pr-32 py-1.5 rounded-md text-sm',
-            'bg-[var(--vscode-input-background,#3c3c3c)]',
-            'text-[var(--vscode-input-foreground,#cccccc)]',
+            'bg-input',
+            'text-[var(--cg-input-foreground)]',
             'border',
-            regexError ? 'border-[var(--vscode-inputValidation-errorBorder,#be1100)]' : 'border-[var(--vscode-input-border,#3c3c3c)]',
-            'placeholder:text-[var(--vscode-input-placeholderForeground,#6b7280)]',
+            regexError ? 'border-[var(--cg-input-error-border)]' : 'border-[var(--cg-input-border)]',
+            'placeholder:text-[var(--cg-input-placeholder)]',
             'focus:outline-none',
-            !regexError && 'focus:border-[var(--vscode-focusBorder,#007fd4)]',
+            !regexError && 'focus:border-[var(--cg-focus-border)]',
             'transition-colors'
           )}
         />

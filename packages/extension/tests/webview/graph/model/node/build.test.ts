@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { FAVORITE_BORDER_COLOR } from '../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../src/webview/components/graph/appearance/model';
 import { buildGraphNodes } from '../../../../../src/webview/components/graph/model/node/build';
 
 describe('graph/model/node/build', () => {
   it('applies focused and favorite styling while preserving graph node metadata', () => {
     const nodes = buildGraphNodes({
+      appearance: { ...DEFAULT_GRAPH_APPEARANCE, focusBorder: '#2563eb' },
       nodes: [
         {
           id: 'focus.ts',

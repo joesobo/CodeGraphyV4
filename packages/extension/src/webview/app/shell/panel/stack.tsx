@@ -29,7 +29,7 @@ export function PanelStack({
         pluginHost={pluginHost}
         slot="node-details"
         data-testid="node-details-slot"
-        className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
+        className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
       />
       <NodesPanel isOpen={activePanel === 'nodes'} onClose={onClosePanel} />
       <EdgesPanel isOpen={activePanel === 'edges'} onClose={onClosePanel} />

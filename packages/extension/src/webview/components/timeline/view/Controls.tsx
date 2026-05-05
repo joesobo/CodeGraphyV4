@@ -91,7 +91,7 @@ export default function Controls({
           <MdiIcon path={mdiSkipForward} size={16} />
         </Button>
       </div>
-      <span className="text-[10px] text-[var(--vscode-descriptionForeground,#777)]">
+      <span className="text-[10px] text-muted-foreground">
           {currentDateLabel}
       </span>
     </div>

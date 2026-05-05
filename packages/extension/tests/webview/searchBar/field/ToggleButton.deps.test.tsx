@@ -94,7 +94,7 @@ describe('ToggleButton (conditional expression mutations)', () => {
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).not.toContain('inputOption-activeBackground');
+    expect(button.className).not.toContain('cg-input-option-active-background');
     expect(button.className).toContain('bg-transparent');
   });
 
@@ -107,8 +107,8 @@ describe('ToggleButton (conditional expression mutations)', () => {
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).not.toContain('inputOption-activeBackground');
-    expect(button.className).toContain('errorBackground');
+    expect(button.className).not.toContain('cg-input-option-active-background');
+    expect(button.className).toContain('bg-[var(--cg-input-error-background)]');
   });
 
   it('applies active background only when active is true and hasError is false', () => {
@@ -118,8 +118,8 @@ describe('ToggleButton (conditional expression mutations)', () => {
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).toContain('inputOption-activeBackground');
+    expect(button.className).toContain('bg-[var(--cg-input-option-active-background)]');
     expect(button.className).not.toContain('bg-transparent');
-    expect(button.className).not.toContain('errorBackground');
+    expect(button.className).not.toContain('bg-[var(--cg-input-error-background)]');
   });
 });
