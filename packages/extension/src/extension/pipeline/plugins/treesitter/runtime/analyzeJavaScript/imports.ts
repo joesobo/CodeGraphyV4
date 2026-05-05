@@ -6,30 +6,25 @@ import { collectImportBindings } from '../analyze/imports';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { getStringSpecifier } from '../analyze/nodes';
 import { addImportRelation, addRelation, addTypeImportRelation } from '../analyze/results';
+import { collectTypeImportBindings } from './typeImports/collect';
+import { hasDirectTypeKeyword, hasTypeSpecifierImport } from './typeImports/markers';
 
-function hasDirectTypeKeyword(node: Parser.SyntaxNode): boolean {
-  return (node.children ?? []).some((child) => child.type === 'type');
-}
-
-function isTypeImportSpecifier(node: Parser.SyntaxNode): boolean {
-  return node.type === 'import_specifier' && (node.children ?? []).some((child) => child.type === 'type');
-}
+type ImportStatementContext = {
+  filePath: string;
+  importedBindings: Map<string, ImportedBinding>;
+  node: Parser.SyntaxNode;
+  relations: IAnalysisRelation[];
+  resolvedPath: string | null;
+  specifier: string;
+};
 
 function getImportClause(node: Parser.SyntaxNode): Parser.SyntaxNode | undefined {
   return (node.namedChildren ?? []).find((child) => child.type === 'import_clause');
 }
 
-function getNamedImportSpecifiers(importClause: Parser.SyntaxNode | undefined): Parser.SyntaxNode[] {
-  const namedImports = importClause?.namedChildren.find((child) => child.type === 'named_imports');
-  return namedImports?.namedChildren.filter((child) => child.type === 'import_specifier') ?? [];
-}
-
-function hasTypeSpecifierImport(node: Parser.SyntaxNode): boolean {
-  return getNamedImportSpecifiers(getImportClause(node)).some(isTypeImportSpecifier);
-}
-
 function isValueImportSpecifier(node: Parser.SyntaxNode): boolean {
-  return node.type === 'import_specifier' && !isTypeImportSpecifier(node);
+  return node.type === 'import_specifier'
+    && !(node.children ?? []).some((child) => child.type === 'type');
 }
 
 function isValueImportClauseChild(node: Parser.SyntaxNode): boolean {
@@ -57,73 +52,42 @@ function hasValueImport(node: Parser.SyntaxNode): boolean {
   return (importClause.namedChildren ?? []).some(isValueImportClauseChild);
 }
 
-function collectTypeImportBindings(
-  statement: Parser.SyntaxNode,
-  specifier: string,
-  resolvedPath: string | null,
-): ImportedBinding[] {
-  const importClause = getImportClause(statement);
-  if (!importClause) {
-    return [];
+function addValueImportRelations(context: ImportStatementContext): void {
+  const statementBindings = collectImportBindings(
+    context.node,
+    context.specifier,
+    context.resolvedPath,
+    context.importedBindings,
+  );
+
+  if (statementBindings.length === 0) {
+    addImportRelation(context.relations, context.filePath, context.specifier, context.resolvedPath);
+    return;
   }
 
-  const directTypeImport = hasDirectTypeKeyword(statement);
-  const bindings: ImportedBinding[] = [];
-  for (const child of importClause.namedChildren ?? []) {
-    if (child.type === 'identifier' && directTypeImport) {
-      bindings.push({
-        bindingKind: 'default',
-        importedName: 'default',
-        localName: child.text,
-        resolvedPath,
-        specifier,
-      });
-      continue;
-    }
+  for (const binding of statementBindings) {
+    addImportRelation(
+      context.relations,
+      context.filePath,
+      context.specifier,
+      context.resolvedPath,
+      undefined,
+      undefined,
+      binding,
+    );
+  }
+}
 
-    if (child.type === 'namespace_import' && directTypeImport) {
-      const localName = (child.namedChildren ?? []).find((namedChild) => namedChild.type === 'identifier')?.text;
-      if (localName) {
-        bindings.push({
-          bindingKind: 'namespace',
-          importedName: '*',
-          localName,
-          resolvedPath,
-          specifier,
-        });
-      }
-      continue;
-    }
-
-    if (child.type !== 'named_imports') {
-      continue;
-    }
-
-    for (const importSpecifier of child.namedChildren.filter((namedChild) => namedChild.type === 'import_specifier')) {
-      if (!directTypeImport && !isTypeImportSpecifier(importSpecifier)) {
-        continue;
-      }
-
-      const identifiers = importSpecifier.namedChildren.filter((namedChild) =>
-        namedChild.type === 'identifier' || namedChild.type === 'type_identifier',
-      );
-      const importedName = identifiers[0]?.text;
-      const localName = identifiers.at(-1)?.text;
-      if (!localName) {
-        continue;
-      }
-
-      bindings.push({
-        bindingKind: 'named',
-        importedName: importedName ?? localName,
-        localName,
-        resolvedPath,
-        specifier,
-      });
-    }
+function addTypeImportRelations(context: ImportStatementContext): void {
+  const typeBindings = collectTypeImportBindings(context.node, context.specifier, context.resolvedPath);
+  if (typeBindings.length === 0) {
+    addTypeImportRelation(context.relations, context.filePath, context.specifier, context.resolvedPath);
+    return;
   }
 
-  return bindings;
+  for (const binding of typeBindings) {
+    addTypeImportRelation(context.relations, context.filePath, context.specifier, context.resolvedPath, binding);
+  }
 }
 
 export function handleJavaScriptImportStatement(
@@ -133,28 +97,25 @@ export function handleJavaScriptImportStatement(
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> {
   const specifier = getStringSpecifier(node.namedChildren.find((child) => child.type === 'string'));
-  if (specifier) {
-    const resolvedPath = resolveTreeSitterImportPath(filePath, specifier);
-    if (hasValueImport(node)) {
-      const statementBindings = collectImportBindings(node, specifier, resolvedPath, importedBindings);
-      if (statementBindings.length === 0) {
-        addImportRelation(relations, filePath, specifier, resolvedPath);
-      } else {
-        for (const binding of statementBindings) {
-          addImportRelation(relations, filePath, specifier, resolvedPath, undefined, undefined, binding);
-        }
-      }
-    }
-    if (hasDirectTypeKeyword(node) || hasTypeSpecifierImport(node)) {
-      const typeBindings = collectTypeImportBindings(node, specifier, resolvedPath);
-      if (typeBindings.length === 0) {
-        addTypeImportRelation(relations, filePath, specifier, resolvedPath);
-      } else {
-        for (const binding of typeBindings) {
-          addTypeImportRelation(relations, filePath, specifier, resolvedPath, binding);
-        }
-      }
-    }
+  if (!specifier) {
+    return { skipChildren: true };
+  }
+
+  const context = {
+    filePath,
+    importedBindings,
+    node,
+    relations,
+    resolvedPath: resolveTreeSitterImportPath(filePath, specifier),
+    specifier,
+  };
+
+  if (hasValueImport(node)) {
+    addValueImportRelations(context);
+  }
+
+  if (hasDirectTypeKeyword(node) || hasTypeSpecifierImport(node)) {
+    addTypeImportRelations(context);
   }
 
   return { skipChildren: true };

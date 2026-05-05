@@ -23,32 +23,41 @@ export function handleHaskellHeader(
   addNamedSymbol(symbols, filePath, 'module', node.childForFieldName('module')?.text, node);
 }
 
+function addSkippingDeclarationSymbol(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+  kind: string,
+): TreeWalkAction<SymbolWalkState> {
+  addNamedSymbol(symbols, filePath, kind, node.childForFieldName('name')?.text, node);
+  return { skipChildren: true };
+}
+
+function addClassDeclarationSymbol(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): void {
+  addNamedSymbol(symbols, filePath, 'class', node.childForFieldName('name')?.text, node);
+}
+
 export function handleHaskellDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
   symbols: IAnalysisSymbol[],
 ): TreeWalkAction<SymbolWalkState> | void {
   switch (node.type) {
-    case 'data_type': {
-      addNamedSymbol(symbols, filePath, 'data', node.childForFieldName('name')?.text, node);
-      return { skipChildren: true };
-    }
-    case 'newtype': {
-      addNamedSymbol(symbols, filePath, 'newtype', node.childForFieldName('name')?.text, node);
-      return { skipChildren: true };
-    }
-    case 'type_synonym': {
-      addNamedSymbol(symbols, filePath, 'type', node.childForFieldName('name')?.text, node);
-      return { skipChildren: true };
-    }
-    case 'class': {
-      addNamedSymbol(symbols, filePath, 'class', node.childForFieldName('name')?.text, node);
+    case 'data_type':
+      return addSkippingDeclarationSymbol(node, filePath, symbols, 'data');
+    case 'newtype':
+      return addSkippingDeclarationSymbol(node, filePath, symbols, 'newtype');
+    case 'type_synonym':
+      return addSkippingDeclarationSymbol(node, filePath, symbols, 'type');
+    case 'class':
+      addClassDeclarationSymbol(node, filePath, symbols);
       return;
-    }
-    case 'function': {
-      addNamedSymbol(symbols, filePath, 'function', node.childForFieldName('name')?.text, node);
-      return { skipChildren: true };
-    }
+    case 'function':
+      return addSkippingDeclarationSymbol(node, filePath, symbols, 'function');
     default:
       return;
   }

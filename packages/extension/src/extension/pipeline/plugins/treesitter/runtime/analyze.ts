@@ -18,11 +18,32 @@ import { analyzeSwiftFile } from './analyzeSwift/file';
 import {
   createTreeSitterRuntime,
 } from './languages/parser';
-const JAVASCRIPT_FAMILY_LANGUAGE_KINDS = new Set([
-  'javascript',
-  'tsx',
-  'typescript',
-]);
+
+type TreeSitterFileAnalyzer = (
+  filePath: string,
+  tree: Parser.Tree,
+  workspaceRoot: string,
+) => IFileAnalysisResult | null;
+
+const TREE_SITTER_FILE_ANALYZERS: Record<string, TreeSitterFileAnalyzer> = {
+  'c': analyzeCFile,
+  cpp: analyzeCppFile,
+  csharp: analyzeCSharpFile,
+  dart: analyzeDartFile,
+  go: analyzeGoFile,
+  haskell: analyzeHaskellFile,
+  java: analyzeJavaFile,
+  javascript: analyzeJavaScriptFamilyFile,
+  kotlin: analyzeKotlinFile,
+  lua: analyzeLuaFile,
+  php: analyzePhpFile,
+  python: analyzePythonFile,
+  ruby: analyzeRubyFile,
+  rust: analyzeRustFile,
+  swift: analyzeSwiftFile,
+  tsx: analyzeJavaScriptFamilyFile,
+  typescript: analyzeJavaScriptFamilyFile,
+};
 
 export async function analyzeFileWithTreeSitter(
   filePath: string,
@@ -38,71 +59,16 @@ export async function analyzeFileWithTreeSitter(
   return analyzeTreeSitterTree(filePath, tree, workspaceRoot, runtime.languageKind);
 }
 
-function analyzeTreeSitterTree(
+export function analyzeTreeSitterTree(
   filePath: string,
   tree: Parser.Tree,
   workspaceRoot: string,
   languageKind: string,
 ): IFileAnalysisResult | null {
-  if (languageKind === 'c') {
-    return analyzeCFile(filePath, tree, workspaceRoot);
+  const analyzeLanguage = TREE_SITTER_FILE_ANALYZERS[languageKind];
+  if (!analyzeLanguage) {
+    return null;
   }
 
-  if (languageKind === 'cpp') {
-    return analyzeCppFile(filePath, tree, workspaceRoot);
-  }
-
-  if (languageKind === 'rust') {
-    return analyzeRustFile(filePath, tree, workspaceRoot);
-  }
-
-  if (languageKind === 'csharp') {
-    return analyzeCSharpFile(filePath, tree, workspaceRoot);
-  }
-
-  if (languageKind === 'dart') {
-    return analyzeDartFile(filePath, tree, workspaceRoot);
-  }
-
-  if (languageKind === 'go') {
-    return analyzeGoFile(filePath, tree, workspaceRoot);
-  }
-
-  if (languageKind === 'haskell') {
-    return analyzeHaskellFile(filePath, tree);
-  }
-
-  if (languageKind === 'java') {
-    return analyzeJavaFile(filePath, tree);
-  }
-
-  if (languageKind === 'kotlin') {
-    return analyzeKotlinFile(filePath, tree);
-  }
-
-  if (languageKind === 'php') {
-    return analyzePhpFile(filePath, tree);
-  }
-
-  if (languageKind === 'lua') {
-    return analyzeLuaFile(filePath, tree, workspaceRoot);
-  }
-
-  if (JAVASCRIPT_FAMILY_LANGUAGE_KINDS.has(languageKind)) {
-    return analyzeJavaScriptFamilyFile(filePath, tree);
-  }
-
-  if (languageKind === 'python') {
-    return analyzePythonFile(filePath, tree, workspaceRoot);
-  }
-
-  if (languageKind === 'ruby') {
-    return analyzeRubyFile(filePath, tree, workspaceRoot);
-  }
-
-  if (languageKind === 'swift') {
-    return analyzeSwiftFile(filePath, tree, workspaceRoot);
-  }
-
-  return null;
+  return analyzeLanguage(filePath, tree, workspaceRoot);
 }

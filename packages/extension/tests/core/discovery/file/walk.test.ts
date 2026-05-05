@@ -58,6 +58,19 @@ describe('walkDirectory', () => {
     expect(onFile).toHaveBeenCalledWith('src/main.ts', '/root/src/main.ts');
   });
 
+  it('notifies callers when walking a refreshable subdirectory', async () => {
+    mockReaddir
+      .mockResolvedValueOnce([makeDirent('src', true)] as fs.Dirent<NonSharedBuffer>[])
+      .mockResolvedValueOnce([makeDirent('main.ts', false)] as fs.Dirent<NonSharedBuffer>[]);
+
+    const onFile = vi.fn().mockReturnValue(true);
+    const onDirectory = vi.fn();
+
+    await walkDirectory('/root', '/root', onFile, onDirectory);
+
+    expect(onDirectory).toHaveBeenCalledWith('src', '/root/src');
+  });
+
   it('skips node_modules directory', async () => {
     mockReaddir.mockResolvedValueOnce([
       makeDirent('node_modules', true),
@@ -71,6 +84,7 @@ describe('walkDirectory', () => {
     // Should not recurse into node_modules
     expect(onFile).toHaveBeenCalledTimes(1);
     expect(onFile).toHaveBeenCalledWith('app.ts', '/root/app.ts');
+    expect(mockReaddir).toHaveBeenCalledTimes(1);
   });
 
   it('skips .git directory', async () => {
@@ -84,6 +98,7 @@ describe('walkDirectory', () => {
     await walkDirectory('/root', '/root', onFile);
 
     expect(onFile).toHaveBeenCalledTimes(1);
+    expect(mockReaddir).toHaveBeenCalledTimes(1);
   });
 
   it('stops walking when onFile returns false', async () => {
@@ -133,6 +148,17 @@ describe('walkDirectory', () => {
     const onFile = vi.fn();
 
     await expect(walkDirectory('/root', '/root', onFile, controller.signal))
+      .rejects.toThrow('Discovery aborted');
+  });
+
+  it('uses the fifth parameter as the abort signal when a directory listener is passed', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    const onFile = vi.fn();
+    const onDirectory = vi.fn();
+
+    await expect(walkDirectory('/root', '/root', onFile, onDirectory, controller.signal))
       .rejects.toThrow('Discovery aborted');
   });
 

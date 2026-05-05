@@ -1,7 +1,5 @@
-import React, {
+import {
   useCallback,
-  useEffect,
-  useRef,
   type ReactElement,
   type ReactNode,
 } from 'react';
@@ -13,12 +11,10 @@ import {
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/overlay/tooltip';
+import { useContinuousZoomControl } from './zoom/hook';
 
 type GraphCornerControlMessage = 'ZOOM_IN' | 'ZOOM_OUT' | 'FIT_VIEW' | 'REQUEST_OPEN_IN_EDITOR';
 type ZoomControlMessage = Extract<GraphCornerControlMessage, 'ZOOM_IN' | 'ZOOM_OUT'>;
-
-const ZOOM_HOLD_DELAY_MS = 250;
-const ZOOM_HOLD_INTERVAL_MS = 90;
 
 function postGraphWindowMessage(type: GraphCornerControlMessage): void {
   window.postMessage({ type }, '*');
@@ -36,89 +32,6 @@ function FitToScreenIcon(): ReactElement {
   );
 }
 
-function useContinuousZoomControl(type: ZoomControlMessage) {
-  const activePointerIdRef = useRef<number | null>(null);
-  const holdDelayRef = useRef<number | null>(null);
-  const holdIntervalRef = useRef<number | null>(null);
-
-  const clearHoldTimers = useCallback(() => {
-    if (holdDelayRef.current !== null) {
-      window.clearTimeout(holdDelayRef.current);
-      holdDelayRef.current = null;
-    }
-    if (holdIntervalRef.current !== null) {
-      window.clearInterval(holdIntervalRef.current);
-      holdIntervalRef.current = null;
-    }
-  }, []);
-
-  const stopZoom = useCallback(() => {
-    clearHoldTimers();
-    activePointerIdRef.current = null;
-  }, [clearHoldTimers]);
-
-  const postZoom = useCallback(() => {
-    postGraphWindowMessage(type);
-  }, [type]);
-
-  const startZoom = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
-    if (typeof event.button === 'number' && event.button !== 0) return;
-
-    if (typeof event.pointerId === 'number') {
-      event.currentTarget.setPointerCapture?.(event.pointerId);
-      activePointerIdRef.current = event.pointerId;
-    }
-    clearHoldTimers();
-    postZoom();
-
-    holdDelayRef.current = window.setTimeout(() => {
-      postZoom();
-      holdIntervalRef.current = window.setInterval(postZoom, ZOOM_HOLD_INTERVAL_MS);
-    }, ZOOM_HOLD_DELAY_MS);
-  }, [clearHoldTimers, postZoom]);
-
-  const stopPointerZoom = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
-    if (
-      activePointerIdRef.current !== null &&
-      typeof event.pointerId === 'number' &&
-      event.pointerId !== activePointerIdRef.current
-    ) {
-      return;
-    }
-
-    if (
-      typeof event.pointerId === 'number' &&
-      event.currentTarget.hasPointerCapture?.(event.pointerId)
-    ) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    stopZoom();
-  }, [stopZoom]);
-
-  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    event.preventDefault();
-    postZoom();
-  }, [postZoom]);
-
-  useEffect(() => {
-    window.addEventListener('blur', stopZoom);
-    return () => {
-      window.removeEventListener('blur', stopZoom);
-      stopZoom();
-    };
-  }, [stopZoom]);
-
-  return {
-    onKeyDown: handleKeyDown,
-    onPointerCancel: stopPointerZoom,
-    onPointerDown: startZoom,
-    onPointerLeave: stopPointerZoom,
-    onPointerUp: stopPointerZoom,
-    onLostPointerCapture: stopPointerZoom,
-  };
-}
-
 function ZoomButton({
   children,
   title,
@@ -128,7 +41,8 @@ function ZoomButton({
   title: string;
   type: ZoomControlMessage;
 }): ReactElement {
-  const zoomHandlers = useContinuousZoomControl(type);
+  const postZoom = useCallback(() => postGraphWindowMessage(type), [type]);
+  const zoomHandlers = useContinuousZoomControl(postZoom);
 
   return (
     <Tooltip>

@@ -1,125 +1,42 @@
-import type { IGraphData, IGraphEdge, IGraphNode } from '../graph/contracts';
-import { collectStructuralFolderPaths, createFolderNodes } from '../graphControls/nests/folders';
-import { createWorkspacePackageNodes } from '../graphControls/packages/nodes';
-import {
-  collectWorkspacePackageRoots,
-  getNearestWorkspacePackageRoot,
-} from '../graphControls/packages/roots';
-import { getWorkspacePackageNodeId } from '../graphControls/packages/workspace';
+import type { IGraphData } from '../graph/contracts';
 import type { VisibleGraphScopeConfig } from './contracts';
+import { filterEdgesToNodes, isFileNode } from './model';
+import { buildProjectedStructuralEdges } from './structuralProjection/edges';
+import { collectVisibleFolderNodeIds, isFolderNode, projectFolders } from './structuralProjection/folders';
 import {
-  filterEdgesToNodes,
-  FOLDER_NODE_TYPE,
-  getEnabledTypes,
-  isFileNode,
-  PACKAGE_NODE_TYPE,
-  STRUCTURAL_NESTS_EDGE_KIND,
-} from './model';
-
-function isFolderNode(node: IGraphNode): boolean {
-  return node.nodeType === FOLDER_NODE_TYPE;
-}
-
-function createStructuralEdge(from: string, to: string): IGraphEdge {
-  return {
-    id: `${from}->${to}#${STRUCTURAL_NESTS_EDGE_KIND}`,
-    from,
-    to,
-    kind: STRUCTURAL_NESTS_EDGE_KIND,
-    sources: [],
-  };
-}
-
-function buildContainmentEdges(
-  folderPaths: ReadonlySet<string>,
-  nodes: readonly IGraphNode[],
-): IGraphData['edges'] {
-  const edges: IGraphData['edges'] = [];
-
-  for (const folderPath of folderPaths) {
-    if (folderPath === '(root)') {
-      continue;
-    }
-
-    const segments = folderPath.split('/');
-    const parent = segments.length <= 1
-      ? '(root)'
-      : segments.slice(0, -1).join('/');
-    edges.push(createStructuralEdge(parent, folderPath));
-  }
-
-  for (const node of nodes) {
-    const segments = node.id.split('/');
-    const parent = segments.length === 1 ? '(root)' : segments.slice(0, -1).join('/');
-    edges.push(createStructuralEdge(parent, node.id));
-  }
-
-  return edges;
-}
-
-function buildWorkspacePackageEdges(
-  packageRoots: ReadonlySet<string>,
-  nodes: readonly IGraphNode[],
-): IGraphData['edges'] {
-  const edges: IGraphData['edges'] = [];
-
-  for (const node of nodes) {
-    if (!isFileNode(node)) {
-      continue;
-    }
-
-    const packageRoot = getNearestWorkspacePackageRoot(node.id, packageRoots);
-    if (packageRoot) {
-      edges.push(createStructuralEdge(getWorkspacePackageNodeId(packageRoot), node.id));
-    }
-  }
-
-  return edges;
-}
+  hasStructuralNodeProjection,
+  resolveStructuralProjectionOptions,
+} from './structuralProjection/options';
+import { projectWorkspacePackages } from './structuralProjection/packages';
 
 export function applyStructuralProjection(
   graphData: IGraphData,
   scope?: VisibleGraphScopeConfig,
   sourceGraphData: IGraphData = graphData,
 ): IGraphData {
-  const enabledNodeTypes = getEnabledTypes(scope?.nodes ?? []);
-  const folderEnabled = enabledNodeTypes.has(FOLDER_NODE_TYPE);
-  const packageEnabled = enabledNodeTypes.has(PACKAGE_NODE_TYPE);
+  const options = resolveStructuralProjectionOptions(scope);
 
-  if (!folderEnabled && !packageEnabled) {
+  if (!hasStructuralNodeProjection(options)) {
     return graphData;
   }
 
-  const enabledEdgeTypes = getEnabledTypes(scope?.edges ?? []);
-  const disabledEdgeTypes = new Set((scope?.edges ?? []).filter((edge) => !edge.enabled).map((edge) => edge.type));
-  const hasNestsScope = enabledEdgeTypes.has(STRUCTURAL_NESTS_EDGE_KIND) || disabledEdgeTypes.has(STRUCTURAL_NESTS_EDGE_KIND);
-  const nestsEnabled = hasNestsScope ? enabledEdgeTypes.has(STRUCTURAL_NESTS_EDGE_KIND) : true;
   const sourceFileNodes = sourceGraphData.nodes.filter(isFileNode);
   const sourceFolderNodes = sourceGraphData.nodes.filter(isFolderNode);
   const visibleFileNodes = graphData.nodes.filter(isFileNode);
-  const visibleFolderNodeIds = new Set(graphData.nodes.filter(isFolderNode).map((node) => node.id));
-  const folderPaths = folderEnabled
-    ? collectStructuralFolderPaths(sourceFileNodes, sourceFolderNodes).paths
-    : new Set<string>();
-  const generatedFolderPaths = new Set(
-    Array.from(folderPaths).filter((folderPath) => !visibleFolderNodeIds.has(folderPath)),
+  const folderProjection = projectFolders(
+    options.folderEnabled,
+    sourceFileNodes,
+    sourceFolderNodes,
+    collectVisibleFolderNodeIds(graphData.nodes),
   );
-  const folderNodes = folderEnabled
-    ? createFolderNodes(generatedFolderPaths, '')
-    : [];
-  const workspacePackageRoots = packageEnabled
-    ? collectWorkspacePackageRoots(sourceFileNodes)
-    : new Set<string>();
-  const packageNodes = packageEnabled
-    ? createWorkspacePackageNodes(workspacePackageRoots, '')
-    : [];
-  const nodes = [...graphData.nodes, ...folderNodes, ...packageNodes];
-  const structuralEdges = nestsEnabled
-    ? [
-        ...(folderEnabled ? buildContainmentEdges(folderPaths, visibleFileNodes) : []),
-        ...(packageEnabled ? buildWorkspacePackageEdges(workspacePackageRoots, visibleFileNodes) : []),
-      ]
-    : [];
+  const packageProjection = projectWorkspacePackages(options.packageEnabled, sourceFileNodes);
+  const nodes = [...graphData.nodes, ...folderProjection.nodes, ...packageProjection.nodes];
+  const structuralEdges = buildProjectedStructuralEdges(
+    options,
+    folderProjection.paths,
+    packageProjection.roots,
+    visibleFileNodes,
+  );
 
   return {
     nodes,

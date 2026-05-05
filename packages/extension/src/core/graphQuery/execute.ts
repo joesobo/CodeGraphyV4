@@ -1,24 +1,42 @@
 import type { GraphQueryData } from './data';
-import type { GraphQueryRequest, GraphQueryResult } from './model';
+import type {
+  GraphQueryConfig,
+  GraphQueryConnectionConfig,
+  GraphQueryPathConfig,
+  GraphQueryRequest,
+  GraphQueryResult,
+  GraphQuerySymbolsConfig,
+} from './model';
 import { findGraphPaths } from './paths';
 import { listGraphEdges, listGraphNodes } from './reports';
 import { listGraphRelationships } from './relationships';
 import { listGraphSymbols } from './symbols';
 
+type GraphQueryHandler<TArguments> = (
+  data: GraphQueryData,
+  args: TArguments,
+) => GraphQueryResult;
+
+type GraphQueryHandlers = {
+  nodes: GraphQueryHandler<GraphQueryConfig | undefined>;
+  edges: GraphQueryHandler<GraphQueryConnectionConfig | undefined>;
+  relationships: GraphQueryHandler<GraphQueryConnectionConfig | undefined>;
+  symbols: GraphQueryHandler<GraphQuerySymbolsConfig | undefined>;
+  paths: GraphQueryHandler<GraphQueryPathConfig>;
+};
+
+const GRAPH_QUERY_HANDLERS: GraphQueryHandlers = {
+  nodes: (data, args) => listGraphNodes(data.graphData, args),
+  edges: (data, args) => listGraphEdges(data.graphData, args),
+  relationships: (data, args) => listGraphRelationships(data, args),
+  symbols: (data, args) => listGraphSymbols(data, args),
+  paths: (data, args) => findGraphPaths(data.graphData, args),
+};
+
 export function executeGraphQuery(
   data: GraphQueryData,
   request: GraphQueryRequest,
 ): GraphQueryResult {
-  switch (request.report) {
-    case 'nodes':
-      return listGraphNodes(data.graphData, request.arguments ?? {});
-    case 'edges':
-      return listGraphEdges(data.graphData, request.arguments ?? {});
-    case 'relationships':
-      return listGraphRelationships(data, request.arguments ?? {});
-    case 'symbols':
-      return listGraphSymbols(data, request.arguments ?? {});
-    case 'paths':
-      return findGraphPaths(data.graphData, request.arguments);
-  }
+  const handler = GRAPH_QUERY_HANDLERS[request.report] as GraphQueryHandler<typeof request.arguments>;
+  return handler(data, request.arguments);
 }

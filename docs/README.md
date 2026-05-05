@@ -1,6 +1,6 @@
 # Docs
 
-Use the root [README](../README.md) for the release overview, marketplace links, published plugins, and the V2 to V4 migration story.
+Use the root [README](../README.md) for the release overview, marketplace links, package map, and the V2 to V4 migration story.
 The repo-wide local runtime is Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc).
 
 The rest of the docs are split by purpose:
@@ -21,11 +21,22 @@ Historical plans, specs, and superseded guides live under `docs/archive/`.
 
 ## Public Package Guide
 
-| Package | Where To Start | Role |
+| Package | Path | Where To Start | Role |
 |---|---|---|
-| CodeGraphy core extension | [root README](../README.md) and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, indexing, repo-local cache, settings, exports |
-| `@codegraphy-vscode/mcp` | [MCP setup](./MCP.md) and [package README](../packages/codegraphy-mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
-| `@codegraphy-vscode/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | build external CodeGraphy plugins |
-| language plugins | `packages/plugin-*/README.md` | optional language-specific graph enrichment |
+| CodeGraphy core extension | `packages/extension` | [root README](../README.md), [extension docs](../packages/extension/docs/README.md), and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, Indexing, Graph Cache, Settings, exports, and Graph Query execution |
+| `@codegraphy-vscode/mcp` | `packages/codegraphy-mcp` | [MCP setup](./MCP.md) and [package README](../packages/codegraphy-mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
+| `@codegraphy-vscode/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
+| language plugins | `packages/plugin-*` | `packages/plugin-*/README.md` | optional language-specific graph enrichment on top of the Core Extension baseline |
+| quality tools | `packages/quality-tools` | [quality docs](./quality/README.md) and [package README](../packages/quality-tools/README.md) | local architecture, coverage-risk, mutation, and SCRAP checks |
 
 The extension must be installed and index a repo before the MCP package can answer graph queries for that repo.
+
+## Internal Package Orientation
+
+The monorepo package boundary is the main way to navigate the project:
+
+- `packages/extension` owns the VS Code host, React webview, graph pipeline, plugin runtime, and repo-local Graph Cache behavior.
+- `packages/codegraphy-mcp` owns agent access and forwards Indexing and Graph Query requests to the Core Extension.
+- `packages/plugin-api` owns the public TypeScript contracts for plugins.
+- `packages/plugin-*` packages are optional language enrichment adapters.
+- `packages/quality-tools` owns the checks that keep modules deep, package boundaries visible, and high-risk code covered.

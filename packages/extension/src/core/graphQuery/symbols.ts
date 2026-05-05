@@ -17,21 +17,17 @@ function createSymbolMap(symbols: readonly IAnalysisSymbol[] | undefined): Map<s
   return new Map((symbols ?? []).map((symbol) => [symbol.id, symbol]));
 }
 
+function optionalValueMatches<T>(expected: T | undefined, actual: T | undefined): boolean {
+  return expected === undefined || actual === expected;
+}
+
 function relationMatchesConfig(relation: IAnalysisRelation, config: GraphQuerySymbolsConfig): boolean {
   const from = relation.fromNodeId ?? relation.fromFilePath;
   const to = relation.toNodeId ?? relation.toFilePath ?? undefined;
 
-  if (config.relatedFrom && from !== config.relatedFrom) {
-    return false;
-  }
-  if (config.relatedTo && to !== config.relatedTo) {
-    return false;
-  }
-  if (config.edgeType && relation.kind !== config.edgeType) {
-    return false;
-  }
-
-  return true;
+  return optionalValueMatches(config.relatedFrom, from)
+    && optionalValueMatches(config.relatedTo, to)
+    && optionalValueMatches(config.edgeType, relation.kind);
 }
 
 function toDeclarationSymbol(symbol: IAnalysisSymbol): GraphQuerySymbolReportItem {
@@ -51,6 +47,26 @@ function toRelationshipSymbol(symbol: IAnalysisSymbol): GraphQuerySymbolReportIt
   };
 }
 
+function symbolIdForRelation(relation: IAnalysisRelation): string | undefined {
+  return relation.toSymbolId ?? relation.fromSymbolId;
+}
+
+function findRelationshipSymbol(
+  relation: IAnalysisRelation,
+  symbolById: ReadonlyMap<string, IAnalysisSymbol>,
+): IAnalysisSymbol | undefined {
+  const symbolId = symbolIdForRelation(relation);
+  return symbolId ? symbolById.get(symbolId) : undefined;
+}
+
+function shouldIncludeRelationshipSymbol(
+  symbol: IAnalysisSymbol,
+  config: GraphQuerySymbolsConfig,
+  seen: ReadonlySet<string>,
+): boolean {
+  return (!config.filePath || symbol.filePath === config.filePath) && !seen.has(symbol.id);
+}
+
 function createRelationshipSymbols(
   data: GraphQueryData,
   config: GraphQuerySymbolsConfig,
@@ -64,15 +80,8 @@ function createRelationshipSymbols(
       continue;
     }
 
-    const symbolId = relation.toSymbolId ?? relation.fromSymbolId;
-    const symbol = symbolId ? symbolById.get(symbolId) : undefined;
-    if (!symbol) {
-      continue;
-    }
-    if (config.filePath && symbol.filePath !== config.filePath) {
-      continue;
-    }
-    if (seen.has(symbol.id)) {
+    const symbol = findRelationshipSymbol(relation, symbolById);
+    if (!symbol || !shouldIncludeRelationshipSymbol(symbol, config, seen)) {
       continue;
     }
 

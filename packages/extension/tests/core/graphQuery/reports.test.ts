@@ -102,6 +102,7 @@ describe('core/graphQuery reports', () => {
     const result = listGraphEdges(graphData, {
       filters: [
         { field: 'from', op: 'equals', value: 'packages/app/src/a.ts' },
+        { field: 'to', op: 'equals', value: 'packages/app/src/b.ts' },
         { field: 'edgeTypes', op: 'includes', value: 'type-import' },
       ],
     });
@@ -112,6 +113,48 @@ describe('core/graphQuery reports', () => {
         to: 'packages/app/src/b.ts',
         edgeTypes: ['type-import'],
       },
+    ]);
+  });
+
+  it('filters nodes by report fields before orphan handling', () => {
+    const result = listGraphNodes(graphData, {
+      scope: {
+        nodes: { 'plugin-route': true },
+      },
+      filters: [
+        { field: 'path', op: 'endsWith', value: 'route' },
+        { field: 'nodeType', op: 'equals', value: 'plugin-route' },
+        { field: 'unknown', op: 'equals', value: '' },
+      ],
+    });
+
+    expect(result.nodes).toEqual([
+      { path: 'packages/app/src/route', nodeType: 'plugin-route' },
+    ]);
+  });
+
+  it('sorts edge reports by from and to fields by default', () => {
+    const unorderedGraph: IGraphData = {
+      nodes: [
+        node('a.ts'),
+        node('b.ts'),
+        node('c.ts'),
+      ],
+      edges: [
+        edge('b.ts', 'a.ts', 'reference'),
+        edge('a.ts', 'c.ts', 'import'),
+        edge('a.ts', 'b.ts', 'import'),
+      ],
+    };
+
+    expect(listGraphEdges(unorderedGraph, {
+      filters: [
+        { field: 'edgeType', op: 'equals', value: 'import' },
+        { field: 'unknown', op: 'equals', value: '' },
+      ],
+    }).edges).toEqual([
+      { from: 'a.ts', to: 'b.ts', edgeTypes: ['import'] },
+      { from: 'a.ts', to: 'c.ts', edgeTypes: ['import'] },
     ]);
   });
 });
