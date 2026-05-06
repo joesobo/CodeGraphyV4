@@ -1,6 +1,7 @@
 import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
 import type { ThemeKind } from '../../../../theme/useTheme';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 import type { FGNode } from '../build';
 import {
   DEFAULT_NODE_SIZE,
@@ -13,6 +14,7 @@ import { seedTimelinePositions } from '../timeline/seeding';
 export interface BuildGraphNodesOptions {
   nodes: IGraphNode[];
   edges: IGraphEdge[];
+  appearance?: GraphAppearance;
   nodeSizes: Map<string, number>;
   theme: ThemeKind;
   favorites: Set<string>;
@@ -52,11 +54,11 @@ function createPreviousNodeStateMap(
 function getNodeBorderColor(
   isFocused: boolean,
   isFavorite: boolean,
-  isLight: boolean,
+  appearance: Pick<GraphAppearance, 'focusBorder'>,
   rawColor: string,
 ): string {
   if (isFocused) {
-    return isLight ? '#2563eb' : '#60a5fa';
+    return appearance.focusBorder;
   }
 
   return isFavorite ? FAVORITE_BORDER_COLOR : rawColor;
@@ -72,7 +74,11 @@ function getNodeBorderWidth(isFocused: boolean, isFavorite: boolean): number {
 
 function createGraphNode(
   node: IGraphNode,
-  options: Pick<BuildGraphNodesOptions, 'nodeSizes' | 'favorites'>,
+  options: {
+    appearance: GraphAppearance;
+    favorites: ReadonlySet<string>;
+    nodeSizes: ReadonlyMap<string, number>;
+  },
   isLight: boolean,
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
 ): FGNode {
@@ -87,7 +93,7 @@ function createGraphNode(
     label: node.label,
     size,
     color: rawColor,
-    borderColor: getNodeBorderColor(isFocused, isFavorite, isLight, rawColor),
+    borderColor: getNodeBorderColor(isFocused, isFavorite, options.appearance, rawColor),
     borderWidth: getNodeBorderWidth(isFocused, isFavorite),
     baseOpacity: getDepthOpacity(node.depthLevel),
     isFavorite,
@@ -111,6 +117,7 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   const {
     nodes,
     edges,
+    appearance = DEFAULT_GRAPH_APPEARANCE,
     nodeSizes,
     theme,
     favorites,
@@ -120,7 +127,12 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   } = options;
   const isLight = theme === 'light';
   const previousNodeStates = createPreviousNodeStateMap(previousNodes);
-  const graphNodes = nodes.map(node => createGraphNode(node, { nodeSizes, favorites }, isLight, previousNodeStates));
+  const graphNodes = nodes.map(node => createGraphNode(
+    node,
+    { appearance, nodeSizes, favorites },
+    isLight,
+    previousNodeStates,
+  ));
 
   seedTimelinePositions(graphNodes, edges, timelineActive ? previousNodeStates : null, random);
 

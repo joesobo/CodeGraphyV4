@@ -1,25 +1,25 @@
 import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
-import type { ThemeKind } from '../../../../theme/useTheme';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 import type { FGNode } from '../../model/build';
 
 export interface RenderNodeLabelOptions {
+  appearance?: Pick<GraphAppearance, 'labelForeground' | 'labelMutedForeground'>;
   ctx: CanvasRenderingContext2D;
   decoration: NodeDecorationPayload | undefined;
   globalScale: number;
   isHighlighted: boolean;
   node: FGNode;
   opacity: number;
-  theme: ThemeKind;
 }
 
 export function renderNodeLabel({
+  appearance = DEFAULT_GRAPH_APPEARANCE,
   ctx,
   decoration,
   globalScale,
   isHighlighted,
   node,
   opacity,
-  theme,
 }: RenderNodeLabelOptions): void {
   const labelPx = 12 / globalScale;
   const labelOpacity = Math.min(1, Math.max(0, (globalScale - 0.8) / 1.2));
@@ -32,8 +32,8 @@ export function renderNodeLabel({
   ctx.textBaseline = 'top';
 
   const baseColor = isHighlighted
-    ? (theme === 'light' ? '#1e1e1e' : '#e2e8f0')
-    : (theme === 'light' ? '#9ca3af' : '#4a5568');
+    ? appearance.labelForeground
+    : appearance.labelMutedForeground;
   ctx.globalAlpha = opacity * labelOpacity;
   ctx.fillStyle = decoration?.label?.color ?? baseColor;
   ctx.fillText(decoration?.label?.text ?? node.label, node.x!, node.y! + node.size + 2 / globalScale);

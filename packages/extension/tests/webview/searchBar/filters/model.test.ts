@@ -3,6 +3,7 @@ import {
   addFilterPatterns,
   editFilterPattern,
   filterPatternsEqual,
+  getDisabledFilterPatternGroup,
   getDisabledFilterPatterns,
   getEnabledFilterCount,
   getEnabledFilterPatterns,
@@ -37,6 +38,13 @@ describe('searchBar/filters/model', () => {
   it('updates disabled pattern lists from row toggle state', () => {
     expect(getDisabledFilterPatterns(['old/**'], 'new/**', false)).toEqual(['old/**', 'new/**']);
     expect(getDisabledFilterPatterns(['old/**', 'new/**'], 'new/**', true)).toEqual(['old/**']);
+  });
+
+  it('updates disabled pattern lists from plugin group toggle state', () => {
+    expect(getDisabledFilterPatternGroup(['old/**'], ['new/**', 'old/**'], false)).toEqual(['old/**', 'new/**']);
+    expect(getDisabledFilterPatternGroup(['old/**', 'new/**', 'keep/**'], ['old/**', 'new/**'], true)).toEqual([
+      'keep/**',
+    ]);
   });
 
   it('keeps the original patterns when editing to an empty or unchanged value', () => {

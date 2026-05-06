@@ -1,4 +1,5 @@
 import type { FGLink, FGNode } from '../../model/build';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 import type { LinkRenderingDependencies } from '../link/contracts';
 import { createBidirectionalArrowGeometry } from './arrow/geometry';
 
@@ -38,7 +39,7 @@ function getLinkStrokeColor(
   highlighted: string | null | undefined,
   source: FGNode,
   target: FGNode,
-  isLight: boolean,
+  appearance: Pick<GraphAppearance, 'linkHighlight' | 'linkMuted'>,
   baseColor?: string,
 ): string {
   if (decoration?.color) {
@@ -50,7 +51,7 @@ function getLinkStrokeColor(
   }
 
   const isConnected = !highlighted || source.id === highlighted || target.id === highlighted;
-  return isConnected ? '#60a5fa' : (isLight ? '#d4d4d4' : '#2d3748');
+  return isConnected ? appearance.linkHighlight : appearance.linkMuted;
 }
 
 export function getLineStrokeStyle(
@@ -60,12 +61,19 @@ export function getLineStrokeStyle(
   target: FGNode,
 ): { alpha: number; lineWidth: number; strokeStyle: string } {
   const highlighted = dependencies.highlightedNodeRef.current;
-  const isLight = dependencies.themeRef.current === 'light';
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
+  const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
 
   return {
     alpha: getLinkConnectionAlpha(decoration, highlighted, source, target),
     lineWidth: decoration?.width ?? 2,
-    strokeStyle: getLinkStrokeColor(decoration, highlighted, source, target, isLight, link.baseColor),
+    strokeStyle: getLinkStrokeColor(
+      decoration,
+      highlighted,
+      source,
+      target,
+      appearance,
+      link.baseColor,
+    ),
   };
 }

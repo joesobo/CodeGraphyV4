@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../src/webview/components/graph/appearance/model';
 import { buildGraphNodes } from '../../../../../src/webview/components/graph/model/node/build';
 import { FAVORITE_BORDER_COLOR } from '../../../../../src/webview/components/graph/model/node/display';
 
 describe('buildGraphNodes (mutation targets)', () => {
   it('applies dark theme border color for focused node', () => {
     const nodes = buildGraphNodes({
+      appearance: { ...DEFAULT_GRAPH_APPEARANCE, focusBorder: '#60a5fa' },
       nodes: [{ id: 'focus.ts', label: 'focus.ts', color: '#80c0ff', depthLevel: 0 }],
       edges: [],
       nodeSizes: new Map([['focus.ts', 16]]),
@@ -20,6 +22,7 @@ describe('buildGraphNodes (mutation targets)', () => {
 
   it('applies light theme border color for focused node', () => {
     const nodes = buildGraphNodes({
+      appearance: { ...DEFAULT_GRAPH_APPEARANCE, focusBorder: '#2563eb' },
       nodes: [{ id: 'focus.ts', label: 'focus.ts', color: '#80c0ff', depthLevel: 0 }],
       edges: [],
       nodeSizes: new Map([['focus.ts', 16]]),

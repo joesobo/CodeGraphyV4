@@ -1,35 +1,32 @@
 import React from 'react';
 import type { BidirectionalEdgeMode, DirectionMode } from '../../../../shared/settings/modes';
 import { postMessage } from '../../../vscodeApi';
-import { ColorField } from './ColorField';
 import { LabelsToggle } from './LabelsToggle';
-import { MaxFilesControl } from './MaxFilesControl';
 import { ModeButtons } from './ModeButtons';
 import { OrphansToggle } from './OrphansToggle';
 import { Particles } from './Particles';
-import { useColorUpdates } from './use/colorUpdates';
+import { Label } from '../../ui/form/label';
+import { Slider } from '../../ui/controls/slider';
+import { Switch } from '../../ui/switch';
 import { useDisplayStore } from './use/store';
 import { useParticleSettings } from './use/particles';
 import { getDisplayViewState } from './state/selectors';
-import {
-  decreaseMaxFiles,
-  increaseMaxFiles,
-  parseMaxFilesInput,
-  clampMaxFiles,
-} from './maxFiles';
 
 export function DisplaySection(): React.ReactElement {
   const {
     bidirectionalMode,
-    directionColor,
+    depthLimit,
+    depthMode,
     directionMode,
-    maxFiles,
+    graphHasIndex,
+    graphMode,
+    maxDepthLimit,
     particleSize,
     particleSpeed,
     setBidirectionalMode,
-    setDirectionColor,
+    setDepthMode,
     setDirectionMode,
-    setMaxFiles,
+    setGraphMode,
     setParticleSize,
     setParticleSpeed,
     setShowLabels,
@@ -41,16 +38,13 @@ export function DisplaySection(): React.ReactElement {
     bidirectionalOptions,
     directionOptions,
     displayParticleSpeed,
-    resolvedDirectionColor,
+    graphModeOptions,
     showParticleControls,
   } = getDisplayViewState({
     bidirectionalMode,
-    directionColor,
     directionMode,
+    graphMode,
     particleSpeed,
-  });
-  const { onDirectionColorChange } = useColorUpdates({
-    setDirectionColor,
   });
   const {
     onParticleSizeChange,
@@ -72,15 +66,18 @@ export function DisplaySection(): React.ReactElement {
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
   };
 
+  const onGraphModeChange = (mode: '2d' | '3d') => {
+    setGraphMode(mode);
+  };
+
+  const onDepthModeChange = (checked: boolean) => {
+    setDepthMode(checked);
+    postMessage({ type: 'UPDATE_DEPTH_MODE', payload: { depthMode: checked } });
+  };
+
   const onShowLabelsChange = (checked: boolean) => {
     setShowLabels(checked);
     postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: checked } });
-  };
-
-  const commitMaxFiles = (value: number) => {
-    const clamped = clampMaxFiles(value);
-    setMaxFiles(clamped);
-    postMessage({ type: 'UPDATE_MAX_FILES', payload: { maxFiles: clamped } });
   };
 
   const onShowOrphansChange = (checked: boolean) => {
@@ -90,46 +87,72 @@ export function DisplaySection(): React.ReactElement {
 
   return (
     <div className="mb-2 space-y-3">
-      <ModeButtons
-        label="Direction"
-        onSelect={onDirectionModeChange}
-        options={directionOptions}
-      />
+      <div
+        data-testid="display-mode-controls"
+        className="space-y-2"
+      >
+        <div data-testid="display-renderer-row">
+          <ModeButtons
+            label="Renderer"
+            onSelect={onGraphModeChange}
+            options={graphModeOptions}
+          />
+        </div>
 
-      <ModeButtons
-        label="Bidirectional Edges"
-        onSelect={onBidirectionalModeChange}
-        options={bidirectionalOptions}
-      />
+        <div data-testid="display-direction-row">
+          <ModeButtons
+            label="Direction"
+            onSelect={onDirectionModeChange}
+            options={directionOptions}
+          />
+        </div>
 
-      <ColorField
-        id="direction-color"
-        label="Direction Color"
-        onChange={onDirectionColorChange}
-        value={resolvedDirectionColor}
-      />
+        <div data-testid="display-bidirectional-row">
+          <ModeButtons
+            label="Bidirectional Edges"
+            onSelect={onBidirectionalModeChange}
+            options={bidirectionalOptions}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between py-0.5">
+          <Label htmlFor="depth-mode" className="text-xs">
+            Depth Mode
+          </Label>
+          <Switch
+            id="depth-mode"
+            checked={depthMode}
+            disabled={!graphHasIndex}
+            onCheckedChange={onDepthModeChange}
+          />
+        </div>
+        {depthMode ? (
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Depth Limit</Label>
+              <span className="font-mono text-xs text-muted-foreground">{depthLimit}</span>
+            </div>
+            <Slider
+              aria-label="Depth limit"
+              disabled={!graphHasIndex || !depthMode}
+              min={1}
+              max={maxDepthLimit}
+              step={1}
+              value={[Math.min(depthLimit, maxDepthLimit)]}
+              onValueChange={(values) => {
+                const nextDepthLimit = values[0] ?? depthLimit;
+                postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: nextDepthLimit } });
+              }}
+            />
+          </div>
+        ) : null}
+      </div>
 
       <OrphansToggle
         onCheckedChange={onShowOrphansChange}
         showOrphans={showOrphans}
-      />
-
-      <MaxFilesControl
-        maxFiles={maxFiles}
-        onBlur={(value) => commitMaxFiles(parseMaxFilesInput(value) ?? 1)}
-        onChange={(value) => {
-          const parsed = parseMaxFilesInput(value);
-          if (parsed !== null) {
-            setMaxFiles(parsed);
-          }
-        }}
-        onDecrease={() => commitMaxFiles(decreaseMaxFiles(maxFiles))}
-        onIncrease={() => commitMaxFiles(increaseMaxFiles(maxFiles))}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            commitMaxFiles(parseMaxFilesInput(event.currentTarget.value) ?? 1);
-          }
-        }}
       />
 
       {showParticleControls && (

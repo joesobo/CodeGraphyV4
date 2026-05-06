@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
 import type { NodeSizeMode } from '../../../../../../src/shared/settings/modes';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/components/graph/appearance/model';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
@@ -13,6 +14,16 @@ import {
   useNodeAppearance,
 } from '../../../../../../src/webview/components/graph/runtime/use/indicators/nodeAppearance';
 import { adjustColorForLightTheme } from '../../../../../../src/webview/theme/useTheme';
+
+const DARK_APPEARANCE = {
+  ...DEFAULT_GRAPH_APPEARANCE,
+  focusBorder: '#60a5fa',
+};
+
+const LIGHT_APPEARANCE = {
+  ...DEFAULT_GRAPH_APPEARANCE,
+  focusBorder: '#2563eb',
+};
 
 function createData(nodes: IGraphData['nodes']): IGraphData {
     return {
@@ -47,6 +58,7 @@ describe('graph/runtime/useNodeAppearance', () => {
       ];
 
       applyNodeAppearance({
+        appearance: DARK_APPEARANCE,
         data: createData([
           { color: '#112233', depthLevel: 0, id: 'root', label: 'Root' },
           { color: '#445566', depthLevel: 2, id: 'favorite', label: 'Favorite' },
@@ -90,6 +102,7 @@ describe('graph/runtime/useNodeAppearance', () => {
       const regularColor = '#445566';
 
       applyNodeAppearance({
+        appearance: LIGHT_APPEARANCE,
         data: createData([
           { color: rootColor, depthLevel: 0, id: 'root', label: 'Root' },
           { color: regularColor, depthLevel: 1, id: 'regular', label: 'Regular' },
@@ -182,6 +195,7 @@ describe('graph/runtime/useNodeAppearance', () => {
 
       const { rerender } = renderHook(
         (theme: 'dark' | 'light') => useNodeAppearance({
+          appearance: theme === 'light' ? LIGHT_APPEARANCE : DARK_APPEARANCE,
           dataRef,
           favorites,
           graphDataRef,

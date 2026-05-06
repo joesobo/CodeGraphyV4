@@ -1,13 +1,11 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../../src/shared/fileColors';
 import { useDisplayStore } from '../../../../../src/webview/components/settingsPanel/display/use/store';
 import { graphStore } from '../../../../../src/webview/store/state';
 
 function setStoreState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     bidirectionalMode: 'separate',
-    directionColor: DEFAULT_DIRECTION_COLOR,
     directionMode: 'arrows',
     particleSize: 4,
     particleSpeed: 0.005,
@@ -37,7 +35,6 @@ describe('display useDisplayStore', () => {
   it('reads the current display settings from the graph store', () => {
     setStoreState({
       bidirectionalMode: 'combined',
-      directionColor: '#ABCDEF',
       directionMode: 'particles',
       particleSize: 5,
       particleSpeed: 0.001,
@@ -48,7 +45,6 @@ describe('display useDisplayStore', () => {
 
     expect(result.current).toMatchObject({
       bidirectionalMode: 'combined',
-      directionColor: '#ABCDEF',
       directionMode: 'particles',
       particleSize: 5,
       particleSpeed: 0.001,

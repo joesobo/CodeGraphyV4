@@ -25,7 +25,7 @@ export function GraphIndexStatus({
 
   return (
     <div
-      className="absolute inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 px-3 py-2 backdrop-blur-sm"
+      className="absolute inset-x-0 bottom-0 z-20 border-t border-border bg-[var(--cg-popover-translucent)] px-3 py-2 backdrop-blur-sm"
       data-testid="graph-index-status"
     >
       <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">

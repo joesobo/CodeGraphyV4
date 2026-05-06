@@ -1,11 +1,9 @@
 import {
   mdiCogOutline,
-  mdiExport,
   mdiPaletteOutline,
   mdiLinkVariant,
   mdiPuzzleOutline,
   mdiShapeOutline,
-  mdiVectorLine,
 } from '@mdi/js';
 
 export interface ToolbarActionItemLike {
@@ -25,12 +23,10 @@ export interface ToolbarActionLike {
 }
 
 export type ToolbarPanel =
-  'nodes'
-  | 'edges'
+  'graphScope'
   | 'legends'
   | 'plugins'
-  | 'settings'
-  | 'export';
+  | 'settings';
 
 export function getToolbarActionKey(action: ToolbarActionLike): string {
   return `${action.pluginId}:${action.id}:${action.index}`;
@@ -47,11 +43,17 @@ export function getToolbarActionIconPath(action: { icon?: string }): string {
   return action.icon ?? mdiLinkVariant;
 }
 
-export const TOOLBAR_PANEL_BUTTONS: Array<{ iconPath: string; panel: ToolbarPanel; title: string }> = [
-  { iconPath: mdiExport, panel: 'export', title: 'Export' },
-  { iconPath: mdiShapeOutline, panel: 'nodes', title: 'Nodes' },
-  { iconPath: mdiVectorLine, panel: 'edges', title: 'Edges' },
+export const GRAPH_TOOL_PANEL_BUTTONS: Array<{ iconPath: string; panel: ToolbarPanel; title: string }> = [
+  { iconPath: mdiShapeOutline, panel: 'graphScope', title: 'Graph Scope' },
   { iconPath: mdiPaletteOutline, panel: 'legends', title: 'Legends' },
+];
+
+export const SYSTEM_PANEL_BUTTONS: Array<{ iconPath: string; panel: ToolbarPanel; title: string }> = [
   { iconPath: mdiPuzzleOutline, panel: 'plugins', title: 'Plugins' },
   { iconPath: mdiCogOutline, panel: 'settings', title: 'Settings' },
+];
+
+export const TOOLBAR_PANEL_BUTTONS = [
+  ...GRAPH_TOOL_PANEL_BUTTONS,
+  ...SYSTEM_PANEL_BUTTONS,
 ];

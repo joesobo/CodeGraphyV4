@@ -28,7 +28,9 @@ describe('Input', () => {
       'rounded-md',
       'border',
       'border-input',
-      'placeholder:text-muted-foreground',
+      'bg-input',
+      'text-[var(--cg-input-foreground)]',
+      'placeholder:text-[var(--cg-input-placeholder)]',
       'md:text-sm',
       'custom-input',
     );

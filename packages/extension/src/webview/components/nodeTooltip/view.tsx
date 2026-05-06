@@ -98,14 +98,14 @@ export function NodeTooltip({
       style={{ ...floatingStyles, zIndex: 1000, maxWidth: 280 }}
       className={cn(
         'rounded-md border shadow-md pointer-events-none',
-        'bg-[var(--vscode-editorHoverWidget-background,#252526)]',
-        'border-[var(--vscode-editorHoverWidget-border,#454545)]',
-        'text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]',
+        'bg-popover',
+        'border-border',
+        'text-popover-foreground',
       )}
     >
       <TooltipHeader path={path} />
 
-      <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
+      <Separator className="bg-border" />
 
       <TooltipStats
         outgoingCount={outgoingCount}
@@ -119,7 +119,7 @@ export function NodeTooltip({
 
       {pluginHost ? (
         <>
-          <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
+          <Separator className="bg-border" />
           <SlotHost
             pluginHost={pluginHost}
             slot="tooltip"

@@ -26,8 +26,8 @@ function renderPopover(overrides: Partial<React.ComponentProps<typeof FilterPopo
     ...overrides,
   };
 
-  render(<FilterPopover {...props} />);
-  return props;
+  const view = render(<FilterPopover {...props} />);
+  return Object.assign(props, { container: view.container, rerender: view.rerender });
 }
 
 describe('searchBar/filters/popover', () => {
@@ -62,6 +62,7 @@ describe('searchBar/filters/popover', () => {
     const props = renderPopover();
 
     fireEvent.click(screen.getByLabelText('Disable custom filter existing/**'));
+    fireEvent.click(screen.getByRole('button', { name: 'Expand Plugin One plugin filters' }));
     fireEvent.click(screen.getByLabelText('Disable plugin filter plugin/**'));
 
     expect(props.onDisabledCustomPatternsChange).toHaveBeenCalledWith(['existing/**']);
@@ -103,7 +104,7 @@ describe('searchBar/filters/popover', () => {
     });
   });
 
-  it('groups plugin default filters by plugin', () => {
+  it('groups plugin default filters by plugin and expands entries on demand', () => {
     renderPopover({
       pluginGroups: [
         { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['plugin-one/**'] },
@@ -113,15 +114,60 @@ describe('searchBar/filters/popover', () => {
     });
 
     expect(screen.getByText('Plugin One')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue('plugin-one/**')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Expand Plugin One plugin filters' }));
     expect(screen.getByDisplayValue('plugin-one/**')).toBeInTheDocument();
     expect(screen.getByText('Plugin Two')).toBeInTheDocument();
+    expect(screen.queryByDisplayValue('plugin-two/**')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Expand Plugin Two plugin filters' }));
     expect(screen.getByDisplayValue('plugin-two/**')).toBeInTheDocument();
+  });
+
+  it('toggles one plugin group without changing sibling plugin filters', () => {
+    const props = renderPopover({
+      pluginGroups: [
+        { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['plugin-one-a/**', 'plugin-one-b/**'] },
+        { pluginId: 'plugin.two', pluginName: 'Plugin Two', patterns: ['plugin-two/**'] },
+      ],
+      pluginPatterns: ['plugin-one-a/**', 'plugin-one-b/**', 'plugin-two/**'],
+    });
+
+    fireEvent.click(screen.getByLabelText('Disable plugin Plugin One filters'));
+
+    expect(props.onDisabledPluginPatternsChange).toHaveBeenCalledWith(['plugin-one-a/**', 'plugin-one-b/**']);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERN_STATE',
+      payload: { source: 'plugin', pattern: 'plugin-one-a/**', enabled: false },
+    });
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERN_STATE',
+      payload: { source: 'plugin', pattern: 'plugin-one-b/**', enabled: false },
+    });
+    expect(sentMessages).not.toContainEqual({
+      type: 'UPDATE_FILTER_PATTERN_STATE',
+      payload: { source: 'plugin', pattern: 'plugin-two/**', enabled: false },
+    });
+  });
+
+  it('keeps filter content in a single scrolling surface', () => {
+    const { container } = renderPopover({
+      pluginGroups: [
+        { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['plugin-one/**'] },
+        { pluginId: 'plugin.two', pluginName: 'Plugin Two', patterns: ['plugin-two/**'] },
+      ],
+      pluginPatterns: ['plugin-one/**', 'plugin-two/**'],
+    });
+
+    const surface = container.querySelector('[data-testid="filters-inline-surface"]') as HTMLElement;
+    const scrollingDescendants = Array.from(surface.querySelectorAll('[class*="overflow-y-auto"]'));
+
+    expect(scrollingDescendants).toHaveLength(1);
   });
 
   it('counts disabled rows as not enabled', () => {
     renderPopover({ disabledPluginPatterns: ['plugin/**'] });
 
-    expect(screen.getAllByText('Filters 1')[0]).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filters, 1 enabled' })).toBeInTheDocument();
     expect(screen.getByText('1 enabled')).toBeInTheDocument();
   });
 
@@ -156,6 +202,7 @@ describe('searchBar/filters/popover', () => {
     });
 
     expect(screen.getAllByText('Plugin defaults')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: 'Expand Plugin defaults plugin filters' }));
     expect(screen.getByDisplayValue('plugin/**')).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('**/src/app.ts'), {
       target: { value: '   ' },

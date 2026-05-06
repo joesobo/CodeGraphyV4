@@ -23,16 +23,8 @@ vi.mock('../../../../../src/webview/components/legends/panel/view', () => ({
   default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="legends-panel" /> : null),
 }));
 
-vi.mock('../../../../../src/webview/components/nodes/Panel', () => ({
-  default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="nodes-panel" /> : null),
-}));
-
-vi.mock('../../../../../src/webview/components/edges/Panel', () => ({
-  default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="edges-panel" /> : null),
-}));
-
-vi.mock('../../../../../src/webview/components/export/Panel', () => ({
-  default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="export-panel" /> : null),
+vi.mock('../../../../../src/webview/components/graphScope/Panel', () => ({
+  default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="graph-scope-panel" /> : null),
 }));
 
 vi.mock('../../../../../src/webview/components/graphCornerControls/view', () => ({
@@ -58,7 +50,7 @@ describe('app/PanelStack', () => {
       pluginHost,
       slot: 'node-details',
       'data-testid': 'node-details-slot',
-      className: expect.stringContaining('bg-popover/95'),
+      className: expect.stringContaining('bg-[var(--cg-popover-translucent)]'),
     }));
   });
 
@@ -86,11 +78,27 @@ describe('app/PanelStack', () => {
     expect(screen.queryByTestId('graph-corner-controls')).not.toBeInTheDocument();
   });
 
+  it('keeps graph corner controls on the panel stack inset without extra margin', () => {
+    render(
+      <PanelStack
+        activePanel="none"
+        hasGraphNodes
+        pluginHost={undefined as never}
+        onClosePanel={() => {}}
+      />,
+    );
+
+    const cornerControlsShell = screen.getByTestId('graph-corner-controls').parentElement as HTMLElement | null;
+
+    expect(cornerControlsShell).toBeTruthy();
+    expect(cornerControlsShell?.className).toContain('self-end');
+    expect(cornerControlsShell?.className).not.toContain('mr-2');
+    expect(cornerControlsShell?.className).not.toContain('mb-2');
+  });
+
   it.each([
     ['settings', 'settings-panel'],
-    ['export', 'export-panel'],
-    ['nodes', 'nodes-panel'],
-    ['edges', 'edges-panel'],
+    ['graphScope', 'graph-scope-panel'],
     ['legends', 'legends-panel'],
   ])('renders the %s panel when it is active', (activePanel, testId) => {
     render(

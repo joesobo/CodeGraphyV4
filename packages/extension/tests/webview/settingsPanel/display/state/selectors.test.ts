@@ -8,13 +8,12 @@ describe('display viewState', () => {
     expect(
       getDisplayViewState({
         bidirectionalMode: 'combined',
-        directionColor: 'bad-color',
         directionMode: 'particles',
+        graphMode: '3d',
         particleSpeed: 0.0015,
       }),
     ).toMatchObject({
       displayParticleSpeed: 3,
-      resolvedDirectionColor: '#475569',
       showParticleControls: true,
     });
   });

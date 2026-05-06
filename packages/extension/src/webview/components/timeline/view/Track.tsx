@@ -36,8 +36,8 @@ export default function Track({
           data-testid="timeline-track"
           style={{
             height: TRACK_HEIGHT,
-            backgroundColor: 'var(--vscode-editor-background, #1e1e1e)',
-            border: '1px solid var(--vscode-panel-border, #333)',
+            backgroundColor: 'var(--cg-graph-background)',
+            border: '1px solid var(--cg-graph-border)',
           }}
           onMouseDown={onTrackMouseDown}
         >
@@ -67,7 +67,7 @@ export default function Track({
                     <div
                       className="h-full w-full"
                       style={{
-                        backgroundColor: 'var(--vscode-foreground, #ccc)',
+                        backgroundColor: 'var(--cg-foreground)',
                         opacity: 0.4,
                       }}
                     />
@@ -76,15 +76,15 @@ export default function Track({
                 <TooltipContent
                   side="top"
                   sideOffset={8}
-                  className="bg-[var(--vscode-editorHoverWidget-background,#2d2d30)] border border-[var(--vscode-editorHoverWidget-border,#454545)] text-[var(--vscode-editorHoverWidget-foreground,#ccc)] px-3 py-2 max-w-xs rounded-md"
+                  className="bg-popover border border-border text-popover-foreground px-3 py-2 max-w-xs rounded-md"
                 >
-                  <div className="mb-0.5 font-mono text-xs text-[var(--vscode-descriptionForeground,#999)]">
+                  <div className="mb-0.5 font-mono text-xs text-muted-foreground">
                     {commit.sha.slice(0, 7)}
                   </div>
                   <div className="mb-1 text-sm leading-snug">
                     {truncateMessage(commit.message, 80)}
                   </div>
-                  <div className="text-xs text-[var(--vscode-descriptionForeground,#999)]">
+                  <div className="text-xs text-muted-foreground">
                     {commit.author} &middot; {formatDate(commit.timestamp)}
                   </div>
                 </TooltipContent>
@@ -104,7 +104,7 @@ export default function Track({
             <div
               className="h-full w-full"
               style={{
-                backgroundColor: 'var(--vscode-focusBorder, #007fd4)',
+                backgroundColor: 'var(--cg-focus-border)',
               }}
             />
           </div>
@@ -117,7 +117,7 @@ export default function Track({
               return (
                 <span
                   key={timestamp}
-                  className="absolute -translate-x-1/2 select-none text-[10px] leading-none text-[var(--vscode-descriptionForeground,#777)]"
+                  className="absolute -translate-x-1/2 select-none text-[10px] leading-none text-muted-foreground"
                   style={{ left: `${position}%`, top: 2 }}
                 >
                   {formatAxisLabel(timestamp)}
@@ -125,7 +125,7 @@ export default function Track({
               );
             })}
             <span
-              className="absolute select-none text-[10px] leading-none text-[var(--vscode-descriptionForeground,#777)]"
+              className="absolute select-none text-[10px] leading-none text-muted-foreground"
               style={{ right: 0, top: 2 }}
             >
               Now

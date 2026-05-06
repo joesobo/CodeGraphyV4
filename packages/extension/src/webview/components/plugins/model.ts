@@ -17,7 +17,7 @@ export function getPluginsPanelItemClassName(
   }
 
   if (dragOverIndex === index && dragIndex !== index) {
-    classes.push('rounded-md ring-1 ring-primary/40');
+    classes.push('rounded-md ring-1 ring-[var(--cg-primary-ring)]');
   }
 
   return classes.filter(Boolean).join(' ');

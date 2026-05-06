@@ -10,6 +10,11 @@ import {
   useMeshHighlights,
 } from '../../../../../../src/webview/components/graph/runtime/use/indicators/meshHighlights';
 
+const TEST_MESH_APPEARANCE = {
+  meshDimmed: '#646464',
+  meshSelected: '#ffffff',
+};
+
 function createMesh(color: string): THREE.Mesh {
   return new THREE.Mesh(
     new THREE.SphereGeometry(1, 4, 4),
@@ -72,6 +77,7 @@ describe('graph/runtime/useMeshHighlights', () => {
 
   it('getMeshHighlightVisuals dims unhighlighted nodes', () => {
     expect(getMeshHighlightVisuals({
+      appearance: TEST_MESH_APPEARANCE,
       isHighlighted: false,
       isSelected: false,
       nodeColor: '#112233',
@@ -83,6 +89,7 @@ describe('graph/runtime/useMeshHighlights', () => {
 
   it('getMeshHighlightVisuals keeps the node color for highlighted non-selected nodes', () => {
     expect(getMeshHighlightVisuals({
+      appearance: TEST_MESH_APPEARANCE,
       isHighlighted: true,
       isSelected: false,
       nodeColor: '#112233',
@@ -94,6 +101,7 @@ describe('graph/runtime/useMeshHighlights', () => {
 
   it('getMeshHighlightVisuals brightens highlighted selected nodes', () => {
     expect(getMeshHighlightVisuals({
+      appearance: TEST_MESH_APPEARANCE,
       isHighlighted: true,
       isSelected: true,
       nodeColor: '#112233',
@@ -107,6 +115,7 @@ describe('graph/runtime/useMeshHighlights', () => {
     const unknownMesh = createMesh('#abcdef');
 
     updateMeshHighlights({
+      appearance: TEST_MESH_APPEARANCE,
       graphNodes: createNodes(),
       highlighted: 'selected',
       highlightedNeighbors: new Set(['neighbor']),
@@ -125,6 +134,7 @@ describe('graph/runtime/useMeshHighlights', () => {
     const dimmedMesh = createMesh('#abcdef');
 
     updateMeshHighlights({
+      appearance: TEST_MESH_APPEARANCE,
       graphNodes: createNodes(),
       highlighted: 'selected',
       highlightedNeighbors: new Set(['neighbor']),
@@ -168,6 +178,7 @@ describe('graph/runtime/useMeshHighlights', () => {
     };
     const { rerender } = renderHook(
       ({ highlightVersion }: { highlightVersion: number }) => useMeshHighlights({
+        appearance: TEST_MESH_APPEARANCE,
         graphDataRef,
         highlightVersion,
         highlightedNeighborsRef,

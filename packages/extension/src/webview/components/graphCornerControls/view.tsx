@@ -4,8 +4,6 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  mdiMagnifyMinusOutline,
-  mdiMagnifyPlusOutline,
   mdiOpenInNew,
 } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
@@ -15,6 +13,10 @@ import { useContinuousZoomControl } from './zoom/hook';
 
 type GraphCornerControlMessage = 'ZOOM_IN' | 'ZOOM_OUT' | 'FIT_VIEW' | 'REQUEST_OPEN_IN_EDITOR';
 type ZoomControlMessage = Extract<GraphCornerControlMessage, 'ZOOM_IN' | 'ZOOM_OUT'>;
+type ZoomDirection = 'in' | 'out';
+
+const CORNER_BUTTON_CLASS = 'h-8 w-8 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)] [&_svg]:size-[18px]';
+const CORNER_ICON_SIZE = 18;
 
 function postGraphWindowMessage(type: GraphCornerControlMessage): void {
   window.postMessage({ type }, '*');
@@ -22,12 +24,33 @@ function postGraphWindowMessage(type: GraphCornerControlMessage): void {
 
 function FitToScreenIcon(): ReactElement {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width={CORNER_ICON_SIZE} height={CORNER_ICON_SIZE} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M8 4H5a1 1 0 0 0-1 1v3" />
       <path d="M16 4h3a1 1 0 0 1 1 1v3" />
       <path d="M20 16v3a1 1 0 0 1-1 1h-3" />
       <path d="M4 16v3a1 1 0 0 0 1 1h3" />
       <circle cx="12" cy="12" r="2.25" />
+    </svg>
+  );
+}
+
+function ZoomIcon({ direction }: { direction: ZoomDirection }): ReactElement {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={CORNER_ICON_SIZE}
+      height={CORNER_ICON_SIZE}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="10.25" cy="10.25" r="5.75" />
+      <path d="M14.6 14.6 20 20" />
+      <path d="M7.6 10.25h5.3" />
+      {direction === 'in' ? <path d="M10.25 7.6v5.3" /> : null}
     </svg>
   );
 }
@@ -48,9 +71,9 @@ function ZoomButton({
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-8 w-8 bg-popover/95 backdrop-blur-sm"
+          className={CORNER_BUTTON_CLASS}
           title={title}
           {...zoomHandlers}
         >
@@ -67,19 +90,19 @@ export function GraphCornerControls(): ReactElement {
     <TooltipProvider delayDuration={300}>
       <div className="flex flex-col items-center gap-1.5">
         <ZoomButton title="Zoom In" type="ZOOM_IN">
-          <MdiIcon path={mdiMagnifyPlusOutline} size={18} />
+          <ZoomIcon direction="in" />
         </ZoomButton>
 
         <ZoomButton title="Zoom Out" type="ZOOM_OUT">
-          <MdiIcon path={mdiMagnifyMinusOutline} size={18} />
+          <ZoomIcon direction="out" />
         </ZoomButton>
 
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className="h-8 w-8 bg-popover/95 backdrop-blur-sm"
+              className={CORNER_BUTTON_CLASS}
               title="Fit to Screen"
               onClick={() => postGraphWindowMessage('FIT_VIEW')}
             >
@@ -92,13 +115,13 @@ export function GraphCornerControls(): ReactElement {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className="h-8 w-8 bg-popover/95 backdrop-blur-sm"
+              className={CORNER_BUTTON_CLASS}
               title="Open in Editor"
               onClick={() => postGraphWindowMessage('REQUEST_OPEN_IN_EDITOR')}
             >
-              <MdiIcon path={mdiOpenInNew} size={18} />
+              <MdiIcon path={mdiOpenInNew} size={CORNER_ICON_SIZE} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">Open in Editor</TooltipContent>

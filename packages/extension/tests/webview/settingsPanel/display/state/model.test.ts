@@ -1,23 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   getSettingsToggleButtonState,
-  isHexColor,
   particleSpeedFromDisplay,
   particleSpeedToDisplay,
-  resolveDisplayColor,
   shouldShowParticleControls,
 } from '../../../../../src/webview/components/settingsPanel/display/state/model';
 
 describe('settingsPanel display model', () => {
-  it('accepts 6-digit hex colors and rejects other values', () => {
-    expect(isHexColor('#3B82F6')).toBe(true);
-    expect(isHexColor('#abcdef')).toBe(true);
-    expect(isHexColor('3B82F6')).toBe(false);
-    expect(isHexColor('#abc')).toBe(false);
-    expect(isHexColor('x#ABCDEF')).toBe(false);
-    expect(isHexColor('#ABCDEF0')).toBe(false);
-  });
-
   it('marks the selected toggle button as pressed with the default variant', () => {
     expect(getSettingsToggleButtonState('particles', 'particles')).toEqual({
       pressed: true,
@@ -30,14 +19,6 @@ describe('settingsPanel display model', () => {
       pressed: false,
       variant: 'secondary',
     });
-  });
-
-  it('falls back when a display color is not a valid hex value', () => {
-    expect(resolveDisplayColor('not-a-color', '#A1A1AA')).toBe('#A1A1AA');
-  });
-
-  it('keeps valid display colors unchanged', () => {
-    expect(resolveDisplayColor('#123ABC', '#A1A1AA')).toBe('#123ABC');
   });
 
   it('shows particle controls only for particle direction mode', () => {

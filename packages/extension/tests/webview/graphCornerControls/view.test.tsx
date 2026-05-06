@@ -33,6 +33,17 @@ describe('graphCornerControls/view', () => {
     expect(screen.getByTitle('Open in Editor')).toBeInTheDocument();
   });
 
+  it('uses standard graph-corner hit targets', () => {
+    render(<GraphCornerControls />);
+
+    expect(screen.getByTitle('Zoom In').className).toContain('h-8');
+    expect(screen.getByTitle('Zoom In').className).toContain('w-8');
+    expect(screen.getByTitle('Zoom Out').className).toContain('h-8');
+    expect(screen.getByTitle('Zoom Out').className).toContain('w-8');
+    expect(screen.getByTitle('Fit to Screen').className).toContain('h-8');
+    expect(screen.getByTitle('Open in Editor').className).toContain('h-8');
+  });
+
   it('posts graph click control requests to the window', () => {
     const postMessage = vi.spyOn(window, 'postMessage').mockImplementation(() => undefined);
 

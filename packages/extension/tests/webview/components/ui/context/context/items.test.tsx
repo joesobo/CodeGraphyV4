@@ -32,12 +32,12 @@ describe('ContextMenu item wrappers', () => {
       'outline-none',
       'data-[disabled]:pointer-events-none',
       'data-[disabled]:opacity-50',
-      'text-red-400',
-      'focus:text-red-300',
+      'text-[var(--cg-error-foreground)]',
+      'focus:text-[var(--cg-error-foreground)]',
       'pl-8',
       'custom-item',
     );
-    expect(item.getAttribute('class')).toContain('focus:bg-[var(--vscode-list-hoverBackground,#2a2d2e)]');
+    expect(item.getAttribute('class')).toContain('focus:bg-[var(--cg-list-hover-background)]');
   });
 
   it('keeps the base focus text color for non-destructive items', () => {
@@ -48,7 +48,7 @@ describe('ContextMenu item wrappers', () => {
     );
 
     expect(screen.getByTestId('base-item').getAttribute('class')).toContain(
-      'focus:text-[var(--vscode-list-hoverForeground)]',
+      'focus:text-[var(--cg-list-hover-foreground)]',
     );
   });
 
@@ -73,8 +73,8 @@ describe('ContextMenu item wrappers', () => {
       'pr-2',
       'text-sm',
       'outline-none',
-      'focus:bg-[var(--vscode-list-hoverBackground)]',
-      'focus:text-[var(--vscode-list-hoverForeground)]',
+      'focus:bg-[var(--cg-list-hover-background)]',
+      'focus:text-[var(--cg-list-hover-foreground)]',
       'data-[disabled]:pointer-events-none',
       'data-[disabled]:opacity-50',
     );
@@ -100,8 +100,8 @@ describe('ContextMenu item wrappers', () => {
       'pr-2',
       'text-sm',
       'outline-none',
-      'focus:bg-[var(--vscode-list-hoverBackground)]',
-      'focus:text-[var(--vscode-list-hoverForeground)]',
+      'focus:bg-[var(--cg-list-hover-background)]',
+      'focus:text-[var(--cg-list-hover-foreground)]',
       'data-[disabled]:pointer-events-none',
       'data-[disabled]:opacity-50',
     );

@@ -46,6 +46,6 @@ describe('ToggleButton', () => {
     );
 
     const button = screen.getByRole('button');
-    expect(button.className).toContain('errorBackground');
+    expect(button.className).toContain('bg-[var(--cg-input-error-background)]');
   });
 });

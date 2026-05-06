@@ -37,9 +37,9 @@ describe('DropdownMenu wrappers', () => {
       'rounded-md',
       'border',
       'p-1',
-      'bg-[var(--vscode-menu-background,#252526)]',
-      'text-[var(--vscode-menu-foreground,#cccccc)]',
-      'border-[var(--vscode-menu-border,#454545)]',
+      'bg-[var(--cg-menu-background)]',
+      'text-[var(--cg-menu-foreground)]',
+      'border-[var(--cg-menu-border)]',
       'shadow-md',
       'animate-in',
       'fade-in-80',
@@ -65,15 +65,15 @@ describe('DropdownMenu wrappers', () => {
       'pl-8',
       'custom-item',
     );
-    expect(item.getAttribute('class')).toContain('focus:bg-[var(--vscode-list-hoverBackground,#2a2d2e)]');
-    expect(item.getAttribute('class')).toContain('focus:text-[var(--vscode-list-hoverForeground)]');
+    expect(item.getAttribute('class')).toContain('focus:bg-[var(--cg-list-hover-background)]');
+    expect(item.getAttribute('class')).toContain('focus:text-[var(--cg-list-hover-foreground)]');
     expect(item.getAttribute('class')).toContain('data-[disabled]:pointer-events-none data-[disabled]:opacity-50');
 
     expect(screen.getByTestId('menu-separator')).toHaveClass(
       '-mx-1',
       'my-1',
       'h-px',
-      'bg-[var(--vscode-menu-separatorBackground,#454545)]',
+      'bg-[var(--cg-menu-separator)]',
     );
 
     expect(screen.getByTestId('menu-label')).toHaveClass(
@@ -83,7 +83,7 @@ describe('DropdownMenu wrappers', () => {
       'font-semibold',
       'uppercase',
       'tracking-wide',
-      'text-[var(--vscode-descriptionForeground,#999999)]',
+      'text-muted-foreground',
       'pl-8',
     );
   });
