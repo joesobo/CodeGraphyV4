@@ -9,6 +9,7 @@ import { graphStore } from '../../src/webview/store/state';
 const harness = vi.hoisted(() => ({
 	buildGraphDebugOptions: vi.fn((options: Record<string, unknown>) => options),
 	graphViewportShell: vi.fn((_props: Record<string, unknown>) => <div data-testid="graph-viewport-shell" />),
+	useGraphAppearance: vi.fn(),
 	useGraphCallbacks: vi.fn(),
 	useGraphDebugApi: vi.fn(),
 	useGraphInteractionRuntime: vi.fn(),
@@ -37,6 +38,10 @@ vi.mock('../../src/webview/components/graph/runtime/use/interaction', () => ({
 
 vi.mock('../../src/webview/components/graph/rendering/useGraphCallbacks', () => ({
 	useGraphCallbacks: harness.useGraphCallbacks,
+}));
+
+vi.mock('../../src/webview/components/graph/appearance/use', () => ({
+	useGraphAppearance: harness.useGraphAppearance,
 }));
 
 const baseData: IGraphData = {
@@ -174,6 +179,19 @@ describe('Graph wiring', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		setStoreState();
+		harness.useGraphAppearance.mockReturnValue({
+			focusBorder: '#0ea5e9',
+			labelForeground: '#f8fafc',
+			labelMutedForeground: '#94a3b8',
+			linkHighlight: '#38bdf8',
+			linkMuted: '#64748b',
+			meshDimmed: '#475569',
+			meshSelected: '#e2e8f0',
+			nodeSelectionBorder: '#0ea5e9',
+			stageBackground: 'var(--cg-popover-translucent)',
+			stageBorder: 'transparent',
+			transparent: 'transparent',
+		});
 		harness.useGraphState.mockImplementation(({ data }: { data: IGraphData }) => createGraphState(data));
 		harness.useGraphInteractionRuntime.mockReturnValue(createInteractionRuntime());
 		harness.useGraphCallbacks.mockReturnValue(createCallbacks());
@@ -204,7 +222,7 @@ describe('Graph wiring', () => {
 
 		expect(harness.useGraphState).toHaveBeenCalledWith(expect.objectContaining({
 			bidirectionalMode: 'line',
-			directionColor: '#ef4444',
+			directionColor: '#38bdf8',
 			favorites,
 			nodeSizeMode: 'file-size',
 			showLabels: false,

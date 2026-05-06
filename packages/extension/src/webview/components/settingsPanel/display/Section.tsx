@@ -1,7 +1,6 @@
 import React from 'react';
 import type { BidirectionalEdgeMode, DirectionMode } from '../../../../shared/settings/modes';
 import { postMessage } from '../../../vscodeApi';
-import { ColorField } from './ColorField';
 import { LabelsToggle } from './LabelsToggle';
 import { ModeButtons } from './ModeButtons';
 import { OrphansToggle } from './OrphansToggle';
@@ -9,7 +8,6 @@ import { Particles } from './Particles';
 import { Label } from '../../ui/form/label';
 import { Slider } from '../../ui/controls/slider';
 import { Switch } from '../../ui/switch';
-import { useColorUpdates } from './use/colorUpdates';
 import { useDisplayStore } from './use/store';
 import { useParticleSettings } from './use/particles';
 import { getDisplayViewState } from './state/selectors';
@@ -19,7 +17,6 @@ export function DisplaySection(): React.ReactElement {
     bidirectionalMode,
     depthLimit,
     depthMode,
-    directionColor,
     directionMode,
     graphHasIndex,
     graphMode,
@@ -28,7 +25,6 @@ export function DisplaySection(): React.ReactElement {
     particleSpeed,
     setBidirectionalMode,
     setDepthMode,
-    setDirectionColor,
     setDirectionMode,
     setGraphMode,
     setParticleSize,
@@ -42,16 +38,13 @@ export function DisplaySection(): React.ReactElement {
     bidirectionalOptions,
     directionOptions,
     displayParticleSpeed,
-    resolvedDirectionColor,
+    graphModeOptions,
     showParticleControls,
   } = getDisplayViewState({
     bidirectionalMode,
-    directionColor,
     directionMode,
+    graphMode,
     particleSpeed,
-  });
-  const { onDirectionColorChange } = useColorUpdates({
-    setDirectionColor,
   });
   const {
     onParticleSizeChange,
@@ -94,24 +87,31 @@ export function DisplaySection(): React.ReactElement {
 
   return (
     <div className="mb-2 space-y-3">
-      <ModeButtons
-        label="Renderer"
-        onSelect={onGraphModeChange}
-        options={[
-          {
-            label: '2D',
-            pressed: graphMode === '2d',
-            value: '2d',
-            variant: graphMode === '2d' ? 'secondary' : 'outline',
-          },
-          {
-            label: '3D',
-            pressed: graphMode === '3d',
-            value: '3d',
-            variant: graphMode === '3d' ? 'secondary' : 'outline',
-          },
-        ]}
-      />
+      <div
+        data-testid="display-mode-controls"
+        className="flex flex-wrap gap-2"
+      >
+        <ModeButtons
+          className="min-w-16 flex-1"
+          label="Renderer"
+          onSelect={onGraphModeChange}
+          options={graphModeOptions}
+        />
+
+        <ModeButtons
+          className="min-w-36 flex-[2]"
+          label="Direction"
+          onSelect={onDirectionModeChange}
+          options={directionOptions}
+        />
+
+        <ModeButtons
+          className="min-w-32 flex-[1.5]"
+          label="Bidirectional Edges"
+          onSelect={onBidirectionalModeChange}
+          options={bidirectionalOptions}
+        />
+      </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between py-0.5">
@@ -125,44 +125,27 @@ export function DisplaySection(): React.ReactElement {
             onCheckedChange={onDepthModeChange}
           />
         </div>
-        <div>
-          <div className="mb-1 flex items-center justify-between">
-            <Label className="text-xs text-muted-foreground">Depth Limit</Label>
-            <span className="font-mono text-xs text-muted-foreground">{depthLimit}</span>
+        {depthMode ? (
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Depth Limit</Label>
+              <span className="font-mono text-xs text-muted-foreground">{depthLimit}</span>
+            </div>
+            <Slider
+              aria-label="Depth limit"
+              disabled={!graphHasIndex || !depthMode}
+              min={1}
+              max={maxDepthLimit}
+              step={1}
+              value={[Math.min(depthLimit, maxDepthLimit)]}
+              onValueChange={(values) => {
+                const nextDepthLimit = values[0] ?? depthLimit;
+                postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: nextDepthLimit } });
+              }}
+            />
           </div>
-          <Slider
-            aria-label="Depth limit"
-            disabled={!graphHasIndex || !depthMode}
-            min={1}
-            max={maxDepthLimit}
-            step={1}
-            value={[Math.min(depthLimit, maxDepthLimit)]}
-            onValueChange={(values) => {
-              const nextDepthLimit = values[0] ?? depthLimit;
-              postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: nextDepthLimit } });
-            }}
-          />
-        </div>
+        ) : null}
       </div>
-
-      <ModeButtons
-        label="Direction"
-        onSelect={onDirectionModeChange}
-        options={directionOptions}
-      />
-
-      <ModeButtons
-        label="Bidirectional Edges"
-        onSelect={onBidirectionalModeChange}
-        options={bidirectionalOptions}
-      />
-
-      <ColorField
-        id="direction-color"
-        label="Direction Color"
-        onChange={onDirectionColorChange}
-        value={resolvedDirectionColor}
-      />
 
       <OrphansToggle
         onCheckedChange={onShowOrphansChange}

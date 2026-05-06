@@ -6,7 +6,6 @@ export type GraphViewStoreState = Pick<
   | 'bidirectionalMode'
   | 'currentCommitSha'
   | 'dagMode'
-  | 'directionColor'
   | 'directionMode'
   | 'favorites'
   | 'graphMode'
@@ -29,7 +28,6 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     currentCommitSha: useGraphStore(state => state.currentCommitSha),
     dagMode: useGraphStore(state => state.dagMode),
     depthMode: useGraphStore(state => state.depthMode),
-    directionColor: useGraphStore(state => state.directionColor),
     directionMode: useGraphStore(state => state.directionMode),
     favorites: useGraphStore(state => state.favorites),
     graphMode: useGraphStore(state => state.graphMode),

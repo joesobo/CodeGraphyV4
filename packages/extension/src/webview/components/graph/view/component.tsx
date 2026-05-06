@@ -52,7 +52,7 @@ export default function Graph({
     appearance,
     bidirectionalMode: viewState.bidirectionalMode,
     data,
-    directionColor: viewState.directionColor,
+    directionColor: appearance.linkHighlight,
     directionMode: viewState.directionMode,
     edgeDecorations,
     favorites: viewState.favorites,
