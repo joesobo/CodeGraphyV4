@@ -5,6 +5,7 @@ import type SpriteText from 'three-spritetext';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../../src/shared/settings/physics';
 import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../src/webview/components/graph/appearance/model';
 import { useGraphRenderingRuntime } from '../../../../../src/webview/components/graph/runtime/use/rendering';
 
 const renderingHarness = vi.hoisted(() => ({
@@ -124,6 +125,7 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 		expect(renderingHarness.useContainerSize).toHaveBeenCalledWith(containerRef);
 		expect(renderingHarness.usePluginOverlays).toHaveBeenCalledWith(pluginHost);
 		expect(renderingHarness.useMeshHighlights).toHaveBeenCalledWith({
+			appearance: DEFAULT_GRAPH_APPEARANCE,
 			graphDataRef,
 			highlightVersion: 4,
 			highlightedNeighborsRef,
@@ -132,6 +134,7 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			selectedNodesSetRef,
 		});
 		expect(renderingHarness.useNodeAppearance).toHaveBeenCalledWith({
+			appearance: DEFAULT_GRAPH_APPEARANCE,
 			dataRef,
 			favorites: new Set(['favorite']),
 			graphDataRef,

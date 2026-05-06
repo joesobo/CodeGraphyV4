@@ -41,6 +41,10 @@ describe('adjustColorForLightTheme', () => {
     expect(adjustColorForLightTheme('invalid')).toBe('invalid');
   });
 
+  it('preserves transparent rgba colors', () => {
+    expect(adjustColorForLightTheme('rgba(0, 0, 0, 0)')).toBe('rgba(0, 0, 0, 0)');
+  });
+
   it('handles black without error', () => {
     expect(adjustColorForLightTheme('#000000')).toBe('#000000');
   });

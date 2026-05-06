@@ -106,7 +106,7 @@ describe('SearchBarResults', () => {
       />
     );
     const errorSpan = screen.getByText('Invalid regex');
-    expect(errorSpan.className).toContain('errorForeground');
+    expect(errorSpan.className).toContain('text-[var(--cg-error-foreground)]');
   });
 
   it('applies description text color when no regex error', () => {
@@ -120,6 +120,6 @@ describe('SearchBarResults', () => {
       />
     );
     const resultSpan = screen.getByText('5 of 20');
-    expect(resultSpan.className).toContain('descriptionForeground');
+    expect(resultSpan.className).toContain('text-muted-foreground');
   });
 });

@@ -31,11 +31,11 @@ export default function CommitList({
           type="button"
           aria-expanded={!collapsed}
           aria-label="Commits"
-          className="inline-flex items-center gap-1 rounded-sm py-1 text-left transition-colors hover:text-[var(--vscode-foreground,#ccc)]"
+          className="inline-flex items-center gap-1 rounded-sm py-1 text-left transition-colors hover:text-foreground"
           onClick={onToggle}
         >
           <ChevronIcon open={!collapsed} />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--vscode-descriptionForeground,#999)]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             Commits
           </span>
         </button>
@@ -50,8 +50,8 @@ export default function CommitList({
                 type="button"
                 className={`block w-full border-b border-border px-3 py-2 text-left transition-colors last:border-b-0 ${
                   isCurrent
-                    ? 'bg-[var(--vscode-list-activeSelectionBackground,#264f78)] text-[var(--vscode-list-activeSelectionForeground,#fff)]'
-                    : 'hover:bg-[var(--vscode-list-hoverBackground,#2a2d2e)]'
+                    ? 'bg-[var(--cg-list-active-background)] text-[var(--cg-list-active-foreground)]'
+                    : 'hover:bg-[var(--cg-list-hover-background)]'
                 }`}
                 data-testid="timeline-commit-item"
                 aria-current={isCurrent ? 'true' : undefined}
@@ -60,12 +60,12 @@ export default function CommitList({
                 <div className="mb-1 flex items-center gap-2 text-xs font-medium">
                   <span>{truncateMessage(getMessageTitle(commit.message), 48)}</span>
                   {commit.parents.length > 1 && (
-                    <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-normal text-[var(--vscode-descriptionForeground,#999)]">
+                    <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-normal text-muted-foreground">
                       Merge
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-[var(--vscode-descriptionForeground,#999)]">
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                   <span className="font-mono">{commit.sha.slice(0, 7)}</span>
                   <span>{commit.author}</span>
                   <span>{formatDate(commit.timestamp)}</span>

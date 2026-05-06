@@ -29,6 +29,7 @@ export interface UseGraphCallbacksOptions {
     | 'directionColorRef'
     | 'directionModeRef'
     | 'edgeDecorationsRef'
+    | 'graphAppearanceRef'
     | 'highlightedNeighborsRef'
     | 'highlightedNodeRef'
     | 'meshesRef'
@@ -67,6 +68,7 @@ function getLinkRenderingContext(refs: GraphCallbackRefs) {
     directionColorRef: refs.directionColorRef,
     directionModeRef: refs.directionModeRef,
     edgeDecorationsRef: refs.edgeDecorationsRef,
+    graphAppearanceRef: refs.graphAppearanceRef,
     highlightedNodeRef: refs.highlightedNodeRef,
     themeRef: refs.themeRef,
   };
@@ -84,6 +86,7 @@ function getNodeCanvasContext({
     selectedNodesSetRef: refs.selectedNodesSetRef,
     showLabelsRef: refs.showLabelsRef,
     themeRef: refs.themeRef,
+    graphAppearanceRef: refs.graphAppearanceRef,
     pluginHost,
     triggerImageRerender,
   };
@@ -92,6 +95,7 @@ function getNodeCanvasContext({
 function getNodeThreeObjectContext(refs: GraphCallbackRefs) {
   return {
     meshesRef: refs.meshesRef,
+    graphAppearanceRef: refs.graphAppearanceRef,
     showLabelsRef: refs.showLabelsRef,
     spritesRef: refs.spritesRef,
   };

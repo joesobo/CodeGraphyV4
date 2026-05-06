@@ -16,7 +16,7 @@ const ContextMenuLabel = React.forwardRef<
   <ContextMenuPrimitive.Label
     ref={ref}
     className={cn(
-      'px-2 py-1.5 text-sm font-semibold text-[var(--vscode-descriptionForeground,#8c8c8c)]',
+      'px-2 py-1.5 text-sm font-semibold text-muted-foreground',
       inset && 'pl-8',
       className
     )}
@@ -31,7 +31,7 @@ const ContextMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ContextMenuPrimitive.Separator
     ref={ref}
-    className={cn('-mx-1 my-1 h-px bg-[var(--vscode-menu-separatorBackground,#454545)]', className)}
+    className={cn('-mx-1 my-1 h-px bg-[var(--cg-menu-separator)]', className)}
     {...props}
   />
 ));
@@ -43,7 +43,7 @@ const ContextMenuShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
-      className={cn('ml-auto text-xs tracking-widest text-[var(--vscode-descriptionForeground,#8c8c8c)]', className)}
+      className={cn('ml-auto text-xs tracking-widest text-muted-foreground', className)}
       {...props}
     />
   );

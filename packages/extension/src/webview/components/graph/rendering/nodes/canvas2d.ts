@@ -4,6 +4,7 @@ import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
 import { paintNodePointerArea } from '../node/pointer';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
 
 export function renderNodeCanvas(
   dependencies: NodeCanvasRendererDependencies,
@@ -19,28 +20,29 @@ export function renderNodeCanvas(
   const decoration = dependencies.nodeDecorationsRef.current?.[node.id];
   const baseOpacity = decoration?.opacity ?? (node.baseOpacity ?? 1.0);
   const opacity = isHighlighted ? baseOpacity : 0.15;
+  const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
 
   ctx.save();
   ctx.globalAlpha = opacity;
   renderNodeBody({
+    appearance,
     ctx,
     decoration,
     globalScale,
     isSelected,
     node,
     opacity,
-    theme: dependencies.themeRef.current,
   });
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
   if (dependencies.showLabelsRef.current) {
     renderNodeLabel({
+      appearance,
       ctx,
       decoration,
       globalScale,
       isHighlighted,
       node,
       opacity,
-      theme: dependencies.themeRef.current,
     });
   }
   renderNodePluginOverlay(dependencies.pluginHost, node, ctx, globalScale, decoration);

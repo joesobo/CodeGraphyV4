@@ -38,9 +38,7 @@ describe('webview/toolbar/model', () => {
   it('falls back to the link icon and exposes the core panel buttons', () => {
     expect(getToolbarActionIconPath({ icon: undefined })).toBe(mdiLinkVariant);
     expect(TOOLBAR_PANEL_BUTTONS.map((button) => button.title)).toEqual([
-      'Export',
-      'Nodes',
-      'Edges',
+      'Graph Scope',
       'Legends',
       'Plugins',
       'Settings',

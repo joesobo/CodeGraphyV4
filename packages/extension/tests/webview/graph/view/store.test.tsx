@@ -57,7 +57,6 @@ describe('graph/store', () => {
       bidirectionalMode: 'separate',
       dagMode: null,
       depthMode: true,
-      directionColor: '#22c55e',
       directionMode: 'particles',
       graphMode: '3d',
       nodeSizeMode: 'connections',

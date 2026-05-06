@@ -42,15 +42,15 @@ export default function Summary({
           type="button"
           aria-expanded={!collapsed}
           aria-label="Current Commit"
-          className="inline-flex items-center gap-1 rounded-sm py-1 text-left transition-colors hover:text-[var(--vscode-foreground,#ccc)]"
+          className="inline-flex items-center gap-1 rounded-sm py-1 text-left transition-colors hover:text-foreground"
           onClick={onToggle}
         >
           <ChevronIcon open={!collapsed} />
-          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--vscode-descriptionForeground,#999)]">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             Current Commit
           </span>
         </button>
-        <span className="text-[11px] text-[var(--vscode-descriptionForeground,#999)]">
+        <span className="text-[11px] text-muted-foreground">
           {currentIndex + 1} of {totalCommits}
         </span>
       </div>
@@ -58,29 +58,29 @@ export default function Summary({
       {!collapsed && (
         <div className="mt-2">
           <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[11px] text-[var(--vscode-descriptionForeground,#999)]">
+            <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
               {currentCommit.sha.slice(0, 7)}
             </span>
-            <span className="text-xs text-[var(--vscode-descriptionForeground,#999)]">
+            <span className="text-xs text-muted-foreground">
               {currentCommit.author}
             </span>
-            <span className="text-xs text-[var(--vscode-descriptionForeground,#999)]">
+            <span className="text-xs text-muted-foreground">
               {formatDate(currentCommit.timestamp)}
             </span>
             {commitKindLabel && (
-              <span className="rounded bg-[var(--vscode-editor-inactiveSelectionBackground,#2a2d2e)] px-1.5 py-0.5 text-[11px] text-[var(--vscode-foreground,#ccc)]">
+              <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-foreground">
                 {commitKindLabel}
               </span>
             )}
           </div>
 
-          <div className="text-sm font-medium text-[var(--vscode-foreground,#ccc)]">
+          <div className="text-sm font-medium text-foreground">
             {title}
           </div>
 
           {body && (
             <p
-              className="mt-1 text-xs leading-5 text-[var(--vscode-descriptionForeground,#999)]"
+              className="mt-1 text-xs leading-5 text-muted-foreground"
               data-testid="timeline-summary-body"
             >
               {body}

@@ -87,7 +87,8 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 
   render(
     <Viewport
-      backgroundColor="#111111"
+      canvasBackgroundColor="transparent"
+      containerBackgroundColor="var(--cg-popover-translucent)"
       borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
@@ -185,22 +186,22 @@ describe('Viewport style mutations (L72)', () => {
     expect(container).not.toBeNull();
   });
 
-  it('applies inset-0 class to the viewport div', () => {
+  it('applies inset-2 class to the viewport div', () => {
     renderViewport();
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.className).toContain('inset-0');
+    expect(container.className).toContain('inset-2');
   });
 
-  it('applies rounded-lg class to the viewport div', () => {
+  it('applies rounded-md class to the viewport div', () => {
     renderViewport();
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.className).toContain('rounded-lg');
+    expect(container.className).toContain('rounded-md');
   });
 
-  it('sets borderWidth to 1 on the container style', () => {
+  it('sets borderWidth to 0 on the container style', () => {
     renderViewport();
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.borderWidth).toBe('1px');
+    expect(container.style.borderWidth).toBe('0px');
   });
 
   it('sets borderStyle to solid on the container style', () => {
@@ -216,9 +217,9 @@ describe('Viewport style mutations (L72)', () => {
   });
 
   it('applies background color and border color styles to the container', () => {
-    renderViewport({ backgroundColor: '#aabbcc', borderColor: '#ddeeff' });
+    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)', borderColor: '#ddeeff' });
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.backgroundColor).toBe('rgb(170, 187, 204)');
+    expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
     expect(container.style.borderColor).toBe('rgb(221, 238, 255)');
   });
 });

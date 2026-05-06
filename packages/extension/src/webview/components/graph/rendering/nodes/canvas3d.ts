@@ -3,6 +3,7 @@ import SpriteText from 'three-spritetext';
 import { createImageSprite, createNodeMesh } from '../shapes/draw/threeDimensional';
 import { DEFAULT_NODE_SIZE, type FGNode } from '../../model/build';
 import { setSpriteVisible } from '../../support/contracts/forceGraph';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 
 interface GraphRef<TValue> {
   current: TValue;
@@ -10,6 +11,7 @@ interface GraphRef<TValue> {
 
 export interface NodeThreeObjectDependencies {
   meshesRef: GraphRef<Map<string, THREE.Mesh>>;
+  graphAppearanceRef?: GraphRef<Pick<GraphAppearance, 'labelForeground'>>;
   showLabelsRef: GraphRef<boolean>;
   spritesRef: GraphRef<Map<string, SpriteText>>;
 }
@@ -20,10 +22,12 @@ export function createNodeThreeObject(
 ): THREE.Object3D {
   const group = new THREE.Group();
 
-  const shape = node.shape3D ?? 'sphere';
-  const mesh = createNodeMesh(shape, node.color, node.size / DEFAULT_NODE_SIZE * 4);
-  dependencies.meshesRef.current.set(node.id, mesh);
-  group.add(mesh);
+  if (shouldRenderNodeMesh(node)) {
+    const shape = node.shape3D ?? 'sphere';
+    const mesh = createNodeMesh(shape, node.color, node.size / DEFAULT_NODE_SIZE * 4);
+    dependencies.meshesRef.current.set(node.id, mesh);
+    group.add(mesh);
+  }
 
   if (node.imageUrl) {
     const imageSprite = createImageSprite(node.imageUrl, node.size / DEFAULT_NODE_SIZE * 6);
@@ -32,11 +36,15 @@ export function createNodeThreeObject(
 
   const sprite = new SpriteText(node.label);
   setSpriteVisible(sprite, dependencies.showLabelsRef.current);
-  sprite.color = '#ffffff';
+  sprite.color = dependencies.graphAppearanceRef?.current.labelForeground ?? DEFAULT_GRAPH_APPEARANCE.labelForeground;
   sprite.textHeight = 6;
   sprite.offsetY = (node.size / DEFAULT_NODE_SIZE) * 8 + 4;
   dependencies.spritesRef.current.set(node.id, sprite);
   group.add(sprite);
 
   return group;
+}
+
+function shouldRenderNodeMesh(node: FGNode): boolean {
+  return node.nodeType !== 'folder' || !node.imageUrl;
 }

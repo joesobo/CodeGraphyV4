@@ -372,7 +372,7 @@ describe('Timeline', () => {
 
     const track = screen.getByTestId('timeline-track');
     // Should use VS Code theme variable, not hardcoded #000
-    expect(track.style.backgroundColor).toContain('--vscode-editor-background');
+    expect(track.style.backgroundColor).toContain('--cg-graph-background');
   });
 
   it('has a separate smooth playback indicator using focus border color', () => {
@@ -385,7 +385,7 @@ describe('Timeline', () => {
 
     const indicator = screen.getByTestId('timeline-indicator');
     const bar = indicator.firstElementChild as HTMLElement;
-    expect(bar?.style.backgroundColor).toContain('--vscode-focusBorder');
+    expect(bar?.style.backgroundColor).toContain('--cg-focus-border');
   });
 
   it('play control is rendered as an enabled button', () => {

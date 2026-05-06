@@ -13,6 +13,7 @@ import SpriteText from 'three-spritetext';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../../shared/settings/physics';
 import { ThemeKind } from '../../../../theme/useTheme';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
 import {
   type FGLink,
@@ -29,6 +30,7 @@ import { usePluginOverlays } from '../pluginOverlays';
 
 export interface UseGraphRenderingRuntimeOptions {
   containerRef: MutableRefObject<HTMLDivElement | null>;
+  appearance?: GraphAppearance;
   dataRef: MutableRefObject<IGraphData>;
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
@@ -64,6 +66,7 @@ export interface UseGraphRenderingRuntimeResult {
 
 export function useGraphRenderingRuntime({
   containerRef,
+  appearance = DEFAULT_GRAPH_APPEARANCE,
   dataRef,
   fg2dRef,
   fg3dRef,
@@ -95,6 +98,7 @@ export function useGraphRenderingRuntime({
   const renderPluginOverlays = usePluginOverlays(pluginHost);
 
   useMeshHighlights({
+    appearance,
     graphDataRef,
     highlightVersion,
     highlightedNeighborsRef,
@@ -104,6 +108,7 @@ export function useGraphRenderingRuntime({
   });
 
   useNodeAppearance({
+    appearance,
     dataRef,
     favorites,
     graphDataRef,

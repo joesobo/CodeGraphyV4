@@ -27,7 +27,8 @@ import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
 
 export interface ViewportProps {
-  backgroundColor: string;
+  canvasBackgroundColor: string;
+  containerBackgroundColor: string;
   borderColor: string;
   containerRef: Ref<HTMLDivElement>;
   directionMode: DirectionMode;
@@ -47,7 +48,8 @@ export interface ViewportProps {
 }
 
 export function Viewport({
-  backgroundColor,
+  canvasBackgroundColor,
+  containerBackgroundColor,
   borderColor,
   containerRef,
   directionMode,
@@ -75,14 +77,14 @@ export function Viewport({
           onMouseDownCapture={handleMouseDownCapture}
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}
-          className="graph-container absolute inset-0 rounded-lg m-1 outline-none focus:outline-none"
-          style={{ backgroundColor, borderWidth: 1, borderStyle: 'solid', borderColor, cursor: 'default' }}
+          className="graph-container absolute inset-2 overflow-hidden rounded-md outline-none focus:outline-none"
+          style={{ backgroundColor: containerBackgroundColor, borderWidth: 0, borderStyle: 'solid', borderColor, cursor: 'default' }}
           tabIndex={0}
         >
           {graphMode === '2d' ? (
             <Surface2d
               {...surface2dProps}
-              backgroundColor={backgroundColor}
+              backgroundColor={canvasBackgroundColor}
               directionMode={directionMode}
             />
           ) : (
@@ -92,19 +94,19 @@ export function Viewport({
               fallback={(
                 <Surface2d
                   {...surface2dProps}
-                  backgroundColor={backgroundColor}
+                  backgroundColor={canvasBackgroundColor}
                   directionMode={directionMode}
                 />
               )}
             >
               <DeferredSurface3d
                 {...surface3dProps}
-                backgroundColor={backgroundColor}
+                backgroundColor={canvasBackgroundColor}
                 directionMode={directionMode}
                 fallback={(
                   <Surface2d
                     {...surface2dProps}
-                    backgroundColor={backgroundColor}
+                    backgroundColor={canvasBackgroundColor}
                     directionMode={directionMode}
                   />
                 )}
@@ -128,7 +130,7 @@ export function Viewport({
           return (
             <ContextMenuItem
               key={entry.id}
-              className={entry.destructive ? 'text-red-400 focus:text-red-300' : undefined}
+              className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
               disabled={entry.disabled}
               onClick={() => handleMenuAction(entry.action)}
             >

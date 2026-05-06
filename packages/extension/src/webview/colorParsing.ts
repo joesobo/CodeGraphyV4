@@ -35,6 +35,10 @@ export function parseColor(color: string): { r: number; g: number; b: number } |
  * Adjusts a hex color for light theme (darker, more saturated).
  */
 export function adjustColorForLightTheme(hexColor: string): string {
+  if (isFullyTransparentColor(hexColor)) {
+    return hexColor;
+  }
+
   const rgb = parseColor(hexColor);
   if (!rgb) return hexColor;
 
@@ -42,4 +46,14 @@ export function adjustColorForLightTheme(hexColor: string): string {
   const darkenFactor = 0.7;
 
   return `#${Math.round(rgb.r * darkenFactor).toString(16).padStart(2, '0')}${Math.round(rgb.g * darkenFactor).toString(16).padStart(2, '0')}${Math.round(rgb.b * darkenFactor).toString(16).padStart(2, '0')}`;
+}
+
+function isFullyTransparentColor(color: string): boolean {
+  const trimmed = color.trim().toLowerCase();
+  if (trimmed === 'transparent') {
+    return true;
+  }
+
+  const rgbaMatch = trimmed.match(/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0(?:\.0+)?)\s*\)$/);
+  return Boolean(rgbaMatch);
 }

@@ -65,6 +65,23 @@ async function refitGraphForVisualAssertion(page: Page, padding = 176): Promise<
   return getGraphDebugSnapshot(page);
 }
 
+async function openDisplaySettings(page: Page): Promise<void> {
+  await page.getByTitle('Settings').click();
+  await page.getByRole('button', { name: 'Display' }).click();
+  await expect(page.getByRole('button', { name: '2D' })).toBeVisible();
+  await expect(page.getByRole('switch', { name: 'Depth Mode' })).toBeVisible();
+}
+
+async function toggleDepthModeFromSettings(page: Page): Promise<void> {
+  await openDisplaySettings(page);
+  await page.getByRole('switch', { name: 'Depth Mode' }).click();
+}
+
+async function selectRendererFromSettings(page: Page, renderer: '2D' | '3D'): Promise<void> {
+  await openDisplaySettings(page);
+  await page.getByRole('button', { name: renderer }).click();
+}
+
 async function countVisibleWebglSamples(page: Page): Promise<number> {
   return page.evaluate(async () => {
     const canvas = document.querySelector('.graph-container canvas');
@@ -172,7 +189,7 @@ test.describe('webview depth view', () => {
     await expect(page.getByTestId('depth-harness-bounds-count')).toHaveText('4');
     expectNodesToFit(await refitGraphForVisualAssertion(page));
 
-    await page.getByTitle('Disable Depth Mode').click();
+    await toggleDepthModeFromSettings(page);
 
     await expect(page.getByTestId('depth-harness-view')).toHaveText('depth:off');
     await expect(page.getByTestId('depth-harness-node-count')).toHaveText('5');
@@ -187,7 +204,7 @@ test.describe('webview depth view', () => {
 
     await expect(page.locator('.graph-container canvas').first()).toBeVisible();
 
-    await page.getByTitle('Toggle 2D/3D Mode').click();
+    await selectRendererFromSettings(page, '3D');
 
     await expect.poll(async () => page.locator('.graph-container canvas').count()).toBeGreaterThan(0);
     await expect.poll(async () => {
@@ -213,7 +230,7 @@ test.describe('webview depth view', () => {
     await page.goto('/depth-view');
     await waitForGraphDebugBridge(page);
 
-    await page.getByTitle('Toggle 2D/3D Mode').click();
+    await selectRendererFromSettings(page, '3D');
 
     await expect.poll(async () => {
       const snapshot = await getGraphDebugSnapshot(page);
@@ -245,7 +262,7 @@ test.describe('webview depth view', () => {
     await waitForGraphDebugBridge(page);
 
     await expect(page.locator('.graph-container canvas').first()).toBeVisible();
-    await page.getByTitle('Toggle 2D/3D Mode').click();
+    await selectRendererFromSettings(page, '3D');
 
     await expect.poll(async () => countVisibleWebglSamples(page)).toBeGreaterThan(0);
 
@@ -268,7 +285,7 @@ test.describe('webview depth view', () => {
       container.style.height = '0px';
     });
 
-    await page.getByTitle('Toggle 2D/3D Mode').click();
+    await selectRendererFromSettings(page, '3D');
     await page.waitForFunction(() => {
       const container = document.querySelector('.graph-container');
       return container instanceof HTMLElement && container.clientWidth === 0 && container.clientHeight === 0;

@@ -23,7 +23,7 @@ const Slider = React.forwardRef<
   >
     <SliderPrimitive.Track
       className={cn(
-        "relative h-1.5 w-full grow overflow-hidden rounded-full bg-primary/20 cursor-pointer",
+        "relative h-1.5 w-full grow overflow-hidden rounded-full bg-[var(--cg-primary-subtle)] cursor-pointer",
         trackClassName
       )}
     >
@@ -31,7 +31,7 @@ const Slider = React.forwardRef<
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb
       className={cn(
-        "block h-4 w-4 cursor-pointer rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+        "block h-4 w-4 cursor-pointer rounded-full border border-primary bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
         thumbClassName
       )}
     />

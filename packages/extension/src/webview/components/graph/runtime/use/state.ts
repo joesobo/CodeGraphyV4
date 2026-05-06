@@ -24,6 +24,7 @@ import {
   type FGLink,
   type FGNode,
 } from '../../model/build';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 import {
   as2DExtMethods,
 } from '../../support/contracts/forceGraph';
@@ -39,6 +40,7 @@ export interface GraphMouseState {
 
 export interface UseGraphStateOptions {
   bidirectionalMode: BidirectionalEdgeMode;
+  appearance?: GraphAppearance;
   data: IGraphData;
   directionColor: string;
   directionMode: DirectionMode;
@@ -63,6 +65,7 @@ export interface UseGraphStateResult {
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
+  graphAppearanceRef: MutableRefObject<GraphAppearance>;
   graphData: { links: FGLink[]; nodes: FGNode[] };
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
   imageCacheVersion: number;
@@ -111,6 +114,7 @@ export function applyTimelineAlpha(graph: TimelineAlphaGraph | undefined, alpha:
 
 export function useGraphState({
   bidirectionalMode,
+  appearance = DEFAULT_GRAPH_APPEARANCE,
   data,
   directionColor,
   directionMode,
@@ -145,12 +149,14 @@ export function useGraphState({
   const rightClickFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rightMouseDownRef = useRef<GraphMouseState | null>(null);
   const graphCursorRef = useRef<GraphCursorStyle>('default');
+  const graphAppearanceRef = useRef(appearance);
   const showLabelsRef = useRef(showLabels);
   const spritesRef = useRef<Map<string, SpriteText>>(new Map());
   const meshesRef = useRef<Map<string, THREE.Mesh>>(new Map());
   const nodeDecorationsRef = useRef(nodeDecorations);
   const edgeDecorationsRef = useRef(edgeDecorations);
 
+  graphAppearanceRef.current = appearance;
   themeRef.current = theme;
   directionModeRef.current = directionMode;
   directionColorRef.current = directionColor;
@@ -175,6 +181,7 @@ export function useGraphState({
   const graphData = useMemo(() => {
     const nextGraphData = buildGraphData({
       data,
+      appearance,
       nodeSizeMode: nodeSizeModeRef.current,
       theme: themeRef.current,
       favorites: favoritesRef.current,
@@ -185,7 +192,7 @@ export function useGraphState({
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [bidirectionalMode, data]);
+  }, [appearance, bidirectionalMode, data]);
 
   useEffect(() => {
     if (!timelineActive) return;
@@ -208,6 +215,7 @@ export function useGraphState({
     fg3dRef,
     fileInfoCacheRef,
     graphCursorRef,
+    graphAppearanceRef,
     graphData,
     graphDataRef,
     imageCacheVersion,

@@ -103,7 +103,7 @@ function LegendSubsection({
     >
       <div
         data-testid="legend-rule-subsection"
-        className="border-t border-border/60 bg-background/20 first:border-t-0"
+        className="border-t border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] first:border-t-0"
       >
         <div className="flex items-center justify-between gap-2 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           <CollapsibleTrigger asChild>
@@ -127,7 +127,7 @@ function LegendSubsection({
           ) : null}
         </div>
         <CollapsibleContent>
-          <div className="divide-y divide-border/50 bg-black/10">
+          <div className="divide-y divide-[var(--cg-divider-subtle)] bg-[var(--cg-surface-subtle)]">
             {children}
           </div>
         </CollapsibleContent>
@@ -391,7 +391,7 @@ function SectionRules({
   onToggleDefaultVisibilityBatch: (legendIds: string[], visible: boolean) => void;
 }): React.ReactElement {
   return (
-    <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
+    <div className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]">
       <CustomRulesSubsection
         collapsedEntries={collapsedEntries}
         customRuleGroup={customRuleGroup}
@@ -531,7 +531,7 @@ export function LegendSection({
         <CollapsibleTrigger asChild>
           <button
             type="button"
-            className="flex w-full items-center justify-between rounded-md px-1 py-1 text-left transition-colors hover:bg-accent/10"
+            className="flex w-full items-center justify-between rounded-md px-1 py-1 text-left transition-colors hover:bg-[var(--cg-accent-faint)]"
             title={`Toggle ${title} legend section`}
           >
             <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

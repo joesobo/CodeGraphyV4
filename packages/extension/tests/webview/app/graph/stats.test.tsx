@@ -15,6 +15,23 @@ describe('app/graph/stats', () => {
     expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
   });
 
+  it('keeps the stats badge distinct from the graph surface', () => {
+    render(<GraphStatsBadge label={buildGraphStatsLabel(2, 1)} />);
+
+    const badge = screen.getByText('2 nodes • 1 edge');
+    expect(badge.className).toContain('bg-[var(--cg-background)]');
+    expect(badge.className).toContain('border-[var(--cg-border-subtle)]');
+    expect(badge.className).not.toContain('bg-[var(--cg-popover-translucent)]');
+  });
+
+  it('insets the stats badge from the graph corner', () => {
+    render(<GraphStatsBadge label={buildGraphStatsLabel(2, 1)} />);
+
+    const badge = screen.getByText('2 nodes • 1 edge');
+    expect(badge.className).toContain('right-4');
+    expect(badge.className).toContain('top-4');
+  });
+
   it('builds a combined stats label for singular nodes and plural edges', () => {
     expect(buildGraphStatsLabel(1, 2)).toBe('1 node • 2 edges');
   });

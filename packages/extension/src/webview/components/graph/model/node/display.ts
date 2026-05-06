@@ -4,7 +4,11 @@ export const FAVORITE_BORDER_COLOR = '#EAB308';
 export const DEFAULT_NODE_SIZE = 16;
 
 export function resolveDirectionColor(directionColor: string): string {
-  return /^#[0-9A-F]{6}$/i.test(directionColor) ? directionColor : DEFAULT_DIRECTION_COLOR;
+  const color = directionColor.trim();
+  if (/^#[0-9A-F]{6}$/i.test(color)) return color;
+  if (/^rgba?\(/i.test(color)) return color;
+  if (/^hsla?\(/i.test(color)) return color;
+  return DEFAULT_DIRECTION_COLOR;
 }
 
 export function getDepthOpacity(depthLevel: number | undefined): number {
