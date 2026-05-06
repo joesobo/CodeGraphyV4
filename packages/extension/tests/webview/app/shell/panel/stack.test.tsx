@@ -78,6 +78,23 @@ describe('app/PanelStack', () => {
     expect(screen.queryByTestId('graph-corner-controls')).not.toBeInTheDocument();
   });
 
+  it('insets graph corner controls from the graph edge', () => {
+    render(
+      <PanelStack
+        activePanel="none"
+        hasGraphNodes
+        pluginHost={undefined as never}
+        onClosePanel={() => {}}
+      />,
+    );
+
+    const cornerControlsShell = screen.getByTestId('graph-corner-controls').parentElement as HTMLElement | null;
+
+    expect(cornerControlsShell).toBeTruthy();
+    expect(cornerControlsShell?.className).toContain('mr-2');
+    expect(cornerControlsShell?.className).toContain('mb-2');
+  });
+
   it.each([
     ['settings', 'settings-panel'],
     ['graphScope', 'graph-scope-panel'],

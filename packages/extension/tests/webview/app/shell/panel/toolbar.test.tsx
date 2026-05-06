@@ -14,7 +14,7 @@ describe('app/ToolbarRail', () => {
     const toolbarShell = screen.getByTestId('toolbar').parentElement?.parentElement as HTMLElement | null;
     expect(toolbarShell).toBeTruthy();
     expect(toolbarShell?.className).toContain('absolute');
-    expect(toolbarShell?.className).toContain('left-2');
-    expect(toolbarShell?.className).toContain('inset-y-2');
+    expect(toolbarShell?.className).toContain('left-4');
+    expect(toolbarShell?.className).toContain('inset-y-4');
   });
 });

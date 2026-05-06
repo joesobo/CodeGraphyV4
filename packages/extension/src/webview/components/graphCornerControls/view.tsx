@@ -16,13 +16,16 @@ import { useContinuousZoomControl } from './zoom/hook';
 type GraphCornerControlMessage = 'ZOOM_IN' | 'ZOOM_OUT' | 'FIT_VIEW' | 'REQUEST_OPEN_IN_EDITOR';
 type ZoomControlMessage = Extract<GraphCornerControlMessage, 'ZOOM_IN' | 'ZOOM_OUT'>;
 
+const CORNER_BUTTON_CLASS = 'h-10 w-10 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)] [&_svg]:size-5';
+const CORNER_ICON_SIZE = 20;
+
 function postGraphWindowMessage(type: GraphCornerControlMessage): void {
   window.postMessage({ type }, '*');
 }
 
 function FitToScreenIcon(): ReactElement {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width={CORNER_ICON_SIZE} height={CORNER_ICON_SIZE} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M8 4H5a1 1 0 0 0-1 1v3" />
       <path d="M16 4h3a1 1 0 0 1 1 1v3" />
       <path d="M20 16v3a1 1 0 0 1-1 1h-3" />
@@ -50,7 +53,7 @@ function ZoomButton({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)]"
+          className={CORNER_BUTTON_CLASS}
           title={title}
           {...zoomHandlers}
         >
@@ -67,11 +70,11 @@ export function GraphCornerControls(): ReactElement {
     <TooltipProvider delayDuration={300}>
       <div className="flex flex-col items-center gap-1.5">
         <ZoomButton title="Zoom In" type="ZOOM_IN">
-          <MdiIcon path={mdiMagnifyPlusOutline} size={18} />
+          <MdiIcon path={mdiMagnifyPlusOutline} size={CORNER_ICON_SIZE} />
         </ZoomButton>
 
         <ZoomButton title="Zoom Out" type="ZOOM_OUT">
-          <MdiIcon path={mdiMagnifyMinusOutline} size={18} />
+          <MdiIcon path={mdiMagnifyMinusOutline} size={CORNER_ICON_SIZE} />
         </ZoomButton>
 
         <Tooltip>
@@ -79,7 +82,7 @@ export function GraphCornerControls(): ReactElement {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)]"
+              className={CORNER_BUTTON_CLASS}
               title="Fit to Screen"
               onClick={() => postGraphWindowMessage('FIT_VIEW')}
             >
@@ -94,11 +97,11 @@ export function GraphCornerControls(): ReactElement {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)]"
+              className={CORNER_BUTTON_CLASS}
               title="Open in Editor"
               onClick={() => postGraphWindowMessage('REQUEST_OPEN_IN_EDITOR')}
             >
-              <MdiIcon path={mdiOpenInNew} size={18} />
+              <MdiIcon path={mdiOpenInNew} size={CORNER_ICON_SIZE} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">Open in Editor</TooltipContent>
