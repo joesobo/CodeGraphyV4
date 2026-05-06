@@ -81,7 +81,7 @@ function ShapePreview({
   return (
     <span
       title={label}
-      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] text-muted-foreground"
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-muted)] text-muted-foreground"
     >
       <MdiIcon path={option.icon} size={15} />
     </span>
@@ -113,7 +113,7 @@ export function LegendShapeControl({
           type="button"
           variant="outline"
           size="icon"
-          className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
+          className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-muted)] text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
           title={title}
         >
           <MdiIcon path={option.icon} size={15} />
@@ -223,7 +223,7 @@ export function LegendIconControl({
   if (!canEditRuleVisual(editable, rule)) {
     return rule.imageUrl
       ? (
-          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] text-muted-foreground">
+          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-muted)] text-muted-foreground">
             <IconPreview rule={rule} />
           </span>
         )
@@ -237,9 +237,9 @@ export function LegendIconControl({
           type="button"
           variant="outline"
           size="icon"
-        className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
-        title={title}
-      >
+          className="h-7 w-7 shrink-0 border-[var(--cg-border-subtle)] bg-[var(--cg-surface-muted)] text-muted-foreground hover:bg-[var(--cg-accent-subtle)] hover:text-foreground"
+          title={title}
+        >
           {rule.imageUrl ? <IconPreview rule={rule} /> : <MdiIcon path={mdiImagePlus} size={15} />}
         </Button>
       </PopoverTrigger>

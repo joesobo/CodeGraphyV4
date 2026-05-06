@@ -39,9 +39,9 @@ describe('Graph', () => {
   it('should apply correct container styles', () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('div');
-    expect(graphContainer).toHaveClass('absolute', 'inset-0', 'rounded-lg', 'm-1');
+    expect(graphContainer).toHaveClass('absolute', 'inset-2', 'rounded-md', 'overflow-hidden');
     expect(graphContainer?.getAttribute('style')).toContain('background-color: canvas');
-    expect(graphContainer).toHaveStyle({ borderWidth: '1px', borderStyle: 'solid' });
+    expect(graphContainer).toHaveStyle({ borderWidth: '0px', borderStyle: 'solid' });
   });
 
   it('should render ForceGraph2D on mount', () => {

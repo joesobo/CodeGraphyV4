@@ -197,12 +197,14 @@ describe('Viewport (mutation targets)', () => {
     expect(screen.queryByTestId('shortcut')).not.toBeInTheDocument();
   });
 
-  it('applies background color and border color styles to the container', () => {
+  it('applies recessed graph stage spacing without an outline border', () => {
     renderViewport({ backgroundColor: '#aabbcc', borderColor: '#ddeeff' });
 
     const container = document.querySelector('.graph-container') as HTMLElement;
+    expect(container).toHaveClass('inset-2');
+    expect(container).not.toHaveClass('m-1');
     expect(container.style.backgroundColor).toBe('rgb(170, 187, 204)');
-    expect(container.style.borderColor).toBe('rgb(221, 238, 255)');
+    expect(container.style.borderWidth).toBe('0px');
   });
 
   it('renders separator entries as hr elements', () => {

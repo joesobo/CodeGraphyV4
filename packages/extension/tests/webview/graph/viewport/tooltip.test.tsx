@@ -185,22 +185,22 @@ describe('Viewport style mutations (L72)', () => {
     expect(container).not.toBeNull();
   });
 
-  it('applies inset-0 class to the viewport div', () => {
+  it('applies inset-2 class to the viewport div', () => {
     renderViewport();
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.className).toContain('inset-0');
+    expect(container.className).toContain('inset-2');
   });
 
-  it('applies rounded-lg class to the viewport div', () => {
+  it('applies rounded-md class to the viewport div', () => {
     renderViewport();
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.className).toContain('rounded-lg');
+    expect(container.className).toContain('rounded-md');
   });
 
-  it('sets borderWidth to 1 on the container style', () => {
+  it('sets borderWidth to 0 on the container style', () => {
     renderViewport();
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.borderWidth).toBe('1px');
+    expect(container.style.borderWidth).toBe('0px');
   });
 
   it('sets borderStyle to solid on the container style', () => {

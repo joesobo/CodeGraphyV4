@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import App from '../../../../src/webview/app/view';
 import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
@@ -232,6 +232,34 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByText('2 of 3')).toBeInTheDocument();
+  });
+
+  it('updates the excluded count immediately when plugin filters are disabled', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'src/generated/a.ts', label: 'a.ts', color: '#3B82F6', nodeType: 'file' },
+          { id: 'src/app.ts', label: 'app.ts', color: '#3B82F6', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      isLoading: false,
+      pluginFilterGroups: [
+        { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['**/generated/**'] },
+      ],
+      pluginFilterPatterns: ['**/generated/**'],
+      disabledPluginFilterPatterns: [],
+      showOrphans: true,
+    });
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 enabled' }));
+    expect(screen.getByText('1 excluded from graph')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Disable plugin Plugin One filters'));
+
+    expect(screen.getByText('0 excluded from graph')).toBeInTheDocument();
   });
 
   it('should hide graph corner controls while a right-side popup is open', async () => {

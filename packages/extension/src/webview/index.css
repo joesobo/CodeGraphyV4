@@ -56,7 +56,7 @@
     --cg-transparent: transparent;
     --cg-overlay-background: color-mix(in srgb, var(--cg-background) 70%, transparent);
     --cg-popover-translucent: color-mix(in srgb, var(--cg-popover) 95%, transparent);
-    --cg-surface-subtle: color-mix(in srgb, var(--cg-background) 10%, transparent);
+    --cg-surface-subtle: color-mix(in srgb, var(--cg-background) 18%, transparent);
     --cg-surface-muted: color-mix(in srgb, var(--cg-muted) 70%, transparent);
     --cg-border-subtle: color-mix(in srgb, var(--cg-border) 60%, transparent);
     --cg-divider-subtle: color-mix(in srgb, var(--cg-border) 50%, transparent);
@@ -71,8 +71,8 @@
     --cg-list-hover-background: var(--vscode-list-hoverBackground, var(--cg-accent));
     --cg-list-hover-foreground: var(--vscode-list-hoverForeground, var(--cg-foreground));
     --cg-link: var(--vscode-textLink-foreground, var(--cg-primary));
-    --cg-graph-background: var(--vscode-editor-background, Canvas);
-    --cg-graph-border: var(--vscode-panel-border, var(--cg-border));
+    --cg-graph-background: color-mix(in srgb, var(--cg-background) 96%, var(--cg-border) 4%);
+    --cg-graph-border: var(--cg-transparent);
     --cg-graph-label-foreground: var(--vscode-foreground, CanvasText);
     --cg-graph-label-muted-foreground: var(--vscode-descriptionForeground, GrayText);
     --cg-graph-link-highlight: var(--vscode-focusBorder, Highlight);

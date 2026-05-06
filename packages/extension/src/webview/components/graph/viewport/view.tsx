@@ -75,8 +75,8 @@ export function Viewport({
           onMouseDownCapture={handleMouseDownCapture}
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}
-          className="graph-container absolute inset-0 rounded-lg m-1 outline-none focus:outline-none"
-          style={{ backgroundColor, borderWidth: 1, borderStyle: 'solid', borderColor, cursor: 'default' }}
+          className="graph-container absolute inset-2 overflow-hidden rounded-md outline-none focus:outline-none"
+          style={{ backgroundColor, borderWidth: 0, borderStyle: 'solid', borderColor, cursor: 'default' }}
           tabIndex={0}
         >
           {graphMode === '2d' ? (
