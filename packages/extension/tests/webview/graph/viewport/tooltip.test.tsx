@@ -87,7 +87,8 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 
   render(
     <Viewport
-      backgroundColor="#111111"
+      canvasBackgroundColor="transparent"
+      containerBackgroundColor="var(--cg-popover-translucent)"
       borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
@@ -216,9 +217,9 @@ describe('Viewport style mutations (L72)', () => {
   });
 
   it('applies background color and border color styles to the container', () => {
-    renderViewport({ backgroundColor: '#aabbcc', borderColor: '#ddeeff' });
+    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)', borderColor: '#ddeeff' });
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.backgroundColor).toBe('rgb(170, 187, 204)');
+    expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
     expect(container.style.borderColor).toBe('rgb(221, 238, 255)');
   });
 });

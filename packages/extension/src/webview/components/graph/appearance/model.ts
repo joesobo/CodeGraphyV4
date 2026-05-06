@@ -70,6 +70,13 @@ export function resolveCssToken(tokenName: string, fallback: string): string {
   return resolveComputedColor(tokenName) || value || fallback;
 }
 
+function readCssTokenValue(tokenName: string, fallback: string): string {
+  const themeRoot = getThemeRoot();
+  if (!themeRoot) return fallback;
+
+  return getComputedStyle(themeRoot).getPropertyValue(tokenName).trim() || fallback;
+}
+
 export function resolveGraphAppearance(): GraphAppearance {
   return {
     focusBorder: resolveCssToken(GRAPH_APPEARANCE_TOKENS.focusBorder, DEFAULT_GRAPH_APPEARANCE.focusBorder),
@@ -86,7 +93,10 @@ export function resolveGraphAppearance(): GraphAppearance {
       GRAPH_APPEARANCE_TOKENS.nodeSelectionBorder,
       DEFAULT_GRAPH_APPEARANCE.nodeSelectionBorder,
     ),
-    stageBackground: resolveCssToken(GRAPH_APPEARANCE_TOKENS.stageBackground, DEFAULT_GRAPH_APPEARANCE.stageBackground),
+    stageBackground: readCssTokenValue(
+      GRAPH_APPEARANCE_TOKENS.stageBackground,
+      DEFAULT_GRAPH_APPEARANCE.stageBackground,
+    ),
     stageBorder: resolveCssToken(GRAPH_APPEARANCE_TOKENS.stageBorder, DEFAULT_GRAPH_APPEARANCE.stageBorder),
     transparent: resolveCssToken(GRAPH_APPEARANCE_TOKENS.transparent, DEFAULT_GRAPH_APPEARANCE.transparent),
   };

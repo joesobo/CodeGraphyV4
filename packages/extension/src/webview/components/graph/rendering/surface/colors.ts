@@ -1,11 +1,13 @@
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 
 export function getGraphSurfaceColors(appearance: GraphAppearance = DEFAULT_GRAPH_APPEARANCE): {
-  backgroundColor: string;
+  canvasBackgroundColor: string;
+  containerBackgroundColor: string;
   borderColor: string;
 } {
   return {
-    backgroundColor: appearance.stageBackground,
+    canvasBackgroundColor: appearance.transparent,
+    containerBackgroundColor: appearance.stageBackground,
     borderColor: appearance.stageBorder,
   };
 }

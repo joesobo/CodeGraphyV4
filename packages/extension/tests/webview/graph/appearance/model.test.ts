@@ -43,7 +43,7 @@ describe('graph/appearance/model', () => {
       '--cg-graph-mesh-dimmed': 'var(--vscode-disabledForeground)',
       '--cg-graph-mesh-selected': 'var(--vscode-foreground)',
       '--cg-graph-node-selection-border': 'var(--vscode-contrastActiveBorder)',
-      '--cg-graph-background': 'var(--vscode-editor-background)',
+      '--cg-graph-background': 'var(--cg-popover-translucent)',
       '--cg-graph-border': 'var(--vscode-panel-border)',
       '--cg-transparent': 'transparent',
     };
@@ -70,7 +70,7 @@ describe('graph/appearance/model', () => {
       meshDimmed: 'rgb(16, 17, 18)',
       meshSelected: 'rgb(19, 20, 21)',
       nodeSelectionBorder: 'rgb(22, 23, 24)',
-      stageBackground: 'rgb(25, 26, 27)',
+      stageBackground: 'var(--cg-popover-translucent)',
       stageBorder: 'rgb(28, 29, 30)',
       transparent: 'rgba(0, 0, 0, 0)',
     });

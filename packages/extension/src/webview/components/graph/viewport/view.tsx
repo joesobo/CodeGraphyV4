@@ -27,7 +27,8 @@ import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
 
 export interface ViewportProps {
-  backgroundColor: string;
+  canvasBackgroundColor: string;
+  containerBackgroundColor: string;
   borderColor: string;
   containerRef: Ref<HTMLDivElement>;
   directionMode: DirectionMode;
@@ -47,7 +48,8 @@ export interface ViewportProps {
 }
 
 export function Viewport({
-  backgroundColor,
+  canvasBackgroundColor,
+  containerBackgroundColor,
   borderColor,
   containerRef,
   directionMode,
@@ -76,13 +78,13 @@ export function Viewport({
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}
           className="graph-container absolute inset-2 overflow-hidden rounded-md outline-none focus:outline-none"
-          style={{ backgroundColor, borderWidth: 0, borderStyle: 'solid', borderColor, cursor: 'default' }}
+          style={{ backgroundColor: containerBackgroundColor, borderWidth: 0, borderStyle: 'solid', borderColor, cursor: 'default' }}
           tabIndex={0}
         >
           {graphMode === '2d' ? (
             <Surface2d
               {...surface2dProps}
-              backgroundColor={backgroundColor}
+              backgroundColor={canvasBackgroundColor}
               directionMode={directionMode}
             />
           ) : (
@@ -92,19 +94,19 @@ export function Viewport({
               fallback={(
                 <Surface2d
                   {...surface2dProps}
-                  backgroundColor={backgroundColor}
+                  backgroundColor={canvasBackgroundColor}
                   directionMode={directionMode}
                 />
               )}
             >
               <DeferredSurface3d
                 {...surface3dProps}
-                backgroundColor={backgroundColor}
+                backgroundColor={canvasBackgroundColor}
                 directionMode={directionMode}
                 fallback={(
                   <Surface2d
                     {...surface2dProps}
-                    backgroundColor={backgroundColor}
+                    backgroundColor={canvasBackgroundColor}
                     directionMode={directionMode}
                   />
                 )}
