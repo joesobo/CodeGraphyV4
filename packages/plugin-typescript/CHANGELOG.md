@@ -1,5 +1,12 @@
 # codegraphy-typescript
 
+## 2.0.4
+
+### Patch Changes
+
+- Updated dependencies [[`73d0118`](https://github.com/joesobo/CodeGraphyV4/commit/73d0118012efc8709be3604b348628a6260b45c1)]:
+  - @codegraphy-vscode/plugin-api@2.0.0
+
 ## 2.0.3
 
 ### Patch Changes

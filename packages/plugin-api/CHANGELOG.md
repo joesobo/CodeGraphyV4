@@ -1,5 +1,11 @@
 # @codegraphy-vscode/plugin-api
 
+## 2.0.0
+
+### Major Changes
+
+- [#199](https://github.com/joesobo/CodeGraphyV4/pull/199) [`73d0118`](https://github.com/joesobo/CodeGraphyV4/commit/73d0118012efc8709be3604b348628a6260b45c1) Thanks [@joesobo](https://github.com/joesobo)! - Replace editor-visit access-count sizing with Git history churn sizing. Size by Churn appears after Git history is indexed, graph exports include churn, and graph node metadata no longer exposes accessCount.
+
 ## 1.2.0
 
 ### Minor Changes
