@@ -150,6 +150,14 @@ describe('graph/rendering/link/colors', () => {
     expect(color).toBe('#f97316');
   });
 
+  it('keeps resolved theme rgb direction colors', () => {
+    const color = getGraphDirectionalColor(
+      createDependencies({ directionColor: 'rgb(172, 157, 87)' }),
+    );
+
+    expect(color).toBe('rgb(172, 157, 87)');
+  });
+
   it('normalizes invalid direction colors back to the default direction color', () => {
     const color = getGraphDirectionalColor(
       createDependencies({ directionColor: 'not-a-hex-color' }),

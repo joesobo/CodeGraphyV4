@@ -38,7 +38,7 @@ describe('graph/appearance/model', () => {
       '--cg-focus-border': 'var(--vscode-focusBorder)',
       '--cg-graph-label-foreground': 'var(--vscode-foreground)',
       '--cg-graph-label-muted-foreground': 'var(--vscode-descriptionForeground)',
-      '--cg-graph-link-highlight': 'var(--vscode-focusBorder)',
+      '--cg-graph-link-highlight': 'var(--cg-primary)',
       '--cg-graph-link-muted': 'var(--vscode-disabledForeground)',
       '--cg-graph-mesh-dimmed': 'var(--vscode-disabledForeground)',
       '--cg-graph-mesh-selected': 'var(--vscode-foreground)',

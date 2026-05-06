@@ -89,28 +89,31 @@ export function DisplaySection(): React.ReactElement {
     <div className="mb-2 space-y-3">
       <div
         data-testid="display-mode-controls"
-        className="flex flex-wrap gap-2"
+        className="space-y-2"
       >
-        <ModeButtons
-          className="min-w-16 flex-1"
-          label="Renderer"
-          onSelect={onGraphModeChange}
-          options={graphModeOptions}
-        />
+        <div data-testid="display-renderer-row">
+          <ModeButtons
+            label="Renderer"
+            onSelect={onGraphModeChange}
+            options={graphModeOptions}
+          />
+        </div>
 
-        <ModeButtons
-          className="min-w-36 flex-[2]"
-          label="Direction"
-          onSelect={onDirectionModeChange}
-          options={directionOptions}
-        />
+        <div data-testid="display-direction-row">
+          <ModeButtons
+            label="Direction"
+            onSelect={onDirectionModeChange}
+            options={directionOptions}
+          />
+        </div>
 
-        <ModeButtons
-          className="min-w-32 flex-[1.5]"
-          label="Bidirectional Edges"
-          onSelect={onBidirectionalModeChange}
-          options={bidirectionalOptions}
-        />
+        <div data-testid="display-bidirectional-row">
+          <ModeButtons
+            label="Bidirectional Edges"
+            onSelect={onBidirectionalModeChange}
+            options={bidirectionalOptions}
+          />
+        </div>
       </div>
 
       <div className="space-y-2">

@@ -68,14 +68,16 @@ describe('DisplaySection', () => {
     expect(screen.getByRole('button', { name: /^None$/i })).toBeInTheDocument();
   });
 
-  it('groups renderer, direction, and bidirectional controls together', () => {
+  it('renders renderer and direction controls on separate rows', () => {
     renderContent();
 
-    const group = screen.getByTestId('display-mode-controls');
+    const rendererRow = screen.getByTestId('display-renderer-row');
+    const directionRow = screen.getByTestId('display-direction-row');
 
-    expect(group).toHaveTextContent('Renderer');
-    expect(group).toHaveTextContent('Direction');
-    expect(group).toHaveTextContent('Bidirectional Edges');
+    expect(rendererRow).toHaveTextContent('Renderer');
+    expect(rendererRow).not.toHaveTextContent('Direction');
+    expect(directionRow).toHaveTextContent('Direction');
+    expect(directionRow).not.toHaveTextContent('Renderer');
   });
 
   it('updates renderer mode from Display settings', () => {

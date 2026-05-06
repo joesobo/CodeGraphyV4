@@ -16,4 +16,10 @@ describe('graph background theme tokens', () => {
 
     expect(css).toMatch(/--cg-graph-border:\s*var\(--cg-transparent\);/);
   });
+
+  it('uses the primary theme token for directional graph indicators', () => {
+    const css = readFileSync(INDEX_CSS_PATH, 'utf8');
+
+    expect(css).toMatch(/--cg-graph-link-highlight:\s*var\(--cg-primary\);/);
+  });
 });
