@@ -10,10 +10,6 @@ export interface SettingsToggleButtonState {
   variant: 'default' | 'secondary';
 }
 
-export function isHexColor(value: string): boolean {
-  return /^#[0-9A-F]{6}$/i.test(value);
-}
-
 export function getSettingsToggleButtonState<T extends string>(
   selectedValue: T,
   optionValue: T
@@ -23,10 +19,6 @@ export function getSettingsToggleButtonState<T extends string>(
     pressed,
     variant: pressed ? 'default' : 'secondary',
   };
-}
-
-export function resolveDisplayColor(value: string, fallback: string): string {
-  return isHexColor(value) ? value : fallback;
 }
 
 export function shouldShowParticleControls(directionMode: DirectionMode): boolean {

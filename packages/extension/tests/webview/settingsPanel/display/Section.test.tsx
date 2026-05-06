@@ -1,6 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 import { DisplaySection } from '../../../../src/webview/components/settingsPanel/display/Section';
 import { graphStore } from '../../../../src/webview/store/state';
 
@@ -14,7 +13,6 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     bidirectionalMode: 'separate',
     directionMode: 'arrows',
-    directionColor: DEFAULT_DIRECTION_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -70,6 +68,16 @@ describe('DisplaySection', () => {
     expect(screen.getByRole('button', { name: /^None$/i })).toBeInTheDocument();
   });
 
+  it('groups renderer, direction, and bidirectional controls together', () => {
+    renderContent();
+
+    const group = screen.getByTestId('display-mode-controls');
+
+    expect(group).toHaveTextContent('Renderer');
+    expect(group).toHaveTextContent('Direction');
+    expect(group).toHaveTextContent('Bidirectional Edges');
+  });
+
   it('updates renderer mode from Display settings', () => {
     renderContent({ graphMode: '2d' });
 
@@ -80,6 +88,8 @@ describe('DisplaySection', () => {
 
   it('posts depth mode and depth limit updates from Display settings', () => {
     renderContent({ graphHasIndex: true, depthMode: false, depthLimit: 2, maxDepthLimit: 5 });
+
+    expect(screen.queryByRole('slider', { name: 'Depth limit' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Depth Mode'));
     expect(graphStore.getState().depthMode).toBe(true);
@@ -135,12 +145,10 @@ describe('DisplaySection', () => {
     expect(screen.getByRole('button', { name: /^Combined$/i })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('renders the current direction color from store state', () => {
-    renderContent({
-      directionColor: '#123ABC',
-    });
+  it('does not render the direction color setting', () => {
+    renderContent();
 
-    expect(screen.getByLabelText('Direction Color')).toHaveValue('#123abc');
+    expect(screen.queryByLabelText('Direction Color')).not.toBeInTheDocument();
   });
 
   it('posts direction mode updates when selecting particles', () => {
@@ -209,7 +217,7 @@ describe('DisplaySection', () => {
     vi.useFakeTimers();
     renderContent({ directionMode: 'particles', particleSpeed: 0.0005 });
 
-    const speedSlider = getSliderByRange('1', '10', 1);
+    const speedSlider = getSliderByRange('1', '10');
 
     fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
     expect(graphStore.getState().particleSpeed).toBeCloseTo(0.001, 6);
@@ -229,7 +237,7 @@ describe('DisplaySection', () => {
     vi.useFakeTimers();
     renderContent({ directionMode: 'particles', particleSpeed: 0.0005 });
 
-    const speedSlider = getSliderByRange('1', '10', 1);
+    const speedSlider = getSliderByRange('1', '10');
 
     fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
     fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
@@ -276,27 +284,6 @@ describe('DisplaySection', () => {
     vi.useRealTimers();
   });
 
-  it('falls back to the default direction color and posts normalized updates', () => {
-    vi.useFakeTimers();
-    renderContent({ directionColor: 'invalid-color' });
-
-    const input = screen.getByLabelText('Direction Color');
-    expect(input).toHaveValue(DEFAULT_DIRECTION_COLOR);
-
-    fireEvent.change(input, { target: { value: '#abcdef' } });
-    expect(graphStore.getState().directionColor).toBe('#ABCDEF');
-
-    act(() => {
-      vi.advanceTimersByTime(150);
-    });
-
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_DIRECTION_COLOR',
-      payload: { directionColor: '#ABCDEF' },
-    });
-    vi.useRealTimers();
-  });
-
   it('does not render the legacy folder color field', () => {
     renderContent();
 
@@ -310,12 +297,9 @@ describe('DisplaySection', () => {
       particleSpeed: 0.0005,
     });
 
-    const speedSlider = getSliderByRange('1', '10', 1);
+    const speedSlider = getSliderByRange('1', '10');
 
     fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
-    fireEvent.change(screen.getByLabelText('Direction Color'), {
-      target: { value: '#abcdef' },
-    });
 
     unmount();
 

@@ -176,7 +176,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionColor' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
+	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -191,7 +191,6 @@ function createViewState(): Pick<
 		currentCommitSha: 'commit-b',
 		dagMode: 'td',
 		depthMode: false,
-		directionColor: '#22c55e',
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),
 		graphMode: '3d',
