@@ -78,7 +78,7 @@ describe('app/PanelStack', () => {
     expect(screen.queryByTestId('graph-corner-controls')).not.toBeInTheDocument();
   });
 
-  it('insets graph corner controls from the graph edge', () => {
+  it('keeps graph corner controls on the panel stack inset without extra margin', () => {
     render(
       <PanelStack
         activePanel="none"
@@ -91,8 +91,9 @@ describe('app/PanelStack', () => {
     const cornerControlsShell = screen.getByTestId('graph-corner-controls').parentElement as HTMLElement | null;
 
     expect(cornerControlsShell).toBeTruthy();
-    expect(cornerControlsShell?.className).toContain('mr-2');
-    expect(cornerControlsShell?.className).toContain('mb-2');
+    expect(cornerControlsShell?.className).toContain('self-end');
+    expect(cornerControlsShell?.className).not.toContain('mr-2');
+    expect(cornerControlsShell?.className).not.toContain('mb-2');
   });
 
   it.each([

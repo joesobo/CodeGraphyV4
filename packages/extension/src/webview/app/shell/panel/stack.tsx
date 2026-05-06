@@ -34,7 +34,7 @@ export function PanelStack({
       <PluginsPanel isOpen={activePanel === 'plugins'} onClose={onClosePanel} />
       <SettingsPanel isOpen={activePanel === 'settings'} onClose={onClosePanel} />
       {hasGraphNodes && activePanel === 'none' ? (
-        <div className="mt-2 mb-2 mr-2 self-end">
+        <div className="mt-2 self-end">
           <GraphCornerControls />
         </div>
       ) : null}
