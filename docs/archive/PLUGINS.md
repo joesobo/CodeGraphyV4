@@ -4,7 +4,7 @@
 
 This guide covers the older v1 language-plugin shape and the transition notes that were relevant before the current plugin-api split.
 
-![Plugins panel](../media/plugins-panel.png)
+![Plugins panel](../media/readme/plugins-panel.png)
 
 ## Overview
 

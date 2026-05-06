@@ -135,6 +135,7 @@ test('npm package publish builds before publishing', () => {
 
 test('npm publish skips package versions already on npm', () => {
   const calls = [];
+  const [pluginApiTarget] = resolveReleaseTargets('plugin-api', repoRoot);
 
   runRelease('publish', 'plugin-api', repoRoot, (command, args, options = {}) => {
     calls.push({ command, args, options });
@@ -144,7 +145,12 @@ test('npm publish skips package versions already on npm', () => {
   assert.deepEqual(calls, [
     {
       command: 'npm',
-      args: ['view', '@codegraphy-vscode/plugin-api@1.2.0', 'version', '--json'],
+      args: [
+        'view',
+        `${pluginApiTarget.packageName}@${pluginApiTarget.version}`,
+        'version',
+        '--json',
+      ],
       options: { cwd: repoRoot, stdio: 'pipe' },
     },
   ]);
