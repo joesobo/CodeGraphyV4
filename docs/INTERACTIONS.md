@@ -1,6 +1,6 @@
 # Graph Interactions
 
-![Search filtering](./media/search.gif)
+![Search filtering](./media/readme/search-and-filter.png)
 
 ## Nodes
 
@@ -43,9 +43,9 @@ Right-click background, nodes, multi-node selections, or edges to access context
 
 Undoable actions support `Ctrl+Z` / `Cmd+Z` to undo and `Ctrl+Shift+Z` / `Cmd+Shift+Z` to redo.
 
-![Context menu](./media/context-menu.png)
+See the fresh root README gallery for current graph UI screenshots.
 
-Implementation details and the full action/context matrix live in [Context Menu](./CONTEXT_MENU.md).
+Historical implementation notes for the first context menu pass live in [archived context menu notes](./archive/context-menu.md).
 
 ## Tooltips
 
@@ -107,7 +107,7 @@ Manage glob-based Legend styling. Legend Entries are grouped as `Custom`, `Plugi
 
 Toggle whole plugins on or off and drag them to change processing priority. Plugins are processed bottom-to-top, so entries nearer the top win merge conflicts. Built-in plugins show up here too. See [Plugins](./PLUGINS.md) for plugin development.
 
-![Plugins panel](./media/plugins-panel.png)
+![Plugins panel](./media/readme/plugins-panel.png)
 
 ### Index / Re-index / Refresh (autorenew icon)
 

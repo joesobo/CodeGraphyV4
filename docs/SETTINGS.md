@@ -97,7 +97,7 @@ Timeline indexing also respects the repo-local filter and plugin settings. See [
 
 Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while Graph Scope and Legend styling live in their own dedicated panels on the right side.
 
-![Settings panel](./media/settings-panel.png)
+![Settings panel](./media/readme/settings-panel.png)
 
 ### Forces
 
