@@ -1,5 +1,21 @@
 # @codegraphy/extension
 
+## 5.4.0
+
+### Minor Changes
+
+- [#197](https://github.com/joesobo/CodeGraphyV4/pull/197) [`b58c0a1`](https://github.com/joesobo/CodeGraphyV4/commit/b58c0a18bca1899f10e17bd86f2ba509bc63ea54) Thanks [@joesobo](https://github.com/joesobo)! - Add New Folder to folder node and graph background context menus, show newly created empty folders in the graph, and refresh the graph after folders are deleted from the VS Code Explorer.
+
+- [#199](https://github.com/joesobo/CodeGraphyV4/pull/199) [`73d0118`](https://github.com/joesobo/CodeGraphyV4/commit/73d0118012efc8709be3604b348628a6260b45c1) Thanks [@joesobo](https://github.com/joesobo)! - Replace editor-visit access-count sizing with Git history churn sizing. Size by Churn appears after Git history is indexed, graph exports include churn, and graph node metadata no longer exposes accessCount.
+
+### Patch Changes
+
+- [#199](https://github.com/joesobo/CodeGraphyV4/pull/199) [`c77d1ef`](https://github.com/joesobo/CodeGraphyV4/commit/c77d1ef87c8aa557488ff6554936484eef483d62) Thanks [@joesobo](https://github.com/joesobo)! - Remount the 3D graph surface when viewport dimensions recover, preventing blank WebGL after temporary zero-size layouts.
+
+- [#197](https://github.com/joesobo/CodeGraphyV4/pull/197) [`e04d5ea`](https://github.com/joesobo/CodeGraphyV4/commit/e04d5eac69bce8bdf5ab70d81027dd240e676050) Thanks [@joesobo](https://github.com/joesobo)! - Add folder rename/delete actions, edge endpoint open actions, and clearer filter versus legend labels to the Graph Context Menu.
+
+- [#199](https://github.com/joesobo/CodeGraphyV4/pull/199) [`8baa285`](https://github.com/joesobo/CodeGraphyV4/commit/8baa285f4bfbca42028267ad06d2873cf9e511bf) Thanks [@joesobo](https://github.com/joesobo)! - Keep Graph Context Menu mutation actions visible but disabled when viewing historical Timeline Snapshots.
+
 ## 5.3.1
 
 ### Patch Changes
