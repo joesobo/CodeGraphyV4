@@ -1,6 +1,6 @@
 # Graph Interactions
 
-![Search filtering](./media/readme/search-and-filter.png)
+![Search filtering](./media/readme/search-filter-panel.png)
 
 ## Nodes
 

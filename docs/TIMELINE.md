@@ -2,7 +2,7 @@
 
 The Timeline View lets you visualize how your codebase's Relationship Graph evolved over git history.
 
-![Timeline](./media/readme/timeline.png)
+![Timeline](./media/readme/timeline-panel.png)
 
 ## Getting started
 

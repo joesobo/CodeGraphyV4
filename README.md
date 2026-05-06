@@ -34,9 +34,9 @@
 
 CodeGraphy turns a repository into an interactive Relationship Graph inside VS Code. It starts with File Nodes, then Indexing adds richer Edges from imports, references, calls, tests, folder/package structure, and plugin-provided analysis. The goal is simple: make the relationships between files visible enough that people and agents can navigate the codebase without guessing.
 
-This repo is a work in progress and is being built through agentic engineering. It should be useful, inspectable, and hackable, but the public surface is still evolving.
+This repo is a work in progress and is being built through agentic engineering. It should be useful, but the public surface is still evolving.
 
-![CodeGraphy relationship graph with VS Code theme colors and Material Icon Theme nodes](./docs/media/readme/relationship-graph-dark.png)
+![CodeGraphy relationship graph with VS Code theme colors and Material Icon Theme nodes](./docs/media/readme/hero-relationship-graph.png)
 
 ## What You Get
 
@@ -55,53 +55,33 @@ This repo is a work in progress and is being built through agentic engineering. 
 
 ## Gallery
 
-| Search | Legends and Material Icons |
-|:--:|:--:|
-| ![Search narrows the Visible Graph to matching files](./docs/media/readme/search-and-filter.png) | ![Legend panel with custom and Material Icon Theme entries](./docs/media/readme/filters-and-legends.png) |
+| Search and Filters |
+|:--:|
+| ![Search and filter controls with plugin defaults collapsed](./docs/media/readme/search-filter-panel.png) |
+
+| VS Code Theme Integration |
+|:--:|
+| ![CodeGraphy using VS Code theme colors in the activity bar, sidebar panels, graph background, timeline, and controls](./docs/media/readme/vscode-theme-integration.png) |
 
 | 2D Relationship Graph | 3D Relationship Graph |
 |:--:|:--:|
-| ![2D Relationship Graph](./docs/media/readme/relationship-graph-dark.png) | ![3D Relationship Graph](./docs/media/readme/graph-3d.png) |
+| ![2D Relationship Graph with Material Icon Theme nodes](./docs/media/readme/relationship-graph-2d.png) | ![3D Relationship Graph with file labels and depth](./docs/media/readme/relationship-graph-3d.png) |
 
 | Timeline |
 |:--:|
-| ![Timeline indexing Git history](./docs/media/readme/timeline.png) |
+| ![Timeline panel showing commit playback controls](./docs/media/readme/timeline-panel.png) |
 
-| Graph Scope | Settings |
+| Large Graphs | Force Graph |
 |:--:|:--:|
-| ![Graph Scope panel with File, Folder, and Package node toggles](./docs/media/readme/graph-scope.png) | ![Settings panel](./docs/media/readme/settings-panel.png) |
-
-| Plugins |
-|:--:|
-| ![Plugins panel](./docs/media/readme/plugins-panel.png) |
+| ![Large CodeGraphy graph with more than one thousand nodes](./docs/media/readme/large-repo-graph.png) | ![Short graph interaction demo](./docs/media/readme/relationship-graph-demo.gif) |
 
 ## How It Works
 
-1. Discovery finds workspace files while respecting repo settings and `.gitignore`.
-2. Indexing runs core Tree-sitter analysis and enabled plugins.
-3. Analysis results are merged into a repo-local Graph Cache under `.codegraphy/`.
-4. Graph Projection turns cached analysis into File Nodes, Folder Nodes, Package Nodes, Plugin Nodes, and Edges.
-5. Graph Scope, Filters, Search, and Show Orphans produce the Visible Graph.
-6. The VS Code webview renders the graph, timeline, panels, legends, context menu, and exports.
-7. CodeGraphy MCP asks the Core Extension to index or answer Graph Query requests for agents.
+![CodeGraphy architecture and logic flow](./docs/media/readme/codegraphy-architecture.svg)
 
-```mermaid
-flowchart LR
-  Workspace["Workspace files"] --> Discovery["Discovery"]
-  Discovery --> Indexing["Indexing"]
-  Indexing --> Core["Core Tree-sitter analysis"]
-  Indexing --> Plugins["Enabled plugins"]
-  Core --> Cache["Graph Cache<br/>.codegraphy/graph.lbug"]
-  Plugins --> Cache
-  Cache --> Projection["Graph Projection"]
-  Settings[".codegraphy/settings.json"] --> Projection
-  Projection --> Visible["Visible Graph"]
-  Visible --> Webview["VS Code Graph View<br/>2D / 3D / Timeline / Panels"]
-  Visible --> Exports["Graph exports<br/>PNG / SVG / JPEG / JSON / Markdown"]
-  MCP["CodeGraphy MCP"] --> Bridge["Core Extension bridge"]
-  Bridge --> Indexing
-  Bridge --> Projection
-```
+Workspace files, Git history, and repo-local settings flow into the Core Extension. Indexing combines built-in Tree-sitter analysis with enabled plugins, stores relationship evidence in the Graph Cache, then Graph Projection produces the Visible Graph that powers the VS Code webview, exports, and CodeGraphy MCP.
+
+The editable Excalidraw source for this diagram lives at [docs/media/readme/codegraphy-architecture.excalidraw](./docs/media/readme/codegraphy-architecture.excalidraw).
 
 ## Install
 
