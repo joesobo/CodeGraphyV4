@@ -22,10 +22,12 @@ export function createNodeThreeObject(
 ): THREE.Object3D {
   const group = new THREE.Group();
 
-  const shape = node.shape3D ?? 'sphere';
-  const mesh = createNodeMesh(shape, node.color, node.size / DEFAULT_NODE_SIZE * 4);
-  dependencies.meshesRef.current.set(node.id, mesh);
-  group.add(mesh);
+  if (shouldRenderNodeMesh(node)) {
+    const shape = node.shape3D ?? 'sphere';
+    const mesh = createNodeMesh(shape, node.color, node.size / DEFAULT_NODE_SIZE * 4);
+    dependencies.meshesRef.current.set(node.id, mesh);
+    group.add(mesh);
+  }
 
   if (node.imageUrl) {
     const imageSprite = createImageSprite(node.imageUrl, node.size / DEFAULT_NODE_SIZE * 6);
@@ -41,4 +43,8 @@ export function createNodeThreeObject(
   group.add(sprite);
 
   return group;
+}
+
+function shouldRenderNodeMesh(node: FGNode): boolean {
+  return node.nodeType !== 'folder' || !node.imageUrl;
 }

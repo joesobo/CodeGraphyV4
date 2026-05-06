@@ -82,6 +82,28 @@ describe('graph/rendering/nodes/canvas3d', () => {
     expect(add).toHaveBeenCalledWith({ kind: 'image-sprite' });
   });
 
+  it('renders folder icon nodes without a backing mesh', () => {
+    const meshesRef = { current: new Map<string, unknown>() };
+
+    createNodeThreeObject({
+      meshesRef: meshesRef as never,
+      showLabelsRef: { current: false },
+      spritesRef: { current: new Map() } as never,
+    }, createNode({
+      id: 'src',
+      label: 'src',
+      color: 'rgba(0, 0, 0, 0)',
+      imageUrl: 'https://example.com/folder.svg',
+      nodeType: 'folder',
+    }));
+
+    expect(createNodeMesh).not.toHaveBeenCalled();
+    expect(createImageSprite).toHaveBeenCalledWith('https://example.com/folder.svg', 6);
+    expect(add).toHaveBeenCalledWith({ kind: 'image-sprite' });
+    expect(add).not.toHaveBeenCalledWith({ kind: 'mesh' });
+    expect(meshesRef.current.has('src')).toBe(false);
+  });
+
   it('positions the label sprite above the node using the scaled node size', () => {
     createNodeThreeObject({
       graphAppearanceRef: { current: { ...DEFAULT_GRAPH_APPEARANCE, labelForeground: '#ffffff' } },
