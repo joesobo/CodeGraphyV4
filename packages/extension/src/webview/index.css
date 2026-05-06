@@ -71,7 +71,7 @@
     --cg-list-hover-background: var(--vscode-list-hoverBackground, var(--cg-accent));
     --cg-list-hover-foreground: var(--vscode-list-hoverForeground, var(--cg-foreground));
     --cg-link: var(--vscode-textLink-foreground, var(--cg-primary));
-    --cg-graph-background: color-mix(in srgb, var(--cg-background) 96%, var(--cg-border) 4%);
+    --cg-graph-background: color-mix(in srgb, var(--cg-background) 88%, var(--cg-border) 12%);
     --cg-graph-border: var(--cg-transparent);
     --cg-graph-label-foreground: var(--vscode-foreground, CanvasText);
     --cg-graph-label-muted-foreground: var(--vscode-descriptionForeground, GrayText);
