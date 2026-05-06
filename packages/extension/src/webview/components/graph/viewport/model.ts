@@ -17,7 +17,8 @@ import type { GraphAppearance } from '../appearance/model';
 import { postMessage } from '../../../vscodeApi';
 
 export interface GraphViewportModel {
-  backgroundColor: string;
+  canvasBackgroundColor: string;
+  containerBackgroundColor: string;
   borderColor: string;
   menuEntries: GraphContextMenuEntry[];
   onSurface3dError(this: void, error: Error): void;
@@ -95,7 +96,7 @@ export function useGraphViewportModel({
     nodes: graphState.graphData.nodes,
   });
 
-  const { backgroundColor, borderColor } = getGraphSurfaceColors(appearance);
+  const { canvasBackgroundColor, containerBackgroundColor, borderColor } = getGraphSurfaceColors(appearance);
   const onSurface3dError = (error: Error): void => {
     handleGraphSurface3dError({
       error,
@@ -105,7 +106,8 @@ export function useGraphViewportModel({
   };
 
   return {
-    backgroundColor,
+    canvasBackgroundColor,
+    containerBackgroundColor,
     borderColor,
     menuEntries,
     onSurface3dError,

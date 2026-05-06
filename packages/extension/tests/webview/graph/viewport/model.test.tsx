@@ -10,7 +10,11 @@ const harness = vi.hoisted(() => ({
 	buildGraphContextMenuEntries: vi.fn(() => [{ id: 'menu', kind: 'action', label: 'Menu', action: { type: 'noop' } }]),
 	buildGraphSharedPropsOptions: vi.fn((options: Record<string, unknown>) => options),
 	buildSharedGraphProps: vi.fn(() => ({ shared: true })),
-	getGraphSurfaceColors: vi.fn(() => ({ backgroundColor: '#f5f5f5', borderColor: '#d4d4d4' })),
+	getGraphSurfaceColors: vi.fn(() => ({
+		canvasBackgroundColor: 'transparent',
+		containerBackgroundColor: 'var(--cg-popover-translucent)',
+		borderColor: '#d4d4d4',
+	})),
 	handleGraphSurface3dError: vi.fn(),
 	postMessage: vi.fn(),
 }));
@@ -196,7 +200,8 @@ describe('graph/viewport/model', () => {
 		});
 		expect(harness.getGraphSurfaceColors).toHaveBeenCalledWith(undefined);
 		expect(result.current.sharedProps).toEqual({ shared: true });
-		expect(result.current.backgroundColor).toBe('#f5f5f5');
+		expect(result.current.canvasBackgroundColor).toBe('transparent');
+		expect(result.current.containerBackgroundColor).toBe('var(--cg-popover-translucent)');
 		expect(result.current.borderColor).toBe('#d4d4d4');
 
 		result.current.onSurface3dError(new Error('WebGL failed'));

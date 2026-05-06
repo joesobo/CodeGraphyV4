@@ -221,7 +221,8 @@ describe('graph/viewport/shell', () => {
 			renderPluginOverlays: vi.fn(),
 		});
 		harness.useGraphViewportModel.mockReturnValue({
-			backgroundColor: '#18181b',
+			canvasBackgroundColor: 'transparent',
+			containerBackgroundColor: 'var(--cg-popover-translucent)',
 			borderColor: 'rgb(63, 63, 70)',
 			menuEntries: [{ id: 'menu', kind: 'action', label: 'Menu', action: { type: 'noop' } }],
 			onSurface3dError: vi.fn(),
@@ -307,7 +308,8 @@ describe('graph/viewport/shell', () => {
 			viewportRuntime: expect.objectContaining({ containerSize: { height: 320, width: 480 } }),
 		}));
 		expect(harness.viewport).toHaveBeenCalledWith(expect.objectContaining({
-			backgroundColor: '#18181b',
+			canvasBackgroundColor: 'transparent',
+			containerBackgroundColor: 'var(--cg-popover-translucent)',
 			borderColor: 'rgb(63, 63, 70)',
 			containerRef: graphState.containerRef,
 			directionMode: 'arrows',

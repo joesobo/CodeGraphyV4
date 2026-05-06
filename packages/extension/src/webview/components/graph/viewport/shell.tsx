@@ -141,7 +141,8 @@ export function GraphViewportShell({
 
   return (
     <Viewport
-      backgroundColor={viewportModel.backgroundColor}
+      canvasBackgroundColor={viewportModel.canvasBackgroundColor}
+      containerBackgroundColor={viewportModel.containerBackgroundColor}
       borderColor={viewportModel.borderColor}
       containerRef={graphState.containerRef}
       directionMode={viewState.directionMode}

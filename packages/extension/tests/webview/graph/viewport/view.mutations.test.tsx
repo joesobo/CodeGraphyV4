@@ -78,7 +78,8 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 
   render(
     <Viewport
-      backgroundColor="#111111"
+      canvasBackgroundColor="transparent"
+      containerBackgroundColor="var(--cg-popover-translucent)"
       borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
@@ -198,12 +199,12 @@ describe('Viewport (mutation targets)', () => {
   });
 
   it('applies recessed graph stage spacing without an outline border', () => {
-    renderViewport({ backgroundColor: '#aabbcc', borderColor: '#ddeeff' });
+    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)', borderColor: '#ddeeff' });
 
     const container = document.querySelector('.graph-container') as HTMLElement;
     expect(container).toHaveClass('inset-2');
     expect(container).not.toHaveClass('m-1');
-    expect(container.style.backgroundColor).toBe('rgb(170, 187, 204)');
+    expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
     expect(container.style.borderWidth).toBe('0px');
   });
 

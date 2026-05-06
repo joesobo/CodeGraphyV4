@@ -2,14 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { getGraphSurfaceColors } from '../../../../../src/webview/components/graph/rendering/surface/colors';
 
 describe('webview/graph/theme', () => {
-  it('returns the theme-resolved graph colors by default', () => {
+  it('returns the default graph stage colors by default', () => {
     expect(getGraphSurfaceColors()).toEqual({
-      backgroundColor: 'Canvas',
+      canvasBackgroundColor: 'transparent',
+      containerBackgroundColor: 'Canvas',
       borderColor: 'GrayText',
     });
   });
 
-  it('returns provided graph surface colors', () => {
+  it('keeps the canvas transparent while the container owns the stage background', () => {
     expect(getGraphSurfaceColors({
       focusBorder: 'FocusBorder',
       labelForeground: 'LabelForeground',
@@ -23,7 +24,8 @@ describe('webview/graph/theme', () => {
       stageBorder: 'PanelBorder',
       transparent: 'transparent',
     })).toEqual({
-      backgroundColor: 'EditorSurface',
+      canvasBackgroundColor: 'transparent',
+      containerBackgroundColor: 'EditorSurface',
       borderColor: 'PanelBorder',
     });
   });
