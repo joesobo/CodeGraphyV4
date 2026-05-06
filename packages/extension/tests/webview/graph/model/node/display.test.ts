@@ -19,6 +19,11 @@ describe('graph/model/node/display', () => {
     expect(resolveDirectionColor('#123ABC')).toBe('#123ABC');
   });
 
+  it('keeps resolved CSS direction colors', () => {
+    expect(resolveDirectionColor('rgb(172, 157, 87)')).toBe('rgb(172, 157, 87)');
+    expect(resolveDirectionColor('rgba(172, 157, 87, 0.8)')).toBe('rgba(172, 157, 87, 0.8)');
+  });
+
   it('falls back to the default direction color for invalid colors', () => {
     expect(resolveDirectionColor('blue')).toBe(DEFAULT_DIRECTION_COLOR);
   });
