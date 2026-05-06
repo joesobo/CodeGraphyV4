@@ -23,7 +23,7 @@ export interface TooltipContentProps {
 export function TooltipHeader({ path }: { path: string }): React.ReactElement {
   return (
     <div className="px-3 pt-2 pb-1.5">
-      <p className="text-xs font-semibold text-[var(--vscode-textLink-foreground,#3794ff)] break-all leading-snug">
+      <p className="text-xs font-semibold text-link break-all leading-snug">
         {path}
       </p>
     </div>
@@ -57,11 +57,11 @@ export function TooltipExtraSections({
   if (sections.length === 0 && actions.length === 0) return null;
   return (
     <>
-      <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
+      <Separator className="bg-border" />
       <div className="px-3 py-1.5 space-y-1 text-[11px]">
         {sections.map((section, index) => (
           <div key={`${section.title}-${index}`}>
-            <p className="font-semibold text-[var(--vscode-textLink-foreground,#3794ff)]">
+            <p className="font-semibold text-link">
               {section.title}
             </p>
             <p className="font-mono whitespace-pre-wrap break-words">{section.content}</p>
@@ -90,8 +90,8 @@ export function TooltipExtraSections({
 export function Row({ label, value }: { label: string; value: string }): React.ReactElement {
   return (
     <div className="flex justify-between gap-3">
-      <span className="text-[var(--vscode-descriptionForeground,#8c8c8c)]">{label}</span>
-      <span className="text-[var(--vscode-editorHoverWidget-foreground,#cccccc)] text-right">{value}</span>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-popover-foreground text-right">{value}</span>
     </div>
   );
 }

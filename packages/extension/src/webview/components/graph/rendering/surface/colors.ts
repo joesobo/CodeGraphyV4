@@ -1,12 +1,13 @@
-import type { ThemeKind } from '../../../../theme/useTheme';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
 
-export function getGraphSurfaceColors(theme: ThemeKind): {
-  backgroundColor: string;
+export function getGraphSurfaceColors(appearance: GraphAppearance = DEFAULT_GRAPH_APPEARANCE): {
+  canvasBackgroundColor: string;
+  containerBackgroundColor: string;
   borderColor: string;
 } {
-  const isLight = theme === 'light';
   return {
-    backgroundColor: isLight ? '#f5f5f5' : '#18181b',
-    borderColor: isLight ? '#d4d4d4' : 'rgb(63, 63, 70)',
+    canvasBackgroundColor: appearance.transparent,
+    containerBackgroundColor: appearance.stageBackground,
+    borderColor: appearance.stageBorder,
   };
 }

@@ -3,6 +3,7 @@ import {
   resolveDirectionColor,
   type FGLink,
 } from '../../../model/build';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../../appearance/model';
 import { resolveLinkEndpointId } from '../../../support/linkTargets';
 import type { LinkRenderingDependencies } from '../contracts';
 
@@ -15,11 +16,11 @@ export function getGraphLinkColor(
   const sourceId = resolveLinkEndpointId(link.source);
   const targetId = resolveLinkEndpointId(link.target);
   const highlighted = dependencies.highlightedNodeRef.current;
-  const isLight = dependencies.themeRef.current === 'light';
   if (!highlighted) return link.baseColor ?? DEFAULT_DIRECTION_COLOR;
   const isConnected = sourceId === highlighted || targetId === highlighted;
-  if (isConnected) return '#60a5fa';
-  return isLight ? '#e2e8f0' : '#2d3748';
+  const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
+  if (isConnected) return appearance.linkHighlight;
+  return appearance.linkMuted;
 }
 
 export function getGraphDirectionalColor(

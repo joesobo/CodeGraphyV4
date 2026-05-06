@@ -39,7 +39,7 @@ describe('SearchBarResults (mutation targets)', () => {
     );
     const span = screen.getByText('Invalid regex');
     expect(span.className).toContain('text-xs');
-    expect(span.className).toContain('errorForeground');
+    expect(span.className).toContain('text-[var(--cg-error-foreground)]');
   });
 
   it('clear button has rounded hover background styling', () => {
@@ -67,7 +67,7 @@ describe('SearchBarResults (mutation targets)', () => {
       />
     );
     const button = screen.getByTitle('Clear search (Escape)');
-    expect(button.className).toContain('placeholderForeground');
+    expect(button.className).toContain('text-[var(--cg-input-placeholder)]');
   });
 
   it('clear button has hover foreground text color', () => {

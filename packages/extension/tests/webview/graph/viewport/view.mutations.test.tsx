@@ -78,7 +78,8 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 
   render(
     <Viewport
-      backgroundColor="#111111"
+      canvasBackgroundColor="transparent"
+      containerBackgroundColor="var(--cg-popover-translucent)"
       borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
@@ -147,7 +148,7 @@ describe('Viewport (mutation targets)', () => {
     renderViewport({ menuEntries: entries });
 
     const deleteButton = screen.getByRole('button', { name: /delete file/i });
-    expect(deleteButton.className).toContain('text-red');
+    expect(deleteButton.className).toContain('text-[var(--cg-error-foreground)]');
   });
 
   it('does not render destructive class on non-destructive items', () => {
@@ -163,7 +164,7 @@ describe('Viewport (mutation targets)', () => {
     renderViewport({ menuEntries: entries });
 
     const openButton = screen.getByRole('button', { name: /open file/i });
-    expect(openButton.className || '').not.toContain('text-red');
+    expect(openButton.className || '').not.toContain('text-[var(--cg-error-foreground)]');
   });
 
   it('renders shortcut text when entry has a shortcut', () => {
@@ -197,12 +198,14 @@ describe('Viewport (mutation targets)', () => {
     expect(screen.queryByTestId('shortcut')).not.toBeInTheDocument();
   });
 
-  it('applies background color and border color styles to the container', () => {
-    renderViewport({ backgroundColor: '#aabbcc', borderColor: '#ddeeff' });
+  it('applies recessed graph stage spacing without an outline border', () => {
+    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)', borderColor: '#ddeeff' });
 
     const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.backgroundColor).toBe('rgb(170, 187, 204)');
-    expect(container.style.borderColor).toBe('rgb(221, 238, 255)');
+    expect(container).toHaveClass('inset-2');
+    expect(container).not.toHaveClass('m-1');
+    expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
+    expect(container.style.borderWidth).toBe('0px');
   });
 
   it('renders separator entries as hr elements', () => {

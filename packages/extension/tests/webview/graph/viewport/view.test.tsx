@@ -136,7 +136,8 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 
   render(
     <Viewport
-      backgroundColor="#111111"
+      canvasBackgroundColor="transparent"
+      containerBackgroundColor="var(--cg-popover-translucent)"
       borderColor="#222222"
       containerRef={{ current: document.createElement('div') }}
       directionMode="arrows"
@@ -196,7 +197,7 @@ describe('Viewport', () => {
     expect(screen.queryByTestId('surface-3d')).not.toBeInTheDocument();
     expect(harness.surface2d).toHaveBeenCalledWith(
       expect.objectContaining({
-        backgroundColor: '#111111',
+        backgroundColor: 'transparent',
         directionMode: 'arrows',
         particleSize: 2,
       }),

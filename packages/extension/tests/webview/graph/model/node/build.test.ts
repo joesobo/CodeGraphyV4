@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { FAVORITE_BORDER_COLOR } from '../../../../../src/webview/components/graph/model/build';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../src/webview/components/graph/appearance/model';
 import { buildGraphNodes } from '../../../../../src/webview/components/graph/model/node/build';
 
 describe('graph/model/node/build', () => {
   it('applies focused and favorite styling while preserving graph node metadata', () => {
     const nodes = buildGraphNodes({
+      appearance: { ...DEFAULT_GRAPH_APPEARANCE, focusBorder: '#2563eb' },
       nodes: [
         {
           id: 'focus.ts',
@@ -49,6 +51,34 @@ describe('graph/model/node/build', () => {
       shape3D: 'cube',
       size: 18,
     });
+  });
+
+  it('keeps transparent folder icon nodes transparent in light themes', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        {
+          id: 'src',
+          label: 'src',
+          color: 'rgba(0, 0, 0, 0)',
+          nodeType: 'folder',
+          imageUrl: 'https://example.test/folder.svg',
+        },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src', 16]]),
+      theme: 'light',
+      favorites: new Set(),
+      timelineActive: false,
+    });
+
+    expect(nodes).toEqual([
+      expect.objectContaining({
+        id: 'src',
+        color: 'rgba(0, 0, 0, 0)',
+        imageUrl: 'https://example.test/folder.svg',
+        nodeType: 'folder',
+      }),
+    ]);
   });
 
   it('preserves previous positions and seeds new timeline nodes near connected neighbors', () => {

@@ -155,14 +155,14 @@ describe('timeline/Track', () => {
     const markers = screen.getAllByTestId('timeline-commit-marker');
     const firstMarkerFill = markers[0].firstElementChild as HTMLElement;
     expect(track).toHaveStyle({
-      border: '1px solid var(--vscode-panel-border, #333)',
+      border: '1px solid var(--cg-graph-border)',
       height: '20px',
     });
     expect(markers[0]).toHaveStyle({ left: '0%', width: '2px', zIndex: '1' });
     expect(markers[1]).toHaveStyle({ left: '50%' });
     expect(markers[2]).toHaveStyle({ left: '100%' });
     expect(firstMarkerFill).toHaveStyle({
-      backgroundColor: 'var(--vscode-foreground, #ccc)',
+      backgroundColor: 'var(--cg-foreground)',
       opacity: '0.4',
     });
     expect(screen.getByTestId('timeline-indicator')).toHaveStyle({ left: '37%' });

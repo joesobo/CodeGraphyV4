@@ -176,7 +176,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionColor' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
+	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -191,7 +191,6 @@ function createViewState(): Pick<
 		currentCommitSha: 'commit-b',
 		dagMode: 'td',
 		depthMode: false,
-		directionColor: '#22c55e',
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),
 		graphMode: '3d',
@@ -221,7 +220,8 @@ describe('graph/viewport/shell', () => {
 			renderPluginOverlays: vi.fn(),
 		});
 		harness.useGraphViewportModel.mockReturnValue({
-			backgroundColor: '#18181b',
+			canvasBackgroundColor: 'transparent',
+			containerBackgroundColor: 'var(--cg-popover-translucent)',
 			borderColor: 'rgb(63, 63, 70)',
 			menuEntries: [{ id: 'menu', kind: 'action', label: 'Menu', action: { type: 'noop' } }],
 			onSurface3dError: vi.fn(),
@@ -303,12 +303,12 @@ describe('graph/viewport/shell', () => {
 			},
 			handleEngineStop,
 			interactions,
-			theme: 'light',
 			viewState,
 			viewportRuntime: expect.objectContaining({ containerSize: { height: 320, width: 480 } }),
 		}));
 		expect(harness.viewport).toHaveBeenCalledWith(expect.objectContaining({
-			backgroundColor: '#18181b',
+			canvasBackgroundColor: 'transparent',
+			containerBackgroundColor: 'var(--cg-popover-translucent)',
 			borderColor: 'rgb(63, 63, 70)',
 			containerRef: graphState.containerRef,
 			directionMode: 'arrows',

@@ -26,7 +26,7 @@ describe('SearchBar (CSS class mutations)', () => {
     vi.restoreAllMocks();
   });
 
-  it('applies relative and flex to the outer container', () => {
+  it('applies the themed container classes to the outer container', () => {
     const { container } = render(
       <SearchBar
         value=""
@@ -37,9 +37,26 @@ describe('SearchBar (CSS class mutations)', () => {
     );
     const outer = container.firstElementChild as HTMLElement;
     expect(outer.className).toContain('relative');
-    expect(outer.className).toContain('flex');
-    expect(outer.className).toContain('items-center');
-    expect(outer.className).toContain('gap-2');
+    expect(outer.className).toContain('rounded-md');
+    expect(outer.className).toContain('border-[var(--cg-border-subtle)]');
+    expect(outer.className).toContain('bg-[var(--cg-popover-translucent)]');
+    expect(outer.className).toContain('p-2');
+  });
+
+  it('applies wrapped row layout to the control row', () => {
+    const { container } = render(
+      <SearchBar
+        value=""
+        onChange={mockOnChange}
+        options={defaultOptions}
+        onOptionsChange={mockOnOptionsChange}
+      />,
+    );
+    const row = container.firstElementChild?.firstElementChild as HTMLElement;
+    expect(row.className).toContain('flex');
+    expect(row.className).toContain('flex-wrap');
+    expect(row.className).toContain('items-center');
+    expect(row.className).toContain('gap-2');
   });
 
   it('applies flex-1 to the inner container', () => {
@@ -75,7 +92,7 @@ describe('SearchBar (CSS class mutations)', () => {
     expect(input.className).toContain('text-sm');
   });
 
-  it('applies VS Code input background class', () => {
+  it('applies themed input background class', () => {
     render(
       <SearchBar
         value=""
@@ -85,10 +102,10 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).toContain('vscode-input-background');
+    expect(input.className).toContain('bg-input');
   });
 
-  it('applies VS Code input foreground class', () => {
+  it('applies themed input foreground class', () => {
     render(
       <SearchBar
         value=""
@@ -98,7 +115,7 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).toContain('vscode-input-foreground');
+    expect(input.className).toContain('text-[var(--cg-input-foreground)]');
   });
 
   it('applies focus:outline-none class to input', () => {
@@ -140,7 +157,7 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).toContain('inputValidation-errorBorder');
+    expect(input.className).toContain('border-[var(--cg-input-error-border)]');
   });
 
   it('does not apply error border when regexError is not set', () => {
@@ -153,7 +170,7 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).not.toContain('inputValidation-errorBorder');
+    expect(input.className).not.toContain('border-[var(--cg-input-error-border)]');
   });
 
   it('applies focus border when no regex error', () => {
@@ -182,7 +199,7 @@ describe('SearchBar (CSS class mutations)', () => {
       />,
     );
     const input = screen.getByRole('textbox');
-    expect(input.className).not.toContain('focusBorder');
+    expect(input.className).not.toContain('focus:border-[var(--cg-focus-border)]');
   });
 
   it('applies placeholder foreground class', () => {

@@ -13,10 +13,12 @@ import { buildGraphSharedPropsOptions } from '../view/sharedPropsOptions';
 import { handleGraphSurface3dError } from '../rendering/surface/error';
 import { getGraphSurfaceColors } from '../rendering/surface/colors';
 import type { ThemeKind } from '../../../theme/useTheme';
+import type { GraphAppearance } from '../appearance/model';
 import { postMessage } from '../../../vscodeApi';
 
 export interface GraphViewportModel {
-  backgroundColor: string;
+  canvasBackgroundColor: string;
+  containerBackgroundColor: string;
   borderColor: string;
   menuEntries: GraphContextMenuEntry[];
   onSurface3dError(this: void, error: Error): void;
@@ -27,7 +29,8 @@ export interface GraphViewportModelOptions {
   graphState: Pick<UseGraphStateResult, 'contextSelection' | 'graphData'>;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
-  theme: ThemeKind;
+  appearance?: GraphAppearance;
+  theme?: ThemeKind;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize'>;
   viewState: Pick<
     GraphViewStoreState,
@@ -59,7 +62,7 @@ export function useGraphViewportModel({
   graphState,
   interactions,
   handleEngineStop,
-  theme,
+  appearance,
   viewportRuntime,
   viewState,
 }: GraphViewportModelOptions): GraphViewportModel {
@@ -93,7 +96,7 @@ export function useGraphViewportModel({
     nodes: graphState.graphData.nodes,
   });
 
-  const { backgroundColor, borderColor } = getGraphSurfaceColors(theme);
+  const { canvasBackgroundColor, containerBackgroundColor, borderColor } = getGraphSurfaceColors(appearance);
   const onSurface3dError = (error: Error): void => {
     handleGraphSurface3dError({
       error,
@@ -103,7 +106,8 @@ export function useGraphViewportModel({
   };
 
   return {
-    backgroundColor,
+    canvasBackgroundColor,
+    containerBackgroundColor,
     borderColor,
     menuEntries,
     onSurface3dError,

@@ -2,9 +2,7 @@ import React from 'react';
 import SettingsPanel from '../../../components/settingsPanel/Drawer';
 import PluginsPanel from '../../../components/plugins/Panel';
 import LegendsPanel from '../../../components/legends/panel/view';
-import NodesPanel from '../../../components/nodes/Panel';
-import EdgesPanel from '../../../components/edges/Panel';
-import ExportPanel from '../../../components/export/Panel';
+import GraphScopePanel from '../../../components/graphScope/Panel';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
 import { GraphCornerControls } from '../../../components/graphCornerControls/view';
 
@@ -29,12 +27,10 @@ export function PanelStack({
         pluginHost={pluginHost}
         slot="node-details"
         data-testid="node-details-slot"
-        className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
+        className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
       />
-      <NodesPanel isOpen={activePanel === 'nodes'} onClose={onClosePanel} />
-      <EdgesPanel isOpen={activePanel === 'edges'} onClose={onClosePanel} />
+      <GraphScopePanel isOpen={activePanel === 'graphScope'} onClose={onClosePanel} />
       <LegendsPanel isOpen={activePanel === 'legends'} onClose={onClosePanel} />
-      <ExportPanel isOpen={activePanel === 'export'} onClose={onClosePanel} />
       <PluginsPanel isOpen={activePanel === 'plugins'} onClose={onClosePanel} />
       <SettingsPanel isOpen={activePanel === 'settings'} onClose={onClosePanel} />
       {hasGraphNodes && activePanel === 'none' ? (

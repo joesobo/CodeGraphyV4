@@ -63,12 +63,12 @@ describe('timeline/CommitList', () => {
     expect(buttons[0]).toHaveTextContent('Tighten timeline layout');
     expect(within(buttons[0]).getByText('ccc333c', { selector: 'span.font-mono' })).toBeInTheDocument();
     expect(within(buttons[0]).queryByText(commits[2].sha, { selector: 'span.font-mono' })).not.toBeInTheDocument();
-    expect(buttons[0]).toHaveClass('hover:bg-[var(--vscode-list-hoverBackground,#2a2d2e)]');
+    expect(buttons[0]).toHaveClass('hover:bg-[var(--cg-list-hover-background)]');
     expect(buttons[1]).toHaveAttribute('aria-current', 'true');
     expect(buttons[1]).toHaveTextContent('Add timeline controls');
     expect(buttons[1]).toHaveClass(
-      'bg-[var(--vscode-list-activeSelectionBackground,#264f78)]',
-      'text-[var(--vscode-list-activeSelectionForeground,#fff)]',
+      'bg-[var(--cg-list-active-background)]',
+      'text-[var(--cg-list-active-foreground)]',
     );
 
     expect(screen.getByTestId('timeline-commit-list-scroll')).toHaveClass('overflow-y-auto');

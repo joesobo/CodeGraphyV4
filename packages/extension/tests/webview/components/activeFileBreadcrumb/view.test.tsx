@@ -19,9 +19,9 @@ describe('ActiveFileBreadcrumb', () => {
 
     expect(button).toBeInTheDocument();
     expect(screen.getAllByText('›')).toHaveLength(2);
-    expect(src).toHaveClass('truncate', 'text-[var(--vscode-descriptionForeground,#9ca3af)]');
-    expect(game).toHaveClass('truncate', 'text-[var(--vscode-descriptionForeground,#9ca3af)]');
-    expect(file).toHaveClass('truncate', 'font-medium', 'text-[var(--vscode-foreground,#d4d4d4)]');
+    expect(src).toHaveClass('truncate', 'text-muted-foreground');
+    expect(game).toHaveClass('truncate', 'text-muted-foreground');
+    expect(file).toHaveClass('truncate', 'font-medium', 'text-foreground');
   });
 
   it('filters empty breadcrumb segments from repeated or leading slashes', () => {

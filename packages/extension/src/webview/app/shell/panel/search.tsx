@@ -29,7 +29,7 @@ export function SearchHeader({
   onSearchOptionsChange,
 }: SearchHeaderProps): React.ReactElement {
   return (
-    <div className="flex-shrink-0 px-2 pt-2 pb-1 border-b border-[var(--vscode-panel-border,#3c3c3c)]">
+    <div className="flex-shrink-0 px-2 pt-2 pb-1 border-b border-border">
       <SearchBar
         value={searchQuery}
         onChange={onSearchQueryChange}

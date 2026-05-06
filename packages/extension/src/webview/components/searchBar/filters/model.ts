@@ -113,6 +113,19 @@ export function getDisabledFilterPatterns(
   return Array.from(current);
 }
 
+export function getDisabledFilterPatternGroup(
+  currentPatterns: readonly string[],
+  groupPatterns: readonly string[],
+  enabled: boolean,
+): string[] {
+  const group = new Set(groupPatterns);
+  if (enabled) {
+    return currentPatterns.filter(pattern => !group.has(pattern));
+  }
+
+  return Array.from(new Set([...currentPatterns, ...groupPatterns]));
+}
+
 export function commitFilterPatternState(
   source: 'custom' | 'plugin',
   pattern: string,

@@ -2,17 +2,31 @@ import { describe, expect, it } from 'vitest';
 import { getGraphSurfaceColors } from '../../../../../src/webview/components/graph/rendering/surface/colors';
 
 describe('webview/graph/theme', () => {
-  it('returns the dark graph colors by default', () => {
-    expect(getGraphSurfaceColors('dark')).toEqual({
-      backgroundColor: '#18181b',
-      borderColor: 'rgb(63, 63, 70)',
+  it('returns the default graph stage colors by default', () => {
+    expect(getGraphSurfaceColors()).toEqual({
+      canvasBackgroundColor: 'transparent',
+      containerBackgroundColor: 'Canvas',
+      borderColor: 'GrayText',
     });
   });
 
-  it('returns the light graph colors for light theme', () => {
-    expect(getGraphSurfaceColors('light')).toEqual({
-      backgroundColor: '#f5f5f5',
-      borderColor: '#d4d4d4',
+  it('keeps the canvas transparent while the container owns the stage background', () => {
+    expect(getGraphSurfaceColors({
+      focusBorder: 'FocusBorder',
+      labelForeground: 'LabelForeground',
+      labelMutedForeground: 'LabelMutedForeground',
+      linkHighlight: 'LinkHighlight',
+      linkMuted: 'LinkMuted',
+      meshDimmed: 'MeshDimmed',
+      meshSelected: 'MeshSelected',
+      nodeSelectionBorder: 'NodeSelectionBorder',
+      stageBackground: 'EditorSurface',
+      stageBorder: 'PanelBorder',
+      transparent: 'transparent',
+    })).toEqual({
+      canvasBackgroundColor: 'transparent',
+      containerBackgroundColor: 'EditorSurface',
+      borderColor: 'PanelBorder',
     });
   });
 });

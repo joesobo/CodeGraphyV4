@@ -127,7 +127,7 @@ export function LegendColorInput({
             type="button"
             disabled={disabled}
             title={`Edit ${ariaLabel}`}
-            className="relative block h-5 w-8 shrink-0 overflow-hidden rounded-sm border border-black/10 disabled:cursor-not-allowed"
+            className="relative block h-5 w-5 shrink-0 overflow-hidden rounded-full border border-border disabled:cursor-not-allowed"
             style={{ backgroundColor: displayedColor }}
           />
         </PopoverTrigger>

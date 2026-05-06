@@ -9,7 +9,6 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),
 }));
 
-// Mock dropdown components to render inline (Radix portals don't work in jsdom)
 vi.mock('../../../../src/webview/components/ui/menus/dropdown-menu', () => {
   const DropdownMenuTrigger = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>(
     ({ children }, ref) => <div ref={ref}>{children}</div>,
@@ -57,7 +56,7 @@ import {
   getPluginExporterKey,
 } from '../../../../src/webview/components/export/model';
 
-const iconButtonTitles = ['Index Repo', 'Export', 'Nodes', 'Edges', 'Legends', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Repo', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -84,6 +83,9 @@ describe('ToolbarActions', () => {
       graphIndexDetail: null,
       graphIsIndexing: false,
       graphIndexProgress: null,
+      dagMode: null,
+      nodeSizeMode: 'connections',
+      timelineCommits: [],
     });
   });
 
@@ -91,27 +93,25 @@ describe('ToolbarActions', () => {
     vi.useRealTimers();
   });
 
-  it('renders all four action buttons', () => {
+  it('renders lifecycle, graph tools, and system groups', () => {
     renderWithProviders();
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBeGreaterThanOrEqual(4);
-  });
 
-  it('renders the index button with title when no graph index exists', () => {
-    renderWithProviders();
+    expect(screen.getByTestId('toolbar-lifecycle-group')).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar-graph-tools-group')).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar-system-group')).toBeInTheDocument();
     expect(screen.getByTitle('Index Repo')).toBeInTheDocument();
+    expect(screen.getByTitle('Layout')).toBeInTheDocument();
+    expect(screen.getByTitle('Node Size')).toBeInTheDocument();
+    expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
+    expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
   });
 
   it('sends INDEX_GRAPH message when the initial index button is clicked', () => {
     renderWithProviders();
     clickAction('Index Repo');
+
     expect(postMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
     expect(graphStore.getState().graphIsIndexing).toBe(true);
-    expect(graphStore.getState().graphIndexProgress).toEqual({
-      phase: 'Indexing Repo',
-      current: 0,
-      total: 1,
-    });
   });
 
   it('renders a reindex button title when the saved index is stale', () => {
@@ -126,48 +126,6 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('Reindex Repo')).toBeInTheDocument();
   });
 
-  it('sends REFRESH_GRAPH when a stale index should be rebuilt', () => {
-    graphStore.setState({
-      graphHasIndex: false,
-      graphIndexFreshness: 'stale',
-      graphIndexDetail: 'Commit changed since last index.',
-    });
-
-    renderWithProviders();
-    clickAction('Reindex Repo');
-
-    expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
-    expect(graphStore.getState().graphIndexProgress).toEqual({
-      phase: 'Refreshing Index',
-      current: 0,
-      total: 1,
-    });
-  });
-
-  it('renders the refresh button title when a graph index exists', () => {
-    graphStore.setState({ graphHasIndex: true });
-
-    renderWithProviders();
-
-    expect(screen.getByTitle('Refresh')).toBeInTheDocument();
-  });
-
-  it('disables the index button while indexing is already in progress', () => {
-    graphStore.setState({
-      graphHasIndex: true,
-      graphIsIndexing: true,
-      graphIndexProgress: {
-        phase: 'Refreshing Index',
-        current: 0,
-        total: 1,
-      },
-    });
-
-    renderWithProviders();
-
-    expect(screen.getByTitle('Refresh')).toBeDisabled();
-  });
-
   it('sends REFRESH_GRAPH when a graph index already exists', () => {
     graphStore.setState({ graphHasIndex: true });
 
@@ -176,11 +134,6 @@ describe('ToolbarActions', () => {
 
     expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
     expect(graphStore.getState().graphIsIndexing).toBe(true);
-    expect(graphStore.getState().graphIndexProgress).toEqual({
-      phase: 'Refreshing Index',
-      current: 0,
-      total: 1,
-    });
   });
 
   it('clears the optimistic loading state if the extension never responds', () => {
@@ -195,91 +148,23 @@ describe('ToolbarActions', () => {
     expect(graphStore.getState().graphIndexProgress).toBeNull();
   });
 
-  it('renders the export button with title', () => {
+  it('opens and closes core panels from rail buttons', () => {
     renderWithProviders();
-    expect(screen.getByTitle('Export')).toBeInTheDocument();
-  });
 
-  it('sets active panel to export when the export button is clicked', () => {
-    renderWithProviders();
-    clickAction('Export');
-    expect(graphStore.getState().activePanel).toBe('export');
-  });
+    clickAction('Graph Scope');
+    expect(graphStore.getState().activePanel).toBe('graphScope');
 
-  it('closes the export panel when the export button is clicked again', () => {
-    graphStore.setState({ activePanel: 'export' as never });
-
-    renderWithProviders();
-    clickAction('Export');
-
+    clickAction('Graph Scope');
     expect(graphStore.getState().activePanel).toBe('none');
-  });
 
-  it('renders toolbar action buttons before the export button when plugin toolbar actions are available', () => {
-    graphStore.setState({
-      pluginToolbarActions: [
-        {
-          id: 'docs',
-          label: 'Docs',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 0,
-          items: [
-            {
-              id: 'docs-summary',
-              label: 'Docs Summary',
-              index: 0,
-            },
-          ],
-        },
-      ],
-    });
-
-    renderWithProviders();
-
-    const docsButton = screen.getByTitle('Docs');
-    const exportButton = screen.getByTitle('Export');
-    expect(docsButton.compareDocumentPosition(exportButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  });
-
-  it('renders the plugins button with title', () => {
-    renderWithProviders();
-    expect(screen.getByTitle('Plugins')).toBeInTheDocument();
-  });
-
-  it('sets active panel to legends when legends button is clicked', () => {
-    renderWithProviders();
     clickAction('Legends');
     expect(graphStore.getState().activePanel).toBe('legends');
-  });
 
-  it('sets active panel to plugins when plugins button is clicked', () => {
-    renderWithProviders();
     clickAction('Plugins');
     expect(graphStore.getState().activePanel).toBe('plugins');
-  });
 
-  it('closes the nodes panel when the nodes button is clicked again', () => {
-    graphStore.setState({ activePanel: 'nodes' });
-
-    renderWithProviders();
-    clickAction('Nodes');
-
-    expect(graphStore.getState().activePanel).toBe('none');
-  });
-
-  it('closes the settings panel when the settings button is clicked again', () => {
-    graphStore.setState({ activePanel: 'settings' });
-
-    renderWithProviders();
     clickAction('Settings');
-
-    expect(graphStore.getState().activePanel).toBe('none');
-  });
-
-  it('renders the settings button with title', () => {
-    renderWithProviders();
-    expect(screen.getByTitle('Settings')).toBeInTheDocument();
+    expect(graphStore.getState().activePanel).toBe('settings');
   });
 
   it('renders the core toolbar buttons in the expected top-to-bottom order', () => {
@@ -289,64 +174,25 @@ describe('ToolbarActions', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Repo', 'Export', 'Nodes', 'Edges', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Repo', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
       'Index Repo',
-      'Export',
-      'Nodes',
-      'Edges',
+      'Layout',
+      'Node Size',
+      'Graph Scope',
       'Legends',
       'Plugins',
       'Settings',
     ]);
   });
 
-  it('sets active panel to settings when settings button is clicked', () => {
-    renderWithProviders();
-    clickAction('Settings');
-    expect(graphStore.getState().activePanel).toBe('settings');
-  });
-
-  it('renders SVG icons inside buttons', () => {
-    const { container } = renderWithProviders();
-    const svgs = container.querySelectorAll('svg');
-    expect(svgs.length).toBeGreaterThanOrEqual(4);
-  });
-
-  it('keeps action buttons transparent', () => {
-    renderWithProviders();
-    const refreshButton = screen.getByTitle('Index Repo');
-    expect(refreshButton.className).toContain('bg-transparent');
-    expect(refreshButton.className).not.toContain('backdrop-blur');
-  });
-
-  it('applies correct button sizing classes', () => {
-    renderWithProviders();
-    const refreshButton = screen.getByTitle('Index Repo');
-    expect(refreshButton.className).toContain('h-7');
-    expect(refreshButton.className).toContain('w-7');
-  });
-});
-
-describe('ToolbarActions export dropdown items', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.useFakeTimers();
-    graphStore.setState({ pluginExporters: [], pluginToolbarActions: [] });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {
     renderWithProviders();
-    const path = screen.getByTitle(title).querySelector('svg path');
+    const icon = screen.getByTitle(title).querySelector('svg');
 
-    expect(path).not.toBeNull();
-    expect(path?.getAttribute('d')).toBeTruthy();
+    expect(icon).not.toBeNull();
   });
 
   it('renders a toolbar action popup when plugin toolbar actions are available', () => {

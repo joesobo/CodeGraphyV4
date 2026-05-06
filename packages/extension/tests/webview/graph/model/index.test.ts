@@ -11,6 +11,7 @@ import {
   processEdges,
   resolveDirectionColor,
 } from '../../../../src/webview/components/graph/model/build';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../../../src/webview/components/graph/appearance/model';
 
 describe('graph/model/build', () => {
   it('keeps valid direction colors', () => {
@@ -177,6 +178,7 @@ describe('graph/model/build', () => {
     };
 
     const graphData = buildGraphData({
+      appearance: { ...DEFAULT_GRAPH_APPEARANCE, focusBorder: '#2563eb' },
       data,
       nodeSizeMode: 'uniform',
       theme: 'light',

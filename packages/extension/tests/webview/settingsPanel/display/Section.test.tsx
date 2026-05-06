@@ -1,6 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 import { DisplaySection } from '../../../../src/webview/components/settingsPanel/display/Section';
 import { graphStore } from '../../../../src/webview/store/state';
 
@@ -14,7 +13,6 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     bidirectionalMode: 'separate',
     directionMode: 'arrows',
-    directionColor: DEFAULT_DIRECTION_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -44,6 +42,17 @@ function renderContent(storeOverrides: Record<string, unknown> = {}) {
   return render(<DisplaySection />);
 }
 
+function getSliderByRange(min: string, max: string, occurrence = 0): HTMLElement {
+  const slider = screen.getAllByRole('slider').filter(
+    (element) =>
+      element.getAttribute('aria-valuemin') === min &&
+      element.getAttribute('aria-valuemax') === max,
+  )[occurrence];
+
+  expect(slider).toBeTruthy();
+  return slider;
+}
+
 describe('DisplaySection', () => {
   beforeEach(() => {
     sentMessages.length = 0;
@@ -52,9 +61,52 @@ describe('DisplaySection', () => {
   it('renders direction mode buttons', () => {
     renderContent();
 
+    expect(screen.getByRole('button', { name: /^2D$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^3D$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Arrows$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Particles$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^None$/i })).toBeInTheDocument();
+  });
+
+  it('renders renderer and direction controls on separate rows', () => {
+    renderContent();
+
+    const rendererRow = screen.getByTestId('display-renderer-row');
+    const directionRow = screen.getByTestId('display-direction-row');
+
+    expect(rendererRow).toHaveTextContent('Renderer');
+    expect(rendererRow).not.toHaveTextContent('Direction');
+    expect(directionRow).toHaveTextContent('Direction');
+    expect(directionRow).not.toHaveTextContent('Renderer');
+  });
+
+  it('updates renderer mode from Display settings', () => {
+    renderContent({ graphMode: '2d' });
+
+    fireEvent.click(screen.getByRole('button', { name: /^3D$/i }));
+
+    expect(graphStore.getState().graphMode).toBe('3d');
+  });
+
+  it('posts depth mode and depth limit updates from Display settings', () => {
+    renderContent({ graphHasIndex: true, depthMode: false, depthLimit: 2, maxDepthLimit: 5 });
+
+    expect(screen.queryByRole('slider', { name: 'Depth limit' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Depth Mode'));
+    expect(graphStore.getState().depthMode).toBe(true);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_DEPTH_MODE',
+      payload: { depthMode: true },
+    });
+
+    const depthSlider = getSliderByRange('1', '5');
+    fireEvent.keyDown(depthSlider, { key: 'ArrowRight' });
+
+    expect(sentMessages).toContainEqual({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 3 },
+    });
   });
 
   it('marks the current direction mode button as pressed', () => {
@@ -95,12 +147,10 @@ describe('DisplaySection', () => {
     expect(screen.getByRole('button', { name: /^Combined$/i })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('renders the current direction color from store state', () => {
-    renderContent({
-      directionColor: '#123ABC',
-    });
+  it('does not render the direction color setting', () => {
+    renderContent();
 
-    expect(screen.getByLabelText('Direction Color')).toHaveValue('#123abc');
+    expect(screen.queryByLabelText('Direction Color')).not.toBeInTheDocument();
   });
 
   it('posts direction mode updates when selecting particles', () => {
@@ -169,15 +219,9 @@ describe('DisplaySection', () => {
     vi.useFakeTimers();
     renderContent({ directionMode: 'particles', particleSpeed: 0.0005 });
 
-    const speedSlider = screen.getAllByRole('slider').find(
-      (element) =>
-        element.getAttribute('aria-valuemin') === '1' &&
-        element.getAttribute('aria-valuemax') === '10'
-    );
+    const speedSlider = getSliderByRange('1', '10');
 
-    expect(speedSlider).toBeTruthy();
-
-    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
+    fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
     expect(graphStore.getState().particleSpeed).toBeCloseTo(0.001, 6);
 
     act(() => {
@@ -195,16 +239,10 @@ describe('DisplaySection', () => {
     vi.useFakeTimers();
     renderContent({ directionMode: 'particles', particleSpeed: 0.0005 });
 
-    const speedSlider = screen.getAllByRole('slider').find(
-      (element) =>
-        element.getAttribute('aria-valuemin') === '1' &&
-        element.getAttribute('aria-valuemax') === '10'
-    );
+    const speedSlider = getSliderByRange('1', '10');
 
-    expect(speedSlider).toBeTruthy();
-
-    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
-    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
+    fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
+    fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
 
     act(() => {
       vi.advanceTimersByTime(350);
@@ -248,27 +286,6 @@ describe('DisplaySection', () => {
     vi.useRealTimers();
   });
 
-  it('falls back to the default direction color and posts normalized updates', () => {
-    vi.useFakeTimers();
-    renderContent({ directionColor: 'invalid-color' });
-
-    const input = screen.getByLabelText('Direction Color');
-    expect(input).toHaveValue(DEFAULT_DIRECTION_COLOR);
-
-    fireEvent.change(input, { target: { value: '#abcdef' } });
-    expect(graphStore.getState().directionColor).toBe('#ABCDEF');
-
-    act(() => {
-      vi.advanceTimersByTime(150);
-    });
-
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_DIRECTION_COLOR',
-      payload: { directionColor: '#ABCDEF' },
-    });
-    vi.useRealTimers();
-  });
-
   it('does not render the legacy folder color field', () => {
     renderContent();
 
@@ -282,18 +299,9 @@ describe('DisplaySection', () => {
       particleSpeed: 0.0005,
     });
 
-    const speedSlider = screen.getAllByRole('slider').find(
-      (element) =>
-        element.getAttribute('aria-valuemin') === '1' &&
-        element.getAttribute('aria-valuemax') === '10'
-    );
+    const speedSlider = getSliderByRange('1', '10');
 
-    expect(speedSlider).toBeTruthy();
-
-    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
-    fireEvent.change(screen.getByLabelText('Direction Color'), {
-      target: { value: '#abcdef' },
-    });
+    fireEvent.keyDown(speedSlider, { key: 'ArrowRight' });
 
     unmount();
 
@@ -329,24 +337,4 @@ describe('DisplaySection', () => {
     });
   });
 
-  it('commits max files through blur and enter handlers', () => {
-    renderContent({ maxFiles: 20 });
-
-    const input = screen.getByDisplayValue('20');
-    fireEvent.change(input, { target: { value: '42' } });
-    fireEvent.keyDown(input, { key: 'Enter', currentTarget: { value: '42' } });
-
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_MAX_FILES',
-      payload: { maxFiles: 42 },
-    });
-
-    fireEvent.change(input, { target: { value: '5' } });
-    fireEvent.blur(input, { target: { value: '5' } });
-
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_MAX_FILES',
-      payload: { maxFiles: 5 },
-    });
-  });
 });

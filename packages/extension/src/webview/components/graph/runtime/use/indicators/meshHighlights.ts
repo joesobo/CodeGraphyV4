@@ -3,10 +3,12 @@ import {
 	type MutableRefObject,
 } from 'react';
 import * as THREE from 'three';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../appearance/model';
 import type { FGLink, FGNode } from '../../../model/build';
 
 interface UseMeshHighlightsOptions {
 	graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
+	appearance?: Pick<GraphAppearance, 'meshDimmed' | 'meshSelected'>;
 	highlightVersion: number;
 	highlightedNeighborsRef: MutableRefObject<Set<string>>;
 	highlightedNodeRef: MutableRefObject<string | null>;
@@ -19,10 +21,8 @@ export interface MeshHighlightVisuals {
 	opacity: number;
 }
 
-const DIMMED_COLOR = '#646464';
 const DIMMED_OPACITY = 0.3;
 const HIGHLIGHTED_OPACITY = 1.0;
-const SELECTED_COLOR = '#ffffff';
 
 export function findGraphNodeById(nodes: FGNode[], nodeId: string): FGNode | undefined {
 	return nodes.find(graphNode => graphNode.id === nodeId);
@@ -43,27 +43,29 @@ export function isMeshNodeHighlighted(options: {
 }
 
 export function getMeshHighlightVisuals(options: {
+	appearance?: Pick<GraphAppearance, 'meshDimmed' | 'meshSelected'>;
 	isHighlighted: boolean;
 	isSelected: boolean;
 	nodeColor: string;
 }): MeshHighlightVisuals {
-	const { isHighlighted, isSelected, nodeColor } = options;
+	const { appearance = DEFAULT_GRAPH_APPEARANCE, isHighlighted, isSelected, nodeColor } = options;
 
 	if (!isHighlighted) {
 		return {
-			color: DIMMED_COLOR,
+			color: appearance.meshDimmed,
 			opacity: DIMMED_OPACITY,
 		};
 	}
 
 	return {
-		color: isSelected ? SELECTED_COLOR : nodeColor,
+		color: isSelected ? appearance.meshSelected : nodeColor,
 		opacity: HIGHLIGHTED_OPACITY,
 	};
 }
 
 export function updateMeshHighlights(options: {
 	graphNodes: FGNode[];
+	appearance?: Pick<GraphAppearance, 'meshDimmed' | 'meshSelected'>;
 	highlighted: string | null;
 	highlightedNeighbors: ReadonlySet<string>;
 	meshes: ReadonlyMap<string, THREE.Mesh>;
@@ -71,6 +73,7 @@ export function updateMeshHighlights(options: {
 }): void {
 	const {
 		graphNodes,
+		appearance = DEFAULT_GRAPH_APPEARANCE,
 		highlighted,
 		highlightedNeighbors,
 		meshes,
@@ -85,6 +88,7 @@ export function updateMeshHighlights(options: {
 
 		const material = mesh.material as THREE.MeshLambertMaterial;
 		const visuals = getMeshHighlightVisuals({
+			appearance,
 			isHighlighted: isMeshNodeHighlighted({
 				highlighted,
 				highlightedNeighbors,
@@ -101,6 +105,7 @@ export function updateMeshHighlights(options: {
 
 export function useMeshHighlights({
 	graphDataRef,
+	appearance,
 	highlightVersion,
 	highlightedNeighborsRef,
 	highlightedNodeRef,
@@ -110,10 +115,11 @@ export function useMeshHighlights({
 	useEffect(() => {
 		updateMeshHighlights({
 			graphNodes: graphDataRef.current.nodes,
+			appearance,
 			highlighted: highlightedNodeRef.current,
 			highlightedNeighbors: highlightedNeighborsRef.current,
 			meshes: meshesRef.current,
 			selectedNodeIds: selectedNodesSetRef.current,
 		});
-	}, [graphDataRef, highlightVersion, highlightedNeighborsRef, highlightedNodeRef, meshesRef, selectedNodesSetRef]);
+	}, [appearance, graphDataRef, highlightVersion, highlightedNeighborsRef, highlightedNodeRef, meshesRef, selectedNodesSetRef]);
 }

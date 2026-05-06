@@ -33,9 +33,9 @@ export function ToggleButton({
       className={cn(
         'px-1.5 py-0.5 text-xs font-medium rounded transition-colors',
         'border',
-        active && !hasError && 'bg-[var(--vscode-inputOption-activeBackground,#007fd4)] border-[var(--vscode-inputOption-activeBorder,#007fd4)] text-[var(--vscode-inputOption-activeForeground,#ffffff)]',
-        !active && !hasError && 'bg-transparent border-transparent text-[var(--vscode-input-placeholderForeground,#6b7280)] hover:bg-[var(--vscode-toolbar-hoverBackground,#5a5d5e)]',
-        hasError && 'bg-[var(--vscode-inputValidation-errorBackground,#5a1d1d)] border-[var(--vscode-inputValidation-errorBorder,#be1100)] text-[var(--vscode-errorForeground,#f48771)]'
+        active && !hasError && 'bg-[var(--cg-input-option-active-background)] border-[var(--cg-input-option-active-border)] text-[var(--cg-input-option-active-foreground)]',
+        !active && !hasError && 'bg-transparent border-transparent text-[var(--cg-input-placeholder)] hover:bg-accent',
+        hasError && 'bg-[var(--cg-input-error-background)] border-[var(--cg-input-error-border)] text-[var(--cg-error-foreground)]'
       )}
     >
       {children}

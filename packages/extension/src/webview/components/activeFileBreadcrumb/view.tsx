@@ -22,7 +22,7 @@ export function ActiveFileBreadcrumb({
     <button
       type="button"
       aria-label={`Open ${filePath}`}
-      className="flex max-w-full items-center gap-1 overflow-hidden rounded-md px-1 py-1 text-left text-xs text-[var(--vscode-descriptionForeground,#9ca3af)] transition-colors hover:text-[var(--vscode-foreground,#d4d4d4)]"
+      className="flex max-w-full items-center gap-1 overflow-hidden rounded-md px-1 py-1 text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
       onClick={() => {
         postMessage({ type: 'OPEN_FILE', payload: { path: filePath } });
       }}
@@ -34,7 +34,7 @@ export function ActiveFileBreadcrumb({
             {index > 0 ? (
               <span
                 aria-hidden="true"
-                className="shrink-0 text-[var(--vscode-disabledForeground,#6b7280)]"
+                className="shrink-0 text-[var(--cg-disabled-foreground)]"
               >
                 ›
               </span>
@@ -43,8 +43,8 @@ export function ActiveFileBreadcrumb({
               className={[
                 'truncate',
                 isLast
-                  ? 'font-medium text-[var(--vscode-foreground,#d4d4d4)]'
-                  : 'text-[var(--vscode-descriptionForeground,#9ca3af)]',
+                  ? 'font-medium text-foreground'
+                  : 'text-muted-foreground',
               ].join(' ')}
             >
               {segment}

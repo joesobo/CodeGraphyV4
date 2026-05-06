@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { mdiClose, mdiFilterVariant } from '@mdi/js';
+import { mdiChevronDown, mdiChevronRight, mdiClose, mdiFilterVariant } from '@mdi/js';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '../../ui/overlay/popover';
 import { Switch } from '../../ui/switch';
 import { cn } from '../../ui/cn';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
@@ -15,6 +14,7 @@ import {
   commitFilterPatternState,
   editFilterPattern,
   filterPatternsEqual,
+  getDisabledFilterPatternGroup,
   getDisabledFilterPatterns,
   getEnabledFilterCount,
   removeFilterPattern,
@@ -94,7 +94,7 @@ function PatternList({
   empty: boolean;
 }): React.ReactElement {
   return (
-    <div className="max-h-32 overflow-y-auto rounded-md border border-[var(--vscode-panel-border,#3c3c3c)] bg-[var(--vscode-editor-background,#1f1f1f)] p-2">
+    <div className="rounded-md border border-border bg-background p-2">
       {empty ? (
         <p className="text-xs text-muted-foreground">No filters.</p>
       ) : (
@@ -136,7 +136,7 @@ function PatternRow({
         aria-label={source === 'plugin' ? `Plugin filter pattern ${pattern}` : `Edit filter pattern ${pattern}`}
         className={cn(
           'h-7 min-w-0 flex-1 border-0 bg-transparent px-0 font-mono text-xs shadow-none focus-visible:ring-0',
-          source === 'plugin' && 'cursor-default text-muted-foreground'
+          source === 'plugin' && 'cursor-default text-muted-foreground',
         )}
         onBlur={(event) => commitEdit(event.target.value)}
         onKeyDown={(event) => handlePatternInputKeyDown(event, commitEdit)}
@@ -316,8 +316,7 @@ function CustomFiltersSection({
         <Input
           id="new-filter-pattern"
           value={draftPattern}
-          onChange={(event) =>
-            updateDraftPattern(setDraftPattern, setDraftPendingPatterns, event.target.value)}
+          onChange={(event) => updateDraftPattern(setDraftPattern, setDraftPendingPatterns, event.target.value)}
           onKeyDown={(event) => event.key === 'Enter' && onAddPattern()}
           placeholder="**/src/app.ts"
           className="h-7 flex-1 text-xs"
@@ -358,6 +357,7 @@ function CustomFiltersSection({
 function PluginFiltersSection({
   disabledPlugin,
   enabled,
+  onPluginGroupToggle,
   onPluginPatternToggle,
   onSectionToggle,
   pluginPatterns,
@@ -365,11 +365,25 @@ function PluginFiltersSection({
 }: {
   disabledPlugin: ReadonlySet<string>;
   enabled: boolean;
+  onPluginGroupToggle: (group: IPluginFilterPatternGroup, enabled: boolean) => void;
   onPluginPatternToggle: (pattern: string, enabled: boolean) => void;
   onSectionToggle: (enabled: boolean) => void;
   pluginPatterns: string[];
   visiblePluginGroups: IPluginFilterPatternGroup[];
 }): React.ReactElement {
+  const [expandedPluginIds, setExpandedPluginIds] = useState<Set<string>>(() => new Set());
+  const togglePluginGroupExpanded = (pluginId: string): void => {
+    setExpandedPluginIds((current) => {
+      const next = new Set(current);
+      if (next.has(pluginId)) {
+        next.delete(pluginId);
+      } else {
+        next.add(pluginId);
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="space-y-1.5">
       <SectionHeader
@@ -382,25 +396,77 @@ function PluginFiltersSection({
       />
       <PatternList empty={pluginPatterns.length === 0}>
         {visiblePluginGroups.map((group) => (
-          <li key={group.pluginId} className="space-y-1">
-            <p className="px-1 text-[11px] font-medium text-muted-foreground">
-              {group.pluginName}
-            </p>
-            <ul className="space-y-1">
-              {group.patterns.map((pattern) => (
-                <PatternRow
-                  key={`${group.pluginId}:${pattern}`}
-                  enabled={!disabledPlugin.has(pattern)}
-                  pattern={pattern}
-                  source="plugin"
-                  onEnabledChange={(isEnabled) => onPluginPatternToggle(pattern, isEnabled)}
-                />
-              ))}
-            </ul>
-          </li>
+          <PluginFilterGroup
+            key={group.pluginId}
+            disabledPlugin={disabledPlugin}
+            expanded={expandedPluginIds.has(group.pluginId)}
+            group={group}
+            onExpandedChange={() => togglePluginGroupExpanded(group.pluginId)}
+            onPluginGroupToggle={onPluginGroupToggle}
+            onPluginPatternToggle={onPluginPatternToggle}
+          />
         ))}
       </PatternList>
     </div>
+  );
+}
+
+function PluginFilterGroup({
+  disabledPlugin,
+  expanded,
+  group,
+  onExpandedChange,
+  onPluginGroupToggle,
+  onPluginPatternToggle,
+}: {
+  disabledPlugin: ReadonlySet<string>;
+  expanded: boolean;
+  group: IPluginFilterPatternGroup;
+  onExpandedChange: () => void;
+  onPluginGroupToggle: (group: IPluginFilterPatternGroup, enabled: boolean) => void;
+  onPluginPatternToggle: (pattern: string, enabled: boolean) => void;
+}): React.ReactElement {
+  const enabled = isSectionEnabled(group.patterns, disabledPlugin);
+  const contentId = `plugin-filter-group-${group.pluginId}`;
+
+  return (
+    <li className="rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)]">
+      <div className="flex items-center gap-2 px-2 py-1.5">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
+          aria-expanded={expanded}
+          aria-controls={contentId}
+          aria-label={`${expanded ? 'Collapse' : 'Expand'} ${group.pluginName} plugin filters`}
+          onClick={onExpandedChange}
+        >
+          <MdiIcon path={expanded ? mdiChevronDown : mdiChevronRight} size={14} />
+        </Button>
+        <p className="min-w-0 flex-1 truncate text-[11px] font-medium text-muted-foreground">
+          {group.pluginName} <span>{group.patterns.length}</span>
+        </p>
+        <Switch
+          checked={enabled}
+          onCheckedChange={(isEnabled) => onPluginGroupToggle(group, isEnabled)}
+          aria-label={`${enabled ? 'Disable' : 'Enable'} plugin ${group.pluginName} filters`}
+        />
+      </div>
+      {expanded ? (
+        <ul id={contentId} className="space-y-1 border-t border-[var(--cg-border-subtle)] p-2">
+          {group.patterns.map((pattern) => (
+            <PatternRow
+              key={`${group.pluginId}:${pattern}`}
+              enabled={!disabledPlugin.has(pattern)}
+              pattern={pattern}
+              source="plugin"
+              onEnabledChange={(isEnabled) => onPluginPatternToggle(pattern, isEnabled)}
+            />
+          ))}
+        </ul>
+      ) : null}
+    </li>
   );
 }
 
@@ -418,6 +484,12 @@ export function FilterPopover({
   pluginGroups,
   pluginPatterns,
 }: FilterPopoverProps): React.ReactElement {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open ?? internalOpen;
+  const setOpen = (nextOpen: boolean): void => {
+    setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
   const {
     addablePatterns,
     canAdd,
@@ -461,6 +533,11 @@ export function FilterPopover({
     commitFilterPatternState('plugin', pattern, enabled);
   };
 
+  const handlePluginGroupToggle = (group: IPluginFilterPatternGroup, enabled: boolean) => {
+    onDisabledPluginPatternsChange(getDisabledFilterPatternGroup(disabledPluginPatterns, group.patterns, enabled));
+    group.patterns.forEach((pattern) => commitFilterPatternState('plugin', pattern, enabled));
+  };
+
   const handleCustomSectionToggle = (enabled: boolean) => {
     onDisabledCustomPatternsChange(enabled ? [] : customPatterns);
     commitFilterPatternGroupState('custom', enabled);
@@ -472,53 +549,60 @@ export function FilterPopover({
   };
 
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant={enabledCount > 0 ? 'secondary' : 'outline'}
-          size="sm"
-          className="h-7 px-2 text-xs"
-          title={formatExcludedCount(excludedCount)}
+    <>
+      <Button
+        variant={enabledCount > 0 ? 'secondary' : 'outline'}
+        size="sm"
+        className="h-7 px-2 text-xs"
+        aria-expanded={isOpen}
+        aria-label={`Filters, ${enabledCount} enabled`}
+        title={formatExcludedCount(excludedCount)}
+        onClick={() => setOpen(!isOpen)}
+      >
+        <MdiIcon path={mdiFilterVariant} size={14} />
+        {enabledCount}
+      </Button>
+      {isOpen ? (
+        <div
+          className="basis-full overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)]"
+          data-testid="filters-inline-surface"
         >
-          <MdiIcon path={mdiFilterVariant} size={14} />
-          Filters {enabledCount}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end">
-        <div className="border-b px-3 py-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium">Filters</h2>
-            <span className="text-xs text-muted-foreground">{enabledCount} enabled</span>
+          <div className="border-b px-3 py-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-medium">Filters</h2>
+              <span className="text-xs text-muted-foreground">{enabledCount} enabled</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">{formatExcludedCount(excludedCount)}</p>
           </div>
-          <p className="text-[11px] text-muted-foreground">{formatExcludedCount(excludedCount)}</p>
-        </div>
 
-        <div className="space-y-3 p-3">
-          <CustomFiltersSection
-            canAdd={canAdd}
-            customPatterns={customPatterns}
-            disabledCustom={disabledCustom}
-            draftPattern={draftPattern}
-            draftPendingPatterns={draftPendingPatterns}
-            enabled={customSectionEnabled}
-            onAddPattern={handleAddPattern}
-            onCustomPatternToggle={handleCustomPatternToggle}
-            onPatternsChange={onPatternsChange}
-            onSectionToggle={handleCustomSectionToggle}
-            setDraftPattern={setDraftPattern}
-            setDraftPendingPatterns={setDraftPendingPatterns}
-          />
+          <div className="max-h-[min(320px,35vh)] space-y-3 overflow-y-auto p-3">
+            <CustomFiltersSection
+              canAdd={canAdd}
+              customPatterns={customPatterns}
+              disabledCustom={disabledCustom}
+              draftPattern={draftPattern}
+              draftPendingPatterns={draftPendingPatterns}
+              enabled={customSectionEnabled}
+              onAddPattern={handleAddPattern}
+              onCustomPatternToggle={handleCustomPatternToggle}
+              onPatternsChange={onPatternsChange}
+              onSectionToggle={handleCustomSectionToggle}
+              setDraftPattern={setDraftPattern}
+              setDraftPendingPatterns={setDraftPendingPatterns}
+            />
 
-          <PluginFiltersSection
-            disabledPlugin={disabledPlugin}
-            enabled={pluginSectionEnabled}
-            onPluginPatternToggle={handlePluginPatternToggle}
-            onSectionToggle={handlePluginSectionToggle}
-            pluginPatterns={pluginPatterns}
-            visiblePluginGroups={visiblePluginGroups}
-          />
+            <PluginFiltersSection
+              disabledPlugin={disabledPlugin}
+              enabled={pluginSectionEnabled}
+              onPluginGroupToggle={handlePluginGroupToggle}
+              onPluginPatternToggle={handlePluginPatternToggle}
+              onSectionToggle={handlePluginSectionToggle}
+              pluginPatterns={pluginPatterns}
+              visiblePluginGroups={visiblePluginGroups}
+            />
+          </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      ) : null}
+    </>
   );
 }

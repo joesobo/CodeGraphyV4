@@ -30,14 +30,14 @@ export function DepthViewControls(): React.ReactElement | null {
     >
       <div
         data-testid="depth-view-shell"
-        className="pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-md bg-[color:color-mix(in_srgb,var(--vscode-editorWidget-background,#1f1f1f)_86%,transparent)] px-2 py-1 shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur-md"
+        className="pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-md bg-[var(--cg-popover-translucent)] px-2 py-1 shadow-lg backdrop-blur-md"
       >
         {isCompactControl ? (
           <div
             data-testid="depth-view-compact"
             className="flex items-center gap-1.5 px-0.5"
           >
-            <MdiIcon path={mdiBullseye} size={13} className="text-primary/85" />
+            <MdiIcon path={mdiBullseye} size={13} className="text-[var(--cg-primary)]" />
             <div
               data-testid="depth-view-value"
               className="inline-flex min-w-4 items-center justify-center text-[11px] font-semibold leading-none tabular-nums text-foreground"
@@ -48,7 +48,7 @@ export function DepthViewControls(): React.ReactElement | null {
         ) : (
           <>
             <div className="flex shrink-0 items-center gap-1.5 px-0.5">
-              <MdiIcon path={mdiBullseye} size={13} className="text-primary/85" />
+              <MdiIcon path={mdiBullseye} size={13} className="text-[var(--cg-primary)]" />
               <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 Depth
               </div>
@@ -69,8 +69,8 @@ export function DepthViewControls(): React.ReactElement | null {
                 step={1}
                 value={[effectiveDepthLimit]}
                 onValueChange={handleDepthChange}
-                trackClassName="h-1 bg-primary/15"
-                thumbClassName="h-3 w-3 border-0 bg-primary shadow-[0_0_0_1px_rgba(15,23,42,0.16),0_2px_6px_rgba(15,23,42,0.28)] focus-visible:ring-[1.5px]"
+                trackClassName="h-1 bg-[var(--cg-primary-faint)]"
+                thumbClassName="h-3 w-3 border-0 bg-primary shadow focus-visible:ring-[1.5px]"
               />
               <span
                 data-testid="depth-view-max"

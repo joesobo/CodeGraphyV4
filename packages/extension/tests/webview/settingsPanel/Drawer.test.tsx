@@ -85,9 +85,22 @@ describe('SettingsPanel', () => {
 
     fireEvent.click(screen.getByText('Display'));
 
+    expect(screen.getByText('Renderer')).toBeInTheDocument();
+    expect(screen.getByText('Depth Mode')).toBeInTheDocument();
     expect(screen.getByText('Direction')).toBeInTheDocument();
     expect(screen.getByText('Show Orphans')).toBeInTheDocument();
+    expect(screen.queryByText('Max Files')).not.toBeInTheDocument();
+  });
+
+  it('renders performance and export content from their own sections', () => {
+    renderPanel();
+
+    fireEvent.click(screen.getByText('Performance'));
     expect(screen.getByText('Max Files')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Export'));
+    expect(screen.getByText('Images')).toBeInTheDocument();
+    expect(screen.getByText('Graph')).toBeInTheDocument();
   });
 
   it('calls onClose when the close button is clicked', () => {

@@ -27,7 +27,7 @@ interface LegendRuleRowProps {
 function getRuleRowClassName(isDragOver: boolean, isDragging: boolean): string {
   return [
     'transition-colors',
-    isDragOver ? 'bg-accent/30' : '',
+    isDragOver ? 'bg-[var(--cg-accent-strong)]' : '',
     isDragging ? 'opacity-60' : '',
   ].join(' ').trim();
 }
@@ -52,7 +52,7 @@ export function LegendRuleRow({
       onDrop={onDrop}
       className={getRuleRowClassName(isDragOver, isDragging)}
     >
-      <div className="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-accent/20">
+      <div className="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]">
         <RuleDragHandle onDragStart={onDragStart} onDragEnd={onDragEnd} />
         <RulePatternCell rule={rule} index={index} onChange={onChange} />
         <RuleVisualControls rule={rule} index={index} onChange={onChange} />

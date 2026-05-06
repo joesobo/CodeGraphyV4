@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import App from '../../../../src/webview/app/view';
 import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
@@ -143,7 +143,7 @@ describe('App', () => {
     expect(svg).toBeInTheDocument();
   });
 
-  it('should render the export button when graph is loaded', async () => {
+  it('should render graph-local and system toolbar buttons when graph is loaded', async () => {
     render(<App />);
     await act(async () => {
       messageListeners.forEach((listener) => listener(new MessageEvent('message', {
@@ -156,7 +156,11 @@ describe('App', () => {
         },
       })));
     });
-    expect(screen.getByTitle('Export')).toBeInTheDocument();
+    expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
+    expect(screen.getByTitle('Legends')).toBeInTheDocument();
+    expect(screen.getByTitle('Plugins')).toBeInTheDocument();
+    expect(screen.getByTitle('Settings')).toBeInTheDocument();
+    expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
   });
 
   it('should render graph corner controls when graph is loaded', async () => {
@@ -230,8 +234,36 @@ describe('App', () => {
     expect(screen.getByText('2 of 3')).toBeInTheDocument();
   });
 
+  it('updates the excluded count immediately when plugin filters are disabled', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'src/generated/a.ts', label: 'a.ts', color: '#3B82F6', nodeType: 'file' },
+          { id: 'src/app.ts', label: 'app.ts', color: '#3B82F6', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+      isLoading: false,
+      pluginFilterGroups: [
+        { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['**/generated/**'] },
+      ],
+      pluginFilterPatterns: ['**/generated/**'],
+      disabledPluginFilterPatterns: [],
+      showOrphans: true,
+    });
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 enabled' }));
+    expect(screen.getByText('1 excluded from graph')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Disable plugin Plugin One filters'));
+
+    expect(screen.getByText('0 excluded from graph')).toBeInTheDocument();
+  });
+
   it('should hide graph corner controls while a right-side popup is open', async () => {
-    graphStore.setState({ activePanel: 'edges' });
+    graphStore.setState({ activePanel: 'graphScope' });
 
     render(<App />);
     await act(async () => {
@@ -246,7 +278,7 @@ describe('App', () => {
       })));
     });
 
-    expect(screen.getByText('Edges')).toBeInTheDocument();
+    expect(screen.getByText('Graph Scope')).toBeInTheDocument();
     expect(screen.queryByTitle('Zoom In')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Zoom Out')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Fit to Screen')).not.toBeInTheDocument();

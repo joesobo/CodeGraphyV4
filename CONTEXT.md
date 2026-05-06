@@ -80,18 +80,18 @@ _Avoid_: Edge source when referring to provenance
 
 **Graph Scope**:
 The persisted settings that choose which **Node Types** and **Edge Types** are eligible for downstream graph stages.
-_Avoid_: Visibility when referring to the final visible graph, filter when referring to blacklist rules
+_Avoid_: Visibility when referring to the final visible graph, filter when referring to include/exclude criteria
 
 **Scoped Graph**:
 The Relationship Graph after Graph Scope removes disabled **Node Types** and **Edge Types**.
 _Avoid_: Visible graph, filtered graph
 
 **Filter**:
-To exclude nodes or edges from the graph because they are noise for the current user or repo.
-_Avoid_: Collapse
+To apply persisted include and exclude criteria that decide which graph items remain eligible after **Graph Scope**.
+_Avoid_: Search, Collapse, Graph Scope
 
 **Filtered Graph**:
-The Scoped Graph after filters remove nodes or edges the user does not want considered.
+The Scoped Graph after persistent include and exclude filter criteria have been applied.
 _Avoid_: Visible graph
 
 **Search**:
@@ -234,9 +234,41 @@ _Avoid_: View graph, saved graph view, Visible Graph when the result is not the 
 A VS Code extension UI container owned by CodeGraphy.
 _Avoid_: Graph state, projection, filtered graph
 
+**VS Code Theme Integration**:
+The product rule that CodeGraphy UI chrome inherits the active VS Code theme before applying CodeGraphy-specific styling. Controls, panels, popovers, borders, focus states, and other extension chrome should feel native to the current VS Code theme while staying consistent across CodeGraphy surfaces.
+_Avoid_: Custom CodeGraphy theme, hardcoded chrome colors
+
+**Graph Data Color**:
+Color that encodes Relationship Graph meaning, such as Node Type, Edge Type, Legend Entry, or graph state. Graph Data Color may diverge from the active VS Code theme when it carries graph meaning, but it should still remain legible against themed surfaces.
+_Avoid_: Chrome color, brand color
+
 **Graph View**:
 The CodeGraphy view where users interact with the Relationship Graph and its surrounding controls.
 _Avoid_: Visible graph
+
+**Graph Stage**:
+The themed canvas surface inside the **Graph View** where the **Relationship Graph** is rendered. The Graph Stage may use a dedicated CodeGraphy surface token for graph readability, but that token must be derived from the active VS Code theme.
+_Avoid_: Hardcoded canvas, detached app background
+
+**Graph Tool Rail**:
+The icon-first, tooltip-backed control rail in the **Graph View** for high-frequency graph tools and graph-local panel entry points. It should be grouped so dense multi-choice tools open menus, popovers, or panels instead of appearing as long direct button lists.
+_Avoid_: Dumping ground toolbar, command palette replacement
+
+**Graph Scope Panel**:
+The graph-local panel opened from the **Graph Tool Rail** for choosing which **Node Types** and **Edge Types** are included by **Graph Scope**. It combines node-type and edge-type scope controls under one predictable surface.
+_Avoid_: Nodes panel and Edges panel as unrelated settings
+
+**Graph Panel**:
+A graph-local side panel opened from the **Graph Tool Rail** for controls or editors that need more room than a compact popover. Graph Panels should size to their content within sensible min/max constraints rather than all sharing one arbitrary width.
+_Avoid_: Fixed-width drawer when the content requires a different size
+
+**Graph Tool Popover**:
+A compact popover opened from the **Graph Tool Rail** for quick multi-choice graph tools such as layout and node sizing.
+_Avoid_: Graph Panel for small choice sets
+
+**Graph Stage Corner Controls**:
+Viewport navigation and window controls anchored on the **Graph Stage**, such as zoom, fit, and open-in-editor. They are visually separate from the **Graph Tool Rail** and should not become graph settings or graph-scope controls.
+_Avoid_: Toolbar controls, display settings
 
 **Graph View Zoom**:
 A Graph View interaction that changes how close the user is to the rendered graph without changing graph data.
@@ -298,9 +330,21 @@ _Avoid_: Control when referring to the persisted value
 A UI control that changes a Setting.
 _Avoid_: Setting when referring only to the UI element
 
+**Display Setting**:
+A Setting that changes how graph information is presented without changing which graph items exist in the **Relationship Graph**. Display Settings include visual preferences and lower-frequency view behavior such as labels, orphans, renderer mode, direction indicators, bidirectional edge display, and depth controls.
+_Avoid_: Graph Scope, Search, Filter Setting
+
 **Filter Setting**:
-A persisted Setting that excludes matching graph items from discovery or graph consideration.
+A persisted Setting that defines include or exclude criteria for path/glob patterns first. Exclude criteria remove recurring noise; include criteria narrow graph consideration to a durable working subset. Graph-aware filter criteria may be added later only when they have clear semantics separate from **Graph Scope**.
 _Avoid_: Search, collapse
+
+**Filter Rule**:
+One include or exclude pattern in **Filter Settings**. A Filter Rule can come from CodeGraphy defaults, a Plugin, or a custom user entry, and the UI should make its origin and enabled state clear. Source-owned Filter Rules should have a stable source and rule id so user toggles survive source pattern updates. Custom user Filter Rules should also have generated stable ids so editing pattern text does not break row identity, ordering, focus, or UI state. Origin should be shown with a subtle label when space allows and always be available through a tooltip.
+_Avoid_: Search option, Graph Scope toggle
+
+**Filter Rule Override**:
+A custom user-owned copy or replacement of a source-owned **Filter Rule**. Built-in and plugin-contributed Filter Rules are not directly edited; users can toggle them, and editing creates a user-owned override or copy.
+_Avoid_: Editing plugin defaults in place
 
 **Favorite**:
 A user-marked node that should be easier to find or visually distinguish in the graph.
@@ -339,7 +383,7 @@ _Avoid_: Graph export
 - A **Relationship Graph** is presented through an interactive force graph.
 - A **Relationship Graph** contains **Nodes** connected by **Edges**.
 - The graph pipeline is **Relationship Graph** -> **Scoped Graph** -> **Filtered Graph** -> **Searched Graph** -> **Visible Graph**.
-- **Graph Scope** runs before **Filter Settings** so disabled **Node Types** and **Edge Types** are removed before blacklist-style filters run.
+- **Graph Scope** runs before **Filter Settings** so disabled **Node Types** and **Edge Types** are removed before persistent include/exclude criteria are evaluated.
 - **Show Orphans** runs at the end of the **Visible Graph** pipeline because **Orphan Node** status only exists after **Edge Type** toggles and other graph stages have been applied.
 - A **Node Type** is semantic and describes what a node represents; a **Legend Entry** may match a **Node Type**, but a **Node Type** is not styling.
 - A **File Node** is the default node type and can preview or open its file in VS Code.
@@ -380,7 +424,7 @@ _Avoid_: Graph export
 - **Boundary Paths** stay visible so collapse does not invent false direct edges or break existing relationships to shared relationship targets.
 - **Collapse Projection** runs after the **Visible Graph** exists because users need a rendered graph before deciding what to collapse.
 - The force graph renderer handles layout, physics, and interaction for the graph produced by **Collapse Projection**.
-- **Filter** removes graph items from consideration; **Collapse** keeps important graph items available behind a collapsed node.
+- **Filter** applies persistent include/exclude criteria to graph consideration; **Collapse** keeps important graph items available behind a collapsed node.
 - **Indexing** starts with **File Discovery**, then runs **Tree-sitter Analysis**, then **Plugin Analysis**, then **Graph Projection**.
 - The **Tree-sitter Runtime** alone does not create **Relationships**; CodeGraphy needs **Core Tree-sitter Language Coverage** or **Plugin Analysis** to produce useful graph data for a language.
 - A language has **Core Tree-sitter Language Coverage** when the **Core Extension** bundles its grammar, maps its file extensions, and extracts baseline relationships that project into the **Relationship Graph**.
@@ -404,6 +448,98 @@ _Avoid_: Graph export
 - CodeGraphy has two **Views**: the **Graph View** and the **Timeline View**.
 - The **Graph View** contains the **Visible Graph**, search, filters, popups, settings UI, and overlay controls.
 - The **Visible Graph** is graph data shown inside the **Graph View**, not the whole view.
+- **VS Code Theme Integration** is the top UI rule: extension chrome should inherit the active VS Code theme through CodeGraphy/shadcn semantic tokens before applying CodeGraphy-specific styling.
+- UI cleanup should establish the VS Code token bridge and local CodeGraphy UI-kit primitives before reshaping individual surfaces such as the **Graph Tool Rail**, **Search**, **Filter**, **Settings**, and **Graph Panels**.
+- The existing `components/ui` layer should follow shadcn's copy-and-own model: generated Radix/shadcn source lives in the repo, CodeGraphy owns and customizes it, and feature code may import from `components/ui` as the local CodeGraphy UI kit. Do not create a separate wrapper layer just to keep shadcn files pristine.
+- CodeGraphy should keep the existing root `components.json` and `@/...` alias for shadcn configuration because the **Core Extension** is currently the only UI owner. Do not introduce package imports or a shared UI package until another workspace consumes CodeGraphy UI components.
+- The first `components/ui` cleanup should prioritize token and theming correctness in existing primitives. Higher-level primitives such as graph rail buttons, panel sections, field rows, and search/filter chrome should be added only as each surface migrates and proves the need.
+- Implementation order after token and primitive cleanup is agent-owned and may change as dependencies become clear. The product requirement is that all Core Extension UI surfaces converge on the same VS Code token bridge and local CodeGraphy UI kit, including **Graph Stage** chrome, graph rendering colors, **Search**/**Filter**, **Graph Tool Rail**, **Settings**, **Timeline View**, **Graph Panels**, and **Legend**.
+- UI cleanup is done only when light, dark, high-contrast, and red/accent-heavy themes have been verified; UI chrome colors come from the active VS Code theme through the token bridge rather than hardcoded values; common controls use shared `components/ui` primitives; graph rendering consumes resolved CSS-token colors; and before/after screenshots cover **Graph View**, **Timeline View**, and key open-panel states.
+- UI cleanup verification should combine lightweight automated checks for token plumbing and hardcoded-color regressions with screenshot review for visual judgment in light, dark, high-contrast, and red/accent-heavy themes. Screenshot anchors are Solarized Light for light, GitHub Dark for dark, High Contrast for high contrast, and Red for the red/accent-heavy theme. The screenshot pass should include default **Graph View** and **Timeline View** states plus the **Legend** with default content as the representative panel screenshot so panel chrome is checked without seeded user data or multiplying every panel across every theme.
+- Automated hardcoded-color checks should scan all production webview TSX/CSS, not only changed files. UI chrome should not have hardcoded colors; it should use the VS Code token bridge or CodeGraphy `--cg-*` aliases. Hardcoded colors are acceptable only when they are semantic **Graph Data Color**, such as node, edge, Legend, node-type, edge-type, plugin, or graph-data palette values, and should not be used for component chrome.
+- The VS Code token bridge should have two layers: shadcn-compatible semantic tokens for generic controls, and a small CodeGraphy `--cg-*` alias layer for graph-specific surfaces and repeated layout chrome such as the **Graph Stage**, **Graph Tool Rail**, and **Graph Panels**.
+- Canvas and graph-rendering code should receive concrete colors resolved from CodeGraphy CSS tokens on theme changes, rather than branching internally on only `light`, `dark`, or `high-contrast` theme kinds. Theme kind should remain only as a compatibility hint for graph-data color adjustment.
+- **Graph Data Color** is allowed to diverge from VS Code chrome colors when it encodes graph meaning, but it must remain legible on the themed **Graph Stage**.
+- Default **Graph Data Colors** for nodes, edges, and similar graph concepts may be small hardcoded semantic palettes rather than theme-derived chrome colors. Those colors are graph data, not UI chrome, and the graph appearance adapter is responsible for making them legible on the themed **Graph Stage**.
+- Hardcoded **Graph Data Color** palettes should be centralized in graph, Legend, or Plugin default modules. Renderers and TSX components should consume named graph data colors or graph appearance-model outputs instead of defining convenient local graph colors.
+- When **Graph Data Color** has poor contrast on the themed **Graph Stage**, CodeGraphy should preserve the semantic color when possible and add theme-aware support treatments such as outlines, label colors, selection rings, or edge strokes. Mutating graph-data colors should be a final readability fallback.
+- Graph contrast and readability decisions should live in one graph theme or appearance adapter that receives resolved CodeGraphy CSS tokens and **Graph Data Colors**, then outputs concrete render colors and support treatments. Individual renderers should consume that appearance model instead of owning separate contrast rules.
+- The **Graph Stage** should be a VS Code-derived graph surface, not a hardcoded dark or light canvas.
+- The top search surface is for temporary **Search** and find-style controls; it should not be moved into the **Graph Tool Rail**.
+- Search option controls such as match case, whole word, and regex should stay visible inline in the top search surface, styled as VS Code-like search option buttons rather than hidden in a popover.
+- **Filter** access should stay attached to the top search surface but remain visually distinct from temporary **Search** options; the trigger should use icon-and-count chrome, with the full Filter label/title inside the popup or expanded surface.
+- The top **Search** field and expanded **Filter** surface should share one VS Code-like container rather than appearing as detached bands.
+- The shared **Search** and **Filter** container should use the same uniform CodeGraphy shadcn/Radix density as the rest of the UI while borrowing VS Code Search structure and theme integration; do not introduce a special compact density for this surface.
+- **Search** and **Filter** controls should reuse the same local CodeGraphy Button and Input variants as panels and settings. The shared top container may define its own layout wrapper and token bridge, but it should not fork component variants for this surface.
+- The **Filter** popup or expanded surface should borrow from VS Code Search by presenting Include and Exclude sections, while keeping those values as persistent **Filter Settings** rather than temporary **Search** text.
+- The first **Filter Setting** UI should aim for feature parity with VS Code Search's include/exclude pattern fields, not graph-aware criteria. Node and edge type eligibility remains **Graph Scope**, plugin enablement remains **Plugins**, and temporary text matching remains **Search**.
+- The **Filter** surface should expand inline under the top search surface, like VS Code Search, and provide a clean rule-management area for built-in, plugin-contributed, and custom **Filter Rules**.
+- Expanding the shared **Search** and **Filter** container should push the **Graph Stage** down, not overlay it, but the expanded **Filter** area should have a bounded max height with internal scrolling so the graph remains the center focus.
+- The expanded **Filter** area's bounded max height should be responsive to the **Graph View** height rather than a single fixed size.
+- Built-in and plugin-contributed **Filter Rules** are source-owned and should not be directly editable. Users can enable or disable them; editing creates a custom user-owned **Filter Rule Override** or copy.
+- Disabled **Filter Rules** should stay in place within their Include or Exclude list and use normal disabled styling, such as lower-contrast text and subdued controls, instead of moving into a separate disabled section.
+- **Filter Rule** origins should use both subtle visible labels and tooltips: small labels such as Default, a plugin name, or User appear when row space allows, while the tooltip always gives the full source.
+- Expanded Include and Exclude sections should each keep an always-visible inline input for adding custom **Filter Rules**, matching VS Code Search's pattern-entry feel rather than hiding rule creation behind an add button.
+- The **Filter** trigger count should show all enabled **Filter Rules**, regardless of origin, because those are the rules currently affecting the graph.
+- The expanded **Filter** surface should break enabled-rule counts down by Include and Exclude sections, while the collapsed trigger keeps a single total count.
+- The expanded or collapsed state of the **Filter** surface should be remembered as UI state across **Graph View** sessions; it is not repo-local graph behavior and should not persist in `.codegraphy/settings.json`.
+- Include and Exclude rule-list sections inside the expanded **Filter** surface should default collapsed.
+- Include and Exclude rule-list section open or closed state should also be remembered as UI state across **Graph View** sessions, not persisted in `.codegraphy/settings.json`.
+- Adding an Include or Exclude **Filter Rule** should require expanding that section first; collapsed section headers are quiet summaries, not editing surfaces.
+- Collapsed Include and Exclude section headers should show enabled-rule counts plus subtle status markers for conflicts or invalid drafts. They should not surface neutral per-rule no-match metadata such as "0 matches".
+- Conflict and invalid-draft markers in collapsed Include and Exclude headers should be icon-only with tooltips; fuller text feedback belongs in expanded rows.
+- **Filter Rules** should stay in one uniform rule list within each Include or Exclude section, with row-level origin labels, rather than being grouped under separate origin headers.
+- **Filter Rules** should order active rules first and disabled rules after them, while preserving source/default order inside each group.
+- Custom user **Filter Rules** should appear at the top of the active rule group because they are higher-intent and more likely to be edited again; source-owned active rules stay below them in stable source/default order.
+- Within custom user **Filter Rules**, newest rules should appear first.
+- Custom user **Filter Rules** should not support manual reordering in the first slice because rule order has no matching semantics.
+- The expanded **Filter** surface should offer a **Restore Defaults** action, not a vague clear action. Restore Defaults removes custom user **Filter Rules** and **Filter Rule Overrides**, then restores built-in and plugin-contributed **Filter Rules** to their source-owned default enabled states.
+- **Restore Defaults** should require a small confirmation dialog because it removes custom filter work.
+- Custom user **Filter Rules** should edit inline in their row for simple path/glob pattern changes, preserving the lightweight VS Code Search feel.
+- Inline **Filter Rule** edits should apply on Enter or blur, and Escape should cancel the edit, so partial pattern typing does not continuously reshape the graph.
+- Always-visible Include and Exclude add inputs should create a new custom **Filter Rule** only on Enter. Blur should not create a rule, even when the draft pattern is valid, because accidentally leaving the input should not mutate persistent filters.
+- Add-input drafts should survive collapsing and reopening the expanded **Filter** surface during the current **Graph View** session, but drafts are UI state only and should never persist to `.codegraphy/settings.json` until Enter creates a **Filter Rule**.
+- A valid **Filter Rule** that currently matches no graph items is allowed because it may be preparing for future files, another branch, or a different **Timeline Snapshot**. No-match is not the same as invalid pattern syntax.
+- A **Filter Rule** should be rejected only when it is empty or the chosen matcher cannot parse it. Weird but parseable patterns are allowed, even if they match nothing.
+- The expanded **Filter** surface should show subtle per-rule match metadata such as "0 matches" or "12 matches". Match metadata is neutral information, not a warning when the count is zero.
+- **Filter Rule** matching should use one shared VS Code-like matcher across discovery, **Graph View** filtering, **Timeline Snapshots**, and **Graph Query**, so Include and Exclude behavior stays predictable everywhere.
+- Always-visible Include and Exclude add inputs should accept comma-separated pattern lists for VS Code parity, then create one custom **Filter Rule** per pattern on Enter.
+- When a comma-separated add input contains a mix of valid and invalid patterns, valid patterns should become custom **Filter Rules** and invalid entries should remain in the draft with inline feedback.
+- Duplicate **Filter Rules** in the same Include or Exclude section should not create another row. The UI should focus the existing matching row and show subtle "Already exists" feedback.
+- An empty Include section means include everything still eligible after **Graph Scope**. Include rules narrow that default set only when at least one Include **Filter Rule** is enabled.
+- If all Include **Filter Rules** are disabled, Include behaves the same as empty Include: disabled rules do not participate, so everything still eligible after **Graph Scope** passes through to Exclude.
+- Disabled Exclude **Filter Rules** are fully inert: they do not exclude graph items, do not count in the collapsed **Filter** trigger, and only remain visible as disabled rows in the expanded **Filter** surface.
+- Source-owned **Filter Rule** enable/disable state should be persisted by stable source and rule id, not by raw pattern text, so CodeGraphy or plugin updates can change rule patterns without losing the user's toggle choice.
+- Custom user **Filter Rules** should persist generated stable ids as their row identity; pattern text is editable content, not the rule's durable identity.
+- If the same pattern or graph item is matched by both Include and Exclude **Filter Rules**, Exclude wins. The UI should show a subtle conflict hint on the affected rows so users understand why the included pattern is still excluded.
+- The **Graph Tool Rail** is for high-frequency graph tools that change the current working view or open graph-local panels.
+- The **Graph Tool Rail** should be grouped and icon-first, with menus, popovers, or panels for dense multi-choice controls such as layout, node sizing, and **Graph Scope**.
+- **Graph Tool Rail** groups should use subtle mixed separators: compact spacing plus low-contrast 1px lines between major groups. Lifecycle actions such as **Re-index Repo** can be distinct without visually floating alone.
+- Compact multi-choice tools such as layout and node sizing should open small **Graph Tool Rail** popovers with compact icon-and-label choices, not large right-side panels. Their rail buttons should show the currently selected mode icon, and the current choice inside the popover should use a subtle active row plus a checkmark.
+- Conditional compact-popover choices should remain visible but disabled with a tooltip or short reason when unavailable, instead of disappearing.
+- **Graph Scope** controls should open through one **Graph Scope Panel** that combines **Node Type** and **Edge Type** scope controls instead of separate unrelated Nodes and Edges panels.
+- Color swatches in the **Graph Scope Panel** identify what a **Node Type** or **Edge Type** looks like while toggling scope; they are read-only circles, not color-editing controls.
+- The **Legend** should remain a direct **Graph Tool Rail** panel button because it owns graph semantic styling, not general display behavior.
+- Indexing actions such as **Re-index Repo** should remain a direct **Graph Tool Rail** control because they are primary graph lifecycle actions.
+- Export actions should live as an Export section inside **Settings**, not as primary **Graph Tool Rail** buttons and not under a vague "More" label, because they output graph data rather than shape the working graph view.
+- **Plugins** should remain a direct **Graph Tool Rail** panel button because plugins change what graph concepts and controls exist, but it belongs with configuration/system controls rather than active graph-working mode controls.
+- **Settings** should remain a direct **Graph Tool Rail** panel button, visually separated near the bottom, and should not absorb controls with clearer homes such as **Graph Scope** or **Legend**. It may include secondary action sections such as **Export** even though those actions are not persisted Settings.
+- **Settings** should be organized by intent with **Display Settings**, Forces, Performance, and Export sections.
+- Forces should remain a first-class **Settings** section, collapsed by default rather than hidden under Advanced.
+- **Settings** sections should default collapsed and remember their open or closed state as UI state the next time Settings opens; section collapse state is not repo-local graph behavior.
+- **Graph Panels** should be content-driven in width; content-heavy surfaces such as **Legend** may be wider, but the row layout should still be reviewed for clarity.
+- The **Legend** panel may remain wider than ordinary **Graph Panels** because it is an editing surface, but Legend rows should be simplified with clearer hierarchy, compact actions, and advanced details expanded only when needed.
+- **Graph Tool Popovers** should open near their rail button; larger **Graph Panels** such as **Graph Scope Panel**, **Legend**, **Plugins**, and **Settings** should stay right-side panels.
+- Only one **Graph Tool Popover** should be open at a time. Opening a **Graph Panel** should close open popovers, but opening a popover should not have to close the current **Graph Panel**.
+- Right-side **Graph Panels** should remain mutually exclusive; only one should be open at a time.
+- A **Graph Tool Rail** button that owns the open **Graph Panel** should show an active state using subtle tint plus a small accent indicator rather than a heavy filled button.
+- Compact choice rail buttons such as layout and node sizing should not show active panel styling merely because a value is selected; the current icon carries the selected value.
+- **Graph Stage Corner Controls** are for viewport navigation and canvas/window actions, not settings or graph-scope controls.
+- **Display Settings** are for persistent visual preferences and lower-frequency view behavior, especially controls with sliders or supporting fields.
+- **Depth Mode** belongs under **Display Settings** because it combines a mode toggle with depth controls.
+- **Depth Mode** does not need a **Graph Tool Rail** status indicator in the first UI cleanup; any future status should live as subtle **Graph Stage** context instead.
+- Renderer mode such as 2D/3D should be treated as a **Display Setting** unless real usage proves it needs to be a primary **Graph Tool Rail** action.
+- `maxFiles` is a Performance setting, not a **Display Setting**.
 - **Graph View Zoom** is a view interaction only; it does not change **Relationship Graph** data, **Graph Scope**, **Filter**, or **Search**.
 - **2D Zoom** changes rendered graph scale, while **3D Zoom** changes camera distance.
 - **Continuous Zoom** should use the same zoom step as repeated single zoom actions.
@@ -431,10 +567,15 @@ _Avoid_: Graph export
 - The **Markdown Plugin** is bundled by default with the base extension, but users can still toggle it off.
 - A **Settings Control** changes a **Setting**; it is not a separate persisted concept.
 - **Settings** are saved repo-locally under `.codegraphy/settings.json` so graph preferences survive between sessions.
-- **Graph Scope**, **Filter Setting**, **Favorite**, and **Legend Entry Toggle** are settings because they are saved between sessions.
+- **Graph Scope**, **Filter Setting**, **Display Setting**, **Favorite**, and **Legend Entry Toggle** are settings because they are saved between sessions.
+- **Filter Settings** are made of **Filter Rules** whose enabled state and user customizations must be understandable when rules come from defaults, plugins, or custom user entries.
+- Custom user **Filter Rules** and **Filter Rule Overrides** can be edited or removed; source-owned built-in and plugin-contributed **Filter Rules** can be toggled but not removed from their source.
+- **Display Settings** change presentation and view behavior; they do not change graph eligibility like **Graph Scope** or **Filter Setting**.
 - **Search** is temporary and should not be cached like a **Filter Setting**.
 - **Collapse** is temporary for now and should not be cached like a **Setting**.
 - The **Legend** themes graph nodes and edges.
+- The **Legend** owns editing Graph Data Color, Legend Entries, and Legend Layers; **Graph Scope** only controls inclusion.
+- The **Legend** is separate from **Display Settings**; it changes graph semantic styling and rule layers, not only presentation behavior.
 - **Legend Layers** apply in this order: core defaults, plugin defaults, custom user entries.
 - Custom user **Legend Entries** apply last and override core or plugin defaults.
 - A **Legend Entry Toggle** controls whether a **Legend Entry** applies its styling.
@@ -443,6 +584,7 @@ _Avoid_: Graph export
 - Material Icon Theme styling currently belongs to the **Core Extension**, but it may become a plugin theming source later.
 - Graph theming should remain compatible with VS Code themes.
 - A **Graph Export** writes the current **Visible Graph**; an **Index Export** writes cached analysis data for software or agent consumption.
+- **Export** is a secondary output action in the **Graph View**, not a primary graph-working control, and it can live as an action section inside **Settings**.
 - **Export** is not **Graph Cache** and is not **Settings** persistence.
 
 ## Example dialogue
@@ -514,6 +656,6 @@ _Avoid_: Graph export
 - When a shared relationship target stays visible, the downstream path to it stays visible as a **Boundary Path**.
 - Collapse behavior is not renderer-owned; resolved: CodeGraphy owns **Collapse Projection**, it runs after the **Visible Graph** exists, and the force graph renderer displays the resulting graph.
 - Do not introduce "Collapsed Graph" as a separate pipeline term for now; resolved: the user still sees the **Visible Graph**, updated by **Collapse Projection**.
-- "filter" and "collapse" both reduce **Visible Graph** detail but are not synonyms; resolved: **Filter** means ignore noise, while **Collapse** means summarize relevant hidden detail.
-- Graph Scope before Filter is load-bearing: disabled **Node Types** and **Edge Types** must be removed before filter patterns are evaluated.
+- "filter" and "collapse" both reduce **Visible Graph** detail but are not synonyms; resolved: **Filter** means persistent include/exclude criteria, while **Collapse** means summarize relevant hidden detail.
+- Graph Scope before Filter is load-bearing: disabled **Node Types** and **Edge Types** must be removed before filter criteria are evaluated.
 - **Show Orphans** is a final view setting because orphan status can only be known after **Graph Scope**, **Filter**, **Search**, and structural view settings have run.

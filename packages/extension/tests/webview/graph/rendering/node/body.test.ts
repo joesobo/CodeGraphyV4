@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
-import type { ThemeKind } from '../../../../../src/webview/theme/useTheme';
 
 vi.mock('../../../../../src/webview/components/graph/rendering/shapes/draw/twoDimensional', () => ({
   drawShape: vi.fn(),
@@ -118,7 +117,6 @@ describe('graph/rendering/node/body', () => {
       decoration: undefined,
       opacity: 1,
       isSelected: false,
-      theme: 'dark',
     });
 
     expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
@@ -149,7 +147,6 @@ describe('graph/rendering/node/body', () => {
       isSelected: true,
       node: createNode({ borderWidth: 1 }),
       opacity: 0.4,
-      theme: 'light',
     });
 
     expect(operations).toEqual([
@@ -162,12 +159,12 @@ describe('graph/rendering/node/body', () => {
         globalAlpha: 0.4,
         kind: 'stroke',
         lineWidth: 1.5,
-        strokeStyle: '#000000',
+        strokeStyle: 'Highlight',
       }),
     ]);
   });
 
-  it('uses the dark-theme selected border color when no decoration overrides it', () => {
+  it('uses the theme-resolved selected border color when no decoration overrides it', () => {
     const { ctx, operations } = createContext();
 
     renderNodeBody({
@@ -177,7 +174,6 @@ describe('graph/rendering/node/body', () => {
       isSelected: true,
       node: createNode({ borderWidth: 4 }),
       opacity: 0.6,
-      theme: 'dark',
     });
 
     expect(operations).toEqual([
@@ -190,7 +186,7 @@ describe('graph/rendering/node/body', () => {
         globalAlpha: 0.6,
         kind: 'stroke',
         lineWidth: 4,
-        strokeStyle: '#ffffff',
+        strokeStyle: 'Highlight',
       }),
     ]);
   });
@@ -205,7 +201,6 @@ describe('graph/rendering/node/body', () => {
       decoration: createDecoration({ label: { text: 'Decorated Label', color: '#facc15' } }),
       opacity: 0.8,
       isHighlighted: true,
-      theme: 'dark',
     });
 
     expect(operations).toHaveLength(1);
@@ -230,19 +225,18 @@ describe('graph/rendering/node/body', () => {
       decoration: undefined,
       opacity: 1,
       isHighlighted: false,
-      theme: 'light' satisfies ThemeKind,
     });
 
     expect(operations).toEqual([
       expect.objectContaining({
-        fillStyle: '#9ca3af',
+        fillStyle: 'GrayText',
         kind: 'fillText',
         text: 'app.ts',
       }),
     ]);
   });
 
-  it('uses the highlighted light-theme label color when no decoration label overrides it', () => {
+  it('uses the highlighted label color when no decoration label overrides it', () => {
     const { ctx, operations } = createContext();
 
     renderNodeLabel({
@@ -252,56 +246,61 @@ describe('graph/rendering/node/body', () => {
       isHighlighted: true,
       node: createNode(),
       opacity: 1,
-      theme: 'light',
     });
 
     expect(operations).toEqual([
       expect.objectContaining({
-        fillStyle: '#1e1e1e',
+        fillStyle: 'CanvasText',
         kind: 'fillText',
         text: 'app.ts',
       }),
     ]);
   });
 
-  it('uses the highlighted dark-theme label color when no decoration label overrides it', () => {
+  it('uses a custom highlighted label color when appearance provides it', () => {
     const { ctx, operations } = createContext();
 
     renderNodeLabel({
+      appearance: {
+        labelForeground: 'ThemeLabel',
+        labelMutedForeground: 'ThemeMutedLabel',
+      },
       ctx,
       decoration: undefined,
       globalScale: 2,
       isHighlighted: true,
       node: createNode(),
       opacity: 1,
-      theme: 'dark',
     });
 
     expect(operations).toEqual([
       expect.objectContaining({
-        fillStyle: '#e2e8f0',
+        fillStyle: 'ThemeLabel',
         kind: 'fillText',
         text: 'app.ts',
       }),
     ]);
   });
 
-  it('uses the muted dark-theme label color for non-highlighted nodes', () => {
+  it('uses a custom muted label color for non-highlighted nodes', () => {
     const { ctx, operations } = createContext();
 
     renderNodeLabel({
+      appearance: {
+        labelForeground: 'ThemeLabel',
+        labelMutedForeground: 'ThemeMutedLabel',
+      },
       ctx,
       decoration: undefined,
       globalScale: 2,
       isHighlighted: false,
       node: createNode(),
       opacity: 1,
-      theme: 'dark',
     });
 
     expect(operations).toEqual([
       expect.objectContaining({
-        fillStyle: '#4a5568',
+        fillStyle: 'ThemeMutedLabel',
         kind: 'fillText',
         text: 'app.ts',
       }),
@@ -318,7 +317,6 @@ describe('graph/rendering/node/body', () => {
       isHighlighted: true,
       node: createNode(),
       opacity: 1,
-      theme: 'dark',
     });
 
     expect(ctx.fillText).not.toHaveBeenCalled();
@@ -335,13 +333,12 @@ describe('graph/rendering/node/body', () => {
       isHighlighted: true,
       node: createNode(),
       opacity: 1,
-      theme: 'dark',
     });
 
     expect(ctx.fillText).toHaveBeenCalledOnce();
     expect(operations).toEqual([
       expect.objectContaining({
-        fillStyle: '#e2e8f0',
+        fillStyle: 'CanvasText',
         kind: 'fillText',
         text: 'app.ts',
       }),

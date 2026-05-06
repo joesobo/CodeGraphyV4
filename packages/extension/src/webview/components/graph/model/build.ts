@@ -2,6 +2,7 @@ import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { ThemeKind } from '../../../theme/useTheme';
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../appearance/model';
 import type { NodeType } from '../../../../shared/graph/contracts';
 import { buildGraphLinks } from './link/build';
 import { buildGraphNodes } from './node/build';
@@ -48,6 +49,7 @@ export type FGLink = LinkObject & {
 
 export interface BuildGraphDataOptions {
   data: IGraphData;
+  appearance?: GraphAppearance;
   nodeSizeMode: NodeSizeMode;
   theme: ThemeKind;
   favorites: Set<string>;
@@ -58,10 +60,12 @@ export interface BuildGraphDataOptions {
 }
 
 export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[]; links: FGLink[] } {
+  const appearance = options.appearance ?? DEFAULT_GRAPH_APPEARANCE;
   const nodeSizes = calculateNodeSizes(options.data.nodes, options.data.edges, options.nodeSizeMode);
   const nodes = buildGraphNodes({
     nodes: options.data.nodes,
     edges: options.data.edges,
+    appearance,
     nodeSizes,
     theme: options.theme,
     favorites: options.favorites,
