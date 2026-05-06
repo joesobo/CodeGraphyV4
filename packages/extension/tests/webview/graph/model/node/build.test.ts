@@ -53,6 +53,34 @@ describe('graph/model/node/build', () => {
     });
   });
 
+  it('keeps transparent folder icon nodes transparent in light themes', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        {
+          id: 'src',
+          label: 'src',
+          color: 'rgba(0, 0, 0, 0)',
+          nodeType: 'folder',
+          imageUrl: 'https://example.test/folder.svg',
+        },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src', 16]]),
+      theme: 'light',
+      favorites: new Set(),
+      timelineActive: false,
+    });
+
+    expect(nodes).toEqual([
+      expect.objectContaining({
+        id: 'src',
+        color: 'rgba(0, 0, 0, 0)',
+        imageUrl: 'https://example.test/folder.svg',
+        nodeType: 'folder',
+      }),
+    ]);
+  });
+
   it('preserves previous positions and seeds new timeline nodes near connected neighbors', () => {
     const nodes = buildGraphNodes({
       nodes: [
