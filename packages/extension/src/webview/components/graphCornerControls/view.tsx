@@ -4,8 +4,6 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  mdiMagnifyMinusOutline,
-  mdiMagnifyPlusOutline,
   mdiOpenInNew,
 } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
@@ -15,9 +13,10 @@ import { useContinuousZoomControl } from './zoom/hook';
 
 type GraphCornerControlMessage = 'ZOOM_IN' | 'ZOOM_OUT' | 'FIT_VIEW' | 'REQUEST_OPEN_IN_EDITOR';
 type ZoomControlMessage = Extract<GraphCornerControlMessage, 'ZOOM_IN' | 'ZOOM_OUT'>;
+type ZoomDirection = 'in' | 'out';
 
-const CORNER_BUTTON_CLASS = 'h-10 w-10 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)] [&_svg]:size-5';
-const CORNER_ICON_SIZE = 20;
+const CORNER_BUTTON_CLASS = 'h-8 w-8 bg-transparent text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground active:text-[var(--cg-primary)] [&_svg]:size-[18px]';
+const CORNER_ICON_SIZE = 18;
 
 function postGraphWindowMessage(type: GraphCornerControlMessage): void {
   window.postMessage({ type }, '*');
@@ -31,6 +30,27 @@ function FitToScreenIcon(): ReactElement {
       <path d="M20 16v3a1 1 0 0 1-1 1h-3" />
       <path d="M4 16v3a1 1 0 0 0 1 1h3" />
       <circle cx="12" cy="12" r="2.25" />
+    </svg>
+  );
+}
+
+function ZoomIcon({ direction }: { direction: ZoomDirection }): ReactElement {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={CORNER_ICON_SIZE}
+      height={CORNER_ICON_SIZE}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="10.25" cy="10.25" r="5.75" />
+      <path d="M14.6 14.6 20 20" />
+      <path d="M7.6 10.25h5.3" />
+      {direction === 'in' ? <path d="M10.25 7.6v5.3" /> : null}
     </svg>
   );
 }
@@ -70,11 +90,11 @@ export function GraphCornerControls(): ReactElement {
     <TooltipProvider delayDuration={300}>
       <div className="flex flex-col items-center gap-1.5">
         <ZoomButton title="Zoom In" type="ZOOM_IN">
-          <MdiIcon path={mdiMagnifyPlusOutline} size={CORNER_ICON_SIZE} />
+          <ZoomIcon direction="in" />
         </ZoomButton>
 
         <ZoomButton title="Zoom Out" type="ZOOM_OUT">
-          <MdiIcon path={mdiMagnifyMinusOutline} size={CORNER_ICON_SIZE} />
+          <ZoomIcon direction="out" />
         </ZoomButton>
 
         <Tooltip>
