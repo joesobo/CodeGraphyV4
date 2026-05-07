@@ -607,7 +607,7 @@ Potential implementation order after the design is settled:
    - recursive nesting,
    - parent/child movement,
    - delete/unpack rules.
-6. Section-aware physics:
+6. Section-aware physics: Done
    - Section Nodes participate in the same simulation,
    - Section Members remain bounded,
    - gentle bounds correction,
@@ -649,6 +649,10 @@ Potential implementation order after the design is settled:
 - 2026-05-07: Moving a parent Section Frame now translates descendant Section Frames and persisted 2D pins for descendant members by the same graph-space delta.
 - 2026-05-07: Expanded Section Frames render parents before children and hide descendant frames while an ancestor Graph Section is collapsed.
 - 2026-05-07: Verified slice 5 with an initial red focused suite, then focused graph-layout model/dispatch/runtime/frame tests (`29` tests passed), an adjacent viewport/runtime/section/context sweep (`104` tests passed), extension typecheck, extension lint, and `git diff --check`.
+- 2026-05-07: Slice 6 added 2D-only Section Nodes to the runtime force graph while keeping expanded Section Nodes hidden from normal canvas node rendering.
+- 2026-05-07: Runtime graph nodes now carry direct `ownerSectionId` metadata, and Section Nodes carry their frame width/height so physics can reason about ownership bounds.
+- 2026-05-07: The physics runtime now installs a `sectionBounds` force in 2D that clamps Section Members inside their owner frame and applies a gentle center correction. Pinned members that are already inside their owner frame remain fixed.
+- 2026-05-07: Verified slice 6 with an initial red focused suite, then focused section-node/physics/rendering tests (`28` tests passed), a broader graph model/physics/rendering/viewport sweep (`538` tests passed), extension typecheck, extension lint, and `git diff --check`.
 
 ## Codex CLI Handoff
 

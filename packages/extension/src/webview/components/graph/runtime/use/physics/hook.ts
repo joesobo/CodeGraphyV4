@@ -1,12 +1,15 @@
-import { useRef, type MutableRefObject } from 'react';
+import { useEffect, useRef, type MutableRefObject } from 'react';
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
+import type { GraphLayoutSettings } from '../../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
+import { applyGraphSectionBoundsForce } from '../../physics';
 import { usePhysicsRuntimeInit } from './hook/init';
 import { usePhysicsRuntimeLayoutKey, usePhysicsRuntimeLayoutReset } from './hook/layout';
 import { usePhysicsRuntimePause } from './hook/pause';
 import { usePhysicsRuntimeUpdates } from './hook/updates';
+import { selectActivePhysicsGraph } from '../../physicsLifecycle/readiness';
 
 interface GraphPhysicsAnimationControls {
 	d3ReheatSimulation?(): void;
@@ -17,6 +20,7 @@ interface GraphPhysicsAnimationControls {
 interface UsePhysicsRuntimeProps {
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
+  graphLayout?: GraphLayoutSettings;
   graphMode: '2d' | '3d';
   layoutKey: string;
   physicsPaused?: boolean;
@@ -26,6 +30,7 @@ interface UsePhysicsRuntimeProps {
 export function usePhysicsRuntime({
   fg2dRef,
   fg3dRef,
+  graphLayout,
   graphMode,
   layoutKey,
   physicsPaused = false,
@@ -68,6 +73,7 @@ export function usePhysicsRuntime({
     fg2dRef,
     fg3dRef,
     graphMode,
+    graphLayout,
     physicsInitialisedRef,
     physicsPaused,
     physicsSettingsRef,
@@ -85,6 +91,19 @@ export function usePhysicsRuntime({
     physicsSettingsRef,
     previousLayoutKeyRef,
   });
+
+  useEffect(() => {
+    const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
+    if (!graph || !physicsInitialisedRef.current) {
+      return;
+    }
+
+    if (!graphLayout) {
+      return;
+    }
+
+    applyGraphSectionBoundsForce(graph, { graphLayout, graphMode });
+  }, [fg2dRef, fg3dRef, graphLayout, graphMode, physicsInitialisedRef]);
 }
 
 export function syncPhysicsAnimation(

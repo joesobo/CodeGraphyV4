@@ -26,9 +26,13 @@ export type FGNode = NodeObject & {
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;
+  isGraphSection?: boolean;
   fx?: number;
   fy?: number;
   fz?: number;
+  ownerSectionId?: string | null;
+  sectionHeight?: number;
+  sectionWidth?: number;
   vx?: number;
   vy?: number;
   vz?: number;

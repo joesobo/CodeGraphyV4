@@ -11,6 +11,7 @@ import type {
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
+import type { GraphLayoutSettings } from '../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../shared/settings/physics';
 import { ThemeKind } from '../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
@@ -39,6 +40,7 @@ export interface UseGraphRenderingRuntimeOptions {
   getLinkParticles: (this: void, link: LinkObject) => number;
   getParticleColor: (this: void, link: LinkObject) => string;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
+  graphLayout?: GraphLayoutSettings;
   graphLayoutKey: string;
   graphMode: '2d' | '3d';
   highlightVersion: number;
@@ -75,6 +77,7 @@ export function useGraphRenderingRuntime({
   getLinkParticles,
   getParticleColor,
   graphDataRef,
+  graphLayout,
   graphLayoutKey,
   graphMode,
   highlightVersion,
@@ -137,6 +140,7 @@ export function useGraphRenderingRuntime({
   usePhysicsRuntime({
     fg2dRef,
     fg3dRef,
+    graphLayout,
     graphMode,
     layoutKey: graphLayoutKey,
     physicsPaused,
