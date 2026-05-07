@@ -402,6 +402,42 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.lineTo).toHaveBeenCalledWith(35.2, 38.3);
   });
 
+  it('skips expanded Section Nodes because the Section Frame renders the expanded state', () => {
+    const { ctx } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({ isGraphSection: true, nodeType: 'graph-section', shape2D: 'square' }),
+      ctx,
+      1,
+    );
+
+    expect(drawShape).not.toHaveBeenCalled();
+    expect(ctx.fill).not.toHaveBeenCalled();
+    expect(ctx.stroke).not.toHaveBeenCalled();
+  });
+
+  it('renders collapsed Section Nodes as normal graph nodes', () => {
+    const { ctx } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({
+        id: 'section-1',
+        isCollapsedGraphSection: true,
+        isGraphSection: true,
+        nodeType: 'graph-section',
+        shape2D: 'square',
+      }),
+      ctx,
+      1,
+    );
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'square', 24, 48, 16);
+    expect(ctx.fill).toHaveBeenCalled();
+    expect(ctx.stroke).toHaveBeenCalled();
+  });
+
   it('paints the expanded pointer area around the node shape', () => {
     const { ctx } = createContext();
 

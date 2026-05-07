@@ -1,7 +1,9 @@
 import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
 import {
   createDefaultGraphLayoutSettings,
+  countGraphLayoutHiddenDescendants,
   getGraphLayoutPinCoordinate,
+  isGraphLayoutSectionNodeVisible,
   type GraphLayoutMode,
   type GraphLayoutSection,
   type GraphLayoutSettings,
@@ -19,6 +21,7 @@ import {
 import { seedTimelinePositions } from '../timeline/seeding';
 
 export interface BuildGraphNodesOptions {
+  allNodeIds?: readonly string[];
   nodes: IGraphNode[];
   edges: IGraphEdge[];
   appearance?: GraphAppearance;
@@ -147,6 +150,7 @@ function getSectionNodeSize(section: Pick<GraphLayoutSection, 'height' | 'width'
 function createGraphSectionNode(
   section: GraphLayoutSection,
   options: {
+    allNodeIds: readonly string[];
     graphLayout: GraphLayoutSettings;
   },
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
@@ -164,6 +168,10 @@ function createGraphSectionNode(
     borderColor: section.color,
     borderWidth: 2,
     baseOpacity: 0.35,
+    hiddenDescendantCount: section.collapsed
+      ? countGraphLayoutHiddenDescendants(options.graphLayout, section.id, options.allNodeIds)
+      : 0,
+    isCollapsedGraphSection: section.collapsed,
     isFavorite: false,
     isGraphSection: true,
     isPinned: !!pinCoordinate,
@@ -182,6 +190,7 @@ function createGraphSectionNode(
 }
 
 function buildGraphSectionNodes(
+  allNodeIds: readonly string[],
   graphLayout: GraphLayoutSettings,
   graphMode: GraphLayoutMode,
   timelineActive: boolean,
@@ -192,12 +201,17 @@ function buildGraphSectionNodes(
   }
 
   return Object.values(graphLayout.sections)
-    .map(section => createGraphSectionNode(section, { graphLayout }, previousNodeStates));
+    .filter(section => isGraphLayoutSectionNodeVisible(graphLayout, section.id))
+    .map(section => createGraphSectionNode(section, {
+      allNodeIds,
+      graphLayout,
+    }, previousNodeStates));
 }
 
 export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   const {
     nodes,
+    allNodeIds = nodes.map(node => node.id),
     edges,
     appearance = DEFAULT_GRAPH_APPEARANCE,
     nodeSizes,
@@ -218,6 +232,7 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
     previousNodeStates,
   ));
   graphNodes.push(...buildGraphSectionNodes(
+    allNodeIds,
     graphLayout,
     graphMode,
     timelineActive,

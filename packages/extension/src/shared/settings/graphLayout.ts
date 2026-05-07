@@ -192,6 +192,72 @@ export function isGraphLayoutSectionVisible(
   return true;
 }
 
+export function getGraphLayoutCollapsedRepresentative(
+  layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+  itemId: string,
+): string | null {
+  const visited = new Set<string>([itemId]);
+  let representative = layout.sections[itemId]?.collapsed ? itemId : null;
+  let currentOwnerId = layout.ownership[itemId]?.ownerSectionId ?? null;
+
+  while (currentOwnerId) {
+    if (visited.has(currentOwnerId)) {
+      return representative;
+    }
+
+    visited.add(currentOwnerId);
+    if (layout.sections[currentOwnerId]?.collapsed) {
+      representative = currentOwnerId;
+    }
+
+    currentOwnerId = layout.ownership[currentOwnerId]?.itemKind === 'section'
+      ? layout.ownership[currentOwnerId].ownerSectionId
+      : null;
+  }
+
+  return representative;
+}
+
+export function isGraphLayoutSectionNodeVisible(
+  layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+  sectionId: string,
+): boolean {
+  const representative = getGraphLayoutCollapsedRepresentative(layout, sectionId);
+  return representative === null || representative === sectionId;
+}
+
+export function isGraphLayoutItemHiddenByCollapsedSection(
+  layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+  itemId: string,
+): boolean {
+  return getGraphLayoutCollapsedRepresentative(layout, itemId) !== null;
+}
+
+export function countGraphLayoutHiddenDescendants(
+  layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+  sectionId: string,
+  nodeIds: readonly string[],
+): number {
+  let count = 0;
+
+  for (const nodeId of nodeIds) {
+    if (getGraphLayoutCollapsedRepresentative(layout, nodeId) === sectionId) {
+      count += 1;
+    }
+  }
+
+  for (const descendantSectionId of Object.keys(layout.sections)) {
+    if (
+      descendantSectionId !== sectionId
+      && getGraphLayoutCollapsedRepresentative(layout, descendantSectionId) === sectionId
+    ) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
 export function sortGraphLayoutSectionsForRendering(
   sections: readonly GraphLayoutSection[],
   ownership: Readonly<Record<string, GraphLayoutOwnership>>,

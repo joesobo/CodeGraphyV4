@@ -2,11 +2,16 @@ import type { IGraphEdge } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode } from '../../../../shared/settings/modes';
 import { getGraphEdgeIdSuffix } from '../../../../shared/graph/edgeIdentity';
 
-export interface ProcessedEdge extends IGraphEdge {
+export interface ProcessableEdge extends IGraphEdge {
+  projectedEdgeCount?: number;
+  projectedEdgeIds?: string[];
+}
+
+export interface ProcessedEdge extends ProcessableEdge {
   bidirectional?: boolean;
 }
 
-export function processEdges(edges: IGraphEdge[], mode: BidirectionalEdgeMode): ProcessedEdge[] {
+export function processEdges(edges: ProcessableEdge[], mode: BidirectionalEdgeMode): ProcessedEdge[] {
   if (mode === 'separate') return edges.map(edge => ({ ...edge, bidirectional: false }));
 
   const edgeSet = new Set(

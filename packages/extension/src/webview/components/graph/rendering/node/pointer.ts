@@ -6,7 +6,7 @@ export function paintNodePointerArea(
   color: string,
   ctx: CanvasRenderingContext2D,
 ): void {
-  if (node.isGraphSection) {
+  if (node.isGraphSection && !node.isCollapsedGraphSection) {
     return;
   }
 

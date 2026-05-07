@@ -7,6 +7,7 @@ import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../appearance/mo
 import type { NodeType } from '../../../../shared/graph/contracts';
 import { buildGraphLinks } from './link/build';
 import { buildGraphNodes } from './node/build';
+import { projectGraphSectionsForRendering } from './sectionProjection';
 export { processEdges } from './edgeProcessing';
 import { calculateNodeSizes } from './node/sizing';
 export { DEFAULT_NODE_SIZE, FAVORITE_BORDER_COLOR, getDepthOpacity, getDepthSizeMultiplier, getNodeType, resolveDirectionColor } from './node/display';
@@ -26,6 +27,8 @@ export type FGNode = NodeObject & {
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;
+  hiddenDescendantCount?: number;
+  isCollapsedGraphSection?: boolean;
   isGraphSection?: boolean;
   fx?: number;
   fy?: number;
@@ -51,6 +54,9 @@ export type FGLink = LinkObject & {
   baseColor?: string;
   curvature?: number;
   curvatureGroupId?: string;
+  kind?: string;
+  projectedEdgeCount?: number;
+  projectedEdgeIds?: string[];
 };
 
 export interface BuildGraphDataOptions {
@@ -69,21 +75,29 @@ export interface BuildGraphDataOptions {
 
 export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[]; links: FGLink[] } {
   const appearance = options.appearance ?? DEFAULT_GRAPH_APPEARANCE;
-  const nodeSizes = calculateNodeSizes(options.data.nodes, options.data.edges, options.nodeSizeMode);
+  const graphMode = options.graphMode ?? '2d';
+  const projected = projectGraphSectionsForRendering({
+    data: options.data,
+    graphLayout: options.graphLayout,
+    graphMode,
+    timelineActive: options.timelineActive,
+  });
+  const nodeSizes = calculateNodeSizes(projected.data.nodes, projected.data.edges, options.nodeSizeMode);
   const nodes = buildGraphNodes({
-    nodes: options.data.nodes,
-    edges: options.data.edges,
+    allNodeIds: options.data.nodes.map(node => node.id),
+    nodes: projected.data.nodes,
+    edges: projected.data.edges,
     appearance,
     nodeSizes,
     theme: options.theme,
     favorites: options.favorites,
     graphLayout: options.graphLayout,
-    graphMode: options.graphMode,
+    graphMode,
     timelineActive: options.timelineActive,
     previousNodes: options.previousNodes,
     random: options.random,
   });
-  const links = buildGraphLinks(options.data.edges, options.bidirectionalMode);
+  const links = buildGraphLinks(projected.data.edges, options.bidirectionalMode);
 
   return { nodes, links };
 }

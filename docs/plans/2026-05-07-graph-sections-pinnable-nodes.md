@@ -612,7 +612,7 @@ Potential implementation order after the design is settled:
    - Section Members remain bounded,
    - gentle bounds correction,
    - pinned Section Member behavior.
-7. Collapse projection:
+7. Collapse projection: Done
    - collapsed Section Node rendering,
    - hidden descendant counts,
    - nearest-visible edge projection,
@@ -653,6 +653,10 @@ Potential implementation order after the design is settled:
 - 2026-05-07: Runtime graph nodes now carry direct `ownerSectionId` metadata, and Section Nodes carry their frame width/height so physics can reason about ownership bounds.
 - 2026-05-07: The physics runtime now installs a `sectionBounds` force in 2D that clamps Section Members inside their owner frame and applies a gentle center correction. Pinned members that are already inside their owner frame remain fixed.
 - 2026-05-07: Verified slice 6 with an initial red focused suite, then focused section-node/physics/rendering tests (`28` tests passed), a broader graph model/physics/rendering/viewport sweep (`538` tests passed), extension typecheck, extension lint, and `git diff --check`.
+- 2026-05-07: Slice 7 added a Graph Layout projection pass before runtime graph building so collapsed Graph Sections hide descendant nodes and descendant Section Nodes behind the nearest visible collapsed Section Node.
+- 2026-05-07: Projected cross-boundary edges now retarget to visible representatives, drop internal collapsed-section edges, aggregate by visible source, visible target, and edge kind, and keep original projected edge ids for inspection.
+- 2026-05-07: Collapsed Section Nodes now stay renderable as normal 2D graph nodes while expanded Section Nodes remain hidden behind their Section Frames. Runtime Section Nodes also carry hidden descendant counts.
+- 2026-05-07: Verified slice 7 with an initial red focused suite, then focused projection/rendering tests (`17` tests passed), an adjacent graph model/rendering/viewport sweep (`503` tests passed), extension typecheck, extension lint, and `git diff --check`.
 
 ## Codex CLI Handoff
 

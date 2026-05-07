@@ -13,7 +13,7 @@ export function renderNodeCanvas(
   ctx: CanvasRenderingContext2D,
   globalScale: number,
 ): void {
-  if (node.isGraphSection) {
+  if (node.isGraphSection && !node.isCollapsedGraphSection) {
     return;
   }
 
