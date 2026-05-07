@@ -46,7 +46,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(liveEntries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(liveEntries)).toEqual(['New Graph Section', 'New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
 
     const historicalEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -129,6 +129,7 @@ describe('graph/contextMenuModel', () => {
       'Pin Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
+      'Create Graph Section from Selection',
       'Rename Folder...',
       'Delete Folder',
     ]);
@@ -181,6 +182,7 @@ describe('graph/contextMenuModel', () => {
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns...',
+      'Create Graph Section from Selection',
       'Delete 2 Files',
     ]);
   });
@@ -198,6 +200,46 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(entries)).toContain('unpinNode');
   });
 
+  it('offers live Graph Section creation from background and multi-selection menus', () => {
+    const backgroundEntries = buildGraphContextMenuEntries({
+      selection: makeBackgroundContextSelection(),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+    });
+    expect(menuLabels(backgroundEntries)).toContain('New Graph Section');
+    expect(builtInActions(backgroundEntries)).toContain('createGraphSection');
+
+    const selectionEntries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts'])),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+    });
+    expect(menuLabels(selectionEntries)).toContain('Create Graph Section from Selection');
+    expect(builtInActions(selectionEntries)).toContain('createGraphSection');
+  });
+
+  it('hides Graph Section creation in timeline snapshots', () => {
+    const backgroundEntries = buildGraphContextMenuEntries({
+      selection: makeBackgroundContextSelection(),
+      timelineActive: true,
+      mutationAvailability: 'disabled',
+      favorites: new Set(),
+      pluginItems: [],
+    });
+    expect(menuLabels(backgroundEntries)).not.toContain('New Graph Section');
+
+    const selectionEntries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts'])),
+      timelineActive: true,
+      mutationAvailability: 'disabled',
+      favorites: new Set(),
+      pluginItems: [],
+    });
+    expect(menuLabels(selectionEntries)).not.toContain('Create Graph Section from Selection');
+  });
+
   it('maps all built-in actions by context variant', () => {
     const backgroundLive = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -205,7 +247,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(builtInActions(backgroundLive)).toEqual(['createFile', 'createFolder', 'refresh', 'fitView']);
+    expect(builtInActions(backgroundLive)).toEqual(['createGraphSection', 'createFile', 'createFolder', 'refresh', 'fitView']);
 
     const backgroundTimeline = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -268,6 +310,7 @@ describe('graph/contextMenuModel', () => {
       'copyRelative',
       'toggleFavorite',
       'addToFilter',
+      'createGraphSection',
       'delete',
     ]);
 

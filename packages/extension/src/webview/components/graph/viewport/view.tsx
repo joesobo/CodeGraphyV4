@@ -1,5 +1,6 @@
 import type { MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
+import type { GraphLayoutSection, GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
 import {
@@ -26,6 +27,7 @@ import {
 import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBoundary';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
+import { SectionFrames } from '../sectionFrames/view';
 
 export interface ViewportProps {
   canvasBackgroundColor: string;
@@ -42,6 +44,12 @@ export interface ViewportProps {
   handleMouseUpCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
   marqueeSelection?: GraphMarqueeSelectionState | null;
   menuEntries: GraphContextMenuEntry[];
+  sectionFrameGraph?: {
+    graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
+    screen2GraphCoords?(x: number, y: number): { x: number; y: number };
+  };
+  sectionFrames?: readonly GraphLayoutSection[];
+  onUpdateSection?(this: void, sectionId: string, updates: GraphLayoutSectionUpdate): void;
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
   surface3dProps: Omit<Surface3dProps, 'backgroundColor' | 'directionMode'>;
   tooltipData: GraphTooltipState;
@@ -64,10 +72,13 @@ export function Viewport({
   handleMouseUpCapture,
   marqueeSelection,
   menuEntries,
+  sectionFrameGraph,
+  sectionFrames = [],
   surface2dProps,
   surface3dProps,
   tooltipData,
   onSurface3dError,
+  onUpdateSection = () => {},
   pluginHost,
 }: ViewportProps): ReactElement {
   return (
@@ -124,6 +135,11 @@ export function Viewport({
               className="absolute inset-0 z-10 pointer-events-none"
             />
           ) : null}
+          <SectionFrames
+            graph={sectionFrameGraph}
+            sections={sectionFrames}
+            onUpdateSection={onUpdateSection}
+          />
           {marqueeSelection ? (
             <div
               data-testid="graph-marquee-selection"

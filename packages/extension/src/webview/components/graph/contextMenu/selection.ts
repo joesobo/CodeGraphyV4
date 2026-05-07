@@ -10,8 +10,12 @@ export function makeNodeContextSelection(
   return { kind: 'node', targets: [...selectedNodes] };
 }
 
-export function makeBackgroundContextSelection(): GraphContextSelection {
-  return { kind: 'background', targets: [] };
+export function makeBackgroundContextSelection(
+  graphPosition?: GraphContextSelection['graphPosition'],
+): GraphContextSelection {
+  return graphPosition
+    ? { kind: 'background', graphPosition, targets: [] }
+    : { kind: 'background', targets: [] };
 }
 
 export function makeEdgeContextSelection(

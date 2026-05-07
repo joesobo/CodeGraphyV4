@@ -56,7 +56,7 @@ import {
   getPluginExporterKey,
 } from '../../../../src/webview/components/export/model';
 
-const iconButtonTitles = ['Index Repo', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Repo', 'Layout', 'Node Size', 'New Graph Section', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -84,7 +84,9 @@ describe('ToolbarActions', () => {
       graphIsIndexing: false,
       graphIndexProgress: null,
       dagMode: null,
+      graphMode: '2d',
       nodeSizeMode: 'connections',
+      timelineActive: false,
       timelineCommits: [],
     });
   });
@@ -102,6 +104,7 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('Index Repo')).toBeInTheDocument();
     expect(screen.getByTitle('Layout')).toBeInTheDocument();
     expect(screen.getByTitle('Node Size')).toBeInTheDocument();
+    expect(screen.getByTitle('New Graph Section')).toBeInTheDocument();
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
   });
@@ -174,18 +177,54 @@ describe('ToolbarActions', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Repo', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Repo', 'Layout', 'Node Size', 'New Graph Section', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
       'Index Repo',
       'Layout',
       'Node Size',
+      'New Graph Section',
       'Graph Scope',
       'Legends',
       'Plugins',
       'Settings',
     ]);
+  });
+
+  it('posts a root Graph Section creation message from the graph tool rail', () => {
+    renderWithProviders();
+    clickAction('New Graph Section');
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CREATE_GRAPH_LAYOUT_SECTION',
+      payload: {
+        color: '#60a5fa',
+        height: 180,
+        memberNodeIds: [],
+        width: 280,
+        x: -140,
+        y: -90,
+      },
+    });
+  });
+
+  it('hides the Graph Section tool in timeline snapshots and 3D mode', () => {
+    act(() => {
+      graphStore.setState({ timelineActive: true });
+    });
+    const { rerender } = renderWithProviders();
+    expect(screen.queryByTitle('New Graph Section')).not.toBeInTheDocument();
+
+    act(() => {
+      graphStore.setState({ graphMode: '3d', timelineActive: false });
+    });
+    rerender(
+      <TooltipProvider>
+        <ToolbarActions />
+      </TooltipProvider>,
+    );
+    expect(screen.queryByTitle('New Graph Section')).not.toBeInTheDocument();
   });
 
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {

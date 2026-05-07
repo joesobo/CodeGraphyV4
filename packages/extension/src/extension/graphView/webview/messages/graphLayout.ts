@@ -2,9 +2,11 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import {
   clearGraphLayoutNodePin,
+  createGraphLayoutSection,
   createDefaultGraphLayoutSettings,
   normalizeGraphLayoutSettings,
   setGraphLayoutNodePin,
+  updateGraphLayoutSection,
   type GraphLayoutSettings,
 } from '../../../repoSettings/graphLayout/model';
 
@@ -52,6 +54,26 @@ export async function applyGraphLayoutMessage(
         message.payload.nodeId,
         message.payload.graphMode,
       );
+
+      await persistAndSendGraphLayout(handlers, nextLayout);
+      return true;
+    }
+
+    case 'CREATE_GRAPH_LAYOUT_SECTION': {
+      const nextLayout = createGraphLayoutSection(readCurrentGraphLayout(handlers), {
+        ...message.payload,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await persistAndSendGraphLayout(handlers, nextLayout);
+      return true;
+    }
+
+    case 'UPDATE_GRAPH_LAYOUT_SECTION': {
+      const nextLayout = updateGraphLayoutSection(readCurrentGraphLayout(handlers), {
+        ...message.payload,
+        updatedAt: new Date().toISOString(),
+      });
 
       await persistAndSendGraphLayout(handlers, nextLayout);
       return true;

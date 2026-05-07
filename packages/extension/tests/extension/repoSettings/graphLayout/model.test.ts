@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   assignGraphLayoutOwner,
+  createGraphLayoutSection,
   createDefaultGraphLayoutSettings,
   normalizeGraphLayoutSettings,
+  updateGraphLayoutSection,
   wouldCreateGraphLayoutOwnershipCycle,
 } from '../../../../src/extension/repoSettings/graphLayout/model';
 
@@ -241,5 +243,89 @@ describe('extension/repoSettings/graphLayout/model', () => {
       ownerSectionId: 'section-b',
       updatedAt: '2026-05-07T08:03:00.000Z',
     })).toThrow('Graph Section ownership cannot create a cycle.');
+  });
+
+  it('creates generated Graph Sections and assigns selected nodes as members', () => {
+    const layout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
+      color: '#60a5fa',
+      height: 180,
+      memberNodeIds: ['src/app.ts', 'src/utils.ts', 'src/app.ts'],
+      updatedAt: '2026-05-07T09:00:00.000Z',
+      width: 280,
+      x: -140,
+      y: -90,
+    });
+
+    expect(layout.sections).toEqual({
+      'section-1': {
+        id: 'section-1',
+        label: 'Section 1',
+        color: '#60a5fa',
+        x: -140,
+        y: -90,
+        width: 280,
+        height: 180,
+        collapsed: false,
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+    });
+    expect(layout.ownership).toEqual({
+      'section-1': {
+        itemId: 'section-1',
+        itemKind: 'section',
+        ownerSectionId: null,
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+      'src/app.ts': {
+        itemId: 'src/app.ts',
+        itemKind: 'node',
+        ownerSectionId: 'section-1',
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+      'src/utils.ts': {
+        itemId: 'src/utils.ts',
+        itemKind: 'node',
+        ownerSectionId: 'section-1',
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+    });
+  });
+
+  it('updates Graph Section presentation and bounds without changing membership', () => {
+    const layout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
+      color: '#60a5fa',
+      height: 180,
+      memberNodeIds: ['src/app.ts'],
+      updatedAt: '2026-05-07T09:00:00.000Z',
+      width: 280,
+      x: -140,
+      y: -90,
+    });
+
+    const updated = updateGraphLayoutSection(layout, {
+      sectionId: 'section-1',
+      updates: {
+        color: '#22c55e',
+        height: 210,
+        label: 'UI Work',
+        width: 320,
+        x: -120,
+        y: -80,
+      },
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+
+    expect(updated.sections['section-1']).toEqual({
+      id: 'section-1',
+      label: 'UI Work',
+      color: '#22c55e',
+      x: -120,
+      y: -80,
+      width: 320,
+      height: 210,
+      collapsed: false,
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+    expect(updated.ownership['src/app.ts']).toEqual(layout.ownership['src/app.ts']);
   });
 });

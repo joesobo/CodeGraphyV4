@@ -22,6 +22,7 @@ export interface GraphContextActionContext {
   edgeSourceId?: string;
   edgeTargetId?: string;
   graphMode: GraphLayoutMode;
+  graphPosition?: GraphContextNodePosition2D;
   mutationDirectory: string;
   nodePositions: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
 }
@@ -40,6 +41,7 @@ export function resolveGraphContextActionContext(
     edgeSourceId: isEdgeSelection ? primaryTargetId : undefined,
     edgeTargetId: isEdgeSelection ? secondaryTargetId : undefined,
     graphMode: options.graphMode ?? '2d',
+    graphPosition: selection.graphPosition,
     mutationDirectory: resolveMutationDirectory(primaryTargetId),
     nodePositions: options.nodePositions ?? new Map(),
   };

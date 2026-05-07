@@ -16,8 +16,16 @@ function positionedNodeContext(targets: string[]) {
       graphMode: '2d',
       nodePositions: new Map([
         ['src/app.ts', { x: 12, y: -24 }],
+        ['src/utils.ts', { x: 72, y: 36 }],
       ]),
     },
+  );
+}
+
+function backgroundContext() {
+  return resolveGraphContextActionContext(
+    { kind: 'background', targets: [], graphPosition: { x: 40, y: -20 } },
+    { graphMode: '2d' },
   );
 }
 
@@ -147,6 +155,44 @@ describe('graph/contextActions/effects', () => {
 
   it('does not pin a node when its graph-space position is missing', () => {
     expect(getBuiltInContextActionEffects('pinNode', nodeContext(['src/app.ts']))).toEqual([]);
+  });
+
+  it('creates a Graph Section around selected node positions', () => {
+    expect(getBuiltInContextActionEffects('createGraphSection', positionedNodeContext(['src/app.ts', 'src/utils.ts']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_GRAPH_LAYOUT_SECTION',
+          payload: {
+            color: '#60a5fa',
+            height: 188,
+            memberNodeIds: ['src/app.ts', 'src/utils.ts'],
+            width: 188,
+            x: -52,
+            y: -88,
+          },
+        },
+      },
+    ]);
+  });
+
+  it('creates a Graph Section centered on the background context position', () => {
+    expect(getBuiltInContextActionEffects('createGraphSection', backgroundContext())).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_GRAPH_LAYOUT_SECTION',
+          payload: {
+            color: '#60a5fa',
+            height: 180,
+            memberNodeIds: [],
+            width: 280,
+            x: -100,
+            y: -110,
+          },
+        },
+      },
+    ]);
   });
 
   it('returns no effect when rename has no selected path', () => {

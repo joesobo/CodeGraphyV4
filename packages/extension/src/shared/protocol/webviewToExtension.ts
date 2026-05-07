@@ -10,6 +10,8 @@ import type {
   GraphLayoutCoordinate2D,
   GraphLayoutCoordinate3D,
   GraphLayoutMode,
+  GraphLayoutSectionCreate,
+  GraphLayoutSectionUpdate,
 } from '../settings/graphLayout';
 
 export interface LegendIconImport {
@@ -44,6 +46,17 @@ export type WebviewToExtensionMessage =
       payload: {
         graphMode: GraphLayoutMode;
         nodeId: string;
+      };
+    }
+  | {
+      type: 'CREATE_GRAPH_LAYOUT_SECTION';
+      payload: GraphLayoutSectionCreate;
+    }
+  | {
+      type: 'UPDATE_GRAPH_LAYOUT_SECTION';
+      payload: {
+        sectionId: string;
+        updates: GraphLayoutSectionUpdate;
       };
     }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
