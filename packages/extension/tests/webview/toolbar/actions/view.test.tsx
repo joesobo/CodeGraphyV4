@@ -24,9 +24,20 @@ vi.mock('../../../../src/webview/components/ui/menus/dropdown-menu', () => {
 
   const DropdownMenuItem = React.forwardRef<
     HTMLButtonElement,
-    { children: React.ReactNode; onSelect?: () => void }
-  >(({ children, onSelect }, ref) => (
-    <button ref={ref} type="button" onClick={onSelect}>
+    {
+      children: React.ReactNode;
+      className?: string;
+      disabled?: boolean;
+      onSelect?: () => void;
+    }
+  >(({ children, className, disabled, onSelect }, ref) => (
+    <button
+      ref={ref}
+      type="button"
+      className={className}
+      disabled={disabled}
+      onClick={onSelect}
+    >
       {children}
     </button>
   ));
@@ -197,6 +208,8 @@ describe('ToolbarActions', () => {
 
   it('posts root creation messages from the graph tool rail create menu', () => {
     renderWithProviders();
+    expect(screen.getByText('New File...').closest('button')).toHaveClass('gap-2');
+
     fireEvent.click(screen.getByText('New File...'));
 
     expect(postMessage).toHaveBeenCalledWith({
@@ -226,15 +239,32 @@ describe('ToolbarActions', () => {
     });
   });
 
-  it('keeps file and folder creation available while hiding section creation in timeline snapshots and 3D mode', () => {
+  it('keeps section creation available at the mutable timeline head and disables it for immutable snapshots', () => {
     act(() => {
-      graphStore.setState({ timelineActive: true });
+      graphStore.setState({
+        currentCommitSha: 'head-sha',
+        timelineActive: true,
+        timelineCommits: [
+          { sha: 'old-sha', message: 'old', author: 'Test', parents: [], timestamp: 1 },
+          { sha: 'head-sha', message: 'head', author: 'Test', parents: ['old-sha'], timestamp: 2 },
+        ],
+      });
     });
     const { rerender } = renderWithProviders();
     expect(screen.getByTitle('New...')).toBeInTheDocument();
     expect(screen.getByText('New File...')).toBeInTheDocument();
     expect(screen.getByText('New Folder...')).toBeInTheDocument();
-    expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
+    expect(screen.getByText('New Graph Section').closest('button')).toBeEnabled();
+
+    act(() => {
+      graphStore.setState({ currentCommitSha: 'old-sha' });
+    });
+    rerender(
+      <TooltipProvider>
+        <ToolbarActions />
+      </TooltipProvider>,
+    );
+    expect(screen.getByText('New Graph Section').closest('button')).toBeDisabled();
 
     act(() => {
       graphStore.setState({ graphMode: '3d', timelineActive: false });

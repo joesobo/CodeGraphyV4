@@ -23,11 +23,11 @@ export function buildNodeEntries(
     ...buildOpenBlock(targets, timelineActive),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
-    ...(timelineActive ? [] : buildPinBlock(targets, pinnedNodeIds)),
+    ...(mutationAvailability === 'enabled' ? buildPinBlock(targets, pinnedNodeIds) : []),
     ...buildFilterBlock(targets),
   ];
 
-  if (!timelineActive && mutationAvailability !== 'hidden' && targets.length > 0) {
+  if (mutationAvailability !== 'hidden' && targets.length > 0) {
     entries.push(
       builtInItem('node-create-section-from-selection', 'Create Graph Section from Selection', 'createGraphSection', {
         disabled: mutationAvailability === 'disabled',
@@ -45,7 +45,6 @@ export function buildNodeEntries(
 
 export function buildSingleFolderNodeEntries(
   target: string,
-  timelineActive: boolean,
   mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
@@ -66,11 +65,11 @@ export function buildSingleFolderNodeEntries(
     builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
-    ...(timelineActive ? [] : buildPinBlock(targets, pinnedNodeIds)),
+    ...(mutationAvailability === 'enabled' ? buildPinBlock(targets, pinnedNodeIds) : []),
     ...buildFilterBlock(targets),
   );
 
-  if (!timelineActive && mutationAvailability !== 'hidden') {
+  if (mutationAvailability !== 'hidden') {
     entries.push(
       builtInItem('node-create-section-from-selection', 'Create Graph Section from Selection', 'createGraphSection', {
         disabled: mutationAvailability === 'disabled',

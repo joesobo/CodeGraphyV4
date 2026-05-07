@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { dispatchGraphViewPrimaryMessage } from '../../../../../../src/extension/graphView/webview/dispatch/primary';
+import {
+  createDefaultGraphLayoutSettings,
+  type GraphLayoutSettings,
+} from '../../../../../../src/shared/settings/graphLayout';
 import { createPrimaryMessageContext } from '../context';
 
 describe('graphView/webview/dispatch/primary graph layout', () => {
@@ -168,6 +172,111 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
           'section-1': expect.objectContaining({ label: 'Section 1' }),
         }),
       }),
+    });
+  });
+
+  it('persists the user-facing Graph Section lifecycle across creation, ownership, editing, collapse, and pinning', async () => {
+    let graphLayout: GraphLayoutSettings = createDefaultGraphLayoutSettings();
+    const context = createPrimaryMessageContext({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'graphLayout') {
+          return graphLayout as T;
+        }
+
+        return defaultValue;
+      }),
+      updateConfig: vi.fn((key: string, value: unknown) => {
+        if (key === 'graphLayout') {
+          graphLayout = value as GraphLayoutSettings;
+        }
+
+        return Promise.resolve();
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'CREATE_GRAPH_LAYOUT_SECTION',
+      payload: {
+        color: '#60a5fa',
+        height: 180,
+        memberNodeIds: ['src/app.ts'],
+        width: 280,
+        x: -140,
+        y: -90,
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(graphLayout.sections['section-1']).toMatchObject({
+      color: '#60a5fa',
+      collapsed: false,
+      height: 180,
+      label: 'Section 1',
+      width: 280,
+      x: -140,
+      y: -90,
+    });
+    expect(graphLayout.ownership['src/app.ts']).toMatchObject({
+      itemKind: 'node',
+      ownerSectionId: 'section-1',
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'src',
+        itemKind: 'node',
+        ownerSectionId: 'section-1',
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(graphLayout.ownership.src).toMatchObject({
+      itemKind: 'node',
+      ownerSectionId: 'section-1',
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_SECTION',
+      payload: {
+        sectionId: 'section-1',
+        updates: {
+          collapsed: true,
+          color: '#22c55e',
+          height: 220,
+          label: 'Feature Work',
+          width: 340,
+          x: 40,
+          y: 50,
+        },
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(graphLayout.sections['section-1']).toMatchObject({
+      collapsed: true,
+      color: '#22c55e',
+      height: 220,
+      label: 'Feature Work',
+      width: 340,
+      x: 40,
+      y: 50,
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_PIN',
+      payload: {
+        graphMode: '2d',
+        nodeId: 'section-1',
+        position: { x: 210, y: 180 },
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(graphLayout.pinnedNodes['section-1']).toMatchObject({
+      nodeId: 'section-1',
+      twoDimensional: { x: 210, y: 180 },
+    });
+    expect(context.updateConfig).toHaveBeenLastCalledWith('graphLayout', graphLayout);
+    expect(context.sendMessage).toHaveBeenLastCalledWith({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: graphLayout,
     });
   });
 
