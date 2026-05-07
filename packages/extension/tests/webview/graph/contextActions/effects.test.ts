@@ -22,6 +22,18 @@ function positionedNodeContext(targets: string[]) {
   );
 }
 
+function positioned3DNodeContext(targets: string[], position: { x: number; y: number; z?: number }) {
+  return resolveGraphContextActionContext(
+    { kind: 'node', targets },
+    {
+      graphMode: '3d',
+      nodePositions: new Map([
+        ['src/app.ts', position],
+      ]),
+    },
+  );
+}
+
 function backgroundContext() {
   return resolveGraphContextActionContext(
     { kind: 'background', targets: [], graphPosition: { x: 40, y: -20 } },
@@ -155,6 +167,30 @@ describe('graph/contextActions/effects', () => {
 
   it('does not pin a node when its graph-space position is missing', () => {
     expect(getBuiltInContextActionEffects('pinNode', nodeContext(['src/app.ts']))).toEqual([]);
+  });
+
+  it('pins 3D nodes only when a complete 3D position is available', () => {
+    expect(getBuiltInContextActionEffects(
+      'pinNode',
+      positioned3DNodeContext(['src/app.ts'], { x: 12, y: -24, z: 36 }),
+    )).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'UPDATE_GRAPH_LAYOUT_PIN',
+          payload: {
+            graphMode: '3d',
+            nodeId: 'src/app.ts',
+            position: { x: 12, y: -24, z: 36 },
+          },
+        },
+      },
+    ]);
+
+    expect(getBuiltInContextActionEffects(
+      'pinNode',
+      positioned3DNodeContext(['src/app.ts'], { x: 12, y: -24 }),
+    )).toEqual([]);
   });
 
   it('creates a Graph Section around selected node positions', () => {

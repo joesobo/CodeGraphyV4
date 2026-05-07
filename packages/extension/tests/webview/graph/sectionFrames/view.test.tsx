@@ -83,6 +83,14 @@ describe('graph/sectionFrames/view', () => {
       top: '60px',
       width: '280px',
       height: '180px',
+      borderColor: '#60a5fa',
+    });
+    expect(frame.querySelector('[class*="border-b"]')).toHaveStyle({
+      backgroundColor: '#60a5fa22',
+      borderColor: '#60a5fa',
+    });
+    expect(screen.getByTestId('graph-section-resize-section-1')).toHaveStyle({
+      borderColor: '#60a5fa',
     });
     expect(screen.getByLabelText('Graph Section label')).toHaveValue('Section 1');
     expect(screen.getByLabelText('Graph Section color')).toHaveValue('#60a5fa');
@@ -122,6 +130,10 @@ describe('graph/sectionFrames/view', () => {
       x: -100,
       y: -60,
     });
+
+    fireEvent.mouseUp(window, { clientX: 140, clientY: 120 });
+
+    expect(onUpdateSection).toHaveBeenCalledTimes(1);
   });
 
   it('resizes a Section Frame from its southeast handle', () => {
@@ -139,6 +151,20 @@ describe('graph/sectionFrames/view', () => {
     });
   });
 
+  it('does not start a move drag from Section Frame controls or non-primary mouse buttons', () => {
+    const { onUpdateSection } = renderSectionFrames();
+    const frame = screen.getByTestId('graph-section-frame-section-1');
+
+    act(() => {
+      fireEvent.mouseDown(screen.getByLabelText('Graph Section label'), { button: 0, clientX: 60, clientY: 60 });
+      fireEvent.mouseUp(window, { clientX: 100, clientY: 90 });
+      fireEvent.mouseDown(frame, { button: 2, clientX: 60, clientY: 60 });
+      fireEvent.mouseUp(window, { clientX: 100, clientY: 90 });
+    });
+
+    expect(onUpdateSection).not.toHaveBeenCalled();
+  });
+
   it('renders parent frames before child frames so nested children stay interactive', () => {
     renderNestedSectionFrames();
 
@@ -153,5 +179,16 @@ describe('graph/sectionFrames/view', () => {
 
     expect(screen.queryByTestId('graph-section-frame-section-1')).toBeNull();
     expect(screen.queryByTestId('graph-section-frame-section-2')).toBeNull();
+  });
+
+  it('renders no frame container when there are no visible Section Frames', () => {
+    render(
+      <SectionFrames
+        sections={[]}
+        onUpdateSection={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('graph-section-frames')).toBeNull();
   });
 });

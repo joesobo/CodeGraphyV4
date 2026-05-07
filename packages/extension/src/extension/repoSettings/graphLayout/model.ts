@@ -77,6 +77,40 @@ function readCoordinate3D(value: unknown): GraphLayoutCoordinate3D | undefined {
   return { ...coordinate2D, z };
 }
 
+interface MatchingRecordIdentity {
+  id: string;
+  updatedAt: string;
+}
+
+function readMatchingRecordIdentity(
+  value: Record<string, unknown>,
+  key: string,
+  idField: 'id' | 'itemId' | 'nodeId',
+): MatchingRecordIdentity | undefined {
+  const id = readRequiredString(value[idField]);
+  const updatedAt = readRequiredString(value.updatedAt);
+  if (id !== key || !updatedAt) {
+    return undefined;
+  }
+
+  return { id, updatedAt };
+}
+
+function readPinnedNodeCoordinates(
+  value: Record<string, unknown>,
+): Pick<GraphLayoutPinnedNode, 'threeDimensional' | 'twoDimensional'> | undefined {
+  const twoDimensional = readCoordinate2D(value.twoDimensional);
+  const threeDimensional = readCoordinate3D(value.threeDimensional);
+  if (!twoDimensional && !threeDimensional) {
+    return undefined;
+  }
+
+  return {
+    ...(twoDimensional ? { twoDimensional } : {}),
+    ...(threeDimensional ? { threeDimensional } : {}),
+  };
+}
+
 function normalizePinnedNode(
   key: string,
   value: unknown,
@@ -85,23 +119,16 @@ function normalizePinnedNode(
     return undefined;
   }
 
-  const nodeId = readRequiredString(value.nodeId);
-  const updatedAt = readRequiredString(value.updatedAt);
-  if (nodeId !== key || !updatedAt) {
-    return undefined;
-  }
-
-  const twoDimensional = readCoordinate2D(value.twoDimensional);
-  const threeDimensional = readCoordinate3D(value.threeDimensional);
-  if (!twoDimensional && !threeDimensional) {
+  const identity = readMatchingRecordIdentity(value, key, 'nodeId');
+  const coordinates = readPinnedNodeCoordinates(value);
+  if (!identity || !coordinates) {
     return undefined;
   }
 
   return {
-    nodeId,
-    ...(twoDimensional ? { twoDimensional } : {}),
-    ...(threeDimensional ? { threeDimensional } : {}),
-    updatedAt,
+    nodeId: identity.id,
+    ...coordinates,
+    updatedAt: identity.updatedAt,
   };
 }
 
@@ -121,6 +148,55 @@ function normalizePinnedNodes(value: unknown): Record<string, GraphLayoutPinnedN
   return pinnedNodes;
 }
 
+interface SectionTextFields {
+  color: string;
+  id: string;
+  label: string;
+  updatedAt: string;
+}
+
+interface SectionBounds {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
+function readSectionTextFields(
+  value: Record<string, unknown>,
+  key: string,
+): SectionTextFields | undefined {
+  const identity = readMatchingRecordIdentity(value, key, 'id');
+  const label = readRequiredString(value.label);
+  const color = readRequiredString(value.color);
+  if (!identity || !label || !color) {
+    return undefined;
+  }
+
+  return {
+    color,
+    id: identity.id,
+    label,
+    updatedAt: identity.updatedAt,
+  };
+}
+
+function readSectionBounds(value: Record<string, unknown>): SectionBounds | undefined {
+  const x = readFiniteNumber(value.x);
+  const y = readFiniteNumber(value.y);
+  const width = readPositiveNumber(value.width);
+  const height = readPositiveNumber(value.height);
+  if (x === undefined || y === undefined || width === undefined || height === undefined) {
+    return undefined;
+  }
+
+  return { height, width, x, y };
+}
+
+function readSectionCollapsed(value: Record<string, unknown>): boolean | undefined {
+  return typeof value.collapsed === 'boolean' ? value.collapsed : undefined;
+}
+
 function normalizeSection(
   key: string,
   value: unknown,
@@ -129,39 +205,17 @@ function normalizeSection(
     return undefined;
   }
 
-  const id = readRequiredString(value.id);
-  const label = readRequiredString(value.label);
-  const color = readRequiredString(value.color);
-  const x = readFiniteNumber(value.x);
-  const y = readFiniteNumber(value.y);
-  const width = readPositiveNumber(value.width);
-  const height = readPositiveNumber(value.height);
-  const updatedAt = readRequiredString(value.updatedAt);
-
-  if (
-    id !== key
-    || !label
-    || !color
-    || x === undefined
-    || y === undefined
-    || width === undefined
-    || height === undefined
-    || typeof value.collapsed !== 'boolean'
-    || !updatedAt
-  ) {
+  const text = readSectionTextFields(value, key);
+  const bounds = readSectionBounds(value);
+  const collapsed = readSectionCollapsed(value);
+  if (!text || !bounds || collapsed === undefined) {
     return undefined;
   }
 
   return {
-    id,
-    label,
-    color,
-    x,
-    y,
-    width,
-    height,
-    collapsed: value.collapsed,
-    updatedAt,
+    ...text,
+    ...bounds,
+    collapsed,
   };
 }
 
@@ -202,6 +256,18 @@ function normalizeOwnerSectionId(
   return ownerSectionId;
 }
 
+function readOwnershipItemKind(value: unknown): GraphLayoutOwnership['itemKind'] | undefined {
+  return value === 'node' || value === 'section' ? value : undefined;
+}
+
+function ownsKnownSection(
+  itemId: string,
+  itemKind: GraphLayoutOwnership['itemKind'],
+  sections: Record<string, GraphLayoutSection>,
+): boolean {
+  return itemKind === 'node' || itemId in sections;
+}
+
 function normalizeOwnershipRecord(
   key: string,
   value: unknown,
@@ -211,23 +277,15 @@ function normalizeOwnershipRecord(
     return undefined;
   }
 
-  const itemId = readRequiredString(value.itemId);
-  const updatedAt = readRequiredString(value.updatedAt);
-  if (itemId !== key || !updatedAt) {
-    return undefined;
-  }
-
-  if (value.itemKind !== 'node' && value.itemKind !== 'section') {
-    return undefined;
-  }
-
-  if (value.itemKind === 'section' && !(itemId in sections)) {
+  const identity = readMatchingRecordIdentity(value, key, 'itemId');
+  const itemKind = readOwnershipItemKind(value.itemKind);
+  if (!identity || !itemKind || !ownsKnownSection(identity.id, itemKind, sections)) {
     return undefined;
   }
 
   const ownerSectionId = normalizeOwnerSectionId(
-    itemId,
-    value.itemKind,
+    identity.id,
+    itemKind,
     value.ownerSectionId,
     sections,
   );
@@ -236,10 +294,10 @@ function normalizeOwnershipRecord(
   }
 
   return {
-    itemId,
-    itemKind: value.itemKind,
+    itemId: identity.id,
+    itemKind,
     ownerSectionId,
-    updatedAt,
+    updatedAt: identity.updatedAt,
   };
 }
 
@@ -534,16 +592,11 @@ function readOptionalNumberUpdate(
   return nextValue === undefined ? currentValue : nextValue;
 }
 
-export function updateGraphLayoutSection(
-  layout: GraphLayoutSettings,
+function buildUpdatedGraphLayoutSection(
+  existing: GraphLayoutSection,
   patch: GraphLayoutSectionPatch,
-): GraphLayoutSettings {
-  const existing = layout.sections[patch.sectionId];
-  if (!existing) {
-    throw new Error('Graph Section does not exist.');
-  }
-
-  const nextSection: GraphLayoutSection = {
+): GraphLayoutSection {
+  return {
     ...existing,
     collapsed: patch.updates.collapsed ?? existing.collapsed,
     color: readOptionalSectionString(patch.updates.color) ?? existing.color,
@@ -554,57 +607,114 @@ export function updateGraphLayoutSection(
     y: readOptionalNumberUpdate(patch.updates.y, existing.y),
     updatedAt: patch.updatedAt,
   };
-  const delta = {
+}
+
+function getSectionMoveDelta(
+  existing: Pick<GraphLayoutSection, 'x' | 'y'>,
+  nextSection: Pick<GraphLayoutSection, 'x' | 'y'>,
+): GraphLayoutCoordinate2D {
+  return {
     x: nextSection.x - existing.x,
     y: nextSection.y - existing.y,
   };
+}
 
-  const nextSections: Record<string, GraphLayoutSection> = {
-    ...layout.sections,
-    [patch.sectionId]: nextSection,
-  };
+function hasSectionMoveDelta(delta: GraphLayoutCoordinate2D): boolean {
+  return delta.x !== 0 || delta.y !== 0;
+}
 
-  if (delta.x !== 0 || delta.y !== 0) {
-    for (const [sectionId, section] of Object.entries(layout.sections)) {
-      if (
-        sectionId !== patch.sectionId
-        && isGraphLayoutSectionDescendant(layout.ownership, sectionId, patch.sectionId)
-      ) {
-        nextSections[sectionId] = {
-          ...section,
-          x: section.x + delta.x,
-          y: section.y + delta.y,
-          updatedAt: patch.updatedAt,
-        };
-      }
-    }
+function moveDescendantGraphLayoutSections(
+  layout: GraphLayoutSettings,
+  sectionId: string,
+  delta: GraphLayoutCoordinate2D,
+  updatedAt: string,
+): Record<string, GraphLayoutSection> {
+  const nextSections: Record<string, GraphLayoutSection> = { ...layout.sections };
+  if (!hasSectionMoveDelta(delta)) {
+    return nextSections;
   }
 
+  for (const [candidateId, section] of Object.entries(layout.sections)) {
+    if (candidateId === sectionId) {
+      continue;
+    }
+
+    if (!isGraphLayoutSectionDescendant(layout.ownership, candidateId, sectionId)) {
+      continue;
+    }
+
+    nextSections[candidateId] = {
+      ...section,
+      x: section.x + delta.x,
+      y: section.y + delta.y,
+      updatedAt,
+    };
+  }
+
+  return nextSections;
+}
+
+function shouldMovePinnedNodeWithSection(
+  layout: GraphLayoutSettings,
+  itemId: string,
+  pinnedNode: GraphLayoutPinnedNode,
+  sectionId: string,
+): boolean {
+  return !!pinnedNode.twoDimensional
+    && (itemId === sectionId || isGraphLayoutItemOwnedBySection(layout.ownership, itemId, sectionId));
+}
+
+function movePinnedGraphLayoutNodes(
+  layout: GraphLayoutSettings,
+  sectionId: string,
+  delta: GraphLayoutCoordinate2D,
+  updatedAt: string,
+): Record<string, GraphLayoutPinnedNode> {
   const nextPinnedNodes: Record<string, GraphLayoutPinnedNode> = { ...layout.pinnedNodes };
-  if (delta.x !== 0 || delta.y !== 0) {
-    for (const [itemId, pinnedNode] of Object.entries(layout.pinnedNodes)) {
-      if (
-        !pinnedNode.twoDimensional
-        || (itemId !== patch.sectionId
-          && !isGraphLayoutItemOwnedBySection(layout.ownership, itemId, patch.sectionId))
-      ) {
-        continue;
-      }
-
-      nextPinnedNodes[itemId] = {
-        ...pinnedNode,
-        twoDimensional: {
-          x: pinnedNode.twoDimensional.x + delta.x,
-          y: pinnedNode.twoDimensional.y + delta.y,
-        },
-        updatedAt: patch.updatedAt,
-      };
-    }
+  if (!hasSectionMoveDelta(delta)) {
+    return nextPinnedNodes;
   }
+
+  for (const [itemId, pinnedNode] of Object.entries(layout.pinnedNodes)) {
+    if (!shouldMovePinnedNodeWithSection(layout, itemId, pinnedNode, sectionId)) {
+      continue;
+    }
+
+    nextPinnedNodes[itemId] = {
+      ...pinnedNode,
+      twoDimensional: {
+        x: pinnedNode.twoDimensional!.x + delta.x,
+        y: pinnedNode.twoDimensional!.y + delta.y,
+      },
+      updatedAt,
+    };
+  }
+
+  return nextPinnedNodes;
+}
+
+export function updateGraphLayoutSection(
+  layout: GraphLayoutSettings,
+  patch: GraphLayoutSectionPatch,
+): GraphLayoutSettings {
+  const existing = layout.sections[patch.sectionId];
+  if (!existing) {
+    throw new Error('Graph Section does not exist.');
+  }
+
+  const nextSection = buildUpdatedGraphLayoutSection(existing, patch);
+  const delta = getSectionMoveDelta(existing, nextSection);
+  const nextSections = moveDescendantGraphLayoutSections(
+    layout,
+    patch.sectionId,
+    delta,
+    patch.updatedAt,
+  );
+  nextSections[patch.sectionId] = nextSection;
 
   return normalizeGraphLayoutSettings({
     ...layout,
-    pinnedNodes: nextPinnedNodes,
+    pinnedNodes: movePinnedGraphLayoutNodes(layout, patch.sectionId, delta, patch.updatedAt),
     sections: nextSections,
   });
 }

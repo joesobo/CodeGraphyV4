@@ -11,7 +11,7 @@
   - Trello #26: `Pinnable nodes`
   - Trello #20: `Multi node selection`
   - Trello #25: `expandable nodes`
-- Status: final quality sweep in progress.
+- Status: implemented and locally verified; PR CI verification is tracked on the draft PR.
 
 ## Goal
 
@@ -659,6 +659,12 @@ Potential implementation order after the design is settled:
 - 2026-05-07: Verified slice 7 with an initial red focused suite, then focused projection/rendering tests (`17` tests passed), an adjacent graph model/rendering/viewport sweep (`503` tests passed), extension typecheck, extension lint, and `git diff --check`.
 - 2026-05-07: Slice 8 added the expanded Section Frame collapse control, pinned Section Frame indicator, collapsed Section Node hidden-descendant count badge, and marquee selection theme-token cleanup.
 - 2026-05-07: Verified slice 8 with an initial red focused suite, then focused Section Frame/rendering/theme tests (`24` tests passed), extension typecheck, extension lint, and `git diff --check`.
+- 2026-05-07: Final quality refactor split high-CRAP graph layout, Section Frame, runtime physics, viewport, and rendering branches into feature-owned helpers while preserving the implemented behavior.
+- 2026-05-07: Added direct tests for shared Graph Layout visibility helpers, 3D pin context actions, collapsed Section Node badge rendering, Section Frame geometry/drag helpers, and Section Frame interaction edge cases.
+- 2026-05-07: Final focused graph-section sweep passed: `13` files and `117` tests.
+- 2026-05-07: Final local standard gates passed: `pnpm run lint`, `pnpm run typecheck`, `pnpm run test` (`17` Turbo tasks successful; extension `968` files and `5756` tests; release `11` tests).
+- 2026-05-07: Final quality gates passed: `pnpm run crap -- extension/` (`All functions have CRAP score <= 8`), `pnpm run boundaries -- extension/` (`996` files, `0` layer violations, `0` dead surfaces, `0` dead ends), `pnpm run reachability -- extension/` (`996` files, `0` dead surfaces, `0` dead ends), and `git diff --check`.
+- 2026-05-07: Scoped mutation passed for changed graph-section modules: `collapsedSectionBadge.ts` killed `39/39`, `sectionFrames/view.tsx` killed `36/36`, `sectionFrames/model.ts` killed `50/50`, and `sectionFrames/drag.ts` killed `11/11`.
 
 ## Codex CLI Handoff
 

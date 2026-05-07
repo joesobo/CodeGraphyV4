@@ -66,48 +66,85 @@ function clamp(value: number, minimum: number, maximum: number): number {
 }
 
 function isPinnedInsideBounds(
-	node: FGNode,
-	bounds: { height: number; width: number; x: number; y: number },
-	margin: number,
+  node: FGNode,
+  bounds: { height: number; width: number; x: number; y: number },
+  margin: number,
 ): boolean {
 	return isFiniteNumber(node.fx)
 		&& isFiniteNumber(node.fy)
 		&& node.fx >= bounds.x + margin
 		&& node.fx <= bounds.x + bounds.width - margin
 		&& node.fy >= bounds.y + margin
-		&& node.fy <= bounds.y + bounds.height - margin;
+			&& node.fy <= bounds.y + bounds.height - margin;
 }
 
-function constrainMemberNode(
+function resolveNodeCoordinate(value: unknown, fallback: number): number {
+	return isFiniteNumber(value) ? value : fallback;
+}
+
+function getConstrainedMemberPosition(
 	node: FGNode,
 	bounds: { height: number; width: number; x: number; y: number },
-	alpha: number,
-): void {
+): { margin: number; x: number; y: number } | undefined {
 	const margin = Math.max(1, node.size ?? 1) + SECTION_MEMBER_PADDING;
 	if (isPinnedInsideBounds(node, bounds, margin)) {
-		return;
+		return undefined;
 	}
 
-	const x = isFiniteNumber(node.x) ? node.x : bounds.x + bounds.width / 2;
-	const y = isFiniteNumber(node.y) ? node.y : bounds.y + bounds.height / 2;
-	const nextX = clamp(x, bounds.x + margin, bounds.x + bounds.width - margin);
-	const nextY = clamp(y, bounds.y + margin, bounds.y + bounds.height - margin);
+	const fallbackX = bounds.x + bounds.width / 2;
+	const fallbackY = bounds.y + bounds.height / 2;
+	return {
+		margin,
+		x: resolveNodeCoordinate(node.x, fallbackX),
+		y: resolveNodeCoordinate(node.y, fallbackY),
+	};
+}
 
-	node.x = nextX;
-	node.y = nextY;
+function applyConstrainedMemberCoordinates(
+	node: FGNode,
+	x: number,
+	y: number,
+): void {
+	node.x = x;
+	node.y = y;
 
 	if (isFiniteNumber(node.fx)) {
-		node.fx = nextX;
+		node.fx = x;
 	}
 
 	if (isFiniteNumber(node.fy)) {
-		node.fy = nextY;
+		node.fy = y;
 	}
+}
 
+function applyMemberCenterVelocity(
+	node: FGNode,
+	bounds: { height: number; width: number; x: number; y: number },
+	alpha: number,
+	x: number,
+	y: number,
+): void {
 	const centerX = bounds.x + bounds.width / 2;
 	const centerY = bounds.y + bounds.height / 2;
-	node.vx = (node.vx ?? 0) + (centerX - nextX) * SECTION_MEMBER_CENTER_STRENGTH * alpha;
-	node.vy = (node.vy ?? 0) + (centerY - nextY) * SECTION_MEMBER_CENTER_STRENGTH * alpha;
+	node.vx = (node.vx ?? 0) + (centerX - x) * SECTION_MEMBER_CENTER_STRENGTH * alpha;
+	node.vy = (node.vy ?? 0) + (centerY - y) * SECTION_MEMBER_CENTER_STRENGTH * alpha;
+}
+
+function constrainMemberNode(
+  node: FGNode,
+  bounds: { height: number; width: number; x: number; y: number },
+  alpha: number,
+): void {
+	const position = getConstrainedMemberPosition(node, bounds);
+	if (!position) {
+		return;
+	}
+
+	const nextX = clamp(position.x, bounds.x + position.margin, bounds.x + bounds.width - position.margin);
+	const nextY = clamp(position.y, bounds.y + position.margin, bounds.y + bounds.height - position.margin);
+
+	applyConstrainedMemberCoordinates(node, nextX, nextY);
+	applyMemberCenterVelocity(node, bounds, alpha, nextX, nextY);
 }
 
 export function createGraphSectionBoundsForce(

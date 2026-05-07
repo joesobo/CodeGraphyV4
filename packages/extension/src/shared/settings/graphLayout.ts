@@ -97,30 +97,51 @@ export function isGraphLayoutPointInsideSection(
     && point.y <= section.y + section.height;
 }
 
+interface GraphLayoutSectionAncestorWalk {
+  ancestorIds: string[];
+  cycleDetected: boolean;
+}
+
+function getNestedOwnerSectionId(
+  ownership: Readonly<Record<string, GraphLayoutOwnership>>,
+  sectionId: string,
+): string | null {
+  const record = ownership[sectionId];
+  return record?.itemKind === 'section' ? record.ownerSectionId : null;
+}
+
+function walkGraphLayoutSectionAncestors(
+  ownership: Readonly<Record<string, GraphLayoutOwnership>>,
+  sectionId: string,
+): GraphLayoutSectionAncestorWalk {
+  const ancestorIds: string[] = [];
+  const visited = new Set<string>([sectionId]);
+  let currentOwnerId = ownership[sectionId]?.ownerSectionId ?? null;
+
+  while (currentOwnerId) {
+    if (visited.has(currentOwnerId)) {
+      return { ancestorIds, cycleDetected: true };
+    }
+
+    visited.add(currentOwnerId);
+    ancestorIds.push(currentOwnerId);
+    currentOwnerId = getNestedOwnerSectionId(ownership, currentOwnerId);
+  }
+
+  return { ancestorIds, cycleDetected: false };
+}
+
+function isExpandedGraphLayoutSection(section: GraphLayoutSection | undefined): section is GraphLayoutSection {
+  return !!section && !section.collapsed;
+}
+
 export function isGraphLayoutSectionDescendant(
   ownership: Readonly<Record<string, GraphLayoutOwnership>>,
   sectionId: string,
   ancestorSectionId: string,
 ): boolean {
-  const visited = new Set<string>();
-  let currentOwnerId = ownership[sectionId]?.ownerSectionId ?? null;
-
-  while (currentOwnerId) {
-    if (currentOwnerId === ancestorSectionId) {
-      return true;
-    }
-
-    if (visited.has(currentOwnerId)) {
-      return false;
-    }
-
-    visited.add(currentOwnerId);
-    currentOwnerId = ownership[currentOwnerId]?.itemKind === 'section'
-      ? ownership[currentOwnerId].ownerSectionId
-      : null;
-  }
-
-  return false;
+  const walk = walkGraphLayoutSectionAncestors(ownership, sectionId);
+  return walk.ancestorIds.includes(ancestorSectionId);
 }
 
 export function isGraphLayoutItemOwnedBySection(
@@ -141,23 +162,7 @@ export function getGraphLayoutSectionDepth(
   ownership: Readonly<Record<string, GraphLayoutOwnership>>,
   sectionId: string,
 ): number {
-  const visited = new Set<string>([sectionId]);
-  let depth = 0;
-  let currentOwnerId = ownership[sectionId]?.ownerSectionId ?? null;
-
-  while (currentOwnerId) {
-    if (visited.has(currentOwnerId)) {
-      return depth;
-    }
-
-    visited.add(currentOwnerId);
-    depth += 1;
-    currentOwnerId = ownership[currentOwnerId]?.itemKind === 'section'
-      ? ownership[currentOwnerId].ownerSectionId
-      : null;
-  }
-
-  return depth;
+  return walkGraphLayoutSectionAncestors(ownership, sectionId).ancestorIds.length;
 }
 
 export function isGraphLayoutSectionVisible(
@@ -166,30 +171,13 @@ export function isGraphLayoutSectionVisible(
   sectionId: string,
 ): boolean {
   const section = sections[sectionId];
-  if (!section || section.collapsed) {
+  if (!isExpandedGraphLayoutSection(section)) {
     return false;
   }
 
-  const visited = new Set<string>([sectionId]);
-  let currentOwnerId = ownership[sectionId]?.ownerSectionId ?? null;
-
-  while (currentOwnerId) {
-    if (visited.has(currentOwnerId)) {
-      return false;
-    }
-
-    visited.add(currentOwnerId);
-    const ownerSection = sections[currentOwnerId];
-    if (!ownerSection || ownerSection.collapsed) {
-      return false;
-    }
-
-    currentOwnerId = ownership[currentOwnerId]?.itemKind === 'section'
-      ? ownership[currentOwnerId].ownerSectionId
-      : null;
-  }
-
-  return true;
+  const walk = walkGraphLayoutSectionAncestors(ownership, sectionId);
+  return !walk.cycleDetected
+    && walk.ancestorIds.every(ancestorId => isExpandedGraphLayoutSection(sections[ancestorId]));
 }
 
 export function getGraphLayoutCollapsedRepresentative(
