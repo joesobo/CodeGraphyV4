@@ -11,7 +11,7 @@
   - Trello #26: `Pinnable nodes`
   - Trello #20: `Multi node selection`
   - Trello #25: `expandable nodes`
-- Status: living design plan. No implementation has started.
+- Status: implementation in progress.
 
 ## Goal
 
@@ -623,6 +623,14 @@ Potential implementation order after the design is settled:
    - selection states,
    - theme/readability checks,
    - manual graph interaction smoke pass.
+
+## Implementation Progress
+
+- 2026-05-07: Slice 1 started with repo-local `graphLayout` settings persisted under `.codegraphy/settings.json`.
+- 2026-05-07: Added a graph layout settings model for `pinnedNodes`, `sections`, and normalized `ownership`.
+- 2026-05-07: Added validation for finite graph-space coordinates, required section identity/label/color/chrome fields, dormant node pin records, dormant node ownership records, owner section existence, and Section ownership cycle prevention.
+- 2026-05-07: Wired `graphLayout` into repo settings defaults, serialization, and persisted-shape normalization.
+- 2026-05-07: Verified slice 1 with targeted repo-settings tests, full repo-settings tests, extension lint, and extension typecheck.
 
 ## Codex CLI Handoff
 
