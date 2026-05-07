@@ -6,9 +6,13 @@ import {
   type SetStateAction,
 } from 'react';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
+import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
+import type { GraphLayoutMode } from '../../../../../shared/settings/graphLayout';
 import type { GraphContextMenuAction, GraphContextSelection } from '../../contextMenu/contracts';
 import {
   resolveGraphContextActionContext,
+  type GraphContextNodePosition2D,
+  type GraphContextNodePosition3D,
 } from '../../contextActions/context';
 import {
   createGraphContextMenuOpeningRuntime,
@@ -69,6 +73,7 @@ export interface UseGraphInteractionRuntimeResult {
   handleMouseMoveCapture: GraphContextMenuOpeningRuntime['handleMouseMoveCapture'];
   handleMouseUpCapture: GraphContextMenuOpeningRuntime['handleMouseUpCapture'];
   handleNodeHover(this: void, node: FGNode | null): void;
+  handleNodeDragEnd(this: void, node: FGNode): void;
   handleNodeRightClick: GraphContextMenuOpeningRuntime['handleNodeRightClick'];
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: ReturnType<typeof createGraphInteractionHandlers>;
@@ -91,6 +96,66 @@ function buildTooltipInteractionHandlers(
 
 function handleGraphEngineStop(): void {
   postMessage({ type: 'PHYSICS_STABILIZED' });
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function readNodePosition(
+  node: FGNode,
+  graphMode: GraphLayoutMode,
+): GraphContextNodePosition2D | GraphContextNodePosition3D | undefined {
+  if (!isFiniteNumber(node.x) || !isFiniteNumber(node.y)) {
+    return undefined;
+  }
+
+  if (graphMode === '3d') {
+    return isFiniteNumber(node.z)
+      ? { x: node.x, y: node.y, z: node.z }
+      : undefined;
+  }
+
+  return { x: node.x, y: node.y };
+}
+
+function createGraphNodePositionMap(
+  nodes: readonly FGNode[],
+  graphMode: GraphLayoutMode,
+): Map<string, GraphContextNodePosition2D | GraphContextNodePosition3D> {
+  const positions = new Map<string, GraphContextNodePosition2D | GraphContextNodePosition3D>();
+
+  for (const node of nodes) {
+    const position = readNodePosition(node, graphMode);
+    if (position) {
+      positions.set(node.id, position);
+    }
+  }
+
+  return positions;
+}
+
+function createPinnedNodeDragMessage(
+  node: FGNode,
+  graphMode: GraphLayoutMode,
+): WebviewToExtensionMessage | undefined {
+  if (!node.isPinned) {
+    return undefined;
+  }
+
+  const position = readNodePosition(node, graphMode);
+  if (!position) {
+    return undefined;
+  }
+
+  return {
+    type: 'UPDATE_GRAPH_LAYOUT_PIN',
+    payload: {
+      graphMode,
+      nodeId: node.id,
+      position,
+    },
+  };
 }
 
 export function useGraphInteractionRuntime({
@@ -177,9 +242,19 @@ export function useGraphInteractionRuntime({
   });
 
   const actionContext = useMemo(
-    () => resolveGraphContextActionContext(graphContextSelection),
-    [graphContextSelection],
+    () => resolveGraphContextActionContext(graphContextSelection, {
+      graphMode,
+      nodePositions: createGraphNodePositionMap(graphDataRef.current.nodes, graphMode),
+    }),
+    [graphContextSelection, graphDataRef, graphMode],
   );
+
+  function handleNodeDragEnd(node: FGNode): void {
+    const message = createPinnedNodeDragMessage(node, graphMode);
+    if (message) {
+      postMessage(message);
+    }
+  }
 
   const contextMenuOpeningRuntime = useMemo(
     () => createGraphContextMenuOpeningRuntime({
@@ -235,6 +310,7 @@ export function useGraphInteractionRuntime({
     handleEngineStop: handleGraphEngineStop,
     handleMouseLeave,
     handleNodeHover,
+    handleNodeDragEnd,
     hoveredNodeRef,
     interactionHandlers,
     setTooltipData,

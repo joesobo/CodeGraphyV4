@@ -5,6 +5,7 @@ import { applyNodeFileMessage } from '../nodeFile/router';
 import { applyPhysicsMessage } from '../messages/physics';
 import { applySurfaceMessage } from '../messages/surface';
 import { applyTimelineMessage } from '../messages/timeline';
+import { applyGraphLayoutMessage } from '../messages/graphLayout';
 import { createGraphViewPrimaryExportHandlers } from './exportHandlers';
 import type { GraphViewPrimaryMessageContext, GraphViewPrimaryMessageResult } from './primary';
 import { createGraphViewPrimaryNodeFileHandlers } from './primaryState';
@@ -30,6 +31,10 @@ export async function dispatchGraphViewPrimaryRouteMessage(
   }
 
   if (await applyPhysicsMessage(message, context)) {
+    return { handled: true };
+  }
+
+  if (await applyGraphLayoutMessage(message, context)) {
     return { handled: true };
   }
 

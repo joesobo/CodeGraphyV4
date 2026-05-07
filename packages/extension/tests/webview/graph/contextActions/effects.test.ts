@@ -9,6 +9,18 @@ function nodeContext(targets: string[]) {
   return resolveGraphContextActionContext({ kind: 'node', targets });
 }
 
+function positionedNodeContext(targets: string[]) {
+  return resolveGraphContextActionContext(
+    { kind: 'node', targets },
+    {
+      graphMode: '2d',
+      nodePositions: new Map([
+        ['src/app.ts', { x: 12, y: -24 }],
+      ]),
+    },
+  );
+}
+
 function edgeContext(targets: string[]) {
   return resolveGraphContextActionContext({ kind: 'edge', edgeId: targets.join('->'), targets });
 }
@@ -105,6 +117,36 @@ describe('graph/contextActions/effects', () => {
 
   it('returns no effect when focus has no selected path', () => {
     expect(getBuiltInContextActionEffects('focus', nodeContext([]))).toEqual([]);
+  });
+
+  it('pins and unpins the primary selected node in the active graph mode', () => {
+    expect(getBuiltInContextActionEffects('pinNode', positionedNodeContext(['src/app.ts']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'UPDATE_GRAPH_LAYOUT_PIN',
+          payload: {
+            graphMode: '2d',
+            nodeId: 'src/app.ts',
+            position: { x: 12, y: -24 },
+          },
+        },
+      },
+    ]);
+
+    expect(getBuiltInContextActionEffects('unpinNode', positionedNodeContext(['src/app.ts']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CLEAR_GRAPH_LAYOUT_PIN',
+          payload: { graphMode: '2d', nodeId: 'src/app.ts' },
+        },
+      },
+    ]);
+  });
+
+  it('does not pin a node when its graph-space position is missing', () => {
+    expect(getBuiltInContextActionEffects('pinNode', nodeContext(['src/app.ts']))).toEqual([]);
   });
 
   it('returns no effect when rename has no selected path', () => {

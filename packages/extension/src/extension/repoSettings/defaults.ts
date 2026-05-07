@@ -11,7 +11,7 @@ import {
 import {
   createDefaultGraphLayoutSettings,
   type GraphLayoutSettings,
-} from './graphLayout/model';
+} from '../../shared/settings/graphLayout';
 
 export interface ICodeGraphyRepoSettings {
   version: 1;

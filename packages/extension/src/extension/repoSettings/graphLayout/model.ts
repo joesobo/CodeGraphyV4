@@ -1,53 +1,25 @@
 import { isPlainObject } from '../store/model/plainObject';
+import {
+  createDefaultGraphLayoutSettings,
+  type GraphLayoutCoordinate2D,
+  type GraphLayoutCoordinate3D,
+  type GraphLayoutMode,
+  type GraphLayoutOwnership,
+  type GraphLayoutPinnedNode,
+  type GraphLayoutSection,
+  type GraphLayoutSettings,
+} from '../../../shared/settings/graphLayout';
 
-export interface GraphLayoutCoordinate2D {
-  x: number;
-  y: number;
-}
-
-export interface GraphLayoutCoordinate3D extends GraphLayoutCoordinate2D {
-  z: number;
-}
-
-export interface GraphLayoutPinnedNode {
-  nodeId: string;
-  twoDimensional?: GraphLayoutCoordinate2D;
-  threeDimensional?: GraphLayoutCoordinate3D;
-  updatedAt: string;
-}
-
-export interface GraphLayoutSection {
-  id: string;
-  label: string;
-  color: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  collapsed: boolean;
-  updatedAt: string;
-}
-
-export interface GraphLayoutOwnership {
-  itemId: string;
-  itemKind: 'node' | 'section';
-  ownerSectionId: string | null;
-  updatedAt: string;
-}
-
-export interface GraphLayoutSettings {
-  pinnedNodes: Record<string, GraphLayoutPinnedNode>;
-  sections: Record<string, GraphLayoutSection>;
-  ownership: Record<string, GraphLayoutOwnership>;
-}
-
-export function createDefaultGraphLayoutSettings(): GraphLayoutSettings {
-  return {
-    pinnedNodes: {},
-    sections: {},
-    ownership: {},
-  };
-}
+export { createDefaultGraphLayoutSettings };
+export type {
+  GraphLayoutCoordinate2D,
+  GraphLayoutCoordinate3D,
+  GraphLayoutMode,
+  GraphLayoutOwnership,
+  GraphLayoutPinnedNode,
+  GraphLayoutSection,
+  GraphLayoutSettings,
+};
 
 function readRequiredString(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0
@@ -362,4 +334,71 @@ export function assignGraphLayoutOwner(
       [normalizedRecord.itemId]: normalizedRecord,
     },
   };
+}
+
+export interface GraphLayoutNodePinUpdate {
+  graphMode: GraphLayoutMode;
+  nodeId: string;
+  position: GraphLayoutCoordinate2D | GraphLayoutCoordinate3D;
+  updatedAt: string;
+}
+
+function isCoordinate3D(
+  position: GraphLayoutCoordinate2D | GraphLayoutCoordinate3D,
+): position is GraphLayoutCoordinate3D {
+  return 'z' in position;
+}
+
+export function setGraphLayoutNodePin(
+  layout: GraphLayoutSettings,
+  update: GraphLayoutNodePinUpdate,
+): GraphLayoutSettings {
+  const existing = layout.pinnedNodes[update.nodeId];
+  const nextPinnedNode: GraphLayoutPinnedNode = {
+    nodeId: update.nodeId,
+    twoDimensional: update.graphMode === '2d'
+      ? { x: update.position.x, y: update.position.y }
+      : existing?.twoDimensional,
+    threeDimensional: update.graphMode === '3d' && isCoordinate3D(update.position)
+      ? { x: update.position.x, y: update.position.y, z: update.position.z }
+      : existing?.threeDimensional,
+    updatedAt: update.updatedAt,
+  };
+
+  return normalizeGraphLayoutSettings({
+    ...layout,
+    pinnedNodes: {
+      ...layout.pinnedNodes,
+      [update.nodeId]: nextPinnedNode,
+    },
+  });
+}
+
+export function clearGraphLayoutNodePin(
+  layout: GraphLayoutSettings,
+  nodeId: string,
+  graphMode: GraphLayoutMode,
+): GraphLayoutSettings {
+  const existing = layout.pinnedNodes[nodeId];
+  if (!existing) {
+    return layout;
+  }
+
+  const nextPinnedNodes = { ...layout.pinnedNodes };
+  const nextPinnedNode: GraphLayoutPinnedNode = {
+    ...existing,
+    ...(graphMode === '2d' ? { twoDimensional: undefined } : {}),
+    ...(graphMode === '3d' ? { threeDimensional: undefined } : {}),
+  };
+
+  if (!nextPinnedNode.twoDimensional && !nextPinnedNode.threeDimensional) {
+    delete nextPinnedNodes[nodeId];
+  } else {
+    nextPinnedNodes[nodeId] = nextPinnedNode;
+  }
+
+  return normalizeGraphLayoutSettings({
+    ...layout,
+    pinnedNodes: nextPinnedNodes,
+  });
 }

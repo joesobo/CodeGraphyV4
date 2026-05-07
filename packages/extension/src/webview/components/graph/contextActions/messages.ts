@@ -1,4 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { GraphContextActionContext } from './context';
 import type { GraphContextEffect } from './effects';
 
 type SinglePathMessageType = 'REVEAL_IN_EXPLORER' | 'RENAME_FILE';
@@ -47,4 +48,53 @@ export function createCreateFileEffects(directory = '.'): GraphContextEffect[] {
 
 export function createCreateFolderEffects(directory = '.'): GraphContextEffect[] {
   return [createPostMessageEffect({ type: 'CREATE_FOLDER', payload: { directory } })];
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+export function createPinNodeEffects(context: GraphContextActionContext): GraphContextEffect[] {
+  const nodeId = context.primaryTargetId;
+  if (!nodeId) {
+    return [];
+  }
+
+  const position = context.nodePositions.get(nodeId);
+  if (!position || !isFiniteNumber(position.x) || !isFiniteNumber(position.y)) {
+    return [];
+  }
+
+  if (context.graphMode === '3d') {
+    if (!('z' in position) || !isFiniteNumber(position.z)) {
+      return [];
+    }
+
+    return [createPostMessageEffect({
+      type: 'UPDATE_GRAPH_LAYOUT_PIN',
+      payload: {
+        graphMode: context.graphMode,
+        nodeId,
+        position: { x: position.x, y: position.y, z: position.z },
+      },
+    })];
+  }
+
+  return [createPostMessageEffect({
+    type: 'UPDATE_GRAPH_LAYOUT_PIN',
+    payload: {
+      graphMode: context.graphMode,
+      nodeId,
+      position: { x: position.x, y: position.y },
+    },
+  })];
+}
+
+export function createClearPinNodeEffects(context: GraphContextActionContext): GraphContextEffect[] {
+  return context.primaryTargetId
+    ? [createPostMessageEffect({
+      type: 'CLEAR_GRAPH_LAYOUT_PIN',
+      payload: { graphMode: context.graphMode, nodeId: context.primaryTargetId },
+    })]
+    : [];
 }
