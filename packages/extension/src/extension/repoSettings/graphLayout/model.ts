@@ -6,11 +6,14 @@ import {
   type GraphLayoutCoordinate3D,
   type GraphLayoutMode,
   type GraphLayoutOwnership,
+  type GraphLayoutOwnershipUpdate,
   type GraphLayoutPinnedNode,
   type GraphLayoutSection,
   type GraphLayoutSectionCreate,
   type GraphLayoutSectionUpdate,
   type GraphLayoutSettings,
+  isGraphLayoutItemOwnedBySection,
+  isGraphLayoutSectionDescendant,
 } from '../../../shared/settings/graphLayout';
 
 export { createDefaultGraphLayoutSettings };
@@ -19,6 +22,7 @@ export type {
   GraphLayoutCoordinate3D,
   GraphLayoutMode,
   GraphLayoutOwnership,
+  GraphLayoutOwnershipUpdate,
   GraphLayoutPinnedNode,
   GraphLayoutSection,
   GraphLayoutSectionCreate,
@@ -442,12 +446,32 @@ function getUniqueMemberNodeIds(memberNodeIds: readonly string[] | undefined): s
   return [...new Set((memberNodeIds ?? []).filter(nodeId => nodeId.length > 0))];
 }
 
+function getUniqueMemberSectionIds(memberSectionIds: readonly string[] | undefined): string[] {
+  return [...new Set((memberSectionIds ?? []).filter(sectionId => sectionId.length > 0))];
+}
+
+function assertGraphLayoutOwnerExists(
+  sections: Readonly<Record<string, GraphLayoutSection>>,
+  ownerSectionId: string | null | undefined,
+): string | null {
+  if (ownerSectionId === undefined || ownerSectionId === null) {
+    return null;
+  }
+
+  if (!(ownerSectionId in sections)) {
+    throw new Error('Graph Section owner does not exist.');
+  }
+
+  return ownerSectionId;
+}
+
 export function createGraphLayoutSection(
   layout: GraphLayoutSettings,
   create: GraphLayoutSectionCreateUpdate,
 ): GraphLayoutSettings {
   const sectionNumber = getNextGraphLayoutSectionNumber(layout.sections);
   const sectionId = `section-${sectionNumber}`;
+  const ownerSectionId = assertGraphLayoutOwnerExists(layout.sections, create.ownerSectionId);
   const section: GraphLayoutSection = {
     id: sectionId,
     label: readOptionalSectionString(create.label) ?? `Section ${sectionNumber}`,
@@ -464,21 +488,12 @@ export function createGraphLayoutSection(
     [sectionId]: {
       itemId: sectionId,
       itemKind: 'section',
-      ownerSectionId: null,
+      ownerSectionId,
       updatedAt: create.updatedAt,
     },
   };
 
-  for (const nodeId of getUniqueMemberNodeIds(create.memberNodeIds)) {
-    ownership[nodeId] = {
-      itemId: nodeId,
-      itemKind: 'node',
-      ownerSectionId: sectionId,
-      updatedAt: create.updatedAt,
-    };
-  }
-
-  return normalizeGraphLayoutSettings({
+  let nextLayout = normalizeGraphLayoutSettings({
     ...layout,
     sections: {
       ...layout.sections,
@@ -486,6 +501,30 @@ export function createGraphLayoutSection(
     },
     ownership,
   });
+
+  for (const nodeId of getUniqueMemberNodeIds(create.memberNodeIds)) {
+    nextLayout = assignGraphLayoutOwner(nextLayout, {
+      itemId: nodeId,
+      itemKind: 'node',
+      ownerSectionId: sectionId,
+      updatedAt: create.updatedAt,
+    });
+  }
+
+  for (const memberSectionId of getUniqueMemberSectionIds(create.memberSectionIds)) {
+    if (!(memberSectionId in nextLayout.sections)) {
+      throw new Error('Graph Section member does not exist.');
+    }
+
+    nextLayout = assignGraphLayoutOwner(nextLayout, {
+      itemId: memberSectionId,
+      itemKind: 'section',
+      ownerSectionId: sectionId,
+      updatedAt: create.updatedAt,
+    });
+  }
+
+  return nextLayout;
 }
 
 function readOptionalNumberUpdate(
@@ -515,12 +554,104 @@ export function updateGraphLayoutSection(
     y: readOptionalNumberUpdate(patch.updates.y, existing.y),
     updatedAt: patch.updatedAt,
   };
+  const delta = {
+    x: nextSection.x - existing.x,
+    y: nextSection.y - existing.y,
+  };
+
+  const nextSections: Record<string, GraphLayoutSection> = {
+    ...layout.sections,
+    [patch.sectionId]: nextSection,
+  };
+
+  if (delta.x !== 0 || delta.y !== 0) {
+    for (const [sectionId, section] of Object.entries(layout.sections)) {
+      if (
+        sectionId !== patch.sectionId
+        && isGraphLayoutSectionDescendant(layout.ownership, sectionId, patch.sectionId)
+      ) {
+        nextSections[sectionId] = {
+          ...section,
+          x: section.x + delta.x,
+          y: section.y + delta.y,
+          updatedAt: patch.updatedAt,
+        };
+      }
+    }
+  }
+
+  const nextPinnedNodes: Record<string, GraphLayoutPinnedNode> = { ...layout.pinnedNodes };
+  if (delta.x !== 0 || delta.y !== 0) {
+    for (const [itemId, pinnedNode] of Object.entries(layout.pinnedNodes)) {
+      if (
+        !pinnedNode.twoDimensional
+        || (itemId !== patch.sectionId
+          && !isGraphLayoutItemOwnedBySection(layout.ownership, itemId, patch.sectionId))
+      ) {
+        continue;
+      }
+
+      nextPinnedNodes[itemId] = {
+        ...pinnedNode,
+        twoDimensional: {
+          x: pinnedNode.twoDimensional.x + delta.x,
+          y: pinnedNode.twoDimensional.y + delta.y,
+        },
+        updatedAt: patch.updatedAt,
+      };
+    }
+  }
 
   return normalizeGraphLayoutSettings({
     ...layout,
-    sections: {
-      ...layout.sections,
-      [patch.sectionId]: nextSection,
-    },
+    pinnedNodes: nextPinnedNodes,
+    sections: nextSections,
   });
+}
+
+export interface GraphLayoutSectionDelete {
+  sectionId: string;
+  updatedAt: string;
+}
+
+export function deleteGraphLayoutSection(
+  layout: GraphLayoutSettings,
+  deletion: GraphLayoutSectionDelete,
+): GraphLayoutSettings {
+  if (!(deletion.sectionId in layout.sections)) {
+    throw new Error('Graph Section does not exist.');
+  }
+
+  const deletedOwnerId = layout.ownership[deletion.sectionId]?.ownerSectionId ?? null;
+  const nextSections = { ...layout.sections };
+  delete nextSections[deletion.sectionId];
+
+  const nextPinnedNodes = { ...layout.pinnedNodes };
+  delete nextPinnedNodes[deletion.sectionId];
+
+  const nextOwnership: Record<string, GraphLayoutOwnership> = {};
+  for (const [itemId, record] of Object.entries(layout.ownership)) {
+    if (itemId === deletion.sectionId) {
+      continue;
+    }
+
+    nextOwnership[itemId] = record.ownerSectionId === deletion.sectionId
+      ? {
+          ...record,
+          ownerSectionId: deletedOwnerId,
+          updatedAt: deletion.updatedAt,
+        }
+      : record;
+  }
+
+  return normalizeGraphLayoutSettings({
+    ...layout,
+    ownership: nextOwnership,
+    pinnedNodes: nextPinnedNodes,
+    sections: nextSections,
+  });
+}
+
+export interface GraphLayoutOwnershipPatch extends GraphLayoutOwnershipUpdate {
+  updatedAt: string;
 }

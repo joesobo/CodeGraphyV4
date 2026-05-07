@@ -74,6 +74,7 @@ export default function Graph({
     graphContextSelection: graphState.contextSelection,
     graphCursorRef: graphState.graphCursorRef,
     graphDataRef: graphState.graphDataRef,
+    graphLayout: viewState.graphLayout,
     graphMode: viewState.graphMode,
     highlightedNeighborsRef: graphState.highlightedNeighborsRef,
     highlightedNodeRef: graphState.highlightedNodeRef,
@@ -95,6 +96,7 @@ export default function Graph({
     setContextSelection: graphState.setContextSelection,
     setHighlightVersion: graphState.setHighlightVersion,
     setSelectedNodes: graphState.setSelectedNodes,
+    timelineActive: viewState.timelineActive,
   });
 
   const activeGraph = selectActivePhysicsGraph(

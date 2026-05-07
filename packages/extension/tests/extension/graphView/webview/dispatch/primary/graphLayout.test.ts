@@ -245,4 +245,159 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       },
     });
   });
+
+  it('persists explicit Graph Section ownership updates', async () => {
+    const context = createPrimaryMessageContext({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'graphLayout') {
+          return {
+            pinnedNodes: {},
+            sections: {
+              'section-1': {
+                id: 'section-1',
+                label: 'Section 1',
+                color: '#60a5fa',
+                x: 0,
+                y: 0,
+                width: 280,
+                height: 180,
+                collapsed: false,
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+            ownership: {
+              'section-1': {
+                itemId: 'section-1',
+                itemKind: 'section',
+                ownerSectionId: null,
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+          } as T;
+        }
+
+        return defaultValue;
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'src/app.ts',
+        itemKind: 'node',
+        ownerSectionId: 'section-1',
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      pinnedNodes: {},
+      sections: {
+        'section-1': expect.objectContaining({ id: 'section-1' }),
+      },
+      ownership: {
+        'section-1': {
+          itemId: 'section-1',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-1',
+          updatedAt: expect.any(String),
+        },
+      },
+    });
+  });
+
+  it('persists Graph Section deletion by promoting direct children', async () => {
+    const context = createPrimaryMessageContext({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'graphLayout') {
+          return {
+            pinnedNodes: {
+              'section-2': {
+                nodeId: 'section-2',
+                twoDimensional: { x: 40, y: 40 },
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+            sections: {
+              'section-1': {
+                id: 'section-1',
+                label: 'Section 1',
+                color: '#60a5fa',
+                x: 0,
+                y: 0,
+                width: 280,
+                height: 180,
+                collapsed: false,
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+              'section-2': {
+                id: 'section-2',
+                label: 'Section 2',
+                color: '#22c55e',
+                x: 40,
+                y: 40,
+                width: 120,
+                height: 100,
+                collapsed: false,
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+            ownership: {
+              'section-1': {
+                itemId: 'section-1',
+                itemKind: 'section',
+                ownerSectionId: null,
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+              'section-2': {
+                itemId: 'section-2',
+                itemKind: 'section',
+                ownerSectionId: 'section-1',
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+              'src/app.ts': {
+                itemId: 'src/app.ts',
+                itemKind: 'node',
+                ownerSectionId: 'section-2',
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+          } as T;
+        }
+
+        return defaultValue;
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'DELETE_GRAPH_LAYOUT_SECTION',
+      payload: { sectionId: 'section-2' },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      pinnedNodes: {},
+      sections: {
+        'section-1': expect.objectContaining({ id: 'section-1' }),
+      },
+      ownership: {
+        'section-1': {
+          itemId: 'section-1',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-1',
+          updatedAt: expect.any(String),
+        },
+      },
+    });
+  });
 });

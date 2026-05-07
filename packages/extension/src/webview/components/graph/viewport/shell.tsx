@@ -169,6 +169,7 @@ export function GraphViewportShell({
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
       sectionFrameGraph={graphState.fg2dRef.current}
+      sectionFrameOwnership={viewState.graphLayout.ownership}
       sectionFrames={sectionFrames}
       onUpdateSection={handleUpdateSection}
       surface2dProps={{

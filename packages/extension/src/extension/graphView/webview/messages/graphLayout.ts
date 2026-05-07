@@ -1,9 +1,11 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import {
+  assignGraphLayoutOwner,
   clearGraphLayoutNodePin,
   createGraphLayoutSection,
   createDefaultGraphLayoutSettings,
+  deleteGraphLayoutSection,
   normalizeGraphLayoutSettings,
   setGraphLayoutNodePin,
   updateGraphLayoutSection,
@@ -71,6 +73,26 @@ export async function applyGraphLayoutMessage(
 
     case 'UPDATE_GRAPH_LAYOUT_SECTION': {
       const nextLayout = updateGraphLayoutSection(readCurrentGraphLayout(handlers), {
+        ...message.payload,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await persistAndSendGraphLayout(handlers, nextLayout);
+      return true;
+    }
+
+    case 'UPDATE_GRAPH_LAYOUT_OWNER': {
+      const nextLayout = assignGraphLayoutOwner(readCurrentGraphLayout(handlers), {
+        ...message.payload,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await persistAndSendGraphLayout(handlers, nextLayout);
+      return true;
+    }
+
+    case 'DELETE_GRAPH_LAYOUT_SECTION': {
+      const nextLayout = deleteGraphLayoutSection(readCurrentGraphLayout(handlers), {
         ...message.payload,
         updatedAt: new Date().toISOString(),
       });
