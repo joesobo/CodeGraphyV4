@@ -33,6 +33,7 @@ const immutableFolderLabels = [
   'Focus Node',
   'Add Filter Pattern...',
   'Add Legend Group...',
+  'Create Graph Section from Selection',
   'Rename Folder...',
   'Delete Folder',
 ];
@@ -40,6 +41,7 @@ const immutableFolderLabels = [
 const immutableFolderDisabledLabels = [
   'New File...',
   'New Folder...',
+  'Create Graph Section from Selection',
   'Rename Folder...',
   'Delete Folder',
 ];

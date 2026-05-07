@@ -21,10 +21,11 @@ import {
 } from '../../ui/menus/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/overlay/tooltip';
 import { postMessage } from '../../../vscodeApi';
+import type { GraphContextMutationAvailability } from '../../graph/contextMenu/contracts';
 
 interface CreateToolbarActionProps {
   graphMode: '2d' | '3d';
-  timelineActive: boolean;
+  mutationAvailability: GraphContextMutationAvailability;
 }
 
 function postRootGraphSectionCreation(): void {
@@ -51,9 +52,11 @@ function postRootFolderCreation(): void {
 
 export function CreateToolbarAction({
   graphMode,
-  timelineActive,
+  mutationAvailability,
 }: CreateToolbarActionProps): React.ReactElement {
-  const sectionCreationAvailable = graphMode === '2d' && !timelineActive;
+  const sectionCreationAvailable = graphMode === '2d'
+    && mutationAvailability !== 'hidden';
+  const sectionCreationDisabled = mutationAvailability === 'disabled';
 
   return (
     <DropdownMenu>
@@ -74,19 +77,23 @@ export function CreateToolbarAction({
         <TooltipContent side="right">New...</TooltipContent>
       </Tooltip>
       <DropdownMenuContent side="right" align="start" className="w-48">
-        <DropdownMenuItem onSelect={postRootFileCreation}>
-          <MdiIcon path={mdiFilePlusOutline} size={15} />
+        <DropdownMenuItem className="gap-2" onSelect={postRootFileCreation}>
+          <MdiIcon path={mdiFilePlusOutline} size={15} className="shrink-0" />
           <span>New File...</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={postRootFolderCreation}>
-          <MdiIcon path={mdiFolderPlusOutline} size={15} />
+        <DropdownMenuItem className="gap-2" onSelect={postRootFolderCreation}>
+          <MdiIcon path={mdiFolderPlusOutline} size={15} className="shrink-0" />
           <span>New Folder...</span>
         </DropdownMenuItem>
         {sectionCreationAvailable ? (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={postRootGraphSectionCreation}>
-              <MdiIcon path={mdiVectorSquarePlus} size={15} />
+            <DropdownMenuItem
+              className="gap-2"
+              disabled={sectionCreationDisabled}
+              onSelect={postRootGraphSectionCreation}
+            >
+              <MdiIcon path={mdiVectorSquarePlus} size={15} className="shrink-0" />
               <span>New Graph Section</span>
             </DropdownMenuItem>
           </>
