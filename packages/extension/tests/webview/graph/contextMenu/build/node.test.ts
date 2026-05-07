@@ -69,6 +69,7 @@ describe('graph/contextMenu/build/node', () => {
 
     expect(itemLabels(entries)).toContain('Open File');
     expect(itemLabels(entries)).toContain('Delete File');
+    expect(itemLabels(entries)).toContain('Create Graph Section from Selection');
   });
 
   it('builds multi-file node actions from the selected targets', () => {
@@ -79,11 +80,12 @@ describe('graph/contextMenu/build/node', () => {
       pluginItems: [],
     });
 
-    expect(itemLabels(entries)).toHaveLength(6);
+    expect(itemLabels(entries)).toHaveLength(7);
     expect(itemLabels(entries)).toEqual([
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
+      'Pin Nodes',
       'Add Filter Patterns...',
       'Create Graph Section from Selection',
       'Delete 2 Files',

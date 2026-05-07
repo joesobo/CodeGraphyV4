@@ -114,14 +114,17 @@ Related tracker notes:
 - 2026-05-07: Graph Sections support an optional free-form color picker.
 - 2026-05-07: New Graph Sections may default to a color derived from the active VS Code theme, but users can choose any color from the color picker.
 - 2026-05-07: Section color tints the border/header subtly instead of flood-filling the whole section.
-- 2026-05-07: Graph Sections can be created from a Graph Tool Rail add action, the Graph Stage background context menu, or a selection context menu.
-- 2026-05-07: The Graph Tool Rail add action should also consider New File and New Folder creation alongside New Graph Section.
+- 2026-05-07: Graph Sections can be created from the Graph Toolbar `New...` menu, the Graph Stage background context menu, or a selected-node context menu.
+- 2026-05-07: The Graph Toolbar `New...` menu should expose New File, New Folder, and New Graph Section from one creation affordance.
 - 2026-05-07: `Create Graph Section from Selection` wraps selected nodes or sections with padding and assigns them as members.
 - 2026-05-07: Add desktop-style marquee selection to support selecting multiple nodes by dragging a selection rectangle.
 - 2026-05-07: Left-click drag on empty Graph Stage should become marquee selection.
-- 2026-05-07: Plain right-click should still open the Graph Context Menu; right-click drag can pan only after a movement threshold.
+- 2026-05-07: Plain right-click should open the Graph Context Menu on release only when movement stays below the drag threshold.
+- 2026-05-07: Right-click drag and middle-click drag pan the 2D graph.
+- 2026-05-07: Shift-click toggles or extends node selection one item at a time.
+- 2026-05-07: Shift plus left-click drag extends marquee selection additively.
 - 2026-05-07: Do not use Space plus left-click drag as the pan fallback.
-- 2026-05-07: Shift plus left-click drag is the pan fallback.
+- 2026-05-07: Do not use Shift plus left-click drag as the pan fallback because Shift is reserved for additive selection.
 - 2026-05-07: Avoid Ctrl plus left-click drag for panning because macOS Ctrl-click commonly maps to context menu behavior.
 - 2026-05-07: Graph Section editing is 2D-only in v1.
 - 2026-05-07: 3D should not support editable Section Frames, resize handles, marquee section creation, or nested frame manipulation in v1.
@@ -140,7 +143,7 @@ Related tracker notes:
 - 2026-05-07: Dragging a pinned Section Member outside its owning Section Frame updates its pin to the dropped graph-space position and removes it from that Graph Section.
 - 2026-05-07: Dragging any Section Member outside its owning Section Frame and dropping it removes the item from that Graph Section.
 - 2026-05-07: Implementation order should be persisted layout settings, pinnable nodes, multi-selection/marquee, basic expanded Graph Sections, membership/nesting, section-aware physics, collapse projection, then 2D polish/manual validation.
-- 2026-05-07: Graph Tool Rail add action should offer New Graph Section, New File, and New Folder.
+- 2026-05-07: Graph Toolbar `New...` menu should offer New Graph Section, New File, and New Folder.
 - 2026-05-07: A selected Section Frame is a graph placement target for New Graph Section, New File, and New Folder.
 - 2026-05-07: A selected Folder Node is a filesystem target for New File and New Folder.
 - 2026-05-07: If New File or New Folder is created while a Section Frame is selected, the filesystem destination defaults to root unless a Folder Node target is also selected, and the created node is placed into the selected section after it appears.
@@ -379,11 +382,11 @@ Labels and colors:
 
 Section creation:
 
-- A Graph Tool Rail add action can create a new empty Graph Section near the current viewport center.
-- The Graph Tool Rail add action should offer New Graph Section, New File, and New Folder.
+- The Graph Toolbar `New...` menu can create a new empty Graph Section near the current viewport center.
+- The Graph Toolbar `New...` menu should offer New Graph Section, New File, and New Folder.
 - If a Section Frame is selected, New Graph Section creates the new nested Graph Section inside that selected section.
 - If no Section Frame is selected, New Graph Section creates the new Graph Section in the root graph near the current viewport center.
-- The Graph Tool Rail add action should distinguish filesystem destination from graph placement:
+- The Graph Toolbar `New...` menu should distinguish filesystem destination from graph placement:
   - New File/New Folder filesystem destination comes from a selected Folder Node when one is selected.
   - Without a selected Folder Node, New File/New Folder creates at the workspace root.
   - If a Section Frame is selected, the created File/Folder Node is placed into that Graph Section after it appears in the graph.
@@ -409,11 +412,13 @@ Multi-selection:
 - Marquee selection should support creating Graph Sections from a spatial selection, matching the desktop workflow of selecting multiple files before grouping or moving them.
 - Left-click drag on empty Graph Stage should create a marquee selection rectangle.
 - Marquee selection selects visible graph items that intersect the marquee rectangle.
-- Plain right-click still opens the Graph Context Menu.
-- Right-click drag can pan only after a movement threshold so context menus do not become flaky.
+- Plain right-click opens the Graph Context Menu on release only when movement stays below the drag threshold.
+- Right-click drag pans after a movement threshold so context menus do not become flaky.
 - Middle-click drag can pan where available.
+- Shift-click toggles or extends selection one node at a time.
+- Shift-left-drag creates an additive marquee selection that combines with the existing selected set.
 - Do not use Space plus left-click drag as the pan fallback.
-- Shift plus left-click drag pans the graph.
+- Do not use Shift plus left-click drag as the pan fallback because Shift is reserved for additive selection.
 - Avoid Ctrl plus left-click drag for panning because macOS Ctrl-click commonly maps to context menu behavior.
 
 Moving and resizing:
@@ -555,7 +560,7 @@ We will resolve these one at a time and update this file as decisions land.
 1. Done: Canonical terms are **Graph Section**, **Section Frame**, **Section Member**, **Section Node**, and **Pinned Node**.
 2. Done: Graph Sections are represented by physics-participating Section Nodes while expanded and collapsed.
 3. Done: Graph Section editing is 2D-only in v1. 3D does not render Graph Sections or Section Nodes and does not support editable Section Frames, resize handles, marquee section creation, nested frame manipulation, or Section Node pins.
-4. Done: Users can create Graph Sections from a Graph Tool Rail add action, Graph Stage background context menu, or selection context menu. The add action should also consider New File and New Folder creation.
+4. Done: Users can create Graph Sections from the Graph Toolbar `New...` menu, Graph Stage background context menu, or selected-node context menu. The toolbar creation menu also exposes New File and New Folder.
 5. Done: Section membership changes only through explicit user intent: drag/drop with preview or later context menu actions. Physics drift never changes membership.
 6. Done: A node or Graph Section has at most one direct owner. Ancestor membership is derived from the hierarchy, not duplicated.
 7. Done: Nested Graph Sections are supported out of the gate with recursive ownership, one direct owner per node or section, and cycle prevention.
@@ -567,7 +572,7 @@ We will resolve these one at a time and update this file as decisions land.
 13. Done: Pinned Nodes, collapsed Section Nodes, pinned collapsed Section Nodes, and expanded Section Frames have state indicators. Graph Sections have required labels and optional free-form colors. Selected normal nodes keep existing selected treatment; selected collapsed Section Nodes use selected-node treatment plus collapsed/count badge; selected expanded Section Frames show accent border, tinted header, and resize handles; active marquee selection shows a desktop-style rectangle while dragging.
 14. Done: Section membership survives temporary visibility changes from Graph Scope, Search, Filter, Show Orphans, Depth Mode, or similar view settings. Depth Mode preserves section context for visible Section Members and does not count membership as depth hops. Timeline Snapshots do not show or edit pins/sections in v1.
 15. Done: Pin and ownership records can remain dormant while graph items are hidden or temporarily absent. Returning graph items regain dormant pin/ownership records. Explicit graph item deletion through CodeGraphy removes that item's pin and ownership records.
-16. Done: Left-click drag on empty Graph Stage becomes marquee selection; Shift-left-drag pans; middle-click drag pans where available; plain right-click opens the Graph Context Menu; right-click drag can pan after a threshold; Space-left-drag and Ctrl-left-drag are rejected.
+16. Done: Left-click drag on empty Graph Stage becomes marquee selection; Shift-click extends selection; Shift-left-drag extends marquee selection additively; right-click drag and middle-click drag pan where available; plain right-click opens the Graph Context Menu only on release with no meaningful movement; Space-left-drag and Ctrl-left-drag are rejected for panning.
 
 ## Acceptance Slices
 
@@ -588,11 +593,13 @@ Potential implementation order after the design is settled:
    - 3D pin coordinate support for ordinary nodes only.
 3. Multi-selection and marquee: Done
    - left-drag marquee selection,
-   - Shift-left-drag pan,
+   - Shift-click additive node selection,
+   - Shift-left-drag additive marquee selection,
+   - right-click and middle-click drag panning,
    - selected-node context menu integration,
    - force-graph multi-selection reference from Trello #20.
 4. Basic expanded Graph Sections: Done
-   - create from Graph Tool Rail add action,
+   - create from Graph Toolbar `New...` menu,
    - create from Graph Stage background context menu,
    - create from selection context menu,
    - generated labels,
@@ -636,12 +643,13 @@ Potential implementation order after the design is settled:
 - 2026-05-07: Live single-node and folder-node context menus now expose Pin/Unpin, and pinned nodes render a small top-right pin badge in the 2D canvas.
 - 2026-05-07: Dragging a pinned node writes the final graph-space position back to the active-mode pin when the drag ends.
 - 2026-05-07: Verified slice 2 with targeted pin/menu/store/render/dispatch tests, extension typecheck, and a broader graph/store/graphView webview sweep: `261` files and `1728` tests passed.
-- 2026-05-07: Slice 3 added 2D desktop-style marquee selection on left-drag from empty Graph Stage space, while preserving Shift-left-drag for panning.
+- 2026-05-07: Slice 3 added 2D desktop-style marquee selection on left-drag from empty Graph Stage space.
 - 2026-05-07: Active marquee selection renders a transient desktop-style rectangle, clears on mouse up or pointer leave, and selects visible nodes by their projected screen position.
 - 2026-05-07: Multi-selected nodes flow into the existing selected-node context menu integration, including the `Open N Files` behavior.
 - 2026-05-07: Verified slice 3 with focused marquee model/view tests, adjacent selection/context-menu tests (`55` tests passed), extension typecheck, extension lint, and `git diff --check`.
 - 2026-05-07: Slice 4 added `CREATE_GRAPH_LAYOUT_SECTION` and `UPDATE_GRAPH_LAYOUT_SECTION` messages so the extension host can persist generated Graph Sections, editable labels/colors, Section Frame movement, and Section Frame resizing.
-- 2026-05-07: The 2D Graph View now offers New Graph Section from the Graph Tool Rail, live Graph Stage background context menu, and live selection context menu. Timeline Snapshots and 3D mode hide the new section creation/editing affordances in v1.
+- 2026-05-07: The 2D Graph View now offers New Graph Section from the Graph Toolbar `New...` menu, live Graph Stage background context menu, and live selected-node context menu. Timeline Snapshots and 3D mode hide the new section creation/editing affordances in v1.
+- 2026-05-07: PR #203 fixup exposed the user-facing creation and pinning paths: the toolbar `New...` menu now offers New File, New Folder, and New Graph Section; selected-node context menus expose Create Graph Section from Selection and Pin/Unpin for single or multiple selected nodes; 2D gestures now use left-drag marquee, Shift-click additive selection, Shift-left-drag additive marquee, and right/middle drag panning.
 - 2026-05-07: Expanded Section Frames render over the 2D Graph Stage with editable label/color controls, graph-space move updates, and southeast resize updates.
 - 2026-05-07: Verified slice 4 with an initial red focused suite, then focused section/model/dispatch/menu/toolbar/frame tests (`70` tests passed), a broader graph/menu/toolbar/viewport sweep (`413` tests passed), extension typecheck, extension lint, and `git diff --check`.
 - 2026-05-07: Slice 5 added explicit Graph Layout ownership updates, nested section creation, Graph Section deletion that promotes direct children, and shared deepest-frame hit testing.
@@ -750,7 +758,7 @@ Selection and gestures:
 
 - Plain right-click without movement should always open the Graph Context Menu, even though right-click drag can pan after a movement threshold.
 - Left-click drag starting on empty Graph Stage should marquee select. Left-click drag starting on a node should drag/select the node according to existing graph interaction rules, not accidentally start marquee selection.
-- Shift-left-drag should pan even when starting over empty graph space. It should not create a marquee selection rectangle.
+- Shift-left-drag should create an additive marquee selection, not pan.
 - The marquee rectangle should select only visible graph items, not hidden descendants behind collapsed sections.
 - Marquee selection should include visible graph items that intersect the marquee rectangle, not only items fully enclosed by it.
 - Creating a Graph Section from marquee selection should not mutate edges and should not implicitly include hidden descendants of selected collapsed sections unless those collapsed Section Nodes were explicitly selected.

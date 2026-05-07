@@ -36,7 +36,7 @@ export interface ViewportProps {
   containerRef: Ref<HTMLDivElement>;
   directionMode: DirectionMode;
   graphMode: '2d' | '3d';
-  handleContextMenu: (this: void) => void;
+  handleContextMenu: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
   handleMenuAction: (this: void, action: GraphContextMenuAction) => void;
   handleMouseDownCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
   handleMouseLeave: (this: void) => void;
@@ -200,7 +200,7 @@ export function Viewport({
       <ContextMenuTrigger asChild>
         <div
           ref={containerRef}
-          onContextMenu={() => handleContextMenu()}
+          onContextMenu={handleContextMenu}
           onMouseLeave={() => handleMouseLeave()}
           onMouseDownCapture={handleMouseDownCapture}
           onMouseMoveCapture={handleMouseMoveCapture}

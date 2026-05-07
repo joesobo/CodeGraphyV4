@@ -105,26 +105,17 @@ function createPinNodeEffect(
 }
 
 export function createPinNodeEffects(context: GraphContextActionContext): GraphContextEffect[] {
-  const nodeId = context.primaryTargetId;
-  if (!nodeId) {
-    return [];
-  }
-
-  const position = readPinNodePosition(context, nodeId);
-  if (!position) {
-    return [];
-  }
-
-  return [createPinNodeEffect(context, nodeId, position)];
+  return context.targetIds.flatMap(nodeId => {
+    const position = readPinNodePosition(context, nodeId);
+    return position ? [createPinNodeEffect(context, nodeId, position)] : [];
+  });
 }
 
 export function createClearPinNodeEffects(context: GraphContextActionContext): GraphContextEffect[] {
-  return context.primaryTargetId
-    ? [createPostMessageEffect({
-      type: 'CLEAR_GRAPH_LAYOUT_PIN',
-      payload: { graphMode: context.graphMode, nodeId: context.primaryTargetId },
-    })]
-    : [];
+  return context.targetIds.map(nodeId => createPostMessageEffect({
+    type: 'CLEAR_GRAPH_LAYOUT_PIN',
+    payload: { graphMode: context.graphMode, nodeId },
+  }));
 }
 
 function getDefaultSectionBounds(context: GraphContextActionContext): SectionBounds {

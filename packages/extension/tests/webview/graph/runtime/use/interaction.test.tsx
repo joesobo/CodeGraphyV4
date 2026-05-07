@@ -272,12 +272,14 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       clientX: 10,
       clientY: 20,
       ctrlKey: true,
+      preventDefault: vi.fn(),
     } as never);
     result.current.handleMouseMoveCapture({
-      clientX: 30,
-      clientY: 40,
+      clientX: 11,
+      clientY: 20,
+      preventDefault: vi.fn(),
     } as never);
-    result.current.handleMouseUpCapture({ button: 2 } as never);
+    result.current.handleMouseUpCapture({ button: 2, preventDefault: vi.fn() } as never);
     result.current.handleNodeRightClick(createNode('src/node.ts'), { type: 'contextmenu' } as never);
     result.current.handleBackgroundRightClick({ type: 'contextmenu' } as never);
     result.current.handleLinkRightClick(createLink('edge-a'), { type: 'contextmenu' } as never);
@@ -307,8 +309,8 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       ctrlKey: true,
     });
     expect(contextMenuRuntime.handleMouseMoveCapture).toHaveBeenCalledWith({
-      clientX: 30,
-      clientY: 40,
+      clientX: 11,
+      clientY: 20,
     });
     expect(contextMenuRuntime.handleMouseUpCapture).toHaveBeenCalledWith({ button: 2 });
     expect(interactionHandlers.openNodeContextMenu).toHaveBeenCalledWith('src/node.ts', { type: 'contextmenu' });
@@ -391,6 +393,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       clientX: 5,
       clientY: 6,
       ctrlKey: false,
+      preventDefault: vi.fn(),
     } as never);
     result.current.handleContextMenu();
 

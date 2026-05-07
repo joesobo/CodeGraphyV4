@@ -56,7 +56,7 @@ import {
   getPluginExporterKey,
 } from '../../../../src/webview/components/export/model';
 
-const iconButtonTitles = ['Index Repo', 'Layout', 'Node Size', 'New Graph Section', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Repo', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -104,7 +104,10 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('Index Repo')).toBeInTheDocument();
     expect(screen.getByTitle('Layout')).toBeInTheDocument();
     expect(screen.getByTitle('Node Size')).toBeInTheDocument();
-    expect(screen.getByTitle('New Graph Section')).toBeInTheDocument();
+    expect(screen.getByTitle('New...')).toBeInTheDocument();
+    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New Folder...')).toBeInTheDocument();
+    expect(screen.getByText('New Graph Section')).toBeInTheDocument();
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
   });
@@ -177,14 +180,14 @@ describe('ToolbarActions', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Repo', 'Layout', 'Node Size', 'New Graph Section', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Repo', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
       'Index Repo',
       'Layout',
       'Node Size',
-      'New Graph Section',
+      'New...',
       'Graph Scope',
       'Legends',
       'Plugins',
@@ -192,9 +195,23 @@ describe('ToolbarActions', () => {
     ]);
   });
 
-  it('posts a root Graph Section creation message from the graph tool rail', () => {
+  it('posts root creation messages from the graph tool rail create menu', () => {
     renderWithProviders();
-    clickAction('New Graph Section');
+    fireEvent.click(screen.getByText('New File...'));
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CREATE_FILE',
+      payload: { directory: '.' },
+    });
+
+    fireEvent.click(screen.getByText('New Folder...'));
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CREATE_FOLDER',
+      payload: { directory: '.' },
+    });
+
+    fireEvent.click(screen.getByText('New Graph Section'));
 
     expect(postMessage).toHaveBeenCalledWith({
       type: 'CREATE_GRAPH_LAYOUT_SECTION',
@@ -209,12 +226,15 @@ describe('ToolbarActions', () => {
     });
   });
 
-  it('hides the Graph Section tool in timeline snapshots and 3D mode', () => {
+  it('keeps file and folder creation available while hiding section creation in timeline snapshots and 3D mode', () => {
     act(() => {
       graphStore.setState({ timelineActive: true });
     });
     const { rerender } = renderWithProviders();
-    expect(screen.queryByTitle('New Graph Section')).not.toBeInTheDocument();
+    expect(screen.getByTitle('New...')).toBeInTheDocument();
+    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New Folder...')).toBeInTheDocument();
+    expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
 
     act(() => {
       graphStore.setState({ graphMode: '3d', timelineActive: false });
@@ -224,7 +244,10 @@ describe('ToolbarActions', () => {
         <ToolbarActions />
       </TooltipProvider>,
     );
-    expect(screen.queryByTitle('New Graph Section')).not.toBeInTheDocument();
+    expect(screen.getByTitle('New...')).toBeInTheDocument();
+    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New Folder...')).toBeInTheDocument();
+    expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
   });
 
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {

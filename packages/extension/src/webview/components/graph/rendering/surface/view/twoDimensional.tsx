@@ -81,6 +81,7 @@ export function Surface2d({
       }
       onRenderFramePost={onRenderFramePost}
       autoPauseRedraw={false}
+      enablePanInteraction={false}
     />
   );
 }

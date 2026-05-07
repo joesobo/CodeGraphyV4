@@ -32,7 +32,7 @@ import {
   useGraphTooltip,
   type GraphTooltipInteractionDependencies,
 } from './tooltip/hook';
-import type { FGNode } from '../../model/build';
+import type { FGLink, FGNode } from '../../model/build';
 import {
   getMarqueeBounds,
   getMarqueeSelectedNodeIds,
@@ -80,7 +80,7 @@ export interface UseGraphInteractionRuntimeOptions {
 export interface UseGraphInteractionRuntimeResult {
   contextMenuRuntime: GraphContextMenuOpeningRuntime['contextMenuRuntime'];
   handleBackgroundRightClick: GraphContextMenuOpeningRuntime['handleBackgroundRightClick'];
-  handleContextMenu: GraphContextMenuOpeningRuntime['handleContextMenu'];
+  handleContextMenu(this: void, event?: ReactMouseEvent<HTMLDivElement>): void;
   handleEngineStop(this: void): void;
   handleLinkRightClick: GraphContextMenuOpeningRuntime['handleLinkRightClick'];
   handleMenuAction(this: void, action: GraphContextMenuAction): void;
@@ -102,8 +102,11 @@ export interface UseGraphInteractionRuntimeResult {
 
 type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
 const MARQUEE_DRAG_THRESHOLD_PX = 6;
+const VIEWPORT_PAN_DRAG_THRESHOLD_PX = 2;
+const CONTEXT_MENU_SUPPRESSION_MS = 250;
 
 interface MarqueeDragState {
+  additive: boolean;
   current: MarqueePoint;
   selecting: boolean;
   start: MarqueePoint;
@@ -116,6 +119,7 @@ interface GraphMarqueeSelectionRuntimeOptions {
   graphMode: GraphLayoutMode;
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
+  selectedNodesSetRef: UseGraphStateResult['selectedNodesSetRef'];
 }
 
 interface GraphMarqueeSelectionRuntime {
@@ -124,6 +128,28 @@ interface GraphMarqueeSelectionRuntime {
   handleMouseMoveCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
   handleMouseUpCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
   marqueeSelection: GraphMarqueeSelectionState | null;
+}
+
+interface ViewportPanDragState {
+  button: number;
+  center: { x: number; y: number };
+  moved: boolean;
+  start: MarqueePoint;
+  zoom: number;
+}
+
+interface GraphViewportPanRuntimeOptions {
+  containerRef: UseGraphStateResult['containerRef'];
+  fg2dRef: UseGraphStateResult['fg2dRef'];
+  graphMode: GraphLayoutMode;
+  rightMouseDownRef: UseGraphStateResult['rightMouseDownRef'];
+  suppressContextMenu(this: void): void;
+}
+
+interface GraphViewportPanRuntime {
+  handleMouseDownCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
+  handleMouseMoveCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
+  handleMouseUpCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
 }
 
 function buildTooltipInteractionHandlers(
@@ -141,6 +167,10 @@ function handleGraphEngineStop(): void {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isViewportPanButton(button: number): boolean {
+  return button === 1 || button === 2;
 }
 
 function readNodePosition(
@@ -182,13 +212,13 @@ function canStartMarqueeSelection(
   hoveredNode: FGNode | null,
 ): boolean {
   return event.button === 0
-    && !event.shiftKey
     && graphMode === '2d'
     && !hoveredNode;
 }
 
-function createMarqueeDragState(point: MarqueePoint): MarqueeDragState {
+function createMarqueeDragState(point: MarqueePoint, additive: boolean): MarqueeDragState {
   return {
+    additive,
     current: point,
     selecting: false,
     start: point,
@@ -211,16 +241,78 @@ function updateMarqueeDragState(
 
 function selectMarqueeNodes(
   drag: MarqueeDragState,
-  options: Pick<GraphMarqueeSelectionRuntimeOptions, 'fg2dRef' | 'graphDataRef' | 'interactionHandlers'>,
+  options: Pick<GraphMarqueeSelectionRuntimeOptions, 'fg2dRef' | 'graphDataRef' | 'interactionHandlers' | 'selectedNodesSetRef'>,
 ): void {
   const graph = options.fg2dRef.current;
-  const selectedNodeIds = getMarqueeSelectedNodeIds({
+  const marqueeNodeIds = getMarqueeSelectedNodeIds({
     bounds: getMarqueeBounds(drag.start, drag.current),
     graphToScreen: (x, y) => graph?.graph2ScreenCoords?.(x, y) ?? { x, y },
     nodes: options.graphDataRef.current.nodes,
   });
+  const selectedNodeIds = drag.additive
+    ? [...new Set([...options.selectedNodesSetRef.current, ...marqueeNodeIds])]
+    : marqueeNodeIds;
   options.interactionHandlers.setHighlight(null);
   options.interactionHandlers.setSelection(selectedNodeIds);
+}
+
+function readViewportPanCenter(
+  graph: UseGraphStateResult['fg2dRef']['current'],
+  container: HTMLDivElement | null,
+): { x: number; y: number } {
+  const rect = container?.getBoundingClientRect();
+  const center = rect
+    ? graph?.screen2GraphCoords?.(rect.width / 2, rect.height / 2)
+    : undefined;
+  return isFiniteNumber(center?.x) && isFiniteNumber(center?.y)
+    ? center
+    : { x: 0, y: 0 };
+}
+
+function readViewportPanZoom(
+  graph: UseGraphStateResult['fg2dRef']['current'],
+): number {
+  const zoom = graph?.zoom?.();
+  return isFiniteNumber(zoom) && zoom !== 0 ? zoom : 1;
+}
+
+function createViewportPanDragState(
+  event: ReactMouseEvent<HTMLDivElement>,
+  graph: UseGraphStateResult['fg2dRef']['current'],
+  container: HTMLDivElement | null,
+): ViewportPanDragState {
+  return {
+    button: event.button,
+    center: readViewportPanCenter(graph, container),
+    moved: false,
+    start: { x: event.clientX, y: event.clientY },
+    zoom: readViewportPanZoom(graph),
+  };
+}
+
+function updateViewportPanDragState(
+  drag: ViewportPanDragState,
+  current: MarqueePoint,
+): void {
+  if (!drag.moved) {
+    drag.moved = isMarqueePastThreshold(
+      drag.start,
+      current,
+      VIEWPORT_PAN_DRAG_THRESHOLD_PX,
+    );
+  }
+}
+
+function applyViewportPanDrag(
+  drag: ViewportPanDragState,
+  current: MarqueePoint,
+  graph: UseGraphStateResult['fg2dRef']['current'],
+): void {
+  graph?.centerAt?.(
+    drag.center.x - ((current.x - drag.start.x) / drag.zoom),
+    drag.center.y - ((current.y - drag.start.y) / drag.zoom),
+    0,
+  );
 }
 
 function useGraphMarqueeSelectionRuntime(
@@ -241,7 +333,7 @@ function useGraphMarqueeSelectionRuntime(
     }
 
     const point = getLocalMarqueePoint(event, options.containerRef.current);
-    marqueeDragRef.current = createMarqueeDragState(point);
+    marqueeDragRef.current = createMarqueeDragState(point, event.shiftKey);
   }
 
   function handleMouseMoveCapture(event: ReactMouseEvent<HTMLDivElement>): void {
@@ -281,6 +373,70 @@ function useGraphMarqueeSelectionRuntime(
     handleMouseMoveCapture,
     handleMouseUpCapture,
     marqueeSelection,
+  };
+}
+
+function useGraphViewportPanRuntime(
+  options: GraphViewportPanRuntimeOptions,
+): GraphViewportPanRuntime {
+  const panDragRef = useRef<ViewportPanDragState | null>(null);
+
+  function clearPanDrag(): void {
+    panDragRef.current = null;
+  }
+
+  function handleMouseDownCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    if (options.graphMode !== '2d' || !isViewportPanButton(event.button)) {
+      clearPanDrag();
+      return;
+    }
+
+    event.preventDefault();
+    panDragRef.current = createViewportPanDragState(
+      event,
+      options.fg2dRef.current,
+      options.containerRef.current,
+    );
+  }
+
+  function handleMouseMoveCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    const drag = panDragRef.current;
+    if (!drag) {
+      return;
+    }
+
+    const current = { x: event.clientX, y: event.clientY };
+    updateViewportPanDragState(drag, current);
+    if (!drag.moved) {
+      return;
+    }
+
+    event.preventDefault();
+    if (drag.button === 2) {
+      options.suppressContextMenu();
+      if (options.rightMouseDownRef.current) {
+        options.rightMouseDownRef.current.moved = true;
+      }
+    }
+    applyViewportPanDrag(drag, current, options.fg2dRef.current);
+  }
+
+  function handleMouseUpCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    const drag = panDragRef.current;
+    if (!drag || event.button !== drag.button) {
+      return;
+    }
+
+    if (drag.moved) {
+      event.preventDefault();
+    }
+    clearPanDrag();
+  }
+
+  return {
+    handleMouseDownCapture,
+    handleMouseMoveCapture,
+    handleMouseUpCapture,
   };
 }
 
@@ -442,6 +598,23 @@ export function useGraphInteractionRuntime({
     pluginHost,
     postMessage,
   });
+  const contextMenuSuppressedUntilRef = useRef(0);
+
+  function suppressContextMenu(): void {
+    contextMenuSuppressedUntilRef.current = Date.now() + CONTEXT_MENU_SUPPRESSION_MS;
+  }
+
+  function isContextMenuSuppressed(): boolean {
+    return Date.now() < contextMenuSuppressedUntilRef.current;
+  }
+
+  const viewportPanRuntime = useGraphViewportPanRuntime({
+    containerRef: refs.containerRef,
+    fg2dRef: refs.fg2dRef,
+    graphMode,
+    rightMouseDownRef: refs.rightMouseDownRef,
+    suppressContextMenu,
+  });
   const marqueeRuntime = useGraphMarqueeSelectionRuntime({
     containerRef: refs.containerRef,
     fg2dRef: refs.fg2dRef,
@@ -449,6 +622,7 @@ export function useGraphInteractionRuntime({
     graphMode,
     hoveredNodeRef,
     interactionHandlers,
+    selectedNodesSetRef: refs.selectedNodesSetRef,
   });
 
   const actionContext = useMemo(
@@ -524,18 +698,55 @@ export function useGraphInteractionRuntime({
   );
 
   function handleMouseDownCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    viewportPanRuntime.handleMouseDownCapture(event);
     marqueeRuntime.handleMouseDownCapture(event);
     contextMenuOpeningRuntime.handleMouseDownCapture(event);
   }
 
   function handleMouseMoveCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    viewportPanRuntime.handleMouseMoveCapture(event);
     marqueeRuntime.handleMouseMoveCapture(event);
     contextMenuOpeningRuntime.handleMouseMoveCapture(event);
   }
 
   function handleMouseUpCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    viewportPanRuntime.handleMouseUpCapture(event);
     marqueeRuntime.handleMouseUpCapture(event);
     contextMenuOpeningRuntime.handleMouseUpCapture(event);
+  }
+
+  function handleContextMenu(event?: ReactMouseEvent<HTMLDivElement>): void {
+    if (isContextMenuSuppressed()) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      return;
+    }
+
+    contextMenuOpeningRuntime.handleContextMenu();
+  }
+
+  function handleBackgroundRightClick(event: MouseEvent): void {
+    if (isContextMenuSuppressed()) {
+      return;
+    }
+
+    contextMenuOpeningRuntime.handleBackgroundRightClick(event);
+  }
+
+  function handleLinkRightClick(link: FGLink, event: MouseEvent): void {
+    if (isContextMenuSuppressed()) {
+      return;
+    }
+
+    contextMenuOpeningRuntime.handleLinkRightClick(link, event);
+  }
+
+  function handleNodeRightClick(node: FGNode, event: MouseEvent): void {
+    if (isContextMenuSuppressed()) {
+      return;
+    }
+
+    contextMenuOpeningRuntime.handleNodeRightClick(node, event);
   }
 
   function handleGraphMouseLeave(): void {
@@ -545,10 +756,14 @@ export function useGraphInteractionRuntime({
 
   return {
     ...contextMenuOpeningRuntime,
+    handleBackgroundRightClick,
+    handleContextMenu,
     handleEngineStop: handleGraphEngineStop,
+    handleLinkRightClick,
     handleMouseLeave: handleGraphMouseLeave,
     handleNodeHover,
     handleNodeDragEnd,
+    handleNodeRightClick,
     handleMouseDownCapture,
     handleMouseMoveCapture,
     handleMouseUpCapture,

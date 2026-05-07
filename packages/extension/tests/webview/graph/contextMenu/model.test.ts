@@ -81,6 +81,7 @@ describe('graph/contextMenuModel', () => {
       'Pin Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
+      'Create Graph Section from Selection',
       'Rename...',
       'Delete File',
     ]);
@@ -181,6 +182,7 @@ describe('graph/contextMenuModel', () => {
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
+      'Pin Nodes',
       'Add Filter Patterns...',
       'Create Graph Section from Selection',
       'Delete 2 Files',
@@ -200,7 +202,7 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(entries)).toContain('unpinNode');
   });
 
-  it('offers live Graph Section creation from background and multi-selection menus', () => {
+  it('offers live Graph Section creation from background, single-node, and multi-selection menus', () => {
     const backgroundEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
       timelineActive: false,
@@ -209,6 +211,15 @@ describe('graph/contextMenuModel', () => {
     });
     expect(menuLabels(backgroundEntries)).toContain('New Graph Section');
     expect(builtInActions(backgroundEntries)).toContain('createGraphSection');
+
+    const singleSelectionEntries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/app.ts', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+    });
+    expect(menuLabels(singleSelectionEntries)).toContain('Create Graph Section from Selection');
+    expect(builtInActions(singleSelectionEntries)).toContain('createGraphSection');
 
     const selectionEntries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts'])),
@@ -275,6 +286,7 @@ describe('graph/contextMenuModel', () => {
       'pinNode',
       'addToFilter',
       'addNodeLegend',
+      'createGraphSection',
       'rename',
       'delete',
     ]);
@@ -309,6 +321,7 @@ describe('graph/contextMenuModel', () => {
       'open',
       'copyRelative',
       'toggleFavorite',
+      'pinNode',
       'addToFilter',
       'createGraphSection',
       'delete',
