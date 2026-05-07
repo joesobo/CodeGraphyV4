@@ -6,7 +6,7 @@ import { GRAPH_TOOL_PANEL_BUTTONS, SYSTEM_PANEL_BUTTONS } from './model';
 import { PluginToolbarActions } from '../plugin/Actions';
 import { LayoutModePopover } from '../LayoutModePopover';
 import { NodeSizeModePopover } from '../NodeSizeModePopover';
-import { GraphSectionToolbarAction } from './graphSection';
+import { CreateToolbarAction } from './create';
 
 export {
   getToolbarActionIconPath,
@@ -39,7 +39,7 @@ export function ToolbarActions(): React.ReactElement {
       <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-graph-tools-group">
         <LayoutModePopover />
         <NodeSizeModePopover />
-        <GraphSectionToolbarAction graphMode={graphMode} timelineActive={timelineActive} />
+        <CreateToolbarAction graphMode={graphMode} timelineActive={timelineActive} />
         <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
         <ToolbarPanelButtons
           activePanel={activePanel}

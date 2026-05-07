@@ -139,8 +139,8 @@ describe('graph/contextActions/effects', () => {
     expect(getBuiltInContextActionEffects('focus', nodeContext([]))).toEqual([]);
   });
 
-  it('pins and unpins the primary selected node in the active graph mode', () => {
-    expect(getBuiltInContextActionEffects('pinNode', positionedNodeContext(['src/app.ts']))).toEqual([
+  it('pins and unpins selected nodes in the active graph mode', () => {
+    expect(getBuiltInContextActionEffects('pinNode', positionedNodeContext(['src/app.ts', 'src/utils.ts']))).toEqual([
       {
         kind: 'postMessage',
         message: {
@@ -152,14 +152,32 @@ describe('graph/contextActions/effects', () => {
           },
         },
       },
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'UPDATE_GRAPH_LAYOUT_PIN',
+          payload: {
+            graphMode: '2d',
+            nodeId: 'src/utils.ts',
+            position: { x: 72, y: 36 },
+          },
+        },
+      },
     ]);
 
-    expect(getBuiltInContextActionEffects('unpinNode', positionedNodeContext(['src/app.ts']))).toEqual([
+    expect(getBuiltInContextActionEffects('unpinNode', positionedNodeContext(['src/app.ts', 'src/utils.ts']))).toEqual([
       {
         kind: 'postMessage',
         message: {
           type: 'CLEAR_GRAPH_LAYOUT_PIN',
           payload: { graphMode: '2d', nodeId: 'src/app.ts' },
+        },
+      },
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CLEAR_GRAPH_LAYOUT_PIN',
+          payload: { graphMode: '2d', nodeId: 'src/utils.ts' },
         },
       },
     ]);

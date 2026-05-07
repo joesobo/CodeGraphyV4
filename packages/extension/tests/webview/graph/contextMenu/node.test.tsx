@@ -39,16 +39,16 @@ async function selectTwoNodesForMultiMenu(graphContainer: HTMLElement): Promise<
 
 const menuData: IGraphData = {
   nodes: [
-    { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
-    { id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9' },
+    { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', x: 12, y: -24 },
+    { id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9', x: 72, y: 36 },
   ],
   edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
 };
 
 const selectionData: IGraphData = {
   nodes: [
-    { id: 'nodeA.ts', label: 'nodeA.ts', color: '#93C5FD' },
-    { id: 'nodeB.ts', label: 'nodeB.ts', color: '#67E8F9' },
+    { id: 'nodeA.ts', label: 'nodeA.ts', color: '#93C5FD', x: 10, y: 20 },
+    { id: 'nodeB.ts', label: 'nodeB.ts', color: '#67E8F9', x: 40, y: 60 },
   ],
   edges: [],
 };
@@ -170,7 +170,9 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
     expect(screen.getByText('Focus Node')).toBeInTheDocument();
+    expect(screen.getByText('Pin Node')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
+    expect(screen.getByText('Create Graph Section from Selection')).toBeInTheDocument();
     expect(screen.getByText('Rename...')).toBeInTheDocument();
     expect(screen.getByText('Delete File')).toBeInTheDocument();
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
@@ -319,7 +321,7 @@ describe('Graph context menu (node)', () => {
       fireEvent.click(screen.getByText('Focus Node'));
     });
 
-    expect(methods.centerAt).toHaveBeenCalledWith(0, 0, 300);
+    expect(methods.centerAt).toHaveBeenCalledWith(12, -24, 300);
     expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
   });
 
@@ -573,10 +575,35 @@ describe('Graph context menu (node)', () => {
     });
     expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
+    expect(screen.getByText('Pin Nodes')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
+    expect(screen.getByText('Create Graph Section from Selection')).toBeInTheDocument();
     expect(screen.getByText('Delete 2 Files')).toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
     expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
+  });
+
+  it('sends UPDATE_GRAPH_LAYOUT_PIN for the selected nodes when clicking Pin Nodes', async () => {
+    const { container } = render(<Graph data={selectionData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+
+    await waitFor(() => {
+      expect(screen.getByText('Pin Nodes')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Pin Nodes'));
+    });
+
+    const pinMessages = getSentMessages().filter(msg => msg.type === 'UPDATE_GRAPH_LAYOUT_PIN');
+    expect(pinMessages).toHaveLength(2);
+    expect(pinMessages.map(msg => msg.payload)).toEqual([
+      { graphMode: '2d', nodeId: 'nodeA.ts', position: { x: 10, y: 20 } },
+      { graphMode: '2d', nodeId: 'nodeB.ts', position: { x: 40, y: 60 } },
+    ]);
   });
 
   it('sends OPEN_FILE for each selected node when clicking Open N Files', async () => {

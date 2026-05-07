@@ -27,7 +27,7 @@ export function buildNodeEntries(
     ...buildFilterBlock(targets),
   ];
 
-  if (!timelineActive && mutationAvailability !== 'hidden' && targets.length > 1) {
+  if (!timelineActive && mutationAvailability !== 'hidden' && targets.length > 0) {
     entries.push(
       builtInItem('node-create-section-from-selection', 'Create Graph Section from Selection', 'createGraphSection', {
         disabled: mutationAvailability === 'disabled',
