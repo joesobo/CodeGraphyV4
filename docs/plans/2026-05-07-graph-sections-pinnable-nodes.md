@@ -586,7 +586,7 @@ Potential implementation order after the design is settled:
    - visual badges,
    - 2D pin coordinates,
    - 3D pin coordinate support for ordinary nodes only.
-3. Multi-selection and marquee:
+3. Multi-selection and marquee: Done
    - left-drag marquee selection,
    - Shift-left-drag pan,
    - selected-node context menu integration,
@@ -636,6 +636,10 @@ Potential implementation order after the design is settled:
 - 2026-05-07: Live single-node and folder-node context menus now expose Pin/Unpin, and pinned nodes render a small top-right pin badge in the 2D canvas.
 - 2026-05-07: Dragging a pinned node writes the final graph-space position back to the active-mode pin when the drag ends.
 - 2026-05-07: Verified slice 2 with targeted pin/menu/store/render/dispatch tests, extension typecheck, and a broader graph/store/graphView webview sweep: `261` files and `1728` tests passed.
+- 2026-05-07: Slice 3 added 2D desktop-style marquee selection on left-drag from empty Graph Stage space, while preserving Shift-left-drag for panning.
+- 2026-05-07: Active marquee selection renders a transient desktop-style rectangle, clears on mouse up or pointer leave, and selects visible nodes by their projected screen position.
+- 2026-05-07: Multi-selected nodes flow into the existing selected-node context menu integration, including the `Open N Files` behavior.
+- 2026-05-07: Verified slice 3 with focused marquee model/view tests, adjacent selection/context-menu tests (`55` tests passed), extension typecheck, extension lint, and `git diff --check`.
 
 ## Codex CLI Handoff
 
