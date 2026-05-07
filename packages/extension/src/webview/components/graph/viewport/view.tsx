@@ -1,6 +1,6 @@
 import type { MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
-import type { GraphLayoutSection, GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
+import type { GraphLayoutOwnership, GraphLayoutSection, GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
 import {
@@ -48,6 +48,7 @@ export interface ViewportProps {
     graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
     screen2GraphCoords?(x: number, y: number): { x: number; y: number };
   };
+  sectionFrameOwnership?: Readonly<Record<string, GraphLayoutOwnership>>;
   sectionFrames?: readonly GraphLayoutSection[];
   onUpdateSection?(this: void, sectionId: string, updates: GraphLayoutSectionUpdate): void;
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
@@ -73,6 +74,7 @@ export function Viewport({
   marqueeSelection,
   menuEntries,
   sectionFrameGraph,
+  sectionFrameOwnership = {},
   sectionFrames = [],
   surface2dProps,
   surface3dProps,
@@ -137,6 +139,7 @@ export function Viewport({
           ) : null}
           <SectionFrames
             graph={sectionFrameGraph}
+            ownership={sectionFrameOwnership}
             sections={sectionFrames}
             onUpdateSection={onUpdateSection}
           />

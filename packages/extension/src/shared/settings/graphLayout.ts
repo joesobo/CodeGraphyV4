@@ -40,6 +40,8 @@ export interface GraphLayoutOwnership {
   updatedAt: string;
 }
 
+export type GraphLayoutOwnershipUpdate = Omit<GraphLayoutOwnership, 'updatedAt'>;
+
 export interface GraphLayoutSettings {
   pinnedNodes: Record<string, GraphLayoutPinnedNode>;
   sections: Record<string, GraphLayoutSection>;
@@ -51,6 +53,8 @@ export interface GraphLayoutSectionCreate {
   height: number;
   label?: string;
   memberNodeIds?: string[];
+  memberSectionIds?: string[];
+  ownerSectionId?: string | null;
   width: number;
   x: number;
   y: number;
@@ -81,4 +85,153 @@ export function getGraphLayoutPinCoordinate(
   return graphMode === '2d'
     ? pinnedNode?.twoDimensional
     : pinnedNode?.threeDimensional;
+}
+
+export function isGraphLayoutPointInsideSection(
+  point: GraphLayoutCoordinate2D,
+  section: Pick<GraphLayoutSection, 'height' | 'width' | 'x' | 'y'>,
+): boolean {
+  return point.x >= section.x
+    && point.x <= section.x + section.width
+    && point.y >= section.y
+    && point.y <= section.y + section.height;
+}
+
+export function isGraphLayoutSectionDescendant(
+  ownership: Readonly<Record<string, GraphLayoutOwnership>>,
+  sectionId: string,
+  ancestorSectionId: string,
+): boolean {
+  const visited = new Set<string>();
+  let currentOwnerId = ownership[sectionId]?.ownerSectionId ?? null;
+
+  while (currentOwnerId) {
+    if (currentOwnerId === ancestorSectionId) {
+      return true;
+    }
+
+    if (visited.has(currentOwnerId)) {
+      return false;
+    }
+
+    visited.add(currentOwnerId);
+    currentOwnerId = ownership[currentOwnerId]?.itemKind === 'section'
+      ? ownership[currentOwnerId].ownerSectionId
+      : null;
+  }
+
+  return false;
+}
+
+export function isGraphLayoutItemOwnedBySection(
+  ownership: Readonly<Record<string, GraphLayoutOwnership>>,
+  itemId: string,
+  ownerSectionId: string,
+): boolean {
+  const record = ownership[itemId];
+  if (!record?.ownerSectionId) {
+    return false;
+  }
+
+  return record.ownerSectionId === ownerSectionId
+    || isGraphLayoutSectionDescendant(ownership, record.ownerSectionId, ownerSectionId);
+}
+
+export function getGraphLayoutSectionDepth(
+  ownership: Readonly<Record<string, GraphLayoutOwnership>>,
+  sectionId: string,
+): number {
+  const visited = new Set<string>([sectionId]);
+  let depth = 0;
+  let currentOwnerId = ownership[sectionId]?.ownerSectionId ?? null;
+
+  while (currentOwnerId) {
+    if (visited.has(currentOwnerId)) {
+      return depth;
+    }
+
+    visited.add(currentOwnerId);
+    depth += 1;
+    currentOwnerId = ownership[currentOwnerId]?.itemKind === 'section'
+      ? ownership[currentOwnerId].ownerSectionId
+      : null;
+  }
+
+  return depth;
+}
+
+export function isGraphLayoutSectionVisible(
+  sections: Readonly<Record<string, GraphLayoutSection>>,
+  ownership: Readonly<Record<string, GraphLayoutOwnership>>,
+  sectionId: string,
+): boolean {
+  const section = sections[sectionId];
+  if (!section || section.collapsed) {
+    return false;
+  }
+
+  const visited = new Set<string>([sectionId]);
+  let currentOwnerId = ownership[sectionId]?.ownerSectionId ?? null;
+
+  while (currentOwnerId) {
+    if (visited.has(currentOwnerId)) {
+      return false;
+    }
+
+    visited.add(currentOwnerId);
+    const ownerSection = sections[currentOwnerId];
+    if (!ownerSection || ownerSection.collapsed) {
+      return false;
+    }
+
+    currentOwnerId = ownership[currentOwnerId]?.itemKind === 'section'
+      ? ownership[currentOwnerId].ownerSectionId
+      : null;
+  }
+
+  return true;
+}
+
+export function sortGraphLayoutSectionsForRendering(
+  sections: readonly GraphLayoutSection[],
+  ownership: Readonly<Record<string, GraphLayoutOwnership>>,
+): GraphLayoutSection[] {
+  return sections
+    .map((section, index) => ({ index, section }))
+    .sort((left, right) => {
+      const depthDifference = getGraphLayoutSectionDepth(ownership, left.section.id)
+        - getGraphLayoutSectionDepth(ownership, right.section.id);
+      return depthDifference === 0
+        ? left.index - right.index
+        : depthDifference;
+    })
+    .map(entry => entry.section);
+}
+
+export function findDeepestGraphLayoutSectionAtPoint(
+  layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+  point: GraphLayoutCoordinate2D,
+): string | null {
+  let selectedSectionId: string | null = null;
+  let selectedDepth = -1;
+  let selectedArea = Number.POSITIVE_INFINITY;
+
+  for (const section of Object.values(layout.sections)) {
+    if (
+      !isGraphLayoutSectionVisible(layout.sections, layout.ownership, section.id)
+      || !isGraphLayoutPointInsideSection(point, section)
+    ) {
+      continue;
+    }
+
+    const depth = getGraphLayoutSectionDepth(layout.ownership, section.id);
+    const area = section.width * section.height;
+    if (depth > selectedDepth || (depth === selectedDepth && area < selectedArea)) {
+      selectedSectionId = section.id;
+      selectedDepth = depth;
+      selectedArea = area;
+    }
+  }
+
+  return selectedSectionId;
 }

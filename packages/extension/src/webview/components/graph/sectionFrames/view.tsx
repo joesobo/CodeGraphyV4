@@ -1,5 +1,11 @@
 import { type MouseEvent as ReactMouseEvent, type ReactElement } from 'react';
-import type { GraphLayoutSection, GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
+import {
+  isGraphLayoutSectionVisible,
+  sortGraphLayoutSectionsForRendering,
+  type GraphLayoutOwnership,
+  type GraphLayoutSection,
+  type GraphLayoutSectionUpdate,
+} from '../../../../shared/settings/graphLayout';
 
 interface SectionFrameGraph {
   graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
@@ -8,6 +14,7 @@ interface SectionFrameGraph {
 
 interface SectionFramesProps {
   graph?: SectionFrameGraph;
+  ownership?: Readonly<Record<string, GraphLayoutOwnership>>;
   sections: readonly GraphLayoutSection[];
   onUpdateSection(this: void, sectionId: string, updates: GraphLayoutSectionUpdate): void;
 }
@@ -100,12 +107,23 @@ function isSectionControl(target: EventTarget | null): boolean {
   return target instanceof Element && !!target.closest('[data-graph-section-control="true"]');
 }
 
+function createSectionMap(
+  sections: readonly GraphLayoutSection[],
+): Record<string, GraphLayoutSection> {
+  return Object.fromEntries(sections.map(section => [section.id, section]));
+}
+
 export function SectionFrames({
   graph,
+  ownership = {},
   sections,
   onUpdateSection,
 }: SectionFramesProps): ReactElement | null {
-  const visibleSections = sections.filter(section => !section.collapsed);
+  const sectionMap = createSectionMap(sections);
+  const visibleSections = sortGraphLayoutSectionsForRendering(
+    sections,
+    ownership,
+  ).filter(section => isGraphLayoutSectionVisible(sectionMap, ownership, section.id));
   if (visibleSections.length === 0) {
     return null;
   }

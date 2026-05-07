@@ -2,7 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SectionFrames } from '../../../../src/webview/components/graph/sectionFrames/view';
-import type { GraphLayoutSection } from '../../../../src/shared/settings/graphLayout';
+import type { GraphLayoutOwnership, GraphLayoutSection } from '../../../../src/shared/settings/graphLayout';
 
 const section: GraphLayoutSection = {
   id: 'section-1',
@@ -30,6 +30,46 @@ function renderSectionFrames(overrides: Partial<GraphLayoutSection> = {}) {
   );
 
   return { onUpdateSection };
+}
+
+function renderNestedSectionFrames({
+  parentCollapsed = false,
+}: { parentCollapsed?: boolean } = {}) {
+  const ownership: Record<string, GraphLayoutOwnership> = {
+    'section-1': {
+      itemId: 'section-1',
+      itemKind: 'section',
+      ownerSectionId: null,
+      updatedAt: '2026-05-07T09:00:00.000Z',
+    },
+    'section-2': {
+      itemId: 'section-2',
+      itemKind: 'section',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:01:00.000Z',
+    },
+  };
+  render(
+    <SectionFrames
+      ownership={ownership}
+      sections={[
+        {
+          ...section,
+          id: 'section-2',
+          label: 'Child',
+          x: 20,
+          y: 20,
+          width: 80,
+          height: 80,
+        },
+        {
+          ...section,
+          collapsed: parentCollapsed,
+        },
+      ]}
+      onUpdateSection={vi.fn()}
+    />,
+  );
 }
 
 describe('graph/sectionFrames/view', () => {
@@ -86,5 +126,21 @@ describe('graph/sectionFrames/view', () => {
       height: 210,
       width: 320,
     });
+  });
+
+  it('renders parent frames before child frames so nested children stay interactive', () => {
+    renderNestedSectionFrames();
+
+    expect(screen.getAllByTestId(/graph-section-frame-/).map(frame => frame.dataset.testid)).toEqual([
+      'graph-section-frame-section-1',
+      'graph-section-frame-section-2',
+    ]);
+  });
+
+  it('hides descendant frames while an ancestor Graph Section is collapsed', () => {
+    renderNestedSectionFrames({ parentCollapsed: true });
+
+    expect(screen.queryByTestId('graph-section-frame-section-1')).toBeNull();
+    expect(screen.queryByTestId('graph-section-frame-section-2')).toBeNull();
   });
 });

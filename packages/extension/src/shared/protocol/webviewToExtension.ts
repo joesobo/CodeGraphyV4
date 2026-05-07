@@ -10,6 +10,7 @@ import type {
   GraphLayoutCoordinate2D,
   GraphLayoutCoordinate3D,
   GraphLayoutMode,
+  GraphLayoutOwnershipUpdate,
   GraphLayoutSectionCreate,
   GraphLayoutSectionUpdate,
 } from '../settings/graphLayout';
@@ -57,6 +58,16 @@ export type WebviewToExtensionMessage =
       payload: {
         sectionId: string;
         updates: GraphLayoutSectionUpdate;
+      };
+    }
+  | {
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER';
+      payload: GraphLayoutOwnershipUpdate;
+    }
+  | {
+      type: 'DELETE_GRAPH_LAYOUT_SECTION';
+      payload: {
+        sectionId: string;
       };
     }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }

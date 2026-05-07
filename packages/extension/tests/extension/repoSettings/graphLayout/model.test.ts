@@ -3,6 +3,7 @@ import {
   assignGraphLayoutOwner,
   createGraphLayoutSection,
   createDefaultGraphLayoutSettings,
+  deleteGraphLayoutSection,
   normalizeGraphLayoutSettings,
   updateGraphLayoutSection,
   wouldCreateGraphLayoutOwnershipCycle,
@@ -327,5 +328,219 @@ describe('extension/repoSettings/graphLayout/model', () => {
       updatedAt: '2026-05-07T09:15:00.000Z',
     });
     expect(updated.ownership['src/app.ts']).toEqual(layout.ownership['src/app.ts']);
+  });
+
+  it('creates nested Graph Sections and assigns selected sections as direct children', () => {
+    const parentLayout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
+      height: 240,
+      updatedAt: '2026-05-07T09:00:00.000Z',
+      width: 360,
+      x: 0,
+      y: 0,
+    });
+    const childLayout = createGraphLayoutSection(parentLayout, {
+      height: 120,
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:05:00.000Z',
+      width: 180,
+      x: 40,
+      y: 40,
+    });
+
+    const wrapperLayout = createGraphLayoutSection(childLayout, {
+      height: 180,
+      memberNodeIds: ['src/app.ts'],
+      memberSectionIds: ['section-2'],
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:10:00.000Z',
+      width: 260,
+      x: 20,
+      y: 20,
+    });
+
+    expect(wrapperLayout.ownership['section-3']).toEqual({
+      itemId: 'section-3',
+      itemKind: 'section',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:10:00.000Z',
+    });
+    expect(wrapperLayout.ownership['section-2']).toEqual({
+      itemId: 'section-2',
+      itemKind: 'section',
+      ownerSectionId: 'section-3',
+      updatedAt: '2026-05-07T09:10:00.000Z',
+    });
+    expect(wrapperLayout.ownership['src/app.ts']).toEqual({
+      itemId: 'src/app.ts',
+      itemKind: 'node',
+      ownerSectionId: 'section-3',
+      updatedAt: '2026-05-07T09:10:00.000Z',
+    });
+  });
+
+  it('moves descendant sections and pinned member coordinates with the parent Section Frame', () => {
+    const layout = normalizeGraphLayoutSettings({
+      pinnedNodes: {
+        'src/app.ts': {
+          nodeId: 'src/app.ts',
+          twoDimensional: { x: 60, y: 70 },
+          threeDimensional: { x: 1, y: 2, z: 3 },
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Parent',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 300,
+          height: 220,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-2': {
+          id: 'section-2',
+          label: 'Child',
+          color: '#22c55e',
+          x: 40,
+          y: 40,
+          width: 120,
+          height: 90,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-1': {
+          itemId: 'section-1',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-2': {
+          itemId: 'section-2',
+          itemKind: 'section',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-2',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    });
+
+    const moved = updateGraphLayoutSection(layout, {
+      sectionId: 'section-1',
+      updates: { x: 25, y: -10 },
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+
+    expect(moved.sections['section-1']).toMatchObject({ x: 25, y: -10 });
+    expect(moved.sections['section-2']).toMatchObject({ x: 65, y: 30 });
+    expect(moved.pinnedNodes['src/app.ts']).toEqual({
+      nodeId: 'src/app.ts',
+      twoDimensional: { x: 85, y: 60 },
+      threeDimensional: { x: 1, y: 2, z: 3 },
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+  });
+
+  it('deletes only a Graph Section by promoting direct children to the deleted section owner', () => {
+    const layout = normalizeGraphLayoutSettings({
+      pinnedNodes: {
+        'section-2': {
+          nodeId: 'section-2',
+          twoDimensional: { x: 40, y: 40 },
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Parent',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 300,
+          height: 220,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-2': {
+          id: 'section-2',
+          label: 'Deleted',
+          color: '#22c55e',
+          x: 40,
+          y: 40,
+          width: 120,
+          height: 90,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-3': {
+          id: 'section-3',
+          label: 'Child',
+          color: '#f59e0b',
+          x: 60,
+          y: 60,
+          width: 80,
+          height: 70,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-1': {
+          itemId: 'section-1',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-2': {
+          itemId: 'section-2',
+          itemKind: 'section',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-3': {
+          itemId: 'section-3',
+          itemKind: 'section',
+          ownerSectionId: 'section-2',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-2',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    });
+
+    const nextLayout = deleteGraphLayoutSection(layout, {
+      sectionId: 'section-2',
+      updatedAt: '2026-05-07T09:20:00.000Z',
+    });
+
+    expect(nextLayout.sections['section-2']).toBeUndefined();
+    expect(nextLayout.pinnedNodes['section-2']).toBeUndefined();
+    expect(nextLayout.ownership['section-2']).toBeUndefined();
+    expect(nextLayout.ownership['section-3']).toEqual({
+      itemId: 'section-3',
+      itemKind: 'section',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:20:00.000Z',
+    });
+    expect(nextLayout.ownership['src/app.ts']).toEqual({
+      itemId: 'src/app.ts',
+      itemKind: 'node',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:20:00.000Z',
+    });
   });
 });

@@ -600,7 +600,7 @@ Potential implementation order after the design is settled:
    - free-form color picker,
    - Section Frame rendering,
    - move and resize.
-5. Membership and nested ownership:
+5. Membership and nested ownership: Done
    - drag/drop into sections,
    - drag/drop out of sections,
    - deepest-frame targeting,
@@ -644,6 +644,11 @@ Potential implementation order after the design is settled:
 - 2026-05-07: The 2D Graph View now offers New Graph Section from the Graph Tool Rail, live Graph Stage background context menu, and live selection context menu. Timeline Snapshots and 3D mode hide the new section creation/editing affordances in v1.
 - 2026-05-07: Expanded Section Frames render over the 2D Graph Stage with editable label/color controls, graph-space move updates, and southeast resize updates.
 - 2026-05-07: Verified slice 4 with an initial red focused suite, then focused section/model/dispatch/menu/toolbar/frame tests (`70` tests passed), a broader graph/menu/toolbar/viewport sweep (`413` tests passed), extension typecheck, extension lint, and `git diff --check`.
+- 2026-05-07: Slice 5 added explicit Graph Layout ownership updates, nested section creation, Graph Section deletion that promotes direct children, and shared deepest-frame hit testing.
+- 2026-05-07: Dragging a node in 2D now assigns it to the deepest expanded Section Frame under the drop point, or returns it to the root graph when dropped outside every expanded frame.
+- 2026-05-07: Moving a parent Section Frame now translates descendant Section Frames and persisted 2D pins for descendant members by the same graph-space delta.
+- 2026-05-07: Expanded Section Frames render parents before children and hide descendant frames while an ancestor Graph Section is collapsed.
+- 2026-05-07: Verified slice 5 with an initial red focused suite, then focused graph-layout model/dispatch/runtime/frame tests (`29` tests passed), an adjacent viewport/runtime/section/context sweep (`104` tests passed), extension typecheck, extension lint, and `git diff --check`.
 
 ## Codex CLI Handoff
 

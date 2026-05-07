@@ -10,7 +10,11 @@ import {
 } from 'react';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
-import type { GraphLayoutMode } from '../../../../../shared/settings/graphLayout';
+import {
+  findDeepestGraphLayoutSectionAtPoint,
+  type GraphLayoutMode,
+  type GraphLayoutSettings,
+} from '../../../../../shared/settings/graphLayout';
 import type { GraphContextMenuAction, GraphContextSelection } from '../../contextMenu/contracts';
 import {
   resolveGraphContextActionContext,
@@ -47,6 +51,7 @@ export interface UseGraphInteractionRuntimeOptions {
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: UseGraphStateResult['graphDataRef'];
+  graphLayout?: GraphLayoutSettings;
   graphMode: '2d' | '3d';
   highlightedNeighborsRef: UseGraphStateResult['highlightedNeighborsRef'];
   highlightedNodeRef: UseGraphStateResult['highlightedNodeRef'];
@@ -69,6 +74,7 @@ export interface UseGraphInteractionRuntimeOptions {
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
   setHighlightVersion: Dispatch<SetStateAction<number>>;
   setSelectedNodes: Dispatch<SetStateAction<string[]>>;
+  timelineActive?: boolean;
 }
 
 export interface UseGraphInteractionRuntimeResult {
@@ -176,6 +182,37 @@ function createPinnedNodeDragMessage(
   };
 }
 
+function createGraphLayoutOwnerDragMessage(
+  node: FGNode,
+  graphLayout: GraphLayoutSettings | undefined,
+  graphMode: GraphLayoutMode,
+  timelineActive: boolean,
+): WebviewToExtensionMessage | undefined {
+  if (!graphLayout || graphMode !== '2d' || timelineActive) {
+    return undefined;
+  }
+
+  const position = readNodePosition(node, graphMode);
+  if (!position) {
+    return undefined;
+  }
+
+  const ownerSectionId = findDeepestGraphLayoutSectionAtPoint(graphLayout, position);
+  const currentOwnerSectionId = graphLayout.ownership[node.id]?.ownerSectionId ?? null;
+  if (ownerSectionId === currentOwnerSectionId) {
+    return undefined;
+  }
+
+  return {
+    type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+    payload: {
+      itemId: node.id,
+      itemKind: 'node',
+      ownerSectionId,
+    },
+  };
+}
+
 function getLocalMarqueePoint(
   event: ReactMouseEvent<HTMLDivElement>,
   container: HTMLDivElement | null,
@@ -195,6 +232,7 @@ export function useGraphInteractionRuntime({
   graphContextSelection,
   graphCursorRef,
   graphDataRef,
+  graphLayout,
   graphMode,
   highlightedNeighborsRef,
   highlightedNodeRef,
@@ -209,6 +247,7 @@ export function useGraphInteractionRuntime({
   setContextSelection,
   setHighlightVersion,
   setSelectedNodes,
+  timelineActive = false,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
   const interactionHandlers = useMemo(
     () => createGraphInteractionHandlers({
@@ -282,8 +321,16 @@ export function useGraphInteractionRuntime({
   );
 
   function handleNodeDragEnd(node: FGNode): void {
-    const message = createPinnedNodeDragMessage(node, graphMode);
-    if (message) {
+    const messages = [
+      createPinnedNodeDragMessage(node, graphMode),
+      createGraphLayoutOwnerDragMessage(node, graphLayout, graphMode, timelineActive),
+    ];
+
+    for (const message of messages) {
+      if (!message) {
+        continue;
+      }
+
       postMessage(message);
     }
   }
