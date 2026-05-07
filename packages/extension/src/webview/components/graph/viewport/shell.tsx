@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import type { ThemeKind } from '../../../theme/useTheme';
+import type { GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
 import type { GraphAppearance } from '../appearance/model';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { GraphViewStoreState } from '../view/store';
@@ -11,6 +12,7 @@ import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport } from './view';
 import { useGraphViewportModel } from './model';
+import { postMessage } from '../../../vscodeApi';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -139,6 +141,17 @@ export function GraphViewportShell({
     viewState,
   });
 
+  function handleUpdateSection(sectionId: string, updates: GraphLayoutSectionUpdate): void {
+    postMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_SECTION',
+      payload: { sectionId, updates },
+    });
+  }
+
+  const sectionFrames = viewState.graphMode === '2d' && !viewState.timelineActive
+    ? Object.values(viewState.graphLayout.sections)
+    : [];
+
   return (
     <Viewport
       canvasBackgroundColor={viewportModel.canvasBackgroundColor}
@@ -155,6 +168,9 @@ export function GraphViewportShell({
       handleMouseUpCapture={interactions.handleMouseUpCapture}
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
+      sectionFrameGraph={graphState.fg2dRef.current}
+      sectionFrames={sectionFrames}
+      onUpdateSection={handleUpdateSection}
       surface2dProps={{
         fg2dRef: graphState.fg2dRef,
         getArrowColor: callbacks.getArrowColor,

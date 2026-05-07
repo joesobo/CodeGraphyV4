@@ -44,6 +44,24 @@ export function getContextMenuPointerState(
   };
 }
 
+function getBackgroundGraphPosition(
+  dependencies: GraphInteractionHandlersDependencies,
+  event: MouseEvent,
+): { x: number; y: number } | undefined {
+  if (dependencies.graphMode !== '2d') {
+    return undefined;
+  }
+
+  const container = dependencies.containerRef.current;
+  const graph = dependencies.fg2dRef.current;
+  if (!container || !graph?.screen2GraphCoords) {
+    return undefined;
+  }
+
+  const rect = container.getBoundingClientRect();
+  return graph.screen2GraphCoords(event.clientX - rect.left, event.clientY - rect.top);
+}
+
 function openContextMenuFromGraphCallback(
   dependencies: GraphInteractionHandlersDependencies,
   event?: MouseEvent,
@@ -115,8 +133,9 @@ export function createContextMenuHandlers(
   };
 
   const openBackgroundContextMenu = (event: MouseEvent): void => {
+    const graphPosition = getBackgroundGraphPosition(dependencies, event);
     flushSync(() => {
-      dependencies.setContextSelection(makeBackgroundContextSelection());
+      dependencies.setContextSelection(makeBackgroundContextSelection(graphPosition));
     });
     dependencies.lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(dependencies, event);

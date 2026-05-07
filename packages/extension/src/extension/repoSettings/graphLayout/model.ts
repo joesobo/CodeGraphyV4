@@ -1,12 +1,15 @@
 import { isPlainObject } from '../store/model/plainObject';
 import {
   createDefaultGraphLayoutSettings,
+  DEFAULT_GRAPH_SECTION_COLOR,
   type GraphLayoutCoordinate2D,
   type GraphLayoutCoordinate3D,
   type GraphLayoutMode,
   type GraphLayoutOwnership,
   type GraphLayoutPinnedNode,
   type GraphLayoutSection,
+  type GraphLayoutSectionCreate,
+  type GraphLayoutSectionUpdate,
   type GraphLayoutSettings,
 } from '../../../shared/settings/graphLayout';
 
@@ -18,6 +21,8 @@ export type {
   GraphLayoutOwnership,
   GraphLayoutPinnedNode,
   GraphLayoutSection,
+  GraphLayoutSectionCreate,
+  GraphLayoutSectionUpdate,
   GraphLayoutSettings,
 };
 
@@ -400,5 +405,122 @@ export function clearGraphLayoutNodePin(
   return normalizeGraphLayoutSettings({
     ...layout,
     pinnedNodes: nextPinnedNodes,
+  });
+}
+
+export interface GraphLayoutSectionCreateUpdate extends GraphLayoutSectionCreate {
+  updatedAt: string;
+}
+
+export interface GraphLayoutSectionPatch {
+  sectionId: string;
+  updates: GraphLayoutSectionUpdate;
+  updatedAt: string;
+}
+
+function getNextGraphLayoutSectionNumber(
+  sections: Readonly<Record<string, GraphLayoutSection>>,
+): number {
+  let nextNumber = 1;
+  for (const sectionId of Object.keys(sections)) {
+    const match = /^section-(\d+)$/.exec(sectionId);
+    if (!match) {
+      continue;
+    }
+
+    nextNumber = Math.max(nextNumber, Number(match[1]) + 1);
+  }
+
+  return nextNumber;
+}
+
+function readOptionalSectionString(value: string | undefined): string | undefined {
+  return value && value.length > 0 ? value : undefined;
+}
+
+function getUniqueMemberNodeIds(memberNodeIds: readonly string[] | undefined): string[] {
+  return [...new Set((memberNodeIds ?? []).filter(nodeId => nodeId.length > 0))];
+}
+
+export function createGraphLayoutSection(
+  layout: GraphLayoutSettings,
+  create: GraphLayoutSectionCreateUpdate,
+): GraphLayoutSettings {
+  const sectionNumber = getNextGraphLayoutSectionNumber(layout.sections);
+  const sectionId = `section-${sectionNumber}`;
+  const section: GraphLayoutSection = {
+    id: sectionId,
+    label: readOptionalSectionString(create.label) ?? `Section ${sectionNumber}`,
+    color: readOptionalSectionString(create.color) ?? DEFAULT_GRAPH_SECTION_COLOR,
+    x: create.x,
+    y: create.y,
+    width: create.width,
+    height: create.height,
+    collapsed: false,
+    updatedAt: create.updatedAt,
+  };
+  const ownership: Record<string, GraphLayoutOwnership> = {
+    ...layout.ownership,
+    [sectionId]: {
+      itemId: sectionId,
+      itemKind: 'section',
+      ownerSectionId: null,
+      updatedAt: create.updatedAt,
+    },
+  };
+
+  for (const nodeId of getUniqueMemberNodeIds(create.memberNodeIds)) {
+    ownership[nodeId] = {
+      itemId: nodeId,
+      itemKind: 'node',
+      ownerSectionId: sectionId,
+      updatedAt: create.updatedAt,
+    };
+  }
+
+  return normalizeGraphLayoutSettings({
+    ...layout,
+    sections: {
+      ...layout.sections,
+      [sectionId]: section,
+    },
+    ownership,
+  });
+}
+
+function readOptionalNumberUpdate(
+  nextValue: number | undefined,
+  currentValue: number,
+): number {
+  return nextValue === undefined ? currentValue : nextValue;
+}
+
+export function updateGraphLayoutSection(
+  layout: GraphLayoutSettings,
+  patch: GraphLayoutSectionPatch,
+): GraphLayoutSettings {
+  const existing = layout.sections[patch.sectionId];
+  if (!existing) {
+    throw new Error('Graph Section does not exist.');
+  }
+
+  const nextSection: GraphLayoutSection = {
+    ...existing,
+    collapsed: patch.updates.collapsed ?? existing.collapsed,
+    color: readOptionalSectionString(patch.updates.color) ?? existing.color,
+    height: readOptionalNumberUpdate(patch.updates.height, existing.height),
+    label: readOptionalSectionString(patch.updates.label) ?? existing.label,
+    width: readOptionalNumberUpdate(patch.updates.width, existing.width),
+    x: readOptionalNumberUpdate(patch.updates.x, existing.x),
+    y: readOptionalNumberUpdate(patch.updates.y, existing.y),
+    updatedAt: patch.updatedAt,
+  };
+
+  return normalizeGraphLayoutSettings({
+    ...layout,
+    sections: {
+      ...layout.sections,
+      [patch.sectionId]: nextSection,
+    },
   });
 }

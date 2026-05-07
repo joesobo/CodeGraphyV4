@@ -1,4 +1,10 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import {
+  DEFAULT_GRAPH_SECTION_COLOR,
+  DEFAULT_GRAPH_SECTION_HEIGHT,
+  DEFAULT_GRAPH_SECTION_WIDTH,
+  GRAPH_SECTION_SELECTION_PADDING,
+} from '../../../../shared/settings/graphLayout';
 import type { GraphContextActionContext } from './context';
 import type { GraphContextEffect } from './effects';
 
@@ -50,6 +56,13 @@ export function createCreateFolderEffects(directory = '.'): GraphContextEffect[]
   return [createPostMessageEffect({ type: 'CREATE_FOLDER', payload: { directory } })];
 }
 
+interface SectionBounds {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -97,4 +110,61 @@ export function createClearPinNodeEffects(context: GraphContextActionContext): G
       payload: { graphMode: context.graphMode, nodeId: context.primaryTargetId },
     })]
     : [];
+}
+
+function getDefaultSectionBounds(context: GraphContextActionContext): SectionBounds {
+  const center = context.graphPosition ?? { x: 0, y: 0 };
+  return {
+    height: DEFAULT_GRAPH_SECTION_HEIGHT,
+    width: DEFAULT_GRAPH_SECTION_WIDTH,
+    x: center.x - (DEFAULT_GRAPH_SECTION_WIDTH / 2),
+    y: center.y - (DEFAULT_GRAPH_SECTION_HEIGHT / 2),
+  };
+}
+
+function getSelectionSectionBounds(context: GraphContextActionContext): SectionBounds | undefined {
+  const positions = context.targetIds
+    .map(nodeId => context.nodePositions.get(nodeId))
+    .filter((position): position is { x: number; y: number } =>
+      !!position && isFiniteNumber(position.x) && isFiniteNumber(position.y),
+    );
+  if (positions.length === 0) {
+    return undefined;
+  }
+
+  const xs = positions.map(position => position.x);
+  const ys = positions.map(position => position.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+
+  return {
+    height: (maxY - minY) + (GRAPH_SECTION_SELECTION_PADDING * 2),
+    width: (maxX - minX) + (GRAPH_SECTION_SELECTION_PADDING * 2),
+    x: minX - GRAPH_SECTION_SELECTION_PADDING,
+    y: minY - GRAPH_SECTION_SELECTION_PADDING,
+  };
+}
+
+export function createGraphSectionEffects(context: GraphContextActionContext): GraphContextEffect[] {
+  if (context.graphMode !== '2d') {
+    return [];
+  }
+
+  const bounds = context.selectionKind === 'node'
+    ? getSelectionSectionBounds(context) ?? getDefaultSectionBounds(context)
+    : getDefaultSectionBounds(context);
+
+  return [createPostMessageEffect({
+    type: 'CREATE_GRAPH_LAYOUT_SECTION',
+    payload: {
+      color: DEFAULT_GRAPH_SECTION_COLOR,
+      height: bounds.height,
+      memberNodeIds: context.selectionKind === 'node' ? [...context.targetIds] : [],
+      width: bounds.width,
+      x: bounds.x,
+      y: bounds.y,
+    },
+  })];
 }

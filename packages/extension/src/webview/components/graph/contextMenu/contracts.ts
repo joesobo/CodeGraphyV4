@@ -18,6 +18,7 @@ export type BuiltInContextMenuAction =
   | 'toggleFavorite'
   | 'pinNode'
   | 'unpinNode'
+  | 'createGraphSection'
   | 'focus'
   | 'addToFilter'
   | 'addNodeLegend'
@@ -51,6 +52,7 @@ export interface GraphContextSelection {
   kind: GraphContextTargetKind;
   targets: string[];
   edgeId?: string;
+  graphPosition?: { x: number; y: number };
 }
 
 export interface GraphContextMenuNode {

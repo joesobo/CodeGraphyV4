@@ -27,6 +27,15 @@ export function buildNodeEntries(
     ...buildFilterBlock(targets),
   ];
 
+  if (!timelineActive && mutationAvailability !== 'hidden' && targets.length > 1) {
+    entries.push(
+      builtInItem('node-create-section-from-selection', 'Create Graph Section from Selection', 'createGraphSection', {
+        disabled: mutationAvailability === 'disabled',
+      }),
+      separator('node-separator-section'),
+    );
+  }
+
   if (mutationAvailability !== 'hidden') {
     entries.push(...buildDestructiveBlock(targets, mutationAvailability === 'disabled'));
   }
@@ -60,6 +69,15 @@ export function buildSingleFolderNodeEntries(
     ...(timelineActive ? [] : buildPinBlock(targets, pinnedNodeIds)),
     ...buildFilterBlock(targets),
   );
+
+  if (!timelineActive && mutationAvailability !== 'hidden') {
+    entries.push(
+      builtInItem('node-create-section-from-selection', 'Create Graph Section from Selection', 'createGraphSection', {
+        disabled: mutationAvailability === 'disabled',
+      }),
+      separator('node-separator-section'),
+    );
+  }
 
   if (target !== '(root)' && mutationAvailability !== 'hidden') {
     entries.push(...buildFolderDestructiveBlock(mutationAvailability === 'disabled'));

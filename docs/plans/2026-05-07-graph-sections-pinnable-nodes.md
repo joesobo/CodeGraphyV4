@@ -591,7 +591,7 @@ Potential implementation order after the design is settled:
    - Shift-left-drag pan,
    - selected-node context menu integration,
    - force-graph multi-selection reference from Trello #20.
-4. Basic expanded Graph Sections:
+4. Basic expanded Graph Sections: Done
    - create from Graph Tool Rail add action,
    - create from Graph Stage background context menu,
    - create from selection context menu,
@@ -640,6 +640,10 @@ Potential implementation order after the design is settled:
 - 2026-05-07: Active marquee selection renders a transient desktop-style rectangle, clears on mouse up or pointer leave, and selects visible nodes by their projected screen position.
 - 2026-05-07: Multi-selected nodes flow into the existing selected-node context menu integration, including the `Open N Files` behavior.
 - 2026-05-07: Verified slice 3 with focused marquee model/view tests, adjacent selection/context-menu tests (`55` tests passed), extension typecheck, extension lint, and `git diff --check`.
+- 2026-05-07: Slice 4 added `CREATE_GRAPH_LAYOUT_SECTION` and `UPDATE_GRAPH_LAYOUT_SECTION` messages so the extension host can persist generated Graph Sections, editable labels/colors, Section Frame movement, and Section Frame resizing.
+- 2026-05-07: The 2D Graph View now offers New Graph Section from the Graph Tool Rail, live Graph Stage background context menu, and live selection context menu. Timeline Snapshots and 3D mode hide the new section creation/editing affordances in v1.
+- 2026-05-07: Expanded Section Frames render over the 2D Graph Stage with editable label/color controls, graph-space move updates, and southeast resize updates.
+- 2026-05-07: Verified slice 4 with an initial red focused suite, then focused section/model/dispatch/menu/toolbar/frame tests (`70` tests passed), a broader graph/menu/toolbar/viewport sweep (`413` tests passed), extension typecheck, extension lint, and `git diff --check`.
 
 ## Codex CLI Handoff
 

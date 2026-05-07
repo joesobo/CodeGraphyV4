@@ -15,6 +15,7 @@ function separatorCount(entries: GraphContextMenuEntry[]): number {
 describe('buildBackgroundEntries', () => {
   it('includes New File, New Folder, and separator when mutation is enabled', () => {
     const entries = buildBackgroundEntries('enabled');
+    expect(itemLabels(entries)).toContain('New Graph Section');
     expect(itemLabels(entries)).toContain('New File...');
     expect(itemLabels(entries)).toContain('New Folder...');
     expect(separatorCount(entries)).toBe(1);
@@ -25,6 +26,7 @@ describe('buildBackgroundEntries', () => {
     const items = entries.filter(
       (entry): entry is Extract<GraphContextMenuEntry, { kind: 'item' }> => entry.kind === 'item'
     );
+    expect(items.find(item => item.label === 'New Graph Section')?.disabled).toBe(true);
     expect(items.find(item => item.label === 'New File...')?.disabled).toBe(true);
     expect(items.find(item => item.label === 'New Folder...')?.disabled).toBe(true);
     expect(separatorCount(entries)).toBe(1);
@@ -32,6 +34,7 @@ describe('buildBackgroundEntries', () => {
 
   it('omits New File, New Folder, and separator when mutation is hidden', () => {
     const entries = buildBackgroundEntries('hidden');
+    expect(itemLabels(entries)).not.toContain('New Graph Section');
     expect(itemLabels(entries)).not.toContain('New File...');
     expect(itemLabels(entries)).not.toContain('New Folder...');
     expect(separatorCount(entries)).toBe(0);
@@ -49,9 +52,9 @@ describe('buildBackgroundEntries', () => {
     expect(itemLabels(buildBackgroundEntries('hidden'))).toContain('Fit All Nodes');
   });
 
-  it('returns 5 entries when mutation actions are visible', () => {
+  it('returns 6 entries when mutation actions are visible', () => {
     const entries = buildBackgroundEntries('enabled');
-    expect(entries).toHaveLength(5);
+    expect(entries).toHaveLength(6);
   });
 
   it('returns 2 entries when mutation actions are hidden', () => {

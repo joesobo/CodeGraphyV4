@@ -41,7 +41,7 @@ export function buildGraphContextMenuEntries(
   const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
   const decision = decideGraphContextMenu(selection, nodes);
   const baseEntries = decision.kind === 'background'
-    ? buildBackgroundEntries(mutationAvailability)
+    ? buildBackgroundEntries(mutationAvailability, { includeGraphSection: !timelineActive })
     : decision.kind === 'singleFolderNode'
       ? buildSingleFolderNodeEntries(
         decision.target.id,

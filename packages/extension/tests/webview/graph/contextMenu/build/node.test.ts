@@ -79,12 +79,13 @@ describe('graph/contextMenu/build/node', () => {
       pluginItems: [],
     });
 
-    expect(itemLabels(entries)).toHaveLength(5);
+    expect(itemLabels(entries)).toHaveLength(6);
     expect(itemLabels(entries)).toEqual([
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns...',
+      'Create Graph Section from Selection',
       'Delete 2 Files',
     ]);
   });
