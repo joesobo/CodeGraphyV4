@@ -59,6 +59,116 @@ export interface ViewportProps {
   pluginHost?: WebviewPluginHost;
 }
 
+const EMPTY_PINNED_SECTION_IDS = new Set<string>();
+
+interface ViewportSurfaceProps {
+  canvasBackgroundColor: string;
+  directionMode: DirectionMode;
+  graphMode: '2d' | '3d';
+  onSurface3dError?: (error: Error) => void;
+  surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
+  surface3dProps: Omit<Surface3dProps, 'backgroundColor' | 'directionMode'>;
+}
+
+function ViewportSurface({
+  canvasBackgroundColor,
+  directionMode,
+  graphMode,
+  onSurface3dError,
+  surface2dProps,
+  surface3dProps,
+}: ViewportSurfaceProps): ReactElement {
+  if (graphMode === '2d') {
+    return (
+      <Surface2d
+        {...surface2dProps}
+        backgroundColor={canvasBackgroundColor}
+        directionMode={directionMode}
+      />
+    );
+  }
+
+  const fallback = (
+    <Surface2d
+      {...surface2dProps}
+      backgroundColor={canvasBackgroundColor}
+      directionMode={directionMode}
+    />
+  );
+
+  return (
+    <SurfaceFallbackBoundary
+      resetKey={graphMode}
+      onError={onSurface3dError}
+      fallback={fallback}
+    >
+      <DeferredSurface3d
+        {...surface3dProps}
+        backgroundColor={canvasBackgroundColor}
+        directionMode={directionMode}
+        fallback={fallback}
+      />
+    </SurfaceFallbackBoundary>
+  );
+}
+
+function ViewportPluginOverlay({
+  pluginHost,
+}: Pick<ViewportProps, 'pluginHost'>): ReactElement | null {
+  return pluginHost ? (
+    <SlotHost
+      pluginHost={pluginHost}
+      slot="graph-overlay"
+      data-testid="graph-overlay-slot"
+      className="absolute inset-0 z-10 pointer-events-none"
+    />
+  ) : null;
+}
+
+function ViewportMarqueeSelectionOverlay({
+  marqueeSelection,
+}: Pick<ViewportProps, 'marqueeSelection'>): ReactElement | null {
+  return marqueeSelection ? (
+    <div
+      data-testid="graph-marquee-selection"
+      className="pointer-events-none absolute z-20 rounded-sm border border-dashed border-[var(--cg-focus-border)] bg-[rgba(59,130,246,0.14)]"
+      style={{
+        left: marqueeSelection.bounds.left,
+        top: marqueeSelection.bounds.top,
+        width: marqueeSelection.bounds.width,
+        height: marqueeSelection.bounds.height,
+      }}
+    />
+  ) : null;
+}
+
+function ViewportContextMenuItems({
+  handleMenuAction,
+  menuEntries,
+}: Pick<ViewportProps, 'handleMenuAction' | 'menuEntries'>): ReactElement {
+  return (
+    <>
+      {menuEntries.map(entry => {
+        if (entry.kind === 'separator') {
+          return <ContextMenuSeparator key={entry.id} />;
+        }
+
+        return (
+          <ContextMenuItem
+            key={entry.id}
+            className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
+            disabled={entry.disabled}
+            onClick={() => handleMenuAction(entry.action)}
+          >
+            {entry.label}
+            {entry.shortcut ? <ContextMenuShortcut>{entry.shortcut}</ContextMenuShortcut> : null}
+          </ContextMenuItem>
+        );
+      })}
+    </>
+  );
+}
+
 export function Viewport({
   canvasBackgroundColor,
   containerBackgroundColor,
@@ -76,7 +186,7 @@ export function Viewport({
   menuEntries,
   sectionFrameGraph,
   sectionFrameOwnership = {},
-  pinnedSectionIds = new Set<string>(),
+  pinnedSectionIds = EMPTY_PINNED_SECTION_IDS,
   sectionFrames = [],
   surface2dProps,
   surface3dProps,
@@ -99,46 +209,15 @@ export function Viewport({
           style={{ backgroundColor: containerBackgroundColor, borderWidth: 0, borderStyle: 'solid', borderColor, cursor: 'default' }}
           tabIndex={0}
         >
-          {graphMode === '2d' ? (
-            <Surface2d
-              {...surface2dProps}
-              backgroundColor={canvasBackgroundColor}
-              directionMode={directionMode}
-            />
-          ) : (
-            <SurfaceFallbackBoundary
-              resetKey={graphMode}
-              onError={onSurface3dError}
-              fallback={(
-                <Surface2d
-                  {...surface2dProps}
-                  backgroundColor={canvasBackgroundColor}
-                  directionMode={directionMode}
-                />
-              )}
-            >
-              <DeferredSurface3d
-                {...surface3dProps}
-                backgroundColor={canvasBackgroundColor}
-                directionMode={directionMode}
-                fallback={(
-                  <Surface2d
-                    {...surface2dProps}
-                    backgroundColor={canvasBackgroundColor}
-                    directionMode={directionMode}
-                  />
-                )}
-              />
-            </SurfaceFallbackBoundary>
-          )}
-          {pluginHost ? (
-            <SlotHost
-              pluginHost={pluginHost}
-              slot="graph-overlay"
-              data-testid="graph-overlay-slot"
-              className="absolute inset-0 z-10 pointer-events-none"
-            />
-          ) : null}
+          <ViewportSurface
+            canvasBackgroundColor={canvasBackgroundColor}
+            directionMode={directionMode}
+            graphMode={graphMode}
+            onSurface3dError={onSurface3dError}
+            surface2dProps={surface2dProps}
+            surface3dProps={surface3dProps}
+          />
+          <ViewportPluginOverlay pluginHost={pluginHost} />
           <SectionFrames
             graph={sectionFrameGraph}
             ownership={sectionFrameOwnership}
@@ -146,36 +225,15 @@ export function Viewport({
             sections={sectionFrames}
             onUpdateSection={onUpdateSection}
           />
-          {marqueeSelection ? (
-            <div
-              data-testid="graph-marquee-selection"
-              className="pointer-events-none absolute z-20 rounded-sm border border-dashed border-[var(--cg-focus-border)] bg-[rgba(59,130,246,0.14)]"
-              style={{
-                left: marqueeSelection.bounds.left,
-                top: marqueeSelection.bounds.top,
-                width: marqueeSelection.bounds.width,
-                height: marqueeSelection.bounds.height,
-              }}
-            />
-          ) : null}
+          <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
         </div>
       </ContextMenuTrigger>
 
       <ContextMenuContent className="w-64">
-        {menuEntries.map(entry => {
-          if (entry.kind === 'separator') return <ContextMenuSeparator key={entry.id} />;
-          return (
-            <ContextMenuItem
-              key={entry.id}
-              className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
-              disabled={entry.disabled}
-              onClick={() => handleMenuAction(entry.action)}
-            >
-              {entry.label}
-              {entry.shortcut ? <ContextMenuShortcut>{entry.shortcut}</ContextMenuShortcut> : null}
-            </ContextMenuItem>
-          );
-        })}
+        <ViewportContextMenuItems
+          handleMenuAction={handleMenuAction}
+          menuEntries={menuEntries}
+        />
       </ContextMenuContent>
 
       <NodeTooltip

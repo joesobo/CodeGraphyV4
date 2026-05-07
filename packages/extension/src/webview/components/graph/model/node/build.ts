@@ -3,6 +3,8 @@ import {
   createDefaultGraphLayoutSettings,
   countGraphLayoutHiddenDescendants,
   getGraphLayoutPinCoordinate,
+  type GraphLayoutCoordinate2D,
+  type GraphLayoutCoordinate3D,
   isGraphLayoutSectionNodeVisible,
   type GraphLayoutMode,
   type GraphLayoutSection,
@@ -84,6 +86,101 @@ function getNodeBorderWidth(isFocused: boolean, isFavorite: boolean): number {
   return isFavorite ? 3 : 2;
 }
 
+type GraphNodePinCoordinate = GraphLayoutCoordinate2D | GraphLayoutCoordinate3D;
+
+interface GraphNodeStyle {
+  baseOpacity: number;
+  borderColor: string;
+  borderWidth: number;
+  color: string;
+  isFavorite: boolean;
+  size: number;
+}
+
+interface GraphNodePositionState {
+  fx: number | undefined;
+  fy: number | undefined;
+  fz: number | undefined;
+  vx: number | undefined;
+  vy: number | undefined;
+  vz: number | undefined;
+  x: number | undefined;
+  y: number | undefined;
+  z: number | undefined;
+}
+
+function getActiveGraphNodePinCoordinate(
+  nodeId: string,
+  options: {
+    graphLayout: GraphLayoutSettings;
+    graphMode: GraphLayoutMode;
+    timelineActive: boolean;
+  },
+): GraphNodePinCoordinate | undefined {
+  return options.timelineActive
+    ? undefined
+    : getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[nodeId], options.graphMode);
+}
+
+function read3DCoordinate(
+  coordinate: GraphNodePinCoordinate | undefined,
+): GraphLayoutCoordinate3D | undefined {
+  return coordinate && 'z' in coordinate ? coordinate : undefined;
+}
+
+function createGraphNodeStyle(
+  node: IGraphNode,
+  options: {
+    appearance: GraphAppearance;
+    favorites: ReadonlySet<string>;
+    nodeSizes: ReadonlyMap<string, number>;
+  },
+  isLight: boolean,
+): GraphNodeStyle {
+  const rawColor = isLight ? adjustColorForLightTheme(node.color) : node.color;
+  const isFavorite = options.favorites.has(node.id);
+  const isFocused = node.depthLevel === 0;
+  const size = (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);
+
+  return {
+    baseOpacity: getDepthOpacity(node.depthLevel),
+    borderColor: getNodeBorderColor(isFocused, isFavorite, options.appearance, rawColor),
+    borderWidth: getNodeBorderWidth(isFocused, isFavorite),
+    color: rawColor,
+    isFavorite,
+    size,
+  };
+}
+
+function createGraphNodePositionState(
+  node: IGraphNode,
+  previous: PreviousNodeState | undefined,
+  pinCoordinate: GraphNodePinCoordinate | undefined,
+  graphMode: GraphLayoutMode,
+): GraphNodePositionState {
+  const pinCoordinate3D = graphMode === '3d' ? read3DCoordinate(pinCoordinate) : undefined;
+
+  return {
+    fx: pinCoordinate?.x,
+    fy: pinCoordinate?.y,
+    fz: pinCoordinate3D?.z,
+    vx: previous?.vx,
+    vy: previous?.vy,
+    vz: previous?.vz,
+    x: pinCoordinate?.x ?? node.x ?? previous?.x,
+    y: pinCoordinate?.y ?? node.y ?? previous?.y,
+    z: pinCoordinate3D?.z ?? previous?.z,
+  };
+}
+
+function getGraphNodeOwnerSectionId(
+  nodeId: string,
+  graphLayout: GraphLayoutSettings,
+  timelineActive: boolean,
+): string | null {
+  return timelineActive ? null : (graphLayout.ownership[nodeId]?.ownerSectionId ?? null);
+}
+
 function createGraphNode(
   node: IGraphNode,
   options: {
@@ -97,49 +194,22 @@ function createGraphNode(
   isLight: boolean,
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
 ): FGNode {
-  const rawColor = isLight ? adjustColorForLightTheme(node.color) : node.color;
-  const isFavorite = options.favorites.has(node.id);
-  const isFocused = node.depthLevel === 0;
-  const size = (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);
   const previous = previousNodeStates.get(node.id);
-  const pinCoordinate = options.timelineActive
-    ? undefined
-    : getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[node.id], options.graphMode);
-  const x = pinCoordinate?.x ?? node.x ?? previous?.x;
-  const y = pinCoordinate?.y ?? node.y ?? previous?.y;
-  const z = options.graphMode === '3d' && pinCoordinate && 'z' in pinCoordinate
-    ? pinCoordinate.z
-    : previous?.z;
-  const ownerSectionId = options.timelineActive
-    ? null
-    : (options.graphLayout.ownership[node.id]?.ownerSectionId ?? null);
+  const pinCoordinate = getActiveGraphNodePinCoordinate(node.id, options);
+  const style = createGraphNodeStyle(node, options, isLight);
+  const position = createGraphNodePositionState(node, previous, pinCoordinate, options.graphMode);
 
   return {
     id: node.id,
     label: node.label,
-    size,
-    color: rawColor,
-    borderColor: getNodeBorderColor(isFocused, isFavorite, options.appearance, rawColor),
-    borderWidth: getNodeBorderWidth(isFocused, isFavorite),
-    baseOpacity: getDepthOpacity(node.depthLevel),
-    isFavorite,
+    ...style,
     isPinned: !!pinCoordinate,
     nodeType: node.nodeType,
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,
-    ownerSectionId,
-    fx: pinCoordinate?.x,
-    fy: pinCoordinate?.y,
-    fz: options.graphMode === '3d' && pinCoordinate && 'z' in pinCoordinate
-      ? pinCoordinate.z
-      : undefined,
-    vx: previous?.vx,
-    vy: previous?.vy,
-    vz: previous?.vz,
-    x,
-    y,
-    z,
+    ownerSectionId: getGraphNodeOwnerSectionId(node.id, options.graphLayout, options.timelineActive),
+    ...position,
   } as FGNode;
 }
 

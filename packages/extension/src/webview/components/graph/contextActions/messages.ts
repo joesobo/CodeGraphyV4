@@ -5,7 +5,11 @@ import {
   DEFAULT_GRAPH_SECTION_WIDTH,
   GRAPH_SECTION_SELECTION_PADDING,
 } from '../../../../shared/settings/graphLayout';
-import type { GraphContextActionContext } from './context';
+import type {
+  GraphContextActionContext,
+  GraphContextNodePosition2D,
+  GraphContextNodePosition3D,
+} from './context';
 import type { GraphContextEffect } from './effects';
 
 type SinglePathMessageType = 'REVEAL_IN_EXPLORER' | 'RENAME_FILE';
@@ -67,40 +71,51 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+function readPinNodePosition(
+  context: GraphContextActionContext,
+  nodeId: string,
+): GraphContextNodePosition2D | GraphContextNodePosition3D | undefined {
+  const position = context.nodePositions.get(nodeId);
+  if (!position || !isFiniteNumber(position.x) || !isFiniteNumber(position.y)) {
+    return undefined;
+  }
+
+  if (context.graphMode === '3d') {
+    return 'z' in position && isFiniteNumber(position.z)
+      ? { x: position.x, y: position.y, z: position.z }
+      : undefined;
+  }
+
+  return { x: position.x, y: position.y };
+}
+
+function createPinNodeEffect(
+  context: GraphContextActionContext,
+  nodeId: string,
+  position: GraphContextNodePosition2D | GraphContextNodePosition3D,
+): GraphContextEffect {
+  return createPostMessageEffect({
+    type: 'UPDATE_GRAPH_LAYOUT_PIN',
+    payload: {
+      graphMode: context.graphMode,
+      nodeId,
+      position,
+    },
+  });
+}
+
 export function createPinNodeEffects(context: GraphContextActionContext): GraphContextEffect[] {
   const nodeId = context.primaryTargetId;
   if (!nodeId) {
     return [];
   }
 
-  const position = context.nodePositions.get(nodeId);
-  if (!position || !isFiniteNumber(position.x) || !isFiniteNumber(position.y)) {
+  const position = readPinNodePosition(context, nodeId);
+  if (!position) {
     return [];
   }
 
-  if (context.graphMode === '3d') {
-    if (!('z' in position) || !isFiniteNumber(position.z)) {
-      return [];
-    }
-
-    return [createPostMessageEffect({
-      type: 'UPDATE_GRAPH_LAYOUT_PIN',
-      payload: {
-        graphMode: context.graphMode,
-        nodeId,
-        position: { x: position.x, y: position.y, z: position.z },
-      },
-    })];
-  }
-
-  return [createPostMessageEffect({
-    type: 'UPDATE_GRAPH_LAYOUT_PIN',
-    payload: {
-      graphMode: context.graphMode,
-      nodeId,
-      position: { x: position.x, y: position.y },
-    },
-  })];
+  return [createPinNodeEffect(context, nodeId, position)];
 }
 
 export function createClearPinNodeEffects(context: GraphContextActionContext): GraphContextEffect[] {

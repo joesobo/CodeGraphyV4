@@ -8,24 +8,48 @@ import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
 
+function shouldRenderNodeCanvas(node: FGNode): boolean {
+  return !node.isGraphSection || !!node.isCollapsedGraphSection;
+}
+
+function isNodeHighlighted(
+  dependencies: Pick<NodeCanvasRendererDependencies, 'highlightedNeighborsRef' | 'highlightedNodeRef'>,
+  nodeId: string,
+): boolean {
+  const highlighted = dependencies.highlightedNodeRef.current;
+  return !highlighted
+    || nodeId === highlighted
+    || dependencies.highlightedNeighborsRef.current.has(nodeId);
+}
+
+function getNodeCanvasOpacity(baseOpacity: number, highlighted: boolean): number {
+  return highlighted ? baseOpacity : 0.15;
+}
+
+function renderNodeCanvasLabel(
+  dependencies: NodeCanvasRendererDependencies,
+  options: Parameters<typeof renderNodeLabel>[0],
+): void {
+  if (dependencies.showLabelsRef.current) {
+    renderNodeLabel(options);
+  }
+}
+
 export function renderNodeCanvas(
   dependencies: NodeCanvasRendererDependencies,
   node: FGNode,
   ctx: CanvasRenderingContext2D,
   globalScale: number,
 ): void {
-  if (node.isGraphSection && !node.isCollapsedGraphSection) {
+  if (!shouldRenderNodeCanvas(node)) {
     return;
   }
 
-  const highlighted = dependencies.highlightedNodeRef.current;
-  const isHighlighted = !highlighted
-    || node.id === highlighted
-    || dependencies.highlightedNeighborsRef.current.has(node.id);
+  const isHighlighted = isNodeHighlighted(dependencies, node.id);
   const isSelected = dependencies.selectedNodesSetRef.current.has(node.id);
   const decoration = dependencies.nodeDecorationsRef.current?.[node.id];
   const baseOpacity = decoration?.opacity ?? (node.baseOpacity ?? 1.0);
-  const opacity = isHighlighted ? baseOpacity : 0.15;
+  const opacity = getNodeCanvasOpacity(baseOpacity, isHighlighted);
   const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
 
   ctx.save();
@@ -52,17 +76,15 @@ export function renderNodeCanvas(
     globalScale,
     node,
   });
-  if (dependencies.showLabelsRef.current) {
-    renderNodeLabel({
-      appearance,
-      ctx,
-      decoration,
-      globalScale,
-      isHighlighted,
-      node,
-      opacity,
-    });
-  }
+  renderNodeCanvasLabel(dependencies, {
+    appearance,
+    ctx,
+    decoration,
+    globalScale,
+    isHighlighted,
+    node,
+    opacity,
+  });
   renderNodePluginOverlay(dependencies.pluginHost, node, ctx, globalScale, decoration);
 
   ctx.restore();
