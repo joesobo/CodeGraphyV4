@@ -78,6 +78,7 @@ describe('graph/contextMenuModel', () => {
       'Copy Absolute Path',
       'Remove from Favorites',
       'Focus Node',
+      'Pin Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
       'Rename...',
@@ -125,6 +126,7 @@ describe('graph/contextMenuModel', () => {
       'Copy Absolute Path',
       'Add to Favorites',
       'Focus Node',
+      'Pin Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
       'Rename Folder...',
@@ -183,6 +185,19 @@ describe('graph/contextMenuModel', () => {
     ]);
   });
 
+  it('shows Unpin Node for nodes pinned in the active graph mode', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/app.ts', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pinnedNodeIds: new Set(['src/app.ts']),
+      pluginItems: [],
+    });
+
+    expect(menuLabels(entries)).toContain('Unpin Node');
+    expect(builtInActions(entries)).toContain('unpinNode');
+  });
+
   it('maps all built-in actions by context variant', () => {
     const backgroundLive = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -215,6 +230,7 @@ describe('graph/contextMenuModel', () => {
       'copyAbsolute',
       'toggleFavorite',
       'focus',
+      'pinNode',
       'addToFilter',
       'addNodeLegend',
       'rename',

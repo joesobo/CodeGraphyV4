@@ -573,14 +573,14 @@ We will resolve these one at a time and update this file as decisions land.
 
 Potential implementation order after the design is settled:
 
-1. Persisted layout settings model:
+1. Persisted layout settings model: Done
    - pins,
    - sections,
    - normalized ownership index,
    - dormant records,
    - validation,
    - cycle prevention.
-2. Pinnable nodes:
+2. Pinnable nodes: Done
    - Pin/Unpin context menu,
    - graph-space persistence,
    - visual badges,
@@ -631,6 +631,11 @@ Potential implementation order after the design is settled:
 - 2026-05-07: Added validation for finite graph-space coordinates, required section identity/label/color/chrome fields, dormant node pin records, dormant node ownership records, owner section existence, and Section ownership cycle prevention.
 - 2026-05-07: Wired `graphLayout` into repo settings defaults, serialization, and persisted-shape normalization.
 - 2026-05-07: Verified slice 1 with targeted repo-settings tests, full repo-settings tests, extension lint, and extension typecheck.
+- 2026-05-07: Slice 2 added `GRAPH_LAYOUT_UPDATED`, `UPDATE_GRAPH_LAYOUT_PIN`, and `CLEAR_GRAPH_LAYOUT_PIN` protocol messages so the extension host persists active-mode pins and echoes the updated Graph Layout to the webview.
+- 2026-05-07: The Graph View store now keeps Graph Layout state, sends it into runtime node building, and applies only the active renderer mode's pin coordinates. Timeline Snapshots ignore pins and do not show Pin/Unpin actions.
+- 2026-05-07: Live single-node and folder-node context menus now expose Pin/Unpin, and pinned nodes render a small top-right pin badge in the 2D canvas.
+- 2026-05-07: Dragging a pinned node writes the final graph-space position back to the active-mode pin when the drag ends.
+- 2026-05-07: Verified slice 2 with targeted pin/menu/store/render/dispatch tests, extension typecheck, and a broader graph/store/graphView webview sweep: `261` files and `1728` tests passed.
 
 ## Codex CLI Handoff
 

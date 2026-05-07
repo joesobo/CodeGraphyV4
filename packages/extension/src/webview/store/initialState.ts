@@ -2,6 +2,7 @@ import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
+import { createDefaultGraphLayoutSettings } from '../../shared/settings/graphLayout';
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
@@ -23,6 +24,7 @@ export const INITIAL_STATE: GraphStateFields = {
   physicsPaused: false,
   showLabels: true,
   graphMode: '2d' as const,
+  graphLayout: createDefaultGraphLayoutSettings(),
   nodeSizeMode: 'connections' as const,
   physicsSettings: DEFAULT_PHYSICS,
   depthMode: false,
