@@ -438,6 +438,32 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.stroke).toHaveBeenCalled();
   });
 
+  it('renders collapsed Section Node hidden counts opposite the pin badge', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({
+        id: 'section-1',
+        hiddenDescendantCount: 4,
+        isCollapsedGraphSection: true,
+        isGraphSection: true,
+        isPinned: true,
+        nodeType: 'graph-section',
+        shape2D: 'square',
+      }),
+      ctx,
+      1,
+    );
+
+    expect(ctx.arc).toHaveBeenCalledWith(12.8, 36.8, 6, 0, Math.PI * 2);
+    expect(ctx.arc).toHaveBeenCalledWith(35.2, 36.8, 5, 0, Math.PI * 2);
+    expect(operations).toContainEqual(expect.objectContaining({
+      kind: 'fillText',
+      text: '4',
+    }));
+  });
+
   it('paints the expanded pointer area around the node shape', () => {
     const { ctx } = createContext();
 

@@ -1,6 +1,10 @@
 import type { ReactElement } from 'react';
 import type { ThemeKind } from '../../../theme/useTheme';
-import type { GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
+import {
+  getGraphLayoutPinCoordinate,
+  type GraphLayoutSection,
+  type GraphLayoutSectionUpdate,
+} from '../../../../shared/settings/graphLayout';
 import type { GraphAppearance } from '../appearance/model';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { GraphViewStoreState } from '../view/store';
@@ -96,6 +100,20 @@ function useGraphViewportModelOptions({
   });
 }
 
+function getPinnedSectionIds(
+  sections: readonly GraphLayoutSection[],
+  pinnedNodes: GraphViewStoreState['graphLayout']['pinnedNodes'],
+): Set<string> {
+  const pinnedSectionIds = new Set<string>();
+  for (const section of sections) {
+    if (getGraphLayoutPinCoordinate(pinnedNodes[section.id], '2d')) {
+      pinnedSectionIds.add(section.id);
+    }
+  }
+
+  return pinnedSectionIds;
+}
+
 export function GraphViewportShell({
   appearance,
   callbacks,
@@ -152,6 +170,7 @@ export function GraphViewportShell({
   const sectionFrames = viewState.graphMode === '2d' && !viewState.timelineActive
     ? Object.values(viewState.graphLayout.sections)
     : [];
+  const pinnedSectionIds = getPinnedSectionIds(sectionFrames, viewState.graphLayout.pinnedNodes);
 
   return (
     <Viewport
@@ -171,6 +190,7 @@ export function GraphViewportShell({
       marqueeSelection={interactions.marqueeSelection}
       sectionFrameGraph={graphState.fg2dRef.current}
       sectionFrameOwnership={viewState.graphLayout.ownership}
+      pinnedSectionIds={pinnedSectionIds}
       sectionFrames={sectionFrames}
       onUpdateSection={handleUpdateSection}
       surface2dProps={{

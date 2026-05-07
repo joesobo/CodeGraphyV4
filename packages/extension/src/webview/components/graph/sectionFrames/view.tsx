@@ -1,5 +1,10 @@
 import { type MouseEvent as ReactMouseEvent, type ReactElement } from 'react';
 import {
+  mdiChevronUp,
+  mdiPin,
+} from '@mdi/js';
+import { MdiIcon } from '../../icons/MdiIcon';
+import {
   isGraphLayoutSectionVisible,
   sortGraphLayoutSectionsForRendering,
   type GraphLayoutOwnership,
@@ -15,6 +20,7 @@ interface SectionFrameGraph {
 interface SectionFramesProps {
   graph?: SectionFrameGraph;
   ownership?: Readonly<Record<string, GraphLayoutOwnership>>;
+  pinnedSectionIds?: ReadonlySet<string>;
   sections: readonly GraphLayoutSection[];
   onUpdateSection(this: void, sectionId: string, updates: GraphLayoutSectionUpdate): void;
 }
@@ -116,6 +122,7 @@ function createSectionMap(
 export function SectionFrames({
   graph,
   ownership = {},
+  pinnedSectionIds = new Set<string>(),
   sections,
   onUpdateSection,
 }: SectionFramesProps): ReactElement | null {
@@ -164,10 +171,23 @@ export function SectionFrames({
               width: rect.width,
             }}
           >
-            <div
-              className="flex h-7 items-center gap-1 border-b px-1.5"
+              <div
+              className="flex h-7 items-center gap-1 border-b px-1"
               style={{ backgroundColor: `${section.color}22`, borderColor: section.color }}
             >
+              <button
+                aria-label="Collapse Graph Section"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--cg-foreground)] hover:bg-[var(--cg-accent)]"
+                data-graph-section-control="true"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onUpdateSection(section.id, { collapsed: true });
+                }}
+                onMouseDown={(event) => event.stopPropagation()}
+                type="button"
+              >
+                <MdiIcon path={mdiChevronUp} size={14} />
+              </button>
               <input
                 aria-label="Graph Section label"
                 className="min-w-0 flex-1 bg-transparent text-xs font-medium outline-none"
@@ -185,6 +205,16 @@ export function SectionFrames({
                 type="color"
                 value={section.color}
               />
+              {pinnedSectionIds.has(section.id) ? (
+                <span
+                  aria-label="Pinned Graph Section"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
+                  data-graph-section-control="true"
+                  role="img"
+                >
+                  <MdiIcon path={mdiPin} size={12} />
+                </span>
+              ) : null}
             </div>
             <div
               data-graph-section-control="true"

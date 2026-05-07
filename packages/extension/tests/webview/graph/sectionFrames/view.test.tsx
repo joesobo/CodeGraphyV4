@@ -25,6 +25,7 @@ function renderSectionFrames(overrides: Partial<GraphLayoutSection> = {}) {
         screen2GraphCoords: (x, y) => ({ x: x - 200, y: y - 150 }),
       }}
       sections={[{ ...section, ...overrides }]}
+      pinnedSectionIds={new Set(['section-1'])}
       onUpdateSection={onUpdateSection}
     />,
   );
@@ -95,6 +96,16 @@ describe('graph/sectionFrames/view', () => {
 
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: 'UI Work' });
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { color: '#22c55e' });
+  });
+
+  it('collapses a Section Frame from the header and marks pinned sections', () => {
+    const { onUpdateSection } = renderSectionFrames();
+
+    expect(screen.getByLabelText('Pinned Graph Section')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Collapse Graph Section'));
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { collapsed: true });
   });
 
   it('moves a Section Frame by graph-space drag delta', () => {

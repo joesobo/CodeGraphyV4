@@ -49,6 +49,7 @@ export interface ViewportProps {
     screen2GraphCoords?(x: number, y: number): { x: number; y: number };
   };
   sectionFrameOwnership?: Readonly<Record<string, GraphLayoutOwnership>>;
+  pinnedSectionIds?: ReadonlySet<string>;
   sectionFrames?: readonly GraphLayoutSection[];
   onUpdateSection?(this: void, sectionId: string, updates: GraphLayoutSectionUpdate): void;
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
@@ -75,6 +76,7 @@ export function Viewport({
   menuEntries,
   sectionFrameGraph,
   sectionFrameOwnership = {},
+  pinnedSectionIds = new Set<string>(),
   sectionFrames = [],
   surface2dProps,
   surface3dProps,
@@ -140,13 +142,14 @@ export function Viewport({
           <SectionFrames
             graph={sectionFrameGraph}
             ownership={sectionFrameOwnership}
+            pinnedSectionIds={pinnedSectionIds}
             sections={sectionFrames}
             onUpdateSection={onUpdateSection}
           />
           {marqueeSelection ? (
             <div
               data-testid="graph-marquee-selection"
-              className="pointer-events-none absolute z-20 rounded-sm border border-dashed border-[var(--vscode-focusBorder)] bg-[rgba(59,130,246,0.14)]"
+              className="pointer-events-none absolute z-20 rounded-sm border border-dashed border-[var(--cg-focus-border)] bg-[rgba(59,130,246,0.14)]"
               style={{
                 left: marqueeSelection.bounds.left,
                 top: marqueeSelection.bounds.top,

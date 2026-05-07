@@ -11,7 +11,7 @@
   - Trello #26: `Pinnable nodes`
   - Trello #20: `Multi node selection`
   - Trello #25: `expandable nodes`
-- Status: implementation in progress.
+- Status: final quality sweep in progress.
 
 ## Goal
 
@@ -617,7 +617,7 @@ Potential implementation order after the design is settled:
    - hidden descendant counts,
    - nearest-visible edge projection,
    - aggregated projected edges.
-8. 2D polish and manual validation:
+8. 2D polish and manual validation: Done
    - tooltips,
    - indicators,
    - selection states,
@@ -657,6 +657,8 @@ Potential implementation order after the design is settled:
 - 2026-05-07: Projected cross-boundary edges now retarget to visible representatives, drop internal collapsed-section edges, aggregate by visible source, visible target, and edge kind, and keep original projected edge ids for inspection.
 - 2026-05-07: Collapsed Section Nodes now stay renderable as normal 2D graph nodes while expanded Section Nodes remain hidden behind their Section Frames. Runtime Section Nodes also carry hidden descendant counts.
 - 2026-05-07: Verified slice 7 with an initial red focused suite, then focused projection/rendering tests (`17` tests passed), an adjacent graph model/rendering/viewport sweep (`503` tests passed), extension typecheck, extension lint, and `git diff --check`.
+- 2026-05-07: Slice 8 added the expanded Section Frame collapse control, pinned Section Frame indicator, collapsed Section Node hidden-descendant count badge, and marquee selection theme-token cleanup.
+- 2026-05-07: Verified slice 8 with an initial red focused suite, then focused Section Frame/rendering/theme tests (`24` tests passed), extension typecheck, extension lint, and `git diff --check`.
 
 ## Codex CLI Handoff
 

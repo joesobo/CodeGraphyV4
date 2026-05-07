@@ -1,4 +1,5 @@
 import { renderNodeBody } from '../node/body';
+import { renderCollapsedSectionBadge } from '../node/collapsedSectionBadge';
 import { renderNodeLabel } from '../node/label';
 import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
 import { renderNodePinBadge } from '../node/pinBadge';
@@ -40,6 +41,12 @@ export function renderNodeCanvas(
   });
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
   renderNodePinBadge({
+    appearance,
+    ctx,
+    globalScale,
+    node,
+  });
+  renderCollapsedSectionBadge({
     appearance,
     ctx,
     globalScale,
