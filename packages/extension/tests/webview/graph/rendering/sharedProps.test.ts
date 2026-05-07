@@ -49,6 +49,7 @@ function createOptions(
     onLinkClick: vi.fn(),
     onLinkRightClick: vi.fn(),
     onNodeClick: vi.fn(),
+    onNodeDragEnd: vi.fn(),
     onNodeHover: vi.fn(),
     onNodeRightClick: vi.fn(),
     timelineActive: false,
@@ -116,6 +117,7 @@ describe('graph/rendering/surface/sharedProps', () => {
       onLinkClick: vi.fn(),
       onLinkRightClick: vi.fn(),
       onNodeClick: vi.fn(),
+      onNodeDragEnd: vi.fn(),
       onNodeHover: vi.fn(),
       onNodeRightClick: vi.fn(),
     };
@@ -127,6 +129,7 @@ describe('graph/rendering/surface/sharedProps', () => {
 
     props.onNodeClick(node, clickEvent);
     props.onNodeRightClick(node, contextEvent);
+    props.onNodeDragEnd(node);
     props.onLinkClick(link, clickEvent);
     props.onLinkRightClick(link, contextEvent);
     props.onBackgroundClick(clickEvent);
@@ -138,6 +141,7 @@ describe('graph/rendering/surface/sharedProps', () => {
 
     expect(handlers.onNodeClick).toHaveBeenCalledWith(node, clickEvent);
     expect(handlers.onNodeRightClick).toHaveBeenCalledWith(node, contextEvent);
+    expect(handlers.onNodeDragEnd).toHaveBeenCalledWith(node);
     expect(handlers.onLinkClick).toHaveBeenCalledWith(link, clickEvent);
     expect(handlers.onLinkRightClick).toHaveBeenCalledWith(link, contextEvent);
     expect(handlers.onBackgroundClick).toHaveBeenNthCalledWith(1, clickEvent);

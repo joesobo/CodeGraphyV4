@@ -5,6 +5,7 @@ import {
   handleGraphIndexStatusUpdated,
   handleGraphControlsUpdated,
   handleFavoritesUpdated,
+  handleGraphLayoutUpdated,
   handleSettingsUpdated,
   handleLegendsUpdated,
   handleFilterPatternsUpdated,
@@ -61,6 +62,10 @@ export const MESSAGE_HANDLERS: Record<
     ),
   FAVORITES_UPDATED: (msg) =>
     handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>),
+  GRAPH_LAYOUT_UPDATED: (msg) =>
+    handleGraphLayoutUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_LAYOUT_UPDATED' }>
+    ),
   SETTINGS_UPDATED: (msg) =>
     handleSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>),
   DEPTH_MODE_UPDATED: (msg) =>

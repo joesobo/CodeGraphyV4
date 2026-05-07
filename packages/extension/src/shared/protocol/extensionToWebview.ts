@@ -14,6 +14,7 @@ import type {
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
+import type { GraphLayoutSettings } from '../settings/graphLayout';
 import type { ITimelineData } from '../timeline/contracts';
 
 export interface IPluginFilterPatternGroup {
@@ -38,6 +39,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }
   | { type: 'FAVORITES_UPDATED'; payload: { favorites: string[] } }
+  | { type: 'GRAPH_LAYOUT_UPDATED'; payload: GraphLayoutSettings }
   | { type: 'THEME_CHANGED'; payload: { kind: 'light' | 'dark' | 'high-contrast' } }
   | { type: 'FILE_INFO'; payload: IFileInfo }
   | {

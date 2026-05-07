@@ -86,6 +86,8 @@ function createContext(): {
 } {
   const operations: ContextOperation[] = [];
   const ctx = {
+    arc: vi.fn(),
+    beginPath: vi.fn(),
     clip: vi.fn(),
     drawImage: vi.fn(() => {
       operations.push({
@@ -115,6 +117,8 @@ function createContext(): {
         text,
       });
     }),
+    lineTo: vi.fn(),
+    moveTo: vi.fn(),
     restore: vi.fn(),
     save: vi.fn(),
     stroke: vi.fn(() => {
@@ -380,6 +384,22 @@ describe('graph/rendering/nodes/canvas2d', () => {
       lineWidth: 3,
       strokeStyle: '#ffffff',
     }));
+  });
+
+  it('renders a pin badge for pinned nodes without changing the node body', () => {
+    const { ctx } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({ isPinned: true }),
+      ctx,
+      1,
+    );
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
+    expect(ctx.arc).toHaveBeenCalledWith(35.2, 36.8, 5, 0, Math.PI * 2);
+    expect(ctx.moveTo).toHaveBeenCalledWith(35.2, 34.55);
+    expect(ctx.lineTo).toHaveBeenCalledWith(35.2, 38.3);
   });
 
   it('paints the expanded pointer area around the node shape', () => {
