@@ -284,6 +284,7 @@ describe('graph/viewport/shell', () => {
 			getLinkParticles: callbacks.getLinkParticles,
 			getParticleColor: callbacks.getParticleColor,
 			graphDataRef: graphState.graphDataRef,
+			graphLayout: viewState.graphLayout,
 			graphLayoutKey: 'connections::',
 			graphMode: '3d',
 			meshesRef: graphState.meshesRef,

@@ -1,4 +1,5 @@
 import { useEffect, type MutableRefObject } from 'react';
+import type { GraphLayoutSettings } from '../../../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../../../shared/settings/physics';
 import { initPhysics, syncPhysicsAnimation } from '../../../physics';
 import { resolvePhysicsInitAction } from '../../../physicsLifecycle/init/action';
@@ -6,6 +7,7 @@ import type { PhysicsRuntimeRefs } from './refs';
 
 interface UsePhysicsRuntimeInitOptions extends PhysicsRuntimeRefs {
   graphMode: '2d' | '3d';
+  graphLayout?: GraphLayoutSettings;
   physicsPaused: boolean;
   physicsInitialisedRef: MutableRefObject<boolean>;
   physicsSettingsRef: MutableRefObject<IPhysicsSettings>;
@@ -17,6 +19,7 @@ export function usePhysicsRuntimeInit({
   fg2dRef,
   fg3dRef,
   graphMode,
+  graphLayout,
   pendingThreeDimensionalInitRef,
   physicsInitialisedRef,
   physicsPaused,
@@ -48,7 +51,11 @@ export function usePhysicsRuntimeInit({
 
         physicsInitialisedRef.current = true;
         previousPhysicsRef.current = { ...physicsSettingsRef.current };
-        initPhysics(action.instance, physicsSettingsRef.current);
+        if (graphLayout) {
+          initPhysics(action.instance, physicsSettingsRef.current, { graphLayout, graphMode });
+        } else {
+          initPhysics(action.instance, physicsSettingsRef.current);
+        }
         if (physicsPaused) {
           syncPhysicsAnimation(action.instance, true);
         }
@@ -67,6 +74,7 @@ export function usePhysicsRuntimeInit({
     fg2dRef,
     fg3dRef,
     graphMode,
+    graphLayout,
     pendingThreeDimensionalInitRef,
     physicsInitialisedRef,
     physicsPaused,

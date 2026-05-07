@@ -3,6 +3,7 @@ import {
   createDefaultGraphLayoutSettings,
   getGraphLayoutPinCoordinate,
   type GraphLayoutMode,
+  type GraphLayoutSection,
   type GraphLayoutSettings,
 } from '../../../../../shared/settings/graphLayout';
 import type { ThemeKind } from '../../../../theme/useTheme';
@@ -106,6 +107,9 @@ function createGraphNode(
   const z = options.graphMode === '3d' && pinCoordinate && 'z' in pinCoordinate
     ? pinCoordinate.z
     : previous?.z;
+  const ownerSectionId = options.timelineActive
+    ? null
+    : (options.graphLayout.ownership[node.id]?.ownerSectionId ?? null);
 
   return {
     id: node.id,
@@ -121,6 +125,7 @@ function createGraphNode(
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,
+    ownerSectionId,
     fx: pinCoordinate?.x,
     fy: pinCoordinate?.y,
     fz: options.graphMode === '3d' && pinCoordinate && 'z' in pinCoordinate
@@ -133,6 +138,61 @@ function createGraphNode(
     y,
     z,
   } as FGNode;
+}
+
+function getSectionNodeSize(section: Pick<GraphLayoutSection, 'height' | 'width'>): number {
+  return Math.max(24, Math.min(48, Math.sqrt(section.width * section.height) / 12));
+}
+
+function createGraphSectionNode(
+  section: GraphLayoutSection,
+  options: {
+    graphLayout: GraphLayoutSettings;
+  },
+  previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
+): FGNode {
+  const previous = previousNodeStates.get(section.id);
+  const pinCoordinate = getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[section.id], '2d');
+  const x = pinCoordinate?.x ?? section.x ?? previous?.x;
+  const y = pinCoordinate?.y ?? section.y ?? previous?.y;
+
+  return {
+    id: section.id,
+    label: section.label,
+    size: getSectionNodeSize(section),
+    color: section.color,
+    borderColor: section.color,
+    borderWidth: 2,
+    baseOpacity: 0.35,
+    isFavorite: false,
+    isGraphSection: true,
+    isPinned: !!pinCoordinate,
+    nodeType: 'graph-section',
+    ownerSectionId: options.graphLayout.ownership[section.id]?.ownerSectionId ?? null,
+    sectionHeight: section.height,
+    sectionWidth: section.width,
+    shape2D: 'square',
+    fx: pinCoordinate?.x,
+    fy: pinCoordinate?.y,
+    vx: previous?.vx,
+    vy: previous?.vy,
+    x,
+    y,
+  } as FGNode;
+}
+
+function buildGraphSectionNodes(
+  graphLayout: GraphLayoutSettings,
+  graphMode: GraphLayoutMode,
+  timelineActive: boolean,
+  previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
+): FGNode[] {
+  if (graphMode !== '2d' || timelineActive) {
+    return [];
+  }
+
+  return Object.values(graphLayout.sections)
+    .map(section => createGraphSectionNode(section, { graphLayout }, previousNodeStates));
 }
 
 export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
@@ -155,6 +215,12 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
     node,
     { appearance, nodeSizes, favorites, graphLayout, graphMode, timelineActive },
     isLight,
+    previousNodeStates,
+  ));
+  graphNodes.push(...buildGraphSectionNodes(
+    graphLayout,
+    graphMode,
+    timelineActive,
     previousNodeStates,
   ));
 

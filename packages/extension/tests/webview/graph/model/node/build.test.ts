@@ -248,4 +248,114 @@ describe('graph/model/node/build', () => {
       y: 8,
     });
   });
+
+  it('adds expanded Graph Sections as 2D Section Nodes and marks owned members', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/app.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        pinnedNodes: {},
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'UI Layer',
+            color: '#60a5fa',
+            x: -120,
+            y: -80,
+            width: 300,
+            height: 220,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          'section-1': {
+            itemId: 'section-1',
+            itemKind: 'section',
+            ownerSectionId: null,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+          'src/app.ts': {
+            itemId: 'src/app.ts',
+            itemKind: 'node',
+            ownerSectionId: 'section-1',
+            updatedAt: '2026-05-07T09:01:00.000Z',
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'src/app.ts')).toMatchObject({
+      ownerSectionId: 'section-1',
+    });
+    expect(nodes.find(node => node.id === 'section-1')).toMatchObject({
+      borderColor: '#60a5fa',
+      color: '#60a5fa',
+      isGraphSection: true,
+      label: 'UI Layer',
+      nodeType: 'graph-section',
+      sectionHeight: 220,
+      sectionWidth: 300,
+      x: -120,
+      y: -80,
+    });
+  });
+
+  it('does not add Graph Section nodes in 3D or timeline snapshots', () => {
+    const graphLayout = {
+      pinnedNodes: {},
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'UI Layer',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 300,
+          height: 220,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-1': {
+          itemId: 'section-1',
+          itemKind: 'section' as const,
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    };
+
+    const threeDimensionalNodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '3d',
+      graphLayout,
+      timelineActive: false,
+    });
+    const timelineNodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout,
+      timelineActive: true,
+    });
+
+    expect(threeDimensionalNodes).toEqual([]);
+    expect(timelineNodes).toEqual([]);
+  });
 });

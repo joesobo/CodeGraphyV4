@@ -2,9 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   applyPhysicsSettings,
+  createGraphSectionBoundsForce,
   havePhysicsSettingsChanged,
   initPhysics,
 } from '../../../../src/webview/components/graph/runtime/physics';
+import type { FGNode } from '../../../../src/webview/components/graph/model/build';
+import type { GraphLayoutSettings } from '../../../../src/shared/settings/graphLayout';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.12,
@@ -12,6 +15,37 @@ const SETTINGS: IPhysicsSettings = {
   linkDistance: 140,
   linkForce: 0.33,
   repelForce: 620,
+};
+
+const GRAPH_LAYOUT: GraphLayoutSettings = {
+  pinnedNodes: {},
+  sections: {
+    'section-1': {
+      id: 'section-1',
+      label: 'UI Layer',
+      color: '#60a5fa',
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 140,
+      collapsed: false,
+      updatedAt: '2026-05-07T09:00:00.000Z',
+    },
+  },
+  ownership: {
+    'section-1': {
+      itemId: 'section-1',
+      itemKind: 'section',
+      ownerSectionId: null,
+      updatedAt: '2026-05-07T09:00:00.000Z',
+    },
+    'src/member.ts': {
+      itemId: 'src/member.ts',
+      itemKind: 'node',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:00:00.000Z',
+    },
+  },
 };
 
 function createPhysicsInstance() {
@@ -166,5 +200,89 @@ describe('physics', () => {
 
     expect(collisionForce.radius()({ size: 9 })).toBe(13);
     expect(collisionForce.iterations()).toBe(16);
+  });
+
+  it('initializes section bounds forces when Graph Layout is available in 2D', () => {
+    const { d3Force, instance } = createPhysicsInstance();
+
+    initPhysics(instance, SETTINGS, { graphLayout: GRAPH_LAYOUT, graphMode: '2d' });
+
+    expect(d3Force).toHaveBeenCalledWith('sectionBounds', expect.any(Function));
+  });
+
+  it('does not initialize section bounds forces in 3D', () => {
+    const { d3Force, instance } = createPhysicsInstance();
+
+    initPhysics(instance, SETTINGS, { graphLayout: GRAPH_LAYOUT, graphMode: '3d' });
+
+    expect(d3Force).toHaveBeenCalledWith('sectionBounds', null);
+  });
+
+  it('keeps Section Members inside the owner frame with gentle center correction', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        x: 10,
+        y: 20,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 16,
+        vx: 0,
+        vy: 0,
+        x: 260,
+        y: -40,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1].x).toBeLessThanOrEqual(10 + 200 - nodes[1].size);
+    expect(nodes[1].y).toBeGreaterThanOrEqual(20 + nodes[1].size);
+    expect(nodes[1].vx).toBeLessThan(0);
+    expect(nodes[1].vy).toBeGreaterThan(0);
+  });
+
+  it('leaves pinned Section Members fixed when they are already inside the owner frame', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        x: 0,
+        y: 0,
+      },
+      {
+        fx: 60,
+        fy: 60,
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 16,
+        vx: 0,
+        vy: 0,
+        x: 60,
+        y: 60,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1]).toMatchObject({
+      fx: 60,
+      fy: 60,
+      vx: 0,
+      vy: 0,
+      x: 60,
+      y: 60,
+    });
   });
 });

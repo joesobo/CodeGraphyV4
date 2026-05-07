@@ -6,6 +6,10 @@ export function paintNodePointerArea(
   color: string,
   ctx: CanvasRenderingContext2D,
 ): void {
+  if (node.isGraphSection) {
+    return;
+  }
+
   ctx.fillStyle = color;
   drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size + 2);
   ctx.fill();

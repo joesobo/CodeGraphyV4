@@ -13,6 +13,10 @@ export function renderNodeCanvas(
   ctx: CanvasRenderingContext2D,
   globalScale: number,
 ): void {
+  if (node.isGraphSection) {
+    return;
+  }
+
   const highlighted = dependencies.highlightedNodeRef.current;
   const isHighlighted = !highlighted
     || node.id === highlighted
