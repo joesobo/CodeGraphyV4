@@ -11,7 +11,7 @@
   - Trello #26: `Pinnable nodes`
   - Trello #20: `Multi node selection`
   - Trello #25: `expandable nodes`
-- Status: implemented and locally verified; PR CI verification is tracked on the draft PR.
+- Status: implemented, locally verified, CI green, and ready for review on PR #203.
 
 ## Goal
 
