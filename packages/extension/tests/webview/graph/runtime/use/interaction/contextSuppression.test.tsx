@@ -32,6 +32,7 @@ describe('graph/runtime/use/interaction context suppression', () => {
     handlers.handleNodeRightClick({ id: 'node' } as FGNode, { type: 'node' } as never);
 
     expect(openingRuntime.handleContextMenu).toHaveBeenCalledTimes(1);
+    expect(openingRuntime.handleContextMenu).toHaveBeenCalledWith(event);
     expect(openingRuntime.handleBackgroundRightClick).toHaveBeenCalledTimes(1);
     expect(openingRuntime.handleLinkRightClick).toHaveBeenCalledWith({ id: 'edge' }, { type: 'link' });
     expect(openingRuntime.handleNodeRightClick).toHaveBeenCalledWith({ id: 'node' }, { type: 'node' });
