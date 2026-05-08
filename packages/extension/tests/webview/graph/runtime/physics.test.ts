@@ -3,6 +3,7 @@ import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   applyPhysicsSettings,
   createGraphSectionBoundsForce,
+  getGraphCollisionRadius,
   havePhysicsSettingsChanged,
   initPhysics,
 } from '../../../../src/webview/components/graph/runtime/physics';
@@ -162,6 +163,26 @@ describe('physics', () => {
     expect(charge.distanceMax).toHaveBeenCalledWith(1000);
   });
 
+  it('does not give expanded Graph Sections a second native circular collision radius', () => {
+    expect(getGraphCollisionRadius({
+      id: 'section-1',
+      isGraphSection: true,
+      sectionHeight: 220,
+      sectionWidth: 320,
+      size: 48,
+    } as FGNode)).toBe(0);
+    expect(getGraphCollisionRadius({
+      id: 'section-2',
+      isCollapsedGraphSection: true,
+      isGraphSection: true,
+      size: 36,
+    } as FGNode)).toBe(40);
+    expect(getGraphCollisionRadius({
+      id: 'src/app.ts',
+      size: 12,
+    } as FGNode)).toBe(16);
+  });
+
   it('skips non-callable strength forces and still reheats the simulation', () => {
     const { instance } = createCustomPhysicsInstance({
       charge: { strength: SETTINGS.repelForce },
@@ -223,7 +244,7 @@ describe('physics', () => {
     expect(collisionForce.iterations()).toBe(16);
   });
 
-  it('keeps expanded Graph Section circle collision small because rectangle bounds handle section collisions', () => {
+  it('keeps expanded Graph Sections out of the native circular collision force', () => {
     const { d3Force, instance } = createPhysicsInstance();
 
     initPhysics(instance, SETTINGS);
@@ -239,7 +260,7 @@ describe('physics', () => {
       sectionHeight: 100,
       sectionWidth: 100,
       size: 9,
-    } as FGNode)).toBe(13);
+    } as FGNode)).toBe(0);
   });
 
   it('initializes section bounds forces when Graph Layout is available in 2D', () => {

@@ -59,6 +59,10 @@ function createNodeMap(nodes: readonly FGNode[]): Map<string, FGNode> {
 }
 
 export function getGraphCollisionRadius(node: FGNode): number {
+	if (isExpandedGraphSection(node)) {
+		return 0;
+	}
+
 	return (node.size ?? 0) + COLLISION_PADDING;
 }
 
