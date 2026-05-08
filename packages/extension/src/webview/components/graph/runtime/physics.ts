@@ -10,6 +10,7 @@ export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink> | FG3DMethods<FGN
 const DEFAULT_CHARGE_RANGE = 1000;
 const COLLISION_PADDING = 4;
 const COLLISION_ITERATIONS = 16;
+const SECTION_HEADER_HEIGHT = 28;
 const SECTION_MEMBER_PADDING = 8;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
 const SECTION_EXTERNAL_PUSH_STRENGTH = 0.4;
@@ -109,6 +110,17 @@ function resolveNodeCoordinate(value: unknown, fallback: number): number {
 	return isFiniteNumber(value) ? value : fallback;
 }
 
+function getSectionMemberBounds(
+	bounds: { height: number; width: number; x: number; y: number },
+): { height: number; width: number; x: number; y: number } {
+	return {
+		height: Math.max(1, bounds.height - SECTION_HEADER_HEIGHT),
+		width: bounds.width,
+		x: bounds.x,
+		y: bounds.y + SECTION_HEADER_HEIGHT,
+	};
+}
+
 function getConstrainedMemberPosition(
 	node: FGNode,
 	bounds: { height: number; width: number; x: number; y: number },
@@ -162,16 +174,17 @@ function constrainMemberNode(
   bounds: { height: number; width: number; x: number; y: number },
   alpha: number,
 ): void {
-	const position = getConstrainedMemberPosition(node, bounds);
+	const memberBounds = getSectionMemberBounds(bounds);
+	const position = getConstrainedMemberPosition(node, memberBounds);
 	if (!position) {
 		return;
 	}
 
-	const nextX = clamp(position.x, bounds.x + position.margin, bounds.x + bounds.width - position.margin);
-	const nextY = clamp(position.y, bounds.y + position.margin, bounds.y + bounds.height - position.margin);
+	const nextX = clamp(position.x, memberBounds.x + position.margin, memberBounds.x + memberBounds.width - position.margin);
+	const nextY = clamp(position.y, memberBounds.y + position.margin, memberBounds.y + memberBounds.height - position.margin);
 
 	applyConstrainedMemberCoordinates(node, nextX, nextY);
-	applyMemberCenterVelocity(node, bounds, alpha, nextX, nextY);
+	applyMemberCenterVelocity(node, memberBounds, alpha, nextX, nextY);
 }
 
 function getOwnerSectionId(

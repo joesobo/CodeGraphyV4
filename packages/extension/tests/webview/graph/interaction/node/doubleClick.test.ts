@@ -65,7 +65,7 @@ describe('graph/interaction node double click', () => {
     });
   });
 
-  it('expands collapsed Graph Sections on double click instead of opening them as files', () => {
+  it('does not expand collapsed Graph Sections on double click', () => {
     const result = getNodeDoubleClickCommand(makeNodeDoubleClickOptions({
       isCollapsedGraphSection: true,
       isGraphSection: true,
@@ -77,7 +77,6 @@ describe('graph/interaction node double click', () => {
       nextLastClick: null,
       effects: [
         { kind: 'selectOnlyNode', nodeId: 'section-1' },
-        { kind: 'setGraphSectionCollapsed', sectionId: 'section-1', collapsed: false },
         {
           kind: 'sendInteraction',
           event: 'graph:nodeDoubleClick',
@@ -88,9 +87,14 @@ describe('graph/interaction node double click', () => {
         },
       ],
     });
+    expect(result.effects).not.toContainEqual({
+      kind: 'setGraphSectionCollapsed',
+      sectionId: 'section-1',
+      collapsed: false,
+    });
   });
 
-  it('collapses expanded Graph Sections on double click', () => {
+  it('does not collapse expanded Graph Sections on double click', () => {
     const result = getNodeDoubleClickCommand(makeNodeDoubleClickOptions({
       isCollapsedGraphSection: false,
       isGraphSection: true,
@@ -98,7 +102,7 @@ describe('graph/interaction node double click', () => {
       label: 'Section 1',
     }));
 
-    expect(result.effects).toContainEqual({
+    expect(result.effects).not.toContainEqual({
       kind: 'setGraphSectionCollapsed',
       sectionId: 'section-1',
       collapsed: true,

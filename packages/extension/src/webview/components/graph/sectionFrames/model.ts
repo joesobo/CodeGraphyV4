@@ -7,7 +7,9 @@ import {
 } from '../../../../shared/settings/graphLayout';
 
 export interface SectionFrameGraph {
+  d3ReheatSimulation?(): void;
   graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
+  resumeAnimation?(): void;
   screen2GraphCoords?(x: number, y: number): { x: number; y: number };
 }
 
@@ -22,6 +24,7 @@ export interface SectionFrameNodePosition {
   fx?: number;
   fy?: number;
   id: string;
+  isDragging?: boolean;
   isPinned?: boolean;
   sectionHeight?: number;
   sectionWidth?: number;

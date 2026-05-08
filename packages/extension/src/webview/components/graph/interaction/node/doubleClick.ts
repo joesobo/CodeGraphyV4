@@ -37,11 +37,6 @@ function getGraphSectionDoubleClickEffects(
 ): GraphNodeClickCommand['effects'] {
   return [
     { kind: 'selectOnlyNode', nodeId: options.nodeId },
-    {
-      kind: 'setGraphSectionCollapsed',
-      sectionId: options.nodeId,
-      collapsed: !options.isCollapsedGraphSection,
-    },
     createNodeDoubleClickInteractionEffect(options),
   ];
 }

@@ -74,6 +74,44 @@ describe('graph/sectionFrames/drag', () => {
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { x: -130, y: -70 });
   });
 
+  it('keeps graph physics alive while dragging the live Section Node', () => {
+    const onUpdateSection = vi.fn();
+    const graph = {
+      d3ReheatSimulation: vi.fn(),
+      resumeAnimation: vi.fn(),
+    };
+    const nodePosition = {
+      id: 'section-1',
+      sectionHeight: 180,
+      sectionWidth: 280,
+      x: -140,
+      y: -90,
+    };
+
+    beginSectionFrameWindowDrag(graph, {
+      clientX: 0,
+      clientY: 0,
+      nodePosition,
+      section,
+      type: 'move',
+    }, onUpdateSection);
+
+    expect(nodePosition).toMatchObject({ isDragging: true });
+    expect(graph.resumeAnimation).toHaveBeenCalledOnce();
+    expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
+
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 10, clientY: 20 }));
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 20, clientY: 40 }));
+
+    expect(graph.resumeAnimation).toHaveBeenCalledTimes(3);
+    expect(graph.d3ReheatSimulation).toHaveBeenCalledTimes(3);
+
+    window.dispatchEvent(new MouseEvent('mouseup', { clientX: 20, clientY: 40 }));
+
+    expect(nodePosition).toMatchObject({ isDragging: false });
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { x: -120, y: -50 });
+  });
+
   it('detects Section Frame controls by data attribute ancestry', () => {
     const control = document.createElement('button');
     const wrapper = document.createElement('div');

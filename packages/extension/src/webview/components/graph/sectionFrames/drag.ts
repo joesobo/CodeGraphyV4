@@ -45,12 +45,28 @@ function applyLiveNodePosition(
 }
 
 function releaseLiveNodePosition(drag: SectionFrameDragState): void {
-  if (!drag.nodePosition || drag.nodePosition.isPinned) {
+  if (!drag.nodePosition) {
+    return;
+  }
+
+  drag.nodePosition.isDragging = false;
+  if (drag.nodePosition.isPinned) {
     return;
   }
 
   drag.nodePosition.fx = undefined;
   drag.nodePosition.fy = undefined;
+}
+
+function markLiveNodeDragging(drag: SectionFrameDragState): void {
+  if (drag.nodePosition) {
+    drag.nodePosition.isDragging = true;
+  }
+}
+
+function wakeSectionFramePhysics(graph: SectionFrameGraph | undefined): void {
+  graph?.resumeAnimation?.();
+  graph?.d3ReheatSimulation?.();
 }
 
 function applyLiveDragUpdate(
@@ -60,6 +76,7 @@ function applyLiveDragUpdate(
 ): SectionFrameDragUpdate {
   const update = getSectionFrameDragUpdate(graph, drag, event);
   applyLiveNodePosition(drag, update);
+  wakeSectionFramePhysics(graph);
   return update;
 }
 
@@ -68,6 +85,9 @@ export function beginSectionFrameWindowDrag(
   drag: SectionFrameDragState,
   onUpdateSection: SectionFrameUpdateHandler,
 ): void {
+  markLiveNodeDragging(drag);
+  wakeSectionFramePhysics(graph);
+
   function handleMouseMove(event: MouseEvent): void {
     applyLiveDragUpdate(graph, drag, event);
   }

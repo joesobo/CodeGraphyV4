@@ -120,8 +120,10 @@ describe('graph/sectionFrames/view', () => {
       backgroundColor: '#60a5fa22',
       borderColor: '#60a5fa',
     });
+    expect(dragHandle).toHaveClass('pr-9');
     expect(screen.getByLabelText('Graph Section label')).toHaveClass('w-24');
     expect(screen.getByLabelText('Graph Section label')).not.toHaveClass('flex-1');
+    expect(screen.getByLabelText('Graph Section color')).toHaveClass('absolute', 'right-1', 'top-1');
     expect(screen.getByTestId('graph-section-resize-section-1')).toHaveClass('pointer-events-auto');
     expect(screen.getByTestId('graph-section-resize-section-1')).toHaveStyle({
       borderColor: '#60a5fa',
@@ -159,6 +161,14 @@ describe('graph/sectionFrames/view', () => {
     fireEvent.click(screen.getByLabelText('Collapse Graph Section'));
 
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { collapsed: true });
+  });
+
+  it('does not collapse a Section Frame from a body double click', () => {
+    const { onUpdateSection } = renderSectionFrames();
+
+    fireEvent.doubleClick(screen.getByTestId('graph-section-frame-section-1'));
+
+    expect(onUpdateSection).not.toHaveBeenCalled();
   });
 
   it('moves a Section Frame by graph-space drag delta', () => {
