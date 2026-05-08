@@ -19,9 +19,11 @@ import {
   getSectionFrameDisplaySection,
   getSectionFrameRect,
   getVisibleSectionFrames,
+  SECTION_FRAME_HEADER_HEIGHT,
   type SectionFrameDragType,
   type SectionFrameGraph,
   type SectionFrameNodePosition,
+  type SectionFrameRect,
 } from './model';
 
 interface SectionFramesProps {
@@ -31,6 +33,20 @@ interface SectionFramesProps {
   sectionNodePositions?: ReadonlyMap<string, SectionFrameNodePosition>;
   sections: readonly GraphLayoutSection[];
   onUpdateSection: SectionFrameUpdateHandler;
+}
+
+const DETAIL_MIN_HEADER_HEIGHT = 16;
+const DETAIL_MIN_HEIGHT = 72;
+const DETAIL_MIN_WIDTH = 120;
+
+function getHeaderHeight(rect: SectionFrameRect): number {
+  return Math.max(1, SECTION_FRAME_HEADER_HEIGHT * rect.scale);
+}
+
+function shouldShowDetailedHeader(rect: SectionFrameRect): boolean {
+  return getHeaderHeight(rect) >= DETAIL_MIN_HEADER_HEIGHT
+    && rect.height >= DETAIL_MIN_HEIGHT
+    && rect.width >= DETAIL_MIN_WIDTH;
 }
 
 function applySectionFrameElementRect(
@@ -127,6 +143,8 @@ export function SectionFrames({
       {visibleSections.map(section => {
         const displaySection = getDisplaySection(section);
         const rect = getSectionFrameRect(graph, displaySection);
+        const headerHeight = getHeaderHeight(rect);
+        const showDetailedHeader = shouldShowDetailedHeader(rect);
         return (
           <div
             key={section.id}
@@ -145,45 +163,57 @@ export function SectionFrames({
           >
             <div
               data-testid={`graph-section-drag-handle-${section.id}`}
-              className="pointer-events-auto relative flex h-7 cursor-grab items-center gap-1 border-b px-1 pr-9 active:cursor-grabbing"
-              style={{ backgroundColor: `${section.color}22`, borderColor: section.color }}
+              data-section-frame-detail={showDetailedHeader ? 'detail' : 'compact'}
+              className={[
+                'pointer-events-auto relative flex cursor-grab items-center border-b active:cursor-grabbing',
+                showDetailedHeader ? 'gap-1 px-1 pr-9' : 'px-0',
+              ].join(' ')}
+              style={{
+                backgroundColor: `${section.color}22`,
+                borderColor: section.color,
+                height: headerHeight,
+              }}
             >
-              <button
-                aria-label="Collapse Graph Section"
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--cg-foreground)] hover:bg-[var(--cg-accent)]"
-                data-graph-section-control="true"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onUpdateSection(section.id, { collapsed: true });
-                }}
-                type="button"
-              >
-                <MdiIcon path={mdiChevronUp} size={14} />
-              </button>
-              <input
-                aria-label="Graph Section label"
-                className="w-24 max-w-[45%] cursor-text bg-transparent text-xs font-medium outline-none"
-                data-graph-section-control="true"
-                onChange={(event) => onUpdateSection(section.id, { label: event.target.value })}
-                value={section.label}
-              />
-              <input
-                aria-label="Graph Section color"
-                className="absolute right-1 top-1 h-5 w-6 cursor-pointer bg-transparent p-0"
-                data-graph-section-control="true"
-                onChange={(event) => onUpdateSection(section.id, { color: event.target.value })}
-                type="color"
-                value={section.color}
-              />
-              {pinnedSectionIds.has(section.id) ? (
-                <span
-                  aria-label="Pinned Graph Section"
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
-                  data-graph-section-control="true"
-                  role="img"
-                >
-                  <MdiIcon path={mdiPin} size={12} />
-                </span>
+              {showDetailedHeader ? (
+                <>
+                  <button
+                    aria-label="Collapse Graph Section"
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--cg-foreground)] hover:bg-[var(--cg-accent)]"
+                    data-graph-section-control="true"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onUpdateSection(section.id, { collapsed: true });
+                    }}
+                    type="button"
+                  >
+                    <MdiIcon path={mdiChevronUp} size={14} />
+                  </button>
+                  <input
+                    aria-label="Graph Section label"
+                    className="w-24 max-w-[45%] cursor-text bg-transparent text-xs font-medium outline-none"
+                    data-graph-section-control="true"
+                    onChange={(event) => onUpdateSection(section.id, { label: event.target.value })}
+                    value={section.label}
+                  />
+                  <input
+                    aria-label="Graph Section color"
+                    className="absolute right-1 top-1 h-5 w-6 cursor-pointer bg-transparent p-0"
+                    data-graph-section-control="true"
+                    onChange={(event) => onUpdateSection(section.id, { color: event.target.value })}
+                    type="color"
+                    value={section.color}
+                  />
+                  {pinnedSectionIds.has(section.id) ? (
+                    <span
+                      aria-label="Pinned Graph Section"
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
+                      data-graph-section-control="true"
+                      role="img"
+                    >
+                      <MdiIcon path={mdiPin} size={12} />
+                    </span>
+                  ) : null}
+                </>
               ) : null}
             </div>
             <div

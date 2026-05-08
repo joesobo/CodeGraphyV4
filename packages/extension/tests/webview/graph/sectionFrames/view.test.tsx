@@ -119,6 +119,7 @@ describe('graph/sectionFrames/view', () => {
     expect(dragHandle).toHaveStyle({
       backgroundColor: '#60a5fa22',
       borderColor: '#60a5fa',
+      height: '28px',
     });
     expect(dragHandle).toHaveClass('pr-9');
     expect(screen.getByLabelText('Graph Section label')).toHaveClass('w-24');
@@ -130,6 +131,35 @@ describe('graph/sectionFrames/view', () => {
     });
     expect(screen.getByLabelText('Graph Section label')).toHaveValue('Section 1');
     expect(screen.getByLabelText('Graph Section color')).toHaveValue('#60a5fa');
+  });
+
+  it('uses a compact graph-scaled header when zoomed far out', () => {
+    const onUpdateSection = vi.fn();
+    render(
+      <SectionFrames
+        graph={{
+          graph2ScreenCoords: (x, y) => ({ x: (x * 0.25) + 200, y: (y * 0.25) + 150 }),
+          screen2GraphCoords: (x, y) => ({ x: (x - 200) / 0.25, y: (y - 150) / 0.25 }),
+        }}
+        sections={[section]}
+        onUpdateSection={onUpdateSection}
+      />,
+    );
+
+    const frame = screen.getByTestId('graph-section-frame-section-1');
+    const dragHandle = screen.getByTestId('graph-section-drag-handle-section-1');
+    expect(frame).toHaveStyle({
+      height: '45px',
+      left: '165px',
+      top: '127.5px',
+      width: '70px',
+    });
+    expect(dragHandle).toHaveAttribute('data-section-frame-detail', 'compact');
+    expect(dragHandle).toHaveStyle({
+      height: '7px',
+    });
+    expect(screen.queryByLabelText('Graph Section label')).toBeNull();
+    expect(screen.queryByLabelText('Graph Section color')).toBeNull();
   });
 
   it('anchors editable Section Frames to the live force node position', () => {

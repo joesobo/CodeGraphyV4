@@ -128,11 +128,12 @@ describe('graph/rendering/surface/sharedProps', () => {
     const link = createLink();
     const clickEvent = new MouseEvent('click');
     const contextEvent = new MouseEvent('contextmenu');
+    const translate = { x: 8, y: -3 };
 
     props.onNodeClick(node, clickEvent);
     props.onNodeRightClick(node, contextEvent);
-    props.onNodeDrag(node);
-    props.onNodeDragEnd(node);
+    props.onNodeDrag(node, translate);
+    props.onNodeDragEnd(node, translate);
     props.onLinkClick(link, clickEvent);
     props.onLinkRightClick(link, contextEvent);
     props.onBackgroundClick(clickEvent);
@@ -144,8 +145,8 @@ describe('graph/rendering/surface/sharedProps', () => {
 
     expect(handlers.onNodeClick).toHaveBeenCalledWith(node, clickEvent);
     expect(handlers.onNodeRightClick).toHaveBeenCalledWith(node, contextEvent);
-    expect(handlers.onNodeDrag).toHaveBeenCalledWith(node);
-    expect(handlers.onNodeDragEnd).toHaveBeenCalledWith(node);
+    expect(handlers.onNodeDrag).toHaveBeenCalledWith(node, translate);
+    expect(handlers.onNodeDragEnd).toHaveBeenCalledWith(node, translate);
     expect(handlers.onLinkClick).toHaveBeenCalledWith(link, clickEvent);
     expect(handlers.onLinkRightClick).toHaveBeenCalledWith(link, contextEvent);
     expect(handlers.onBackgroundClick).toHaveBeenNthCalledWith(1, clickEvent);
