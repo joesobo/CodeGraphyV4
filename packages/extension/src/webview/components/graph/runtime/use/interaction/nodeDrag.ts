@@ -8,6 +8,11 @@ import type { FGNode } from '../../../model/build';
 import { postMessage } from '../../../../../vscodeApi';
 import { readNodePosition } from './positions';
 
+type GraphLayoutOwnerDragMessage = Extract<
+  WebviewToExtensionMessage,
+  { type: 'UPDATE_GRAPH_LAYOUT_OWNER' }
+>;
+
 function createPinnedNodeDragMessage(
   node: FGNode,
   graphMode: GraphLayoutMode,
@@ -44,7 +49,7 @@ function createGraphLayoutOwnerDragMessage(
   graphLayout: GraphLayoutSettings | undefined,
   graphMode: GraphLayoutMode,
   timelineActive: boolean,
-): WebviewToExtensionMessage | undefined {
+): GraphLayoutOwnerDragMessage | undefined {
   if (!canUpdateGraphLayoutOwnerOnDrag(graphLayout, graphMode, timelineActive)) {
     return undefined;
   }
@@ -70,15 +75,30 @@ function createGraphLayoutOwnerDragMessage(
   };
 }
 
+export function markNodeDragging(node: FGNode): void {
+  node.isDragging = true;
+}
+
 export function postNodeDragEndMessages(
   node: FGNode,
   graphLayout: GraphLayoutSettings | undefined,
   graphMode: GraphLayoutMode,
   timelineActive: boolean,
 ): void {
+  const ownerMessage = createGraphLayoutOwnerDragMessage(
+    node,
+    graphLayout,
+    graphMode,
+    timelineActive,
+  );
+  if (ownerMessage) {
+    node.ownerSectionId = ownerMessage.payload.ownerSectionId;
+  }
+  node.isDragging = false;
+
   const messages = [
     createPinnedNodeDragMessage(node, graphMode),
-    createGraphLayoutOwnerDragMessage(node, graphLayout, graphMode, timelineActive),
+    ownerMessage,
   ];
 
   for (const message of messages) {

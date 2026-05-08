@@ -243,6 +243,7 @@ describe('graph/viewport/shell', () => {
 				onLinkClick: vi.fn(),
 				onLinkRightClick: vi.fn(),
 				onNodeClick: vi.fn(),
+				onNodeDrag: vi.fn(),
 				onNodeDragEnd: vi.fn(),
 				onNodeHover: vi.fn(),
 				onNodeRightClick: vi.fn(),

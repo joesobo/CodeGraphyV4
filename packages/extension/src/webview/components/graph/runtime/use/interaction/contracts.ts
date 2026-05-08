@@ -60,6 +60,7 @@ export interface UseGraphInteractionRuntimeResult {
   handleMouseLeave(this: void): void;
   handleMouseMoveCapture: import('../../../contextMenuOpening/runtime').GraphContextMenuOpeningRuntime['handleMouseMoveCapture'];
   handleMouseUpCapture: import('../../../contextMenuOpening/runtime').GraphContextMenuOpeningRuntime['handleMouseUpCapture'];
+  handleNodeDrag(this: void, node: FGNode): void;
   handleNodeHover(this: void, node: FGNode | null): void;
   handleNodeDragEnd(this: void, node: FGNode): void;
   handleNodeRightClick: import('../../../contextMenuOpening/runtime').GraphContextMenuOpeningRuntime['handleNodeRightClick'];

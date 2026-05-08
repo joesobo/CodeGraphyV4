@@ -3,13 +3,20 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import { useGraphMarqueeSelectionRuntime } from '../../../../../../src/webview/components/graph/runtime/use/interaction/marquee/hook';
 
-function createEvent(button: number, x: number, y: number, shiftKey = false) {
+function createEvent(
+  button: number,
+  x: number,
+  y: number,
+  shiftKey = false,
+  target: EventTarget | null = null,
+) {
   return {
     button,
     clientX: x,
     clientY: y,
     preventDefault: vi.fn(),
     shiftKey,
+    target,
   };
 }
 
@@ -245,5 +252,22 @@ describe('graph/runtime/use/interaction marquee', () => {
     expect(hovered.setSelection).not.toHaveBeenCalled();
     expect(in3d.setSelection).not.toHaveBeenCalled();
     expect(rightButton.setSelection).not.toHaveBeenCalled();
+  });
+
+  it('does not start marquee selection from section frame drag targets', () => {
+    const runtime = createMarqueeRuntime();
+    const frame = document.createElement('div');
+    const dragHandle = document.createElement('div');
+    frame.dataset.graphMarqueeIgnore = 'true';
+    frame.append(dragHandle);
+
+    act(() => {
+      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, false, dragHandle) as never);
+      runtime.result.current.handleMouseMoveCapture(createEvent(0, 30, 30, false, dragHandle) as never);
+      runtime.result.current.handleMouseUpCapture(createEvent(0, 30, 30, false, dragHandle) as never);
+    });
+
+    expect(runtime.result.current.marqueeSelection).toBeNull();
+    expect(runtime.setSelection).not.toHaveBeenCalled();
   });
 });

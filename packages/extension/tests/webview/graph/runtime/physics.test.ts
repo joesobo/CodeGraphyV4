@@ -337,4 +337,37 @@ describe('physics', () => {
     expect(left || right || above || below).toBe(true);
     expect(Math.abs(outside.vx ?? 0) + Math.abs(outside.vy ?? 0)).toBeGreaterThan(0);
   });
+
+  it('allows actively dragged nodes to enter expanded section bounds before ownership is saved', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 100,
+        sectionWidth: 100,
+        x: 0,
+        y: 0,
+      },
+      {
+        id: 'src/dragged.ts',
+        isDragging: true,
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 50,
+        y: 50,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1]).toMatchObject({
+      vx: 0,
+      vy: 0,
+      x: 50,
+      y: 50,
+    });
+  });
 });

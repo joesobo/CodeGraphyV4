@@ -13,6 +13,7 @@ import type { UseGraphStateResult } from '../../state';
 import type { GraphInteractionHandlersRuntime } from '../contracts';
 
 const MARQUEE_DRAG_THRESHOLD_PX = 6;
+const MARQUEE_IGNORE_SELECTOR = '[data-graph-marquee-ignore="true"]';
 
 export interface MarqueeDragState {
   additive: boolean;
@@ -46,7 +47,12 @@ export function canStartMarqueeSelection(
 ): boolean {
   return event.button === 0
     && graphMode === '2d'
-    && !hoveredNode;
+    && !hoveredNode
+    && !isIgnoredMarqueeTarget(event.target);
+}
+
+function isIgnoredMarqueeTarget(target: EventTarget | null): boolean {
+  return target instanceof Element && !!target.closest(MARQUEE_IGNORE_SELECTOR);
 }
 
 export function createMarqueeDragState(

@@ -131,6 +131,7 @@ export function SectionFrames({
           <div
             key={section.id}
             ref={(element) => registerFrameElement(section.id, element)}
+            data-graph-marquee-ignore="true"
             data-testid={`graph-section-frame-${section.id}`}
             className="pointer-events-none absolute overflow-hidden rounded-md border bg-[rgba(59,130,246,0.08)] shadow-sm"
             onDoubleClick={(event) => {
@@ -151,7 +152,7 @@ export function SectionFrames({
           >
             <div
               data-testid={`graph-section-drag-handle-${section.id}`}
-              className="pointer-events-auto flex h-7 items-center gap-1 border-b px-1"
+              className="pointer-events-auto flex h-7 cursor-grab items-center gap-1 border-b px-1 active:cursor-grabbing"
               style={{ backgroundColor: `${section.color}22`, borderColor: section.color }}
             >
               <button
@@ -168,14 +169,14 @@ export function SectionFrames({
               </button>
               <input
                 aria-label="Graph Section label"
-                className="min-w-0 flex-1 bg-transparent text-xs font-medium outline-none"
+                className="w-24 max-w-[45%] cursor-text bg-transparent text-xs font-medium outline-none"
                 data-graph-section-control="true"
                 onChange={(event) => onUpdateSection(section.id, { label: event.target.value })}
                 value={section.label}
               />
               <input
                 aria-label="Graph Section color"
-                className="h-5 w-6 bg-transparent p-0"
+                className="h-5 w-6 cursor-pointer bg-transparent p-0"
                 data-graph-section-control="true"
                 onChange={(event) => onUpdateSection(section.id, { color: event.target.value })}
                 type="color"
