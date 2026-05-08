@@ -2,11 +2,12 @@ import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useGraphViewportPanRuntime } from '../../../../../../src/webview/components/graph/runtime/use/interaction/viewportPan/hook';
 
-function createEvent(button: number, x: number, y: number) {
+function createEvent(button: number, x: number, y: number, ctrlKey = false) {
   return {
     button,
     clientX: x,
     clientY: y,
+    ctrlKey,
     preventDefault: vi.fn(),
   };
 }
@@ -104,6 +105,24 @@ describe('graph/runtime/use/interaction viewport pan', () => {
 
     expect(runtime.graph?.centerAt).toHaveBeenCalledWith(98, 200, 0);
     expect(runtime.suppressContextMenu).not.toHaveBeenCalled();
+    expect(runtime.rightMouseDownRef.current?.moved).toBe(false);
+  });
+
+  it('pans with ctrl-left drag and suppresses native context menu fallback', () => {
+    const runtime = createPanRuntime();
+    const down = createEvent(0, 10, 20, true);
+    const move = createEvent(0, 16, 24, true);
+    const up = createEvent(0, 16, 24, true);
+
+    runtime.result.current.handleMouseDownCapture(down as never);
+    runtime.result.current.handleMouseMoveCapture(move as never);
+    runtime.result.current.handleMouseUpCapture(up as never);
+
+    expect(down.preventDefault).toHaveBeenCalledTimes(1);
+    expect(move.preventDefault).toHaveBeenCalledTimes(1);
+    expect(up.preventDefault).toHaveBeenCalledTimes(1);
+    expect(runtime.graph?.centerAt).toHaveBeenCalledWith(97, 198, 0);
+    expect(runtime.suppressContextMenu).toHaveBeenCalledTimes(1);
     expect(runtime.rightMouseDownRef.current?.moved).toBe(false);
   });
 

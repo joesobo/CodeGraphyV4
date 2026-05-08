@@ -98,6 +98,7 @@ function createContext(): {
         strokeStyle: ctx.strokeStyle,
       });
     }),
+    closePath: vi.fn(),
     fill: vi.fn(() => {
       operations.push({
         fillStyle: ctx.fillStyle,
@@ -119,6 +120,7 @@ function createContext(): {
     }),
     lineTo: vi.fn(),
     moveTo: vi.fn(),
+    quadraticCurveTo: vi.fn(),
     rect: vi.fn(),
     restore: vi.fn(),
     save: vi.fn(),
@@ -430,7 +432,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.stroke).not.toHaveBeenCalled();
   });
 
-  it('renders collapsed Section Nodes as normal graph nodes', () => {
+  it('renders collapsed Section Nodes as rounded Graph Section squares', () => {
     const { ctx } = createContext();
 
     renderNodeCanvas(
@@ -446,12 +448,13 @@ describe('graph/rendering/nodes/canvas2d', () => {
       1,
     );
 
-    expect(drawShape).toHaveBeenCalledWith(ctx, 'square', 24, 48, 16);
+    expect(drawShape).not.toHaveBeenCalled();
+    expect(ctx.quadraticCurveTo).toHaveBeenCalled();
     expect(ctx.fill).toHaveBeenCalled();
     expect(ctx.stroke).toHaveBeenCalled();
   });
 
-  it('renders collapsed Section Node hidden counts opposite the pin badge', () => {
+  it('renders collapsed Section Node hidden counts in the top right and expand cue in the top left', () => {
     const { ctx, operations } = createContext();
 
     renderNodeCanvas(
@@ -469,8 +472,11 @@ describe('graph/rendering/nodes/canvas2d', () => {
       1,
     );
 
-    expect(ctx.arc).toHaveBeenCalledWith(12.8, 36.8, 6, 0, Math.PI * 2);
-    expect(ctx.arc).toHaveBeenCalledWith(35.2, 36.8, 5, 0, Math.PI * 2);
+    expect(ctx.arc).toHaveBeenCalledWith(35.2, 36.8, 6, 0, Math.PI * 2);
+    expect(ctx.arc).toHaveBeenCalledWith(35.2, 59.2, 5, 0, Math.PI * 2);
+    expect(ctx.moveTo).toHaveBeenCalledWith(8.8, 34.8);
+    expect(ctx.lineTo).toHaveBeenCalledWith(12.8, 38.8);
+    expect(ctx.lineTo).toHaveBeenCalledWith(16.8, 34.8);
     expect(operations).toContainEqual(expect.objectContaining({
       kind: 'fillText',
       text: '4',

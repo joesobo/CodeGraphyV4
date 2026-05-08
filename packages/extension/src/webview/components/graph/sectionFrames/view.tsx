@@ -19,7 +19,6 @@ import {
   getSectionFrameDisplaySection,
   getSectionFrameRect,
   getVisibleSectionFrames,
-  SECTION_FRAME_HEADER_HEIGHT,
   type SectionFrameDragType,
   type SectionFrameGraph,
   type SectionFrameNodePosition,
@@ -35,18 +34,23 @@ interface SectionFramesProps {
   onUpdateSection: SectionFrameUpdateHandler;
 }
 
-const DETAIL_MIN_HEADER_HEIGHT = 16;
-const DETAIL_MIN_HEIGHT = 72;
-const DETAIL_MIN_WIDTH = 120;
+const TOPBAR_FADE_OUT_SCALE = 0.45;
+const TOPBAR_FULL_SCALE = 0.8;
 
-function getHeaderHeight(rect: SectionFrameRect): number {
-  return Math.max(1, SECTION_FRAME_HEADER_HEIGHT * rect.scale);
+function getTopbarOpacity(rect: SectionFrameRect): number {
+  if (rect.scale <= TOPBAR_FADE_OUT_SCALE) {
+    return 0;
+  }
+
+  if (rect.scale >= TOPBAR_FULL_SCALE) {
+    return 1;
+  }
+
+  return (rect.scale - TOPBAR_FADE_OUT_SCALE) / (TOPBAR_FULL_SCALE - TOPBAR_FADE_OUT_SCALE);
 }
 
-function shouldShowDetailedHeader(rect: SectionFrameRect): boolean {
-  return getHeaderHeight(rect) >= DETAIL_MIN_HEADER_HEIGHT
-    && rect.height >= DETAIL_MIN_HEIGHT
-    && rect.width >= DETAIL_MIN_WIDTH;
+function isTopbarVisible(opacity: number): boolean {
+  return opacity > 0.01;
 }
 
 function applySectionFrameElementRect(
@@ -59,6 +63,19 @@ function applySectionFrameElementRect(
   element.style.left = `${rect.left}px`;
   element.style.top = `${rect.top}px`;
   element.style.width = `${rect.width}px`;
+
+  const header = element.querySelector<HTMLElement>('[data-graph-section-header="true"]');
+  if (!header) {
+    return;
+  }
+
+  const opacity = getTopbarOpacity(rect);
+  const visible = isTopbarVisible(opacity);
+  header.style.opacity = `${opacity}`;
+  header.dataset.sectionFrameHeader = visible ? 'visible' : 'hidden';
+  header.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  header.classList.toggle('pointer-events-auto', visible);
+  header.classList.toggle('pointer-events-none', !visible);
 }
 
 export function SectionFrames({
@@ -143,8 +160,8 @@ export function SectionFrames({
       {visibleSections.map(section => {
         const displaySection = getDisplaySection(section);
         const rect = getSectionFrameRect(graph, displaySection);
-        const headerHeight = getHeaderHeight(rect);
-        const showDetailedHeader = shouldShowDetailedHeader(rect);
+        const topbarOpacity = getTopbarOpacity(rect);
+        const showTopbar = isTopbarVisible(topbarOpacity);
         return (
           <div
             key={section.id}
@@ -162,58 +179,59 @@ export function SectionFrames({
             }}
           >
             <div
+              aria-hidden={!showTopbar}
+              data-graph-section-header="true"
               data-testid={`graph-section-drag-handle-${section.id}`}
-              data-section-frame-detail={showDetailedHeader ? 'detail' : 'compact'}
+              data-section-frame-header={showTopbar ? 'visible' : 'hidden'}
               className={[
-                'pointer-events-auto relative flex cursor-grab items-center border-b active:cursor-grabbing',
-                showDetailedHeader ? 'gap-1 px-1 pr-9' : 'px-0',
+                'relative flex h-7 cursor-grab items-center gap-1 border-b px-1 pr-9 active:cursor-grabbing',
+                showTopbar ? 'pointer-events-auto' : 'pointer-events-none',
               ].join(' ')}
               style={{
                 backgroundColor: `${section.color}22`,
                 borderColor: section.color,
-                height: headerHeight,
+                opacity: topbarOpacity,
               }}
             >
-              {showDetailedHeader ? (
-                <>
-                  <button
-                    aria-label="Collapse Graph Section"
-                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--cg-foreground)] hover:bg-[var(--cg-accent)]"
-                    data-graph-section-control="true"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onUpdateSection(section.id, { collapsed: true });
-                    }}
-                    type="button"
-                  >
-                    <MdiIcon path={mdiChevronUp} size={14} />
-                  </button>
-                  <input
-                    aria-label="Graph Section label"
-                    className="w-24 max-w-[45%] cursor-text bg-transparent text-xs font-medium outline-none"
-                    data-graph-section-control="true"
-                    onChange={(event) => onUpdateSection(section.id, { label: event.target.value })}
-                    value={section.label}
-                  />
-                  <input
-                    aria-label="Graph Section color"
-                    className="absolute right-1 top-1 h-5 w-6 cursor-pointer bg-transparent p-0"
-                    data-graph-section-control="true"
-                    onChange={(event) => onUpdateSection(section.id, { color: event.target.value })}
-                    type="color"
-                    value={section.color}
-                  />
-                  {pinnedSectionIds.has(section.id) ? (
-                    <span
-                      aria-label="Pinned Graph Section"
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
-                      data-graph-section-control="true"
-                      role="img"
-                    >
-                      <MdiIcon path={mdiPin} size={12} />
-                    </span>
-                  ) : null}
-                </>
+              <button
+                aria-label="Collapse Graph Section"
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--cg-foreground)] hover:bg-[var(--cg-accent)]"
+                data-graph-section-control="true"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onUpdateSection(section.id, { collapsed: true });
+                }}
+                tabIndex={showTopbar ? 0 : -1}
+                type="button"
+              >
+                <MdiIcon path={mdiChevronUp} size={14} />
+              </button>
+              <input
+                aria-label="Graph Section label"
+                className="w-24 max-w-[45%] cursor-text bg-transparent text-xs font-medium outline-none"
+                data-graph-section-control="true"
+                onChange={(event) => onUpdateSection(section.id, { label: event.target.value })}
+                tabIndex={showTopbar ? 0 : -1}
+                value={section.label}
+              />
+              <input
+                aria-label="Graph Section color"
+                className="absolute right-1 top-1 h-5 w-6 cursor-pointer bg-transparent p-0"
+                data-graph-section-control="true"
+                onChange={(event) => onUpdateSection(section.id, { color: event.target.value })}
+                tabIndex={showTopbar ? 0 : -1}
+                type="color"
+                value={section.color}
+              />
+              {pinnedSectionIds.has(section.id) ? (
+                <span
+                  aria-label="Pinned Graph Section"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
+                  data-graph-section-control="true"
+                  role="img"
+                >
+                  <MdiIcon path={mdiPin} size={12} />
+                </span>
               ) : null}
             </div>
             <div

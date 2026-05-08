@@ -34,7 +34,6 @@ function startViewportPanDrag(
 }
 
 function markRightClickPanMoved(options: GraphViewportPanRuntimeOptions): void {
-  options.suppressContextMenu();
   if (options.rightMouseDownRef.current) {
     options.rightMouseDownRef.current.moved = true;
   }
@@ -47,6 +46,9 @@ function applyViewportPanAfterThreshold(
   options: GraphViewportPanRuntimeOptions,
 ): void {
   event.preventDefault();
+  if (drag.suppressContextMenu) {
+    options.suppressContextMenu();
+  }
   if (drag.button === 2) {
     markRightClickPanMoved(options);
   }

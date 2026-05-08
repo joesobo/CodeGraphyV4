@@ -46,6 +46,7 @@ export function canStartMarqueeSelection(
   hoveredNode: FGNode | null,
 ): boolean {
   return event.button === 0
+    && !event.ctrlKey
     && graphMode === '2d'
     && !hoveredNode
     && !isIgnoredMarqueeTarget(event.target);

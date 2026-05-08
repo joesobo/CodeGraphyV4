@@ -21,18 +21,76 @@ export function renderCollapsedSectionBadge({
   const hiddenDescendantCount = node.hiddenDescendantCount ?? 0;
   if (
     !node.isCollapsedGraphSection
-    || hiddenDescendantCount <= 0
     || node.x === undefined
     || node.y === undefined
   ) {
     return;
   }
 
-  const radius = 6 / globalScale;
-  const centerX = node.x - node.size * 0.7;
-  const centerY = node.y - node.size * 0.7;
-
   ctx.save();
+  renderExpandChevron({
+    appearance,
+    ctx,
+    globalScale,
+    node,
+    x: node.x,
+    y: node.y,
+  });
+
+  if (hiddenDescendantCount > 0) {
+    renderHiddenDescendantCount({
+      appearance,
+      ctx,
+      globalScale,
+      hiddenDescendantCount,
+      node,
+      x: node.x,
+      y: node.y,
+    });
+  }
+
+  ctx.restore();
+}
+
+function renderExpandChevron({
+  appearance,
+  ctx,
+  globalScale,
+  node,
+  x,
+  y,
+}: RenderCollapsedSectionBadgeOptions & { x: number; y: number }): void {
+  const centerX = x - node.size * 0.7;
+  const centerY = y - node.size * 0.7;
+  const halfWidth = 4 / globalScale;
+  const halfHeight = 2 / globalScale;
+
+  ctx.beginPath();
+  ctx.moveTo(centerX - halfWidth, centerY - halfHeight);
+  ctx.lineTo(centerX, centerY + halfHeight);
+  ctx.lineTo(centerX + halfWidth, centerY - halfHeight);
+  ctx.strokeStyle = appearance.labelForeground;
+  ctx.lineWidth = Math.max(1, 1.5 / globalScale);
+  ctx.stroke();
+}
+
+function renderHiddenDescendantCount({
+  appearance,
+  ctx,
+  globalScale,
+  hiddenDescendantCount,
+  node,
+  x,
+  y,
+}: RenderCollapsedSectionBadgeOptions & {
+  hiddenDescendantCount: number;
+  x: number;
+  y: number;
+}): void {
+  const radius = 6 / globalScale;
+  const centerX = x + node.size * 0.7;
+  const centerY = y - node.size * 0.7;
+
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
   ctx.fillStyle = appearance.nodeSelectionBorder;
@@ -46,5 +104,4 @@ export function renderCollapsedSectionBadge({
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(formatHiddenDescendantCount(hiddenDescendantCount), centerX, centerY + 0.25 / globalScale);
-  ctx.restore();
 }

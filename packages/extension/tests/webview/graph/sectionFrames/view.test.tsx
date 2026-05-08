@@ -119,9 +119,9 @@ describe('graph/sectionFrames/view', () => {
     expect(dragHandle).toHaveStyle({
       backgroundColor: '#60a5fa22',
       borderColor: '#60a5fa',
-      height: '28px',
+      opacity: '1',
     });
-    expect(dragHandle).toHaveClass('pr-9');
+    expect(dragHandle).toHaveClass('h-7', 'pointer-events-auto', 'pr-9');
     expect(screen.getByLabelText('Graph Section label')).toHaveClass('w-24');
     expect(screen.getByLabelText('Graph Section label')).not.toHaveClass('flex-1');
     expect(screen.getByLabelText('Graph Section color')).toHaveClass('absolute', 'right-1', 'top-1');
@@ -133,7 +133,7 @@ describe('graph/sectionFrames/view', () => {
     expect(screen.getByLabelText('Graph Section color')).toHaveValue('#60a5fa');
   });
 
-  it('uses a compact graph-scaled header when zoomed far out', () => {
+  it('hides the fixed-height header controls when zoomed far out', () => {
     const onUpdateSection = vi.fn();
     render(
       <SectionFrames
@@ -154,12 +154,14 @@ describe('graph/sectionFrames/view', () => {
       top: '127.5px',
       width: '70px',
     });
-    expect(dragHandle).toHaveAttribute('data-section-frame-detail', 'compact');
+    expect(dragHandle).toHaveAttribute('data-section-frame-header', 'hidden');
+    expect(dragHandle).toHaveAttribute('aria-hidden', 'true');
+    expect(dragHandle).toHaveClass('h-7', 'pointer-events-none');
     expect(dragHandle).toHaveStyle({
-      height: '7px',
+      opacity: '0',
     });
-    expect(screen.queryByLabelText('Graph Section label')).toBeNull();
-    expect(screen.queryByLabelText('Graph Section color')).toBeNull();
+    expect(screen.getByLabelText('Graph Section label')).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByLabelText('Graph Section color')).toHaveAttribute('tabindex', '-1');
   });
 
   it('anchors editable Section Frames to the live force node position', () => {

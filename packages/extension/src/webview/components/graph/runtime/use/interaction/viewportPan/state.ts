@@ -20,6 +20,7 @@ export interface ViewportPanDragState {
   center: { x: number; y: number };
   moved: boolean;
   start: MarqueePoint;
+  suppressContextMenu: boolean;
   zoom: number;
 }
 
@@ -37,8 +38,10 @@ export interface GraphViewportPanRuntime {
   handleMouseUpCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
 }
 
-function isViewportPanButton(button: number): boolean {
-  return button === 1 || button === 2;
+function isViewportPanButton(event: ReactMouseEvent<HTMLDivElement>): boolean {
+  return event.button === 1
+    || event.button === 2
+    || (event.button === 0 && event.ctrlKey);
 }
 
 export function createViewportPanDragState(
@@ -51,6 +54,7 @@ export function createViewportPanDragState(
     center: readViewportPanCenter(graph, container),
     moved: false,
     start: { x: event.clientX, y: event.clientY },
+    suppressContextMenu: event.button === 2 || (event.button === 0 && event.ctrlKey),
     zoom: readViewportPanZoom(graph),
   };
 }
@@ -78,5 +82,5 @@ export function canStartViewportPanDrag(
   event: ReactMouseEvent<HTMLDivElement>,
   options: GraphViewportPanRuntimeOptions,
 ): boolean {
-  return options.graphMode === '2d' && isViewportPanButton(event.button);
+  return options.graphMode === '2d' && isViewportPanButton(event);
 }

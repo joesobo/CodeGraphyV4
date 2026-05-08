@@ -9,11 +9,13 @@ function createEvent(
   y: number,
   shiftKey = false,
   target: EventTarget | null = null,
+  ctrlKey = false,
 ) {
   return {
     button,
     clientX: x,
     clientY: y,
+    ctrlKey,
     preventDefault: vi.fn(),
     shiftKey,
     target,
@@ -265,6 +267,19 @@ describe('graph/runtime/use/interaction marquee', () => {
       runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, false, dragHandle) as never);
       runtime.result.current.handleMouseMoveCapture(createEvent(0, 30, 30, false, dragHandle) as never);
       runtime.result.current.handleMouseUpCapture(createEvent(0, 30, 30, false, dragHandle) as never);
+    });
+
+    expect(runtime.result.current.marqueeSelection).toBeNull();
+    expect(runtime.setSelection).not.toHaveBeenCalled();
+  });
+
+  it('does not start marquee selection during ctrl-left viewport panning', () => {
+    const runtime = createMarqueeRuntime();
+
+    act(() => {
+      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, false, null, true) as never);
+      runtime.result.current.handleMouseMoveCapture(createEvent(0, 30, 30, false, null, true) as never);
+      runtime.result.current.handleMouseUpCapture(createEvent(0, 30, 30, false, null, true) as never);
     });
 
     expect(runtime.result.current.marqueeSelection).toBeNull();

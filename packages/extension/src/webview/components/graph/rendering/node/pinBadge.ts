@@ -20,7 +20,7 @@ export function renderNodePinBadge({
 
   const radius = 5 / globalScale;
   const centerX = node.x + node.size * 0.7;
-  const centerY = node.y - node.size * 0.7;
+  const centerY = node.y + (node.isCollapsedGraphSection ? node.size * 0.7 : -node.size * 0.7);
 
   ctx.save();
   ctx.beginPath();
