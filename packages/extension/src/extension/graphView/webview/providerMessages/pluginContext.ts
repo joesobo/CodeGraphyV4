@@ -9,10 +9,7 @@ import {
   setPluginUserGroups,
   setPluginWebviewReadyNotified,
 } from './pluginState';
-import {
-  createDefaultGraphLayoutSettings,
-  normalizeGraphLayoutSettings,
-} from '../../../repoSettings/graphLayout/model';
+import { createGraphLayoutUpdatedMessage } from '../../graphLayout/message';
 
 type GraphViewProviderPluginContext = Pick<
   GraphViewMessageListenerContext,
@@ -67,15 +64,7 @@ export function createGraphViewProviderMessagePluginContext(
     sendGraphControls: () => source._sendGraphControls?.(),
     sendFavorites: () => source._sendFavorites(),
     sendSettings: () => source._sendSettings(),
-    sendGraphLayout: () => {
-      const configuration = dependencies.workspace.getConfiguration('codegraphy');
-      source._sendMessage({
-        type: 'GRAPH_LAYOUT_UPDATED',
-        payload: normalizeGraphLayoutSettings(
-          configuration.get('graphLayout', createDefaultGraphLayoutSettings()),
-        ),
-      });
-    },
+    sendGraphLayout: () => source._sendMessage(createGraphLayoutUpdatedMessage()),
     sendCachedTimeline: () => source._sendCachedTimeline(),
     sendDecorations: () => source._sendDecorations(),
     sendContextMenuItems: () => source._sendContextMenuItems(),
