@@ -203,6 +203,62 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(entries)).toContain('unpinNode');
   });
 
+  it('builds a collapsed Graph Section node menu with an expand action', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('section-1', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pinnedNodeIds: new Set<string>(),
+      pluginItems: [],
+      nodes: [{
+        id: 'section-1',
+        isCollapsedGraphSection: true,
+        isGraphSection: true,
+        label: 'Section 1',
+        nodeType: 'graph-section',
+      }],
+    });
+
+    expect(menuLabels(entries)).toEqual([
+      'Expand Graph Section',
+      'Focus Node',
+      'Pin Node',
+    ]);
+    expect(builtInActions(entries)).toEqual([
+      'expandGraphSection',
+      'focus',
+      'pinNode',
+    ]);
+  });
+
+  it('builds an expanded Graph Section node menu with a collapse action', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('section-1', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pinnedNodeIds: new Set<string>(),
+      pluginItems: [],
+      nodes: [{
+        id: 'section-1',
+        isCollapsedGraphSection: false,
+        isGraphSection: true,
+        label: 'Section 1',
+        nodeType: 'graph-section',
+      }],
+    });
+
+    expect(menuLabels(entries)).toEqual([
+      'Collapse Graph Section',
+      'Focus Node',
+      'Pin Node',
+    ]);
+    expect(builtInActions(entries)).toEqual([
+      'collapseGraphSection',
+      'focus',
+      'pinNode',
+    ]);
+  });
+
   it('offers live Graph Section creation from background, single-node, and multi-selection menus', () => {
     const backgroundEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),

@@ -18,6 +18,14 @@ export interface SectionFrameRect {
   width: number;
 }
 
+export interface SectionFrameNodePosition {
+  id: string;
+  sectionHeight?: number;
+  sectionWidth?: number;
+  x?: number;
+  y?: number;
+}
+
 export type SectionFrameDragType = 'move' | 'resize';
 
 export interface SectionFrameDragState {
@@ -48,6 +56,27 @@ function screenToGraph(
   y: number,
 ): { x: number; y: number } {
   return graph?.screen2GraphCoords?.(x, y) ?? { x, y };
+}
+
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+export function getSectionFrameDisplaySection(
+  section: GraphLayoutSection,
+  nodePosition: SectionFrameNodePosition | undefined,
+): GraphLayoutSection {
+  if (!nodePosition) {
+    return section;
+  }
+
+  return {
+    ...section,
+    height: readFiniteNumber(nodePosition.sectionHeight) ?? section.height,
+    width: readFiniteNumber(nodePosition.sectionWidth) ?? section.width,
+    x: readFiniteNumber(nodePosition.x) ?? section.x,
+    y: readFiniteNumber(nodePosition.y) ?? section.y,
+  };
 }
 
 export function getSectionFrameRect(

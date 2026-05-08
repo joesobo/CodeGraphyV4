@@ -84,3 +84,26 @@ export function buildSingleFolderNodeEntries(
 
   return entries;
 }
+
+export function buildSingleGraphSectionNodeEntries(
+  target: string,
+  collapsed: boolean,
+  mutationAvailability: GraphContextMutationAvailability,
+  pinnedNodeIds: ReadonlySet<string> = new Set(),
+): GraphContextMenuEntry[] {
+  const entries: GraphContextMenuEntry[] = [
+    builtInItem(
+      'graph-section-toggle-collapse',
+      collapsed ? 'Expand Graph Section' : 'Collapse Graph Section',
+      collapsed ? 'expandGraphSection' : 'collapseGraphSection',
+      { disabled: mutationAvailability === 'disabled' },
+    ),
+    builtInItem('node-focus', 'Focus Node', 'focus'),
+  ];
+
+  if (mutationAvailability === 'enabled') {
+    entries.push(...buildPinBlock([target], pinnedNodeIds));
+  }
+
+  return entries;
+}

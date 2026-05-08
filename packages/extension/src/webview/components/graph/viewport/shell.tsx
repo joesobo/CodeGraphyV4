@@ -12,6 +12,8 @@ import type { UseGraphCallbacksResult } from '../rendering/useGraphCallbacks';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { UseGraphStateResult } from '../runtime/use/state';
+import type { FGNode } from '../model/build';
+import type { SectionFrameNodePosition } from '../sectionFrames/model';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport } from './view';
@@ -115,6 +117,22 @@ function getPinnedSectionIds(
   return pinnedSectionIds;
 }
 
+function getSectionFrameNodePositions(
+  nodes: readonly FGNode[],
+): Map<string, SectionFrameNodePosition> {
+  const positions = new Map<string, SectionFrameNodePosition>();
+
+  for (const node of nodes) {
+    if (!node.isGraphSection || node.isCollapsedGraphSection) {
+      continue;
+    }
+
+    positions.set(node.id, node);
+  }
+
+  return positions;
+}
+
 function shouldPublishGraphViewportScale(
   previous: number | null,
   next: number,
@@ -180,6 +198,7 @@ export function GraphViewportShell({
     ? Object.values(viewState.graphLayout.sections)
     : [];
   const pinnedSectionIds = getPinnedSectionIds(sectionFrames, viewState.graphLayout.pinnedNodes);
+  const sectionFrameNodePositions = getSectionFrameNodePositions(graphState.graphData.nodes);
   const publishGraphViewportScale = (globalScale: number): void => {
     if (viewState.graphMode !== '2d' || !Number.isFinite(globalScale) || globalScale <= 0) {
       return;
@@ -211,6 +230,7 @@ export function GraphViewportShell({
       marqueeSelection={interactions.marqueeSelection}
       sectionFrameGraph={graphState.fg2dRef.current}
       sectionFrameOwnership={viewState.graphLayout.ownership}
+      sectionNodePositions={sectionFrameNodePositions}
       pinnedSectionIds={pinnedSectionIds}
       sectionFrames={sectionFrames}
       onUpdateSection={handleUpdateSection}

@@ -19,6 +19,8 @@ export type BuiltInContextMenuAction =
   | 'pinNode'
   | 'unpinNode'
   | 'createGraphSection'
+  | 'expandGraphSection'
+  | 'collapseGraphSection'
   | 'focus'
   | 'addToFilter'
   | 'addNodeLegend'
@@ -59,6 +61,8 @@ export interface GraphContextMenuNode {
   id: string;
   label?: string;
   color?: string;
+  isCollapsedGraphSection?: boolean;
+  isGraphSection?: boolean;
   nodeType?: string;
 }
 

@@ -64,4 +64,45 @@ describe('graph/interaction node double click', () => {
       ],
     });
   });
+
+  it('expands collapsed Graph Sections on double click instead of opening them as files', () => {
+    const result = getNodeDoubleClickCommand(makeNodeDoubleClickOptions({
+      isCollapsedGraphSection: true,
+      isGraphSection: true,
+      nodeId: 'section-1',
+      label: 'Section 1',
+    }));
+
+    expect(result).toEqual({
+      nextLastClick: null,
+      effects: [
+        { kind: 'selectOnlyNode', nodeId: 'section-1' },
+        { kind: 'setGraphSectionCollapsed', sectionId: 'section-1', collapsed: false },
+        {
+          kind: 'sendInteraction',
+          event: 'graph:nodeDoubleClick',
+          payload: {
+            node: { id: 'section-1', label: 'Section 1' },
+            event: { x: 12, y: 24 },
+          },
+        },
+      ],
+    });
+  });
+
+  it('collapses expanded Graph Sections on double click', () => {
+    const result = getNodeDoubleClickCommand(makeNodeDoubleClickOptions({
+      isCollapsedGraphSection: false,
+      isGraphSection: true,
+      nodeId: 'section-1',
+      label: 'Section 1',
+    }));
+
+    expect(result.effects).toContainEqual({
+      kind: 'setGraphSectionCollapsed',
+      sectionId: 'section-1',
+      collapsed: true,
+    });
+    expect(result.effects).not.toContainEqual({ kind: 'openNode', nodeId: 'section-1' });
+  });
 });

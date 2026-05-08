@@ -403,8 +403,8 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.lineTo).toHaveBeenCalledWith(35.2, 38.3);
   });
 
-  it('renders expanded Section Nodes as visible colored Section Frames', () => {
-    const { ctx, operations } = createContext();
+  it('skips expanded Section Nodes because the editable Section Frame follows the live node position', () => {
+    const { ctx } = createContext();
 
     renderNodeCanvas(
       createDependencies({ showLabels: false }),
@@ -426,27 +426,8 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
 
     expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.rect).toHaveBeenCalledWith(100, 120, 280, 180);
-    expect(ctx.rect).toHaveBeenCalledWith(100, 120, 280, 28);
-    expect(ctx.stroke).toHaveBeenCalled();
-    expect(operations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        fillStyle: '#60a5fa22',
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        fillStyle: '#60a5fa33',
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        kind: 'stroke',
-        strokeStyle: '#60a5fa',
-      }),
-      expect.objectContaining({
-        kind: 'fillText',
-        text: 'UI Layer',
-      }),
-    ]));
+    expect(ctx.fill).not.toHaveBeenCalled();
+    expect(ctx.stroke).not.toHaveBeenCalled();
   });
 
   it('renders collapsed Section Nodes as normal graph nodes', () => {
@@ -506,7 +487,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.fill).toHaveBeenCalled();
   });
 
-  it('paints expanded Section Node pointer areas across the full frame', () => {
+  it('skips expanded Section Node pointer areas so member nodes stay clickable', () => {
     const { ctx } = createContext();
 
     paintNodePointerArea(
@@ -524,8 +505,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
 
     expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.rect).toHaveBeenCalledWith(100, 120, 280, 180);
-    expect(ctx.fillStyle).toBe('#ffffff');
-    expect(ctx.fill).toHaveBeenCalled();
+    expect(ctx.rect).not.toHaveBeenCalled();
+    expect(ctx.fill).not.toHaveBeenCalled();
   });
 });

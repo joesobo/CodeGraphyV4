@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GraphLayoutOwnership, GraphLayoutSection } from '../../../../src/shared/settings/graphLayout';
 import {
+  getSectionFrameDisplaySection,
   getSectionFrameDragUpdate,
   getSectionFrameRect,
   getVisibleSectionFrames,
@@ -27,6 +28,25 @@ describe('graph/sectionFrames/model', () => {
       left: 60,
       top: 60,
       width: 280,
+    });
+  });
+
+  it('uses live Section Node coordinates for the editable frame when physics moves the section', () => {
+    const displaySection = getSectionFrameDisplaySection(section, {
+      id: 'section-1',
+      sectionHeight: 210,
+      sectionWidth: 320,
+      x: 25,
+      y: 40,
+    });
+
+    expect(getSectionFrameRect({
+      graph2ScreenCoords: (x, y) => ({ x: x + 200, y: y + 150 }),
+    }, displaySection)).toEqual({
+      height: 210,
+      left: 225,
+      top: 190,
+      width: 320,
     });
   });
 

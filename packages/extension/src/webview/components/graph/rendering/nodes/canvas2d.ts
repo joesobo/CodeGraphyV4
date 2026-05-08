@@ -6,65 +6,10 @@ import { renderNodePinBadge } from '../node/pinBadge';
 import { paintNodePointerArea } from '../node/pointer';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
-import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
+import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
 
 function shouldRenderNodeCanvas(node: FGNode): boolean {
-  return !node.isGraphSection || !!node.isCollapsedGraphSection || isExpandedGraphSectionNode(node);
-}
-
-function isExpandedGraphSectionNode(node: FGNode): boolean {
-  return !!node.isGraphSection && !node.isCollapsedGraphSection;
-}
-
-function readFiniteNumber(value: unknown): number | undefined {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
-}
-
-function getExpandedSectionFrameSize(node: FGNode): { height: number; width: number } {
-  const fallbackSize = Math.max(80, (node.size ?? 20) * 4);
-  return {
-    height: readFiniteNumber(node.sectionHeight) ?? fallbackSize,
-    width: readFiniteNumber(node.sectionWidth) ?? fallbackSize,
-  };
-}
-
-function renderExpandedSectionFrame({
-  appearance,
-  ctx,
-  globalScale,
-  isSelected,
-  node,
-}: {
-  appearance: GraphAppearance;
-  ctx: CanvasRenderingContext2D;
-  globalScale: number;
-  isSelected: boolean;
-  node: FGNode;
-}): void {
-  const x = readFiniteNumber(node.x) ?? 0;
-  const y = readFiniteNumber(node.y) ?? 0;
-  const { height, width } = getExpandedSectionFrameSize(node);
-  const headerHeight = 28 / globalScale;
-
-  ctx.globalAlpha = 1;
-  ctx.beginPath();
-  ctx.rect(x, y, width, height);
-  ctx.fillStyle = `${node.color}22`;
-  ctx.fill();
-  ctx.strokeStyle = isSelected ? appearance.nodeSelectionBorder : node.borderColor;
-  ctx.lineWidth = (isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth) / globalScale;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.rect(x, y, width, headerHeight);
-  ctx.fillStyle = `${node.color}33`;
-  ctx.fill();
-
-  ctx.fillStyle = appearance.labelForeground;
-  ctx.font = `${12 / globalScale}px sans-serif`;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(node.label, x + (8 / globalScale), y + (headerHeight / 2));
+  return !node.isGraphSection || !!node.isCollapsedGraphSection;
 }
 
 function isNodeHighlighted(
@@ -108,24 +53,6 @@ export function renderNodeCanvas(
   const appearance = dependencies.graphAppearanceRef?.current ?? DEFAULT_GRAPH_APPEARANCE;
 
   ctx.save();
-  if (isExpandedGraphSectionNode(node)) {
-    renderExpandedSectionFrame({
-      appearance,
-      ctx,
-      globalScale,
-      isSelected,
-      node,
-    });
-    renderNodePinBadge({
-      appearance,
-      ctx,
-      globalScale,
-      node,
-    });
-    ctx.restore();
-    return;
-  }
-
   ctx.globalAlpha = opacity;
   renderNodeBody({
     appearance,

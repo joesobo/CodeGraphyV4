@@ -6,6 +6,7 @@ import {
   createCreateFileEffects,
   createCreateFolderEffects,
   createGraphSectionEffects,
+  createGraphSectionCollapseEffects,
   createClearPinNodeEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
@@ -60,6 +61,10 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createCreateFolderEffects(context.mutationDirectory),
   createGraphSection: (context: GraphContextActionContext) =>
     createGraphSectionEffects(context),
+  expandGraphSection: (context: GraphContextActionContext) =>
+    createGraphSectionCollapseEffects(context, false),
+  collapseGraphSection: (context: GraphContextActionContext) =>
+    createGraphSectionCollapseEffects(context, true),
 } satisfies Record<BuiltInContextMenuAction, (context: GraphContextActionContext) => GraphContextEffect[]>;
 
 export function getBuiltInContextActionEffectsImpl(

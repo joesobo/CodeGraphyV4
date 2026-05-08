@@ -256,6 +256,33 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
+  it('expands and collapses a Graph Section through context actions', () => {
+    expect(getBuiltInContextActionEffects('expandGraphSection', nodeContext(['section-1']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'UPDATE_GRAPH_LAYOUT_SECTION',
+          payload: {
+            sectionId: 'section-1',
+            updates: { collapsed: false },
+          },
+        },
+      },
+    ]);
+    expect(getBuiltInContextActionEffects('collapseGraphSection', nodeContext(['section-1']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'UPDATE_GRAPH_LAYOUT_SECTION',
+          payload: {
+            sectionId: 'section-1',
+            updates: { collapsed: true },
+          },
+        },
+      },
+    ]);
+  });
+
   it('keeps a default background Graph Section large enough on screen when the graph is zoomed out', () => {
     expect(getBuiltInContextActionEffects('createGraphSection', scaledBackgroundContext(0.2))).toEqual([
       {

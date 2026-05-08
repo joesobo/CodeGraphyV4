@@ -1,4 +1,9 @@
-import { type MouseEvent as ReactMouseEvent, type ReactElement } from 'react';
+import {
+  useEffect,
+  useRef,
+  type MouseEvent as ReactMouseEvent,
+  type ReactElement,
+} from 'react';
 import {
   mdiChevronUp,
   mdiPin,
@@ -11,31 +16,76 @@ import {
   type SectionFrameUpdateHandler,
 } from './drag';
 import {
+  getSectionFrameDisplaySection,
   getSectionFrameRect,
   getVisibleSectionFrames,
   type SectionFrameDragType,
   type SectionFrameGraph,
+  type SectionFrameNodePosition,
 } from './model';
 
 interface SectionFramesProps {
   graph?: SectionFrameGraph;
   ownership?: Readonly<Record<string, GraphLayoutOwnership>>;
   pinnedSectionIds?: ReadonlySet<string>;
+  sectionNodePositions?: ReadonlyMap<string, SectionFrameNodePosition>;
   sections: readonly GraphLayoutSection[];
   onUpdateSection: SectionFrameUpdateHandler;
+}
+
+function applySectionFrameElementRect(
+  element: HTMLDivElement,
+  graph: SectionFrameGraph | undefined,
+  section: GraphLayoutSection,
+): void {
+  const rect = getSectionFrameRect(graph, section);
+  element.style.height = `${rect.height}px`;
+  element.style.left = `${rect.left}px`;
+  element.style.top = `${rect.top}px`;
+  element.style.width = `${rect.width}px`;
 }
 
 export function SectionFrames({
   graph,
   ownership = {},
   pinnedSectionIds = new Set<string>(),
+  sectionNodePositions = new Map<string, SectionFrameNodePosition>(),
   sections,
   onUpdateSection,
 }: SectionFramesProps): ReactElement | null {
+  const frameElementsRef = useRef(new Map<string, HTMLDivElement>());
   const visibleSections = getVisibleSectionFrames(
     sections,
     ownership,
   );
+
+  useEffect(() => {
+    if (visibleSections.length === 0 || sectionNodePositions.size === 0) {
+      return undefined;
+    }
+
+    let frame = 0;
+    const updateFrameRects = (): void => {
+      for (const section of visibleSections) {
+        const element = frameElementsRef.current.get(section.id);
+        if (!element) {
+          continue;
+        }
+
+        applySectionFrameElementRect(
+          element,
+          graph,
+          getSectionFrameDisplaySection(section, sectionNodePositions.get(section.id)),
+        );
+      }
+      frame = requestAnimationFrame(updateFrameRects);
+    };
+
+    updateFrameRects();
+
+    return () => cancelAnimationFrame(frame);
+  }, [graph, sectionNodePositions, visibleSections]);
+
   if (visibleSections.length === 0) {
     return null;
   }
@@ -58,16 +108,38 @@ export function SectionFrames({
     }, onUpdateSection);
   }
 
+  function registerFrameElement(sectionId: string, element: HTMLDivElement | null): void {
+    if (element) {
+      frameElementsRef.current.set(sectionId, element);
+      return;
+    }
+
+    frameElementsRef.current.delete(sectionId);
+  }
+
+  function getDisplaySection(section: GraphLayoutSection): GraphLayoutSection {
+    return getSectionFrameDisplaySection(section, sectionNodePositions.get(section.id));
+  }
+
   return (
     <div className="pointer-events-none absolute inset-0 z-10" data-testid="graph-section-frames">
       {visibleSections.map(section => {
-        const rect = getSectionFrameRect(graph, section);
+        const displaySection = getDisplaySection(section);
+        const rect = getSectionFrameRect(graph, displaySection);
         return (
           <div
             key={section.id}
+            ref={(element) => registerFrameElement(section.id, element)}
             data-testid={`graph-section-frame-${section.id}`}
-            className="pointer-events-auto absolute overflow-hidden rounded-md border bg-[rgba(59,130,246,0.08)] shadow-sm"
-            onMouseDown={(event) => beginDrag(event, section, 'move')}
+            className="pointer-events-none absolute overflow-hidden rounded-md border bg-[rgba(59,130,246,0.08)] shadow-sm"
+            onDoubleClick={(event) => {
+              if (isSectionFrameControl(event.target)) {
+                return;
+              }
+
+              onUpdateSection(section.id, { collapsed: true });
+            }}
+            onMouseDown={(event) => beginDrag(event, getDisplaySection(section), 'move')}
             style={{
               borderColor: section.color,
               height: rect.height,
@@ -76,8 +148,9 @@ export function SectionFrames({
               width: rect.width,
             }}
           >
-              <div
-              className="flex h-7 items-center gap-1 border-b px-1"
+            <div
+              data-testid={`graph-section-drag-handle-${section.id}`}
+              className="pointer-events-auto flex h-7 items-center gap-1 border-b px-1"
               style={{ backgroundColor: `${section.color}22`, borderColor: section.color }}
             >
               <button
@@ -121,8 +194,8 @@ export function SectionFrames({
             <div
               data-graph-section-control="true"
               data-testid={`graph-section-resize-${section.id}`}
-              className="absolute bottom-0 right-0 h-3 w-3 cursor-se-resize border-b-2 border-r-2"
-              onMouseDown={(event) => beginDrag(event, section, 'resize')}
+              className="pointer-events-auto absolute bottom-0 right-0 h-3 w-3 cursor-se-resize border-b-2 border-r-2"
+              onMouseDown={(event) => beginDrag(event, getDisplaySection(section), 'resize')}
               style={{ borderColor: section.color }}
             />
           </div>

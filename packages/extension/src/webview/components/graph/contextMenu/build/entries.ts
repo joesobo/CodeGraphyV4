@@ -6,7 +6,11 @@ import {
 } from '../contracts';
 import { decideGraphContextMenu } from '../decision/model';
 import { buildEdgeEntries } from '../edge/entries';
-import { buildNodeEntries, buildSingleFolderNodeEntries } from '../node/entries';
+import {
+  buildNodeEntries,
+  buildSingleFolderNodeEntries,
+  buildSingleGraphSectionNodeEntries,
+} from '../node/entries';
 import { buildPluginEntriesForDecision } from '../plugin/entries';
 import type { GraphContextMenuDecision } from '../decision/model';
 
@@ -49,6 +53,13 @@ export function buildGraphContextMenuEntries(
         favorites,
         pinnedNodeIds,
       )
+      : decision.kind === 'singleGraphSectionNode'
+        ? buildSingleGraphSectionNodeEntries(
+          decision.target.id,
+          !!decision.target.isCollapsedGraphSection,
+          mutationAvailability,
+          pinnedNodeIds,
+        )
       : decision.kind === 'edge'
         ? buildEdgeEntries(decision.targets)
         : decision.kind === 'emptyNodeSelection'

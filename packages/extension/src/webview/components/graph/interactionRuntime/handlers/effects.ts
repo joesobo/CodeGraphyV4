@@ -46,6 +46,16 @@ export function createEffectHandlers(
     postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
   };
 
+  const setGraphSectionCollapsed = (sectionId: string, collapsed: boolean): void => {
+    postMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_SECTION',
+      payload: {
+        sectionId,
+        updates: { collapsed },
+      },
+    });
+  };
+
   const applyGraphInteractionEffects = (
     effects: GraphInteractionEffect[],
     options: GraphInteractionOptions<FGLink> = {},
@@ -63,6 +73,7 @@ export function createEffectHandlers(
         previewNode,
         selectOnlyNode: handlers.selectOnlyNode,
         sendInteraction: sendGraphInteraction,
+        setGraphSectionCollapsed,
         setSelection: handlers.setSelection,
       },
       options,

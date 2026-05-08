@@ -28,6 +28,7 @@ import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBound
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
 import { SectionFrames } from '../sectionFrames/view';
+import type { SectionFrameNodePosition } from '../sectionFrames/model';
 
 export interface ViewportProps {
   canvasBackgroundColor: string;
@@ -49,6 +50,7 @@ export interface ViewportProps {
     screen2GraphCoords?(x: number, y: number): { x: number; y: number };
   };
   sectionFrameOwnership?: Readonly<Record<string, GraphLayoutOwnership>>;
+  sectionNodePositions?: ReadonlyMap<string, SectionFrameNodePosition>;
   pinnedSectionIds?: ReadonlySet<string>;
   sectionFrames?: readonly GraphLayoutSection[];
   onUpdateSection?(this: void, sectionId: string, updates: GraphLayoutSectionUpdate): void;
@@ -186,6 +188,7 @@ export function Viewport({
   menuEntries,
   sectionFrameGraph,
   sectionFrameOwnership = {},
+  sectionNodePositions,
   pinnedSectionIds = EMPTY_PINNED_SECTION_IDS,
   sectionFrames = [],
   surface2dProps,
@@ -221,6 +224,7 @@ export function Viewport({
           <SectionFrames
             graph={sectionFrameGraph}
             ownership={sectionFrameOwnership}
+            sectionNodePositions={sectionNodePositions}
             pinnedSectionIds={pinnedSectionIds}
             sections={sectionFrames}
             onUpdateSection={onUpdateSection}
