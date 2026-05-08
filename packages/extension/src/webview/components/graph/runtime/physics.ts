@@ -13,7 +13,9 @@ const COLLISION_PADDING = 4;
 const COLLISION_ITERATIONS = 16;
 const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
+const SECTION_MEMBER_ANCHOR_STRENGTH = 0.16;
 const SECTION_EXTERNAL_PUSH_STRENGTH = 0.4;
+const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
 
 interface GraphPhysicsControls {
 	d3Force(name: string): unknown;
@@ -33,6 +35,18 @@ export interface GraphSectionBoundsForce {
 	initialize(nodes: FGNode[]): void;
 }
 
+interface BoundsRect {
+	height: number;
+	width: number;
+	x: number;
+	y: number;
+}
+
+interface RectangleCollisionRect extends BoundsRect {
+	centerX: number;
+	centerY: number;
+}
+
 function isFiniteNumber(value: unknown): value is number {
 	return typeof value === 'number' && Number.isFinite(value);
 }
@@ -49,7 +63,7 @@ function getSectionBounds(
 	sectionNode: FGNode | undefined,
 	sectionId: string,
 	graphLayout: GraphLayoutSettings,
-): { height: number; width: number; x: number; y: number } | undefined {
+): BoundsRect | undefined {
 	const section = graphLayout.sections[sectionId];
 	if (!section || section.collapsed) {
 		return undefined;
@@ -77,7 +91,7 @@ function clamp(value: number, minimum: number, maximum: number): number {
 
 function isPinnedInsideBounds(
   node: FGNode,
-  bounds: { height: number; width: number; x: number; y: number },
+  bounds: BoundsRect,
   margin: number,
 ): boolean {
 	return isFiniteNumber(node.fx)
@@ -93,8 +107,8 @@ function resolveNodeCoordinate(value: unknown, fallback: number): number {
 }
 
 function getSectionMemberBounds(
-	bounds: { height: number; width: number; x: number; y: number },
-): { height: number; width: number; x: number; y: number } {
+	bounds: BoundsRect,
+): BoundsRect {
 	return {
 		height: Math.max(1, bounds.height - SECTION_FRAME_HEADER_HEIGHT),
 		width: bounds.width,
@@ -105,7 +119,7 @@ function getSectionMemberBounds(
 
 function getConstrainedMemberPosition(
 	node: FGNode,
-	bounds: { height: number; width: number; x: number; y: number },
+	bounds: BoundsRect,
 ): { margin: number; x: number; y: number } | undefined {
 	const margin = Math.max(1, node.size ?? 1) + SECTION_MEMBER_PADDING;
 	if (isPinnedInsideBounds(node, bounds, margin)) {
@@ -140,7 +154,7 @@ function applyConstrainedMemberCoordinates(
 
 function applyMemberCenterVelocity(
 	node: FGNode,
-	bounds: { height: number; width: number; x: number; y: number },
+	bounds: BoundsRect,
 	alpha: number,
 	x: number,
 	y: number,
@@ -153,7 +167,7 @@ function applyMemberCenterVelocity(
 
 function constrainMemberNode(
   node: FGNode,
-  bounds: { height: number; width: number; x: number; y: number },
+  bounds: BoundsRect,
   alpha: number,
 ): void {
 	const memberBounds = getSectionMemberBounds(bounds);
@@ -204,9 +218,9 @@ function isOwnedBySection(
 function createSectionBoundsMap(
 	nodes: readonly FGNode[],
 	graphLayout: GraphLayoutSettings,
-): Map<string, { height: number; width: number; x: number; y: number }> {
+): Map<string, BoundsRect> {
 	const nodeMap = createNodeMap(nodes);
-	const bounds = new Map<string, { height: number; width: number; x: number; y: number }>();
+	const bounds = new Map<string, BoundsRect>();
 
 	for (const sectionId of Object.keys(graphLayout.sections)) {
 		const sectionBounds = getSectionBounds(nodeMap.get(sectionId), sectionId, graphLayout);
@@ -221,7 +235,7 @@ function createSectionBoundsMap(
 function isWithinExpandedBounds(
 	x: number,
 	y: number,
-	bounds: { height: number; width: number; x: number; y: number },
+	bounds: BoundsRect,
 	margin: number,
 ): boolean {
 	return x > bounds.x - margin
@@ -233,7 +247,7 @@ function isWithinExpandedBounds(
 function findNearestExit(
 	x: number,
 	y: number,
-	bounds: { height: number; width: number; x: number; y: number },
+	bounds: BoundsRect,
 	margin: number,
 ): { directionX: number; directionY: number; distance: number; x: number; y: number } {
 	const candidates = [
@@ -262,7 +276,7 @@ function findNearestExit(
 
 function pushExternalNodeOutOfSection(
 	node: FGNode,
-	bounds: { height: number; width: number; x: number; y: number },
+	bounds: BoundsRect,
 	alpha: number,
 ): void {
 	const margin = Math.max(1, node.size ?? 1) + SECTION_MEMBER_PADDING;
@@ -283,11 +297,11 @@ function pushExternalNodeOutOfSection(
 
 function repelExternalNodesFromSections(
 	node: FGNode,
-	sectionBounds: ReadonlyMap<string, { height: number; width: number; x: number; y: number }>,
+	sectionBounds: ReadonlyMap<string, BoundsRect>,
 	graphLayout: GraphLayoutSettings,
 	alpha: number,
 ): void {
-	if (node.isDragging) {
+	if (node.isDragging || node.isGraphSection) {
 		return;
 	}
 
@@ -300,6 +314,246 @@ function repelExternalNodesFromSections(
 	}
 }
 
+function getNodeRectangleCollisionRect(node: FGNode): RectangleCollisionRect | undefined {
+	if (!isFiniteNumber(node.x) || !isFiniteNumber(node.y)) {
+		return undefined;
+	}
+
+	if (
+		node.isGraphSection
+		&& !node.isCollapsedGraphSection
+		&& isFiniteNumber(node.sectionHeight)
+		&& isFiniteNumber(node.sectionWidth)
+	) {
+		return {
+			centerX: node.x,
+			centerY: node.y,
+			height: node.sectionHeight,
+			width: node.sectionWidth,
+			x: node.x - (node.sectionWidth / 2),
+			y: node.y - (node.sectionHeight / 2),
+		};
+	}
+
+	const radius = getGraphCollisionRadius(node);
+	return {
+		centerX: node.x,
+		centerY: node.y,
+		height: radius * 2,
+		width: radius * 2,
+		x: node.x - radius,
+		y: node.y - radius,
+	};
+}
+
+function isExpandedGraphSection(node: FGNode): boolean {
+	return !!node.isGraphSection && !node.isCollapsedGraphSection;
+}
+
+function shouldApplyRectangleCollision(
+	left: FGNode,
+	right: FGNode,
+	graphLayout: GraphLayoutSettings,
+): boolean {
+	if (!isExpandedGraphSection(left) && !isExpandedGraphSection(right)) {
+		return false;
+	}
+
+	if (left.isGraphSection && isOwnedBySection(right, left.id, graphLayout)) {
+		return false;
+	}
+
+	if (right.isGraphSection && isOwnedBySection(left, right.id, graphLayout)) {
+		return false;
+	}
+
+	return true;
+}
+
+function getCollisionMoveWeight(node: FGNode): number {
+	return node.isDragging || node.isPinned ? 0 : 1;
+}
+
+function getCollisionDirection(left: FGNode, right: FGNode, leftCenter: number, rightCenter: number): number {
+	if (leftCenter < rightCenter) {
+		return -1;
+	}
+
+	if (leftCenter > rightCenter) {
+		return 1;
+	}
+
+	return left.id < right.id ? -1 : 1;
+}
+
+function applyRectangleCollisionVelocity(
+	left: FGNode,
+	right: FGNode,
+	axis: 'x' | 'y',
+	direction: number,
+	overlap: number,
+	alpha: number,
+): void {
+	const leftWeight = getCollisionMoveWeight(left);
+	const rightWeight = getCollisionMoveWeight(right);
+	const totalWeight = leftWeight + rightWeight;
+	if (totalWeight === 0) {
+		return;
+	}
+
+	const impulse = overlap * SECTION_RECTANGLE_COLLISION_STRENGTH * alpha;
+	const leftImpulse = direction * impulse * (leftWeight / totalWeight);
+	const rightImpulse = -direction * impulse * (rightWeight / totalWeight);
+
+	if (axis === 'x') {
+		left.vx = (left.vx ?? 0) + leftImpulse;
+		right.vx = (right.vx ?? 0) + rightImpulse;
+		return;
+	}
+
+	left.vy = (left.vy ?? 0) + leftImpulse;
+	right.vy = (right.vy ?? 0) + rightImpulse;
+}
+
+function applyRectangleCollision(
+	left: FGNode,
+	right: FGNode,
+	graphLayout: GraphLayoutSettings,
+	alpha: number,
+): void {
+	if (!shouldApplyRectangleCollision(left, right, graphLayout)) {
+		return;
+	}
+
+	const leftRect = getNodeRectangleCollisionRect(left);
+	const rightRect = getNodeRectangleCollisionRect(right);
+	if (!leftRect || !rightRect) {
+		return;
+	}
+
+	const overlapX = Math.min(leftRect.x + leftRect.width, rightRect.x + rightRect.width)
+		- Math.max(leftRect.x, rightRect.x);
+	const overlapY = Math.min(leftRect.y + leftRect.height, rightRect.y + rightRect.height)
+		- Math.max(leftRect.y, rightRect.y);
+	if (overlapX <= 0 || overlapY <= 0) {
+		return;
+	}
+
+	if (overlapX <= overlapY) {
+		applyRectangleCollisionVelocity(
+			left,
+			right,
+			'x',
+			getCollisionDirection(left, right, leftRect.centerX, rightRect.centerX),
+			overlapX,
+			alpha,
+		);
+		return;
+	}
+
+	applyRectangleCollisionVelocity(
+		left,
+		right,
+		'y',
+		getCollisionDirection(left, right, leftRect.centerY, rightRect.centerY),
+		overlapY,
+		alpha,
+	);
+}
+
+function applyRectangleCollisions(
+	nodes: readonly FGNode[],
+	graphLayout: GraphLayoutSettings,
+	alpha: number,
+): void {
+	for (let leftIndex = 0; leftIndex < nodes.length; leftIndex += 1) {
+		if (!isExpandedGraphSection(nodes[leftIndex])) {
+			continue;
+		}
+
+		for (let rightIndex = 0; rightIndex < nodes.length; rightIndex += 1) {
+			if (
+				rightIndex === leftIndex
+				|| (isExpandedGraphSection(nodes[rightIndex]) && rightIndex < leftIndex)
+			) {
+				continue;
+			}
+
+			applyRectangleCollision(nodes[leftIndex], nodes[rightIndex], graphLayout, alpha);
+		}
+	}
+}
+
+function getSectionMemberCentroid(
+	sectionId: string,
+	nodes: readonly FGNode[],
+	graphLayout: GraphLayoutSettings,
+): { x: number; y: number } | undefined {
+	let count = 0;
+	let totalX = 0;
+	let totalY = 0;
+
+	for (const node of nodes) {
+		if (
+			node.id === sectionId
+			|| node.isGraphSection
+			|| node.isDragging
+			|| !isOwnedBySection(node, sectionId, graphLayout)
+			|| !isFiniteNumber(node.x)
+			|| !isFiniteNumber(node.y)
+		) {
+			continue;
+		}
+
+		count += 1;
+		totalX += node.x;
+		totalY += node.y;
+	}
+
+	return count === 0
+		? undefined
+		: { x: totalX / count, y: totalY / count };
+}
+
+function pullSectionTowardOwnedMembers(
+	sectionNode: FGNode,
+	bounds: BoundsRect,
+	centroid: { x: number; y: number } | undefined,
+	alpha: number,
+): void {
+	if (!centroid || sectionNode.isDragging || sectionNode.isPinned) {
+		return;
+	}
+
+	const memberBounds = getSectionMemberBounds(bounds);
+	const centerX = memberBounds.x + (memberBounds.width / 2);
+	const centerY = memberBounds.y + (memberBounds.height / 2);
+	sectionNode.vx = (sectionNode.vx ?? 0) + (centroid.x - centerX) * SECTION_MEMBER_ANCHOR_STRENGTH * alpha;
+	sectionNode.vy = (sectionNode.vy ?? 0) + (centroid.y - centerY) * SECTION_MEMBER_ANCHOR_STRENGTH * alpha;
+}
+
+function pullSectionsTowardOwnedMembers(
+	nodes: readonly FGNode[],
+	sectionBounds: ReadonlyMap<string, BoundsRect>,
+	graphLayout: GraphLayoutSettings,
+	alpha: number,
+): void {
+	const nodeMap = createNodeMap(nodes);
+	for (const [sectionId, bounds] of sectionBounds) {
+		const sectionNode = nodeMap.get(sectionId);
+		if (!sectionNode) {
+			continue;
+		}
+
+		pullSectionTowardOwnedMembers(
+			sectionNode,
+			bounds,
+			getSectionMemberCentroid(sectionId, nodes, graphLayout),
+			alpha,
+		);
+	}
+}
+
 export function createGraphSectionBoundsForce(
 	graphLayout: GraphLayoutSettings,
 ): GraphSectionBoundsForce {
@@ -307,6 +561,8 @@ export function createGraphSectionBoundsForce(
 
 	const force = ((alpha: number): void => {
 		const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
+		pullSectionsTowardOwnedMembers(nodes, sectionBounds, graphLayout, alpha);
+		applyRectangleCollisions(nodes, graphLayout, alpha);
 
 		for (const node of nodes) {
 			if (node.isDragging) {
