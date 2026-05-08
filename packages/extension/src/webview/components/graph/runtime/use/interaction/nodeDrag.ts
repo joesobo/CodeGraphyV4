@@ -1,7 +1,9 @@
 import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
 import {
   findDeepestGraphLayoutSectionAtPoint,
+  isGraphLayoutSectionDescendant,
   type GraphLayoutMode,
+  type GraphLayoutOwnershipUpdate,
   type GraphLayoutSettings,
 } from '../../../../../../shared/settings/graphLayout';
 import type { FGNode } from '../../../model/build';
@@ -12,6 +14,108 @@ type GraphLayoutOwnerDragMessage = Extract<
   WebviewToExtensionMessage,
   { type: 'UPDATE_GRAPH_LAYOUT_OWNER' }
 >;
+
+export interface NodeDragTranslate {
+  x: number;
+  y: number;
+}
+
+export interface NodeDragGroupSession {
+  draggedNodeIds: Set<string>;
+  primaryNodeId: string;
+}
+
+interface NodeDragGraphData {
+  nodes: readonly FGNode[];
+}
+
+interface ApplyNodeDragOptions {
+  graphData: NodeDragGraphData;
+  graphMode: GraphLayoutMode;
+  selectedNodeIds: ReadonlySet<string>;
+}
+
+interface NodeDragEndOptions {
+  graphData: NodeDragGraphData;
+  graphLayout: GraphLayoutSettings | undefined;
+  graphMode: GraphLayoutMode;
+  timelineActive: boolean;
+}
+
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isFiniteTranslate(translate: NodeDragTranslate): boolean {
+  return isFiniteNumber(translate.x) && isFiniteNumber(translate.y);
+}
+
+function createNodeMap(nodes: readonly FGNode[]): Map<string, FGNode> {
+  return new Map(nodes.map(node => [node.id, node]));
+}
+
+function readLiveSectionDimension(
+  value: unknown,
+  fallback: number,
+): number {
+  return isFiniteNumber(value) ? value : fallback;
+}
+
+function createLiveGraphLayout(
+  graphLayout: GraphLayoutSettings,
+  graphNodes: readonly FGNode[] | undefined,
+): GraphLayoutSettings {
+  if (!graphNodes || graphNodes.length === 0) {
+    return graphLayout;
+  }
+
+  const sections = { ...graphLayout.sections };
+  for (const node of graphNodes) {
+    if (!node.isGraphSection || node.isCollapsedGraphSection) {
+      continue;
+    }
+
+    const section = sections[node.id];
+    if (!section) {
+      continue;
+    }
+
+    sections[node.id] = {
+      ...section,
+      height: readLiveSectionDimension(node.sectionHeight, section.height),
+      width: readLiveSectionDimension(node.sectionWidth, section.width),
+      x: readLiveSectionDimension(node.x, section.x),
+      y: readLiveSectionDimension(node.y, section.y),
+    };
+  }
+
+  return { ...graphLayout, sections };
+}
+
+function getGraphLayoutItemKind(node: FGNode): GraphLayoutOwnershipUpdate['itemKind'] {
+  return node.isGraphSection ? 'section' : 'node';
+}
+
+function createOwnershipCandidateGraphLayout(
+  graphLayout: GraphLayoutSettings,
+  node: FGNode,
+): GraphLayoutSettings {
+  if (!node.isGraphSection) {
+    return graphLayout;
+  }
+
+  const sections = { ...graphLayout.sections };
+  for (const sectionId of Object.keys(sections)) {
+    if (
+      sectionId === node.id
+      || isGraphLayoutSectionDescendant(graphLayout.ownership, sectionId, node.id)
+    ) {
+      delete sections[sectionId];
+    }
+  }
+
+  return { ...graphLayout, sections };
+}
 
 function createPinnedNodeDragMessage(
   node: FGNode,
@@ -49,6 +153,7 @@ function createGraphLayoutOwnerDragMessage(
   graphLayout: GraphLayoutSettings | undefined,
   graphMode: GraphLayoutMode,
   timelineActive: boolean,
+  graphNodes?: readonly FGNode[],
 ): GraphLayoutOwnerDragMessage | undefined {
   if (!canUpdateGraphLayoutOwnerOnDrag(graphLayout, graphMode, timelineActive)) {
     return undefined;
@@ -59,7 +164,9 @@ function createGraphLayoutOwnerDragMessage(
     return undefined;
   }
 
-  const ownerSectionId = findDeepestGraphLayoutSectionAtPoint(graphLayout, position);
+  const liveGraphLayout = createLiveGraphLayout(graphLayout, graphNodes);
+  const ownerCandidateGraphLayout = createOwnershipCandidateGraphLayout(liveGraphLayout, node);
+  const ownerSectionId = findDeepestGraphLayoutSectionAtPoint(ownerCandidateGraphLayout, position);
   const currentOwnerSectionId = graphLayout.ownership[node.id]?.ownerSectionId ?? null;
   if (ownerSectionId === currentOwnerSectionId) {
     return undefined;
@@ -69,7 +176,7 @@ function createGraphLayoutOwnerDragMessage(
     type: 'UPDATE_GRAPH_LAYOUT_OWNER',
     payload: {
       itemId: node.id,
-      itemKind: 'node',
+      itemKind: getGraphLayoutItemKind(node),
       ownerSectionId,
     },
   };
@@ -79,22 +186,131 @@ export function markNodeDragging(node: FGNode): void {
   node.isDragging = true;
 }
 
+function releaseNodeDrag(node: FGNode, graphMode: GraphLayoutMode): void {
+  node.isDragging = false;
+
+  if (node.isPinned) {
+    return;
+  }
+
+  if (graphMode === '2d') {
+    node.fx = undefined;
+    node.fy = undefined;
+  } else {
+    node.fx = undefined;
+    node.fy = undefined;
+    node.fz = undefined;
+  }
+}
+
+function moveNodeByTranslate(node: FGNode, translate: NodeDragTranslate): void {
+  if (!isFiniteTranslate(translate)) {
+    return;
+  }
+
+  const x = (isFiniteNumber(node.x) ? node.x : 0) + translate.x;
+  const y = (isFiniteNumber(node.y) ? node.y : 0) + translate.y;
+  node.x = x;
+  node.y = y;
+  node.fx = x;
+  node.fy = y;
+  node.vx = 0;
+  node.vy = 0;
+}
+
+function createDragGroupSession(
+  primaryNode: FGNode,
+  options: ApplyNodeDragOptions,
+): NodeDragGroupSession | null {
+  if (
+    options.graphMode !== '2d'
+    || !options.selectedNodeIds.has(primaryNode.id)
+    || options.selectedNodeIds.size < 2
+  ) {
+    return null;
+  }
+
+  const nodesById = createNodeMap(options.graphData.nodes);
+  const draggedNodeIds = new Set<string>();
+  for (const nodeId of options.selectedNodeIds) {
+    if (nodesById.has(nodeId)) {
+      draggedNodeIds.add(nodeId);
+    }
+  }
+
+  return draggedNodeIds.size > 1
+    ? { draggedNodeIds, primaryNodeId: primaryNode.id }
+    : null;
+}
+
+export function applyNodeDrag(
+  primaryNode: FGNode,
+  translate: NodeDragTranslate,
+  options: ApplyNodeDragOptions,
+  session: NodeDragGroupSession | null = null,
+): NodeDragGroupSession | null {
+  markNodeDragging(primaryNode);
+
+  const nextSession = session ?? createDragGroupSession(primaryNode, options);
+  if (!nextSession || !isFiniteTranslate(translate)) {
+    return nextSession;
+  }
+
+  const nodesById = createNodeMap(options.graphData.nodes);
+  for (const nodeId of nextSession.draggedNodeIds) {
+    const node = nodesById.get(nodeId);
+    if (!node) {
+      continue;
+    }
+
+    markNodeDragging(node);
+    if (node.id !== primaryNode.id) {
+      moveNodeByTranslate(node, translate);
+    }
+  }
+
+  return nextSession;
+}
+
+function getDragEndNodes(
+  primaryNode: FGNode,
+  session: NodeDragGroupSession | null,
+  graphData: NodeDragGraphData,
+): FGNode[] {
+  if (!session) {
+    return [primaryNode];
+  }
+
+  const nodesById = createNodeMap(graphData.nodes);
+  const nodes: FGNode[] = [];
+  for (const nodeId of session.draggedNodeIds) {
+    const node = nodeId === primaryNode.id ? primaryNode : nodesById.get(nodeId);
+    if (node) {
+      nodes.push(node);
+    }
+  }
+
+  return nodes;
+}
+
 export function postNodeDragEndMessages(
   node: FGNode,
   graphLayout: GraphLayoutSettings | undefined,
   graphMode: GraphLayoutMode,
   timelineActive: boolean,
+  graphNodes?: readonly FGNode[],
 ): void {
   const ownerMessage = createGraphLayoutOwnerDragMessage(
     node,
     graphLayout,
     graphMode,
     timelineActive,
+    graphNodes,
   );
   if (ownerMessage) {
     node.ownerSectionId = ownerMessage.payload.ownerSectionId;
   }
-  node.isDragging = false;
+  releaseNodeDrag(node, graphMode);
 
   const messages = [
     createPinnedNodeDragMessage(node, graphMode),
@@ -105,5 +321,39 @@ export function postNodeDragEndMessages(
     if (message) {
       postMessage(message);
     }
+  }
+}
+
+export function updateNodeDragOwnerPreview(
+  node: FGNode,
+  options: NodeDragEndOptions,
+): void {
+  if (!canUpdateGraphLayoutOwnerOnDrag(options.graphLayout, options.graphMode, options.timelineActive)) {
+    return;
+  }
+
+  const position = readNodePosition(node, options.graphMode);
+  if (!position) {
+    return;
+  }
+
+  const liveGraphLayout = createLiveGraphLayout(options.graphLayout, options.graphData.nodes);
+  const ownerCandidateGraphLayout = createOwnershipCandidateGraphLayout(liveGraphLayout, node);
+  node.ownerSectionId = findDeepestGraphLayoutSectionAtPoint(ownerCandidateGraphLayout, position);
+}
+
+export function postDraggedNodesDragEndMessages(
+  primaryNode: FGNode,
+  session: NodeDragGroupSession | null,
+  options: NodeDragEndOptions,
+): void {
+  for (const node of getDragEndNodes(primaryNode, session, options.graphData)) {
+    postNodeDragEndMessages(
+      node,
+      options.graphLayout,
+      options.graphMode,
+      options.timelineActive,
+      options.graphData.nodes,
+    );
   }
 }

@@ -26,8 +26,21 @@ describe('graph/sectionFrames/model', () => {
     }, section)).toEqual({
       height: 180,
       left: 60,
+      scale: 1,
       top: 60,
       width: 280,
+    });
+  });
+
+  it('reports the graph viewport scale from transformed Section Frame bounds', () => {
+    expect(getSectionFrameRect({
+      graph2ScreenCoords: (x, y) => ({ x: (x * 0.25) + 200, y: (y * 0.25) + 150 }),
+    }, section)).toEqual({
+      height: 45,
+      left: 165,
+      scale: 0.25,
+      top: 127.5,
+      width: 70,
     });
   });
 
@@ -45,6 +58,7 @@ describe('graph/sectionFrames/model', () => {
     }, displaySection)).toEqual({
       height: 210,
       left: 225,
+      scale: 1,
       top: 190,
       width: 320,
     });
@@ -54,6 +68,7 @@ describe('graph/sectionFrames/model', () => {
     expect(getSectionFrameRect(undefined, section)).toEqual({
       height: 180,
       left: -140,
+      scale: 1,
       top: -90,
       width: 280,
     });
@@ -63,6 +78,7 @@ describe('graph/sectionFrames/model', () => {
     expect(getSectionFrameRect({}, section)).toEqual({
       height: 180,
       left: -140,
+      scale: 1,
       top: -90,
       width: 280,
     });

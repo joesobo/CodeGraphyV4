@@ -574,6 +574,60 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     });
   });
 
+  it('moves selected peer nodes while dragging a selected node', () => {
+    const interactionHandlers = createInteractionHandlers();
+    const contextMenuRuntime = createContextMenuRuntime();
+    const tooltipRuntime = createTooltipRuntime();
+
+    interactionRuntimeHarness.createGraphInteractionHandlers.mockReturnValue(interactionHandlers);
+    interactionRuntimeHarness.createGraphContextMenuRuntime.mockReturnValue(contextMenuRuntime);
+    interactionRuntimeHarness.useGraphTooltip.mockReturnValue(tooltipRuntime);
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+
+    const primary = { id: 'src/app.ts', x: 15, y: 12 } as FGNode;
+    const sibling = { id: 'src/util.ts', x: 30, y: 40 } as FGNode;
+    const { result } = renderHook(() => useGraphInteractionRuntime({
+      dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
+      fileInfoCacheRef: { current: new Map() } as never,
+      graphContextSelection: createSelection(['src/app.ts', 'src/util.ts']),
+      graphCursorRef: { current: 'default' as never },
+      graphDataRef: { current: { links: [], nodes: [primary, sibling] } } as never,
+      graphLayout: createNestedGraphLayout(undefined),
+      graphMode: '2d',
+      highlightedNeighborsRef: { current: new Set() },
+      highlightedNodeRef: { current: null },
+      isMacPlatform: false,
+      lastClickRef: { current: null },
+      lastContainerContextMenuEventRef: { current: 0 },
+      lastGraphContextEventRef: { current: 0 },
+      refs: {
+        containerRef: { current: document.createElement('div') },
+        fg2dRef: { current: undefined },
+        fg3dRef: { current: undefined },
+        rightClickFallbackTimerRef: { current: null },
+        rightMouseDownRef: { current: null },
+        selectedNodesSetRef: { current: new Set(['src/app.ts', 'src/util.ts']) },
+      },
+      setContextSelection: vi.fn(),
+      setHighlightVersion: vi.fn(),
+      setSelectedNodes: vi.fn(),
+      timelineActive: false,
+    }));
+
+    result.current.handleNodeDrag(primary, { x: 5, y: -3 });
+
+    expect(primary.isDragging).toBe(true);
+    expect(sibling).toMatchObject({
+      fx: 35,
+      fy: 37,
+      isDragging: true,
+      x: 35,
+      y: 37,
+    });
+  });
+
   it('removes a dragged node from its Graph Section when dropped outside every expanded frame', () => {
     const interactionHandlers = createInteractionHandlers();
     const contextMenuRuntime = createContextMenuRuntime();

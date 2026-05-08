@@ -16,6 +16,7 @@ export interface SectionFrameGraph {
 export interface SectionFrameRect {
   height: number;
   left: number;
+  scale: number;
   top: number;
   width: number;
 }
@@ -48,6 +49,8 @@ export interface SectionFrameDragUpdate {
   sectionId: string;
   updates: GraphLayoutSectionUpdate;
 }
+
+export const SECTION_FRAME_HEADER_HEIGHT = 28;
 
 const MIN_SECTION_SIZE = 80;
 
@@ -94,11 +97,14 @@ export function getSectionFrameRect(
 ): SectionFrameRect {
   const topLeft = graphToScreen(graph, section.x, section.y);
   const bottomRight = graphToScreen(graph, section.x + section.width, section.y + section.height);
+  const height = Math.abs(bottomRight.y - topLeft.y);
+  const width = Math.abs(bottomRight.x - topLeft.x);
   return {
-    height: Math.abs(bottomRight.y - topLeft.y),
+    height,
     left: Math.min(topLeft.x, bottomRight.x),
+    scale: height / Math.max(1, Math.abs(section.height)),
     top: Math.min(topLeft.y, bottomRight.y),
-    width: Math.abs(bottomRight.x - topLeft.x),
+    width,
   };
 }
 

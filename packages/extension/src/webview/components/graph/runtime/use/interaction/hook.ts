@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { resolveGraphContextActionContext } from '../../../contextActions/context';
@@ -23,7 +24,13 @@ import {
   useContextMenuSuppression,
 } from './contextSuppression';
 import { useGraphMarqueeSelectionRuntime } from './marquee/hook';
-import { markNodeDragging, postNodeDragEndMessages } from './nodeDrag';
+import {
+  applyNodeDrag,
+  postDraggedNodesDragEndMessages,
+  updateNodeDragOwnerPreview,
+  type NodeDragGroupSession,
+  type NodeDragTranslate,
+} from './nodeDrag';
 import { createGraphNodePositionMap } from './positions';
 import { useGraphViewportPanRuntime } from './viewportPan/hook';
 
@@ -82,6 +89,7 @@ export function useGraphInteractionRuntime({
   setSelectedNodes,
   timelineActive = false,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
+  const nodeDragGroupRef = useRef<NodeDragGroupSession | null>(null);
   const interactionHandlers = useMemo(
     () => createGraphInteractionHandlers({
       containerRef: refs.containerRef,
@@ -171,11 +179,36 @@ export function useGraphInteractionRuntime({
   );
 
   function handleNodeDragEnd(node: FGNode): void {
-    postNodeDragEndMessages(node, graphLayout, graphMode, timelineActive);
+    postDraggedNodesDragEndMessages(node, nodeDragGroupRef.current, {
+      graphData: graphDataRef.current,
+      graphLayout,
+      graphMode,
+      timelineActive,
+    });
+    nodeDragGroupRef.current = null;
   }
 
-  function handleNodeDrag(node: FGNode): void {
-    markNodeDragging(node);
+  function handleNodeDrag(node: FGNode, translate: NodeDragTranslate): void {
+    nodeDragGroupRef.current = applyNodeDrag(node, translate, {
+      graphData: graphDataRef.current,
+      graphMode,
+      selectedNodeIds: refs.selectedNodesSetRef.current,
+    }, nodeDragGroupRef.current);
+
+    const draggedNodeIds = nodeDragGroupRef.current?.draggedNodeIds ?? new Set([node.id]);
+    const nodesById = new Map(graphDataRef.current.nodes.map(graphNode => [graphNode.id, graphNode]));
+    for (const nodeId of draggedNodeIds) {
+      const draggedNode = nodeId === node.id ? node : nodesById.get(nodeId);
+      if (draggedNode) {
+        updateNodeDragOwnerPreview(draggedNode, {
+          graphData: graphDataRef.current,
+          graphLayout,
+          graphMode,
+          timelineActive,
+        });
+      }
+    }
+
     marqueeRuntime.clearMarqueeSelection();
   }
 

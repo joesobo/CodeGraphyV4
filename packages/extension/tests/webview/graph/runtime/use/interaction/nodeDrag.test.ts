@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GraphLayoutSettings } from '../../../../../../src/shared/settings/graphLayout';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
+  applyNodeDrag,
   markNodeDragging,
+  postDraggedNodesDragEndMessages,
   postNodeDragEndMessages,
 } from '../../../../../../src/webview/components/graph/runtime/use/interaction/nodeDrag';
 
@@ -105,6 +107,38 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
+  it('assigns dragged nodes using live Section Node positions', () => {
+    const layout = createLayout(null);
+    layout.sections.child.x = 20;
+    layout.sections.child.y = 20;
+
+    postNodeDragEndMessages(
+      { id: 'node', x: 340, y: 40 } as FGNode,
+      layout,
+      '2d',
+      false,
+      [
+        {
+          id: 'child',
+          isGraphSection: true,
+          sectionHeight: 80,
+          sectionWidth: 80,
+          x: 300,
+          y: 20,
+        } as FGNode,
+      ],
+    );
+
+    expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'node',
+        itemKind: 'node',
+        ownerSectionId: 'child',
+      },
+    });
+  });
+
   it('marks active node drags and mirrors the new owner locally on drag end', () => {
     const node = { id: 'node', x: 40, y: 40 } as FGNode;
 
@@ -121,6 +155,106 @@ describe('graph/runtime/use/interaction node drag', () => {
         itemId: 'node',
         itemKind: 'node',
         ownerSectionId: 'child',
+      },
+    });
+  });
+
+  it('moves the selected node group by the live drag delta', () => {
+    const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
+    const sibling = { id: 'sibling', vx: 1, vy: 2, x: 30, y: 40 } as FGNode;
+    const outside = { id: 'outside', x: 90, y: 90 } as FGNode;
+
+    const session = applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary, sibling, outside] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(['primary', 'sibling']),
+    });
+
+    expect(session?.draggedNodeIds).toEqual(new Set(['primary', 'sibling']));
+    expect(primary.isDragging).toBe(true);
+    expect(sibling).toMatchObject({
+      fx: 35,
+      fy: 37,
+      isDragging: true,
+      vx: 0,
+      vy: 0,
+      x: 35,
+      y: 37,
+    });
+    expect(outside).toMatchObject({ x: 90, y: 90 });
+  });
+
+  it('posts owner updates for every selected dragged node at drag end', () => {
+    const primary = { id: 'primary', isDragging: true, x: 40, y: 40 } as FGNode;
+    const sibling = { id: 'sibling', isDragging: true, x: 50, y: 50 } as FGNode;
+
+    postDraggedNodesDragEndMessages(
+      primary,
+      {
+        draggedNodeIds: new Set(['primary', 'sibling']),
+        primaryNodeId: 'primary',
+      },
+      {
+        graphData: { nodes: [primary, sibling] },
+        graphLayout: createLayout(null),
+        graphMode: '2d',
+        timelineActive: false,
+      },
+    );
+
+    expect(nodeDragHarness.postMessage).toHaveBeenNthCalledWith(1, {
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'primary',
+        itemKind: 'node',
+        ownerSectionId: 'child',
+      },
+    });
+    expect(nodeDragHarness.postMessage).toHaveBeenNthCalledWith(2, {
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'sibling',
+        itemKind: 'node',
+        ownerSectionId: 'child',
+      },
+    });
+    expect(primary.isDragging).toBe(false);
+    expect(sibling.isDragging).toBe(false);
+  });
+
+  it('does not assign a dragged section to itself', () => {
+    const section = {
+      id: 'child',
+      isGraphSection: true,
+      sectionHeight: 80,
+      sectionWidth: 80,
+      x: 40,
+      y: 40,
+    } as FGNode;
+
+    postNodeDragEndMessages(section, createLayout(null), '2d', false, [section]);
+
+    expect(nodeDragHarness.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('posts dragged section owner changes as section ownership', () => {
+    const section = {
+      id: 'child',
+      isGraphSection: true,
+      sectionHeight: 80,
+      sectionWidth: 80,
+      x: 250,
+      y: 250,
+    } as FGNode;
+
+    postNodeDragEndMessages(section, createLayout(null), '2d', false, [section]);
+
+    expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'child',
+        itemKind: 'section',
+        ownerSectionId: null,
       },
     });
   });

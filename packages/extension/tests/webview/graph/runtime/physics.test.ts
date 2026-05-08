@@ -296,6 +296,35 @@ describe('physics', () => {
     expect(nodes[1].y).toBeGreaterThanOrEqual(46);
   });
 
+  it('keeps Section Members clear of the body edges for visible labels', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 100,
+        sectionWidth: 100,
+        x: 0,
+        y: 0,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 95,
+        y: 95,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1].x).toBeLessThanOrEqual(74);
+    expect(nodes[1].y).toBeLessThanOrEqual(74);
+  });
+
   it('leaves pinned Section Members fixed when they are already inside the owner frame', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
     const nodes = [
@@ -396,6 +425,40 @@ describe('physics', () => {
       vy: 0,
       x: 50,
       y: 50,
+    });
+  });
+
+  it('allows actively dragged Section Members to leave owner bounds before drop', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 100,
+        sectionWidth: 100,
+        x: 0,
+        y: 0,
+      },
+      {
+        id: 'src/member.ts',
+        isDragging: true,
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 160,
+        y: 160,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1]).toMatchObject({
+      vx: 0,
+      vy: 0,
+      x: 160,
+      y: 160,
     });
   });
 });

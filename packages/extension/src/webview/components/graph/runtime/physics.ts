@@ -4,14 +4,14 @@ import { forceCollide, forceX, forceY } from 'd3-force';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { GraphLayoutSettings } from '../../../../shared/settings/graphLayout';
 import { toD3Repel, type FGLink, type FGNode } from '../model/build';
+import { SECTION_FRAME_HEADER_HEIGHT } from '../sectionFrames/model';
 import { hasDistanceAndStrength, hasDistanceMax, hasStrength } from '../support/guards';
 
 export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>;
 const DEFAULT_CHARGE_RANGE = 1000;
 const COLLISION_PADDING = 4;
 const COLLISION_ITERATIONS = 16;
-const SECTION_HEADER_HEIGHT = 28;
-const SECTION_MEMBER_PADDING = 8;
+const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
 const SECTION_EXTERNAL_PUSH_STRENGTH = 0.4;
 
@@ -114,10 +114,10 @@ function getSectionMemberBounds(
 	bounds: { height: number; width: number; x: number; y: number },
 ): { height: number; width: number; x: number; y: number } {
 	return {
-		height: Math.max(1, bounds.height - SECTION_HEADER_HEIGHT),
+		height: Math.max(1, bounds.height - SECTION_FRAME_HEADER_HEIGHT),
 		width: bounds.width,
 		x: bounds.x,
-		y: bounds.y + SECTION_HEADER_HEIGHT,
+		y: bounds.y + SECTION_FRAME_HEADER_HEIGHT,
 	};
 }
 
@@ -327,6 +327,10 @@ export function createGraphSectionBoundsForce(
 		const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
 
 		for (const node of nodes) {
+			if (node.isDragging) {
+				continue;
+			}
+
 			const ownerSectionId = getOwnerSectionId(node, graphLayout);
 			if (node.isGraphSection || !ownerSectionId) {
 				repelExternalNodesFromSections(node, sectionBounds, graphLayout, alpha);
