@@ -68,6 +68,21 @@ describe('classifyConfigChange', () => {
       const event = makeEvent('codegraphy.bidirectionalEdges');
       expect(classifyConfigChange(event)).toBe('display');
     });
+
+    it('returns display when codegraphy.nodeColors is affected', () => {
+      const event = makeEvent('codegraphy.nodeColors');
+      expect(classifyConfigChange(event)).toBe('display');
+    });
+
+    it('returns display when codegraphy.nodeVisibility is affected', () => {
+      const event = makeEvent('codegraphy.nodeVisibility');
+      expect(classifyConfigChange(event)).toBe('display');
+    });
+
+    it('returns display when codegraphy.edgeVisibility is affected', () => {
+      const event = makeEvent('codegraphy.edgeVisibility');
+      expect(classifyConfigChange(event)).toBe('display');
+    });
   });
 
   describe('legend category', () => {
@@ -76,6 +91,13 @@ describe('classifyConfigChange', () => {
       expect(classifyConfigChange(event)).toBe('legend');
     });
 
+  });
+
+  describe('layout category', () => {
+    it('returns layout when codegraphy.graphLayout is affected', () => {
+      const event = makeEvent('codegraphy.graphLayout', 'codegraphy');
+      expect(classifyConfigChange(event)).toBe('layout');
+    });
   });
 
   describe('general category', () => {

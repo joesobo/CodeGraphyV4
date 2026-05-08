@@ -11,6 +11,7 @@ function makeProvider() {
     emitEvent: vi.fn(),
     invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
     sendPlaybackSpeed: vi.fn(),
+    sendGraphLayout: vi.fn(),
   };
 }
 
@@ -79,6 +80,35 @@ describe('executeConfigAction', () => {
     vi.useRealTimers();
   });
 
+  it('does not clear a missing legend refresh timer on the first legend sync', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const provider = makeProvider();
+    const event = makeEvent();
+
+    try {
+      executeConfigAction('legend', event as never, provider as never);
+
+      expect(clearTimeoutSpy).not.toHaveBeenCalled();
+
+      vi.runOnlyPendingTimers();
+    } finally {
+      clearTimeoutSpy.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it('sends graph layout without refreshing for layout category changes', () => {
+    const provider = makeProvider();
+    const event = makeEvent('codegraphy.graphLayout');
+
+    executeConfigAction('layout', event as never, provider as never);
+
+    expect(provider.sendGraphLayout).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
+  });
+
   describe('general category', () => {
     it('syncs the full settings snapshot before refreshing for general category changes', () => {
       const provider = makeProvider();
@@ -96,20 +126,44 @@ describe('executeConfigAction', () => {
     it('calls refresh and emitEvent for general category', () => {
       const provider = makeProvider();
       const event = makeEvent();
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
-      executeConfigAction('general', event as never, provider as never);
+      try {
+        executeConfigAction('general', event as never, provider as never);
 
-      expect(provider.refresh).toHaveBeenCalledOnce();
-      expect(provider.emitEvent).toHaveBeenCalledWith('workspace:configChanged', {
-        key: 'codegraphy',
-        value: undefined,
-        old: undefined,
-      });
+        expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Configuration changed, refreshing graph');
+        expect(provider.refresh).toHaveBeenCalledOnce();
+        expect(provider.emitEvent).toHaveBeenCalledWith('workspace:configChanged', {
+          key: 'codegraphy',
+          value: undefined,
+          old: undefined,
+        });
+      } finally {
+        logSpy.mockRestore();
+      }
     });
 
     it('invalidates timeline cache when filterPatterns changes', () => {
       const provider = makeProvider();
       const event = makeEvent('codegraphy.filterPatterns');
+
+      executeConfigAction('general', event as never, provider as never);
+
+      expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
+    });
+
+    it('invalidates timeline cache when disabledCustomFilterPatterns changes', () => {
+      const provider = makeProvider();
+      const event = makeEvent('codegraphy.disabledCustomFilterPatterns');
+
+      executeConfigAction('general', event as never, provider as never);
+
+      expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
+    });
+
+    it('invalidates timeline cache when disabledPluginFilterPatterns changes', () => {
+      const provider = makeProvider();
+      const event = makeEvent('codegraphy.disabledPluginFilterPatterns');
 
       executeConfigAction('general', event as never, provider as never);
 
