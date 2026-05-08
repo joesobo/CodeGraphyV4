@@ -19,9 +19,14 @@ export interface SectionFrameRect {
 }
 
 export interface SectionFrameNodePosition {
+  fx?: number;
+  fy?: number;
   id: string;
+  isPinned?: boolean;
   sectionHeight?: number;
   sectionWidth?: number;
+  vx?: number;
+  vy?: number;
   x?: number;
   y?: number;
 }
@@ -31,6 +36,7 @@ export type SectionFrameDragType = 'move' | 'resize';
 export interface SectionFrameDragState {
   clientX: number;
   clientY: number;
+  nodePosition?: SectionFrameNodePosition;
   section: GraphLayoutSection;
   type: SectionFrameDragType;
 }

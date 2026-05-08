@@ -103,6 +103,7 @@ export function SectionFrames({
     beginSectionFrameWindowDrag(graph, {
       clientX: event.clientX,
       clientY: event.clientY,
+      nodePosition: sectionNodePositions.get(section.id),
       section,
       type,
     }, onUpdateSection);

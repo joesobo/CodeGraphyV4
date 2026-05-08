@@ -196,6 +196,33 @@ describe('graph/sectionFrames/view', () => {
     });
   });
 
+  it('updates the live Section Node position while dragging the frame header', () => {
+    const { nodePosition, onUpdateSection } = renderSectionFramesWithLiveNodePosition();
+    const dragHandle = screen.getByTestId('graph-section-drag-handle-section-1');
+
+    act(() => {
+      fireEvent.mouseDown(dragHandle, { button: 0, clientX: 225, clientY: 190 });
+      fireEvent.mouseMove(window, { clientX: 245, clientY: 205 });
+    });
+
+    expect(nodePosition).toMatchObject({
+      fx: 45,
+      fy: 55,
+      x: 45,
+      y: 55,
+    });
+    expect(onUpdateSection).not.toHaveBeenCalled();
+
+    act(() => {
+      fireEvent.mouseUp(window, { clientX: 245, clientY: 205 });
+    });
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', {
+      x: 45,
+      y: 55,
+    });
+  });
+
   it('resizes a Section Frame from its southeast handle', () => {
     const { onUpdateSection } = renderSectionFrames();
 

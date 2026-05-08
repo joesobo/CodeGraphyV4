@@ -12,6 +12,7 @@ const COLLISION_PADDING = 4;
 const COLLISION_ITERATIONS = 16;
 const SECTION_MEMBER_PADDING = 8;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
+const SECTION_EXTERNAL_PUSH_STRENGTH = 0.4;
 
 interface GraphPhysicsControls {
 	d3Force(name: string): unknown;
@@ -37,6 +38,32 @@ function isFiniteNumber(value: unknown): value is number {
 
 function createNodeMap(nodes: readonly FGNode[]): Map<string, FGNode> {
 	return new Map(nodes.map(node => [node.id, node]));
+}
+
+function getSectionCollisionSize(
+	node: FGNode,
+): { height: number; width: number } | undefined {
+	if (!node.isGraphSection || node.isCollapsedGraphSection) {
+		return undefined;
+	}
+
+	if (!isFiniteNumber(node.sectionHeight) || !isFiniteNumber(node.sectionWidth)) {
+		return undefined;
+	}
+
+	return {
+		height: node.sectionHeight,
+		width: node.sectionWidth,
+	};
+}
+
+export function getGraphCollisionRadius(node: FGNode): number {
+	const sectionSize = getSectionCollisionSize(node);
+	if (sectionSize) {
+		return (Math.sqrt(sectionSize.width ** 2 + sectionSize.height ** 2) / 2) + COLLISION_PADDING;
+	}
+
+	return (node.size ?? 0) + COLLISION_PADDING;
 }
 
 function getSectionBounds(
@@ -147,28 +174,156 @@ function constrainMemberNode(
 	applyMemberCenterVelocity(node, bounds, alpha, nextX, nextY);
 }
 
+function getOwnerSectionId(
+	node: FGNode,
+	graphLayout: GraphLayoutSettings,
+): string | null {
+	return node.ownerSectionId
+		?? graphLayout.ownership[node.id]?.ownerSectionId
+		?? null;
+}
+
+function isOwnedBySection(
+	node: FGNode,
+	sectionId: string,
+	graphLayout: GraphLayoutSettings,
+): boolean {
+	let ownerSectionId = getOwnerSectionId(node, graphLayout);
+	const visited = new Set<string>();
+	while (ownerSectionId) {
+		if (ownerSectionId === sectionId) {
+			return true;
+		}
+
+		if (visited.has(ownerSectionId)) {
+			return false;
+		}
+
+		visited.add(ownerSectionId);
+		ownerSectionId = graphLayout.ownership[ownerSectionId]?.ownerSectionId ?? null;
+	}
+
+	return false;
+}
+
+function createSectionBoundsMap(
+	nodes: readonly FGNode[],
+	graphLayout: GraphLayoutSettings,
+): Map<string, { height: number; width: number; x: number; y: number }> {
+	const nodeMap = createNodeMap(nodes);
+	const bounds = new Map<string, { height: number; width: number; x: number; y: number }>();
+
+	for (const sectionId of Object.keys(graphLayout.sections)) {
+		const sectionBounds = getSectionBounds(nodeMap.get(sectionId), sectionId, graphLayout);
+		if (sectionBounds) {
+			bounds.set(sectionId, sectionBounds);
+		}
+	}
+
+	return bounds;
+}
+
+function isWithinExpandedBounds(
+	x: number,
+	y: number,
+	bounds: { height: number; width: number; x: number; y: number },
+	margin: number,
+): boolean {
+	return x > bounds.x - margin
+		&& x < bounds.x + bounds.width + margin
+		&& y > bounds.y - margin
+		&& y < bounds.y + bounds.height + margin;
+}
+
+function findNearestExit(
+	x: number,
+	y: number,
+	bounds: { height: number; width: number; x: number; y: number },
+	margin: number,
+): { directionX: number; directionY: number; distance: number; x: number; y: number } {
+	const candidates = [
+		{ directionX: -1, directionY: 0, distance: Math.abs(x - (bounds.x - margin)), x: bounds.x - margin, y },
+		{
+			directionX: 1,
+			directionY: 0,
+			distance: Math.abs((bounds.x + bounds.width + margin) - x),
+			x: bounds.x + bounds.width + margin,
+			y,
+		},
+		{ directionX: 0, directionY: -1, distance: Math.abs(y - (bounds.y - margin)), x, y: bounds.y - margin },
+		{
+			directionX: 0,
+			directionY: 1,
+			distance: Math.abs((bounds.y + bounds.height + margin) - y),
+			x,
+			y: bounds.y + bounds.height + margin,
+		},
+	];
+
+	return candidates.reduce((nearest, candidate) =>
+		candidate.distance < nearest.distance ? candidate : nearest,
+	);
+}
+
+function pushExternalNodeOutOfSection(
+	node: FGNode,
+	bounds: { height: number; width: number; x: number; y: number },
+	alpha: number,
+): void {
+	const margin = Math.max(1, node.size ?? 1) + SECTION_MEMBER_PADDING;
+	const fallbackX = bounds.x + bounds.width / 2;
+	const fallbackY = bounds.y + bounds.height / 2;
+	const x = resolveNodeCoordinate(node.x, fallbackX);
+	const y = resolveNodeCoordinate(node.y, fallbackY);
+
+	if (!isWithinExpandedBounds(x, y, bounds, margin)) {
+		return;
+	}
+
+	const exit = findNearestExit(x, y, bounds, margin);
+	applyConstrainedMemberCoordinates(node, exit.x, exit.y);
+	node.vx = (node.vx ?? 0) + exit.directionX * margin * SECTION_EXTERNAL_PUSH_STRENGTH * alpha;
+	node.vy = (node.vy ?? 0) + exit.directionY * margin * SECTION_EXTERNAL_PUSH_STRENGTH * alpha;
+}
+
+function repelExternalNodesFromSections(
+	node: FGNode,
+	sectionBounds: ReadonlyMap<string, { height: number; width: number; x: number; y: number }>,
+	graphLayout: GraphLayoutSettings,
+	alpha: number,
+): void {
+	for (const [sectionId, bounds] of sectionBounds) {
+		if (node.id === sectionId || isOwnedBySection(node, sectionId, graphLayout)) {
+			continue;
+		}
+
+		pushExternalNodeOutOfSection(node, bounds, alpha);
+	}
+}
+
 export function createGraphSectionBoundsForce(
 	graphLayout: GraphLayoutSettings,
 ): GraphSectionBoundsForce {
 	let nodes: FGNode[] = [];
 
 	const force = ((alpha: number): void => {
-		const nodeMap = createNodeMap(nodes);
+		const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
 
 		for (const node of nodes) {
-			const ownerSectionId = node.ownerSectionId
-				?? graphLayout.ownership[node.id]?.ownerSectionId
-				?? null;
+			const ownerSectionId = getOwnerSectionId(node, graphLayout);
 			if (node.isGraphSection || !ownerSectionId) {
+				repelExternalNodesFromSections(node, sectionBounds, graphLayout, alpha);
 				continue;
 			}
 
-			const bounds = getSectionBounds(nodeMap.get(ownerSectionId), ownerSectionId, graphLayout);
+			const bounds = sectionBounds.get(ownerSectionId);
 			if (!bounds) {
+				repelExternalNodesFromSections(node, sectionBounds, graphLayout, alpha);
 				continue;
 			}
 
 			constrainMemberNode(node, bounds, alpha);
+			repelExternalNodesFromSections(node, sectionBounds, graphLayout, alpha);
 		}
 	}) as GraphSectionBoundsForce;
 
@@ -241,7 +396,7 @@ export function initPhysics(
 	graph.d3Force('forceY', forceY(0).strength(settings.centerForce));
 	graph.d3Force(
 		'collision',
-		forceCollide((node: FGNode) => node.size + COLLISION_PADDING).iterations(COLLISION_ITERATIONS),
+		forceCollide(getGraphCollisionRadius).iterations(COLLISION_ITERATIONS),
 	);
 	if (options.graphLayout || options.graphMode !== '2d') {
 		applyGraphSectionBoundsForce(instance, options);
