@@ -39,8 +39,8 @@ function renderSectionFramesWithLiveNodePosition() {
     id: 'section-1',
     sectionHeight: 210,
     sectionWidth: 320,
-    x: 25,
-    y: 40,
+    x: 185,
+    y: 145,
   };
   render(
     <SectionFrames
@@ -164,6 +164,24 @@ describe('graph/sectionFrames/view', () => {
     expect(screen.getByLabelText('Graph Section color')).toHaveAttribute('tabindex', '-1');
   });
 
+  it('starts hiding Section Frame header controls before labels become cramped', () => {
+    render(
+      <SectionFrames
+        graph={{
+          graph2ScreenCoords: (x, y) => ({ x: (x * 0.6) + 200, y: (y * 0.6) + 150 }),
+          screen2GraphCoords: (x, y) => ({ x: (x - 200) / 0.6, y: (y - 150) / 0.6 }),
+        }}
+        sections={[section]}
+        onUpdateSection={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('graph-section-drag-handle-section-1')).toHaveAttribute(
+      'data-section-frame-header',
+      'hidden',
+    );
+  });
+
   it('anchors editable Section Frames to the live force node position', () => {
     renderSectionFramesWithLiveNodePosition();
 
@@ -175,14 +193,32 @@ describe('graph/sectionFrames/view', () => {
     });
   });
 
-  it('posts label and color updates from the frame controls', () => {
+  it('commits label updates on blur and posts color updates from the frame controls', () => {
     const { onUpdateSection } = renderSectionFrames();
 
     fireEvent.change(screen.getByLabelText('Graph Section label'), { target: { value: 'UI Work' } });
     fireEvent.change(screen.getByLabelText('Graph Section color'), { target: { value: '#22c55e' } });
 
-    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: 'UI Work' });
+    expect(onUpdateSection).not.toHaveBeenCalledWith('section-1', { label: 'UI Work' });
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { color: '#22c55e' });
+
+    fireEvent.blur(screen.getByLabelText('Graph Section label'));
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: 'UI Work' });
+  });
+
+  it('allows clearing the whole Section Frame label before committing it', () => {
+    const { onUpdateSection } = renderSectionFrames({ label: 'S' });
+    const labelInput = screen.getByLabelText('Graph Section label');
+
+    fireEvent.change(labelInput, { target: { value: '' } });
+
+    expect(labelInput).toHaveValue('');
+    expect(onUpdateSection).not.toHaveBeenCalled();
+
+    fireEvent.blur(labelInput);
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: '' });
   });
 
   it('collapses a Section Frame from the header and marks pinned sections', () => {
@@ -226,8 +262,8 @@ describe('graph/sectionFrames/view', () => {
   it('moves a live-positioned Section Frame from the live graph-space coordinates', () => {
     const { nodePosition, onUpdateSection } = renderSectionFramesWithLiveNodePosition();
     const dragHandle = screen.getByTestId('graph-section-drag-handle-section-1');
-    nodePosition.x = 50;
-    nodePosition.y = 60;
+    nodePosition.x = 210;
+    nodePosition.y = 165;
 
     act(() => {
       fireEvent.mouseDown(dragHandle, { button: 0, clientX: 250, clientY: 210 });
@@ -251,10 +287,10 @@ describe('graph/sectionFrames/view', () => {
     });
 
     expect(nodePosition).toMatchObject({
-      fx: 45,
-      fy: 55,
-      x: 45,
-      y: 55,
+      fx: 205,
+      fy: 160,
+      x: 205,
+      y: 160,
     });
     expect(onUpdateSection).not.toHaveBeenCalled();
 

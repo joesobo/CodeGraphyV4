@@ -303,8 +303,8 @@ describe('graph/model/node/build', () => {
       nodeType: 'graph-section',
       sectionHeight: 220,
       sectionWidth: 300,
-      x: -120,
-      y: -80,
+      x: 30,
+      y: 30,
     });
   });
 

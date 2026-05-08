@@ -21,6 +21,7 @@ export type BuiltInContextMenuAction =
   | 'createGraphSection'
   | 'expandGraphSection'
   | 'collapseGraphSection'
+  | 'deleteGraphSection'
   | 'focus'
   | 'addToFilter'
   | 'addNodeLegend'

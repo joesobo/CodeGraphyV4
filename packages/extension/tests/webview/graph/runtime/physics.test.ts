@@ -202,7 +202,7 @@ describe('physics', () => {
     expect(collisionForce.iterations()).toBe(16);
   });
 
-  it('uses expanded Graph Section dimensions for the collision radius', () => {
+  it('keeps expanded Graph Section circle collision small because rectangle bounds handle section collisions', () => {
     const { d3Force, instance } = createPhysicsInstance();
 
     initPhysics(instance, SETTINGS);
@@ -218,7 +218,7 @@ describe('physics', () => {
       sectionHeight: 100,
       sectionWidth: 100,
       size: 9,
-    } as FGNode)).toBeCloseTo((Math.sqrt(100 ** 2 + 100 ** 2) / 2) + 4);
+    } as FGNode)).toBe(13);
   });
 
   it('initializes section bounds forces when Graph Layout is available in 2D', () => {
@@ -245,8 +245,8 @@ describe('physics', () => {
         isGraphSection: true,
         sectionHeight: 140,
         sectionWidth: 200,
-        x: 10,
-        y: 20,
+        x: 100,
+        y: 70,
       },
       {
         id: 'src/member.ts',
@@ -262,8 +262,8 @@ describe('physics', () => {
     force.initialize(nodes);
     force(0.5);
 
-    expect(nodes[1].x).toBeLessThanOrEqual(10 + 200 - nodes[1].size);
-    expect(nodes[1].y).toBeGreaterThanOrEqual(20 + nodes[1].size);
+    expect(nodes[1].x).toBeLessThanOrEqual(168);
+    expect(nodes[1].y).toBeGreaterThanOrEqual(60);
     expect(nodes[1].vx).toBeLessThan(0);
     expect(nodes[1].vy).toBeGreaterThan(0);
   });
@@ -276,8 +276,8 @@ describe('physics', () => {
         isGraphSection: true,
         sectionHeight: 140,
         sectionWidth: 200,
-        x: 0,
-        y: 0,
+        x: 100,
+        y: 70,
       },
       {
         id: 'src/member.ts',
@@ -293,7 +293,7 @@ describe('physics', () => {
     force.initialize(nodes);
     force(0.5);
 
-    expect(nodes[1].y).toBeGreaterThanOrEqual(46);
+    expect(nodes[1].y).toBeGreaterThanOrEqual(54);
   });
 
   it('keeps Section Members clear of the body edges for visible labels', () => {
@@ -304,8 +304,8 @@ describe('physics', () => {
         isGraphSection: true,
         sectionHeight: 100,
         sectionWidth: 100,
-        x: 0,
-        y: 0,
+        x: 50,
+        y: 50,
       },
       {
         id: 'src/member.ts',
@@ -333,8 +333,8 @@ describe('physics', () => {
         isGraphSection: true,
         sectionHeight: 140,
         sectionWidth: 200,
-        x: 0,
-        y: 0,
+        x: 100,
+        y: 70,
       },
       {
         fx: 60,
@@ -370,8 +370,8 @@ describe('physics', () => {
         isGraphSection: true,
         sectionHeight: 100,
         sectionWidth: 100,
-        x: 0,
-        y: 0,
+        x: 50,
+        y: 50,
       },
       {
         id: 'src/outside.ts',
@@ -387,10 +387,10 @@ describe('physics', () => {
     force(0.5);
 
     const outside = nodes[1];
-    const left = outside.x! <= -18;
-    const right = outside.x! >= 118;
-    const above = outside.y! <= -18;
-    const below = outside.y! >= 118;
+    const left = outside.x! <= -26;
+    const right = outside.x! >= 126;
+    const above = outside.y! <= -26;
+    const below = outside.y! >= 126;
     expect(left || right || above || below).toBe(true);
     expect(Math.abs(outside.vx ?? 0) + Math.abs(outside.vy ?? 0)).toBeGreaterThan(0);
   });
@@ -403,8 +403,8 @@ describe('physics', () => {
         isGraphSection: true,
         sectionHeight: 100,
         sectionWidth: 100,
-        x: 0,
-        y: 0,
+        x: 50,
+        y: 50,
       },
       {
         id: 'src/dragged.ts',
@@ -436,8 +436,8 @@ describe('physics', () => {
         isGraphSection: true,
         sectionHeight: 100,
         sectionWidth: 100,
-        x: 0,
-        y: 0,
+        x: 50,
+        y: 50,
       },
       {
         id: 'src/member.ts',

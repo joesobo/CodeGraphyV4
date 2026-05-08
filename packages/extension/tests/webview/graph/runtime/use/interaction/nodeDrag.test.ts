@@ -123,8 +123,8 @@ describe('graph/runtime/use/interaction node drag', () => {
           isGraphSection: true,
           sectionHeight: 80,
           sectionWidth: 80,
-          x: 300,
-          y: 20,
+          x: 340,
+          y: 60,
         } as FGNode,
       ],
     );

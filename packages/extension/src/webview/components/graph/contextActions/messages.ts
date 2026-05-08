@@ -134,6 +134,21 @@ export function createGraphSectionCollapseEffects(
   })];
 }
 
+export function createGraphSectionDeleteEffects(
+  context: GraphContextActionContext,
+): GraphContextEffect[] {
+  if (!context.primaryTargetId) {
+    return [];
+  }
+
+  return [createPostMessageEffect({
+    type: 'DELETE_GRAPH_LAYOUT_SECTION',
+    payload: {
+      sectionId: context.primaryTargetId,
+    },
+  })];
+}
+
 function getDefaultSectionBounds(context: GraphContextActionContext): SectionBounds {
   const center = context.graphPosition ?? { x: 0, y: 0 };
   const size = getDefaultGraphSectionSize(context.graphViewportScale);

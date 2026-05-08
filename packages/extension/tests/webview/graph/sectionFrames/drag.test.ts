@@ -41,8 +41,8 @@ describe('graph/sectionFrames/drag', () => {
       id: 'section-1',
       sectionHeight: 180,
       sectionWidth: 280,
-      x: -140,
-      y: -90,
+      x: 0,
+      y: 0,
     };
 
     beginSectionFrameWindowDrag(undefined, {
@@ -56,10 +56,10 @@ describe('graph/sectionFrames/drag', () => {
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 10, clientY: 20 }));
 
     expect(nodePosition).toMatchObject({
-      fx: -130,
-      fy: -70,
-      x: -130,
-      y: -70,
+      fx: 10,
+      fy: 20,
+      x: 10,
+      y: 20,
     });
     expect(onUpdateSection).not.toHaveBeenCalled();
 
@@ -68,8 +68,8 @@ describe('graph/sectionFrames/drag', () => {
     expect(nodePosition).toMatchObject({
       fx: undefined,
       fy: undefined,
-      x: -130,
-      y: -70,
+      x: 10,
+      y: 20,
     });
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { x: -130, y: -70 });
   });
@@ -84,8 +84,8 @@ describe('graph/sectionFrames/drag', () => {
       id: 'section-1',
       sectionHeight: 180,
       sectionWidth: 280,
-      x: -140,
-      y: -90,
+      x: 0,
+      y: 0,
     };
 
     beginSectionFrameWindowDrag(graph, {
@@ -110,6 +110,37 @@ describe('graph/sectionFrames/drag', () => {
 
     expect(nodePosition).toMatchObject({ isDragging: false });
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { x: -120, y: -50 });
+  });
+
+  it('keeps live Section Node centers aligned when resizing the frame', () => {
+    const onUpdateSection = vi.fn();
+    const nodePosition = {
+      id: 'section-1',
+      sectionHeight: 180,
+      sectionWidth: 280,
+      x: 0,
+      y: 0,
+    };
+
+    beginSectionFrameWindowDrag(undefined, {
+      clientX: 0,
+      clientY: 0,
+      nodePosition,
+      section,
+      type: 'resize',
+    }, onUpdateSection);
+
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 20, clientY: 10 }));
+
+    expect(nodePosition).toMatchObject({
+      sectionHeight: 190,
+      sectionWidth: 300,
+      x: 10,
+      y: 5,
+    });
+    expect(onUpdateSection).not.toHaveBeenCalled();
+
+    window.dispatchEvent(new MouseEvent('mouseup', { clientX: 20, clientY: 10 }));
   });
 
   it('detects Section Frame controls by data attribute ancestry', () => {

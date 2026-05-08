@@ -44,13 +44,13 @@ describe('graph/sectionFrames/model', () => {
     });
   });
 
-  it('uses live Section Node coordinates for the editable frame when physics moves the section', () => {
+  it('uses live Section Node center coordinates for the editable frame when physics moves the section', () => {
     const displaySection = getSectionFrameDisplaySection(section, {
       id: 'section-1',
       sectionHeight: 210,
       sectionWidth: 320,
-      x: 25,
-      y: 40,
+      x: 185,
+      y: 145,
     });
 
     expect(getSectionFrameRect({

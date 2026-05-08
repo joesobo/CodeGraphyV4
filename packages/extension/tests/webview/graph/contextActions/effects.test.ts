@@ -283,6 +283,18 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
+  it('deletes a Graph Section through context actions', () => {
+    expect(getBuiltInContextActionEffects('deleteGraphSection', nodeContext(['section-1']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'DELETE_GRAPH_LAYOUT_SECTION',
+          payload: { sectionId: 'section-1' },
+        },
+      },
+    ]);
+  });
+
   it('keeps a default background Graph Section large enough on screen when the graph is zoomed out', () => {
     expect(getBuiltInContextActionEffects('createGraphSection', scaledBackgroundContext(0.2))).toEqual([
       {

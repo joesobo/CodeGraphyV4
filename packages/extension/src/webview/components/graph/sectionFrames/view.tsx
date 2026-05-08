@@ -1,6 +1,8 @@
 import {
   useEffect,
   useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
 } from 'react';
@@ -34,8 +36,8 @@ interface SectionFramesProps {
   onUpdateSection: SectionFrameUpdateHandler;
 }
 
-const TOPBAR_FADE_OUT_SCALE = 0.45;
-const TOPBAR_FULL_SCALE = 0.8;
+const TOPBAR_FADE_OUT_SCALE = 0.65;
+const TOPBAR_FULL_SCALE = 1;
 
 function getTopbarOpacity(rect: SectionFrameRect): number {
   if (rect.scale <= TOPBAR_FADE_OUT_SCALE) {
@@ -51,6 +53,67 @@ function getTopbarOpacity(rect: SectionFrameRect): number {
 
 function isTopbarVisible(opacity: number): boolean {
   return opacity > 0.01;
+}
+
+interface SectionFrameLabelInputProps {
+  label: string;
+  sectionId: string;
+  showTopbar: boolean;
+  onUpdateSection: SectionFrameUpdateHandler;
+}
+
+function SectionFrameLabelInput({
+  label,
+  sectionId,
+  showTopbar,
+  onUpdateSection,
+}: SectionFrameLabelInputProps): ReactElement {
+  const [draft, setDraft] = useState(label);
+  const shouldCommitOnBlurRef = useRef(true);
+
+  useEffect(() => {
+    setDraft(label);
+  }, [label, sectionId]);
+
+  function commitDraft(): void {
+    if (!shouldCommitOnBlurRef.current) {
+      shouldCommitOnBlurRef.current = true;
+      return;
+    }
+
+    if (draft !== label) {
+      onUpdateSection(sectionId, { label: draft });
+    }
+  }
+
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>): void {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      shouldCommitOnBlurRef.current = false;
+      setDraft(label);
+      event.currentTarget.blur();
+    }
+  }
+
+  return (
+    <input
+      aria-label="Graph Section label"
+      className="w-24 max-w-[45%] cursor-text bg-transparent text-xs font-medium outline-none"
+      data-graph-section-control="true"
+      onBlur={commitDraft}
+      onChange={(event) => setDraft(event.target.value)}
+      onFocus={() => {
+        shouldCommitOnBlurRef.current = true;
+      }}
+      onKeyDown={handleKeyDown}
+      tabIndex={showTopbar ? 0 : -1}
+      value={draft}
+    />
+  );
 }
 
 function applySectionFrameElementRect(
@@ -206,13 +269,11 @@ export function SectionFrames({
               >
                 <MdiIcon path={mdiChevronUp} size={14} />
               </button>
-              <input
-                aria-label="Graph Section label"
-                className="w-24 max-w-[45%] cursor-text bg-transparent text-xs font-medium outline-none"
-                data-graph-section-control="true"
-                onChange={(event) => onUpdateSection(section.id, { label: event.target.value })}
-                tabIndex={showTopbar ? 0 : -1}
-                value={section.label}
+              <SectionFrameLabelInput
+                label={section.label}
+                sectionId={section.id}
+                showTopbar={showTopbar}
+                onUpdateSection={onUpdateSection}
               />
               <input
                 aria-label="Graph Section color"

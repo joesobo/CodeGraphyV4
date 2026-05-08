@@ -60,8 +60,8 @@ function renderExpandChevron({
   x,
   y,
 }: RenderCollapsedSectionBadgeOptions & { x: number; y: number }): void {
-  const centerX = x - node.size * 0.7;
-  const centerY = y - node.size * 0.7;
+  const centerX = x - node.size * 0.45;
+  const centerY = y - node.size * 0.45;
   const halfWidth = 4 / globalScale;
   const halfHeight = 2 / globalScale;
 
@@ -87,21 +87,12 @@ function renderHiddenDescendantCount({
   x: number;
   y: number;
 }): void {
-  const radius = 6 / globalScale;
-  const centerX = x + node.size * 0.7;
-  const centerY = y - node.size * 0.7;
-
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.fillStyle = appearance.nodeSelectionBorder;
-  ctx.fill();
-  ctx.strokeStyle = node.borderColor;
-  ctx.lineWidth = Math.max(1, 1.25 / globalScale);
-  ctx.stroke();
+  const centerX = x + node.size * 0.45;
+  const centerY = y - node.size * 0.45;
 
   ctx.fillStyle = appearance.labelForeground;
   ctx.font = `${Math.max(8, 8 / globalScale)}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(formatHiddenDescendantCount(hiddenDescendantCount), centerX, centerY + 0.25 / globalScale);
+  ctx.fillText(formatHiddenDescendantCount(hiddenDescendantCount), centerX, centerY);
 }

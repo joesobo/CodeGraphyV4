@@ -227,8 +227,10 @@ function createGraphSectionNode(
 ): FGNode {
   const previous = previousNodeStates.get(section.id);
   const pinCoordinate = getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[section.id], '2d');
-  const x = pinCoordinate?.x ?? section.x ?? previous?.x;
-  const y = pinCoordinate?.y ?? section.y ?? previous?.y;
+  const centerX = section.x + (section.width / 2);
+  const centerY = section.y + (section.height / 2);
+  const x = pinCoordinate?.x ?? centerX;
+  const y = pinCoordinate?.y ?? centerY;
 
   return {
     id: section.id,
