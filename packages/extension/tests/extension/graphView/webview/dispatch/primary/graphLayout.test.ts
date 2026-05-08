@@ -145,12 +145,6 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         },
       },
       ownership: {
-        'section-1': {
-          itemId: 'section-1',
-          itemKind: 'section',
-          ownerSectionId: null,
-          updatedAt: expect.any(String),
-        },
         'src/app.ts': {
           itemId: 'src/app.ts',
           itemKind: 'node',
@@ -171,6 +165,10 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         sections: expect.objectContaining({
           'section-1': expect.objectContaining({ label: 'Section 1' }),
         }),
+        ownership: {
+          'src/app.ts': expect.objectContaining({ ownerSectionId: 'section-1' }),
+          'src/utils.ts': expect.objectContaining({ ownerSectionId: 'section-1' }),
+        },
       }),
     });
   });
@@ -299,14 +297,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
                 updatedAt: '2026-05-07T09:00:00.000Z',
               },
             },
-            ownership: {
-              'section-1': {
-                itemId: 'section-1',
-                itemKind: 'section',
-                ownerSectionId: null,
-                updatedAt: '2026-05-07T09:00:00.000Z',
-              },
-            },
+            ownership: {},
           } as T;
         }
 
@@ -344,14 +335,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
           updatedAt: expect.any(String),
         },
       },
-      ownership: {
-        'section-1': {
-          itemId: 'section-1',
-          itemKind: 'section',
-          ownerSectionId: null,
-          updatedAt: '2026-05-07T09:00:00.000Z',
-        },
-      },
+      ownership: {},
     });
   });
 
@@ -374,14 +358,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
                 updatedAt: '2026-05-07T09:00:00.000Z',
               },
             },
-            ownership: {
-              'section-1': {
-                itemId: 'section-1',
-                itemKind: 'section',
-                ownerSectionId: null,
-                updatedAt: '2026-05-07T09:00:00.000Z',
-              },
-            },
+            ownership: {},
           } as T;
         }
 
@@ -402,9 +379,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       sections: {
         'section-1': expect.objectContaining({ label: '' }),
       },
-      ownership: {
-        'section-1': expect.objectContaining({ itemId: 'section-1' }),
-      },
+      ownership: {},
     });
   });
 
@@ -427,14 +402,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
                 updatedAt: '2026-05-07T09:00:00.000Z',
               },
             },
-            ownership: {
-              'section-1': {
-                itemId: 'section-1',
-                itemKind: 'section',
-                ownerSectionId: null,
-                updatedAt: '2026-05-07T09:00:00.000Z',
-              },
-            },
+            ownership: {},
           } as T;
         }
 
@@ -457,12 +425,6 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         'section-1': expect.objectContaining({ id: 'section-1' }),
       },
       ownership: {
-        'section-1': {
-          itemId: 'section-1',
-          itemKind: 'section',
-          ownerSectionId: null,
-          updatedAt: '2026-05-07T09:00:00.000Z',
-        },
         'src/app.ts': {
           itemId: 'src/app.ts',
           itemKind: 'node',
@@ -470,6 +432,58 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
           updatedAt: expect.any(String),
         },
       },
+    });
+  });
+
+  it('removes ownership records when items move back to the root graph', async () => {
+    const context = createPrimaryMessageContext({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'graphLayout') {
+          return {
+            pinnedNodes: {},
+            sections: {
+              'section-1': {
+                id: 'section-1',
+                label: 'Section 1',
+                color: '#60a5fa',
+                x: 0,
+                y: 0,
+                width: 280,
+                height: 180,
+                collapsed: false,
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+            ownership: {
+              'src/app.ts': {
+                itemId: 'src/app.ts',
+                itemKind: 'node',
+                ownerSectionId: 'section-1',
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+          } as T;
+        }
+
+        return defaultValue;
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'src/app.ts',
+        itemKind: 'node',
+        ownerSectionId: null,
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      pinnedNodes: {},
+      sections: {
+        'section-1': expect.objectContaining({ id: 'section-1' }),
+      },
+      ownership: {},
     });
   });
 
@@ -510,12 +524,6 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
               },
             },
             ownership: {
-              'section-1': {
-                itemId: 'section-1',
-                itemKind: 'section',
-                ownerSectionId: null,
-                updatedAt: '2026-05-07T09:00:00.000Z',
-              },
               'section-2': {
                 itemId: 'section-2',
                 itemKind: 'section',
@@ -547,12 +555,6 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         'section-1': expect.objectContaining({ id: 'section-1' }),
       },
       ownership: {
-        'section-1': {
-          itemId: 'section-1',
-          itemKind: 'section',
-          ownerSectionId: null,
-          updatedAt: '2026-05-07T09:00:00.000Z',
-        },
         'src/app.ts': {
           itemId: 'src/app.ts',
           itemKind: 'node',

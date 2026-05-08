@@ -271,12 +271,6 @@ describe('extension/repoSettings/graphLayout/model', () => {
       },
     });
     expect(layout.ownership).toEqual({
-      'section-1': {
-        itemId: 'section-1',
-        itemKind: 'section',
-        ownerSectionId: null,
-        updatedAt: '2026-05-07T09:00:00.000Z',
-      },
       'src/app.ts': {
         itemId: 'src/app.ts',
         itemKind: 'node',
@@ -358,6 +352,13 @@ describe('extension/repoSettings/graphLayout/model', () => {
       y: 20,
     });
 
+    expect(parentLayout.ownership).toEqual({});
+    expect(childLayout.ownership['section-2']).toEqual({
+      itemId: 'section-2',
+      itemKind: 'section',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:05:00.000Z',
+    });
     expect(wrapperLayout.ownership['section-3']).toEqual({
       itemId: 'section-3',
       itemKind: 'section',
@@ -413,12 +414,6 @@ describe('extension/repoSettings/graphLayout/model', () => {
         },
       },
       ownership: {
-        'section-1': {
-          itemId: 'section-1',
-          itemKind: 'section',
-          ownerSectionId: null,
-          updatedAt: '2026-05-07T09:00:00.000Z',
-        },
         'section-2': {
           itemId: 'section-2',
           itemKind: 'section',
@@ -495,12 +490,6 @@ describe('extension/repoSettings/graphLayout/model', () => {
         },
       },
       ownership: {
-        'section-1': {
-          itemId: 'section-1',
-          itemKind: 'section',
-          ownerSectionId: null,
-          updatedAt: '2026-05-07T09:00:00.000Z',
-        },
         'section-2': {
           itemId: 'section-2',
           itemKind: 'section',

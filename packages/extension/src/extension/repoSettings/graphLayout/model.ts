@@ -293,7 +293,7 @@ function normalizeOwnershipRecord(
     value.ownerSectionId,
     sections,
   );
-  if (ownerSectionId === undefined) {
+  if (ownerSectionId === undefined || ownerSectionId === null) {
     return undefined;
   }
 
@@ -378,6 +378,19 @@ export function assignGraphLayoutOwner(
   layout: GraphLayoutSettings,
   ownership: GraphLayoutOwnership,
 ): GraphLayoutSettings {
+  if (ownership.ownerSectionId === null) {
+    if (!ownsKnownSection(ownership.itemId, ownership.itemKind, layout.sections)) {
+      throw new Error('Graph Section ownership record is invalid.');
+    }
+
+    const nextOwnership = { ...layout.ownership };
+    delete nextOwnership[ownership.itemId];
+    return {
+      ...layout,
+      ownership: nextOwnership,
+    };
+  }
+
   const normalizedRecord = normalizeOwnershipRecord(
     ownership.itemId,
     ownership,
@@ -545,14 +558,19 @@ export function createGraphLayoutSection(
     collapsed: false,
     updatedAt: create.updatedAt,
   };
+  const sectionOwnership: Record<string, GraphLayoutOwnership> = ownerSectionId === null
+    ? {}
+    : {
+        [sectionId]: {
+          itemId: sectionId,
+          itemKind: 'section',
+          ownerSectionId,
+          updatedAt: create.updatedAt,
+        },
+      };
   const ownership: Record<string, GraphLayoutOwnership> = {
     ...layout.ownership,
-    [sectionId]: {
-      itemId: sectionId,
-      itemKind: 'section',
-      ownerSectionId,
-      updatedAt: create.updatedAt,
-    },
+    ...sectionOwnership,
   };
 
   let nextLayout = normalizeGraphLayoutSettings({
@@ -749,13 +767,18 @@ export function deleteGraphLayoutSection(
       continue;
     }
 
-    nextOwnership[itemId] = record.ownerSectionId === deletion.sectionId
-      ? {
-          ...record,
-          ownerSectionId: deletedOwnerId,
-          updatedAt: deletion.updatedAt,
-        }
-      : record;
+    if (record.ownerSectionId !== deletion.sectionId) {
+      nextOwnership[itemId] = record;
+      continue;
+    }
+
+    if (deletedOwnerId) {
+      nextOwnership[itemId] = {
+        ...record,
+        ownerSectionId: deletedOwnerId,
+        updatedAt: deletion.updatedAt,
+      };
+    }
   }
 
   return normalizeGraphLayoutSettings({

@@ -268,6 +268,147 @@ describe('physics', () => {
     expect(nodes[1].vy).toBeGreaterThan(0);
   });
 
+  it('pushes overlapping expanded Graph Section rectangles apart by their actual bounds', () => {
+    const force = createGraphSectionBoundsForce({
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': GRAPH_LAYOUT.sections['section-1'],
+        'section-2': {
+          id: 'section-2',
+          label: 'Data Layer',
+          color: '#22c55e',
+          x: 40,
+          y: 0,
+          width: 200,
+          height: 140,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        ...GRAPH_LAYOUT.ownership,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'section-2',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 180,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[0].vx).toBeLessThan(0);
+    expect(nodes[1].vx).toBeGreaterThan(0);
+    expect(nodes[0].vy).toBe(0);
+    expect(nodes[1].vy).toBe(0);
+  });
+
+  it('does not push nested Graph Section rectangles out of their owner section', () => {
+    const force = createGraphSectionBoundsForce({
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': GRAPH_LAYOUT.sections['section-1'],
+        'section-2': {
+          id: 'section-2',
+          label: 'Nested',
+          color: '#22c55e',
+          x: 40,
+          y: 40,
+          width: 80,
+          height: 80,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        ...GRAPH_LAYOUT.ownership,
+        'section-2': {
+          itemId: 'section-2',
+          itemKind: 'section',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'section-2',
+        isGraphSection: true,
+        sectionHeight: 80,
+        sectionWidth: 80,
+        vx: 0,
+        vy: 0,
+        x: 80,
+        y: 80,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[0]).toMatchObject({ vx: 0, vy: 0 });
+    expect(nodes[1]).toMatchObject({ vx: 0, vy: 0 });
+  });
+
+  it('pulls expanded Graph Sections toward their owned members so members stay centered in the body', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 150,
+        y: 100,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[0].vx).toBeGreaterThan(0);
+    expect(nodes[0].vy).toBeGreaterThan(0);
+  });
+
   it('keeps Section Members below the Section Frame header', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
     const nodes = [
