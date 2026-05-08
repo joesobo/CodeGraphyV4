@@ -292,6 +292,10 @@ function repelExternalNodesFromSections(
 	graphLayout: GraphLayoutSettings,
 	alpha: number,
 ): void {
+	if (node.isDragging) {
+		return;
+	}
+
 	for (const [sectionId, bounds] of sectionBounds) {
 		if (node.id === sectionId || isOwnedBySection(node, sectionId, graphLayout)) {
 			continue;

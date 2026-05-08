@@ -23,7 +23,7 @@ import {
   useContextMenuSuppression,
 } from './contextSuppression';
 import { useGraphMarqueeSelectionRuntime } from './marquee/hook';
-import { postNodeDragEndMessages } from './nodeDrag';
+import { markNodeDragging, postNodeDragEndMessages } from './nodeDrag';
 import { createGraphNodePositionMap } from './positions';
 import { useGraphViewportPanRuntime } from './viewportPan/hook';
 
@@ -174,6 +174,11 @@ export function useGraphInteractionRuntime({
     postNodeDragEndMessages(node, graphLayout, graphMode, timelineActive);
   }
 
+  function handleNodeDrag(node: FGNode): void {
+    markNodeDragging(node);
+    marqueeRuntime.clearMarqueeSelection();
+  }
+
   const contextMenuOpeningRuntime = useMemo(
     () => createGraphContextMenuOpeningRuntime({
       actionContext,
@@ -266,6 +271,7 @@ export function useGraphInteractionRuntime({
     handleMouseDownCapture,
     handleMouseMoveCapture,
     handleMouseUpCapture,
+    handleNodeDrag,
     hoveredNodeRef,
     interactionHandlers,
     marqueeSelection: marqueeRuntime.marqueeSelection,

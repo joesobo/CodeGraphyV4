@@ -7,9 +7,10 @@ describe('graph/sharedPropsOptions', () => {
     const interactions = {
       handleBackgroundRightClick: vi.fn(),
       handleLinkRightClick: vi.fn(),
-		handleNodeHover: vi.fn(),
-		handleNodeDragEnd: vi.fn(),
-		handleNodeRightClick: vi.fn(),
+      handleNodeDrag: vi.fn(),
+      handleNodeHover: vi.fn(),
+      handleNodeDragEnd: vi.fn(),
+      handleNodeRightClick: vi.fn(),
       interactionHandlers: {
         handleBackgroundClick: vi.fn(),
         handleLinkClick: vi.fn(),
@@ -37,9 +38,10 @@ describe('graph/sharedPropsOptions', () => {
       onEngineStop: handleEngineStop,
       onLinkClick: interactions.interactionHandlers.handleLinkClick,
       onLinkRightClick: interactions.handleLinkRightClick,
-			onNodeClick: interactions.interactionHandlers.handleNodeClick,
-			onNodeDragEnd: interactions.handleNodeDragEnd,
-			onNodeHover: interactions.handleNodeHover,
+      onNodeClick: interactions.interactionHandlers.handleNodeClick,
+      onNodeDrag: interactions.handleNodeDrag,
+      onNodeDragEnd: interactions.handleNodeDragEnd,
+      onNodeHover: interactions.handleNodeHover,
       onNodeRightClick: interactions.handleNodeRightClick,
       timelineActive: true,
     });

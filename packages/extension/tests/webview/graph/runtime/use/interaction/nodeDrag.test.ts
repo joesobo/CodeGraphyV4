@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GraphLayoutSettings } from '../../../../../../src/shared/settings/graphLayout';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
-import { postNodeDragEndMessages } from '../../../../../../src/webview/components/graph/runtime/use/interaction/nodeDrag';
+import {
+  markNodeDragging,
+  postNodeDragEndMessages,
+} from '../../../../../../src/webview/components/graph/runtime/use/interaction/nodeDrag';
 
 const nodeDragHarness = vi.hoisted(() => ({
   postMessage: vi.fn(),
@@ -92,6 +95,26 @@ describe('graph/runtime/use/interaction node drag', () => {
       false,
     );
 
+    expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'node',
+        itemKind: 'node',
+        ownerSectionId: 'child',
+      },
+    });
+  });
+
+  it('marks active node drags and mirrors the new owner locally on drag end', () => {
+    const node = { id: 'node', x: 40, y: 40 } as FGNode;
+
+    markNodeDragging(node);
+    expect(node.isDragging).toBe(true);
+
+    postNodeDragEndMessages(node, createLayout(null), '2d', false);
+
+    expect(node.isDragging).toBe(false);
+    expect(node.ownerSectionId).toBe('child');
     expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
       type: 'UPDATE_GRAPH_LAYOUT_OWNER',
       payload: {

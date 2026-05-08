@@ -114,11 +114,14 @@ describe('graph/sectionFrames/view', () => {
       borderColor: '#60a5fa',
     });
     expect(frame).toHaveClass('pointer-events-none');
-    expect(dragHandle).toHaveClass('pointer-events-auto');
+    expect(frame).toHaveAttribute('data-graph-marquee-ignore', 'true');
+    expect(dragHandle).toHaveClass('cursor-grab', 'pointer-events-auto');
     expect(dragHandle).toHaveStyle({
       backgroundColor: '#60a5fa22',
       borderColor: '#60a5fa',
     });
+    expect(screen.getByLabelText('Graph Section label')).toHaveClass('w-24');
+    expect(screen.getByLabelText('Graph Section label')).not.toHaveClass('flex-1');
     expect(screen.getByTestId('graph-section-resize-section-1')).toHaveClass('pointer-events-auto');
     expect(screen.getByTestId('graph-section-resize-section-1')).toHaveStyle({
       borderColor: '#60a5fa',

@@ -29,6 +29,7 @@ export type FGNode = NodeObject & {
   imageUrl?: string;
   hiddenDescendantCount?: number;
   isCollapsedGraphSection?: boolean;
+  isDragging?: boolean;
   isGraphSection?: boolean;
   fx?: number;
   fy?: number;
