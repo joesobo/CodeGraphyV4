@@ -446,6 +446,109 @@ describe('physics', () => {
     expect(nodes.slice(1).some(node => Math.abs(node.vx ?? 0) > 0 || Math.abs(node.vy ?? 0) > 0)).toBe(true);
   });
 
+  it('lets expanded Graph Sections exchange collision pressure with normal nodes', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/loose.ts',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 190,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(Math.abs(nodes[0].vx ?? 0)).toBeGreaterThanOrEqual(Math.abs(nodes[1].vx ?? 0) * 0.75);
+    expect(nodes[0].vx).toBeLessThan(0);
+    expect(nodes[1].vx).toBeGreaterThan(0);
+  });
+
+  it('does not let members from another expanded Graph Section inflate a section collision boundary', () => {
+    const force = createGraphSectionBoundsForce({
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': GRAPH_LAYOUT.sections['section-1'],
+        'section-2': {
+          id: 'section-2',
+          label: 'Data Layer',
+          color: '#22c55e',
+          x: 300,
+          y: 0,
+          width: 200,
+          height: 140,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        ...GRAPH_LAYOUT.ownership,
+        'section-2': {
+          itemId: 'section-2',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'src/other-member.ts': {
+          itemId: 'src/other-member.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-2',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'section-2',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 400,
+        y: 70,
+      },
+      {
+        id: 'src/other-member.ts',
+        ownerSectionId: 'section-2',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[0].vx).toBe(0);
+    expect(nodes[0].vy).toBe(0);
+  });
+
   it('does not push nested Graph Section rectangles out of their owner section', () => {
     const force = createGraphSectionBoundsForce({
       ...GRAPH_LAYOUT,
@@ -662,7 +765,7 @@ describe('physics', () => {
     });
   });
 
-  it('pushes nodes without section ownership outside expanded section bounds', () => {
+  it('applies peer collision pressure to nodes without section ownership inside expanded section bounds', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
     const nodes = [
       {
@@ -687,11 +790,7 @@ describe('physics', () => {
     force(0.5);
 
     const outside = nodes[1];
-    const left = outside.x! <= -26;
-    const right = outside.x! >= 126;
-    const above = outside.y! <= -26;
-    const below = outside.y! >= 126;
-    expect(left || right || above || below).toBe(true);
+    expect(Math.abs(nodes[0].vx ?? 0) + Math.abs(nodes[0].vy ?? 0)).toBeGreaterThan(0);
     expect(Math.abs(outside.vx ?? 0) + Math.abs(outside.vy ?? 0)).toBeGreaterThan(0);
   });
 
@@ -726,6 +825,12 @@ describe('physics', () => {
       x: 50,
       y: 50,
     });
+    expect(nodes[0]).toMatchObject({
+      x: 50,
+      y: 50,
+    });
+    expect(nodes[0].vx ?? 0).toBe(0);
+    expect(nodes[0].vy ?? 0).toBe(0);
   });
 
   it('allows actively dragged Section Members to leave owner bounds before drop', () => {

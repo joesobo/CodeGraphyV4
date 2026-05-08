@@ -308,6 +308,58 @@ describe('graph/model/node/build', () => {
     });
   });
 
+  it('preserves previous Graph Section physics state when rebuilding graph nodes', () => {
+    const nodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        pinnedNodes: {},
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'UI Layer',
+            color: '#60a5fa',
+            x: -1200,
+            y: 800,
+            width: 300,
+            height: 220,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          'section-1': {
+            itemId: 'section-1',
+            itemKind: 'section',
+            ownerSectionId: null,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+      },
+      previousNodes: [
+        {
+          id: 'section-1',
+          vx: 3,
+          vy: -2,
+          x: 40,
+          y: -30,
+        } satisfies Pick<FGNode, 'id' | 'vx' | 'vy' | 'x' | 'y'>,
+      ],
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'section-1')).toMatchObject({
+      vx: 3,
+      vy: -2,
+      x: 40,
+      y: -30,
+    });
+  });
+
   it('does not add Graph Section nodes in 3D or timeline snapshots', () => {
     const graphLayout = {
       pinnedNodes: {},

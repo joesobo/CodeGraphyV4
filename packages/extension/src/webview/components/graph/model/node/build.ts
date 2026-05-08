@@ -229,8 +229,8 @@ function createGraphSectionNode(
   const pinCoordinate = getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[section.id], '2d');
   const centerX = section.x + (section.width / 2);
   const centerY = section.y + (section.height / 2);
-  const x = pinCoordinate?.x ?? centerX;
-  const y = pinCoordinate?.y ?? centerY;
+  const x = pinCoordinate?.x ?? previous?.x ?? centerX;
+  const y = pinCoordinate?.y ?? previous?.y ?? centerY;
 
   return {
     id: section.id,
