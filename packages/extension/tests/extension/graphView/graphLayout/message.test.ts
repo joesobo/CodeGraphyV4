@@ -1,0 +1,56 @@
+import { describe, expect, it, vi } from 'vitest';
+import { createGraphLayoutUpdatedMessage } from '../../../../src/extension/graphView/graphLayout/message';
+import { getCodeGraphyConfiguration } from '../../../../src/extension/repoSettings/current';
+
+vi.mock('../../../../src/extension/repoSettings/current', () => ({
+  getCodeGraphyConfiguration: vi.fn(),
+}));
+
+describe('createGraphLayoutUpdatedMessage', () => {
+  it('reads the current CodeGraphy graph layout and normalizes it for the webview', () => {
+    const graphLayout = {
+      pinnedNodes: {
+        'src/app.ts': {
+          nodeId: 'src/app.ts',
+          twoDimensional: { x: 10, y: 20 },
+          updatedAt: '2026-05-07T23:00:00.000Z',
+        },
+      },
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Section 1',
+          color: '#60a5fa',
+          x: 1,
+          y: 2,
+          width: 300,
+          height: 200,
+          collapsed: false,
+          updatedAt: '2026-05-07T23:01:00.000Z',
+        },
+      },
+      ownership: {
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-07T23:02:00.000Z',
+        },
+      },
+    };
+    const configuration = {
+      get: vi.fn((_key: string, _fallback: unknown) => graphLayout),
+    };
+    vi.mocked(getCodeGraphyConfiguration).mockReturnValue(configuration as never);
+
+    expect(createGraphLayoutUpdatedMessage()).toEqual({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: graphLayout,
+    });
+    expect(configuration.get).toHaveBeenCalledWith('graphLayout', {
+      pinnedNodes: {},
+      sections: {},
+      ownership: {},
+    });
+  });
+});

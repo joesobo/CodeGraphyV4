@@ -65,6 +65,9 @@ export function executeConfigAction(
     case 'legend':
       scheduleGroupSettingsRefresh(provider);
       break;
+    case 'layout':
+      provider.sendGraphLayout();
+      break;
     case 'general':
       executeGeneralConfigAction(event, provider);
       break;
