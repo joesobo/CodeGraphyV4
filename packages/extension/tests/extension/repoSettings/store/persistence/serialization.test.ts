@@ -66,7 +66,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     ]);
   });
 
-  it('serializes graph layout pins, sections, and compact ownership records', () => {
+  it('serializes graph layout pins, sections, and grouped ownership records', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.graphLayout = {
       pinnedNodes: {
@@ -88,6 +88,17 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
           collapsed: false,
           updatedAt: '2026-05-07T08:01:00.000Z',
         },
+        'section-b': {
+          id: 'section-b',
+          label: 'Layer B',
+          color: '#55aa88',
+          x: 20,
+          y: 30,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:03:00.000Z',
+        },
       },
       ownership: {
         'src/a.ts': {
@@ -95,6 +106,18 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
           itemKind: 'node',
           ownerSectionId: 'section-a',
           updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+        'src/b.ts': {
+          itemId: 'src/b.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+        'section-b': {
+          itemId: 'section-b',
+          itemKind: 'section',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:04:00.000Z',
         },
       },
     };
@@ -119,9 +142,19 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
           collapsed: false,
           updatedAt: '2026-05-07T08:01:00.000Z',
         },
+        'section-b': {
+          label: 'Layer B',
+          color: '#55aa88',
+          x: 20,
+          y: 30,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:03:00.000Z',
+        },
       },
       ownership: {
-        'src/a.ts': 'section-a',
+        'section-a': ['src/a.ts', 'src/b.ts', 'section-b'],
       },
     });
   });

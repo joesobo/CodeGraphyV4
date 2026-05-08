@@ -318,6 +318,45 @@ function normalizeCompactOwnershipRecord(
   };
 }
 
+function normalizeGroupedOwnershipRecords(
+  ownerSectionId: string,
+  value: unknown,
+  sections: Record<string, GraphLayoutSection>,
+): GraphLayoutOwnership[] {
+  if (!(ownerSectionId in sections) || !Array.isArray(value)) {
+    return [];
+  }
+
+  const records: GraphLayoutOwnership[] = [];
+  const seenItemIds = new Set<string>();
+  for (const itemId of value) {
+    if (typeof itemId !== 'string' || itemId.length === 0 || seenItemIds.has(itemId)) {
+      continue;
+    }
+
+    seenItemIds.add(itemId);
+    const itemKind = inferOwnershipItemKind(itemId, sections);
+    const normalizedOwnerSectionId = normalizeOwnerSectionId(
+      itemId,
+      itemKind,
+      ownerSectionId,
+      sections,
+    );
+    if (normalizedOwnerSectionId === undefined || normalizedOwnerSectionId === null) {
+      continue;
+    }
+
+    records.push({
+      itemId,
+      itemKind,
+      ownerSectionId: normalizedOwnerSectionId,
+      updatedAt: sections[normalizedOwnerSectionId].updatedAt,
+    });
+  }
+
+  return records;
+}
+
 function normalizeOwnershipRecord(
   key: string,
   value: unknown,
@@ -355,6 +394,19 @@ function normalizeOwnershipRecord(
   };
 }
 
+function normalizeOwnershipRecords(
+  key: string,
+  value: unknown,
+  sections: Record<string, GraphLayoutSection>,
+): GraphLayoutOwnership[] {
+  if (Array.isArray(value)) {
+    return normalizeGroupedOwnershipRecords(key, value, sections);
+  }
+
+  const record = normalizeOwnershipRecord(key, value, sections);
+  return record ? [record] : [];
+}
+
 export function wouldCreateGraphLayoutOwnershipCycle(
   ownership: Readonly<Record<string, GraphLayoutOwnership>>,
   sectionId: string,
@@ -388,23 +440,25 @@ function normalizeOwnership(
 
   const ownership: Record<string, GraphLayoutOwnership> = {};
   for (const [key, entryValue] of Object.entries(value)) {
-    const record = normalizeOwnershipRecord(key, entryValue, sections);
-    if (!record) {
-      continue;
-    }
+    const records = normalizeOwnershipRecords(key, entryValue, sections);
+    for (const record of records) {
+      if (record.itemId in ownership) {
+        continue;
+      }
 
-    if (
-      record.itemKind === 'section'
-      && wouldCreateGraphLayoutOwnershipCycle(
-        ownership,
-        record.itemId,
-        record.ownerSectionId,
-      )
-    ) {
-      continue;
-    }
+      if (
+        record.itemKind === 'section'
+        && wouldCreateGraphLayoutOwnershipCycle(
+          ownership,
+          record.itemId,
+          record.ownerSectionId,
+        )
+      ) {
+        continue;
+      }
 
-    ownership[key] = record;
+      ownership[record.itemId] = record;
+    }
   }
 
   return ownership;

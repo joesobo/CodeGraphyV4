@@ -165,6 +165,54 @@ describe('extension/repoSettings/graphLayout/model', () => {
     });
   });
 
+  it('normalizes grouped persisted Graph Layout ownership by owner section', () => {
+    expect(normalizeGraphLayoutSettings({
+      sections: {
+        'section-a': {
+          label: 'Layer A',
+          color: '#4488ff',
+          x: 10,
+          y: 20,
+          width: 300,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          label: 'Nested',
+          color: '#22c55e',
+          x: 30,
+          y: 40,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
+      ownership: {
+        'section-a': ['src/a.ts', 'src/b.ts', 'section-b'],
+      },
+    })).toMatchObject({
+      ownership: {
+        'src/a.ts': {
+          itemId: 'src/a.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+        },
+        'src/b.ts': {
+          itemId: 'src/b.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+        },
+        'section-b': {
+          itemId: 'section-b',
+          itemKind: 'section',
+          ownerSectionId: 'section-a',
+        },
+      },
+    });
+  });
+
   it('normalizes malformed layout records before settings are persisted', () => {
     expect(normalizeGraphLayoutSettings({
       pinnedNodes: {

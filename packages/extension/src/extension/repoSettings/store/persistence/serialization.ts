@@ -19,15 +19,16 @@ function dropDuplicateRecordIdentity(
   }
 }
 
-function compactGraphLayoutOwnership(graphLayout: Record<string, unknown>): void {
+function groupGraphLayoutOwnership(graphLayout: Record<string, unknown>): void {
   if (!isPlainObject(graphLayout.ownership)) {
     return;
   }
 
-  const ownership: Record<string, string> = {};
+  const ownership: Record<string, string[]> = {};
   for (const [itemId, record] of Object.entries(graphLayout.ownership)) {
     if (isPlainObject(record) && typeof record.ownerSectionId === 'string') {
-      ownership[itemId] = record.ownerSectionId;
+      ownership[record.ownerSectionId] = ownership[record.ownerSectionId] ?? [];
+      ownership[record.ownerSectionId].push(itemId);
     }
   }
 
@@ -41,7 +42,7 @@ function compactGraphLayoutSettings(persisted: Record<string, unknown>): void {
 
   dropDuplicateRecordIdentity(persisted.graphLayout.pinnedNodes, 'nodeId');
   dropDuplicateRecordIdentity(persisted.graphLayout.sections, 'id');
-  compactGraphLayoutOwnership(persisted.graphLayout);
+  groupGraphLayoutOwnership(persisted.graphLayout);
 }
 
 export function serializeSettings(value: ICodeGraphyRepoSettings): string {

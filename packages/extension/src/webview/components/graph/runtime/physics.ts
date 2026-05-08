@@ -16,6 +16,7 @@ const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
 const SECTION_MEMBER_ANCHOR_STRENGTH = 0.16;
 const SECTION_MEMBER_ANCHOR_MAX_IMPULSE = 32;
 const SECTION_EXTERNAL_PUSH_STRENGTH = 0.4;
+const SECTION_RECTANGLE_COLLISION_PADDING = 12;
 const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
 const SECTION_EXTERNAL_COLLISION_WEIGHT = 0.04;
 
@@ -372,6 +373,13 @@ function shouldApplyRectangleCollision(
 	return true;
 }
 
+function getGraphChargeStrength(
+	repelForce: number,
+): (node: FGNode) => number {
+	const defaultStrength = toD3Repel(repelForce);
+	return (node: FGNode) => isExpandedGraphSection(node) ? 0 : defaultStrength;
+}
+
 function getCollisionMoveWeight(node: FGNode, other: FGNode): number {
 	if (node.isDragging || node.isPinned) {
 		return 0;
@@ -392,6 +400,38 @@ function getCollisionDirection(left: FGNode, right: FGNode, leftCenter: number, 
 	}
 
 	return left.id < right.id ? -1 : 1;
+}
+
+function applyRectangleCollisionPosition(
+	left: FGNode,
+	right: FGNode,
+	axis: 'x' | 'y',
+	direction: number,
+	overlap: number,
+): void {
+	if (!isExpandedGraphSection(left) || !isExpandedGraphSection(right)) {
+		return;
+	}
+
+	const leftWeight = getCollisionMoveWeight(left, right);
+	const rightWeight = getCollisionMoveWeight(right, left);
+	const totalWeight = leftWeight + rightWeight;
+	if (totalWeight === 0) {
+		return;
+	}
+
+	const correction = overlap + SECTION_RECTANGLE_COLLISION_PADDING;
+	const leftCorrection = direction * correction * (leftWeight / totalWeight);
+	const rightCorrection = -direction * correction * (rightWeight / totalWeight);
+
+	if (axis === 'x') {
+		left.x = resolveNodeCoordinate(left.x, 0) + leftCorrection;
+		right.x = resolveNodeCoordinate(right.x, 0) + rightCorrection;
+		return;
+	}
+
+	left.y = resolveNodeCoordinate(left.y, 0) + leftCorrection;
+	right.y = resolveNodeCoordinate(right.y, 0) + rightCorrection;
 }
 
 function applyRectangleCollisionVelocity(
@@ -448,22 +488,26 @@ function applyRectangleCollision(
 	}
 
 	if (overlapX <= overlapY) {
+		const direction = getCollisionDirection(left, right, leftRect.centerX, rightRect.centerX);
+		applyRectangleCollisionPosition(left, right, 'x', direction, overlapX);
 		applyRectangleCollisionVelocity(
 			left,
 			right,
 			'x',
-			getCollisionDirection(left, right, leftRect.centerX, rightRect.centerX),
+			direction,
 			overlapX,
 			alpha,
 		);
 		return;
 	}
 
+	const direction = getCollisionDirection(left, right, leftRect.centerY, rightRect.centerY);
+	applyRectangleCollisionPosition(left, right, 'y', direction, overlapY);
 	applyRectangleCollisionVelocity(
 		left,
 		right,
 		'y',
-		getCollisionDirection(left, right, leftRect.centerY, rightRect.centerY),
+		direction,
 		overlapY,
 		alpha,
 	);
@@ -638,7 +682,7 @@ export function applyPhysicsSettings(
 ): void {
 	const graph = instance as GraphPhysicsControls;
 	const chargeForce = graph.d3Force('charge');
-	if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(settings.repelForce));
+	if (hasStrength(chargeForce)) chargeForce.strength(getGraphChargeStrength(settings.repelForce));
 	if (hasDistanceMax(chargeForce)) {
 		chargeForce.distanceMax(DEFAULT_CHARGE_RANGE);
 	}

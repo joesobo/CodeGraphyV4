@@ -133,6 +133,27 @@ describe('physics', () => {
     expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
   });
 
+  it('keeps expanded Graph Sections from using normal many-body charge', () => {
+    const { charge, instance } = createPhysicsInstance();
+
+    applyPhysicsSettings(instance, SETTINGS);
+
+    const strength = charge.strength.mock.calls[0][0] as (node: FGNode) => number;
+    expect(strength({
+      id: 'section-1',
+      isCollapsedGraphSection: false,
+      isGraphSection: true,
+    } as FGNode)).toBe(0);
+    expect(strength({
+      id: 'src/app.ts',
+    } as FGNode)).toBeLessThan(0);
+    expect(strength({
+      id: 'section-2',
+      isCollapsedGraphSection: true,
+      isGraphSection: true,
+    } as FGNode)).toBeLessThan(0);
+  });
+
   it('uses the fixed graph charge range', () => {
     const { charge, instance } = createPhysicsInstance();
 
@@ -319,6 +340,58 @@ describe('physics', () => {
     expect(nodes[1].vx).toBeGreaterThan(0);
     expect(nodes[0].vy).toBe(0);
     expect(nodes[1].vy).toBe(0);
+  });
+
+  it('resolves overlapping expanded Graph Section rectangle positions without waiting on velocity drift', () => {
+    const force = createGraphSectionBoundsForce({
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': GRAPH_LAYOUT.sections['section-1'],
+        'section-2': {
+          id: 'section-2',
+          label: 'Data Layer',
+          color: '#22c55e',
+          x: 40,
+          y: 0,
+          width: 200,
+          height: 140,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        ...GRAPH_LAYOUT.ownership,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'section-2',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 180,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    const sectionOneRight = nodes[0].x! + 100;
+    const sectionTwoLeft = nodes[1].x! - 100;
+    expect(sectionOneRight).toBeLessThanOrEqual(sectionTwoLeft);
   });
 
   it('does not let many loose nodes collectively launch an expanded Graph Section', () => {
