@@ -503,7 +503,7 @@ describe('physics', () => {
     expect(nodes[1]).toMatchObject({ vx: 0, vy: 0 });
   });
 
-  it('pulls expanded Graph Sections toward their owned members so members stay centered in the body', () => {
+  it('does not let owned members accelerate their expanded Graph Section frame', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
     const nodes = [
       {
@@ -522,19 +522,19 @@ describe('physics', () => {
         size: 10,
         vx: 0,
         vy: 0,
-        x: 150,
-        y: 100,
+        x: 400,
+        y: 400,
       },
     ] as FGNode[];
 
     force.initialize(nodes);
     force(0.5);
 
-    expect(nodes[0].vx).toBeGreaterThan(0);
-    expect(nodes[0].vy).toBeGreaterThan(0);
+    expect(nodes[0].vx).toBe(0);
+    expect(nodes[0].vy).toBe(0);
   });
 
-  it('caps the section-to-member pull so stale far-away sections do not slingshot', () => {
+  it('carries Section Members with their expanded Graph Section frame between ticks', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
     const nodes = [
       {
@@ -544,8 +544,8 @@ describe('physics', () => {
         sectionWidth: 200,
         vx: 0,
         vy: 0,
-        x: 2000,
-        y: 2000,
+        x: 100,
+        y: 70,
       },
       {
         id: 'src/member.ts',
@@ -553,15 +553,19 @@ describe('physics', () => {
         size: 10,
         vx: 0,
         vy: 0,
-        x: 0,
-        y: 0,
+        x: 120,
+        y: 110,
       },
     ] as FGNode[];
 
     force.initialize(nodes);
     force(0.5);
+    nodes[0].x = 140;
+    nodes[0].y = 100;
+    force(0.5);
 
-    expect(Math.hypot(nodes[0].vx ?? 0, nodes[0].vy ?? 0)).toBeLessThanOrEqual(32);
+    expect(nodes[1].x).toBe(160);
+    expect(nodes[1].y).toBe(140);
   });
 
   it('keeps Section Members below the Section Frame header', () => {

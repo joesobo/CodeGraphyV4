@@ -13,8 +13,6 @@ const COLLISION_PADDING = 4;
 const COLLISION_ITERATIONS = 16;
 const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
-const SECTION_MEMBER_ANCHOR_STRENGTH = 0.16;
-const SECTION_MEMBER_ANCHOR_MAX_IMPULSE = 32;
 const SECTION_EXTERNAL_PUSH_STRENGTH = 0.4;
 const SECTION_RECTANGLE_COLLISION_PADDING = 12;
 const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
@@ -48,6 +46,11 @@ interface BoundsRect {
 interface RectangleCollisionRect extends BoundsRect {
 	centerX: number;
 	centerY: number;
+}
+
+interface SectionCenter {
+	x: number;
+	y: number;
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -540,79 +543,105 @@ function applyRectangleCollisions(
 	}
 }
 
-function getSectionMemberCentroid(
+function getSectionDepth(
 	sectionId: string,
-	nodes: readonly FGNode[],
 	graphLayout: GraphLayoutSettings,
-): { x: number; y: number } | undefined {
-	let count = 0;
-	let totalX = 0;
-	let totalY = 0;
+): number {
+	let depth = 0;
+	let ownerSectionId = graphLayout.ownership[sectionId]?.ownerSectionId ?? null;
+	const visited = new Set<string>([sectionId]);
 
-	for (const node of nodes) {
-		if (
-			node.id === sectionId
-			|| node.isGraphSection
-			|| node.isDragging
-			|| !isOwnedBySection(node, sectionId, graphLayout)
-			|| !isFiniteNumber(node.x)
-			|| !isFiniteNumber(node.y)
-		) {
-			continue;
+	while (ownerSectionId) {
+		if (visited.has(ownerSectionId)) {
+			return depth;
 		}
 
-		count += 1;
-		totalX += node.x;
-		totalY += node.y;
+		visited.add(ownerSectionId);
+		depth += 1;
+		ownerSectionId = graphLayout.ownership[ownerSectionId]?.ownerSectionId ?? null;
 	}
 
-	return count === 0
-		? undefined
-		: { x: totalX / count, y: totalY / count };
+	return depth;
 }
 
-function pullSectionTowardOwnedMembers(
-	sectionNode: FGNode,
-	bounds: BoundsRect,
-	centroid: { x: number; y: number } | undefined,
-	alpha: number,
-): void {
-	if (!centroid || sectionNode.isDragging || sectionNode.isPinned) {
+function getSectionIdsByDepth(graphLayout: GraphLayoutSettings): string[] {
+	return Object.keys(graphLayout.sections)
+		.sort((left, right) => getSectionDepth(left, graphLayout) - getSectionDepth(right, graphLayout));
+}
+
+function getSectionCenter(node: FGNode | undefined): SectionCenter | undefined {
+	if (!node || !isFiniteNumber(node.x) || !isFiniteNumber(node.y)) {
+		return undefined;
+	}
+
+	return { x: node.x, y: node.y };
+}
+
+function translateNodePosition(node: FGNode, deltaX: number, deltaY: number): void {
+	if (node.isDragging) {
 		return;
 	}
 
-	const memberBounds = getSectionMemberBounds(bounds);
-	const centerX = memberBounds.x + (memberBounds.width / 2);
-	const centerY = memberBounds.y + (memberBounds.height / 2);
-	const impulseX = (centroid.x - centerX) * SECTION_MEMBER_ANCHOR_STRENGTH * alpha;
-	const impulseY = (centroid.y - centerY) * SECTION_MEMBER_ANCHOR_STRENGTH * alpha;
-	const magnitude = Math.hypot(impulseX, impulseY);
-	const scale = magnitude > SECTION_MEMBER_ANCHOR_MAX_IMPULSE
-		? SECTION_MEMBER_ANCHOR_MAX_IMPULSE / magnitude
-		: 1;
-	sectionNode.vx = (sectionNode.vx ?? 0) + impulseX * scale;
-	sectionNode.vy = (sectionNode.vy ?? 0) + impulseY * scale;
+	if (isFiniteNumber(node.x)) {
+		node.x += deltaX;
+	}
+
+	if (isFiniteNumber(node.y)) {
+		node.y += deltaY;
+	}
+
+	if (isFiniteNumber(node.fx)) {
+		node.fx += deltaX;
+	}
+
+	if (isFiniteNumber(node.fy)) {
+		node.fy += deltaY;
+	}
 }
 
-function pullSectionsTowardOwnedMembers(
-	nodes: readonly FGNode[],
-	sectionBounds: ReadonlyMap<string, BoundsRect>,
+function carrySectionMembersWithFrames(
+	nodes: FGNode[],
 	graphLayout: GraphLayoutSettings,
-	alpha: number,
+	previousSectionCenters: Map<string, SectionCenter>,
 ): void {
 	const nodeMap = createNodeMap(nodes);
-	for (const [sectionId, bounds] of sectionBounds) {
-		const sectionNode = nodeMap.get(sectionId);
-		if (!sectionNode) {
+	for (const sectionId of getSectionIdsByDepth(graphLayout)) {
+		const currentCenter = getSectionCenter(nodeMap.get(sectionId));
+		if (!currentCenter) {
 			continue;
 		}
 
-		pullSectionTowardOwnedMembers(
-			sectionNode,
-			bounds,
-			getSectionMemberCentroid(sectionId, nodes, graphLayout),
-			alpha,
-		);
+		const previousCenter = previousSectionCenters.get(sectionId);
+		if (!previousCenter) {
+			continue;
+		}
+
+		const deltaX = currentCenter.x - previousCenter.x;
+		const deltaY = currentCenter.y - previousCenter.y;
+		if (deltaX === 0 && deltaY === 0) {
+			continue;
+		}
+
+		for (const node of nodes) {
+			if (node.id !== sectionId && getOwnerSectionId(node, graphLayout) === sectionId) {
+				translateNodePosition(node, deltaX, deltaY);
+			}
+		}
+	}
+}
+
+function rememberSectionCenters(
+	nodes: readonly FGNode[],
+	graphLayout: GraphLayoutSettings,
+	previousSectionCenters: Map<string, SectionCenter>,
+): void {
+	const nodeMap = createNodeMap(nodes);
+	previousSectionCenters.clear();
+	for (const sectionId of Object.keys(graphLayout.sections)) {
+		const center = getSectionCenter(nodeMap.get(sectionId));
+		if (center) {
+			previousSectionCenters.set(sectionId, center);
+		}
 	}
 }
 
@@ -620,11 +649,12 @@ export function createGraphSectionBoundsForce(
 	graphLayout: GraphLayoutSettings,
 ): GraphSectionBoundsForce {
 	let nodes: FGNode[] = [];
+	const previousSectionCenters = new Map<string, SectionCenter>();
 
 	const force = ((alpha: number): void => {
-		const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
-		pullSectionsTowardOwnedMembers(nodes, sectionBounds, graphLayout, alpha);
 		applyRectangleCollisions(nodes, graphLayout, alpha);
+		carrySectionMembersWithFrames(nodes, graphLayout, previousSectionCenters);
+		const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
 
 		for (const node of nodes) {
 			if (node.isDragging) {
@@ -646,10 +676,13 @@ export function createGraphSectionBoundsForce(
 			constrainMemberNode(node, bounds, alpha);
 			repelExternalNodesFromSections(node, sectionBounds, graphLayout, alpha);
 		}
+
+		rememberSectionCenters(nodes, graphLayout, previousSectionCenters);
 	}) as GraphSectionBoundsForce;
 
 	force.initialize = (nextNodes: FGNode[]): void => {
 		nodes = nextNodes;
+		previousSectionCenters.clear();
 	};
 
 	return force;
