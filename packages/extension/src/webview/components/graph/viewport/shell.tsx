@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { useRef, type ReactElement } from 'react';
 import type { ThemeKind } from '../../../theme/useTheme';
 import {
   getGraphLayoutPinCoordinate,
@@ -17,6 +17,7 @@ import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport } from './view';
 import { useGraphViewportModel } from './model';
 import { postMessage } from '../../../vscodeApi';
+import { graphStore } from '../../../store/state';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -114,6 +115,13 @@ function getPinnedSectionIds(
   return pinnedSectionIds;
 }
 
+function shouldPublishGraphViewportScale(
+  previous: number | null,
+  next: number,
+): boolean {
+  return previous === null || Math.abs(previous - next) >= 0.01;
+}
+
 export function GraphViewportShell({
   appearance,
   callbacks,
@@ -125,6 +133,7 @@ export function GraphViewportShell({
   theme,
   viewState,
 }: GraphViewportShellProps): ReactElement {
+  const lastPublishedViewportScaleRef = useRef<number | null>(null);
   const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
     appearance,
     callbacks,
@@ -171,6 +180,18 @@ export function GraphViewportShell({
     ? Object.values(viewState.graphLayout.sections)
     : [];
   const pinnedSectionIds = getPinnedSectionIds(sectionFrames, viewState.graphLayout.pinnedNodes);
+  const publishGraphViewportScale = (globalScale: number): void => {
+    if (viewState.graphMode !== '2d' || !Number.isFinite(globalScale) || globalScale <= 0) {
+      return;
+    }
+
+    if (!shouldPublishGraphViewportScale(lastPublishedViewportScaleRef.current, globalScale)) {
+      return;
+    }
+
+    lastPublishedViewportScaleRef.current = globalScale;
+    graphStore.getState().setGraphViewportScale(globalScale);
+  };
 
   return (
     <Viewport
@@ -204,7 +225,10 @@ export function GraphViewportShell({
         linkCanvasObject: callbacks.linkCanvasObject,
         nodeCanvasObject: callbacks.nodeCanvasObject,
         nodePointerAreaPaint: callbacks.nodePointerAreaPaint,
-        onRenderFramePost: viewportRuntime.renderPluginOverlays,
+        onRenderFramePost: (ctx, globalScale) => {
+          publishGraphViewportScale(globalScale);
+          viewportRuntime.renderPluginOverlays(ctx, globalScale);
+        },
         particleSize: viewState.particleSize,
         particleSpeed: viewState.particleSpeed,
         sharedProps: viewportModel.sharedProps,

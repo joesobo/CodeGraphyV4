@@ -40,6 +40,24 @@ function handleGraphEngineStop(): void {
   postMessage({ type: 'PHYSICS_STABILIZED' });
 }
 
+interface GraphViewportScaleReader {
+  zoom(): number;
+}
+
+function readGraphViewportScale(
+  graphMode: '2d' | '3d',
+  graph: unknown,
+): number | null {
+  if (graphMode !== '2d') {
+    return null;
+  }
+
+  const scale = (graph as GraphViewportScaleReader | undefined)?.zoom?.();
+  return typeof scale === 'number' && Number.isFinite(scale) && scale > 0
+    ? scale
+    : null;
+}
+
 export function useGraphInteractionRuntime({
   dataRef,
   depthMode,
@@ -146,9 +164,10 @@ export function useGraphInteractionRuntime({
   const actionContext = useMemo(
     () => resolveGraphContextActionContext(graphContextSelection, {
       graphMode,
+      graphViewportScale: readGraphViewportScale(graphMode, refs.fg2dRef.current),
       nodePositions: createGraphNodePositionMap(graphDataRef.current.nodes, graphMode),
     }),
-    [graphContextSelection, graphDataRef, graphMode],
+    [graphContextSelection, graphDataRef, graphMode, refs.fg2dRef],
   );
 
   function handleNodeDragEnd(node: FGNode): void {

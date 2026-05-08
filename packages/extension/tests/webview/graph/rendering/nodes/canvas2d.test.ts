@@ -119,6 +119,7 @@ function createContext(): {
     }),
     lineTo: vi.fn(),
     moveTo: vi.fn(),
+    rect: vi.fn(),
     restore: vi.fn(),
     save: vi.fn(),
     stroke: vi.fn(() => {
@@ -402,19 +403,50 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.lineTo).toHaveBeenCalledWith(35.2, 38.3);
   });
 
-  it('skips expanded Section Nodes because the Section Frame renders the expanded state', () => {
-    const { ctx } = createContext();
+  it('renders expanded Section Nodes as visible colored Section Frames', () => {
+    const { ctx, operations } = createContext();
 
     renderNodeCanvas(
       createDependencies({ showLabels: false }),
-      createNode({ isGraphSection: true, nodeType: 'graph-section', shape2D: 'square' }),
+      createNode({
+        borderColor: '#60a5fa',
+        color: '#60a5fa',
+        id: 'section-1',
+        isGraphSection: true,
+        label: 'UI Layer',
+        nodeType: 'graph-section',
+        sectionHeight: 180,
+        sectionWidth: 280,
+        shape2D: 'square',
+        x: 100,
+        y: 120,
+      }),
       ctx,
       1,
     );
 
     expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.fill).not.toHaveBeenCalled();
-    expect(ctx.stroke).not.toHaveBeenCalled();
+    expect(ctx.rect).toHaveBeenCalledWith(100, 120, 280, 180);
+    expect(ctx.rect).toHaveBeenCalledWith(100, 120, 280, 28);
+    expect(ctx.stroke).toHaveBeenCalled();
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        fillStyle: '#60a5fa22',
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        fillStyle: '#60a5fa33',
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        kind: 'stroke',
+        strokeStyle: '#60a5fa',
+      }),
+      expect.objectContaining({
+        kind: 'fillText',
+        text: 'UI Layer',
+      }),
+    ]));
   });
 
   it('renders collapsed Section Nodes as normal graph nodes', () => {
@@ -470,6 +502,29 @@ describe('graph/rendering/nodes/canvas2d', () => {
     paintNodePointerArea(createNode(), '#ffffff', ctx);
 
     expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 18);
+    expect(ctx.fillStyle).toBe('#ffffff');
+    expect(ctx.fill).toHaveBeenCalled();
+  });
+
+  it('paints expanded Section Node pointer areas across the full frame', () => {
+    const { ctx } = createContext();
+
+    paintNodePointerArea(
+      createNode({
+        id: 'section-1',
+        isGraphSection: true,
+        nodeType: 'graph-section',
+        sectionHeight: 180,
+        sectionWidth: 280,
+        x: 100,
+        y: 120,
+      }),
+      '#ffffff',
+      ctx,
+    );
+
+    expect(drawShape).not.toHaveBeenCalled();
+    expect(ctx.rect).toHaveBeenCalledWith(100, 120, 280, 180);
     expect(ctx.fillStyle).toBe('#ffffff');
     expect(ctx.fill).toHaveBeenCalled();
   });

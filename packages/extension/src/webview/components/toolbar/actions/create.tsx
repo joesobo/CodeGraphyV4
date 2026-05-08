@@ -7,8 +7,7 @@ import {
 } from '@mdi/js';
 import {
   DEFAULT_GRAPH_SECTION_COLOR,
-  DEFAULT_GRAPH_SECTION_HEIGHT,
-  DEFAULT_GRAPH_SECTION_WIDTH,
+  getDefaultGraphSectionSize,
 } from '../../../../shared/settings/graphLayout';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
@@ -25,19 +24,21 @@ import type { GraphContextMutationAvailability } from '../../graph/contextMenu/c
 
 interface CreateToolbarActionProps {
   graphMode: '2d' | '3d';
+  graphViewportScale: number | null;
   mutationAvailability: GraphContextMutationAvailability;
 }
 
-function postRootGraphSectionCreation(): void {
+function postRootGraphSectionCreation(graphViewportScale: number | null): void {
+  const size = getDefaultGraphSectionSize(graphViewportScale);
   postMessage({
     type: 'CREATE_GRAPH_LAYOUT_SECTION',
     payload: {
       color: DEFAULT_GRAPH_SECTION_COLOR,
-      height: DEFAULT_GRAPH_SECTION_HEIGHT,
+      height: size.height,
       memberNodeIds: [],
-      width: DEFAULT_GRAPH_SECTION_WIDTH,
-      x: -(DEFAULT_GRAPH_SECTION_WIDTH / 2),
-      y: -(DEFAULT_GRAPH_SECTION_HEIGHT / 2),
+      width: size.width,
+      x: -(size.width / 2),
+      y: -(size.height / 2),
     },
   });
 }
@@ -52,6 +53,7 @@ function postRootFolderCreation(): void {
 
 export function CreateToolbarAction({
   graphMode,
+  graphViewportScale,
   mutationAvailability,
 }: CreateToolbarActionProps): React.ReactElement {
   const sectionCreationAvailable = graphMode === '2d'
@@ -91,7 +93,7 @@ export function CreateToolbarAction({
             <DropdownMenuItem
               className="gap-2"
               disabled={sectionCreationDisabled}
-              onSelect={postRootGraphSectionCreation}
+              onSelect={() => postRootGraphSectionCreation(graphViewportScale)}
             >
               <MdiIcon path={mdiVectorSquarePlus} size={15} className="shrink-0" />
               <span>New Graph Section</span>

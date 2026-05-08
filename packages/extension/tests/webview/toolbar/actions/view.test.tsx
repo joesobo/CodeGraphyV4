@@ -99,6 +99,7 @@ describe('ToolbarActions', () => {
       nodeSizeMode: 'connections',
       timelineActive: false,
       timelineCommits: [],
+      graphViewportScale: null,
     });
   });
 
@@ -235,6 +236,25 @@ describe('ToolbarActions', () => {
         width: 280,
         x: -140,
         y: -90,
+      },
+    });
+  });
+
+  it('posts a root Graph Section that stays large on screen when the graph is zoomed out', () => {
+    graphStore.setState({ graphViewportScale: 0.2 });
+    renderWithProviders();
+
+    fireEvent.click(screen.getByText('New Graph Section'));
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CREATE_GRAPH_LAYOUT_SECTION',
+      payload: {
+        color: '#60a5fa',
+        height: 900,
+        memberNodeIds: [],
+        width: 1400,
+        x: -700,
+        y: -450,
       },
     });
   });

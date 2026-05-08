@@ -12,6 +12,7 @@ export interface GraphContextNodePosition3D extends GraphContextNodePosition2D {
 
 export interface ResolveGraphContextActionOptions {
   graphMode?: GraphLayoutMode;
+  graphViewportScale?: number | null;
   nodePositions?: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
 }
 
@@ -23,6 +24,7 @@ export interface GraphContextActionContext {
   edgeTargetId?: string;
   graphMode: GraphLayoutMode;
   graphPosition?: GraphContextNodePosition2D;
+  graphViewportScale?: number | null;
   mutationDirectory: string;
   nodePositions: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
 }
@@ -42,6 +44,7 @@ export function resolveGraphContextActionContext(
     edgeTargetId: isEdgeSelection ? secondaryTargetId : undefined,
     graphMode: options.graphMode ?? '2d',
     graphPosition: selection.graphPosition,
+    graphViewportScale: options.graphViewportScale,
     mutationDirectory: resolveMutationDirectory(primaryTargetId),
     nodePositions: options.nodePositions ?? new Map(),
   };

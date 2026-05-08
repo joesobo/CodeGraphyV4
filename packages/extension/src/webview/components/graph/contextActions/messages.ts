@@ -1,8 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import {
   DEFAULT_GRAPH_SECTION_COLOR,
-  DEFAULT_GRAPH_SECTION_HEIGHT,
-  DEFAULT_GRAPH_SECTION_WIDTH,
+  getDefaultGraphSectionSize,
   GRAPH_SECTION_SELECTION_PADDING,
 } from '../../../../shared/settings/graphLayout';
 import type {
@@ -120,11 +119,12 @@ export function createClearPinNodeEffects(context: GraphContextActionContext): G
 
 function getDefaultSectionBounds(context: GraphContextActionContext): SectionBounds {
   const center = context.graphPosition ?? { x: 0, y: 0 };
+  const size = getDefaultGraphSectionSize(context.graphViewportScale);
   return {
-    height: DEFAULT_GRAPH_SECTION_HEIGHT,
-    width: DEFAULT_GRAPH_SECTION_WIDTH,
-    x: center.x - (DEFAULT_GRAPH_SECTION_WIDTH / 2),
-    y: center.y - (DEFAULT_GRAPH_SECTION_HEIGHT / 2),
+    height: size.height,
+    width: size.width,
+    x: center.x - (size.width / 2),
+    y: center.y - (size.height / 2),
   };
 }
 

@@ -41,6 +41,13 @@ function backgroundContext() {
   );
 }
 
+function scaledBackgroundContext(graphViewportScale: number) {
+  return resolveGraphContextActionContext(
+    { kind: 'background', targets: [], graphPosition: { x: 40, y: -20 } },
+    { graphMode: '2d', graphViewportScale },
+  );
+}
+
 function edgeContext(targets: string[]) {
   return resolveGraphContextActionContext({ kind: 'edge', edgeId: targets.join('->'), targets });
 }
@@ -243,6 +250,25 @@ describe('graph/contextActions/effects', () => {
             width: 280,
             x: -100,
             y: -110,
+          },
+        },
+      },
+    ]);
+  });
+
+  it('keeps a default background Graph Section large enough on screen when the graph is zoomed out', () => {
+    expect(getBuiltInContextActionEffects('createGraphSection', scaledBackgroundContext(0.2))).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_GRAPH_LAYOUT_SECTION',
+          payload: {
+            color: '#60a5fa',
+            height: 900,
+            memberNodeIds: [],
+            width: 1400,
+            x: -660,
+            y: -470,
           },
         },
       },

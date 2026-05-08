@@ -45,6 +45,7 @@ export interface GraphState {
   physicsPaused: boolean;
   showLabels: boolean;
   graphMode: '2d' | '3d';
+  graphViewportScale: number | null;
   graphLayout: GraphLayoutSettings;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
@@ -88,6 +89,7 @@ export interface GraphState {
   setSearchOptions: (options: SearchOptions) => void;
   setActivePanel: (panel: GraphState['activePanel']) => void;
   setGraphMode: (mode: '2d' | '3d') => void;
+  setGraphViewportScale: (scale: number | null) => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;
   setPhysicsSettings: (settings: IPhysicsSettings) => void;
   setLegends: (legends: IGroup[]) => void;

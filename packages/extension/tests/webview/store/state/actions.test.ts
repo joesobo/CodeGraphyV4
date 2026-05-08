@@ -34,6 +34,12 @@ describe('GraphStore actions', () => {
     expect(store.getState().nodeSizeMode).toBe('file-size');
   });
 
+  it('setGraphViewportScale updates the last known 2D graph zoom scale', () => {
+    store.getState().setGraphViewportScale(0.25);
+
+    expect(store.getState().graphViewportScale).toBe(0.25);
+  });
+
   it('setPhysicsSettings updates physics settings', () => {
     const physicsSettings = {
       repelForce: 12,
