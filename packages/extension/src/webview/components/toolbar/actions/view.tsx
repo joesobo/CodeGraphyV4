@@ -24,7 +24,6 @@ export function ToolbarActions(): React.ReactElement {
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const graphMode = useGraphStore(s => s.graphMode);
-  const graphViewportScale = useGraphStore(s => s.graphViewportScale);
   const currentCommitSha = useGraphStore(s => s.currentCommitSha);
   const timelineActive = useGraphStore(s => s.timelineActive);
   const timelineCommits = useGraphStore(s => s.timelineCommits);
@@ -50,7 +49,6 @@ export function ToolbarActions(): React.ReactElement {
         <NodeSizeModePopover />
         <CreateToolbarAction
           graphMode={graphMode}
-          graphViewportScale={graphViewportScale}
           mutationAvailability={mutationAvailability}
         />
         <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />

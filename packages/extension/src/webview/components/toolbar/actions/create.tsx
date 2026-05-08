@@ -24,12 +24,11 @@ import type { GraphContextMutationAvailability } from '../../graph/contextMenu/c
 
 interface CreateToolbarActionProps {
   graphMode: '2d' | '3d';
-  graphViewportScale: number | null;
   mutationAvailability: GraphContextMutationAvailability;
 }
 
-function postRootGraphSectionCreation(graphViewportScale: number | null): void {
-  const size = getDefaultGraphSectionSize(graphViewportScale);
+function postRootGraphSectionCreation(): void {
+  const size = getDefaultGraphSectionSize();
   postMessage({
     type: 'CREATE_GRAPH_LAYOUT_SECTION',
     payload: {
@@ -53,7 +52,6 @@ function postRootFolderCreation(): void {
 
 export function CreateToolbarAction({
   graphMode,
-  graphViewportScale,
   mutationAvailability,
 }: CreateToolbarActionProps): React.ReactElement {
   const sectionCreationAvailable = graphMode === '2d'
@@ -93,7 +91,7 @@ export function CreateToolbarAction({
             <DropdownMenuItem
               className="gap-2"
               disabled={sectionCreationDisabled}
-              onSelect={() => postRootGraphSectionCreation(graphViewportScale)}
+              onSelect={postRootGraphSectionCreation}
             >
               <MdiIcon path={mdiVectorSquarePlus} size={15} className="shrink-0" />
               <span>New Graph Section</span>

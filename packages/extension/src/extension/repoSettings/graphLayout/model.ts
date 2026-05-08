@@ -100,6 +100,21 @@ function readMatchingRecordIdentity(
   return { id, updatedAt };
 }
 
+function readKeyedRecordIdentity(
+  value: Record<string, unknown>,
+  key: string,
+  idField: 'id' | 'nodeId',
+): MatchingRecordIdentity | undefined {
+  const explicitId = readString(value[idField]);
+  const id = explicitId ?? key;
+  const updatedAt = readRequiredString(value.updatedAt);
+  if (id !== key || !updatedAt) {
+    return undefined;
+  }
+
+  return { id, updatedAt };
+}
+
 function readPinnedNodeCoordinates(
   value: Record<string, unknown>,
 ): Pick<GraphLayoutPinnedNode, 'threeDimensional' | 'twoDimensional'> | undefined {
@@ -123,7 +138,7 @@ function normalizePinnedNode(
     return undefined;
   }
 
-  const identity = readMatchingRecordIdentity(value, key, 'nodeId');
+  const identity = readKeyedRecordIdentity(value, key, 'nodeId');
   const coordinates = readPinnedNodeCoordinates(value);
   if (!identity || !coordinates) {
     return undefined;
@@ -170,7 +185,7 @@ function readSectionTextFields(
   value: Record<string, unknown>,
   key: string,
 ): SectionTextFields | undefined {
-  const identity = readMatchingRecordIdentity(value, key, 'id');
+  const identity = readKeyedRecordIdentity(value, key, 'id');
   const label = readString(value.label);
   const color = readRequiredString(value.color);
   if (!identity || label === undefined || !color) {
@@ -272,11 +287,46 @@ function ownsKnownSection(
   return itemKind === 'node' || itemId in sections;
 }
 
+function inferOwnershipItemKind(
+  itemId: string,
+  sections: Record<string, GraphLayoutSection>,
+): GraphLayoutOwnership['itemKind'] {
+  return itemId in sections ? 'section' : 'node';
+}
+
+function normalizeCompactOwnershipRecord(
+  key: string,
+  ownerSectionIdValue: unknown,
+  sections: Record<string, GraphLayoutSection>,
+): GraphLayoutOwnership | undefined {
+  const itemKind = inferOwnershipItemKind(key, sections);
+  const ownerSectionId = normalizeOwnerSectionId(
+    key,
+    itemKind,
+    ownerSectionIdValue,
+    sections,
+  );
+  if (ownerSectionId === undefined || ownerSectionId === null) {
+    return undefined;
+  }
+
+  return {
+    itemId: key,
+    itemKind,
+    ownerSectionId,
+    updatedAt: sections[ownerSectionId].updatedAt,
+  };
+}
+
 function normalizeOwnershipRecord(
   key: string,
   value: unknown,
   sections: Record<string, GraphLayoutSection>,
 ): GraphLayoutOwnership | undefined {
+  if (typeof value === 'string') {
+    return normalizeCompactOwnershipRecord(key, value, sections);
+  }
+
   if (!isPlainObject(value)) {
     return undefined;
   }

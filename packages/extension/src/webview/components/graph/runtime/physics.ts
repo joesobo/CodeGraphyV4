@@ -14,8 +14,10 @@ const COLLISION_ITERATIONS = 16;
 const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
 const SECTION_MEMBER_ANCHOR_STRENGTH = 0.16;
+const SECTION_MEMBER_ANCHOR_MAX_IMPULSE = 32;
 const SECTION_EXTERNAL_PUSH_STRENGTH = 0.4;
 const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
+const SECTION_EXTERNAL_COLLISION_WEIGHT = 0.04;
 
 interface GraphPhysicsControls {
 	d3Force(name: string): unknown;
@@ -370,8 +372,14 @@ function shouldApplyRectangleCollision(
 	return true;
 }
 
-function getCollisionMoveWeight(node: FGNode): number {
-	return node.isDragging || node.isPinned ? 0 : 1;
+function getCollisionMoveWeight(node: FGNode, other: FGNode): number {
+	if (node.isDragging || node.isPinned) {
+		return 0;
+	}
+
+	return isExpandedGraphSection(node) && !isExpandedGraphSection(other)
+		? SECTION_EXTERNAL_COLLISION_WEIGHT
+		: 1;
 }
 
 function getCollisionDirection(left: FGNode, right: FGNode, leftCenter: number, rightCenter: number): number {
@@ -394,8 +402,8 @@ function applyRectangleCollisionVelocity(
 	overlap: number,
 	alpha: number,
 ): void {
-	const leftWeight = getCollisionMoveWeight(left);
-	const rightWeight = getCollisionMoveWeight(right);
+	const leftWeight = getCollisionMoveWeight(left, right);
+	const rightWeight = getCollisionMoveWeight(right, left);
 	const totalWeight = leftWeight + rightWeight;
 	if (totalWeight === 0) {
 		return;
@@ -528,8 +536,14 @@ function pullSectionTowardOwnedMembers(
 	const memberBounds = getSectionMemberBounds(bounds);
 	const centerX = memberBounds.x + (memberBounds.width / 2);
 	const centerY = memberBounds.y + (memberBounds.height / 2);
-	sectionNode.vx = (sectionNode.vx ?? 0) + (centroid.x - centerX) * SECTION_MEMBER_ANCHOR_STRENGTH * alpha;
-	sectionNode.vy = (sectionNode.vy ?? 0) + (centroid.y - centerY) * SECTION_MEMBER_ANCHOR_STRENGTH * alpha;
+	const impulseX = (centroid.x - centerX) * SECTION_MEMBER_ANCHOR_STRENGTH * alpha;
+	const impulseY = (centroid.y - centerY) * SECTION_MEMBER_ANCHOR_STRENGTH * alpha;
+	const magnitude = Math.hypot(impulseX, impulseY);
+	const scale = magnitude > SECTION_MEMBER_ANCHOR_MAX_IMPULSE
+		? SECTION_MEMBER_ANCHOR_MAX_IMPULSE / magnitude
+		: 1;
+	sectionNode.vx = (sectionNode.vx ?? 0) + impulseX * scale;
+	sectionNode.vy = (sectionNode.vy ?? 0) + impulseY * scale;
 }
 
 function pullSectionsTowardOwnedMembers(

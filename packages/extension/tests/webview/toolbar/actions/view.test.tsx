@@ -240,7 +240,7 @@ describe('ToolbarActions', () => {
     });
   });
 
-  it('posts a root Graph Section that stays large on screen when the graph is zoomed out', () => {
+  it('posts a root Graph Section with stable graph-space size when the graph is zoomed out', () => {
     graphStore.setState({ graphViewportScale: 0.2 });
     renderWithProviders();
 
@@ -250,11 +250,11 @@ describe('ToolbarActions', () => {
       type: 'CREATE_GRAPH_LAYOUT_SECTION',
       payload: {
         color: '#60a5fa',
-        height: 900,
+        height: 180,
         memberNodeIds: [],
-        width: 1400,
-        x: -700,
-        y: -450,
+        width: 280,
+        x: -140,
+        y: -90,
       },
     });
   });

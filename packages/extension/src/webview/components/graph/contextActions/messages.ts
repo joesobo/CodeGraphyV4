@@ -151,7 +151,7 @@ export function createGraphSectionDeleteEffects(
 
 function getDefaultSectionBounds(context: GraphContextActionContext): SectionBounds {
   const center = context.graphPosition ?? { x: 0, y: 0 };
-  const size = getDefaultGraphSectionSize(context.graphViewportScale);
+  const size = getDefaultGraphSectionSize();
   return {
     height: size.height,
     width: size.width,

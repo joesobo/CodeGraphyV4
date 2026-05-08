@@ -295,7 +295,7 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
-  it('keeps a default background Graph Section large enough on screen when the graph is zoomed out', () => {
+  it('keeps a default background Graph Section at stable graph-space size when the graph is zoomed out', () => {
     expect(getBuiltInContextActionEffects('createGraphSection', scaledBackgroundContext(0.2))).toEqual([
       {
         kind: 'postMessage',
@@ -303,11 +303,11 @@ describe('graph/contextActions/effects', () => {
           type: 'CREATE_GRAPH_LAYOUT_SECTION',
           payload: {
             color: '#60a5fa',
-            height: 900,
+            height: 180,
             memberNodeIds: [],
-            width: 1400,
-            x: -660,
-            y: -470,
+            width: 280,
+            x: -100,
+            y: -110,
           },
         },
       },

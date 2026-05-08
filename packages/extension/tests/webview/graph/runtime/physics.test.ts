@@ -321,6 +321,37 @@ describe('physics', () => {
     expect(nodes[1].vy).toBe(0);
   });
 
+  it('does not let many loose nodes collectively launch an expanded Graph Section', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      ...Array.from({ length: 10 }, (_, index) => ({
+        id: `src/loose-${index}.ts`,
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 145 + (index % 2) * 12,
+        y: 70 + index * 4,
+      })),
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(Math.abs(nodes[0].vx ?? 0)).toBeLessThanOrEqual(8);
+    expect(Math.abs(nodes[0].vy ?? 0)).toBeLessThanOrEqual(8);
+    expect(nodes.slice(1).some(node => Math.abs(node.vx ?? 0) > 0 || Math.abs(node.vy ?? 0) > 0)).toBe(true);
+  });
+
   it('does not push nested Graph Section rectangles out of their owner section', () => {
     const force = createGraphSectionBoundsForce({
       ...GRAPH_LAYOUT,
@@ -407,6 +438,36 @@ describe('physics', () => {
 
     expect(nodes[0].vx).toBeGreaterThan(0);
     expect(nodes[0].vy).toBeGreaterThan(0);
+  });
+
+  it('caps the section-to-member pull so stale far-away sections do not slingshot', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 2000,
+        y: 2000,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 0,
+        y: 0,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(Math.hypot(nodes[0].vx ?? 0, nodes[0].vy ?? 0)).toBeLessThanOrEqual(32);
   });
 
   it('keeps Section Members below the Section Frame header', () => {

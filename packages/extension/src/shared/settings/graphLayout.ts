@@ -60,17 +60,12 @@ export interface GraphLayoutSectionCreate {
   y: number;
 }
 
-function isPositiveFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0;
-}
-
 export function getDefaultGraphSectionSize(
-  graphViewportScale?: number | null,
+  _graphViewportScale?: number | null,
 ): { height: number; width: number } {
-  const scale = isPositiveFiniteNumber(graphViewportScale) ? graphViewportScale : 1;
   return {
-    height: DEFAULT_GRAPH_SECTION_HEIGHT / scale,
-    width: DEFAULT_GRAPH_SECTION_WIDTH / scale,
+    height: DEFAULT_GRAPH_SECTION_HEIGHT,
+    width: DEFAULT_GRAPH_SECTION_WIDTH,
   };
 }
 
