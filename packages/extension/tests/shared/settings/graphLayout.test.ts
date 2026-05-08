@@ -4,6 +4,7 @@ import type {
   GraphLayoutSection,
 } from '../../../src/shared/settings/graphLayout';
 import {
+  getDefaultGraphSectionSize,
   getGraphLayoutSectionDepth,
   isGraphLayoutSectionDescendant,
   isGraphLayoutSectionVisible,
@@ -67,6 +68,11 @@ const OWNERSHIP: Record<string, GraphLayoutOwnership> = {
 };
 
 describe('shared/settings/graphLayout', () => {
+  it('uses a stable graph-space default size for new Graph Sections', () => {
+    expect(getDefaultGraphSectionSize()).toEqual({ height: 180, width: 280 });
+    expect(getDefaultGraphSectionSize(0.2)).toEqual({ height: 180, width: 280 });
+  });
+
   it('walks nested Section ancestry for descendant checks and depth', () => {
     expect(isGraphLayoutSectionDescendant(OWNERSHIP, 'grandchild', 'parent')).toBe(true);
     expect(isGraphLayoutSectionDescendant(OWNERSHIP, 'child', 'grandchild')).toBe(false);

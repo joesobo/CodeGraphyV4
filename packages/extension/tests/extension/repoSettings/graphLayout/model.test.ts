@@ -82,6 +82,89 @@ describe('extension/repoSettings/graphLayout/model', () => {
     });
   });
 
+  it('normalizes compact persisted Graph Layout records from their map keys', () => {
+    expect(normalizeGraphLayoutSettings({
+      pinnedNodes: {
+        'src/a.ts': {
+          twoDimensional: { x: 10, y: 20 },
+          updatedAt: '2026-05-07T08:00:00.000Z',
+        },
+      },
+      sections: {
+        'section-a': {
+          label: 'Layer A',
+          color: '#4488ff',
+          x: 10,
+          y: 20,
+          width: 300,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          label: 'Nested',
+          color: '#22c55e',
+          x: 30,
+          y: 40,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
+      ownership: {
+        'src/a.ts': 'section-a',
+        'section-b': 'section-a',
+      },
+    })).toEqual({
+      pinnedNodes: {
+        'src/a.ts': {
+          nodeId: 'src/a.ts',
+          twoDimensional: { x: 10, y: 20 },
+          updatedAt: '2026-05-07T08:00:00.000Z',
+        },
+      },
+      sections: {
+        'section-a': {
+          id: 'section-a',
+          label: 'Layer A',
+          color: '#4488ff',
+          x: 10,
+          y: 20,
+          width: 300,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          id: 'section-b',
+          label: 'Nested',
+          color: '#22c55e',
+          x: 30,
+          y: 40,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
+      ownership: {
+        'src/a.ts': {
+          itemId: 'src/a.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          itemId: 'section-b',
+          itemKind: 'section',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+      },
+    });
+  });
+
   it('normalizes malformed layout records before settings are persisted', () => {
     expect(normalizeGraphLayoutSettings({
       pinnedNodes: {
