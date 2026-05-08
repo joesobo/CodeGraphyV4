@@ -66,7 +66,7 @@ export interface GraphContextMenuRuntimeDependencies<THoveredNode = unknown> {
 export interface GraphContextMenuRuntime {
   clearRightClickFallbackTimer(): void;
   clearTooltipContext(): void;
-  handleContextMenu(): void;
+  handleContextMenu(graphPosition?: GraphContextSelection['graphPosition']): void;
   handleMenuAction(action: GraphContextMenuAction, context: GraphContextActionContext): void;
   handleMouseDownCapture(event: GraphRightClickPointerDownEvent): void;
   handleMouseMoveCapture(event: GraphRightClickPointerMoveEvent): void;
@@ -84,7 +84,7 @@ export function createGraphContextMenuRuntime(
   return {
     clearRightClickFallbackTimer: () => pointerRuntime.clearRightClickFallbackTimer(),
     clearTooltipContext: () => tooltipRuntime.clearTooltipContext(),
-    handleContextMenu: () => tooltipRuntime.handleContextMenu(),
+    handleContextMenu: (graphPosition) => tooltipRuntime.handleContextMenu(graphPosition),
     handleMenuAction: (action, context) =>
       effectRuntime.handleMenuAction(action, context),
     handleMouseDownCapture: (event) => pointerRuntime.handleMouseDownCapture(event),

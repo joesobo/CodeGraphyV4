@@ -24,7 +24,7 @@ type GraphContextMenuRuntime = ReturnType<typeof createGraphContextMenuRuntime>;
 export interface GraphContextMenuOpeningRuntime {
   contextMenuRuntime: GraphContextMenuRuntime;
   handleBackgroundRightClick(this: void, event: MouseEvent): void;
-  handleContextMenu(this: void): void;
+  handleContextMenu(this: void, event?: ReactMouseEvent<HTMLDivElement>): void;
   handleLinkRightClick(this: void, link: FGLink, event: MouseEvent): void;
   handleMenuAction(this: void, action: GraphContextMenuAction): void;
   handleMouseDownCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
@@ -98,8 +98,10 @@ function createGraphContextMenuOpeningHandlers(
     handleBackgroundRightClick: event => {
       interactionHandlers.openBackgroundContextMenu(event);
     },
-    handleContextMenu: () => {
-      contextMenuRuntime.handleContextMenu();
+    handleContextMenu: (event) => {
+      contextMenuRuntime.handleContextMenu(
+        event ? interactionHandlers.getBackgroundGraphPosition(event.nativeEvent) : undefined,
+      );
     },
     handleLinkRightClick: (link, event) => {
       interactionHandlers.openEdgeContextMenu(link, event);

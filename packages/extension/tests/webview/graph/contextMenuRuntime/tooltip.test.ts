@@ -79,6 +79,23 @@ describe('graph/contextMenuRuntime/tooltip', () => {
     });
   });
 
+  it('preserves the graph-space background position when the container context menu opens', () => {
+    const currentTime = 500;
+    const { dependencies } = createDependencies({
+      now: () => currentTime,
+    });
+    dependencies.lastGraphContextEventRef.current = 100;
+    const runtime = createContextMenuTooltipRuntime(dependencies);
+
+    runtime.handleContextMenu({ x: 24, y: -32 });
+
+    expect(dependencies.setContextSelection).toHaveBeenCalledWith({
+      kind: 'background',
+      graphPosition: { x: 24, y: -32 },
+      targets: [],
+    });
+  });
+
   it('keeps the existing selection at the grace-period boundary', () => {
     const currentTime = 500;
     const { dependencies } = createDependencies({

@@ -42,7 +42,7 @@ function callContextMenuUnlessSuppressed(
     return;
   }
 
-  contextMenuOpeningRuntime.handleContextMenu();
+  contextMenuOpeningRuntime.handleContextMenu(event);
 }
 
 function callBackgroundRightClickUnlessSuppressed(

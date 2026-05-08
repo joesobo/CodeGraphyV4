@@ -10,6 +10,7 @@ import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../../support/
 import type { GraphInteractionHandlersDependencies } from '../handlers';
 
 export interface ContextMenuHandlers {
+  getBackgroundGraphPosition(this: void, event: MouseEvent): { x: number; y: number } | undefined;
   openBackgroundContextMenu(this: void, event: MouseEvent): void;
   openEdgeContextMenu(this: void, link: FGLink, event: MouseEvent): void;
   openNodeContextMenu(this: void, nodeId: string, event: MouseEvent): void;
@@ -44,7 +45,7 @@ export function getContextMenuPointerState(
   };
 }
 
-function getBackgroundGraphPosition(
+export function getBackgroundGraphPosition(
   dependencies: GraphInteractionHandlersDependencies,
   event: MouseEvent,
 ): { x: number; y: number } | undefined {
@@ -142,6 +143,7 @@ export function createContextMenuHandlers(
   };
 
   return {
+    getBackgroundGraphPosition: event => getBackgroundGraphPosition(dependencies, event),
     openBackgroundContextMenu,
     openEdgeContextMenu,
     openNodeContextMenu,

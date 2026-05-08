@@ -1,4 +1,6 @@
+import { flushSync } from 'react-dom';
 import { makeBackgroundContextSelection } from '../contextMenu/selection';
+import type { GraphContextSelection } from '../contextMenu/contracts';
 import { hideGraphTooltipState } from '../tooltip/model';
 import type { GraphContextMenuRuntimeDependencies } from './controller';
 
@@ -21,7 +23,7 @@ type GraphContextMenuTooltipDependencies = Pick<
 
 export interface GraphContextMenuTooltipRuntime {
   clearTooltipContext(): void;
-  handleContextMenu(): void;
+  handleContextMenu(graphPosition?: GraphContextSelection['graphPosition']): void;
 }
 
 export function createContextMenuTooltipRuntime(
@@ -44,14 +46,16 @@ export function createContextMenuTooltipRuntime(
     dependencies.setTooltipData(hideGraphTooltipState);
   };
 
-  const handleContextMenu = (): void => {
+  const handleContextMenu = (graphPosition?: GraphContextSelection['graphPosition']): void => {
     dependencies.lastContainerContextMenuEventRef.current = now();
 
     if (
       now() - dependencies.lastGraphContextEventRef.current
       > contextSelectionGraceMs
     ) {
-      dependencies.setContextSelection(makeBackgroundContextSelection());
+      flushSync(() => {
+        dependencies.setContextSelection(makeBackgroundContextSelection(graphPosition));
+      });
     }
 
     clearTooltipContext();
