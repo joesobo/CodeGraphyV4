@@ -202,6 +202,25 @@ describe('physics', () => {
     expect(collisionForce.iterations()).toBe(16);
   });
 
+  it('uses expanded Graph Section dimensions for the collision radius', () => {
+    const { d3Force, instance } = createPhysicsInstance();
+
+    initPhysics(instance, SETTINGS);
+
+    const collisionForce = d3Force.mock.calls.find(([name]) => name === 'collision')?.[1] as {
+      radius: () => (node: FGNode) => number;
+    };
+
+    expect(collisionForce.radius()({
+      id: 'section-1',
+      isGraphSection: true,
+      isCollapsedGraphSection: false,
+      sectionHeight: 100,
+      sectionWidth: 100,
+      size: 9,
+    } as FGNode)).toBeCloseTo((Math.sqrt(100 ** 2 + 100 ** 2) / 2) + 4);
+  });
+
   it('initializes section bounds forces when Graph Layout is available in 2D', () => {
     const { d3Force, instance } = createPhysicsInstance();
 
@@ -284,5 +303,38 @@ describe('physics', () => {
       x: 60,
       y: 60,
     });
+  });
+
+  it('pushes nodes without section ownership outside expanded section bounds', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 100,
+        sectionWidth: 100,
+        x: 0,
+        y: 0,
+      },
+      {
+        id: 'src/outside.ts',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 50,
+        y: 50,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    const outside = nodes[1];
+    const left = outside.x! <= -18;
+    const right = outside.x! >= 118;
+    const above = outside.y! <= -18;
+    const below = outside.y! >= 118;
+    expect(left || right || above || below).toBe(true);
+    expect(Math.abs(outside.vx ?? 0) + Math.abs(outside.vy ?? 0)).toBeGreaterThan(0);
   });
 });

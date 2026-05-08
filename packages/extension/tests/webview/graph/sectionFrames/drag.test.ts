@@ -35,6 +35,45 @@ describe('graph/sectionFrames/drag', () => {
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { x: -130, y: -70 });
   });
 
+  it('moves the live Section Node while dragging before persisting on mouseup', () => {
+    const onUpdateSection = vi.fn();
+    const nodePosition = {
+      id: 'section-1',
+      sectionHeight: 180,
+      sectionWidth: 280,
+      x: -140,
+      y: -90,
+    };
+
+    beginSectionFrameWindowDrag(undefined, {
+      clientX: 0,
+      clientY: 0,
+      nodePosition,
+      section,
+      type: 'move',
+    }, onUpdateSection);
+
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 10, clientY: 20 }));
+
+    expect(nodePosition).toMatchObject({
+      fx: -130,
+      fy: -70,
+      x: -130,
+      y: -70,
+    });
+    expect(onUpdateSection).not.toHaveBeenCalled();
+
+    window.dispatchEvent(new MouseEvent('mouseup', { clientX: 10, clientY: 20 }));
+
+    expect(nodePosition).toMatchObject({
+      fx: undefined,
+      fy: undefined,
+      x: -130,
+      y: -70,
+    });
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { x: -130, y: -70 });
+  });
+
   it('detects Section Frame controls by data attribute ancestry', () => {
     const control = document.createElement('button');
     const wrapper = document.createElement('div');
