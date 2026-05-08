@@ -223,11 +223,13 @@ describe('graph/contextMenuModel', () => {
       'Expand Graph Section',
       'Focus Node',
       'Pin Node',
+      'Delete Graph Section',
     ]);
     expect(builtInActions(entries)).toEqual([
       'expandGraphSection',
       'focus',
       'pinNode',
+      'deleteGraphSection',
     ]);
   });
 
@@ -251,11 +253,13 @@ describe('graph/contextMenuModel', () => {
       'Collapse Graph Section',
       'Focus Node',
       'Pin Node',
+      'Delete Graph Section',
     ]);
     expect(builtInActions(entries)).toEqual([
       'collapseGraphSection',
       'focus',
       'pinNode',
+      'deleteGraphSection',
     ]);
   });
 

@@ -41,29 +41,7 @@ function createNodeMap(nodes: readonly FGNode[]): Map<string, FGNode> {
 	return new Map(nodes.map(node => [node.id, node]));
 }
 
-function getSectionCollisionSize(
-	node: FGNode,
-): { height: number; width: number } | undefined {
-	if (!node.isGraphSection || node.isCollapsedGraphSection) {
-		return undefined;
-	}
-
-	if (!isFiniteNumber(node.sectionHeight) || !isFiniteNumber(node.sectionWidth)) {
-		return undefined;
-	}
-
-	return {
-		height: node.sectionHeight,
-		width: node.sectionWidth,
-	};
-}
-
 export function getGraphCollisionRadius(node: FGNode): number {
-	const sectionSize = getSectionCollisionSize(node);
-	if (sectionSize) {
-		return (Math.sqrt(sectionSize.width ** 2 + sectionSize.height ** 2) / 2) + COLLISION_PADDING;
-	}
-
 	return (node.size ?? 0) + COLLISION_PADDING;
 }
 
@@ -77,11 +55,15 @@ function getSectionBounds(
 		return undefined;
 	}
 
+	const height = isFiniteNumber(sectionNode?.sectionHeight) ? sectionNode.sectionHeight : section.height;
+	const width = isFiniteNumber(sectionNode?.sectionWidth) ? sectionNode.sectionWidth : section.width;
+	const centerX = sectionNode?.x;
+	const centerY = sectionNode?.y;
 	return {
-		height: sectionNode?.sectionHeight ?? section.height,
-		width: sectionNode?.sectionWidth ?? section.width,
-		x: isFiniteNumber(sectionNode?.x) ? sectionNode.x : section.x,
-		y: isFiniteNumber(sectionNode?.y) ? sectionNode.y : section.y,
+		height,
+		width,
+		x: isFiniteNumber(centerX) ? centerX - (width / 2) : section.x,
+		y: isFiniteNumber(centerY) ? centerY - (height / 2) : section.y,
 	};
 }
 

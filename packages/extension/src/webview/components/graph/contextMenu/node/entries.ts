@@ -105,5 +105,14 @@ export function buildSingleGraphSectionNodeEntries(
     entries.push(...buildPinBlock([target], pinnedNodeIds));
   }
 
+  if (mutationAvailability !== 'hidden') {
+    entries.push(
+      builtInItem('graph-section-delete', 'Delete Graph Section', 'deleteGraphSection', {
+        destructive: true,
+        disabled: mutationAvailability === 'disabled',
+      }),
+    );
+  }
+
   return entries;
 }

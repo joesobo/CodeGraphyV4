@@ -80,12 +80,16 @@ function createLiveGraphLayout(
       continue;
     }
 
+    const height = readLiveSectionDimension(node.sectionHeight, section.height);
+    const width = readLiveSectionDimension(node.sectionWidth, section.width);
+    const centerX = isFiniteNumber(node.x) ? node.x : undefined;
+    const centerY = isFiniteNumber(node.y) ? node.y : undefined;
     sections[node.id] = {
       ...section,
-      height: readLiveSectionDimension(node.sectionHeight, section.height),
-      width: readLiveSectionDimension(node.sectionWidth, section.width),
-      x: readLiveSectionDimension(node.x, section.x),
-      y: readLiveSectionDimension(node.y, section.y),
+      height,
+      width,
+      x: centerX === undefined ? section.x : centerX - (width / 2),
+      y: centerY === undefined ? section.y : centerY - (height / 2),
     };
   }
 

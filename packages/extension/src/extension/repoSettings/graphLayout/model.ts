@@ -36,6 +36,10 @@ function readRequiredString(value: unknown): string | undefined {
     : undefined;
 }
 
+function readString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
 function readFiniteNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value)
     ? value
@@ -167,9 +171,9 @@ function readSectionTextFields(
   key: string,
 ): SectionTextFields | undefined {
   const identity = readMatchingRecordIdentity(value, key, 'id');
-  const label = readRequiredString(value.label);
+  const label = readString(value.label);
   const color = readRequiredString(value.color);
-  if (!identity || !label || !color) {
+  if (!identity || label === undefined || !color) {
     return undefined;
   }
 
@@ -601,7 +605,7 @@ function buildUpdatedGraphLayoutSection(
     collapsed: patch.updates.collapsed ?? existing.collapsed,
     color: readOptionalSectionString(patch.updates.color) ?? existing.color,
     height: readOptionalNumberUpdate(patch.updates.height, existing.height),
-    label: readOptionalSectionString(patch.updates.label) ?? existing.label,
+    label: patch.updates.label === undefined ? existing.label : patch.updates.label,
     width: readOptionalNumberUpdate(patch.updates.width, existing.width),
     x: readOptionalNumberUpdate(patch.updates.x, existing.x),
     y: readOptionalNumberUpdate(patch.updates.y, existing.y),

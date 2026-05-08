@@ -7,6 +7,7 @@ import {
   createCreateFolderEffects,
   createGraphSectionEffects,
   createGraphSectionCollapseEffects,
+  createGraphSectionDeleteEffects,
   createClearPinNodeEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
@@ -65,6 +66,8 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createGraphSectionCollapseEffects(context, false),
   collapseGraphSection: (context: GraphContextActionContext) =>
     createGraphSectionCollapseEffects(context, true),
+  deleteGraphSection: (context: GraphContextActionContext) =>
+    createGraphSectionDeleteEffects(context),
 } satisfies Record<BuiltInContextMenuAction, (context: GraphContextActionContext) => GraphContextEffect[]>;
 
 export function getBuiltInContextActionEffectsImpl(

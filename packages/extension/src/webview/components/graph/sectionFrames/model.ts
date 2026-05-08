@@ -82,12 +82,16 @@ export function getSectionFrameDisplaySection(
     return section;
   }
 
+  const height = readFiniteNumber(nodePosition.sectionHeight) ?? section.height;
+  const width = readFiniteNumber(nodePosition.sectionWidth) ?? section.width;
+  const centerX = readFiniteNumber(nodePosition.x);
+  const centerY = readFiniteNumber(nodePosition.y);
   return {
     ...section,
-    height: readFiniteNumber(nodePosition.sectionHeight) ?? section.height,
-    width: readFiniteNumber(nodePosition.sectionWidth) ?? section.width,
-    x: readFiniteNumber(nodePosition.x) ?? section.x,
-    y: readFiniteNumber(nodePosition.y) ?? section.y,
+    height,
+    width,
+    x: centerX === undefined ? section.x : centerX - (width / 2),
+    y: centerY === undefined ? section.y : centerY - (height / 2),
   };
 }
 

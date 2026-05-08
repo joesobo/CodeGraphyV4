@@ -472,11 +472,10 @@ describe('graph/rendering/nodes/canvas2d', () => {
       1,
     );
 
-    expect(ctx.arc).toHaveBeenCalledWith(35.2, 36.8, 6, 0, Math.PI * 2);
     expect(ctx.arc).toHaveBeenCalledWith(35.2, 59.2, 5, 0, Math.PI * 2);
-    expect(ctx.moveTo).toHaveBeenCalledWith(8.8, 34.8);
-    expect(ctx.lineTo).toHaveBeenCalledWith(12.8, 38.8);
-    expect(ctx.lineTo).toHaveBeenCalledWith(16.8, 34.8);
+    expect(ctx.moveTo).toHaveBeenCalledWith(12.8, 38.8);
+    expect(ctx.lineTo).toHaveBeenCalledWith(16.8, 42.8);
+    expect(ctx.lineTo).toHaveBeenCalledWith(20.8, 38.8);
     expect(operations).toContainEqual(expect.objectContaining({
       kind: 'fillText',
       text: '4',

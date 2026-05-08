@@ -22,26 +22,44 @@ function applyLiveNodePosition(
 
   if (drag.type === 'move') {
     const { x, y } = update.updates;
+    const width = drag.nodePosition.sectionWidth ?? drag.section.width;
+    const height = drag.nodePosition.sectionHeight ?? drag.section.height;
     if (typeof x === 'number' && Number.isFinite(x)) {
-      drag.nodePosition.x = x;
-      drag.nodePosition.fx = x;
+      const centerX = x + (width / 2);
+      drag.nodePosition.x = centerX;
+      drag.nodePosition.fx = centerX;
       drag.nodePosition.vx = 0;
     }
     if (typeof y === 'number' && Number.isFinite(y)) {
-      drag.nodePosition.y = y;
-      drag.nodePosition.fy = y;
+      const centerY = y + (height / 2);
+      drag.nodePosition.y = centerY;
+      drag.nodePosition.fy = centerY;
       drag.nodePosition.vy = 0;
     }
     return;
   }
 
   const { height, width } = update.updates;
+  const nextHeight = typeof height === 'number' && Number.isFinite(height)
+    ? height
+    : drag.nodePosition.sectionHeight ?? drag.section.height;
+  const nextWidth = typeof width === 'number' && Number.isFinite(width)
+    ? width
+    : drag.nodePosition.sectionWidth ?? drag.section.width;
   if (typeof height === 'number' && Number.isFinite(height)) {
-    drag.nodePosition.sectionHeight = height;
+    drag.nodePosition.sectionHeight = nextHeight;
   }
   if (typeof width === 'number' && Number.isFinite(width)) {
-    drag.nodePosition.sectionWidth = width;
+    drag.nodePosition.sectionWidth = nextWidth;
   }
+  const centerX = drag.section.x + (nextWidth / 2);
+  const centerY = drag.section.y + (nextHeight / 2);
+  drag.nodePosition.x = centerX;
+  drag.nodePosition.y = centerY;
+  drag.nodePosition.fx = centerX;
+  drag.nodePosition.fy = centerY;
+  drag.nodePosition.vx = 0;
+  drag.nodePosition.vy = 0;
 }
 
 function releaseLiveNodePosition(drag: SectionFrameDragState): void {

@@ -1,6 +1,7 @@
 import type { GraphKeyboardCommand, GraphKeyboardOptions } from '../effects';
 import {
   createClearSelectionCommand,
+  createDeleteGraphSectionsCommand,
   createFitViewCommand,
   createOpenSelectedNodesCommand,
   createSelectAllCommand,
@@ -25,6 +26,12 @@ function getEnterCommand(selectedNodeIds: readonly string[]): GraphKeyboardComma
   );
 }
 
+function getDeleteCommand(selectedGraphSectionIds: readonly string[]): GraphKeyboardCommand | null {
+  return selectedGraphSectionIds.length === 0
+    ? null
+    : createDeleteGraphSectionsCommand([...selectedGraphSectionIds]);
+}
+
 function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null {
   return (
     getZoomShortcutCommand(options.key, options.isMod, options.graphMode) ??
@@ -36,7 +43,16 @@ function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand
 export function getGraphKeyboardCommandImpl(
   options: GraphKeyboardOptions
 ): GraphKeyboardCommand | null {
-  const { key, isMod, shiftKey, graphMode, selectedNodeIds, allNodeIds, targetIsEditable } = options;
+  const {
+    key,
+    isMod,
+    shiftKey,
+    graphMode,
+    selectedNodeIds,
+    selectedGraphSectionIds = [],
+    allNodeIds,
+    targetIsEditable,
+  } = options;
 
   if (targetIsEditable) {
     return null;
@@ -49,6 +65,9 @@ export function getGraphKeyboardCommandImpl(
       return createClearSelectionCommand();
     case 'Enter':
       return getEnterCommand(selectedNodeIds);
+    case 'Delete':
+    case 'Backspace':
+      return getDeleteCommand(selectedGraphSectionIds);
     case 'a':
       return isMod ? createSelectAllCommand(allNodeIds) : null;
     default:
