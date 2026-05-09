@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { forceSimulation } from 'd3-force';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   applyPhysicsSettings,
@@ -76,6 +77,132 @@ function createPhysicsInstance() {
   };
 }
 
+function getInstalledD3Force<T>(
+  d3Force: ReturnType<typeof createPhysicsInstance>['d3Force'],
+  name: string,
+): T {
+  const call = [...d3Force.mock.calls].reverse().find(([forceName, value]) => forceName === name && value !== undefined);
+  expect(call).toBeDefined();
+  return call?.[1] as T;
+}
+
+interface SectionRect {
+  bottom: number;
+  left: number;
+  right: number;
+  top: number;
+}
+
+function createPackingGraphLayout(sectionCount: number): GraphLayoutSettings {
+  const sections: GraphLayoutSettings['sections'] = {};
+  const ownership: GraphLayoutSettings['ownership'] = {};
+
+  for (let index = 0; index < sectionCount; index += 1) {
+    const sectionId = `section-${index + 1}`;
+    sections[sectionId] = {
+      id: sectionId,
+      label: sectionId,
+      color: '#60a5fa',
+      x: 0,
+      y: 0,
+      width: 120,
+      height: 100,
+      collapsed: false,
+      updatedAt: '2026-05-08T09:00:00.000Z',
+    };
+    ownership[sectionId] = {
+      itemId: sectionId,
+      itemKind: 'section',
+      ownerSectionId: null,
+      updatedAt: '2026-05-08T09:00:00.000Z',
+    };
+
+    for (let memberIndex = 0; memberIndex < 3; memberIndex += 1) {
+      const memberId = `${sectionId}/member-${memberIndex}.ts`;
+      ownership[memberId] = {
+        itemId: memberId,
+        itemKind: 'node',
+        ownerSectionId: sectionId,
+        updatedAt: '2026-05-08T09:00:00.000Z',
+      };
+    }
+  }
+
+  return { pinnedNodes: {}, sections, ownership };
+}
+
+function createPackingNodes(): FGNode[] {
+  const origins = [
+    { x: -420, y: -320 },
+    { x: 420, y: -320 },
+    { x: -420, y: 320 },
+    { x: 420, y: 320 },
+  ];
+  const nodes: FGNode[] = [];
+
+  for (const [index, origin] of origins.entries()) {
+    const sectionId = `section-${index + 1}`;
+    nodes.push({
+      id: sectionId,
+      isGraphSection: true,
+      sectionHeight: 100,
+      sectionWidth: 120,
+      size: 50,
+      vx: 0,
+      vy: 0,
+      x: origin.x,
+      y: origin.y,
+    } as FGNode);
+
+    for (let memberIndex = 0; memberIndex < 3; memberIndex += 1) {
+      nodes.push({
+        id: `${sectionId}/member-${memberIndex}.ts`,
+        ownerSectionId: sectionId,
+        size: 12,
+        vx: 0,
+        vy: 0,
+        x: origin.x + (memberIndex - 1) * 24,
+        y: origin.y + 16,
+      } as FGNode);
+    }
+  }
+
+  return nodes;
+}
+
+function toSectionRect(node: FGNode): SectionRect {
+  const width = node.sectionWidth ?? 0;
+  const height = node.sectionHeight ?? 0;
+  const x = node.x ?? 0;
+  const y = node.y ?? 0;
+  return {
+    bottom: y + (height / 2),
+    left: x - (width / 2),
+    right: x + (width / 2),
+    top: y - (height / 2),
+  };
+}
+
+function getRectGap(left: SectionRect, right: SectionRect): number {
+  const xGap = Math.max(0, Math.max(left.left, right.left) - Math.min(left.right, right.right));
+  const yGap = Math.max(0, Math.max(left.top, right.top) - Math.min(left.bottom, right.bottom));
+  return Math.hypot(xGap, yGap);
+}
+
+function hasRectOverlap(left: SectionRect, right: SectionRect): boolean {
+  return Math.min(left.right, right.right) - Math.max(left.left, right.left) > 0.5
+    && Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top) > 0.5;
+}
+
+function getLargestNearestSectionGap(nodes: readonly FGNode[]): number {
+  const rects = nodes.filter(node => node.isGraphSection).map(toSectionRect);
+  return Math.max(...rects.map((rect, index) => Math.min(
+    ...rects
+      .filter((_, otherIndex) => otherIndex !== index)
+      .map(otherRect => getRectGap(rect, otherRect)),
+  )));
+}
+
 function createCustomPhysicsInstance(forces: {
   charge?: unknown;
   forceX?: unknown;
@@ -129,8 +256,10 @@ describe('physics', () => {
     expect(charge.distanceMax).toHaveBeenCalledWith(1000);
     expect(link.distance).toHaveBeenCalledWith(SETTINGS.linkDistance);
     expect(link.strength).toHaveBeenCalledWith(SETTINGS.linkForce);
-    expect(forceXInstance.strength).toHaveBeenCalledWith(SETTINGS.centerForce);
-    expect(forceYInstance.strength).toHaveBeenCalledWith(SETTINGS.centerForce);
+    const forceXStrength = forceXInstance.strength.mock.calls[0][0] as (node: FGNode) => number;
+    const forceYStrength = forceYInstance.strength.mock.calls[0][0] as (node: FGNode) => number;
+    expect(forceXStrength({ id: 'src/root.ts' } as FGNode)).toBe(SETTINGS.centerForce);
+    expect(forceYStrength({ id: 'src/root.ts' } as FGNode)).toBe(SETTINGS.centerForce);
     expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
   });
 
@@ -235,10 +364,10 @@ describe('physics', () => {
 
     initPhysics(instance, SETTINGS);
 
-    const collisionForce = d3Force.mock.calls.find(([name]) => name === 'collision')?.[1] as {
+    const collisionForce = getInstalledD3Force<{
       radius: () => (node: { size: number }) => number;
       iterations: () => number;
-    };
+    }>(d3Force, 'collision');
 
     expect(collisionForce.radius()({ size: 9 })).toBe(13);
     expect(collisionForce.iterations()).toBe(16);
@@ -249,9 +378,9 @@ describe('physics', () => {
 
     initPhysics(instance, SETTINGS);
 
-    const collisionForce = d3Force.mock.calls.find(([name]) => name === 'collision')?.[1] as {
+    const collisionForce = getInstalledD3Force<{
       radius: () => (node: FGNode) => number;
-    };
+    }>(d3Force, 'collision');
 
     expect(collisionForce.radius()({
       id: 'section-1',
@@ -261,6 +390,65 @@ describe('physics', () => {
       sectionWidth: 100,
       size: 9,
     } as FGNode)).toBe(0);
+  });
+
+  it('keeps members of expanded Graph Sections out of root center and circular collision forces', () => {
+    const { d3Force, instance } = createPhysicsInstance();
+
+    initPhysics(instance, SETTINGS, { graphLayout: GRAPH_LAYOUT, graphMode: '2d' });
+
+    const collisionForce = getInstalledD3Force<{
+      radius: () => (node: FGNode) => number;
+    }>(d3Force, 'collision');
+    const forceXInstance = getInstalledD3Force<{
+      strength: () => (node: FGNode) => number;
+    }>(d3Force, 'forceX');
+    const forceYInstance = getInstalledD3Force<{
+      strength: () => (node: FGNode) => number;
+    }>(d3Force, 'forceY');
+    const sectionMember = {
+      id: 'src/member.ts',
+      ownerSectionId: 'section-1',
+      size: 12,
+    } as FGNode;
+
+    expect(collisionForce.radius()(sectionMember)).toBe(0);
+    expect(forceXInstance.strength()(sectionMember)).toBe(0);
+    expect(forceYInstance.strength()(sectionMember)).toBe(0);
+    expect(forceXInstance.strength()({ id: 'src/root.ts', size: 12 } as FGNode)).toBe(SETTINGS.centerForce);
+  });
+
+  it('packs expanded Graph Sections together at the root center when repel is disabled', () => {
+    const graphLayout = createPackingGraphLayout(4);
+    const nodes = createPackingNodes();
+    const { d3Force, instance } = createPhysicsInstance();
+    const settings = {
+      ...SETTINGS,
+      centerForce: 1,
+      repelForce: 0,
+    };
+
+    initPhysics(instance, settings, { graphLayout, graphMode: '2d' });
+
+    const simulation = forceSimulation(nodes)
+      .velocityDecay(settings.damping)
+      .force('forceX', getInstalledD3Force(d3Force, 'forceX'))
+      .force('forceY', getInstalledD3Force(d3Force, 'forceY'))
+      .force('collision', getInstalledD3Force(d3Force, 'collision'))
+      .force('sectionBounds', getInstalledD3Force(d3Force, 'sectionBounds'))
+      .stop();
+
+    for (let tick = 0; tick < 600; tick += 1) {
+      simulation.tick();
+    }
+
+    const sectionRects = nodes.filter(node => node.isGraphSection).map(toSectionRect);
+    for (let leftIndex = 0; leftIndex < sectionRects.length; leftIndex += 1) {
+      for (let rightIndex = leftIndex + 1; rightIndex < sectionRects.length; rightIndex += 1) {
+        expect(hasRectOverlap(sectionRects[leftIndex], sectionRects[rightIndex])).toBe(false);
+      }
+    }
+    expect(getLargestNearestSectionGap(nodes)).toBeLessThanOrEqual(1.5);
   });
 
   it('initializes section bounds forces when Graph Layout is available in 2D', () => {
