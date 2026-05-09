@@ -4,7 +4,7 @@ import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import type { GraphLayoutSettings } from '../../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
-import { applyGraphSectionBoundsForce } from '../../physics';
+import { applyGraphSectionBoundsForce, applyPhysicsSettings } from '../../physics';
 import { usePhysicsRuntimeInit } from './hook/init';
 import { usePhysicsRuntimeLayoutKey, usePhysicsRuntimeLayoutReset } from './hook/layout';
 import { usePhysicsRuntimePause } from './hook/pause';
@@ -47,6 +47,7 @@ export function usePhysicsRuntime({
   usePhysicsRuntimeUpdates({
     fg2dRef,
     fg3dRef,
+    graphLayout,
     graphMode,
     physicsInitialisedRef,
     physicsSettings,
@@ -84,6 +85,7 @@ export function usePhysicsRuntime({
   usePhysicsRuntimeLayoutKey({
     fg2dRef,
     fg3dRef,
+    graphLayout,
     graphMode,
     layoutKey,
     physicsPaused,
@@ -103,7 +105,8 @@ export function usePhysicsRuntime({
     }
 
     applyGraphSectionBoundsForce(graph, { graphLayout, graphMode });
-  }, [fg2dRef, fg3dRef, graphLayout, graphMode, physicsInitialisedRef]);
+    applyPhysicsSettings(graph, physicsSettingsRef.current, { graphLayout, graphMode });
+  }, [fg2dRef, fg3dRef, graphLayout, graphMode, physicsInitialisedRef, physicsSettingsRef]);
 }
 
 export function syncPhysicsAnimation(

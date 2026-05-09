@@ -13,7 +13,6 @@ const COLLISION_PADDING = 4;
 const COLLISION_ITERATIONS = 16;
 const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
-const SECTION_RECTANGLE_COLLISION_PADDING = 12;
 const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
 const SECTION_EXTERNAL_COLLISION_MAX_IMPULSE = 8;
 
@@ -23,6 +22,10 @@ interface GraphPhysicsControls {
 	d3ReheatSimulation(): void;
 	pauseAnimation?(): void;
 	resumeAnimation?(): void;
+}
+
+interface GraphCollisionForceControls {
+	radius(value: (node: FGNode) => number): unknown;
 }
 
 interface GraphPhysicsSectionOptions {
@@ -58,6 +61,10 @@ function isFiniteNumber(value: unknown): value is number {
 	return typeof value === 'number' && Number.isFinite(value);
 }
 
+function hasRadius(value: unknown): value is GraphCollisionForceControls {
+	return !!value && typeof (value as GraphCollisionForceControls).radius === 'function';
+}
+
 function createNodeMap(nodes: readonly FGNode[]): Map<string, FGNode> {
 	return new Map(nodes.map(node => [node.id, node]));
 }
@@ -68,6 +75,29 @@ export function getGraphCollisionRadius(node: FGNode): number {
 	}
 
 	return (node.size ?? 0) + COLLISION_PADDING;
+}
+
+function getRootGraphCollisionRadius(
+	node: FGNode,
+	graphLayout: GraphLayoutSettings | undefined,
+): number {
+	if (graphLayout && hasExpandedOwnerSection(node, graphLayout)) {
+		return 0;
+	}
+
+	return getGraphCollisionRadius(node);
+}
+
+function getRootGraphCenterStrength(
+	node: FGNode,
+	centerForce: number,
+	graphLayout: GraphLayoutSettings | undefined,
+): number {
+	if (graphLayout && hasExpandedOwnerSection(node, graphLayout)) {
+		return 0;
+	}
+
+	return centerForce;
 }
 
 function getSectionBounds(
@@ -192,6 +222,89 @@ function constrainMemberNode(
 
 	applyConstrainedMemberCoordinates(node, nextX, nextY);
 	applyMemberCenterVelocity(node, memberBounds, alpha, nextX, nextY);
+}
+
+function getMemberCollisionRadius(node: FGNode): number {
+	return Math.max(1, node.size ?? 1) + COLLISION_PADDING;
+}
+
+function getMemberCollisionWeight(node: FGNode): number {
+	return node.isDragging || node.isPinned ? 0 : 1;
+}
+
+function applyMemberCircleCollision(
+	left: FGNode,
+	right: FGNode,
+	alpha: number,
+): void {
+	const leftX = resolveNodeCoordinate(left.x, 0);
+	const leftY = resolveNodeCoordinate(left.y, 0);
+	const rightX = resolveNodeCoordinate(right.x, 0);
+	const rightY = resolveNodeCoordinate(right.y, 0);
+	const deltaX = rightX - leftX;
+	const deltaY = rightY - leftY;
+	const distance = Math.hypot(deltaX, deltaY) || 1;
+	const minimumDistance = getMemberCollisionRadius(left) + getMemberCollisionRadius(right);
+	if (distance >= minimumDistance) {
+		return;
+	}
+
+	const leftWeight = getMemberCollisionWeight(left);
+	const rightWeight = getMemberCollisionWeight(right);
+	const totalWeight = leftWeight + rightWeight;
+	if (totalWeight === 0) {
+		return;
+	}
+
+	const normalX = deltaX / distance;
+	const normalY = deltaY / distance;
+	const overlap = minimumDistance - distance;
+	const leftCorrection = overlap * (leftWeight / totalWeight);
+	const rightCorrection = overlap * (rightWeight / totalWeight);
+
+	if (leftWeight > 0) {
+		left.x = leftX - normalX * leftCorrection;
+		left.y = leftY - normalY * leftCorrection;
+		left.vx = (left.vx ?? 0) - normalX * overlap * alpha * 0.5;
+		left.vy = (left.vy ?? 0) - normalY * overlap * alpha * 0.5;
+	}
+
+	if (rightWeight > 0) {
+		right.x = rightX + normalX * rightCorrection;
+		right.y = rightY + normalY * rightCorrection;
+		right.vx = (right.vx ?? 0) + normalX * overlap * alpha * 0.5;
+		right.vy = (right.vy ?? 0) + normalY * overlap * alpha * 0.5;
+	}
+}
+
+function applySectionMemberCollisions(
+	nodes: readonly FGNode[],
+	graphLayout: GraphLayoutSettings,
+	alpha: number,
+): void {
+	const membersBySection = new Map<string, FGNode[]>();
+	for (const node of nodes) {
+		if (node.isGraphSection) {
+			continue;
+		}
+
+		const ownerSectionId = getOwnerSectionId(node, graphLayout);
+		if (!ownerSectionId || !graphLayout.sections[ownerSectionId] || graphLayout.sections[ownerSectionId].collapsed) {
+			continue;
+		}
+
+		const members = membersBySection.get(ownerSectionId) ?? [];
+		members.push(node);
+		membersBySection.set(ownerSectionId, members);
+	}
+
+	for (const members of membersBySection.values()) {
+		for (let leftIndex = 0; leftIndex < members.length; leftIndex += 1) {
+			for (let rightIndex = leftIndex + 1; rightIndex < members.length; rightIndex += 1) {
+				applyMemberCircleCollision(members[leftIndex], members[rightIndex], alpha);
+			}
+		}
+	}
 }
 
 function getOwnerSectionId(
@@ -381,7 +494,7 @@ function applyRectangleCollisionPosition(
 		return;
 	}
 
-	const correction = overlap + SECTION_RECTANGLE_COLLISION_PADDING;
+	const correction = overlap;
 	const leftCorrection = direction * correction * (leftWeight / totalWeight);
 	const rightCorrection = -direction * correction * (rightWeight / totalWeight);
 
@@ -663,6 +776,20 @@ export function createGraphSectionBoundsForce(
 			constrainMemberNode(node, bounds, alpha);
 		}
 
+		applySectionMemberCollisions(nodes, graphLayout, alpha);
+
+		for (const node of nodes) {
+			const ownerSectionId = getOwnerSectionId(node, graphLayout);
+			if (node.isDragging || node.isGraphSection || !ownerSectionId) {
+				continue;
+			}
+
+			const bounds = sectionBounds.get(ownerSectionId);
+			if (bounds) {
+				constrainMemberNode(node, bounds, alpha);
+			}
+		}
+
 		rememberSectionCenters(nodes, graphLayout, previousSectionCenters);
 	}) as GraphSectionBoundsForce;
 
@@ -702,8 +829,10 @@ export function havePhysicsSettingsChanged(
 export function applyPhysicsSettings(
 	instance: GraphPhysicsInstance,
 	settings: IPhysicsSettings,
+	options: GraphPhysicsSectionOptions = { graphMode: '2d' },
 ): void {
 	const graph = instance as GraphPhysicsControls;
+	const graphLayout = options.graphMode === '2d' ? options.graphLayout : undefined;
 	const chargeForce = graph.d3Force('charge');
 	if (hasStrength(chargeForce)) chargeForce.strength(getGraphChargeStrength(settings.repelForce));
 	if (hasDistanceMax(chargeForce)) {
@@ -717,10 +846,19 @@ export function applyPhysicsSettings(
 	}
 
 	const forceXInstance = graph.d3Force('forceX');
-	if (hasStrength(forceXInstance)) forceXInstance.strength(settings.centerForce);
+	if (hasStrength(forceXInstance)) {
+		forceXInstance.strength((node: FGNode) => getRootGraphCenterStrength(node, settings.centerForce, graphLayout));
+	}
 
 	const forceYInstance = graph.d3Force('forceY');
-	if (hasStrength(forceYInstance)) forceYInstance.strength(settings.centerForce);
+	if (hasStrength(forceYInstance)) {
+		forceYInstance.strength((node: FGNode) => getRootGraphCenterStrength(node, settings.centerForce, graphLayout));
+	}
+
+	const collisionForce = graph.d3Force('collision');
+	if (hasRadius(collisionForce)) {
+		collisionForce.radius((node: FGNode) => getRootGraphCollisionRadius(node, graphLayout));
+	}
 
 	graph.d3ReheatSimulation();
 }
@@ -731,12 +869,19 @@ export function initPhysics(
 	options: GraphPhysicsSectionOptions = { graphMode: '2d' },
 ): void {
 	const graph = instance as GraphPhysicsControls;
-	applyPhysicsSettings(instance, settings);
-	graph.d3Force('forceX', forceX(0).strength(settings.centerForce));
-	graph.d3Force('forceY', forceY(0).strength(settings.centerForce));
+	const graphLayout = options.graphMode === '2d' ? options.graphLayout : undefined;
+	applyPhysicsSettings(instance, settings, options);
+	graph.d3Force(
+		'forceX',
+		forceX<FGNode>(0).strength(node => getRootGraphCenterStrength(node, settings.centerForce, graphLayout)),
+	);
+	graph.d3Force(
+		'forceY',
+		forceY<FGNode>(0).strength(node => getRootGraphCenterStrength(node, settings.centerForce, graphLayout)),
+	);
 	graph.d3Force(
 		'collision',
-		forceCollide(getGraphCollisionRadius).iterations(COLLISION_ITERATIONS),
+		forceCollide<FGNode>(node => getRootGraphCollisionRadius(node, graphLayout)).iterations(COLLISION_ITERATIONS),
 	);
 	if (options.graphLayout || options.graphMode !== '2d') {
 		applyGraphSectionBoundsForce(instance, options);

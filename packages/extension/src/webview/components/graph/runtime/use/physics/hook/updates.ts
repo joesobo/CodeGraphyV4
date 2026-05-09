@@ -1,4 +1,5 @@
 import { useEffect, type MutableRefObject } from 'react';
+import type { GraphLayoutSettings } from '../../../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../../../shared/settings/physics';
 import type { PhysicsRuntimeRefs } from './refs';
 import { applyPhysicsSettings } from '../../../physics';
@@ -6,6 +7,7 @@ import { selectActivePhysicsGraph } from '../../../physicsLifecycle/readiness';
 import { shouldApplyPhysicsUpdate } from '../../../physicsLifecycle/updates';
 
 interface UsePhysicsRuntimeUpdatesOptions extends PhysicsRuntimeRefs {
+  graphLayout?: GraphLayoutSettings;
   graphMode: '2d' | '3d';
   physicsSettings: IPhysicsSettings;
   physicsInitialisedRef: MutableRefObject<boolean>;
@@ -15,6 +17,7 @@ interface UsePhysicsRuntimeUpdatesOptions extends PhysicsRuntimeRefs {
 export function usePhysicsRuntimeUpdates({
   fg2dRef,
   fg3dRef,
+  graphLayout,
   graphMode,
   physicsInitialisedRef,
   physicsSettings,
@@ -30,10 +33,15 @@ export function usePhysicsRuntimeUpdates({
     })) return;
 
     previousPhysicsRef.current = { ...physicsSettings };
-    applyPhysicsSettings(graph, physicsSettings);
+    if (graphLayout) {
+      applyPhysicsSettings(graph, physicsSettings, { graphLayout, graphMode });
+    } else {
+      applyPhysicsSettings(graph, physicsSettings);
+    }
   }, [
     fg2dRef,
     fg3dRef,
+    graphLayout,
     graphMode,
     physicsInitialisedRef,
     physicsSettings,

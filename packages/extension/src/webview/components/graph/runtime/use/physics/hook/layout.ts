@@ -1,4 +1,5 @@
 import { useEffect, type MutableRefObject } from 'react';
+import type { GraphLayoutSettings } from '../../../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../../../shared/settings/physics';
 import type { PhysicsRuntimeRefs } from './refs';
 import { applyPhysicsSettings, syncPhysicsAnimation } from '../../../physics';
@@ -13,6 +14,7 @@ interface UsePhysicsRuntimeLayoutResetOptions {
 }
 
 interface UsePhysicsRuntimeLayoutKeyOptions extends PhysicsRuntimeRefs {
+  graphLayout?: GraphLayoutSettings;
   graphMode: '2d' | '3d';
   layoutKey: string;
   physicsPaused: boolean;
@@ -39,6 +41,7 @@ export function usePhysicsRuntimeLayoutReset({
 export function usePhysicsRuntimeLayoutKey({
   fg2dRef,
   fg3dRef,
+  graphLayout,
   graphMode,
   layoutKey,
   physicsPaused,
@@ -62,13 +65,18 @@ export function usePhysicsRuntimeLayoutKey({
     }
 
     previousLayoutKeyRef.current = layoutKey;
-    applyPhysicsSettings(graph, physicsSettingsRef.current);
+    if (graphLayout) {
+      applyPhysicsSettings(graph, physicsSettingsRef.current, { graphLayout, graphMode });
+    } else {
+      applyPhysicsSettings(graph, physicsSettingsRef.current);
+    }
     if (physicsPaused) {
       syncPhysicsAnimation(graph, true);
     }
   }, [
     fg2dRef,
     fg3dRef,
+    graphLayout,
     graphMode,
     layoutKey,
     physicsInitialisedRef,
