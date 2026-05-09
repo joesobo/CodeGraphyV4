@@ -455,6 +455,33 @@ describe('extension/repoSettings/graphLayout/model', () => {
     expect(updated.ownership['src/app.ts']).toEqual(layout.ownership['src/app.ts']);
   });
 
+  it('updates and clears a Graph Section icon without changing membership', () => {
+    const layout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
+      height: 180,
+      icon: 'TS',
+      memberNodeIds: ['src/app.ts'],
+      updatedAt: '2026-05-07T09:00:00.000Z',
+      width: 280,
+      x: -140,
+      y: -90,
+    });
+
+    const updated = updateGraphLayoutSection(layout, {
+      sectionId: 'section-1',
+      updates: { icon: 'UI' },
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+    const cleared = updateGraphLayoutSection(updated, {
+      sectionId: 'section-1',
+      updates: { icon: '' },
+      updatedAt: '2026-05-07T09:20:00.000Z',
+    });
+
+    expect(updated.sections['section-1']).toMatchObject({ icon: 'UI' });
+    expect(cleared.sections['section-1']).not.toHaveProperty('icon');
+    expect(cleared.ownership['src/app.ts']).toEqual(layout.ownership['src/app.ts']);
+  });
+
   it('creates nested Graph Sections and assigns selected sections as direct children', () => {
     const parentLayout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
       height: 240,

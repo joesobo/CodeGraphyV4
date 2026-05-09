@@ -87,6 +87,19 @@ describe('graph/rendering/node/collapsedSectionBadge', () => {
     expect(ctx.fillText).toHaveBeenCalledWith('99+', 31.2, 40.8);
   });
 
+  it('draws a collapsed Section icon centered in the square', () => {
+    const ctx = createContext();
+
+    renderCollapsedSectionBadge({
+      appearance: APPEARANCE,
+      ctx,
+      globalScale: 1,
+      node: createNode({ icon: 'TS' }),
+    });
+
+    expect(ctx.fillText).toHaveBeenCalledWith('TS', 24, 48);
+  });
+
   it('keeps 99 as an exact visible hidden-descendant count', () => {
     const ctx = createContext();
 

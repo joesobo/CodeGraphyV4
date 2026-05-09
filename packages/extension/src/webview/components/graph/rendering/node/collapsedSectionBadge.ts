@@ -37,6 +37,17 @@ export function renderCollapsedSectionBadge({
     y: node.y,
   });
 
+  if (node.icon) {
+    renderSectionIcon({
+      appearance,
+      ctx,
+      globalScale,
+      node,
+      x: node.x,
+      y: node.y,
+    });
+  }
+
   if (hiddenDescendantCount > 0) {
     renderHiddenDescendantCount({
       appearance,
@@ -50,6 +61,20 @@ export function renderCollapsedSectionBadge({
   }
 
   ctx.restore();
+}
+
+function renderSectionIcon({
+  appearance,
+  ctx,
+  node,
+  x,
+  y,
+}: RenderCollapsedSectionBadgeOptions & { x: number; y: number }): void {
+  ctx.fillStyle = appearance.labelForeground;
+  ctx.font = `${Math.max(10, node.size * 0.9)}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(node.icon!, x, y);
 }
 
 function renderExpandChevron({

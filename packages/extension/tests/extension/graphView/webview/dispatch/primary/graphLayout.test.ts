@@ -312,6 +312,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         updates: {
           color: '#22c55e',
           height: 210,
+          icon: 'UI',
           label: 'UI Work',
           width: 320,
           x: -120,
@@ -326,6 +327,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         'section-1': {
           id: 'section-1',
           label: 'UI Work',
+          icon: 'UI',
           color: '#22c55e',
           x: -120,
           y: -80,

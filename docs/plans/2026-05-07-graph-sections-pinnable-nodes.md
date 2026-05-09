@@ -118,6 +118,7 @@ Related tracker notes:
 - 2026-05-07: Graph Sections support an optional free-form color picker.
 - 2026-05-07: New Graph Sections may default to a color derived from the active VS Code theme, but users can choose any color from the color picker.
 - 2026-05-07: Section color tints the border/header subtly instead of flood-filling the whole section.
+- 2026-05-09: Graph Sections support an optional short icon string. Expanded Section Frames show it beside the label, and collapsed Section Nodes show it centered inside the square.
 - 2026-05-07: Graph Sections can be created from the Graph Toolbar `New...` menu, the Graph Stage background context menu, or a selected-node context menu.
 - 2026-05-07: The Graph Toolbar `New...` menu should expose New File, New Folder, and New Graph Section from one creation affordance.
 - 2026-05-07: `Create Graph Section from Selection` wraps selected nodes or sections with padding and assigns them as members.
@@ -308,6 +309,7 @@ interface PinnedNodeSetting {
 interface GraphSectionSetting {
   id: string;
   label: string;
+  icon?: string;
   color: string;
   x: number;
   y: number;
@@ -363,6 +365,7 @@ Visual state indicators:
 - A pinned collapsed Section Node shows both states: pin badge top-right, collapsed/count badge bottom-right.
 - Expanded Section Frames show a subtle collapse chevron in the header plus resize handles on edges.
 - Pinned expanded Section Frames show the pin badge in the header.
+- Collapsed Section Nodes with an icon show that icon in the square center while keeping the expand affordance and hidden-descendant count in the corners.
 - Badges must not overlap each other or obscure node labels.
 - Indicators should be visual affordances, not extra rendered edges.
 
@@ -376,7 +379,7 @@ Selection styling:
 - Multi-selected items each show their own selection state after selection completes.
 - Do not show a persistent giant combined bounding box after selection completes unless a later multi-item transform mode explicitly needs it.
 
-Labels and colors:
+Labels, icons, and colors:
 
 - Every Graph Section has a label.
 - New Graph Sections default to generated labels like `Section 1`, `Section 2`, etc.
@@ -384,6 +387,9 @@ Labels and colors:
 - Labels appear in the expanded Section Frame header and on the collapsed Section Node.
 - Labels should fit inside the Section Frame header and collapsed Section Node without overlapping state indicators.
 - Long labels should truncate or elide professionally rather than resizing the section unexpectedly.
+- Section icons are optional short free-form strings.
+- Section icons appear beside the expanded Section Frame label and centered in the collapsed Section Node.
+- Clearing the icon removes the icon field from persisted Graph Layout settings.
 - Section color is optional and selected with a free-form color picker.
 - New Graph Sections may default to a color derived from the active VS Code theme, but users can choose any color from the color picker.
 - Section colors tint the border/header and may lightly tint the background only if readability stays high for nested sections.
