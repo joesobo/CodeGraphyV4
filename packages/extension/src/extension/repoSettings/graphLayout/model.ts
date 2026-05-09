@@ -167,6 +167,7 @@ function normalizePinnedNodes(value: unknown): Record<string, GraphLayoutPinnedN
 
 interface SectionTextFields {
   color: string;
+  icon?: string;
   id: string;
   label: string;
   updatedAt: string;
@@ -186,12 +187,14 @@ function readSectionTextFields(
   const identity = readKeyedRecordIdentity(value, key, 'id');
   const label = readString(value.label);
   const color = readRequiredString(value.color);
+  const icon = readOptionalSectionString(value.icon);
   if (!identity || label === undefined || !color) {
     return undefined;
   }
 
   return {
     color,
+    ...(icon ? { icon } : {}),
     id: identity.id,
     label,
     updatedAt: identity.updatedAt,
@@ -212,6 +215,10 @@ function readSectionBounds(value: Record<string, unknown>): SectionBounds | unde
 
 function readSectionCollapsed(value: Record<string, unknown>): boolean | undefined {
   return typeof value.collapsed === 'boolean' ? value.collapsed : undefined;
+}
+
+function readOptionalSectionString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
 function normalizeSection(
@@ -615,10 +622,6 @@ function getNextGraphLayoutSectionNumber(
   return nextNumber;
 }
 
-function readOptionalSectionString(value: string | undefined): string | undefined {
-  return value && value.length > 0 ? value : undefined;
-}
-
 function getUniqueMemberNodeIds(memberNodeIds: readonly string[] | undefined): string[] {
   return [...new Set((memberNodeIds ?? []).filter(nodeId => nodeId.length > 0))];
 }
@@ -649,9 +652,11 @@ export function createGraphLayoutSection(
   const sectionNumber = getNextGraphLayoutSectionNumber(layout.sections);
   const sectionId = `section-${sectionNumber}`;
   const ownerSectionId = assertGraphLayoutOwnerExists(layout.sections, create.ownerSectionId);
+  const icon = readOptionalSectionString(create.icon);
   const section: GraphLayoutSection = {
     id: sectionId,
     label: readOptionalSectionString(create.label) ?? `Section ${sectionNumber}`,
+    ...(icon ? { icon } : {}),
     color: readOptionalSectionString(create.color) ?? DEFAULT_GRAPH_SECTION_COLOR,
     x: create.x,
     y: create.y,
@@ -720,11 +725,16 @@ function buildUpdatedGraphLayoutSection(
   existing: GraphLayoutSection,
   patch: GraphLayoutSectionPatch,
 ): GraphLayoutSection {
+  const icon = patch.updates.icon === undefined
+    ? existing.icon
+    : readOptionalSectionString(patch.updates.icon);
+
   return {
     ...existing,
     collapsed: patch.updates.collapsed ?? existing.collapsed,
     color: readOptionalSectionString(patch.updates.color) ?? existing.color,
     height: readOptionalNumberUpdate(patch.updates.height, existing.height),
+    ...(icon ? { icon } : { icon: undefined }),
     label: patch.updates.label === undefined ? existing.label : patch.updates.label,
     width: readOptionalNumberUpdate(patch.updates.width, existing.width),
     x: readOptionalNumberUpdate(patch.updates.x, existing.x),

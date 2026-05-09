@@ -24,6 +24,7 @@ export interface GraphLayoutPinnedNode {
 export interface GraphLayoutSection {
   id: string;
   label: string;
+  icon?: string;
   color: string;
   x: number;
   y: number;
@@ -51,6 +52,7 @@ export interface GraphLayoutSettings {
 export interface GraphLayoutSectionCreate {
   color?: string;
   height: number;
+  icon?: string;
   label?: string;
   memberNodeIds?: string[];
   memberSectionIds?: string[];
@@ -73,6 +75,7 @@ export interface GraphLayoutSectionUpdate {
   collapsed?: boolean;
   color?: string;
   height?: number;
+  icon?: string;
   label?: string;
   width?: number;
   x?: number;

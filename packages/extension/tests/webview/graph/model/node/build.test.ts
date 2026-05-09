@@ -316,6 +316,7 @@ describe('graph/model/node/build', () => {
           'section-1': {
             id: 'section-1',
             label: 'UI Layer',
+            icon: 'TS',
             color: '#60a5fa',
             x: -120,
             y: -80,
@@ -349,6 +350,7 @@ describe('graph/model/node/build', () => {
     expect(nodes.find(node => node.id === 'section-1')).toMatchObject({
       borderColor: '#60a5fa',
       color: '#60a5fa',
+      icon: 'TS',
       isGraphSection: true,
       label: 'UI Layer',
       nodeType: 'graph-section',

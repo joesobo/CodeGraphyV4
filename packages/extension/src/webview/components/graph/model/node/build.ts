@@ -294,6 +294,7 @@ function createGraphSectionNode(
   return {
     id: section.id,
     label: section.label,
+    icon: section.icon,
     size: getSectionNodeSize(section),
     color: section.color,
     borderColor: section.color,

@@ -116,6 +116,69 @@ function SectionFrameLabelInput({
   );
 }
 
+interface SectionFrameIconInputProps {
+  icon: string | undefined;
+  sectionId: string;
+  showTopbar: boolean;
+  onUpdateSection: SectionFrameUpdateHandler;
+}
+
+function SectionFrameIconInput({
+  icon,
+  sectionId,
+  showTopbar,
+  onUpdateSection,
+}: SectionFrameIconInputProps): ReactElement {
+  const [draft, setDraft] = useState(icon ?? '');
+  const shouldCommitOnBlurRef = useRef(true);
+
+  useEffect(() => {
+    setDraft(icon ?? '');
+  }, [icon, sectionId]);
+
+  function commitDraft(): void {
+    if (!shouldCommitOnBlurRef.current) {
+      shouldCommitOnBlurRef.current = true;
+      return;
+    }
+
+    if (draft !== (icon ?? '')) {
+      onUpdateSection(sectionId, { icon: draft });
+    }
+  }
+
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>): void {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      shouldCommitOnBlurRef.current = false;
+      setDraft(icon ?? '');
+      event.currentTarget.blur();
+    }
+  }
+
+  return (
+    <input
+      aria-label="Graph Section icon"
+      className="h-5 w-7 shrink-0 cursor-text rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)] text-center text-xs font-medium outline-none focus:border-[var(--cg-accent)]"
+      data-graph-section-control="true"
+      maxLength={8}
+      onBlur={commitDraft}
+      onChange={(event) => setDraft(event.target.value)}
+      onFocus={() => {
+        shouldCommitOnBlurRef.current = true;
+      }}
+      onKeyDown={handleKeyDown}
+      placeholder="+"
+      tabIndex={showTopbar ? 0 : -1}
+      value={draft}
+    />
+  );
+}
+
 function applySectionFrameElementRect(
   element: HTMLDivElement,
   graph: SectionFrameGraph | undefined,
@@ -269,6 +332,12 @@ export function SectionFrames({
               >
                 <MdiIcon path={mdiChevronUp} size={14} />
               </button>
+              <SectionFrameIconInput
+                icon={section.icon}
+                sectionId={section.id}
+                showTopbar={showTopbar}
+                onUpdateSection={onUpdateSection}
+              />
               <SectionFrameLabelInput
                 label={section.label}
                 sectionId={section.id}

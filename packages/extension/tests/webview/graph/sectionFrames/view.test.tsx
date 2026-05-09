@@ -207,6 +207,20 @@ describe('graph/sectionFrames/view', () => {
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: 'UI Work' });
   });
 
+  it('shows and commits a Section Frame icon beside the label', () => {
+    const { onUpdateSection } = renderSectionFrames({ icon: 'TS' });
+
+    expect(screen.getByLabelText('Graph Section icon')).toHaveValue('TS');
+
+    fireEvent.change(screen.getByLabelText('Graph Section icon'), { target: { value: 'UI' } });
+
+    expect(onUpdateSection).not.toHaveBeenCalledWith('section-1', { icon: 'UI' });
+
+    fireEvent.blur(screen.getByLabelText('Graph Section icon'));
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { icon: 'UI' });
+  });
+
   it('allows clearing the whole Section Frame label before committing it', () => {
     const { onUpdateSection } = renderSectionFrames({ label: 'S' });
     const labelInput = screen.getByLabelText('Graph Section label');
