@@ -68,6 +68,7 @@ Related tracker notes:
 - 2026-05-07: The Graph View has one rendered physics graph containing ordinary nodes and Section Nodes.
 - 2026-05-07: Every visible ordinary node and every Section Node participates in the same root force layout.
 - 2026-05-08: Root force layout can include different visible node geometries: ordinary circular nodes and expanded rectangular Section Nodes should collide according to their visible geometry while still interacting under the same root physics settings.
+- 2026-05-08: Expanded rectangular Section Nodes need a repel-aware edge cushion because D3 charge is center-point based and otherwise lets large Section Frames look edge-pressed even when the user maxes repel force.
 - 2026-05-08: Expanded Section Members do not participate directly in the root force simulation. They participate in a section-local force simulation centered on their owning Graph Section's origin.
 - 2026-05-08: Section-local member physics should use the same user-facing physics settings vocabulary as the root graph, but scoped to members inside the same Graph Section.
 - 2026-05-07: While a Graph Section is expanded, outside edges can render directly to a visible Section Member.
@@ -524,6 +525,7 @@ Current implementation:
   - native circular collision is disabled,
   - charge/repel contribution applies like ordinary root nodes,
   - custom rectangle collision uses the Section Frame width and height,
+  - custom rectangle collision expands the effective rectangle by a user-repel-scaled edge cushion so max repel leaves visible space between Section Frames,
   - projected/member edges do not connect the expanded Section Node to its members.
 - Section Members inside an expanded Graph Section currently remain graph nodes in the same root simulation, but use a mixed force profile:
   - root link force is disabled for links involving expanded Section Members,

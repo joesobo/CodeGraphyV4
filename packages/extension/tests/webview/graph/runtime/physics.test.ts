@@ -300,6 +300,18 @@ function getLargestNearestSectionGap(nodes: readonly FGNode[]): number {
   )));
 }
 
+function getSmallestSectionGap(nodes: readonly FGNode[]): number {
+  const rects = nodes.filter(node => node.isGraphSection).map(toSectionRect);
+  let smallestGap = Number.POSITIVE_INFINITY;
+  for (let leftIndex = 0; leftIndex < rects.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < rects.length; rightIndex += 1) {
+      smallestGap = Math.min(smallestGap, getRectGap(rects[leftIndex], rects[rightIndex]));
+    }
+  }
+
+  return smallestGap;
+}
+
 function createCustomPhysicsInstance(forces: {
   charge?: unknown;
   forceX?: unknown;
@@ -615,6 +627,34 @@ describe('physics', () => {
     }
     expect(getLargestNearestSectionGap(nodes)).toBeLessThanOrEqual(2);
   }, 20_000);
+
+  it('keeps max-repel expanded Graph Sections visibly separated instead of edge-pressed', () => {
+    const graphLayout = createPackingGraphLayout(4);
+    const nodes = createPackingNodes();
+    const { d3Force, instance } = createPhysicsInstance();
+    const settings = {
+      ...SETTINGS,
+      centerForce: 0.1,
+      linkForce: 0,
+      repelForce: 20,
+    };
+
+    initPhysics(instance, settings, { graphLayout, graphMode: '2d' });
+
+    const simulation = forceSimulation(nodes)
+      .velocityDecay(settings.damping)
+      .force('forceX', getInstalledD3Force(d3Force, 'forceX'))
+      .force('forceY', getInstalledD3Force(d3Force, 'forceY'))
+      .force('collision', getInstalledD3Force(d3Force, 'collision'))
+      .force('sectionBounds', getInstalledD3Force(d3Force, 'sectionBounds'))
+      .stop();
+
+    for (let tick = 0; tick < 800; tick += 1) {
+      simulation.tick();
+    }
+
+    expect(getSmallestSectionGap(nodes)).toBeGreaterThanOrEqual(16);
+  });
 
   it('initializes section bounds forces when Graph Layout is available in 2D', () => {
     const { d3Force, instance } = createPhysicsInstance();

@@ -15,6 +15,8 @@ const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
 const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
 const SECTION_EXTERNAL_COLLISION_MAX_IMPULSE = 8;
+const SECTION_RECTANGLE_MAX_REPEL_GAP = 32;
+const MAX_NORMALIZED_REPEL_FORCE = 20;
 
 interface GraphPhysicsControls {
 	d3Force(name: string): unknown;
@@ -302,6 +304,11 @@ function getSectionMemberRepelStrength(
 	settings: GraphSectionBoundsForceOptions['settings'],
 ): number {
 	return settings ? toD3Repel(settings.repelForce) : 0;
+}
+
+function getSectionRectangleRepelGap(settings: GraphSectionBoundsForceOptions['settings']): number {
+	const normalizedRepel = clamp(settings?.repelForce ?? 0, 0, MAX_NORMALIZED_REPEL_FORCE);
+	return (normalizedRepel / MAX_NORMALIZED_REPEL_FORCE) * SECTION_RECTANGLE_MAX_REPEL_GAP;
 }
 
 function getNodeDelta(left: FGNode, right: FGNode): NodeDelta {
@@ -676,6 +683,34 @@ function shouldApplyRectangleCollision(
 	return true;
 }
 
+function inflateRectangleCollisionRect(
+	rect: RectangleCollisionRect,
+	padding: number,
+): RectangleCollisionRect {
+	if (padding <= 0) {
+		return rect;
+	}
+
+	return {
+		centerX: rect.centerX,
+		centerY: rect.centerY,
+		height: rect.height + padding * 2,
+		width: rect.width + padding * 2,
+		x: rect.x - padding,
+		y: rect.y - padding,
+	};
+}
+
+function getRepelAwareCollisionRect(
+	node: FGNode,
+	rect: RectangleCollisionRect,
+	repelGap: number,
+): RectangleCollisionRect {
+	return isExpandedGraphSection(node)
+		? inflateRectangleCollisionRect(rect, repelGap / 2)
+		: rect;
+}
+
 function getGraphChargeStrength(
 	repelForce: number,
 	graphLayout: GraphLayoutSettings | undefined,
@@ -844,6 +879,7 @@ function getRectangleCollisionOverlap(
 	left: FGNode,
 	right: FGNode,
 	graphLayout: GraphLayoutSettings,
+	settings: GraphSectionBoundsForceOptions['settings'],
 ): RectangleCollisionOverlap | undefined {
 	if (!shouldApplyRectangleCollision(left, right, graphLayout)) {
 		return undefined;
@@ -855,10 +891,13 @@ function getRectangleCollisionOverlap(
 		return undefined;
 	}
 
-	const overlapX = Math.min(leftRect.x + leftRect.width, rightRect.x + rightRect.width)
-		- Math.max(leftRect.x, rightRect.x);
-	const overlapY = Math.min(leftRect.y + leftRect.height, rightRect.y + rightRect.height)
-		- Math.max(leftRect.y, rightRect.y);
+	const repelGap = getSectionRectangleRepelGap(settings);
+	const leftCollisionRect = getRepelAwareCollisionRect(left, leftRect, repelGap);
+	const rightCollisionRect = getRepelAwareCollisionRect(right, rightRect, repelGap);
+	const overlapX = Math.min(leftCollisionRect.x + leftCollisionRect.width, rightCollisionRect.x + rightCollisionRect.width)
+		- Math.max(leftCollisionRect.x, rightCollisionRect.x);
+	const overlapY = Math.min(leftCollisionRect.y + leftCollisionRect.height, rightCollisionRect.y + rightCollisionRect.height)
+		- Math.max(leftCollisionRect.y, rightCollisionRect.y);
 	return overlapX <= 0 || overlapY <= 0
 		? undefined
 		: { leftRect, overlapX, overlapY, rightRect };
@@ -868,10 +907,11 @@ function applyRectangleCollision(
 	left: FGNode,
 	right: FGNode,
 	graphLayout: GraphLayoutSettings,
+	settings: GraphSectionBoundsForceOptions['settings'],
 	alpha: number,
 	impulseBudget: CollisionImpulseBudget,
 ): void {
-	const overlap = getRectangleCollisionOverlap(left, right, graphLayout);
+	const overlap = getRectangleCollisionOverlap(left, right, graphLayout, settings);
 	if (!overlap) {
 		return;
 	}
@@ -907,6 +947,7 @@ function applyRectangleCollision(
 function applyRectangleCollisions(
 	nodes: readonly FGNode[],
 	graphLayout: GraphLayoutSettings,
+	settings: GraphSectionBoundsForceOptions['settings'],
 	alpha: number,
 ): void {
 	const impulseBudget: CollisionImpulseBudget = new Map();
@@ -923,7 +964,7 @@ function applyRectangleCollisions(
 				continue;
 			}
 
-			applyRectangleCollision(nodes[leftIndex], nodes[rightIndex], graphLayout, alpha, impulseBudget);
+			applyRectangleCollision(nodes[leftIndex], nodes[rightIndex], graphLayout, settings, alpha, impulseBudget);
 		}
 	}
 }
@@ -1159,7 +1200,7 @@ function applyGraphSectionBoundsTick(
 	alpha: number,
 ): void {
 	applySectionBridgeLinkForces(nodes, graphLayout, options.links ?? [], options.settings, alpha);
-	applyRectangleCollisions(nodes, graphLayout, alpha);
+	applyRectangleCollisions(nodes, graphLayout, options.settings, alpha);
 	carrySectionMembersWithFrames(nodes, graphLayout, previousSectionCenters);
 	const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
 	const sectionMemberCenterStrength = getSectionMemberCenterStrength(options.settings);
