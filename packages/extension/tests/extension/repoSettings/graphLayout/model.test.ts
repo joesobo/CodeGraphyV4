@@ -510,7 +510,7 @@ describe('extension/repoSettings/graphLayout/model', () => {
     });
   });
 
-  it('moves descendant sections and pinned member coordinates with the parent Section Frame', () => {
+  it('keeps descendant sections and pinned member coordinates local when moving a parent Section Frame', () => {
     const layout = normalizeGraphLayoutSettings({
       pinnedNodes: {
         'src/app.ts': {
@@ -567,12 +567,12 @@ describe('extension/repoSettings/graphLayout/model', () => {
     });
 
     expect(moved.sections['section-1']).toMatchObject({ x: 25, y: -10 });
-    expect(moved.sections['section-2']).toMatchObject({ x: 65, y: 30 });
+    expect(moved.sections['section-2']).toMatchObject({ x: 40, y: 40 });
     expect(moved.pinnedNodes['src/app.ts']).toEqual({
       nodeId: 'src/app.ts',
-      twoDimensional: { x: 85, y: 60 },
+      twoDimensional: { x: 60, y: 70 },
       threeDimensional: { x: 1, y: 2, z: 3 },
-      updatedAt: '2026-05-07T09:15:00.000Z',
+      updatedAt: '2026-05-07T09:00:00.000Z',
     });
   });
 

@@ -6,6 +6,7 @@ import {
   markNodeDragging,
   postDraggedNodesDragEndMessages,
   postNodeDragEndMessages,
+  updateNodeDragOwnerPreview,
 } from '../../../../../../src/webview/components/graph/runtime/use/interaction/nodeDrag';
 
 const nodeDragHarness = vi.hoisted(() => ({
@@ -89,6 +90,47 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
+  it('updates a pinned Section Member position in direct owner local coordinates at drag end', () => {
+    postNodeDragEndMessages(
+      { id: 'node', isPinned: true, ownerSectionId: 'parent', x: 120, y: 80 } as FGNode,
+      {
+        pinnedNodes: {},
+        sections: {
+          parent: {
+            id: 'parent',
+            label: 'Parent',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 200,
+            height: 160,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          node: {
+            itemId: 'node',
+            itemKind: 'node',
+            ownerSectionId: 'parent',
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+      },
+      '2d',
+      false,
+    );
+
+    expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
+      type: 'UPDATE_GRAPH_LAYOUT_PIN',
+      payload: {
+        graphMode: '2d',
+        nodeId: 'node',
+        position: { x: 20, y: 30 },
+      },
+    });
+  });
+
   it('assigns a dragged node to the deepest section under the drop point', () => {
     postNodeDragEndMessages(
       { id: 'node', x: 40, y: 40 } as FGNode,
@@ -157,6 +199,20 @@ describe('graph/runtime/use/interaction node drag', () => {
         ownerSectionId: 'child',
       },
     });
+  });
+
+  it('does not change section ownership during drag preview', () => {
+    const node = { id: 'node', ownerSectionId: null, x: 40, y: 40 } as FGNode;
+
+    updateNodeDragOwnerPreview(node, {
+      graphData: { nodes: [node] },
+      graphLayout: createLayout(null),
+      graphMode: '2d',
+      timelineActive: false,
+    });
+
+    expect(node.ownerSectionId).toBeNull();
+    expect(nodeDragHarness.postMessage).not.toHaveBeenCalled();
   });
 
   it('moves the selected node group by the live drag delta', () => {

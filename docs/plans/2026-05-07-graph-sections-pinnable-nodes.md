@@ -66,8 +66,10 @@ Related tracker notes:
 - 2026-05-07: Treat Graph Section as CodeGraphy's product term for the prior-art family usually called group nodes, compound nodes, or subflows.
 - 2026-05-07: A Graph Section is real in the rendered physics graph but remains user layout state rather than indexed Relationship Graph data.
 - 2026-05-07: The Graph View has one rendered physics graph containing ordinary nodes and Section Nodes.
-- 2026-05-07: Every visible ordinary node and every Section Node participates in the same force layout.
-- 2026-05-07: Expanded Section Members remain force-layout nodes but are bounded to the Section Frame.
+- 2026-05-07: Every visible ordinary node and every Section Node participates in the same root force layout.
+- 2026-05-08: Root force layout can include different visible node geometries: ordinary circular nodes and expanded rectangular Section Nodes should collide according to their visible geometry while still interacting under the same root physics settings.
+- 2026-05-08: Expanded Section Members do not participate directly in the root force simulation. They participate in a section-local force simulation centered on their owning Graph Section's origin.
+- 2026-05-08: Section-local member physics should use the same user-facing physics settings vocabulary as the root graph, but scoped to members inside the same Graph Section.
 - 2026-05-07: While a Graph Section is expanded, outside edges can render directly to a visible Section Member.
 - 2026-05-07: While a Graph Section is collapsed, cross-boundary edges render to the collapsed Section Node as a projection of the original edges.
 - 2026-05-07: Never render membership as a Section Node to Section Member edge.
@@ -214,17 +216,22 @@ Expanded section behavior:
 - A Section Node participates in force physics.
 - The expanded Section Node is rendered as a Section Frame instead of a simple circle.
 - The Section Frame's position comes from the Section Node's graph-space position.
-- Member nodes are still part of the main `graphData.nodes`.
-- Member nodes still participate in force physics, but they are bounded to the Section Frame.
+- Member nodes are still part of the visible graph model and can still render ordinary edges.
+- Member nodes inside an expanded Graph Section run in section-local force physics centered on that section's origin, not directly in the root force simulation.
+- Member nodes physically interact with other visible members in the same Graph Section and are bounded to the Section Frame.
 - Cross-section edges are still part of the main `graphData.links`.
 - An outside node can have an edge directly to a member node while the member's Graph Section is expanded.
 - Section membership is not rendered as an edge from the Section Node to the Section Member.
 - Internal section-member constraints may exist for physics, but they are not **Edges** and should not appear in edge lists, tooltips, Graph Query results, or the Graph Context Menu as relationships.
 - The Section Node contributes forces:
-  - normal graph forces acting on the Section Node itself,
-  - a target force toward the section center for member nodes,
-  - a bounds force to keep members inside the frame with padding,
-  - optional collision or spacing tuning inside the section.
+  - normal root graph forces acting on the Section Node itself,
+  - D3 charge contribution in the root graph,
+  - root graph collision against ordinary circular nodes and other rectangular Section Nodes using the Section Frame's visible geometry.
+- The section-local simulation contributes forces:
+  - section-origin centering for member nodes,
+  - member-to-member collision within the section,
+  - section-local charge/repel and link behavior where applicable,
+  - hard bounds to keep members inside the frame with padding.
 - Pinned nodes override normal simulation targets while still respecting Section Frame ownership rules.
 - A pinned Section Member moves with its owning Section Frame. Dragging it outside the frame updates the pin to the dropped graph-space position and removes section membership.
 
@@ -333,6 +340,7 @@ Pinning:
 - Pinning stores the node's current graph-space coordinates relative to the graph origin.
 - Viewport pan and zoom do not change stored pin coordinates.
 - Refreshing the graph may recenter the viewport, but pinned nodes remain at their persisted graph-space coordinates.
+- Pinning means physics cannot move the pinned item at all.
 - A pinned node gets `fx` and `fy` in 2D when it has a 2D pin.
 - A pinned node gets `fx`, `fy`, and `fz` in 3D when it has a 3D pin.
 - A 2D pin does not apply in 3D.
@@ -484,20 +492,132 @@ Collapsed cross-section edges:
 Baseline force priorities:
 
 1. Pinned node fixed position wins.
-2. Section member target force pulls toward its section center.
-3. Section bounds force gently nudges members away from frame edges.
-4. Hard visual bounds keep members rendered inside the Section Frame padded bounds.
-5. Ordinary nodes continue to use graph-origin centering.
-6. Link, charge, collision, and zoom behavior should stay recognizable from today's graph.
+2. Root graph physics pulls ordinary nodes and Section Nodes toward the graph origin.
+3. Root graph physics applies charge/repel to ordinary nodes and Section Nodes.
+4. Root graph collision resolves circular ordinary nodes and rectangular expanded Section Nodes by their visible geometry.
+5. Section-local physics pulls Section Members toward their owning section origin.
+6. Section-local physics applies member-to-member collision and section-local charge/repel inside the owning Section Frame.
+7. Hard visual bounds keep members rendered inside the Section Frame padded bounds.
+8. Link, charge, collision, and zoom behavior should stay recognizable from today's graph.
 
 Important edge cases:
 
 - A pinned member cannot remain outside its section. Dragging and dropping a pinned member outside the frame removes section membership and updates the pin at the dropped graph-space position.
-- A section with many incoming outside edges may pull members toward one side if link forces dominate. Section-local centering and bounds must counter that without making the graph feel frozen.
+- A section with many incoming outside edges should let those edges influence the real member endpoints inside section-local physics while the member remains bounded to its Section Frame.
+- Cross-simulation edge forces must be implemented smoothly, preferably by composing D3 force primitives or stable custom D3-style forces, so cross-boundary edges do not introduce graph or node jitter.
 - A tiny section with many nodes cannot satisfy collision and bounds. The content minimum and collapse threshold prevent the section from remaining expanded below the size needed for members, child sections, chrome, and padding.
 - If all members are pinned, section forces should not fight them.
 - Moving a section with pinned members updates their pin coordinates by the same delta.
 - Resizing a section with pinned members should preserve their pins while they remain in bounds. If resizing below content minimum would invalidate member positions, the section collapses according to the resize rule.
+
+## Physics Alignment Audit
+
+This section records the current PR #203 physics behavior before the next round of decisions, then records the target model chosen during the follow-up physics grill.
+
+Current implementation:
+
+- All rendered items still live in one `react-force-graph` / D3 simulation in 2D. This is the known mismatch the next physics pass needs to correct for expanded Section Members.
+- Ordinary root nodes use graph-origin center force, charge/repel, native circular collision, link force, and pins.
+- Collapsed Section Nodes behave closest to ordinary nodes: graph-origin center force, charge/repel, native circular collision based on collapsed node size, projected link force, and pins.
+- Expanded Section Nodes are in the same simulation, but use a specialized force profile:
+  - graph-origin center force applies,
+  - native circular collision is disabled,
+  - charge/repel contribution applies like ordinary root nodes,
+  - custom rectangle collision uses the Section Frame width and height,
+  - projected/member edges do not connect the expanded Section Node to its members.
+- Section Members inside an expanded Graph Section currently remain graph nodes in the same root simulation, but use a mixed force profile:
+  - root link force is disabled for links involving expanded Section Members,
+  - bridge link forces apply to their real graph edges in world space,
+  - root charge/repel is disabled,
+  - graph-origin center force is disabled while the member has an expanded owner section,
+  - native circular collision is disabled while the member has an expanded owner section,
+  - custom local member collision, section-center correction, section-local charge/repel, and hard bounds keep members inside the Section Frame.
+- Moving a Section Frame carries visible members by the same graph-space delta before physics resumes.
+- Pinning still uses D3 fixed coordinates (`fx`, `fy`, `fz`), with Section Nodes limited to 2D because Graph Sections do not render in 3D v1.
+
+Target physics model:
+
+- Keep one visible React Force Graph surface for rendering, camera, pointer hit testing, and built-in node dragging.
+- Use multiple D3 force simulations:
+  - one root simulation for ordinary root nodes and root-owned Section Nodes,
+  - one section-local simulation for each expanded Graph Section's visible direct children.
+- Expanded Section Members stay in `graphData.nodes` as renderable React Force Graph nodes, but the root simulation should not apply root center, root charge, root link, or root collision forces to them.
+- Section-local simulations own the member's physics state in local coordinates. Each tick derives the render node's world position from the owning Section Node plus the member's local position.
+- React Force Graph built-in member dragging remains enabled. Drag callbacks convert the dragged member's world-space pointer movement into section-local coordinates, update the local simulation node, and apply ownership or pin rules on drop.
+
+Resolved alignment decisions:
+
+- 2026-05-08: Section Nodes should be root graph physics actors. Expanded Section Nodes should contribute D3 charge/repel like ordinary root nodes.
+- 2026-05-08: Root graph physics should support heterogeneous visible node geometry: circular ordinary nodes and rectangular expanded Section Nodes collide in the same root simulation.
+- 2026-05-08: D3 `forceCollide` is circular. Rectangular Section Node collision must use a custom D3 force installed with `simulation.force(name, customForce)`, supporting circle-circle, circle-rectangle, and rectangle-rectangle collisions in the root simulation. Do not approximate expanded Section Frames as enclosing circles.
+- 2026-05-08: Section Members should move in a section-local force simulation, not directly in the root force simulation.
+- 2026-05-08: A Graph Section behaves like a graph-like area with its own origin. Members assigned to it use the same conceptual physics settings around the section origin and interact physically only with other visible members in that same Graph Section.
+- 2026-05-08: Cross-boundary edges render to their real visible endpoints and should physically influence the real Section Member endpoint inside section-local physics. Do not replace `A -> member B` physics with `A -> Section 1` root proxy physics while the section is expanded.
+- 2026-05-08: A Section Member that is pulled by a cross-boundary edge remains scoped to its owning Section Frame and still interacts with other visible members in the same section, including member-to-member links such as `C -> B` inside Section 1.
+- 2026-05-08: Smooth D3 integration is a core requirement. Section-local simulations and cross-boundary forces should avoid jitter by using stable D3-style force updates, bounded velocities, and deterministic coordinate conversion between root graph space and section-local space.
+- 2026-05-08: Cross-boundary edge physics should be symmetric across simulations while the Graph Section is expanded. The outside endpoint and the Section Member endpoint both feel the relationship, with the implementation converting coordinates between root graph space and section-local graph space.
+- 2026-05-08: Section Members should continue to use React Force Graph's built-in node hit testing and drag callbacks. Dragging a Section Member updates that member's section-local physics coordinates and ownership/pin rules, while rendering and pointer interaction still flow through the single React Force Graph surface.
+- 2026-05-08: Cross-boundary edges should use bridge-force physics, not the normal root `forceLink`. For `A -> B` where `B` is a Section Member, the bridge force compares `A` and `B` in world space, nudges `A` in the root simulation, nudges `B` in its section-local simulation, and never pulls the Section Node as a proxy for `B`.
+- 2026-05-08: Section Frame bounds win over cross-boundary link pull. If a bridge force would pull a Section Member outside its Section Frame, the member remains bounded inside the section.
+- 2026-05-08: Dragging across Section Frame boundaries should preview the target while dragging, but membership changes only on drop. Do not reparent nodes between simulations during hover or mid-drag.
+- 2026-05-08: Nested layout coordinates are local to the direct parent, recursively. A Section Node inside another Graph Section stores coordinates local to its parent Section Frame, and its own Section Members store coordinates local to that child Section Frame.
+- 2026-05-08: Collapsing a Graph Section hides descendants, stops that section's local simulation, and persists latest direct-child local positions. Hidden members do not keep simulating while collapsed.
+- 2026-05-08: Expanding a collapsed Graph Section restores direct children from saved local positions and gently reheats that section-local simulation. If the collapsed Section Node moved while collapsed, descendants keep the same local arrangement because their coordinates are relative to the section.
+- 2026-05-08: Pinning means physics cannot move the pinned graph item at all. Root pins are fixed in root graph coordinates; Section Member pins and nested Section Node pins are fixed in direct-parent-local coordinates.
+
+## Nested Simulation Architecture Candidate
+
+The preferred architecture is to fake nested force graphs while keeping one visible React Force Graph surface:
+
+- Keep one `react-force-graph` instance for the 2D canvas, camera, zoom, pan, coordinate conversion, and root graph rendering.
+- Maintain multiple independent D3 force simulations:
+  - one root simulation owned by the React Force Graph instance,
+  - one section-local D3 simulation for each expanded Graph Section that has visible members.
+- The root simulation contains ordinary root nodes and Section Nodes.
+- Expanded Section Members remain in the React Force Graph `graphData.nodes` so core node rendering, labels, hover affordances, edges, screenshots, and export paths can continue to use the same graph surface.
+- Expanded Section Members do not participate in root physics even though React Force Graph can still render them.
+- Expanded Section Members are render mirrors in root graph data: their world-space `x`/`y` are copied from their owning section-local simulation each tick.
+- Each expanded Graph Section owns local member nodes in local coordinates relative to the Section Node / Section Frame origin.
+- A rendered Section Member world position is derived recursively:
+  - `worldX = sectionWorldX + childLocalX`
+  - `worldY = sectionWorldY + childLocalY`
+- Nested sections follow the same rule recursively: a child Section Node belongs to its parent section-local simulation, and that child section owns its own local simulation for its members.
+- Nested coordinates are not flattened to root graph space for persistence. World render positions are derived by recursively summing direct-parent local coordinates from the root to the rendered item.
+- Sections render as resizable container rectangles.
+- Dragging a node into a Section Frame reparents it from its previous simulation into that section-local simulation.
+- Dragging a Section Member out reparents it back to the root simulation, or into the deepest target section under the drop point.
+- Reparenting happens only on drop. During drag, CodeGraphy may highlight the candidate target Section Frame, but the dragged node remains owned by its current simulation until release.
+- Section-local simulations use the same user-facing physics settings as the root graph, scoped to their own origin and visible local members.
+- Boundary constraints keep local members inside the visible Section Frame.
+- Collapsing a Graph Section stops its local simulation and persists latest direct-child local positions.
+- Expanding a Graph Section restores the saved local positions and gently restarts that section-local simulation instead of recomputing positions from scratch.
+
+Implementation implications:
+
+- Root forces must explicitly skip Section Members for center, charge, root collision, and root link force participation while still allowing React Force Graph to render those nodes.
+- Links involving Section Members should remain in rendered `graphData.links`, but root D3 link force should not directly apply to member endpoints. Cross-boundary link physics is handled by bridge forces that apply equal conceptual pressure to the outside root endpoint and the section-local member endpoint through world/local coordinate conversion.
+- Local simulation ticks should copy derived world coordinates back to the React Force Graph render nodes before redraw.
+- Local simulation ticks should update mutable runtime positions and request graph redraws without writing React state every tick.
+- Smoothness is a hard requirement: bridge forces, boundary constraints, and coordinate conversion must avoid simulation feedback loops that produce jitter.
+- Section Members should still use React Force Graph's built-in hit testing and drag callbacks. Drag handling should convert the dragged world-space pointer position into the member's section-local coordinates and update the section-local simulation state, rather than letting the root simulation own Section Member physics.
+
+Research notes:
+
+- D3 `forceCollide` treats nodes as circles with a radius, so it is not enough for exact expanded Section Frame collisions: <https://d3js.org/d3-force/collide>.
+- D3 simulations invoke every registered force each tick, and custom forces can mutate node velocities/positions inside that lifecycle: <https://d3js.org/d3-force/simulation>.
+- D3 quadtree is the native broad-phase tool for efficient spatial queries and collision detection: <https://d3js.org/d3-quadtree>.
+- React Force Graph exposes `d3Force(name, force)` so CodeGraphy can install custom D3 forces into the root simulation: <https://vasturiano.github.io/react-force-graph/>.
+- React Force Graph exposes `onNodeDrag`, `onNodeDragEnd`, `nodePointerAreaPaint`, and pointer interaction support, so Section Members can keep built-in hit testing and drag callbacks while CodeGraphy owns the section-local physics update path: <https://vasturiano.github.io/react-force-graph/>.
+
+Root geometry collision strategy:
+
+- Use a custom D3 force for visible root actors. Expanded Section Frames must collide by their visible rectangular geometry, not by enclosing circles.
+- Support three unrotated geometry pairs:
+  - circle-circle: same overlap math as native collision, using visible node radius,
+  - rectangle-rectangle: AABB overlap using the visible Section Frame width and height, resolving along the smallest penetration axis,
+  - circle-rectangle: closest-point test from circle center to rectangle bounds; when the circle center is inside the rectangle, resolve toward the nearest rectangle face.
+- Use a quadtree broad phase keyed by actor center and a conservative search radius based on actor half-diagonal so the expensive pair test only runs for nearby actors.
+- Apply collision as velocity changes inside the D3 force lifecycle, with strength and iterations mapped from the existing collision settings so it feels like the current graph rather than a post-tick clamp.
 
 ## 3D, Folder, Package, And Plugin Node Draft
 
@@ -506,6 +626,7 @@ Pinning:
 - Pinning should work for every node type.
 - In 2D mode, pin a 2D graph coordinate.
 - In 3D mode, pin a 3D graph coordinate.
+- A pinned item is not moved by physics. In 2D, root-owned pins fix root graph coordinates; Section Member pins and nested Section Node pins fix direct-parent-local coordinates.
 - 2D and 3D pins are independent; switching renderer modes does not translate one pin into the other.
 - A normal graph node can have both a 2D pin location and a 3D pin location.
 - Section Nodes do not support 3D pins in v1 because Graph Sections and Section Nodes are not rendered in 3D.

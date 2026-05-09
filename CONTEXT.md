@@ -448,8 +448,10 @@ _Avoid_: Graph export
 - A **Graph Section** organizes **Section Members** on the **Graph Stage** and is represented by a **Section Node** in the force layout.
 - A **Section Frame** is the editable expanded visual form of a **Section Node**.
 - A **Section Node** can be expanded into its **Section Frame** or collapsed into a single node; it must not be confused with a **Folder Node**, which represents a real workspace directory.
-- An expanded **Graph Section** shows its **Section Members**, and those members remain force-layout nodes bounded by the **Section Frame**.
-- **Section Members** use hard visual bounds inside the **Section Frame** with gentle physics correction that pulls them away from frame edges.
+- An expanded **Graph Section** shows its **Section Members**, and those members use section-local physics centered on that section's origin instead of participating directly in the root graph physics simulation.
+- **Section Members** interact physically with other visible members in the same **Graph Section** and use hard visual bounds inside the **Section Frame**.
+- **Section Members** remain renderable graph nodes on the single React Force Graph surface so they keep normal hit testing, labels, edges, and built-in node dragging.
+- The root graph physics simulation can contain different node geometries, including circular ordinary nodes and rectangular expanded **Section Nodes**, and those visible root actors should collide according to their visible geometry.
 - Moving an expanded **Section Frame** moves its visible **Section Members** by the same graph-space delta before physics resumes.
 - Moving an expanded **Section Frame** also moves visible pinned **Section Members** and updates their persisted pin positions by the same graph-space delta.
 - Moving a collapsed **Section Node** moves its hidden **Section Members** and any persisted member pin positions by the same graph-space delta for the next expansion.
@@ -460,8 +462,11 @@ _Avoid_: Graph export
 - Expanding a collapsed **Graph Section** restores a **Section Frame** at least as large as its current content minimum size.
 - Collapsing a parent **Graph Section** hides its descendant sections without changing their own expanded or collapsed state.
 - Expanding a parent **Graph Section** restores each descendant section to the expanded or collapsed state it had before the parent was collapsed.
+- Collapsing a **Graph Section** stops its section-local simulation and preserves latest direct-child local positions.
+- Expanding a **Graph Section** restores saved direct-child local positions and gently restarts its section-local simulation.
 - A **Node** becomes a **Section Member** only through explicit user intent, such as dropping it into a **Section Frame** or using a Graph Context Menu action.
 - A **Node** stops being a **Section Member** only through explicit user intent, such as dropping it outside its **Section Frame** or using a Graph Context Menu action.
+- Dragging across **Section Frame** boundaries previews the candidate target, but membership changes only when the user drops the dragged item.
 - Dragging any **Section Member** outside its owning **Section Frame** and dropping it removes the item from that **Graph Section**.
 - Any visible **Node Type** can become a **Section Member**, including File Nodes, Folder Nodes, Package nodes, and Plugin Nodes.
 - **Section Member** assignment survives temporary node visibility changes from **Graph Scope**, **Search**, **Filter**, **Show Orphans**, or similar view settings.
@@ -475,6 +480,7 @@ _Avoid_: Graph export
 - Physics drift across a **Section Frame** boundary must not add or remove **Section Member** assignment.
 - Nested **Graph Sections** form an ownership hierarchy: a node in Section 2 inside Section 1 is directly a **Section Member** of Section 2, while Section 2 is the member within Section 1.
 - Nested **Graph Section** support is recursive: a **Graph Section** can contain another **Graph Section**, which can contain its own **Section Members** or nested sections.
+- Nested **Graph Section** coordinates are local to the direct parent, recursively, rather than flattened into root graph coordinates.
 - A **Graph Section** or **Node** must have at most one direct section owner, and nested section ownership must not form cycles.
 - **Section Member** ownership is persisted in a normalized ownership index, while **Graph Sections** store their own visual and layout state separately.
 - Deleting only a **Graph Section** removes that section and promotes its direct child nodes and child sections to the deleted section's parent owner.
@@ -482,6 +488,10 @@ _Avoid_: Graph export
 - Deleting an explicit multi-selection that includes a **Graph Section** and its contents can delete the whole selected set.
 - Any delete action requires confirmation.
 - An **Edge** to a visible **Section Member** renders to that member while its **Graph Section** is expanded.
+- A cross-boundary **Edge** to a visible **Section Member** renders to and physically influences the real member endpoint, while that member remains scoped to its section-local physics and **Section Frame** bounds.
+- Cross-boundary **Edge** physics is symmetric while a **Graph Section** is expanded: the outside endpoint and the **Section Member** endpoint both feel the relationship through coordinate conversion between root graph space and section-local graph space.
+- Cross-boundary **Edge** physics must not pull the **Section Node** as a proxy for a visible **Section Member**.
+- **Section Frame** bounds win over cross-boundary **Edge** pull.
 - When a **Graph Section** is collapsed, cross-boundary **Edges** render to each endpoint's nearest visible representative as a projection of the original relationships.
 - Projected cross-boundary **Edges** with the same visible source, visible target, and **Edge Type** render as one aggregated edge that preserves the original edge list for inspection.
 - Projected cross-boundary **Edges** with different **Edge Types** remain visually distinct.
@@ -489,6 +499,8 @@ _Avoid_: Graph export
 - A **Graph Section** does not create, remove, or change **Relationships** in the **Relationship Graph**.
 - A **Pinned Node** keeps a user-chosen graph-space position while preserving the node's normal **Relationships**.
 - **Pinned Node** positions are stored in graph-space coordinates relative to the graph origin, not viewport pan or zoom.
+- A **Pinned Node** is not moved by physics while the pin is active.
+- A pinned **Section Member** or nested **Section Node** stores a direct-parent-local position and is not moved by its section-local physics while the pin is active.
 - 2D and 3D **Pinned Node** positions are separate; a 2D pin applies only in 2D and a 3D pin applies only in 3D.
 - **Pinned Nodes** show a small pin badge; collapsed **Section Nodes** show a collapsed-section badge and hidden-descendant count.
 - A **Graph Section** has a required label and optional free-form color; the label appears on both the expanded **Section Frame** and collapsed **Section Node**.

@@ -61,6 +61,32 @@ function readLiveSectionDimension(
   return isFiniteNumber(value) ? value : fallback;
 }
 
+function getSectionWorldTopLeft(
+  graphLayout: GraphLayoutSettings,
+  sectionId: string,
+  visited = new Set<string>(),
+): { x: number; y: number } | undefined {
+  const section = graphLayout.sections[sectionId];
+  if (!section) {
+    return undefined;
+  }
+
+  if (visited.has(sectionId)) {
+    return { x: section.x, y: section.y };
+  }
+
+  const ownerSectionId = graphLayout.ownership[sectionId]?.ownerSectionId ?? null;
+  if (!ownerSectionId) {
+    return { x: section.x, y: section.y };
+  }
+
+  visited.add(sectionId);
+  const ownerTopLeft = getSectionWorldTopLeft(graphLayout, ownerSectionId, visited);
+  return ownerTopLeft
+    ? { x: ownerTopLeft.x + section.x, y: ownerTopLeft.y + section.y }
+    : { x: section.x, y: section.y };
+}
+
 function createLiveGraphLayout(
   graphLayout: GraphLayoutSettings,
   graphNodes: readonly FGNode[] | undefined,
@@ -124,6 +150,8 @@ function createOwnershipCandidateGraphLayout(
 function createPinnedNodeDragMessage(
   node: FGNode,
   graphMode: GraphLayoutMode,
+  graphLayout: GraphLayoutSettings | undefined,
+  graphNodes: readonly FGNode[] | undefined,
 ): WebviewToExtensionMessage | undefined {
   if (!node.isPinned) {
     return undefined;
@@ -134,12 +162,23 @@ function createPinnedNodeDragMessage(
     return undefined;
   }
 
+  const liveGraphLayout = graphLayout ? createLiveGraphLayout(graphLayout, graphNodes) : undefined;
+  const ownerSectionId = liveGraphLayout
+    ? (node.ownerSectionId ?? liveGraphLayout.ownership[node.id]?.ownerSectionId ?? null)
+    : null;
+  const ownerTopLeft = graphMode === '2d' && liveGraphLayout && ownerSectionId
+    ? getSectionWorldTopLeft(liveGraphLayout, ownerSectionId)
+    : undefined;
+  const persistedPosition = ownerTopLeft
+    ? { x: position.x - ownerTopLeft.x, y: position.y - ownerTopLeft.y }
+    : position;
+
   return {
     type: 'UPDATE_GRAPH_LAYOUT_PIN',
     payload: {
       graphMode,
       nodeId: node.id,
-      position,
+      position: persistedPosition,
     },
   };
 }
@@ -317,7 +356,7 @@ export function postNodeDragEndMessages(
   releaseNodeDrag(node, graphMode);
 
   const messages = [
-    createPinnedNodeDragMessage(node, graphMode),
+    createPinnedNodeDragMessage(node, graphMode, graphLayout, graphNodes),
     ownerMessage,
   ];
 
@@ -331,19 +370,19 @@ export function postNodeDragEndMessages(
 export function updateNodeDragOwnerPreview(
   node: FGNode,
   options: NodeDragEndOptions,
-): void {
+): string | null {
   if (!canUpdateGraphLayoutOwnerOnDrag(options.graphLayout, options.graphMode, options.timelineActive)) {
-    return;
+    return null;
   }
 
   const position = readNodePosition(node, options.graphMode);
   if (!position) {
-    return;
+    return null;
   }
 
   const liveGraphLayout = createLiveGraphLayout(options.graphLayout, options.graphData.nodes);
   const ownerCandidateGraphLayout = createOwnershipCandidateGraphLayout(liveGraphLayout, node);
-  node.ownerSectionId = findDeepestGraphLayoutSectionAtPoint(ownerCandidateGraphLayout, position);
+  return findDeepestGraphLayoutSectionAtPoint(ownerCandidateGraphLayout, position);
 }
 
 export function postDraggedNodesDragEndMessages(

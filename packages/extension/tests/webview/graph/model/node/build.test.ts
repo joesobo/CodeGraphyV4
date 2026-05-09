@@ -215,6 +215,57 @@ describe('graph/model/node/build', () => {
     });
   });
 
+  it('derives pinned Section Member render positions from direct owner local coordinates', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/member.ts', label: 'member.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/member.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        pinnedNodes: {
+          'src/member.ts': {
+            nodeId: 'src/member.ts',
+            twoDimensional: { x: 20, y: 30 },
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'Section',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 200,
+            height: 160,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          'src/member.ts': {
+            itemId: 'src/member.ts',
+            itemKind: 'node',
+            ownerSectionId: 'section-1',
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(nodes[0]).toMatchObject({
+      fx: 120,
+      fy: 80,
+      x: 120,
+      y: 80,
+    });
+  });
+
   it('ignores persisted pins while timeline snapshots are active', () => {
     const nodes = buildGraphNodes({
       nodes: [
@@ -305,6 +356,116 @@ describe('graph/model/node/build', () => {
       sectionWidth: 300,
       x: 30,
       y: 30,
+    });
+  });
+
+  it('derives nested Graph Section render positions from direct parent local coordinates', () => {
+    const nodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        pinnedNodes: {},
+        sections: {
+          parent: {
+            id: 'parent',
+            label: 'Parent',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 300,
+            height: 200,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+          child: {
+            id: 'child',
+            label: 'Child',
+            color: '#22c55e',
+            x: 40,
+            y: 30,
+            width: 100,
+            height: 80,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          child: {
+            itemId: 'child',
+            itemKind: 'section',
+            ownerSectionId: 'parent',
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'parent')).toMatchObject({ x: 250, y: 150 });
+    expect(nodes.find(node => node.id === 'child')).toMatchObject({ x: 190, y: 120 });
+  });
+
+  it('derives pinned nested Graph Section render positions from direct parent local coordinates', () => {
+    const nodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        pinnedNodes: {
+          child: {
+            nodeId: 'child',
+            twoDimensional: { x: 60, y: 70 },
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        sections: {
+          parent: {
+            id: 'parent',
+            label: 'Parent',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 300,
+            height: 200,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+          child: {
+            id: 'child',
+            label: 'Child',
+            color: '#22c55e',
+            x: 40,
+            y: 30,
+            width: 100,
+            height: 80,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          child: {
+            itemId: 'child',
+            itemKind: 'section',
+            ownerSectionId: 'parent',
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'child')).toMatchObject({
+      fx: 160,
+      fy: 120,
+      x: 160,
+      y: 120,
     });
   });
 

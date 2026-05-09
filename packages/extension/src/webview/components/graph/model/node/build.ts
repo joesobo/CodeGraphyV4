@@ -181,6 +181,30 @@ function getGraphNodeOwnerSectionId(
   return timelineActive ? null : (graphLayout.ownership[nodeId]?.ownerSectionId ?? null);
 }
 
+function resolveGraphNodePinCoordinate(
+  pinCoordinate: GraphNodePinCoordinate | undefined,
+  ownerSectionId: string | null,
+  options: {
+    graphLayout: GraphLayoutSettings;
+    graphMode: GraphLayoutMode;
+  },
+): GraphNodePinCoordinate | undefined {
+  if (!pinCoordinate || options.graphMode !== '2d' || !ownerSectionId) {
+    return pinCoordinate;
+  }
+
+  const ownerSection = options.graphLayout.sections[ownerSectionId];
+  if (!ownerSection) {
+    return pinCoordinate;
+  }
+
+  const ownerTopLeft = getSectionWorldTopLeft(ownerSection, options.graphLayout);
+  return {
+    x: ownerTopLeft.x + pinCoordinate.x,
+    y: ownerTopLeft.y + pinCoordinate.y,
+  };
+}
+
 function createGraphNode(
   node: IGraphNode,
   options: {
@@ -195,7 +219,12 @@ function createGraphNode(
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
 ): FGNode {
   const previous = previousNodeStates.get(node.id);
-  const pinCoordinate = getActiveGraphNodePinCoordinate(node.id, options);
+  const ownerSectionId = getGraphNodeOwnerSectionId(node.id, options.graphLayout, options.timelineActive);
+  const pinCoordinate = resolveGraphNodePinCoordinate(
+    getActiveGraphNodePinCoordinate(node.id, options),
+    ownerSectionId,
+    options,
+  );
   const style = createGraphNodeStyle(node, options, isLight);
   const position = createGraphNodePositionState(node, previous, pinCoordinate, options.graphMode);
 
@@ -208,13 +237,36 @@ function createGraphNode(
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,
-    ownerSectionId: getGraphNodeOwnerSectionId(node.id, options.graphLayout, options.timelineActive),
+    ownerSectionId,
     ...position,
   } as FGNode;
 }
 
 function getSectionNodeSize(section: Pick<GraphLayoutSection, 'height' | 'width'>): number {
   return Math.max(24, Math.min(48, Math.sqrt(section.width * section.height) / 12));
+}
+
+function getSectionWorldTopLeft(
+  section: GraphLayoutSection,
+  graphLayout: GraphLayoutSettings,
+  visited = new Set<string>(),
+): GraphLayoutCoordinate2D {
+  if (visited.has(section.id)) {
+    return { x: section.x, y: section.y };
+  }
+
+  const ownerSectionId = graphLayout.ownership[section.id]?.ownerSectionId ?? null;
+  const ownerSection = ownerSectionId ? graphLayout.sections[ownerSectionId] : undefined;
+  if (!ownerSection) {
+    return { x: section.x, y: section.y };
+  }
+
+  visited.add(section.id);
+  const ownerTopLeft = getSectionWorldTopLeft(ownerSection, graphLayout, visited);
+  return {
+    x: ownerTopLeft.x + section.x,
+    y: ownerTopLeft.y + section.y,
+  };
 }
 
 function createGraphSectionNode(
@@ -226,9 +278,16 @@ function createGraphSectionNode(
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
 ): FGNode {
   const previous = previousNodeStates.get(section.id);
-  const pinCoordinate = getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[section.id], '2d');
-  const centerX = section.x + (section.width / 2);
-  const centerY = section.y + (section.height / 2);
+  const ownerSectionId = options.graphLayout.ownership[section.id]?.ownerSectionId ?? null;
+  const rawPinCoordinate = getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[section.id], '2d');
+  const ownerSection = ownerSectionId ? options.graphLayout.sections[ownerSectionId] : undefined;
+  const ownerTopLeft = ownerSection ? getSectionWorldTopLeft(ownerSection, options.graphLayout) : undefined;
+  const pinCoordinate = rawPinCoordinate && ownerTopLeft
+    ? { x: ownerTopLeft.x + rawPinCoordinate.x, y: ownerTopLeft.y + rawPinCoordinate.y }
+    : rawPinCoordinate;
+  const worldTopLeft = getSectionWorldTopLeft(section, options.graphLayout);
+  const centerX = worldTopLeft.x + (section.width / 2);
+  const centerY = worldTopLeft.y + (section.height / 2);
   const x = pinCoordinate?.x ?? previous?.x ?? centerX;
   const y = pinCoordinate?.y ?? previous?.y ?? centerY;
 
@@ -248,7 +307,7 @@ function createGraphSectionNode(
     isGraphSection: true,
     isPinned: !!pinCoordinate,
     nodeType: 'graph-section',
-    ownerSectionId: options.graphLayout.ownership[section.id]?.ownerSectionId ?? null,
+    ownerSectionId,
     sectionHeight: section.height,
     sectionWidth: section.width,
     shape2D: 'square',

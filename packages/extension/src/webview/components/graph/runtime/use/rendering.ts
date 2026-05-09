@@ -137,11 +137,12 @@ export function useGraphRenderingRuntime({
     physicsPaused,
   });
 
-  usePhysicsRuntime({
-    fg2dRef,
-    fg3dRef,
-    graphLayout,
-    graphMode,
+	  usePhysicsRuntime({
+	    fg2dRef,
+	    fg3dRef,
+	    graphDataRef,
+	    graphLayout,
+	    graphMode,
     layoutKey: graphLayoutKey,
     physicsPaused,
     physicsSettings,

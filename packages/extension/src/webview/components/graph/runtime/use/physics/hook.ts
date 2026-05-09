@@ -20,6 +20,7 @@ interface GraphPhysicsAnimationControls {
 interface UsePhysicsRuntimeProps {
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
+  graphDataRef?: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
   graphLayout?: GraphLayoutSettings;
   graphMode: '2d' | '3d';
   layoutKey: string;
@@ -30,6 +31,7 @@ interface UsePhysicsRuntimeProps {
 export function usePhysicsRuntime({
   fg2dRef,
   fg3dRef,
+  graphDataRef,
   graphLayout,
   graphMode,
   layoutKey,
@@ -54,13 +56,13 @@ export function usePhysicsRuntime({
     previousPhysicsRef,
   });
 
-  usePhysicsRuntimePause({
-    fg2dRef,
-    fg3dRef,
-    graphMode,
-    physicsInitialisedRef,
-    physicsPaused,
-  });
+	  usePhysicsRuntimePause({
+	    fg2dRef,
+	    fg3dRef,
+	    graphMode,
+	    physicsInitialisedRef,
+	    physicsPaused,
+	  });
 
   usePhysicsRuntimeLayoutReset({
     graphMode,
@@ -70,10 +72,11 @@ export function usePhysicsRuntime({
     previousPhysicsRef,
   });
 
-  usePhysicsRuntimeInit({
-    fg2dRef,
-    fg3dRef,
-    graphMode,
+	  usePhysicsRuntimeInit({
+	    fg2dRef,
+	    fg3dRef,
+	    graphDataRef,
+	    graphMode,
     graphLayout,
     physicsInitialisedRef,
     physicsPaused,
@@ -104,9 +107,14 @@ export function usePhysicsRuntime({
       return;
     }
 
-    applyGraphSectionBoundsForce(graph, { graphLayout, graphMode });
+    applyGraphSectionBoundsForce(graph, {
+      graphLayout,
+      graphMode,
+      links: graphDataRef?.current.links,
+      settings: physicsSettingsRef.current,
+    });
     applyPhysicsSettings(graph, physicsSettingsRef.current, { graphLayout, graphMode });
-  }, [fg2dRef, fg3dRef, graphLayout, graphMode, physicsInitialisedRef, physicsSettingsRef]);
+  }, [fg2dRef, fg3dRef, graphDataRef, graphLayout, graphMode, physicsInitialisedRef, physicsSettingsRef]);
 }
 
 export function syncPhysicsAnimation(

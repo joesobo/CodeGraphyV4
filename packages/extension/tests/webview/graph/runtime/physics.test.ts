@@ -170,6 +170,103 @@ function createPackingNodes(): FGNode[] {
   return nodes;
 }
 
+const VARIED_SECTION_SIZES = [
+  { width: 225, height: 205, members: 11 },
+  { width: 200, height: 196, members: 9 },
+  { width: 249, height: 275, members: 19 },
+  { width: 127, height: 98, members: 4 },
+  { width: 215, height: 178, members: 6 },
+  { width: 241, height: 274, members: 6 },
+  { width: 174, height: 171, members: 4 },
+  { width: 262, height: 184, members: 13 },
+  { width: 132, height: 116, members: 4 },
+  { width: 158, height: 153, members: 5 },
+  { width: 155, height: 259, members: 5 },
+  { width: 268, height: 219, members: 3 },
+  { width: 212, height: 128, members: 5 },
+  { width: 175, height: 192, members: 5 },
+  { width: 241, height: 179, members: 8 },
+  { width: 135, height: 184, members: 3 },
+  { width: 638, height: 494, members: 3 },
+] as const;
+
+function createVariedPackingGraphLayout(): GraphLayoutSettings {
+  const sections: GraphLayoutSettings['sections'] = {};
+  const ownership: GraphLayoutSettings['ownership'] = {};
+
+  for (const [index, sectionSize] of VARIED_SECTION_SIZES.entries()) {
+    const sectionId = `section-${index + 1}`;
+    sections[sectionId] = {
+      id: sectionId,
+      label: sectionId,
+      color: '#60a5fa',
+      x: 0,
+      y: 0,
+      width: sectionSize.width,
+      height: sectionSize.height,
+      collapsed: false,
+      updatedAt: '2026-05-08T09:00:00.000Z',
+    };
+    ownership[sectionId] = {
+      itemId: sectionId,
+      itemKind: 'section',
+      ownerSectionId: null,
+      updatedAt: '2026-05-08T09:00:00.000Z',
+    };
+
+    for (let memberIndex = 0; memberIndex < sectionSize.members; memberIndex += 1) {
+      ownership[`section-${index + 1}/member-${memberIndex}.ts`] = {
+        itemId: `section-${index + 1}/member-${memberIndex}.ts`,
+        itemKind: 'node',
+        ownerSectionId: sectionId,
+        updatedAt: '2026-05-08T09:00:00.000Z',
+      };
+    }
+  }
+
+  return { pinnedNodes: {}, sections, ownership };
+}
+
+function createVariedPackingNodes(): FGNode[] {
+  const nodes: FGNode[] = [];
+
+  for (const [index, sectionSize] of VARIED_SECTION_SIZES.entries()) {
+    const sectionId = `section-${index + 1}`;
+    const angle = (index / VARIED_SECTION_SIZES.length) * Math.PI * 2;
+    const distance = 900 + (index % 5) * 120;
+    const origin = {
+      x: Math.cos(angle) * distance,
+      y: Math.sin(angle) * distance,
+    };
+
+    nodes.push({
+      id: sectionId,
+      isGraphSection: true,
+      sectionHeight: sectionSize.height,
+      sectionWidth: sectionSize.width,
+      size: Math.max(sectionSize.width, sectionSize.height) / 2,
+      vx: 0,
+      vy: 0,
+      x: origin.x,
+      y: origin.y,
+    } as FGNode);
+
+    for (let memberIndex = 0; memberIndex < sectionSize.members; memberIndex += 1) {
+      nodes.push({
+        id: `${sectionId}/member-${memberIndex}.ts`,
+        ownerSectionId: sectionId,
+        size: 8 + (memberIndex % 4) * 4,
+        vx: 0,
+        vy: 0,
+        x: origin.x + ((memberIndex % 4) - 1.5) * 28,
+        y: origin.y + (Math.floor(memberIndex / 4) - 1) * 28,
+      } as FGNode);
+    }
+  }
+
+  return nodes;
+}
+
 function toSectionRect(node: FGNode): SectionRect {
   const width = node.sectionWidth ?? 0;
   const height = node.sectionHeight ?? 0;
@@ -255,7 +352,11 @@ describe('physics', () => {
     expect(charge.strength).toHaveBeenCalledOnce();
     expect(charge.distanceMax).toHaveBeenCalledWith(1000);
     expect(link.distance).toHaveBeenCalledWith(SETTINGS.linkDistance);
-    expect(link.strength).toHaveBeenCalledWith(SETTINGS.linkForce);
+    const linkStrength = link.strength.mock.calls[0][0] as (link: {
+      source: string;
+      target: string;
+    }) => number;
+    expect(linkStrength({ source: 'src/a.ts', target: 'src/b.ts' })).toBe(SETTINGS.linkForce);
     const forceXStrength = forceXInstance.strength.mock.calls[0][0] as (node: FGNode) => number;
     const forceYStrength = forceYInstance.strength.mock.calls[0][0] as (node: FGNode) => number;
     expect(forceXStrength({ id: 'src/root.ts' } as FGNode)).toBe(SETTINGS.centerForce);
@@ -263,7 +364,37 @@ describe('physics', () => {
     expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
   });
 
-  it('keeps expanded Graph Sections from using normal many-body charge', () => {
+  it('keeps expanded Section Members out of root charge and root link force', () => {
+    const { charge, instance, link } = createPhysicsInstance();
+
+    applyPhysicsSettings(instance, SETTINGS, { graphLayout: GRAPH_LAYOUT, graphMode: '2d' });
+
+    const chargeStrength = charge.strength.mock.calls[0][0] as (node: FGNode) => number;
+    expect(chargeStrength({
+      id: 'section-1',
+      isCollapsedGraphSection: false,
+      isGraphSection: true,
+    } as FGNode)).toBeLessThan(0);
+    expect(chargeStrength({
+      id: 'src/member.ts',
+      ownerSectionId: 'section-1',
+    } as FGNode)).toBe(0);
+
+    const linkStrength = link.strength.mock.calls[0][0] as (link: {
+      source: FGNode | string;
+      target: FGNode | string;
+    }) => number;
+    expect(linkStrength({
+      source: 'src/root.ts',
+      target: 'src/member.ts',
+    })).toBe(0);
+    expect(linkStrength({
+      source: { id: 'src/root.ts' } as FGNode,
+      target: { id: 'src/other.ts' } as FGNode,
+    })).toBe(SETTINGS.linkForce);
+  });
+
+  it('keeps expanded Graph Sections in normal many-body charge', () => {
     const { charge, instance } = createPhysicsInstance();
 
     applyPhysicsSettings(instance, SETTINGS);
@@ -273,7 +404,7 @@ describe('physics', () => {
       id: 'section-1',
       isCollapsedGraphSection: false,
       isGraphSection: true,
-    } as FGNode)).toBe(0);
+    } as FGNode)).toBeLessThan(0);
     expect(strength({
       id: 'src/app.ts',
     } as FGNode)).toBeLessThan(0);
@@ -451,6 +582,40 @@ describe('physics', () => {
     expect(getLargestNearestSectionGap(nodes)).toBeLessThanOrEqual(1.5);
   });
 
+  it('packs many varied expanded Graph Sections together at the root center when repel is disabled', () => {
+    const graphLayout = createVariedPackingGraphLayout();
+    const nodes = createVariedPackingNodes();
+    const { d3Force, instance } = createPhysicsInstance();
+    const settings = {
+      ...SETTINGS,
+      centerForce: 1,
+      linkForce: 0,
+      repelForce: 0,
+    };
+
+    initPhysics(instance, settings, { graphLayout, graphMode: '2d' });
+
+    const simulation = forceSimulation(nodes)
+      .velocityDecay(settings.damping)
+      .force('forceX', getInstalledD3Force(d3Force, 'forceX'))
+      .force('forceY', getInstalledD3Force(d3Force, 'forceY'))
+      .force('collision', getInstalledD3Force(d3Force, 'collision'))
+      .force('sectionBounds', getInstalledD3Force(d3Force, 'sectionBounds'))
+      .stop();
+
+    for (let tick = 0; tick < 1_000; tick += 1) {
+      simulation.tick();
+    }
+
+    const sectionRects = nodes.filter(node => node.isGraphSection).map(toSectionRect);
+    for (let leftIndex = 0; leftIndex < sectionRects.length; leftIndex += 1) {
+      for (let rightIndex = leftIndex + 1; rightIndex < sectionRects.length; rightIndex += 1) {
+        expect(hasRectOverlap(sectionRects[leftIndex], sectionRects[rightIndex])).toBe(false);
+      }
+    }
+    expect(getLargestNearestSectionGap(nodes)).toBeLessThanOrEqual(2);
+  }, 20_000);
+
   it('initializes section bounds forces when Graph Layout is available in 2D', () => {
     const { d3Force, instance } = createPhysicsInstance();
 
@@ -496,6 +661,143 @@ describe('physics', () => {
     expect(nodes[1].y).toBeGreaterThanOrEqual(60);
     expect(nodes[1].vx).toBeLessThan(0);
     expect(nodes[1].vy).toBeGreaterThan(0);
+  });
+
+  it('uses the configured center force for local Section Member physics', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 0,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 70,
+        y: 80,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1]).toMatchObject({
+      vx: 0,
+      vy: 0,
+      x: 70,
+      y: 80,
+    });
+  });
+
+  it('uses the configured repel force for local Section Member physics', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 0,
+        linkForce: 0,
+        repelForce: 20,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 200,
+        sectionWidth: 260,
+        x: 130,
+        y: 100,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 8,
+        vx: 0,
+        vy: 0,
+        x: 110,
+        y: 120,
+      },
+      {
+        id: 'src/peer.ts',
+        ownerSectionId: 'section-1',
+        size: 8,
+        vx: 0,
+        vy: 0,
+        x: 150,
+        y: 120,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1].vx).toBeLessThan(0);
+    expect(nodes[2].vx).toBeGreaterThan(0);
+    expect(nodes[1].vy).toBe(0);
+    expect(nodes[2].vy).toBe(0);
+  });
+
+  it('applies bridge link pressure between root nodes and expanded Section Members', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
+      links: [
+        {
+          id: 'root-to-member',
+          source: 'src/root.ts',
+          target: 'src/member.ts',
+        } as never,
+      ],
+      settings: {
+        ...SETTINGS,
+        linkDistance: 100,
+        linkForce: 1,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/root.ts',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 500,
+        y: 70,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 120,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1].vx).toBeLessThan(0);
+    expect(nodes[2].vx).toBeGreaterThan(0);
   });
 
   it('pushes overlapping expanded Graph Section rectangles apart by their actual bounds', () => {
@@ -665,6 +967,45 @@ describe('physics', () => {
     expect(nodes[1].vx).toBeGreaterThan(0);
   });
 
+  it('does not collide normal nodes with a Section Frame when only the circle bounding box touches a corner', () => {
+    const force = createGraphSectionBoundsForce({
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': {
+          ...GRAPH_LAYOUT.sections['section-1'],
+          height: 100,
+          width: 100,
+        },
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 100,
+        sectionWidth: 100,
+        vx: 0,
+        vy: 0,
+        x: 50,
+        y: 50,
+      },
+      {
+        id: 'src/near-corner.ts',
+        size: 8,
+        vx: 0,
+        vy: 0,
+        x: 110,
+        y: -10,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[0]).toMatchObject({ vx: 0, vy: 0 });
+    expect(nodes[1]).toMatchObject({ vx: 0, vy: 0 });
+  });
+
   it('does not let members from another expanded Graph Section inflate a section collision boundary', () => {
     const force = createGraphSectionBoundsForce({
       ...GRAPH_LAYOUT,
@@ -737,7 +1078,7 @@ describe('physics', () => {
     expect(nodes[0].vy).toBe(0);
   });
 
-  it('does not push nested Graph Section rectangles out of their owner section', () => {
+  it('applies local section physics to nested Graph Section Nodes without moving the owner frame', () => {
     const force = createGraphSectionBoundsForce({
       ...GRAPH_LAYOUT,
       sections: {
@@ -791,7 +1132,68 @@ describe('physics', () => {
     force(0.5);
 
     expect(nodes[0]).toMatchObject({ vx: 0, vy: 0 });
-    expect(nodes[1]).toMatchObject({ vx: 0, vy: 0 });
+    expect(nodes[1].x).toBeGreaterThanOrEqual(56);
+    expect(nodes[1].x).toBeLessThanOrEqual(144);
+    expect(nodes[1].y).toBeGreaterThanOrEqual(70);
+    expect(nodes[1].y).toBeLessThanOrEqual(94);
+    expect(nodes[1].vx).toBeGreaterThan(0);
+  });
+
+  it('keeps nested Graph Section Nodes inside their owner Section Frame body', () => {
+    const force = createGraphSectionBoundsForce({
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': GRAPH_LAYOUT.sections['section-1'],
+        'section-2': {
+          id: 'section-2',
+          label: 'Nested',
+          color: '#22c55e',
+          x: 40,
+          y: 40,
+          width: 80,
+          height: 60,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        ...GRAPH_LAYOUT.ownership,
+        'section-2': {
+          itemId: 'section-2',
+          itemKind: 'section',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'section-2',
+        isGraphSection: true,
+        sectionHeight: 60,
+        sectionWidth: 80,
+        vx: 0,
+        vy: 0,
+        x: 260,
+        y: 200,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1].x).toBeLessThanOrEqual(144);
+    expect(nodes[1].y).toBeLessThanOrEqual(94);
+    expect(nodes[1].vx).toBeLessThan(0);
+    expect(nodes[1].vy).toBeLessThan(0);
   });
 
   it('does not let owned members accelerate their expanded Graph Section frame', () => {

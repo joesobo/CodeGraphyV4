@@ -187,6 +187,7 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 		expect(renderingHarness.usePhysicsRuntime).toHaveBeenCalledWith({
 			fg2dRef,
 			fg3dRef,
+			graphDataRef,
 			graphLayout: GRAPH_LAYOUT,
 			graphMode: '2d',
 			layoutKey: 'uniform::',

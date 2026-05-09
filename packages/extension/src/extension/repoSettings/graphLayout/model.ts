@@ -12,8 +12,6 @@ import {
   type GraphLayoutSectionCreate,
   type GraphLayoutSectionUpdate,
   type GraphLayoutSettings,
-  isGraphLayoutItemOwnedBySection,
-  isGraphLayoutSectionDescendant,
 } from '../../../shared/settings/graphLayout';
 
 export { createDefaultGraphLayoutSettings };
@@ -749,45 +747,12 @@ function hasSectionMoveDelta(delta: GraphLayoutCoordinate2D): boolean {
   return delta.x !== 0 || delta.y !== 0;
 }
 
-function moveDescendantGraphLayoutSections(
-  layout: GraphLayoutSettings,
-  sectionId: string,
-  delta: GraphLayoutCoordinate2D,
-  updatedAt: string,
-): Record<string, GraphLayoutSection> {
-  const nextSections: Record<string, GraphLayoutSection> = { ...layout.sections };
-  if (!hasSectionMoveDelta(delta)) {
-    return nextSections;
-  }
-
-  for (const [candidateId, section] of Object.entries(layout.sections)) {
-    if (candidateId === sectionId) {
-      continue;
-    }
-
-    if (!isGraphLayoutSectionDescendant(layout.ownership, candidateId, sectionId)) {
-      continue;
-    }
-
-    nextSections[candidateId] = {
-      ...section,
-      x: section.x + delta.x,
-      y: section.y + delta.y,
-      updatedAt,
-    };
-  }
-
-  return nextSections;
-}
-
 function shouldMovePinnedNodeWithSection(
-  layout: GraphLayoutSettings,
   itemId: string,
   pinnedNode: GraphLayoutPinnedNode,
   sectionId: string,
 ): boolean {
-  return !!pinnedNode.twoDimensional
-    && (itemId === sectionId || isGraphLayoutItemOwnedBySection(layout.ownership, itemId, sectionId));
+  return !!pinnedNode.twoDimensional && itemId === sectionId;
 }
 
 function movePinnedGraphLayoutNodes(
@@ -802,7 +767,7 @@ function movePinnedGraphLayoutNodes(
   }
 
   for (const [itemId, pinnedNode] of Object.entries(layout.pinnedNodes)) {
-    if (!shouldMovePinnedNodeWithSection(layout, itemId, pinnedNode, sectionId)) {
+    if (!shouldMovePinnedNodeWithSection(itemId, pinnedNode, sectionId)) {
       continue;
     }
 
@@ -830,12 +795,7 @@ export function updateGraphLayoutSection(
 
   const nextSection = buildUpdatedGraphLayoutSection(existing, patch);
   const delta = getSectionMoveDelta(existing, nextSection);
-  const nextSections = moveDescendantGraphLayoutSections(
-    layout,
-    patch.sectionId,
-    delta,
-    patch.updatedAt,
-  );
+  const nextSections: Record<string, GraphLayoutSection> = { ...layout.sections };
   nextSections[patch.sectionId] = nextSection;
 
   return normalizeGraphLayoutSettings({

@@ -17,7 +17,10 @@ export type StrengthForce = {
   strength(value: number): unknown;
   strength<NodeT>(value: (node: NodeT) => number): unknown;
 };
-export type LinkDistanceForce = { distance: (value: number) => unknown; strength: (value: number) => unknown };
+export type LinkDistanceForce = {
+  distance: (value: number) => unknown;
+  strength: (value: number | ((link: LinkObject) => number)) => unknown;
+};
 export type DistanceMaxForce = { distanceMax: (value: number) => unknown };
 
 export function as2DExtMethods<NodeT extends NodeObject, LinkT extends LinkObject>(
