@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { forceSimulation } from 'd3-force';
+import { forceManyBody, forceSimulation, type Force } from 'd3-force';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   applyPhysicsSettings,
@@ -92,6 +92,8 @@ interface SectionRect {
   right: number;
   top: number;
 }
+
+type D3PhysicsForce = Force<FGNode, undefined>;
 
 function createPackingGraphLayout(sectionCount: number): GraphLayoutSettings {
   const sections: GraphLayoutSettings['sections'] = {};
@@ -332,6 +334,38 @@ function createCustomPhysicsInstance(forces: {
       d3ReheatSimulation: vi.fn(),
     } as unknown as Parameters<typeof applyPhysicsSettings>[0],
   };
+}
+
+function createD3PhysicsInstance() {
+  const forces: Record<string, D3PhysicsForce | undefined> = {
+    charge: forceManyBody<FGNode>(),
+  };
+  const d3Force = vi.fn((name: string, value?: unknown) => {
+    if (value !== undefined) {
+      forces[name] = value as D3PhysicsForce;
+      return value;
+    }
+
+    return forces[name];
+  });
+
+  return {
+    d3Force,
+    forces,
+    instance: {
+      d3Force,
+      d3ReheatSimulation: vi.fn(),
+    } as unknown as Parameters<typeof applyPhysicsSettings>[0],
+  };
+}
+
+function getRequiredD3PhysicsForce(
+  forces: Record<string, D3PhysicsForce | undefined>,
+  name: string,
+): D3PhysicsForce {
+  const force = forces[name];
+  expect(force).toBeDefined();
+  return force as D3PhysicsForce;
 }
 
 describe('physics', () => {
@@ -655,6 +689,35 @@ describe('physics', () => {
 
     expect(getSmallestSectionGap(nodes)).toBeGreaterThanOrEqual(16);
   });
+
+  it('scales max-repel spacing for varied expanded Graph Sections so center force does not edge-pack them', () => {
+    const graphLayout = createVariedPackingGraphLayout();
+    const nodes = createVariedPackingNodes();
+    const { forces, instance } = createD3PhysicsInstance();
+    const settings = {
+      ...SETTINGS,
+      centerForce: 0.1,
+      linkForce: 0,
+      repelForce: 20,
+    };
+
+    initPhysics(instance, settings, { graphLayout, graphMode: '2d' });
+
+    const simulation = forceSimulation(nodes)
+      .velocityDecay(settings.damping)
+      .force('charge', getRequiredD3PhysicsForce(forces, 'charge'))
+      .force('forceX', getRequiredD3PhysicsForce(forces, 'forceX'))
+      .force('forceY', getRequiredD3PhysicsForce(forces, 'forceY'))
+      .force('collision', getRequiredD3PhysicsForce(forces, 'collision'))
+      .force('sectionBounds', getRequiredD3PhysicsForce(forces, 'sectionBounds'))
+      .stop();
+
+    for (let tick = 0; tick < 1_500; tick += 1) {
+      simulation.tick();
+    }
+
+    expect(getSmallestSectionGap(nodes)).toBeGreaterThanOrEqual(48);
+  }, 20_000);
 
   it('initializes section bounds forces when Graph Layout is available in 2D', () => {
     const { d3Force, instance } = createPhysicsInstance();

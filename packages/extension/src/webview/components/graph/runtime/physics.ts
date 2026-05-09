@@ -3,7 +3,7 @@ import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import { forceCollide, forceX, forceY } from 'd3-force';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { GraphLayoutSettings } from '../../../../shared/settings/graphLayout';
-import { toD3Repel, type FGLink, type FGNode } from '../model/build';
+import { DEFAULT_NODE_SIZE, toD3Repel, type FGLink, type FGNode } from '../model/build';
 import { SECTION_FRAME_HEADER_HEIGHT } from '../sectionFrames/model';
 import { hasDistanceAndStrength, hasDistanceMax, hasStrength } from '../support/guards';
 
@@ -16,6 +16,8 @@ const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
 const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
 const SECTION_EXTERNAL_COLLISION_MAX_IMPULSE = 8;
 const SECTION_RECTANGLE_MAX_REPEL_GAP = 32;
+const SECTION_RECTANGLE_REPEL_PADDING_RATIO = 0.25;
+const SECTION_CHARGE_MULTIPLIER_CAP = 12;
 const MAX_NORMALIZED_REPEL_FORCE = 20;
 
 interface GraphPhysicsControls {
@@ -306,9 +308,37 @@ function getSectionMemberRepelStrength(
 	return settings ? toD3Repel(settings.repelForce) : 0;
 }
 
-function getSectionRectangleRepelGap(settings: GraphSectionBoundsForceOptions['settings']): number {
+function getNormalizedRepelScale(settings: GraphSectionBoundsForceOptions['settings']): number {
 	const normalizedRepel = clamp(settings?.repelForce ?? 0, 0, MAX_NORMALIZED_REPEL_FORCE);
-	return (normalizedRepel / MAX_NORMALIZED_REPEL_FORCE) * SECTION_RECTANGLE_MAX_REPEL_GAP;
+	return normalizedRepel / MAX_NORMALIZED_REPEL_FORCE;
+}
+
+function getSectionRectangleRepelPadding(
+	node: FGNode,
+	rect: RectangleCollisionRect,
+	settings: GraphSectionBoundsForceOptions['settings'],
+): number {
+	if (!isExpandedGraphSection(node)) {
+		return 0;
+	}
+
+	const sizeAwarePadding = Math.min(rect.width, rect.height) * SECTION_RECTANGLE_REPEL_PADDING_RATIO;
+	const maximumPadding = Math.max(SECTION_RECTANGLE_MAX_REPEL_GAP / 2, sizeAwarePadding);
+	return getNormalizedRepelScale(settings) * maximumPadding;
+}
+
+function getSectionChargeMultiplier(node: FGNode): number {
+	if (
+		!isExpandedGraphSection(node)
+		|| !isFiniteNumber(node.sectionHeight)
+		|| !isFiniteNumber(node.sectionWidth)
+	) {
+		return 1;
+	}
+
+	const equivalentRadius = Math.sqrt((node.sectionWidth * node.sectionHeight) / Math.PI);
+	const referenceRadius = DEFAULT_NODE_SIZE + COLLISION_PADDING;
+	return clamp(equivalentRadius / referenceRadius, 1, SECTION_CHARGE_MULTIPLIER_CAP);
 }
 
 function getNodeDelta(left: FGNode, right: FGNode): NodeDelta {
@@ -704,11 +734,9 @@ function inflateRectangleCollisionRect(
 function getRepelAwareCollisionRect(
 	node: FGNode,
 	rect: RectangleCollisionRect,
-	repelGap: number,
+	settings: GraphSectionBoundsForceOptions['settings'],
 ): RectangleCollisionRect {
-	return isExpandedGraphSection(node)
-		? inflateRectangleCollisionRect(rect, repelGap / 2)
-		: rect;
+	return inflateRectangleCollisionRect(rect, getSectionRectangleRepelPadding(node, rect, settings));
 }
 
 function getGraphChargeStrength(
@@ -718,7 +746,7 @@ function getGraphChargeStrength(
 	const defaultStrength = toD3Repel(repelForce);
 	return (node: FGNode) => graphLayout && hasExpandedOwnerSection(node, graphLayout)
 		? 0
-		: defaultStrength;
+		: defaultStrength * getSectionChargeMultiplier(node);
 }
 
 function getLinkEndpointId(endpoint: GraphLinkEndpoint): string | undefined {
@@ -891,9 +919,8 @@ function getRectangleCollisionOverlap(
 		return undefined;
 	}
 
-	const repelGap = getSectionRectangleRepelGap(settings);
-	const leftCollisionRect = getRepelAwareCollisionRect(left, leftRect, repelGap);
-	const rightCollisionRect = getRepelAwareCollisionRect(right, rightRect, repelGap);
+	const leftCollisionRect = getRepelAwareCollisionRect(left, leftRect, settings);
+	const rightCollisionRect = getRepelAwareCollisionRect(right, rightRect, settings);
 	const overlapX = Math.min(leftCollisionRect.x + leftCollisionRect.width, rightCollisionRect.x + rightCollisionRect.width)
 		- Math.max(leftCollisionRect.x, rightCollisionRect.x);
 	const overlapY = Math.min(leftCollisionRect.y + leftCollisionRect.height, rightCollisionRect.y + rightCollisionRect.height)
