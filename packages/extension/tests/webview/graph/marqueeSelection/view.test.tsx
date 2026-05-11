@@ -70,17 +70,16 @@ describe('graph/marqueeSelection view', () => {
     expect(await screen.findByText('Open 2 Files')).toBeInTheDocument();
   });
 
-  it('leaves Shift-left-drag available for panning instead of marquee selection', () => {
+  it('shows the marquee rectangle while Shift-left-dragging to extend selection', () => {
     render(<Graph data={graphData} />);
     const container = document.querySelector('.graph-container') as HTMLElement;
 
     act(() => {
       fireEvent.mouseDown(container, { button: 0, shiftKey: true, clientX: 90, clientY: 90 });
       fireEvent.mouseMove(container, { button: 0, shiftKey: true, clientX: 170, clientY: 150 });
-      fireEvent.mouseUp(container, { button: 0, shiftKey: true, clientX: 170, clientY: 150 });
     });
 
-    expect(screen.queryByTestId('graph-marquee-selection')).not.toBeInTheDocument();
+    expect(screen.getByTestId('graph-marquee-selection')).toBeInTheDocument();
   });
 
   it('clears an active marquee when the pointer leaves the graph', () => {
