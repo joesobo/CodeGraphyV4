@@ -11,6 +11,7 @@ import {
   handleGraphDataUpdated,
   handleGraphIndexProgress,
   handleGraphIndexStatusUpdated,
+  handleGraphLayoutUpdated,
   handleLegendsUpdated,
   handleMaxFilesUpdated,
   handlePhysicsSettingsUpdated,
@@ -78,6 +79,9 @@ function createState(
     indexProgress: null,
     isPlaying: false,
     playbackSpeed: 1,
+    graphLayout: {
+      pinnedNodes: {},
+    },
     ...overrides,
   };
 }
@@ -144,6 +148,19 @@ describe('webview/store/messageHandlers/graph', () => {
       payload: { favorites: ['src/app.ts', 'src/lib.ts'] },
     });
     expect([...favorites.favorites ?? []]).toEqual(['src/app.ts', 'src/lib.ts']);
+
+    const graphLayout = {
+      pinnedNodes: {
+        'src/app.ts': {
+          nodeId: 'src/app.ts',
+          '2D': { x: 12, y: 24 },
+        },
+      },
+    };
+    expect(handleGraphLayoutUpdated({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: graphLayout,
+    })).toEqual({ graphLayout });
   });
 
   it('maps settings and filter payloads', () => {

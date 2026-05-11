@@ -9,6 +9,7 @@ import {
   setPluginUserGroups,
   setPluginWebviewReadyNotified,
 } from './pluginState';
+import { createGraphLayoutUpdatedMessage } from '../../graphLayout/message';
 
 type GraphViewProviderPluginContext = Pick<
   GraphViewMessageListenerContext,
@@ -22,6 +23,7 @@ type GraphViewProviderPluginContext = Pick<
   | 'sendGraphControls'
   | 'sendFavorites'
   | 'sendSettings'
+  | 'sendGraphLayout'
   | 'sendCachedTimeline'
   | 'sendDecorations'
   | 'sendContextMenuItems'
@@ -62,6 +64,7 @@ export function createGraphViewProviderMessagePluginContext(
     sendGraphControls: () => source._sendGraphControls?.(),
     sendFavorites: () => source._sendFavorites(),
     sendSettings: () => source._sendSettings(),
+    sendGraphLayout: () => source._sendMessage(createGraphLayoutUpdatedMessage()),
     sendCachedTimeline: () => source._sendCachedTimeline(),
     sendDecorations: () => source._sendDecorations(),
     sendContextMenuItems: () => source._sendContextMenuItems(),

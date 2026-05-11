@@ -55,6 +55,12 @@ export function handleFavoritesUpdated(
   return { favorites: new Set(message.payload.favorites) };
 }
 
+export function handleGraphLayoutUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_LAYOUT_UPDATED' }>,
+): PartialState {
+  return { graphLayout: message.payload };
+}
+
 export function handleSettingsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>,
 ): PartialState {

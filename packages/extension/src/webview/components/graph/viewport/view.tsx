@@ -1,5 +1,6 @@
 import type { MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
+import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
 import {
   ContextMenu,
@@ -39,6 +40,7 @@ export interface ViewportProps {
   handleMouseLeave: (this: void) => void;
   handleMouseMoveCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
   handleMouseUpCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
+  marqueeSelection?: GraphMarqueeSelectionState | null;
   menuEntries: GraphContextMenuEntry[];
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
   surface3dProps: Omit<Surface3dProps, 'backgroundColor' | 'directionMode'>;
@@ -60,6 +62,7 @@ export function Viewport({
   handleMouseLeave,
   handleMouseMoveCapture,
   handleMouseUpCapture,
+  marqueeSelection,
   menuEntries,
   surface2dProps,
   surface3dProps,
@@ -119,6 +122,18 @@ export function Viewport({
               slot="graph-overlay"
               data-testid="graph-overlay-slot"
               className="absolute inset-0 z-10 pointer-events-none"
+            />
+          ) : null}
+          {marqueeSelection ? (
+            <div
+              data-testid="graph-marquee-selection"
+              className="pointer-events-none absolute z-20 rounded-sm border border-dashed border-[var(--cg-focus-border)] bg-[var(--cg-graph-marquee-background)]"
+              style={{
+                left: marqueeSelection.bounds.left,
+                top: marqueeSelection.bounds.top,
+                width: marqueeSelection.bounds.width,
+                height: marqueeSelection.bounds.height,
+              }}
             />
           ) : null}
         </div>

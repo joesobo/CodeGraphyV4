@@ -6,6 +6,11 @@ import type {
   NodeSizeMode,
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
+import type {
+  GraphLayoutCoordinate2D,
+  GraphLayoutCoordinate3D,
+  GraphLayoutMode,
+} from '../settings/graphLayout';
 
 export interface LegendIconImport {
   imagePath: string;
@@ -26,6 +31,21 @@ export type WebviewToExtensionMessage =
   | { type: 'CREATE_FILE'; payload: { directory: string } }
   | { type: 'CREATE_FOLDER'; payload: { directory: string } }
   | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
+  | {
+      type: 'UPDATE_GRAPH_LAYOUT_PIN';
+      payload: {
+        graphMode: GraphLayoutMode;
+        nodeId: string;
+        position: GraphLayoutCoordinate2D | GraphLayoutCoordinate3D;
+      };
+    }
+  | {
+      type: 'CLEAR_GRAPH_LAYOUT_PIN';
+      payload: {
+        graphMode: GraphLayoutMode;
+        nodeId: string;
+      };
+    }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
   | { type: 'REFRESH_GRAPH' }
   | { type: 'INDEX_GRAPH' }

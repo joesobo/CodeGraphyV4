@@ -215,16 +215,18 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     );
 
     result.current.handleMouseDownCapture({
-      button: 2,
+      button: 1,
       clientX: 10,
       clientY: 20,
       ctrlKey: true,
+      preventDefault: vi.fn(),
     } as never);
     result.current.handleMouseMoveCapture({
       clientX: 30,
       clientY: 40,
+      preventDefault: vi.fn(),
     } as never);
-    result.current.handleMouseUpCapture({ button: 2 } as never);
+    result.current.handleMouseUpCapture({ button: 1, preventDefault: vi.fn() } as never);
     result.current.handleNodeRightClick(createNode('src/node.ts'), { type: 'contextmenu' } as never);
     result.current.handleBackgroundRightClick({ type: 'contextmenu' } as never);
     result.current.handleLinkRightClick(createLink('edge-a'), { type: 'contextmenu' } as never);
@@ -247,17 +249,19 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     result.current.handleMenuAction(secondAction);
     result.current.handleEngineStop();
 
-    expect(contextMenuRuntime.handleMouseDownCapture).toHaveBeenCalledWith({
-      button: 2,
+    expect(contextMenuRuntime.handleMouseDownCapture).toHaveBeenCalledWith(expect.objectContaining({
+      button: 1,
       clientX: 10,
       clientY: 20,
       ctrlKey: true,
-    });
-    expect(contextMenuRuntime.handleMouseMoveCapture).toHaveBeenCalledWith({
+    }));
+    expect(contextMenuRuntime.handleMouseMoveCapture).toHaveBeenCalledWith(expect.objectContaining({
       clientX: 30,
       clientY: 40,
-    });
-    expect(contextMenuRuntime.handleMouseUpCapture).toHaveBeenCalledWith({ button: 2 });
+    }));
+    expect(contextMenuRuntime.handleMouseUpCapture).toHaveBeenCalledWith(expect.objectContaining({
+      button: 1,
+    }));
     expect(interactionHandlers.openNodeContextMenu).toHaveBeenCalledWith('src/node.ts', { type: 'contextmenu' });
     expect(interactionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith({ type: 'contextmenu' });
     expect(interactionHandlers.openEdgeContextMenu).toHaveBeenCalledWith(createLink('edge-a'), { type: 'contextmenu' });

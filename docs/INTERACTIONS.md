@@ -19,11 +19,12 @@
 
 | Action | Effect |
 |--------|--------|
-| Drag | Pan the view |
+| Left-drag | Box select multiple nodes |
+| Shift + left-drag | Add boxed nodes to the current selection |
+| Right-drag | Pan the view |
 | Scroll | Zoom in/out |
 | Hover cursor | Default cursor |
 | Right-click | Open background context menu |
-| `Shift+Drag` | Box select multiple nodes |
 
 ## Context menu
 
