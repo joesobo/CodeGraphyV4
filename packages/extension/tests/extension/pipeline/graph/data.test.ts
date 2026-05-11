@@ -192,6 +192,184 @@ describe('pipeline/graph/data', () => {
     ]);
   });
 
+  it('normalizes symbol paths, kinds, signatures, and variable node appearance', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/player.gd': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src\\player.gd', {
+          filePath: '/workspace/src/player.gd',
+          symbols: [{
+            id: 'score-symbol',
+            filePath: '/workspace/src/player.gd',
+            kind: '  Property  ',
+            name: 'score',
+            signature: 'var score: int',
+          }],
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('codegraphy.godot'),
+    });
+
+    expect(graph.nodes).toEqual(expect.arrayContaining([
+      {
+        id: 'src/player.gd#score:property:var%20score%3A%20int',
+        label: 'score',
+        color: '#14B8A6',
+        fileSize: 20,
+        churn: 0,
+        nodeType: 'variable',
+        symbol: {
+          id: 'src/player.gd#score:property:var%20score%3A%20int',
+          name: 'score',
+          kind: 'property',
+          filePath: 'src/player.gd',
+          signature: 'var score: int',
+        },
+      },
+    ]));
+  });
+
+  it('keeps symbol relations with file targets while dropping unresolved symbol relations', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/source.ts': { size: 10 },
+        'src/target.ts': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src/source.ts', {
+          filePath: '/workspace/src/source.ts',
+          symbols: [{
+            id: 'source-symbol',
+            filePath: '/workspace/src/source.ts',
+            kind: 'function',
+            name: 'source',
+          }],
+          relations: [
+            {
+              kind: 'reference',
+              pluginId: 'plugin.symbols',
+              sourceId: 'reference',
+              fromFilePath: '/workspace/src/source.ts',
+              fromSymbolId: 'source-symbol',
+              toFilePath: '/workspace/src/target.ts',
+            },
+            {
+              kind: 'reference',
+              pluginId: 'plugin.symbols',
+              sourceId: 'missing-reference',
+              fromFilePath: '/workspace/src/source.ts',
+              fromSymbolId: 'source-symbol',
+            },
+          ],
+        }],
+        ['src/target.ts', {
+          filePath: '/workspace/src/target.ts',
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.symbols'),
+    });
+
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      {
+        id: 'src/source.ts#source:function->src/target.ts#reference',
+        from: 'src/source.ts#source:function',
+        to: 'src/target.ts',
+        kind: 'reference',
+        sources: [
+          {
+            id: 'plugin.symbols:reference',
+            pluginId: 'plugin.symbols',
+            sourceId: 'reference',
+            label: 'reference',
+          },
+        ],
+      },
+    ]));
+    expect(graph.edges.map((edge) => edge.id)).not.toContain(
+      'src/source.ts#source:function->undefined#reference',
+    );
+  });
+
+  it('drops symbol relations from file-level connection projection and keeps relation edges without plugin sources', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/source.ts': { size: 10 },
+        'src/target.ts': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src/source.ts', {
+          filePath: '/workspace/src/source.ts',
+          symbols: [{
+            id: 'source-symbol',
+            filePath: '/workspace/src/source.ts',
+            kind: 'function',
+            name: 'source',
+          }],
+          relations: [
+            {
+              kind: 'import',
+              pluginId: 'plugin.symbols',
+              sourceId: 'es6-import',
+              fromFilePath: '/workspace/src/source.ts',
+              toFilePath: '/workspace/src/target.ts',
+            },
+            {
+              kind: 'reference',
+              sourceId: 'reference',
+              fromFilePath: '/workspace/src/source.ts',
+              fromSymbolId: 'source-symbol',
+              toFilePath: '/workspace/src/target.ts',
+            },
+          ],
+        }],
+        ['src/target.ts', {
+          filePath: '/workspace/src/target.ts',
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.symbols'),
+    });
+
+    const fileLevelEdges = graph.edges.filter((edge) => edge.from === 'src/source.ts' && edge.to === 'src/target.ts');
+    expect(fileLevelEdges).toHaveLength(1);
+    expect(fileLevelEdges).toEqual([
+      expect.objectContaining({
+        kind: 'import',
+        sources: [
+          expect.objectContaining({
+            label: 'ES6 import',
+            sourceId: 'es6-import',
+          }),
+        ],
+      }),
+    ]);
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      {
+        id: 'src/source.ts#source:function->src/target.ts#reference',
+        from: 'src/source.ts#source:function',
+        to: 'src/target.ts',
+        kind: 'reference',
+        sources: [],
+      },
+    ]));
+  });
+
   it('builds connected nodes and edges with cached size and churn counts', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const fileConnections = new Map<string, IProjectedConnection[]>([

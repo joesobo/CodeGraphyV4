@@ -15,8 +15,8 @@ import { buildWorkspaceGraphNodes } from './nodes';
 import {
   buildSymbolNodesAndEdges,
   projectFileAnalysisConnections,
-  toRepoRelativeGraphPath,
 } from './symbols';
+import { toRepoRelativeGraphPath } from './symbolPaths';
 
 export interface IWorkspaceGraphDataOptions {
   cacheFiles: Record<string, { size?: number }>;
