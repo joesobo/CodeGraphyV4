@@ -393,7 +393,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
   });
 
   it('renders a pin badge for pinned nodes without changing the node body', () => {
-    const { ctx } = createContext();
+    const { ctx, operations } = createContext();
     vi.stubGlobal('Path2D', vi.fn());
 
     renderNodeCanvas(
@@ -411,6 +411,14 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
     expect(ctx.scale).toHaveBeenCalledWith(0.45208333333333334, 0.45208333333333334);
     expect(ctx.fill).toHaveBeenCalledWith(expect.any(Path2D));
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: 'rgb(28, 62, 118)',
+      kind: 'fill',
+    }));
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#ffffff',
+      kind: 'fill',
+    }));
   });
 
   it('paints the expanded pointer area around the node shape', () => {
