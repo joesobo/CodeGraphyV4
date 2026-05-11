@@ -221,3 +221,37 @@ PR evidence:
   - `tests/extension/pipeline/graph/data.test.ts`
   - `tests/extension/pipeline/graph/build.test.ts`
   - `tests/extension/pipeline/serviceAdapters.test.ts`
+
+### 2026-05-11 Slice 2: Graph Scope UI
+
+- Added Graph Scope UI dependency behavior:
+  - Variables row is hidden until Symbols is enabled
+  - enabling Symbols enables Contains
+  - disabling Symbols also disables Variables
+- Green focused tests:
+  - `tests/webview/graphScope/rows.test.tsx`
+  - `tests/extension/graphView/webview/settingsMessages/updates/controls.test.ts`
+
+### 2026-05-11 Slice 3: Navigation, Context Menu, And Favorites
+
+- Symbol node open/reveal targets resolve through containing files at the provider boundary.
+- Single-click preview and double-click activation no longer treat canonical symbol IDs as file paths.
+- Symbol context menu now uses symbol language:
+  - Go to Symbol
+  - Reveal File
+  - Copy Symbol ID
+  - Copy Symbol Name
+  - Favorite/Unfavorite with canonical symbol IDs
+- Green focused tests:
+  - `tests/extension/graphViewProvider.nodeOpenBehavior.test.ts`
+  - `tests/webview/graph/contextMenu/node.test.tsx`
+
+### 2026-05-11 Slice 4: Export And Graph Cache
+
+- JSON export now preserves symbol metadata for visible symbol nodes.
+- Markdown export renders symbol kind, short name, and containing file.
+- Graph Cache version bumped to force a clean reindex for old caches without persisted symbol analysis shape.
+- Green focused tests:
+  - `tests/webview/export/json/export.test.ts`
+  - `tests/webview/export/markdown/nodeEntries.test.ts`
+  - `tests/extension/pipeline/cache.test.ts`
