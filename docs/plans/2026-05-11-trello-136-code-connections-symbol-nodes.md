@@ -264,3 +264,15 @@ PR evidence:
 - Green focused tests:
   - `packages/plugin-godot/tests/plugin.test.ts`
   - `packages/plugin-godot/tests/activate.test.ts`
+
+### 2026-05-11 Slice 6: Legend And Scoped Theming
+
+- Legend rules can now target symbol nodes by symbol kind, plugin kind, plugin source, language, and containing file path.
+- Built-in default groups now include core symbol-kind entries and a scoped `Godot class_name` entry.
+- `scripts/**/*.gd`-style glob patterns now match direct files and nested files, which keeps scoped symbol-file rules intuitive.
+- Green focused tests:
+  - `tests/webview/search/filtering/rules/nodes.test.ts`
+  - `tests/extension/graphView/groups/defaults/builtIn.test.ts`
+  - `tests/shared/globMatch.test.ts`
+- Green typecheck:
+  - `pnpm --filter @codegraphy/extension typecheck`

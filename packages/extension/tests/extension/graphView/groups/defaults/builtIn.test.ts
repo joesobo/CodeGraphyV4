@@ -69,4 +69,79 @@ describe('graphView/builtInDefaultGroups', () => {
       }),
     ]));
   });
+
+  it('adds scoped symbol defaults for core symbol kinds and Godot class names', () => {
+    const groups = getBuiltInGraphViewDefaultGroups(
+      {
+        nodes: [
+          {
+            id: 'src/app.ts#format:function',
+            label: 'format',
+            color: '#000000',
+            nodeType: 'symbol',
+            symbol: {
+              id: 'src/app.ts#format:function',
+              name: 'format',
+              kind: 'function',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
+            id: 'scripts/player.gd#Player:godot-class-name',
+            label: 'Player',
+            color: '#000000',
+            nodeType: 'symbol',
+            symbol: {
+              id: 'scripts/player.gd#Player:godot-class-name',
+              name: 'Player',
+              kind: 'class',
+              filePath: 'scripts/player.gd',
+              pluginKind: 'godot-class-name',
+              source: 'codegraphy.gdscript',
+              language: 'gdscript',
+            },
+          },
+        ],
+        edges: [],
+      },
+      vscode.Uri.file(path.resolve(process.cwd(), '../..')),
+    );
+
+    expect(groups).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'default:symbol-kind:function',
+        displayLabel: 'Function',
+        pattern: '**',
+        color: '#8B5CF6',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'function',
+        isPluginDefault: true,
+        pluginName: 'CodeGraphy',
+      }),
+      expect.objectContaining({
+        id: 'default:symbol-kind:variable',
+        displayLabel: 'Variable',
+        pattern: '**',
+        color: '#14B8A6',
+        matchNodeType: 'variable',
+        matchSymbolKind: 'variable',
+        isPluginDefault: true,
+        pluginName: 'CodeGraphy',
+      }),
+      expect.objectContaining({
+        id: 'default:symbol-plugin:godot-class-name',
+        displayLabel: 'Godot class_name',
+        pattern: '**',
+        color: '#478CBF',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'class',
+        matchSymbolPluginKind: 'godot-class-name',
+        matchSymbolSource: 'codegraphy.gdscript',
+        matchSymbolLanguage: 'gdscript',
+        matchSymbolFilePath: '**/*.gd',
+        isPluginDefault: true,
+        pluginName: 'Godot',
+      }),
+    ]));
+  });
 });

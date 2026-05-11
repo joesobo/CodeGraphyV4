@@ -10,14 +10,31 @@
  * works anywhere in the tree while still keeping `*` and `**` semantics.
  */
 export function globToRegex(pattern: string): RegExp {
-  const segments = pattern.split('**');
-  const body = segments
-    .map((segment) =>
-      segment
-        .replace(/([.+^${}()|[\]\\])/g, '\\$1')
-        .replace(/\*/g, '[^/]*')
-    )
-    .join('.*');
+  let body = '';
+  for (let index = 0; index < pattern.length; index += 1) {
+    const character = pattern[index];
+    const nextCharacter = pattern[index + 1];
+    const afterNextCharacter = pattern[index + 2];
+
+    if (character === '*' && nextCharacter === '*' && afterNextCharacter === '/') {
+      body += '(?:.*/)?';
+      index += 2;
+      continue;
+    }
+
+    if (character === '*' && nextCharacter === '*') {
+      body += '.*';
+      index += 1;
+      continue;
+    }
+
+    if (character === '*') {
+      body += '[^/]*';
+      continue;
+    }
+
+    body += character.replace(/([.+^${}()|[\]\\])/g, '\\$1');
+  }
 
   return new RegExp(`(?:^|/)${body}$`);
 }

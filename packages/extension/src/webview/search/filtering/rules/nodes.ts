@@ -15,6 +15,29 @@ function ruleMatchesNode(
     return false;
   }
 
+  if (rule.matchSymbolKind && node.symbol?.kind !== rule.matchSymbolKind) {
+    return false;
+  }
+
+  if (rule.matchSymbolPluginKind && node.symbol?.pluginKind !== rule.matchSymbolPluginKind) {
+    return false;
+  }
+
+  if (rule.matchSymbolSource && node.symbol?.source !== rule.matchSymbolSource) {
+    return false;
+  }
+
+  if (rule.matchSymbolLanguage && node.symbol?.language !== rule.matchSymbolLanguage) {
+    return false;
+  }
+
+  if (
+    rule.matchSymbolFilePath
+    && (!node.symbol?.filePath || !globMatch(node.symbol.filePath, rule.matchSymbolFilePath))
+  ) {
+    return false;
+  }
+
   return globMatch(node.id, rule.pattern);
 }
 
