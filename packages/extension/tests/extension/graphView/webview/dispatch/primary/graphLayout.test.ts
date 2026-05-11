@@ -29,8 +29,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
-          twoDimensional: { x: 12, y: -24 },
-          updatedAt: expect.any(String),
+          '2D': { x: 12, y: -24 },
         },
       },
     });
@@ -40,8 +39,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         pinnedNodes: {
           'src/app.ts': {
             nodeId: 'src/app.ts',
-            twoDimensional: { x: 12, y: -24 },
-            updatedAt: expect.any(String),
+            '2D': { x: 12, y: -24 },
           },
         },
       },
@@ -56,8 +54,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
             pinnedNodes: {
               'src/app.ts': {
                 nodeId: 'src/app.ts',
-                twoDimensional: { x: 12, y: -24 },
-                updatedAt: '2026-05-07T08:00:00.000Z',
+                '2D': { x: 12, y: -24 },
               },
             },
           } as T;

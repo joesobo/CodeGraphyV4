@@ -11,9 +11,8 @@ export interface GraphLayoutCoordinate3D extends GraphLayoutCoordinate2D {
 
 export interface GraphLayoutPinnedNode {
   nodeId: string;
-  twoDimensional?: GraphLayoutCoordinate2D;
-  threeDimensional?: GraphLayoutCoordinate3D;
-  updatedAt: string;
+  '2D'?: GraphLayoutCoordinate2D;
+  '3D'?: GraphLayoutCoordinate3D;
 }
 
 export interface GraphLayoutSettings {
@@ -31,6 +30,6 @@ export function getGraphLayoutPinCoordinate(
   graphMode: GraphLayoutMode,
 ): GraphLayoutCoordinate2D | GraphLayoutCoordinate3D | undefined {
   return graphMode === '2d'
-    ? pinnedNode?.twoDimensional
-    : pinnedNode?.threeDimensional;
+    ? pinnedNode?.['2D']
+    : pinnedNode?.['3D'];
 }

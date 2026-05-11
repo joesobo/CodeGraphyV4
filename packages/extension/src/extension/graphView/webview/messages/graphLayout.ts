@@ -37,10 +37,7 @@ export async function applyGraphLayoutMessage(
 ): Promise<boolean> {
   switch (message.type) {
     case 'UPDATE_GRAPH_LAYOUT_PIN': {
-      const nextLayout = setGraphLayoutNodePin(readCurrentGraphLayout(handlers), {
-        ...message.payload,
-        updatedAt: new Date().toISOString(),
-      });
+      const nextLayout = setGraphLayoutNodePin(readCurrentGraphLayout(handlers), message.payload);
 
       await persistAndSendGraphLayout(handlers, nextLayout);
       return true;

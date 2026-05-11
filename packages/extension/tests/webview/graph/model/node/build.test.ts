@@ -159,9 +159,8 @@ describe('graph/model/node/build', () => {
         pinnedNodes: {
           'src/pinned.ts': {
             nodeId: 'src/pinned.ts',
-            twoDimensional: { x: 40, y: -80 },
-            threeDimensional: { x: 1, y: 2, z: 3 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 40, y: -80 },
+            '3D': { x: 1, y: 2, z: 3 },
           },
         },
       },
@@ -191,9 +190,8 @@ describe('graph/model/node/build', () => {
         pinnedNodes: {
           'src/pinned.ts': {
             nodeId: 'src/pinned.ts',
-            twoDimensional: { x: 40, y: -80 },
-            threeDimensional: { x: 1, y: 2, z: 3 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 40, y: -80 },
+            '3D': { x: 1, y: 2, z: 3 },
           },
         },
       },
@@ -225,8 +223,7 @@ describe('graph/model/node/build', () => {
         pinnedNodes: {
           'src/pinned.ts': {
             nodeId: 'src/pinned.ts',
-            twoDimensional: { x: 40, y: -80 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 40, y: -80 },
           },
         },
       },

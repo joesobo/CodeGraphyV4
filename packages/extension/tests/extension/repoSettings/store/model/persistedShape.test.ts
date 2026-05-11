@@ -77,13 +77,11 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         pinnedNodes: {
           'src/a.ts': {
             nodeId: 'src/a.ts',
-            twoDimensional: { x: 10, y: 20 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 10, y: 20 },
           },
           bad: {
             nodeId: 'bad',
-            twoDimensional: { x: Number.NaN, y: 20 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: Number.NaN, y: 20 },
           },
         },
         sections: { ignored: true },
@@ -95,8 +93,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         pinnedNodes: {
           'src/a.ts': {
             nodeId: 'src/a.ts',
-            twoDimensional: { x: 10, y: 20 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 10, y: 20 },
           },
         },
       },

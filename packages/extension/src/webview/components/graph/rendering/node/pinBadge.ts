@@ -1,5 +1,14 @@
+import { mdiPin } from '@mdi/js';
 import type { GraphAppearance } from '../../appearance/model';
 import type { FGNode } from '../../model/build';
+
+const MATERIAL_ICON_VIEWBOX_SIZE = 24;
+let pinIconPath: Path2D | undefined;
+
+function getPinIconPath(): Path2D {
+  pinIconPath ??= new Path2D(mdiPin);
+  return pinIconPath;
+}
 
 export interface RenderNodePinBadgeOptions {
   appearance: Pick<GraphAppearance, 'nodeSelectionBorder'>;
@@ -18,9 +27,11 @@ export function renderNodePinBadge({
     return;
   }
 
-  const radius = 5 / globalScale;
+  const radius = Math.max(7 / globalScale, node.size * 0.18);
   const centerX = node.x + node.size * 0.7;
   const centerY = node.y - node.size * 0.7;
+  const iconSize = radius * 1.55;
+  const iconScale = iconSize / MATERIAL_ICON_VIEWBOX_SIZE;
 
   ctx.save();
   ctx.beginPath();
@@ -31,11 +42,9 @@ export function renderNodePinBadge({
   ctx.lineWidth = Math.max(1, 1.25 / globalScale);
   ctx.stroke();
 
-  ctx.beginPath();
-  ctx.moveTo(centerX, centerY - radius * 0.45);
-  ctx.lineTo(centerX, centerY + radius * 0.3);
-  ctx.strokeStyle = node.color;
-  ctx.lineWidth = Math.max(1, 1.5 / globalScale);
-  ctx.stroke();
+  ctx.translate(centerX - iconSize / 2, centerY - iconSize / 2);
+  ctx.scale(iconScale, iconScale);
+  ctx.fillStyle = node.color;
+  ctx.fill(getPinIconPath());
   ctx.restore();
 }

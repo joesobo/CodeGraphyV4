@@ -12,8 +12,7 @@ describe('createGraphLayoutUpdatedMessage', () => {
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
-          twoDimensional: { x: 10, y: 20 },
-          updatedAt: '2026-05-07T23:00:00.000Z',
+          '2D': { x: 10, y: 20 },
         },
       },
       sections: { ignored: true },
