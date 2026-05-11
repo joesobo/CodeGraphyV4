@@ -5,7 +5,11 @@ function createHandlers() {
   return {
     getFilterPatterns: vi.fn(() => ['dist/**']),
     getPluginFilterPatterns: vi.fn(() => ['venv/**']),
-    getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
+    getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
+      key === 'graphLayout'
+        ? ({ collapsedNodes: { src: true } } as T)
+        : defaultValue
+    )),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendDepthState: vi.fn(),
@@ -72,6 +76,10 @@ describe('graph view ready message', () => {
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'MAX_FILES_UPDATED',
       payload: { maxFiles: 500 },
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: { collapsedNodes: { src: true } },
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'PLAYBACK_SPEED_UPDATED',

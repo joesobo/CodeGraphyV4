@@ -25,10 +25,15 @@ export interface VisibleGraphSearchConfig {
   options?: VisibleGraphSearchOptions;
 }
 
+export interface VisibleGraphCollapseConfig {
+  collapsedNodeIds: readonly string[];
+}
+
 export interface VisibleGraphConfig {
   scope?: VisibleGraphScopeConfig;
   filter?: VisibleGraphFilterConfig;
   search?: VisibleGraphSearchConfig;
+  collapse?: VisibleGraphCollapseConfig;
   showOrphans?: boolean;
 }
 

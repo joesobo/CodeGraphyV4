@@ -36,7 +36,7 @@ export function buildGraphContextMenuEntries(
   const baseEntries = decision.kind === 'background'
     ? buildBackgroundEntries(mutationAvailability)
     : decision.kind === 'singleFolderNode'
-      ? buildSingleFolderNodeEntries(decision.target.id, mutationAvailability, favorites)
+      ? buildSingleFolderNodeEntries(decision.target, mutationAvailability, favorites)
       : decision.kind === 'edge'
         ? buildEdgeEntries(decision.targets)
         : decision.kind === 'emptyNodeSelection'

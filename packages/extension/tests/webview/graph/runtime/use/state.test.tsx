@@ -228,6 +228,29 @@ describe('graph/runtime/useGraphState', () => {
     expect(result.current.graphDataRef.current).toBe(secondGraph);
   });
 
+  it('clears selected nodes that are no longer visible after graph data changes', () => {
+    const firstGraph = createBuiltGraph('alpha', 10);
+    const secondGraph = createBuiltGraph('beta', 30);
+    graphStateHarness.buildGraphData
+      .mockReturnValueOnce(firstGraph)
+      .mockReturnValueOnce(secondGraph);
+
+    const { result, rerender } = renderHook(
+      (options: UseGraphStateOptions) => useGraphState(options),
+      { initialProps: createOptions({ data: createData('alpha') }) },
+    );
+
+    act(() => {
+      result.current.selectedNodesSetRef.current = new Set(['src/alpha.ts']);
+      result.current.setSelectedNodes(['src/alpha.ts']);
+    });
+
+    rerender(createOptions({ data: createData('beta') }));
+
+    expect(result.current.selectedNodes).toEqual([]);
+    expect(result.current.selectedNodesSetRef.current).toEqual(new Set());
+  });
+
   it('does not schedule a timeline alpha bump when the timeline is inactive', () => {
     const graph = { d3Alpha: vi.fn() };
     graphStateHarness.as2DExtMethods.mockReturnValue(graph);

@@ -183,6 +183,9 @@ export function useGraphInteractionRuntime({
       setContextSelection,
       setHighlightVersion,
       setSelectedNodes,
+      toggleFolderCollapse: (nodeId, collapsed) => {
+        postMessage({ type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE', payload: { nodeId, collapsed } });
+      },
     }),
     [
       dataRef,

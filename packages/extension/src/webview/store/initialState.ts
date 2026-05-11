@@ -2,6 +2,7 @@ import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
 import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
+import { DEFAULT_GRAPH_LAYOUT_SETTINGS } from '../../shared/settings/graphLayout';
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
@@ -10,6 +11,7 @@ export const INITIAL_STATE: GraphStateFields = {
   graphIndexDetail: null,
   graphIsIndexing: false,
   graphIndexProgress: null,
+  graphLayout: DEFAULT_GRAPH_LAYOUT_SETTINGS,
   isLoading: true,
   searchQuery: '',
   searchOptions: DEFAULT_SEARCH_OPTIONS,
