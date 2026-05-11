@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/contracts';
+import { CORE_GRAPH_NODE_TYPES } from '../../../../src/shared/graphControls/defaults/definitions';
 import {
   buildGraphControlsUpdatedMessage,
   sendGraphControlsUpdated,
 } from '../../../../src/extension/graphView/controls/send';
+
+const CORE_NODE_TYPE_IDS = CORE_GRAPH_NODE_TYPES.map((nodeType) => nodeType.id);
 
 describe('extension/graphView/controls/send', () => {
   it('ignores invalid registry node and edge definitions when building the snapshot message', () => {
@@ -70,13 +73,7 @@ describe('extension/graphView/controls/send', () => {
 
     const payload = sendMessage.mock.calls[0][0].payload;
     expect(payload).toBeDefined();
-    expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual([
-      'file',
-      'folder',
-      'package',
-      'symbol',
-      'variable',
-    ]);
+    expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual(CORE_NODE_TYPE_IDS);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
   });
 
@@ -100,13 +97,7 @@ describe('extension/graphView/controls/send', () => {
 
     const payload = sendMessage.mock.calls[0][0].payload;
     expect(payload).toBeDefined();
-    expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual([
-      'file',
-      'folder',
-      'package',
-      'symbol',
-      'variable',
-    ]);
+    expect(payload.nodeTypes.map((nodeType: { id: string }) => nodeType.id)).toEqual(CORE_NODE_TYPE_IDS);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
   });
 
