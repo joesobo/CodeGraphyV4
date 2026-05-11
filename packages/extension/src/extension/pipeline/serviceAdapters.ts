@@ -3,7 +3,7 @@ import type { IDiscoveredFile } from '../../core/discovery/contracts';
 import type { FileDiscovery } from '../../core/discovery/file/service';
 import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
-import type { IProjectedConnection } from '../../core/plugins/types/contracts';
+import type { IFileAnalysisResult, IProjectedConnection } from '../../core/plugins/types/contracts';
 import type { IGraphData } from '../../shared/graph/contracts';
 import { getCachedGitHistoryChurnCounts } from '../gitHistory/cache/state';
 import { createGitHistoryPluginSignature } from '../gitHistory/pluginSignature';
@@ -15,6 +15,7 @@ import {
 } from './analysis/files';
 import { preAnalyzeWorkspacePipelineFiles } from './analysis/preAnalyze';
 import {
+  buildWorkspacePipelineGraphFromAnalysis,
   buildWorkspacePipelineGraphForSource,
   type WorkspacePipelineGraphSource,
 } from './graph/build';
@@ -101,6 +102,38 @@ export function buildWorkspacePipelineGraphData(
     disabledPlugins,
     churnCounts,
   );
+}
+
+export function buildWorkspacePipelineGraphDataFromAnalysis(
+  cache: IWorkspaceAnalysisCache,
+  context: vscode.ExtensionContext,
+  registry: PluginRegistry,
+  fileAnalysis: Map<string, IFileAnalysisResult>,
+  workspaceRoot: string,
+  showOrphans: boolean,
+  disabledPlugins: Set<string> = new Set(),
+  directoryPaths: readonly string[] = [],
+): IGraphData {
+  const source: WorkspacePipelineGraphSource = {
+    _cache: cache,
+    _lastDiscoveredDirectories: directoryPaths,
+    _registry: registry,
+  };
+  const churnCounts = getCachedGitHistoryChurnCounts(
+    context.workspaceState,
+    createGitHistoryPluginSignature(registry),
+  ) ?? {};
+
+  return buildWorkspacePipelineGraphFromAnalysis({
+    cacheFiles: source._cache.files,
+    churnCounts,
+    directoryPaths: source._lastDiscoveredDirectories ?? [],
+    disabledPlugins,
+    fileAnalysis,
+    getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),
+    showOrphans,
+    workspaceRoot,
+  });
 }
 
 export function readWorkspacePipelineRoot(

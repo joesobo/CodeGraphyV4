@@ -195,3 +195,29 @@ PR evidence:
 - Test and quality command output.
 - Docs and changeset notes.
 - Video demo attached or linked after the UI behavior is complete.
+
+## Progress Log
+
+### 2026-05-11 Slice 1: Core Graph Vocabulary And Projection
+
+- Added hidden-by-default `Symbols` and `Variables` Node Types.
+- Added core `contains` and `overrides` Edge Types.
+- Added symbol-capable analysis graph projection:
+  - canonical repo-relative symbol node IDs
+  - file -> symbol `contains` edges
+  - symbol-backed relationship edges
+  - deterministic duplicate suffixes
+  - Variable Node Type classification for variable-like symbol kinds
+- Extended shared Visible Graph behavior:
+  - Variables cannot surface unless Symbols is enabled
+  - file filters hide containing symbols
+  - search matches symbol metadata
+- Green focused tests:
+  - `tests/shared/graphControls/defaults/nodeTypes.test.ts`
+  - `tests/shared/graphControls/defaults/edgeTypes.test.ts`
+  - `tests/shared/graphControls/defaults/maps.test.ts`
+  - `tests/shared/visibleGraph/derive.test.ts`
+  - `tests/shared/visibleGraph/search.test.ts`
+  - `tests/extension/pipeline/graph/data.test.ts`
+  - `tests/extension/pipeline/graph/build.test.ts`
+  - `tests/extension/pipeline/serviceAdapters.test.ts`

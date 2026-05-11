@@ -77,6 +77,35 @@ describe('shared/visibleGraph/search/applySearch', () => {
     ]);
   });
 
+  it('matches symbol metadata such as signature and plugin kind', () => {
+    const result = applySearch(
+      {
+        nodes: [
+          {
+            ...node('src/player.gd#Player:class', 'Player'),
+            nodeType: 'symbol',
+            symbol: {
+              id: 'src/player.gd#Player:class',
+              name: 'Player',
+              kind: 'class',
+              pluginKind: 'godot-class-name',
+              signature: 'class_name Player',
+              filePath: 'src/player.gd',
+            },
+          },
+          node('src/enemy.gd', 'Enemy'),
+        ],
+        edges: [],
+      },
+      { query: 'godot-class-name' },
+    );
+
+    expect(result.regexError).toBeNull();
+    expect(result.graphData.nodes.map((item) => item.id)).toEqual([
+      'src/player.gd#Player:class',
+    ]);
+  });
+
   it('returns regex errors with an empty visible graph', () => {
     const result = applySearch(graphData(), {
       query: '[',

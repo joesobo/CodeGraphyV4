@@ -1,6 +1,10 @@
-import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
+import type {
+  IFileAnalysisResult,
+  IProjectedConnection,
+  IPlugin,
+} from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
-import { buildWorkspaceGraphData } from './data';
+import { buildWorkspaceGraphData, buildWorkspaceGraphDataFromAnalysis } from './data';
 
 export interface WorkspacePipelineGraphSource {
   _cache: {
@@ -23,6 +27,10 @@ export interface WorkspacePipelineGraphDependencies {
   workspaceRoot: string;
 }
 
+export interface WorkspacePipelineGraphAnalysisDependencies extends Omit<WorkspacePipelineGraphDependencies, 'fileConnections'> {
+  fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
+}
+
 export function buildWorkspacePipelineGraph(
   dependencies: WorkspacePipelineGraphDependencies,
 ): IGraphData {
@@ -32,6 +40,21 @@ export function buildWorkspacePipelineGraph(
     directoryPaths: dependencies.directoryPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
     fileConnections: dependencies.fileConnections,
+    showOrphans: dependencies.showOrphans,
+    workspaceRoot: dependencies.workspaceRoot,
+    getPluginForFile: dependencies.getPluginForFile,
+  });
+}
+
+export function buildWorkspacePipelineGraphFromAnalysis(
+  dependencies: WorkspacePipelineGraphAnalysisDependencies,
+): IGraphData {
+  return buildWorkspaceGraphDataFromAnalysis({
+    cacheFiles: dependencies.cacheFiles,
+    churnCounts: dependencies.churnCounts,
+    directoryPaths: dependencies.directoryPaths ?? [],
+    disabledPlugins: dependencies.disabledPlugins,
+    fileAnalysis: dependencies.fileAnalysis,
     showOrphans: dependencies.showOrphans,
     workspaceRoot: dependencies.workspaceRoot,
     getPluginForFile: dependencies.getPluginForFile,

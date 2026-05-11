@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   buildWorkspacePipelineGraph,
+  buildWorkspacePipelineGraphFromAnalysis,
   buildWorkspacePipelineGraphForSource,
 } from '../../../../src/extension/pipeline/graph/build';
 import * as workspaceGraphDataModule from '../../../../src/extension/pipeline/graph/data';
@@ -64,6 +65,42 @@ describe('pipeline/graph', () => {
       getPluginForFile: expect.any(Function),
       showOrphans: true,
       churnCounts: { 'src/index.ts': 1 },
+      workspaceRoot: '/workspace',
+    });
+  });
+
+  it('passes cached file analysis through when building symbol-capable graph data', () => {
+    const buildWorkspaceGraphDataFromAnalysisSpy = vi
+      .spyOn(workspaceGraphDataModule, 'buildWorkspaceGraphDataFromAnalysis')
+      .mockReturnValue({ nodes: [], edges: [] });
+    const fileAnalysis = new Map([
+      ['src/index.ts', {
+        filePath: '/workspace/src/index.ts',
+        symbols: [{ id: 'symbol-id', filePath: '/workspace/src/index.ts', kind: 'function', name: 'run' }],
+        relations: [],
+      }],
+    ]);
+
+    expect(
+      buildWorkspacePipelineGraphFromAnalysis({
+        cacheFiles: { 'src/index.ts': { size: 5 } },
+        churnCounts: { 'src/index.ts#run:function': 2 },
+        disabledPlugins: new Set<string>(['plugin.python']),
+        fileAnalysis,
+        getPluginForFile: vi.fn(),
+        showOrphans: true,
+        workspaceRoot: '/workspace',
+      }),
+    ).toEqual({ nodes: [], edges: [] });
+
+    expect(buildWorkspaceGraphDataFromAnalysisSpy).toHaveBeenCalledWith({
+      cacheFiles: { 'src/index.ts': { size: 5 } },
+      directoryPaths: [],
+      disabledPlugins: new Set<string>(['plugin.python']),
+      fileAnalysis,
+      getPluginForFile: expect.any(Function),
+      showOrphans: true,
+      churnCounts: { 'src/index.ts#run:function': 2 },
       workspaceRoot: '/workspace',
     });
   });
