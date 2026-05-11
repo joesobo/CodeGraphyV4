@@ -106,6 +106,15 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
             },
           },
           {
+            ...node('src/app.ts#render:method', 'symbol'),
+            symbol: {
+              id: 'src/app.ts#render:method',
+              name: 'render',
+              kind: 'method',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
             ...node('src/app.ts#User:type', 'symbol'),
             symbol: {
               id: 'src/app.ts#User:type',
@@ -126,6 +135,7 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
         ],
         edges: [
           edge('src/app.ts', 'src/app.ts#build:function', 'contains'),
+          edge('src/app.ts', 'src/app.ts#render:method', 'contains'),
           edge('src/app.ts', 'src/app.ts#User:type', 'contains'),
           edge('src/app.ts', 'src/app.ts#VERSION:constant', 'contains'),
         ],
@@ -148,6 +158,60 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     expect(ids(result.graphData)).toEqual({
       nodes: ['src/app.ts', 'src/app.ts#User:type'],
       edges: ['src/app.ts->src/app.ts#User:type#contains'],
+    });
+  });
+
+  it('applies plugin-specific symbol graph scope without hiding ordinary classes', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/user.ts'),
+          {
+            ...node('src/user.ts#User:class', 'symbol'),
+            symbol: {
+              id: 'src/user.ts#User:class',
+              name: 'User',
+              kind: 'class',
+              filePath: 'src/user.ts',
+            },
+          },
+          {
+            ...node('scripts/player.gd#Player:godot-class-name', 'symbol'),
+            symbol: {
+              id: 'scripts/player.gd#Player:godot-class-name',
+              name: 'Player',
+              kind: 'class',
+              filePath: 'scripts/player.gd',
+              pluginKind: 'godot-class-name',
+              source: 'codegraphy.gdscript',
+              language: 'gdscript',
+            },
+          },
+        ],
+        edges: [
+          edge('src/user.ts', 'src/user.ts#User:class', 'contains'),
+          edge('src/user.ts', 'scripts/player.gd#Player:godot-class-name', 'reference'),
+        ],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: true },
+            { type: 'symbol:class', enabled: true },
+            { type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: false },
+          ],
+          edges: [
+            { type: 'contains', enabled: true },
+            { type: 'reference', enabled: true },
+          ],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['src/user.ts', 'src/user.ts#User:class'],
+      edges: ['src/user.ts->src/user.ts#User:class#contains'],
     });
   });
 

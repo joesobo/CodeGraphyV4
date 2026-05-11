@@ -9,6 +9,12 @@ export interface IGraphNodeTypeDefinition {
   defaultColor: string;
   defaultVisible: boolean;
   parentId?: NodeType;
+  pluginName?: string;
+  matchSymbolKinds?: string[];
+  matchSymbolPluginKind?: string;
+  matchSymbolSource?: string;
+  matchSymbolLanguage?: string;
+  matchSymbolFilePath?: string;
 }
 
 export interface IGraphEdgeTypeDefinition {

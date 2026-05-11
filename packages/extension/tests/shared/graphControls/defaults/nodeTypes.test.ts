@@ -38,17 +38,11 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
       },
       {
         id: 'symbol:function',
-        label: 'Functions',
+        label: 'Functions and Methods',
         defaultColor: '#8B5CF6',
         defaultVisible: true,
         parentId: 'symbol',
-      },
-      {
-        id: 'symbol:method',
-        label: 'Methods',
-        defaultColor: '#A855F7',
-        defaultVisible: true,
-        parentId: 'symbol',
+        matchSymbolKinds: ['function', 'method'],
       },
       {
         id: 'symbol:class',
@@ -86,24 +80,10 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         parentId: 'symbol',
       },
       {
-        id: 'symbol:namespace',
-        label: 'Namespaces',
-        defaultColor: '#64748B',
-        defaultVisible: true,
-        parentId: 'symbol',
-      },
-      {
         id: 'variable',
         label: 'Variables',
         defaultColor: '#14B8A6',
         defaultVisible: false,
-      },
-      {
-        id: 'symbol:variable',
-        label: 'Variable Symbols',
-        defaultColor: '#14B8A6',
-        defaultVisible: true,
-        parentId: 'variable',
       },
       {
         id: 'symbol:constant',
@@ -118,6 +98,19 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         defaultColor: '#84CC16',
         defaultVisible: true,
         parentId: 'variable',
+      },
+      {
+        id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
+        label: 'Godot class_name',
+        defaultColor: '#478CBF',
+        defaultVisible: true,
+        parentId: 'symbol',
+        pluginName: 'Godot',
+        matchSymbolKinds: ['class'],
+        matchSymbolPluginKind: 'godot-class-name',
+        matchSymbolSource: 'codegraphy.gdscript',
+        matchSymbolLanguage: 'gdscript',
+        matchSymbolFilePath: '**/*.gd',
       },
     ]);
     expect(CORE_GRAPH_NODE_TYPES).toEqual(createCoreGraphNodeTypes());

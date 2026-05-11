@@ -8,7 +8,6 @@ import {
   mdiFunction,
   mdiFunctionVariant,
   mdiLockOutline,
-  mdiPackageVariant,
   mdiPound,
   mdiVariable,
 } from '@mdi/js';
@@ -26,7 +25,6 @@ const CORE_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
   { id: 'default:symbol-kind:type', displayLabel: 'Type', color: '#EC4899', imageUrl: createMaterialSymbolIconDataUrl(mdiAlphaTBoxOutline), matchNodeType: 'symbol', matchSymbolKind: 'type' },
   { id: 'default:symbol-kind:struct', displayLabel: 'Struct', color: '#0EA5E9', imageUrl: createMaterialSymbolIconDataUrl(mdiCubeOutline), matchNodeType: 'symbol', matchSymbolKind: 'struct' },
   { id: 'default:symbol-kind:enum', displayLabel: 'Enum', color: '#F59E0B', imageUrl: createMaterialSymbolIconDataUrl(mdiFormatListBulletedType), matchNodeType: 'symbol', matchSymbolKind: 'enum' },
-  { id: 'default:symbol-kind:namespace', displayLabel: 'Namespace', color: '#64748B', imageUrl: createMaterialSymbolIconDataUrl(mdiPackageVariant), matchNodeType: 'symbol', matchSymbolKind: 'namespace' },
   { id: 'default:symbol-kind:variable', displayLabel: 'Variable', color: '#14B8A6', imageUrl: createMaterialSymbolIconDataUrl(mdiVariable), matchNodeType: 'variable', matchSymbolKind: 'variable' },
   { id: 'default:symbol-kind:constant', displayLabel: 'Constant', color: '#22C55E', imageUrl: createMaterialSymbolIconDataUrl(mdiLockOutline), matchNodeType: 'variable', matchSymbolKind: 'constant' },
   { id: 'default:symbol-kind:property', displayLabel: 'Property', color: '#84CC16', imageUrl: createMaterialSymbolIconDataUrl(mdiPound), matchNodeType: 'variable', matchSymbolKind: 'property' },
@@ -38,6 +36,7 @@ const PLUGIN_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
     id: 'default:symbol-plugin:godot-class-name',
     displayLabel: 'Godot class_name',
     color: '#478CBF',
+    imageUrl: createMaterialSymbolIconDataUrl(mdiAlphaCBoxOutline),
     matchNodeType: 'symbol',
     matchSymbolKind: 'class',
     matchSymbolPluginKind: 'godot-class-name',
