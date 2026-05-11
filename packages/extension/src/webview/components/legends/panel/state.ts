@@ -19,22 +19,24 @@ interface PanelStateInput {
   legends: IGroup[];
   nodeColorEnabled: Record<string, boolean>;
   nodeColors: Record<string, string>;
-  nodeTypes: Array<{ id: string; label: string; defaultColor: string }>;
+  nodeTypes: Array<{ id: string; label: string; defaultColor: string; colorEditable?: boolean }>;
   optimisticLegendUpdates?: PendingGroupUpdates;
 }
 
 function createBuiltInEntries(
-  types: Array<{ id: string; label: string; defaultColor: string }>,
+  types: Array<{ id: string; label: string; defaultColor: string; colorEditable?: boolean }>,
   colors: Record<string, string>,
   enabled?: Record<string, boolean>,
 ): LegendBuiltInEntry[] {
-  return types.map((entry) => ({
-    id: entry.id,
-    label: entry.label,
-    color: colors[entry.id] ?? entry.defaultColor,
-    colorEnabled: enabled?.[entry.id] ?? true,
-    defaultColor: entry.defaultColor,
-  }));
+  return types
+    .filter((entry) => entry.colorEditable !== false)
+    .map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      color: colors[entry.id] ?? entry.defaultColor,
+      colorEnabled: enabled?.[entry.id] ?? true,
+      defaultColor: entry.defaultColor,
+    }));
 }
 
 export function upsertEdgeTypeColorRule(

@@ -79,6 +79,7 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
             { type: 'file', enabled: true },
             { type: 'symbol', enabled: false },
             { type: 'variable', enabled: true },
+            { type: 'symbol:constant', enabled: true },
           ],
           edges: [{ type: 'contains', enabled: true }],
         },

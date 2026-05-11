@@ -19,7 +19,7 @@ export function createDefaultNodeColors(): Record<string, string> {
 
 export function createDefaultNodeColorEnabled(): Record<string, boolean> {
   return Object.fromEntries(
-    CORE_GRAPH_NODE_TYPES.map((definition) => [definition.id, true]),
+    CORE_GRAPH_NODE_TYPES.map((definition) => [definition.id, definition.colorEditable !== false]),
   );
 }
 

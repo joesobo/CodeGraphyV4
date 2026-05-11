@@ -8,7 +8,7 @@ import { cn } from '../ui/cn';
 import { Switch } from '../ui/switch';
 
 interface ScopeRowProps {
-  color: string;
+  color?: string;
   enabled: boolean;
   label: string;
   onCheckedChange: (visible: boolean) => void;
@@ -46,12 +46,16 @@ function ScopeRow({
       className={cn(resolveScopeRowClassName(enabled), nested && 'pl-7')}
       data-scope-row={label}
     >
-      <span
-        className="h-3 w-3 shrink-0 rounded-full border border-border"
-        style={{ backgroundColor: color }}
-        aria-hidden="true"
-        data-scope-swatch={label}
-      />
+      {color ? (
+        <span
+          className="h-3 w-3 shrink-0 rounded-full border border-border"
+          style={{ backgroundColor: color }}
+          aria-hidden="true"
+          data-scope-swatch={label}
+        />
+      ) : (
+        <span className="h-3 w-3 shrink-0" aria-hidden="true" />
+      )}
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs font-medium">{label}</div>
       </div>
@@ -85,7 +89,9 @@ export function NodeTypeRows({
   return (
     <>
       {visibleNodeTypes.map((nodeType) => {
-        const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
+        const color = nodeType.colorEditable === false
+          ? undefined
+          : nodeColors[nodeType.id] ?? nodeType.defaultColor;
         const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
 
         return (
@@ -96,6 +102,20 @@ export function NodeTypeRows({
             label={nodeType.label}
             nested={Boolean(nodeType.parentId)}
             onCheckedChange={(visible) => {
+              if (!visible && nodeType.id === 'symbol') {
+                const symbolChildTypes = nodeTypes.filter((candidate) =>
+                  candidate.parentId === 'symbol'
+                  || candidate.parentId === 'variable'
+                  || candidate.id === 'variable',
+                );
+
+                for (const childType of symbolChildTypes) {
+                  postMessage({
+                    type: 'UPDATE_NODE_VISIBILITY',
+                    payload: { nodeType: childType.id, visible: false },
+                  });
+                }
+              }
               postMessage({
                 type: 'UPDATE_NODE_VISIBILITY',
                 payload: { nodeType: nodeType.id, visible },

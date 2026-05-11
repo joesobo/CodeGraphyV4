@@ -8,6 +8,7 @@ export interface IGraphNodeTypeDefinition {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  colorEditable?: boolean;
   parentId?: NodeType;
   pluginName?: string;
   matchSymbolKinds?: string[];

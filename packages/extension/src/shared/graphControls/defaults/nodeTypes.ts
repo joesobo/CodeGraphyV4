@@ -28,12 +28,13 @@ export function createCoreGraphNodeTypes(): IGraphNodeTypeDefinition[] {
     {
       id: 'symbol',
       label: 'Symbols',
-      defaultColor: '#8B5CF6',
+      defaultColor: DEFAULT_NODE_COLOR,
       defaultVisible: false,
+      colorEditable: false,
     },
     {
       id: 'symbol:function',
-      label: 'Functions and Methods',
+      label: 'Functions',
       defaultColor: '#8B5CF6',
       defaultVisible: true,
       parentId: 'symbol',

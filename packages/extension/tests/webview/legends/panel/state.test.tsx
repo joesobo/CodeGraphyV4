@@ -10,6 +10,7 @@ describe('webview/legends/panelState', () => {
     const initialProps: PanelStateProps = {
       nodeTypes: [
         { id: 'file', label: 'File', defaultColor: '#111111' },
+        { id: 'symbol', label: 'Symbols', defaultColor: '#A1A1AA', colorEditable: false },
         { id: 'folder', label: 'Folder', defaultColor: '#222222' },
       ],
       edgeTypes: [

@@ -304,7 +304,7 @@ function PluginRulesSubsection({
   return (
     <LegendSubsection
       collapsedEntries={collapsedEntries}
-      group={{ id: 'plugin-defaults', label: 'Plugin defaults' }}
+      group={{ id: 'plugin-defaults', label: 'Plugins' }}
       onCollapsedChange={onCollapsedChange}
       storageKey="plugin-defaults"
     >

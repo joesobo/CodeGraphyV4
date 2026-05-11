@@ -14,6 +14,7 @@ import {
 import { toSvgDataUrl } from './materialTheme/svg';
 
 type SymbolDefaultGroup = Omit<IGroup, 'pattern' | 'isPluginDefault' | 'pluginName'> & {
+  pluginId?: string;
   pluginName?: string;
 };
 
@@ -33,8 +34,8 @@ const CORE_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
 
 const PLUGIN_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
   {
-    id: 'default:symbol-plugin:godot-class-name',
-    displayLabel: 'Godot class_name',
+    id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
+    displayLabel: 'class_name',
     color: '#478CBF',
     imageUrl: createMaterialSymbolIconDataUrl(mdiAlphaCBoxOutline),
     matchNodeType: 'symbol',
@@ -43,6 +44,7 @@ const PLUGIN_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
     matchSymbolSource: 'codegraphy.gdscript',
     matchSymbolLanguage: 'gdscript',
     matchSymbolFilePath: '**/*.gd',
+    pluginId: 'codegraphy.gdscript',
     pluginName: 'Godot',
   },
 ];

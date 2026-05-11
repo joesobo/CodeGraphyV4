@@ -15,6 +15,9 @@ function setStoreState() {
     graphNodeTypes: [
       { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
       { id: 'folder', label: 'Folders', defaultColor: '#222222', defaultVisible: false },
+      { id: 'symbol', label: 'Symbols', defaultColor: '#A1A1AA', defaultVisible: false, colorEditable: false },
+      { id: 'symbol:function', label: 'Functions', defaultColor: '#8B5CF6', defaultVisible: true, parentId: 'symbol' },
+      { id: 'variable', label: 'Variables', defaultColor: '#14B8A6', defaultVisible: false },
     ],
     graphEdgeTypes: [
       { id: 'import', label: 'Imports', defaultColor: '#333333', defaultVisible: true },
@@ -53,6 +56,47 @@ describe('GraphScopePanel', () => {
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_NODE_VISIBILITY',
       payload: { nodeType: 'file', visible: false },
+    });
+  });
+
+  it('renders the top-level Symbols toggle without a color swatch and hides child rows until enabled', () => {
+    const { container } = render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.getByText('Symbols')).toBeInTheDocument();
+    expect(screen.queryByText('Functions')).not.toBeInTheDocument();
+    expect(container.querySelector('[data-scope-swatch="Symbols"]')).toBeNull();
+
+    act(() => {
+      graphStore.setState({ nodeVisibility: { folder: true, symbol: true } });
+    });
+
+    expect(screen.getByText('Functions')).toBeInTheDocument();
+  });
+
+  it('turns off symbol child visibility when Symbols is toggled off', () => {
+    graphStore.setState({
+      nodeVisibility: {
+        folder: true,
+        symbol: true,
+        variable: true,
+        'symbol:function': true,
+      },
+    });
+    render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText('Toggle Symbols'));
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_NODE_VISIBILITY',
+      payload: { nodeType: 'variable', visible: false },
+    });
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_NODE_VISIBILITY',
+      payload: { nodeType: 'symbol:function', visible: false },
+    });
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_NODE_VISIBILITY',
+      payload: { nodeType: 'symbol', visible: false },
     });
   });
 

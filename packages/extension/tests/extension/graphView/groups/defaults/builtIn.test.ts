@@ -153,8 +153,8 @@ describe('graphView/builtInDefaultGroups', () => {
         pluginName: 'CodeGraphy',
       }),
       expect.objectContaining({
-        id: 'default:symbol-plugin:godot-class-name',
-        displayLabel: 'Godot class_name',
+        id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
+        displayLabel: 'class_name',
         pattern: '**',
         color: '#478CBF',
         matchNodeType: 'symbol',
@@ -164,6 +164,7 @@ describe('graphView/builtInDefaultGroups', () => {
         matchSymbolLanguage: 'gdscript',
         matchSymbolFilePath: '**/*.gd',
         isPluginDefault: true,
+        pluginId: 'codegraphy.gdscript',
         pluginName: 'Godot',
       }),
     ]));

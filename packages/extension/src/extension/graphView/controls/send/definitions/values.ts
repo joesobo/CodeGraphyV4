@@ -37,12 +37,16 @@ export function resolveNodeColors(
 }
 
 export function resolveNodeColorEnabledMap(
-  definitions: Array<{ id: string }>,
+  definitions: Array<{ id: string; colorEditable?: boolean }>,
   configured: Record<string, unknown>,
 ): Record<string, boolean> {
   const enabled: Record<string, boolean> = {};
 
   for (const definition of definitions) {
+    if (definition.colorEditable === false) {
+      enabled[definition.id] = false;
+      continue;
+    }
     enabled[definition.id] =
       typeof configured[definition.id] === 'boolean'
         ? (configured[definition.id] as boolean)
