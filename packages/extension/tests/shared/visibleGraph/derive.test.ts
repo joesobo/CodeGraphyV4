@@ -62,6 +62,35 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     expect(result.regexError).toBeNull();
   });
 
+  it('keeps variable nodes hidden unless symbol nodes are enabled', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/app.ts'),
+          node('src/app.ts#VERSION:constant', 'variable'),
+        ],
+        edges: [
+          edge('src/app.ts', 'src/app.ts#VERSION:constant', 'contains'),
+        ],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: false },
+            { type: 'variable', enabled: true },
+          ],
+          edges: [{ type: 'contains', enabled: true }],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['src/app.ts'],
+      edges: [],
+    });
+  });
+
   it('projects visible folder and workspace package structure with core nests edges', () => {
     const result = deriveVisibleGraph(
       {
@@ -156,6 +185,41 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
 
     expect(ids(result.graphData)).toEqual({ nodes: [], edges: [] });
     expect(result.regexError).toBeNull();
+  });
+
+  it('hides symbols when their containing file is filtered out', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/player.gd'),
+          {
+            ...node('src/player.gd#_ready:method', 'symbol'),
+            symbol: {
+              id: 'src/player.gd#_ready:method',
+              name: '_ready',
+              kind: 'method',
+              filePath: 'src/player.gd',
+            },
+          },
+        ],
+        edges: [edge('src/player.gd', 'src/player.gd#_ready:method', 'contains')],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: true },
+          ],
+          edges: [{ type: 'contains', enabled: true }],
+        },
+        filter: { patterns: ['src/player.gd'] },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: [],
+      edges: [],
+    });
   });
 
   it('applies show orphans after search', () => {

@@ -44,7 +44,17 @@ function nodeMatchesQuery(
   options: NormalizedSearchOptions,
   pattern: RegExp | null,
 ): boolean {
-  const searchText = `${node.label} ${node.id}`;
+  const searchText = [
+    node.label,
+    node.id,
+    node.symbol?.name,
+    node.symbol?.kind,
+    node.symbol?.pluginKind,
+    node.symbol?.signature,
+    node.symbol?.filePath,
+    node.symbol?.language,
+    node.symbol?.source,
+  ].filter(Boolean).join(' ');
 
   if (pattern) {
     return pattern.test(searchText);

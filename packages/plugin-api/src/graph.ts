@@ -42,6 +42,25 @@ export type GraphMetadataValue = string | number | boolean | null;
 
 export type GraphMetadata = Record<string, GraphMetadataValue>;
 
+export interface IGraphNodeRange {
+  startLine: number;
+  startColumn?: number;
+  endLine: number;
+  endColumn?: number;
+}
+
+export interface IGraphNodeSymbolMetadata {
+  id: string;
+  name: string;
+  kind: string;
+  filePath: string;
+  pluginKind?: string;
+  range?: IGraphNodeRange;
+  signature?: string;
+  language?: string;
+  source?: string;
+}
+
 /**
  * Represents a node in the dependency graph.
  * Each node corresponds to a file or folder in the codebase.
@@ -105,6 +124,9 @@ export interface IGraphNode {
 
   /** Optional image override for the node. */
   imageUrl?: string;
+
+  /** Symbol metadata when this node represents a code symbol. */
+  symbol?: IGraphNodeSymbolMetadata;
 }
 
 /**
