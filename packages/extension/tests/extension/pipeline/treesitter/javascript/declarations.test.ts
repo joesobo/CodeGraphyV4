@@ -285,13 +285,22 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJavaScript/declarations', (
     expect(walk).not.toHaveBeenCalled();
   });
 
-  it('skips variable declarators that do not resolve to a function symbol', () => {
+  it('creates a constant symbol from variable declarators that do not resolve to a function symbol', () => {
+    const nameNode = createNode({ type: 'identifier' });
+    const node = createNode({
+      type: 'variable_declarator',
+      namedChildren: [nameNode],
+    });
+    const symbol = { id: 'symbol:constant:title' };
     vi.mocked(getVariableAssignedFunctionSymbol).mockReturnValue(null);
+    vi.mocked(getIdentifierText).mockReturnValue('title');
+    vi.mocked(createSymbol).mockReturnValue(symbol as never);
     const symbols: never[] = [];
 
     expect(
-      handleJavaScriptVariableDeclarator(createNode({ type: 'variable_declarator' }) as never, '/workspace/app.ts', symbols, vi.fn()),
+      handleJavaScriptVariableDeclarator(node as never, '/workspace/app.ts', symbols, vi.fn()),
     ).toBeUndefined();
-    expect(symbols).toEqual([]);
+    expect(createSymbol).toHaveBeenCalledWith('/workspace/app.ts', 'constant', 'title', node);
+    expect(symbols).toEqual([symbol]);
   });
 });
