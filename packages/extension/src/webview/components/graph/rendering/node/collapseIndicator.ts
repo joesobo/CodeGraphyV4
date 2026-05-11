@@ -40,7 +40,7 @@ export function renderNodeCollapseIndicator(
     ? formatCollapsedDescendantCount(node.collapsedDescendantCount)
     : '';
   if (badgeLabel) {
-    renderCountBadge(ctx, node, badgeLabel, scale, appearance.stageBackground);
+    renderCountBadge(ctx, node, badgeLabel, scale, appearance.labelForeground);
   }
 }
 
@@ -61,9 +61,9 @@ function renderChevron(
   ctx.lineJoin = 'round';
   ctx.beginPath();
   if (collapsed) {
-    ctx.moveTo(x - size * 0.25, y - size * 0.5);
-    ctx.lineTo(x + size * 0.35, y);
-    ctx.lineTo(x - size * 0.25, y + size * 0.5);
+    ctx.moveTo(x - size * 0.5, y + size * 0.25);
+    ctx.lineTo(x, y - size * 0.35);
+    ctx.lineTo(x + size * 0.5, y + size * 0.25);
   } else {
     ctx.moveTo(x - size * 0.5, y - size * 0.25);
     ctx.lineTo(x, y + size * 0.35);

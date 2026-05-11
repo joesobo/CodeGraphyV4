@@ -2,6 +2,7 @@ import { renderNodeBody } from '../node/body';
 import { renderNodeCollapseIndicator } from '../node/collapseIndicator';
 import { renderNodeLabel } from '../node/label';
 import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
+import { renderNodePinBadge } from '../node/pinBadge';
 import { paintNodePointerArea } from '../node/pointer';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
@@ -36,6 +37,12 @@ export function renderNodeCanvas(
   });
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
   renderNodeCollapseIndicator(ctx, node, globalScale, appearance);
+  renderNodePinBadge({
+    appearance,
+    ctx,
+    globalScale,
+    node,
+  });
   if (dependencies.showLabelsRef.current) {
     renderNodeLabel({
       appearance,

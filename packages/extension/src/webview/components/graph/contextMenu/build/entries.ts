@@ -30,17 +30,36 @@ function getNodeTargetIds(
 export function buildGraphContextMenuEntries(
   options: BuildGraphContextMenuOptions
 ): GraphContextMenuEntry[] {
-  const { selection, timelineActive, favorites, pluginItems, nodes } = options;
+  const {
+    selection,
+    timelineActive,
+    favorites,
+    pinnedNodeIds = new Set<string>(),
+    pluginItems,
+    nodes,
+  } = options;
   const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
   const decision = decideGraphContextMenu(selection, nodes);
   const baseEntries = decision.kind === 'background'
     ? buildBackgroundEntries(mutationAvailability)
     : decision.kind === 'singleFolderNode'
-      ? buildSingleFolderNodeEntries(decision.target, mutationAvailability, favorites)
+      ? buildSingleFolderNodeEntries(
+        decision.target,
+        timelineActive,
+        mutationAvailability,
+        favorites,
+        pinnedNodeIds,
+      )
       : decision.kind === 'edge'
         ? buildEdgeEntries(decision.targets)
         : decision.kind === 'emptyNodeSelection'
           ? []
-          : buildNodeEntries(getNodeTargetIds(decision), timelineActive, mutationAvailability, favorites);
+          : buildNodeEntries(
+            getNodeTargetIds(decision),
+            timelineActive,
+            mutationAvailability,
+            favorites,
+            pinnedNodeIds,
+          );
   return [...baseEntries, ...buildPluginEntriesForDecision(decision, pluginItems)];
 }

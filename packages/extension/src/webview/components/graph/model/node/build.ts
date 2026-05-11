@@ -1,4 +1,10 @@
 import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
+import {
+  createDefaultGraphLayoutSettings,
+  getGraphLayoutPinCoordinate,
+  type GraphLayoutMode,
+  type GraphLayoutSettings,
+} from '../../../../../shared/settings/graphLayout';
 import type { ThemeKind } from '../../../../theme/useTheme';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
@@ -18,6 +24,8 @@ export interface BuildGraphNodesOptions {
   nodeSizes: Map<string, number>;
   theme: ThemeKind;
   favorites: Set<string>;
+  graphLayout?: GraphLayoutSettings;
+  graphMode?: GraphLayoutMode;
   timelineActive: boolean;
   previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
   random?: () => number;
@@ -77,7 +85,10 @@ function createGraphNode(
   options: {
     appearance: GraphAppearance;
     favorites: ReadonlySet<string>;
+    graphLayout: GraphLayoutSettings;
+    graphMode: GraphLayoutMode;
     nodeSizes: ReadonlyMap<string, number>;
+    timelineActive: boolean;
   },
   isLight: boolean,
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
@@ -87,6 +98,14 @@ function createGraphNode(
   const isFocused = node.depthLevel === 0;
   const size = (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);
   const previous = previousNodeStates.get(node.id);
+  const pinCoordinate = options.timelineActive
+    ? undefined
+    : getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[node.id], options.graphMode);
+  const x = pinCoordinate?.x ?? node.x ?? previous?.x;
+  const y = pinCoordinate?.y ?? node.y ?? previous?.y;
+  const z = options.graphMode === '3d' && pinCoordinate && 'z' in pinCoordinate
+    ? pinCoordinate.z
+    : previous?.z;
 
   return {
     id: node.id,
@@ -97,6 +116,7 @@ function createGraphNode(
     borderWidth: getNodeBorderWidth(isFocused, isFavorite),
     baseOpacity: getDepthOpacity(node.depthLevel),
     isFavorite,
+    isPinned: !!pinCoordinate,
     nodeType: node.nodeType,
     shape2D: node.shape2D,
     shape3D: node.shape3D,
@@ -104,15 +124,17 @@ function createGraphNode(
     isCollapsible: node.isCollapsible,
     isCollapsed: node.isCollapsed,
     collapsedDescendantCount: node.collapsedDescendantCount,
-    fx: previous?.fx,
-    fy: previous?.fy,
-    fz: previous?.fz,
+    fx: pinCoordinate?.x ?? previous?.fx,
+    fy: pinCoordinate?.y ?? previous?.fy,
+    fz: options.graphMode === '3d' && pinCoordinate && 'z' in pinCoordinate
+      ? pinCoordinate.z
+      : previous?.fz,
     vx: previous?.vx,
     vy: previous?.vy,
     vz: previous?.vz,
-    x: node.x ?? previous?.x,
-    y: node.y ?? previous?.y,
-    z: previous?.z,
+    x,
+    y,
+    z,
   } as FGNode;
 }
 
@@ -124,6 +146,8 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
     nodeSizes,
     theme,
     favorites,
+    graphLayout = createDefaultGraphLayoutSettings(),
+    graphMode = '2d',
     timelineActive,
     previousNodes = [],
     random = Math.random,
@@ -132,7 +156,7 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   const previousNodeStates = createPreviousNodeStateMap(previousNodes);
   const graphNodes = nodes.map(node => createGraphNode(
     node,
-    { appearance, nodeSizes, favorites },
+    { appearance, nodeSizes, favorites, graphLayout, graphMode, timelineActive },
     isLight,
     previousNodeStates,
   ));

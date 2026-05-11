@@ -150,6 +150,7 @@ describe('graph view provider listener plugin context', () => {
     context.sendGraphControls?.();
     context.sendFavorites();
     context.sendSettings();
+    context.sendGraphLayout?.();
     context.sendCachedTimeline();
     context.sendDecorations();
     context.sendContextMenuItems();
@@ -167,6 +168,13 @@ describe('graph view provider listener plugin context', () => {
     expect(source._sendGraphControls).toHaveBeenCalledOnce();
     expect(source._sendFavorites).toHaveBeenCalledOnce();
     expect(source._sendSettings).toHaveBeenCalledOnce();
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: {
+        collapsedNodes: {},
+        pinnedNodes: {},
+      },
+    });
     expect(source._sendCachedTimeline).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();

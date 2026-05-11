@@ -45,7 +45,7 @@ describe('graph/model/node/build', () => {
       shape2D: 'circle',
       size: 20.8,
     });
-      expect(nodes.find(node => node.id === 'favorite.ts')).toMatchObject({
+    expect(nodes.find(node => node.id === 'favorite.ts')).toMatchObject({
       color: '#5a86b3',
       borderColor: FAVORITE_BORDER_COLOR,
       borderWidth: 3,
@@ -148,6 +148,147 @@ describe('graph/model/node/build', () => {
       x: undefined,
       y: undefined,
       z: undefined,
+    });
+  });
+
+  it('applies active-mode pins as fixed graph-space coordinates', () => {
+    const twoDimensionalNodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/pinned.ts', label: 'pinned.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/pinned.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {
+          'src/pinned.ts': {
+            nodeId: 'src/pinned.ts',
+            '2D': { x: 40, y: -80 },
+            '3D': { x: 1, y: 2, z: 3 },
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(twoDimensionalNodes[0]).toMatchObject({
+      fx: 40,
+      fy: -80,
+      fz: undefined,
+      isPinned: true,
+      x: 40,
+      y: -80,
+      z: undefined,
+    });
+
+    const threeDimensionalNodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/pinned.ts', label: 'pinned.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/pinned.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '3d',
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {
+          'src/pinned.ts': {
+            nodeId: 'src/pinned.ts',
+            '2D': { x: 40, y: -80 },
+            '3D': { x: 1, y: 2, z: 3 },
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(threeDimensionalNodes[0]).toMatchObject({
+      fx: 1,
+      fy: 2,
+      fz: 3,
+      isPinned: true,
+      x: 1,
+      y: 2,
+      z: 3,
+    });
+  });
+
+  it('applies pins to collapsed folder nodes without dropping collapse metadata', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        {
+          id: 'src',
+          label: 'src',
+          color: '#93C5FD',
+          collapsedDescendantCount: 12,
+          isCollapsible: true,
+          isCollapsed: true,
+          nodeType: 'folder',
+        },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        collapsedNodes: { src: true },
+        pinnedNodes: {
+          src: {
+            nodeId: 'src',
+            '2D': { x: 40, y: -80 },
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(nodes[0]).toMatchObject({
+      collapsedDescendantCount: 12,
+      fx: 40,
+      fy: -80,
+      isCollapsible: true,
+      isCollapsed: true,
+      isPinned: true,
+      nodeType: 'folder',
+      x: 40,
+      y: -80,
+    });
+  });
+
+  it('ignores persisted pins while timeline snapshots are active', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/pinned.ts', label: 'pinned.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/pinned.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {
+          'src/pinned.ts': {
+            nodeId: 'src/pinned.ts',
+            '2D': { x: 40, y: -80 },
+          },
+        },
+      },
+      previousNodes: [{ id: 'src/pinned.ts', x: 4, y: 8 }],
+      timelineActive: true,
+    });
+
+    expect(nodes[0]).toMatchObject({
+      fx: undefined,
+      fy: undefined,
+      isPinned: false,
+      x: 4,
+      y: 8,
     });
   });
 });

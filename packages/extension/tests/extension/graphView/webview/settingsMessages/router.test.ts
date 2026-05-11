@@ -216,7 +216,7 @@ describe('graph view settings router', () => {
   it('persists collapsed graph layout state and publishes it immediately', async () => {
     const state = createState();
     const handlers = createHandlers({
-      graphLayout: { collapsedNodes: { src: true } },
+      graphLayout: { collapsedNodes: { src: true }, pinnedNodes: {} },
     });
 
     await expect(
@@ -229,10 +229,11 @@ describe('graph view settings router', () => {
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('graphLayout', {
       collapsedNodes: { src: true, tests: true },
+      pinnedNodes: {},
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
-      payload: { collapsedNodes: { src: true, tests: true } },
+      payload: { collapsedNodes: { src: true, tests: true }, pinnedNodes: {} },
     });
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });

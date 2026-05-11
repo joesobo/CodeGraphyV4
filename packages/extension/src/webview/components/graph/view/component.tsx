@@ -56,6 +56,8 @@ export default function Graph({
     directionMode: viewState.directionMode,
     edgeDecorations,
     favorites: viewState.favorites,
+    graphLayout: viewState.graphLayout,
+    graphMode: viewState.graphMode,
     nodeDecorations,
     nodeSizeMode: viewState.nodeSizeMode,
     showLabels: viewState.showLabels,

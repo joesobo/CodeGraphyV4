@@ -65,4 +65,21 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
       { pattern: 'src/**', color: '#123456', target: 'node' },
     ]);
   });
+
+  it('serializes graph layout pin records', () => {
+    const settings = createDefaultCodeGraphyRepoSettings();
+    settings.graphLayout = {
+      collapsedNodes: {},
+      pinnedNodes: {
+        'src/a.ts': {
+          nodeId: 'src/a.ts',
+          '2D': { x: 10, y: 20 },
+        },
+      },
+    };
+
+    const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
+
+    expect(parsed.graphLayout).toEqual(settings.graphLayout);
+  });
 });

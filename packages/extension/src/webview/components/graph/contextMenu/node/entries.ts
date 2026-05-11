@@ -6,6 +6,7 @@ import {
   buildCopyBlock,
 } from './openCopyBlocks';
 import { buildFavoriteBlock } from './destructive/favoritesBlocks';
+import { buildPinBlock } from './pin/block';
 import {
   buildDestructiveBlock,
   buildFilterBlock,
@@ -16,12 +17,14 @@ export function buildNodeEntries(
   targets: readonly string[],
   timelineActive: boolean,
   mutationAvailability: GraphContextMutationAvailability,
-  favorites: ReadonlySet<string>
+  favorites: ReadonlySet<string>,
+  pinnedNodeIds: ReadonlySet<string> = new Set(),
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [
     ...buildOpenBlock(targets, timelineActive),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
+    ...(timelineActive ? [] : buildPinBlock(targets, pinnedNodeIds)),
     ...buildFilterBlock(targets),
   ];
 
@@ -34,8 +37,10 @@ export function buildNodeEntries(
 
 export function buildSingleFolderNodeEntries(
   target: GraphContextNodeTarget,
+  timelineActive: boolean,
   mutationAvailability: GraphContextMutationAvailability,
-  favorites: ReadonlySet<string>
+  favorites: ReadonlySet<string>,
+  pinnedNodeIds: ReadonlySet<string> = new Set(),
 ): GraphContextMenuEntry[] {
   const targets = [target.id];
   const entries: GraphContextMenuEntry[] = [];
@@ -61,6 +66,7 @@ export function buildSingleFolderNodeEntries(
     builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
+    ...(timelineActive ? [] : buildPinBlock(targets, pinnedNodeIds)),
     ...buildFilterBlock(targets),
   );
 

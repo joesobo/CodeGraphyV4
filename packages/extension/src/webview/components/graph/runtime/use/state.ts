@@ -15,6 +15,7 @@ import type { IFileInfo } from '../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../../../../shared/settings/modes';
+import type { GraphLayoutMode, GraphLayoutSettings } from '../../../../../shared/settings/graphLayout';
 import type {
   GraphContextSelection,
 } from '../../contextMenu/contracts';
@@ -46,6 +47,8 @@ export interface UseGraphStateOptions {
   directionMode: DirectionMode;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
   favorites: Set<string>;
+  graphLayout?: GraphLayoutSettings;
+  graphMode?: GraphLayoutMode;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   nodeSizeMode: NodeSizeMode;
   showLabels: boolean;
@@ -128,6 +131,8 @@ export function useGraphState({
   directionMode,
   edgeDecorations,
   favorites,
+  graphLayout,
+  graphMode,
   nodeDecorations,
   nodeSizeMode,
   showLabels,
@@ -187,20 +192,23 @@ export function useGraphState({
   }
 
   const graphData = useMemo(() => {
+    const resolvedGraphMode = graphMode ?? '2d';
     const nextGraphData = buildGraphData({
       data,
       appearance,
       nodeSizeMode: nodeSizeModeRef.current,
       theme: themeRef.current,
       favorites: favoritesRef.current,
+      graphLayout,
+      graphMode: resolvedGraphMode,
       bidirectionalMode,
-      timelineActive: timelineActiveRef.current,
+      timelineActive,
       previousNodes: graphDataRef.current.nodes,
     });
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data]);
+  }, [appearance, bidirectionalMode, data, graphLayout, graphMode, timelineActive]);
 
   useEffect(() => {
     if (!timelineActive) return;

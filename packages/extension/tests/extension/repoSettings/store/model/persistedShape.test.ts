@@ -71,7 +71,7 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     });
   });
 
-  it('keeps only collapsed node state from persisted graph layout settings', () => {
+  it('keeps normalized graph layout state and drops invalid layout records', () => {
     expect(normalizePersistedSettingsShape({
       graphLayout: {
         collapsedNodes: {
@@ -79,18 +79,31 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
           tests: false,
           invalid: 'yes',
         },
-        sections: {
-          section1: { label: 'Later PR' },
+        pinnedNodes: {
+          'src/a.ts': {
+            nodeId: 'src/a.ts',
+            '2D': { x: 10, y: 20 },
+          },
+          bad: {
+            nodeId: 'bad',
+            '2D': { x: Number.NaN, y: 20 },
+          },
         },
-        ownership: {
-          'src/app.ts': 'section1',
-        },
+        sections: { ignored: true },
+        ownership: { ignored: true },
       },
+      graphSectionDrafts: {},
     })).toEqual({
       graphLayout: {
         collapsedNodes: {
           src: true,
           tests: false,
+        },
+        pinnedNodes: {
+          'src/a.ts': {
+            nodeId: 'src/a.ts',
+            '2D': { x: 10, y: 20 },
+          },
         },
       },
     });

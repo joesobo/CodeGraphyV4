@@ -4,7 +4,7 @@ import { buildVisibleGraphConfig } from '../../../src/webview/search/visibleGrap
 describe('webview/search/visibleGraphConfig', () => {
   it('maps graph layout collapsed nodes into visible graph collapse config', () => {
     expect(buildVisibleGraphConfig({
-      graphLayout: { collapsedNodes: { src: true, tests: false } },
+      graphLayout: { collapsedNodes: { src: true, tests: false }, pinnedNodes: {} },
       searchOptions: { matchCase: false, wholeWord: false, regex: false },
       searchQuery: '',
       showOrphans: true,

@@ -179,7 +179,7 @@ describe('graph/runtime/useGraphState', () => {
       nodeSizeMode: 'file-size',
       showLabels: false,
       theme: 'light',
-      timelineActive: true,
+      timelineActive: false,
     }));
 
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
@@ -192,7 +192,7 @@ describe('graph/runtime/useGraphState', () => {
     expect(result.current.showLabelsRef.current).toBe(false);
     expect(result.current.nodeDecorationsRef.current).toBe(nextNodeDecorations);
     expect(result.current.edgeDecorationsRef.current).toBe(nextEdgeDecorations);
-    expect(result.current.timelineActiveRef.current).toBe(true);
+    expect(result.current.timelineActiveRef.current).toBe(false);
   });
 
   it('rebuilds graph data when the memo inputs change and passes forward previous nodes', () => {

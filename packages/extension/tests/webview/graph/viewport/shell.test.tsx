@@ -39,6 +39,7 @@ function createGraphData(): UseGraphStateResult['graphData'] {
 				color: '#93C5FD',
 				id: 'src/app.ts',
 				isFavorite: false,
+				isPinned: false,
 				label: 'app.ts',
 				size: 12,
 			},
@@ -49,6 +50,7 @@ function createGraphData(): UseGraphStateResult['graphData'] {
 				color: '#67E8F9',
 				id: 'src/lib.ts',
 				isFavorite: false,
+				isPinned: false,
 				label: 'lib.ts',
 				size: 12,
 			},
@@ -176,7 +178,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
+	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphLayout' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -193,6 +195,7 @@ function createViewState(): Pick<
 		depthMode: false,
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),
+		graphLayout: { collapsedNodes: {}, pinnedNodes: {} },
 		graphMode: '3d',
 		nodeSizeMode: 'connections',
 		particleSize: 3,
@@ -240,6 +243,7 @@ describe('graph/viewport/shell', () => {
 				onLinkClick: vi.fn(),
 				onLinkRightClick: vi.fn(),
 				onNodeClick: vi.fn(),
+				onNodeDragEnd: vi.fn(),
 				onNodeHover: vi.fn(),
 				onNodeRightClick: vi.fn(),
 				warmupTicks: 0,

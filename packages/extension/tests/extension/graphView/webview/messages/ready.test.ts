@@ -5,11 +5,7 @@ function createHandlers() {
   return {
     getFilterPatterns: vi.fn(() => ['dist/**']),
     getPluginFilterPatterns: vi.fn(() => ['venv/**']),
-    getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
-      key === 'graphLayout'
-        ? ({ collapsedNodes: { src: true } } as T)
-        : defaultValue
-    )),
+    getConfig: vi.fn(<T>(_key: string, defaultValue: T): T => defaultValue),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendDepthState: vi.fn(),
@@ -17,6 +13,7 @@ function createHandlers() {
     loadAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
+    sendGraphLayout: vi.fn(),
     sendPhysicsSettings: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     sendMessage: vi.fn(),
@@ -56,6 +53,7 @@ describe('graph view ready message', () => {
     expect(handlers.loadAndSendData).toHaveBeenCalledOnce();
     expect(handlers.sendFavorites).toHaveBeenCalledOnce();
     expect(handlers.sendSettings).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphLayout).toHaveBeenCalledOnce();
     expect(handlers.sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(handlers.sendCachedTimeline).toHaveBeenCalledOnce();
@@ -76,10 +74,6 @@ describe('graph view ready message', () => {
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'MAX_FILES_UPDATED',
       payload: { maxFiles: 500 },
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'GRAPH_LAYOUT_UPDATED',
-      payload: { collapsedNodes: { src: true } },
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'PLAYBACK_SPEED_UPDATED',

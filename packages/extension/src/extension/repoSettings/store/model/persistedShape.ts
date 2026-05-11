@@ -1,4 +1,5 @@
 import { isPlainObject } from './plainObject';
+import { normalizeGraphLayoutSettings } from '../../graphLayout/model';
 
 const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'version',
@@ -48,10 +49,6 @@ const TIMELINE_SETTINGS_KEYS = new Set([
   'playbackSpeed',
 ]);
 
-const GRAPH_LAYOUT_SETTINGS_KEYS = new Set([
-  'collapsedNodes',
-]);
-
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((entry): entry is string => typeof entry === 'string')
@@ -94,35 +91,7 @@ function pickTopLevelSettings(value: Record<string, unknown>): Record<string, un
     picked.timeline = timeline;
   }
 
-  const graphLayout = pickObjectKeys(picked.graphLayout, GRAPH_LAYOUT_SETTINGS_KEYS);
-  if (graphLayout) {
-    picked.graphLayout = normalizePersistedGraphLayout(graphLayout);
-  }
-
   return picked;
-}
-
-function normalizeBooleanRecord(value: unknown): Record<string, boolean> {
-  if (!isPlainObject(value)) {
-    return {};
-  }
-
-  const record: Record<string, boolean> = {};
-  for (const [key, entryValue] of Object.entries(value)) {
-    if (typeof entryValue === 'boolean') {
-      record[key] = entryValue;
-    }
-  }
-
-  return record;
-}
-
-function normalizePersistedGraphLayout(
-  graphLayout: Record<string, unknown>,
-): Record<string, unknown> {
-  return {
-    collapsedNodes: normalizeBooleanRecord(graphLayout.collapsedNodes),
-  };
 }
 
 function createLegendRuleId(rule: Record<string, unknown>, index: number): string {
@@ -171,6 +140,12 @@ function normalizePersistedLegend(normalized: Record<string, unknown>): void {
   }
 }
 
+function normalizePersistedGraphLayout(normalized: Record<string, unknown>): void {
+  if ('graphLayout' in normalized) {
+    normalized.graphLayout = normalizeGraphLayoutSettings(normalized.graphLayout);
+  }
+}
+
 export function normalizePersistedSettingsShape(
   value: unknown,
 ): Record<string, unknown> {
@@ -181,5 +156,6 @@ export function normalizePersistedSettingsShape(
   const normalized = pickTopLevelSettings(value);
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);
+  normalizePersistedGraphLayout(normalized);
   return normalized;
 }

@@ -5,10 +5,12 @@ import {
   createClipboardEffects,
   createCreateFileEffects,
   createCreateFolderEffects,
+  createClearPinNodeEffects,
+  createGraphLayoutCollapseEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
-  createGraphLayoutCollapseEffects,
+  createPinNodeEffects,
   createRefreshEffects,
 } from '../messages';
 import {
@@ -39,6 +41,8 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createClipboardEffects(context.targetIds.join('\n')),
   toggleFavorite: (context: GraphContextActionContext) =>
     createPathListMessageEffects('TOGGLE_FAVORITE', context.targetIds),
+  pinNode: (context: GraphContextActionContext) => createPinNodeEffects(context),
+  unpinNode: (context: GraphContextActionContext) => createClearPinNodeEffects(context),
   focus: (context: GraphContextActionContext) => createFocusEffects(context.primaryTargetId),
   addToFilter: (context: GraphContextActionContext) =>
     createPatternPromptEffects(context.targetIds),

@@ -31,7 +31,6 @@ function createState(
     graphIndexDetail: null,
     graphIsIndexing: false,
     graphIndexProgress: null,
-    graphLayout: { collapsedNodes: {} },
     isLoading: true,
     searchQuery: '',
     searchOptions: { matchCase: false, wholeWord: false, regex: false },
@@ -80,6 +79,10 @@ function createState(
     indexProgress: null,
     isPlaying: false,
     playbackSpeed: 1,
+    graphLayout: {
+      collapsedNodes: {},
+      pinnedNodes: {},
+    },
     ...overrides,
   };
 }
@@ -146,14 +149,28 @@ describe('webview/store/messageHandlers/graph', () => {
       payload: { favorites: ['src/app.ts', 'src/lib.ts'] },
     });
     expect([...favorites.favorites ?? []]).toEqual(['src/app.ts', 'src/lib.ts']);
+
+    const graphLayout = {
+      collapsedNodes: {},
+      pinnedNodes: {
+        'src/app.ts': {
+          nodeId: 'src/app.ts',
+          '2D': { x: 12, y: 24 },
+        },
+      },
+    };
+    expect(handleGraphLayoutUpdated({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: graphLayout,
+    })).toEqual({ graphLayout });
   });
 
   it('maps graph layout updates into persisted layout state', () => {
     expect(handleGraphLayoutUpdated({
       type: 'GRAPH_LAYOUT_UPDATED',
-      payload: { collapsedNodes: { src: true } },
+      payload: { collapsedNodes: { src: true }, pinnedNodes: {} },
     })).toEqual({
-      graphLayout: { collapsedNodes: { src: true } },
+      graphLayout: { collapsedNodes: { src: true }, pinnedNodes: {} },
     });
   });
 

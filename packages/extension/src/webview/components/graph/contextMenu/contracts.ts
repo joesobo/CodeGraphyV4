@@ -16,6 +16,8 @@ export type BuiltInContextMenuAction =
   | 'copyEdgeTarget'
   | 'copyEdgeBoth'
   | 'toggleFavorite'
+  | 'pinNode'
+  | 'unpinNode'
   | 'focus'
   | 'addToFilter'
   | 'addNodeLegend'
@@ -66,6 +68,7 @@ export interface BuildGraphContextMenuOptions {
   timelineActive: boolean;
   mutationAvailability?: GraphContextMutationAvailability;
   favorites: ReadonlySet<string>;
+  pinnedNodeIds?: ReadonlySet<string>;
   pluginItems: readonly IPluginContextMenuItem[];
   nodes?: readonly GraphContextMenuNode[];
 }
