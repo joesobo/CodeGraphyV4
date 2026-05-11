@@ -404,16 +404,15 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
 
     expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
-    expect(ctx.arc).toHaveBeenCalledWith(35.2, 36.8, 7, 0, Math.PI * 2);
+    expect(ctx.arc).not.toHaveBeenCalled();
     expect(ctx.translate).toHaveBeenCalledWith(
       expect.closeTo(29.775),
       expect.closeTo(31.375),
     );
     expect(ctx.scale).toHaveBeenCalledWith(0.45208333333333334, 0.45208333333333334);
     expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
-    expect(operations).toContainEqual(expect.objectContaining({
+    expect(operations).not.toContainEqual(expect.objectContaining({
       fillStyle: 'rgb(28, 62, 118)',
-      kind: 'fill',
     }));
     expect(operations).toContainEqual(expect.objectContaining({
       fillStyle: '#ffffff',
@@ -433,10 +432,8 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
 
     expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
-    expect(operations).toContainEqual(expect.objectContaining({
+    expect(operations).not.toContainEqual(expect.objectContaining({
       fillStyle: 'rgb(28, 62, 118)',
-      globalAlpha: 0.75,
-      kind: 'fill',
     }));
     expect(operations).toContainEqual(expect.objectContaining({
       fillStyle: '#ffffff',
