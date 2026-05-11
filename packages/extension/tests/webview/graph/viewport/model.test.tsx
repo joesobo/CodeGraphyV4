@@ -52,6 +52,7 @@ function createGraphData(): UseGraphStateResult['graphData'] {
 			color: '#93C5FD',
 			id: 'src/app.ts',
 			isFavorite: false,
+			isPinned: false,
 			label: 'app.ts',
 			size: 12,
 		}],
@@ -115,6 +116,8 @@ function createViewState(): Pick<
 	| 'currentCommitSha'
 	| 'dagMode'
 	| 'favorites'
+	| 'graphLayout'
+	| 'graphMode'
 	| 'physicsSettings'
 	| 'pluginContextMenuItems'
 	| 'setGraphMode'
@@ -132,6 +135,8 @@ function createViewState(): Pick<
 	return {
 		dagMode: 'td',
 		favorites: new Set(['src/app.ts']),
+		graphLayout: { pinnedNodes: {} },
+		graphMode: '2d',
 		physicsSettings,
 		pluginContextMenuItems: [],
 		setGraphMode: vi.fn(),
@@ -194,6 +199,7 @@ describe('graph/viewport/model', () => {
 			favorites: viewState.favorites,
 			mutationAvailability: 'enabled',
 			nodes: graphData.nodes,
+			pinnedNodeIds: new Set(),
 			pluginItems: [],
 			selection: { kind: 'background', targets: [] },
 			timelineActive: true,

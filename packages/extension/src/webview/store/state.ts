@@ -18,6 +18,7 @@ import type {
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
+import type { GraphLayoutSettings } from '../../shared/settings/graphLayout';
 import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
   PendingGroupUpdates,
@@ -44,6 +45,7 @@ export interface GraphState {
   physicsPaused: boolean;
   showLabels: boolean;
   graphMode: '2d' | '3d';
+  graphLayout: GraphLayoutSettings;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
   depthMode: boolean;

@@ -70,4 +70,33 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       timeline: { maxCommits: 1000 },
     });
   });
+
+  it('keeps normalized graph layout pins and drops invalid layout records', () => {
+    expect(normalizePersistedSettingsShape({
+      graphLayout: {
+        pinnedNodes: {
+          'src/a.ts': {
+            nodeId: 'src/a.ts',
+            '2D': { x: 10, y: 20 },
+          },
+          bad: {
+            nodeId: 'bad',
+            '2D': { x: Number.NaN, y: 20 },
+          },
+        },
+        sections: { ignored: true },
+        ownership: { ignored: true },
+      },
+      graphSectionDrafts: {},
+    })).toEqual({
+      graphLayout: {
+        pinnedNodes: {
+          'src/a.ts': {
+            nodeId: 'src/a.ts',
+            '2D': { x: 10, y: 20 },
+          },
+        },
+      },
+    });
+  });
 });

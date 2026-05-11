@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
 import type { ThemeKind } from '../../../../../src/webview/theme/useTheme';
 
@@ -86,6 +86,8 @@ function createContext(): {
 } {
   const operations: ContextOperation[] = [];
   const ctx = {
+    arc: vi.fn(),
+    beginPath: vi.fn(),
     clip: vi.fn(),
     drawImage: vi.fn(() => {
       operations.push({
@@ -115,6 +117,8 @@ function createContext(): {
         text,
       });
     }),
+    lineTo: vi.fn(),
+    moveTo: vi.fn(),
     restore: vi.fn(),
     save: vi.fn(),
     stroke: vi.fn(() => {
@@ -133,6 +137,8 @@ function createContext(): {
     strokeStyle: '',
     textAlign: 'left',
     textBaseline: 'alphabetic',
+    translate: vi.fn(),
+    scale: vi.fn(),
   };
 
   return {
@@ -144,6 +150,10 @@ function createContext(): {
 describe('graph/rendering/nodes/canvas2d', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('draws the node body and stroke using node styling', () => {
@@ -380,6 +390,73 @@ describe('graph/rendering/nodes/canvas2d', () => {
       lineWidth: 3,
       strokeStyle: '#ffffff',
     }));
+  });
+
+  it('renders a pin badge for pinned nodes without changing the node body', () => {
+    const { ctx, operations } = createContext();
+    vi.stubGlobal('Path2D', vi.fn());
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({ isPinned: true }),
+      ctx,
+      1,
+    );
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
+    expect(ctx.arc).toHaveBeenCalledWith(35.2, 36.8, 7, 0, Math.PI * 2);
+    expect(ctx.translate).toHaveBeenCalledWith(
+      expect.closeTo(29.775),
+      expect.closeTo(31.375),
+    );
+    expect(ctx.scale).toHaveBeenCalledWith(0.45208333333333334, 0.45208333333333334);
+    expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: 'rgb(28, 62, 118)',
+      kind: 'fill',
+    }));
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#ffffff',
+      kind: 'fill',
+    }));
+  });
+
+  it('fades pinned badges as small nodes zoom away', () => {
+    const { ctx, operations } = createContext();
+    vi.stubGlobal('Path2D', vi.fn());
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({ isPinned: true }),
+      ctx,
+      0.5,
+    );
+
+    expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: 'rgb(28, 62, 118)',
+      globalAlpha: 0.75,
+      kind: 'fill',
+    }));
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#ffffff',
+      globalAlpha: 0.75,
+      kind: 'fill',
+    }));
+  });
+
+  it('hides pinned badges when the node is too small on screen', () => {
+    const { ctx } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({ isPinned: true, size: 8 }),
+      ctx,
+      0.5,
+    );
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 8);
+    expect(ctx.arc).not.toHaveBeenCalled();
   });
 
   it('paints the expanded pointer area around the node shape', () => {

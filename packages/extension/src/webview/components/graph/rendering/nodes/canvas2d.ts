@@ -1,6 +1,7 @@
 import { renderNodeBody } from '../node/body';
 import { renderNodeLabel } from '../node/label';
 import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
+import { renderNodePinBadge } from '../node/pinBadge';
 import { paintNodePointerArea } from '../node/pointer';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
@@ -34,6 +35,12 @@ export function renderNodeCanvas(
     opacity,
   });
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
+  renderNodePinBadge({
+    appearance,
+    ctx,
+    globalScale,
+    node,
+  });
   if (dependencies.showLabelsRef.current) {
     renderNodeLabel({
       appearance,

@@ -13,6 +13,7 @@ function createHandlers() {
     loadAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
+    sendGraphLayout: vi.fn(),
     sendPhysicsSettings: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     sendMessage: vi.fn(),
@@ -52,6 +53,7 @@ describe('graph view ready message', () => {
     expect(handlers.loadAndSendData).toHaveBeenCalledOnce();
     expect(handlers.sendFavorites).toHaveBeenCalledOnce();
     expect(handlers.sendSettings).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphLayout).toHaveBeenCalledOnce();
     expect(handlers.sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(handlers.sendCachedTimeline).toHaveBeenCalledOnce();

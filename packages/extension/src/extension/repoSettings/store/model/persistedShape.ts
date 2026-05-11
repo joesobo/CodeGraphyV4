@@ -1,4 +1,5 @@
 import { isPlainObject } from './plainObject';
+import { normalizeGraphLayoutSettings } from '../../graphLayout/model';
 
 const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'version',
@@ -31,6 +32,7 @@ const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'nodeSizeMode',
   'physics',
   'timeline',
+  'graphLayout',
 ]);
 
 const PHYSICS_SETTINGS_KEYS = new Set([
@@ -138,6 +140,12 @@ function normalizePersistedLegend(normalized: Record<string, unknown>): void {
   }
 }
 
+function normalizePersistedGraphLayout(normalized: Record<string, unknown>): void {
+  if ('graphLayout' in normalized) {
+    normalized.graphLayout = normalizeGraphLayoutSettings(normalized.graphLayout);
+  }
+}
+
 export function normalizePersistedSettingsShape(
   value: unknown,
 ): Record<string, unknown> {
@@ -148,5 +156,6 @@ export function normalizePersistedSettingsShape(
   const normalized = pickTopLevelSettings(value);
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);
+  normalizePersistedGraphLayout(normalized);
   return normalized;
 }
