@@ -177,8 +177,8 @@ export function useGraphInteractionRuntime({
   });
 
   const actionContext = useMemo(
-    () => resolveGraphContextActionContext(graphContextSelection),
-    [graphContextSelection],
+    () => resolveGraphContextActionContext(graphContextSelection, dataRef.current.nodes),
+    [dataRef, graphContextSelection],
   );
 
   const contextMenuOpeningRuntime = useMemo(

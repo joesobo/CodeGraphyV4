@@ -1,14 +1,24 @@
-export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin';
+export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin' | 'symbol';
 
 export interface GraphContextNodeTarget {
   id: string;
   nodeKind: GraphContextNodeKind;
   nodeType: string;
+  symbol?: {
+    id: string;
+    name: string;
+    filePath: string;
+  };
 }
 
 export interface GraphContextNodeSource {
   id: string;
   nodeType?: string;
+  symbol?: {
+    id: string;
+    name: string;
+    filePath: string;
+  };
 }
 
 export function isPackageNodeId(nodeId: string): boolean {
@@ -17,7 +27,8 @@ export function isPackageNodeId(nodeId: string): boolean {
 
 export function classifyGraphContextNodeTarget(
   nodeId: string,
-  nodeType: string | undefined
+  nodeType: string | undefined,
+  symbol?: GraphContextNodeSource['symbol'],
 ): GraphContextNodeTarget {
   const resolvedNodeType = isPackageNodeId(nodeId)
     ? 'package'
@@ -25,8 +36,11 @@ export function classifyGraphContextNodeTarget(
 
   return {
     id: nodeId,
-    nodeKind: resolveNodeKind(resolvedNodeType),
+    nodeKind: symbol || resolvedNodeType === 'symbol' || resolvedNodeType === 'variable'
+      ? 'symbol'
+      : resolveNodeKind(resolvedNodeType),
     nodeType: resolvedNodeType,
+    symbol,
   };
 }
 
@@ -34,14 +48,20 @@ export function classifyGraphContextNodeTargets(
   targetIds: readonly string[],
   nodes: readonly GraphContextNodeSource[] | undefined,
 ): GraphContextNodeTarget[] {
-  const nodeTypes = nodes ? createNodeTypeMap(nodes) : undefined;
+  const nodeMap = nodes ? createNodeMap(nodes) : undefined;
   return targetIds.map(targetId =>
-    classifyGraphContextNodeTarget(targetId, nodeTypes?.get(targetId))
+    classifyGraphContextNodeTarget(
+      targetId,
+      nodeMap?.get(targetId)?.nodeType,
+      nodeMap?.get(targetId)?.symbol,
+    )
   );
 }
 
-function createNodeTypeMap(nodes: readonly GraphContextNodeSource[]): Map<string, string> {
-  return new Map(nodes.map(node => [node.id, node.nodeType ?? 'file']));
+function createNodeMap(
+  nodes: readonly GraphContextNodeSource[],
+): Map<string, GraphContextNodeSource> {
+  return new Map(nodes.map(node => [node.id, node]));
 }
 
 function resolveNodeKind(nodeType: string): GraphContextNodeKind {

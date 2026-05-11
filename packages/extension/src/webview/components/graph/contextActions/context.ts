@@ -1,4 +1,4 @@
-import type { GraphContextSelection } from '../contextMenu/contracts';
+import type { GraphContextMenuNode, GraphContextSelection } from '../contextMenu/contracts';
 
 export interface GraphContextActionContext {
   selectionKind: GraphContextSelection['kind'];
@@ -6,11 +6,13 @@ export interface GraphContextActionContext {
   primaryTargetId?: string;
   edgeSourceId?: string;
   edgeTargetId?: string;
+  primaryNode?: GraphContextMenuNode;
   mutationDirectory: string;
 }
 
 export function resolveGraphContextActionContext(
-  selection: GraphContextSelection
+  selection: GraphContextSelection,
+  nodes?: readonly GraphContextMenuNode[],
 ): GraphContextActionContext {
   const [primaryTargetId, secondaryTargetId] = selection.targets;
   const isEdgeSelection = selection.kind === 'edge';
@@ -19,6 +21,7 @@ export function resolveGraphContextActionContext(
     selectionKind: selection.kind,
     targetIds: selection.targets,
     primaryTargetId,
+    primaryNode: nodes?.find(node => node.id === primaryTargetId),
     edgeSourceId: isEdgeSelection ? primaryTargetId : undefined,
     edgeTargetId: isEdgeSelection ? secondaryTargetId : undefined,
     mutationDirectory: resolveMutationDirectory(primaryTargetId),
