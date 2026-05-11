@@ -1,5 +1,10 @@
 import type { GraphAppearance } from '../../appearance/model';
 import type { FGNode } from '../../model/build';
+import { getImage } from '../imageCache';
+import {
+  getGraphSectionMaterialIconPath,
+  isGraphSectionUploadedIcon,
+} from '../../sectionFrames/icons';
 
 export interface RenderCollapsedSectionBadgeOptions {
   appearance: Pick<GraphAppearance, 'labelForeground' | 'nodeSelectionBorder'>;
@@ -70,6 +75,29 @@ function renderSectionIcon({
   x,
   y,
 }: RenderCollapsedSectionBadgeOptions & { x: number; y: number }): void {
+  const icon = node.icon;
+  if (isGraphSectionUploadedIcon(icon)) {
+    const image = getImage(icon);
+    if (image) {
+      const imageSize = node.size * 0.95;
+      ctx.drawImage(image, x - imageSize / 2, y - imageSize / 2, imageSize, imageSize);
+    }
+    return;
+  }
+
+  const materialPath = getGraphSectionMaterialIconPath(icon);
+  if (materialPath && typeof Path2D !== 'undefined') {
+    const iconSize = node.size * 0.85;
+    const iconPath = new Path2D(materialPath);
+    ctx.save();
+    ctx.translate(x - iconSize / 2, y - iconSize / 2);
+    ctx.scale(iconSize / 24, iconSize / 24);
+    ctx.fillStyle = appearance.labelForeground;
+    ctx.fill(iconPath);
+    ctx.restore();
+    return;
+  }
+
   ctx.fillStyle = appearance.labelForeground;
   ctx.font = `${Math.max(10, node.size * 0.9)}px sans-serif`;
   ctx.textAlign = 'center';

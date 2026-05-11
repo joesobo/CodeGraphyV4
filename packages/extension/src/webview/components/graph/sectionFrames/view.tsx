@@ -8,6 +8,7 @@ import {
 } from 'react';
 import {
   mdiChevronUp,
+  mdiImagePlus,
   mdiPin,
 } from '@mdi/js';
 import { MdiIcon } from '../../icons/MdiIcon';
@@ -21,11 +22,18 @@ import {
   getSectionFrameDisplaySection,
   getSectionFrameRect,
   getVisibleSectionFrames,
+  type SectionFrameResizeCorner,
   type SectionFrameDragType,
   type SectionFrameGraph,
   type SectionFrameNodePosition,
   type SectionFrameRect,
 } from './model';
+import {
+  getGraphSectionMaterialIconPath,
+  GRAPH_SECTION_MATERIAL_ICONS,
+  isGraphSectionUploadedIcon,
+  readGraphSectionIconUpload,
+} from './icons';
 
 interface SectionFramesProps {
   graph?: SectionFrameGraph;
@@ -33,6 +41,7 @@ interface SectionFramesProps {
   pinnedSectionIds?: ReadonlySet<string>;
   sectionNodePositions?: ReadonlyMap<string, SectionFrameNodePosition>;
   sections: readonly GraphLayoutSection[];
+  onOpenSectionContextMenu?: (this: void, sectionId: string, event: ReactMouseEvent<HTMLDivElement>) => void;
   onUpdateSection: SectionFrameUpdateHandler;
 }
 
@@ -129,55 +138,80 @@ function SectionFrameIconInput({
   showTopbar,
   onUpdateSection,
 }: SectionFrameIconInputProps): ReactElement {
-  const [draft, setDraft] = useState(icon ?? '');
-  const shouldCommitOnBlurRef = useRef(true);
-
-  useEffect(() => {
-    setDraft(icon ?? '');
-  }, [icon, sectionId]);
-
-  function commitDraft(): void {
-    if (!shouldCommitOnBlurRef.current) {
-      shouldCommitOnBlurRef.current = true;
-      return;
-    }
-
-    if (draft !== (icon ?? '')) {
-      onUpdateSection(sectionId, { icon: draft });
-    }
-  }
-
-  function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>): void {
-    if (event.key === 'Enter') {
-      event.currentTarget.blur();
-      return;
-    }
-
-    if (event.key === 'Escape') {
-      shouldCommitOnBlurRef.current = false;
-      setDraft(icon ?? '');
-      event.currentTarget.blur();
-    }
-  }
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const materialIconPath = getGraphSectionMaterialIconPath(icon);
+  const uploadedIcon = isGraphSectionUploadedIcon(icon) ? icon : undefined;
 
   return (
-    <input
-      aria-label="Graph Section icon"
-      className="h-5 w-7 shrink-0 cursor-text rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)] text-center text-xs font-medium outline-none focus:border-[var(--cg-accent)]"
-      data-graph-section-control="true"
-      maxLength={8}
-      onBlur={commitDraft}
-      onChange={(event) => setDraft(event.target.value)}
-      onFocus={() => {
-        shouldCommitOnBlurRef.current = true;
-      }}
-      onKeyDown={handleKeyDown}
-      placeholder="+"
-      tabIndex={showTopbar ? 0 : -1}
-      value={draft}
-    />
+    <div className="flex h-5 shrink-0 items-center gap-1" data-graph-section-control="true">
+      <span className="flex h-5 w-5 items-center justify-center rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)]">
+        {uploadedIcon ? (
+          <img src={uploadedIcon} alt="" className="h-4 w-4 object-contain" />
+        ) : materialIconPath ? (
+          <MdiIcon path={materialIconPath} size={14} />
+        ) : (
+          <MdiIcon path={mdiImagePlus} size={13} />
+        )}
+      </span>
+      <select
+        aria-label="Graph Section material icon"
+        className="h-5 w-8 cursor-pointer rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)] text-xs outline-none focus:border-[var(--cg-accent)]"
+        data-graph-section-control="true"
+        onChange={(event) => onUpdateSection(sectionId, { icon: event.target.value })}
+        tabIndex={showTopbar ? 0 : -1}
+        value={materialIconPath ? icon : ''}
+      >
+        <option value="">None</option>
+        {GRAPH_SECTION_MATERIAL_ICONS.map(option => (
+          <option key={option.id} value={option.id}>{option.label}</option>
+        ))}
+      </select>
+      <button
+        aria-label="Upload Graph Section icon"
+        className="flex h-5 w-5 items-center justify-center rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)] hover:bg-[var(--cg-accent)]"
+        data-graph-section-control="true"
+        onClick={(event) => {
+          event.stopPropagation();
+          fileInputRef.current?.click();
+        }}
+        tabIndex={showTopbar ? 0 : -1}
+        type="button"
+      >
+        <MdiIcon path={mdiImagePlus} size={13} />
+      </button>
+      <input
+        ref={fileInputRef}
+        aria-label="Graph Section custom icon"
+        className="sr-only"
+        data-graph-section-control="true"
+        type="file"
+        accept=".svg,.png,image/svg+xml,image/png"
+        onChange={(event) => {
+          const file = event.currentTarget.files?.[0];
+          if (!file) {
+            return;
+          }
+
+          void readGraphSectionIconUpload(file).then(nextIcon => {
+            onUpdateSection(sectionId, { icon: nextIcon });
+          });
+        }}
+        tabIndex={-1}
+      />
+    </div>
   );
 }
+
+const RESIZE_HANDLES: Array<{
+  corner: SectionFrameResizeCorner;
+  className: string;
+  cursor: string;
+}> = [
+  { corner: 'northwest', className: 'left-0 top-0 border-l-2 border-t-2', cursor: 'cursor-nw-resize' },
+  { corner: 'northeast', className: 'right-0 top-0 border-r-2 border-t-2', cursor: 'cursor-ne-resize' },
+  { corner: 'southwest', className: 'bottom-0 left-0 border-b-2 border-l-2', cursor: 'cursor-sw-resize' },
+  { corner: 'southeast', className: 'bottom-0 right-0 border-b-2 border-r-2', cursor: 'cursor-se-resize' },
+];
 
 function applySectionFrameElementRect(
   element: HTMLDivElement,
@@ -210,6 +244,7 @@ export function SectionFrames({
   pinnedSectionIds = new Set<string>(),
   sectionNodePositions = new Map<string, SectionFrameNodePosition>(),
   sections,
+  onOpenSectionContextMenu,
   onUpdateSection,
 }: SectionFramesProps): ReactElement | null {
   const frameElementsRef = useRef(new Map<string, HTMLDivElement>());
@@ -281,6 +316,15 @@ export function SectionFrames({
     return getSectionFrameDisplaySection(section, sectionNodePositions.get(section.id));
   }
 
+  function handleHeaderContextMenu(
+    event: ReactMouseEvent<HTMLDivElement>,
+    sectionId: string,
+  ): void {
+    event.preventDefault();
+    event.stopPropagation();
+    onOpenSectionContextMenu?.(sectionId, event);
+  }
+
   return (
     <div className="pointer-events-none absolute inset-0 z-10" data-testid="graph-section-frames">
       {visibleSections.map(section => {
@@ -313,6 +357,7 @@ export function SectionFrames({
                 'relative flex h-7 cursor-grab items-center gap-1 border-b px-1 pr-9 active:cursor-grabbing',
                 showTopbar ? 'pointer-events-auto' : 'pointer-events-none',
               ].join(' ')}
+              onContextMenu={(event) => handleHeaderContextMenu(event, section.id)}
               style={{
                 backgroundColor: `${section.color}22`,
                 borderColor: section.color,
@@ -364,13 +409,24 @@ export function SectionFrames({
                 </span>
               ) : null}
             </div>
-            <div
-              data-graph-section-control="true"
-              data-testid={`graph-section-resize-${section.id}`}
-              className="pointer-events-auto absolute bottom-0 right-0 h-3 w-3 cursor-se-resize border-b-2 border-r-2"
-              onMouseDown={(event) => beginDrag(event, getDisplaySection(section), 'resize')}
-              style={{ borderColor: section.color }}
-            />
+            {RESIZE_HANDLES.map(handle => (
+              <div
+                key={handle.corner}
+                data-graph-section-control="true"
+                data-testid={
+                  handle.corner === 'southeast'
+                    ? `graph-section-resize-${section.id}`
+                    : `graph-section-resize-${section.id}-${handle.corner}`
+                }
+                className={[
+                  'pointer-events-auto absolute h-3 w-3',
+                  handle.cursor,
+                  handle.className,
+                ].join(' ')}
+                onMouseDown={(event) => beginDrag(event, getDisplaySection(section), `resize:${handle.corner}`)}
+                style={{ borderColor: section.color }}
+              />
+            ))}
           </div>
         );
       })}

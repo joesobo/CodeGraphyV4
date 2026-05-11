@@ -52,8 +52,14 @@ function applyLiveNodePosition(
   if (typeof width === 'number' && Number.isFinite(width)) {
     drag.nodePosition.sectionWidth = nextWidth;
   }
-  const centerX = drag.section.x + (nextWidth / 2);
-  const centerY = drag.section.y + (nextHeight / 2);
+  const nextX = typeof update.updates.x === 'number' && Number.isFinite(update.updates.x)
+    ? update.updates.x
+    : drag.section.x;
+  const nextY = typeof update.updates.y === 'number' && Number.isFinite(update.updates.y)
+    ? update.updates.y
+    : drag.section.y;
+  const centerX = nextX + (nextWidth / 2);
+  const centerY = nextY + (nextHeight / 2);
   drag.nodePosition.x = centerX;
   drag.nodePosition.y = centerY;
   drag.nodePosition.fx = centerX;

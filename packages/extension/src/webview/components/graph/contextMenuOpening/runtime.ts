@@ -30,6 +30,7 @@ export interface GraphContextMenuOpeningRuntime {
   handleMouseDownCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
   handleMouseMoveCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
   handleMouseUpCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
+  handleNodeContextMenuById(this: void, nodeId: string, event: MouseEvent): void;
   handleNodeRightClick(this: void, node: FGNode, event: MouseEvent): void;
 }
 
@@ -125,6 +126,9 @@ function createGraphContextMenuOpeningHandlers(
     },
     handleMouseUpCapture: event => {
       contextMenuRuntime.handleMouseUpCapture({ button: event.button });
+    },
+    handleNodeContextMenuById: (nodeId, event) => {
+      interactionHandlers.openNodeContextMenu(nodeId, event);
     },
     handleNodeRightClick: (node, event) => {
       interactionHandlers.openNodeContextMenu(node.id, event);

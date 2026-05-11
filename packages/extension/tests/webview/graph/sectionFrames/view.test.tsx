@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SectionFrames } from '../../../../src/webview/components/graph/sectionFrames/view';
 import type { GraphLayoutOwnership, GraphLayoutSection } from '../../../../src/shared/settings/graphLayout';
@@ -18,6 +18,7 @@ const section: GraphLayoutSection = {
 
 function renderSectionFrames(overrides: Partial<GraphLayoutSection> = {}) {
   const onUpdateSection = vi.fn();
+  const onOpenSectionContextMenu = vi.fn();
   render(
     <SectionFrames
       graph={{
@@ -26,11 +27,12 @@ function renderSectionFrames(overrides: Partial<GraphLayoutSection> = {}) {
       }}
       sections={[{ ...section, ...overrides }]}
       pinnedSectionIds={new Set(['section-1'])}
+      onOpenSectionContextMenu={onOpenSectionContextMenu}
       onUpdateSection={onUpdateSection}
     />,
   );
 
-  return { onUpdateSection };
+  return { onOpenSectionContextMenu, onUpdateSection };
 }
 
 function renderSectionFramesWithLiveNodePosition() {
@@ -125,12 +127,35 @@ describe('graph/sectionFrames/view', () => {
     expect(screen.getByLabelText('Graph Section label')).toHaveClass('w-24');
     expect(screen.getByLabelText('Graph Section label')).not.toHaveClass('flex-1');
     expect(screen.getByLabelText('Graph Section color')).toHaveClass('absolute', 'right-1', 'top-1');
+    for (const corner of ['northwest', 'northeast', 'southwest']) {
+      expect(screen.getByTestId(`graph-section-resize-section-1-${corner}`)).toHaveClass('pointer-events-auto');
+      expect(screen.getByTestId(`graph-section-resize-section-1-${corner}`)).toHaveStyle({
+        borderColor: '#60a5fa',
+      });
+    }
     expect(screen.getByTestId('graph-section-resize-section-1')).toHaveClass('pointer-events-auto');
     expect(screen.getByTestId('graph-section-resize-section-1')).toHaveStyle({
       borderColor: '#60a5fa',
     });
+    expect(screen.getByLabelText('Graph Section material icon')).toHaveValue('');
+    expect(screen.getByLabelText('Graph Section custom icon')).toHaveAttribute('type', 'file');
+    expect(screen.getByLabelText('Graph Section custom icon')).toHaveAttribute('accept', '.svg,.png,image/svg+xml,image/png');
     expect(screen.getByLabelText('Graph Section label')).toHaveValue('Section 1');
     expect(screen.getByLabelText('Graph Section color')).toHaveValue('#60a5fa');
+  });
+
+  it('opens the section-specific context menu from the expanded header', () => {
+    const { onOpenSectionContextMenu } = renderSectionFrames();
+
+    fireEvent.contextMenu(screen.getByTestId('graph-section-drag-handle-section-1'), {
+      clientX: 120,
+      clientY: 80,
+    });
+
+    expect(onOpenSectionContextMenu).toHaveBeenCalledTimes(1);
+    expect(onOpenSectionContextMenu.mock.calls[0]?.[0]).toBe('section-1');
+    expect(onOpenSectionContextMenu.mock.calls[0]?.[1].clientX).toBe(120);
+    expect(onOpenSectionContextMenu.mock.calls[0]?.[1].clientY).toBe(80);
   });
 
   it('hides the fixed-height header controls when zoomed far out', () => {
@@ -162,6 +187,7 @@ describe('graph/sectionFrames/view', () => {
     });
     expect(screen.getByLabelText('Graph Section label')).toHaveAttribute('tabindex', '-1');
     expect(screen.getByLabelText('Graph Section color')).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByLabelText('Graph Section material icon')).toHaveAttribute('tabindex', '-1');
   });
 
   it('starts hiding Section Frame header controls before labels become cramped', () => {
@@ -207,18 +233,27 @@ describe('graph/sectionFrames/view', () => {
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: 'UI Work' });
   });
 
-  it('shows and commits a Section Frame icon beside the label', () => {
-    const { onUpdateSection } = renderSectionFrames({ icon: 'TS' });
+  it('shows and commits a Material Design Section Frame icon beside the label', () => {
+    const { onUpdateSection } = renderSectionFrames({ icon: 'mdi:folder' });
 
-    expect(screen.getByLabelText('Graph Section icon')).toHaveValue('TS');
+    expect(screen.getByLabelText('Graph Section material icon')).toHaveValue('mdi:folder');
 
-    fireEvent.change(screen.getByLabelText('Graph Section icon'), { target: { value: 'UI' } });
+    fireEvent.change(screen.getByLabelText('Graph Section material icon'), { target: { value: 'mdi:code-braces' } });
 
-    expect(onUpdateSection).not.toHaveBeenCalledWith('section-1', { icon: 'UI' });
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { icon: 'mdi:code-braces' });
+  });
 
-    fireEvent.blur(screen.getByLabelText('Graph Section icon'));
+  it('uploads a custom image as the Section Frame icon', async () => {
+    const { onUpdateSection } = renderSectionFrames();
+    const file = new File(['<svg/>'], 'section.svg', { type: 'image/svg+xml' });
 
-    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { icon: 'UI' });
+    fireEvent.change(screen.getByLabelText('Graph Section custom icon'), { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(onUpdateSection).toHaveBeenCalledWith('section-1', {
+        icon: 'data:image/svg+xml;base64,PHN2Zy8+',
+      });
+    });
   });
 
   it('allows clearing the whole Section Frame label before committing it', () => {
@@ -330,6 +365,55 @@ describe('graph/sectionFrames/view', () => {
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', {
       height: 210,
       width: 320,
+    });
+  });
+
+  it('resizes a Section Frame from the northwest handle while keeping the opposite corner anchored', () => {
+    const { onUpdateSection } = renderSectionFrames();
+
+    act(() => {
+      fireEvent.mouseDown(screen.getByTestId('graph-section-resize-section-1-northwest'), { button: 0, clientX: 60, clientY: 60 });
+      fireEvent.mouseMove(window, { clientX: 100, clientY: 90 });
+      fireEvent.mouseUp(window, { clientX: 100, clientY: 90 });
+    });
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', {
+      height: 150,
+      width: 240,
+      x: -100,
+      y: -60,
+    });
+  });
+
+  it('resizes a Section Frame from the northeast handle while keeping the opposite corner anchored', () => {
+    const { onUpdateSection } = renderSectionFrames();
+
+    act(() => {
+      fireEvent.mouseDown(screen.getByTestId('graph-section-resize-section-1-northeast'), { button: 0, clientX: 340, clientY: 60 });
+      fireEvent.mouseMove(window, { clientX: 380, clientY: 90 });
+      fireEvent.mouseUp(window, { clientX: 380, clientY: 90 });
+    });
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', {
+      height: 150,
+      width: 320,
+      y: -60,
+    });
+  });
+
+  it('resizes a Section Frame from the southwest handle while keeping the opposite corner anchored', () => {
+    const { onUpdateSection } = renderSectionFrames();
+
+    act(() => {
+      fireEvent.mouseDown(screen.getByTestId('graph-section-resize-section-1-southwest'), { button: 0, clientX: 60, clientY: 240 });
+      fireEvent.mouseMove(window, { clientX: 100, clientY: 270 });
+      fireEvent.mouseUp(window, { clientX: 100, clientY: 270 });
+    });
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', {
+      height: 210,
+      width: 240,
+      x: -100,
     });
   });
 
