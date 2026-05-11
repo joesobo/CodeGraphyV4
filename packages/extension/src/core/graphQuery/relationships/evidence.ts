@@ -19,10 +19,15 @@ export function createRelationEvidence(
   symbolById: ReadonlyMap<string, IAnalysisSymbol>,
   visibleEdgeKeys: ReadonlySet<string>,
 ): RelationshipEvidence[] {
-  return (relations ?? []).flatMap((relation) => {
+  if (!relations?.length) {
+    return [];
+  }
+
+  const evidenceItems: RelationshipEvidence[] = [];
+  for (const relation of relations) {
     const to = relationTo(relation);
     if (!to) {
-      return [];
+      continue;
     }
 
     const evidence = {
@@ -32,15 +37,17 @@ export function createRelationEvidence(
     };
 
     if (!visibleEdgeKeys.has(edgeKey({ ...evidence, kind: evidence.edgeType }))) {
-      return [];
+      continue;
     }
 
-    return [{
+    evidenceItems.push({
       ...evidence,
       provenance: createProvenance(relation),
       symbol: createRelationshipSymbol(relation.kind, relation, symbolById),
-    }];
-  });
+    });
+  }
+
+  return evidenceItems;
 }
 
 export function createStructuralEvidence(

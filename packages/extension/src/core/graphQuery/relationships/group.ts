@@ -1,35 +1,10 @@
 import type {
   GraphQueryRelationshipKindGroup,
   GraphQueryRelationshipReportItem,
-  GraphQueryRelationshipSymbol,
 } from '../model';
-import { sortItems } from '../sort';
 import type { RelationshipEvidence } from './model';
-
-function evidenceGroupKey(evidence: RelationshipEvidence): string {
-  return `${evidence.from}\u0000${evidence.to}`;
-}
-
-function relationshipGroupKey(evidence: RelationshipEvidence): string {
-  return `${evidence.edgeType}\u0000${evidence.provenance?.pluginId ?? ''}\u0000${evidence.provenance?.sourceId ?? ''}`;
-}
-
-function symbolKey(symbol: GraphQueryRelationshipSymbol): string {
-  return `${symbol.name}\u0000${symbol.kind ?? ''}\u0000${symbol.range?.startLine ?? ''}\u0000${symbol.range?.endLine ?? ''}`;
-}
-
-function appendSymbol(
-  relationship: GraphQueryRelationshipKindGroup,
-  symbol: GraphQueryRelationshipSymbol | undefined,
-): void {
-  if (!symbol) {
-    return;
-  }
-
-  if (!relationship.symbols.some((item) => symbolKey(item) === symbolKey(symbol))) {
-    relationship.symbols.push(symbol);
-  }
-}
+import { evidenceGroupKey, relationshipGroupKey } from './groupKeys';
+import { appendUniqueSymbol } from './groupSymbols';
 
 export function groupRelationshipEvidence(evidenceItems: readonly RelationshipEvidence[]): GraphQueryRelationshipReportItem[] {
   const groups = new Map<string, GraphQueryRelationshipReportItem>();
@@ -47,12 +22,15 @@ export function groupRelationshipEvidence(evidenceItems: readonly RelationshipEv
         relationships: [],
       };
       groups.set(groupKey, group);
+    }
+
+    if (!relationshipsByKey) {
       relationshipsByKey = new Map();
       relationshipIndexes.set(groupKey, relationshipsByKey);
     }
 
     const relationshipKey = relationshipGroupKey(evidence);
-    let relationship = relationshipsByKey?.get(relationshipKey);
+    let relationship = relationshipsByKey.get(relationshipKey);
     if (!relationship) {
       relationship = {
         edgeType: evidence.edgeType,
@@ -60,19 +38,14 @@ export function groupRelationshipEvidence(evidenceItems: readonly RelationshipEv
         symbols: [],
       };
       group.relationships.push(relationship);
-      relationshipsByKey?.set(relationshipKey, relationship);
+      relationshipsByKey.set(relationshipKey, relationship);
     }
 
-    appendSymbol(relationship, evidence.symbol);
+    appendUniqueSymbol(relationship, evidence.symbol);
   }
 
   return [...groups.values()].map((group) => ({
     ...group,
-    relationships: sortItems(
-      group.relationships,
-      undefined,
-      [{ by: 'edgeType', direction: 'asc' }],
-      (item, field) => field === 'edgeType' ? item.edgeType : '',
-    ),
+    relationships: [...group.relationships].sort((left, right) => left.edgeType.localeCompare(right.edgeType)),
   }));
 }

@@ -2,27 +2,13 @@ import type { IAnalysisRelation, IAnalysisSymbol } from '../../plugins/types/con
 import type { GraphQueryData } from '../data';
 import type { GraphQuerySymbolReportItem, GraphQuerySymbolsConfig } from '../model';
 import { toSymbolReportBase } from './metadata';
+import { relationMatchesConfig } from './relationshipFilters';
 import { getScopedSymbols } from './scope';
 
-export function hasRelationshipFilters(config: GraphQuerySymbolsConfig): boolean {
-  return Boolean(config.relatedFrom || config.relatedTo || config.edgeType);
-}
+export { hasRelationshipFilters } from './relationshipFilters';
 
-function createSymbolMap(symbols: readonly IAnalysisSymbol[] | undefined): Map<string, IAnalysisSymbol> {
-  return new Map((symbols ?? []).map((symbol) => [symbol.id, symbol]));
-}
-
-function optionalValueMatches<T>(expected: T | undefined, actual: T | undefined): boolean {
-  return expected === undefined || actual === expected;
-}
-
-function relationMatchesConfig(relation: IAnalysisRelation, config: GraphQuerySymbolsConfig): boolean {
-  const from = relation.fromNodeId ?? relation.fromFilePath;
-  const to = relation.toNodeId ?? relation.toFilePath ?? undefined;
-
-  return optionalValueMatches(config.relatedFrom, from)
-    && optionalValueMatches(config.relatedTo, to)
-    && optionalValueMatches(config.edgeType, relation.kind);
+function createSymbolMap(symbols: readonly IAnalysisSymbol[]): Map<string, IAnalysisSymbol> {
+  return new Map(symbols.map((symbol) => [symbol.id, symbol]));
 }
 
 function toRelationshipSymbol(symbol: IAnalysisSymbol): GraphQuerySymbolReportItem {
@@ -57,11 +43,15 @@ export function createRelationshipSymbols(
   data: GraphQueryData,
   config: GraphQuerySymbolsConfig,
 ): GraphQuerySymbolReportItem[] {
+  if (!data.relations?.length) {
+    return [];
+  }
+
   const symbolById = createSymbolMap(getScopedSymbols(data, config));
   const symbols: GraphQuerySymbolReportItem[] = [];
   const seen = new Set<string>();
 
-  for (const relation of data.relations ?? []) {
+  for (const relation of data.relations) {
     if (!relationMatchesConfig(relation, config)) {
       continue;
     }
