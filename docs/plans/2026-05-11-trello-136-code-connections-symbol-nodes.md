@@ -298,3 +298,13 @@ PR evidence:
   - `tests/extension/pipeline/graph/build.test.ts`
 - Green typecheck:
   - `pnpm --filter @codegraphy/extension typecheck`
+
+### 2026-05-11 Slice 9: Docs And Changesets
+
+- Updated Settings docs for Symbols/Variables Graph Scope, `contains`, symbol Legend defaults, and Godot `class_name` styling.
+- Updated MCP docs for symbol Graph Scope, `contains`, canonical symbol payloads, and Godot symbol prompts.
+- Updated plugin API docs for symbol declarations, metadata, symbol relation endpoints, and Variable Node projection.
+- Updated Godot docs for `class_name` declaration symbols.
+- Added a changeset for the extension, plugin API, Godot plugin, and MCP package.
+- Green release check:
+  - `pnpm changeset status --since main`
