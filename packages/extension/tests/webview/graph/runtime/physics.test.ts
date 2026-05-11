@@ -852,6 +852,53 @@ describe('physics', () => {
     expect(nodes[1].vy).toBeLessThan(0);
   });
 
+  it('cancels leaked root-origin center pull for Section Members before local centering', () => {
+    const force = createGraphSectionBoundsForce({
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': {
+          ...GRAPH_LAYOUT.sections['section-1'],
+          x: 900,
+          y: -300,
+          height: 200,
+          width: 200,
+        },
+      },
+    }, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 1,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 200,
+        sectionWidth: 200,
+        x: 1000,
+        y: -200,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: -975,
+        vy: 225,
+        x: 975,
+        y: -225,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(1);
+
+    expect(nodes[1].vx).toBeGreaterThan(0);
+    expect(nodes[1].vy).toBeGreaterThan(0);
+  });
+
   it('uses the configured repel force for local Section Member physics', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
       settings: {
