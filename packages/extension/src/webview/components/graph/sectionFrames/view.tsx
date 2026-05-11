@@ -139,12 +139,23 @@ function SectionFrameIconInput({
   onUpdateSection,
 }: SectionFrameIconInputProps): ReactElement {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [open, setOpen] = useState(false);
   const materialIconPath = getGraphSectionMaterialIconPath(icon);
   const uploadedIcon = isGraphSectionUploadedIcon(icon) ? icon : undefined;
 
   return (
-    <div className="flex h-5 shrink-0 items-center gap-1" data-graph-section-control="true">
-      <span className="flex h-5 w-5 items-center justify-center rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)]">
+    <div className="relative flex h-5 shrink-0 items-center" data-graph-section-control="true">
+      <button
+        aria-label="Choose Graph Section icon"
+        className="flex h-5 w-5 items-center justify-center rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)] hover:bg-[var(--cg-accent)]"
+        data-graph-section-control="true"
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen(previous => !previous);
+        }}
+        tabIndex={showTopbar ? 0 : -1}
+        type="button"
+      >
         {uploadedIcon ? (
           <img src={uploadedIcon} alt="" className="h-4 w-4 object-contain" />
         ) : materialIconPath ? (
@@ -152,33 +163,41 @@ function SectionFrameIconInput({
         ) : (
           <MdiIcon path={mdiImagePlus} size={13} />
         )}
-      </span>
-      <select
-        aria-label="Graph Section material icon"
-        className="h-5 w-8 cursor-pointer rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)] text-xs outline-none focus:border-[var(--cg-accent)]"
-        data-graph-section-control="true"
-        onChange={(event) => onUpdateSection(sectionId, { icon: event.target.value })}
-        tabIndex={showTopbar ? 0 : -1}
-        value={materialIconPath ? icon : ''}
-      >
-        <option value="">None</option>
-        {GRAPH_SECTION_MATERIAL_ICONS.map(option => (
-          <option key={option.id} value={option.id}>{option.label}</option>
-        ))}
-      </select>
-      <button
-        aria-label="Upload Graph Section icon"
-        className="flex h-5 w-5 items-center justify-center rounded-sm border border-[var(--cg-border)] bg-[rgba(15,23,42,0.18)] hover:bg-[var(--cg-accent)]"
-        data-graph-section-control="true"
-        onClick={(event) => {
-          event.stopPropagation();
-          fileInputRef.current?.click();
-        }}
-        tabIndex={showTopbar ? 0 : -1}
-        type="button"
-      >
-        <MdiIcon path={mdiImagePlus} size={13} />
       </button>
+      {open ? (
+        <div
+          className="absolute left-0 top-6 z-30 grid grid-cols-4 gap-1 rounded-md border border-[var(--cg-border)] bg-[var(--cg-panel-bg)] p-1 shadow-lg"
+          data-graph-section-control="true"
+          role="menu"
+        >
+          {GRAPH_SECTION_MATERIAL_ICONS.map(option => (
+            <button
+              key={option.id}
+              aria-label={`Use ${option.label} icon`}
+              className="flex h-7 w-7 items-center justify-center rounded-sm hover:bg-[var(--cg-accent)]"
+              onClick={(event) => {
+                event.stopPropagation();
+                onUpdateSection(sectionId, { icon: option.id });
+                setOpen(false);
+              }}
+              type="button"
+            >
+              <MdiIcon path={option.path} size={15} />
+            </button>
+          ))}
+          <button
+            aria-label="Upload Graph Section icon"
+            className="flex h-7 w-7 items-center justify-center rounded-sm hover:bg-[var(--cg-accent)]"
+            onClick={(event) => {
+              event.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+            type="button"
+          >
+            <MdiIcon path={mdiImagePlus} size={15} />
+          </button>
+        </div>
+      ) : null}
       <input
         ref={fileInputRef}
         aria-label="Graph Section custom icon"
@@ -354,7 +373,7 @@ export function SectionFrames({
               data-testid={`graph-section-drag-handle-${section.id}`}
               data-section-frame-header={showTopbar ? 'visible' : 'hidden'}
               className={[
-                'relative flex h-7 cursor-grab items-center gap-1 border-b px-1 pr-9 active:cursor-grabbing',
+                'relative flex h-7 cursor-grab items-center gap-1 border-b px-1 pr-16 active:cursor-grabbing',
                 showTopbar ? 'pointer-events-auto' : 'pointer-events-none',
               ].join(' ')}
               onContextMenu={(event) => handleHeaderContextMenu(event, section.id)}
@@ -387,8 +406,8 @@ export function SectionFrames({
                 label={section.label}
                 sectionId={section.id}
                 showTopbar={showTopbar}
-                onUpdateSection={onUpdateSection}
-              />
+                  onUpdateSection={onUpdateSection}
+                />
               <input
                 aria-label="Graph Section color"
                 className="absolute right-1 top-1 h-5 w-6 cursor-pointer bg-transparent p-0"
@@ -401,7 +420,7 @@ export function SectionFrames({
               {pinnedSectionIds.has(section.id) ? (
                 <span
                   aria-label="Pinned Graph Section"
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
+                  className="absolute right-9 top-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
                   data-graph-section-control="true"
                   role="img"
                 >
