@@ -161,6 +161,7 @@ export function useGraphInteractionRuntime({
   setSelectedNodes,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
   const nodeDragGroupRef = useRef<NodeDragGroupSession | null>(null);
+  const contextMenuSuppression = useContextMenuSuppression();
   const interactionHandlers = useMemo(
     () => createGraphInteractionHandlers({
       containerRef: refs.containerRef,
@@ -174,6 +175,7 @@ export function useGraphInteractionRuntime({
       graphMode,
       highlightedNeighborsRef,
       highlightedNodeRef,
+      isContextMenuSuppressed: contextMenuSuppression.isContextMenuSuppressed,
       isMacPlatform,
       lastClickRef,
       lastGraphContextEventRef,
@@ -191,6 +193,7 @@ export function useGraphInteractionRuntime({
       graphMode,
       highlightedNeighborsRef,
       highlightedNodeRef,
+      contextMenuSuppression.isContextMenuSuppressed,
       isMacPlatform,
       lastClickRef,
       lastGraphContextEventRef,
@@ -221,7 +224,6 @@ export function useGraphInteractionRuntime({
     pluginHost,
     postMessage,
   });
-  const contextMenuSuppression = useContextMenuSuppression();
   const viewportPanRuntime = useGraphViewportPanRuntime({
     containerRef: refs.containerRef,
     fg2dRef: refs.fg2dRef,

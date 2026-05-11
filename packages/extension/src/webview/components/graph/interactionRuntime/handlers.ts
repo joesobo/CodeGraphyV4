@@ -32,6 +32,7 @@ export interface GraphInteractionHandlersDependencies {
   graphMode: '2d' | '3d';
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
+  isContextMenuSuppressed?(): boolean;
   isMacPlatform: boolean;
   lastClickRef: MutableRefObject<GraphLastClickState | null>;
   lastGraphContextEventRef: MutableRefObject<number>;
