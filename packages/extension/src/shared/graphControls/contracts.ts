@@ -8,6 +8,7 @@ export interface IGraphNodeTypeDefinition {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  parentId?: NodeType;
 }
 
 export interface IGraphEdgeTypeDefinition {

@@ -12,6 +12,7 @@ interface ScopeRowProps {
   enabled: boolean;
   label: string;
   onCheckedChange: (visible: boolean) => void;
+  nested?: boolean;
 }
 
 interface NodeTypeRowsProps {
@@ -37,10 +38,14 @@ function ScopeRow({
   color,
   enabled,
   label,
+  nested = false,
   onCheckedChange,
 }: ScopeRowProps): React.ReactElement {
   return (
-    <div className={resolveScopeRowClassName(enabled)} data-scope-row={label}>
+    <div
+      className={cn(resolveScopeRowClassName(enabled), nested && 'pl-7')}
+      data-scope-row={label}
+    >
       <span
         className="h-3 w-3 shrink-0 rounded-full border border-border"
         style={{ backgroundColor: color }}
@@ -64,8 +69,17 @@ export function NodeTypeRows({
   const symbolsEnabled = symbolDefinition
     ? (nodeVisibility.symbol ?? symbolDefinition.defaultVisible)
     : false;
+  const variableDefinition = nodeTypes.find((nodeType) => nodeType.id === 'variable');
+  const variablesEnabled = variableDefinition
+    ? (nodeVisibility.variable ?? variableDefinition.defaultVisible)
+    : false;
   const visibleNodeTypes = nodeTypes.filter((nodeType) => (
-    nodeType.id !== 'variable' || symbolsEnabled
+    (nodeType.id !== 'variable' || symbolsEnabled)
+    && (!nodeType.parentId || (
+      nodeType.parentId === 'symbol'
+        ? symbolsEnabled
+        : symbolsEnabled && variablesEnabled
+    ))
   ));
 
   return (
@@ -80,6 +94,7 @@ export function NodeTypeRows({
             color={color}
             enabled={enabled}
             label={nodeType.label}
+            nested={Boolean(nodeType.parentId)}
             onCheckedChange={(visible) => {
               postMessage({
                 type: 'UPDATE_NODE_VISIBILITY',

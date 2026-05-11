@@ -13,7 +13,18 @@ describe('shared/graphControls/defaults/maps', () => {
       folder: false,
       package: false,
       symbol: false,
+      'symbol:function': true,
+      'symbol:method': true,
+      'symbol:class': true,
+      'symbol:interface': true,
+      'symbol:type': true,
+      'symbol:struct': true,
+      'symbol:enum': true,
+      'symbol:namespace': true,
       variable: false,
+      'symbol:variable': true,
+      'symbol:constant': true,
+      'symbol:property': true,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
     expect(createDefaultNodeColors().file).toBeTruthy();

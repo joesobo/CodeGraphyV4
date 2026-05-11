@@ -18,13 +18,35 @@ function getDisabledNodeTypes(scope: VisibleGraphScopeConfig): Set<string> {
   return disabledNodeTypes;
 }
 
+function getDisabledSymbolKinds(scope: VisibleGraphScopeConfig): Set<string> {
+  return new Set(
+    scope.nodes
+      .filter((item) => item.type.startsWith('symbol:') && !item.enabled)
+      .map((item) => item.type.slice('symbol:'.length)),
+  );
+}
+
+function nodeMatchesScope(
+  node: IGraphData['nodes'][number],
+  disabledNodeTypes: ReadonlySet<string>,
+  disabledSymbolKinds: ReadonlySet<string>,
+): boolean {
+  if (disabledNodeTypes.has(getNodeType(node))) {
+    return false;
+  }
+
+  const symbolKind = node.symbol?.kind;
+  return !symbolKind || !disabledSymbolKinds.has(symbolKind);
+}
+
 export function applyGraphScope(
   graphData: IGraphData,
   scope: VisibleGraphScopeConfig,
 ): IGraphData {
   const disabledNodeTypes = getDisabledNodeTypes(scope);
+  const disabledSymbolKinds = getDisabledSymbolKinds(scope);
   const disabledEdgeTypes = getDisabledTypes(scope.edges);
-  const nodes = graphData.nodes.filter((node) => !disabledNodeTypes.has(getNodeType(node)));
+  const nodes = graphData.nodes.filter((node) => nodeMatchesScope(node, disabledNodeTypes, disabledSymbolKinds));
   const scopedEdges = graphData.edges.filter((edge) => !disabledEdgeTypes.has(edge.kind));
 
   return {

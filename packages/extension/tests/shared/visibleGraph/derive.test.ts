@@ -91,6 +91,66 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     });
   });
 
+  it('applies symbol-kind graph scope after the Symbols parent scope is enabled', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/app.ts'),
+          {
+            ...node('src/app.ts#build:function', 'symbol'),
+            symbol: {
+              id: 'src/app.ts#build:function',
+              name: 'build',
+              kind: 'function',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
+            ...node('src/app.ts#User:type', 'symbol'),
+            symbol: {
+              id: 'src/app.ts#User:type',
+              name: 'User',
+              kind: 'type',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
+            ...node('src/app.ts#VERSION:constant', 'variable'),
+            symbol: {
+              id: 'src/app.ts#VERSION:constant',
+              name: 'VERSION',
+              kind: 'constant',
+              filePath: 'src/app.ts',
+            },
+          },
+        ],
+        edges: [
+          edge('src/app.ts', 'src/app.ts#build:function', 'contains'),
+          edge('src/app.ts', 'src/app.ts#User:type', 'contains'),
+          edge('src/app.ts', 'src/app.ts#VERSION:constant', 'contains'),
+        ],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: true },
+            { type: 'variable', enabled: true },
+            { type: 'symbol:function', enabled: false },
+            { type: 'symbol:type', enabled: true },
+            { type: 'symbol:constant', enabled: false },
+          ],
+          edges: [{ type: 'contains', enabled: true }],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['src/app.ts', 'src/app.ts#User:type'],
+      edges: ['src/app.ts->src/app.ts#User:type#contains'],
+    });
+  });
+
   it('projects visible folder and workspace package structure with core nests edges', () => {
     const result = deriveVisibleGraph(
       {
