@@ -12,6 +12,8 @@ describe('shared/graphControls/defaults/maps', () => {
       file: true,
       folder: false,
       package: false,
+      symbol: false,
+      variable: false,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
     expect(createDefaultNodeColors().file).toBeTruthy();
