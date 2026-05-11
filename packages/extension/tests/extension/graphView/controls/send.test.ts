@@ -74,6 +74,8 @@ describe('extension/graphView/controls/send', () => {
       'file',
       'folder',
       'package',
+      'symbol',
+      'variable',
     ]);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
   });
@@ -102,6 +104,8 @@ describe('extension/graphView/controls/send', () => {
       'file',
       'folder',
       'package',
+      'symbol',
+      'variable',
     ]);
     expect(payload.edgeTypes.some((edgeType: { id: string }) => edgeType.id === 'plugin:route')).toBe(false);
   });

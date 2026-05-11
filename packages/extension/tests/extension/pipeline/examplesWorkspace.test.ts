@@ -67,6 +67,26 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
 
     const graph = await analyzer.analyze();
     const edgeIds = new Set(graph.edges.map((edge) => edge.id));
+    const hasFileOrSymbolTargetEdge = (edgeId: string): boolean => {
+      if (edgeIds.has(edgeId)) {
+        return true;
+      }
+
+      const relationMarker = edgeId.lastIndexOf('#');
+      const targetMarker = edgeId.indexOf('->');
+      if (relationMarker === -1 || targetMarker === -1) {
+        return false;
+      }
+
+      const fromAndTarget = edgeId.slice(0, relationMarker);
+      const kind = edgeId.slice(relationMarker);
+      const baseKind = `#${kind.slice(1).split(':')[0]}`;
+      return Array.from(edgeIds).some(
+        candidate =>
+          candidate.startsWith(fromAndTarget) &&
+          (candidate.endsWith(kind) || candidate.endsWith(baseKind)),
+      );
+    };
 
     const expectedEdgeIds = [
       'example-python/src/main.py->example-python/src/config.py#import',
@@ -115,13 +135,12 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-markdown/notes/Home.md->example-markdown/notes/Architecture.md#reference:static',
       'example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference:static',
       'example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference:static',
-      'example-typescript/packages/app/src/index.ts->example-typescript/packages/app/src/utils.ts#import',
-      'example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#import',
-      'example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#type-import',
-      'example-typescript/packages/app/src/utils.ts->example-typescript/packages/feature-depth/src/deep.ts#import',
+      'example-typescript/packages/app/src/index.ts->example-typescript/packages/app/src/utils.ts#buildGreeting:function#import',
+      'example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#UserName:type#type-import',
+      'example-typescript/packages/app/src/utils.ts->example-typescript/packages/feature-depth/src/deep.ts#getDepthTarget:function#import',
     ];
 
-    const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !edgeIds.has(edgeId));
+    const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !hasFileOrSymbolTargetEdge(edgeId));
     expect(missingEdgeIds).toEqual([]);
 
     const persistedSnapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);

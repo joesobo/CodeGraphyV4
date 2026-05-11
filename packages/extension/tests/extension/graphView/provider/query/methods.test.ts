@@ -51,6 +51,7 @@ describe('GraphViewProvider query methods', () => {
     })).toEqual({
       symbols: [
         {
+          id: 'src/b.ts#UserConfig',
           name: 'UserConfig',
           range: { startLine: 3, endLine: 8 },
         },

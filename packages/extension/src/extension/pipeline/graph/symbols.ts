@@ -192,8 +192,9 @@ export function buildSymbolNodesAndEdges(
     cacheFiles?: Record<string, { size?: number }>;
     churnCounts?: Record<string, number>;
   } = {},
-): { edges: IGraphEdge[]; nodes: IGraphNode[] } {
+): { containingFileIds: Set<string>; edges: IGraphEdge[]; nodes: IGraphNode[] } {
   const symbolIds = createCanonicalSymbolIds(fileAnalysis, workspaceRoot);
+  const containingFileIds = new Set<string>();
   const nodes: IGraphNode[] = [];
   const edges: IGraphEdge[] = [];
 
@@ -207,8 +208,13 @@ export function buildSymbolNodesAndEdges(
       });
       nodes.push(node);
       edges.push(createContainsEdge(relativeFilePath, node.id));
+      containingFileIds.add(relativeFilePath);
     }
   }
 
-  return { edges: [...edges, ...createSymbolRelationEdges(fileAnalysis, workspaceRoot)], nodes };
+  return {
+    containingFileIds,
+    edges: [...edges, ...createSymbolRelationEdges(fileAnalysis, workspaceRoot)],
+    nodes,
+  };
 }

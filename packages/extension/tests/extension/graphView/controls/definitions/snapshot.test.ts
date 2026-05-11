@@ -51,22 +51,26 @@ describe('extension/graphView/controls/snapshot', () => {
       ],
     );
 
-    expect(snapshot.nodeTypes.map(nodeType => nodeType.id)).toEqual(['file', 'folder', 'package', 'route']);
+    expect(snapshot.nodeTypes.map(nodeType => nodeType.id)).toEqual(['file', 'folder', 'package', 'symbol', 'variable', 'route']);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
     expect(snapshot.edgeTypes.some(edgeType => edgeType.id === 'custom:route')).toBe(true);
     expect(snapshot.nodeColors).toEqual({
       file: '#ABCDEF',
       folder: '#A1A1AA',
       package: '#F59E0B',
+      symbol: '#8B5CF6',
+      variable: '#14B8A6',
       route: '#123456',
     });
     expect(snapshot.nodeColorEnabled).toEqual({
       file: false,
       folder: true,
       package: true,
+      symbol: true,
+      variable: true,
       route: true,
     });
-    expect(snapshot.nodeVisibility).toEqual({ file: true, folder: true, package: false, route: false });
+    expect(snapshot.nodeVisibility).toEqual({ file: true, folder: true, package: false, symbol: false, variable: false, route: false });
     expect(snapshot.edgeVisibility).toEqual(expect.objectContaining({
       import: true,
       'plugin:route': false,
@@ -100,8 +104,8 @@ describe('extension/graphView/controls/snapshot', () => {
     );
 
     expect(snapshot.nodeColors.file).toBe('#A1A1AA');
-    expect(snapshot.nodeColorEnabled).toEqual({ file: true, folder: true, package: true });
-    expect(snapshot.nodeVisibility).toEqual({ file: true, folder: false, package: false });
+    expect(snapshot.nodeColorEnabled).toEqual({ file: true, folder: true, package: true, symbol: true, variable: true });
+    expect(snapshot.nodeVisibility).toEqual({ file: true, folder: false, package: false, symbol: false, variable: false });
     expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toContain('import');
     expect(snapshot.edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND]).toBe(true);
   });

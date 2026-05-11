@@ -123,7 +123,7 @@ describe('extension/pluginIntegration/typescript', () => {
       expect.arrayContaining([
         expect.objectContaining({
           from: 'src/index.ts',
-          to: 'src/utils.ts',
+          to: 'src/utils.ts#clamp:function',
         }),
       ]),
     );
@@ -137,7 +137,7 @@ describe('extension/pluginIntegration/typescript', () => {
         expect.arrayContaining([
           expect.objectContaining({
             from: 'src/index.ts',
-            to: 'src/utils.ts',
+            to: 'src/utils.ts#clamp:function',
           }),
         ]),
       );
