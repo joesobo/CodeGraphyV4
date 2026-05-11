@@ -64,6 +64,53 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
   });
 
+  it('enables Contains when Symbols is enabled', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false } as T;
+        }
+        if (key === 'edgeVisibility') {
+          return { contains: false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'nodeVisibility', { symbol: true });
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'edgeVisibility', { contains: true });
+    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
+  });
+
+  it('turns Variables off when Symbols is disabled', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
+        key === 'nodeVisibility'
+          ? { symbol: true, variable: true } as T
+          : defaultValue
+      )),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol', visible: false } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
+      symbol: false,
+      variable: false,
+    });
+  });
+
   it('returns false for unrelated messages without updating settings', async () => {
     const handlers = createHandlers();
 
