@@ -154,6 +154,7 @@ export function GraphViewportShell({
       handleMouseMoveCapture={interactions.handleMouseMoveCapture}
       handleMouseUpCapture={interactions.handleMouseUpCapture}
       menuEntries={viewportModel.menuEntries}
+      marqueeSelection={interactions.marqueeSelection}
       surface2dProps={{
         fg2dRef: graphState.fg2dRef,
         getArrowColor: callbacks.getArrowColor,
