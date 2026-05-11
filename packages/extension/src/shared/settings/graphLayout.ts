@@ -16,13 +16,38 @@ export interface GraphLayoutPinnedNode {
 }
 
 export interface GraphLayoutSettings {
+  collapsedNodes: Record<string, boolean>;
   pinnedNodes: Record<string, GraphLayoutPinnedNode>;
 }
 
 export function createDefaultGraphLayoutSettings(): GraphLayoutSettings {
   return {
+    collapsedNodes: {},
     pinnedNodes: {},
   };
+}
+
+export const DEFAULT_GRAPH_LAYOUT_SETTINGS: GraphLayoutSettings = createDefaultGraphLayoutSettings();
+
+export function getCollapsedGraphNodeIds(graphLayout: GraphLayoutSettings): string[] {
+  return Object.entries(graphLayout.collapsedNodes)
+    .filter(([, collapsed]) => collapsed)
+    .map(([nodeId]) => nodeId);
+}
+
+export function setGraphLayoutNodeCollapsed(
+  graphLayout: GraphLayoutSettings,
+  nodeId: string,
+  collapsed: boolean,
+): GraphLayoutSettings {
+  const collapsedNodes = { ...graphLayout.collapsedNodes };
+  if (collapsed) {
+    collapsedNodes[nodeId] = true;
+  } else {
+    delete collapsedNodes[nodeId];
+  }
+
+  return { ...graphLayout, collapsedNodes };
 }
 
 export function getGraphLayoutPinCoordinate(

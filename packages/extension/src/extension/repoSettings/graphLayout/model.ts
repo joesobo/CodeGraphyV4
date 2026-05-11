@@ -1,6 +1,7 @@
 import { isPlainObject } from '../store/model/plainObject';
 import {
   createDefaultGraphLayoutSettings,
+  setGraphLayoutNodeCollapsed,
   type GraphLayoutCoordinate2D,
   type GraphLayoutCoordinate3D,
   type GraphLayoutMode,
@@ -9,6 +10,7 @@ import {
 } from '../../../shared/settings/graphLayout';
 
 export { createDefaultGraphLayoutSettings };
+export { setGraphLayoutNodeCollapsed };
 export type {
   GraphLayoutCoordinate2D,
   GraphLayoutCoordinate3D,
@@ -99,12 +101,28 @@ function normalizePinnedNodes(value: unknown): Record<string, GraphLayoutPinnedN
   return pinnedNodes;
 }
 
+function normalizeCollapsedNodes(value: unknown): Record<string, boolean> {
+  if (!isPlainObject(value)) {
+    return {};
+  }
+
+  const collapsedNodes: Record<string, boolean> = {};
+  for (const [key, entryValue] of Object.entries(value)) {
+    if (typeof entryValue === 'boolean') {
+      collapsedNodes[key] = entryValue;
+    }
+  }
+
+  return collapsedNodes;
+}
+
 export function normalizeGraphLayoutSettings(value: unknown): GraphLayoutSettings {
   if (!isPlainObject(value)) {
     return createDefaultGraphLayoutSettings();
   }
 
   return {
+    collapsedNodes: normalizeCollapsedNodes(value.collapsedNodes),
     pinnedNodes: normalizePinnedNodes(value.pinnedNodes),
   };
 }

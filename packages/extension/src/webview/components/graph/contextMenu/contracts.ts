@@ -26,7 +26,9 @@ export type BuiltInContextMenuAction =
   | 'refresh'
   | 'fitView'
   | 'createFile'
-  | 'createFolder';
+  | 'createFolder'
+  | 'collapseNode'
+  | 'expandNode';
 
 export type GraphContextMenuAction =
   | { kind: 'builtin'; action: BuiltInContextMenuAction }
@@ -58,6 +60,7 @@ export interface GraphContextMenuNode {
   label?: string;
   color?: string;
   nodeType?: string;
+  isCollapsed?: boolean;
 }
 
 export interface BuildGraphContextMenuOptions {

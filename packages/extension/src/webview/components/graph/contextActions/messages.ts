@@ -50,6 +50,18 @@ export function createCreateFolderEffects(directory = '.'): GraphContextEffect[]
   return [createPostMessageEffect({ type: 'CREATE_FOLDER', payload: { directory } })];
 }
 
+export function createGraphLayoutCollapseEffects(
+  nodeId: string | undefined,
+  collapsed: boolean,
+): GraphContextEffect[] {
+  return nodeId
+    ? [createPostMessageEffect({
+        type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE',
+        payload: { nodeId, collapsed },
+      })]
+    : [];
+}
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }

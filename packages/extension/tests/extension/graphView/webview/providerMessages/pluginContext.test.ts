@@ -171,6 +171,7 @@ describe('graph view provider listener plugin context', () => {
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
+        collapsedNodes: {},
         pinnedNodes: {},
       },
     });

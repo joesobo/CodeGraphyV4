@@ -5,7 +5,7 @@ function createHandlers() {
   return {
     getFilterPatterns: vi.fn(() => ['dist/**']),
     getPluginFilterPatterns: vi.fn(() => ['venv/**']),
-    getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
+    getConfig: vi.fn(<T>(_key: string, defaultValue: T): T => defaultValue),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendDepthState: vi.fn(),
