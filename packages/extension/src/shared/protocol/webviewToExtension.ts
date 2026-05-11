@@ -50,6 +50,10 @@ export type WebviewToExtensionMessage =
       };
     }
   | {
+      type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE';
+      payload: { nodeId: string; collapsed: boolean };
+    }
+  | {
       type: 'CREATE_GRAPH_LAYOUT_SECTION';
       payload: GraphLayoutSectionCreate;
     }

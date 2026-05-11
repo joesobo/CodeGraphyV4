@@ -57,6 +57,7 @@ const PHYSICS_SETTINGS: IPhysicsSettings = {
 };
 
 const GRAPH_LAYOUT: GraphLayoutSettings = {
+	collapsedNodes: {},
 	pinnedNodes: {},
 	sections: {
 		'section-1': {

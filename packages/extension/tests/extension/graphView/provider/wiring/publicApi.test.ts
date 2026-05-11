@@ -203,9 +203,10 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(webviewMethods.sendToWebview).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
+        collapsedNodes: {},
+        ownership: {},
         pinnedNodes: {},
         sections: {},
-        ownership: {},
       },
     });
     expect(target._methodContainers.timeline.invalidateTimelineCache).toHaveBeenCalledTimes(1);

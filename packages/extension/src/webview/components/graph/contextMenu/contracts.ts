@@ -18,6 +18,8 @@ export type BuiltInContextMenuAction =
   | 'toggleFavorite'
   | 'pinNode'
   | 'unpinNode'
+  | 'collapseNode'
+  | 'expandNode'
   | 'createGraphSection'
   | 'expandGraphSection'
   | 'collapseGraphSection'
@@ -62,6 +64,7 @@ export interface GraphContextMenuNode {
   id: string;
   label?: string;
   color?: string;
+  isCollapsed?: boolean;
   isCollapsedGraphSection?: boolean;
   isGraphSection?: boolean;
   nodeType?: string;

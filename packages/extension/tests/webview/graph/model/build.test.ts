@@ -56,6 +56,7 @@ describe('graph/model/build', () => {
       bidirectionalMode: 'separate',
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {},
         sections: {
           'section-1': {
@@ -151,6 +152,7 @@ describe('graph/model/build', () => {
       bidirectionalMode: 'separate',
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {},
         sections: {
           'section-1': {

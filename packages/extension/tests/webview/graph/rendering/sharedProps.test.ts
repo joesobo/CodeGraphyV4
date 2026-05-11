@@ -49,7 +49,6 @@ function createOptions(
     onLinkClick: vi.fn(),
     onLinkRightClick: vi.fn(),
     onNodeClick: vi.fn(),
-    onNodeDrag: vi.fn(),
     onNodeDragEnd: vi.fn(),
     onNodeHover: vi.fn(),
     onNodeRightClick: vi.fn(),
@@ -118,7 +117,6 @@ describe('graph/rendering/surface/sharedProps', () => {
       onLinkClick: vi.fn(),
       onLinkRightClick: vi.fn(),
       onNodeClick: vi.fn(),
-      onNodeDrag: vi.fn(),
       onNodeDragEnd: vi.fn(),
       onNodeHover: vi.fn(),
       onNodeRightClick: vi.fn(),
@@ -128,12 +126,11 @@ describe('graph/rendering/surface/sharedProps', () => {
     const link = createLink();
     const clickEvent = new MouseEvent('click');
     const contextEvent = new MouseEvent('contextmenu');
-    const translate = { x: 8, y: -3 };
 
     props.onNodeClick(node, clickEvent);
     props.onNodeRightClick(node, contextEvent);
-    props.onNodeDrag(node, translate);
-    props.onNodeDragEnd(node, translate);
+    expect(props.onNodeDragEnd).toBeDefined();
+    props.onNodeDragEnd?.(node);
     props.onLinkClick(link, clickEvent);
     props.onLinkRightClick(link, contextEvent);
     props.onBackgroundClick(clickEvent);
@@ -145,8 +142,7 @@ describe('graph/rendering/surface/sharedProps', () => {
 
     expect(handlers.onNodeClick).toHaveBeenCalledWith(node, clickEvent);
     expect(handlers.onNodeRightClick).toHaveBeenCalledWith(node, contextEvent);
-    expect(handlers.onNodeDrag).toHaveBeenCalledWith(node, translate);
-    expect(handlers.onNodeDragEnd).toHaveBeenCalledWith(node, translate);
+    expect(handlers.onNodeDragEnd).toHaveBeenCalledWith(node);
     expect(handlers.onLinkClick).toHaveBeenCalledWith(link, clickEvent);
     expect(handlers.onLinkRightClick).toHaveBeenCalledWith(link, contextEvent);
     expect(handlers.onBackgroundClick).toHaveBeenNthCalledWith(1, clickEvent);

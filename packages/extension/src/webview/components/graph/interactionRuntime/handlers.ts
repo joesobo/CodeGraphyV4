@@ -32,6 +32,7 @@ export interface GraphInteractionHandlersDependencies {
   graphMode: '2d' | '3d';
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
+  isContextMenuSuppressed?(): boolean;
   isMacPlatform: boolean;
   lastClickRef: MutableRefObject<GraphLastClickState | null>;
   lastGraphContextEventRef: MutableRefObject<number>;
@@ -39,6 +40,7 @@ export interface GraphInteractionHandlersDependencies {
   setContextSelection(selection: GraphContextSelection): void;
   setHighlightVersion(updater: (previous: number) => number): void;
   setSelectedNodes(nodeIds: string[]): void;
+  toggleFolderCollapse?(nodeId: string, collapsed: boolean): void;
 }
 
 export interface GraphInteractionHandlers {

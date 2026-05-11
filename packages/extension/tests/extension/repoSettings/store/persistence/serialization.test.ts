@@ -69,11 +69,11 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
   it('serializes graph layout pins, sections, and grouped ownership records', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.graphLayout = {
+      collapsedNodes: {},
       pinnedNodes: {
         'src/a.ts': {
           nodeId: 'src/a.ts',
-          twoDimensional: { x: 10, y: 20 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 10, y: 20 },
         },
       },
       sections: {
@@ -125,10 +125,10 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
 
     expect(parsed.graphLayout).toEqual({
+      collapsedNodes: {},
       pinnedNodes: {
         'src/a.ts': {
-          twoDimensional: { x: 10, y: 20 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 10, y: 20 },
         },
       },
       sections: {

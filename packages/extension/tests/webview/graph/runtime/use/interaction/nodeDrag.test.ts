@@ -19,6 +19,7 @@ vi.mock('../../../../../../src/webview/vscodeApi', () => ({
 
 function createLayout(ownerSectionId: string | null = null): GraphLayoutSettings {
   return {
+    collapsedNodes: {},
     pinnedNodes: {},
     sections: {
       parent: {
@@ -94,6 +95,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     postNodeDragEndMessages(
       { id: 'node', isPinned: true, ownerSectionId: 'parent', x: 120, y: 80 } as FGNode,
       {
+        collapsedNodes: {},
         pinnedNodes: {},
         sections: {
           parent: {

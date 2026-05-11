@@ -237,6 +237,9 @@ function createGraphNode(
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,
+    isCollapsible: node.isCollapsible,
+    isCollapsed: node.isCollapsed,
+    collapsedDescendantCount: node.collapsedDescendantCount,
     ownerSectionId,
     ...position,
   } as FGNode;

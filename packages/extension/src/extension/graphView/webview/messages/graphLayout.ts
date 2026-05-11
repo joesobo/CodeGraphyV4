@@ -7,6 +7,7 @@ import {
   createDefaultGraphLayoutSettings,
   deleteGraphLayoutSection,
   normalizeGraphLayoutSettings,
+  setGraphLayoutNodeCollapsed,
   setGraphLayoutNodePin,
   updateGraphLayoutSection,
   type GraphLayoutSettings,
@@ -41,10 +42,7 @@ export async function applyGraphLayoutMessage(
 ): Promise<boolean> {
   switch (message.type) {
     case 'UPDATE_GRAPH_LAYOUT_PIN': {
-      const nextLayout = setGraphLayoutNodePin(readCurrentGraphLayout(handlers), {
-        ...message.payload,
-        updatedAt: new Date().toISOString(),
-      });
+      const nextLayout = setGraphLayoutNodePin(readCurrentGraphLayout(handlers), message.payload);
 
       await persistAndSendGraphLayout(handlers, nextLayout);
       return true;
@@ -55,6 +53,17 @@ export async function applyGraphLayoutMessage(
         readCurrentGraphLayout(handlers),
         message.payload.nodeId,
         message.payload.graphMode,
+      );
+
+      await persistAndSendGraphLayout(handlers, nextLayout);
+      return true;
+    }
+
+    case 'UPDATE_GRAPH_LAYOUT_COLLAPSE': {
+      const nextLayout = setGraphLayoutNodeCollapsed(
+        readCurrentGraphLayout(handlers),
+        message.payload.nodeId,
+        message.payload.collapsed,
       );
 
       await persistAndSendGraphLayout(handlers, nextLayout);

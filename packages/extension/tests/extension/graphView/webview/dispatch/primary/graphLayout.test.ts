@@ -12,6 +12,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {},
             sections: {},
             ownership: {},
@@ -32,11 +33,11 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
-          twoDimensional: { x: 12, y: -24 },
-          updatedAt: expect.any(String),
+          '2D': { x: 12, y: -24 },
         },
       },
       sections: {},
@@ -45,11 +46,11 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     expect(context.sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
+        collapsedNodes: {},
         pinnedNodes: {
           'src/app.ts': {
             nodeId: 'src/app.ts',
-            twoDimensional: { x: 12, y: -24 },
-            updatedAt: expect.any(String),
+            '2D': { x: 12, y: -24 },
           },
         },
         sections: {},
@@ -63,11 +64,11 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {
               'src/app.ts': {
                 nodeId: 'src/app.ts',
-                twoDimensional: { x: 12, y: -24 },
-                updatedAt: '2026-05-07T08:00:00.000Z',
+                '2D': { x: 12, y: -24 },
               },
             },
             sections: {},
@@ -88,6 +89,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {},
       ownership: {},
@@ -95,6 +97,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     expect(context.sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
+        collapsedNodes: {},
         pinnedNodes: {},
         sections: {},
         ownership: {},
@@ -107,6 +110,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {},
             sections: {},
             ownership: {},
@@ -130,6 +134,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {
         'section-1': {
@@ -269,7 +274,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
 
     expect(graphLayout.pinnedNodes['section-1']).toMatchObject({
       nodeId: 'section-1',
-      twoDimensional: { x: 210, y: 180 },
+      '2D': { x: 210, y: 180 },
     });
     expect(context.updateConfig).toHaveBeenLastCalledWith('graphLayout', graphLayout);
     expect(context.sendMessage).toHaveBeenLastCalledWith({
@@ -283,6 +288,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {},
             sections: {
               'section-1': {
@@ -322,6 +328,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {
         'section-1': {
@@ -346,6 +353,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {},
             sections: {
               'section-1': {
@@ -377,6 +385,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {
         'section-1': expect.objectContaining({ label: '' }),
@@ -390,6 +399,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {},
             sections: {
               'section-1': {
@@ -422,6 +432,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {
         'section-1': expect.objectContaining({ id: 'section-1' }),
@@ -442,6 +453,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {},
             sections: {
               'section-1': {
@@ -481,6 +493,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {
         'section-1': expect.objectContaining({ id: 'section-1' }),
@@ -494,11 +507,11 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {
               'section-2': {
                 nodeId: 'section-2',
-                twoDimensional: { x: 40, y: 40 },
-                updatedAt: '2026-05-07T09:00:00.000Z',
+                '2D': { x: 40, y: 40 },
               },
             },
             sections: {
@@ -552,6 +565,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {
         'section-1': expect.objectContaining({ id: 'section-1' }),

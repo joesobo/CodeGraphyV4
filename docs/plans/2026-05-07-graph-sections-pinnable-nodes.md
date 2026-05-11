@@ -1,4 +1,4 @@
-# Graph Sections And Pinnable Nodes Plan
+# Graph Sections Plan
 
 ## Setup
 
@@ -8,19 +8,28 @@
 - Domain source: `CONTEXT.md`
 - Tracker:
   - Trello #46: `graph node sub containers for organizing code sections`
-  - Trello #26: `Pinnable nodes`
-  - Trello #20: `Multi node selection`
-  - Trello #25: `expandable nodes`
-- Status: implemented, locally verified, CI green, and ready for review on PR #203.
+  - Trello #26: `Pinnable nodes` (split out and merged before PR #203 refresh)
+  - Trello #20: `Multi node selection` (split out before PR #203 refresh)
+  - Trello #25: `expandable nodes` (split out and merged before PR #203 refresh)
+- Status: PR #203 refreshed against `main`; Graph Sections now build on mainline Graph Layout pins, folder collapse, and selection primitives instead of carrying parallel versions.
 
 ## Goal
 
-Add user-controlled layout features to the **Graph View** without changing what the **Relationship Graph** means:
+Add user-controlled **Graph Sections** to the **Graph View** without changing what the **Relationship Graph** means:
 
-1. Users can pin any node so it reopens at the same graph-space position and the force layout reacts around it.
-2. Users can create resizable visual sections that organize nodes inside the existing graph.
-3. Nodes inside a section can still have normal edges to nodes outside the section.
-4. A collapsed section can summarize edges crossing the section boundary without losing the original relationships.
+1. Users can create resizable visual sections that organize nodes inside the existing graph.
+2. Nodes inside a section can still have normal edges to nodes outside the section.
+3. A collapsed section can summarize edges crossing the section boundary without losing the original relationships.
+4. Section behavior reuses the mainline Graph Layout pin/collapse state where relevant.
+
+## Main Integration Update
+
+As of the 2026-05-11 PR refresh, pinnable nodes, desktop-style selection, and folder collapse are no longer owned by PR #203. Graph Sections should extend the existing `graphLayout` contract from `main`:
+
+- Pins stay in `graphLayout.pinnedNodes` with `2D` and `3D` coordinate records.
+- Folder collapse stays in `graphLayout.collapsedNodes`.
+- Graph Sections add `graphLayout.sections` and `graphLayout.ownership`.
+- Section Nodes may use the existing pin APIs, badges, and drag-end persistence, but PR #203 must not introduce a second pin persistence shape or a second pin badge implementation.
 
 ## Research Baseline
 
@@ -147,7 +156,7 @@ Related tracker notes:
 - 2026-05-07: A pinned Section Member moves relative to its owning Section Frame when the section moves.
 - 2026-05-07: Dragging a pinned Section Member outside its owning Section Frame updates its pin to the dropped graph-space position and removes it from that Graph Section.
 - 2026-05-07: Dragging any Section Member outside its owning Section Frame and dropping it removes the item from that Graph Section.
-- 2026-05-07: Implementation order should be persisted layout settings, pinnable nodes, multi-selection/marquee, basic expanded Graph Sections, membership/nesting, section-aware physics, collapse projection, then 2D polish/manual validation.
+- 2026-05-11: After the feature split, PR #203 implementation order is mainline Graph Layout integration, basic expanded Graph Sections, membership/nesting, section-aware physics, collapse projection, then 2D polish/manual validation.
 - 2026-05-07: Graph Toolbar `New...` menu should offer New Graph Section, New File, and New Folder.
 - 2026-05-07: A selected Section Frame is a graph placement target for New Graph Section, New File, and New Folder.
 - 2026-05-07: A selected Folder Node is a filesystem target for New File and New Folder.
@@ -287,6 +296,7 @@ The candidate shape should keep layout settings repo-local and separate from gra
 
 ```ts
 interface GraphLayoutSettings {
+  collapsedNodes: Record<string, boolean>;
   pinnedNodes: Record<string, PinnedNodeSetting>;
   sections: Record<string, GraphSectionSetting>;
   ownership: Record<string, GraphSectionOwnershipSetting>;
@@ -294,16 +304,15 @@ interface GraphLayoutSettings {
 
 interface PinnedNodeSetting {
   nodeId: string;
-  twoDimensional?: {
+  "2D"?: {
     x: number;
     y: number;
   };
-  threeDimensional?: {
+  "3D"?: {
     x: number;
     y: number;
     z: number;
   };
-  updatedAt: string;
 }
 
 interface GraphSectionSetting {
@@ -333,7 +342,7 @@ Open data-model questions:
 - Done: a node or Graph Section can have at most one direct section owner.
 - Done: section ids are generated stable ids, not label-derived slugs. Labels are editable presentation text and do not carry identity.
 - Done: pin positions are stored as graph-space coordinates relative to the graph origin, not relative to viewport pan or zoom.
-- Done: 2D and 3D pins are separate layout records. A normal graph node can have both a 2D pin and a 3D pin.
+- Done: 2D and 3D pins are separate mainline layout records using `2D` and `3D` keys. A normal graph node can have both a 2D pin and a 3D pin.
 - Done: missing node ids can remain as dormant layout records unless explicitly deleted through CodeGraphy.
 
 ## Interaction Model Draft

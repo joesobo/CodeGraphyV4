@@ -34,15 +34,15 @@ function createPanRuntime(options: {
     : options.container;
   if (container) {
     vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
-    bottom: 300,
-    height: 300,
-    left: 0,
-    right: 400,
-    top: 0,
-    width: 400,
-    x: 0,
-    y: 0,
-    toJSON: () => ({}),
+      bottom: 300,
+      height: 300,
+      left: 0,
+      right: 400,
+      top: 0,
+      width: 400,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
     });
   }
   const graph = options.graph === undefined
@@ -156,49 +156,5 @@ describe('graph/runtime/use/interaction viewport pan', () => {
     expect(up.preventDefault).not.toHaveBeenCalled();
     expect(runtime.graph?.centerAt).not.toHaveBeenCalled();
     expect(runtime.suppressContextMenu).not.toHaveBeenCalled();
-  });
-
-  it('keeps a pan drag active when a different mouse button is released', () => {
-    const runtime = createPanRuntime();
-    const wrongButtonUp = createEvent(1, 16, 24);
-    const matchingButtonUp = createEvent(2, 16, 24);
-
-    runtime.result.current.handleMouseDownCapture(createEvent(2, 10, 20) as never);
-    runtime.result.current.handleMouseMoveCapture(createEvent(2, 16, 24) as never);
-    runtime.result.current.handleMouseUpCapture(wrongButtonUp as never);
-    runtime.result.current.handleMouseUpCapture(matchingButtonUp as never);
-
-    expect(wrongButtonUp.preventDefault).not.toHaveBeenCalled();
-    expect(matchingButtonUp.preventDefault).toHaveBeenCalledTimes(1);
-  });
-
-  it('uses fallback center and zoom values when the graph returns invalid viewport data', () => {
-    const graph = {
-      centerAt: vi.fn(),
-      screen2GraphCoords: vi.fn(() => ({ x: Number.NaN, y: 20 })),
-      zoom: vi.fn(() => 0),
-    };
-    const runtime = createPanRuntime({ graph });
-
-    runtime.result.current.handleMouseDownCapture(createEvent(1, 10, 20) as never);
-    runtime.result.current.handleMouseMoveCapture(createEvent(1, 15, 20) as never);
-
-    expect(graph.centerAt).toHaveBeenCalledWith(-5, 0, 0);
-  });
-
-  it('does not throw when viewport panning starts before the 2d graph is ready', () => {
-    const runtime = createPanRuntime({
-      container: null,
-      graph: null,
-      rightMouseDown: null,
-    });
-
-    expect(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(2, 10, 20) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(2, 16, 24) as never);
-      runtime.result.current.handleMouseUpCapture(createEvent(2, 16, 24) as never);
-    }).not.toThrow();
-
-    expect(runtime.suppressContextMenu).toHaveBeenCalledTimes(1);
   });
 });

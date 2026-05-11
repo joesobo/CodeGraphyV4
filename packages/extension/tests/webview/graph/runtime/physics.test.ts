@@ -20,6 +20,7 @@ const SETTINGS: IPhysicsSettings = {
 };
 
 const GRAPH_LAYOUT: GraphLayoutSettings = {
+  collapsedNodes: {},
   pinnedNodes: {},
   sections: {
     'section-1': {
@@ -130,7 +131,7 @@ function createPackingGraphLayout(sectionCount: number): GraphLayoutSettings {
     }
   }
 
-  return { pinnedNodes: {}, sections, ownership };
+  return { collapsedNodes: {}, pinnedNodes: {}, sections, ownership };
 }
 
 function createPackingNodes(): FGNode[] {
@@ -226,7 +227,7 @@ function createVariedPackingGraphLayout(): GraphLayoutSettings {
     }
   }
 
-  return { pinnedNodes: {}, sections, ownership };
+  return { collapsedNodes: {}, pinnedNodes: {}, sections, ownership };
 }
 
 function createVariedPackingNodes(): FGNode[] {

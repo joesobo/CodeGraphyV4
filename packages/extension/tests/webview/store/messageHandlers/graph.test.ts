@@ -41,8 +41,10 @@ function createState(
     directionColor: '#ffffff',
     particleSpeed: 0,
     particleSize: 1,
+    physicsPaused: false,
     showLabels: true,
     graphMode: '2d',
+    graphViewportScale: null,
     nodeSizeMode: 'uniform',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     depthMode: false,
@@ -80,6 +82,7 @@ function createState(
     isPlaying: false,
     playbackSpeed: 1,
     graphLayout: {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {},
       ownership: {},
@@ -152,11 +155,11 @@ describe('webview/store/messageHandlers/graph', () => {
     expect([...favorites.favorites ?? []]).toEqual(['src/app.ts', 'src/lib.ts']);
 
     const graphLayout = {
+      collapsedNodes: {},
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
-          twoDimensional: { x: 12, y: 24 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 12, y: 24 },
         },
       },
       sections: {},

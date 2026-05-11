@@ -9,11 +9,11 @@ vi.mock('../../../../src/extension/repoSettings/current', () => ({
 describe('createGraphLayoutUpdatedMessage', () => {
   it('reads the current CodeGraphy graph layout and normalizes it for the webview', () => {
     const graphLayout = {
+      collapsedNodes: {},
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
-          twoDimensional: { x: 10, y: 20 },
-          updatedAt: '2026-05-07T23:00:00.000Z',
+          '2D': { x: 10, y: 20 },
         },
       },
       sections: {
@@ -48,6 +48,7 @@ describe('createGraphLayoutUpdatedMessage', () => {
       payload: graphLayout,
     });
     expect(configuration.get).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {},
       ownership: {},

@@ -114,6 +114,32 @@ describe('graph/interactionRuntime/click', () => {
     expect(applyGraphInteractionEffects).toHaveBeenCalledWith(effects, { event });
   });
 
+  it('ignores mac ctrl-background-click while context menus are suppressed after a pan drag', () => {
+    const dependencies = createInteractionDependencies({
+      isContextMenuSuppressed: () => true,
+      isMacPlatform: true,
+    });
+    const applyGraphInteractionEffects = vi.fn();
+    const setGraphCursor = vi.fn();
+    const event = {
+      ctrlKey: true,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent;
+    const handlers = createClickHandlers(dependencies, {
+      applyGraphInteractionEffects,
+      setGraphCursor,
+    });
+
+    handlers.handleBackgroundClick(event);
+
+    expect(setGraphCursor).toHaveBeenCalledWith('default');
+    expect(interactionHarness.getBackgroundClickCommand).not.toHaveBeenCalled();
+    expect(applyGraphInteractionEffects).not.toHaveBeenCalled();
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+  });
+
   it('handles link clicks through the interaction model with the clicked link and event', () => {
     const dependencies = createInteractionDependencies({ isMacPlatform: true });
     const applyGraphInteractionEffects = vi.fn();
@@ -137,5 +163,105 @@ describe('graph/interactionRuntime/click', () => {
       isMacPlatform: true,
     });
     expect(applyGraphInteractionEffects).toHaveBeenCalledWith(effects, { event, link });
+  });
+
+  it('ignores mac ctrl-node-click while context menus are suppressed after a pan drag', () => {
+    const dependencies = createInteractionDependencies({
+      isContextMenuSuppressed: () => true,
+      isMacPlatform: true,
+    });
+    const applyGraphInteractionEffects = vi.fn();
+    const event = {
+      clientX: 100,
+      clientY: 200,
+      ctrlKey: true,
+      metaKey: false,
+      preventDefault: vi.fn(),
+      shiftKey: false,
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent;
+    const handlers = createClickHandlers(dependencies, {
+      applyGraphInteractionEffects,
+      setGraphCursor: vi.fn(),
+    });
+
+    handlers.handleNodeClick({ id: 'src/app.ts', label: 'app.ts' } as FGNode, event);
+
+    expect(interactionHarness.getNodeClickCommand).not.toHaveBeenCalled();
+    expect(applyGraphInteractionEffects).not.toHaveBeenCalled();
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+  });
+
+  it('toggles a folder collapse indicator click without running normal node click behavior', () => {
+    const toggleFolderCollapse = vi.fn();
+    const dependencies = createInteractionDependencies({
+      fg2dRef: {
+        current: {
+          graph2ScreenCoords: vi.fn((x: number, y: number) => ({ x, y })),
+        } as never,
+      },
+      toggleFolderCollapse,
+    });
+    const applyGraphInteractionEffects = vi.fn();
+    const event = {
+      clientX: 88,
+      clientY: 88,
+      ctrlKey: false,
+      metaKey: false,
+      preventDefault: vi.fn(),
+      shiftKey: false,
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent;
+    const handlers = createClickHandlers(dependencies, {
+      applyGraphInteractionEffects,
+      setGraphCursor: vi.fn(),
+    });
+
+    handlers.handleNodeClick({
+      id: 'src',
+      label: 'src',
+      isCollapsible: true,
+      isCollapsed: false,
+      nodeType: 'folder',
+      size: 20,
+      x: 100,
+      y: 100,
+    } as FGNode, event);
+
+    expect(toggleFolderCollapse).toHaveBeenCalledWith('src', true);
+    expect(interactionHarness.getNodeClickCommand).not.toHaveBeenCalled();
+    expect(applyGraphInteractionEffects).not.toHaveBeenCalled();
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(event.stopPropagation).toHaveBeenCalledOnce();
+  });
+
+  it('ignores mac ctrl-link-click while context menus are suppressed after a pan drag', () => {
+    const dependencies = createInteractionDependencies({
+      isContextMenuSuppressed: () => true,
+      isMacPlatform: true,
+    });
+    const applyGraphInteractionEffects = vi.fn();
+    const link = {
+      id: 'src/app.ts->src/utils.ts',
+      from: 'src/app.ts',
+      to: 'src/utils.ts',
+    } as FGLink;
+    const event = {
+      ctrlKey: true,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+    } as unknown as MouseEvent;
+    const handlers = createClickHandlers(dependencies, {
+      applyGraphInteractionEffects,
+      setGraphCursor: vi.fn(),
+    });
+
+    handlers.handleLinkClick(link, event);
+
+    expect(interactionHarness.getLinkClickCommand).not.toHaveBeenCalled();
+    expect(applyGraphInteractionEffects).not.toHaveBeenCalled();
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
   });
 });

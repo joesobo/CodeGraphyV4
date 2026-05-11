@@ -38,6 +38,7 @@ export default function App(): React.ReactElement {
     timelineActive,
     activePanel,
     depthMode,
+    graphLayout,
     nodeColors,
     nodeVisibility,
     edgeVisibility,
@@ -74,24 +75,26 @@ export default function App(): React.ReactElement {
       edgeTypes: graphEdgeTypes,
       edgeVisibility,
       filterPatterns: [],
+      graphLayout,
       nodeVisibility,
       searchOptions,
       searchQuery: '',
       showOrphans,
     })).graphData,
-    [edgeVisibility, graphData, graphEdgeTypes, nodeVisibility, searchOptions, showOrphans],
+    [edgeVisibility, graphData, graphEdgeTypes, graphLayout, nodeVisibility, searchOptions, showOrphans],
   );
   const filterVisibleData = useMemo(
     () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
       edgeTypes: graphEdgeTypes,
       edgeVisibility,
       filterPatterns: activeFilterPatterns,
+      graphLayout,
       nodeVisibility,
       searchOptions,
       searchQuery: '',
       showOrphans,
     })).graphData,
-    [activeFilterPatterns, edgeVisibility, graphData, graphEdgeTypes, nodeVisibility, searchOptions, showOrphans],
+    [activeFilterPatterns, edgeVisibility, graphData, graphEdgeTypes, graphLayout, nodeVisibility, searchOptions, showOrphans],
   );
   const {
     filteredData,
@@ -110,6 +113,7 @@ export default function App(): React.ReactElement {
     edgeDecorations,
     activeFilterPatterns,
     showOrphans,
+    graphLayout,
   );
 
   const {

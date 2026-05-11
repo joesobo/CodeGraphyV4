@@ -2,6 +2,7 @@ export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin' | 'g
 
 export interface GraphContextNodeTarget {
   id: string;
+  isCollapsed?: boolean;
   isCollapsedGraphSection?: boolean;
   nodeKind: GraphContextNodeKind;
   nodeType: string;
@@ -9,6 +10,7 @@ export interface GraphContextNodeTarget {
 
 export interface GraphContextNodeSource {
   id: string;
+  isCollapsed?: boolean;
   isCollapsedGraphSection?: boolean;
   isGraphSection?: boolean;
   nodeType?: string;
@@ -30,6 +32,7 @@ export function classifyGraphContextNodeTarget(
 
   return {
     id: nodeId,
+    isCollapsed: nodeSource?.isCollapsed,
     isCollapsedGraphSection: isGraphSection
       ? !!nodeSource?.isCollapsedGraphSection
       : undefined,

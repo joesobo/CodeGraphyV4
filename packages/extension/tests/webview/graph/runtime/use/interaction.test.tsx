@@ -89,6 +89,7 @@ function createSelection(targets: string[]): GraphContextSelection {
 
 function createNestedGraphLayout(nodeOwner: string | null = null): GraphLayoutSettings {
   return {
+    collapsedNodes: {},
     pinnedNodes: {},
     sections: {
       'section-parent': {

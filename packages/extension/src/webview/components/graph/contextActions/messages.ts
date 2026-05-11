@@ -59,6 +59,18 @@ export function createCreateFolderEffects(directory = '.'): GraphContextEffect[]
   return [createPostMessageEffect({ type: 'CREATE_FOLDER', payload: { directory } })];
 }
 
+export function createGraphLayoutCollapseEffects(
+  nodeId: string | undefined,
+  collapsed: boolean,
+): GraphContextEffect[] {
+  return nodeId
+    ? [createPostMessageEffect({
+        type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE',
+        payload: { nodeId, collapsed },
+      })]
+    : [];
+}
+
 interface SectionBounds {
   height: number;
   width: number;

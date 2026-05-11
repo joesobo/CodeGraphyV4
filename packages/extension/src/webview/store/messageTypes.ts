@@ -39,8 +39,10 @@ export interface IStoreFields {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
+  physicsPaused: boolean;
   showLabels: boolean;
   graphMode: '2d' | '3d';
+  graphViewportScale: number | null;
   graphLayout: GraphLayoutSettings;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;

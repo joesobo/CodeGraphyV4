@@ -12,6 +12,7 @@ import {
 describe('extension/repoSettings/graphLayout/model', () => {
   it('creates empty layout state for pins, sections, and ownership', () => {
     expect(createDefaultGraphLayoutSettings()).toEqual({
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {},
       ownership: {},
@@ -20,12 +21,12 @@ describe('extension/repoSettings/graphLayout/model', () => {
 
   it('keeps dormant pin and node ownership records without requiring visible graph nodes', () => {
     expect(normalizeGraphLayoutSettings({
+      collapsedNodes: {},
       pinnedNodes: {
         'src/missing.ts': {
           nodeId: 'src/missing.ts',
-          twoDimensional: { x: 120, y: -40 },
-          threeDimensional: { x: 12, y: 24, z: -6 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 120, y: -40 },
+          '3D': { x: 12, y: 24, z: -6 },
         },
       },
       sections: {
@@ -50,12 +51,12 @@ describe('extension/repoSettings/graphLayout/model', () => {
         },
       },
     })).toEqual({
+      collapsedNodes: {},
       pinnedNodes: {
         'src/missing.ts': {
           nodeId: 'src/missing.ts',
-          twoDimensional: { x: 120, y: -40 },
-          threeDimensional: { x: 12, y: 24, z: -6 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 120, y: -40 },
+          '3D': { x: 12, y: 24, z: -6 },
         },
       },
       sections: {
@@ -84,10 +85,10 @@ describe('extension/repoSettings/graphLayout/model', () => {
 
   it('normalizes compact persisted Graph Layout records from their map keys', () => {
     expect(normalizeGraphLayoutSettings({
+      collapsedNodes: {},
       pinnedNodes: {
         'src/a.ts': {
-          twoDimensional: { x: 10, y: 20 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 10, y: 20 },
         },
       },
       sections: {
@@ -117,11 +118,11 @@ describe('extension/repoSettings/graphLayout/model', () => {
         'section-b': 'section-a',
       },
     })).toEqual({
+      collapsedNodes: {},
       pinnedNodes: {
         'src/a.ts': {
           nodeId: 'src/a.ts',
-          twoDimensional: { x: 10, y: 20 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 10, y: 20 },
         },
       },
       sections: {
@@ -215,22 +216,20 @@ describe('extension/repoSettings/graphLayout/model', () => {
 
   it('normalizes malformed layout records before settings are persisted', () => {
     expect(normalizeGraphLayoutSettings({
+      collapsedNodes: {},
       pinnedNodes: {
         good: {
           nodeId: 'good',
-          twoDimensional: { x: 1, y: 2 },
-          threeDimensional: { x: 3, y: 4, z: 5 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 1, y: 2 },
+          '3D': { x: 3, y: 4, z: 5 },
         },
         mismatch: {
           nodeId: 'other-id',
-          twoDimensional: { x: 1, y: 2 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 1, y: 2 },
         },
         invalidCoordinate: {
           nodeId: 'invalidCoordinate',
-          twoDimensional: { x: Number.POSITIVE_INFINITY, y: 2 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: Number.POSITIVE_INFINITY, y: 2 },
         },
       },
       sections: {
@@ -273,12 +272,12 @@ describe('extension/repoSettings/graphLayout/model', () => {
       },
       stray: true,
     })).toEqual({
+      collapsedNodes: {},
       pinnedNodes: {
         good: {
           nodeId: 'good',
-          twoDimensional: { x: 1, y: 2 },
-          threeDimensional: { x: 3, y: 4, z: 5 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 1, y: 2 },
+          '3D': { x: 3, y: 4, z: 5 },
         },
       },
       sections: {
@@ -539,12 +538,12 @@ describe('extension/repoSettings/graphLayout/model', () => {
 
   it('keeps descendant sections and pinned member coordinates local when moving a parent Section Frame', () => {
     const layout = normalizeGraphLayoutSettings({
+      collapsedNodes: {},
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
-          twoDimensional: { x: 60, y: 70 },
-          threeDimensional: { x: 1, y: 2, z: 3 },
-          updatedAt: '2026-05-07T09:00:00.000Z',
+          '2D': { x: 60, y: 70 },
+          '3D': { x: 1, y: 2, z: 3 },
         },
       },
       sections: {
@@ -597,19 +596,18 @@ describe('extension/repoSettings/graphLayout/model', () => {
     expect(moved.sections['section-2']).toMatchObject({ x: 40, y: 40 });
     expect(moved.pinnedNodes['src/app.ts']).toEqual({
       nodeId: 'src/app.ts',
-      twoDimensional: { x: 60, y: 70 },
-      threeDimensional: { x: 1, y: 2, z: 3 },
-      updatedAt: '2026-05-07T09:00:00.000Z',
+      '2D': { x: 60, y: 70 },
+      '3D': { x: 1, y: 2, z: 3 },
     });
   });
 
   it('deletes only a Graph Section by promoting direct children to the deleted section owner', () => {
     const layout = normalizeGraphLayoutSettings({
+      collapsedNodes: {},
       pinnedNodes: {
         'section-2': {
           nodeId: 'section-2',
-          twoDimensional: { x: 40, y: 40 },
-          updatedAt: '2026-05-07T09:00:00.000Z',
+          '2D': { x: 40, y: 40 },
         },
       },
       sections: {

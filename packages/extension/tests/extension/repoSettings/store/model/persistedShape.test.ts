@@ -74,16 +74,15 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
   it('keeps normalized graph layout settings and drops invalid layout records', () => {
     expect(normalizePersistedSettingsShape({
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {
           'src/a.ts': {
             nodeId: 'src/a.ts',
-            twoDimensional: { x: 10, y: 20 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 10, y: 20 },
           },
           bad: {
             nodeId: 'bad',
-            twoDimensional: { x: Number.NaN, y: 20 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: Number.NaN, y: 20 },
           },
         },
         sections: {
@@ -111,11 +110,11 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       graphSectionDrafts: {},
     })).toEqual({
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {
           'src/a.ts': {
             nodeId: 'src/a.ts',
-            twoDimensional: { x: 10, y: 20 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 10, y: 20 },
           },
         },
         sections: {

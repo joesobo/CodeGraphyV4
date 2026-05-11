@@ -2,6 +2,7 @@ import { isPlainObject } from '../store/model/plainObject';
 import {
   createDefaultGraphLayoutSettings,
   DEFAULT_GRAPH_SECTION_COLOR,
+  setGraphLayoutNodeCollapsed,
   type GraphLayoutCoordinate2D,
   type GraphLayoutCoordinate3D,
   type GraphLayoutMode,
@@ -15,6 +16,7 @@ import {
 } from '../../../shared/settings/graphLayout';
 
 export { createDefaultGraphLayoutSettings };
+export { setGraphLayoutNodeCollapsed };
 export type {
   GraphLayoutCoordinate2D,
   GraphLayoutCoordinate3D,
@@ -113,18 +115,30 @@ function readKeyedRecordIdentity(
   return { id, updatedAt };
 }
 
+function readKeyedRecordId(
+  value: Record<string, unknown>,
+  key: string,
+  idField: 'id' | 'nodeId',
+): string | undefined {
+  const explicitId = readString(value[idField]);
+  const id = explicitId ?? key;
+  return id === key ? id : undefined;
+}
+
 function readPinnedNodeCoordinates(
   value: Record<string, unknown>,
-): Pick<GraphLayoutPinnedNode, 'threeDimensional' | 'twoDimensional'> | undefined {
-  const twoDimensional = readCoordinate2D(value.twoDimensional);
-  const threeDimensional = readCoordinate3D(value.threeDimensional);
+): Pick<GraphLayoutPinnedNode, '2D' | '3D'> | undefined {
+  const twoDimensional = readCoordinate2D(value['2D'])
+    ?? readCoordinate2D(value.twoDimensional);
+  const threeDimensional = readCoordinate3D(value['3D'])
+    ?? readCoordinate3D(value.threeDimensional);
   if (!twoDimensional && !threeDimensional) {
     return undefined;
   }
 
   return {
-    ...(twoDimensional ? { twoDimensional } : {}),
-    ...(threeDimensional ? { threeDimensional } : {}),
+    ...(twoDimensional ? { '2D': twoDimensional } : {}),
+    ...(threeDimensional ? { '3D': threeDimensional } : {}),
   };
 }
 
@@ -136,16 +150,15 @@ function normalizePinnedNode(
     return undefined;
   }
 
-  const identity = readKeyedRecordIdentity(value, key, 'nodeId');
+  const nodeId = readKeyedRecordId(value, key, 'nodeId');
   const coordinates = readPinnedNodeCoordinates(value);
-  if (!identity || !coordinates) {
+  if (!nodeId || !coordinates) {
     return undefined;
   }
 
   return {
-    nodeId: identity.id,
+    nodeId,
     ...coordinates,
-    updatedAt: identity.updatedAt,
   };
 }
 
@@ -163,6 +176,21 @@ function normalizePinnedNodes(value: unknown): Record<string, GraphLayoutPinnedN
   }
 
   return pinnedNodes;
+}
+
+function normalizeCollapsedNodes(value: unknown): Record<string, boolean> {
+  if (!isPlainObject(value)) {
+    return {};
+  }
+
+  const collapsedNodes: Record<string, boolean> = {};
+  for (const [key, entryValue] of Object.entries(value)) {
+    if (typeof entryValue === 'boolean') {
+      collapsedNodes[key] = entryValue;
+    }
+  }
+
+  return collapsedNodes;
 }
 
 interface SectionTextFields {
@@ -477,6 +505,7 @@ export function normalizeGraphLayoutSettings(value: unknown): GraphLayoutSetting
   const sections = normalizeSections(value.sections);
 
   return {
+    collapsedNodes: normalizeCollapsedNodes(value.collapsedNodes),
     pinnedNodes: normalizePinnedNodes(value.pinnedNodes),
     sections,
     ownership: normalizeOwnership(value.ownership, sections),
@@ -533,7 +562,6 @@ export interface GraphLayoutNodePinUpdate {
   graphMode: GraphLayoutMode;
   nodeId: string;
   position: GraphLayoutCoordinate2D | GraphLayoutCoordinate3D;
-  updatedAt: string;
 }
 
 function isCoordinate3D(
@@ -549,13 +577,12 @@ export function setGraphLayoutNodePin(
   const existing = layout.pinnedNodes[update.nodeId];
   const nextPinnedNode: GraphLayoutPinnedNode = {
     nodeId: update.nodeId,
-    twoDimensional: update.graphMode === '2d'
+    '2D': update.graphMode === '2d'
       ? { x: update.position.x, y: update.position.y }
-      : existing?.twoDimensional,
-    threeDimensional: update.graphMode === '3d' && isCoordinate3D(update.position)
+      : existing?.['2D'],
+    '3D': update.graphMode === '3d' && isCoordinate3D(update.position)
       ? { x: update.position.x, y: update.position.y, z: update.position.z }
-      : existing?.threeDimensional,
-    updatedAt: update.updatedAt,
+      : existing?.['3D'],
   };
 
   return normalizeGraphLayoutSettings({
@@ -580,11 +607,11 @@ export function clearGraphLayoutNodePin(
   const nextPinnedNodes = { ...layout.pinnedNodes };
   const nextPinnedNode: GraphLayoutPinnedNode = {
     ...existing,
-    ...(graphMode === '2d' ? { twoDimensional: undefined } : {}),
-    ...(graphMode === '3d' ? { threeDimensional: undefined } : {}),
+    ...(graphMode === '2d' ? { '2D': undefined } : {}),
+    ...(graphMode === '3d' ? { '3D': undefined } : {}),
   };
 
-  if (!nextPinnedNode.twoDimensional && !nextPinnedNode.threeDimensional) {
+  if (!nextPinnedNode['2D'] && !nextPinnedNode['3D']) {
     delete nextPinnedNodes[nodeId];
   } else {
     nextPinnedNodes[nodeId] = nextPinnedNode;
@@ -762,14 +789,13 @@ function shouldMovePinnedNodeWithSection(
   pinnedNode: GraphLayoutPinnedNode,
   sectionId: string,
 ): boolean {
-  return !!pinnedNode.twoDimensional && itemId === sectionId;
+  return !!pinnedNode['2D'] && itemId === sectionId;
 }
 
 function movePinnedGraphLayoutNodes(
   layout: GraphLayoutSettings,
   sectionId: string,
   delta: GraphLayoutCoordinate2D,
-  updatedAt: string,
 ): Record<string, GraphLayoutPinnedNode> {
   const nextPinnedNodes: Record<string, GraphLayoutPinnedNode> = { ...layout.pinnedNodes };
   if (!hasSectionMoveDelta(delta)) {
@@ -783,11 +809,10 @@ function movePinnedGraphLayoutNodes(
 
     nextPinnedNodes[itemId] = {
       ...pinnedNode,
-      twoDimensional: {
-        x: pinnedNode.twoDimensional!.x + delta.x,
-        y: pinnedNode.twoDimensional!.y + delta.y,
+      '2D': {
+        x: pinnedNode['2D']!.x + delta.x,
+        y: pinnedNode['2D']!.y + delta.y,
       },
-      updatedAt,
     };
   }
 
@@ -810,7 +835,7 @@ export function updateGraphLayoutSection(
 
   return normalizeGraphLayoutSettings({
     ...layout,
-    pinnedNodes: movePinnedGraphLayoutNodes(layout, patch.sectionId, delta, patch.updatedAt),
+    pinnedNodes: movePinnedGraphLayoutNodes(layout, patch.sectionId, delta),
     sections: nextSections,
   });
 }

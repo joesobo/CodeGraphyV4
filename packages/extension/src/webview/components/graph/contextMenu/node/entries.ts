@@ -1,4 +1,5 @@
 import type { GraphContextMenuEntry, GraphContextMutationAvailability } from '../contracts';
+import type { GraphContextNodeTarget } from '../decision/targets';
 import { builtInItem, separator } from '../common/entryFactories';
 import {
   buildOpenBlock,
@@ -23,7 +24,7 @@ export function buildNodeEntries(
     ...buildOpenBlock(targets, timelineActive),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
-    ...(mutationAvailability === 'enabled' ? buildPinBlock(targets, pinnedNodeIds) : []),
+    ...(mutationAvailability === 'enabled' && !timelineActive ? buildPinBlock(targets, pinnedNodeIds) : []),
     ...buildFilterBlock(targets),
   ];
 
@@ -44,12 +45,13 @@ export function buildNodeEntries(
 }
 
 export function buildSingleFolderNodeEntries(
-  target: string,
+  target: GraphContextNodeTarget,
+  timelineActive: boolean,
   mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
 ): GraphContextMenuEntry[] {
-  const targets = [target];
+  const targets = [target.id];
   const entries: GraphContextMenuEntry[] = [];
 
   if (mutationAvailability !== 'hidden') {
@@ -62,10 +64,15 @@ export function buildSingleFolderNodeEntries(
   }
 
   entries.push(
+    builtInItem(
+      'node-collapse-toggle',
+      target.isCollapsed ? 'Expand Folder' : 'Collapse Folder',
+      target.isCollapsed ? 'expandNode' : 'collapseNode',
+    ),
     builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
-    ...(mutationAvailability === 'enabled' ? buildPinBlock(targets, pinnedNodeIds) : []),
+    ...(mutationAvailability === 'enabled' && !timelineActive ? buildPinBlock(targets, pinnedNodeIds) : []),
     ...buildFilterBlock(targets),
   );
 
@@ -78,7 +85,7 @@ export function buildSingleFolderNodeEntries(
     );
   }
 
-  if (target !== '(root)' && mutationAvailability !== 'hidden') {
+  if (target.id !== '(root)' && mutationAvailability !== 'hidden') {
     entries.push(...buildFolderDestructiveBlock(mutationAvailability === 'disabled'));
   }
 

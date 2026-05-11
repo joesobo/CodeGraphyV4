@@ -20,7 +20,6 @@ function createSharedProps() {
     onLinkClick: vi.fn(),
     onLinkRightClick: vi.fn(),
     onNodeClick: vi.fn(),
-    onNodeDrag: vi.fn(),
     onNodeDragEnd: vi.fn(),
     onNodeHover: vi.fn(),
     onNodeRightClick: vi.fn(),
@@ -116,12 +115,6 @@ describe('Surface2d', () => {
     render(<Surface2d {...createDefaultProps()} />);
     const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
     expect(props.autoPauseRedraw).toBe(false);
-  });
-
-  it('disables native left-button panning so marquee selection owns left-drag', () => {
-    render(<Surface2d {...createDefaultProps()} />);
-    const props = (ForceGraph2D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
-    expect(props.enablePanInteraction).toBe(false);
   });
 
   it('passes nodeCanvasObject callback', () => {

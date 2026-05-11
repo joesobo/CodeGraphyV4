@@ -24,6 +24,7 @@ interface CodeGraphyAPI {
 interface RepoSettingsFile {
   legend?: IGroup[];
   filterPatterns?: string[];
+  graphLayout?: { collapsedNodes?: Record<string, boolean> };
   showOrphans?: boolean;
   directionMode?: string;
 }
@@ -160,6 +161,39 @@ suite('Settings: Direction Mode', function () {
     const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
     const stored = readRepoSettingsFile(settingsPath).directionMode;
     assert.strictEqual(stored, 'particles', 'directionMode should be persisted to repo settings');
+  });
+});
+
+suite('Settings: Graph Layout', function () {
+  this.timeout(30_000);
+
+  test('UPDATE_GRAPH_LAYOUT_COLLAPSE persists and echoes GRAPH_LAYOUT_UPDATED', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(1_000);
+
+    const echo = waitForMessage(api, 'GRAPH_LAYOUT_UPDATED');
+    await api.dispatchWebviewMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE',
+      payload: { nodeId: 'packages/app', collapsed: true },
+    });
+
+    const msg = (await echo) as {
+      type: string;
+      payload: { collapsedNodes: Record<string, boolean> };
+    };
+    assert.strictEqual(msg.payload.collapsedNodes['packages/app'], true);
+
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Expected an open workspace folder');
+    const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
+    const stored = readRepoSettingsFile(settingsPath).graphLayout?.collapsedNodes ?? {};
+    assert.strictEqual(stored['packages/app'], true, 'collapsed folder state should be persisted');
+
+    await api.dispatchWebviewMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE',
+      payload: { nodeId: 'packages/app', collapsed: false },
+    });
   });
 });
 

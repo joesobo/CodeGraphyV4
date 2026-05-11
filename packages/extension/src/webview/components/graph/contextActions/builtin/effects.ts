@@ -5,6 +5,7 @@ import {
   createClipboardEffects,
   createCreateFileEffects,
   createCreateFolderEffects,
+  createGraphLayoutCollapseEffects,
   createGraphSectionEffects,
   createGraphSectionCollapseEffects,
   createGraphSectionDeleteEffects,
@@ -60,6 +61,10 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createCreateFileEffects(context.mutationDirectory),
   createFolder: (context: GraphContextActionContext) =>
     createCreateFolderEffects(context.mutationDirectory),
+  collapseNode: (context: GraphContextActionContext) =>
+    createGraphLayoutCollapseEffects(context.primaryTargetId, true),
+  expandNode: (context: GraphContextActionContext) =>
+    createGraphLayoutCollapseEffects(context.primaryTargetId, false),
   createGraphSection: (context: GraphContextActionContext) =>
     createGraphSectionEffects(context),
   expandGraphSection: (context: GraphContextActionContext) =>

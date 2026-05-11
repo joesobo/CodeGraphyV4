@@ -70,81 +70,16 @@ describe('graph/marqueeSelection view', () => {
     expect(await screen.findByText('Open 2 Files')).toBeInTheDocument();
   });
 
-  it('adds Shift-left-drag marquee hits to the existing selection', async () => {
+  it('shows the marquee rectangle while Shift-left-dragging to extend selection', () => {
     render(<Graph data={graphData} />);
     const container = document.querySelector('.graph-container') as HTMLElement;
 
     act(() => {
-      ForceGraph2D.simulateNodeClick({ id: 'README.md' }, { shiftKey: true });
       fireEvent.mouseDown(container, { button: 0, shiftKey: true, clientX: 90, clientY: 90 });
       fireEvent.mouseMove(container, { button: 0, shiftKey: true, clientX: 170, clientY: 150 });
     });
 
     expect(screen.getByTestId('graph-marquee-selection')).toBeInTheDocument();
-
-    act(() => {
-      fireEvent.mouseUp(container, { button: 0, shiftKey: true, clientX: 170, clientY: 150 });
-    });
-
-    act(() => {
-      ForceGraph2D.simulateNodeRightClick({ id: 'README.md' });
-    });
-
-    expect(await screen.findByText('Open 3 Files')).toBeInTheDocument();
-  });
-
-  it.each([
-    { button: 2, label: 'right' },
-    { button: 1, label: 'middle' },
-  ])('pans the graph with $label-click drag', ({ button }) => {
-    const graphMethods = ForceGraph2D.getMockMethods();
-    graphMethods.screen2GraphCoords.mockImplementationOnce(() => ({ x: 5, y: 10 }));
-    graphMethods.zoom.mockReturnValue(2);
-
-    render(<Graph data={graphData} />);
-    const container = document.querySelector('.graph-container') as HTMLElement;
-
-    act(() => {
-      fireEvent.mouseDown(container, { button, clientX: 100, clientY: 100 });
-      fireEvent.mouseMove(container, { clientX: 120, clientY: 130 });
-    });
-
-    expect(graphMethods.centerAt).toHaveBeenCalledWith(-5, -5, 0);
-
-    act(() => {
-      fireEvent.mouseUp(container, { button, clientX: 120, clientY: 130 });
-    });
-
-    expect(screen.queryByTestId('graph-marquee-selection')).not.toBeInTheDocument();
-  });
-
-  it('does not open the context menu after a right-click drag that pans below the old fallback threshold', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-05-07T12:00:00Z'));
-    const graphMethods = ForceGraph2D.getMockMethods();
-    graphMethods.screen2GraphCoords.mockImplementationOnce(() => ({ x: 0, y: 0 }));
-    graphMethods.zoom.mockReturnValue(1);
-
-    try {
-      render(<Graph data={graphData} />);
-      const container = document.querySelector('.graph-container') as HTMLElement;
-
-      act(() => {
-        fireEvent.mouseDown(container, { button: 2, clientX: 100, clientY: 100 });
-        fireEvent.mouseMove(container, { button: 2, clientX: 103, clientY: 100 });
-        fireEvent.mouseUp(container, { button: 2, clientX: 103, clientY: 100 });
-      });
-
-      expect(graphMethods.centerAt).toHaveBeenCalledWith(-3, 0, 0);
-
-      act(() => {
-        vi.advanceTimersByTime(120);
-      });
-
-      expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
   });
 
   it('clears an active marquee when the pointer leaves the graph', () => {

@@ -16,9 +16,8 @@ export interface GraphLayoutCoordinate3D extends GraphLayoutCoordinate2D {
 
 export interface GraphLayoutPinnedNode {
   nodeId: string;
-  twoDimensional?: GraphLayoutCoordinate2D;
-  threeDimensional?: GraphLayoutCoordinate3D;
-  updatedAt: string;
+  '2D'?: GraphLayoutCoordinate2D;
+  '3D'?: GraphLayoutCoordinate3D;
 }
 
 export interface GraphLayoutSection {
@@ -44,6 +43,7 @@ export interface GraphLayoutOwnership {
 export type GraphLayoutOwnershipUpdate = Omit<GraphLayoutOwnership, 'updatedAt'>;
 
 export interface GraphLayoutSettings {
+  collapsedNodes: Record<string, boolean>;
   pinnedNodes: Record<string, GraphLayoutPinnedNode>;
   sections: Record<string, GraphLayoutSection>;
   ownership: Record<string, GraphLayoutOwnership>;
@@ -84,10 +84,34 @@ export interface GraphLayoutSectionUpdate {
 
 export function createDefaultGraphLayoutSettings(): GraphLayoutSettings {
   return {
+    collapsedNodes: {},
     pinnedNodes: {},
     sections: {},
     ownership: {},
   };
+}
+
+export const DEFAULT_GRAPH_LAYOUT_SETTINGS: GraphLayoutSettings = createDefaultGraphLayoutSettings();
+
+export function getCollapsedGraphNodeIds(graphLayout: GraphLayoutSettings): string[] {
+  return Object.entries(graphLayout.collapsedNodes)
+    .filter(([, collapsed]) => collapsed)
+    .map(([nodeId]) => nodeId);
+}
+
+export function setGraphLayoutNodeCollapsed(
+  graphLayout: GraphLayoutSettings,
+  nodeId: string,
+  collapsed: boolean,
+): GraphLayoutSettings {
+  const collapsedNodes = { ...graphLayout.collapsedNodes };
+  if (collapsed) {
+    collapsedNodes[nodeId] = true;
+  } else {
+    delete collapsedNodes[nodeId];
+  }
+
+  return { ...graphLayout, collapsedNodes };
 }
 
 export function getGraphLayoutPinCoordinate(
@@ -95,8 +119,8 @@ export function getGraphLayoutPinCoordinate(
   graphMode: GraphLayoutMode,
 ): GraphLayoutCoordinate2D | GraphLayoutCoordinate3D | undefined {
   return graphMode === '2d'
-    ? pinnedNode?.twoDimensional
-    : pinnedNode?.threeDimensional;
+    ? pinnedNode?.['2D']
+    : pinnedNode?.['3D'];
 }
 
 export function isGraphLayoutPointInsideSection(

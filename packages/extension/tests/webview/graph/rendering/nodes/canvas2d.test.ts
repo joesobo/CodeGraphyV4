@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
 import type { ThemeKind } from '../../../../../src/webview/theme/useTheme';
 
@@ -140,6 +140,8 @@ function createContext(): {
     strokeStyle: '',
     textAlign: 'left',
     textBaseline: 'alphabetic',
+    translate: vi.fn(),
+    scale: vi.fn(),
   };
 
   return {
@@ -151,6 +153,10 @@ function createContext(): {
 describe('graph/rendering/nodes/canvas2d', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('draws the node body and stroke using node styling', () => {
@@ -390,7 +396,8 @@ describe('graph/rendering/nodes/canvas2d', () => {
   });
 
   it('renders a pin badge for pinned nodes without changing the node body', () => {
-    const { ctx } = createContext();
+    const { ctx, operations } = createContext();
+    vi.stubGlobal('Path2D', vi.fn());
 
     renderNodeCanvas(
       createDependencies({ showLabels: false }),
@@ -400,9 +407,20 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
 
     expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
-    expect(ctx.arc).toHaveBeenCalledWith(35.2, 36.8, 5, 0, Math.PI * 2);
-    expect(ctx.moveTo).toHaveBeenCalledWith(35.2, 34.55);
-    expect(ctx.lineTo).toHaveBeenCalledWith(35.2, 38.3);
+    expect(ctx.arc).not.toHaveBeenCalled();
+    expect(ctx.translate).toHaveBeenCalledWith(
+      expect.closeTo(29.775),
+      expect.closeTo(31.375),
+    );
+    expect(ctx.scale).toHaveBeenCalledWith(0.45208333333333334, 0.45208333333333334);
+    expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
+    expect(operations).not.toContainEqual(expect.objectContaining({
+      fillStyle: 'rgb(28, 62, 118)',
+    }));
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#ffffff',
+      kind: 'fill',
+    }));
   });
 
   it('skips expanded Section Nodes because the editable Section Frame follows the live node position', () => {
@@ -456,6 +474,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
 
   it('renders collapsed Section Node hidden counts in the top right and expand cue in the top left', () => {
     const { ctx, operations } = createContext();
+    vi.stubGlobal('Path2D', vi.fn());
 
     renderNodeCanvas(
       createDependencies({ showLabels: false }),
@@ -472,10 +491,11 @@ describe('graph/rendering/nodes/canvas2d', () => {
       1,
     );
 
-    expect(ctx.arc).toHaveBeenCalledWith(35.2, 59.2, 5, 0, Math.PI * 2);
+    expect(ctx.arc).not.toHaveBeenCalled();
     expect(ctx.moveTo).toHaveBeenCalledWith(12.8, 38.8);
     expect(ctx.lineTo).toHaveBeenCalledWith(16.8, 42.8);
     expect(ctx.lineTo).toHaveBeenCalledWith(20.8, 38.8);
+    expect(ctx.fillText).toHaveBeenCalledWith('4', 31.2, 40.8);
     expect(operations).toContainEqual(expect.objectContaining({
       kind: 'fillText',
       text: '4',

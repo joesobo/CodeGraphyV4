@@ -28,7 +28,10 @@ export type FGNode = NodeObject & {
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;
+  collapsedDescendantCount?: number;
   hiddenDescendantCount?: number;
+  isCollapsible?: boolean;
+  isCollapsed?: boolean;
   isCollapsedGraphSection?: boolean;
   isDragging?: boolean;
   isGraphSection?: boolean;

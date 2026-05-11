@@ -156,12 +156,12 @@ describe('graph/model/node/build', () => {
       favorites: new Set(),
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {
           'src/pinned.ts': {
             nodeId: 'src/pinned.ts',
-            twoDimensional: { x: 40, y: -80 },
-            threeDimensional: { x: 1, y: 2, z: 3 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 40, y: -80 },
+            '3D': { x: 1, y: 2, z: 3 },
           },
         },
         sections: {},
@@ -190,12 +190,12 @@ describe('graph/model/node/build', () => {
       favorites: new Set(),
       graphMode: '3d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {
           'src/pinned.ts': {
             nodeId: 'src/pinned.ts',
-            twoDimensional: { x: 40, y: -80 },
-            threeDimensional: { x: 1, y: 2, z: 3 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 40, y: -80 },
+            '3D': { x: 1, y: 2, z: 3 },
           },
         },
         sections: {},
@@ -226,11 +226,11 @@ describe('graph/model/node/build', () => {
       favorites: new Set(),
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {
           'src/member.ts': {
             nodeId: 'src/member.ts',
-            twoDimensional: { x: 20, y: 30 },
-            updatedAt: '2026-05-07T09:00:00.000Z',
+            '2D': { x: 20, y: 30 },
           },
         },
         sections: {
@@ -277,11 +277,11 @@ describe('graph/model/node/build', () => {
       favorites: new Set(),
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {
           'src/pinned.ts': {
             nodeId: 'src/pinned.ts',
-            twoDimensional: { x: 40, y: -80 },
-            updatedAt: '2026-05-07T08:00:00.000Z',
+            '2D': { x: 40, y: -80 },
           },
         },
         sections: {},
@@ -311,6 +311,7 @@ describe('graph/model/node/build', () => {
       favorites: new Set(),
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {},
         sections: {
           'section-1': {
@@ -370,6 +371,7 @@ describe('graph/model/node/build', () => {
       favorites: new Set(),
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {},
         sections: {
           parent: {
@@ -420,11 +422,11 @@ describe('graph/model/node/build', () => {
       favorites: new Set(),
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {
           child: {
             nodeId: 'child',
-            twoDimensional: { x: 60, y: 70 },
-            updatedAt: '2026-05-07T09:00:00.000Z',
+            '2D': { x: 60, y: 70 },
           },
         },
         sections: {
@@ -480,6 +482,7 @@ describe('graph/model/node/build', () => {
       favorites: new Set(),
       graphMode: '2d',
       graphLayout: {
+        collapsedNodes: {},
         pinnedNodes: {},
         sections: {
           'section-1': {
@@ -525,6 +528,7 @@ describe('graph/model/node/build', () => {
 
   it('does not add Graph Section nodes in 3D or timeline snapshots', () => {
     const graphLayout = {
+      collapsedNodes: {},
       pinnedNodes: {},
       sections: {
         'section-1': {

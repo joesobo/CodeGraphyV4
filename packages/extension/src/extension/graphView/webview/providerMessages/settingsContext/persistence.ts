@@ -12,6 +12,7 @@ export const SILENT_CONFIG_KEYS = new Set([
   'disabledPluginFilterPatterns',
   'edgeVisibility',
   'filterPatterns',
+  'graphLayout',
   'maxFiles',
   'nodeColorEnabled',
   'nodeColors',
