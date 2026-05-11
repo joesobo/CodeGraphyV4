@@ -1180,6 +1180,41 @@ describe('physics', () => {
     expect(nodes[1].vx).toBeGreaterThan(0);
   });
 
+  it('moves normal nodes out of expanded Graph Section rectangles during collision ticks', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 0,
+        repelForce: 20,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/loose.ts',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 190,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(1);
+
+    expect(nodes[1].x).toBeGreaterThanOrEqual(218);
+  });
+
   it('does not collide normal nodes with a Section Frame when only the circle bounding box touches a corner', () => {
     const force = createGraphSectionBoundsForce({
       ...GRAPH_LAYOUT,

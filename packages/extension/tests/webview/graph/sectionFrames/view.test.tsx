@@ -138,9 +138,9 @@ describe('graph/sectionFrames/view', () => {
     expect(screen.getByTestId('graph-section-resize-section-1')).toHaveStyle({
       borderColor: '#60a5fa',
     });
-    expect(screen.getByLabelText('Graph Section custom icon')).toHaveAttribute('type', 'file');
-    expect(screen.getByLabelText('Graph Section custom icon')).toHaveAttribute('accept', '.svg,.png,image/svg+xml,image/png');
-    expect(screen.queryByLabelText('Graph Section material icon')).toBeNull();
+    expect(screen.getByLabelText('Graph Section icon upload')).toHaveAttribute('type', 'file');
+    expect(screen.getByLabelText('Graph Section icon upload')).toHaveAttribute('accept', '.svg,.png,image/svg+xml,image/png');
+    expect(screen.queryByRole('menu')).toBeNull();
     expect(screen.getByLabelText('Graph Section label')).toHaveValue('Section 1');
     expect(screen.getByLabelText('Graph Section color')).toHaveValue('#60a5fa');
   });
@@ -188,7 +188,7 @@ describe('graph/sectionFrames/view', () => {
     });
     expect(screen.getByLabelText('Graph Section label')).toHaveAttribute('tabindex', '-1');
     expect(screen.getByLabelText('Graph Section color')).toHaveAttribute('tabindex', '-1');
-    expect(screen.getByLabelText('Choose Graph Section icon')).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByLabelText('Upload Graph Section icon')).toHaveAttribute('tabindex', '-1');
   });
 
   it('starts hiding Section Frame header controls before labels become cramped', () => {
@@ -234,21 +234,20 @@ describe('graph/sectionFrames/view', () => {
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: 'UI Work' });
   });
 
-  it('shows and commits a Material Design Section Frame icon beside the label', () => {
+  it('shows a Material Design Section Frame icon beside the label when one is already selected', () => {
     const { onUpdateSection } = renderSectionFrames({ icon: 'mdi:folder' });
 
-    fireEvent.click(screen.getByLabelText('Choose Graph Section icon'));
+    fireEvent.click(screen.getByLabelText('Upload Graph Section icon'));
 
-    fireEvent.click(screen.getByLabelText('Use Code icon'));
-
-    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { icon: 'mdi:code-braces' });
+    expect(onUpdateSection).not.toHaveBeenCalledWith('section-1', { icon: 'mdi:code-braces' });
+    expect(screen.queryByRole('menu')).toBeNull();
   });
 
   it('uploads a custom image as the Section Frame icon', async () => {
     const { onUpdateSection } = renderSectionFrames();
     const file = new File(['<svg/>'], 'section.svg', { type: 'image/svg+xml' });
 
-    fireEvent.change(screen.getByLabelText('Graph Section custom icon'), { target: { files: [file] } });
+    fireEvent.change(screen.getByLabelText('Graph Section icon upload'), { target: { files: [file] } });
 
     await waitFor(() => {
       expect(onUpdateSection).toHaveBeenCalledWith('section-1', {

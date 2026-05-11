@@ -814,9 +814,8 @@ function applyRectangleCollisionPosition(
 	direction: number,
 	overlap: number,
 ): void {
-	if (!isExpandedGraphSection(left) || !isExpandedGraphSection(right)) {
-		return;
-	}
+	const leftIsSection = isExpandedGraphSection(left);
+	const rightIsSection = isExpandedGraphSection(right);
 
 	const leftWeight = getCollisionMoveWeight(left);
 	const rightWeight = getCollisionMoveWeight(right);
@@ -826,8 +825,10 @@ function applyRectangleCollisionPosition(
 	}
 
 	const correction = overlap;
-	const leftCorrection = direction * correction * (leftWeight / totalWeight);
-	const rightCorrection = -direction * correction * (rightWeight / totalWeight);
+	const leftShare = rightIsSection && !leftIsSection ? 1 : leftIsSection && !rightIsSection ? 0 : leftWeight / totalWeight;
+	const rightShare = leftIsSection && !rightIsSection ? 1 : rightIsSection && !leftIsSection ? 0 : rightWeight / totalWeight;
+	const leftCorrection = direction * correction * leftShare;
+	const rightCorrection = -direction * correction * rightShare;
 
 	if (axis === 'x') {
 		left.x = resolveNodeCoordinate(left.x, 0) + leftCorrection;
