@@ -48,7 +48,9 @@ describe('pipeline/graph/data', () => {
         }],
       ]),
       showOrphans: true,
-      churnCounts: {},
+      churnCounts: {
+        'src/player.gd': 4,
+      },
       workspaceRoot: '/workspace',
       getPluginForFile: () => createPlugin('codegraphy.godot'),
     });
@@ -59,12 +61,14 @@ describe('pipeline/graph/data', () => {
         label: 'player.gd',
         color: DEFAULT_NODE_COLOR,
         fileSize: 20,
-        churn: 0,
+        churn: 4,
       },
       {
         id: 'src/player.gd#_ready:method',
         label: '_ready',
         color: '#8B5CF6',
+        fileSize: 20,
+        churn: 4,
         nodeType: 'symbol',
         symbol: {
           id: 'src/player.gd#_ready:method',

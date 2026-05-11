@@ -40,6 +40,7 @@ function createSymbolNode(
   symbol: IAnalysisSymbol,
   id: string,
   workspaceRoot: string,
+  containingFile: { churn?: number; fileSize?: number } = {},
 ): IGraphNode {
   const filePath = toRepoRelativeGraphPath(symbol.filePath, workspaceRoot);
   const kind = normalizeSymbolKind(symbol.kind);
@@ -50,13 +51,15 @@ function createSymbolNode(
     label: symbol.name,
     color: nodeType === 'variable' ? VARIABLE_NODE_COLOR : SYMBOL_NODE_COLOR,
     nodeType,
+    fileSize: containingFile.fileSize,
+    churn: containingFile.churn,
     symbol: {
       id,
       name: symbol.name,
       kind,
       filePath,
-      range: symbol.range,
-      signature: symbol.signature,
+      ...(symbol.range ? { range: symbol.range } : {}),
+      ...(symbol.signature ? { signature: symbol.signature } : {}),
     },
   };
 }
@@ -185,6 +188,10 @@ function createSymbolRelationEdges(
 export function buildSymbolNodesAndEdges(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
   workspaceRoot: string,
+  options: {
+    cacheFiles?: Record<string, { size?: number }>;
+    churnCounts?: Record<string, number>;
+  } = {},
 ): { edges: IGraphEdge[]; nodes: IGraphNode[] } {
   const symbolIds = createCanonicalSymbolIds(fileAnalysis, workspaceRoot);
   const nodes: IGraphNode[] = [];
@@ -194,7 +201,10 @@ export function buildSymbolNodesAndEdges(
     const relativeFilePath = toRepoRelativeGraphPath(filePath, workspaceRoot);
 
     for (const symbol of analysis.symbols ?? []) {
-      const node = createSymbolNode(symbol, symbolIds.get(symbol.id) ?? symbol.id, workspaceRoot);
+      const node = createSymbolNode(symbol, symbolIds.get(symbol.id) ?? symbol.id, workspaceRoot, {
+        fileSize: options.cacheFiles?.[relativeFilePath]?.size,
+        churn: options.churnCounts?.[relativeFilePath] ?? 0,
+      });
       nodes.push(node);
       edges.push(createContainsEdge(relativeFilePath, node.id));
     }
