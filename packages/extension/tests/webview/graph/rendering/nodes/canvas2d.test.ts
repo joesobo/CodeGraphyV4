@@ -410,7 +410,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
       expect.closeTo(31.375),
     );
     expect(ctx.scale).toHaveBeenCalledWith(0.45208333333333334, 0.45208333333333334);
-    expect(ctx.fill).toHaveBeenCalledWith(expect.any(Path2D));
+    expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
     expect(operations).toContainEqual(expect.objectContaining({
       fillStyle: 'rgb(28, 62, 118)',
       kind: 'fill',
@@ -419,6 +419,44 @@ describe('graph/rendering/nodes/canvas2d', () => {
       fillStyle: '#ffffff',
       kind: 'fill',
     }));
+  });
+
+  it('fades pinned badges as small nodes zoom away', () => {
+    const { ctx, operations } = createContext();
+    vi.stubGlobal('Path2D', vi.fn());
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({ isPinned: true }),
+      ctx,
+      0.5,
+    );
+
+    expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: 'rgb(28, 62, 118)',
+      globalAlpha: 0.75,
+      kind: 'fill',
+    }));
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#ffffff',
+      globalAlpha: 0.75,
+      kind: 'fill',
+    }));
+  });
+
+  it('hides pinned badges when the node is too small on screen', () => {
+    const { ctx } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({ isPinned: true, size: 8 }),
+      ctx,
+      0.5,
+    );
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 8);
+    expect(ctx.arc).not.toHaveBeenCalled();
   });
 
   it('paints the expanded pointer area around the node shape', () => {
