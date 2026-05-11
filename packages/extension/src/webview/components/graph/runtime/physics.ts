@@ -1333,6 +1333,10 @@ function applyCollisionSettings(
 	}
 }
 
+function removeCentroidCenterForce(graph: GraphPhysicsControls): void {
+	graph.d3Force('center', null);
+}
+
 export function applyPhysicsSettings(
 	instance: GraphPhysicsInstance,
 	settings: IPhysicsSettings,
@@ -1340,6 +1344,7 @@ export function applyPhysicsSettings(
 ): void {
 	const graph = instance as GraphPhysicsControls;
 	const graphLayout = options.graphMode === '2d' ? options.graphLayout : undefined;
+	removeCentroidCenterForce(graph);
 	applyChargeSettings(graph, settings, graphLayout);
 	applyLinkSettings(graph, settings, graphLayout);
 	applyCenterSettings(graph, settings, graphLayout);
@@ -1355,6 +1360,7 @@ export function initPhysics(
 	const graph = instance as GraphPhysicsControls;
 	const graphLayout = options.graphMode === '2d' ? options.graphLayout : undefined;
 	applyPhysicsSettings(instance, settings, options);
+	removeCentroidCenterForce(graph);
 	graph.d3Force(
 		'forceX',
 		forceX<FGNode>(0).strength(node => getRootGraphCenterStrength(node, settings.centerForce, graphLayout)),

@@ -212,7 +212,7 @@ describe('Graph: force-graph rendering', () => {
 
     expect(mockMethods.d3Force).toHaveBeenCalledWith('forceX', expect.anything());
     expect(mockMethods.d3Force).toHaveBeenCalledWith('forceY', expect.anything());
-    expect(mockMethods.d3Force).not.toHaveBeenCalledWith('center', expect.anything());
+    expect(mockMethods.d3Force).toHaveBeenCalledWith('center', null);
   });
 
   it('sends PHYSICS_STABILIZED when onEngineStop fires', () => {
