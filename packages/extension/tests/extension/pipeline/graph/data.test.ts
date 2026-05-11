@@ -153,6 +153,65 @@ describe('pipeline/graph/data', () => {
     ]));
   });
 
+  it('keeps file-level connections when the same relation resolves to symbol endpoints', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/source.ts': { size: 10 },
+        'src/target.ts': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src/source.ts', {
+          filePath: '/workspace/src/source.ts',
+          symbols: [{
+            id: 'source-symbol',
+            filePath: '/workspace/src/source.ts',
+            kind: 'function',
+            name: 'source',
+          }],
+          relations: [{
+            kind: 'import',
+            pluginId: 'plugin.symbols',
+            sourceId: 'es6-import',
+            fromFilePath: '/workspace/src/source.ts',
+            fromSymbolId: 'source-symbol',
+            toFilePath: '/workspace/src/target.ts',
+            toSymbolId: 'target-symbol',
+          }],
+        }],
+        ['src/target.ts', {
+          filePath: '/workspace/src/target.ts',
+          symbols: [{
+            id: 'target-symbol',
+            filePath: '/workspace/src/target.ts',
+            kind: 'function',
+            name: 'target',
+          }],
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.symbols'),
+    });
+
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'src/source.ts->src/target.ts#import',
+        from: 'src/source.ts',
+        to: 'src/target.ts',
+        kind: 'import',
+      }),
+      expect.objectContaining({
+        id: 'src/source.ts#source:function->src/target.ts#target:function#import',
+        from: 'src/source.ts#source:function',
+        to: 'src/target.ts#target:function',
+        kind: 'import',
+      }),
+    ]));
+  });
+
   it('adds deterministic suffixes for duplicate symbols without signatures', () => {
     const graph = buildWorkspaceGraphDataFromAnalysis({
       cacheFiles: {
@@ -302,7 +361,7 @@ describe('pipeline/graph/data', () => {
     );
   });
 
-  it('drops symbol relations from file-level connection projection and keeps relation edges without plugin sources', () => {
+  it('keeps file-level relation edges while adding symbol relation edges without plugin sources', () => {
     const graph = buildWorkspaceGraphDataFromAnalysis({
       cacheFiles: {
         'src/source.ts': { size: 10 },
@@ -347,7 +406,6 @@ describe('pipeline/graph/data', () => {
     });
 
     const fileLevelEdges = graph.edges.filter((edge) => edge.from === 'src/source.ts' && edge.to === 'src/target.ts');
-    expect(fileLevelEdges).toHaveLength(1);
     expect(fileLevelEdges).toEqual([
       expect.objectContaining({
         kind: 'import',
@@ -355,6 +413,15 @@ describe('pipeline/graph/data', () => {
           expect.objectContaining({
             label: 'ES6 import',
             sourceId: 'es6-import',
+          }),
+        ],
+      }),
+      expect.objectContaining({
+        kind: 'reference',
+        sources: [
+          expect.objectContaining({
+            label: 'reference',
+            sourceId: 'reference',
           }),
         ],
       }),

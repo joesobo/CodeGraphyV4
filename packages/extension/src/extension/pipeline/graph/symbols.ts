@@ -3,7 +3,7 @@ import type { IGraphEdge, IGraphNode } from '../../../shared/graph/contracts';
 import { projectProjectedConnectionsFromFileAnalysis } from '../projection';
 import { createCanonicalSymbolIds } from './symbolIds';
 import { createContainsEdge, createSymbolNode } from './symbolNodes';
-import { createSymbolRelationEdges, hasSymbolEndpoint } from './symbolRelations';
+import { createSymbolRelationEdges } from './symbolRelations';
 import { toRepoRelativeGraphPath } from './symbolPaths';
 
 export function projectFileAnalysisConnections(
@@ -13,10 +13,7 @@ export function projectFileAnalysisConnections(
   return new Map(
     Array.from(fileAnalysis.entries()).map(([filePath, analysis]) => [
       toRepoRelativeGraphPath(filePath, workspaceRoot),
-      projectProjectedConnectionsFromFileAnalysis({
-        ...analysis,
-        relations: (analysis.relations ?? []).filter((relation) => !hasSymbolEndpoint(relation)),
-      }),
+      projectProjectedConnectionsFromFileAnalysis(analysis),
     ]),
   );
 }
