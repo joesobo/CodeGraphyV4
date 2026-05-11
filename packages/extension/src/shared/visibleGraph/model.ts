@@ -21,7 +21,10 @@ export function getDisabledTypes(items: readonly { type: string; enabled: boolea
   return new Set(items.filter((item) => !item.enabled).map((item) => item.type));
 }
 
-export function filterEdgesToNodes(edges: IGraphData['edges'], nodes: IGraphData['nodes']): IGraphData['edges'] {
+export function filterEdgesToNodes(
+  edges: readonly IGraphEdge[],
+  nodes: readonly IGraphNode[],
+): IGraphData['edges'] {
   const nodeIds = new Set(nodes.map((node) => node.id));
   return edges.filter((edge) => nodeIds.has(edge.from) && nodeIds.has(edge.to));
 }

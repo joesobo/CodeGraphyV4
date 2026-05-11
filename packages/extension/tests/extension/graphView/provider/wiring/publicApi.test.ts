@@ -203,6 +203,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(webviewMethods.sendToWebview).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
+        collapsedNodes: {},
         pinnedNodes: {},
       },
     });

@@ -159,6 +159,21 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
+  it('creates graph layout collapse and expand effects for folder nodes', () => {
+    expect(getBuiltInContextActionEffects('collapseNode', nodeContext(['src']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: { type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE', payload: { nodeId: 'src', collapsed: true } },
+      },
+    ]);
+    expect(getBuiltInContextActionEffects('expandNode', nodeContext(['src']))).toEqual([
+      {
+        kind: 'postMessage',
+        message: { type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE', payload: { nodeId: 'src', collapsed: false } },
+      },
+    ]);
+  });
+
   it('creates plugin action messages for plugin menu items', () => {
     const effects = getGraphContextActionEffects({
       kind: 'plugin',

@@ -35,11 +35,11 @@ export type ExtensionToWebviewMessage =
     }
   | { type: 'GRAPH_INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'GRAPH_CONTROLS_UPDATED'; payload: IGraphControlsSnapshot }
+  | { type: 'GRAPH_LAYOUT_UPDATED'; payload: GraphLayoutSettings }
   | { type: 'FIT_VIEW' }
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }
   | { type: 'FAVORITES_UPDATED'; payload: { favorites: string[] } }
-  | { type: 'GRAPH_LAYOUT_UPDATED'; payload: GraphLayoutSettings }
   | { type: 'THEME_CHANGED'; payload: { kind: 'light' | 'dark' | 'high-contrast' } }
   | { type: 'FILE_INFO'; payload: IFileInfo }
   | {

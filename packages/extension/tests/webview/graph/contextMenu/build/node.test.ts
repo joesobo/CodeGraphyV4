@@ -26,6 +26,7 @@ function disabledLabels(entries: readonly GraphContextMenuEntry[]): string[] {
 const immutableFolderLabels = [
   'New File...',
   'New Folder...',
+  'Collapse Folder',
   'Reveal in Explorer',
   'Copy Relative Path',
   'Copy Absolute Path',

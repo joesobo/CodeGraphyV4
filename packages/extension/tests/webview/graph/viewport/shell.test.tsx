@@ -195,7 +195,7 @@ function createViewState(): Pick<
 		depthMode: false,
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),
-		graphLayout: { pinnedNodes: {} },
+		graphLayout: { collapsedNodes: {}, pinnedNodes: {} },
 		graphMode: '3d',
 		nodeSizeMode: 'connections',
 		particleSize: 3,

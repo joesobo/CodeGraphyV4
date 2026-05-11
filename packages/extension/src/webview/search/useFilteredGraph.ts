@@ -11,6 +11,7 @@ import { deriveVisibleGraph } from '../../shared/visibleGraph';
 import type { IGraphData } from '../../shared/graph/contracts';
 import type { IGraphEdgeTypeDefinition } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
+import type { GraphLayoutSettings } from '../../shared/settings/graphLayout';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import {
   applyEdgeTypeDefaultColors,
@@ -49,12 +50,14 @@ export function useFilteredGraph(
   edgeDecorations?: Record<string, EdgeDecorationPayload>,
   filterPatterns: readonly string[] = [],
   showOrphans = true,
+  graphLayout?: GraphLayoutSettings,
 ): IFilteredGraph {
   const visibleGraph = useMemo(() => {
     return deriveVisibleGraph(graphData, buildVisibleGraphConfig({
       edgeTypes,
       edgeVisibility,
       filterPatterns,
+      graphLayout,
       nodeVisibility,
       searchOptions,
       searchQuery,
@@ -64,6 +67,7 @@ export function useFilteredGraph(
     edgeTypes,
     edgeVisibility,
     filterPatterns,
+    graphLayout,
     graphData,
     nodeVisibility,
     searchOptions,

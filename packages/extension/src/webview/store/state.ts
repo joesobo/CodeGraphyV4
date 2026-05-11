@@ -32,6 +32,7 @@ export interface GraphState {
   graphIndexDetail: string | null;
   graphIsIndexing: boolean;
   graphIndexProgress: { phase: string; current: number; total: number } | null;
+  graphLayout: GraphLayoutSettings;
   isLoading: boolean;
   searchQuery: string;
   searchOptions: SearchOptions;
@@ -45,7 +46,6 @@ export interface GraphState {
   physicsPaused: boolean;
   showLabels: boolean;
   graphMode: '2d' | '3d';
-  graphLayout: GraphLayoutSettings;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
   depthMode: boolean;

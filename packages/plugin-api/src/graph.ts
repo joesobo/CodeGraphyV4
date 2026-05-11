@@ -127,6 +127,15 @@ export interface IGraphNode {
 
   /** Symbol metadata when this node represents a code symbol. */
   symbol?: IGraphNodeSymbolMetadata;
+
+  /** Whether this folder-like node can collapse descendant nodes in the graph view. */
+  isCollapsible?: boolean;
+
+  /** Whether this folder-like node currently represents hidden descendant nodes. */
+  isCollapsed?: boolean;
+
+  /** Number of currently hidden descendant nodes represented by this collapsed node. */
+  collapsedDescendantCount?: number;
 }
 
 /**

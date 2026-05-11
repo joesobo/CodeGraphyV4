@@ -115,6 +115,14 @@ export function applyTimelineAlpha(graph: TimelineAlphaGraph | undefined, alpha:
   graph.d3Alpha(alpha);
 }
 
+function getVisibleSelection(
+  selectedNodeIds: readonly string[],
+  nodes: readonly FGNode[],
+): string[] {
+  const visibleNodeIds = new Set(nodes.map((node) => node.id));
+  return selectedNodeIds.filter((nodeId) => visibleNodeIds.has(nodeId));
+}
+
 export function useGraphState({
   bidirectionalMode,
   appearance = DEFAULT_GRAPH_APPEARANCE,
@@ -210,6 +218,16 @@ export function useGraphState({
       applyTimelineAlpha(graph);
     });
   }, [data, timelineActive]);
+
+  useEffect(() => {
+    const visibleSelectedNodes = getVisibleSelection(selectedNodes, graphData.nodes);
+    if (visibleSelectedNodes.length === selectedNodes.length) {
+      return;
+    }
+
+    selectedNodesSetRef.current = new Set(visibleSelectedNodes);
+    setSelectedNodes(visibleSelectedNodes);
+  }, [graphData, selectedNodes]);
 
   return {
     containerRef,

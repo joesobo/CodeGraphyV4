@@ -3,18 +3,24 @@ import {
   clearGraphLayoutNodePin,
   createDefaultGraphLayoutSettings,
   normalizeGraphLayoutSettings,
+  setGraphLayoutNodeCollapsed,
   setGraphLayoutNodePin,
 } from '../../../../src/extension/repoSettings/graphLayout/model';
 
 describe('extension/repoSettings/graphLayout/model', () => {
-  it('creates empty layout state for pinned nodes', () => {
+  it('creates empty layout state for collapsed and pinned nodes', () => {
     expect(createDefaultGraphLayoutSettings()).toEqual({
+      collapsedNodes: {},
       pinnedNodes: {},
     });
   });
 
-  it('keeps dormant pin records without requiring visible graph nodes', () => {
+  it('keeps dormant layout records without requiring visible graph nodes', () => {
     expect(normalizeGraphLayoutSettings({
+      collapsedNodes: {
+        'src/missing-folder': true,
+        bad: 'yes',
+      },
       pinnedNodes: {
         'src/missing.ts': {
           nodeId: 'src/missing.ts',
@@ -24,6 +30,9 @@ describe('extension/repoSettings/graphLayout/model', () => {
       },
       stray: true,
     })).toEqual({
+      collapsedNodes: {
+        'src/missing-folder': true,
+      },
       pinnedNodes: {
         'src/missing.ts': {
           nodeId: 'src/missing.ts',
@@ -55,6 +64,7 @@ describe('extension/repoSettings/graphLayout/model', () => {
         },
       },
     })).toEqual({
+      collapsedNodes: {},
       pinnedNodes: {
         good: {
           nodeId: 'good',
@@ -62,6 +72,25 @@ describe('extension/repoSettings/graphLayout/model', () => {
           '3D': { x: 3, y: 4, z: 5 },
         },
       },
+    });
+  });
+
+  it('sets and clears collapsed node state independently of pins', () => {
+    const pinned = setGraphLayoutNodePin(createDefaultGraphLayoutSettings(), {
+      graphMode: '2d',
+      nodeId: 'src/app.ts',
+      position: { x: 10, y: 20 },
+    });
+    const collapsed = setGraphLayoutNodeCollapsed(pinned, 'src', true);
+    const expanded = setGraphLayoutNodeCollapsed(collapsed, 'src', false);
+
+    expect(collapsed).toEqual({
+      collapsedNodes: { src: true },
+      pinnedNodes: pinned.pinnedNodes,
+    });
+    expect(expanded).toEqual({
+      collapsedNodes: {},
+      pinnedNodes: pinned.pinnedNodes,
     });
   });
 
@@ -89,5 +118,6 @@ describe('extension/repoSettings/graphLayout/model', () => {
       '3D': { x: 1, y: 2, z: 3 },
     });
     expect(cleared.pinnedNodes).toEqual({});
+    expect(cleared.collapsedNodes).toEqual({});
   });
 });

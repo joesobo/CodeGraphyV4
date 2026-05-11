@@ -9,6 +9,7 @@ export interface GraphContextNodeTarget {
     name: string;
     filePath: string;
   };
+  isCollapsed?: boolean;
 }
 
 export interface GraphContextNodeSource {
@@ -19,6 +20,7 @@ export interface GraphContextNodeSource {
     name: string;
     filePath: string;
   };
+  isCollapsed?: boolean;
 }
 
 export function isPackageNodeId(nodeId: string): boolean {
@@ -29,6 +31,7 @@ export function classifyGraphContextNodeTarget(
   nodeId: string,
   nodeType: string | undefined,
   symbol?: GraphContextNodeSource['symbol'],
+  isCollapsed?: boolean,
 ): GraphContextNodeTarget {
   const resolvedNodeType = isPackageNodeId(nodeId)
     ? 'package'
@@ -41,6 +44,7 @@ export function classifyGraphContextNodeTarget(
       : resolveNodeKind(resolvedNodeType),
     nodeType: resolvedNodeType,
     symbol,
+    isCollapsed,
   };
 }
 
@@ -54,6 +58,7 @@ export function classifyGraphContextNodeTargets(
       targetId,
       nodeMap?.get(targetId)?.nodeType,
       nodeMap?.get(targetId)?.symbol,
+      nodeMap?.get(targetId)?.isCollapsed,
     )
   );
 }

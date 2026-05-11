@@ -1,4 +1,5 @@
 import type { GraphContextMenuEntry, GraphContextMutationAvailability } from '../contracts';
+import type { GraphContextNodeTarget } from '../decision/targets';
 import { builtInItem, separator } from '../common/entryFactories';
 import {
   buildOpenBlock,
@@ -51,13 +52,13 @@ export function buildSingleSymbolNodeEntries(
 }
 
 export function buildSingleFolderNodeEntries(
-  target: string,
+  target: GraphContextNodeTarget,
   timelineActive: boolean,
   mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
 ): GraphContextMenuEntry[] {
-  const targets = [target];
+  const targets = [target.id];
   const entries: GraphContextMenuEntry[] = [];
 
   if (mutationAvailability !== 'hidden') {
@@ -70,6 +71,14 @@ export function buildSingleFolderNodeEntries(
   }
 
   entries.push(
+    builtInItem(
+      'node-collapse-toggle',
+      target.isCollapsed ? 'Expand Folder' : 'Collapse Folder',
+      target.isCollapsed ? 'expandNode' : 'collapseNode',
+    ),
+  );
+
+  entries.push(
     builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
@@ -77,7 +86,7 @@ export function buildSingleFolderNodeEntries(
     ...buildFilterBlock(targets),
   );
 
-  if (target !== '(root)' && mutationAvailability !== 'hidden') {
+  if (target.id !== '(root)' && mutationAvailability !== 'hidden') {
     entries.push(...buildFolderDestructiveBlock(mutationAvailability === 'disabled'));
   }
 

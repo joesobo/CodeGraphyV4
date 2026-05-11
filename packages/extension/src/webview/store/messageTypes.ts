@@ -29,6 +29,7 @@ export interface IStoreFields {
   graphIndexDetail: string | null;
   graphIsIndexing: boolean;
   graphIndexProgress: { phase: string; current: number; total: number } | null;
+  graphLayout: GraphLayoutSettings;
   isLoading: boolean;
   searchQuery: string;
   searchOptions: SearchOptions;
@@ -41,7 +42,6 @@ export interface IStoreFields {
   particleSize: number;
   showLabels: boolean;
   graphMode: '2d' | '3d';
-  graphLayout: GraphLayoutSettings;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
   depthMode: boolean;

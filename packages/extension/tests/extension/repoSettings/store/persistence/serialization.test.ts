@@ -69,6 +69,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
   it('serializes graph layout pin records', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.graphLayout = {
+      collapsedNodes: {},
       pinnedNodes: {
         'src/a.ts': {
           nodeId: 'src/a.ts',
