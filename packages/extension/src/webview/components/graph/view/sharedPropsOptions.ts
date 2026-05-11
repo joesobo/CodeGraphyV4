@@ -31,6 +31,7 @@ export function buildGraphSharedPropsOptions({
     onLinkClick: interactions.interactionHandlers.handleLinkClick,
     onLinkRightClick: interactions.handleLinkRightClick,
     onNodeClick: interactions.interactionHandlers.handleNodeClick,
+    onNodeDrag: interactions.handleNodeDrag,
     onNodeDragEnd: interactions.handleNodeDragEnd,
     onNodeHover: interactions.handleNodeHover,
     onNodeRightClick: interactions.handleNodeRightClick,

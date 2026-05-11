@@ -78,6 +78,7 @@
     --cg-graph-link-highlight: var(--cg-primary);
     --cg-graph-link-muted: var(--vscode-disabledForeground, GrayText);
     --cg-graph-node-selection-border: var(--vscode-contrastActiveBorder, var(--cg-focus-border));
+    --cg-graph-marquee-background: color-mix(in srgb, var(--cg-primary) 14%, transparent);
     --cg-graph-mesh-dimmed: var(--vscode-disabledForeground, GrayText);
     --cg-graph-mesh-selected: var(--vscode-foreground, CanvasText);
     --cg-menu-background: var(--vscode-menu-background, var(--cg-popover));

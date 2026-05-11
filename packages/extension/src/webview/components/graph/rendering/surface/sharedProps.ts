@@ -22,7 +22,8 @@ export interface GraphSurfaceSharedProps {
   onLinkClick(this: void, link: LinkObject, event: MouseEvent): void;
   onLinkRightClick(this: void, link: LinkObject, event: MouseEvent): void;
   onNodeClick(this: void, node: NodeObject, event: MouseEvent): void;
-  onNodeDragEnd(this: void, node: NodeObject): void;
+  onNodeDrag?(this: void, node: NodeObject, translate: { x: number; y: number }): void;
+  onNodeDragEnd?(this: void, node: NodeObject): void;
   onNodeHover(this: void, node: NodeObject | null): void;
   onNodeRightClick(this: void, node: NodeObject, event: MouseEvent): void;
   warmupTicks: number;
@@ -39,7 +40,8 @@ export interface BuildSharedGraphPropsOptions {
   onLinkClick(this: void, link: FGLink, event: MouseEvent): void;
   onLinkRightClick(this: void, link: FGLink, event: MouseEvent): void;
   onNodeClick(this: void, node: FGNode, event: MouseEvent): void;
-  onNodeDragEnd(this: void, node: FGNode): void;
+  onNodeDrag?(this: void, node: FGNode, translate: { x: number; y: number }): void;
+  onNodeDragEnd?(this: void, node: FGNode): void;
   onNodeHover(this: void, node: FGNode | null): void;
   onNodeRightClick(this: void, node: FGNode, event: MouseEvent): void;
   damping: number;
@@ -58,7 +60,17 @@ export function buildSharedGraphProps(
     width: normalizeGraphDimension(options.containerSize.width),
     height: normalizeGraphDimension(options.containerSize.height),
     onNodeClick: (node, event) => options.onNodeClick(node as FGNode, event),
-    onNodeDragEnd: node => options.onNodeDragEnd(node as FGNode),
+    ...(options.onNodeDrag
+      ? {
+          onNodeDrag: (node: NodeObject, translate: { x: number; y: number }) =>
+            options.onNodeDrag?.(node as FGNode, translate),
+        }
+      : {}),
+    ...(options.onNodeDragEnd
+      ? {
+          onNodeDragEnd: (node: NodeObject) => options.onNodeDragEnd?.(node as FGNode),
+        }
+      : {}),
     onNodeRightClick: (node, event) => options.onNodeRightClick(node as FGNode, event),
     onLinkClick: (link, event) => options.onLinkClick(link as FGLink, event),
     onLinkRightClick: (link, event) => options.onLinkRightClick(link as FGLink, event),

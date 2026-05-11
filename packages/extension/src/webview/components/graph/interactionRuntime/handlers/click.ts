@@ -24,11 +24,30 @@ export interface ClickHandlerCallbacks {
   setGraphCursor(this: void, cursor: GraphCursorStyle): void;
 }
 
+function isSuppressedMacControlContextAction(
+  event: MouseEvent,
+  dependencies: GraphInteractionHandlersDependencies,
+): boolean {
+  return dependencies.isMacPlatform
+    && event.ctrlKey
+    && dependencies.isContextMenuSuppressed?.() === true;
+}
+
+function stopSuppressedContextClick(event: MouseEvent): void {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
 export function createClickHandlers(
   dependencies: GraphInteractionHandlersDependencies,
   callbacks: ClickHandlerCallbacks,
 ): ClickHandlers {
   const handleNodeClick = (node: FGNode, event: MouseEvent): void => {
+    if (isSuppressedMacControlContextAction(event, dependencies)) {
+      stopSuppressedContextClick(event);
+      return;
+    }
+
     const command = getNodeClickCommand({
       nodeId: node.id,
       label: node.label,
@@ -61,6 +80,11 @@ export function createClickHandlers(
       return;
     }
 
+    if (isSuppressedMacControlContextAction(event, dependencies)) {
+      stopSuppressedContextClick(event);
+      return;
+    }
+
     callbacks.applyGraphInteractionEffects(
       getBackgroundClickCommand({
         ctrlKey: event.ctrlKey,
@@ -71,6 +95,11 @@ export function createClickHandlers(
   };
 
   const handleLinkClick = (link: FGLink, event: MouseEvent): void => {
+    if (isSuppressedMacControlContextAction(event, dependencies)) {
+      stopSuppressedContextClick(event);
+      return;
+    }
+
     callbacks.applyGraphInteractionEffects(
       getLinkClickCommand({
         ctrlKey: event.ctrlKey,

@@ -22,6 +22,7 @@ export type FGNode = NodeObject & {
   baseOpacity: number;
   isFavorite: boolean;
   isPinned: boolean;
+  isDragging?: boolean;
   nodeType?: NodeType;
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;

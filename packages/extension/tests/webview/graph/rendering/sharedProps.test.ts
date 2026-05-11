@@ -129,7 +129,8 @@ describe('graph/rendering/surface/sharedProps', () => {
 
     props.onNodeClick(node, clickEvent);
     props.onNodeRightClick(node, contextEvent);
-    props.onNodeDragEnd(node);
+    expect(props.onNodeDragEnd).toBeDefined();
+    props.onNodeDragEnd?.(node);
     props.onLinkClick(link, clickEvent);
     props.onLinkRightClick(link, contextEvent);
     props.onBackgroundClick(clickEvent);

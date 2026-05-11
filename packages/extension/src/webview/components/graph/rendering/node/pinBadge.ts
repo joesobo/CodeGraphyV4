@@ -4,7 +4,6 @@ import type { GraphAppearance } from '../../appearance/model';
 import type { FGNode } from '../../model/build';
 
 const MATERIAL_ICON_VIEWBOX_SIZE = 24;
-const PIN_BADGE_ICON_COLOR = '#ffffff';
 const PIN_BADGE_BACKGROUND_DARKEN_FACTOR = 0.48;
 const PIN_BADGE_HIDDEN_NODE_RADIUS_PX = 5;
 const PIN_BADGE_FULL_OPACITY_NODE_RADIUS_PX = 9;
@@ -39,7 +38,7 @@ function getPinnedNodeBadgeOpacity(node: FGNode, globalScale: number): number {
 }
 
 export interface RenderNodePinBadgeOptions {
-  appearance: Pick<GraphAppearance, 'nodeSelectionBorder'>;
+  appearance: Pick<GraphAppearance, 'labelForeground' | 'nodeSelectionBorder'>;
   ctx: CanvasRenderingContext2D;
   globalScale: number;
   node: FGNode;
@@ -79,7 +78,7 @@ export function renderNodePinBadge({
 
   ctx.translate(centerX - iconSize / 2, centerY - iconSize / 2);
   ctx.scale(iconScale, iconScale);
-  ctx.fillStyle = PIN_BADGE_ICON_COLOR;
+  ctx.fillStyle = appearance.labelForeground;
   ctx.fill(getPinIconPath());
   ctx.restore();
 }
