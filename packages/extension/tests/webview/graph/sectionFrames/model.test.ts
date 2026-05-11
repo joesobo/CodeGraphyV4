@@ -84,7 +84,7 @@ describe('graph/sectionFrames/model', () => {
     });
   });
 
-  it('creates move and resize updates from graph-space drag deltas', () => {
+  it('creates move and southeast resize updates from graph-space drag deltas', () => {
     const graph = {
       screen2GraphCoords: (x: number, y: number) => ({ x: x - 200, y: y - 150 }),
     };
@@ -103,10 +103,42 @@ describe('graph/sectionFrames/model', () => {
       clientX: 340,
       clientY: 240,
       section,
-      type: 'resize',
+      type: 'resize:southeast',
     }, { clientX: 380, clientY: 270 })).toEqual({
       sectionId: 'section-1',
       updates: { height: 210, width: 320 },
+    });
+  });
+
+  it('creates corner resize updates that keep the opposite corner anchored', () => {
+    expect(getSectionFrameDragUpdate(undefined, {
+      clientX: 0,
+      clientY: 0,
+      section,
+      type: 'resize:northwest',
+    }, { clientX: 40, clientY: 30 })).toEqual({
+      sectionId: 'section-1',
+      updates: { height: 150, width: 240, x: -100, y: -60 },
+    });
+
+    expect(getSectionFrameDragUpdate(undefined, {
+      clientX: 0,
+      clientY: 0,
+      section,
+      type: 'resize:northeast',
+    }, { clientX: 40, clientY: 30 })).toEqual({
+      sectionId: 'section-1',
+      updates: { height: 150, width: 320, y: -60 },
+    });
+
+    expect(getSectionFrameDragUpdate(undefined, {
+      clientX: 0,
+      clientY: 0,
+      section,
+      type: 'resize:southwest',
+    }, { clientX: 40, clientY: 30 })).toEqual({
+      sectionId: 'section-1',
+      updates: { height: 210, width: 240, x: -100 },
     });
   });
 
@@ -115,7 +147,7 @@ describe('graph/sectionFrames/model', () => {
       clientX: 0,
       clientY: 0,
       section,
-      type: 'resize',
+      type: 'resize:southeast',
     }, { clientX: -500, clientY: -500 })).toEqual({
       sectionId: 'section-1',
       updates: { height: 80, width: 80 },

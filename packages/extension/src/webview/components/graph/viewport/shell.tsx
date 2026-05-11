@@ -233,6 +233,9 @@ export function GraphViewportShell({
       sectionNodePositions={sectionFrameNodePositions}
       pinnedSectionIds={pinnedSectionIds}
       sectionFrames={sectionFrames}
+      onOpenSectionContextMenu={(sectionId, event) => {
+        interactions.handleNodeContextMenuById(sectionId, event.nativeEvent);
+      }}
       onUpdateSection={handleUpdateSection}
       surface2dProps={{
         fg2dRef: graphState.fg2dRef,

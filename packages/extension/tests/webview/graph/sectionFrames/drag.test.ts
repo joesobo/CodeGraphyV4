@@ -127,7 +127,7 @@ describe('graph/sectionFrames/drag', () => {
       clientY: 0,
       nodePosition,
       section,
-      type: 'resize',
+      type: 'resize:southeast',
     }, onUpdateSection);
 
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 20, clientY: 10 }));
@@ -135,6 +135,37 @@ describe('graph/sectionFrames/drag', () => {
     expect(nodePosition).toMatchObject({
       sectionHeight: 190,
       sectionWidth: 300,
+      x: 10,
+      y: 5,
+    });
+    expect(onUpdateSection).not.toHaveBeenCalled();
+
+    window.dispatchEvent(new MouseEvent('mouseup', { clientX: 20, clientY: 10 }));
+  });
+
+  it('keeps live Section Node centers aligned when resizing from a top-left anchored handle', () => {
+    const onUpdateSection = vi.fn();
+    const nodePosition = {
+      id: 'section-1',
+      sectionHeight: 180,
+      sectionWidth: 280,
+      x: 0,
+      y: 0,
+    };
+
+    beginSectionFrameWindowDrag(undefined, {
+      clientX: 0,
+      clientY: 0,
+      nodePosition,
+      section,
+      type: 'resize:northwest',
+    }, onUpdateSection);
+
+    window.dispatchEvent(new MouseEvent('mousemove', { clientX: 20, clientY: 10 }));
+
+    expect(nodePosition).toMatchObject({
+      sectionHeight: 170,
+      sectionWidth: 260,
       x: 10,
       y: 5,
     });

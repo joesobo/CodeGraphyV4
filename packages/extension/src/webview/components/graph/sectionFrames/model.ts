@@ -35,7 +35,8 @@ export interface SectionFrameNodePosition {
   y?: number;
 }
 
-export type SectionFrameDragType = 'move' | 'resize';
+export type SectionFrameResizeCorner = 'northwest' | 'northeast' | 'southwest' | 'southeast';
+export type SectionFrameDragType = 'move' | `resize:${SectionFrameResizeCorner}`;
 
 export interface SectionFrameDragState {
   clientX: number;
@@ -142,12 +143,50 @@ export function getSectionFrameDragUpdate(
     };
   }
 
-  if (drag.type === 'resize') {
+  if (drag.type === 'resize:southeast') {
     return {
       sectionId: drag.section.id,
       updates: {
         height: Math.max(MIN_SECTION_SIZE, drag.section.height + delta.y),
         width: Math.max(MIN_SECTION_SIZE, drag.section.width + delta.x),
+      },
+    };
+  }
+
+  if (drag.type === 'resize:southwest') {
+    const nextWidth = Math.max(MIN_SECTION_SIZE, drag.section.width - delta.x);
+    return {
+      sectionId: drag.section.id,
+      updates: {
+        height: Math.max(MIN_SECTION_SIZE, drag.section.height + delta.y),
+        width: nextWidth,
+        x: drag.section.x + drag.section.width - nextWidth,
+      },
+    };
+  }
+
+  if (drag.type === 'resize:northeast') {
+    const nextHeight = Math.max(MIN_SECTION_SIZE, drag.section.height - delta.y);
+    return {
+      sectionId: drag.section.id,
+      updates: {
+        height: nextHeight,
+        width: Math.max(MIN_SECTION_SIZE, drag.section.width + delta.x),
+        y: drag.section.y + drag.section.height - nextHeight,
+      },
+    };
+  }
+
+  if (drag.type === 'resize:northwest') {
+    const nextHeight = Math.max(MIN_SECTION_SIZE, drag.section.height - delta.y);
+    const nextWidth = Math.max(MIN_SECTION_SIZE, drag.section.width - delta.x);
+    return {
+      sectionId: drag.section.id,
+      updates: {
+        height: nextHeight,
+        width: nextWidth,
+        x: drag.section.x + drag.section.width - nextWidth,
+        y: drag.section.y + drag.section.height - nextHeight,
       },
     };
   }
