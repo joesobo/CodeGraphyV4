@@ -66,22 +66,20 @@ function normalizePinnedNode(
   }
 
   const nodeId = readRequiredString(value.nodeId);
-  const updatedAt = readRequiredString(value.updatedAt);
-  if (nodeId !== key || !updatedAt) {
+  if (nodeId !== key) {
     return undefined;
   }
 
-  const twoDimensional = readCoordinate2D(value.twoDimensional);
-  const threeDimensional = readCoordinate3D(value.threeDimensional);
+  const twoDimensional = readCoordinate2D(value['2D']);
+  const threeDimensional = readCoordinate3D(value['3D']);
   if (!twoDimensional && !threeDimensional) {
     return undefined;
   }
 
   return {
     nodeId,
-    ...(twoDimensional ? { twoDimensional } : {}),
-    ...(threeDimensional ? { threeDimensional } : {}),
-    updatedAt,
+    ...(twoDimensional ? { '2D': twoDimensional } : {}),
+    ...(threeDimensional ? { '3D': threeDimensional } : {}),
   };
 }
 
@@ -115,7 +113,6 @@ export interface GraphLayoutNodePinUpdate {
   graphMode: GraphLayoutMode;
   nodeId: string;
   position: GraphLayoutCoordinate2D | GraphLayoutCoordinate3D;
-  updatedAt: string;
 }
 
 function isCoordinate3D(
@@ -131,13 +128,12 @@ export function setGraphLayoutNodePin(
   const existing = layout.pinnedNodes[update.nodeId];
   const nextPinnedNode: GraphLayoutPinnedNode = {
     nodeId: update.nodeId,
-    twoDimensional: update.graphMode === '2d'
+    '2D': update.graphMode === '2d'
       ? { x: update.position.x, y: update.position.y }
-      : existing?.twoDimensional,
-    threeDimensional: update.graphMode === '3d' && isCoordinate3D(update.position)
+      : existing?.['2D'],
+    '3D': update.graphMode === '3d' && isCoordinate3D(update.position)
       ? { x: update.position.x, y: update.position.y, z: update.position.z }
-      : existing?.threeDimensional,
-    updatedAt: update.updatedAt,
+      : existing?.['3D'],
   };
 
   return normalizeGraphLayoutSettings({
@@ -162,11 +158,11 @@ export function clearGraphLayoutNodePin(
   const nextPinnedNodes = { ...layout.pinnedNodes };
   const nextPinnedNode: GraphLayoutPinnedNode = {
     ...existing,
-    ...(graphMode === '2d' ? { twoDimensional: undefined } : {}),
-    ...(graphMode === '3d' ? { threeDimensional: undefined } : {}),
+    ...(graphMode === '2d' ? { '2D': undefined } : {}),
+    ...(graphMode === '3d' ? { '3D': undefined } : {}),
   };
 
-  if (!nextPinnedNode.twoDimensional && !nextPinnedNode.threeDimensional) {
+  if (!nextPinnedNode['2D'] && !nextPinnedNode['3D']) {
     delete nextPinnedNodes[nodeId];
   } else {
     nextPinnedNodes[nodeId] = nextPinnedNode;

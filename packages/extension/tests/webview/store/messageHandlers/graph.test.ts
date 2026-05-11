@@ -153,8 +153,7 @@ describe('webview/store/messageHandlers/graph', () => {
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
-          twoDimensional: { x: 12, y: 24 },
-          updatedAt: '2026-05-07T08:00:00.000Z',
+          '2D': { x: 12, y: 24 },
         },
       },
     };
