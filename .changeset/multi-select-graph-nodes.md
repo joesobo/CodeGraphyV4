@@ -2,4 +2,4 @@
 "@codegraphy/extension": minor
 ---
 
-Add desktop-style multi-node selection with marquee drag, Shift selection extension, viewport panning, and selected group dragging.
+Add desktop-style multi-node selection with left-drag marquee selection, Shift selection extension, right-drag viewport panning, and selected group dragging.

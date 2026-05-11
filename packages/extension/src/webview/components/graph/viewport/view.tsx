@@ -127,7 +127,7 @@ export function Viewport({
           {marqueeSelection ? (
             <div
               data-testid="graph-marquee-selection"
-              className="pointer-events-none absolute z-20 rounded-sm border border-dashed border-[var(--vscode-focusBorder)] bg-[rgba(59,130,246,0.14)]"
+              className="pointer-events-none absolute z-20 rounded-sm border border-dashed border-[var(--cg-focus-border)] bg-[var(--cg-graph-marquee-background)]"
               style={{
                 left: marqueeSelection.bounds.left,
                 top: marqueeSelection.bounds.top,
