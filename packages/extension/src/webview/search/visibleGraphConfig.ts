@@ -80,7 +80,7 @@ export function buildVisibleGraphCollapseConfig(
   }
 
   const collapsedNodeIds = getCollapsedGraphNodeIds(graphLayout);
-  return collapsedNodeIds.length > 0 ? { collapsedNodeIds } : undefined;
+  return { collapsedNodeIds };
 }
 
 export function buildVisibleGraphConfig({
