@@ -48,7 +48,7 @@ export function buildGraphContextMenuEntries(
     ? buildBackgroundEntries(mutationAvailability)
     : decision.kind === 'singleFolderNode'
       ? buildSingleFolderNodeEntries(
-        decision.target.id,
+        decision.target,
         timelineActive,
         mutationAvailability,
         favorites,

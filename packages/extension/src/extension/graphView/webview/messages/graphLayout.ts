@@ -4,6 +4,7 @@ import {
   clearGraphLayoutNodePin,
   createDefaultGraphLayoutSettings,
   normalizeGraphLayoutSettings,
+  setGraphLayoutNodeCollapsed,
   setGraphLayoutNodePin,
   type GraphLayoutSettings,
 } from '../../../repoSettings/graphLayout/model';
@@ -48,6 +49,17 @@ export async function applyGraphLayoutMessage(
         readCurrentGraphLayout(handlers),
         message.payload.nodeId,
         message.payload.graphMode,
+      );
+
+      await persistAndSendGraphLayout(handlers, nextLayout);
+      return true;
+    }
+
+    case 'UPDATE_GRAPH_LAYOUT_COLLAPSE': {
+      const nextLayout = setGraphLayoutNodeCollapsed(
+        readCurrentGraphLayout(handlers),
+        message.payload.nodeId,
+        message.payload.collapsed,
       );
 
       await persistAndSendGraphLayout(handlers, nextLayout);

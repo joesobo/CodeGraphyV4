@@ -40,6 +40,7 @@ export interface GraphInteractionHandlersDependencies {
   setContextSelection(selection: GraphContextSelection): void;
   setHighlightVersion(updater: (previous: number) => number): void;
   setSelectedNodes(nodeIds: string[]): void;
+  toggleFolderCollapse?(nodeId: string, collapsed: boolean): void;
 }
 
 export interface GraphInteractionHandlers {

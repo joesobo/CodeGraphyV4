@@ -121,11 +121,14 @@ function createGraphNode(
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,
-    fx: pinCoordinate?.x,
-    fy: pinCoordinate?.y,
+    isCollapsible: node.isCollapsible,
+    isCollapsed: node.isCollapsed,
+    collapsedDescendantCount: node.collapsedDescendantCount,
+    fx: pinCoordinate?.x ?? previous?.fx,
+    fy: pinCoordinate?.y ?? previous?.fy,
     fz: options.graphMode === '3d' && pinCoordinate && 'z' in pinCoordinate
       ? pinCoordinate.z
-      : undefined,
+      : previous?.fz,
     vx: previous?.vx,
     vy: previous?.vy,
     vz: previous?.vz,

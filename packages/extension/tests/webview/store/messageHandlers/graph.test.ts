@@ -80,6 +80,7 @@ function createState(
     isPlaying: false,
     playbackSpeed: 1,
     graphLayout: {
+      collapsedNodes: {},
       pinnedNodes: {},
     },
     ...overrides,
@@ -150,6 +151,7 @@ describe('webview/store/messageHandlers/graph', () => {
     expect([...favorites.favorites ?? []]).toEqual(['src/app.ts', 'src/lib.ts']);
 
     const graphLayout = {
+      collapsedNodes: {},
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
@@ -161,6 +163,15 @@ describe('webview/store/messageHandlers/graph', () => {
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: graphLayout,
     })).toEqual({ graphLayout });
+  });
+
+  it('maps graph layout updates into persisted layout state', () => {
+    expect(handleGraphLayoutUpdated({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: { collapsedNodes: { src: true }, pinnedNodes: {} },
+    })).toEqual({
+      graphLayout: { collapsedNodes: { src: true }, pinnedNodes: {} },
+    });
   });
 
   it('maps settings and filter payloads', () => {

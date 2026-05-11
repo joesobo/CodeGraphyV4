@@ -8,6 +8,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {},
           } as T;
         }
@@ -26,6 +27,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {
         'src/app.ts': {
           nodeId: 'src/app.ts',
@@ -36,6 +38,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     expect(context.sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
+        collapsedNodes: {},
         pinnedNodes: {
           'src/app.ts': {
             nodeId: 'src/app.ts',
@@ -51,6 +54,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
+            collapsedNodes: {},
             pinnedNodes: {
               'src/app.ts': {
                 nodeId: 'src/app.ts',
@@ -73,12 +77,64 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     }, context)).resolves.toEqual({ handled: true });
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
       pinnedNodes: {},
     });
     expect(context.sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
+        collapsedNodes: {},
         pinnedNodes: {},
+      },
+    });
+  });
+
+  it('persists collapsed folder state without clearing node pins', async () => {
+    const context = createPrimaryMessageContext({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'graphLayout') {
+          return {
+            collapsedNodes: {},
+            pinnedNodes: {
+              src: {
+                nodeId: 'src',
+                '2D': { x: 12, y: -24 },
+              },
+            },
+          } as T;
+        }
+
+        return defaultValue;
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE',
+      payload: {
+        nodeId: 'src',
+        collapsed: true,
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: { src: true },
+      pinnedNodes: {
+        src: {
+          nodeId: 'src',
+          '2D': { x: 12, y: -24 },
+        },
+      },
+    });
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: {
+        collapsedNodes: { src: true },
+        pinnedNodes: {
+          src: {
+            nodeId: 'src',
+            '2D': { x: 12, y: -24 },
+          },
+        },
       },
     });
   });

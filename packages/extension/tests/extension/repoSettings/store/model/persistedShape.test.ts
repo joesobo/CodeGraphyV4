@@ -71,9 +71,14 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     });
   });
 
-  it('keeps normalized graph layout pins and drops invalid layout records', () => {
+  it('keeps normalized graph layout state and drops invalid layout records', () => {
     expect(normalizePersistedSettingsShape({
       graphLayout: {
+        collapsedNodes: {
+          src: true,
+          tests: false,
+          invalid: 'yes',
+        },
         pinnedNodes: {
           'src/a.ts': {
             nodeId: 'src/a.ts',
@@ -90,6 +95,10 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       graphSectionDrafts: {},
     })).toEqual({
       graphLayout: {
+        collapsedNodes: {
+          src: true,
+          tests: false,
+        },
         pinnedNodes: {
           'src/a.ts': {
             nodeId: 'src/a.ts',
