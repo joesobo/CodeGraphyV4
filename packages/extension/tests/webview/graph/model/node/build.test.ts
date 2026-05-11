@@ -22,6 +22,9 @@ describe('graph/model/node/build', () => {
           color: '#80c0ff',
           shape3D: 'cube',
           imageUrl: 'https://example.test/favorite.png',
+          isCollapsible: true,
+          isCollapsed: true,
+          collapsedDescendantCount: 12,
         },
       ],
       edges: [],
@@ -49,6 +52,9 @@ describe('graph/model/node/build', () => {
       imageUrl: 'https://example.test/favorite.png',
       isFavorite: true,
       shape3D: 'cube',
+      isCollapsible: true,
+      isCollapsed: true,
+      collapsedDescendantCount: 12,
       size: 18,
     });
   });

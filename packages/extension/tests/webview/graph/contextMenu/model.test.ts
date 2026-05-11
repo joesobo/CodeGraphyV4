@@ -120,6 +120,7 @@ describe('graph/contextMenuModel', () => {
     expect(menuLabels(entries)).toEqual([
       'New File...',
       'New Folder...',
+      'Collapse Folder',
       'Reveal in Explorer',
       'Copy Relative Path',
       'Copy Absolute Path',
@@ -130,6 +131,19 @@ describe('graph/contextMenuModel', () => {
       'Rename Folder...',
       'Delete Folder',
     ]);
+  });
+
+  it('shows expand action for a collapsed folder node', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pluginItems: [],
+      nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder', isCollapsed: true }],
+    });
+
+    expect(menuLabels(entries)).toContain('Expand Folder');
+    expect(builtInActions(entries)).toContain('expandNode');
   });
 
   it('disables folder-node child creation actions for historical snapshots', () => {

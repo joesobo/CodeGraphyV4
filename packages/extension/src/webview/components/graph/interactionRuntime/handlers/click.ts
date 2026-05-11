@@ -4,6 +4,10 @@ import {
   getNodeClickCommand,
 } from '../../interaction/model';
 import type { FGLink, FGNode } from '../../model/build';
+import {
+  getNodeCollapseIndicatorCenter,
+  shouldRenderNodeCollapseIndicator,
+} from '../../rendering/node/collapseIndicator';
 import type { GraphCursorStyle } from '../../support/dom';
 import type { GraphInteractionHandlersDependencies } from '../handlers';
 
@@ -38,6 +42,34 @@ function stopSuppressedContextClick(event: MouseEvent): void {
   event.stopPropagation();
 }
 
+function isFolderCollapseIndicatorClick(
+  node: FGNode,
+  event: MouseEvent,
+  dependencies: GraphInteractionHandlersDependencies,
+): boolean {
+  if (
+    dependencies.graphMode !== '2d'
+    || !dependencies.toggleFolderCollapse
+    || !shouldRenderNodeCollapseIndicator(node)
+  ) {
+    return false;
+  }
+
+  const graph = dependencies.fg2dRef.current;
+  const toScreen = graph?.graph2ScreenCoords?.bind(graph);
+  if (!toScreen) {
+    return false;
+  }
+
+  const indicatorCenter = getNodeCollapseIndicatorCenter(node);
+  const screenCenter = toScreen(indicatorCenter.x, indicatorCenter.y);
+  const rect = dependencies.containerRef.current?.getBoundingClientRect();
+  const dx = event.clientX - ((rect?.left ?? 0) + screenCenter.x);
+  const dy = event.clientY - ((rect?.top ?? 0) + screenCenter.y);
+
+  return Math.hypot(dx, dy) <= 12;
+}
+
 export function createClickHandlers(
   dependencies: GraphInteractionHandlersDependencies,
   callbacks: ClickHandlerCallbacks,
@@ -45,6 +77,13 @@ export function createClickHandlers(
   const handleNodeClick = (node: FGNode, event: MouseEvent): void => {
     if (isSuppressedMacControlContextAction(event, dependencies)) {
       stopSuppressedContextClick(event);
+      return;
+    }
+
+    if (isFolderCollapseIndicatorClick(node, event, dependencies)) {
+      event.preventDefault();
+      event.stopPropagation();
+      dependencies.toggleFolderCollapse?.(node.id, !node.isCollapsed);
       return;
     }
 

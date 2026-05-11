@@ -14,6 +14,7 @@ import type {
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
+import type { GraphLayoutSettings } from '../settings/graphLayout';
 import type { ITimelineData } from '../timeline/contracts';
 
 export interface IPluginFilterPatternGroup {
@@ -34,6 +35,7 @@ export type ExtensionToWebviewMessage =
     }
   | { type: 'GRAPH_INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'GRAPH_CONTROLS_UPDATED'; payload: IGraphControlsSnapshot }
+  | { type: 'GRAPH_LAYOUT_UPDATED'; payload: GraphLayoutSettings }
   | { type: 'FIT_VIEW' }
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }

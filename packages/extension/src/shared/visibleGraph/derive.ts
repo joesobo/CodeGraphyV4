@@ -1,5 +1,6 @@
 import type { IGraphData } from '../graph/contracts';
 import type { VisibleGraphConfig, VisibleGraphResult } from './contracts';
+import { applyCollapseProjection } from './collapse';
 import { applyFilterPatterns } from './filter';
 import { applyShowOrphans } from './orphans';
 import { applySearch } from './search';
@@ -54,6 +55,10 @@ export function deriveVisibleGraph(
 
   if (config.showOrphans !== undefined) {
     current = applyShowOrphans(current, config.showOrphans);
+  }
+
+  if (config.collapse) {
+    current = applyCollapseProjection(current, config.collapse);
   }
 
   return {

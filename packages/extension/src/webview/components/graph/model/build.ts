@@ -25,6 +25,9 @@ export type FGNode = NodeObject & {
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;
+  isCollapsible?: boolean;
+  isCollapsed?: boolean;
+  collapsedDescendantCount?: number;
   fx?: number;
   fy?: number;
   fz?: number;

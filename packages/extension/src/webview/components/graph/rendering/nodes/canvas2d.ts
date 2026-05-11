@@ -1,4 +1,5 @@
 import { renderNodeBody } from '../node/body';
+import { renderNodeCollapseIndicator } from '../node/collapseIndicator';
 import { renderNodeLabel } from '../node/label';
 import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
 import { paintNodePointerArea } from '../node/pointer';
@@ -34,6 +35,7 @@ export function renderNodeCanvas(
     opacity,
   });
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
+  renderNodeCollapseIndicator(ctx, node, globalScale, appearance);
   if (dependencies.showLabelsRef.current) {
     renderNodeLabel({
       appearance,

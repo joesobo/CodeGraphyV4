@@ -1,5 +1,6 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import { DEFAULT_GRAPH_LAYOUT_SETTINGS } from '../../../../shared/settings/graphLayout';
 
 export interface GraphViewReadyState {
   maxFiles: number;
@@ -65,6 +66,10 @@ export async function applyWebviewReady(
   handlers.sendMessage({
     type: 'MAX_FILES_UPDATED',
     payload: { maxFiles: state.maxFiles },
+  });
+  handlers.sendMessage({
+    type: 'GRAPH_LAYOUT_UPDATED',
+    payload: handlers.getConfig('graphLayout', DEFAULT_GRAPH_LAYOUT_SETTINGS),
   });
   await handlers.sendCachedTimeline();
   handlers.sendMessage({

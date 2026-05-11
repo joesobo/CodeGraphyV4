@@ -3,6 +3,10 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
+  DEFAULT_GRAPH_LAYOUT_SETTINGS,
+  type GraphLayoutSettings,
+} from '../../shared/settings/graphLayout';
+import {
   createDefaultEdgeVisibility,
   createDefaultNodeColorEnabled,
   createDefaultNodeColors,
@@ -50,6 +54,7 @@ export interface ICodeGraphyRepoSettings {
     maxCommits: number;
     playbackSpeed: number;
   };
+  graphLayout: GraphLayoutSettings;
 }
 
 export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
@@ -93,6 +98,9 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     timeline: {
       maxCommits: 500,
       playbackSpeed: 1,
+    },
+    graphLayout: {
+      collapsedNodes: { ...DEFAULT_GRAPH_LAYOUT_SETTINGS.collapsedNodes },
     },
   };
 }

@@ -70,4 +70,29 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       timeline: { maxCommits: 1000 },
     });
   });
+
+  it('keeps only collapsed node state from persisted graph layout settings', () => {
+    expect(normalizePersistedSettingsShape({
+      graphLayout: {
+        collapsedNodes: {
+          src: true,
+          tests: false,
+          invalid: 'yes',
+        },
+        sections: {
+          section1: { label: 'Later PR' },
+        },
+        ownership: {
+          'src/app.ts': 'section1',
+        },
+      },
+    })).toEqual({
+      graphLayout: {
+        collapsedNodes: {
+          src: true,
+          tests: false,
+        },
+      },
+    });
+  });
 });

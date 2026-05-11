@@ -31,6 +31,7 @@ const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'nodeSizeMode',
   'physics',
   'timeline',
+  'graphLayout',
 ]);
 
 const PHYSICS_SETTINGS_KEYS = new Set([
@@ -45,6 +46,10 @@ const PHYSICS_SETTINGS_KEYS = new Set([
 const TIMELINE_SETTINGS_KEYS = new Set([
   'maxCommits',
   'playbackSpeed',
+]);
+
+const GRAPH_LAYOUT_SETTINGS_KEYS = new Set([
+  'collapsedNodes',
 ]);
 
 function readStringArray(value: unknown): string[] {
@@ -89,7 +94,35 @@ function pickTopLevelSettings(value: Record<string, unknown>): Record<string, un
     picked.timeline = timeline;
   }
 
+  const graphLayout = pickObjectKeys(picked.graphLayout, GRAPH_LAYOUT_SETTINGS_KEYS);
+  if (graphLayout) {
+    picked.graphLayout = normalizePersistedGraphLayout(graphLayout);
+  }
+
   return picked;
+}
+
+function normalizeBooleanRecord(value: unknown): Record<string, boolean> {
+  if (!isPlainObject(value)) {
+    return {};
+  }
+
+  const record: Record<string, boolean> = {};
+  for (const [key, entryValue] of Object.entries(value)) {
+    if (typeof entryValue === 'boolean') {
+      record[key] = entryValue;
+    }
+  }
+
+  return record;
+}
+
+function normalizePersistedGraphLayout(
+  graphLayout: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    collapsedNodes: normalizeBooleanRecord(graphLayout.collapsedNodes),
+  };
 }
 
 function createLegendRuleId(rule: Record<string, unknown>, index: number): string {

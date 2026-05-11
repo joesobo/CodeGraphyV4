@@ -49,6 +49,12 @@ export function handleGraphControlsUpdated(
   };
 }
 
+export function handleGraphLayoutUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_LAYOUT_UPDATED' }>,
+): PartialState {
+  return { graphLayout: message.payload };
+}
+
 export function handleFavoritesUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>,
 ): PartialState {

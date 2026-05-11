@@ -11,6 +11,7 @@ import {
   handleGraphDataUpdated,
   handleGraphIndexProgress,
   handleGraphIndexStatusUpdated,
+  handleGraphLayoutUpdated,
   handleLegendsUpdated,
   handleMaxFilesUpdated,
   handlePhysicsSettingsUpdated,
@@ -30,6 +31,7 @@ function createState(
     graphIndexDetail: null,
     graphIsIndexing: false,
     graphIndexProgress: null,
+    graphLayout: { collapsedNodes: {} },
     isLoading: true,
     searchQuery: '',
     searchOptions: { matchCase: false, wholeWord: false, regex: false },
@@ -144,6 +146,15 @@ describe('webview/store/messageHandlers/graph', () => {
       payload: { favorites: ['src/app.ts', 'src/lib.ts'] },
     });
     expect([...favorites.favorites ?? []]).toEqual(['src/app.ts', 'src/lib.ts']);
+  });
+
+  it('maps graph layout updates into persisted layout state', () => {
+    expect(handleGraphLayoutUpdated({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: { collapsedNodes: { src: true } },
+    })).toEqual({
+      graphLayout: { collapsedNodes: { src: true } },
+    });
   });
 
   it('maps settings and filter payloads', () => {

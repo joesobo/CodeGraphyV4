@@ -75,6 +75,10 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_NODE_COLOR'; payload: { nodeType: string; color: string; enabled?: boolean } }
   | { type: 'UPDATE_NODE_VISIBILITY'; payload: { nodeType: string; visible: boolean } }
   | { type: 'UPDATE_EDGE_VISIBILITY'; payload: { edgeKind: string; visible: boolean } }
+  | {
+      type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE';
+      payload: { nodeId: string; collapsed: boolean };
+    }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
   | { type: 'INDEX_REPO' }
   | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }
