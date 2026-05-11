@@ -32,7 +32,9 @@ export type CoreEdgeKind =
   | 'inherit'
   | 'reference'
   | 'test'
-  | 'load';
+  | 'load'
+  | 'contains'
+  | 'overrides';
 
 export type GraphEdgeKind = CoreEdgeKind | `${string}:${string}`;
 

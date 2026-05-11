@@ -25,6 +25,18 @@ export function createCoreGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       defaultColor: DEFAULT_PACKAGE_NODE_COLOR,
       defaultVisible: false,
     },
+    {
+      id: 'symbol',
+      label: 'Symbols',
+      defaultColor: '#8B5CF6',
+      defaultVisible: false,
+    },
+    {
+      id: 'variable',
+      label: 'Variables',
+      defaultColor: '#14B8A6',
+      defaultVisible: false,
+    },
   ];
 }
 

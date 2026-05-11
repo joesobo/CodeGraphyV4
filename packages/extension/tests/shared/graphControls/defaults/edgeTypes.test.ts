@@ -63,6 +63,18 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         defaultColor: '#06B6D4',
         defaultVisible: true,
       },
+      {
+        id: 'contains',
+        label: 'Contains',
+        defaultColor: '#94A3B8',
+        defaultVisible: true,
+      },
+      {
+        id: 'overrides',
+        label: 'Overrides',
+        defaultColor: '#EC4899',
+        defaultVisible: true,
+      },
     ]);
     expect(CORE_GRAPH_EDGE_TYPES).toEqual(createCoreGraphEdgeTypes());
   });
