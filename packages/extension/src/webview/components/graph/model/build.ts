@@ -20,6 +20,7 @@ export type FGNode = NodeObject & {
   borderWidth: number;
   baseOpacity: number;
   isFavorite: boolean;
+  isDragging?: boolean;
   nodeType?: NodeType;
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;

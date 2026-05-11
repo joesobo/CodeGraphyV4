@@ -26,6 +26,17 @@ import {
 } from './tooltip/hook';
 import type { FGNode } from '../../model/build';
 import {
+  createSuppressedContextMenuHandlers,
+  useContextMenuSuppression,
+} from './interaction/contextSuppression';
+import {
+  applyNodeDrag,
+  releaseDraggedNodes,
+  type NodeDragGroupSession,
+  type NodeDragTranslate,
+} from './interaction/nodeDrag';
+import { useGraphViewportPanRuntime } from './interaction/viewportPan/hook';
+import {
   getMarqueeBounds,
   getMarqueeSelectedNodeIds,
   isMarqueePastThreshold,
@@ -78,6 +89,8 @@ export interface UseGraphInteractionRuntimeResult {
   handleMouseLeave(this: void): void;
   handleMouseMoveCapture: GraphContextMenuOpeningRuntime['handleMouseMoveCapture'];
   handleMouseUpCapture: GraphContextMenuOpeningRuntime['handleMouseUpCapture'];
+  handleNodeDrag(this: void, node: FGNode, translate: NodeDragTranslate): void;
+  handleNodeDragEnd(this: void, node: FGNode): void;
   handleNodeHover(this: void, node: FGNode | null): void;
   handleNodeRightClick: GraphContextMenuOpeningRuntime['handleNodeRightClick'];
   hoveredNodeRef: MutableRefObject<FGNode | null>;
@@ -94,6 +107,7 @@ type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionH
 const MARQUEE_DRAG_THRESHOLD_PX = 6;
 
 interface MarqueeDragState {
+  additive: boolean;
   current: MarqueePoint;
   selecting: boolean;
   start: MarqueePoint;
@@ -146,6 +160,7 @@ export function useGraphInteractionRuntime({
   setHighlightVersion,
   setSelectedNodes,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
+  const nodeDragGroupRef = useRef<NodeDragGroupSession | null>(null);
   const interactionHandlers = useMemo(
     () => createGraphInteractionHandlers({
       containerRef: refs.containerRef,
@@ -206,6 +221,14 @@ export function useGraphInteractionRuntime({
     pluginHost,
     postMessage,
   });
+  const contextMenuSuppression = useContextMenuSuppression();
+  const viewportPanRuntime = useGraphViewportPanRuntime({
+    containerRef: refs.containerRef,
+    fg2dRef: refs.fg2dRef,
+    graphMode,
+    rightMouseDownRef: refs.rightMouseDownRef,
+    suppressContextMenu: contextMenuSuppression.suppressContextMenu,
+  });
   const marqueeDragRef = useRef<MarqueeDragState | null>(null);
   const [marqueeSelection, setMarqueeSelection] = useState<GraphMarqueeSelectionState | null>(null);
 
@@ -222,7 +245,7 @@ export function useGraphInteractionRuntime({
   function handleMarqueeMouseDownCapture(event: ReactMouseEvent<HTMLDivElement>): void {
     if (
       event.button !== 0
-      || event.shiftKey
+      || event.ctrlKey
       || graphMode !== '2d'
       || hoveredNodeRef.current
     ) {
@@ -232,6 +255,7 @@ export function useGraphInteractionRuntime({
 
     const point = getLocalMarqueePoint(event, refs.containerRef.current);
     marqueeDragRef.current = {
+      additive: event.shiftKey,
       current: point,
       selecting: false,
       start: point,
@@ -280,8 +304,28 @@ export function useGraphInteractionRuntime({
       graphToScreen: (x, y) => graph?.graph2ScreenCoords?.(x, y) ?? { x, y },
       nodes: graphDataRef.current.nodes,
     });
+    const nextSelectedNodeIds = drag.additive
+      ? [...new Set([...refs.selectedNodesSetRef.current, ...selectedNodeIds])]
+      : selectedNodeIds;
     interactionHandlers.setHighlight(null);
-    interactionHandlers.setSelection(selectedNodeIds);
+    interactionHandlers.setSelection(nextSelectedNodeIds);
+  }
+
+  function handleNodeDrag(node: FGNode, translate: NodeDragTranslate): void {
+    nodeDragGroupRef.current = applyNodeDrag(node, translate, {
+      graphData: graphDataRef.current,
+      graphMode,
+      selectedNodeIds: refs.selectedNodesSetRef.current,
+    }, nodeDragGroupRef.current);
+    clearMarqueeSelection();
+  }
+
+  function handleNodeDragEnd(node: FGNode): void {
+    releaseDraggedNodes(node, nodeDragGroupRef.current, {
+      graphData: graphDataRef.current,
+      graphMode,
+    });
+    nodeDragGroupRef.current = null;
   }
 
   const contextMenuOpeningRuntime = useMemo(
@@ -316,6 +360,13 @@ export function useGraphInteractionRuntime({
       tooltipTimeoutRef,
     ],
   );
+  const suppressedContextMenuHandlers = useMemo(
+    () => createSuppressedContextMenuHandlers(
+      contextMenuOpeningRuntime,
+      contextMenuSuppression,
+    ),
+    [contextMenuOpeningRuntime, contextMenuSuppression],
+  );
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -334,16 +385,19 @@ export function useGraphInteractionRuntime({
   );
 
   function handleMouseDownCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    viewportPanRuntime.handleMouseDownCapture(event);
     handleMarqueeMouseDownCapture(event);
     contextMenuOpeningRuntime.handleMouseDownCapture(event);
   }
 
   function handleMouseMoveCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    viewportPanRuntime.handleMouseMoveCapture(event);
     handleMarqueeMouseMoveCapture(event);
     contextMenuOpeningRuntime.handleMouseMoveCapture(event);
   }
 
   function handleMouseUpCapture(event: ReactMouseEvent<HTMLDivElement>): void {
+    viewportPanRuntime.handleMouseUpCapture(event);
     handleMarqueeMouseUpCapture(event);
     contextMenuOpeningRuntime.handleMouseUpCapture(event);
   }
@@ -355,9 +409,15 @@ export function useGraphInteractionRuntime({
 
   return {
     ...contextMenuOpeningRuntime,
+    handleBackgroundRightClick: suppressedContextMenuHandlers.handleBackgroundRightClick,
+    handleContextMenu: suppressedContextMenuHandlers.handleContextMenu,
     handleEngineStop: handleGraphEngineStop,
+    handleLinkRightClick: suppressedContextMenuHandlers.handleLinkRightClick,
     handleMouseLeave: handleGraphMouseLeave,
+    handleNodeDrag,
+    handleNodeDragEnd,
     handleNodeHover,
+    handleNodeRightClick: suppressedContextMenuHandlers.handleNodeRightClick,
     handleMouseDownCapture,
     handleMouseMoveCapture,
     handleMouseUpCapture,
