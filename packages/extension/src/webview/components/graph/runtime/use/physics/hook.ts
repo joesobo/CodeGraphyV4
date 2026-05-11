@@ -49,6 +49,7 @@ export function usePhysicsRuntime({
   usePhysicsRuntimeUpdates({
     fg2dRef,
     fg3dRef,
+    graphDataRef,
     graphLayout,
     graphMode,
     physicsInitialisedRef,

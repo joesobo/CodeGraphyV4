@@ -94,7 +94,13 @@ function createGraphContextMenuOpeningHandlers(
   contextMenuRuntime: GraphContextMenuRuntime,
   interactionHandlers: GraphInteractionHandlersRuntime,
   actionContext: GraphContextActionContext,
+  refs: GraphContextMenuOpeningOptions['refs'],
 ): Omit<GraphContextMenuOpeningRuntime, 'contextMenuRuntime'> {
+  function clearRightClickBackgroundFallback(): void {
+    contextMenuRuntime.clearRightClickFallbackTimer();
+    refs.rightMouseDownRef.current = null;
+  }
+
   return {
     handleBackgroundRightClick: event => {
       interactionHandlers.openBackgroundContextMenu(event);
@@ -128,9 +134,11 @@ function createGraphContextMenuOpeningHandlers(
       contextMenuRuntime.handleMouseUpCapture({ button: event.button });
     },
     handleNodeContextMenuById: (nodeId, event) => {
+      clearRightClickBackgroundFallback();
       interactionHandlers.openNodeContextMenu(nodeId, event);
     },
     handleNodeRightClick: (node, event) => {
+      clearRightClickBackgroundFallback();
       interactionHandlers.openNodeContextMenu(node.id, event);
     },
   };
@@ -149,6 +157,7 @@ export function createGraphContextMenuOpeningRuntime(
       contextMenuRuntime,
       options.interactionHandlers,
       options.actionContext,
+      options.refs,
     ),
   };
 }
