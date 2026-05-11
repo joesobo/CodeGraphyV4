@@ -66,7 +66,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     ]);
   });
 
-  it('serializes graph layout pins, sections, and ownership records', () => {
+  it('serializes graph layout pin records', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.graphLayout = {
       pinnedNodes: {
@@ -74,27 +74,6 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
           nodeId: 'src/a.ts',
           twoDimensional: { x: 10, y: 20 },
           updatedAt: '2026-05-07T08:00:00.000Z',
-        },
-      },
-      sections: {
-        'section-a': {
-          id: 'section-a',
-          label: 'Layer A',
-          color: '#5588aa',
-          x: 0,
-          y: 0,
-          width: 200,
-          height: 140,
-          collapsed: false,
-          updatedAt: '2026-05-07T08:01:00.000Z',
-        },
-      },
-      ownership: {
-        'src/a.ts': {
-          itemId: 'src/a.ts',
-          itemKind: 'node',
-          ownerSectionId: 'section-a',
-          updatedAt: '2026-05-07T08:02:00.000Z',
         },
       },
     };

@@ -81,8 +81,6 @@ function createState(
     playbackSpeed: 1,
     graphLayout: {
       pinnedNodes: {},
-      sections: {},
-      ownership: {},
     },
     ...overrides,
   };
@@ -159,8 +157,6 @@ describe('webview/store/messageHandlers/graph', () => {
           updatedAt: '2026-05-07T08:00:00.000Z',
         },
       },
-      sections: {},
-      ownership: {},
     };
     expect(handleGraphLayoutUpdated({
       type: 'GRAPH_LAYOUT_UPDATED',

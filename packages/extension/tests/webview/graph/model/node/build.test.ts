@@ -164,8 +164,6 @@ describe('graph/model/node/build', () => {
             updatedAt: '2026-05-07T08:00:00.000Z',
           },
         },
-        sections: {},
-        ownership: {},
       },
       timelineActive: false,
     });
@@ -198,8 +196,6 @@ describe('graph/model/node/build', () => {
             updatedAt: '2026-05-07T08:00:00.000Z',
           },
         },
-        sections: {},
-        ownership: {},
       },
       timelineActive: false,
     });
@@ -233,8 +229,6 @@ describe('graph/model/node/build', () => {
             updatedAt: '2026-05-07T08:00:00.000Z',
           },
         },
-        sections: {},
-        ownership: {},
       },
       previousNodes: [{ id: 'src/pinned.ts', x: 4, y: 8 }],
       timelineActive: true,

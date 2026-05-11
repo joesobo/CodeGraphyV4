@@ -135,7 +135,7 @@ function createViewState(): Pick<
 	return {
 		dagMode: 'td',
 		favorites: new Set(['src/app.ts']),
-		graphLayout: { pinnedNodes: {}, sections: {}, ownership: {} },
+		graphLayout: { pinnedNodes: {} },
 		graphMode: '2d',
 		physicsSettings,
 		pluginContextMenuItems: [],

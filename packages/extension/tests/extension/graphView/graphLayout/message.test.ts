@@ -16,27 +16,8 @@ describe('createGraphLayoutUpdatedMessage', () => {
           updatedAt: '2026-05-07T23:00:00.000Z',
         },
       },
-      sections: {
-        'section-1': {
-          id: 'section-1',
-          label: 'Section 1',
-          color: '#60a5fa',
-          x: 1,
-          y: 2,
-          width: 300,
-          height: 200,
-          collapsed: false,
-          updatedAt: '2026-05-07T23:01:00.000Z',
-        },
-      },
-      ownership: {
-        'src/app.ts': {
-          itemId: 'src/app.ts',
-          itemKind: 'node',
-          ownerSectionId: 'section-1',
-          updatedAt: '2026-05-07T23:02:00.000Z',
-        },
-      },
+      sections: { ignored: true },
+      ownership: { ignored: true },
     };
     const configuration = {
       get: vi.fn((_key: string, _fallback: unknown) => graphLayout),
@@ -45,12 +26,12 @@ describe('createGraphLayoutUpdatedMessage', () => {
 
     expect(createGraphLayoutUpdatedMessage()).toEqual({
       type: 'GRAPH_LAYOUT_UPDATED',
-      payload: graphLayout,
+      payload: {
+        pinnedNodes: graphLayout.pinnedNodes,
+      },
     });
     expect(configuration.get).toHaveBeenCalledWith('graphLayout', {
       pinnedNodes: {},
-      sections: {},
-      ownership: {},
     });
   });
 });

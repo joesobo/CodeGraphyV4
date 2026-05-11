@@ -172,8 +172,6 @@ describe('graph view provider listener plugin context', () => {
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
         pinnedNodes: {},
-        sections: {},
-        ownership: {},
       },
     });
     expect(source._sendCachedTimeline).toHaveBeenCalledOnce();

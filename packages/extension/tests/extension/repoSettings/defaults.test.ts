@@ -54,8 +54,6 @@ describe('extension/repoSettings/defaults', () => {
       },
       graphLayout: {
         pinnedNodes: {},
-        sections: {},
-        ownership: {},
       },
     });
   });
@@ -79,7 +77,5 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.timeline).not.toBe(first.timeline);
     expect(second.graphLayout).not.toBe(first.graphLayout);
     expect(second.graphLayout.pinnedNodes).not.toBe(first.graphLayout.pinnedNodes);
-    expect(second.graphLayout.sections).not.toBe(first.graphLayout.sections);
-    expect(second.graphLayout.ownership).not.toBe(first.graphLayout.ownership);
   });
 });

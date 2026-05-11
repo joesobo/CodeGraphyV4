@@ -9,8 +9,6 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         if (key === 'graphLayout') {
           return {
             pinnedNodes: {},
-            sections: {},
-            ownership: {},
           } as T;
         }
 
@@ -35,8 +33,6 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
           updatedAt: expect.any(String),
         },
       },
-      sections: {},
-      ownership: {},
     });
     expect(context.sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
@@ -48,8 +44,6 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
             updatedAt: expect.any(String),
           },
         },
-        sections: {},
-        ownership: {},
       },
     });
   });
@@ -66,8 +60,6 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
                 updatedAt: '2026-05-07T08:00:00.000Z',
               },
             },
-            sections: {},
-            ownership: {},
           } as T;
         }
 
@@ -85,15 +77,11 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
 
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
       pinnedNodes: {},
-      sections: {},
-      ownership: {},
     });
     expect(context.sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
         pinnedNodes: {},
-        sections: {},
-        ownership: {},
       },
     });
   });

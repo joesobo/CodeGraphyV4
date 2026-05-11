@@ -16,36 +16,13 @@ export interface GraphLayoutPinnedNode {
   updatedAt: string;
 }
 
-export interface GraphLayoutSection {
-  id: string;
-  label: string;
-  color: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  collapsed: boolean;
-  updatedAt: string;
-}
-
-export interface GraphLayoutOwnership {
-  itemId: string;
-  itemKind: 'node' | 'section';
-  ownerSectionId: string | null;
-  updatedAt: string;
-}
-
 export interface GraphLayoutSettings {
   pinnedNodes: Record<string, GraphLayoutPinnedNode>;
-  sections: Record<string, GraphLayoutSection>;
-  ownership: Record<string, GraphLayoutOwnership>;
 }
 
 export function createDefaultGraphLayoutSettings(): GraphLayoutSettings {
   return {
     pinnedNodes: {},
-    sections: {},
-    ownership: {},
   };
 }
 
