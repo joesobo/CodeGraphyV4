@@ -121,6 +121,62 @@ describe('GraphViewProvider node open behavior', () => {
     });
   });
 
+  it('opens NODE_SELECTED symbol nodes at their containing file', async () => {
+    const providerAny = provider as unknown as {
+      _graphData: { nodes: Array<{ id: string; nodeType?: string; symbol?: { filePath: string } }>; edges: unknown[] };
+    };
+    providerAny._graphData = {
+      nodes: [
+        {
+          id: 'src/app.ts#start:function',
+          nodeType: 'symbol',
+          symbol: { filePath: 'src/app.ts' },
+        },
+      ],
+      edges: [],
+    };
+
+    await messageHandler({ type: 'NODE_SELECTED', payload: { nodeId: 'src/app.ts#start:function' } });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(openTextDocumentMock).toHaveBeenCalledWith({
+      fsPath: '/test/workspace/src/app.ts',
+      path: '/test/workspace/src/app.ts',
+    });
+    expect(showTextDocumentMock).toHaveBeenCalledWith(mockDocument, {
+      preview: true,
+      preserveFocus: false,
+    });
+  });
+
+  it('opens NODE_DOUBLE_CLICKED symbol nodes at their containing file', async () => {
+    const providerAny = provider as unknown as {
+      _graphData: { nodes: Array<{ id: string; nodeType?: string; symbol?: { filePath: string } }>; edges: unknown[] };
+    };
+    providerAny._graphData = {
+      nodes: [
+        {
+          id: 'src/app.ts#start:function',
+          nodeType: 'symbol',
+          symbol: { filePath: 'src/app.ts' },
+        },
+      ],
+      edges: [],
+    };
+
+    await messageHandler({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: 'src/app.ts#start:function' } });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(openTextDocumentMock).toHaveBeenCalledWith({
+      fsPath: '/test/workspace/src/app.ts',
+      path: '/test/workspace/src/app.ts',
+    });
+    expect(showTextDocumentMock).toHaveBeenCalledWith(mockDocument, {
+      preview: false,
+      preserveFocus: false,
+    });
+  });
+
   it('opens NODE_SELECTED as temporary preview in timeline mode', async () => {
     const providerAny = provider as unknown as { _timelineActive: boolean; _currentCommitSha?: string };
     providerAny._timelineActive = true;

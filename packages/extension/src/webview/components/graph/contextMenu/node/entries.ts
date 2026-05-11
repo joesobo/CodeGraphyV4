@@ -31,6 +31,22 @@ export function buildNodeEntries(
   return entries;
 }
 
+export function buildSingleSymbolNodeEntries(
+  target: string,
+  favorites: ReadonlySet<string>
+): GraphContextMenuEntry[] {
+  const targets = [target];
+  return [
+    builtInItem('node-go-to-symbol', 'Go to Symbol', 'open'),
+    builtInItem('node-reveal-symbol-file', 'Reveal File', 'reveal'),
+    separator('node-separator-copy'),
+    builtInItem('node-copy-symbol-id', 'Copy Symbol ID', 'copySymbolId'),
+    builtInItem('node-copy-symbol-name', 'Copy Symbol Name', 'copySymbolName'),
+    ...buildFavoriteBlock(targets, favorites),
+    builtInItem('node-focus', 'Focus Node', 'focus'),
+  ];
+}
+
 export function buildSingleFolderNodeEntries(
   target: string,
   mutationAvailability: GraphContextMutationAvailability,

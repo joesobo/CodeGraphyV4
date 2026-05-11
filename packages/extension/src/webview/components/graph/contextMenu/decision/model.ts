@@ -12,6 +12,7 @@ export type GraphContextMenuDecision =
   | { kind: 'singleFileNode'; target: GraphContextNodeTarget }
   | { kind: 'singleFolderNode'; target: GraphContextNodeTarget }
   | { kind: 'singlePackageNode'; target: GraphContextNodeTarget }
+  | { kind: 'singleSymbolNode'; target: GraphContextNodeTarget }
   | { kind: 'singlePluginNode'; target: GraphContextNodeTarget }
   | { kind: 'multiFileNodes'; targets: readonly GraphContextNodeTarget[] }
   | { kind: 'multiFolderNodes'; targets: readonly GraphContextNodeTarget[] }
