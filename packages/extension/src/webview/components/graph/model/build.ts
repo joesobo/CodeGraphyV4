@@ -1,6 +1,7 @@
 import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { GraphLayoutMode, GraphLayoutSettings } from '../../../../shared/settings/graphLayout';
 import type { ThemeKind } from '../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../appearance/model';
 import type { NodeType } from '../../../../shared/graph/contracts';
@@ -20,6 +21,8 @@ export type FGNode = NodeObject & {
   borderWidth: number;
   baseOpacity: number;
   isFavorite: boolean;
+  isPinned: boolean;
+  isDragging?: boolean;
   nodeType?: NodeType;
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
@@ -53,6 +56,8 @@ export interface BuildGraphDataOptions {
   nodeSizeMode: NodeSizeMode;
   theme: ThemeKind;
   favorites: Set<string>;
+  graphLayout?: GraphLayoutSettings;
+  graphMode?: GraphLayoutMode;
   bidirectionalMode: BidirectionalEdgeMode;
   timelineActive: boolean;
   previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
@@ -69,6 +74,8 @@ export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[
     nodeSizes,
     theme: options.theme,
     favorites: options.favorites,
+    graphLayout: options.graphLayout,
+    graphMode: options.graphMode,
     timelineActive: options.timelineActive,
     previousNodes: options.previousNodes,
     random: options.random,

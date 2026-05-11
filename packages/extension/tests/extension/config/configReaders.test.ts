@@ -89,6 +89,39 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
+  describe('pluginOrder', () => {
+    it('returns the configured plugin order', () => {
+      mockConfig['pluginOrder'] = ['codegraphy.typescript', 'codegraphy.markdown'];
+      expect(new Configuration().pluginOrder).toEqual(['codegraphy.typescript', 'codegraphy.markdown']);
+    });
+
+    it('defaults to empty array', () => {
+      expect(new Configuration().pluginOrder).toEqual([]);
+    });
+  });
+
+  describe('disabledCustomFilterPatterns', () => {
+    it('returns the configured disabled custom filter patterns', () => {
+      mockConfig['disabledCustomFilterPatterns'] = ['**/*.generated.ts'];
+      expect(new Configuration().disabledCustomFilterPatterns).toEqual(['**/*.generated.ts']);
+    });
+
+    it('defaults to empty array', () => {
+      expect(new Configuration().disabledCustomFilterPatterns).toEqual([]);
+    });
+  });
+
+  describe('disabledPluginFilterPatterns', () => {
+    it('returns the configured disabled plugin filter patterns', () => {
+      mockConfig['disabledPluginFilterPatterns'] = ['codegraphy.typescript:**/*.d.ts'];
+      expect(new Configuration().disabledPluginFilterPatterns).toEqual(['codegraphy.typescript:**/*.d.ts']);
+    });
+
+    it('defaults to empty array', () => {
+      expect(new Configuration().disabledPluginFilterPatterns).toEqual([]);
+    });
+  });
+
   describe('timelineMaxCommits', () => {
     it('returns the configured value', () => {
       mockConfig['timeline.maxCommits'] = 200;

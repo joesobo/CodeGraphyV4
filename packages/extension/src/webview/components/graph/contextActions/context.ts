@@ -1,4 +1,20 @@
 import type { GraphContextMenuNode, GraphContextSelection } from '../contextMenu/contracts';
+import type { GraphLayoutMode } from '../../../../shared/settings/graphLayout';
+
+export interface GraphContextNodePosition2D {
+  x: number;
+  y: number;
+}
+
+export interface GraphContextNodePosition3D extends GraphContextNodePosition2D {
+  z: number;
+}
+
+export interface ResolveGraphContextActionOptions {
+  graphMode?: GraphLayoutMode;
+  nodes?: readonly GraphContextMenuNode[];
+  nodePositions?: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
+}
 
 export interface GraphContextActionContext {
   selectionKind: GraphContextSelection['kind'];
@@ -7,12 +23,14 @@ export interface GraphContextActionContext {
   edgeSourceId?: string;
   edgeTargetId?: string;
   primaryNode?: GraphContextMenuNode;
+  graphMode: GraphLayoutMode;
   mutationDirectory: string;
+  nodePositions: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
 }
 
 export function resolveGraphContextActionContext(
   selection: GraphContextSelection,
-  nodes?: readonly GraphContextMenuNode[],
+  options: ResolveGraphContextActionOptions = {},
 ): GraphContextActionContext {
   const [primaryTargetId, secondaryTargetId] = selection.targets;
   const isEdgeSelection = selection.kind === 'edge';
@@ -21,10 +39,12 @@ export function resolveGraphContextActionContext(
     selectionKind: selection.kind,
     targetIds: selection.targets,
     primaryTargetId,
-    primaryNode: nodes?.find(node => node.id === primaryTargetId),
+    primaryNode: options.nodes?.find(node => node.id === primaryTargetId),
     edgeSourceId: isEdgeSelection ? primaryTargetId : undefined,
     edgeTargetId: isEdgeSelection ? secondaryTargetId : undefined,
+    graphMode: options.graphMode ?? '2d',
     mutationDirectory: resolveMutationDirectory(primaryTargetId),
+    nodePositions: options.nodePositions ?? new Map(),
   };
 }
 

@@ -144,4 +144,99 @@ describe('graph/model/node/build', () => {
       z: undefined,
     });
   });
+
+  it('applies active-mode pins as fixed graph-space coordinates', () => {
+    const twoDimensionalNodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/pinned.ts', label: 'pinned.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/pinned.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        pinnedNodes: {
+          'src/pinned.ts': {
+            nodeId: 'src/pinned.ts',
+            '2D': { x: 40, y: -80 },
+            '3D': { x: 1, y: 2, z: 3 },
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(twoDimensionalNodes[0]).toMatchObject({
+      fx: 40,
+      fy: -80,
+      fz: undefined,
+      isPinned: true,
+      x: 40,
+      y: -80,
+      z: undefined,
+    });
+
+    const threeDimensionalNodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/pinned.ts', label: 'pinned.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/pinned.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '3d',
+      graphLayout: {
+        pinnedNodes: {
+          'src/pinned.ts': {
+            nodeId: 'src/pinned.ts',
+            '2D': { x: 40, y: -80 },
+            '3D': { x: 1, y: 2, z: 3 },
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(threeDimensionalNodes[0]).toMatchObject({
+      fx: 1,
+      fy: 2,
+      fz: 3,
+      isPinned: true,
+      x: 1,
+      y: 2,
+      z: 3,
+    });
+  });
+
+  it('ignores persisted pins while timeline snapshots are active', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/pinned.ts', label: 'pinned.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/pinned.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        pinnedNodes: {
+          'src/pinned.ts': {
+            nodeId: 'src/pinned.ts',
+            '2D': { x: 40, y: -80 },
+          },
+        },
+      },
+      previousNodes: [{ id: 'src/pinned.ts', x: 4, y: 8 }],
+      timelineActive: true,
+    });
+
+    expect(nodes[0]).toMatchObject({
+      fx: undefined,
+      fy: undefined,
+      isPinned: false,
+      x: 4,
+      y: 8,
+    });
+  });
 });
