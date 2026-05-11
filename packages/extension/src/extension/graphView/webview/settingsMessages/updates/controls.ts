@@ -32,11 +32,42 @@ async function applyGraphControlsUpdate(
   return true;
 }
 
+async function applySymbolVisibilityUpdate(
+  visible: boolean,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  const nodeVisibility: Record<string, boolean> = {
+    ...handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+    symbol: visible,
+  };
+  if (!visible) {
+    nodeVisibility.variable = false;
+  }
+
+  await handlers.updateConfig('nodeVisibility', nodeVisibility);
+
+  if (visible) {
+    await handlers.updateConfig('edgeVisibility', {
+      ...handlers.getConfig<Record<string, boolean>>('edgeVisibility', {}),
+      contains: true,
+    });
+  }
+
+  handlers.recomputeGroups();
+  handlers.sendGroupsUpdated();
+  handlers.sendGraphControls();
+  return true;
+}
+
 export async function applyGraphControlMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   if (message.type === 'UPDATE_NODE_VISIBILITY') {
+    if (message.payload.nodeType === 'symbol') {
+      return applySymbolVisibilityUpdate(message.payload.visible, handlers);
+    }
+
     return applyGraphControlsUpdate(
       'nodeVisibility',
       message.payload.nodeType,

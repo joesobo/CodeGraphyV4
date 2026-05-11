@@ -71,6 +71,33 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'Files')).toHaveClass('opacity-65');
   });
 
+  it('hides the Variables row until Symbols is enabled', () => {
+    const nodeTypes = [
+      { id: 'symbol', label: 'Symbols', defaultColor: '#111111', defaultVisible: false },
+      { id: 'variable', label: 'Variables', defaultColor: '#222222', defaultVisible: false },
+    ];
+    const { container, rerender } = render(
+      <NodeTypeRows
+        nodeColors={{}}
+        nodeTypes={nodeTypes}
+        nodeVisibility={{ symbol: false, variable: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Symbols')).toBeInTheDocument();
+    expect(scopeRow(container, 'Variables')).toBeNull();
+
+    rerender(
+      <NodeTypeRows
+        nodeColors={{}}
+        nodeTypes={nodeTypes}
+        nodeVisibility={{ symbol: true, variable: false }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Variables')).toBeInTheDocument();
+  });
+
   it('renders edge rows from resolved colors and posts edge visibility changes', () => {
     const { container } = render(
       <EdgeTypeRows
