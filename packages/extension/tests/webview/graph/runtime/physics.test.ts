@@ -807,6 +807,51 @@ describe('physics', () => {
     });
   });
 
+  it('centers Section Members on the owning Section Node bounds while keeping them out of the header', () => {
+    const force = createGraphSectionBoundsForce({
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': {
+          ...GRAPH_LAYOUT.sections['section-1'],
+          height: 200,
+          width: 200,
+        },
+      },
+    }, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 1,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 200,
+        sectionWidth: 200,
+        x: 100,
+        y: 100,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 70,
+        y: 105,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(nodes[1].vx).toBeGreaterThan(0);
+    expect(nodes[1].vy).toBeLessThan(0);
+  });
+
   it('uses the configured repel force for local Section Member physics', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
       settings: {

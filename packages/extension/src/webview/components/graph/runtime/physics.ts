@@ -285,7 +285,7 @@ function constrainMemberNode(
 	const nextY = clamp(position.y, memberBounds.y + position.margin.y, memberBounds.y + memberBounds.height - position.margin.y);
 
 	applyConstrainedMemberCoordinates(node, nextX, nextY);
-	applyMemberCenterVelocity(node, memberBounds, alpha, nextX, nextY, centerStrength);
+	applyMemberCenterVelocity(node, bounds, alpha, nextX, nextY, centerStrength);
 }
 
 function getMemberCollisionRadius(node: FGNode): number {
