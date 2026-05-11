@@ -65,7 +65,10 @@ export function buildWorkspaceGraphDataFromAnalysis(
     ...options,
     fileConnections: projectFileAnalysisConnections(options.fileAnalysis, options.workspaceRoot),
   });
-  const symbolGraph = buildSymbolNodesAndEdges(options.fileAnalysis, options.workspaceRoot);
+  const symbolGraph = buildSymbolNodesAndEdges(options.fileAnalysis, options.workspaceRoot, {
+    cacheFiles: options.cacheFiles,
+    churnCounts: options.churnCounts,
+  });
 
   return {
     nodes: [...graphData.nodes, ...symbolGraph.nodes],

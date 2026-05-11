@@ -287,3 +287,14 @@ PR evidence:
   - `tests/core/graphQuery/relationships.test.ts`
 - Green typecheck:
   - `pnpm --filter @codegraphy/extension typecheck`
+
+### 2026-05-11 Slice 8: Symbol File Metrics
+
+- Symbol nodes inherit file size and file-level churn from their containing file.
+- Optional symbol fields are omitted instead of serialized as `undefined`.
+- This keeps file-size/churn sizing and timeline snapshots useful for symbol nodes without inventing per-symbol Git history.
+- Green focused tests:
+  - `tests/extension/pipeline/graph/data.test.ts`
+  - `tests/extension/pipeline/graph/build.test.ts`
+- Green typecheck:
+  - `pnpm --filter @codegraphy/extension typecheck`
