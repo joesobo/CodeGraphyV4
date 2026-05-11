@@ -1220,40 +1220,6 @@ function constrainSectionMembers(
 	}
 }
 
-function cancelRootCenterForSectionMembers(
-	nodes: readonly FGNode[],
-	graphLayout: GraphLayoutSettings,
-	settings: GraphSectionBoundsForceOptions['settings'],
-	alpha: number,
-): void {
-	const centerStrength = settings?.centerForce ?? 0;
-	if (centerStrength === 0) {
-		return;
-	}
-
-	for (const node of nodes) {
-		if (
-			node.isDragging
-			|| !hasExpandedOwnerSection(node, graphLayout)
-			|| !isFiniteNumber(node.x)
-			|| !isFiniteNumber(node.y)
-		) {
-			continue;
-		}
-
-		const rootCenterVelocityX = -node.x * centerStrength * alpha;
-		const rootCenterVelocityY = -node.y * centerStrength * alpha;
-		const currentVelocityX = node.vx ?? 0;
-		const currentVelocityY = node.vy ?? 0;
-		if (Math.sign(currentVelocityX) === Math.sign(rootCenterVelocityX)) {
-			node.vx = currentVelocityX - rootCenterVelocityX;
-		}
-		if (Math.sign(currentVelocityY) === Math.sign(rootCenterVelocityY)) {
-			node.vy = currentVelocityY - rootCenterVelocityY;
-		}
-	}
-}
-
 function applyGraphSectionBoundsTick(
 	nodes: FGNode[],
 	graphLayout: GraphLayoutSettings,
@@ -1263,7 +1229,6 @@ function applyGraphSectionBoundsTick(
 ): void {
 	applySectionBridgeLinkForces(nodes, graphLayout, options.links ?? [], options.settings, alpha);
 	applyRectangleCollisions(nodes, graphLayout, options.settings, alpha);
-	cancelRootCenterForSectionMembers(nodes, graphLayout, options.settings, alpha);
 	carrySectionMembersWithFrames(nodes, graphLayout, previousSectionCenters);
 	const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
 	const sectionMemberCenterStrength = getSectionMemberCenterStrength(options.settings);

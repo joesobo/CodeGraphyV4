@@ -843,7 +843,7 @@ describe('physics', () => {
         x: 70,
         y: 105,
       },
-    ] as FGNode[];
+    ] as unknown as FGNode[];
 
     force.initialize(nodes);
     force(0.5);
@@ -852,8 +852,8 @@ describe('physics', () => {
     expect(nodes[1].vy).toBeLessThan(0);
   });
 
-  it('cancels leaked root-origin center pull for Section Members before local centering', () => {
-    const force = createGraphSectionBoundsForce({
+  it('settles Section Members from saved ownership around a pinned off-origin Section center instead of graph origin', () => {
+    const graphLayout = {
       ...GRAPH_LAYOUT,
       sections: {
         'section-1': {
@@ -864,39 +864,58 @@ describe('physics', () => {
           width: 200,
         },
       },
-    }, {
-      settings: {
-        ...SETTINGS,
-        centerForce: 1,
-        linkForce: 0,
-        repelForce: 0,
+      pinnedNodes: {
+        'section-1': {
+          nodeId: 'section-1',
+          '2D': { x: 1000, y: -200 },
+        },
       },
-    });
+    };
+    const { d3Force, instance } = createPhysicsInstance();
+    const settings = {
+      ...SETTINGS,
+      centerForce: 1,
+      linkForce: 0,
+      repelForce: 0,
+    };
     const nodes = [
       {
         id: 'section-1',
         isGraphSection: true,
+        isPinned: true,
         sectionHeight: 200,
         sectionWidth: 200,
+        fx: 1000,
+        fy: -200,
         x: 1000,
         y: -200,
       },
       {
         id: 'src/member.ts',
-        ownerSectionId: 'section-1',
         size: 10,
-        vx: -975,
-        vy: 225,
-        x: 975,
-        y: -225,
+        x: 925,
+        y: -175,
       },
-    ] as FGNode[];
+    ] as unknown as FGNode[];
 
-    force.initialize(nodes);
-    force(1);
+    initPhysics(instance, settings, { graphLayout, graphMode: '2d' });
 
-    expect(nodes[1].vx).toBeGreaterThan(0);
-    expect(nodes[1].vy).toBeGreaterThan(0);
+    const simulation = forceSimulation(nodes)
+      .velocityDecay(settings.damping)
+      .force('forceX', getInstalledD3Force(d3Force, 'forceX'))
+      .force('forceY', getInstalledD3Force(d3Force, 'forceY'))
+      .force('collision', getInstalledD3Force(d3Force, 'collision'))
+      .force('sectionBounds', getInstalledD3Force(d3Force, 'sectionBounds'))
+      .stop();
+
+    for (let tick = 0; tick < 200; tick += 1) {
+      simulation.tick();
+    }
+
+    expect(nodes[1].x).toBeGreaterThan(970);
+    expect(nodes[1].x).toBeLessThan(1030);
+    expect(nodes[1].y).toBeGreaterThan(-230);
+    expect(nodes[1].y).toBeLessThan(-170);
   });
 
   it('uses the configured repel force for local Section Member physics', () => {
