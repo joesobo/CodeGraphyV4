@@ -44,6 +44,11 @@ function shouldIncludeSymbolKind(edgeType: GraphEdgeKind, symbol: IAnalysisSymbo
   return edgeType !== 'type-import' && symbol.kind.length > 0;
 }
 
+function readSymbolMetadata(symbol: IAnalysisSymbol, field: string): string | undefined {
+  const value = symbol.metadata?.[field];
+  return typeof value === 'string' ? value : undefined;
+}
+
 function createRelationshipSymbol(
   edgeType: GraphEdgeKind,
   relation: IAnalysisRelation,
@@ -60,9 +65,15 @@ function createRelationshipSymbol(
   }
 
   return {
+    id: symbol.id,
+    filePath: symbol.filePath,
     name: symbol.name,
     ...(shouldIncludeSymbolKind(edgeType, symbol) ? { kind: symbol.kind } : {}),
+    ...(symbol.signature ? { signature: symbol.signature } : {}),
     ...(symbol.range ? { range: symbol.range } : {}),
+    ...(readSymbolMetadata(symbol, 'language') ? { language: readSymbolMetadata(symbol, 'language') } : {}),
+    ...(readSymbolMetadata(symbol, 'source') ? { source: readSymbolMetadata(symbol, 'source') } : {}),
+    ...(readSymbolMetadata(symbol, 'pluginKind') ? { pluginKind: readSymbolMetadata(symbol, 'pluginKind') } : {}),
   };
 }
 

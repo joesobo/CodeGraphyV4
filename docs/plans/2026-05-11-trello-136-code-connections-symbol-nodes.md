@@ -276,3 +276,14 @@ PR evidence:
   - `tests/shared/globMatch.test.ts`
 - Green typecheck:
   - `pnpm --filter @codegraphy/extension typecheck`
+
+### 2026-05-11 Slice 7: Graph Query And MCP Symbol Payloads
+
+- Graph Query `symbols` reports now include canonical symbol IDs, signatures, and plugin metadata fields.
+- Explicit Graph Scope now constrains symbol reports to visible symbol nodes.
+- Relationship reports now include canonical identity and plugin metadata on symbol evidence.
+- Green focused tests:
+  - `tests/core/graphQuery/symbols.test.ts`
+  - `tests/core/graphQuery/relationships.test.ts`
+- Green typecheck:
+  - `pnpm --filter @codegraphy/extension typecheck`

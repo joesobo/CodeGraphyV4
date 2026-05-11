@@ -8,6 +8,25 @@ import type {
 } from './model';
 import { paginate } from './pagination';
 import { sortItems } from './sort';
+import { deriveScopedGraphQueryData } from './visible';
+
+function readSymbolMetadata(symbol: IAnalysisSymbol, field: string): string | undefined {
+  const value = symbol.metadata?.[field];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function toSymbolReportBase(symbol: IAnalysisSymbol): GraphQuerySymbolReportItem {
+  return {
+    id: symbol.id,
+    name: symbol.name,
+    ...(symbol.kind ? { kind: symbol.kind } : {}),
+    ...(symbol.signature ? { signature: symbol.signature } : {}),
+    ...(symbol.range ? { range: symbol.range } : {}),
+    ...(readSymbolMetadata(symbol, 'language') ? { language: readSymbolMetadata(symbol, 'language') } : {}),
+    ...(readSymbolMetadata(symbol, 'source') ? { source: readSymbolMetadata(symbol, 'source') } : {}),
+    ...(readSymbolMetadata(symbol, 'pluginKind') ? { pluginKind: readSymbolMetadata(symbol, 'pluginKind') } : {}),
+  };
+}
 
 function hasRelationshipFilters(config: GraphQuerySymbolsConfig): boolean {
   return Boolean(config.relatedFrom || config.relatedTo || config.edgeType);
@@ -32,19 +51,17 @@ function relationMatchesConfig(relation: IAnalysisRelation, config: GraphQuerySy
 
 function toDeclarationSymbol(symbol: IAnalysisSymbol): GraphQuerySymbolReportItem {
   return {
+    ...toSymbolReportBase(symbol),
     filePath: symbol.filePath,
-    name: symbol.name,
-    kind: symbol.kind,
-    ...(symbol.range ? { range: symbol.range } : {}),
   };
 }
 
 function toRelationshipSymbol(symbol: IAnalysisSymbol): GraphQuerySymbolReportItem {
-  return {
-    name: symbol.name,
-    ...(symbol.kind && symbol.kind !== 'type' ? { kind: symbol.kind } : {}),
-    ...(symbol.range ? { range: symbol.range } : {}),
-  };
+  const item = toSymbolReportBase(symbol);
+  if (item.kind === 'type') {
+    delete item.kind;
+  }
+  return item;
 }
 
 function symbolIdForRelation(relation: IAnalysisRelation): string | undefined {
@@ -71,7 +88,7 @@ function createRelationshipSymbols(
   data: GraphQueryData,
   config: GraphQuerySymbolsConfig,
 ): GraphQuerySymbolReportItem[] {
-  const symbolById = createSymbolMap(data.symbols);
+  const symbolById = createSymbolMap(getScopedSymbols(data, config));
   const symbols: GraphQuerySymbolReportItem[] = [];
   const seen = new Set<string>();
 
@@ -96,9 +113,29 @@ function createDeclarationSymbols(
   data: GraphQueryData,
   config: GraphQuerySymbolsConfig,
 ): GraphQuerySymbolReportItem[] {
-  return (data.symbols ?? [])
+  return getScopedSymbols(data, config)
     .filter((symbol) => !config.filePath || symbol.filePath === config.filePath)
     .map(toDeclarationSymbol);
+}
+
+function hasExplicitScope(config: GraphQuerySymbolsConfig): boolean {
+  return Boolean(config.scope);
+}
+
+function getVisibleSymbolIds(data: GraphQueryData, config: GraphQuerySymbolsConfig): Set<string> {
+  const scopedGraph = deriveScopedGraphQueryData(data.graphData, config);
+  return new Set(scopedGraph.nodes
+    .map((node) => node.symbol?.id)
+    .filter((id): id is string => Boolean(id)));
+}
+
+function getScopedSymbols(data: GraphQueryData, config: GraphQuerySymbolsConfig): readonly IAnalysisSymbol[] {
+  if (!hasExplicitScope(config)) {
+    return data.symbols ?? [];
+  }
+
+  const visibleSymbolIds = getVisibleSymbolIds(data, config);
+  return (data.symbols ?? []).filter((symbol) => visibleSymbolIds.has(symbol.id));
 }
 
 function readSymbolValue(symbol: GraphQuerySymbolReportItem, field: string): string {
@@ -107,8 +144,18 @@ function readSymbolValue(symbol: GraphQuerySymbolReportItem, field: string): str
       return symbol.filePath ?? '';
     case 'kind':
       return symbol.kind ?? '';
+    case 'id':
+      return symbol.id ?? '';
     case 'name':
       return symbol.name;
+    case 'signature':
+      return symbol.signature ?? '';
+    case 'language':
+      return symbol.language ?? '';
+    case 'source':
+      return symbol.source ?? '';
+    case 'pluginKind':
+      return symbol.pluginKind ?? '';
     default:
       return '';
   }
@@ -124,7 +171,16 @@ function applySymbolSearch(
 
   const query = search.toLowerCase();
   return symbols.filter((symbol) =>
-    `${symbol.filePath ?? ''} ${symbol.name} ${symbol.kind ?? ''}`.toLowerCase().includes(query)
+    [
+      symbol.id,
+      symbol.filePath,
+      symbol.name,
+      symbol.kind,
+      symbol.signature,
+      symbol.language,
+      symbol.source,
+      symbol.pluginKind,
+    ].join(' ').toLowerCase().includes(query)
   );
 }
 
