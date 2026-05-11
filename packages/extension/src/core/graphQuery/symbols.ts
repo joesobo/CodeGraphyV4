@@ -138,27 +138,19 @@ function getScopedSymbols(data: GraphQueryData, config: GraphQuerySymbolsConfig)
   return (data.symbols ?? []).filter((symbol) => visibleSymbolIds.has(symbol.id));
 }
 
+const SYMBOL_VALUE_READERS: Record<string, (symbol: GraphQuerySymbolReportItem) => string | undefined> = {
+  filePath: (symbol) => symbol.filePath,
+  kind: (symbol) => symbol.kind,
+  id: (symbol) => symbol.id,
+  name: (symbol) => symbol.name,
+  signature: (symbol) => symbol.signature,
+  language: (symbol) => symbol.language,
+  source: (symbol) => symbol.source,
+  pluginKind: (symbol) => symbol.pluginKind,
+};
+
 function readSymbolValue(symbol: GraphQuerySymbolReportItem, field: string): string {
-  switch (field) {
-    case 'filePath':
-      return symbol.filePath ?? '';
-    case 'kind':
-      return symbol.kind ?? '';
-    case 'id':
-      return symbol.id ?? '';
-    case 'name':
-      return symbol.name;
-    case 'signature':
-      return symbol.signature ?? '';
-    case 'language':
-      return symbol.language ?? '';
-    case 'source':
-      return symbol.source ?? '';
-    case 'pluginKind':
-      return symbol.pluginKind ?? '';
-    default:
-      return '';
-  }
+  return SYMBOL_VALUE_READERS[field]?.(symbol) ?? '';
 }
 
 function applySymbolSearch(

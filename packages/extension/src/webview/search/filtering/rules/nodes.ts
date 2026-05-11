@@ -11,34 +11,19 @@ function ruleMatchesNode(
   node: IGraphData['nodes'][number],
   rule: IGroup,
 ): boolean {
-  if (rule.matchNodeType && node.nodeType !== rule.matchNodeType) {
-    return false;
-  }
+  const symbol = node.symbol;
+  const exactMatches = [
+    [rule.matchNodeType, node.nodeType],
+    [rule.matchSymbolKind, symbol?.kind],
+    [rule.matchSymbolPluginKind, symbol?.pluginKind],
+    [rule.matchSymbolSource, symbol?.source],
+    [rule.matchSymbolLanguage, symbol?.language],
+  ];
+  const exactFieldsMatch = exactMatches.every(([expected, actual]) => !expected || expected === actual);
+  const symbolPathMatches = !rule.matchSymbolFilePath
+    || Boolean(symbol?.filePath && globMatch(symbol.filePath, rule.matchSymbolFilePath));
 
-  if (rule.matchSymbolKind && node.symbol?.kind !== rule.matchSymbolKind) {
-    return false;
-  }
-
-  if (rule.matchSymbolPluginKind && node.symbol?.pluginKind !== rule.matchSymbolPluginKind) {
-    return false;
-  }
-
-  if (rule.matchSymbolSource && node.symbol?.source !== rule.matchSymbolSource) {
-    return false;
-  }
-
-  if (rule.matchSymbolLanguage && node.symbol?.language !== rule.matchSymbolLanguage) {
-    return false;
-  }
-
-  if (
-    rule.matchSymbolFilePath
-    && (!node.symbol?.filePath || !globMatch(node.symbol.filePath, rule.matchSymbolFilePath))
-  ) {
-    return false;
-  }
-
-  return globMatch(node.id, rule.pattern);
+  return exactFieldsMatch && symbolPathMatches && globMatch(node.id, rule.pattern);
 }
 
 export function getOrderedActiveRules(legends: IGroup[]): IGroup[] {

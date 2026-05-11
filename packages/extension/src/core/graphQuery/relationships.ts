@@ -49,6 +49,16 @@ function readSymbolMetadata(symbol: IAnalysisSymbol, field: string): string | un
   return typeof value === 'string' ? value : undefined;
 }
 
+function createSymbolMetadata(symbol: IAnalysisSymbol): Partial<GraphQueryRelationshipSymbol> {
+  return {
+    ...(symbol.signature ? { signature: symbol.signature } : {}),
+    ...(symbol.range ? { range: symbol.range } : {}),
+    ...(readSymbolMetadata(symbol, 'language') ? { language: readSymbolMetadata(symbol, 'language') } : {}),
+    ...(readSymbolMetadata(symbol, 'source') ? { source: readSymbolMetadata(symbol, 'source') } : {}),
+    ...(readSymbolMetadata(symbol, 'pluginKind') ? { pluginKind: readSymbolMetadata(symbol, 'pluginKind') } : {}),
+  };
+}
+
 function createRelationshipSymbol(
   edgeType: GraphEdgeKind,
   relation: IAnalysisRelation,
@@ -69,11 +79,7 @@ function createRelationshipSymbol(
     filePath: symbol.filePath,
     name: symbol.name,
     ...(shouldIncludeSymbolKind(edgeType, symbol) ? { kind: symbol.kind } : {}),
-    ...(symbol.signature ? { signature: symbol.signature } : {}),
-    ...(symbol.range ? { range: symbol.range } : {}),
-    ...(readSymbolMetadata(symbol, 'language') ? { language: readSymbolMetadata(symbol, 'language') } : {}),
-    ...(readSymbolMetadata(symbol, 'source') ? { source: readSymbolMetadata(symbol, 'source') } : {}),
-    ...(readSymbolMetadata(symbol, 'pluginKind') ? { pluginKind: readSymbolMetadata(symbol, 'pluginKind') } : {}),
+    ...createSymbolMetadata(symbol),
   };
 }
 
