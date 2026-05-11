@@ -19,6 +19,7 @@ Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.vi
   - `load()`
   - `extends`
   - `class_name` references
+  - `class_name` declarations as Symbol Nodes
 - `project.godot`:
   - `application/run/main_scene`
   - `[autoload]`
@@ -32,6 +33,8 @@ Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.vi
 - The finer-grained plugin provenance is `sourceId: "ext-resource"` for `.tscn`/`.tres` files and `sourceId: "project-settings"` for `project.godot`.
 - The detector follows Godot's text-loader behavior more closely by accepting relative `path=` values and preferring a matching `uid=` target when one is known in the workspace.
 - This means they participate in the existing `load` Edge Type Graph Scope settings while still being attributable to Godot text-resource parsing.
+- GDScript `class_name` declarations are emitted as class symbols with `pluginKind: godot-class-name`. When Symbols and `contains` are enabled in Graph Scope, the Relationship Graph shows the declaration as a Symbol Node contained by its `.gd` file.
+- The core Legend includes a scoped `Godot class_name` default so these symbols can be styled separately from generic class symbols.
 
 ## Example workspace
 

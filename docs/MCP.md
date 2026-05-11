@@ -140,8 +140,8 @@ List tools accept the shared query controls where meaningful:
 ```json
 {
   "scope": {
-    "nodes": { "file": true, "folder": true },
-    "edges": { "import": true, "type-import": true, "nests": true }
+    "nodes": { "file": true, "folder": true, "symbol": true, "variable": true },
+    "edges": { "import": true, "type-import": true, "nests": true, "contains": true }
   },
   "filters": [
     { "field": "from", "op": "equals", "value": "packages/app/src/a.ts" },
@@ -171,6 +171,7 @@ The Core Extension applies stages in this order:
 - `Use CodeGraphy to list nodes in this repo.`
 - `Use CodeGraphy to list edges connected to packages/app/src/a.ts.`
 - `Use CodeGraphy to list symbols involved in type-import relationships from packages/app/src/a.ts to packages/app/src/b.ts.`
+- `Use CodeGraphy to list Godot class_name symbols in scripts/player.gd.`
 - `Use CodeGraphy to find paths from packages/app/src/a.ts to packages/app/src/d.ts.`
 
 ## Notes
@@ -178,7 +179,10 @@ The Core Extension applies stages in this order:
 - `codegraphy_open_repo` is the only MCP tool that accepts a repo path.
 - Query tools use exact node paths returned by `codegraphy_list_nodes`.
 - Folder and package nodes appear only when Graph Scope opts them in.
+- Symbol and Variable nodes appear only when Graph Scope opts them in. Variables depend on Symbols.
 - Structural `nests` relationships appear only when the relevant node scope and `nests` edge scope are enabled.
+- File-to-symbol `contains` relationships appear only when Symbols and the `contains` Edge Type are enabled.
 - `codegraphy_list_symbols` with only `filePath` returns declarations in that file.
 - `codegraphy_list_symbols` with relationship filters returns only relationship-backed symbol evidence.
+- Symbol and relationship evidence includes canonical symbol IDs, ranges, signatures, and plugin metadata when available.
 - `codegraphy_find_paths` returns node paths only; agents can call edge or symbol tools afterward for details.

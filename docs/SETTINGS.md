@@ -140,6 +140,10 @@ Custom Legend Entries use glob matching and are applied in drag order:
 
 Custom Legend Entries can target files, folders, packages, and plugin-added Node Types through one shared priority system.
 
+Symbol nodes are available through Graph Scope as **Symbols**, with **Variables** shown as a dependent Node Type. Turning Symbols off also hides Variables. When Symbols are on, the `contains` Edge Type connects File Nodes to their contained symbol nodes, and symbol-to-symbol relationship edges such as calls, references, imports, and overrides can appear when analysis provides that detail.
+
+Built-in Legend defaults include common symbol kinds such as Function, Method, Class, Interface, Enum, Namespace, Variable, Constant, and Property. Symbol Legend Entries can also scope styling by symbol kind, plugin kind, plugin source, language, and containing file path. The Godot plugin contributes a scoped `Godot class_name` default for GDScript `class_name` symbols.
+
 - Enter a glob pattern and choose a color, optional shape, and optional icon, then click Add.
 - Click the x button next to a custom Legend Entry to delete it.
 - Lower entries apply first, higher entries apply last.
@@ -156,6 +160,7 @@ Pattern: src/**    Color: #3B82F6        (blue, all source files)
 Pattern: *.test.*  Color: #10B981        (green, test files)
 Pattern: *.md      Color: rgba(107, 114, 128, 0.65)  (faded documentation)
 Pattern: tests/*   Color: #F59E0B        (amber, files directly inside any tests folder)
+Pattern: **/*.gd   Color: #478CBF        (Godot symbol file scope)
 ```
 
 Legend Entry Toggles for `Plugin Defaults`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Turning a Legend Entry off disables its styling only; matching graph items remain and fall back to lower-priority styling. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
@@ -207,8 +212,8 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 
 ## Graph scope and settings controls
 
-- **Nodes**: choose Graph Scope for file, folder, package, and plugin-added Node Types
-- **Edges**: choose Graph Scope for `NESTS`, semantic Edge Types, and plugin-added Edge Types
+- **Nodes**: choose Graph Scope for file, folder, package, Symbols, Variables, and plugin-added Node Types
+- **Edges**: choose Graph Scope for `NESTS`, `contains`, semantic Edge Types, and plugin-added Edge Types
 - **Legends**: edit Legend Entries and their priority
 - **Plugins**: enable/disable plugins and reorder them
 - **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
