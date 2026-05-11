@@ -9,6 +9,7 @@ const CORE_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
   { id: 'default:symbol-kind:method', displayLabel: 'Method', color: '#A855F7', matchNodeType: 'symbol', matchSymbolKind: 'method' },
   { id: 'default:symbol-kind:class', displayLabel: 'Class', color: '#3B82F6', matchNodeType: 'symbol', matchSymbolKind: 'class' },
   { id: 'default:symbol-kind:interface', displayLabel: 'Interface', color: '#06B6D4', matchNodeType: 'symbol', matchSymbolKind: 'interface' },
+  { id: 'default:symbol-kind:type', displayLabel: 'Type', color: '#EC4899', matchNodeType: 'symbol', matchSymbolKind: 'type' },
   { id: 'default:symbol-kind:struct', displayLabel: 'Struct', color: '#0EA5E9', matchNodeType: 'symbol', matchSymbolKind: 'struct' },
   { id: 'default:symbol-kind:enum', displayLabel: 'Enum', color: '#F59E0B', matchNodeType: 'symbol', matchSymbolKind: 'enum' },
   { id: 'default:symbol-kind:namespace', displayLabel: 'Namespace', color: '#64748B', matchNodeType: 'symbol', matchSymbolKind: 'namespace' },
