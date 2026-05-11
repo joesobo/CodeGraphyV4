@@ -164,14 +164,14 @@ test.describe('webview depth view', () => {
     await expect(page.locator('.graph-container canvas').first()).toBeVisible();
     await expect(page.getByTestId('depth-view-controls')).toBeVisible();
     await expect(
-      page.getByRole('button', { name: /Open packages\/app\/src\/index\.ts/ }),
+      page.getByRole('button', { name: /Open src\/index\.ts/ }),
     ).toBeVisible();
 
     await expect(page.getByTestId('depth-harness-view')).toHaveText('depth:on');
     await expect(page.getByTestId('depth-harness-depth')).toHaveText('1');
     await expect(page.getByTestId('depth-harness-node-count')).toHaveText('3');
     await expect(page.getByTestId('depth-harness-node-ids')).toContainText(
-      'packages/shared/src/types.ts',
+      'src/types.ts',
     );
     await expect(page.getByTestId('depth-harness-bounds-count')).toHaveText('3');
     await waitForGraphDebugBridge(page);
@@ -184,7 +184,7 @@ test.describe('webview depth view', () => {
     await expect(page.getByTestId('depth-harness-depth')).toHaveText('2');
     await expect(page.getByTestId('depth-harness-node-count')).toHaveText('4');
     await expect(page.getByTestId('depth-harness-node-ids')).toContainText(
-      'packages/feature-depth/src/deep.ts',
+      'src/depth.ts',
     );
     await expect(page.getByTestId('depth-harness-bounds-count')).toHaveText('4');
     expectNodesToFit(await refitGraphForVisualAssertion(page));

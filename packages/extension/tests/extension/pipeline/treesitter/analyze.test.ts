@@ -294,6 +294,35 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
     expect(result?.symbols).toHaveLength(2);
   });
 
+  it('extracts ordinary const declarations as constant symbols', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const filePath = path.join(workspaceRoot, 'src/state.ts');
+    const source = [
+      'export const activeUserName = "CodeGraphy";',
+      '',
+      'const createGreeting = () => activeUserName;',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.symbols).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'activeUserName',
+          kind: 'constant',
+          filePath,
+        }),
+        expect.objectContaining({
+          name: 'createGreeting',
+          kind: 'function',
+          filePath,
+        }),
+      ]),
+    );
+    expect(result?.symbols).toHaveLength(2);
+  });
+
   it('extracts Python imports, symbols, and imported-call relations', async () => {
     const workspaceRoot = await createWorkspace({
       'pkg/thing.py': 'def run():\n    return True\n',
