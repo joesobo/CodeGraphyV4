@@ -396,6 +396,7 @@ describe('physics', () => {
 
     applyPhysicsSettings(instance, SETTINGS);
 
+    expect(instance.d3Force).toHaveBeenCalledWith('center', null);
     expect(charge.strength).toHaveBeenCalledOnce();
     expect(charge.distanceMax).toHaveBeenCalledWith(1000);
     expect(link.distance).toHaveBeenCalledWith(SETTINGS.linkDistance);
@@ -531,6 +532,7 @@ describe('physics', () => {
 
     initPhysics(instance, SETTINGS);
 
+    expect(d3Force).toHaveBeenCalledWith('center', null);
     expect(d3Force).toHaveBeenCalledWith('forceX', expect.anything());
     expect(d3Force).toHaveBeenCalledWith('forceY', expect.anything());
     expect(d3Force).toHaveBeenCalledWith('collision', expect.anything());
@@ -916,6 +918,118 @@ describe('physics', () => {
     expect(nodes[1].x).toBeLessThan(1030);
     expect(nodes[1].y).toBeGreaterThan(-230);
     expect(nodes[1].y).toBeLessThan(-170);
+  });
+
+  it('keeps Section Members centered relative to their owner while the Section moves around graph origin', () => {
+    const graphLayout = {
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': {
+          ...GRAPH_LAYOUT.sections['section-1'],
+          height: 200,
+          width: 200,
+        },
+      },
+    };
+    const force = createGraphSectionBoundsForce(graphLayout, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 1,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+    const section = {
+      id: 'section-1',
+      isDragging: true,
+      isGraphSection: true,
+      sectionHeight: 200,
+      sectionWidth: 200,
+      x: 600,
+      y: 0,
+    };
+    const member = {
+      id: 'src/member.ts',
+      size: 10,
+      x: 625,
+      y: 25,
+    };
+    const nodes = [section, member] as unknown as FGNode[];
+    const sectionPositions = [
+      { x: 600, y: 0 },
+      { x: 0, y: 600 },
+      { x: -600, y: 0 },
+      { x: 0, y: -600 },
+      { x: 600, y: 0 },
+    ];
+
+    force.initialize(nodes);
+    for (const position of sectionPositions) {
+      section.x = position.x;
+      section.y = position.y;
+      force(1);
+      expect(member.x - section.x).toBeGreaterThan(-30);
+      expect(member.x - section.x).toBeLessThan(30);
+      expect(member.y - section.y).toBeGreaterThan(-30);
+      expect(member.y - section.y).toBeLessThan(30);
+    }
+  });
+
+  it('does not pull Section Members toward graph origin through cross-section links while the owner moves', () => {
+    const graphLayout = {
+      ...GRAPH_LAYOUT,
+      sections: {
+        'section-1': {
+          ...GRAPH_LAYOUT.sections['section-1'],
+          height: 200,
+          width: 200,
+        },
+      },
+    };
+    const force = createGraphSectionBoundsForce(graphLayout, {
+      links: [
+        {
+          id: 'root-to-member',
+          source: 'src/root.ts',
+          target: 'src/member.ts',
+        } as never,
+      ],
+      settings: {
+        ...SETTINGS,
+        centerForce: 1,
+        linkDistance: 100,
+        linkForce: 1,
+        repelForce: 0,
+      },
+    });
+    const section = {
+      id: 'section-1',
+      isDragging: true,
+      isGraphSection: true,
+      sectionHeight: 200,
+      sectionWidth: 200,
+      x: 600,
+      y: 0,
+    };
+    const root = {
+      id: 'src/root.ts',
+      size: 10,
+      x: 0,
+      y: 0,
+    };
+    const member = {
+      id: 'src/member.ts',
+      size: 10,
+      x: 600,
+      y: 0,
+    };
+    const nodes = [section, root, member] as unknown as FGNode[];
+
+    force.initialize(nodes);
+    force(1);
+
+    expect(member.x - section.x).toBeGreaterThan(-30);
+    expect(member.x - section.x).toBeLessThan(30);
   });
 
   it('uses the configured repel force for local Section Member physics', () => {
