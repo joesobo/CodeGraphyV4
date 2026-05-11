@@ -45,6 +45,36 @@ describe('createGDScriptPlugin lifecycle', () => {
     expect(analysis).toEqual({ filePath: '/workspace/test.gd', relations: [] });
   });
 
+  it('analyzeFile should emit a Godot class_name symbol', async () => {
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
+    const analysis = await plugin.analyzeFile(
+      '/workspace/scripts/player.gd',
+      '# comment\nclass_name Player\nextends CharacterBody2D\n',
+      '/workspace',
+    );
+
+    expect(analysis.symbols).toEqual([
+      {
+        id: 'scripts/player.gd#Player:godot-class-name',
+        name: 'Player',
+        kind: 'class',
+        filePath: '/workspace/scripts/player.gd',
+        signature: 'class_name Player',
+        range: {
+          startLine: 2,
+          startColumn: 1,
+          endLine: 2,
+          endColumn: 18,
+        },
+        metadata: {
+          language: 'gdscript',
+          source: 'codegraphy.gdscript',
+          pluginKind: 'godot-class-name',
+        },
+      },
+    ]);
+  });
+
   it('onPreAnalyze should build class_name map from file contents', async () => {
     const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
     await plugin.initialize('/workspace');

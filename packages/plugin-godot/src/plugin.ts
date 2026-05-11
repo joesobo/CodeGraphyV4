@@ -7,6 +7,7 @@
 
 import * as path from 'path';
 import type {
+  IAnalysisSymbol,
   IPlugin,
   IPluginAnalysisContext,
 } from '@codegraphy-vscode/plugin-api';
@@ -93,6 +94,44 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
     return [...classNames];
   };
 
+  const extractClassNameSymbols = (
+    content: string,
+    filePath: string,
+    relativeFilePath: string,
+  ): IAnalysisSymbol[] => {
+    const symbols: IAnalysisSymbol[] = [];
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const ref = detectClassNameDeclaration(lines[i], i + 1);
+      if (!ref) {
+        continue;
+      }
+
+      const signature = `class_name ${ref.resPath}`;
+      symbols.push({
+        id: `${relativeFilePath}#${ref.resPath}:godot-class-name`,
+        name: ref.resPath,
+        kind: 'class',
+        filePath,
+        signature,
+        range: {
+          startLine: ref.line,
+          startColumn: 1,
+          endLine: ref.line,
+          endColumn: signature.length + 1,
+        },
+        metadata: {
+          language: 'gdscript',
+          source: manifest.id,
+          pluginKind: 'godot-class-name',
+        },
+      });
+    }
+
+    return symbols;
+  };
+
   const analyzeFile = async (
     filePath: string,
     content: string,
@@ -117,9 +156,12 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
             ...detectClassNameUsage(content, filePath, ctx),
           ];
 
+    const symbols = extractClassNameSymbols(content, filePath, relativeFilePath);
+
     return {
       filePath,
       relations,
+      ...(symbols.length > 0 ? { symbols } : {}),
     };
   };
 

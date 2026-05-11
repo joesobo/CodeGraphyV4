@@ -255,3 +255,12 @@ PR evidence:
   - `tests/webview/export/json/export.test.ts`
   - `tests/webview/export/markdown/nodeEntries.test.ts`
   - `tests/extension/pipeline/cache.test.ts`
+
+### 2026-05-11 Slice 5: Godot class_name Symbols
+
+- `codegraphy.gdscript` now emits `class_name` declarations as class symbols with `pluginKind: godot-class-name`.
+- Symbol metadata includes canonical plugin ID/source, GDScript language, signature, file path, and source range.
+- Installed Godot integration now proves class-name-backed relationships can target symbol nodes.
+- Green focused tests:
+  - `packages/plugin-godot/tests/plugin.test.ts`
+  - `packages/plugin-godot/tests/activate.test.ts`
