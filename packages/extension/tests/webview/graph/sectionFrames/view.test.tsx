@@ -123,10 +123,11 @@ describe('graph/sectionFrames/view', () => {
       borderColor: '#60a5fa',
       opacity: '1',
     });
-    expect(dragHandle).toHaveClass('h-7', 'pointer-events-auto', 'pr-9');
+    expect(dragHandle).toHaveClass('h-7', 'pointer-events-auto', 'pr-16');
     expect(screen.getByLabelText('Graph Section label')).toHaveClass('w-24');
     expect(screen.getByLabelText('Graph Section label')).not.toHaveClass('flex-1');
     expect(screen.getByLabelText('Graph Section color')).toHaveClass('absolute', 'right-1', 'top-1');
+    expect(screen.getByLabelText('Pinned Graph Section')).toHaveClass('absolute', 'right-9', 'top-1');
     for (const corner of ['northwest', 'northeast', 'southwest']) {
       expect(screen.getByTestId(`graph-section-resize-section-1-${corner}`)).toHaveClass('pointer-events-auto');
       expect(screen.getByTestId(`graph-section-resize-section-1-${corner}`)).toHaveStyle({
@@ -137,9 +138,9 @@ describe('graph/sectionFrames/view', () => {
     expect(screen.getByTestId('graph-section-resize-section-1')).toHaveStyle({
       borderColor: '#60a5fa',
     });
-    expect(screen.getByLabelText('Graph Section material icon')).toHaveValue('');
     expect(screen.getByLabelText('Graph Section custom icon')).toHaveAttribute('type', 'file');
     expect(screen.getByLabelText('Graph Section custom icon')).toHaveAttribute('accept', '.svg,.png,image/svg+xml,image/png');
+    expect(screen.queryByLabelText('Graph Section material icon')).toBeNull();
     expect(screen.getByLabelText('Graph Section label')).toHaveValue('Section 1');
     expect(screen.getByLabelText('Graph Section color')).toHaveValue('#60a5fa');
   });
@@ -187,7 +188,7 @@ describe('graph/sectionFrames/view', () => {
     });
     expect(screen.getByLabelText('Graph Section label')).toHaveAttribute('tabindex', '-1');
     expect(screen.getByLabelText('Graph Section color')).toHaveAttribute('tabindex', '-1');
-    expect(screen.getByLabelText('Graph Section material icon')).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByLabelText('Choose Graph Section icon')).toHaveAttribute('tabindex', '-1');
   });
 
   it('starts hiding Section Frame header controls before labels become cramped', () => {
@@ -236,9 +237,9 @@ describe('graph/sectionFrames/view', () => {
   it('shows and commits a Material Design Section Frame icon beside the label', () => {
     const { onUpdateSection } = renderSectionFrames({ icon: 'mdi:folder' });
 
-    expect(screen.getByLabelText('Graph Section material icon')).toHaveValue('mdi:folder');
+    fireEvent.click(screen.getByLabelText('Choose Graph Section icon'));
 
-    fireEvent.change(screen.getByLabelText('Graph Section material icon'), { target: { value: 'mdi:code-braces' } });
+    fireEvent.click(screen.getByLabelText('Use Code icon'));
 
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { icon: 'mdi:code-braces' });
   });
