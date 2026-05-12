@@ -1444,8 +1444,10 @@ describe('physics', () => {
     force.initialize(nodes);
     force(0.5);
 
-    expect(nodes[0].vx).toBeLessThan(0);
-    expect(nodes[1].vx).toBeGreaterThan(0);
+    expect(nodes[0].x).toBeLessThan(100);
+    expect(nodes[1].x).toBeGreaterThan(180);
+    expect(nodes[0].vx).toBe(0);
+    expect(nodes[1].vx).toBe(0);
     expect(nodes[0].vy).toBe(0);
     expect(nodes[1].vy).toBe(0);
   });
@@ -1530,10 +1532,10 @@ describe('physics', () => {
 
     expect(Math.abs(nodes[0].vx ?? 0)).toBeLessThanOrEqual(8);
     expect(Math.abs(nodes[0].vy ?? 0)).toBeLessThanOrEqual(8);
-    expect(nodes.slice(1).some(node => Math.abs(node.vx ?? 0) > 0 || Math.abs(node.vy ?? 0) > 0)).toBe(true);
+    expect(nodes.slice(1).some(node => node.x !== 145 && node.x !== 157)).toBe(true);
   });
 
-  it('lets expanded Graph Sections exchange collision pressure with normal nodes', () => {
+  it('moves expanded Graph Sections and normal nodes apart without bounce velocity', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
     const nodes = [
       {
@@ -1559,9 +1561,11 @@ describe('physics', () => {
     force.initialize(nodes);
     force(0.5);
 
-    expect(Math.abs(nodes[0].vx ?? 0)).toBeGreaterThanOrEqual(Math.abs(nodes[1].vx ?? 0) * 0.75);
-    expect(nodes[0].vx).toBeLessThan(0);
-    expect(nodes[1].vx).toBeGreaterThan(0);
+    expect(circleOverlapsSection(nodes[1], nodes[0])).toBe(false);
+    expect(nodes[0].x).toBeLessThan(100);
+    expect(nodes[1].x).toBeGreaterThan(190);
+    expect(nodes[0].vx).toBe(0);
+    expect(nodes[1].vx).toBe(0);
   });
 
   it('caps circle and expanded section collision velocity to avoid jittery rebounds', () => {
@@ -1592,6 +1596,45 @@ describe('physics', () => {
 
     expect(Math.abs(nodes[0].vx ?? 0)).toBeLessThanOrEqual(3);
     expect(Math.abs(nodes[1].vx ?? 0)).toBeLessThanOrEqual(3);
+  });
+
+  it('separates circle and expanded section collisions without adding rebound velocity', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 0,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/loose.ts',
+        size: 10,
+        vx: -10,
+        vy: 0,
+        x: 190,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(1);
+
+    expect(circleOverlapsSection(nodes[1], nodes[0])).toBe(false);
+    expect((nodes[1].vx ?? 0) - (nodes[0].vx ?? 0)).toBeGreaterThanOrEqual(0);
+    expect(nodes[1].vx).toBeLessThanOrEqual(0);
+    expect(nodes[0].vx).toBeLessThanOrEqual(0);
   });
 
   it('separates normal nodes from expanded Graph Section rectangles during collision ticks', () => {
@@ -2017,7 +2060,7 @@ describe('physics', () => {
     });
   });
 
-  it('applies peer collision pressure to nodes without section ownership inside expanded section bounds', () => {
+  it('moves nodes without section ownership out of expanded section bounds', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
     const nodes = [
       {
@@ -2033,7 +2076,7 @@ describe('physics', () => {
         size: 10,
         vx: 0,
         vy: 0,
-        x: 50,
+        x: 90,
         y: 50,
       },
     ] as FGNode[];
@@ -2042,8 +2085,11 @@ describe('physics', () => {
     force(0.5);
 
     const outside = nodes[1];
-    expect(Math.abs(nodes[0].vx ?? 0) + Math.abs(nodes[0].vy ?? 0)).toBeGreaterThan(0);
-    expect(Math.abs(outside.vx ?? 0) + Math.abs(outside.vy ?? 0)).toBeGreaterThan(0);
+    expect(circleOverlapsSection(outside, nodes[0])).toBe(false);
+    expect(nodes[0].vx ?? 0).toBe(0);
+    expect(nodes[0].vy ?? 0).toBe(0);
+    expect(outside.vx ?? 0).toBe(0);
+    expect(outside.vy ?? 0).toBe(0);
   });
 
   it('allows actively dragged nodes to enter expanded section bounds before ownership is saved', () => {
