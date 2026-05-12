@@ -319,7 +319,7 @@ PR evidence:
 - Moved Godot `class_name` styling under `Nodes` / `Plugins` / `Godot` / `class_name`.
 - Removed the ambiguous catch-all `Plugin Symbol` Legend entry and filtered symbol defaults to symbol kinds present in the current graph.
 - Let custom Legend Entry patterns match symbol metadata so entries such as `Function`, `buildGreeting`, or `*.ts` can override symbol styling.
-- Pruned stale persisted graph-control keys for removed symbol node types (`symbol:method`, `symbol:namespace`, and `symbol:variable`) and removed top-level `symbol` from color settings when settings are rewritten.
+- Pruned stale graph-control keys for removed symbol node types (`symbol:method`, `symbol:namespace`, and `symbol:variable`) and removed top-level `symbol` from color settings during UI writes and repo-settings normalization/serialization.
 - Green focused tests:
   - `tests/extension/pipeline/treesitter/analyze.test.ts`
   - `tests/extension/pipeline/examplesWorkspace.test.ts`

@@ -1,35 +1,10 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
+import { pruneGraphControlConfigMap, type GraphControlConfigKey } from '../../../../../shared/graphControls/settings';
 import type { GraphViewSettingsMessageHandlers } from '../router';
-
-const DEPRECATED_SYMBOL_NODE_TYPE_KEYS = new Set([
-  'symbol:method',
-  'symbol:namespace',
-  'symbol:variable',
-]);
-
-function shouldPruneGraphControlEntry(
-  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
-  entryKey: string,
-): boolean {
-  if (DEPRECATED_SYMBOL_NODE_TYPE_KEYS.has(entryKey)) {
-    return true;
-  }
-
-  return (key === 'nodeColors' || key === 'nodeColorEnabled') && entryKey === 'symbol';
-}
-
-function pruneGraphControlConfigMap(
-  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
-  values: Record<string, boolean | string>,
-): Record<string, boolean | string> {
-  return Object.fromEntries(
-    Object.entries(values).filter(([entryKey]) => !shouldPruneGraphControlEntry(key, entryKey)),
-  );
-}
 
 function getUpdatedConfigMap(
   handlers: GraphViewSettingsMessageHandlers,
-  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
+  key: GraphControlConfigKey,
   entryKey: string,
   value: boolean | string,
 ): Record<string, boolean | string> {
@@ -40,7 +15,7 @@ function getUpdatedConfigMap(
 }
 
 async function applyGraphControlsUpdate(
-  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
+  key: GraphControlConfigKey,
   entryKey: string,
   value: boolean | string,
   handlers: GraphViewSettingsMessageHandlers,
@@ -66,7 +41,7 @@ async function applySymbolVisibilityUpdate(
     ...pruneGraphControlConfigMap(
       'nodeVisibility',
       handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
-    ) as Record<string, boolean>,
+    ),
     symbol: visible,
   };
   if (!visible) {

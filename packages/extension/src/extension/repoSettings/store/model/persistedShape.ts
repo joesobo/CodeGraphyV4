@@ -1,5 +1,6 @@
 import { isPlainObject } from './plainObject';
 import { normalizeGraphLayoutSettings } from '../../graphLayout/model';
+import { pruneGraphControlConfigMap, type GraphControlConfigKey } from '../../../../shared/graphControls/settings';
 
 const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'version',
@@ -146,6 +147,24 @@ function normalizePersistedGraphLayout(normalized: Record<string, unknown>): voi
   }
 }
 
+function normalizeGraphControlConfigMap(
+  normalized: Record<string, unknown>,
+  key: GraphControlConfigKey,
+): void {
+  const value = normalized[key];
+  if (!isPlainObject(value)) {
+    return;
+  }
+
+  normalized[key] = pruneGraphControlConfigMap(key, value as Record<string, boolean | string>);
+}
+
+function normalizePersistedGraphControls(normalized: Record<string, unknown>): void {
+  normalizeGraphControlConfigMap(normalized, 'nodeVisibility');
+  normalizeGraphControlConfigMap(normalized, 'nodeColors');
+  normalizeGraphControlConfigMap(normalized, 'nodeColorEnabled');
+}
+
 export function normalizePersistedSettingsShape(
   value: unknown,
 ): Record<string, unknown> {
@@ -157,5 +176,6 @@ export function normalizePersistedSettingsShape(
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);
   normalizePersistedGraphLayout(normalized);
+  normalizePersistedGraphControls(normalized);
   return normalized;
 }

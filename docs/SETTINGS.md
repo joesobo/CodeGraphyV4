@@ -274,6 +274,8 @@ Your patterns are merged with the built-ins, so you don't need to repeat them.
 
 If you hand-edit `.codegraphy/settings.json`, CodeGraphy only applies the save when the file is valid JSON. Invalid saves are ignored until the file is fixed.
 
+When older settings contain symbol kinds that are no longer exposed, CodeGraphy prunes those stale Graph Scope and Legend color keys the next time settings are normalized and saved.
+
 ### `respectGitignore`
 
 When `true`, reads `.gitignore` and excludes matching files automatically.
