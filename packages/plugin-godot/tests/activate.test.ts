@@ -244,27 +244,39 @@ describe('plugin-godot/activate', () => {
         }),
         expect.objectContaining({
           from: 'scripts/enemy.gd',
-          to: 'scripts/base/entity.gd#Entity:class:class_name%20Entity',
+          to: 'scripts/base/entity.gd',
         }),
         expect.objectContaining({
           from: 'resources/player_loadout.tres',
-          to: 'scripts/data/player_loadout.gd#PlayerLoadout:class:class_name%20PlayerLoadout',
+          to: 'scripts/data/player_loadout.gd',
         }),
         expect.objectContaining({
           from: 'scenes/ui/loadout_preview.tscn',
           to: 'resources/player_loadout.tres',
+        }),
+        expect.objectContaining({
+          from: 'scripts/base/entity.gd',
+          kind: 'contains',
+          to: 'scripts/base/entity.gd#Entity:class:class_name%20Entity',
+        }),
+        expect.objectContaining({
+          from: 'scripts/data/player_loadout.gd',
+          kind: 'contains',
+          to: 'scripts/data/player_loadout.gd#PlayerLoadout:class:class_name%20PlayerLoadout',
         }),
       ]),
     );
     expect(edgeIds).toEqual(
       expect.arrayContaining([
         'project.godot->scenes/main.tscn#load:static',
-        'project.godot->scripts/game_manager.gd#GameManager:class:class_name%20GameManager#load',
+        'project.godot->scripts/game_manager.gd#load:static',
         'scripts/player.gd->scenes/ui/loadout_preview.tscn#load:static',
         'scripts/player.gd->resources/player_loadout.tres#load:static',
         'scenes/ui/loadout_preview.tscn->resources/player_loadout.tres#load:static',
-        'scenes/ui/loadout_preview.tscn->scripts/ui/loadout_preview.gd#LoadoutPreview:class:class_name%20LoadoutPreview#load',
-        'resources/player_loadout.tres->scripts/data/player_loadout.gd#PlayerLoadout:class:class_name%20PlayerLoadout#load',
+        'scenes/ui/loadout_preview.tscn->scripts/ui/loadout_preview.gd#load:static',
+        'resources/player_loadout.tres->scripts/data/player_loadout.gd#load:static',
+        'scripts/base/entity.gd->scripts/base/entity.gd#Entity:class:class_name%20Entity#contains',
+        'scripts/data/player_loadout.gd->scripts/data/player_loadout.gd#PlayerLoadout:class:class_name%20PlayerLoadout#contains',
       ]),
     );
     expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
