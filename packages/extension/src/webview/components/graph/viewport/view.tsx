@@ -163,7 +163,7 @@ export function Viewport({
         lastModified={tooltipData.info?.lastModified}
         incomingCount={tooltipData.info?.incomingCount ?? tooltipData.incomingCount ?? 0}
         outgoingCount={tooltipData.info?.outgoingCount ?? tooltipData.outgoingCount ?? 0}
-        plugin={tooltipData.info?.plugin}
+        plugin={tooltipData.info?.plugin ?? tooltipData.symbol?.plugin}
         nodeRect={tooltipData.nodeRect}
         visible={tooltipData.visible}
         extraActions={tooltipData.pluginActions}

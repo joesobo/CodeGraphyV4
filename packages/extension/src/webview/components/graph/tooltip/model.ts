@@ -21,6 +21,7 @@ export interface GraphTooltipState {
     name: string;
     kind: string;
     filePath: string;
+    plugin?: string;
   };
 }
 
@@ -44,6 +45,9 @@ export interface GraphTooltipStateResult {
 }
 
 const EMPTY_TOOLTIP_RECT: GraphTooltipRect = { x: 0, y: 0, radius: 0 };
+const SYMBOL_SOURCE_LABELS: Record<string, string> = {
+  'codegraphy.gdscript': 'GDScript (Godot)',
+};
 
 function countTooltipEdges(
   nodeId: string,
@@ -68,7 +72,12 @@ function readTooltipSymbol(
 ): GraphTooltipState['symbol'] {
   const symbol = snapshot.nodes.find((node) => node.id === nodeId)?.symbol;
   return symbol
-    ? { name: symbol.name, kind: symbol.kind, filePath: symbol.filePath }
+    ? {
+        name: symbol.name,
+        kind: symbol.kind,
+        filePath: symbol.filePath,
+        ...(symbol.source && SYMBOL_SOURCE_LABELS[symbol.source] ? { plugin: SYMBOL_SOURCE_LABELS[symbol.source] } : {}),
+      }
     : undefined;
 }
 

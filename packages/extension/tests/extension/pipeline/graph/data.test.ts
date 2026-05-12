@@ -37,6 +37,11 @@ describe('pipeline/graph/data', () => {
             filePath: '/workspace/src/player.gd',
             kind: 'method',
             name: '_ready',
+            metadata: {
+              language: 'gdscript',
+              source: 'codegraphy.gdscript',
+              pluginKind: 'godot-class-name',
+            },
             range: {
               startLine: 3,
               startColumn: 1,
@@ -75,6 +80,9 @@ describe('pipeline/graph/data', () => {
           name: '_ready',
           kind: 'method',
           filePath: 'src/player.gd',
+          language: 'gdscript',
+          source: 'codegraphy.gdscript',
+          pluginKind: 'godot-class-name',
           range: {
             startLine: 3,
             startColumn: 1,

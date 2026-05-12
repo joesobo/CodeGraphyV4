@@ -56,7 +56,7 @@ export function TooltipStats({
 }: Omit<TooltipContentProps, 'path' | 'extraSections'>): React.ReactElement {
   return (
     <div className="px-3 py-1.5 space-y-0.5 text-[11px] font-mono">
-      <Row label="Connections" value={`${outgoingCount} out \u00B7 ${incomingCount} in`} />
+      <Row label="Connections" value={symbol ? `${incomingCount} in` : `${outgoingCount} out \u00B7 ${incomingCount} in`} />
       {symbol && <Row label="Type" value={symbol.kind} />}
       {size !== undefined && <Row label="Size" value={formatSize(size)} />}
       {lastModified !== undefined && <Row label="Modified" value={formatRelativeTime(lastModified)} />}

@@ -136,6 +136,7 @@ describe('tooltipModel', () => {
             filePath: 'src/app.ts',
             name: 'boot',
             kind: 'function',
+            source: 'codegraphy.gdscript',
           },
         },
         { id: 'src/app.ts', label: 'app.ts', color: '#A1A1AA' },
@@ -163,6 +164,7 @@ describe('tooltipModel', () => {
         name: 'boot',
         kind: 'function',
         filePath: 'src/app.ts',
+        plugin: 'GDScript (Godot)',
       },
     }));
     expect(result.shouldRequestFileInfo).toBe(false);

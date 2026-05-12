@@ -90,6 +90,7 @@ describe('NodeTooltip', () => {
         }}
         incomingCount={1}
         outgoingCount={2}
+        plugin="GDScript (Godot)"
         nodeRect={defaultNodeRect}
         visible={true}
       />,
@@ -99,7 +100,10 @@ describe('NodeTooltip', () => {
     expect(screen.getByText('example-ruby/lib/app/runner.rb')).toBeInTheDocument();
     expect(screen.getByText('function')).toBeInTheDocument();
     expect(screen.queryByText('example-ruby/lib/app/runner.rb#boot:function')).not.toBeInTheDocument();
-    expect(screen.getByText('2 out · 1 in')).toBeInTheDocument();
+    expect(screen.getByText('1 in')).toBeInTheDocument();
+    expect(screen.queryByText('2 out · 1 in')).not.toBeInTheDocument();
+    expect(screen.getByText('Plugin')).toBeInTheDocument();
+    expect(screen.getByText('GDScript (Godot)')).toBeInTheDocument();
   });
 
   it('omits optional rows when plugin, size, and modified time are absent', () => {
