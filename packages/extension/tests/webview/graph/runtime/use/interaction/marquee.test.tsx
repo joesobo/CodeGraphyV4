@@ -106,7 +106,7 @@ describe('graph/runtime/use/interaction marquee', () => {
     expect(runtime.setSelection).toHaveBeenCalledWith(['inside']);
   });
 
-  it('adds marquee hits to the current selection when shift is held', () => {
+  it('toggles marquee hits in the current selection when shift is held', () => {
     const runtime = createMarqueeRuntime({ selectedNodeIds: ['existing'] });
 
     act(() => {
@@ -116,6 +116,18 @@ describe('graph/runtime/use/interaction marquee', () => {
     });
 
     expect(runtime.setSelection).toHaveBeenCalledWith(['existing', 'inside']);
+  });
+
+  it('removes selected marquee hits when shift is held', () => {
+    const runtime = createMarqueeRuntime({ selectedNodeIds: ['existing', 'inside'] });
+
+    act(() => {
+      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, true) as never);
+      runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20, true) as never);
+      runtime.result.current.handleMouseUpCapture(createEvent(0, 20, 20, true) as never);
+    });
+
+    expect(runtime.setSelection).toHaveBeenCalledWith(['existing']);
   });
 
   it('uses local container coordinates for marquee bounds', () => {

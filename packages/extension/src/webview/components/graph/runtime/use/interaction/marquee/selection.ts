@@ -7,6 +7,22 @@ import type {
   MarqueeDragState,
 } from './state';
 
+function toggleMarqueeSelection(
+  currentNodeIds: ReadonlySet<string>,
+  marqueeNodeIds: readonly string[],
+): string[] {
+  const selectedNodeIds = new Set(currentNodeIds);
+  for (const nodeId of marqueeNodeIds) {
+    if (selectedNodeIds.has(nodeId)) {
+      selectedNodeIds.delete(nodeId);
+    } else {
+      selectedNodeIds.add(nodeId);
+    }
+  }
+
+  return [...selectedNodeIds];
+}
+
 export function selectMarqueeNodes(
   drag: MarqueeDragState,
   options: Pick<
@@ -21,7 +37,7 @@ export function selectMarqueeNodes(
     nodes: options.graphDataRef.current.nodes,
   });
   const selectedNodeIds = drag.additive
-    ? [...new Set([...options.selectedNodesSetRef.current, ...marqueeNodeIds])]
+    ? toggleMarqueeSelection(options.selectedNodesSetRef.current, marqueeNodeIds)
     : marqueeNodeIds;
   options.interactionHandlers.setHighlight(null);
   options.interactionHandlers.setSelection(selectedNodeIds);
