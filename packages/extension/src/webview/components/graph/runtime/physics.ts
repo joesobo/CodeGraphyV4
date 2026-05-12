@@ -13,8 +13,6 @@ const COLLISION_PADDING = 4;
 const COLLISION_ITERATIONS = 16;
 const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
-const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
-const SECTION_EXTERNAL_COLLISION_MAX_IMPULSE = 3;
 const SECTION_BRIDGE_LINK_MAX_IMPULSE = 6;
 const SECTION_RECTANGLE_MAX_REPEL_GAP = 32;
 const SECTION_RECTANGLE_REPEL_PADDING_RATIO = 0.25;
@@ -67,7 +65,6 @@ interface SectionCenter {
 	y: number;
 }
 
-type CollisionImpulseBudget = Map<string, number>;
 type GraphLinkEndpoint = string | number | { id?: string | number } | undefined;
 
 interface GraphLinkLike {
@@ -854,14 +851,24 @@ function applyRectangleCollisionPosition(
 	right.y = resolveNodeCoordinate(right.y, 0) + rightCorrection;
 }
 
-function applyRectangleCollisionVelocity(
+function getAxisVelocity(node: FGNode, axis: CollisionAxis): number {
+	return axis === 'x' ? node.vx ?? 0 : node.vy ?? 0;
+}
+
+function addAxisVelocity(node: FGNode, axis: CollisionAxis, delta: number): void {
+	if (axis === 'x') {
+		node.vx = (node.vx ?? 0) + delta;
+		return;
+	}
+
+	node.vy = (node.vy ?? 0) + delta;
+}
+
+function dampenRectangleCollisionVelocity(
 	left: FGNode,
 	right: FGNode,
 	axis: CollisionAxis,
 	direction: number,
-	overlap: number,
-	alpha: number,
-	impulseBudget: CollisionImpulseBudget,
 ): void {
 	const leftWeight = getCollisionMoveWeight(left);
 	const rightWeight = getCollisionMoveWeight(right);
@@ -870,52 +877,15 @@ function applyRectangleCollisionVelocity(
 		return;
 	}
 
-	const impulse = overlap * SECTION_RECTANGLE_COLLISION_STRENGTH * alpha;
-	const leftImpulse = capExternalSectionImpulse(
-		left,
-		right,
-		axis,
-		direction * impulse * (leftWeight / totalWeight),
-		impulseBudget,
-	);
-	const rightImpulse = capExternalSectionImpulse(
-		right,
-		left,
-		axis,
-		-direction * impulse * (rightWeight / totalWeight),
-		impulseBudget,
-	);
-
-	if (axis === 'x') {
-		left.vx = (left.vx ?? 0) + leftImpulse;
-		right.vx = (right.vx ?? 0) + rightImpulse;
+	const normal = -direction;
+	const relativeVelocity = (getAxisVelocity(right, axis) - getAxisVelocity(left, axis)) * normal;
+	if (relativeVelocity >= 0) {
 		return;
 	}
 
-	left.vy = (left.vy ?? 0) + leftImpulse;
-	right.vy = (right.vy ?? 0) + rightImpulse;
-}
-
-function capExternalSectionImpulse(
-	node: FGNode,
-	other: FGNode,
-	axis: CollisionAxis,
-	impulse: number,
-	impulseBudget: CollisionImpulseBudget,
-): number {
-	if (isExpandedGraphSection(node) === isExpandedGraphSection(other)) {
-		return impulse;
-	}
-
-	const budgetKey = `${node.id}:${axis}`;
-	const previousImpulse = impulseBudget.get(budgetKey) ?? 0;
-	const nextImpulse = clamp(
-		previousImpulse + impulse,
-		-SECTION_EXTERNAL_COLLISION_MAX_IMPULSE,
-		SECTION_EXTERNAL_COLLISION_MAX_IMPULSE,
-	);
-	impulseBudget.set(budgetKey, nextImpulse);
-	return nextImpulse - previousImpulse;
+	const correction = -relativeVelocity;
+	addAxisVelocity(left, axis, -normal * correction * (leftWeight / totalWeight));
+	addAxisVelocity(right, axis, normal * correction * (rightWeight / totalWeight));
 }
 
 function getRectangleCollisionOverlap(
@@ -950,8 +920,6 @@ function applyRectangleCollision(
 	right: FGNode,
 	graphLayout: GraphLayoutSettings,
 	settings: GraphSectionBoundsForceOptions['settings'],
-	alpha: number,
-	impulseBudget: CollisionImpulseBudget,
 ): void {
 	const overlap = getRectangleCollisionOverlap(left, right, graphLayout, settings);
 	if (!overlap) {
@@ -961,38 +929,20 @@ function applyRectangleCollision(
 	if (overlap.overlapX <= overlap.overlapY) {
 		const direction = getCollisionDirection(left, right, overlap.leftRect.centerX, overlap.rightRect.centerX);
 		applyRectangleCollisionPosition(left, right, 'x', direction, overlap.overlapX);
-		applyRectangleCollisionVelocity(
-			left,
-			right,
-			'x',
-			direction,
-			overlap.overlapX,
-			alpha,
-			impulseBudget,
-		);
+		dampenRectangleCollisionVelocity(left, right, 'x', direction);
 		return;
 	}
 
 	const direction = getCollisionDirection(left, right, overlap.leftRect.centerY, overlap.rightRect.centerY);
 	applyRectangleCollisionPosition(left, right, 'y', direction, overlap.overlapY);
-	applyRectangleCollisionVelocity(
-		left,
-		right,
-		'y',
-		direction,
-		overlap.overlapY,
-		alpha,
-		impulseBudget,
-	);
+	dampenRectangleCollisionVelocity(left, right, 'y', direction);
 }
 
 function applyRectangleCollisions(
 	nodes: readonly FGNode[],
 	graphLayout: GraphLayoutSettings,
 	settings: GraphSectionBoundsForceOptions['settings'],
-	alpha: number,
 ): void {
-	const impulseBudget: CollisionImpulseBudget = new Map();
 	for (let leftIndex = 0; leftIndex < nodes.length; leftIndex += 1) {
 		if (!isExpandedGraphSection(nodes[leftIndex])) {
 			continue;
@@ -1006,7 +956,7 @@ function applyRectangleCollisions(
 				continue;
 			}
 
-			applyRectangleCollision(nodes[leftIndex], nodes[rightIndex], graphLayout, settings, alpha, impulseBudget);
+			applyRectangleCollision(nodes[leftIndex], nodes[rightIndex], graphLayout, settings);
 		}
 	}
 }
@@ -1331,7 +1281,7 @@ function applyGraphSectionBoundsTick(
 	alpha: number,
 ): void {
 	applySectionBridgeLinkForces(nodes, graphLayout, options.links ?? [], options.settings, alpha);
-	applyRectangleCollisions(nodes, graphLayout, options.settings, alpha);
+	applyRectangleCollisions(nodes, graphLayout, options.settings);
 	carrySectionMembersWithFrames(nodes, graphLayout, previousSectionCenters);
 	const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
 	const sectionMemberCenterStrength = getSectionMemberCenterStrength(options.settings);
