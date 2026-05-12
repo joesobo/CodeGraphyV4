@@ -21,7 +21,6 @@ describe('shared/graphControls/defaults/maps', () => {
       'symbol:enum': true,
       variable: false,
       'symbol:constant': true,
-      'symbol:property': true,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': true,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);

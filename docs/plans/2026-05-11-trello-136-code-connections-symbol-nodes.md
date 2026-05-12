@@ -93,7 +93,7 @@ Green path:
 Red tests:
 
 - Symbol Legend entries exist before matching symbols are visible.
-- Initial entries include present general symbol kinds such as Function, Method, Class, Interface, Type, Struct, Enum, Variable, Constant, and Property.
+- Initial entries include present general symbol kinds such as Function, Method, Class, Interface, Type, Struct, Enum, Variable, and Constant.
 - Plugin-owned defaults can contribute their own subsection entries, with Godot contributing `Plugins` / `Godot` / `class_name`.
 - Scoped matching can combine symbol kind/category, file path, plugin source, language, and plugin kind.
 - Existing Legend order decides precedence.

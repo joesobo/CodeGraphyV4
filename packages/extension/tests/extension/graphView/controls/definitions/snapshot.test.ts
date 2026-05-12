@@ -61,7 +61,6 @@ describe('extension/graphView/controls/snapshot', () => {
       'symbol:enum',
       'variable',
       'symbol:constant',
-      'symbol:property',
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
       'route',
     ]);
@@ -80,7 +79,6 @@ describe('extension/graphView/controls/snapshot', () => {
       'symbol:enum': '#F59E0B',
       variable: '#14B8A6',
       'symbol:constant': '#22C55E',
-      'symbol:property': '#84CC16',
       'plugin:codegraphy.gdscript:symbol:godot-class-name': '#478CBF',
       route: '#123456',
     });
@@ -97,7 +95,6 @@ describe('extension/graphView/controls/snapshot', () => {
       'symbol:enum': true,
       variable: false,
       'symbol:constant': true,
-      'symbol:property': true,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': true,
       route: false,
     });
@@ -144,7 +141,6 @@ describe('extension/graphView/controls/snapshot', () => {
       'symbol:enum': true,
       variable: false,
       'symbol:constant': true,
-      'symbol:property': true,
       'plugin:codegraphy.gdscript:symbol:godot-class-name': true,
     });
     expect(snapshot.edgeTypes.map((edgeType) => edgeType.id)).toContain('import');

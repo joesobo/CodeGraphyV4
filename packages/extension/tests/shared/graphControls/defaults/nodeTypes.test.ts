@@ -93,13 +93,6 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         parentId: 'variable',
       },
       {
-        id: 'symbol:property',
-        label: 'Property',
-        defaultColor: '#84CC16',
-        defaultVisible: true,
-        parentId: 'variable',
-      },
-      {
         id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
         label: 'Godot class_name',
         defaultColor: '#478CBF',

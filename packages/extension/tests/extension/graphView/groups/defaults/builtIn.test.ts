@@ -184,7 +184,6 @@ describe('graphView/builtInDefaultGroups', () => {
     expect(groups.map((group) => group.id)).not.toEqual(expect.arrayContaining([
       'default:symbol-kind:struct',
       'default:symbol-kind:enum',
-      'default:symbol-kind:property',
       'default:symbol-kind:plugin',
     ]));
   });

@@ -20,7 +20,6 @@ describe('shared/graphControls/defaults/definitions', () => {
       'symbol:enum',
       'variable',
       'symbol:constant',
-      'symbol:property',
       'plugin:codegraphy.gdscript:symbol:godot-class-name',
     ]);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);

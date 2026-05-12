@@ -9,7 +9,6 @@ import {
   mdiFunction,
   mdiFunctionVariant,
   mdiLockOutline,
-  mdiPound,
   mdiVariable,
 } from '@mdi/js';
 import { globMatch } from '../../../../shared/globMatch';
@@ -30,7 +29,6 @@ const CORE_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
   { id: 'default:symbol-kind:enum', displayLabel: 'Enum', color: '#F59E0B', imageUrl: createMaterialSymbolIconDataUrl(mdiFormatListBulletedType), matchNodeType: 'symbol', matchSymbolKind: 'enum' },
   { id: 'default:symbol-kind:variable', displayLabel: 'Variable', color: '#14B8A6', imageUrl: createMaterialSymbolIconDataUrl(mdiVariable), matchNodeType: 'variable', matchSymbolKind: 'variable' },
   { id: 'default:symbol-kind:constant', displayLabel: 'Constant', color: '#22C55E', imageUrl: createMaterialSymbolIconDataUrl(mdiLockOutline), matchNodeType: 'variable', matchSymbolKind: 'constant' },
-  { id: 'default:symbol-kind:property', displayLabel: 'Property', color: '#84CC16', imageUrl: createMaterialSymbolIconDataUrl(mdiPound), matchNodeType: 'variable', matchSymbolKind: 'property' },
 ];
 
 const PLUGIN_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
