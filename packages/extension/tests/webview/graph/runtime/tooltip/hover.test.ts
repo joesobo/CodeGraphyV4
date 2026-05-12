@@ -169,7 +169,9 @@ describe('handleTooltipNodeHover', () => {
 
     expect(setTooltipData).toHaveBeenCalledWith({
       info: cachedInfo,
+      incomingCount: 0,
       nodeRect: { x: 1, y: 2, radius: 3 },
+      outgoingCount: 0,
       path: 'src/App.ts',
       pluginActions: [],
       pluginSections: [],
