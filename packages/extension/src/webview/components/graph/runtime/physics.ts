@@ -483,9 +483,9 @@ function getOwnerSectionId(
 	node: FGNode,
 	graphLayout: GraphLayoutSettings,
 ): string | null {
-	return node.ownerSectionId
-		?? graphLayout.ownership[node.id]?.ownerSectionId
-		?? null;
+	return node.ownerSectionId !== undefined
+		? node.ownerSectionId
+		: graphLayout.ownership[node.id]?.ownerSectionId ?? null;
 }
 
 function isOwnedBySection(
