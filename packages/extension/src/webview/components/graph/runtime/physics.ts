@@ -14,7 +14,8 @@ const COLLISION_ITERATIONS = 16;
 const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
 const SECTION_RECTANGLE_COLLISION_STRENGTH = 0.9;
-const SECTION_EXTERNAL_COLLISION_MAX_IMPULSE = 8;
+const SECTION_EXTERNAL_COLLISION_MAX_IMPULSE = 3;
+const SECTION_BRIDGE_LINK_MAX_IMPULSE = 6;
 const SECTION_RECTANGLE_MAX_REPEL_GAP = 32;
 const SECTION_RECTANGLE_REPEL_PADDING_RATIO = 0.25;
 const SECTION_CHARGE_MULTIPLIER_CAP = 12;
@@ -354,6 +355,22 @@ function getNodeDelta(left: FGNode, right: FGNode): NodeDelta {
 function addNodeVelocity(node: FGNode, deltaX: number, deltaY: number): void {
 	node.vx = (node.vx ?? 0) + deltaX;
 	node.vy = (node.vy ?? 0) + deltaY;
+}
+
+function addCappedNodeVelocity(
+	node: FGNode,
+	deltaX: number,
+	deltaY: number,
+	maxImpulse: number,
+): void {
+	const impulse = Math.hypot(deltaX, deltaY);
+	if (impulse <= maxImpulse || impulse === 0) {
+		addNodeVelocity(node, deltaX, deltaY);
+		return;
+	}
+
+	const scale = maxImpulse / impulse;
+	addNodeVelocity(node, deltaX * scale, deltaY * scale);
 }
 
 function moveNodePosition(node: FGNode, deltaX: number, deltaY: number): void {
@@ -886,7 +903,7 @@ function capExternalSectionImpulse(
 	impulse: number,
 	impulseBudget: CollisionImpulseBudget,
 ): number {
-	if (!isExpandedGraphSection(node) || isExpandedGraphSection(other)) {
+	if (isExpandedGraphSection(node) === isExpandedGraphSection(other)) {
 		return impulse;
 	}
 
@@ -1136,6 +1153,7 @@ function applyLinkVelocity(
 	linkDistance: number,
 	linkForce: number,
 	alpha: number,
+	maxImpulse = Number.POSITIVE_INFINITY,
 ): void {
 	const weights = getBridgeWeightShares(source, target);
 	if (!weights) {
@@ -1144,8 +1162,8 @@ function applyLinkVelocity(
 
 	const delta = getNodeDelta(source, target);
 	const force = ((delta.distance - linkDistance) / delta.distance) * linkForce * alpha;
-	addNodeVelocity(source, delta.x * force * weights.left, delta.y * force * weights.left);
-	addNodeVelocity(target, -delta.x * force * weights.right, -delta.y * force * weights.right);
+	addCappedNodeVelocity(source, delta.x * force * weights.left, delta.y * force * weights.left, maxImpulse);
+	addCappedNodeVelocity(target, -delta.x * force * weights.right, -delta.y * force * weights.right, maxImpulse);
 }
 
 function hasBridgePhysicsSettings(
@@ -1253,6 +1271,7 @@ function applyExpandedSectionBridgePull(
 		getBridgeSectionLinkDistance(ownerSectionNode, bridge.memberNode, linkDistance),
 		linkForce,
 		alpha,
+		SECTION_BRIDGE_LINK_MAX_IMPULSE,
 	);
 }
 
@@ -1279,7 +1298,7 @@ function applySectionBridgeLinkForces(
 			continue;
 		}
 
-		applyLinkVelocity(source, target, settings.linkDistance, settings.linkForce, alpha);
+		applyLinkVelocity(source, target, settings.linkDistance, settings.linkForce, alpha, SECTION_BRIDGE_LINK_MAX_IMPULSE);
 		applyExpandedSectionBridgePull(source, target, nodeMap, graphLayout, settings.linkDistance, settings.linkForce, alpha);
 	}
 }

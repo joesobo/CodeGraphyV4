@@ -72,4 +72,25 @@ describe('graph/interactionRuntime/fitBounds', () => {
       maxY: 110,
     });
   });
+
+  it('measures expanded Graph Section Nodes by their rectangle bounds', () => {
+    expect(
+      get2dFitBounds([
+        node({
+          id: 'section-1',
+          isGraphSection: true,
+          sectionHeight: 120,
+          sectionWidth: 240,
+          size: 16,
+          x: 100,
+          y: 80,
+        }),
+      ]),
+    ).toEqual({
+      minX: -20,
+      maxX: 220,
+      minY: 20,
+      maxY: 140,
+    });
+  });
 });

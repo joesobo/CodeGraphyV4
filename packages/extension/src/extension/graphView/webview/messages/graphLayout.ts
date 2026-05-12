@@ -109,12 +109,18 @@ export async function applyGraphLayoutMessage(
     }
 
     case 'UPDATE_GRAPH_LAYOUT_OWNER': {
-      const nextLayout = assignGraphLayoutOwner(readCurrentGraphLayout(handlers), {
+      const currentLayout = readCurrentGraphLayout(handlers);
+      const nextLayout = assignGraphLayoutOwner(currentLayout, {
         ...message.payload,
         updatedAt: new Date().toISOString(),
       });
 
-      await persistAndSendGraphLayout(handlers, nextLayout);
+      await getUndoManager().execute(new UpdateGraphLayoutAction(
+        'Move Graph Item',
+        handlers,
+        currentLayout,
+        nextLayout,
+      ));
       return true;
     }
 
