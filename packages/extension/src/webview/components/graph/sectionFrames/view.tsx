@@ -44,7 +44,7 @@ interface SectionFramesProps {
   onUpdateSection: SectionFrameUpdateHandler;
 }
 
-const TOPBAR_FADE_OUT_SCALE = 0.65;
+const TOPBAR_FADE_OUT_SCALE = 0.45;
 const TOPBAR_FULL_SCALE = 1;
 
 function getTopbarOpacity(rect: SectionFrameRect): number {

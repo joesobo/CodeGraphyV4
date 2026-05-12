@@ -191,7 +191,7 @@ describe('graph/sectionFrames/view', () => {
     expect(screen.getByLabelText('Upload Graph Section icon')).toHaveAttribute('tabindex', '-1');
   });
 
-  it('starts hiding Section Frame header controls before labels become cramped', () => {
+  it('keeps Section Frame header controls visible while moderately zoomed out', () => {
     render(
       <SectionFrames
         graph={{
@@ -205,7 +205,7 @@ describe('graph/sectionFrames/view', () => {
 
     expect(screen.getByTestId('graph-section-drag-handle-section-1')).toHaveAttribute(
       'data-section-frame-header',
-      'hidden',
+      'visible',
     );
   });
 
