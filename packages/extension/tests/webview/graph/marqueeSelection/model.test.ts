@@ -22,6 +22,15 @@ function node(id: string, x: number | undefined, y: number | undefined): FGNode 
   } as FGNode;
 }
 
+function expandedSection(id: string, x: number, y: number): FGNode {
+  return {
+    ...node(id, x, y),
+    isCollapsedGraphSection: false,
+    isGraphSection: true,
+    nodeType: 'graph-section',
+  } as FGNode;
+}
+
 describe('graph/marqueeSelection/model', () => {
   it('normalizes marquee bounds for any drag direction', () => {
     expect(getMarqueeBounds({ x: 140, y: 120 }, { x: 80, y: 40 })).toEqual({
@@ -52,5 +61,17 @@ describe('graph/marqueeSelection/model', () => {
     })).toEqual(['inside-a.ts', 'inside-b.ts']);
     expect(graphToScreen).toHaveBeenCalledWith(90, 70);
     expect(graphToScreen).toHaveBeenCalledWith(120, 100);
+  });
+
+  it('does not select expanded Graph Section frame nodes with their member nodes', () => {
+    expect(getMarqueeSelectedNodeIds({
+      bounds: { left: 0, top: 0, width: 200, height: 200 },
+      graphToScreen: (x, y) => ({ x, y }),
+      nodes: [
+        expandedSection('section-1', 100, 100),
+        node('inside-a.ts', 90, 70),
+        node('inside-b.ts', 120, 100),
+      ],
+    })).toEqual(['inside-a.ts', 'inside-b.ts']);
   });
 });

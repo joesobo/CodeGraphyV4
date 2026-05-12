@@ -53,6 +53,10 @@ function containsPoint(bounds: MarqueeBounds, point: MarqueePoint): boolean {
     && point.y <= bounds.top + bounds.height;
 }
 
+function isSelectableByMarquee(node: FGNode): boolean {
+  return !node.isGraphSection || !!node.isCollapsedGraphSection;
+}
+
 export function getMarqueeSelectedNodeIds({
   bounds,
   graphToScreen,
@@ -61,6 +65,10 @@ export function getMarqueeSelectedNodeIds({
   const selectedNodeIds: string[] = [];
 
   for (const node of nodes) {
+    if (!isSelectableByMarquee(node)) {
+      continue;
+    }
+
     if (!isFiniteNumber(node.x) || !isFiniteNumber(node.y)) {
       continue;
     }
