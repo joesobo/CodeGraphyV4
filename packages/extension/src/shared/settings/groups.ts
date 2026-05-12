@@ -10,6 +10,7 @@ export interface IGroup {
   target?: LegendRuleTarget;
   matchNodeType?: 'file' | 'folder' | 'package' | 'symbol' | 'variable';
   matchSymbolKind?: string;
+  matchSymbolKinds?: string[];
   matchSymbolPluginKind?: string;
   matchSymbolSource?: string;
   matchSymbolLanguage?: string;

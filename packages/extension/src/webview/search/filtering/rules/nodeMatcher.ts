@@ -47,8 +47,10 @@ export function ruleMatchesNode(
     [rule.matchSymbolLanguage, symbol?.language],
   ];
   const exactFieldsMatch = exactMatches.every(([expected, actual]) => !expected || expected === actual);
+  const symbolKindsMatch = !rule.matchSymbolKinds
+    || Boolean(symbol?.kind && rule.matchSymbolKinds.includes(symbol.kind));
   const symbolPathMatches = !rule.matchSymbolFilePath
     || Boolean(symbol?.filePath && globMatch(symbol.filePath, rule.matchSymbolFilePath));
 
-  return exactFieldsMatch && symbolPathMatches && rulePatternMatchesNode(node, rule);
+  return exactFieldsMatch && symbolKindsMatch && symbolPathMatches && rulePatternMatchesNode(node, rule);
 }

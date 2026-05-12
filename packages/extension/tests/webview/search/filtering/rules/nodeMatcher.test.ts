@@ -38,6 +38,27 @@ describe('search/filtering/rules/nodeMatcher', () => {
     })).toBe(true);
   });
 
+  it('matches any configured symbol kind in a symbol-kind list', () => {
+    expect(ruleMatchesNode({
+      id: 'src/app.ts#render:method',
+      label: 'render',
+      color: '#111111',
+      nodeType: 'symbol',
+      symbol: {
+        id: 'src/app.ts#render:method',
+        filePath: 'src/app.ts',
+        name: 'render',
+        kind: 'method',
+      },
+    }, {
+      id: 'default:symbol-kind:function',
+      pattern: '**',
+      color: '#8B5CF6',
+      matchNodeType: 'symbol',
+      matchSymbolKinds: ['function', 'method'],
+    })).toBe(true);
+  });
+
   it('lets custom legend patterns match symbol kind, name, and containing file metadata', () => {
     const functionNode = {
       id: 'src/index.ts#buildGreeting:function',

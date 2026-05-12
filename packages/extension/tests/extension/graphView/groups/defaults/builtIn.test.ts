@@ -87,6 +87,18 @@ describe('graphView/builtInDefaultGroups', () => {
             },
           },
           {
+            id: 'src/app.ts#render:method',
+            label: 'render',
+            color: '#000000',
+            nodeType: 'symbol',
+            symbol: {
+              id: 'src/app.ts#render:method',
+              name: 'render',
+              kind: 'method',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
             id: 'src/app.ts#User:type',
             label: 'User',
             color: '#000000',
@@ -139,7 +151,7 @@ describe('graphView/builtInDefaultGroups', () => {
         color: '#8B5CF6',
         imageUrl: expect.stringMatching(/^data:image\/svg\+xml;base64,/),
         matchNodeType: 'symbol',
-        matchSymbolKind: 'function',
+        matchSymbolKinds: ['function', 'method'],
         isPluginDefault: true,
         pluginName: 'CodeGraphy',
       }),
@@ -182,6 +194,7 @@ describe('graphView/builtInDefaultGroups', () => {
     ]));
 
     expect(groups.map((group) => group.id)).not.toEqual(expect.arrayContaining([
+      'default:symbol-kind:method',
       'default:symbol-kind:struct',
       'default:symbol-kind:enum',
       'default:symbol-kind:plugin',

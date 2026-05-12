@@ -7,7 +7,6 @@ import {
   mdiCubeOutline,
   mdiFormatListBulletedType,
   mdiFunction,
-  mdiFunctionVariant,
   mdiLockOutline,
   mdiVariable,
 } from '@mdi/js';
@@ -20,8 +19,7 @@ type SymbolDefaultGroup = Omit<IGroup, 'pattern' | 'isPluginDefault' | 'pluginNa
 };
 
 const CORE_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
-  { id: 'default:symbol-kind:function', displayLabel: 'Function', color: '#8B5CF6', imageUrl: createMaterialSymbolIconDataUrl(mdiFunction), matchNodeType: 'symbol', matchSymbolKind: 'function' },
-  { id: 'default:symbol-kind:method', displayLabel: 'Method', color: '#A855F7', imageUrl: createMaterialSymbolIconDataUrl(mdiFunctionVariant), matchNodeType: 'symbol', matchSymbolKind: 'method' },
+  { id: 'default:symbol-kind:function', displayLabel: 'Function', color: '#8B5CF6', imageUrl: createMaterialSymbolIconDataUrl(mdiFunction), matchNodeType: 'symbol', matchSymbolKinds: ['function', 'method'] },
   { id: 'default:symbol-kind:class', displayLabel: 'Class', color: '#3B82F6', imageUrl: createMaterialSymbolIconDataUrl(mdiAlphaCBoxOutline), matchNodeType: 'symbol', matchSymbolKind: 'class' },
   { id: 'default:symbol-kind:interface', displayLabel: 'Interface', color: '#06B6D4', imageUrl: createMaterialSymbolIconDataUrl(mdiAlphaIBoxOutline), matchNodeType: 'symbol', matchSymbolKind: 'interface' },
   { id: 'default:symbol-kind:type', displayLabel: 'Type', color: '#EC4899', imageUrl: createMaterialSymbolIconDataUrl(mdiAlphaTBoxOutline), matchNodeType: 'symbol', matchSymbolKind: 'type' },
@@ -72,6 +70,9 @@ function symbolGroupMatchesNode(
     return false;
   }
   if (group.matchSymbolKind && group.matchSymbolKind !== symbol.kind) {
+    return false;
+  }
+  if (group.matchSymbolKinds && !group.matchSymbolKinds.includes(symbol.kind)) {
     return false;
   }
   if (group.matchSymbolPluginKind && group.matchSymbolPluginKind !== symbol.pluginKind) {
