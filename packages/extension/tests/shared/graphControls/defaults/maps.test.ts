@@ -3,7 +3,6 @@ import {
   createDefaultEdgeColors,
   createDefaultEdgeVisibility,
   createDefaultNodeColors,
-  createDefaultNodeColorEnabled,
   createDefaultNodeVisibility,
 } from '../../../../src/shared/graphControls/defaults/maps';
 
@@ -27,8 +26,7 @@ describe('shared/graphControls/defaults/maps', () => {
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
     expect(createDefaultNodeColors().file).toBeTruthy();
-    expect(createDefaultNodeColors().symbol).toBe('#A1A1AA');
-    expect(createDefaultNodeColorEnabled().symbol).toBe(true);
+    expect(createDefaultNodeColors().symbol).toBe('#7C3AED');
     expect(createDefaultEdgeColors().call).toBeTruthy();
   });
 });

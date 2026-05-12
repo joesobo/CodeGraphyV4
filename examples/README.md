@@ -20,16 +20,16 @@ Small repo fixtures for manual testing, screenshots, and extension-host e2e work
 - `example-swift` — Swift Package module import example
 - `example-dart` — Dart relative/package import example
 
-These examples are intentionally small. The goal is to keep the Relationship Graph predictable while still showing why symbol nodes are useful: files show the coarse architecture, then Symbols and Variables let you zoom into the declarations that explain why files are connected.
+These examples are intentionally small. The goal is to keep the Relationship Graph predictable while still showing why symbol nodes are useful: files show the coarse architecture, then Symbol and Variable let you zoom into the declarations that explain why files are connected.
 
 ## Symbol Node Stories
 
-Open the repo-root `examples/` folder when you want to compare languages side by side, or open one example folder when you want a focused demo. In Graph Scope, enable **Symbols** first, then enable **Variables** when you want constants, properties, and variable-like plugin symbols. The parent toggles hide their child rows without erasing the child rows' saved state.
+Open the repo-root `examples/` folder when you want to compare languages side by side, or open one example folder when you want a focused demo. In Graph Scope, enable **Symbol** first, then enable **Variable** when you want constants, properties, and variable-like plugin symbols. The parent toggles hide their child rows without erasing the child rows' saved state.
 
-| Example | What To Look For With Symbols Enabled |
+| Example | What To Look For With Symbol Enabled |
 |---------|---------------------------------------|
 | `example-typescript` | `src/index.ts` imports `buildGreeting`, type-imports `UserName`, and declares `currentUser` as a Variable node so the file graph becomes a small call/type/value story. |
-| `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. Godot `class_name` declarations appear under Variables, so toggling Variables hides `Player`, `Enemy`, `PlayerLoadout`, `LoadoutPreview`, and other plugin-owned class-name symbols while preserving their own on/off state. |
+| `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. Godot `class_name` declarations appear under Variable, so toggling Variable hides `Player`, `Enemy`, `PlayerLoadout`, `LoadoutPreview`, and other plugin-owned class-name symbols while preserving their own on/off state. |
 | `example-python` | `main.py` imports config, service, and helper functions; member-import files show how imports and function symbols identify the exact code path. |
 | `example-csharp` | `Program` calls into `Config`, `ApiService`, and `Helpers`, while classes and methods make the namespace relationships easier to scan. |
 | `example-markdown` | Markdown notes link to each other and to code, giving a mixed docs/code graph where symbol search still works on the TypeScript file. |

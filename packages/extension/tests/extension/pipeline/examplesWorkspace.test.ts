@@ -77,8 +77,17 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     expect(readme).toContain('## Symbol Node Stories');
     for (const example of examples) {
       expect(readme).toContain(`| \`${example}\` |`);
+
+      const exampleReadme = await fs.readFile(
+        path.join(sourceExamplesRoot, example, 'README.md'),
+        'utf8',
+      );
+
+      expect(exampleReadme).toContain('## Symbol Node Demo');
+      expect(exampleReadme).toContain('Suggested symbol check:');
+      expect(exampleReadme).toContain('Expected behavior:');
     }
-    expect(readme).toContain('Godot `class_name` declarations appear under Variables');
+    expect(readme).toContain('Godot `class_name` declarations appear under Variable');
   });
 
   it('connects nested example projects when the repo-root examples folder is opened', async () => {

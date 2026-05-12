@@ -36,7 +36,6 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     directionMode: 'arrows',
     directionColor: '#123456',
     nodeColors: { file: '#999999', folder: '#888888' },
-    nodeColorEnabled: { file: true, folder: true },
     nodeVisibility: { file: true, folder: true },
     edgeVisibility: { imports: true, nests: false },
     legendVisibility: {},

@@ -10,14 +10,13 @@ describe('webview/legends/panelState', () => {
     const initialProps: PanelStateProps = {
       nodeTypes: [
         { id: 'file', label: 'File', defaultColor: '#111111' },
-        { id: 'symbol', label: 'Symbols', defaultColor: '#A1A1AA', colorEditable: false },
+        { id: 'symbol', label: 'Symbol', defaultColor: '#7C3AED' },
         { id: 'folder', label: 'Folder', defaultColor: '#222222' },
       ],
       edgeTypes: [
         { id: 'import', label: 'Import', defaultColor: '#333333' },
         { id: 'call', label: 'Call', defaultColor: '#fedcba' },
       ],
-      nodeColorEnabled: { file: true, folder: true },
       nodeColors: { file: '#abcdef' },
       legends: [
         { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
@@ -64,19 +63,19 @@ describe('webview/legends/panelState', () => {
       { id: 'edge:user', pattern: 'src/**', color: '#654321', target: 'edge' },
     ]);
     expect(result.current.nodeEntries).toEqual([
-      { id: 'file', label: 'File', color: '#abcdef', defaultColor: '#111111', colorEnabled: true },
-      { id: 'folder', label: 'Folder', color: '#222222', defaultColor: '#222222', colorEnabled: true },
+      { id: 'file', label: 'File', color: '#abcdef', defaultColor: '#111111' },
+      { id: 'symbol', label: 'Symbol', color: '#7C3AED', defaultColor: '#7C3AED' },
+      { id: 'folder', label: 'Folder', color: '#222222', defaultColor: '#222222' },
     ]);
     expect(result.current.edgeEntries).toEqual([
-      { id: 'import', label: 'Import', color: '#333333', defaultColor: '#333333', colorEnabled: true },
-      { id: 'call', label: 'Call', color: '#fedcba', defaultColor: '#fedcba', colorEnabled: true },
+      { id: 'import', label: 'Import', color: '#333333', defaultColor: '#333333' },
+      { id: 'call', label: 'Call', color: '#fedcba', defaultColor: '#fedcba' },
     ]);
 
     rerender({
       ...initialProps,
       nodeTypes: [{ id: 'service', label: 'Service', defaultColor: '#101010' }],
       edgeTypes: [{ id: 'depends', label: 'Depends', defaultColor: '#202020' }],
-      nodeColorEnabled: { service: true },
       nodeColors: { service: '#0f0f0f' },
       legends: [
         { id: 'edge:plugin', pattern: 'depends', color: '#808080', target: 'edge', isPluginDefault: true },
@@ -91,10 +90,10 @@ describe('webview/legends/panelState', () => {
       { id: 'edge:plugin', pattern: 'depends', color: '#808080', target: 'edge', isPluginDefault: true },
     ]);
     expect(result.current.nodeEntries).toEqual([
-      { id: 'service', label: 'Service', color: '#0f0f0f', defaultColor: '#101010', colorEnabled: true },
+      { id: 'service', label: 'Service', color: '#0f0f0f', defaultColor: '#101010' },
     ]);
     expect(result.current.edgeEntries).toEqual([
-      { id: 'depends', label: 'Depends', color: '#202020', defaultColor: '#202020', colorEnabled: true },
+      { id: 'depends', label: 'Depends', color: '#202020', defaultColor: '#202020' },
     ]);
   });
 
@@ -103,7 +102,6 @@ describe('webview/legends/panelState', () => {
       useLegendPanelState({
         nodeTypes: [],
         edgeTypes: [],
-        nodeColorEnabled: {},
         nodeColors: {},
         legends: [
           { id: 'shared', pattern: 'src/**', color: '#123456', target: 'node' },
@@ -163,7 +161,6 @@ describe('webview/legends/panelState', () => {
       useLegendPanelState({
         nodeTypes: [],
         edgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#111111' }],
-        nodeColorEnabled: {},
         nodeColors: {},
         legends: [
           { id: 'legend:edge:import', pattern: 'import', color: '#abcdef', target: 'edge' },
@@ -172,7 +169,7 @@ describe('webview/legends/panelState', () => {
     );
 
     expect(result.current.edgeEntries).toEqual([
-      { id: 'import', label: 'Imports', color: '#abcdef', defaultColor: '#111111', colorEnabled: true },
+      { id: 'import', label: 'Imports', color: '#abcdef', defaultColor: '#111111' },
     ]);
     expect(result.current.edgeLegendRules).toEqual([]);
     expect(result.current.displayedEdgeLegendRules).toEqual([]);
@@ -183,7 +180,6 @@ describe('webview/legends/panelState', () => {
       useLegendPanelState({
         nodeTypes: [],
         edgeTypes: [],
-        nodeColorEnabled: {},
         nodeColors: {},
         legends: [
           {

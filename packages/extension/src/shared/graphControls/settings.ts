@@ -1,8 +1,7 @@
 export type GraphControlConfigKey =
   | 'nodeVisibility'
   | 'edgeVisibility'
-  | 'nodeColors'
-  | 'nodeColorEnabled';
+  | 'nodeColors';
 
 const DEPRECATED_SYMBOL_NODE_TYPE_KEYS = new Set([
   'symbol:method',

@@ -3,8 +3,8 @@
 This example workspace is used by CodeGraphy's extension-host e2e tests and doubles
 as a small TypeScript project you can open in VS Code to try the Graph View.
 
-It intentionally includes a top-level constant so the Graph Scope **Variables**
-toggle has a concrete node to show when **Symbols** is also enabled.
+It intentionally includes a top-level constant so the Graph Scope **Variable**
+toggle has a concrete node to show when **Symbol** is also enabled.
 
 Suggested Depth Mode check:
 
@@ -20,3 +20,17 @@ Expected behavior:
 - Depth `2` adds `src/depth.ts`.
 - Depth `3` adds `src/leaf.ts`.
 - `src/orphan.ts` stays out of the focused depth area because it is an Orphan Node.
+
+## Symbol Node Demo
+
+Suggested symbol check:
+
+1. Open `src/index.ts`.
+2. In Graph Scope, enable **Symbol** and **Variable**.
+3. Search for `buildGreeting`, `UserName`, and `currentUser`.
+
+Expected behavior:
+
+- `buildGreeting` appears as a Function symbol imported from `src/utils.ts`.
+- `UserName` appears as a Type symbol reached through a type-only import.
+- `currentUser` appears as a Variable node, giving the tiny app a file/function/type/value story.

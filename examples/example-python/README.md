@@ -67,3 +67,16 @@ orphan.py (Orphan Node - only visible with showOrphans=true)
 3. In the new window: **File → Open Folder → examples/example-python**
 4. Click the CodeGraphy icon in the activity bar
 5. Compare the graph to the expected structure above
+
+## Symbol Node Demo
+
+Suggested symbol check:
+
+1. Open `src/main.py`.
+2. In Graph Scope, enable **Symbol**.
+3. Search for `main`, `load_config`, `fetch_user`, and `format_name`.
+
+Expected behavior:
+
+- Function symbols make the import chain readable without opening every file.
+- `main.py` points to the service/config/helper files, while the symbols show which declarations are actually involved.

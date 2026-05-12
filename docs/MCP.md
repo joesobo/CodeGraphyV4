@@ -179,9 +179,9 @@ The Core Extension applies stages in this order:
 - `codegraphy_open_repo` is the only MCP tool that accepts a repo path.
 - Query tools use exact node paths returned by `codegraphy_list_nodes`.
 - Folder and package nodes appear only when Graph Scope opts them in.
-- Symbol and Variable nodes appear only when Graph Scope opts them in. Variables depend on Symbols.
+- Symbol and Variable nodes appear only when Graph Scope opts them in. Variable depends on Symbol.
 - Structural `nests` relationships appear only when the relevant node scope and `nests` edge scope are enabled.
-- File-to-symbol `contains` relationships appear only when Symbols and the `contains` Edge Type are enabled.
+- File-to-symbol `contains` relationships appear only when Symbol and the `contains` Edge Type are enabled.
 - `codegraphy_list_symbols` with only `filePath` returns declarations in that file.
 - `codegraphy_list_symbols` with relationship filters returns only relationship-backed symbol evidence.
 - Symbol and relationship evidence includes canonical symbol IDs, ranges, signatures, and plugin metadata when available.

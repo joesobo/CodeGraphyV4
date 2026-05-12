@@ -140,9 +140,9 @@ Custom Legend Entries use glob matching and are applied in drag order:
 
 Custom Legend Entries can target files, folders, packages, and plugin-added Node Types through one shared priority system.
 
-Symbol nodes are available through Graph Scope as **Symbols**, with **Variables** shown as a dependent Node Type. Turning Symbols off hides symbol-kind and variable rows without erasing their saved on/off state, so turning Symbols back on restores the previous child choices. When Symbols are on, the `contains` Edge Type connects File Nodes to their contained symbol nodes, and symbol-to-symbol relationship edges such as calls, references, imports, and overrides can appear when analysis provides that detail.
+Symbol nodes are available through Graph Scope as **Symbol**, with **Variable** shown as a dependent Node Type. Turning Symbol off hides symbol-kind and variable rows without erasing their saved on/off state, so turning Symbol back on restores the previous child choices. When Symbol is on, the `contains` Edge Type connects File Nodes to their contained symbol nodes, and symbol-to-symbol relationship edges such as calls, references, imports, and overrides can appear when analysis provides that detail.
 
-Built-in Legend defaults include common symbol kinds such as Function, Method, Class, Interface, Struct, Enum, Type, Variable, Constant, and Property when the current graph contains those symbol kinds. Symbol Legend Entries can also scope styling by symbol kind, plugin kind, plugin source, language, and containing file path. The Godot plugin contributes `Plugins` / `Godot` / `class_name` for GDScript `class_name` symbols when those symbols are present. In Graph Scope, Godot `class_name` rows are grouped under Variables because they behave like plugin-owned variable-style declarations.
+Built-in Legend defaults include common symbol kinds such as Function, Class, Interface, Struct, Enum, Type, Variable, Constant, and Property when the current graph contains those symbol kinds. Function covers function-like and method-like declarations. Default node Legend entries provide colors directly; use a Custom Legend Entry when you want to override one. Symbol Legend Entries can also scope styling by symbol kind, plugin kind, plugin source, language, and containing file path. The Godot plugin contributes `Plugins` / `Godot` / `class_name` for GDScript `class_name` symbols when those symbols are present. In Graph Scope, Godot `class_name` rows are grouped under Variable because they behave like plugin-owned variable-style declarations.
 
 Custom Legend Entry patterns can match symbol IDs, symbol names, symbol kinds, plugin kinds, and containing file paths. For example, a custom node Legend Entry with pattern `Function` can override the default Function symbol color, and `*.ts` can style symbols contained by TypeScript files.
 
@@ -214,7 +214,7 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 
 ## Graph scope and settings controls
 
-- **Nodes**: choose Graph Scope for file, folder, package, Symbols, Variables, and plugin-added Node Types
+- **Nodes**: choose Graph Scope for File, Folder, Package, Symbol, Variable, and plugin-added Node Types
 - **Edges**: choose Graph Scope for `NESTS`, `contains`, semantic Edge Types, and plugin-added Edge Types
 - **Legends**: edit Legend Entries and their priority
 - **Plugins**: enable/disable plugins and reorder them
