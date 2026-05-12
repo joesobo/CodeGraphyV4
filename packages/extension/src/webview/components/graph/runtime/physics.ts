@@ -67,6 +67,11 @@ interface SectionCenter {
 	y: number;
 }
 
+interface SectionMemberPosition {
+	x: number;
+	y: number;
+}
+
 type GraphLinkEndpoint = string | number | { id?: string | number } | undefined;
 
 interface GraphLinkLike {
@@ -1067,6 +1072,49 @@ function carrySectionMembersWithFrames(
 	}
 }
 
+function isExpandedSectionMember(node: FGNode, graphLayout: GraphLayoutSettings): boolean {
+	return !node.isGraphSection && hasExpandedOwnerSection(node, graphLayout);
+}
+
+function isolateSectionMemberVelocity(
+	node: FGNode,
+	previousSectionMemberPositions: Map<string, SectionMemberPosition>,
+): void {
+	if (!isFiniteNumber(node.x) || !isFiniteNumber(node.y)) {
+		node.vx = 0;
+		node.vy = 0;
+		return;
+	}
+
+	if (node.isDragging) {
+		node.vx = 0;
+		node.vy = 0;
+		return;
+	}
+
+	const previousPosition = previousSectionMemberPositions.get(node.id);
+	if (!previousPosition) {
+		node.vx = 0;
+		node.vy = 0;
+		return;
+	}
+
+	node.vx = node.x - previousPosition.x;
+	node.vy = node.y - previousPosition.y;
+}
+
+function isolateSectionMemberVelocities(
+	nodes: readonly FGNode[],
+	graphLayout: GraphLayoutSettings,
+	previousSectionMemberPositions: Map<string, SectionMemberPosition>,
+): void {
+	for (const node of nodes) {
+		if (isExpandedSectionMember(node, graphLayout)) {
+			isolateSectionMemberVelocity(node, previousSectionMemberPositions);
+		}
+	}
+}
+
 function rememberSectionCenters(
 	nodes: readonly FGNode[],
 	graphLayout: GraphLayoutSettings,
@@ -1078,6 +1126,19 @@ function rememberSectionCenters(
 		const center = getSectionCenter(nodeMap.get(sectionId));
 		if (center) {
 			previousSectionCenters.set(sectionId, center);
+		}
+	}
+}
+
+function rememberSectionMemberPositions(
+	nodes: readonly FGNode[],
+	graphLayout: GraphLayoutSettings,
+	previousSectionMemberPositions: Map<string, SectionMemberPosition>,
+): void {
+	previousSectionMemberPositions.clear();
+	for (const node of nodes) {
+		if (isExpandedSectionMember(node, graphLayout) && isFiniteNumber(node.x) && isFiniteNumber(node.y)) {
+			previousSectionMemberPositions.set(node.id, { x: node.x, y: node.y });
 		}
 	}
 }
@@ -1285,8 +1346,10 @@ function applyGraphSectionBoundsTick(
 	graphLayout: GraphLayoutSettings,
 	options: GraphSectionBoundsForceOptions,
 	previousSectionCenters: Map<string, SectionCenter>,
+	previousSectionMemberPositions: Map<string, SectionMemberPosition>,
 	alpha: number,
 ): void {
+	isolateSectionMemberVelocities(nodes, graphLayout, previousSectionMemberPositions);
 	applySectionBridgeLinkForces(nodes, graphLayout, options.links ?? [], options.settings, alpha);
 	applyRectangleCollisions(nodes, graphLayout, options.settings);
 	carrySectionMembersWithFrames(nodes, graphLayout, previousSectionCenters);
@@ -1297,6 +1360,7 @@ function applyGraphSectionBoundsTick(
 	applySectionMemberCollisions(nodes, graphLayout, alpha);
 	constrainSectionMembers(nodes, graphLayout, sectionBounds, alpha, sectionMemberCenterStrength);
 	rememberSectionCenters(nodes, graphLayout, previousSectionCenters);
+	rememberSectionMemberPositions(nodes, graphLayout, previousSectionMemberPositions);
 }
 
 export function createGraphSectionBoundsForce(
@@ -1305,14 +1369,16 @@ export function createGraphSectionBoundsForce(
 ): GraphSectionBoundsForce {
 	let nodes: FGNode[] = [];
 	const previousSectionCenters = new Map<string, SectionCenter>();
+	const previousSectionMemberPositions = new Map<string, SectionMemberPosition>();
 
 	const force = ((alpha: number): void => {
-		applyGraphSectionBoundsTick(nodes, graphLayout, options, previousSectionCenters, alpha);
+		applyGraphSectionBoundsTick(nodes, graphLayout, options, previousSectionCenters, previousSectionMemberPositions, alpha);
 	}) as GraphSectionBoundsForce;
 
 	force.initialize = (nextNodes: FGNode[]): void => {
 		nodes = nextNodes;
 		previousSectionCenters.clear();
+		previousSectionMemberPositions.clear();
 	};
 
 	return force;

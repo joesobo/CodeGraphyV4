@@ -472,6 +472,88 @@ describe('physics', () => {
     })).toBe(SETTINGS.linkForce);
   });
 
+  it('does not let root graph charge push expanded Section Members toward section walls', () => {
+    const graphLayout = {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Godot',
+          color: '#60a5fa',
+          x: 350,
+          y: 0,
+          width: 300,
+          height: 260,
+          collapsed: false,
+          updatedAt: '2026-05-12T12:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-1': {
+          itemId: 'section-1',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-12T12:00:00.000Z',
+        },
+        'src/member.ts': {
+          itemId: 'src/member.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-12T12:00:00.000Z',
+        },
+      },
+    } satisfies GraphLayoutSettings;
+    const nodes = [
+      {
+        id: 'src/root.ts',
+        size: 20,
+        vx: 0,
+        vy: 0,
+        x: 0,
+        y: 0,
+      },
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 260,
+        sectionWidth: 300,
+        vx: 0,
+        vy: 0,
+        x: 350,
+        y: 0,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 18,
+        vx: 0,
+        vy: 0,
+        x: 350,
+        y: 20,
+      },
+    ] as FGNode[];
+    const { forces, instance } = createD3PhysicsInstance();
+    const settings = {
+      ...SETTINGS,
+      centerForce: 0,
+      linkForce: 0,
+      repelForce: 20,
+    };
+
+    initPhysics(instance, settings, { graphLayout, graphMode: '2d' });
+
+    forceSimulation(nodes)
+      .velocityDecay(settings.damping)
+      .force('charge', getRequiredD3PhysicsForce(forces, 'charge'))
+      .force('sectionBounds', getRequiredD3PhysicsForce(forces, 'sectionBounds'))
+      .stop()
+      .tick();
+
+    expect(nodes[2].x).toBeCloseTo(350, 5);
+    expect(nodes[2].vx).toBeCloseTo(0, 5);
+  });
+
   it('keeps expanded Graph Sections in normal many-body charge', () => {
     const { charge, instance } = createPhysicsInstance();
 
