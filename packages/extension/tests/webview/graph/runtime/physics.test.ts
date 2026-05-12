@@ -710,6 +710,26 @@ describe('physics', () => {
     expect(forceXInstance.strength()({ id: 'src/root.ts', size: 12 } as FGNode)).toBe(SETTINGS.centerForce);
   });
 
+  it('keeps actively dragged root nodes out of native circular collision while expanded Sections are obstacles', () => {
+    const { d3Force, instance } = createPhysicsInstance();
+
+    initPhysics(instance, SETTINGS, { graphLayout: GRAPH_LAYOUT, graphMode: '2d' });
+
+    const collisionForce = getInstalledD3Force<{
+      radius: () => (node: FGNode) => number;
+    }>(d3Force, 'collision');
+
+    expect(collisionForce.radius()({
+      id: 'src/dragged.ts',
+      isDragging: true,
+      size: 24,
+    } as FGNode)).toBe(0);
+    expect(collisionForce.radius()({
+      id: 'src/passive.ts',
+      size: 24,
+    } as FGNode)).toBe(28);
+  });
+
   it('packs expanded Graph Sections together at the root center when repel is disabled', () => {
     const graphLayout = createPackingGraphLayout(4);
     const nodes = createPackingNodes();

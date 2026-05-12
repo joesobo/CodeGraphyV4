@@ -128,6 +128,10 @@ function getRootGraphCollisionRadius(
 	node: FGNode,
 	graphLayout: GraphLayoutSettings | undefined,
 ): number {
+	if (node.isDragging && graphLayout && hasExpandedGraphSection(graphLayout) && !node.isGraphSection) {
+		return 0;
+	}
+
 	if (graphLayout && hasExpandedOwnerSection(node, graphLayout)) {
 		return 0;
 	}
@@ -167,6 +171,10 @@ function getSectionBounds(
 		x: isFiniteNumber(centerX) ? centerX - (width / 2) : section.x,
 		y: isFiniteNumber(centerY) ? centerY - (height / 2) : section.y,
 	};
+}
+
+function hasExpandedGraphSection(graphLayout: GraphLayoutSettings): boolean {
+	return Object.values(graphLayout.sections).some(section => !section.collapsed);
 }
 
 function clamp(value: number, minimum: number, maximum: number): number {
