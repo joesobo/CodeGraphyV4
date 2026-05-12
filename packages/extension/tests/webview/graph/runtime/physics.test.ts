@@ -294,6 +294,18 @@ function hasRectOverlap(left: SectionRect, right: SectionRect): boolean {
     && Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top) > 0.5;
 }
 
+function circleOverlapsSection(circle: FGNode, section: FGNode): boolean {
+  const rect = toSectionRect(section);
+  const radius = (circle.size ?? 0) + 4;
+  const x = circle.x ?? 0;
+  const y = circle.y ?? 0;
+  const closestX = Math.max(rect.left, Math.min(rect.right, x));
+  const closestY = Math.max(rect.top, Math.min(rect.bottom, y));
+  const deltaX = x - closestX;
+  const deltaY = y - closestY;
+  return deltaX * deltaX + deltaY * deltaY < radius * radius;
+}
+
 function getLargestNearestSectionGap(nodes: readonly FGNode[]): number {
   const rects = nodes.filter(node => node.isGraphSection).map(toSectionRect);
   return Math.max(...rects.map((rect, index) => Math.min(
@@ -664,6 +676,93 @@ describe('physics', () => {
     }
     expect(getLargestNearestSectionGap(nodes)).toBeLessThanOrEqual(2);
   }, 20_000);
+
+  it('moves sections aside instead of burying a root node trapped between expanded sections', () => {
+    const graphLayout = {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        'section-left': {
+          id: 'section-left',
+          label: 'Left',
+          color: '#60a5fa',
+          x: -85,
+          y: -40,
+          width: 80,
+          height: 80,
+          collapsed: false,
+          updatedAt: '2026-05-12T09:00:00.000Z',
+        },
+        'section-right': {
+          id: 'section-right',
+          label: 'Right',
+          color: '#60a5fa',
+          x: 5,
+          y: -40,
+          width: 80,
+          height: 80,
+          collapsed: false,
+          updatedAt: '2026-05-12T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-left': {
+          itemId: 'section-left',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-12T09:00:00.000Z',
+        },
+        'section-right': {
+          itemId: 'section-right',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-12T09:00:00.000Z',
+        },
+      },
+    } satisfies GraphLayoutSettings;
+    const nodes = [
+      {
+        id: 'section-left',
+        isGraphSection: true,
+        sectionHeight: 80,
+        sectionWidth: 80,
+        x: -45,
+        y: 0,
+      },
+      {
+        id: 'section-right',
+        isGraphSection: true,
+        sectionHeight: 80,
+        sectionWidth: 80,
+        x: 45,
+        y: 0,
+      },
+      {
+        id: 'src/root.ts',
+        size: 16,
+        x: 0,
+        y: 0,
+      },
+    ] as unknown as FGNode[];
+    const force = createGraphSectionBoundsForce(graphLayout, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 1,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+
+    force.initialize(nodes);
+    for (let tick = 0; tick < 100; tick += 1) {
+      force(1);
+    }
+
+    expect(nodes[0].x).toBeLessThan(-45);
+    expect(nodes[1].x).toBeGreaterThan(45);
+    expect(circleOverlapsSection(nodes[2], nodes[0])).toBe(false);
+    expect(circleOverlapsSection(nodes[2], nodes[1])).toBe(false);
+  });
 
   it('keeps max-repel expanded Graph Sections visibly separated instead of edge-pressed', () => {
     const graphLayout = createPackingGraphLayout(4);
@@ -1360,7 +1459,7 @@ describe('physics', () => {
     expect(nodes[1].vx).toBeGreaterThan(0);
   });
 
-  it('moves normal nodes out of expanded Graph Section rectangles during collision ticks', () => {
+  it('separates normal nodes from expanded Graph Section rectangles during collision ticks', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
       settings: {
         ...SETTINGS,
@@ -1392,7 +1491,7 @@ describe('physics', () => {
     force.initialize(nodes);
     force(1);
 
-    expect(nodes[1].x).toBeGreaterThanOrEqual(218);
+    expect(circleOverlapsSection(nodes[1], nodes[0])).toBe(false);
   });
 
   it('does not collide normal nodes with a Section Frame when only the circle bounding box touches a corner', () => {
