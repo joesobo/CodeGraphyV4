@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mdiChevronUp } from '@mdi/js';
 import {
   renderCollapsedSectionBadge,
 } from '../../../../../src/webview/components/graph/rendering/node/collapsedSectionBadge';
@@ -31,6 +32,8 @@ function createContext(): CanvasRenderingContext2D {
     beginPath: vi.fn(),
     fill: vi.fn(),
     fillText: vi.fn(),
+    scale: vi.fn(),
+    translate: vi.fn(),
     lineTo: vi.fn(),
     moveTo: vi.fn(),
     restore: vi.fn(),
@@ -46,6 +49,18 @@ function createContext(): CanvasRenderingContext2D {
 }
 
 describe('graph/rendering/node/collapsedSectionBadge', () => {
+  const originalPath2D = globalThis.Path2D;
+  const path2DConstructor = vi.fn();
+
+  beforeEach(() => {
+    path2DConstructor.mockClear();
+    globalThis.Path2D = path2DConstructor as unknown as typeof Path2D;
+  });
+
+  afterEach(() => {
+    globalThis.Path2D = originalPath2D;
+  });
+
   it('draws an inset top-right hidden-descendant count and top-left expand chevron', () => {
     const ctx = createContext();
 
@@ -56,22 +71,20 @@ describe('graph/rendering/node/collapsedSectionBadge', () => {
       node: createNode(),
     });
 
-    expect(ctx.save).toHaveBeenCalledOnce();
-    expect(ctx.beginPath).toHaveBeenCalledOnce();
+    expect(ctx.save).toHaveBeenCalledTimes(2);
+    expect(ctx.beginPath).not.toHaveBeenCalled();
     expect(ctx.arc).not.toHaveBeenCalled();
     expect(ctx.fillStyle).toBe(APPEARANCE.labelForeground);
-    expect(ctx.fill).not.toHaveBeenCalled();
-    expect(ctx.strokeStyle).toBe(APPEARANCE.labelForeground);
-    expect(ctx.lineWidth).toBe(1);
-    expect(ctx.stroke).toHaveBeenCalledOnce();
+    expect(ctx.fill).toHaveBeenCalledOnce();
+    expect(ctx.stroke).not.toHaveBeenCalled();
     expect(ctx.font).toBe('8px sans-serif');
     expect(ctx.textAlign).toBe('center');
     expect(ctx.textBaseline).toBe('middle');
-    expect(ctx.fillText).toHaveBeenCalledWith('4', 31.2, 40.8);
-    expect(ctx.moveTo).toHaveBeenCalledWith(14.8, 39.8);
-    expect(ctx.lineTo).toHaveBeenCalledWith(16.8, 41.8);
-    expect(ctx.lineTo).toHaveBeenCalledWith(18.8, 39.8);
-    expect(ctx.restore).toHaveBeenCalledOnce();
+    expect(ctx.fillText).toHaveBeenCalledWith('4', 35.2, 59.2);
+    expect(path2DConstructor).toHaveBeenCalledWith(mdiChevronUp);
+    expect(ctx.translate).toHaveBeenCalledWith(7.200000000000001, 31.199999999999996);
+    expect(ctx.scale).toHaveBeenCalledWith(0.4666666666666666, 0.4666666666666666);
+    expect(ctx.restore).toHaveBeenCalledTimes(2);
   });
 
   it('caps the visible hidden-descendant count after 99', () => {
@@ -84,7 +97,7 @@ describe('graph/rendering/node/collapsedSectionBadge', () => {
       node: createNode({ hiddenDescendantCount: 100 }),
     });
 
-    expect(ctx.fillText).toHaveBeenCalledWith('99+', 31.2, 40.8);
+    expect(ctx.fillText).toHaveBeenCalledWith('99+', 35.2, 59.2);
   });
 
   it('draws a collapsed Section icon centered in the square', () => {
@@ -110,7 +123,7 @@ describe('graph/rendering/node/collapsedSectionBadge', () => {
       node: createNode({ hiddenDescendantCount: 99 }),
     });
 
-    expect(ctx.fillText).toHaveBeenCalledWith('99', 31.2, 40.8);
+    expect(ctx.fillText).toHaveBeenCalledWith('99', 35.2, 59.2);
   });
 
   it('draws the expand chevron without a count badge for zero hidden descendants', () => {
@@ -124,7 +137,7 @@ describe('graph/rendering/node/collapsedSectionBadge', () => {
     });
 
     expect(ctx.arc).not.toHaveBeenCalled();
-    expect(ctx.lineTo).toHaveBeenCalledWith(16.8, 42.8);
+    expect(path2DConstructor).toHaveBeenCalledWith(mdiChevronUp);
     expect(ctx.fillText).not.toHaveBeenCalled();
   });
 
