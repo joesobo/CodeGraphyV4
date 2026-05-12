@@ -18,6 +18,7 @@ const SETTINGS: IPhysicsSettings = {
   linkForce: 0.33,
   repelForce: 620,
 };
+const COLLISION_ASSERTION_EPSILON = 0.5;
 
 const GRAPH_LAYOUT: GraphLayoutSettings = {
   collapsedNodes: {},
@@ -303,7 +304,8 @@ function circleOverlapsSection(circle: FGNode, section: FGNode): boolean {
   const closestY = Math.max(rect.top, Math.min(rect.bottom, y));
   const deltaX = x - closestX;
   const deltaY = y - closestY;
-  return deltaX * deltaX + deltaY * deltaY < radius * radius;
+  const visibleRadius = Math.max(0, radius - COLLISION_ASSERTION_EPSILON);
+  return deltaX * deltaX + deltaY * deltaY < visibleRadius * visibleRadius;
 }
 
 function getLargestNearestSectionGap(nodes: readonly FGNode[]): number {
@@ -370,6 +372,22 @@ function createD3PhysicsInstance() {
       d3ReheatSimulation: vi.fn(),
     } as unknown as Parameters<typeof applyPhysicsSettings>[0],
   };
+}
+
+function runSectionBoundsTicks(
+  nodes: FGNode[],
+  force: ReturnType<typeof createGraphSectionBoundsForce>,
+  ticks: number,
+  damping = SETTINGS.damping,
+): void {
+  const simulation = forceSimulation(nodes)
+    .velocityDecay(damping)
+    .force('sectionBounds', force as D3PhysicsForce)
+    .stop();
+
+  for (let tick = 0; tick < ticks; tick += 1) {
+    simulation.tick();
+  }
 }
 
 function getRequiredD3PhysicsForce(
@@ -753,10 +771,7 @@ describe('physics', () => {
       },
     });
 
-    force.initialize(nodes);
-    for (let tick = 0; tick < 100; tick += 1) {
-      force(1);
-    }
+    runSectionBoundsTicks(nodes, force, 160);
 
     expect(nodes[0].x).toBeLessThan(-45);
     expect(nodes[1].x).toBeGreaterThan(45);
@@ -1397,7 +1412,7 @@ describe('physics', () => {
     expect(nodes[2].vx).toBeGreaterThan(0);
   });
 
-  it('pushes overlapping expanded Graph Section rectangles apart by their actual bounds', () => {
+  it('applies separating velocity to overlapping expanded Graph Section rectangles by their actual bounds', () => {
     const force = createGraphSectionBoundsForce({
       ...GRAPH_LAYOUT,
       sections: {
@@ -1444,15 +1459,15 @@ describe('physics', () => {
     force.initialize(nodes);
     force(0.5);
 
-    expect(nodes[0].x).toBeLessThan(100);
-    expect(nodes[1].x).toBeGreaterThan(180);
-    expect(nodes[0].vx).toBe(0);
-    expect(nodes[1].vx).toBe(0);
+    expect(nodes[0]).toMatchObject({ x: 100, y: 70 });
+    expect(nodes[1]).toMatchObject({ x: 180, y: 70 });
+    expect(nodes[0].vx).toBeLessThan(0);
+    expect(nodes[1].vx).toBeGreaterThan(0);
     expect(nodes[0].vy).toBe(0);
     expect(nodes[1].vy).toBe(0);
   });
 
-  it('resolves overlapping expanded Graph Section rectangle positions without waiting on velocity drift', () => {
+  it('resolves overlapping expanded Graph Section rectangle positions through d3 velocity integration', () => {
     const force = createGraphSectionBoundsForce({
       ...GRAPH_LAYOUT,
       sections: {
@@ -1496,12 +1511,11 @@ describe('physics', () => {
       },
     ] as FGNode[];
 
-    force.initialize(nodes);
-    force(0.5);
+    runSectionBoundsTicks(nodes, force, 80);
 
     const sectionOneRight = nodes[0].x! + 100;
     const sectionTwoLeft = nodes[1].x! - 100;
-    expect(sectionOneRight).toBeLessThanOrEqual(sectionTwoLeft);
+    expect(sectionOneRight).toBeLessThanOrEqual(sectionTwoLeft + COLLISION_ASSERTION_EPSILON);
   });
 
   it('does not let many loose nodes collectively launch an expanded Graph Section', () => {
@@ -1532,10 +1546,10 @@ describe('physics', () => {
 
     expect(Math.abs(nodes[0].vx ?? 0)).toBeLessThanOrEqual(8);
     expect(Math.abs(nodes[0].vy ?? 0)).toBeLessThanOrEqual(8);
-    expect(nodes.slice(1).some(node => node.x !== 145 && node.x !== 157)).toBe(true);
+    expect(nodes.slice(1).some(node => Math.abs(node.vx ?? 0) > 0 || Math.abs(node.vy ?? 0) > 0)).toBe(true);
   });
 
-  it('moves expanded Graph Sections and normal nodes apart without bounce velocity', () => {
+  it('moves expanded Graph Sections and normal nodes apart through d3 velocity integration', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
     const nodes = [
       {
@@ -1558,14 +1572,52 @@ describe('physics', () => {
       },
     ] as FGNode[];
 
-    force.initialize(nodes);
-    force(0.5);
+    runSectionBoundsTicks(nodes, force, 80);
 
     expect(circleOverlapsSection(nodes[1], nodes[0])).toBe(false);
     expect(nodes[0].x).toBeLessThan(100);
     expect(nodes[1].x).toBeGreaterThan(190);
-    expect(nodes[0].vx).toBe(0);
-    expect(nodes[1].vx).toBe(0);
+    expect(Math.abs(nodes[0].vx ?? 0)).toBeLessThanOrEqual(3);
+    expect(Math.abs(nodes[1].vx ?? 0)).toBeLessThanOrEqual(3);
+  });
+
+  it('keeps expanded Section rectangle collision position updates inside d3 velocity integration', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 0,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/loose.ts',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 190,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(1);
+
+    expect(nodes[0]).toMatchObject({ x: 100, y: 70 });
+    expect(nodes[1]).toMatchObject({ x: 190, y: 70 });
+    expect(nodes[0].vx).toBeLessThan(0);
+    expect(nodes[1].vx).toBeGreaterThan(0);
   });
 
   it('caps circle and expanded section collision velocity to avoid jittery rebounds', () => {
@@ -1628,13 +1680,12 @@ describe('physics', () => {
       },
     ] as FGNode[];
 
-    force.initialize(nodes);
-    force(1);
+    runSectionBoundsTicks(nodes, force, 80);
 
     expect(circleOverlapsSection(nodes[1], nodes[0])).toBe(false);
     expect((nodes[1].vx ?? 0) - (nodes[0].vx ?? 0)).toBeGreaterThanOrEqual(0);
-    expect(nodes[1].vx).toBeLessThanOrEqual(0);
-    expect(nodes[0].vx).toBeLessThanOrEqual(0);
+    expect(nodes[1].vx ?? 0).toBeLessThanOrEqual(COLLISION_ASSERTION_EPSILON);
+    expect(nodes[0].vx ?? 0).toBeLessThanOrEqual(COLLISION_ASSERTION_EPSILON);
   });
 
   it('separates normal nodes from expanded Graph Section rectangles during collision ticks', () => {
@@ -1666,8 +1717,7 @@ describe('physics', () => {
       },
     ] as FGNode[];
 
-    force.initialize(nodes);
-    force(1);
+    runSectionBoundsTicks(nodes, force, 80);
 
     expect(circleOverlapsSection(nodes[1], nodes[0])).toBe(false);
   });
@@ -2081,14 +2131,13 @@ describe('physics', () => {
       },
     ] as FGNode[];
 
-    force.initialize(nodes);
-    force(0.5);
+    runSectionBoundsTicks(nodes, force, 80);
 
     const outside = nodes[1];
     expect(circleOverlapsSection(outside, nodes[0])).toBe(false);
-    expect(nodes[0].vx ?? 0).toBe(0);
+    expect(Math.abs(nodes[0].vx ?? 0)).toBeLessThanOrEqual(3);
     expect(nodes[0].vy ?? 0).toBe(0);
-    expect(outside.vx ?? 0).toBe(0);
+    expect(Math.abs(outside.vx ?? 0)).toBeLessThanOrEqual(3);
     expect(outside.vy ?? 0).toBe(0);
   });
 

@@ -14,6 +14,8 @@ const COLLISION_ITERATIONS = 16;
 const SECTION_MEMBER_PADDING = 16;
 const SECTION_MEMBER_CENTER_STRENGTH = 0.08;
 const SECTION_BRIDGE_LINK_MAX_IMPULSE = 6;
+const SECTION_RECTANGLE_MAX_COLLISION_IMPULSE = 3;
+const SECTION_RECTANGLE_MAX_SECTION_IMPULSE = 12;
 const SECTION_RECTANGLE_MAX_REPEL_GAP = 32;
 const SECTION_RECTANGLE_REPEL_PADDING_RATIO = 0.25;
 const SECTION_CHARGE_MULTIPLIER_CAP = 12;
@@ -588,11 +590,13 @@ function createSectionBoundsMap(
 	return bounds;
 }
 
-function getNodeRectangleCollisionRect(node: FGNode): RectangleCollisionRect | undefined {
+function getNodeRectangleCollisionRect(node: FGNode, projected = false): RectangleCollisionRect | undefined {
 	if (!isFiniteNumber(node.x) || !isFiniteNumber(node.y)) {
 		return undefined;
 	}
 
+	const centerX = node.x + (projected ? node.vx ?? 0 : 0);
+	const centerY = node.y + (projected ? node.vy ?? 0 : 0);
 	if (
 		node.isGraphSection
 		&& !node.isCollapsedGraphSection
@@ -600,43 +604,39 @@ function getNodeRectangleCollisionRect(node: FGNode): RectangleCollisionRect | u
 		&& isFiniteNumber(node.sectionWidth)
 	) {
 		return {
-			centerX: node.x,
-			centerY: node.y,
+			centerX,
+			centerY,
 			height: node.sectionHeight,
 			width: node.sectionWidth,
-			x: node.x - (node.sectionWidth / 2),
-			y: node.y - (node.sectionHeight / 2),
+			x: centerX - (node.sectionWidth / 2),
+			y: centerY - (node.sectionHeight / 2),
 		};
 	}
 
 	const radius = getGraphCollisionRadius(node);
 	return {
-		centerX: node.x,
-		centerY: node.y,
+		centerX,
+		centerY,
 		height: radius * 2,
 		width: radius * 2,
-		x: node.x - radius,
-		y: node.y - radius,
+		x: centerX - radius,
+		y: centerY - radius,
 	};
 }
 
-function circleOverlapsRectangle(
-	circleNode: FGNode,
+function circleRectOverlapsRectangle(
+	circleRect: RectangleCollisionRect,
 	rectangle: RectangleCollisionRect,
 ): boolean {
-	if (!isFiniteNumber(circleNode.x) || !isFiniteNumber(circleNode.y)) {
-		return false;
-	}
-
-	const radius = getGraphCollisionRadius(circleNode);
+	const radius = Math.min(circleRect.width, circleRect.height) / 2;
 	if (radius <= 0) {
 		return false;
 	}
 
-	const closestX = clamp(circleNode.x, rectangle.x, rectangle.x + rectangle.width);
-	const closestY = clamp(circleNode.y, rectangle.y, rectangle.y + rectangle.height);
-	const deltaX = circleNode.x - closestX;
-	const deltaY = circleNode.y - closestY;
+	const closestX = clamp(circleRect.centerX, rectangle.x, rectangle.x + rectangle.width);
+	const closestY = clamp(circleRect.centerY, rectangle.y, rectangle.y + rectangle.height);
+	const deltaX = circleRect.centerX - closestX;
+	const deltaY = circleRect.centerY - closestY;
 	return deltaX * deltaX + deltaY * deltaY < radius * radius;
 }
 
@@ -647,11 +647,11 @@ function hasActualCircleRectangleOverlap(
 	rightRect: RectangleCollisionRect,
 ): boolean {
 	if (isExpandedGraphSection(left) && !isExpandedGraphSection(right)) {
-		return circleOverlapsRectangle(right, leftRect);
+		return circleRectOverlapsRectangle(rightRect, leftRect);
 	}
 
 	if (isExpandedGraphSection(right) && !isExpandedGraphSection(left)) {
-		return circleOverlapsRectangle(left, rightRect);
+		return circleRectOverlapsRectangle(leftRect, rightRect);
 	}
 
 	return true;
@@ -809,6 +809,44 @@ function getCollisionMoveWeight(node: FGNode): number {
 	return 1;
 }
 
+function getRectangleCollisionMass(node: FGNode, rect: RectangleCollisionRect): number {
+	if (isExpandedGraphSection(node)) {
+		return Math.max(1, rect.width * rect.height);
+	}
+
+	const radius = Math.max(1, Math.min(rect.width, rect.height) / 2);
+	return radius * radius;
+}
+
+function getRectangleCollisionMoveShares(
+	left: FGNode,
+	right: FGNode,
+	leftRect: RectangleCollisionRect,
+	rightRect: RectangleCollisionRect,
+): CollisionWeightShares | undefined {
+	const leftMoveWeight = getCollisionMoveWeight(left);
+	const rightMoveWeight = getCollisionMoveWeight(right);
+	if (leftMoveWeight === 0 && rightMoveWeight === 0) {
+		return undefined;
+	}
+
+	if (leftMoveWeight === 0) {
+		return { left: 0, right: 1 };
+	}
+
+	if (rightMoveWeight === 0) {
+		return { left: 1, right: 0 };
+	}
+
+	const leftMass = getRectangleCollisionMass(left, leftRect);
+	const rightMass = getRectangleCollisionMass(right, rightRect);
+	const totalMass = leftMass + rightMass;
+	return {
+		left: rightMass / totalMass,
+		right: leftMass / totalMass,
+	};
+}
+
 function getCollisionDirection(left: FGNode, right: FGNode, leftCenter: number, rightCenter: number): number {
 	if (leftCenter < rightCenter) {
 		return -1;
@@ -821,40 +859,6 @@ function getCollisionDirection(left: FGNode, right: FGNode, leftCenter: number, 
 	return left.id < right.id ? -1 : 1;
 }
 
-function applyRectangleCollisionPosition(
-	left: FGNode,
-	right: FGNode,
-	axis: CollisionAxis,
-	direction: number,
-	overlap: number,
-): void {
-	const leftWeight = getCollisionMoveWeight(left);
-	const rightWeight = getCollisionMoveWeight(right);
-	const totalWeight = leftWeight + rightWeight;
-	if (totalWeight === 0) {
-		return;
-	}
-
-	const correction = overlap;
-	const leftShare = leftWeight / totalWeight;
-	const rightShare = rightWeight / totalWeight;
-	const leftCorrection = direction * correction * leftShare;
-	const rightCorrection = -direction * correction * rightShare;
-
-	if (axis === 'x') {
-		left.x = resolveNodeCoordinate(left.x, 0) + leftCorrection;
-		right.x = resolveNodeCoordinate(right.x, 0) + rightCorrection;
-		return;
-	}
-
-	left.y = resolveNodeCoordinate(left.y, 0) + leftCorrection;
-	right.y = resolveNodeCoordinate(right.y, 0) + rightCorrection;
-}
-
-function getAxisVelocity(node: FGNode, axis: CollisionAxis): number {
-	return axis === 'x' ? node.vx ?? 0 : node.vy ?? 0;
-}
-
 function addAxisVelocity(node: FGNode, axis: CollisionAxis, delta: number): void {
 	if (axis === 'x') {
 		node.vx = (node.vx ?? 0) + delta;
@@ -864,28 +868,33 @@ function addAxisVelocity(node: FGNode, axis: CollisionAxis, delta: number): void
 	node.vy = (node.vy ?? 0) + delta;
 }
 
-function dampenRectangleCollisionVelocity(
+function getRectangleCollisionMaxImpulse(left: FGNode, right: FGNode): number {
+	return isExpandedGraphSection(left) && isExpandedGraphSection(right)
+		? SECTION_RECTANGLE_MAX_SECTION_IMPULSE
+		: SECTION_RECTANGLE_MAX_COLLISION_IMPULSE;
+}
+
+function addBoundedAxisVelocity(node: FGNode, axis: CollisionAxis, delta: number, maxImpulse: number): void {
+	addAxisVelocity(node, axis, clamp(delta, -maxImpulse, maxImpulse));
+}
+
+function applyRectangleCollisionVelocity(
 	left: FGNode,
 	right: FGNode,
+	leftRect: RectangleCollisionRect,
+	rightRect: RectangleCollisionRect,
 	axis: CollisionAxis,
 	direction: number,
+	overlap: number,
 ): void {
-	const leftWeight = getCollisionMoveWeight(left);
-	const rightWeight = getCollisionMoveWeight(right);
-	const totalWeight = leftWeight + rightWeight;
-	if (totalWeight === 0) {
+	const shares = getRectangleCollisionMoveShares(left, right, leftRect, rightRect);
+	if (!shares) {
 		return;
 	}
 
-	const normal = -direction;
-	const relativeVelocity = (getAxisVelocity(right, axis) - getAxisVelocity(left, axis)) * normal;
-	if (relativeVelocity >= 0) {
-		return;
-	}
-
-	const correction = -relativeVelocity;
-	addAxisVelocity(left, axis, -normal * correction * (leftWeight / totalWeight));
-	addAxisVelocity(right, axis, normal * correction * (rightWeight / totalWeight));
+	const maxImpulse = getRectangleCollisionMaxImpulse(left, right);
+	addBoundedAxisVelocity(left, axis, direction * overlap * shares.left, maxImpulse);
+	addBoundedAxisVelocity(right, axis, -direction * overlap * shares.right, maxImpulse);
 }
 
 function getRectangleCollisionOverlap(
@@ -898,8 +907,8 @@ function getRectangleCollisionOverlap(
 		return undefined;
 	}
 
-	const leftRect = getNodeRectangleCollisionRect(left);
-	const rightRect = getNodeRectangleCollisionRect(right);
+	const leftRect = getNodeRectangleCollisionRect(left, true);
+	const rightRect = getNodeRectangleCollisionRect(right, true);
 	if (!leftRect || !rightRect || !hasActualCircleRectangleOverlap(left, right, leftRect, rightRect)) {
 		return undefined;
 	}
@@ -928,14 +937,12 @@ function applyRectangleCollision(
 
 	if (overlap.overlapX <= overlap.overlapY) {
 		const direction = getCollisionDirection(left, right, overlap.leftRect.centerX, overlap.rightRect.centerX);
-		applyRectangleCollisionPosition(left, right, 'x', direction, overlap.overlapX);
-		dampenRectangleCollisionVelocity(left, right, 'x', direction);
+		applyRectangleCollisionVelocity(left, right, overlap.leftRect, overlap.rightRect, 'x', direction, overlap.overlapX);
 		return;
 	}
 
 	const direction = getCollisionDirection(left, right, overlap.leftRect.centerY, overlap.rightRect.centerY);
-	applyRectangleCollisionPosition(left, right, 'y', direction, overlap.overlapY);
-	dampenRectangleCollisionVelocity(left, right, 'y', direction);
+	applyRectangleCollisionVelocity(left, right, overlap.leftRect, overlap.rightRect, 'y', direction, overlap.overlapY);
 }
 
 function applyRectangleCollisions(
