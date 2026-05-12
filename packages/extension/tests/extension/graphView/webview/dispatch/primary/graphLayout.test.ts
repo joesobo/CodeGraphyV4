@@ -1,5 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { dispatchGraphViewPrimaryMessage } from '../../../../../../src/extension/graphView/webview/dispatch/primary';
+import {
+  getUndoManager,
+  resetUndoManager,
+} from '../../../../../../src/extension/undoManager';
 import {
   createDefaultGraphLayoutSettings,
   type GraphLayoutSettings,
@@ -7,6 +11,10 @@ import {
 import { createPrimaryMessageContext } from '../context';
 
 describe('graphView/webview/dispatch/primary graph layout', () => {
+  beforeEach(() => {
+    resetUndoManager();
+  });
+
   it('persists an active-mode node pin and echoes the updated graph layout', async () => {
     const context = createPrimaryMessageContext({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
@@ -578,6 +586,87 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
           updatedAt: expect.any(String),
         },
       },
+    });
+  });
+
+  it('restores a deleted Graph Section through undo', async () => {
+    let currentGraphLayout: GraphLayoutSettings = {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Section 1',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 280,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-1': {
+          itemId: 'section-1',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    };
+    const context = createPrimaryMessageContext({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        return key === 'graphLayout' ? currentGraphLayout as T : defaultValue;
+      }),
+      updateConfig: vi.fn((key: string, value: unknown) => {
+        if (key === 'graphLayout') {
+          currentGraphLayout = value as GraphLayoutSettings;
+        }
+        return Promise.resolve();
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'DELETE_GRAPH_LAYOUT_SECTION',
+      payload: { sectionId: 'section-1' },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.updateConfig).toHaveBeenLastCalledWith('graphLayout', {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {},
+      ownership: {},
+    });
+
+    await expect(getUndoManager().undo()).resolves.toBe('Delete Graph Section');
+
+    expect(context.updateConfig).toHaveBeenLastCalledWith('graphLayout', {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        'section-1': expect.objectContaining({ id: 'section-1' }),
+      },
+      ownership: {
+        'src/app.ts': expect.objectContaining({
+          itemId: 'src/app.ts',
+          ownerSectionId: 'section-1',
+        }),
+      },
+    });
+    expect(context.sendMessage).toHaveBeenLastCalledWith({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: expect.objectContaining({
+        sections: {
+          'section-1': expect.objectContaining({ id: 'section-1' }),
+        },
+      }),
     });
   });
 });

@@ -12,6 +12,7 @@ import {
   updateGraphLayoutSection,
   type GraphLayoutSettings,
 } from '../../../repoSettings/graphLayout/model';
+import { getUndoManager, type IUndoableAction } from '../../../undoManager';
 
 export interface GraphLayoutMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
@@ -34,6 +35,23 @@ async function persistAndSendGraphLayout(
     type: 'GRAPH_LAYOUT_UPDATED',
     payload: graphLayout,
   });
+}
+
+class UpdateGraphLayoutAction implements IUndoableAction {
+  constructor(
+    readonly description: string,
+    private readonly handlers: GraphLayoutMessageHandlers,
+    private readonly beforeLayout: GraphLayoutSettings,
+    private readonly afterLayout: GraphLayoutSettings,
+  ) {}
+
+  async execute(): Promise<void> {
+    await persistAndSendGraphLayout(this.handlers, this.afterLayout);
+  }
+
+  async undo(): Promise<void> {
+    await persistAndSendGraphLayout(this.handlers, this.beforeLayout);
+  }
 }
 
 export async function applyGraphLayoutMessage(
@@ -101,12 +119,18 @@ export async function applyGraphLayoutMessage(
     }
 
     case 'DELETE_GRAPH_LAYOUT_SECTION': {
-      const nextLayout = deleteGraphLayoutSection(readCurrentGraphLayout(handlers), {
+      const currentLayout = readCurrentGraphLayout(handlers);
+      const nextLayout = deleteGraphLayoutSection(currentLayout, {
         ...message.payload,
         updatedAt: new Date().toISOString(),
       });
 
-      await persistAndSendGraphLayout(handlers, nextLayout);
+      await getUndoManager().execute(new UpdateGraphLayoutAction(
+        'Delete Graph Section',
+        handlers,
+        currentLayout,
+        nextLayout,
+      ));
       return true;
     }
 
