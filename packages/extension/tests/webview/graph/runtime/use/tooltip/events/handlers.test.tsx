@@ -114,6 +114,8 @@ describe('graph/runtime/useTooltipEvents', () => {
 			nodeRect: { x: 24, y: 36, radius: 16 },
 			path: 'src/app.ts',
 			info: null,
+			incomingCount: 0,
+			outgoingCount: 0,
 			pluginActions: [],
 			pluginSections: [],
 		});
