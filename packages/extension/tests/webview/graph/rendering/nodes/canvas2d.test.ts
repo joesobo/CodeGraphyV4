@@ -472,7 +472,7 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.stroke).toHaveBeenCalled();
   });
 
-  it('renders collapsed Section Node hidden counts in the top right and expand cue in the top left', () => {
+  it('renders collapsed Section Node hidden counts in the bottom right and expand cue in the top left', () => {
     const { ctx, operations } = createContext();
     vi.stubGlobal('Path2D', vi.fn());
 
@@ -492,13 +492,37 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
 
     expect(ctx.arc).not.toHaveBeenCalled();
-    expect(ctx.moveTo).toHaveBeenCalledWith(12.8, 38.8);
-    expect(ctx.lineTo).toHaveBeenCalledWith(16.8, 42.8);
-    expect(ctx.lineTo).toHaveBeenCalledWith(20.8, 38.8);
-    expect(ctx.fillText).toHaveBeenCalledWith('4', 31.2, 40.8);
+    expect(ctx.translate).toHaveBeenCalledWith(expect.closeTo(7.2), expect.closeTo(31.2));
+    expect(ctx.fillText).toHaveBeenCalledWith('4', 35.2, 59.2);
     expect(operations).toContainEqual(expect.objectContaining({
       kind: 'fillText',
       text: '4',
+    }));
+  });
+
+  it('renders collapsed Section Node icons fully opaque above the section color', () => {
+    const { ctx, operations } = createContext();
+    vi.mocked(getImage).mockReturnValue({} as HTMLImageElement);
+
+    renderNodeCanvas(
+      createDependencies({ showLabels: false }),
+      createNode({
+        baseOpacity: 0.35,
+        color: '#ef4444',
+        icon: 'data:image/png;base64,abc123',
+        id: 'section-1',
+        isCollapsedGraphSection: true,
+        isGraphSection: true,
+        nodeType: 'graph-section',
+        shape2D: 'square',
+      }),
+      ctx,
+      1,
+    );
+
+    expect(operations).toContainEqual(expect.objectContaining({
+      globalAlpha: 1,
+      kind: 'drawImage',
     }));
   });
 

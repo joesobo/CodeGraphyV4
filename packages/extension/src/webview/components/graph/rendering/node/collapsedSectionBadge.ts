@@ -1,3 +1,4 @@
+import { mdiChevronUp } from '@mdi/js';
 import type { GraphAppearance } from '../../appearance/model';
 import type { FGNode } from '../../model/build';
 import { getImage } from '../imageCache';
@@ -33,6 +34,7 @@ export function renderCollapsedSectionBadge({
   }
 
   ctx.save();
+  ctx.globalAlpha = 1;
   renderExpandChevron({
     appearance,
     ctx,
@@ -113,18 +115,21 @@ function renderExpandChevron({
   x,
   y,
 }: RenderCollapsedSectionBadgeOptions & { x: number; y: number }): void {
-  const centerX = x - node.size * 0.45;
-  const centerY = y - node.size * 0.45;
-  const halfWidth = 4 / globalScale;
-  const halfHeight = 2 / globalScale;
+  if (typeof Path2D === 'undefined') {
+    return;
+  }
 
-  ctx.beginPath();
-  ctx.moveTo(centerX - halfWidth, centerY - halfHeight);
-  ctx.lineTo(centerX, centerY + halfHeight);
-  ctx.lineTo(centerX + halfWidth, centerY - halfHeight);
-  ctx.strokeStyle = appearance.labelForeground;
-  ctx.lineWidth = Math.max(1, 1.5 / globalScale);
-  ctx.stroke();
+  const iconSize = Math.max(10 / globalScale, node.size * 0.7);
+  const centerX = x - node.size * 0.7;
+  const centerY = y - node.size * 0.7;
+  const iconPath = new Path2D(mdiChevronUp);
+
+  ctx.save();
+  ctx.translate(centerX - iconSize / 2, centerY - iconSize / 2);
+  ctx.scale(iconSize / 24, iconSize / 24);
+  ctx.fillStyle = appearance.labelForeground;
+  ctx.fill(iconPath);
+  ctx.restore();
 }
 
 function renderHiddenDescendantCount({
@@ -140,8 +145,8 @@ function renderHiddenDescendantCount({
   x: number;
   y: number;
 }): void {
-  const centerX = x + node.size * 0.45;
-  const centerY = y - node.size * 0.45;
+  const centerX = x + node.size * 0.7;
+  const centerY = y + node.size * 0.7;
 
   ctx.fillStyle = appearance.labelForeground;
   ctx.font = `${Math.max(8, 8 / globalScale)}px sans-serif`;
