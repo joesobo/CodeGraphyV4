@@ -74,12 +74,12 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
 
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, Record<string, unknown>>;
 
-    expect(parsed.nodeColors.symbol).toBeUndefined();
+    expect(parsed.nodeColors.symbol).toBe('#8B5CF6');
     expect(parsed.nodeColors['symbol:function']).toBe('#8B5CF6');
     expect(parsed.nodeColors['symbol:method']).toBeUndefined();
     expect(parsed.nodeColors['symbol:namespace']).toBeUndefined();
     expect(parsed.nodeColors['symbol:variable']).toBeUndefined();
-    expect(parsed.nodeColorEnabled.symbol).toBeUndefined();
+    expect(parsed.nodeColorEnabled.symbol).toBe(true);
     expect(parsed.nodeColorEnabled['symbol:function']).toBe(true);
     expect(parsed.nodeVisibility.symbol).toBe(true);
     expect(parsed.nodeVisibility['symbol:function']).toBe(true);

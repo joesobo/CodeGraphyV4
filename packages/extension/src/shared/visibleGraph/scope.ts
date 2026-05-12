@@ -33,9 +33,13 @@ function getDisabledSymbolKinds(scope: VisibleGraphScopeConfig): Set<string> {
 }
 
 function getDisabledScopedSymbolDefinitions(scope: VisibleGraphScopeConfig) {
+  const disabledNodeTypes = getDisabledTypes(scope.nodes);
   return scope.nodes
     .filter((item) => !item.enabled && !item.type.startsWith('symbol:'))
-    .map((item) => CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === item.type))
+    .flatMap((item) => CORE_GRAPH_NODE_TYPES.filter((definition) => (
+      definition.id === item.type
+      || (definition.parentId === item.type && disabledNodeTypes.has(item.type))
+    )))
     .filter((definition): definition is IGraphNodeTypeDefinition => Boolean(
       definition?.matchSymbolPluginKind
       || definition?.matchSymbolSource

@@ -106,10 +106,10 @@ describe('settingsMessages/updates/controls', () => {
     ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeColors', {
+      symbol: '#8B5CF6',
       'symbol:function': '#123456',
     });
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('nodeColors', expect.objectContaining({
-      symbol: expect.any(String),
       'symbol:method': expect.any(String),
       'symbol:namespace': expect.any(String),
       'symbol:variable': expect.any(String),
@@ -141,11 +141,11 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('turns Variables off when Symbols is disabled', async () => {
+  it('preserves child visibility settings when Symbols is disabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
         key === 'nodeVisibility'
-          ? { symbol: true, variable: true } as T
+          ? { symbol: true, variable: true, 'symbol:function': true } as T
           : defaultValue
       )),
     });
@@ -159,7 +159,8 @@ describe('settingsMessages/updates/controls', () => {
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
       symbol: false,
-      variable: false,
+      variable: true,
+      'symbol:function': true,
     });
   });
 
