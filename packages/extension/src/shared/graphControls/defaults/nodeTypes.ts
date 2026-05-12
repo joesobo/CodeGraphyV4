@@ -30,7 +30,6 @@ export function createCoreGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       label: 'Symbols',
       defaultColor: DEFAULT_NODE_COLOR,
       defaultVisible: false,
-      colorEditable: false,
     },
     {
       id: 'symbol:function',
@@ -100,7 +99,7 @@ export function createCoreGraphNodeTypes(): IGraphNodeTypeDefinition[] {
       label: 'Godot class_name',
       defaultColor: '#478CBF',
       defaultVisible: true,
-      parentId: 'symbol',
+      parentId: 'variable',
       pluginName: 'Godot',
       matchSymbolKinds: ['class'],
       matchSymbolPluginKind: 'godot-class-name',

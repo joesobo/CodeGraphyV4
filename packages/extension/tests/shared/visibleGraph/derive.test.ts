@@ -216,6 +216,47 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     });
   });
 
+  it('hides plugin-specific variable children when Variables is disabled', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('scripts/player.gd'),
+          {
+            ...node('scripts/player.gd#Player:godot-class-name', 'symbol'),
+            symbol: {
+              id: 'scripts/player.gd#Player:godot-class-name',
+              name: 'Player',
+              kind: 'class',
+              filePath: 'scripts/player.gd',
+              pluginKind: 'godot-class-name',
+              source: 'codegraphy.gdscript',
+              language: 'gdscript',
+            },
+          },
+        ],
+        edges: [
+          edge('scripts/player.gd', 'scripts/player.gd#Player:godot-class-name', 'contains'),
+        ],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: true },
+            { type: 'variable', enabled: false },
+            { type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: true },
+          ],
+          edges: [{ type: 'contains', enabled: true }],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['scripts/player.gd'],
+      edges: [],
+    });
+  });
+
   it('projects visible folder and workspace package structure with core nests edges', () => {
     const result = deriveVisibleGraph(
       {

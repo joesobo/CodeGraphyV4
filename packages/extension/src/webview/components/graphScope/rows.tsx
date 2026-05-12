@@ -102,20 +102,6 @@ export function NodeTypeRows({
             label={nodeType.label}
             nested={Boolean(nodeType.parentId)}
             onCheckedChange={(visible) => {
-              if (!visible && nodeType.id === 'symbol') {
-                const symbolChildTypes = nodeTypes.filter((candidate) =>
-                  candidate.parentId === 'symbol'
-                  || candidate.parentId === 'variable'
-                  || candidate.id === 'variable',
-                );
-
-                for (const childType of symbolChildTypes) {
-                  postMessage({
-                    type: 'UPDATE_NODE_VISIBILITY',
-                    payload: { nodeType: childType.id, visible: false },
-                  });
-                }
-              }
               postMessage({
                 type: 'UPDATE_NODE_VISIBILITY',
                 payload: { nodeType: nodeType.id, visible },

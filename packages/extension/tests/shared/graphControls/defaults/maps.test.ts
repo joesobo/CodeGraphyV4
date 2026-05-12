@@ -28,7 +28,7 @@ describe('shared/graphControls/defaults/maps', () => {
     expect(createDefaultEdgeVisibility().import).toBe(true);
     expect(createDefaultNodeColors().file).toBeTruthy();
     expect(createDefaultNodeColors().symbol).toBe('#A1A1AA');
-    expect(createDefaultNodeColorEnabled().symbol).toBe(false);
+    expect(createDefaultNodeColorEnabled().symbol).toBe(true);
     expect(createDefaultEdgeColors().call).toBeTruthy();
   });
 });

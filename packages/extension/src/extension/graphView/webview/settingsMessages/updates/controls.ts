@@ -44,9 +44,6 @@ async function applySymbolVisibilityUpdate(
     ),
     symbol: visible,
   };
-  if (!visible) {
-    nodeVisibility.variable = false;
-  }
 
   await handlers.updateConfig('nodeVisibility', nodeVisibility);
 

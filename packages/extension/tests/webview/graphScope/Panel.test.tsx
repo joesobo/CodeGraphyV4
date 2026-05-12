@@ -15,7 +15,7 @@ function setStoreState() {
     graphNodeTypes: [
       { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
       { id: 'folder', label: 'Folders', defaultColor: '#222222', defaultVisible: false },
-      { id: 'symbol', label: 'Symbols', defaultColor: '#A1A1AA', defaultVisible: false, colorEditable: false },
+      { id: 'symbol', label: 'Symbols', defaultColor: '#A1A1AA', defaultVisible: false },
       { id: 'symbol:function', label: 'Functions', defaultColor: '#8B5CF6', defaultVisible: true, parentId: 'symbol' },
       { id: 'variable', label: 'Variables', defaultColor: '#14B8A6', defaultVisible: false },
     ],
@@ -59,12 +59,12 @@ describe('GraphScopePanel', () => {
     });
   });
 
-  it('renders the top-level Symbols toggle without a color swatch and hides child rows until enabled', () => {
+  it('renders the top-level Symbols toggle with a fallback color swatch and hides child rows until enabled', () => {
     const { container } = render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByText('Symbols')).toBeInTheDocument();
     expect(screen.queryByText('Functions')).not.toBeInTheDocument();
-    expect(container.querySelector('[data-scope-swatch="Symbols"]')).toBeNull();
+    expect(container.querySelector('[data-scope-swatch="Symbols"]')).toHaveStyle('background-color: #A1A1AA');
 
     act(() => {
       graphStore.setState({ nodeVisibility: { folder: true, symbol: true } });
@@ -73,7 +73,7 @@ describe('GraphScopePanel', () => {
     expect(screen.getByText('Functions')).toBeInTheDocument();
   });
 
-  it('turns off symbol child visibility when Symbols is toggled off', () => {
+  it('preserves symbol child visibility settings when Symbols is toggled off', () => {
     graphStore.setState({
       nodeVisibility: {
         folder: true,
@@ -86,18 +86,10 @@ describe('GraphScopePanel', () => {
 
     fireEvent.click(screen.getByLabelText('Toggle Symbols'));
 
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_NODE_VISIBILITY',
-      payload: { nodeType: 'variable', visible: false },
-    });
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_NODE_VISIBILITY',
-      payload: { nodeType: 'symbol:function', visible: false },
-    });
-    expect(sentMessages.at(-1)).toEqual({
+    expect(sentMessages).toEqual([{
       type: 'UPDATE_NODE_VISIBILITY',
       payload: { nodeType: 'symbol', visible: false },
-    });
+    }]);
   });
 
   it('switches to edge types and toggles edge visibility', () => {

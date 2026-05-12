@@ -11,14 +11,14 @@ const DEPRECATED_SYMBOL_NODE_TYPE_KEYS = new Set([
 ]);
 
 function shouldPruneGraphControlEntry(
-  key: GraphControlConfigKey,
+  _key: GraphControlConfigKey,
   entryKey: string,
 ): boolean {
   if (DEPRECATED_SYMBOL_NODE_TYPE_KEYS.has(entryKey)) {
     return true;
   }
 
-  return (key === 'nodeColors' || key === 'nodeColorEnabled') && entryKey === 'symbol';
+  return false;
 }
 
 export function pruneGraphControlConfigMap<T extends boolean | string>(

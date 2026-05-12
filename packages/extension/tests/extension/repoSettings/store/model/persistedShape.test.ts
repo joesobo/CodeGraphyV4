@@ -57,10 +57,12 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       },
     })).toEqual({
       nodeColors: {
+        symbol: '#8B5CF6',
         'symbol:function': '#8B5CF6',
         file: '#111111',
       },
       nodeColorEnabled: {
+        symbol: true,
         'symbol:function': true,
         file: true,
       },

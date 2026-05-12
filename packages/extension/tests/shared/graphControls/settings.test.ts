@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { pruneGraphControlConfigMap } from '../../../src/shared/graphControls/settings';
 
 describe('shared/graphControls/settings', () => {
-  it('prunes stale symbol entries from node theme maps only', () => {
+  it('keeps the parent symbol fallback color while pruning removed child types', () => {
     expect(pruneGraphControlConfigMap('nodeColors', {
       symbol: '#8B5CF6',
       'symbol:function': '#8B5CF6',
@@ -11,6 +11,7 @@ describe('shared/graphControls/settings', () => {
       'symbol:variable': '#14B8A6',
       file: '#111111',
     })).toEqual({
+      symbol: '#8B5CF6',
       'symbol:function': '#8B5CF6',
       file: '#111111',
     });

@@ -35,7 +35,6 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         label: 'Symbols',
         defaultColor: DEFAULT_NODE_COLOR,
         defaultVisible: false,
-        colorEditable: false,
       },
       {
         id: 'symbol:function',
@@ -105,7 +104,7 @@ describe('shared/graphControls/defaults/nodeTypes', () => {
         label: 'Godot class_name',
         defaultColor: '#478CBF',
         defaultVisible: true,
-        parentId: 'symbol',
+        parentId: 'variable',
         pluginName: 'Godot',
         matchSymbolKinds: ['class'],
         matchSymbolPluginKind: 'godot-class-name',
