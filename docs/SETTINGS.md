@@ -118,11 +118,11 @@ The popup label and persisted key are both **Legends** / `legend`.
 For node styling, the popup is split into these subsections from top to bottom:
 
 1. `Custom`
-2. `Plugin Defaults`
+2. `Plugins`
 3. `Material Icon Theme`
 4. `Defaults`
 
-`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin defaults sit above core. Custom Legend Entries sit above both.
+`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin entries sit above core. Custom Legend Entries sit above both.
 
 Legend styling resolves in this order:
 
@@ -142,7 +142,7 @@ Custom Legend Entries can target files, folders, packages, and plugin-added Node
 
 Symbol nodes are available through Graph Scope as **Symbols**, with **Variables** shown as a dependent Node Type. Turning Symbols off also hides Variables. When Symbols are on, the `contains` Edge Type connects File Nodes to their contained symbol nodes, and symbol-to-symbol relationship edges such as calls, references, imports, and overrides can appear when analysis provides that detail.
 
-Built-in Legend defaults include common symbol kinds such as Function, Method, Class, Interface, Enum, Namespace, Variable, Constant, and Property. Symbol Legend Entries can also scope styling by symbol kind, plugin kind, plugin source, language, and containing file path. The Godot plugin contributes a scoped `Godot class_name` default for GDScript `class_name` symbols.
+Built-in Legend defaults include common symbol kinds such as Function, Method, Class, Interface, Struct, Enum, Type, Variable, Constant, and Property. Symbol Legend Entries can also scope styling by symbol kind, plugin kind, plugin source, language, and containing file path. The Godot plugin contributes `Plugins` / `Godot` / `class_name` for GDScript `class_name` symbols.
 
 - Enter a glob pattern and choose a color, optional shape, and optional icon, then click Add.
 - Click the x button next to a custom Legend Entry to delete it.
@@ -163,7 +163,7 @@ Pattern: tests/*   Color: #F59E0B        (amber, files directly inside any tests
 Pattern: **/*.gd   Color: #478CBF        (Godot symbol file scope)
 ```
 
-Legend Entry Toggles for `Plugin Defaults`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Turning a Legend Entry off disables its styling only; matching graph items remain and fall back to lower-priority styling. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
+Legend Entry Toggles for `Plugins`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Turning a Legend Entry off disables its styling only; matching graph items remain and fall back to lower-priority styling. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
 
 To reuse custom Legend Entries across repos or teammates, copy the relevant entries from `.codegraphy/settings.json`:
 ```json

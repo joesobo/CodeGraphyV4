@@ -93,8 +93,8 @@ Green path:
 Red tests:
 
 - Symbol Legend entries exist before matching symbols are visible.
-- Initial entries include Function, Method, Class, Interface, Struct, Enum, Namespace, Variable, Constant, Property, and Plugin Symbol.
-- Plugin-owned defaults can contribute `Godot class_name`.
+- Initial entries include Function, Method, Class, Interface, Type, Struct, Enum, Variable, Constant, Property, and Plugin Symbol.
+- Plugin-owned defaults can contribute their own subsection entries, with Godot contributing `Plugins` / `Godot` / `class_name`.
 - Scoped matching can combine symbol kind/category, file path, plugin source, language, and plugin kind.
 - Existing Legend order decides precedence.
 
@@ -129,7 +129,7 @@ Red tests:
 - Plugin API supports normalized kind plus plugin-specific kind/source metadata.
 - Plugin-contributed symbols project through the same graph path as core symbols.
 - Godot `class_name` emits a class-like symbol with plugin kind `godot-class-name`.
-- Godot plugin contributes a Legend default labeled exactly `Godot class_name`.
+- Godot plugin contributes a Legend default shown as `Plugins` / `Godot` / `class_name`.
 
 Green path:
 
@@ -268,7 +268,7 @@ PR evidence:
 ### 2026-05-11 Slice 6: Legend And Scoped Theming
 
 - Legend rules can now target symbol nodes by symbol kind, plugin kind, plugin source, language, and containing file path.
-- Built-in default groups now include core symbol-kind entries and a scoped `Godot class_name` entry.
+- Built-in default groups now include general core symbol-kind entries and a plugin-scoped Godot `class_name` entry.
 - `scripts/**/*.gd`-style glob patterns now match direct files and nested files, which keeps scoped symbol-file rules intuitive.
 - Green focused tests:
   - `tests/webview/search/filtering/rules/nodes.test.ts`
@@ -308,3 +308,22 @@ PR evidence:
 - Added a changeset for the extension, plugin API, Godot plugin, and MCP package.
 - Green release check:
   - `pnpm changeset status --since main`
+
+### 2026-05-11 Follow-Up: Example And Symbol Controls Cleanup
+
+- Flattened `examples/example-typescript` from a tiny monorepo into a single-package example.
+- Added `currentUser` as a Variable Node demo for the TypeScript example.
+- Kept the top-level `Symbols` Graph Scope row as a parent toggle without an editable color or Legend default.
+- Renamed `Functions and Methods` to `Functions` while still matching both symbol kinds.
+- Removed core UI/default exposure for language-specific symbol kinds such as namespace; plugin-specific kinds should be exposed through plugin defaults when a plugin owns them.
+- Moved Godot `class_name` styling under `Nodes` / `Plugins` / `Godot` / `class_name`.
+- Green focused tests:
+  - `tests/extension/pipeline/treesitter/analyze.test.ts`
+  - `tests/extension/pipeline/examplesWorkspace.test.ts`
+  - `tests/shared/graphControls/defaults/nodeTypes.test.ts`
+  - `tests/shared/graphControls/defaults/maps.test.ts`
+  - `tests/extension/graphView/controls/send.test.ts`
+  - `tests/extension/graphView/controls/definitions/snapshot.test.ts`
+  - `tests/webview/graphScope/Panel.test.tsx`
+  - `tests/webview/legends/panel/section.test.tsx`
+  - `tests/webview/legends/panel/state.test.tsx`
