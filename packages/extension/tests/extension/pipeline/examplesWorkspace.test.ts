@@ -52,44 +52,6 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     vi.restoreAllMocks();
   });
 
-  it('documents a symbol-node demo story for every example workspace', async () => {
-    const readme = await fs.readFile(path.join(sourceExamplesRoot, 'README.md'), 'utf8');
-    const examples = [
-      'example-typescript',
-      'example-godot',
-      'example-python',
-      'example-csharp',
-      'example-markdown',
-      'example-rust',
-      'example-java',
-      'example-go',
-      'example-c',
-      'example-cpp',
-      'example-kotlin',
-      'example-php',
-      'example-ruby',
-      'example-haskell',
-      'example-lua',
-      'example-swift',
-      'example-dart',
-    ];
-
-    expect(readme).toContain('## Symbol Node Stories');
-    for (const example of examples) {
-      expect(readme).toContain(`| \`${example}\` |`);
-
-      const exampleReadme = await fs.readFile(
-        path.join(sourceExamplesRoot, example, 'README.md'),
-        'utf8',
-      );
-
-      expect(exampleReadme).toContain('## Symbol Node Demo');
-      expect(exampleReadme).toContain('Suggested symbol check:');
-      expect(exampleReadme).toContain('Expected behavior:');
-    }
-    expect(readme).toContain('Godot `class_name` declarations appear under Variable');
-  });
-
   it('connects nested example projects when the repo-root examples folder is opened', async () => {
     const workspaceRoot = await copyExamplesWorkspace();
     workspaceFoldersValue = [
@@ -192,6 +154,19 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
         }),
       }),
     ]));
+    const expectedStorySymbolIds = [
+      'example-python/src/services/api.py#fetch_user:function',
+      'example-python/src/utils/format.py#format_name:function',
+      'example-markdown/src/commented.ts#parseCommentedLink:function',
+      'example-go/internal/service/service.go#NewRunner:function',
+      'example-c/src/math/add.h#AddInput:struct',
+      'example-cpp/src/lib/widget.hpp#make_widget:function',
+      'example-ruby/lib/app/runner.rb#call:method',
+      'example-haskell/src/App/Feature/Runner.hs#Greeting:data',
+      'example-lua/app/runner.lua#Runner.greet:function',
+    ];
+    const missingStorySymbolIds = expectedStorySymbolIds.filter((nodeId) => !nodeIds.has(nodeId));
+    expect(missingStorySymbolIds).toEqual([]);
 
     const persistedSnapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
     const persistedTypeScriptFiles = persistedSnapshot.files
