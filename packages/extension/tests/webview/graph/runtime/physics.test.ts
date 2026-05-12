@@ -1228,6 +1228,56 @@ describe('physics', () => {
     expect(nodes[2].vx).toBeGreaterThan(0);
   });
 
+  it('caps bridge link pressure so cross-boundary links settle smoothly', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
+      links: [
+        {
+          id: 'root-to-member',
+          source: 'src/root.ts',
+          target: 'src/member.ts',
+        } as never,
+      ],
+      settings: {
+        ...SETTINGS,
+        linkDistance: 100,
+        linkForce: 1,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/root.ts',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 500,
+        y: 70,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: 'section-1',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 120,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(0.5);
+
+    expect(Math.abs(nodes[1].vx ?? 0)).toBeLessThanOrEqual(6);
+    expect(Math.abs(nodes[2].vx ?? 0)).toBeLessThanOrEqual(6);
+  });
+
   it('pulls an expanded Graph Section frame through a linked member pressed against its edge', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
       links: [
@@ -1512,6 +1562,36 @@ describe('physics', () => {
     expect(Math.abs(nodes[0].vx ?? 0)).toBeGreaterThanOrEqual(Math.abs(nodes[1].vx ?? 0) * 0.75);
     expect(nodes[0].vx).toBeLessThan(0);
     expect(nodes[1].vx).toBeGreaterThan(0);
+  });
+
+  it('caps circle and expanded section collision velocity to avoid jittery rebounds', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT);
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/loose.ts',
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 190,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(1);
+
+    expect(Math.abs(nodes[0].vx ?? 0)).toBeLessThanOrEqual(3);
+    expect(Math.abs(nodes[1].vx ?? 0)).toBeLessThanOrEqual(3);
   });
 
   it('separates normal nodes from expanded Graph Section rectangles during collision ticks', () => {

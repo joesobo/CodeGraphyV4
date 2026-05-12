@@ -11,6 +11,19 @@ export interface FitBounds2d {
 }
 
 function getNodeRadius(node: FGNode): number {
+  const sectionHeight = node.sectionHeight;
+  const sectionWidth = node.sectionWidth;
+  if (
+    node.isGraphSection
+    && !node.isCollapsedGraphSection
+    && typeof sectionHeight === 'number'
+    && Number.isFinite(sectionHeight)
+    && typeof sectionWidth === 'number'
+    && Number.isFinite(sectionWidth)
+  ) {
+    return Math.max(sectionWidth / 2, sectionHeight / 2);
+  }
+
   const size = node.size ?? Number.NaN;
 
   if (Number.isFinite(size)) {
@@ -18,6 +31,27 @@ function getNodeRadius(node: FGNode): number {
   }
 
   return 16;
+}
+
+function getNodeFitExtents(node: FGNode): { x: number; y: number } {
+  const sectionHeight = node.sectionHeight;
+  const sectionWidth = node.sectionWidth;
+  if (
+    node.isGraphSection
+    && !node.isCollapsedGraphSection
+    && typeof sectionHeight === 'number'
+    && Number.isFinite(sectionHeight)
+    && typeof sectionWidth === 'number'
+    && Number.isFinite(sectionWidth)
+  ) {
+    return {
+      x: sectionWidth / 2,
+      y: sectionHeight / 2,
+    };
+  }
+
+  const radius = getNodeRadius(node);
+  return { x: radius, y: radius };
 }
 
 export function get2dFitBounds(nodes: FGNode[]): FitBounds2d | null {
@@ -33,11 +67,11 @@ export function get2dFitBounds(nodes: FGNode[]): FitBounds2d | null {
       continue;
     }
 
-    const radius = getNodeRadius(node);
-    minX = Math.min(minX, x - radius);
-    maxX = Math.max(maxX, x + radius);
-    minY = Math.min(minY, y - radius);
-    maxY = Math.max(maxY, y + radius);
+    const extents = getNodeFitExtents(node);
+    minX = Math.min(minX, x - extents.x);
+    maxX = Math.max(maxX, x + extents.x);
+    minY = Math.min(minY, y - extents.y);
+    maxY = Math.max(maxY, y + extents.y);
   }
 
   if (minX === Number.POSITIVE_INFINITY) {
