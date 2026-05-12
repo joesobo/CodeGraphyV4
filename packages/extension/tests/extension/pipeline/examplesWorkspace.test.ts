@@ -52,6 +52,35 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     vi.restoreAllMocks();
   });
 
+  it('documents a symbol-node demo story for every example workspace', async () => {
+    const readme = await fs.readFile(path.join(sourceExamplesRoot, 'README.md'), 'utf8');
+    const examples = [
+      'example-typescript',
+      'example-godot',
+      'example-python',
+      'example-csharp',
+      'example-markdown',
+      'example-rust',
+      'example-java',
+      'example-go',
+      'example-c',
+      'example-cpp',
+      'example-kotlin',
+      'example-php',
+      'example-ruby',
+      'example-haskell',
+      'example-lua',
+      'example-swift',
+      'example-dart',
+    ];
+
+    expect(readme).toContain('## Symbol Node Stories');
+    for (const example of examples) {
+      expect(readme).toContain(`| \`${example}\` |`);
+    }
+    expect(readme).toContain('Godot `class_name` declarations appear under Variables');
+  });
+
   it('connects nested example projects when the repo-root examples folder is opened', async () => {
     const workspaceRoot = await copyExamplesWorkspace();
     workspaceFoldersValue = [

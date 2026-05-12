@@ -313,13 +313,15 @@ PR evidence:
 
 - Flattened `examples/example-typescript` from a tiny monorepo into a single-package example.
 - Added `currentUser` as a Variable Node demo for the TypeScript example.
-- Kept the top-level `Symbols` Graph Scope row as a parent toggle without an editable color or Legend default.
+- Kept the top-level `Symbols` Graph Scope row as a parent toggle and restored its editable fallback color for symbol nodes that do not match a more specific kind.
 - Renamed `Functions and Methods` to `Functions` while still matching both symbol kinds.
 - Removed core UI/default exposure for language-specific symbol kinds such as namespace; plugin-specific kinds should be exposed through plugin defaults when a plugin owns them.
-- Moved Godot `class_name` styling under `Nodes` / `Plugins` / `Godot` / `class_name`.
+- Moved Godot `class_name` styling under `Nodes` / `Plugins` / `Godot` / `class_name` and grouped its Graph Scope row under Variables.
 - Removed the ambiguous catch-all `Plugin Symbol` Legend entry and filtered symbol defaults to symbol kinds present in the current graph.
 - Let custom Legend Entry patterns match symbol metadata so entries such as `Function`, `buildGreeting`, or `*.ts` can override symbol styling.
-- Pruned stale graph-control keys for removed symbol node types (`symbol:method`, `symbol:namespace`, and `symbol:variable`) and removed top-level `symbol` from color settings during UI writes and repo-settings normalization/serialization.
+- Pruned stale graph-control keys for removed symbol node types (`symbol:method`, `symbol:namespace`, and `symbol:variable`) while preserving the top-level `symbol` fallback color settings.
+- Preserved child Graph Scope state when parent `Symbols` or `Variables` rows are toggled off; parent rows hide children at projection time instead of overwriting saved child settings.
+- Added per-language symbol-node stories to the examples guide so each example workspace explains the symbol/variable behavior it demonstrates.
 - Green focused tests:
   - `tests/extension/pipeline/treesitter/analyze.test.ts`
   - `tests/extension/pipeline/examplesWorkspace.test.ts`

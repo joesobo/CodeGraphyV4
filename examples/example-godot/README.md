@@ -39,3 +39,16 @@ Expected behavior:
 - `scripts/player.gd` creates static `load` edges to `scenes/ui/loadout_preview.tscn` and `resources/player_loadout.tres`.
 - Those edges come from the Godot plugin's `project-settings` and `ext-resource` sources, not custom Edge Types.
 - The `.tscn` and `.tres` files in this fixture use relative `path=` values, and the scene points at the resource with both `uid=` and `path=` so CodeGraphy exercises the same fallback order Godot uses.
+
+Suggested symbol check:
+
+1. Open Graph Scope.
+2. Enable **Symbols** and **Variables**.
+3. Look for Godot `class_name` symbol nodes such as `Player`, `Enemy`, `GameManager`, `PlayerLoadout`, and `LoadoutPreview`.
+4. Toggle **Variables** off and back on.
+
+Expected behavior:
+
+- Godot `class_name` symbol nodes hide when Variables is off because they are plugin-owned variable-style declaration symbols.
+- The individual Godot `class_name` row keeps its saved on/off state when Variables is toggled.
+- Relationship edges such as `Player -> PlayerLoadout` and scene/resource load edges still tell the story of how the runnable project is assembled.
