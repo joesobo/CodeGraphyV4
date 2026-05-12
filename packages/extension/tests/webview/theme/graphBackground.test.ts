@@ -22,4 +22,10 @@ describe('graph background theme tokens', () => {
 
     expect(css).toMatch(/--cg-graph-link-highlight:\s*var\(--cg-primary\);/);
   });
+
+  it('uses a translucent white outline for selected graph nodes', () => {
+    const css = readFileSync(INDEX_CSS_PATH, 'utf8');
+
+    expect(css).toMatch(/--cg-graph-node-selection-border:\s*rgba\(255,\s*255,\s*255,\s*0\.78\);/);
+  });
 });
