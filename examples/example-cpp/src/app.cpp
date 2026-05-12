@@ -10,6 +10,8 @@ public:
 
 int boot() {
   Runner runner;
+  Widget widget = make_widget();
+  widget.render();
   runner.run();
   return 0;
 }

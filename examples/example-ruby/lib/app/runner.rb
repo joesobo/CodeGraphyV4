@@ -6,6 +6,10 @@ module App
     def run(user)
       user.name
     end
+
+    def call(user = User.new)
+      run(user)
+    end
   end
 end
 
