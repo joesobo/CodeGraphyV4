@@ -1983,4 +1983,44 @@ describe('physics', () => {
       y: 160,
     });
   });
+
+  it('respects a live null owner override after a Section Member is dropped into the root graph', () => {
+    const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 1,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+    const nodes = [
+      {
+        id: 'section-1',
+        isGraphSection: true,
+        sectionHeight: 140,
+        sectionWidth: 200,
+        x: 100,
+        y: 70,
+      },
+      {
+        id: 'src/member.ts',
+        ownerSectionId: null,
+        size: 10,
+        vx: 0,
+        vy: 0,
+        x: 260,
+        y: 70,
+      },
+    ] as FGNode[];
+
+    force.initialize(nodes);
+    force(1);
+
+    expect(nodes[1]).toMatchObject({
+      vx: 0,
+      vy: 0,
+      x: 260,
+      y: 70,
+    });
+  });
 });
