@@ -20,6 +20,7 @@ Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.vi
   - `extends`
   - `class_name` references
   - `class_name` declarations as Symbol Nodes
+  - function, constant, variable, and enum declarations as Symbol Nodes
 - `project.godot`:
   - `application/run/main_scene`
   - `[autoload]`
@@ -34,6 +35,7 @@ Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.vi
 - The detector follows Godot's text-loader behavior more closely by accepting relative `path=` values and preferring a matching `uid=` target when one is known in the workspace.
 - This means they participate in the existing `load` Edge Type Graph Scope settings while still being attributable to Godot text-resource parsing.
 - GDScript `class_name` declarations are emitted as class symbols with `pluginKind: godot-class-name`. When Symbol, Variable, and `contains` are enabled in Graph Scope, the Relationship Graph shows the declaration as a Symbol Node contained by its `.gd` file. The Godot `class_name` Graph Scope row lives under Variable so the Variable parent toggle can hide these plugin-owned declaration symbols without erasing their own saved state.
+- GDScript function, constant, variable, and enum declarations are emitted as normal Symbol Nodes, so they use the shared Function, Constant, Variable, and Enum Graph Scope and Legend defaults.
 - The Legend includes `Plugins` / `Godot` / `class_name` so these symbols can be styled separately from generic class symbols.
 
 ## Example workspace

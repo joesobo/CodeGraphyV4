@@ -79,6 +79,7 @@ function scheduleTooltipHover(
     }));
     const tooltipState = buildGraphTooltipState({
       nodeId,
+      snapshot: dataRef.current,
       rect: getNodeRect(node),
       cachedInfo: fileInfoCacheRef.current.get(nodeId) ?? null,
       pluginActions: pluginTooltip?.actions ?? [],

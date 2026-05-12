@@ -13,8 +13,15 @@ export interface GraphTooltipState {
   nodeRect: GraphTooltipRect;
   path: string;
   info: IFileInfo | null;
+  incomingCount?: number;
+  outgoingCount?: number;
   pluginActions?: TooltipAction[];
   pluginSections: Array<{ title: string; content: string }>;
+  symbol?: {
+    name: string;
+    kind: string;
+    filePath: string;
+  };
 }
 
 export interface GraphTooltipContextOptions {
@@ -24,6 +31,7 @@ export interface GraphTooltipContextOptions {
 
 export interface GraphTooltipStateOptions {
   nodeId: string;
+  snapshot: Pick<IGraphData, 'nodes' | 'edges'>;
   rect: GraphTooltipRect | null;
   cachedInfo: IFileInfo | null;
   pluginActions?: TooltipAction[];
@@ -36,6 +44,33 @@ export interface GraphTooltipStateResult {
 }
 
 const EMPTY_TOOLTIP_RECT: GraphTooltipRect = { x: 0, y: 0, radius: 0 };
+
+function countTooltipEdges(
+  nodeId: string,
+  snapshot: Pick<IGraphData, 'edges'>,
+): { incomingCount: number; outgoingCount: number } {
+  let incomingCount = 0;
+  let outgoingCount = 0;
+  for (const edge of snapshot.edges) {
+    if (edge.from === nodeId) {
+      outgoingCount++;
+    }
+    if (edge.to === nodeId) {
+      incomingCount++;
+    }
+  }
+  return { incomingCount, outgoingCount };
+}
+
+function readTooltipSymbol(
+  nodeId: string,
+  snapshot: Pick<IGraphData, 'nodes'>,
+): GraphTooltipState['symbol'] {
+  const symbol = snapshot.nodes.find((node) => node.id === nodeId)?.symbol;
+  return symbol
+    ? { name: symbol.name, kind: symbol.kind, filePath: symbol.filePath }
+    : undefined;
+}
 
 export function buildGraphTooltipContext(options: GraphTooltipContextOptions): TooltipContext {
   const { node, snapshot } = options;
@@ -56,16 +91,20 @@ export function buildGraphTooltipContext(options: GraphTooltipContextOptions): T
 }
 
 export function buildGraphTooltipState(options: GraphTooltipStateOptions): GraphTooltipStateResult {
+  const edgeCounts = countTooltipEdges(options.nodeId, options.snapshot);
+  const symbol = readTooltipSymbol(options.nodeId, options.snapshot);
   return {
     tooltipData: {
       visible: true,
       nodeRect: options.rect ?? EMPTY_TOOLTIP_RECT,
       path: options.nodeId,
       info: options.cachedInfo,
+      ...edgeCounts,
       pluginActions: options.pluginActions ?? [],
       pluginSections: options.pluginSections,
+      ...(symbol ? { symbol } : {}),
     },
-    shouldRequestFileInfo: options.cachedInfo === null,
+    shouldRequestFileInfo: options.cachedInfo === null && !symbol,
   };
 }
 

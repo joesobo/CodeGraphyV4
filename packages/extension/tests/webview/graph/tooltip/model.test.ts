@@ -78,6 +78,7 @@ describe('tooltipModel', () => {
   it('builds visible tooltip state with cached info and plugin sections', () => {
     const result = buildGraphTooltipState({
       nodeId: 'src/app.ts',
+      snapshot: graphSnapshot,
       rect: { x: 10, y: 20, radius: 30 },
       cachedInfo,
       pluginSections: [{ title: 'Rule', content: 'Value' }],
@@ -89,6 +90,8 @@ describe('tooltipModel', () => {
         nodeRect: { x: 10, y: 20, radius: 30 },
         path: 'src/app.ts',
         info: cachedInfo,
+        incomingCount: 0,
+        outgoingCount: 1,
         pluginActions: [],
         pluginSections: [{ title: 'Rule', content: 'Value' }],
       },
@@ -99,6 +102,7 @@ describe('tooltipModel', () => {
   it('builds visible tooltip state with a zero rect fallback and requests file info when cache is missing', () => {
     const result = buildGraphTooltipState({
       nodeId: 'src/app.ts',
+      snapshot: graphSnapshot,
       rect: null,
       cachedInfo: null,
       pluginSections: [],
@@ -110,11 +114,58 @@ describe('tooltipModel', () => {
         nodeRect: { x: 0, y: 0, radius: 0 },
         path: 'src/app.ts',
         info: null,
+        incomingCount: 0,
+        outgoingCount: 1,
         pluginActions: [],
         pluginSections: [],
       },
       shouldRequestFileInfo: true,
     });
+  });
+
+  it('builds symbol tooltip state with symbol display metadata and graph edge counts', () => {
+    const snapshot: IGraphData = {
+      nodes: [
+        {
+          id: 'src/app.ts#boot:function',
+          label: 'boot',
+          color: '#8B5CF6',
+          nodeType: 'symbol',
+          symbol: {
+            id: 'src/app.ts#boot:function',
+            filePath: 'src/app.ts',
+            name: 'boot',
+            kind: 'function',
+          },
+        },
+        { id: 'src/app.ts', label: 'app.ts', color: '#A1A1AA' },
+        { id: 'src/runner.ts#run:function', label: 'run', color: '#8B5CF6', nodeType: 'symbol' },
+      ],
+      edges: [
+        { id: 'src/app.ts->src/app.ts#boot:function#contains', from: 'src/app.ts', to: 'src/app.ts#boot:function', kind: 'contains', sources: [] },
+        { id: 'src/app.ts#boot:function->src/runner.ts#run:function#call', from: 'src/app.ts#boot:function', to: 'src/runner.ts#run:function', kind: 'call', sources: [] },
+      ],
+    };
+
+    const result = buildGraphTooltipState({
+      nodeId: 'src/app.ts#boot:function',
+      snapshot,
+      rect: { x: 10, y: 20, radius: 30 },
+      cachedInfo: null,
+      pluginSections: [],
+    });
+
+    expect(result.tooltipData).toEqual(expect.objectContaining({
+      path: 'src/app.ts#boot:function',
+      incomingCount: 1,
+      outgoingCount: 1,
+      symbol: {
+        name: 'boot',
+        kind: 'function',
+        filePath: 'src/app.ts',
+      },
+    }));
+    expect(result.shouldRequestFileInfo).toBe(false);
   });
 
   it('hides tooltip state while preserving the last node anchor and info', () => {
@@ -123,6 +174,8 @@ describe('tooltipModel', () => {
       nodeRect: { x: 10, y: 20, radius: 30 },
       path: 'src/app.ts',
       info: cachedInfo,
+      incomingCount: 0,
+      outgoingCount: 1,
       pluginSections: [{ title: 'Rule', content: 'Value' }],
     };
 
@@ -131,6 +184,8 @@ describe('tooltipModel', () => {
       nodeRect: { x: 10, y: 20, radius: 30 },
       path: 'src/app.ts',
       info: cachedInfo,
+      incomingCount: 0,
+      outgoingCount: 1,
       pluginActions: [],
       pluginSections: [],
     });

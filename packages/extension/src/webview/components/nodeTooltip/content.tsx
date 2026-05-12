@@ -11,6 +11,11 @@ import type { TooltipAction } from '../../pluginHost/api/contracts/webview';
 
 export interface TooltipContentProps {
   path: string;
+  symbol?: {
+    name: string;
+    kind: string;
+    filePath: string;
+  };
   size?: number;
   lastModified?: number;
   incomingCount: number;
@@ -20,12 +25,23 @@ export interface TooltipContentProps {
   extraSections?: Array<{ title: string; content: string }>;
 }
 
-export function TooltipHeader({ path }: { path: string }): React.ReactElement {
+export function TooltipHeader({
+  path,
+  symbol,
+}: {
+  path: string;
+  symbol?: TooltipContentProps['symbol'];
+}): React.ReactElement {
   return (
     <div className="px-3 pt-2 pb-1.5">
       <p className="text-xs font-semibold text-link break-all leading-snug">
-        {path}
+        {symbol?.name ?? path}
       </p>
+      {symbol ? (
+        <p className="pt-0.5 text-[11px] text-muted-foreground break-all leading-snug">
+          {symbol.filePath}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -33,6 +49,7 @@ export function TooltipHeader({ path }: { path: string }): React.ReactElement {
 export function TooltipStats({
   outgoingCount,
   incomingCount,
+  symbol,
   size,
   lastModified,
   plugin,
@@ -40,6 +57,7 @@ export function TooltipStats({
   return (
     <div className="px-3 py-1.5 space-y-0.5 text-[11px] font-mono">
       <Row label="Connections" value={`${outgoingCount} out \u00B7 ${incomingCount} in`} />
+      {symbol && <Row label="Type" value={symbol.kind} />}
       {size !== undefined && <Row label="Size" value={formatSize(size)} />}
       {lastModified !== undefined && <Row label="Modified" value={formatRelativeTime(lastModified)} />}
       {plugin && <Row label="Plugin" value={plugin} />}
