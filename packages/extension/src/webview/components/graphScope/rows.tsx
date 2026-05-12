@@ -89,9 +89,7 @@ export function NodeTypeRows({
   return (
     <>
       {visibleNodeTypes.map((nodeType) => {
-        const color = nodeType.colorEditable === false
-          ? undefined
-          : nodeColors[nodeType.id] ?? nodeType.defaultColor;
+        const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
         const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
 
         return (

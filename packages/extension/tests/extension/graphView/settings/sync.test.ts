@@ -25,7 +25,6 @@ function createSnapshot(
     directionMode: 'arrows',
     directionColor: '#475569',
     nodeColors: { file: '#999999', folder: '#888888' },
-    nodeColorEnabled: { file: true, folder: true },
     nodeVisibility: { file: true, folder: true },
     edgeVisibility: { imports: true, nests: false },
     legendVisibility: {},

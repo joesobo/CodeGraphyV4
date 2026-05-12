@@ -25,7 +25,7 @@ async function applyGraphControlsUpdate(
   if (options.publish === false) {
     return true;
   }
-  if (key === 'nodeVisibility' || key === 'nodeColors' || key === 'nodeColorEnabled') {
+  if (key === 'nodeVisibility' || key === 'nodeColors') {
     handlers.recomputeGroups();
     handlers.sendGroupsUpdated();
   }
@@ -94,15 +94,6 @@ export async function applyGraphControlMessage(
       handlers,
       { publish: false },
     );
-    if (typeof message.payload.enabled === 'boolean') {
-      await applyGraphControlsUpdate(
-        'nodeColorEnabled',
-        message.payload.nodeType,
-        message.payload.enabled,
-        handlers,
-        { publish: false },
-      );
-    }
     handlers.recomputeGroups();
     handlers.sendGroupsUpdated();
     handlers.sendGraphControls();

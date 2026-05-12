@@ -53,14 +53,13 @@ describe('settingsMessages/updates/controls', () => {
       applyGraphControlMessage(
         {
           type: 'UPDATE_NODE_COLOR',
-          payload: { nodeType: 'file', color: '#123456', enabled: false },
+          payload: { nodeType: 'file', color: '#123456' },
         },
         handlers,
       ),
     ).resolves.toBe(true);
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'edgeVisibility', { import: false });
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'nodeColors', { file: '#123456' });
-    expect(handlers.updateConfig).toHaveBeenNthCalledWith(3, 'nodeColorEnabled', { file: false });
     expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
   });
 
@@ -83,15 +82,6 @@ describe('settingsMessages/updates/controls', () => {
             'symbol:method': '#A855F7',
             'symbol:namespace': '#64748B',
             'symbol:variable': '#14B8A6',
-          } as T;
-        }
-        if (key === 'nodeColorEnabled') {
-          return {
-            symbol: true,
-            'symbol:function': true,
-            'symbol:method': true,
-            'symbol:namespace': true,
-            'symbol:variable': true,
           } as T;
         }
         return defaultValue;

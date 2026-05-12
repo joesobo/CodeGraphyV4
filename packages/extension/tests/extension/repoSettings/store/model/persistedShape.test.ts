@@ -39,14 +39,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         'symbol:variable': '#14B8A6',
         file: '#111111',
       },
-      nodeColorEnabled: {
-        symbol: true,
-        'symbol:function': true,
-        'symbol:method': true,
-        'symbol:namespace': true,
-        'symbol:variable': true,
-        file: true,
-      },
       nodeVisibility: {
         symbol: true,
         'symbol:function': true,
@@ -60,11 +52,6 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
         symbol: '#8B5CF6',
         'symbol:function': '#8B5CF6',
         file: '#111111',
-      },
-      nodeColorEnabled: {
-        symbol: true,
-        'symbol:function': true,
-        file: true,
       },
       nodeVisibility: {
         symbol: true,

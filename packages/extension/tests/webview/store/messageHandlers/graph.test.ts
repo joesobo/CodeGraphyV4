@@ -61,7 +61,6 @@ function createState(
     graphNodeTypes: [],
     graphEdgeTypes: [],
     nodeColors: {},
-    nodeColorEnabled: {},
     nodeVisibility: {},
     edgeVisibility: {},
     nodeDecorations: {},
@@ -127,7 +126,6 @@ describe('webview/store/messageHandlers/graph', () => {
       nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
       edgeTypes: [{ id: 'import', label: 'Import', defaultColor: '#64748B', defaultVisible: true }],
       nodeColors: { file: '#A1A1AA' },
-      nodeColorEnabled: { file: true },
       nodeVisibility: { file: true },
       edgeVisibility: { import: false },
     };
@@ -139,7 +137,6 @@ describe('webview/store/messageHandlers/graph', () => {
       graphNodeTypes: controls.nodeTypes,
       graphEdgeTypes: controls.edgeTypes,
       nodeColors: controls.nodeColors,
-      nodeColorEnabled: controls.nodeColorEnabled,
       nodeVisibility: controls.nodeVisibility,
       edgeVisibility: controls.edgeVisibility,
     });

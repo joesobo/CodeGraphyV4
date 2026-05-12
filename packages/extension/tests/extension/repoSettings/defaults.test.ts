@@ -3,7 +3,6 @@ import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 import {
   createDefaultEdgeVisibility,
-  createDefaultNodeColorEnabled,
   createDefaultNodeColors,
   createDefaultNodeVisibility,
 } from '../../../src/shared/graphControls/defaults/maps';
@@ -20,7 +19,6 @@ describe('extension/repoSettings/defaults', () => {
       pluginOrder: [],
       disabledPlugins: [],
       nodeColors: createDefaultNodeColors(),
-      nodeColorEnabled: createDefaultNodeColorEnabled(),
       nodeVisibility: createDefaultNodeVisibility(),
       edgeVisibility: createDefaultEdgeVisibility(),
       favorites: [],
@@ -69,7 +67,6 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.pluginOrder).not.toBe(first.pluginOrder);
     expect(second.disabledPlugins).not.toBe(first.disabledPlugins);
     expect(second.nodeColors).not.toBe(first.nodeColors);
-    expect(second.nodeColorEnabled).not.toBe(first.nodeColorEnabled);
     expect(second.nodeVisibility).not.toBe(first.nodeVisibility);
     expect(second.edgeVisibility).not.toBe(first.edgeVisibility);
     expect(second.legend).not.toBe(first.legend);

@@ -16,23 +16,14 @@ vi.mock('../../../../src/webview/components/legends/panel/section/builtInRow', (
   LegendBuiltInRow: ({
     entry,
     onChange,
-    onToggleColor,
-    showColorToggle,
   }: {
-    entry: { id: string; label: string; colorEnabled?: boolean };
+    entry: { id: string; label: string };
     onChange: (id: string, color: string) => void;
-    onToggleColor?: (id: string, enabled: boolean) => void;
-    showColorToggle?: boolean;
   }) => (
     <div>
       <button type="button" onClick={() => onChange(entry.id, '#abc123')}>
         built-in:{entry.label}
       </button>
-      {showColorToggle && onToggleColor ? (
-        <button type="button" onClick={() => onToggleColor(entry.id, !(entry.colorEnabled ?? true))}>
-          toggle-color:{entry.label}
-        </button>
-      ) : null}
     </div>
   ),
 }));
@@ -150,7 +141,6 @@ describe('webview/legends/section', () => {
     target: 'node' as const,
     collapsedEntries: {},
     onBuiltInColorChange: vi.fn(),
-    onBuiltInColorToggle: vi.fn(),
     onCollapsedChange: vi.fn(),
     onRulesChange: vi.fn(),
     onToggleDefaultVisibility: vi.fn(),
@@ -162,7 +152,6 @@ describe('webview/legends/section', () => {
     render(<LegendSection {...baseProps} onCollapsedChange={onCollapsedChange} />);
 
     expect(screen.getByText('built-in:Files')).toBeInTheDocument();
-    expect(screen.getByText('toggle-color:Files')).toBeInTheDocument();
     expect(screen.getByText('Custom')).toBeInTheDocument();
     expect(screen.getByText('Plugins')).toBeInTheDocument();
     expect(screen.getByText('Defaults')).toBeInTheDocument();

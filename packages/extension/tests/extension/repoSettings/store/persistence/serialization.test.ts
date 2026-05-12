@@ -55,14 +55,6 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
       'symbol:namespace': '#64748B',
       'symbol:variable': '#14B8A6',
     };
-    settings.nodeColorEnabled = {
-      ...settings.nodeColorEnabled,
-      symbol: true,
-      'symbol:function': true,
-      'symbol:method': true,
-      'symbol:namespace': true,
-      'symbol:variable': true,
-    };
     settings.nodeVisibility = {
       ...settings.nodeVisibility,
       symbol: true,
@@ -79,8 +71,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     expect(parsed.nodeColors['symbol:method']).toBeUndefined();
     expect(parsed.nodeColors['symbol:namespace']).toBeUndefined();
     expect(parsed.nodeColors['symbol:variable']).toBeUndefined();
-    expect(parsed.nodeColorEnabled.symbol).toBe(true);
-    expect(parsed.nodeColorEnabled['symbol:function']).toBe(true);
+    expect(parsed.nodeColorEnabled).toBeUndefined();
     expect(parsed.nodeVisibility.symbol).toBe(true);
     expect(parsed.nodeVisibility['symbol:function']).toBe(true);
     expect(parsed.nodeVisibility['symbol:method']).toBeUndefined();

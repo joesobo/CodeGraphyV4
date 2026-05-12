@@ -175,13 +175,11 @@ function BuiltInRulesSubsection({
   builtInEntries,
   collapsedEntries,
   onBuiltInColorChange,
-  onBuiltInColorToggle,
   onCollapsedChange,
   target,
 }: LegendCollapseProps & {
   builtInEntries: LegendBuiltInEntry[];
   onBuiltInColorChange: (id: string, color: string) => void;
-  onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
   target: LegendTargetSection;
 }): React.ReactElement | null {
   if (!builtInEntries.length) {
@@ -200,8 +198,6 @@ function BuiltInRulesSubsection({
           key={entry.id}
           entry={entry}
           onChange={onBuiltInColorChange}
-          onToggleColor={onBuiltInColorToggle}
-          showColorToggle={target === 'node'}
         />
       ))}
     </LegendSubsection>
@@ -369,7 +365,6 @@ function SectionRules({
   collapsedEntries,
   customRuleGroup,
   onBuiltInColorChange,
-  onBuiltInColorToggle,
   onCollapsedChange,
   onRulesChange,
   onToggleDefaultVisibilityBatch,
@@ -386,7 +381,6 @@ function SectionRules({
   userRules: IGroup[];
   renderRuleRow: (row: LegendRuleRowModel) => React.ReactElement;
   onBuiltInColorChange: (id: string, color: string) => void;
-  onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
   onRulesChange: LegendRulesChange;
   onToggleDefaultVisibilityBatch: (legendIds: string[], visible: boolean) => void;
 }): React.ReactElement {
@@ -422,7 +416,6 @@ function SectionRules({
         builtInEntries={builtInEntries}
         collapsedEntries={collapsedEntries}
         onBuiltInColorChange={onBuiltInColorChange}
-        onBuiltInColorToggle={onBuiltInColorToggle}
         onCollapsedChange={onCollapsedChange}
         storageKey={`${target}:defaults`}
         target={target}
@@ -438,7 +431,6 @@ export function LegendSection({
   displayRules,
   legends,
   onBuiltInColorChange,
-  onBuiltInColorToggle,
   onCollapsedChange,
   onRulesChange,
   onToggleDefaultVisibility,
@@ -454,7 +446,6 @@ export function LegendSection({
   legends: IGroup[];
   target: LegendTargetSection;
   onBuiltInColorChange: (id: string, color: string) => void;
-  onBuiltInColorToggle?: (id: string, enabled: boolean) => void;
   onCollapsedChange?: (entryId: string, collapsed: boolean) => void;
   onRulesChange: LegendRulesChange;
   onToggleDefaultVisibility: (legendId: string, visible: boolean) => void;
@@ -547,7 +538,6 @@ export function LegendSection({
             collapsedEntries={collapsedEntries}
             customRuleGroup={customRuleGroup}
             onBuiltInColorChange={onBuiltInColorChange}
-            onBuiltInColorToggle={onBuiltInColorToggle}
             onCollapsedChange={onCollapsedChange}
             onRulesChange={onRulesChange}
             onToggleDefaultVisibilityBatch={onToggleDefaultVisibilityBatch}

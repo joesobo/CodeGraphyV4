@@ -11,7 +11,6 @@ const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'pluginOrder',
   'disabledPlugins',
   'nodeColors',
-  'nodeColorEnabled',
   'nodeVisibility',
   'edgeVisibility',
   'favorites',
@@ -162,7 +161,6 @@ function normalizeGraphControlConfigMap(
 function normalizePersistedGraphControls(normalized: Record<string, unknown>): void {
   normalizeGraphControlConfigMap(normalized, 'nodeVisibility');
   normalizeGraphControlConfigMap(normalized, 'nodeColors');
-  normalizeGraphControlConfigMap(normalized, 'nodeColorEnabled');
 }
 
 export function normalizePersistedSettingsShape(
