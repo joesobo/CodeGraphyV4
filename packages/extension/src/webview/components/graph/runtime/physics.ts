@@ -1170,6 +1170,92 @@ function touchesExpandedSectionMember(
 		|| !!getExpandedOwnerSectionId(target, graphLayout);
 }
 
+function getExternalBridgeEndpoint(
+	source: FGNode,
+	target: FGNode,
+	graphLayout: GraphLayoutSettings,
+): { externalNode: FGNode; memberNode: FGNode; ownerSectionId: string } | undefined {
+	const sourceOwnerSectionId = getExpandedOwnerSectionId(source, graphLayout);
+	const targetOwnerSectionId = getExpandedOwnerSectionId(target, graphLayout);
+	if (sourceOwnerSectionId && sourceOwnerSectionId !== targetOwnerSectionId) {
+		return { externalNode: target, memberNode: source, ownerSectionId: sourceOwnerSectionId };
+	}
+
+	if (targetOwnerSectionId && targetOwnerSectionId !== sourceOwnerSectionId) {
+		return { externalNode: source, memberNode: target, ownerSectionId: targetOwnerSectionId };
+	}
+
+	return undefined;
+}
+
+function isMemberPressedTowardSectionEdge(
+	memberNode: FGNode,
+	externalNode: FGNode,
+	sectionBounds: BoundsRect,
+): boolean {
+	if (!isFiniteNumber(memberNode.x) || !isFiniteNumber(memberNode.y) || !isFiniteNumber(externalNode.x) || !isFiniteNumber(externalNode.y)) {
+		return false;
+	}
+
+	const memberBounds = getSectionMemberBounds(sectionBounds);
+	const margin = getMemberBoundsMargin(memberNode);
+	const minX = memberBounds.x + margin.x;
+	const maxX = memberBounds.x + memberBounds.width - margin.x;
+	const minY = memberBounds.y + margin.y;
+	const maxY = memberBounds.y + memberBounds.height - margin.y;
+	const tolerance = Math.max(1, Math.min(margin.x, margin.y) / 2);
+	const deltaX = externalNode.x - memberNode.x;
+	const deltaY = externalNode.y - memberNode.y;
+
+	if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+		return deltaX >= 0
+			? memberNode.x >= maxX - tolerance
+			: memberNode.x <= minX + tolerance;
+	}
+
+	return deltaY >= 0
+		? memberNode.y >= maxY - tolerance
+		: memberNode.y <= minY + tolerance;
+}
+
+function getBridgeSectionLinkDistance(
+	sectionNode: FGNode,
+	memberNode: FGNode,
+	linkDistance: number,
+): number {
+	const centerToMemberDistance = getNodeDelta(sectionNode, memberNode).distance;
+	return linkDistance + centerToMemberDistance;
+}
+
+function applyExpandedSectionBridgePull(
+	source: FGNode,
+	target: FGNode,
+	nodeMap: Map<string, FGNode>,
+	graphLayout: GraphLayoutSettings,
+	linkDistance: number,
+	linkForce: number,
+	alpha: number,
+): void {
+	const bridge = getExternalBridgeEndpoint(source, target, graphLayout);
+	if (!bridge) {
+		return;
+	}
+
+	const ownerSectionNode = nodeMap.get(bridge.ownerSectionId);
+	const ownerSectionBounds = getSectionBounds(ownerSectionNode, bridge.ownerSectionId, graphLayout);
+	if (!ownerSectionNode || !ownerSectionBounds || !isMemberPressedTowardSectionEdge(bridge.memberNode, bridge.externalNode, ownerSectionBounds)) {
+		return;
+	}
+
+	applyLinkVelocity(
+		ownerSectionNode,
+		bridge.externalNode,
+		getBridgeSectionLinkDistance(ownerSectionNode, bridge.memberNode, linkDistance),
+		linkForce,
+		alpha,
+	);
+}
+
 function applySectionBridgeLinkForces(
 	nodes: readonly FGNode[],
 	graphLayout: GraphLayoutSettings,
@@ -1194,6 +1280,7 @@ function applySectionBridgeLinkForces(
 		}
 
 		applyLinkVelocity(source, target, settings.linkDistance, settings.linkForce, alpha);
+		applyExpandedSectionBridgePull(source, target, nodeMap, graphLayout, settings.linkDistance, settings.linkForce, alpha);
 	}
 }
 
