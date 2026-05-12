@@ -38,6 +38,37 @@ describe('search/filtering/rules/nodeMatcher', () => {
     })).toBe(true);
   });
 
+  it('lets custom legend patterns match symbol kind, name, and containing file metadata', () => {
+    const functionNode = {
+      id: 'src/index.ts#buildGreeting:function',
+      label: 'buildGreeting',
+      color: '#111111',
+      nodeType: 'symbol' as const,
+      symbol: {
+        id: 'src/index.ts#buildGreeting:function',
+        filePath: 'src/index.ts',
+        name: 'buildGreeting',
+        kind: 'function',
+      },
+    };
+
+    expect(ruleMatchesNode(functionNode, {
+      id: 'custom:function',
+      pattern: 'Function',
+      color: '#ff00ff',
+    })).toBe(true);
+    expect(ruleMatchesNode(functionNode, {
+      id: 'custom:name',
+      pattern: 'buildGreeting',
+      color: '#ff00ff',
+    })).toBe(true);
+    expect(ruleMatchesNode(functionNode, {
+      id: 'custom:file',
+      pattern: '*.ts',
+      color: '#ff00ff',
+    })).toBe(true);
+  });
+
   it('rejects each scoped symbol field independently', () => {
     expect(ruleMatchesNode(symbolNode, {
       id: 'node-type',

@@ -93,7 +93,7 @@ Green path:
 Red tests:
 
 - Symbol Legend entries exist before matching symbols are visible.
-- Initial entries include Function, Method, Class, Interface, Type, Struct, Enum, Variable, Constant, Property, and Plugin Symbol.
+- Initial entries include present general symbol kinds such as Function, Method, Class, Interface, Type, Struct, Enum, Variable, Constant, and Property.
 - Plugin-owned defaults can contribute their own subsection entries, with Godot contributing `Plugins` / `Godot` / `class_name`.
 - Scoped matching can combine symbol kind/category, file path, plugin source, language, and plugin kind.
 - Existing Legend order decides precedence.
@@ -317,6 +317,9 @@ PR evidence:
 - Renamed `Functions and Methods` to `Functions` while still matching both symbol kinds.
 - Removed core UI/default exposure for language-specific symbol kinds such as namespace; plugin-specific kinds should be exposed through plugin defaults when a plugin owns them.
 - Moved Godot `class_name` styling under `Nodes` / `Plugins` / `Godot` / `class_name`.
+- Removed the ambiguous catch-all `Plugin Symbol` Legend entry and filtered symbol defaults to symbol kinds present in the current graph.
+- Let custom Legend Entry patterns match symbol metadata so entries such as `Function`, `buildGreeting`, or `*.ts` can override symbol styling.
+- Pruned stale persisted graph-control keys for removed symbol node types (`symbol:method`, `symbol:namespace`, and `symbol:variable`) and removed top-level `symbol` from color settings when settings are rewritten.
 - Green focused tests:
   - `tests/extension/pipeline/treesitter/analyze.test.ts`
   - `tests/extension/pipeline/examplesWorkspace.test.ts`

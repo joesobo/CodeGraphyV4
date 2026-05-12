@@ -64,6 +64,58 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
   });
 
+  it('prunes stale symbol control keys when graph control settings are written', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return {
+            symbol: true,
+            'symbol:function': true,
+            'symbol:method': true,
+            'symbol:namespace': true,
+            'symbol:variable': true,
+          } as T;
+        }
+        if (key === 'nodeColors') {
+          return {
+            symbol: '#8B5CF6',
+            'symbol:function': '#8B5CF6',
+            'symbol:method': '#A855F7',
+            'symbol:namespace': '#64748B',
+            'symbol:variable': '#14B8A6',
+          } as T;
+        }
+        if (key === 'nodeColorEnabled') {
+          return {
+            symbol: true,
+            'symbol:function': true,
+            'symbol:method': true,
+            'symbol:namespace': true,
+            'symbol:variable': true,
+          } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_COLOR', payload: { nodeType: 'symbol:function', color: '#123456' } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeColors', {
+      'symbol:function': '#123456',
+    });
+    expect(handlers.updateConfig).not.toHaveBeenCalledWith('nodeColors', expect.objectContaining({
+      symbol: expect.any(String),
+      'symbol:method': expect.any(String),
+      'symbol:namespace': expect.any(String),
+      'symbol:variable': expect.any(String),
+    }));
+  });
+
   it('enables Contains when Symbols is enabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {

@@ -6,6 +6,34 @@ export function ruleTargetsNodes(rule: IGroup): boolean {
   return rule.target !== 'edge';
 }
 
+function globMatchCaseInsensitive(value: string, pattern: string): boolean {
+  return globMatch(value.toLowerCase(), pattern.toLowerCase());
+}
+
+function rulePatternMatchesNode(
+  node: IGraphData['nodes'][number],
+  rule: IGroup,
+): boolean {
+  if (globMatch(node.id, rule.pattern)) {
+    return true;
+  }
+
+  if (rule.isPluginDefault) {
+    return false;
+  }
+
+  const symbol = node.symbol;
+  const candidates = [
+    node.label,
+    symbol?.name,
+    symbol?.kind,
+    symbol?.pluginKind,
+    symbol?.filePath,
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  return candidates.some((candidate) => globMatchCaseInsensitive(candidate, rule.pattern));
+}
+
 export function ruleMatchesNode(
   node: IGraphData['nodes'][number],
   rule: IGroup,
@@ -22,5 +50,5 @@ export function ruleMatchesNode(
   const symbolPathMatches = !rule.matchSymbolFilePath
     || Boolean(symbol?.filePath && globMatch(symbol.filePath, rule.matchSymbolFilePath));
 
-  return exactFieldsMatch && symbolPathMatches && globMatch(node.id, rule.pattern);
+  return exactFieldsMatch && symbolPathMatches && rulePatternMatchesNode(node, rule);
 }

@@ -99,6 +99,18 @@ describe('graphView/builtInDefaultGroups', () => {
             },
           },
           {
+            id: 'src/app.ts#currentUser:variable',
+            label: 'currentUser',
+            color: '#000000',
+            nodeType: 'variable',
+            symbol: {
+              id: 'src/app.ts#currentUser:variable',
+              name: 'currentUser',
+              kind: 'variable',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
             id: 'scripts/player.gd#Player:godot-class-name',
             label: 'Player',
             color: '#000000',
@@ -167,6 +179,13 @@ describe('graphView/builtInDefaultGroups', () => {
         pluginId: 'codegraphy.gdscript',
         pluginName: 'Godot',
       }),
+    ]));
+
+    expect(groups.map((group) => group.id)).not.toEqual(expect.arrayContaining([
+      'default:symbol-kind:struct',
+      'default:symbol-kind:enum',
+      'default:symbol-kind:property',
+      'default:symbol-kind:plugin',
     ]));
   });
 });

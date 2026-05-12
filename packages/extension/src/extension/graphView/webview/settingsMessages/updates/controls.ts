@@ -1,16 +1,42 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import type { GraphViewSettingsMessageHandlers } from '../router';
 
+const DEPRECATED_SYMBOL_NODE_TYPE_KEYS = new Set([
+  'symbol:method',
+  'symbol:namespace',
+  'symbol:variable',
+]);
+
+function shouldPruneGraphControlEntry(
+  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
+  entryKey: string,
+): boolean {
+  if (DEPRECATED_SYMBOL_NODE_TYPE_KEYS.has(entryKey)) {
+    return true;
+  }
+
+  return (key === 'nodeColors' || key === 'nodeColorEnabled') && entryKey === 'symbol';
+}
+
+function pruneGraphControlConfigMap(
+  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
+  values: Record<string, boolean | string>,
+): Record<string, boolean | string> {
+  return Object.fromEntries(
+    Object.entries(values).filter(([entryKey]) => !shouldPruneGraphControlEntry(key, entryKey)),
+  );
+}
+
 function getUpdatedConfigMap(
   handlers: GraphViewSettingsMessageHandlers,
   key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
   entryKey: string,
   value: boolean | string,
 ): Record<string, boolean | string> {
-  return {
+  return pruneGraphControlConfigMap(key, {
     ...handlers.getConfig<Record<string, boolean | string>>(key, {}),
     [entryKey]: value,
-  };
+  });
 }
 
 async function applyGraphControlsUpdate(
@@ -37,7 +63,10 @@ async function applySymbolVisibilityUpdate(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   const nodeVisibility: Record<string, boolean> = {
-    ...handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+    ...pruneGraphControlConfigMap(
+      'nodeVisibility',
+      handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+    ) as Record<string, boolean>,
     symbol: visible,
   };
   if (!visible) {

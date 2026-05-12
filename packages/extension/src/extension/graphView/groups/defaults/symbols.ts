@@ -1,4 +1,5 @@
 import type { IGroup } from '../../../../shared/settings/groups';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import {
   mdiAlphaCBoxOutline,
   mdiAlphaIBoxOutline,
@@ -11,6 +12,7 @@ import {
   mdiPound,
   mdiVariable,
 } from '@mdi/js';
+import { globMatch } from '../../../../shared/globMatch';
 import { toSvgDataUrl } from './materialTheme/svg';
 
 type SymbolDefaultGroup = Omit<IGroup, 'pattern' | 'isPluginDefault' | 'pluginName'> & {
@@ -29,7 +31,6 @@ const CORE_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
   { id: 'default:symbol-kind:variable', displayLabel: 'Variable', color: '#14B8A6', imageUrl: createMaterialSymbolIconDataUrl(mdiVariable), matchNodeType: 'variable', matchSymbolKind: 'variable' },
   { id: 'default:symbol-kind:constant', displayLabel: 'Constant', color: '#22C55E', imageUrl: createMaterialSymbolIconDataUrl(mdiLockOutline), matchNodeType: 'variable', matchSymbolKind: 'constant' },
   { id: 'default:symbol-kind:property', displayLabel: 'Property', color: '#84CC16', imageUrl: createMaterialSymbolIconDataUrl(mdiPound), matchNodeType: 'variable', matchSymbolKind: 'property' },
-  { id: 'default:symbol-kind:plugin', displayLabel: 'Plugin Symbol', color: '#EC4899', matchNodeType: 'symbol' },
 ];
 
 const PLUGIN_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
@@ -49,13 +50,46 @@ const PLUGIN_SYMBOL_GROUPS: SymbolDefaultGroup[] = [
   },
 ];
 
-export function getSymbolDefaultGroups(): IGroup[] {
-  return [...CORE_SYMBOL_GROUPS, ...PLUGIN_SYMBOL_GROUPS].map((group) => ({
+export function getSymbolDefaultGroups(graphData: IGraphData): IGroup[] {
+  return [...CORE_SYMBOL_GROUPS, ...PLUGIN_SYMBOL_GROUPS]
+    .filter((group) => graphData.nodes.some((node) => symbolGroupMatchesNode(group, node)))
+    .map((group) => ({
     pattern: '**',
     isPluginDefault: true,
     pluginName: 'CodeGraphy',
     ...group,
   }));
+}
+
+function symbolGroupMatchesNode(
+  group: SymbolDefaultGroup,
+  node: IGraphData['nodes'][number],
+): boolean {
+  const symbol = node.symbol;
+  if (!symbol) {
+    return false;
+  }
+
+  if (group.matchNodeType && group.matchNodeType !== node.nodeType) {
+    return false;
+  }
+  if (group.matchSymbolKind && group.matchSymbolKind !== symbol.kind) {
+    return false;
+  }
+  if (group.matchSymbolPluginKind && group.matchSymbolPluginKind !== symbol.pluginKind) {
+    return false;
+  }
+  if (group.matchSymbolSource && group.matchSymbolSource !== symbol.source) {
+    return false;
+  }
+  if (group.matchSymbolLanguage && group.matchSymbolLanguage !== symbol.language) {
+    return false;
+  }
+  if (group.matchSymbolFilePath && !globMatch(symbol.filePath, group.matchSymbolFilePath)) {
+    return false;
+  }
+
+  return true;
 }
 
 function createMaterialSymbolIconDataUrl(pathData: string): string {

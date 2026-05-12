@@ -18,6 +18,6 @@ export function getBuiltInGraphViewDefaultGroups(
     ...getMaterialThemeDefaultGroups(graphData, extensionUri, {
       includeFolderMatches: configuredNodeVisibility.folder ?? defaultNodeVisibility.folder,
     }),
-    ...getSymbolDefaultGroups(),
+    ...getSymbolDefaultGroups(graphData),
   ];
 }
