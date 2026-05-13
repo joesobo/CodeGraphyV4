@@ -13,8 +13,9 @@ import {
   type GraphLayoutSettings,
 } from '../../../repoSettings/graphLayout/model';
 import { getUndoManager, type IUndoableAction } from '../../../undoManager';
+import { writeIconImports, type IconImportMessageHandlers } from './iconImports';
 
-export interface GraphLayoutMessageHandlers {
+export interface GraphLayoutMessageHandlers extends IconImportMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   sendMessage(message: ExtensionToWebviewMessage): void;
@@ -99,8 +100,10 @@ export async function applyGraphLayoutMessage(
     }
 
     case 'UPDATE_GRAPH_LAYOUT_SECTION': {
+      const { iconImports: _iconImports, ...patch } = message.payload;
+      await writeIconImports(_iconImports, handlers);
       const nextLayout = updateGraphLayoutSection(readCurrentGraphLayout(handlers), {
-        ...message.payload,
+        ...patch,
         updatedAt: new Date().toISOString(),
       });
 

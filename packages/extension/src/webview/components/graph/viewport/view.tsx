@@ -1,6 +1,7 @@
 import type { MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
 import type { GraphLayoutOwnership, GraphLayoutSection, GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
+import type { LegendIconImport } from '../../../../shared/protocol/webviewToExtension';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
 import {
@@ -53,7 +54,12 @@ export interface ViewportProps {
   sectionNodePositions?: ReadonlyMap<string, SectionFrameNodePosition>;
   pinnedSectionIds?: ReadonlySet<string>;
   sectionFrames?: readonly GraphLayoutSection[];
-  onUpdateSection?(this: void, sectionId: string, updates: GraphLayoutSectionUpdate): void;
+  onUpdateSection?(
+    this: void,
+    sectionId: string,
+    updates: GraphLayoutSectionUpdate,
+    iconImports?: LegendIconImport[],
+  ): void;
   onOpenSectionContextMenu?(this: void, sectionId: string, event: ReactMouseEvent<HTMLDivElement>): void;
   onSectionDragEnd?(this: void, sectionId: string): void;
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;

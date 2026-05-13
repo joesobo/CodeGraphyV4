@@ -250,9 +250,14 @@ describe('graph/sectionFrames/view', () => {
     fireEvent.change(screen.getByLabelText('Graph Section icon upload'), { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(onUpdateSection).toHaveBeenCalledWith('section-1', {
-        icon: 'data:image/svg+xml;base64,PHN2Zy8+',
-      });
+      expect(onUpdateSection).toHaveBeenCalledWith(
+        'section-1',
+        { icon: '.codegraphy/icons/section-1-section.svg' },
+        [{
+          imagePath: '.codegraphy/icons/section-1-section.svg',
+          contentsBase64: 'PHN2Zy8+',
+        }],
+      );
     });
   });
 

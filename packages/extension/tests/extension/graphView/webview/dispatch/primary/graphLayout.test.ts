@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { dispatchGraphViewPrimaryMessage } from '../../../../../../src/extension/graphView/webview/dispatch/primary';
 import {
@@ -354,6 +355,67 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       },
       ownership: {},
     });
+  });
+
+  it('writes Graph Section icon imports and persists only the icon path', async () => {
+    const updateConfig = vi.fn((_key: string, _value: unknown) => Promise.resolve());
+    const context = createPrimaryMessageContext({
+      workspaceFolder: { index: 0, name: 'workspace', uri: vscode.Uri.file('/workspace') },
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'graphLayout') {
+          return {
+            collapsedNodes: {},
+            pinnedNodes: {},
+            sections: {
+              'section-1': {
+                id: 'section-1',
+                label: 'Section 1',
+                color: '#60a5fa',
+                x: -140,
+                y: -90,
+                width: 280,
+                height: 180,
+                collapsed: false,
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+            ownership: {},
+          } as T;
+        }
+
+        return defaultValue;
+      }),
+      updateConfig,
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_SECTION',
+      payload: {
+        sectionId: 'section-1',
+        updates: { icon: '.codegraphy/icons/section-1-section.svg' },
+        iconImports: [{
+          imagePath: '.codegraphy/icons/section-1-section.svg',
+          contentsBase64: 'PHN2Zy8+',
+        }],
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.createDirectory).toHaveBeenCalledWith(vscode.Uri.file('/workspace/.codegraphy/icons'));
+    expect(context.writeFile).toHaveBeenCalledWith(
+      vscode.Uri.file('/workspace/.codegraphy/icons/section-1-section.svg'),
+      Uint8Array.from([60, 115, 118, 103, 47, 62]),
+    );
+    expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        'section-1': expect.objectContaining({
+          icon: '.codegraphy/icons/section-1-section.svg',
+        }),
+      },
+      ownership: {},
+    });
+    expect(JSON.stringify(updateConfig.mock.calls.at(-1)?.[1])).not.toContain('data:image');
   });
 
   it('persists an empty Graph Section label while editing', async () => {

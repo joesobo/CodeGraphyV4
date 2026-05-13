@@ -177,8 +177,8 @@ function SectionFrameIconInput({
             return;
           }
 
-          void readGraphSectionIconUpload(file).then(nextIcon => {
-            onUpdateSection(sectionId, { icon: nextIcon });
+          void readGraphSectionIconUpload(sectionId, file).then(({ importPayload }) => {
+            onUpdateSection(sectionId, { icon: importPayload.imagePath }, [importPayload]);
           });
         }}
         tabIndex={-1}
