@@ -55,6 +55,7 @@ export interface ViewportProps {
   sectionFrames?: readonly GraphLayoutSection[];
   onUpdateSection?(this: void, sectionId: string, updates: GraphLayoutSectionUpdate): void;
   onOpenSectionContextMenu?(this: void, sectionId: string, event: ReactMouseEvent<HTMLDivElement>): void;
+  onSectionDragEnd?(this: void, sectionId: string): void;
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
   surface3dProps: Omit<Surface3dProps, 'backgroundColor' | 'directionMode'>;
   tooltipData: GraphTooltipState;
@@ -197,6 +198,7 @@ export function Viewport({
   tooltipData,
   onSurface3dError,
   onOpenSectionContextMenu,
+  onSectionDragEnd,
   onUpdateSection = () => {},
   pluginHost,
 }: ViewportProps): ReactElement {
@@ -230,6 +232,7 @@ export function Viewport({
             pinnedSectionIds={pinnedSectionIds}
             sections={sectionFrames}
             onOpenSectionContextMenu={onOpenSectionContextMenu}
+            onSectionDragEnd={onSectionDragEnd}
             onUpdateSection={onUpdateSection}
           />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />

@@ -12,6 +12,11 @@ export type SectionFrameUpdateHandler = (
   updates: GraphLayoutSectionUpdate,
 ) => void;
 
+export type SectionFrameDragEndHandler = (
+  this: void,
+  sectionId: string,
+) => void;
+
 function applyLiveNodePosition(
   drag: SectionFrameDragState,
   update: SectionFrameDragUpdate,
@@ -108,6 +113,7 @@ export function beginSectionFrameWindowDrag(
   graph: SectionFrameGraph | undefined,
   drag: SectionFrameDragState,
   onUpdateSection: SectionFrameUpdateHandler,
+  onDragEnd?: SectionFrameDragEndHandler,
 ): void {
   markLiveNodeDragging(drag);
   wakeSectionFramePhysics(graph);
@@ -122,6 +128,9 @@ export function beginSectionFrameWindowDrag(
     const update = applyLiveDragUpdate(graph, drag, event);
     releaseLiveNodePosition(drag);
     onUpdateSection(update.sectionId, update.updates);
+    if (drag.type === 'move') {
+      onDragEnd?.(update.sectionId);
+    }
   }
 
   window.addEventListener('mousemove', handleMouseMove);

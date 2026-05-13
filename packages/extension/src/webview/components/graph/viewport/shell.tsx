@@ -16,6 +16,7 @@ import type { FGNode } from '../model/build';
 import type { SectionFrameNodePosition } from '../sectionFrames/model';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
+import { postNodeDragEndMessages } from '../runtime/use/interaction/nodeDrag';
 import { Viewport } from './view';
 import { useGraphViewportModel } from './model';
 import { postMessage } from '../../../vscodeApi';
@@ -194,6 +195,21 @@ export function GraphViewportShell({
     });
   }
 
+  function handleSectionDragEnd(sectionId: string): void {
+    const node = graphState.graphDataRef.current.nodes.find(candidate => candidate.id === sectionId);
+    if (!node) {
+      return;
+    }
+
+    postNodeDragEndMessages(
+      node,
+      viewState.graphLayout,
+      viewState.graphMode,
+      viewState.timelineActive,
+      graphState.graphDataRef.current.nodes,
+    );
+  }
+
   const sectionFrames = viewState.graphMode === '2d' && !viewState.timelineActive
     ? Object.values(viewState.graphLayout.sections)
     : [];
@@ -236,6 +252,7 @@ export function GraphViewportShell({
       onOpenSectionContextMenu={(sectionId, event) => {
         interactions.handleNodeContextMenuById(sectionId, event.nativeEvent);
       }}
+      onSectionDragEnd={handleSectionDragEnd}
       onUpdateSection={handleUpdateSection}
       surface2dProps={{
         fg2dRef: graphState.fg2dRef,
