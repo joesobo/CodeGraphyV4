@@ -54,14 +54,14 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
     const items = getItems(entries);
 
     expect(items).toHaveLength(5);
-    expect(items[0].label).toBe('New Graph Section');
-    expect(items[0].action).toEqual({ kind: 'builtin', action: 'createGraphSection' });
+    expect(items[0].label).toBe('New File...');
+    expect(items[0].action).toEqual({ kind: 'builtin', action: 'createFile' });
     expect(items[0].disabled).toBe(true);
-    expect(items[1].label).toBe('New File...');
-    expect(items[1].action).toEqual({ kind: 'builtin', action: 'createFile' });
+    expect(items[1].label).toBe('New Folder...');
+    expect(items[1].action).toEqual({ kind: 'builtin', action: 'createFolder' });
     expect(items[1].disabled).toBe(true);
-    expect(items[2].label).toBe('New Folder...');
-    expect(items[2].action).toEqual({ kind: 'builtin', action: 'createFolder' });
+    expect(items[2].label).toBe('New Graph Section');
+    expect(items[2].action).toEqual({ kind: 'builtin', action: 'createGraphSection' });
     expect(items[2].disabled).toBe(true);
     expect(items[3].label).toBe('Refresh');
     expect(items[3].action).toEqual({ kind: 'builtin', action: 'refresh' });

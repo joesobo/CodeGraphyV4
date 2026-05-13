@@ -13,11 +13,9 @@ function separatorCount(entries: GraphContextMenuEntry[]): number {
 }
 
 describe('buildBackgroundEntries', () => {
-  it('includes New File, New Folder, and separator when mutation is enabled', () => {
+  it('orders New File, New Folder, Graph Section, and separator when mutation is enabled', () => {
     const entries = buildBackgroundEntries('enabled');
-    expect(itemLabels(entries)).toContain('New Graph Section');
-    expect(itemLabels(entries)).toContain('New File...');
-    expect(itemLabels(entries)).toContain('New Folder...');
+    expect(itemLabels(entries)).toEqual(['New File...', 'New Folder...', 'New Graph Section', 'Refresh', 'Fit All Nodes']);
     expect(separatorCount(entries)).toBe(1);
   });
 

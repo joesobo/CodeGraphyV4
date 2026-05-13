@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { mdiLinkVariant } from '@mdi/js';
 import { TooltipProvider } from '../../../../src/webview/components/ui/overlay/tooltip';
 import { graphStore } from '../../../../src/webview/store/state';
@@ -205,6 +205,20 @@ describe('ToolbarActions', () => {
       'Plugins',
       'Settings',
     ]);
+  });
+
+  it('orders the graph tool rail create menu as file, folder, Graph Section without a separator', () => {
+    renderWithProviders();
+
+    const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
+
+    expect(createMenu).not.toBeNull();
+    expect(
+      within(createMenu as HTMLElement)
+        .getAllByRole('button')
+        .map(button => button.textContent?.trim()),
+    ).toEqual(['New File...', 'New Folder...', 'New Graph Section']);
+    expect(within(createMenu as HTMLElement).queryByTestId('dropdown-separator')).not.toBeInTheDocument();
   });
 
   it('posts root creation messages from the graph tool rail create menu', () => {

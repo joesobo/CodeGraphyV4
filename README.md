@@ -45,6 +45,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 | Relationship Graph | See files, folders, packages, plugin nodes, and their Edges in one interactive graph. |
 | Search and Filters | Search temporarily, then use persistent Filters to remove generated files, tests, docs, or any other noise from the Visible Graph. |
 | Graph Scope | Turn Node Types and Edge Types on or off so the graph matches the question you are asking. |
+| Graph Sections | Organize related nodes into resizable 2D section frames that keep their own local physics while still showing cross-section edges. |
 | Material Icon Theme nodes | File and folder nodes use Material Icon Theme shapes and colors instead of generic dots. |
 | VS Code theme integration | Graph surfaces, panels, buttons, text, and directional arrows follow the active VS Code color theme. |
 | 2D and 3D renderers | Use the fast 2D canvas for everyday work or switch to 3D WebGL when the shape of the repo matters. |
@@ -67,6 +68,10 @@ This repo is a work in progress and is being built through agentic engineering. 
 |:--:|:--:|
 | ![2D Relationship Graph with Material Icon Theme nodes](./docs/media/readme/relationship-graph-2d.png) | ![3D Relationship Graph with file labels and depth](./docs/media/readme/relationship-graph-3d.png) |
 
+| Graph Sections |
+|:--:|
+| ![CodeGraphy 2D graph organized into colored Graph Section frames with local node clusters](./docs/media/readme/graph-sections.png) |
+
 | Timeline |
 |:--:|
 | ![Timeline panel showing commit playback controls](./docs/media/readme/timeline-panel.png) |
@@ -80,6 +85,8 @@ This repo is a work in progress and is being built through agentic engineering. 
 ![CodeGraphy architecture and logic flow](./docs/media/readme/codegraphy-architecture.svg)
 
 Workspace files, Git history, and repo-local settings flow into the Core Extension. Indexing combines built-in Tree-sitter analysis with enabled plugins, stores relationship evidence in the Graph Cache, then Graph Projection produces the Visible Graph that powers the VS Code webview, exports, and CodeGraphy MCP.
+
+Graph Sections are saved in repo-local Graph Layout settings. In 2D, add them from the toolbar or background context menu, drag nodes into a frame to make them Section Members, then resize, label, color, pin, collapse, or expand the section as you organize the graph. Expanded sections behave like large graph nodes in the root force layout, while their members run section-local physics inside the frame; collapsed sections become compact nodes with projected incoming and outgoing edges.
 
 The editable Excalidraw source for this diagram lives at [docs/media/readme/codegraphy-architecture.excalidraw](./docs/media/readme/codegraphy-architecture.excalidraw).
 
