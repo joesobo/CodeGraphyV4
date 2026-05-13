@@ -41,6 +41,31 @@ function backgroundContext() {
   );
 }
 
+function sectionContext() {
+  return resolveGraphContextActionContext(
+    { kind: 'node', graphPosition: { x: 160, y: 120 }, targets: ['section-1'] },
+    {
+      graphLayout: {
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'Section 1',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 320,
+            height: 240,
+            collapsed: false,
+            updatedAt: '2026-05-13T09:45:00.000Z',
+          },
+        },
+        ownership: {},
+      },
+      graphMode: '2d',
+    },
+  );
+}
+
 function scaledBackgroundContext(graphViewportScale: number) {
   return resolveGraphContextActionContext(
     { kind: 'background', targets: [], graphPosition: { x: 40, y: -20 } },
@@ -250,6 +275,26 @@ describe('graph/contextActions/effects', () => {
             width: 280,
             x: -100,
             y: -110,
+          },
+        },
+      },
+    ]);
+  });
+
+  it('creates a nested Graph Section when the section context menu creates one', () => {
+    expect(getBuiltInContextActionEffects('createGraphSection', sectionContext())).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_GRAPH_LAYOUT_SECTION',
+          payload: {
+            color: '#60a5fa',
+            height: 180,
+            memberNodeIds: [],
+            ownerSectionId: 'section-1',
+            width: 280,
+            x: -80,
+            y: -20,
           },
         },
       },

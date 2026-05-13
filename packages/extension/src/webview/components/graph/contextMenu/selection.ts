@@ -2,12 +2,19 @@ import type { GraphContextSelection } from './contracts';
 
 export function makeNodeContextSelection(
   nodeId: string,
-  selectedNodes: ReadonlySet<string>
+  selectedNodes: ReadonlySet<string>,
+  graphPosition?: GraphContextSelection['graphPosition'],
 ): GraphContextSelection {
+  const withGraphPosition = (targets: string[]): GraphContextSelection => (
+    graphPosition
+      ? { kind: 'node', graphPosition, targets }
+      : { kind: 'node', targets }
+  );
+
   if (!selectedNodes.has(nodeId)) {
-    return { kind: 'node', targets: [nodeId] };
+    return withGraphPosition([nodeId]);
   }
-  return { kind: 'node', targets: [...selectedNodes] };
+  return withGraphPosition([...selectedNodes]);
 }
 
 export function makeBackgroundContextSelection(

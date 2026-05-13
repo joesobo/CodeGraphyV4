@@ -216,6 +216,43 @@ export function isGraphLayoutSectionVisible(
     && walk.ancestorIds.every(ancestorId => isExpandedGraphLayoutSection(sections[ancestorId]));
 }
 
+export function getGraphLayoutSectionWorldTopLeft(
+  layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+  sectionId: string,
+  visited = new Set<string>(),
+): GraphLayoutCoordinate2D | undefined {
+  const section = layout.sections[sectionId];
+  if (!section) {
+    return undefined;
+  }
+
+  if (visited.has(sectionId)) {
+    return { x: section.x, y: section.y };
+  }
+
+  const ownerSectionId = layout.ownership[sectionId]?.ownerSectionId ?? null;
+  if (!ownerSectionId) {
+    return { x: section.x, y: section.y };
+  }
+
+  visited.add(sectionId);
+  const ownerTopLeft = getGraphLayoutSectionWorldTopLeft(layout, ownerSectionId, visited);
+  return ownerTopLeft
+    ? { x: ownerTopLeft.x + section.x, y: ownerTopLeft.y + section.y }
+    : { x: section.x, y: section.y };
+}
+
+export function getGraphLayoutSectionWorldBounds(
+  layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+  sectionId: string,
+): GraphLayoutSection | undefined {
+  const section = layout.sections[sectionId];
+  const worldTopLeft = getGraphLayoutSectionWorldTopLeft(layout, sectionId);
+  return section && worldTopLeft
+    ? { ...section, x: worldTopLeft.x, y: worldTopLeft.y }
+    : undefined;
+}
+
 export function getGraphLayoutCollapsedRepresentative(
   layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
   itemId: string,
@@ -309,6 +346,36 @@ export function findDeepestGraphLayoutSectionAtPoint(
   for (const section of Object.values(layout.sections)) {
     if (
       !isGraphLayoutSectionVisible(layout.sections, layout.ownership, section.id)
+      || !isGraphLayoutPointInsideSection(point, section)
+    ) {
+      continue;
+    }
+
+    const depth = getGraphLayoutSectionDepth(layout.ownership, section.id);
+    const area = section.width * section.height;
+    if (depth > selectedDepth || (depth === selectedDepth && area < selectedArea)) {
+      selectedSectionId = section.id;
+      selectedDepth = depth;
+      selectedArea = area;
+    }
+  }
+
+  return selectedSectionId;
+}
+
+export function findDeepestGraphLayoutSectionAtWorldPoint(
+  layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+  point: GraphLayoutCoordinate2D,
+): string | null {
+  let selectedSectionId: string | null = null;
+  let selectedDepth = -1;
+  let selectedArea = Number.POSITIVE_INFINITY;
+
+  for (const sectionId of Object.keys(layout.sections)) {
+    const section = getGraphLayoutSectionWorldBounds(layout, sectionId);
+    if (
+      !section
+      || !isGraphLayoutSectionVisible(layout.sections, layout.ownership, section.id)
       || !isGraphLayoutPointInsideSection(point, section)
     ) {
       continue;

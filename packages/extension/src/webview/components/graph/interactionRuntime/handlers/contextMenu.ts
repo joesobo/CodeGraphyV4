@@ -4,6 +4,7 @@ import {
   makeEdgeContextSelection,
   makeNodeContextSelection,
 } from '../../contextMenu/selection';
+import { findDeepestGraphLayoutSectionAtWorldPoint } from '../../../../../shared/settings/graphLayout';
 import { getNodeContextMenuSelection } from '../../interaction/model';
 import type { FGLink } from '../../model/build';
 import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../../support/linkTargets';
@@ -88,10 +89,15 @@ export function createContextMenuHandlers(
   dependencies: GraphInteractionHandlersDependencies,
   selectionHandlers: ContextMenuSelectionHandlers,
 ): ContextMenuHandlers {
-  const openNodeContextMenu = (nodeId: string, event: MouseEvent): void => {
+  const openNodeContextMenuAtPosition = (
+    nodeId: string,
+    event: MouseEvent,
+    graphPosition?: { x: number; y: number },
+    scopedToNode = false,
+  ): void => {
     const selection = getNodeContextMenuSelection(
       nodeId,
-      dependencies.selectedNodesSetRef.current,
+      scopedToNode ? new Set() : dependencies.selectedNodesSetRef.current,
     );
 
     flushSync(() => {
@@ -101,11 +107,15 @@ export function createContextMenuHandlers(
       }
 
       dependencies.setContextSelection(
-        makeNodeContextSelection(nodeId, new Set(selection.nodeIds)),
+        makeNodeContextSelection(nodeId, new Set(selection.nodeIds), graphPosition),
       );
     });
     dependencies.lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(dependencies, event);
+  };
+
+  const openNodeContextMenu = (nodeId: string, event: MouseEvent): void => {
+    openNodeContextMenuAtPosition(nodeId, event);
   };
 
   const openEdgeContextMenu = (link: FGLink, event: MouseEvent): void => {
@@ -135,6 +145,15 @@ export function createContextMenuHandlers(
 
   const openBackgroundContextMenu = (event: MouseEvent): void => {
     const graphPosition = getBackgroundGraphPosition(dependencies, event);
+    const sectionId = dependencies.graphMode === '2d' && dependencies.graphLayout && graphPosition
+      ? findDeepestGraphLayoutSectionAtWorldPoint(dependencies.graphLayout, graphPosition)
+      : null;
+
+    if (sectionId) {
+      openNodeContextMenuAtPosition(sectionId, event, graphPosition, true);
+      return;
+    }
+
     flushSync(() => {
       dependencies.setContextSelection(makeBackgroundContextSelection(graphPosition));
     });

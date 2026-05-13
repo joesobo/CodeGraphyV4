@@ -224,6 +224,55 @@ describe('graph/contextMenuHandlers', () => {
     expect(dispatchEvent).toHaveBeenCalledTimes(2);
   });
 
+  it('opens a section node context menu when the background right-click is inside an expanded Section Frame', () => {
+    const dependencies = createInteractionDependencies({
+      fg2dRef: {
+        current: {
+          screen2GraphCoords: vi.fn(() => ({ x: 120, y: 80 })),
+        } as never,
+      },
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {},
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'Section 1',
+            color: '#60a5fa',
+            x: 0,
+            y: 0,
+            width: 240,
+            height: 180,
+            collapsed: false,
+            updatedAt: '2026-05-13T09:45:00.000Z',
+          },
+        },
+        ownership: {},
+      },
+    });
+    Object.defineProperty(dependencies.containerRef.current, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0 }),
+    });
+    const setSelection = vi.fn();
+    const dispatchEvent = spyOnDispatchEvent(dependencies.containerRef.current);
+    const handlers = createContextMenuHandlers(
+      dependencies,
+      createContextMenuSelectionHandlers(dependencies, { setSelection }),
+    );
+
+    handlers.openBackgroundContextMenu(
+      new MouseEvent('contextmenu', { button: 2, buttons: 2, clientX: 120, clientY: 80 }),
+    );
+
+    expect(setSelection).toHaveBeenCalledWith(['section-1']);
+    expect(dependencies.setContextSelection).toHaveBeenCalledWith({
+      graphPosition: { x: 120, y: 80 },
+      kind: 'node',
+      targets: ['section-1'],
+    });
+    expect(dispatchEvent).toHaveBeenCalledOnce();
+  });
+
   it('falls back to legacy source and target endpoints when from and to are unresolved', () => {
     const dependencies = createInteractionDependencies();
     const dispatchEvent = spyOnDispatchEvent(dependencies.containerRef.current);

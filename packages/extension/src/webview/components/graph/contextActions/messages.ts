@@ -1,6 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import {
   DEFAULT_GRAPH_SECTION_COLOR,
+  getGraphLayoutSectionWorldTopLeft,
   getDefaultGraphSectionSize,
   GRAPH_SECTION_SELECTION_PADDING,
 } from '../../../../shared/settings/graphLayout';
@@ -172,6 +173,29 @@ function getDefaultSectionBounds(context: GraphContextActionContext): SectionBou
   };
 }
 
+function convertSectionBoundsToOwnerLocal(
+  context: GraphContextActionContext,
+  bounds: SectionBounds,
+): SectionBounds {
+  if (!context.graphLayout || !context.ownerSectionId) {
+    return bounds;
+  }
+
+  const ownerTopLeft = getGraphLayoutSectionWorldTopLeft(
+    context.graphLayout,
+    context.ownerSectionId,
+  );
+  if (!ownerTopLeft) {
+    return bounds;
+  }
+
+  return {
+    ...bounds,
+    x: bounds.x - ownerTopLeft.x,
+    y: bounds.y - ownerTopLeft.y,
+  };
+}
+
 function getSelectionSectionBounds(context: GraphContextActionContext): SectionBounds | undefined {
   const positions = context.targetIds
     .map(nodeId => context.nodePositions.get(nodeId))
@@ -202,19 +226,22 @@ export function createGraphSectionEffects(context: GraphContextActionContext): G
     return [];
   }
 
-  const bounds = context.selectionKind === 'node'
+  const shouldWrapSelectedNodes = context.selectionKind === 'node' && !context.ownerSectionId;
+  const bounds = shouldWrapSelectedNodes
     ? getSelectionSectionBounds(context) ?? getDefaultSectionBounds(context)
     : getDefaultSectionBounds(context);
+  const localBounds = convertSectionBoundsToOwnerLocal(context, bounds);
 
   return [createPostMessageEffect({
     type: 'CREATE_GRAPH_LAYOUT_SECTION',
     payload: {
       color: DEFAULT_GRAPH_SECTION_COLOR,
-      height: bounds.height,
-      memberNodeIds: context.selectionKind === 'node' ? [...context.targetIds] : [],
-      width: bounds.width,
-      x: bounds.x,
-      y: bounds.y,
+      height: localBounds.height,
+      memberNodeIds: shouldWrapSelectedNodes ? [...context.targetIds] : [],
+      ...(context.ownerSectionId ? { ownerSectionId: context.ownerSectionId } : {}),
+      width: localBounds.width,
+      x: localBounds.x,
+      y: localBounds.y,
     },
   })];
 }

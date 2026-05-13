@@ -99,6 +99,7 @@ export function useGraphInteractionRuntime({
       fg2dRef: refs.fg2dRef,
       fg3dRef: refs.fg3dRef,
       fileInfoCacheRef,
+      graphLayout,
       graphCursorRef,
       graphDataRef,
       graphMode,
@@ -121,6 +122,7 @@ export function useGraphInteractionRuntime({
       depthMode,
       fileInfoCacheRef,
       graphCursorRef,
+      graphLayout,
       graphDataRef,
       graphMode,
       highlightedNeighborsRef,
@@ -175,11 +177,12 @@ export function useGraphInteractionRuntime({
 
   const actionContext = useMemo(
     () => resolveGraphContextActionContext(graphContextSelection, {
+      graphLayout,
       graphMode,
       graphViewportScale: readGraphViewportScale(graphMode, refs.fg2dRef.current),
       nodePositions: createGraphNodePositionMap(graphDataRef.current.nodes, graphMode),
     }),
-    [graphContextSelection, graphDataRef, graphMode, refs.fg2dRef],
+    [graphContextSelection, graphDataRef, graphLayout, graphMode, refs.fg2dRef],
   );
 
   function handleNodeDragEnd(node: FGNode): void {

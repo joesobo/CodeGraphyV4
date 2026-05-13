@@ -98,7 +98,19 @@ export function buildSingleGraphSectionNodeEntries(
   mutationAvailability: GraphContextMutationAvailability,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
 ): GraphContextMenuEntry[] {
-  const entries: GraphContextMenuEntry[] = [
+  const entries: GraphContextMenuEntry[] = [];
+
+  if (mutationAvailability !== 'hidden') {
+    const disabled = mutationAvailability === 'disabled';
+    entries.push(
+      builtInItem('node-create-file', 'New File...', 'createFile', { disabled }),
+      builtInItem('node-create-folder', 'New Folder...', 'createFolder', { disabled }),
+      builtInItem('node-create-graph-section', 'New Graph Section', 'createGraphSection', { disabled }),
+      separator('node-separator-create'),
+    );
+  }
+
+  entries.push(
     builtInItem(
       'graph-section-toggle-collapse',
       collapsed ? 'Expand Graph Section' : 'Collapse Graph Section',
@@ -106,7 +118,7 @@ export function buildSingleGraphSectionNodeEntries(
       { disabled: mutationAvailability === 'disabled' },
     ),
     builtInItem('node-focus', 'Focus Node', 'focus'),
-  ];
+  );
 
   if (mutationAvailability === 'enabled') {
     entries.push(...buildPinBlock([target], pinnedNodeIds));

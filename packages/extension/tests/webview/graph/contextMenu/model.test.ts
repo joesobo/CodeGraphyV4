@@ -234,12 +234,18 @@ describe('graph/contextMenuModel', () => {
     });
 
     expect(menuLabels(entries)).toEqual([
+      'New File...',
+      'New Folder...',
+      'New Graph Section',
       'Expand Graph Section',
       'Focus Node',
       'Pin Node',
       'Delete Graph Section',
     ]);
     expect(builtInActions(entries)).toEqual([
+      'createFile',
+      'createFolder',
+      'createGraphSection',
       'expandGraphSection',
       'focus',
       'pinNode',
@@ -264,12 +270,18 @@ describe('graph/contextMenuModel', () => {
     });
 
     expect(menuLabels(entries)).toEqual([
+      'New File...',
+      'New Folder...',
+      'New Graph Section',
       'Collapse Graph Section',
       'Focus Node',
       'Pin Node',
       'Delete Graph Section',
     ]);
     expect(builtInActions(entries)).toEqual([
+      'createFile',
+      'createFolder',
+      'createGraphSection',
       'collapseGraphSection',
       'focus',
       'pinNode',
