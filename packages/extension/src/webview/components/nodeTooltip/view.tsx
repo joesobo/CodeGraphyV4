@@ -22,6 +22,12 @@ import { SlotHost } from '../../pluginHost/slotHost/view';
 interface NodeTooltipProps {
   /** File path relative to workspace */
   path: string;
+  /** Symbol display metadata for symbol nodes */
+  symbol?: {
+    name: string;
+    kind: string;
+    filePath: string;
+  };
   /** File size in bytes */
   size?: number;
   /** Last modified timestamp (ms since epoch) */
@@ -46,6 +52,7 @@ interface NodeTooltipProps {
 
 export function NodeTooltip({
   path,
+  symbol,
   size,
   lastModified,
   incomingCount,
@@ -103,13 +110,14 @@ export function NodeTooltip({
         'text-popover-foreground',
       )}
     >
-      <TooltipHeader path={path} />
+      <TooltipHeader path={path} symbol={symbol} />
 
       <Separator className="bg-border" />
 
       <TooltipStats
         outgoingCount={outgoingCount}
         incomingCount={incomingCount}
+        symbol={symbol}
         size={size}
         lastModified={lastModified}
         plugin={plugin}

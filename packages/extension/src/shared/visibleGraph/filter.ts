@@ -3,6 +3,11 @@ import { globMatch } from '../globMatch';
 import type { VisibleGraphFilterConfig } from './contracts';
 import { filterEdgesToNodes } from './model';
 
+function nodeMatchesPattern(node: IGraphData['nodes'][number], pattern: string): boolean {
+  return globMatch(node.id, pattern)
+    || (node.symbol?.filePath ? globMatch(node.symbol.filePath, pattern) : false);
+}
+
 function edgeMatchesPattern(edge: IGraphData['edges'][number], pattern: string): boolean {
   return (
     globMatch(edge.id, pattern)
@@ -21,7 +26,7 @@ export function applyFilterPatterns(
   }
 
   const nodes = graphData.nodes.filter(
-    (node) => !filter.patterns.some((pattern) => globMatch(node.id, pattern)),
+    (node) => !filter.patterns.some((pattern) => nodeMatchesPattern(node, pattern)),
   );
   const nodeFilteredEdges = filterEdgesToNodes(graphData.edges, nodes);
   const edges = nodeFilteredEdges.filter(

@@ -48,7 +48,7 @@ describe('LegendsPanel', () => {
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByLabelText('Files color')).toHaveValue('#333333');
-    expect(screen.getByLabelText('Toggle Files legend color')).toHaveAttribute('data-state', 'checked');
+    expect(screen.queryByLabelText('Toggle Files legend color')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Folders color')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Imports color')).toHaveValue('#444444');
     expect(screen.queryByLabelText('Toggle Imports legend color')).not.toBeInTheDocument();
@@ -57,7 +57,7 @@ describe('LegendsPanel', () => {
     expect(screen.queryByText('Top overrides bottom')).not.toBeInTheDocument();
   });
 
-  it('defaults file and package built-in legend color toggles to on', () => {
+  it('renders built-in node color inputs without default color toggles', () => {
     graphStore.setState({
       graphNodeTypes: [
         { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
@@ -77,8 +77,8 @@ describe('LegendsPanel', () => {
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
-    expect(screen.getByLabelText('Toggle Files legend color')).toHaveAttribute('data-state', 'checked');
-    expect(screen.getByLabelText('Toggle Packages legend color')).toHaveAttribute('data-state', 'checked');
+    expect(screen.queryByLabelText('Toggle Files legend color')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Toggle Packages legend color')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Files color')).not.toBeDisabled();
     expect(screen.getByLabelText('Packages color')).not.toBeDisabled();
   });
@@ -129,7 +129,7 @@ describe('LegendsPanel', () => {
 
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_NODE_COLOR',
-      payload: { nodeType: 'file', color: '#ABC123', enabled: true },
+      payload: { nodeType: 'file', color: '#ABC123' },
     });
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_LEGENDS',
@@ -182,42 +182,9 @@ describe('LegendsPanel', () => {
     expect(sentMessages).toEqual([
       {
         type: 'UPDATE_NODE_COLOR',
-        payload: { nodeType: 'file', color: '#ABCDEF', enabled: true },
+        payload: { nodeType: 'file', color: '#ABCDEF' },
       },
     ]);
-  });
-
-  it('toggles built-in node colors between their override and fallback color', () => {
-    sentMessages.length = 0;
-    graphStore.setState({
-      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
-      graphEdgeTypes: [],
-      nodeColors: { file: '#333333' },
-      legends: [],
-    });
-
-    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
-
-    const colorToggle = screen.getByLabelText('Toggle Files legend color');
-    const colorInput = screen.getByLabelText('Files color');
-
-    fireEvent.click(colorToggle);
-
-    expect(colorToggle).toHaveAttribute('data-state', 'unchecked');
-    expect(colorInput).toBeDisabled();
-    expect(sentMessages.at(-1)).toEqual({
-      type: 'UPDATE_NODE_COLOR',
-      payload: { nodeType: 'file', color: '#111111', enabled: false },
-    });
-
-    fireEvent.click(colorToggle);
-
-    expect(colorToggle).toHaveAttribute('data-state', 'checked');
-    expect(colorInput).not.toBeDisabled();
-    expect(sentMessages.at(-1)).toEqual({
-      type: 'UPDATE_NODE_COLOR',
-      payload: { nodeType: 'file', color: '#333333', enabled: true },
-    });
   });
 
   it('batches material theme visibility updates through a single message', () => {

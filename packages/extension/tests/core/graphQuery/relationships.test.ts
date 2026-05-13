@@ -48,7 +48,13 @@ const symbols: IAnalysisSymbol[] = [
     filePath: 'packages/app/src/b.ts',
     name: 'createUser',
     kind: 'function',
+    signature: 'function createUser()',
     range: { startLine: 20, endLine: 38 },
+    metadata: {
+      language: 'typescript',
+      source: 'codegraphy.treesitter',
+      pluginKind: 'function-declaration',
+    },
   },
   {
     id: 'packages/app/src/b.ts#buildUser',
@@ -157,16 +163,26 @@ describe('core/graphQuery relationships report', () => {
             edgeType: 'import',
             symbols: [
               {
+                id: 'packages/app/src/b.ts#createUser',
+                filePath: 'packages/app/src/b.ts',
                 name: 'createUser',
                 kind: 'function',
+                signature: 'function createUser()',
                 range: { startLine: 20, endLine: 38 },
+                language: 'typescript',
+                source: 'codegraphy.treesitter',
+                pluginKind: 'function-declaration',
               },
               {
+                id: 'packages/app/src/b.ts#buildUser',
+                filePath: 'packages/app/src/b.ts',
                 name: 'buildUser',
                 kind: 'function',
                 range: { startLine: 40, endLine: 58 },
               },
               {
+                id: 'packages/app/src/b.ts#anonymous',
+                filePath: 'packages/app/src/b.ts',
                 name: 'anonymous',
               },
             ],
@@ -175,6 +191,8 @@ describe('core/graphQuery relationships report', () => {
             edgeType: 'type-import',
             symbols: [
               {
+                id: 'packages/app/src/b.ts#UserConfig',
+                filePath: 'packages/app/src/b.ts',
                 name: 'UserConfig',
                 range: { startLine: 3, endLine: 8 },
               },

@@ -83,9 +83,15 @@ export interface GraphQueryEdgeReport {
 }
 
 export interface GraphQueryRelationshipSymbol {
+  id?: string;
+  filePath?: string;
   name: string;
   kind?: string;
+  signature?: string;
   range?: IAnalysisRange;
+  language?: string;
+  source?: string;
+  pluginKind?: string;
 }
 
 export interface GraphQueryRelationshipProvenance {
@@ -111,10 +117,15 @@ export interface GraphQueryRelationshipReport {
 }
 
 export interface GraphQuerySymbolReportItem {
+  id?: string;
   filePath?: string;
   name: string;
   kind?: string;
+  signature?: string;
   range?: IAnalysisRange;
+  language?: string;
+  source?: string;
+  pluginKind?: string;
 }
 
 export interface GraphQuerySymbolReport {

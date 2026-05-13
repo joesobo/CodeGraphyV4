@@ -53,15 +53,105 @@ describe('settingsMessages/updates/controls', () => {
       applyGraphControlMessage(
         {
           type: 'UPDATE_NODE_COLOR',
-          payload: { nodeType: 'file', color: '#123456', enabled: false },
+          payload: { nodeType: 'file', color: '#123456' },
         },
         handlers,
       ),
     ).resolves.toBe(true);
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'edgeVisibility', { import: false });
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'nodeColors', { file: '#123456' });
-    expect(handlers.updateConfig).toHaveBeenNthCalledWith(3, 'nodeColorEnabled', { file: false });
     expect(handlers.sendGraphControls).toHaveBeenCalledTimes(2);
+  });
+
+  it('prunes stale symbol control keys when graph control settings are written', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return {
+            symbol: true,
+            'symbol:function': true,
+            'symbol:method': true,
+            'symbol:namespace': true,
+            'symbol:variable': true,
+          } as T;
+        }
+        if (key === 'nodeColors') {
+          return {
+            symbol: '#8B5CF6',
+            'symbol:function': '#8B5CF6',
+            'symbol:method': '#A855F7',
+            'symbol:namespace': '#64748B',
+            'symbol:variable': '#14B8A6',
+          } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_COLOR', payload: { nodeType: 'symbol:function', color: '#123456' } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeColors', {
+      symbol: '#8B5CF6',
+      'symbol:function': '#123456',
+    });
+    expect(handlers.updateConfig).not.toHaveBeenCalledWith('nodeColors', expect.objectContaining({
+      'symbol:method': expect.any(String),
+      'symbol:namespace': expect.any(String),
+      'symbol:variable': expect.any(String),
+    }));
+  });
+
+  it('enables Contains when Symbols is enabled', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false } as T;
+        }
+        if (key === 'edgeVisibility') {
+          return { contains: false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'nodeVisibility', { symbol: true });
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'edgeVisibility', { contains: true });
+    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
+  });
+
+  it('preserves child visibility settings when Symbols is disabled', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
+        key === 'nodeVisibility'
+          ? { symbol: true, variable: true, 'symbol:function': true } as T
+          : defaultValue
+      )),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol', visible: false } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('nodeVisibility', {
+      symbol: false,
+      variable: true,
+      'symbol:function': true,
+    });
   });
 
   it('returns false for unrelated messages without updating settings', async () => {

@@ -4,6 +4,7 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import { createDefaultNodeVisibility } from '../../../../shared/graphControls/defaults/maps';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { getMaterialThemeDefaultGroups } from './materialTheme/view';
+import { getSymbolDefaultGroups } from './symbols';
 
 export function getBuiltInGraphViewDefaultGroups(
   graphData: IGraphData,
@@ -13,7 +14,10 @@ export function getBuiltInGraphViewDefaultGroups(
   const defaultNodeVisibility = createDefaultNodeVisibility();
   const configuredNodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
 
-  return getMaterialThemeDefaultGroups(graphData, extensionUri, {
-    includeFolderMatches: configuredNodeVisibility.folder ?? defaultNodeVisibility.folder,
-  });
+  return [
+    ...getMaterialThemeDefaultGroups(graphData, extensionUri, {
+      includeFolderMatches: configuredNodeVisibility.folder ?? defaultNodeVisibility.folder,
+    }),
+    ...getSymbolDefaultGroups(graphData),
+  ];
 }

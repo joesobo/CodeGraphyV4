@@ -1,20 +1,21 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
+import { pruneGraphControlConfigMap, type GraphControlConfigKey } from '../../../../../shared/graphControls/settings';
 import type { GraphViewSettingsMessageHandlers } from '../router';
 
 function getUpdatedConfigMap(
   handlers: GraphViewSettingsMessageHandlers,
-  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
+  key: GraphControlConfigKey,
   entryKey: string,
   value: boolean | string,
 ): Record<string, boolean | string> {
-  return {
+  return pruneGraphControlConfigMap(key, {
     ...handlers.getConfig<Record<string, boolean | string>>(key, {}),
     [entryKey]: value,
-  };
+  });
 }
 
 async function applyGraphControlsUpdate(
-  key: 'nodeVisibility' | 'edgeVisibility' | 'nodeColors' | 'nodeColorEnabled',
+  key: GraphControlConfigKey,
   entryKey: string,
   value: boolean | string,
   handlers: GraphViewSettingsMessageHandlers,
@@ -24,10 +25,37 @@ async function applyGraphControlsUpdate(
   if (options.publish === false) {
     return true;
   }
-  if (key === 'nodeVisibility' || key === 'nodeColors' || key === 'nodeColorEnabled') {
+  if (key === 'nodeVisibility' || key === 'nodeColors') {
     handlers.recomputeGroups();
     handlers.sendGroupsUpdated();
   }
+  handlers.sendGraphControls();
+  return true;
+}
+
+async function applySymbolVisibilityUpdate(
+  visible: boolean,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  const nodeVisibility: Record<string, boolean> = {
+    ...pruneGraphControlConfigMap(
+      'nodeVisibility',
+      handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+    ),
+    symbol: visible,
+  };
+
+  await handlers.updateConfig('nodeVisibility', nodeVisibility);
+
+  if (visible) {
+    await handlers.updateConfig('edgeVisibility', {
+      ...handlers.getConfig<Record<string, boolean>>('edgeVisibility', {}),
+      contains: true,
+    });
+  }
+
+  handlers.recomputeGroups();
+  handlers.sendGroupsUpdated();
   handlers.sendGraphControls();
   return true;
 }
@@ -37,6 +65,10 @@ export async function applyGraphControlMessage(
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   if (message.type === 'UPDATE_NODE_VISIBILITY') {
+    if (message.payload.nodeType === 'symbol') {
+      return applySymbolVisibilityUpdate(message.payload.visible, handlers);
+    }
+
     return applyGraphControlsUpdate(
       'nodeVisibility',
       message.payload.nodeType,
@@ -62,15 +94,6 @@ export async function applyGraphControlMessage(
       handlers,
       { publish: false },
     );
-    if (typeof message.payload.enabled === 'boolean') {
-      await applyGraphControlsUpdate(
-        'nodeColorEnabled',
-        message.payload.nodeType,
-        message.payload.enabled,
-        handlers,
-        { publish: false },
-      );
-    }
     handlers.recomputeGroups();
     handlers.sendGroupsUpdated();
     handlers.sendGraphControls();

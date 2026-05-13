@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { mdiClose } from '@mdi/js';
 import { useGraphStore } from '../../../store/state';
 import { postMessage } from '../../../vscodeApi';
@@ -50,64 +50,11 @@ function useCollapsedLegendEntries(): readonly [
 function useDisplayNodeEntries(
   nodeEntries: ReturnType<typeof useLegendPanelState>['nodeEntries'],
 ): {
-  builtInNodeColorsRef: React.MutableRefObject<Record<string, string>>;
   displayNodeEntries: LegendSectionProps['builtInEntries'];
-  setBuiltInNodeColorEnabled: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 } {
-  const builtInNodeColorsRef = useRef<Record<string, string>>({});
-  const [builtInNodeColorEnabled, setBuiltInNodeColorEnabled] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    setBuiltInNodeColorEnabled((current) => syncBuiltInNodeColorOverrides(current, nodeEntries));
-  }, [nodeEntries]);
-
-  const displayNodeEntries = useMemo(
-    () => buildDisplayNodeEntries(nodeEntries, builtInNodeColorEnabled, builtInNodeColorsRef.current),
-    [builtInNodeColorEnabled, nodeEntries],
-  );
-
   return {
-    builtInNodeColorsRef,
-    displayNodeEntries,
-    setBuiltInNodeColorEnabled,
+    displayNodeEntries: nodeEntries.filter((entry) => entry.id !== 'folder'),
   };
-}
-
-function syncBuiltInNodeColorOverrides(
-  current: Record<string, boolean>,
-  nodeEntries: ReturnType<typeof useLegendPanelState>['nodeEntries'],
-): Record<string, boolean> {
-  const next = { ...current };
-  let changed = false;
-
-  for (const entry of nodeEntries) {
-    if (next[entry.id] === entry.colorEnabled) {
-      delete next[entry.id];
-      changed = true;
-    }
-  }
-
-  return changed ? next : current;
-}
-
-function buildDisplayNodeEntries(
-  nodeEntries: ReturnType<typeof useLegendPanelState>['nodeEntries'],
-  builtInNodeColorEnabled: Record<string, boolean>,
-  builtInNodeColors: Record<string, string>,
-): LegendSectionProps['builtInEntries'] {
-  return nodeEntries
-    .filter((entry) => entry.id !== 'folder')
-    .map((entry) => {
-      const colorEnabled = builtInNodeColorEnabled[entry.id] ?? entry.colorEnabled ?? true;
-      const storedColor = builtInNodeColors[entry.id]
-        ?? (entry.color !== entry.defaultColor ? entry.color : entry.defaultColor);
-
-      return {
-        ...entry,
-        color: colorEnabled ? storedColor : entry.defaultColor,
-        colorEnabled,
-      };
-    });
 }
 
 type LegendSectionProps = React.ComponentProps<typeof LegendSection>;
@@ -118,7 +65,6 @@ export default function LegendsPanel({
 }: LegendsPanelProps): React.ReactElement | null {
   const nodeTypes = useGraphStore((state) => state.graphNodeTypes);
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
-  const nodeColorEnabled = useGraphStore((state) => state.nodeColorEnabled);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const legends = useGraphStore((state) => state.legends);
   const optimisticLegendUpdates = useGraphStore((state) => state.optimisticLegendUpdates);
@@ -139,15 +85,12 @@ export default function LegendsPanel({
   } = useLegendPanelState({
     edgeTypes,
     legends,
-    nodeColorEnabled,
     nodeColors,
     nodeTypes,
     optimisticLegendUpdates,
   });
   const {
-    builtInNodeColorsRef,
     displayNodeEntries,
-    setBuiltInNodeColorEnabled,
   } = useDisplayNodeEntries(nodeEntries);
 
   const toggleDefaultLegendVisibilityBatch = (
@@ -190,29 +133,9 @@ export default function LegendsPanel({
             legends={legends}
             target="node"
             onBuiltInColorChange={(nodeType, color) => {
-              builtInNodeColorsRef.current[nodeType] = color;
-              setBuiltInNodeColorEnabled((current) => ({ ...current, [nodeType]: true }));
               postMessage({
                 type: 'UPDATE_NODE_COLOR',
-                payload: { nodeType, color, enabled: true },
-              });
-            }}
-            onBuiltInColorToggle={(nodeType, enabled) => {
-              const entry = nodeEntries.find((candidate) => candidate.id === nodeType);
-              if (!entry) {
-                return;
-              }
-              const storedColor = builtInNodeColorsRef.current[nodeType]
-                ?? (entry.color !== entry.defaultColor ? entry.color : entry.defaultColor);
-              builtInNodeColorsRef.current[nodeType] = storedColor;
-              setBuiltInNodeColorEnabled((current) => ({ ...current, [nodeType]: enabled }));
-              postMessage({
-                type: 'UPDATE_NODE_COLOR',
-                payload: {
-                  nodeType,
-                  color: enabled ? storedColor : entry.defaultColor,
-                  enabled,
-                },
+                payload: { nodeType, color },
               });
             }}
             onRulesChange={(nextSectionRules, iconImports) => {

@@ -8,7 +8,6 @@ export interface LegendBuiltInEntry {
   label: string;
   color: string;
   defaultColor: string;
-  colorEnabled?: boolean;
 }
 
 export type LegendDisplayRule = IGroup;

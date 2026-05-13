@@ -1,4 +1,4 @@
-import type { GraphContextSelection } from '../contextMenu/contracts';
+import type { GraphContextMenuNode, GraphContextSelection } from '../contextMenu/contracts';
 import type { GraphLayoutMode } from '../../../../shared/settings/graphLayout';
 
 export interface GraphContextNodePosition2D {
@@ -12,6 +12,7 @@ export interface GraphContextNodePosition3D extends GraphContextNodePosition2D {
 
 export interface ResolveGraphContextActionOptions {
   graphMode?: GraphLayoutMode;
+  nodes?: readonly GraphContextMenuNode[];
   nodePositions?: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
 }
 
@@ -21,6 +22,7 @@ export interface GraphContextActionContext {
   primaryTargetId?: string;
   edgeSourceId?: string;
   edgeTargetId?: string;
+  primaryNode?: GraphContextMenuNode;
   graphMode: GraphLayoutMode;
   mutationDirectory: string;
   nodePositions: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
@@ -37,6 +39,7 @@ export function resolveGraphContextActionContext(
     selectionKind: selection.kind,
     targetIds: selection.targets,
     primaryTargetId,
+    primaryNode: options.nodes?.find(node => node.id === primaryTargetId),
     edgeSourceId: isEdgeSelection ? primaryTargetId : undefined,
     edgeTargetId: isEdgeSelection ? secondaryTargetId : undefined,
     graphMode: options.graphMode ?? '2d',

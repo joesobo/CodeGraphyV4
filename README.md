@@ -43,6 +43,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 | Feature | Why it matters |
 |---|---|
 | Relationship Graph | See files, folders, packages, plugin nodes, and their Edges in one interactive graph. |
+| Symbol Nodes | Expand files into functions, classes, interfaces, types, variables, constants, and plugin-provided declarations when you need code-level context. |
 | Search and Filters | Search temporarily, then use persistent Filters to remove generated files, tests, docs, or any other noise from the Visible Graph. |
 | Graph Scope | Turn Node Types and Edge Types on or off so the graph matches the question you are asking. |
 | Material Icon Theme nodes | File and folder nodes use Material Icon Theme shapes and colors instead of generic dots. |
@@ -63,6 +64,10 @@ This repo is a work in progress and is being built through agentic engineering. 
 |:--:|
 | ![CodeGraphy using VS Code theme colors in the activity bar, sidebar panels, graph background, timeline, and controls](./docs/media/readme/vscode-theme-integration.png) |
 
+| Symbol Nodes |
+|:--:|
+| ![CodeGraphy Relationship Graph showing a repository expanded with colorful symbol nodes around file and folder nodes](./docs/media/readme/symbol-nodes-graph.png) |
+
 | 2D Relationship Graph | 3D Relationship Graph |
 |:--:|:--:|
 | ![2D Relationship Graph with Material Icon Theme nodes](./docs/media/readme/relationship-graph-2d.png) | ![3D Relationship Graph with file labels and depth](./docs/media/readme/relationship-graph-3d.png) |
@@ -80,6 +85,8 @@ This repo is a work in progress and is being built through agentic engineering. 
 ![CodeGraphy architecture and logic flow](./docs/media/readme/codegraphy-architecture.svg)
 
 Workspace files, Git history, and repo-local settings flow into the Core Extension. Indexing combines built-in Tree-sitter analysis with enabled plugins, stores relationship evidence in the Graph Cache, then Graph Projection produces the Visible Graph that powers the VS Code webview, exports, and CodeGraphy MCP.
+
+Symbol Nodes are built from indexed declarations and appear alongside file, folder, package, and plugin nodes when you need code-level context. Common kinds include Function, Class, Interface, Type, Struct, Enum, Variable, and Constant. `contains` Edges connect files to their declarations, and symbol-aware relationship Edges show calls, references, inheritance, overrides, imports, and plugin-provided links when analysis can resolve them. Legend defaults style common symbol kinds automatically, custom Legend Entries can target symbol names, kinds, plugin kinds, languages, or containing file paths, and Graph Query/MCP exposes the same symbol payloads to agents.
 
 The editable Excalidraw source for this diagram lives at [docs/media/readme/codegraphy-architecture.excalidraw](./docs/media/readme/codegraphy-architecture.excalidraw).
 

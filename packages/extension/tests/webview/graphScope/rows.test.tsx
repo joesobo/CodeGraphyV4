@@ -37,19 +37,19 @@ describe('graph scope rows', () => {
       <NodeTypeRows
         nodeColors={{ file: '#555555' }}
         nodeTypes={[
-          { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
-          { id: 'folder', label: 'Folders', defaultColor: '#222222', defaultVisible: false },
+          { id: 'file', label: 'File', defaultColor: '#111111', defaultVisible: true },
+          { id: 'folder', label: 'Folder', defaultColor: '#222222', defaultVisible: false },
         ]}
         nodeVisibility={{ folder: true }}
       />,
     );
 
-    expect(scopeSwatch(container, 'Files')).toHaveStyle('background-color: #555555');
-    expect(scopeSwatch(container, 'Folders')).toHaveStyle('background-color: #222222');
-    expect(scopeRow(container, 'Files')).not.toHaveClass('opacity-65');
-    expect(scopeRow(container, 'Folders')).not.toHaveClass('opacity-65');
+    expect(scopeSwatch(container, 'File')).toHaveStyle('background-color: #555555');
+    expect(scopeSwatch(container, 'Folder')).toHaveStyle('background-color: #222222');
+    expect(scopeRow(container, 'File')).not.toHaveClass('opacity-65');
+    expect(scopeRow(container, 'Folder')).not.toHaveClass('opacity-65');
 
-    fireEvent.click(screen.getByLabelText('Toggle Files'));
+    fireEvent.click(screen.getByLabelText('Toggle File'));
 
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_NODE_VISIBILITY',
@@ -62,13 +62,40 @@ describe('graph scope rows', () => {
       <NodeTypeRows
         nodeColors={{}}
         nodeTypes={[
-          { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
+          { id: 'file', label: 'File', defaultColor: '#111111', defaultVisible: true },
         ]}
         nodeVisibility={{ file: false }}
       />,
     );
 
-    expect(scopeRow(container, 'Files')).toHaveClass('opacity-65');
+    expect(scopeRow(container, 'File')).toHaveClass('opacity-65');
+  });
+
+  it('hides the Variable row until Symbol is enabled', () => {
+    const nodeTypes = [
+      { id: 'symbol', label: 'Symbol', defaultColor: '#111111', defaultVisible: false },
+      { id: 'variable', label: 'Variable', defaultColor: '#222222', defaultVisible: false },
+    ];
+    const { container, rerender } = render(
+      <NodeTypeRows
+        nodeColors={{}}
+        nodeTypes={nodeTypes}
+        nodeVisibility={{ symbol: false, variable: true }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Symbol')).toBeInTheDocument();
+    expect(scopeRow(container, 'Variable')).toBeNull();
+
+    rerender(
+      <NodeTypeRows
+        nodeColors={{}}
+        nodeTypes={nodeTypes}
+        nodeVisibility={{ symbol: true, variable: false }}
+      />,
+    );
+
+    expect(scopeRow(container, 'Variable')).toBeInTheDocument();
   });
 
   it('renders edge rows from resolved colors and posts edge visibility changes', () => {

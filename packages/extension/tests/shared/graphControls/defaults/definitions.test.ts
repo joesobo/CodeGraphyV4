@@ -7,7 +7,21 @@ import {
 
 describe('shared/graphControls/defaults/definitions', () => {
   it('declares the core graph node and edge definitions', () => {
-    expect(CORE_GRAPH_NODE_TYPES.map((definition) => definition.id)).toEqual(['file', 'folder', 'package']);
+    expect(CORE_GRAPH_NODE_TYPES.map((definition) => definition.id)).toEqual([
+      'file',
+      'folder',
+      'package',
+      'symbol',
+      'symbol:function',
+      'symbol:class',
+      'symbol:interface',
+      'symbol:type',
+      'symbol:struct',
+      'symbol:enum',
+      'variable',
+      'symbol:constant',
+      'plugin:codegraphy.gdscript:symbol:godot-class-name',
+    ]);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === STRUCTURAL_NESTS_EDGE_KIND)).toBe(true);
     expect(CORE_GRAPH_EDGE_TYPES.some((definition) => definition.id === 'import')).toBe(true);
   });

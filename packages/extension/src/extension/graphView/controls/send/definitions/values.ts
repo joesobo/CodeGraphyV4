@@ -35,19 +35,3 @@ export function resolveNodeColors(
 
   return colors;
 }
-
-export function resolveNodeColorEnabledMap(
-  definitions: Array<{ id: string }>,
-  configured: Record<string, unknown>,
-): Record<string, boolean> {
-  const enabled: Record<string, boolean> = {};
-
-  for (const definition of definitions) {
-    enabled[definition.id] =
-      typeof configured[definition.id] === 'boolean'
-        ? (configured[definition.id] as boolean)
-        : true;
-  }
-
-  return enabled;
-}

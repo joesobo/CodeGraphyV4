@@ -63,7 +63,7 @@ describe('extension/pipeline/service/stateBase', () => {
       relations: [],
     });
     expect(state._cache).toEqual({
-      version: '2.0.0',
+      version: '2.1.0',
       files: {},
     });
 

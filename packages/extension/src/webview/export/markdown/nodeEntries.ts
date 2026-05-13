@@ -11,6 +11,13 @@ export function appendNodeLines(lines: string[], data: ExportData): void {
   }
 
   for (const node of data.nodes) {
+    if (node.symbol) {
+      lines.push(
+        `- \`${node.id}\` (${node.nodeType}: ${node.symbol.kind} \`${node.symbol.name}\` in \`${node.symbol.filePath}\`)${buildNodeLegendSuffix(node.legendIds)}`,
+      );
+      continue;
+    }
+
     lines.push(`- \`${node.id}\` (${node.nodeType})${buildNodeLegendSuffix(node.legendIds)}`);
   }
 }
