@@ -7,6 +7,7 @@ import {
   mdiShapeOutline,
   mdiViewGridOutline,
 } from '@mdi/js';
+import type { LegendIconImport } from '../../../../shared/protocol/webviewToExtension';
 
 export interface GraphSectionMaterialIconOption {
   id: string;
@@ -29,7 +30,10 @@ export function getGraphSectionMaterialIconPath(icon: string | undefined): strin
 }
 
 export function isGraphSectionUploadedIcon(icon: string | undefined): icon is string {
-  return !!icon && /^data:image\/(?:png|svg\+xml);base64,/.test(icon);
+  return !!icon && (
+    /^data:image\/(?:png|svg\+xml);base64,/.test(icon)
+    || /^\.codegraphy\/icons\/[^/]+?\.(?:svg|png)$/i.test(icon)
+  );
 }
 
 function fileToBase64(buffer: ArrayBuffer): string {
@@ -71,6 +75,33 @@ function getIconMimeType(file: File): string {
   return file.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/svg+xml';
 }
 
-export async function readGraphSectionIconUpload(file: File): Promise<string> {
-  return `data:${getIconMimeType(file)};base64,${fileToBase64(await readFileAsArrayBuffer(file))}`;
+function sanitizeSegment(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'icon';
+}
+
+function getIconExtension(file: File): string {
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  return extension === 'png' ? 'png' : 'svg';
+}
+
+export async function readGraphSectionIconUpload(
+  sectionId: string,
+  file: File,
+): Promise<{ imageUrl: string; importPayload: LegendIconImport }> {
+  const extension = getIconExtension(file);
+  const baseName = file.name.replace(/\.[^.]+$/, '');
+  const imagePath = `.codegraphy/icons/${sanitizeSegment(sectionId)}-${sanitizeSegment(baseName)}.${extension}`;
+  const contentsBase64 = fileToBase64(await readFileAsArrayBuffer(file));
+
+  return {
+    imageUrl: `data:${getIconMimeType(file)};base64,${contentsBase64}`,
+    importPayload: {
+      imagePath,
+      contentsBase64,
+    },
+  };
 }

@@ -1,4 +1,5 @@
 import type { GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
+import type { LegendIconImport } from '../../../../shared/protocol/webviewToExtension';
 import {
   getSectionFrameDragUpdate,
   type SectionFrameDragUpdate,
@@ -10,6 +11,7 @@ export type SectionFrameUpdateHandler = (
   this: void,
   sectionId: string,
   updates: GraphLayoutSectionUpdate,
+  iconImports?: LegendIconImport[],
 ) => void;
 
 export type SectionFrameDragEndHandler = (

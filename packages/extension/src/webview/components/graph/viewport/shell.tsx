@@ -1,5 +1,6 @@
 import { useRef, type ReactElement } from 'react';
 import type { ThemeKind } from '../../../theme/useTheme';
+import type { LegendIconImport } from '../../../../shared/protocol/webviewToExtension';
 import {
   getGraphLayoutPinCoordinate,
   type GraphLayoutSection,
@@ -188,10 +189,16 @@ export function GraphViewportShell({
     viewState,
   });
 
-  function handleUpdateSection(sectionId: string, updates: GraphLayoutSectionUpdate): void {
+  function handleUpdateSection(
+    sectionId: string,
+    updates: GraphLayoutSectionUpdate,
+    iconImports?: LegendIconImport[],
+  ): void {
     postMessage({
       type: 'UPDATE_GRAPH_LAYOUT_SECTION',
-      payload: { sectionId, updates },
+      payload: iconImports?.length
+        ? { sectionId, updates, iconImports }
+        : { sectionId, updates },
     });
   }
 

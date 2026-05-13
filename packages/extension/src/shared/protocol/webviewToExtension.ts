@@ -60,6 +60,7 @@ export type WebviewToExtensionMessage =
   | {
       type: 'UPDATE_GRAPH_LAYOUT_SECTION';
       payload: {
+        iconImports?: LegendIconImport[];
         sectionId: string;
         updates: GraphLayoutSectionUpdate;
       };
