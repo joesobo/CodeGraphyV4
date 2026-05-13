@@ -1,6 +1,6 @@
 import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
 import {
-  findDeepestGraphLayoutSectionAtPoint,
+  findDeepestGraphLayoutSectionAtWorldPoint,
   isGraphLayoutSectionDescendant,
   type GraphLayoutMode,
   type GraphLayoutOwnershipUpdate,
@@ -209,7 +209,7 @@ function createGraphLayoutOwnerDragMessage(
 
   const liveGraphLayout = createLiveGraphLayout(graphLayout, graphNodes);
   const ownerCandidateGraphLayout = createOwnershipCandidateGraphLayout(liveGraphLayout, node);
-  const ownerSectionId = findDeepestGraphLayoutSectionAtPoint(ownerCandidateGraphLayout, position);
+  const ownerSectionId = findDeepestGraphLayoutSectionAtWorldPoint(ownerCandidateGraphLayout, position);
   const currentOwnerSectionId = graphLayout.ownership[node.id]?.ownerSectionId ?? null;
   if (ownerSectionId === currentOwnerSectionId) {
     return undefined;
@@ -382,7 +382,7 @@ export function updateNodeDragOwnerPreview(
 
   const liveGraphLayout = createLiveGraphLayout(options.graphLayout, options.graphData.nodes);
   const ownerCandidateGraphLayout = createOwnershipCandidateGraphLayout(liveGraphLayout, node);
-  return findDeepestGraphLayoutSectionAtPoint(ownerCandidateGraphLayout, position);
+  return findDeepestGraphLayoutSectionAtWorldPoint(ownerCandidateGraphLayout, position);
 }
 
 export function postDraggedNodesDragEndMessages(

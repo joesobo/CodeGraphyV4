@@ -151,6 +151,45 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
+  it('assigns a dragged node to a nested section using world-space section bounds', () => {
+    const layout = createLayout('parent');
+    layout.sections.parent.x = 100;
+    layout.sections.parent.y = 50;
+    layout.sections.child.x = 20;
+    layout.sections.child.y = 20;
+
+    postNodeDragEndMessages(
+      { id: 'node', x: 140, y: 90 } as FGNode,
+      layout,
+      '2d',
+      false,
+    );
+
+    expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'node',
+        itemKind: 'node',
+        ownerSectionId: 'child',
+      },
+    });
+  });
+
+  it('previews nested section ownership using world-space section bounds', () => {
+    const layout = createLayout('parent');
+    layout.sections.parent.x = 100;
+    layout.sections.parent.y = 50;
+    layout.sections.child.x = 20;
+    layout.sections.child.y = 20;
+
+    expect(updateNodeDragOwnerPreview({ id: 'node', x: 140, y: 90 } as FGNode, {
+      graphData: { nodes: [] },
+      graphLayout: layout,
+      graphMode: '2d',
+      timelineActive: false,
+    })).toBe('child');
+  });
+
   it('assigns dragged nodes using live Section Node positions', () => {
     const layout = createLayout(null);
     layout.sections.child.x = 20;
