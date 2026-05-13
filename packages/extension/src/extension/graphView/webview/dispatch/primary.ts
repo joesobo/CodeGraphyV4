@@ -72,6 +72,7 @@ export interface GraphViewPrimaryMessageContext {
   ): Thenable<readonly vscode.Uri[] | undefined>;
   createDirectory(uri: vscode.Uri): Thenable<void>;
   writeFile(uri: vscode.Uri, content: Uint8Array): Thenable<void>;
+  asWebviewUri?(uri: vscode.Uri): { toString(): string };
   copyFile(
     source: vscode.Uri,
     destination: vscode.Uri,

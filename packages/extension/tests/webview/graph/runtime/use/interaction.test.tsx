@@ -333,6 +333,73 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     expect(interactionRuntimeHarness.postMessage).toHaveBeenCalledWith({ type: 'PHYSICS_STABILIZED' });
   });
 
+  it('uses the live context selection when a section menu action runs before React rerenders', () => {
+    const interactionHandlers = createInteractionHandlers();
+    const contextMenuRuntime = createContextMenuRuntime();
+    const tooltipRuntime = createTooltipRuntime();
+    const setContextSelection = vi.fn();
+
+    interactionRuntimeHarness.createGraphInteractionHandlers.mockReturnValue(interactionHandlers);
+    interactionRuntimeHarness.createGraphContextMenuRuntime.mockReturnValue(contextMenuRuntime);
+    interactionRuntimeHarness.useGraphTooltip.mockReturnValue(tooltipRuntime);
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+
+    const { result } = renderHook(() => useGraphInteractionRuntime({
+      dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
+      fileInfoCacheRef: { current: new Map() } as never,
+      graphContextSelection: createSelection([]),
+      graphCursorRef: { current: 'default' as never },
+      graphDataRef: { current: { links: [], nodes: [] } } as never,
+      graphLayout: createNestedGraphLayout(undefined),
+      graphMode: '2d',
+      highlightedNeighborsRef: { current: new Set() },
+      highlightedNodeRef: { current: null },
+      isMacPlatform: false,
+      lastClickRef: { current: null },
+      lastContainerContextMenuEventRef: { current: 0 },
+      lastGraphContextEventRef: { current: 0 },
+      refs: {
+        containerRef: { current: document.createElement('div') },
+        fg2dRef: { current: undefined },
+        fg3dRef: { current: undefined },
+        rightClickFallbackTimerRef: { current: null },
+        rightMouseDownRef: { current: null },
+        selectedNodesSetRef: { current: new Set() },
+      },
+      setContextSelection,
+      setHighlightVersion: vi.fn(),
+      setSelectedNodes: vi.fn(),
+      timelineActive: false,
+    }));
+
+    const interactionOptions = interactionRuntimeHarness.createGraphInteractionHandlers.mock.calls[0]?.[0];
+    interactionOptions.setContextSelection({
+      kind: 'node',
+      targets: ['section-parent'],
+      graphPosition: { x: 20, y: 20 },
+    });
+    const action: GraphContextMenuAction = {
+      action: 'createGraphSection',
+      kind: 'builtin',
+    };
+
+    result.current.handleMenuAction(action);
+
+    expect(setContextSelection).toHaveBeenCalledWith({
+      kind: 'node',
+      targets: ['section-parent'],
+      graphPosition: { x: 20, y: 20 },
+    });
+    expect(contextMenuRuntime.handleMenuAction).toHaveBeenCalledWith(action, expect.objectContaining({
+      ownerSectionId: 'section-parent',
+      primaryTargetId: 'section-parent',
+      selectionKind: 'node',
+      targetIds: ['section-parent'],
+    }));
+  });
+
   it('refreshes delegated handlers when runtime dependencies change on rerender', () => {
     const firstInteractionHandlers = createInteractionHandlers();
     const secondInteractionHandlers = createInteractionHandlers();

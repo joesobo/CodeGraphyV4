@@ -128,6 +128,7 @@ function SectionFrameLabelInput({
 
 interface SectionFrameIconInputProps {
   icon: string | undefined;
+  iconUrl: string | undefined;
   sectionId: string;
   showTopbar: boolean;
   onUpdateSection: SectionFrameUpdateHandler;
@@ -135,13 +136,14 @@ interface SectionFrameIconInputProps {
 
 function SectionFrameIconInput({
   icon,
+  iconUrl,
   sectionId,
   showTopbar,
   onUpdateSection,
 }: SectionFrameIconInputProps): ReactElement {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const materialIconPath = getGraphSectionMaterialIconPath(icon);
-  const uploadedIcon = isGraphSectionUploadedIcon(icon) ? icon : undefined;
+  const uploadedIcon = isGraphSectionUploadedIcon(icon) ? iconUrl ?? icon : undefined;
 
   return (
     <div className="flex h-5 shrink-0 items-center" data-graph-section-control="true">
@@ -365,6 +367,7 @@ export function SectionFrames({
               </button>
               <SectionFrameIconInput
                 icon={section.icon}
+                iconUrl={section.iconUrl}
                 sectionId={section.id}
                 showTopbar={showTopbar}
                 onUpdateSection={onUpdateSection}

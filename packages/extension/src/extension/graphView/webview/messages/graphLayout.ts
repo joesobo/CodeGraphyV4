@@ -13,9 +13,11 @@ import {
   type GraphLayoutSettings,
 } from '../../../repoSettings/graphLayout/model';
 import { getUndoManager, type IUndoableAction } from '../../../undoManager';
+import { addGraphSectionIconUrls } from '../../graphLayout/message';
 import { writeIconImports, type IconImportMessageHandlers } from './iconImports';
 
 export interface GraphLayoutMessageHandlers extends IconImportMessageHandlers {
+  asWebviewUri?(uri: import('vscode').Uri): { toString(): string };
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   sendMessage(message: ExtensionToWebviewMessage): void;
@@ -30,11 +32,18 @@ function readCurrentGraphLayout(handlers: Pick<GraphLayoutMessageHandlers, 'getC
 async function persistAndSendGraphLayout(
   handlers: GraphLayoutMessageHandlers,
   graphLayout: GraphLayoutSettings,
+  options: { iconUrls?: ReadonlyMap<string, string> } = {},
 ): Promise<void> {
   await handlers.updateConfig('graphLayout', graphLayout);
   handlers.sendMessage({
     type: 'GRAPH_LAYOUT_UPDATED',
-    payload: graphLayout,
+    payload: addGraphSectionIconUrls(graphLayout, {
+      asWebviewUri: handlers.asWebviewUri
+        ? uri => handlers.asWebviewUri?.(uri) ?? uri
+        : undefined,
+      iconUrls: options.iconUrls,
+      workspaceFolder: handlers.workspaceFolder,
+    }),
   });
 }
 
@@ -102,12 +111,18 @@ export async function applyGraphLayoutMessage(
     case 'UPDATE_GRAPH_LAYOUT_SECTION': {
       const { iconImports: _iconImports, ...patch } = message.payload;
       await writeIconImports(_iconImports, handlers);
+      const iconUrls = new Map(
+        (_iconImports ?? []).map(iconImport => [
+          iconImport.imagePath,
+          `data:image/${iconImport.imagePath.endsWith('.svg') ? 'svg+xml' : 'png'};base64,${iconImport.contentsBase64}`,
+        ]),
+      );
       const nextLayout = updateGraphLayoutSection(readCurrentGraphLayout(handlers), {
         ...patch,
         updatedAt: new Date().toISOString(),
       });
 
-      await persistAndSendGraphLayout(handlers, nextLayout);
+      await persistAndSendGraphLayout(handlers, nextLayout, { iconUrls });
       return true;
     }
 

@@ -24,6 +24,7 @@ export interface GraphLayoutSection {
   id: string;
   label: string;
   icon?: string;
+  iconUrl?: string;
   color: string;
   x: number;
   y: number;

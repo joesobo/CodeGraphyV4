@@ -35,8 +35,8 @@ export interface GraphContextMenuOpeningRuntime {
 }
 
 export interface GraphContextMenuOpeningOptions {
-  actionContext: GraphContextActionContext;
   fileInfoCacheRef: UseGraphStateResult['fileInfoCacheRef'];
+  getActionContext(): GraphContextActionContext;
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
   lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
@@ -67,7 +67,7 @@ function createGraphContextMenuOpeningDependencies({
   setTooltipData,
   stopTooltipTracking,
   tooltipTimeoutRef,
-}: Omit<GraphContextMenuOpeningOptions, 'actionContext'>): GraphContextMenuRuntimeDependencies<FGNode> {
+}: Omit<GraphContextMenuOpeningOptions, 'getActionContext'>): GraphContextMenuRuntimeDependencies<FGNode> {
   return {
     hoveredNodeRef,
     lastContainerContextMenuEventRef,
@@ -93,7 +93,7 @@ function createGraphContextMenuOpeningDependencies({
 function createGraphContextMenuOpeningHandlers(
   contextMenuRuntime: GraphContextMenuRuntime,
   interactionHandlers: GraphInteractionHandlersRuntime,
-  actionContext: GraphContextActionContext,
+  getActionContext: GraphContextMenuOpeningOptions['getActionContext'],
   refs: GraphContextMenuOpeningOptions['refs'],
 ): Omit<GraphContextMenuOpeningRuntime, 'contextMenuRuntime'> {
   function clearRightClickBackgroundFallback(): void {
@@ -114,7 +114,7 @@ function createGraphContextMenuOpeningHandlers(
       interactionHandlers.openEdgeContextMenu(link, event);
     },
     handleMenuAction: action => {
-      contextMenuRuntime.handleMenuAction(action, actionContext);
+      contextMenuRuntime.handleMenuAction(action, getActionContext());
     },
     handleMouseDownCapture: event => {
       contextMenuRuntime.handleMouseDownCapture({
@@ -156,7 +156,7 @@ export function createGraphContextMenuOpeningRuntime(
     ...createGraphContextMenuOpeningHandlers(
       contextMenuRuntime,
       options.interactionHandlers,
-      options.actionContext,
+      () => options.getActionContext(),
       options.refs,
     ),
   };

@@ -243,6 +243,18 @@ describe('graph/sectionFrames/view', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
+  it('renders uploaded Section Frame icons from the resolved webview URL', () => {
+    renderSectionFrames({
+      icon: '.codegraphy/icons/section-1-section.svg',
+      iconUrl: 'vscode-resource://workspace/.codegraphy/icons/section-1-section.svg',
+    });
+
+    expect(document.querySelector('img')).toHaveAttribute(
+      'src',
+      'vscode-resource://workspace/.codegraphy/icons/section-1-section.svg',
+    );
+  });
+
   it('uploads a custom image as the Section Frame icon', async () => {
     const { onUpdateSection } = renderSectionFrames();
     const file = new File(['<svg/>'], 'section.svg', { type: 'image/svg+xml' });

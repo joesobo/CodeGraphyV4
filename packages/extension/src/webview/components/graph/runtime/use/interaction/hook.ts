@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -90,6 +91,15 @@ export function useGraphInteractionRuntime({
   timelineActive = false,
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
   const nodeDragGroupRef = useRef<NodeDragGroupSession | null>(null);
+  const graphContextSelectionRef = useRef(graphContextSelection);
+  graphContextSelectionRef.current = graphContextSelection;
+  const setLiveContextSelection = useCallback<typeof setContextSelection>((nextSelection) => {
+    const resolvedSelection = typeof nextSelection === 'function'
+      ? nextSelection(graphContextSelectionRef.current)
+      : nextSelection;
+    graphContextSelectionRef.current = resolvedSelection;
+    setContextSelection(resolvedSelection);
+  }, [setContextSelection]);
   const contextMenuSuppression = useContextMenuSuppression();
   const interactionHandlers = useMemo(
     () => createGraphInteractionHandlers({
@@ -110,7 +120,7 @@ export function useGraphInteractionRuntime({
       lastClickRef,
       lastGraphContextEventRef,
       selectedNodesSetRef: refs.selectedNodesSetRef,
-      setContextSelection,
+      setContextSelection: setLiveContextSelection,
       setHighlightVersion,
       setSelectedNodes,
       toggleFolderCollapse: (nodeId, collapsed) => {
@@ -135,7 +145,7 @@ export function useGraphInteractionRuntime({
       refs.fg2dRef,
       refs.fg3dRef,
       refs.selectedNodesSetRef,
-      setContextSelection,
+      setLiveContextSelection,
       setHighlightVersion,
       setSelectedNodes,
     ],
@@ -175,14 +185,14 @@ export function useGraphInteractionRuntime({
     selectedNodesSetRef: refs.selectedNodesSetRef,
   });
 
-  const actionContext = useMemo(
-    () => resolveGraphContextActionContext(graphContextSelection, {
+  const getActionContext = useCallback(
+    () => resolveGraphContextActionContext(graphContextSelectionRef.current, {
       graphLayout,
       graphMode,
       graphViewportScale: readGraphViewportScale(graphMode, refs.fg2dRef.current),
       nodePositions: createGraphNodePositionMap(graphDataRef.current.nodes, graphMode),
     }),
-    [graphContextSelection, graphDataRef, graphLayout, graphMode, refs.fg2dRef],
+    [graphDataRef, graphLayout, graphMode, refs.fg2dRef],
   );
 
   function handleNodeDragEnd(node: FGNode): void {
@@ -221,8 +231,8 @@ export function useGraphInteractionRuntime({
 
   const contextMenuOpeningRuntime = useMemo(
     () => createGraphContextMenuOpeningRuntime({
-      actionContext,
       fileInfoCacheRef,
+      getActionContext,
       hoveredNodeRef,
       interactionHandlers,
       lastContainerContextMenuEventRef,
@@ -230,14 +240,14 @@ export function useGraphInteractionRuntime({
       openFilterPatternPrompt,
       openLegendRulePrompt,
       refs,
-      setContextSelection,
+      setContextSelection: setLiveContextSelection,
       setTooltipData,
       stopTooltipTracking,
       tooltipTimeoutRef,
     }),
     [
-      actionContext,
       fileInfoCacheRef,
+      getActionContext,
       hoveredNodeRef,
       interactionHandlers,
       lastContainerContextMenuEventRef,
@@ -245,7 +255,7 @@ export function useGraphInteractionRuntime({
       openFilterPatternPrompt,
       openLegendRulePrompt,
       refs,
-      setContextSelection,
+      setLiveContextSelection,
       setTooltipData,
       stopTooltipTracking,
       tooltipTimeoutRef,

@@ -49,13 +49,14 @@ function createLink(id: string): FGLink {
 }
 
 function createOpeningOptions(overrides: Record<string, unknown> = {}) {
+  const actionContext = {
+    mutationDirectory: 'src/app.ts',
+    primaryTargetId: 'src/app.ts',
+    selectionKind: 'node',
+    targetIds: ['src/app.ts'],
+  };
   return {
-    actionContext: {
-      mutationDirectory: 'src/app.ts',
-      primaryTargetId: 'src/app.ts',
-      selectionKind: 'node',
-      targetIds: ['src/app.ts'],
-    },
+    getActionContext: vi.fn(() => actionContext),
     fileInfoCacheRef: { current: new Map([['src/stale.ts', { path: 'src/stale.ts' }]]) },
     hoveredNodeRef: { current: null },
     interactionHandlers: createInteractionHandlers(),
@@ -159,6 +160,9 @@ describe('graph/contextMenuOpening/runtime', () => {
     expect(options.interactionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith(graphEvent);
     expect(options.interactionHandlers.getBackgroundGraphPosition).toHaveBeenCalledWith(graphEvent);
     expect(contextMenuRuntime.handleContextMenu).toHaveBeenCalledWith({ x: 24, y: -32 });
-    expect(contextMenuRuntime.handleMenuAction).toHaveBeenCalledWith(action, options.actionContext);
+    expect(options.getActionContext).toHaveBeenCalledTimes(1);
+    expect(contextMenuRuntime.handleMenuAction).toHaveBeenCalledWith(action, expect.objectContaining({
+      primaryTargetId: 'src/app.ts',
+    }));
   });
 });
