@@ -44,7 +44,6 @@ export const INITIAL_STATE: GraphStateFields = {
   graphNodeTypes: [],
   graphEdgeTypes: [],
   nodeColors: {},
-  nodeColorEnabled: {},
   nodeVisibility: {},
   edgeVisibility: {},
   nodeDecorations: {},

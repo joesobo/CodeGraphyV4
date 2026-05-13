@@ -10,6 +10,7 @@ import {
   buildNodeEntries,
   buildSingleFolderNodeEntries,
   buildSingleGraphSectionNodeEntries,
+  buildSingleSymbolNodeEntries,
 } from '../node/entries';
 import { buildPluginEntriesForDecision } from '../plugin/entries';
 import type { GraphContextMenuDecision } from '../decision/model';
@@ -61,16 +62,18 @@ export function buildGraphContextMenuEntries(
           mutationAvailability,
           pinnedNodeIds,
         )
-      : decision.kind === 'edge'
-        ? buildEdgeEntries(decision.targets)
-        : decision.kind === 'emptyNodeSelection'
-          ? []
-          : buildNodeEntries(
-            getNodeTargetIds(decision),
-            timelineActive,
-            mutationAvailability,
-            favorites,
-            pinnedNodeIds,
-          );
+        : decision.kind === 'singleSymbolNode'
+          ? buildSingleSymbolNodeEntries(decision.target.id, favorites)
+          : decision.kind === 'edge'
+            ? buildEdgeEntries(decision.targets)
+            : decision.kind === 'emptyNodeSelection'
+              ? []
+              : buildNodeEntries(
+                getNodeTargetIds(decision),
+                timelineActive,
+                mutationAvailability,
+                favorites,
+                pinnedNodeIds,
+              );
   return [...baseEntries, ...buildPluginEntriesForDecision(decision, pluginItems)];
 }

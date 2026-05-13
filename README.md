@@ -43,6 +43,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 | Feature | Why it matters |
 |---|---|
 | Relationship Graph | See files, folders, packages, plugin nodes, and their Edges in one interactive graph. |
+| Symbol Nodes | Expand files into functions, classes, interfaces, types, variables, constants, and plugin-provided declarations when you need code-level context. |
 | Search and Filters | Search temporarily, then use persistent Filters to remove generated files, tests, docs, or any other noise from the Visible Graph. |
 | Graph Scope | Turn Node Types and Edge Types on or off so the graph matches the question you are asking. |
 | Graph Sections | Organize related nodes into resizable 2D section frames that keep their own local physics while still showing cross-section edges. |
@@ -63,6 +64,10 @@ This repo is a work in progress and is being built through agentic engineering. 
 | VS Code Theme Integration |
 |:--:|
 | ![CodeGraphy using VS Code theme colors in the activity bar, sidebar panels, graph background, timeline, and controls](./docs/media/readme/vscode-theme-integration.png) |
+
+| Symbol Nodes |
+|:--:|
+| ![CodeGraphy Relationship Graph showing a repository expanded with colorful symbol nodes around file and folder nodes](./docs/media/readme/symbol-nodes-graph.png) |
 
 | 2D Relationship Graph | 3D Relationship Graph |
 |:--:|:--:|
@@ -87,6 +92,8 @@ This repo is a work in progress and is being built through agentic engineering. 
 Workspace files, Git history, and repo-local settings flow into the Core Extension. Indexing combines built-in Tree-sitter analysis with enabled plugins, stores relationship evidence in the Graph Cache, then Graph Projection produces the Visible Graph that powers the VS Code webview, exports, and CodeGraphy MCP.
 
 Graph Sections are saved in repo-local Graph Layout settings. In 2D, add them from the toolbar or background context menu, drag nodes into a frame to make them Section Members, then resize, label, color, pin, collapse, or expand the section as you organize the graph. Expanded sections behave like large graph nodes in the root force layout, while their members run section-local physics inside the frame; collapsed sections become compact nodes with projected incoming and outgoing edges.
+
+Symbol Nodes are built from indexed declarations and appear alongside file, folder, package, and plugin nodes when you need code-level context. Common kinds include Function, Class, Interface, Type, Struct, Enum, Variable, and Constant. `contains` Edges connect files to their declarations, and symbol-aware relationship Edges show calls, references, inheritance, overrides, imports, and plugin-provided links when analysis can resolve them. Legend defaults style common symbol kinds automatically, custom Legend Entries can target symbol names, kinds, plugin kinds, languages, or containing file paths, and Graph Query/MCP exposes the same symbol payloads to agents.
 
 The editable Excalidraw source for this diagram lives at [docs/media/readme/codegraphy-architecture.excalidraw](./docs/media/readme/codegraphy-architecture.excalidraw).
 

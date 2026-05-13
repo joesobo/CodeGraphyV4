@@ -1,4 +1,4 @@
-export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin' | 'graph-section';
+export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin' | 'symbol' | 'graph-section';
 
 export interface GraphContextNodeTarget {
   id: string;
@@ -6,6 +6,11 @@ export interface GraphContextNodeTarget {
   isCollapsedGraphSection?: boolean;
   nodeKind: GraphContextNodeKind;
   nodeType: string;
+  symbol?: {
+    id: string;
+    name: string;
+    filePath: string;
+  };
 }
 
 export interface GraphContextNodeSource {
@@ -14,6 +19,11 @@ export interface GraphContextNodeSource {
   isCollapsedGraphSection?: boolean;
   isGraphSection?: boolean;
   nodeType?: string;
+  symbol?: {
+    id: string;
+    name: string;
+    filePath: string;
+  };
 }
 
 export function isPackageNodeId(nodeId: string): boolean {
@@ -23,11 +33,16 @@ export function isPackageNodeId(nodeId: string): boolean {
 export function classifyGraphContextNodeTarget(
   nodeId: string,
   source: GraphContextNodeSource | string | undefined,
+  symbol?: GraphContextNodeSource['symbol'],
+  isCollapsed?: boolean,
 ): GraphContextNodeTarget {
-  const nodeSource = typeof source === 'string' ? { id: nodeId, nodeType: source } : source;
+  const nodeSource = typeof source === 'string'
+    ? { id: nodeId, isCollapsed, nodeType: source, symbol }
+    : source;
   const resolvedNodeType = isPackageNodeId(nodeId)
     ? 'package'
     : nodeSource?.nodeType ?? 'file';
+  const resolvedSymbol = nodeSource?.symbol;
   const isGraphSection = nodeSource?.isGraphSection || resolvedNodeType === 'graph-section';
 
   return {
@@ -36,8 +51,13 @@ export function classifyGraphContextNodeTarget(
     isCollapsedGraphSection: isGraphSection
       ? !!nodeSource?.isCollapsedGraphSection
       : undefined,
-    nodeKind: isGraphSection ? 'graph-section' : resolveNodeKind(resolvedNodeType),
+    nodeKind: isGraphSection
+      ? 'graph-section'
+      : resolvedSymbol || resolvedNodeType === 'symbol' || resolvedNodeType === 'variable'
+        ? 'symbol'
+        : resolveNodeKind(resolvedNodeType),
     nodeType: resolvedNodeType,
+    ...(resolvedSymbol ? { symbol: resolvedSymbol } : {}),
   };
 }
 

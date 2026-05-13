@@ -1,22 +1,7 @@
-import { globMatch } from '../../../globMatch';
 import { DEFAULT_NODE_COLOR } from '../../../../shared/fileColors';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
-
-function ruleTargetsNodes(rule: IGroup): boolean {
-  return rule.target !== 'edge';
-}
-
-function ruleMatchesNode(
-  node: IGraphData['nodes'][number],
-  rule: IGroup,
-): boolean {
-  if (rule.matchNodeType && node.nodeType !== rule.matchNodeType) {
-    return false;
-  }
-
-  return globMatch(node.id, rule.pattern);
-}
+import { ruleMatchesNode, ruleTargetsNodes } from './nodeMatcher';
 
 export function getOrderedActiveRules(legends: IGroup[]): IGroup[] {
   return legends

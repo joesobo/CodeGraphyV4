@@ -23,6 +23,16 @@ export interface ExportNodeEntry {
   nodeType: string;
   color: string;
   legendIds: string[];
+  symbol?: {
+    id: string;
+    name: string;
+    kind: string;
+    filePath: string;
+    signature?: string;
+    language?: string;
+    source?: string;
+    pluginKind?: string;
+  };
   fileSize?: number;
   churn?: number;
   x?: number;

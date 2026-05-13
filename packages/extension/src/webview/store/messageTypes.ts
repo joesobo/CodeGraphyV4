@@ -62,7 +62,6 @@ export interface IStoreFields {
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];
   nodeColors: Record<string, string>;
-  nodeColorEnabled: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   nodeDecorations: Record<string, NodeDecorationPayload>;

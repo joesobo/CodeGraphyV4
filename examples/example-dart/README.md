@@ -7,3 +7,16 @@ Open `examples/` in CodeGraphy and look for:
 - `example-dart/bin/sample_app.dart -> example-dart/lib/app/runner.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/model/user.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/model/profile.dart#import`
+
+## Symbol Node Demo
+
+Suggested symbol check:
+
+1. Open `lib/app/runner.dart`.
+2. In Graph Scope, enable **Symbol**.
+3. Search for `Runner`, `BaseRunner`, `Runnable`, `User`, and `Profile`.
+
+Expected behavior:
+
+- Class and Interface symbols show the runner contract and model declarations.
+- The Dart import chain becomes a small app story instead of a set of anonymous files.

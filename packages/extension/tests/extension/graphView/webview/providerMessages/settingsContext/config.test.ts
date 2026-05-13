@@ -30,7 +30,6 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'filterPatterns',
       'graphLayout',
       'maxFiles',
-      'nodeColorEnabled',
       'nodeColors',
       'nodeVisibility',
       'particleSize',

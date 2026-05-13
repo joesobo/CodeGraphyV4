@@ -1,4 +1,4 @@
-import type { GraphContextSelection } from '../contextMenu/contracts';
+import type { GraphContextMenuNode, GraphContextSelection } from '../contextMenu/contracts';
 import type { GraphLayoutMode, GraphLayoutSettings } from '../../../../shared/settings/graphLayout';
 
 export interface GraphContextNodePosition2D {
@@ -14,6 +14,7 @@ export interface ResolveGraphContextActionOptions {
   graphMode?: GraphLayoutMode;
   graphLayout?: Pick<GraphLayoutSettings, 'ownership' | 'sections'>;
   graphViewportScale?: number | null;
+  nodes?: readonly GraphContextMenuNode[];
   nodePositions?: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
 }
 
@@ -23,6 +24,7 @@ export interface GraphContextActionContext {
   primaryTargetId?: string;
   edgeSourceId?: string;
   edgeTargetId?: string;
+  primaryNode?: GraphContextMenuNode;
   graphMode: GraphLayoutMode;
   graphLayout?: Pick<GraphLayoutSettings, 'ownership' | 'sections'>;
   graphPosition?: GraphContextNodePosition2D;
@@ -44,6 +46,7 @@ export function resolveGraphContextActionContext(
     selectionKind: selection.kind,
     targetIds: selection.targets,
     primaryTargetId,
+    primaryNode: options.nodes?.find(node => node.id === primaryTargetId),
     edgeSourceId: isEdgeSelection ? primaryTargetId : undefined,
     edgeTargetId: isEdgeSelection ? secondaryTargetId : undefined,
     graphMode: options.graphMode ?? '2d',

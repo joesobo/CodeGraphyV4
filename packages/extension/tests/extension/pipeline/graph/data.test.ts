@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
 import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
-import { buildWorkspaceGraphData } from '../../../../src/extension/pipeline/graph/data';
+import {
+  buildWorkspaceGraphData,
+  buildWorkspaceGraphDataFromAnalysis,
+} from '../../../../src/extension/pipeline/graph/data';
 
 function createPlugin(id: string): IPlugin {
   return {
@@ -20,6 +23,428 @@ function createPlugin(id: string): IPlugin {
 }
 
 describe('pipeline/graph/data', () => {
+  it('projects analysis symbols as symbol nodes contained by their files', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/player.gd': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['/workspace/src/player.gd', {
+          filePath: '/workspace/src/player.gd',
+          symbols: [{
+            id: '/workspace/src/player.gd:method:_ready',
+            filePath: '/workspace/src/player.gd',
+            kind: 'method',
+            name: '_ready',
+            metadata: {
+              language: 'gdscript',
+              source: 'codegraphy.gdscript',
+              pluginKind: 'godot-class-name',
+            },
+            range: {
+              startLine: 3,
+              startColumn: 1,
+              endLine: 5,
+              endColumn: 8,
+            },
+          }],
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {
+        'src/player.gd': 4,
+      },
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('codegraphy.godot'),
+    });
+
+    expect(graph.nodes).toEqual([
+      {
+        id: 'src/player.gd',
+        label: 'player.gd',
+        color: DEFAULT_NODE_COLOR,
+        fileSize: 20,
+        churn: 4,
+      },
+      {
+        id: 'src/player.gd#_ready:method',
+        label: '_ready',
+        color: '#8B5CF6',
+        fileSize: 20,
+        churn: 4,
+        nodeType: 'symbol',
+        symbol: {
+          id: 'src/player.gd#_ready:method',
+          name: '_ready',
+          kind: 'method',
+          filePath: 'src/player.gd',
+          language: 'gdscript',
+          source: 'codegraphy.gdscript',
+          pluginKind: 'godot-class-name',
+          range: {
+            startLine: 3,
+            startColumn: 1,
+            endLine: 5,
+            endColumn: 8,
+          },
+        },
+      },
+    ]);
+    expect(graph.edges).toEqual([
+      {
+        id: 'src/player.gd->src/player.gd#_ready:method#contains',
+        from: 'src/player.gd',
+        to: 'src/player.gd#_ready:method',
+        kind: 'contains',
+        sources: [],
+      },
+    ]);
+  });
+
+  it('projects resolved symbol relations as symbol-to-symbol edges', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/player.gd': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src/player.gd', {
+          filePath: '/workspace/src/player.gd',
+          symbols: [
+            {
+              id: '/workspace/src/player.gd:method:_ready',
+              filePath: '/workspace/src/player.gd',
+              kind: 'method',
+              name: '_ready',
+            },
+            {
+              id: '/workspace/src/player.gd:method:setup_input',
+              filePath: '/workspace/src/player.gd',
+              kind: 'method',
+              name: 'setup_input',
+            },
+          ],
+          relations: [{
+            kind: 'call',
+            pluginId: 'codegraphy.godot',
+            sourceId: 'call',
+            fromFilePath: '/workspace/src/player.gd',
+            fromSymbolId: '/workspace/src/player.gd:method:_ready',
+            toFilePath: '/workspace/src/player.gd',
+            toSymbolId: '/workspace/src/player.gd:method:setup_input',
+          }],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('codegraphy.godot'),
+    });
+
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      {
+        id: 'src/player.gd#_ready:method->src/player.gd#setup_input:method#call',
+        from: 'src/player.gd#_ready:method',
+        to: 'src/player.gd#setup_input:method',
+        kind: 'call',
+        sources: [
+          {
+            id: 'codegraphy.godot:call',
+            pluginId: 'codegraphy.godot',
+            sourceId: 'call',
+            label: 'call',
+          },
+        ],
+      },
+    ]));
+  });
+
+  it('keeps file-level connections when the same relation resolves to symbol endpoints', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/source.ts': { size: 10 },
+        'src/target.ts': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src/source.ts', {
+          filePath: '/workspace/src/source.ts',
+          symbols: [{
+            id: 'source-symbol',
+            filePath: '/workspace/src/source.ts',
+            kind: 'function',
+            name: 'source',
+          }],
+          relations: [{
+            kind: 'import',
+            pluginId: 'plugin.symbols',
+            sourceId: 'es6-import',
+            fromFilePath: '/workspace/src/source.ts',
+            fromSymbolId: 'source-symbol',
+            toFilePath: '/workspace/src/target.ts',
+            toSymbolId: 'target-symbol',
+          }],
+        }],
+        ['src/target.ts', {
+          filePath: '/workspace/src/target.ts',
+          symbols: [{
+            id: 'target-symbol',
+            filePath: '/workspace/src/target.ts',
+            kind: 'function',
+            name: 'target',
+          }],
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.symbols'),
+    });
+
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'src/source.ts->src/target.ts#import',
+        from: 'src/source.ts',
+        to: 'src/target.ts',
+        kind: 'import',
+      }),
+      expect.objectContaining({
+        id: 'src/source.ts#source:function->src/target.ts#target:function#import',
+        from: 'src/source.ts#source:function',
+        to: 'src/target.ts#target:function',
+        kind: 'import',
+      }),
+    ]));
+  });
+
+  it('adds deterministic suffixes for duplicate symbols without signatures', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/app.ts': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src/app.ts', {
+          filePath: '/workspace/src/app.ts',
+          symbols: [
+            {
+              id: 'first-run',
+              filePath: '/workspace/src/app.ts',
+              kind: 'function',
+              name: 'run',
+            },
+            {
+              id: 'second-run',
+              filePath: '/workspace/src/app.ts',
+              kind: 'function',
+              name: 'run',
+            },
+          ],
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('codegraphy.typescript'),
+    });
+
+    expect(graph.nodes.map((item) => item.id)).toEqual([
+      'src/app.ts',
+      'src/app.ts#run:function',
+      'src/app.ts#run:function:2',
+    ]);
+  });
+
+  it('normalizes symbol paths, kinds, signatures, and variable node appearance', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/player.gd': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src\\player.gd', {
+          filePath: '/workspace/src/player.gd',
+          symbols: [{
+            id: 'score-symbol',
+            filePath: '/workspace/src/player.gd',
+            kind: '  Field  ',
+            name: 'score',
+            signature: 'var score: int',
+          }],
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('codegraphy.godot'),
+    });
+
+    expect(graph.nodes).toEqual(expect.arrayContaining([
+      {
+        id: 'src/player.gd#score:field:var%20score%3A%20int',
+        label: 'score',
+        color: '#14B8A6',
+        fileSize: 20,
+        churn: 0,
+        nodeType: 'variable',
+        symbol: {
+          id: 'src/player.gd#score:field:var%20score%3A%20int',
+          name: 'score',
+          kind: 'field',
+          filePath: 'src/player.gd',
+          signature: 'var score: int',
+        },
+      },
+    ]));
+  });
+
+  it('keeps symbol relations with file targets while dropping unresolved symbol relations', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/source.ts': { size: 10 },
+        'src/target.ts': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src/source.ts', {
+          filePath: '/workspace/src/source.ts',
+          symbols: [{
+            id: 'source-symbol',
+            filePath: '/workspace/src/source.ts',
+            kind: 'function',
+            name: 'source',
+          }],
+          relations: [
+            {
+              kind: 'reference',
+              pluginId: 'plugin.symbols',
+              sourceId: 'reference',
+              fromFilePath: '/workspace/src/source.ts',
+              fromSymbolId: 'source-symbol',
+              toFilePath: '/workspace/src/target.ts',
+            },
+            {
+              kind: 'reference',
+              pluginId: 'plugin.symbols',
+              sourceId: 'missing-reference',
+              fromFilePath: '/workspace/src/source.ts',
+              fromSymbolId: 'source-symbol',
+            },
+          ],
+        }],
+        ['src/target.ts', {
+          filePath: '/workspace/src/target.ts',
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.symbols'),
+    });
+
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      {
+        id: 'src/source.ts#source:function->src/target.ts#reference',
+        from: 'src/source.ts#source:function',
+        to: 'src/target.ts',
+        kind: 'reference',
+        sources: [
+          {
+            id: 'plugin.symbols:reference',
+            pluginId: 'plugin.symbols',
+            sourceId: 'reference',
+            label: 'reference',
+          },
+        ],
+      },
+    ]));
+    expect(graph.edges.map((edge) => edge.id)).not.toContain(
+      'src/source.ts#source:function->undefined#reference',
+    );
+  });
+
+  it('keeps file-level relation edges while adding symbol relation edges without plugin sources', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {
+        'src/source.ts': { size: 10 },
+        'src/target.ts': { size: 20 },
+      },
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['src/source.ts', {
+          filePath: '/workspace/src/source.ts',
+          symbols: [{
+            id: 'source-symbol',
+            filePath: '/workspace/src/source.ts',
+            kind: 'function',
+            name: 'source',
+          }],
+          relations: [
+            {
+              kind: 'import',
+              pluginId: 'plugin.symbols',
+              sourceId: 'es6-import',
+              fromFilePath: '/workspace/src/source.ts',
+              toFilePath: '/workspace/src/target.ts',
+            },
+            {
+              kind: 'reference',
+              sourceId: 'reference',
+              fromFilePath: '/workspace/src/source.ts',
+              fromSymbolId: 'source-symbol',
+              toFilePath: '/workspace/src/target.ts',
+            },
+          ],
+        }],
+        ['src/target.ts', {
+          filePath: '/workspace/src/target.ts',
+          relations: [],
+        }],
+      ]),
+      showOrphans: true,
+      churnCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.symbols'),
+    });
+
+    const fileLevelEdges = graph.edges.filter((edge) => edge.from === 'src/source.ts' && edge.to === 'src/target.ts');
+    expect(fileLevelEdges).toEqual([
+      expect.objectContaining({
+        kind: 'import',
+        sources: [
+          expect.objectContaining({
+            label: 'ES6 import',
+            sourceId: 'es6-import',
+          }),
+        ],
+      }),
+      expect.objectContaining({
+        kind: 'reference',
+        sources: [
+          expect.objectContaining({
+            label: 'reference',
+            sourceId: 'reference',
+          }),
+        ],
+      }),
+    ]);
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      {
+        id: 'src/source.ts#source:function->src/target.ts#reference',
+        from: 'src/source.ts#source:function',
+        to: 'src/target.ts',
+        kind: 'reference',
+        sources: [],
+      },
+    ]));
+  });
+
   it('builds connected nodes and edges with cached size and churn counts', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const fileConnections = new Map<string, IProjectedConnection[]>([

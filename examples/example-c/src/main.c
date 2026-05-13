@@ -6,7 +6,8 @@ typedef struct Counter {
 } Counter;
 
 static int next_count(Counter counter) {
-  return add(counter.value, 1);
+  AddInput input = { counter.value, 1 };
+  return add_input(input);
 }
 
 int main(void) {

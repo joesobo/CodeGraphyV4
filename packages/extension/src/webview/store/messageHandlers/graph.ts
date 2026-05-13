@@ -43,7 +43,6 @@ export function handleGraphControlsUpdated(
     graphNodeTypes: message.payload.nodeTypes,
     graphEdgeTypes: message.payload.edgeTypes,
     nodeColors: message.payload.nodeColors,
-    nodeColorEnabled: message.payload.nodeColorEnabled,
     nodeVisibility: message.payload.nodeVisibility,
     edgeVisibility: message.payload.edgeVisibility,
   };

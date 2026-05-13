@@ -66,4 +66,33 @@ describe('webview/export/markdown/nodeEntries', () => {
       '- `src/App.ts` (file) | legend: g1, g2',
     ]);
   });
+
+  it('renders symbol nodes with their containing file and kind', () => {
+    const lines: string[] = [];
+
+    appendNodeLines(
+      lines,
+      createExportData({
+        nodes: [
+          {
+            id: 'src/App.ts#render:function',
+            label: 'render',
+            nodeType: 'symbol',
+            color: '#8B5CF6',
+            legendIds: [],
+            symbol: {
+              id: 'src/App.ts#render:function',
+              name: 'render',
+              kind: 'function',
+              filePath: 'src/App.ts',
+            },
+          },
+        ],
+      }),
+    );
+
+    expect(lines).toEqual([
+      '- `src/App.ts#render:function` (symbol: function `render` in `src/App.ts`)',
+    ]);
+  });
 });

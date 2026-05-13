@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   analyzeWorkspacePipelineFiles,
   buildWorkspacePipelineGraphData,
+  buildWorkspacePipelineGraphDataFromAnalysis,
   preAnalyzeWorkspacePipelinePlugins,
   readWorkspacePipelineFileStat,
   readWorkspacePipelineRoot,
@@ -145,5 +146,52 @@ describe('pipeline/serviceAdapters', () => {
     expect(graphData.nodes).toEqual([
       expect.objectContaining({ id: 'src/app.ts', churn: 5 }),
     ]);
+  });
+
+  it('builds symbol-capable graph data from cached file analysis', () => {
+    const cache = {
+      files: {
+        'src/player.gd': { size: 20 },
+      },
+    };
+    const workspaceState = {
+      get: vi.fn(() => undefined),
+      update: vi.fn(),
+    };
+    const registry = {
+      getPluginForFile: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+    };
+
+    const graphData = buildWorkspacePipelineGraphDataFromAnalysis(
+      cache as never,
+      { workspaceState } as never,
+      registry as never,
+      new Map([
+        ['src/player.gd', {
+          filePath: '/workspace/src/player.gd',
+          symbols: [{
+            id: '/workspace/src/player.gd:method:_ready',
+            filePath: '/workspace/src/player.gd',
+            kind: 'method',
+            name: '_ready',
+          }],
+          relations: [],
+        }],
+      ]),
+      '/workspace',
+      true,
+    );
+
+    expect(graphData.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'src/player.gd#_ready:method', nodeType: 'symbol' }),
+    ]));
+    expect(graphData.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        from: 'src/player.gd',
+        kind: 'contains',
+        to: 'src/player.gd#_ready:method',
+      }),
+    ]));
   });
 });

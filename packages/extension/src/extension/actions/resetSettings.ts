@@ -29,7 +29,6 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   directionMode: 'directionMode',
   directionColor: 'directionColor',
   nodeColors: 'nodeColors',
-  nodeColorEnabled: 'nodeColorEnabled',
   nodeVisibility: 'nodeVisibility',
   edgeVisibility: 'edgeVisibility',
   legendVisibility: 'legendVisibility',

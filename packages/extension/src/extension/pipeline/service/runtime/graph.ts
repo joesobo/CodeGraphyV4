@@ -3,8 +3,10 @@ import type { IFileAnalysisResult, IProjectedConnection } from '../../../../core
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IWorkspaceAnalysisCache } from '../../cache';
-import { projectConnectionMapFromFileAnalysis } from '../../projection';
-import { buildWorkspacePipelineGraphData } from '../../serviceAdapters';
+import {
+  buildWorkspacePipelineGraphData,
+  buildWorkspacePipelineGraphDataFromAnalysis,
+} from '../../serviceAdapters';
 
 export function buildWorkspacePipelineGraph(
   cache: IWorkspaceAnalysisCache,
@@ -38,11 +40,11 @@ export function buildWorkspacePipelineGraphFromAnalysis(
   disabledPlugins: Set<string>,
   directoryPaths: readonly string[] = [],
 ): IGraphData {
-  return buildWorkspacePipelineGraph(
+  return buildWorkspacePipelineGraphDataFromAnalysis(
     cache,
     context,
     registry,
-    projectConnectionMapFromFileAnalysis(fileAnalysis),
+    fileAnalysis,
     workspaceRoot,
     showOrphans,
     disabledPlugins,

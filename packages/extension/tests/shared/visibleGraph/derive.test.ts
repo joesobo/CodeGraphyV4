@@ -62,6 +62,201 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     expect(result.regexError).toBeNull();
   });
 
+  it('keeps variable nodes hidden unless symbol nodes are enabled', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/app.ts'),
+          node('src/app.ts#VERSION:constant', 'variable'),
+        ],
+        edges: [
+          edge('src/app.ts', 'src/app.ts#VERSION:constant', 'contains'),
+        ],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: false },
+            { type: 'variable', enabled: true },
+            { type: 'symbol:constant', enabled: true },
+          ],
+          edges: [{ type: 'contains', enabled: true }],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['src/app.ts'],
+      edges: [],
+    });
+  });
+
+  it('applies symbol-kind graph scope after the Symbols parent scope is enabled', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/app.ts'),
+          {
+            ...node('src/app.ts#build:function', 'symbol'),
+            symbol: {
+              id: 'src/app.ts#build:function',
+              name: 'build',
+              kind: 'function',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
+            ...node('src/app.ts#render:method', 'symbol'),
+            symbol: {
+              id: 'src/app.ts#render:method',
+              name: 'render',
+              kind: 'method',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
+            ...node('src/app.ts#User:type', 'symbol'),
+            symbol: {
+              id: 'src/app.ts#User:type',
+              name: 'User',
+              kind: 'type',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
+            ...node('src/app.ts#VERSION:constant', 'variable'),
+            symbol: {
+              id: 'src/app.ts#VERSION:constant',
+              name: 'VERSION',
+              kind: 'constant',
+              filePath: 'src/app.ts',
+            },
+          },
+        ],
+        edges: [
+          edge('src/app.ts', 'src/app.ts#build:function', 'contains'),
+          edge('src/app.ts', 'src/app.ts#render:method', 'contains'),
+          edge('src/app.ts', 'src/app.ts#User:type', 'contains'),
+          edge('src/app.ts', 'src/app.ts#VERSION:constant', 'contains'),
+        ],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: true },
+            { type: 'variable', enabled: true },
+            { type: 'symbol:function', enabled: false },
+            { type: 'symbol:type', enabled: true },
+            { type: 'symbol:constant', enabled: false },
+          ],
+          edges: [{ type: 'contains', enabled: true }],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['src/app.ts', 'src/app.ts#User:type'],
+      edges: ['src/app.ts->src/app.ts#User:type#contains'],
+    });
+  });
+
+  it('applies plugin-specific symbol graph scope without hiding ordinary classes', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/user.ts'),
+          {
+            ...node('src/user.ts#User:class', 'symbol'),
+            symbol: {
+              id: 'src/user.ts#User:class',
+              name: 'User',
+              kind: 'class',
+              filePath: 'src/user.ts',
+            },
+          },
+          {
+            ...node('scripts/player.gd#Player:godot-class-name', 'symbol'),
+            symbol: {
+              id: 'scripts/player.gd#Player:godot-class-name',
+              name: 'Player',
+              kind: 'class',
+              filePath: 'scripts/player.gd',
+              pluginKind: 'godot-class-name',
+              source: 'codegraphy.gdscript',
+              language: 'gdscript',
+            },
+          },
+        ],
+        edges: [
+          edge('src/user.ts', 'src/user.ts#User:class', 'contains'),
+          edge('src/user.ts', 'scripts/player.gd#Player:godot-class-name', 'reference'),
+        ],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: true },
+            { type: 'symbol:class', enabled: true },
+            { type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: false },
+          ],
+          edges: [
+            { type: 'contains', enabled: true },
+            { type: 'reference', enabled: true },
+          ],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['src/user.ts', 'src/user.ts#User:class'],
+      edges: ['src/user.ts->src/user.ts#User:class#contains'],
+    });
+  });
+
+  it('hides plugin-specific variable children when Variables is disabled', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('scripts/player.gd'),
+          {
+            ...node('scripts/player.gd#Player:godot-class-name', 'symbol'),
+            symbol: {
+              id: 'scripts/player.gd#Player:godot-class-name',
+              name: 'Player',
+              kind: 'class',
+              filePath: 'scripts/player.gd',
+              pluginKind: 'godot-class-name',
+              source: 'codegraphy.gdscript',
+              language: 'gdscript',
+            },
+          },
+        ],
+        edges: [
+          edge('scripts/player.gd', 'scripts/player.gd#Player:godot-class-name', 'contains'),
+        ],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: true },
+            { type: 'variable', enabled: false },
+            { type: 'plugin:codegraphy.gdscript:symbol:godot-class-name', enabled: true },
+          ],
+          edges: [{ type: 'contains', enabled: true }],
+        },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: ['scripts/player.gd'],
+      edges: [],
+    });
+  });
+
   it('projects visible folder and workspace package structure with core nests edges', () => {
     const result = deriveVisibleGraph(
       {
@@ -156,6 +351,41 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
 
     expect(ids(result.graphData)).toEqual({ nodes: [], edges: [] });
     expect(result.regexError).toBeNull();
+  });
+
+  it('hides symbols when their containing file is filtered out', () => {
+    const result = deriveVisibleGraph(
+      {
+        nodes: [
+          node('src/player.gd'),
+          {
+            ...node('src/player.gd#_ready:method', 'symbol'),
+            symbol: {
+              id: 'src/player.gd#_ready:method',
+              name: '_ready',
+              kind: 'method',
+              filePath: 'src/player.gd',
+            },
+          },
+        ],
+        edges: [edge('src/player.gd', 'src/player.gd#_ready:method', 'contains')],
+      },
+      {
+        scope: {
+          nodes: [
+            { type: 'file', enabled: true },
+            { type: 'symbol', enabled: true },
+          ],
+          edges: [{ type: 'contains', enabled: true }],
+        },
+        filter: { patterns: ['src/player.gd'] },
+      },
+    );
+
+    expect(ids(result.graphData)).toEqual({
+      nodes: [],
+      edges: [],
+    });
   });
 
   it('applies show orphans after search', () => {

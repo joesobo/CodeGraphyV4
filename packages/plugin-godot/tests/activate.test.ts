@@ -254,6 +254,16 @@ describe('plugin-godot/activate', () => {
           from: 'scenes/ui/loadout_preview.tscn',
           to: 'resources/player_loadout.tres',
         }),
+        expect.objectContaining({
+          from: 'scripts/base/entity.gd',
+          kind: 'contains',
+          to: 'scripts/base/entity.gd#Entity:class:class_name%20Entity',
+        }),
+        expect.objectContaining({
+          from: 'scripts/data/player_loadout.gd',
+          kind: 'contains',
+          to: 'scripts/data/player_loadout.gd#PlayerLoadout:class:class_name%20PlayerLoadout',
+        }),
       ]),
     );
     expect(edgeIds).toEqual(
@@ -265,6 +275,8 @@ describe('plugin-godot/activate', () => {
         'scenes/ui/loadout_preview.tscn->resources/player_loadout.tres#load:static',
         'scenes/ui/loadout_preview.tscn->scripts/ui/loadout_preview.gd#load:static',
         'resources/player_loadout.tres->scripts/data/player_loadout.gd#load:static',
+        'scripts/base/entity.gd->scripts/base/entity.gd#Entity:class:class_name%20Entity#contains',
+        'scripts/data/player_loadout.gd->scripts/data/player_loadout.gd#PlayerLoadout:class:class_name%20PlayerLoadout#contains',
       ]),
     );
     expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(

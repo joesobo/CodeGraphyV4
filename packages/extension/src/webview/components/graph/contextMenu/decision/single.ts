@@ -11,6 +11,8 @@ export function classifySingleNodeDecision(target: GraphContextNodeTarget): Grap
       return { kind: 'singleGraphSectionNode', target };
     case 'package':
       return { kind: 'singlePackageNode', target };
+    case 'symbol':
+      return { kind: 'singleSymbolNode', target };
     case 'plugin':
       return { kind: 'singlePluginNode', target };
   }

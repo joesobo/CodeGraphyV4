@@ -190,6 +190,7 @@ export function useGraphInteractionRuntime({
       graphLayout,
       graphMode,
       graphViewportScale: readGraphViewportScale(graphMode, refs.fg2dRef.current),
+      nodes: graphDataRef.current.nodes,
       nodePositions: createGraphNodePositionMap(graphDataRef.current.nodes, graphMode),
     }),
     [graphDataRef, graphLayout, graphMode, refs.fg2dRef],

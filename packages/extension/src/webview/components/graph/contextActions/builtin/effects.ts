@@ -36,6 +36,10 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createClipboardEffects(context.targetIds.join('\n')),
   copyAbsolute: (context: GraphContextActionContext) =>
     createOptionalClipboardEffects(context.primaryTargetId, (path) => `absolute:${path}`),
+  copySymbolId: (context: GraphContextActionContext) =>
+    createOptionalClipboardEffects(context.primaryNode?.symbol?.id ?? context.primaryTargetId),
+  copySymbolName: (context: GraphContextActionContext) =>
+    createOptionalClipboardEffects(context.primaryNode?.symbol?.name ?? context.primaryNode?.label),
   copyEdgeSource: (context: GraphContextActionContext) =>
     createOptionalClipboardEffects(context.edgeSourceId),
   copyEdgeTarget: (context: GraphContextActionContext) =>

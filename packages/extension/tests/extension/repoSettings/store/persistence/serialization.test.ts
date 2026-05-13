@@ -45,6 +45,40 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     expect(parsed.nodeColors).toBe('invalid');
   });
 
+  it('omits stale symbol theme keys from serialized settings', () => {
+    const settings = createDefaultCodeGraphyRepoSettings();
+    settings.nodeColors = {
+      ...settings.nodeColors,
+      symbol: '#8B5CF6',
+      'symbol:function': '#8B5CF6',
+      'symbol:method': '#A855F7',
+      'symbol:namespace': '#64748B',
+      'symbol:variable': '#14B8A6',
+    };
+    settings.nodeVisibility = {
+      ...settings.nodeVisibility,
+      symbol: true,
+      'symbol:function': true,
+      'symbol:method': true,
+      'symbol:namespace': true,
+      'symbol:variable': true,
+    };
+
+    const parsed = JSON.parse(serializeSettings(settings)) as Record<string, Record<string, unknown>>;
+
+    expect(parsed.nodeColors.symbol).toBe('#8B5CF6');
+    expect(parsed.nodeColors['symbol:function']).toBe('#8B5CF6');
+    expect(parsed.nodeColors['symbol:method']).toBeUndefined();
+    expect(parsed.nodeColors['symbol:namespace']).toBeUndefined();
+    expect(parsed.nodeColors['symbol:variable']).toBeUndefined();
+    expect(parsed.nodeColorEnabled).toBeUndefined();
+    expect(parsed.nodeVisibility.symbol).toBe(true);
+    expect(parsed.nodeVisibility['symbol:function']).toBe(true);
+    expect(parsed.nodeVisibility['symbol:method']).toBeUndefined();
+    expect(parsed.nodeVisibility['symbol:namespace']).toBeUndefined();
+    expect(parsed.nodeVisibility['symbol:variable']).toBeUndefined();
+  });
+
   it('omits runtime-only legend ids and metadata from persisted settings', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.legend = [

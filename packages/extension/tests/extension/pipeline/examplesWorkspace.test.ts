@@ -67,6 +67,27 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
 
     const graph = await analyzer.analyze();
     const edgeIds = new Set(graph.edges.map((edge) => edge.id));
+    const nodeIds = new Set(graph.nodes.map((node) => node.id));
+    const hasFileOrSymbolTargetEdge = (edgeId: string): boolean => {
+      if (edgeIds.has(edgeId)) {
+        return true;
+      }
+
+      const relationMarker = edgeId.lastIndexOf('#');
+      const targetMarker = edgeId.indexOf('->');
+      if (relationMarker === -1 || targetMarker === -1) {
+        return false;
+      }
+
+      const fromAndTarget = edgeId.slice(0, relationMarker);
+      const kind = edgeId.slice(relationMarker);
+      const baseKind = `#${kind.slice(1).split(':')[0]}`;
+      return Array.from(edgeIds).some(
+        candidate =>
+          candidate.startsWith(fromAndTarget) &&
+          (candidate.endsWith(kind) || candidate.endsWith(baseKind)),
+      );
+    };
 
     const expectedEdgeIds = [
       'example-python/src/main.py->example-python/src/config.py#import',
@@ -115,14 +136,37 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-markdown/notes/Home.md->example-markdown/notes/Architecture.md#reference:static',
       'example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference:static',
       'example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference:static',
-      'example-typescript/packages/app/src/index.ts->example-typescript/packages/app/src/utils.ts#import',
-      'example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#import',
-      'example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#type-import',
-      'example-typescript/packages/app/src/utils.ts->example-typescript/packages/feature-depth/src/deep.ts#import',
+      'example-typescript/src/index.ts->example-typescript/src/utils.ts#buildGreeting:function#import',
+      'example-typescript/src/index.ts->example-typescript/src/types.ts#UserName:type#type-import',
+      'example-typescript/src/utils.ts->example-typescript/src/depth.ts#getDepthTarget:function#import',
     ];
 
-    const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !edgeIds.has(edgeId));
+    const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !hasFileOrSymbolTargetEdge(edgeId));
     expect(missingEdgeIds).toEqual([]);
+    expect(nodeIds.has('example-typescript/src/index.ts#currentUser:constant')).toBe(true);
+    expect(graph.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'example-typescript/src/index.ts#currentUser:constant',
+        nodeType: 'variable',
+        symbol: expect.objectContaining({
+          kind: 'constant',
+          name: 'currentUser',
+        }),
+      }),
+    ]));
+    const expectedStorySymbolIds = [
+      'example-python/src/services/api.py#fetch_user:function',
+      'example-python/src/utils/format.py#format_name:function',
+      'example-markdown/src/commented.ts#parseCommentedLink:function',
+      'example-go/internal/service/service.go#NewRunner:function',
+      'example-c/src/math/add.h#AddInput:struct',
+      'example-cpp/src/lib/widget.hpp#make_widget:function',
+      'example-ruby/lib/app/runner.rb#call:method',
+      'example-haskell/src/App/Feature/Runner.hs#Greeting:data',
+      'example-lua/app/runner.lua#Runner.greet:function',
+    ];
+    const missingStorySymbolIds = expectedStorySymbolIds.filter((nodeId) => !nodeIds.has(nodeId));
+    expect(missingStorySymbolIds).toEqual([]);
 
     const persistedSnapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
     const persistedTypeScriptFiles = persistedSnapshot.files
@@ -131,17 +175,17 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
 
     expect(persistedTypeScriptFiles).toEqual(
       expect.arrayContaining([
-        'example-typescript/packages/app/src/index.ts',
-        'example-typescript/packages/app/src/orphan.ts',
-        'example-typescript/packages/app/src/utils.ts',
-        'example-typescript/packages/feature-depth/src/deep.ts',
-        'example-typescript/packages/feature-depth/src/leaf.ts',
-        'example-typescript/packages/shared/src/types.ts',
+        'example-typescript/src/index.ts',
+        'example-typescript/src/orphan.ts',
+        'example-typescript/src/utils.ts',
+        'example-typescript/src/depth.ts',
+        'example-typescript/src/leaf.ts',
+        'example-typescript/src/types.ts',
       ]),
     );
   });
 
-  it('does not let plugin default filters hide monorepo source folders like packages', async () => {
+  it('does not let plugin default filters hide TypeScript example source folders', async () => {
     const workspaceRoot = await copyExamplesWorkspace();
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceRoot), name: 'examples', index: 0 },
@@ -157,8 +201,8 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     const graph = await analyzer.analyze();
     const nodeIds = new Set(graph.nodes.map((node) => node.id));
 
-    expect(nodeIds.has('example-typescript/packages/app/src/index.ts')).toBe(true);
-    expect(nodeIds.has('example-typescript/packages/app/src/utils.ts')).toBe(true);
-    expect(nodeIds.has('example-typescript/packages/shared/src/types.ts')).toBe(true);
+    expect(nodeIds.has('example-typescript/src/index.ts')).toBe(true);
+    expect(nodeIds.has('example-typescript/src/utils.ts')).toBe(true);
+    expect(nodeIds.has('example-typescript/src/types.ts')).toBe(true);
   });
 });

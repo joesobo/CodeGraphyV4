@@ -14,7 +14,6 @@ export const SILENT_CONFIG_KEYS = new Set([
   'filterPatterns',
   'graphLayout',
   'maxFiles',
-  'nodeColorEnabled',
   'nodeColors',
   'nodeVisibility',
   'particleSize',

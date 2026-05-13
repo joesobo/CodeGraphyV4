@@ -54,3 +54,16 @@ Orphan.cs (Orphan Node - only visible with showOrphans=true)
 3. In the new window: **File → Open Folder → examples/example-csharp**
 4. Click the CodeGraphy icon in the activity bar
 5. Compare the graph to the expected structure above
+
+## Symbol Node Demo
+
+Suggested symbol check:
+
+1. Open `src/Program.cs`.
+2. In Graph Scope, enable **Symbol**.
+3. Search for `Program`, `Config`, `ApiService`, and `Helpers`.
+
+Expected behavior:
+
+- Class and Function symbols show the application entry point, configuration object, service class, and helper calls.
+- The file graph stays small, while symbol nodes explain why `Program.cs` reaches the service and utility files.

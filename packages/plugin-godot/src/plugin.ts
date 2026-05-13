@@ -7,6 +7,7 @@
 
 import * as path from 'path';
 import type {
+  IAnalysisSymbol,
   IPlugin,
   IPluginAnalysisContext,
 } from '@codegraphy-vscode/plugin-api';
@@ -93,6 +94,116 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
     return [...classNames];
   };
 
+  const extractClassNameSymbols = (
+    content: string,
+    filePath: string,
+    relativeFilePath: string,
+  ): IAnalysisSymbol[] => {
+    const symbols: IAnalysisSymbol[] = [];
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const ref = detectClassNameDeclaration(lines[i], i + 1);
+      if (!ref) {
+        continue;
+      }
+
+      const signature = `class_name ${ref.resPath}`;
+      symbols.push({
+        id: `${relativeFilePath}#${ref.resPath}:godot-class-name`,
+        name: ref.resPath,
+        kind: 'class',
+        filePath,
+        signature,
+        range: {
+          startLine: ref.line,
+          startColumn: 1,
+          endLine: ref.line,
+          endColumn: signature.length + 1,
+        },
+        metadata: {
+          language: 'gdscript',
+          source: manifest.id,
+          pluginKind: 'godot-class-name',
+        },
+      });
+    }
+
+    return symbols;
+  };
+
+  const createGDScriptSymbol = (
+    relativeFilePath: string,
+    filePath: string,
+    kind: string,
+    name: string,
+    line: string,
+    signature: string,
+    lineNumber: number,
+  ): IAnalysisSymbol => {
+    return {
+      id: `${relativeFilePath}#${name}:${kind}`,
+      name,
+      kind,
+      filePath,
+      signature,
+      range: {
+        startLine: lineNumber,
+        startColumn: line.indexOf(signature) + 1,
+        endLine: lineNumber,
+        endColumn: line.indexOf(signature) + signature.length + 1,
+      },
+      metadata: {
+        language: 'gdscript',
+        source: manifest.id,
+      },
+    };
+  };
+
+  const readDeclarationText = (trimmedLine: string): string => {
+    return trimmedLine.replace(/^@\w+(?:\([^)]*\))?\s+/, '');
+  };
+
+  const readDeclarationKind = (declarationText: string): string => {
+    if (declarationText.startsWith('const ')) return 'constant';
+    if (declarationText.startsWith('var ')) return 'variable';
+    if (declarationText.startsWith('enum ')) return 'enum';
+    return 'function';
+  };
+
+  const extractDeclarationSymbols = (
+    content: string,
+    filePath: string,
+    relativeFilePath: string,
+  ): IAnalysisSymbol[] => {
+    const symbols: IAnalysisSymbol[] = [];
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) {
+        continue;
+      }
+
+      const declarationText = readDeclarationText(trimmed);
+      const declaration =
+        declarationText.match(/^(?:static\s+)?func\s+([A-Za-z_]\w*)\b/)
+        ?? declarationText.match(/^const\s+([A-Za-z_]\w*)\b/)
+        ?? declarationText.match(/^var\s+([A-Za-z_]\w*)\b/)
+        ?? declarationText.match(/^enum\s+([A-Za-z_]\w*)\b/);
+      if (!declaration) {
+        continue;
+      }
+
+      const [, name] = declaration;
+      const kind = readDeclarationKind(declarationText);
+      symbols.push(createGDScriptSymbol(relativeFilePath, filePath, kind, name, line, declarationText, i + 1));
+    }
+
+    return symbols;
+  };
+
   const analyzeFile = async (
     filePath: string,
     content: string,
@@ -117,9 +228,15 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
             ...detectClassNameUsage(content, filePath, ctx),
           ];
 
+    const symbols = [
+      ...extractClassNameSymbols(content, filePath, relativeFilePath),
+      ...extractDeclarationSymbols(content, filePath, relativeFilePath),
+    ];
+
     return {
       filePath,
       relations,
+      ...(symbols.length > 0 ? { symbols } : {}),
     };
   };
 

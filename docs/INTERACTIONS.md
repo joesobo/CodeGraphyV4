@@ -119,7 +119,7 @@ Choose Graph Scope for Edge Types such as `NESTS`, imports, calls, references, a
 
 ### Legends (paint icon)
 
-Manage glob-based Legend styling. Legend Entries are grouped as `Custom`, `Plugin Defaults`, `Material Icon Theme`, and `Defaults`. Custom entries can be reordered. Core defaults apply first, plugin defaults apply next, and custom entries apply last. Legend Entry Toggles persist in repo settings and disable styling only; they do not hide matching graph items.
+Manage glob-based Legend styling. Legend Entries are grouped as `Custom`, `Plugins`, `Material Icon Theme`, and `Defaults`. Custom entries can be reordered. Core defaults apply first, plugin defaults apply next, and custom entries apply last. Legend Entry Toggles persist in repo settings and disable styling only; they do not hide matching graph items.
 
 ### Plugins (puzzle icon)
 

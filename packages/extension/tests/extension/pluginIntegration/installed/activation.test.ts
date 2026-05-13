@@ -168,7 +168,7 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
       expect.arrayContaining([
         expect.objectContaining({
           from: 'src/index.ts',
-          to: 'src/utils.ts',
+          to: 'src/utils.ts#clamp:function',
         }),
       ]),
     );

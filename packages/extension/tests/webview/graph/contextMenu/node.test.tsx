@@ -61,6 +61,25 @@ const folderData: IGraphData = {
   edges: [],
 };
 
+const symbolData: IGraphData = {
+  nodes: [
+    { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', nodeType: 'file' },
+    {
+      id: 'src/app.ts#start:function',
+      label: 'start',
+      color: '#8B5CF6',
+      nodeType: 'symbol',
+      symbol: {
+        id: 'src/app.ts#start:function',
+        name: 'start',
+        kind: 'function',
+        filePath: 'src/app.ts',
+      },
+    },
+  ],
+  edges: [],
+};
+
 describe('Graph context menu (node)', () => {
   const mockFavorites = new Set(['src/app.ts']);
 
@@ -419,6 +438,87 @@ describe('Graph context menu (node)', () => {
     const favMsg = findMessage('TOGGLE_FAVORITE');
     expect(favMsg).toBeTruthy();
     expect(favMsg!.payload.paths).toContain('src/app.ts');
+  });
+
+  it('shows symbol-specific node menu actions', async () => {
+    const { container } = render(<Graph data={symbolData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts#start:function' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Go to Symbol')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Reveal File')).toBeInTheDocument();
+    expect(screen.getByText('Copy Symbol ID')).toBeInTheDocument();
+    expect(screen.getByText('Copy Symbol Name')).toBeInTheDocument();
+    expect(screen.getByText('Add to Favorites')).toBeInTheDocument();
+    expect(screen.queryByText('Open File')).not.toBeInTheDocument();
+    expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Delete File')).not.toBeInTheDocument();
+  });
+
+  it('sends symbol context menu actions with symbol identity and containing file', async () => {
+    const { container } = render(<Graph data={symbolData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts#start:function' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Go to Symbol')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Go to Symbol'));
+    });
+    expect(findMessage('OPEN_FILE')?.payload.path).toBe('src/app.ts#start:function');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts#start:function' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Copy Symbol Name')).toBeInTheDocument();
+    });
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy Symbol Name'));
+    });
+    expect(findMessage('COPY_TO_CLIPBOARD')?.payload.text).toBe('start');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts#start:function' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Copy Symbol ID')).toBeInTheDocument();
+    });
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy Symbol ID'));
+    });
+    expect(findMessage('COPY_TO_CLIPBOARD')?.payload.text).toBe('src/app.ts#start:function');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts#start:function' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Add to Favorites')).toBeInTheDocument();
+    });
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Add to Favorites'));
+    });
+    expect(findMessage('TOGGLE_FAVORITE')?.payload.paths).toEqual(['src/app.ts#start:function']);
   });
 
   it('sends DELETE_FILES message when clicking Delete File', async () => {
