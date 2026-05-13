@@ -46,7 +46,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(liveEntries)).toEqual(['New Graph Section', 'New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(liveEntries)).toEqual(['New File...', 'New Folder...', 'New Graph Section', 'Refresh', 'Fit All Nodes']);
 
     const historicalEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -55,7 +55,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(historicalEntries)).toEqual(['New Graph Section', 'New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(historicalEntries)).toEqual(['New File...', 'New Folder...', 'New Graph Section', 'Refresh', 'Fit All Nodes']);
     expect(
       builtInMenuItems(historicalEntries, ['createGraphSection', 'createFile', 'createFolder'])
         .every(entry => entry.disabled)
@@ -341,7 +341,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(builtInActions(backgroundLive)).toEqual(['createGraphSection', 'createFile', 'createFolder', 'refresh', 'fitView']);
+    expect(builtInActions(backgroundLive)).toEqual(['createFile', 'createFolder', 'createGraphSection', 'refresh', 'fitView']);
 
     const backgroundTimeline = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -350,7 +350,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(builtInActions(backgroundTimeline)).toEqual(['createGraphSection', 'createFile', 'createFolder', 'refresh', 'fitView']);
+    expect(builtInActions(backgroundTimeline)).toEqual(['createFile', 'createFolder', 'createGraphSection', 'refresh', 'fitView']);
 
     const singleSelection = makeNodeContextSelection('src/app.ts', new Set<string>());
     const singleLive = buildGraphContextMenuEntries({

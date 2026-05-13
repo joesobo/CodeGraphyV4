@@ -15,9 +15,9 @@ describe('graph/contextMenu/build/background', () => {
 
     expect(entries).toHaveLength(6);
     expect(entries).toMatchObject([
-      { kind: 'item', label: 'New Graph Section', disabled: false },
       { kind: 'item', label: 'New File...', disabled: false },
       { kind: 'item', label: 'New Folder...', disabled: false },
+      { kind: 'item', label: 'New Graph Section', disabled: false },
       { kind: 'separator' },
       { kind: 'item', label: 'Refresh' },
       { kind: 'item', label: 'Fit All Nodes' },

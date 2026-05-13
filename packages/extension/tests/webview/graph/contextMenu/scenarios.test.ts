@@ -52,7 +52,7 @@ describe('graph/contextMenu product scenarios', () => {
       pluginItems: [],
     });
 
-    expect(labels(entries)).toEqual(['New Graph Section', 'New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File...', 'New Folder...', 'New Graph Section', 'Refresh', 'Fit All Nodes']);
     expectBuiltInDisabled(entries, 'createGraphSection', false);
     expectBuiltInDisabled(entries, 'createFile', false);
     expectBuiltInDisabled(entries, 'createFolder', false);
@@ -67,7 +67,7 @@ describe('graph/contextMenu product scenarios', () => {
       pluginItems: [],
     });
 
-    expect(labels(entries)).toEqual(['New Graph Section', 'New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File...', 'New Folder...', 'New Graph Section', 'Refresh', 'Fit All Nodes']);
     expectBuiltInDisabled(entries, 'createGraphSection', true);
     expectBuiltInDisabled(entries, 'createFile', true);
     expectBuiltInDisabled(entries, 'createFolder', true);

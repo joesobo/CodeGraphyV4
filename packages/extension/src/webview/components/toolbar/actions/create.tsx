@@ -15,7 +15,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../../ui/menus/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/overlay/tooltip';
@@ -86,17 +85,14 @@ export function CreateToolbarAction({
           <span>New Folder...</span>
         </DropdownMenuItem>
         {sectionCreationAvailable ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="gap-2"
-              disabled={sectionCreationDisabled}
-              onSelect={postRootGraphSectionCreation}
-            >
-              <MdiIcon path={mdiVectorSquarePlus} size={15} className="shrink-0" />
-              <span>New Graph Section</span>
-            </DropdownMenuItem>
-          </>
+          <DropdownMenuItem
+            className="gap-2"
+            disabled={sectionCreationDisabled}
+            onSelect={postRootGraphSectionCreation}
+          >
+            <MdiIcon path={mdiVectorSquarePlus} size={15} className="shrink-0" />
+            <span>New Graph Section</span>
+          </DropdownMenuItem>
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>

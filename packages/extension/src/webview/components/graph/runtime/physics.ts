@@ -1,7 +1,7 @@
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import { forceCollide, forceX, forceY } from 'd3-force';
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import { DEFAULT_PHYSICS_SETTINGS, type IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { GraphLayoutSettings } from '../../../../shared/settings/graphLayout';
 import { DEFAULT_NODE_SIZE, toD3Repel, type FGLink, type FGNode } from '../model/build';
 import { SECTION_FRAME_HEADER_HEIGHT } from '../sectionFrames/model';
@@ -19,6 +19,8 @@ const SECTION_RECTANGLE_MAX_SECTION_IMPULSE = 12;
 const SECTION_RECTANGLE_MAX_REPEL_GAP = 32;
 const SECTION_RECTANGLE_REPEL_PADDING_RATIO = 0.25;
 const SECTION_CHARGE_MULTIPLIER_CAP = 12;
+const SECTION_BOUNDARY_EPSILON = 1;
+const MIN_VELOCITY_INTEGRATION_DECAY = 0.05;
 const MAX_NORMALIZED_REPEL_FORCE = 20;
 
 interface GraphPhysicsControls {
@@ -47,7 +49,7 @@ export interface GraphSectionBoundsForce {
 
 interface GraphSectionBoundsForceOptions {
 	links?: readonly FGLink[];
-	settings?: Pick<IPhysicsSettings, 'centerForce' | 'linkDistance' | 'linkForce' | 'repelForce'>;
+	settings?: Pick<IPhysicsSettings, 'centerForce' | 'damping' | 'linkDistance' | 'linkForce' | 'repelForce'>;
 }
 
 interface BoundsRect {
@@ -766,6 +768,11 @@ function getRepelAwareCollisionRect(
 	return inflateRectangleCollisionRect(rect, getSectionRectangleRepelPadding(node, rect, settings));
 }
 
+function getVelocityIntegrationDecay(settings: GraphSectionBoundsForceOptions['settings']): number {
+	const damping = settings?.damping ?? DEFAULT_PHYSICS_SETTINGS.damping;
+	return Math.max(MIN_VELOCITY_INTEGRATION_DECAY, 1 - clamp(damping, 0, 1));
+}
+
 function getGraphChargeStrength(
 	repelForce: number,
 	graphLayout: GraphLayoutSettings | undefined,
@@ -977,6 +984,86 @@ function applyRectangleCollisions(
 			}
 
 			applyRectangleCollision(nodes[leftIndex], nodes[rightIndex], graphLayout, settings);
+		}
+	}
+}
+
+function isPassiveRootCircleNode(node: FGNode, graphLayout: GraphLayoutSettings): boolean {
+	return !node.isGraphSection && !node.isDragging && !hasExpandedOwnerSection(node, graphLayout);
+}
+
+function getPostIntegrationCircleRect(
+	node: FGNode,
+	velocityIntegrationDecay: number,
+): RectangleCollisionRect | undefined {
+	const rect = getNodeRectangleCollisionRect(node);
+	if (!rect) {
+		return undefined;
+	}
+
+	const centerX = rect.centerX + ((node.vx ?? 0) * velocityIntegrationDecay);
+	const centerY = rect.centerY + ((node.vy ?? 0) * velocityIntegrationDecay);
+	return {
+		...rect,
+		centerX,
+		centerY,
+		x: centerX - (rect.width / 2),
+		y: centerY - (rect.height / 2),
+	};
+}
+
+function getSectionBoundaryCorrection(
+	circleRect: RectangleCollisionRect,
+	sectionBounds: BoundsRect,
+): { axis: CollisionAxis; delta: number } | undefined {
+	const radius = Math.min(circleRect.width, circleRect.height) / 2;
+	const sectionRect: RectangleCollisionRect = {
+		...sectionBounds,
+		centerX: sectionBounds.x + sectionBounds.width / 2,
+		centerY: sectionBounds.y + sectionBounds.height / 2,
+	};
+	if (!circleRectOverlapsRectangle(circleRect, sectionRect)) {
+		return undefined;
+	}
+
+	const candidates = [
+		{ axis: 'x' as const, delta: (sectionBounds.x - radius - SECTION_BOUNDARY_EPSILON) - circleRect.centerX },
+		{ axis: 'x' as const, delta: (sectionBounds.x + sectionBounds.width + radius + SECTION_BOUNDARY_EPSILON) - circleRect.centerX },
+		{ axis: 'y' as const, delta: (sectionBounds.y - radius - SECTION_BOUNDARY_EPSILON) - circleRect.centerY },
+		{ axis: 'y' as const, delta: (sectionBounds.y + sectionBounds.height + radius + SECTION_BOUNDARY_EPSILON) - circleRect.centerY },
+	].sort((left, right) => Math.abs(left.delta) - Math.abs(right.delta));
+	return candidates[0];
+}
+
+function constrainPassiveRootNodeOutsideSectionBounds(
+	node: FGNode,
+	sectionBounds: Iterable<BoundsRect>,
+	velocityIntegrationDecay: number,
+): void {
+	for (const bounds of sectionBounds) {
+		const circleRect = getPostIntegrationCircleRect(node, velocityIntegrationDecay);
+		if (!circleRect) {
+			return;
+		}
+
+		const correction = getSectionBoundaryCorrection(circleRect, bounds);
+		if (!correction) {
+			continue;
+		}
+
+		addAxisVelocity(node, correction.axis, correction.delta / velocityIntegrationDecay);
+	}
+}
+
+function constrainPassiveRootNodesOutsideSections(
+	nodes: readonly FGNode[],
+	graphLayout: GraphLayoutSettings,
+	sectionBounds: Map<string, BoundsRect>,
+	velocityIntegrationDecay: number,
+): void {
+	for (const node of nodes) {
+		if (isPassiveRootCircleNode(node, graphLayout)) {
+			constrainPassiveRootNodeOutsideSectionBounds(node, sectionBounds.values(), velocityIntegrationDecay);
 		}
 	}
 }
@@ -1362,6 +1449,7 @@ function applyGraphSectionBoundsTick(
 	applyRectangleCollisions(nodes, graphLayout, options.settings);
 	carrySectionMembersWithFrames(nodes, graphLayout, previousSectionCenters);
 	const sectionBounds = createSectionBoundsMap(nodes, graphLayout);
+	constrainPassiveRootNodesOutsideSections(nodes, graphLayout, sectionBounds, getVelocityIntegrationDecay(options.settings));
 	const sectionMemberCenterStrength = getSectionMemberCenterStrength(options.settings);
 	constrainSectionMembers(nodes, graphLayout, sectionBounds, alpha, sectionMemberCenterStrength);
 	applySectionMemberChargeForces(nodes, graphLayout, options.settings, alpha);
