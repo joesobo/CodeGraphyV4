@@ -16,6 +16,7 @@ import type { GraphLayoutOwnership, GraphLayoutSection } from '../../../../share
 import {
   beginSectionFrameWindowDrag,
   isSectionFrameControl,
+  type SectionFrameDragEndHandler,
   type SectionFrameUpdateHandler,
 } from './drag';
 import {
@@ -41,6 +42,7 @@ interface SectionFramesProps {
   sectionNodePositions?: ReadonlyMap<string, SectionFrameNodePosition>;
   sections: readonly GraphLayoutSection[];
   onOpenSectionContextMenu?: (this: void, sectionId: string, event: ReactMouseEvent<HTMLDivElement>) => void;
+  onSectionDragEnd?: SectionFrameDragEndHandler;
   onUpdateSection: SectionFrameUpdateHandler;
 }
 
@@ -228,6 +230,7 @@ export function SectionFrames({
   sectionNodePositions = new Map<string, SectionFrameNodePosition>(),
   sections,
   onOpenSectionContextMenu,
+  onSectionDragEnd,
   onUpdateSection,
 }: SectionFramesProps): ReactElement | null {
   const frameElementsRef = useRef(new Map<string, HTMLDivElement>());
@@ -283,7 +286,7 @@ export function SectionFrames({
       nodePosition: sectionNodePositions.get(section.id),
       section,
       type,
-    }, onUpdateSection);
+    }, onUpdateSection, onSectionDragEnd);
   }
 
   function registerFrameElement(sectionId: string, element: HTMLDivElement | null): void {

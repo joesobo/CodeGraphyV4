@@ -9,9 +9,14 @@ import type { UseGraphStateResult } from '../../../../src/webview/components/gra
 import { GraphViewportShell } from '../../../../src/webview/components/graph/viewport/shell';
 
 const harness = vi.hoisted(() => ({
+	postMessage: vi.fn(),
 	useGraphRenderingRuntime: vi.fn(),
 	useGraphViewportModel: vi.fn(),
 	viewport: vi.fn((_props: Record<string, unknown>) => <div data-testid="graph-viewport" />),
+}));
+
+vi.mock('../../../../src/webview/vscodeApi', () => ({
+	postMessage: harness.postMessage,
 }));
 
 vi.mock('../../../../src/webview/components/graph/runtime/use/rendering', () => ({
@@ -215,6 +220,7 @@ function createViewState(): Pick<
 
 describe('graph/viewport/shell', () => {
 	beforeEach(() => {
+		harness.postMessage.mockReset();
 		harness.useGraphRenderingRuntime.mockReset();
 		harness.useGraphViewportModel.mockReset();
 		harness.viewport.mockReset();
@@ -350,5 +356,86 @@ describe('graph/viewport/shell', () => {
 			}),
 			tooltipData: interactions.tooltipData,
 		}));
+	});
+
+	it('posts section ownership updates after an expanded Section Frame is dragged into another section', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		graphState.graphDataRef.current.nodes = [
+			{
+				id: 'section-1',
+				isGraphSection: true,
+				sectionHeight: 300,
+				sectionWidth: 300,
+				x: 150,
+				y: 150,
+			},
+			{
+				id: 'section-2',
+				isGraphSection: true,
+				sectionHeight: 120,
+				sectionWidth: 120,
+				x: 120,
+				y: 120,
+			},
+		] as never;
+		const viewState = createViewState();
+		viewState.graphMode = '2d';
+		viewState.timelineActive = false;
+		viewState.graphLayout = {
+			collapsedNodes: {},
+			pinnedNodes: {},
+			sections: {
+				'section-1': {
+					id: 'section-1',
+					label: 'Parent',
+					color: '#60a5fa',
+					x: 0,
+					y: 0,
+					width: 300,
+					height: 300,
+					collapsed: false,
+					updatedAt: '2026-05-13T09:30:00.000Z',
+				},
+				'section-2': {
+					id: 'section-2',
+					label: 'Child',
+					color: '#22c55e',
+					x: 420,
+					y: 0,
+					width: 120,
+					height: 120,
+					collapsed: false,
+					updatedAt: '2026-05-13T09:30:00.000Z',
+				},
+			},
+			ownership: {},
+		};
+
+		render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		const viewportProps = harness.viewport.mock.calls[0]?.[0] as {
+			onSectionDragEnd(sectionId: string): void;
+		};
+		viewportProps.onSectionDragEnd('section-2');
+
+		expect(harness.postMessage).toHaveBeenCalledWith({
+			type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+			payload: {
+				itemId: 'section-2',
+				itemKind: 'section',
+				ownerSectionId: 'section-1',
+			},
+		});
 	});
 });

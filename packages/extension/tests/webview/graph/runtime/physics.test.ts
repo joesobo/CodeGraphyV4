@@ -617,6 +617,19 @@ describe('physics', () => {
     } as FGNode)).toBeLessThan(0);
   });
 
+  it('removes dragged expanded Graph Sections from root charge while the user moves them', () => {
+    const { charge, instance } = createPhysicsInstance();
+
+    applyPhysicsSettings(instance, SETTINGS, { graphLayout: GRAPH_LAYOUT, graphMode: '2d' });
+
+    const strength = charge.strength.mock.calls[0][0] as (node: FGNode) => number;
+    expect(strength({
+      id: 'section-1',
+      isDragging: true,
+      isGraphSection: true,
+    } as FGNode)).toBe(0);
+  });
+
   it('uses the fixed graph charge range', () => {
     const { charge, instance } = createPhysicsInstance();
 
@@ -1855,6 +1868,89 @@ describe('physics', () => {
     runSectionBoundsTicks(nodes, force, 80);
 
     expect(circleOverlapsSection(nodes[1], nodes[0])).toBe(false);
+  });
+
+  it('does not push sections away from a dragged expanded Graph Section', () => {
+    const graphLayout: GraphLayoutSettings = {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        parent: {
+          id: 'parent',
+          label: 'Parent',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 200,
+          height: 160,
+          collapsed: false,
+          updatedAt: '2026-05-13T09:30:00.000Z',
+        },
+        child: {
+          id: 'child',
+          label: 'Child',
+          color: '#22c55e',
+          x: 40,
+          y: 30,
+          width: 120,
+          height: 90,
+          collapsed: false,
+          updatedAt: '2026-05-13T09:30:00.000Z',
+        },
+      },
+      ownership: {
+        parent: {
+          itemId: 'parent',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-13T09:30:00.000Z',
+        },
+        child: {
+          itemId: 'child',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-13T09:30:00.000Z',
+        },
+      },
+    };
+    const force = createGraphSectionBoundsForce(graphLayout, {
+      settings: {
+        ...SETTINGS,
+        centerForce: 0,
+        linkForce: 0,
+        repelForce: 0,
+      },
+    });
+    const nodes = [
+      {
+        id: 'parent',
+        isGraphSection: true,
+        sectionHeight: 160,
+        sectionWidth: 200,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 80,
+      },
+      {
+        fx: 100,
+        fy: 80,
+        id: 'child',
+        isDragging: true,
+        isGraphSection: true,
+        sectionHeight: 90,
+        sectionWidth: 120,
+        vx: 0,
+        vy: 0,
+        x: 100,
+        y: 80,
+      },
+    ] as FGNode[];
+
+    runSectionBoundsTicks(nodes, force, 1);
+
+    expect(nodes[0]).toMatchObject({ vx: 0, vy: 0, x: 100, y: 80 });
+    expect(nodes[1]).toMatchObject({ vx: 0, vy: 0, x: 100, y: 80 });
   });
 
   it('does not collide normal nodes with a Section Frame when only the circle bounding box touches a corner', () => {

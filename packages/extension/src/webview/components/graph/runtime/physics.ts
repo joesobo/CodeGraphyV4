@@ -727,6 +727,10 @@ function shouldApplyRectangleCollision(
 		return false;
 	}
 
+	if (left.isDragging || right.isDragging) {
+		return false;
+	}
+
 	if (isDraggingCircleAgainstExpandedSection(left, right)) {
 		return false;
 	}
@@ -778,7 +782,7 @@ function getGraphChargeStrength(
 	graphLayout: GraphLayoutSettings | undefined,
 ): (node: FGNode) => number {
 	const defaultStrength = toD3Repel(repelForce);
-	return (node: FGNode) => graphLayout && hasExpandedOwnerSection(node, graphLayout)
+	return (node: FGNode) => node.isDragging || (graphLayout && hasExpandedOwnerSection(node, graphLayout))
 		? 0
 		: defaultStrength * getSectionChargeMultiplier(node);
 }

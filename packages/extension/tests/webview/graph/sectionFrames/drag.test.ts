@@ -76,6 +76,7 @@ describe('graph/sectionFrames/drag', () => {
 
   it('keeps graph physics alive while dragging the live Section Node', () => {
     const onUpdateSection = vi.fn();
+    const onDragEnd = vi.fn();
     const graph = {
       d3ReheatSimulation: vi.fn(),
       resumeAnimation: vi.fn(),
@@ -94,7 +95,7 @@ describe('graph/sectionFrames/drag', () => {
       nodePosition,
       section,
       type: 'move',
-    }, onUpdateSection);
+    }, onUpdateSection, onDragEnd);
 
     expect(nodePosition).toMatchObject({ isDragging: true });
     expect(graph.resumeAnimation).toHaveBeenCalledOnce();
@@ -110,10 +111,12 @@ describe('graph/sectionFrames/drag', () => {
 
     expect(nodePosition).toMatchObject({ isDragging: false });
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { x: -120, y: -50 });
+    expect(onDragEnd).toHaveBeenCalledWith('section-1');
   });
 
   it('keeps live Section Node centers aligned when resizing the frame', () => {
     const onUpdateSection = vi.fn();
+    const onDragEnd = vi.fn();
     const nodePosition = {
       id: 'section-1',
       sectionHeight: 180,
@@ -128,7 +131,7 @@ describe('graph/sectionFrames/drag', () => {
       nodePosition,
       section,
       type: 'resize:southeast',
-    }, onUpdateSection);
+    }, onUpdateSection, onDragEnd);
 
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 20, clientY: 10 }));
 
@@ -141,6 +144,8 @@ describe('graph/sectionFrames/drag', () => {
     expect(onUpdateSection).not.toHaveBeenCalled();
 
     window.dispatchEvent(new MouseEvent('mouseup', { clientX: 20, clientY: 10 }));
+
+    expect(onDragEnd).not.toHaveBeenCalled();
   });
 
   it('keeps live Section Node centers aligned when resizing from a top-left anchored handle', () => {
