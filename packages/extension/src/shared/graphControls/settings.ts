@@ -6,6 +6,7 @@ export type GraphControlConfigKey =
 const DEPRECATED_SYMBOL_NODE_TYPE_KEYS = new Set([
   'symbol:method',
   'symbol:namespace',
+  'symbol:property',
   'symbol:variable',
 ]);
 

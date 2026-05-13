@@ -271,7 +271,7 @@ describe('pipeline/graph/data', () => {
           symbols: [{
             id: 'score-symbol',
             filePath: '/workspace/src/player.gd',
-            kind: '  Property  ',
+            kind: '  Field  ',
             name: 'score',
             signature: 'var score: int',
           }],
@@ -286,16 +286,16 @@ describe('pipeline/graph/data', () => {
 
     expect(graph.nodes).toEqual(expect.arrayContaining([
       {
-        id: 'src/player.gd#score:property:var%20score%3A%20int',
+        id: 'src/player.gd#score:field:var%20score%3A%20int',
         label: 'score',
         color: '#14B8A6',
         fileSize: 20,
         churn: 0,
         nodeType: 'variable',
         symbol: {
-          id: 'src/player.gd#score:property:var%20score%3A%20int',
+          id: 'src/player.gd#score:field:var%20score%3A%20int',
           name: 'score',
-          kind: 'property',
+          kind: 'field',
           filePath: 'src/player.gd',
           signature: 'var score: int',
         },

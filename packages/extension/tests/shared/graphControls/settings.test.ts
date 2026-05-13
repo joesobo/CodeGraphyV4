@@ -8,6 +8,7 @@ describe('shared/graphControls/settings', () => {
       'symbol:function': '#8B5CF6',
       'symbol:method': '#A855F7',
       'symbol:namespace': '#64748B',
+      'symbol:property': '#84CC16',
       'symbol:variable': '#14B8A6',
       file: '#111111',
     })).toEqual({
@@ -23,6 +24,7 @@ describe('shared/graphControls/settings', () => {
       'symbol:function': true,
       'symbol:method': true,
       'symbol:namespace': true,
+      'symbol:property': true,
       'symbol:variable': true,
       file: true,
     })).toEqual({

@@ -67,7 +67,13 @@ export function createSymbolRelationEdges(
 
       const source = createRelationEdgeSource(relation);
       edges.push({
-        id: createGraphEdgeId({ from, to, kind: relation.kind }),
+        id: createGraphEdgeId({
+          from,
+          to,
+          kind: relation.kind,
+          type: relation.type,
+          variant: relation.variant,
+        }),
         from,
         to,
         kind: relation.kind,
