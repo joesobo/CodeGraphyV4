@@ -70,18 +70,23 @@ export function handleJavaScriptVariableDeclarator(
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
 ): TreeWalkAction<SymbolWalkState> | void {
   const symbol = getVariableAssignedFunctionSymbol(node, filePath);
-  if (!symbol) {
+  if (symbol) {
+    symbols.push(symbol);
+    const valueNode = node.childForFieldName('value') ?? node.namedChildren.at(-1);
+    const body = valueNode?.childForFieldName('body') ?? valueNode?.namedChildren.at(-1);
+    if (body) {
+      walk(body, { currentSymbolId: symbol.id });
+    }
+
+    return { skipChildren: true };
+  }
+
+  const name = getIdentifierText(node.childForFieldName('name') ?? node.namedChildren[0]);
+  if (!name) {
     return;
   }
 
-  symbols.push(symbol);
-  const valueNode = node.childForFieldName('value') ?? node.namedChildren.at(-1);
-  const body = valueNode?.childForFieldName('body') ?? valueNode?.namedChildren.at(-1);
-  if (body) {
-    walk(body, { currentSymbolId: symbol.id });
-  }
-
-  return { skipChildren: true };
+  symbols.push(createSymbol(filePath, 'constant', name, node));
 }
 
 function getJavaScriptTypeDeclarationKind(

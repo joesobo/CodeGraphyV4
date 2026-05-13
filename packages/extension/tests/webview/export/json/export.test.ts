@@ -198,6 +198,56 @@ describe('buildExportData', () => {
     ]);
   });
 
+  it('exports symbol node metadata from the current visible graph', () => {
+    const data: IGraphData = {
+      nodes: [
+        {
+          id: 'src/App.ts#render:function',
+          label: 'render',
+          nodeType: 'symbol',
+          color: '#8B5CF6',
+          symbol: {
+            id: 'src/App.ts#render:function',
+            name: 'render',
+            kind: 'function',
+            filePath: 'src/App.ts',
+            signature: 'render(): string',
+            language: 'typescript',
+            source: 'typescript',
+            pluginKind: 'function-declaration',
+          },
+        },
+      ],
+      edges: [],
+    };
+
+    const result = buildExportData(data, noLegends);
+
+    expect(result.nodes).toEqual([
+      {
+        id: 'src/App.ts#render:function',
+        label: 'render',
+        nodeType: 'symbol',
+        color: '#8B5CF6',
+        legendIds: [],
+        fileSize: undefined,
+        churn: undefined,
+        x: undefined,
+        y: undefined,
+        symbol: {
+          id: 'src/App.ts#render:function',
+          name: 'render',
+          kind: 'function',
+          filePath: 'src/App.ts',
+          signature: 'render(): string',
+          language: 'typescript',
+          source: 'typescript',
+          pluginKind: 'function-declaration',
+        },
+      },
+    ]);
+  });
+
   it('adds legend ids to edges from edge-targeted legend rules', () => {
     const data: IGraphData = {
       nodes: [

@@ -12,9 +12,20 @@ describe('shared/graphControls/defaults/maps', () => {
       file: true,
       folder: false,
       package: false,
+      symbol: false,
+      'symbol:function': true,
+      'symbol:class': true,
+      'symbol:interface': true,
+      'symbol:type': true,
+      'symbol:struct': true,
+      'symbol:enum': true,
+      variable: false,
+      'symbol:constant': true,
+      'plugin:codegraphy.gdscript:symbol:godot-class-name': true,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
     expect(createDefaultNodeColors().file).toBeTruthy();
+    expect(createDefaultNodeColors().symbol).toBe('#7C3AED');
     expect(createDefaultEdgeColors().call).toBeTruthy();
   });
 });

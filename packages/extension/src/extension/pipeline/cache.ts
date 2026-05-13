@@ -17,7 +17,7 @@ export interface IWorkspaceAnalysisCache {
 }
 
 export const WORKSPACE_ANALYSIS_CACHE_KEY = 'codegraphy.analysisCache';
-export const WORKSPACE_ANALYSIS_CACHE_VERSION = '2.0.0';
+export const WORKSPACE_ANALYSIS_CACHE_VERSION = '2.1.0';
 
 export function createEmptyWorkspaceAnalysisCache(): IWorkspaceAnalysisCache {
   return {

@@ -29,6 +29,38 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     });
   });
 
+  it('prunes stale symbol theme keys while preserving the symbol visibility toggle', () => {
+    expect(normalizePersistedSettingsShape({
+      nodeColors: {
+        symbol: '#8B5CF6',
+        'symbol:function': '#8B5CF6',
+        'symbol:method': '#A855F7',
+        'symbol:namespace': '#64748B',
+        'symbol:variable': '#14B8A6',
+        file: '#111111',
+      },
+      nodeVisibility: {
+        symbol: true,
+        'symbol:function': true,
+        'symbol:method': true,
+        'symbol:namespace': true,
+        'symbol:variable': true,
+        file: true,
+      },
+    })).toEqual({
+      nodeColors: {
+        symbol: '#8B5CF6',
+        'symbol:function': '#8B5CF6',
+        file: '#111111',
+      },
+      nodeVisibility: {
+        symbol: true,
+        'symbol:function': true,
+        file: true,
+      },
+    });
+  });
+
   it('drops legacy folder color and exclude aliases', () => {
     expect(normalizePersistedSettingsShape({
       nodeColors: 'invalid',

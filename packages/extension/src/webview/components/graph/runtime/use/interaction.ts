@@ -304,9 +304,10 @@ export function useGraphInteractionRuntime({
   const actionContext = useMemo(
     () => resolveGraphContextActionContext(graphContextSelection, {
       graphMode,
+      nodes: dataRef.current.nodes,
       nodePositions: createGraphNodePositionMap(graphDataRef.current.nodes, graphMode),
     }),
-    [graphContextSelection, graphDataRef, graphMode],
+    [dataRef, graphContextSelection, graphDataRef, graphMode],
   );
 
   function clearMarqueeSelection(): void {

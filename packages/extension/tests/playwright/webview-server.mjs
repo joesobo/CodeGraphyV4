@@ -19,37 +19,37 @@ const mimeTypes = {
 
 const fullGraph = {
   nodes: [
-    { id: 'packages/app/src/index.ts', label: 'index.ts', color: '#38bdf8', x: 0, y: 0 },
-    { id: 'packages/app/src/utils.ts', label: 'utils.ts', color: '#38bdf8', x: 100, y: -60 },
-    { id: 'packages/shared/src/types.ts', label: 'types.ts', color: '#22c55e', x: 100, y: 60 },
-    { id: 'packages/feature-depth/src/deep.ts', label: 'deep.ts', color: '#f59e0b', x: 220, y: -60 },
-    { id: 'packages/feature-depth/src/leaf.ts', label: 'leaf.ts', color: '#f59e0b', x: 340, y: -60 },
+    { id: 'src/index.ts', label: 'index.ts', color: '#38bdf8', x: 0, y: 0 },
+    { id: 'src/utils.ts', label: 'utils.ts', color: '#38bdf8', x: 100, y: -60 },
+    { id: 'src/types.ts', label: 'types.ts', color: '#22c55e', x: 100, y: 60 },
+    { id: 'src/depth.ts', label: 'depth.ts', color: '#f59e0b', x: 220, y: -60 },
+    { id: 'src/leaf.ts', label: 'leaf.ts', color: '#f59e0b', x: 340, y: -60 },
   ],
   edges: [
     {
-      id: 'packages/app/src/index.ts->packages/app/src/utils.ts',
-      from: 'packages/app/src/index.ts',
-      to: 'packages/app/src/utils.ts',
+      id: 'src/index.ts->src/utils.ts',
+      from: 'src/index.ts',
+      to: 'src/utils.ts',
     },
     {
-      id: 'packages/app/src/index.ts->packages/shared/src/types.ts',
-      from: 'packages/app/src/index.ts',
-      to: 'packages/shared/src/types.ts',
+      id: 'src/index.ts->src/types.ts',
+      from: 'src/index.ts',
+      to: 'src/types.ts',
     },
     {
-      id: 'packages/app/src/utils.ts->packages/shared/src/types.ts',
-      from: 'packages/app/src/utils.ts',
-      to: 'packages/shared/src/types.ts',
+      id: 'src/utils.ts->src/types.ts',
+      from: 'src/utils.ts',
+      to: 'src/types.ts',
     },
     {
-      id: 'packages/app/src/utils.ts->packages/feature-depth/src/deep.ts',
-      from: 'packages/app/src/utils.ts',
-      to: 'packages/feature-depth/src/deep.ts',
+      id: 'src/utils.ts->src/depth.ts',
+      from: 'src/utils.ts',
+      to: 'src/depth.ts',
     },
     {
-      id: 'packages/feature-depth/src/deep.ts->packages/feature-depth/src/leaf.ts',
-      from: 'packages/feature-depth/src/deep.ts',
-      to: 'packages/feature-depth/src/leaf.ts',
+      id: 'src/depth.ts->src/leaf.ts',
+      from: 'src/depth.ts',
+      to: 'src/leaf.ts',
     },
   ],
 };
@@ -95,7 +95,7 @@ const depthHarnessScript = `
     const fullGraph = ${JSON.stringify(fullGraph)};
     window.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ = true;
     const state = {
-      activeFilePath: 'packages/app/src/index.ts',
+      activeFilePath: 'src/index.ts',
       depthMode: true,
       boundsNodes: [],
       depthLimit: 1,

@@ -66,14 +66,14 @@ export function createGraphViewProviderMessagePrimaryActions(
   const canOpenPath = (filePath: string): boolean => canOpenGraphPath(source, filePath);
 
   return {
-    openSelectedNode: nodeId => source._openSelectedNode(nodeId),
-    activateNode: nodeId => source._activateNode(nodeId),
+    openSelectedNode: nodeId => source._openSelectedNode(resolveGraphOpenPath(source, nodeId)),
+    activateNode: nodeId => source._activateNode(resolveGraphOpenPath(source, nodeId)),
     setFocusedFile: filePath => source.setFocusedFile(filePath),
     previewFileAtCommit: (sha, filePath) => source._previewFileAtCommit(sha, filePath),
-    openFile: filePath => source._openFile(filePath),
+    openFile: filePath => source._openFile(resolveGraphOpenPath(source, filePath)),
     canOpenPath,
     openInEditor: () => source._webviewMethods.openInEditor(),
-    revealInExplorer: filePath => source._revealInExplorer(filePath),
+    revealInExplorer: filePath => source._revealInExplorer(resolveGraphOpenPath(source, filePath)),
     copyToClipboard: text => source._copyToClipboard(text),
     deleteFiles: paths => source._deleteFiles(paths),
     renameFile: filePath => source._renameFile(filePath),
@@ -86,7 +86,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     analyzeAndSendData: () => source._analyzeAndSendData(),
     refreshIndex: () => source.refreshIndex(),
     clearCacheAndRefresh: () => source.clearCacheAndRefresh(),
-    getFileInfo: filePath => source._getFileInfo(filePath),
+    getFileInfo: filePath => source._getFileInfo(resolveGraphOpenPath(source, filePath)),
     undo: () => source.undo(),
     redo: () => source.redo(),
     showInformationMessage: detail => {
@@ -139,10 +139,23 @@ function normalizeGraphMutationDirectory(directory: string): string {
   return directory === '(root)' ? '.' : directory;
 }
 
+function resolveGraphOpenPath(
+  source: GraphViewProviderMessageListenerSource,
+  targetId: string,
+): string {
+  return source._graphData.nodes.find(graphNode => graphNode.id === targetId)?.symbol?.filePath
+    ?? targetId;
+}
+
 function canOpenGraphPath(
   source: GraphViewProviderMessageListenerSource,
   filePath: string,
 ): boolean {
+  const resolvedFilePath = resolveGraphOpenPath(source, filePath);
+  if (resolvedFilePath !== filePath) {
+    return canOpenGraphPath(source, resolvedFilePath);
+  }
+
   const node = source._graphData.nodes.find((graphNode) => graphNode.id === filePath);
   if (node) {
     return canOpenGraphNode(node.nodeType);

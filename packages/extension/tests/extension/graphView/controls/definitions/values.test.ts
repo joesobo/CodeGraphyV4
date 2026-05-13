@@ -30,9 +30,9 @@ describe('extension/graphView/controls/send/definitions/values', () => {
     expect(
       resolveNodeColors(
         [
-          { id: 'file', label: 'Files', defaultColor: '#A1A1AA', defaultVisible: true },
-          { id: 'route', label: 'Routes', defaultColor: '#22C55E', defaultVisible: true },
-          { id: 'package', label: 'Packages', defaultColor: '#F59E0B', defaultVisible: false },
+          { id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true },
+          { id: 'route', label: 'Route', defaultColor: '#22C55E', defaultVisible: true },
+          { id: 'package', label: 'Package', defaultColor: '#F59E0B', defaultVisible: false },
         ],
         {
           file: '  #abcdef  ',

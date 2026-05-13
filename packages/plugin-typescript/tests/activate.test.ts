@@ -221,7 +221,18 @@ describe('plugin-typescript/activate', () => {
       expect.arrayContaining([
         expect.objectContaining({
           from: 'src/index.ts',
-          to: 'src/utils.ts',
+          to: 'src/utils.ts#clamp:function',
+          kind: 'import',
+        }),
+        expect.objectContaining({
+          from: 'src/index.ts',
+          to: 'src/utils.ts#clamp:function',
+          kind: 'call',
+        }),
+        expect.objectContaining({
+          from: 'src/utils.ts',
+          to: 'src/utils.ts#formatUser:function',
+          kind: 'contains',
         }),
       ]),
     );

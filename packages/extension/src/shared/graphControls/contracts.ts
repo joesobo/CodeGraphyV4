@@ -8,6 +8,13 @@ export interface IGraphNodeTypeDefinition {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  parentId?: NodeType;
+  pluginName?: string;
+  matchSymbolKinds?: string[];
+  matchSymbolPluginKind?: string;
+  matchSymbolSource?: string;
+  matchSymbolLanguage?: string;
+  matchSymbolFilePath?: string;
 }
 
 export interface IGraphEdgeTypeDefinition {
@@ -21,7 +28,6 @@ export interface IGraphControlsSnapshot {
   nodeTypes: IGraphNodeTypeDefinition[];
   edgeTypes: IGraphEdgeTypeDefinition[];
   nodeColors: Record<string, string>;
-  nodeColorEnabled: Record<string, boolean>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
 }

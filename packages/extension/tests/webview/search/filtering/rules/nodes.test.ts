@@ -158,4 +158,70 @@ describe('search/filtering/rules/nodes', () => {
       nodeType: 'file',
     });
   });
+
+  it('applies scoped symbol rules by kind, plugin kind, source, language, and containing file', () => {
+    const activeRules = getOrderedActiveRules([
+      {
+        id: 'symbol:function',
+        pattern: '**',
+        color: '#8B5CF6',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'function',
+      },
+      {
+        id: 'symbol:godot-class-name',
+        pattern: '**',
+        color: '#478CBF',
+        matchNodeType: 'symbol',
+        matchSymbolKind: 'class',
+        matchSymbolPluginKind: 'godot-class-name',
+        matchSymbolSource: 'codegraphy.gdscript',
+        matchSymbolLanguage: 'gdscript',
+        matchSymbolFilePath: 'scripts/**/*.gd',
+      },
+    ]);
+
+    expect(
+      applyNodeLegendRules(
+        {
+          id: 'scripts/player.gd#Player:class',
+          label: 'Player',
+          color: '#111111',
+          nodeType: 'symbol',
+          symbol: {
+            id: 'scripts/player.gd#Player:class',
+            name: 'Player',
+            kind: 'class',
+            filePath: 'scripts/player.gd',
+            source: 'codegraphy.gdscript',
+            language: 'gdscript',
+            pluginKind: 'godot-class-name',
+          },
+        },
+        activeRules,
+      ),
+    ).toMatchObject({
+      color: '#478CBF',
+    });
+
+    expect(
+      applyNodeLegendRules(
+        {
+          id: 'scripts/player.gd#ready:function',
+          label: 'ready',
+          color: '#111111',
+          nodeType: 'symbol',
+          symbol: {
+            id: 'scripts/player.gd#ready:function',
+            name: 'ready',
+            kind: 'function',
+            filePath: 'scripts/player.gd',
+          },
+        },
+        activeRules,
+      ),
+    ).toMatchObject({
+      color: '#8B5CF6',
+    });
+  });
 });

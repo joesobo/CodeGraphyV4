@@ -1,15 +1,15 @@
 """Main entry point for the application."""
 
 import config
-from services.api import fetch_data
-from utils.helpers import process_data
+from services.api import fetch_user
+from utils.helpers import summarize_user
 
 
 def main():
     """Run the application."""
     settings = config.load_config()
-    data = fetch_data(settings["api_url"])
-    result = process_data(data)
+    user = fetch_user(settings["api_url"])
+    result = summarize_user(user)
     print(result)
 
 

@@ -17,7 +17,6 @@ import {
 interface PanelStateInput {
   edgeTypes: Array<{ id: string; label: string; defaultColor: string }>;
   legends: IGroup[];
-  nodeColorEnabled: Record<string, boolean>;
   nodeColors: Record<string, string>;
   nodeTypes: Array<{ id: string; label: string; defaultColor: string }>;
   optimisticLegendUpdates?: PendingGroupUpdates;
@@ -26,15 +25,14 @@ interface PanelStateInput {
 function createBuiltInEntries(
   types: Array<{ id: string; label: string; defaultColor: string }>,
   colors: Record<string, string>,
-  enabled?: Record<string, boolean>,
 ): LegendBuiltInEntry[] {
-  return types.map((entry) => ({
-    id: entry.id,
-    label: entry.label,
-    color: colors[entry.id] ?? entry.defaultColor,
-    colorEnabled: enabled?.[entry.id] ?? true,
-    defaultColor: entry.defaultColor,
-  }));
+  return types
+    .map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      color: colors[entry.id] ?? entry.defaultColor,
+      defaultColor: entry.defaultColor,
+    }));
 }
 
 export function upsertEdgeTypeColorRule(
@@ -79,7 +77,6 @@ export function replaceCustomEdgeRules(
 export function useLegendPanelState({
   edgeTypes,
   legends,
-  nodeColorEnabled,
   nodeColors,
   nodeTypes,
   optimisticLegendUpdates = {},
@@ -123,8 +120,8 @@ export function useLegendPanelState({
     [edgeTypeIds, resolvedLegends],
   );
   const nodeEntries = useMemo(
-    () => createBuiltInEntries(nodeTypes, nodeColors, nodeColorEnabled),
-    [nodeColorEnabled, nodeColors, nodeTypes],
+    () => createBuiltInEntries(nodeTypes, nodeColors),
+    [nodeColors, nodeTypes],
   );
   const edgeTypeColors = useMemo(
     () => resolveEdgeTypeColors(edgeTypes, resolvedLegends),

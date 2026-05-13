@@ -16,23 +16,14 @@ vi.mock('../../../../src/webview/components/legends/panel/section/builtInRow', (
   LegendBuiltInRow: ({
     entry,
     onChange,
-    onToggleColor,
-    showColorToggle,
   }: {
-    entry: { id: string; label: string; colorEnabled?: boolean };
+    entry: { id: string; label: string };
     onChange: (id: string, color: string) => void;
-    onToggleColor?: (id: string, enabled: boolean) => void;
-    showColorToggle?: boolean;
   }) => (
     <div>
       <button type="button" onClick={() => onChange(entry.id, '#abc123')}>
         built-in:{entry.label}
       </button>
-      {showColorToggle && onToggleColor ? (
-        <button type="button" onClick={() => onToggleColor(entry.id, !(entry.colorEnabled ?? true))}>
-          toggle-color:{entry.label}
-        </button>
-      ) : null}
     </div>
   ),
 }));
@@ -90,7 +81,7 @@ vi.mock('../../../../src/webview/components/legends/panel/section/ruleRow', () =
       data-dragging={String(isDragging)}
       data-drag-over={String(isDragOver)}
     >
-      <span>{rule.pattern}</span>
+      <span>{rule.displayLabel ?? rule.pattern}</span>
       <button type="button" onClick={() => onChange({ ...rule, pattern: `${rule.pattern}:updated` })}>
         change:{rule.id}
       </button>
@@ -150,7 +141,6 @@ describe('webview/legends/section', () => {
     target: 'node' as const,
     collapsedEntries: {},
     onBuiltInColorChange: vi.fn(),
-    onBuiltInColorToggle: vi.fn(),
     onCollapsedChange: vi.fn(),
     onRulesChange: vi.fn(),
     onToggleDefaultVisibility: vi.fn(),
@@ -162,9 +152,8 @@ describe('webview/legends/section', () => {
     render(<LegendSection {...baseProps} onCollapsedChange={onCollapsedChange} />);
 
     expect(screen.getByText('built-in:Files')).toBeInTheDocument();
-    expect(screen.getByText('toggle-color:Files')).toBeInTheDocument();
     expect(screen.getByText('Custom')).toBeInTheDocument();
-    expect(screen.getByText('Plugin defaults')).toBeInTheDocument();
+    expect(screen.getByText('Plugins')).toBeInTheDocument();
     expect(screen.getByText('Defaults')).toBeInTheDocument();
     expect(screen.getByText('src/**')).toBeInTheDocument();
 
@@ -218,12 +207,22 @@ describe('webview/legends/section', () => {
             pluginId: 'codegraphy.python',
             pluginName: 'Python',
           },
+          {
+            id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
+            pattern: '**',
+            displayLabel: 'class_name',
+            color: '#478cbf',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.gdscript',
+            pluginName: 'Godot',
+          },
         ]}
       />,
     );
 
     const customLabel = screen.getByText('Custom');
-    const pluginDefaultsLabel = screen.getByText('Plugin defaults');
+    const pluginDefaultsLabel = screen.getByText('Plugins');
     const materialLabels = screen.getAllByText('Material Icon Theme');
     expect(materialLabels).toHaveLength(1);
     const materialLabel = materialLabels[0];
@@ -255,6 +254,10 @@ describe('webview/legends/section', () => {
     const pythonSection = screen.getByText('Python').closest('[data-testid="legend-rule-subsection"]');
     expect(pythonSection).not.toBeNull();
     expect(within(pythonSection as HTMLElement).getByText('*.py')).toBeInTheDocument();
+
+    const godotSection = screen.getByText('Godot').closest('[data-testid="legend-rule-subsection"]');
+    expect(godotSection).not.toBeNull();
+    expect(within(godotSection as HTMLElement).getByText('class_name')).toBeInTheDocument();
 
     const defaultsSection = screen.getByText('Defaults').closest('[data-testid="legend-rule-subsection"]');
     expect(defaultsSection).not.toBeNull();

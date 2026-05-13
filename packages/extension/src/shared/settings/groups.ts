@@ -8,7 +8,13 @@ export interface IGroup {
   displayLabel?: string;
   color: string;
   target?: LegendRuleTarget;
-  matchNodeType?: 'file' | 'folder' | 'package';
+  matchNodeType?: 'file' | 'folder' | 'package' | 'symbol' | 'variable';
+  matchSymbolKind?: string;
+  matchSymbolKinds?: string[];
+  matchSymbolPluginKind?: string;
+  matchSymbolSource?: string;
+  matchSymbolLanguage?: string;
+  matchSymbolFilePath?: string;
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imagePath?: string;

@@ -12,6 +12,8 @@ export type BuiltInContextMenuAction =
   | 'reveal'
   | 'copyRelative'
   | 'copyAbsolute'
+  | 'copySymbolId'
+  | 'copySymbolName'
   | 'copyEdgeSource'
   | 'copyEdgeTarget'
   | 'copyEdgeBoth'
@@ -60,6 +62,11 @@ export interface GraphContextMenuNode {
   label?: string;
   color?: string;
   nodeType?: string;
+  symbol?: {
+    id: string;
+    name: string;
+    filePath: string;
+  };
   isCollapsed?: boolean;
 }
 

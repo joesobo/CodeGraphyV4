@@ -8,10 +8,11 @@ import { cn } from '../ui/cn';
 import { Switch } from '../ui/switch';
 
 interface ScopeRowProps {
-  color: string;
+  color?: string;
   enabled: boolean;
   label: string;
   onCheckedChange: (visible: boolean) => void;
+  nested?: boolean;
 }
 
 interface NodeTypeRowsProps {
@@ -37,16 +38,24 @@ function ScopeRow({
   color,
   enabled,
   label,
+  nested = false,
   onCheckedChange,
 }: ScopeRowProps): React.ReactElement {
   return (
-    <div className={resolveScopeRowClassName(enabled)} data-scope-row={label}>
-      <span
-        className="h-3 w-3 shrink-0 rounded-full border border-border"
-        style={{ backgroundColor: color }}
-        aria-hidden="true"
-        data-scope-swatch={label}
-      />
+    <div
+      className={cn(resolveScopeRowClassName(enabled), nested && 'pl-7')}
+      data-scope-row={label}
+    >
+      {color ? (
+        <span
+          className="h-3 w-3 shrink-0 rounded-full border border-border"
+          style={{ backgroundColor: color }}
+          aria-hidden="true"
+          data-scope-swatch={label}
+        />
+      ) : (
+        <span className="h-3 w-3 shrink-0" aria-hidden="true" />
+      )}
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs font-medium">{label}</div>
       </div>
@@ -60,9 +69,26 @@ export function NodeTypeRows({
   nodeTypes,
   nodeVisibility,
 }: NodeTypeRowsProps): React.ReactElement {
+  const symbolDefinition = nodeTypes.find((nodeType) => nodeType.id === 'symbol');
+  const symbolsEnabled = symbolDefinition
+    ? (nodeVisibility.symbol ?? symbolDefinition.defaultVisible)
+    : false;
+  const variableDefinition = nodeTypes.find((nodeType) => nodeType.id === 'variable');
+  const variablesEnabled = variableDefinition
+    ? (nodeVisibility.variable ?? variableDefinition.defaultVisible)
+    : false;
+  const visibleNodeTypes = nodeTypes.filter((nodeType) => (
+    (nodeType.id !== 'variable' || symbolsEnabled)
+    && (!nodeType.parentId || (
+      nodeType.parentId === 'symbol'
+        ? symbolsEnabled
+        : symbolsEnabled && variablesEnabled
+    ))
+  ));
+
   return (
     <>
-      {nodeTypes.map((nodeType) => {
+      {visibleNodeTypes.map((nodeType) => {
         const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
         const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
 
@@ -72,6 +98,7 @@ export function NodeTypeRows({
             color={color}
             enabled={enabled}
             label={nodeType.label}
+            nested={Boolean(nodeType.parentId)}
             onCheckedChange={(visible) => {
               postMessage({
                 type: 'UPDATE_NODE_VISIBILITY',

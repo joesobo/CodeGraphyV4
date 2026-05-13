@@ -118,11 +118,11 @@ The popup label and persisted key are both **Legends** / `legend`.
 For node styling, the popup is split into these subsections from top to bottom:
 
 1. `Custom`
-2. `Plugin Defaults`
+2. `Plugins`
 3. `Material Icon Theme`
 4. `Defaults`
 
-`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin defaults sit above core. Custom Legend Entries sit above both.
+`Defaults` contains built-in entries such as `Files` and `Packages`. `Material Icon Theme` is the core file and folder theming layer. Plugin entries sit above core. Custom Legend Entries sit above both.
 
 Legend styling resolves in this order:
 
@@ -140,6 +140,12 @@ Custom Legend Entries use glob matching and are applied in drag order:
 
 Custom Legend Entries can target files, folders, packages, and plugin-added Node Types through one shared priority system.
 
+Symbol nodes are available through Graph Scope as **Symbol**, with **Variable** shown as a dependent Node Type. Turning Symbol off hides symbol-kind and variable rows without erasing their saved on/off state, so turning Symbol back on restores the previous child choices. When Symbol is on, the `contains` Edge Type connects File Nodes to their contained symbol nodes, and symbol-to-symbol relationship edges such as calls, references, imports, and overrides can appear when analysis provides that detail.
+
+Built-in Legend defaults include common symbol kinds such as Function, Class, Interface, Struct, Enum, Type, Variable, and Constant when the current graph contains those symbol kinds. Function covers function-like and method-like declarations. More specific language kinds still appear as Symbol Nodes through the fallback Symbol styling, and users can target them with Custom Legend Entries by symbol kind. Default node Legend entries provide colors directly; use a Custom Legend Entry when you want to override one. Symbol Legend Entries can also scope styling by symbol kind, plugin kind, plugin source, language, and containing file path. The Godot plugin contributes `Plugins` / `Godot` / `class_name` for GDScript `class_name` symbols when those symbols are present, and emits GDScript functions, constants, variables, and enums into the shared symbol-kind defaults. In Graph Scope, Godot `class_name` rows are grouped under Variable because they behave like plugin-owned variable-style declarations.
+
+Custom Legend Entry patterns can match symbol IDs, symbol names, symbol kinds, plugin kinds, and containing file paths. For example, a custom node Legend Entry with pattern `Function` can override the default Function symbol color, and `*.ts` can style symbols contained by TypeScript files.
+
 - Enter a glob pattern and choose a color, optional shape, and optional icon, then click Add.
 - Click the x button next to a custom Legend Entry to delete it.
 - Lower entries apply first, higher entries apply last.
@@ -156,9 +162,10 @@ Pattern: src/**    Color: #3B82F6        (blue, all source files)
 Pattern: *.test.*  Color: #10B981        (green, test files)
 Pattern: *.md      Color: rgba(107, 114, 128, 0.65)  (faded documentation)
 Pattern: tests/*   Color: #F59E0B        (amber, files directly inside any tests folder)
+Pattern: **/*.gd   Color: #478CBF        (Godot symbol file scope)
 ```
 
-Legend Entry Toggles for `Plugin Defaults`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Turning a Legend Entry off disables its styling only; matching graph items remain and fall back to lower-priority styling. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
+Legend Entry Toggles for `Plugins`, `Material Icon Theme`, and each nested plugin subsection persist in `.codegraphy/settings.json`. Turning a Legend Entry off disables its styling only; matching graph items remain and fall back to lower-priority styling. Collapsed/open subsection state persists in the webview so the panel reopens the way you left it.
 
 To reuse custom Legend Entries across repos or teammates, copy the relevant entries from `.codegraphy/settings.json`:
 ```json
@@ -207,8 +214,8 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 
 ## Graph scope and settings controls
 
-- **Nodes**: choose Graph Scope for file, folder, package, and plugin-added Node Types
-- **Edges**: choose Graph Scope for `NESTS`, semantic Edge Types, and plugin-added Edge Types
+- **Nodes**: choose Graph Scope for File, Folder, Package, Symbol, Variable, and plugin-added Node Types
+- **Edges**: choose Graph Scope for `NESTS`, `contains`, semantic Edge Types, and plugin-added Edge Types
 - **Legends**: edit Legend Entries and their priority
 - **Plugins**: enable/disable plugins and reorder them
 - **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
@@ -266,6 +273,8 @@ Glob patterns for files to exclude, appended to built-in excludes. Supports `mat
 Your patterns are merged with the built-ins, so you don't need to repeat them.
 
 If you hand-edit `.codegraphy/settings.json`, CodeGraphy only applies the save when the file is valid JSON. Invalid saves are ignored until the file is fixed.
+
+When older settings contain symbol kinds that are no longer exposed, CodeGraphy prunes those stale Graph Scope and Legend color keys the next time settings are normalized and saved.
 
 ### `respectGitignore`
 

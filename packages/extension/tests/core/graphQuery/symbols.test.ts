@@ -8,6 +8,30 @@ const graphData: IGraphData = {
     { id: 'packages/app/src/a.ts', label: 'a.ts', color: '#111111', nodeType: 'file' },
     { id: 'packages/app/src/b.ts', label: 'b.ts', color: '#111111', nodeType: 'file' },
     { id: 'packages/app/src/c.ts', label: 'c.ts', color: '#111111', nodeType: 'file' },
+    {
+      id: 'packages/app/src/b.ts#UserConfig',
+      label: 'UserConfig',
+      color: '#111111',
+      nodeType: 'symbol',
+      symbol: {
+        id: 'packages/app/src/b.ts#UserConfig',
+        filePath: 'packages/app/src/b.ts',
+        name: 'UserConfig',
+        kind: 'type',
+      },
+    },
+    {
+      id: 'packages/app/src/b.ts#Unused',
+      label: 'Unused',
+      color: '#111111',
+      nodeType: 'symbol',
+      symbol: {
+        id: 'packages/app/src/b.ts#Unused',
+        filePath: 'packages/app/src/b.ts',
+        name: 'Unused',
+        kind: 'function',
+      },
+    },
   ],
   edges: [
     {
@@ -15,6 +39,20 @@ const graphData: IGraphData = {
       from: 'packages/app/src/a.ts',
       to: 'packages/app/src/b.ts',
       kind: 'type-import',
+      sources: [],
+    },
+    {
+      id: 'packages/app/src/b.ts->packages/app/src/b.ts#UserConfig#contains',
+      from: 'packages/app/src/b.ts',
+      to: 'packages/app/src/b.ts#UserConfig',
+      kind: 'contains',
+      sources: [],
+    },
+    {
+      id: 'packages/app/src/b.ts->packages/app/src/b.ts#Unused#contains',
+      from: 'packages/app/src/b.ts',
+      to: 'packages/app/src/b.ts#Unused',
+      kind: 'contains',
       sources: [],
     },
   ],
@@ -41,6 +79,12 @@ const symbols: IAnalysisSymbol[] = [
     name: 'UserConfig',
     kind: 'type',
     range: { startLine: 3, endLine: 8 },
+    signature: 'type UserConfig = { name: string }',
+    metadata: {
+      language: 'typescript',
+      source: 'codegraphy.treesitter',
+      pluginKind: 'type-alias',
+    },
   },
 ];
 
@@ -91,16 +135,22 @@ describe('core/graphQuery symbols report', () => {
 
     expect(result.symbols).toEqual([
       {
+        id: 'packages/app/src/b.ts#Unused',
         filePath: 'packages/app/src/b.ts',
         name: 'Unused',
         kind: 'function',
         range: { startLine: 1, endLine: 2 },
       },
       {
+        id: 'packages/app/src/b.ts#UserConfig',
         filePath: 'packages/app/src/b.ts',
         name: 'UserConfig',
         kind: 'type',
+        signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
+        language: 'typescript',
+        source: 'codegraphy.treesitter',
+        pluginKind: 'type-alias',
       },
     ]);
   });
@@ -133,8 +183,13 @@ describe('core/graphQuery symbols report', () => {
 
     expect(result.symbols).toEqual([
       {
+        id: 'packages/app/src/b.ts#UserConfig',
         name: 'UserConfig',
+        signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
+        language: 'typescript',
+        source: 'codegraphy.treesitter',
+        pluginKind: 'type-alias',
       },
     ]);
     expect(result.page).toEqual({
@@ -158,6 +213,7 @@ describe('core/graphQuery symbols report', () => {
 
     expect(result.symbols).toEqual([
       {
+        id: 'packages/app/src/b.ts#Unused',
         name: 'Unused',
         kind: 'function',
         range: { startLine: 1, endLine: 2 },
@@ -179,6 +235,7 @@ describe('core/graphQuery symbols report', () => {
 
     expect(result.symbols).toEqual([
       {
+        id: 'packages/app/src/b.ts#Unused',
         name: 'Unused',
         kind: 'function',
         range: { startLine: 1, endLine: 2 },
@@ -217,10 +274,15 @@ describe('core/graphQuery symbols report', () => {
 
     expect(result.symbols).toEqual([
       {
+        id: 'packages/app/src/b.ts#UserConfig',
         filePath: 'packages/app/src/b.ts',
         name: 'UserConfig',
         kind: 'type',
+        signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
+        language: 'typescript',
+        source: 'codegraphy.treesitter',
+        pluginKind: 'type-alias',
       },
     ]);
   });
@@ -237,12 +299,14 @@ describe('core/graphQuery symbols report', () => {
 
     expect(result.symbols).toEqual([
       {
+        id: 'packages/app/src/c.ts#External',
         filePath: 'packages/app/src/c.ts',
         name: 'External',
         kind: 'function',
         range: { startLine: 5, endLine: 7 },
       },
       {
+        id: 'packages/app/src/b.ts#Unused',
         filePath: 'packages/app/src/b.ts',
         name: 'Unused',
         kind: 'function',
@@ -281,10 +345,57 @@ describe('core/graphQuery symbols report', () => {
 
     expect(result.symbols).toEqual([
       {
+        id: 'packages/app/src/b.ts#UserConfig',
         name: 'UserConfig',
+        signature: 'type UserConfig = { name: string }',
         range: { startLine: 3, endLine: 8 },
+        language: 'typescript',
+        source: 'codegraphy.treesitter',
+        pluginKind: 'type-alias',
       },
     ]);
+  });
+
+  it('returns symbol identity and plugin metadata while honoring explicit symbol Graph Scope', () => {
+    const result = listGraphSymbols({
+      graphData,
+      symbols,
+      relations,
+    }, {
+      scope: {
+        nodes: { file: true, symbol: true },
+        edges: { contains: true },
+      },
+      filters: [
+        { field: 'source', op: 'equals', value: 'codegraphy.treesitter' },
+        { field: 'pluginKind', op: 'equals', value: 'type-alias' },
+      ],
+    });
+
+    expect(result.symbols).toEqual([
+      {
+        id: 'packages/app/src/b.ts#UserConfig',
+        filePath: 'packages/app/src/b.ts',
+        name: 'UserConfig',
+        kind: 'type',
+        signature: 'type UserConfig = { name: string }',
+        range: { startLine: 3, endLine: 8 },
+        language: 'typescript',
+        source: 'codegraphy.treesitter',
+        pluginKind: 'type-alias',
+      },
+    ]);
+
+    expect(listGraphSymbols({
+      graphData,
+      symbols,
+      relations,
+    }, {
+      scope: {
+        nodes: { file: true, symbol: false },
+        edges: { contains: true },
+      },
+    }).symbols).toEqual([]);
   });
 
   it('returns no relationship-backed symbols without relation or symbol indexes', () => {

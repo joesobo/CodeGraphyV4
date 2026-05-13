@@ -40,7 +40,6 @@ export function captureGraphViewSettingsSnapshot(
     directionMode: config.get('directionMode', 'arrows'),
     directionColor: settings.directionColor,
     nodeColors: readConfigRecord<string>(config, 'nodeColors'),
-    nodeColorEnabled: readConfigRecord<boolean>(config, 'nodeColorEnabled'),
     nodeVisibility: readConfigRecord<boolean>(config, 'nodeVisibility'),
     edgeVisibility: readConfigRecord<boolean>(config, 'edgeVisibility'),
     legendVisibility: readConfigRecord<boolean>(config, 'legendVisibility'),
