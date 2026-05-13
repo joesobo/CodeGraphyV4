@@ -2,8 +2,6 @@
 
 ## Setup
 
-- Worktree: `/Users/poleski/Desktop/Projects/CodeGraphyV4-graph-sections-pinning-plan`
-- Branch: `codex/graph-sections-pinning-plan`
 - PR base branch: `main`
 - Domain source: `CONTEXT.md`
 - Tracker:

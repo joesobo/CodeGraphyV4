@@ -105,6 +105,7 @@ interface RectangleCollisionOverlap {
 }
 
 type CollisionAxis = 'x' | 'y';
+type SectionEdge = 'bottom' | 'left' | 'right' | 'top';
 
 function isFiniteNumber(value: unknown): value is number {
 	return typeof value === 'number' && Number.isFinite(value);
@@ -605,38 +606,56 @@ function createSectionBoundsMap(
 	return bounds;
 }
 
-function getNodeRectangleCollisionRect(node: FGNode, projected = false): RectangleCollisionRect | undefined {
-	if (!isFiniteNumber(node.x) || !isFiniteNumber(node.y)) {
+function hasNodePosition(node: FGNode): node is FGNode & { x: number; y: number } {
+	return isFiniteNumber(node.x) && isFiniteNumber(node.y);
+}
+
+function getFiniteVelocity(value: number | undefined): number {
+	return isFiniteNumber(value) ? value : 0;
+}
+
+function getProjectedNodeCenter(node: FGNode, projected: boolean): SectionCenter | undefined {
+	if (!hasNodePosition(node)) {
 		return undefined;
 	}
 
-	const centerX = node.x + (projected ? node.vx ?? 0 : 0);
-	const centerY = node.y + (projected ? node.vy ?? 0 : 0);
-	if (
-		node.isGraphSection
+	if (!projected) {
+		return { x: node.x, y: node.y };
+	}
+
+	return { x: node.x + getFiniteVelocity(node.vx), y: node.y + getFiniteVelocity(node.vy) };
+}
+
+function hasExpandedSectionCollisionSize(node: FGNode): node is FGNode & { sectionHeight: number; sectionWidth: number } {
+	return !!node.isGraphSection
 		&& !node.isCollapsedGraphSection
 		&& isFiniteNumber(node.sectionHeight)
-		&& isFiniteNumber(node.sectionWidth)
-	) {
-		return {
-			centerX,
-			centerY,
-			height: node.sectionHeight,
-			width: node.sectionWidth,
-			x: centerX - (node.sectionWidth / 2),
-			y: centerY - (node.sectionHeight / 2),
-		};
+		&& isFiniteNumber(node.sectionWidth);
+}
+
+function createRectangleCollisionRect(center: SectionCenter, width: number, height: number): RectangleCollisionRect {
+	return {
+		centerX: center.x,
+		centerY: center.y,
+		height,
+		width,
+		x: center.x - (width / 2),
+		y: center.y - (height / 2),
+	};
+}
+
+function getNodeRectangleCollisionRect(node: FGNode, projected = false): RectangleCollisionRect | undefined {
+	const center = getProjectedNodeCenter(node, projected);
+	if (!center) {
+		return undefined;
+	}
+
+	if (hasExpandedSectionCollisionSize(node)) {
+		return createRectangleCollisionRect(center, node.sectionWidth, node.sectionHeight);
 	}
 
 	const radius = getGraphCollisionRadius(node);
-	return {
-		centerX,
-		centerY,
-		height: radius * 2,
-		width: radius * 2,
-		x: centerX - radius,
-		y: centerY - radius,
-	};
+	return createRectangleCollisionRect(center, radius * 2, radius * 2);
 }
 
 function circleRectOverlapsRectangle(
@@ -1323,15 +1342,28 @@ function getExternalBridgeEndpoint(
 	return undefined;
 }
 
-function isMemberPressedTowardSectionEdge(
-	memberNode: FGNode,
-	externalNode: FGNode,
-	sectionBounds: BoundsRect,
-): boolean {
-	if (!isFiniteNumber(memberNode.x) || !isFiniteNumber(memberNode.y) || !isFiniteNumber(externalNode.x) || !isFiniteNumber(externalNode.y)) {
-		return false;
+function hasBridgeEndpointPositions(memberNode: FGNode, externalNode: FGNode): boolean {
+	return isFiniteNumber(memberNode.x)
+		&& isFiniteNumber(memberNode.y)
+		&& isFiniteNumber(externalNode.x)
+		&& isFiniteNumber(externalNode.y);
+}
+
+function getBridgePressEdge(memberNode: FGNode, externalNode: FGNode): SectionEdge {
+	const deltaX = externalNode.x! - memberNode.x!;
+	const deltaY = externalNode.y! - memberNode.y!;
+	if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+		return deltaX >= 0 ? 'right' : 'left';
 	}
 
+	return deltaY >= 0 ? 'bottom' : 'top';
+}
+
+function isMemberAtSectionEdge(
+	memberNode: FGNode,
+	sectionBounds: BoundsRect,
+	edge: SectionEdge,
+): boolean {
 	const memberBounds = getSectionMemberBounds(sectionBounds);
 	const margin = getMemberBoundsMargin(memberNode);
 	const minX = memberBounds.x + margin.x;
@@ -1339,18 +1371,29 @@ function isMemberPressedTowardSectionEdge(
 	const minY = memberBounds.y + margin.y;
 	const maxY = memberBounds.y + memberBounds.height - margin.y;
 	const tolerance = Math.max(1, Math.min(margin.x, margin.y) / 2);
-	const deltaX = externalNode.x - memberNode.x;
-	const deltaY = externalNode.y - memberNode.y;
 
-	if (Math.abs(deltaX) >= Math.abs(deltaY)) {
-		return deltaX >= 0
-			? memberNode.x >= maxX - tolerance
-			: memberNode.x <= minX + tolerance;
+	switch (edge) {
+		case 'bottom':
+			return memberNode.y! >= maxY - tolerance;
+		case 'left':
+			return memberNode.x! <= minX + tolerance;
+		case 'right':
+			return memberNode.x! >= maxX - tolerance;
+		case 'top':
+			return memberNode.y! <= minY + tolerance;
+	}
+}
+
+function isMemberPressedTowardSectionEdge(
+	memberNode: FGNode,
+	externalNode: FGNode,
+	sectionBounds: BoundsRect,
+): boolean {
+	if (!hasBridgeEndpointPositions(memberNode, externalNode)) {
+		return false;
 	}
 
-	return deltaY >= 0
-		? memberNode.y >= maxY - tolerance
-		: memberNode.y <= minY + tolerance;
+	return isMemberAtSectionEdge(memberNode, sectionBounds, getBridgePressEdge(memberNode, externalNode));
 }
 
 function getBridgeSectionLinkDistance(
