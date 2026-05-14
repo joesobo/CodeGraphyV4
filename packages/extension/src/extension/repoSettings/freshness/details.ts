@@ -24,7 +24,7 @@ const STALE_DETAIL_FACTORIES: ReadonlyArray<{
   },
   {
     reason: 'missing-indexed-commit',
-    createDetail: () => 'CodeGraphy index is stale: the repo now has a commit, but the saved index does not.',
+    createDetail: () => 'CodeGraphy index is stale: the workspace now has a commit, but the saved index does not.',
   },
   {
     reason: 'current-commit-unavailable',
@@ -37,7 +37,7 @@ export function createFreshDetail(): string {
 }
 
 export function createMissingDetail(): string {
-  return 'CodeGraphy index is missing. Index the repo to build the graph.';
+  return 'CodeGraphy index is missing. Index the workspace to build the graph.';
 }
 
 function createPendingChangedFilesDetail(pendingChangedFiles: readonly string[]): string {
@@ -55,5 +55,5 @@ export function createStaleDetail(
     }
   }
 
-  return 'CodeGraphy index is stale. Reindex the repo to refresh it.';
+  return 'CodeGraphy index is stale. Reindex the workspace to refresh it.';
 }

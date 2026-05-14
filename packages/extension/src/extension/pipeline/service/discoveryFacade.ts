@@ -61,14 +61,14 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     if (!workspaceRoot) {
       return {
         freshness: 'missing',
-        detail: 'CodeGraphy index is missing. Index the repo to build the graph.',
+        detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
       };
     }
 
     if (!this.hasIndex()) {
       return {
         freshness: 'missing',
-        detail: 'CodeGraphy index is missing. Index the repo to build the graph.',
+        detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
       };
     }
 

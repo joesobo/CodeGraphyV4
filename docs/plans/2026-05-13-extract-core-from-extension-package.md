@@ -1394,6 +1394,20 @@ Done when:
 - release notes explain the package split
 - users can follow install, plugin enablement, index, status, and MCP workflows
 
+Implementation progress:
+
+- Updated `CONTEXT.md`, `README.md`, `docs/MCP.md`, `docs/PLUGINS.md`, `docs/SETTINGS.md`, `docs/RELEASING.md`, `docs/INTERACTIONS.md`, and `docs/TIMELINE.md` to use CodeGraphy Workspace, workspace-local Graph Cache, `@codegraphy/core`, and path-first MCP/CLI language.
+- Added a package-name migration note for `@codegraphy-vscode/plugin-api` -> `@codegraphy/plugin-api` and `@codegraphy-vscode/mcp` -> `@codegraphy/mcp`.
+- Documented recommended `.gitignore` entries for generated Graph Cache output while leaving workspace settings commit-friendly.
+- Updated VS Code toolbar and index-status copy from repo-centric labels to workspace-centric labels.
+- Confirmed changesets cover the public package split, Markdown bootstrap, path-first MCP, extension/core packaging, first-party plugin npm packages, and Godot structured parsing.
+
+Validation:
+
+- `rg "core extension|Core Extension|Plugin Extension|repo-local|repo-locally|@codegraphy-vscode|extensionDependencies|pluginOrder|disabledPlugins|disabledPluginFilterPatterns|Index Repo|Re-index Repo|Reindex Repo|Indexing Repo|Index the repo|Reindex the repo|repository into" README.md CONTEXT.md docs/MCP.md docs/PLUGINS.md docs/SETTINGS.md docs/RELEASING.md docs/INTERACTIONS.md docs/TIMELINE.md packages/*/README.md -n`
+- `rg "Index Repo|Re-index Repo|Reindex Repo|Indexing Repo|Index the repo|Reindex the repo|repo now has a commit" packages/extension/src packages/extension/tests -n`
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/toolbar/actions/refresh.test.ts tests/webview/toolbar/actions/indexAction.test.tsx tests/webview/toolbar/actions/view.test.tsx tests/webview/Toolbar.test.tsx tests/webview/graphIndexStatus/view.test.tsx tests/extension/graphView/analysis/execution/progress.test.ts tests/extension/graphView/analysis/execution/publish.test.ts tests/extension/repoSettings/freshness/details.test.ts tests/extension/repoSettings/freshness/index.test.ts tests/extension/pipeline/service/discoveryFacade.test.ts`
+
 ## Validation Ideas
 
 - Index a folder that is not a Git repo through `@codegraphy/core`.

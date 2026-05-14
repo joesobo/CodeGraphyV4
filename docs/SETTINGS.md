@@ -358,9 +358,23 @@ This setting is also accessible from the Settings panel.
 }
 ```
 
-## Repo-local vs global settings
+## Workspace-local vs user-level state
 
-CodeGraphy’s graph/index behavior lives with the repo under `.codegraphy/`. By default CodeGraphy also adds `.codegraphy/` to the repo `.gitignore`, so these settings stay local unless you intentionally choose a different sharing strategy.
+CodeGraphy’s workspace behavior lives under `<workspace-root>/.codegraphy/`.
+
+- `.codegraphy/settings.json` is workspace-local configuration. Teams can commit it when they want shared CodeGraphy behavior.
+- `.codegraphy/graph.lbug` is generated Graph Cache output and should stay local by default.
+- `~/.codegraphy/plugins.json` is user-level installed-plugin cache state and is not part of any source workspace.
+- `~/.codegraphy/settings.json` is user-level CodeGraphy default state.
+
+Recommended `.gitignore` entries:
+
+```gitignore
+.codegraphy/graph.lbug
+.codegraphy/cache/
+```
+
+Do not ignore all of `.codegraphy/` if you want to share workspace plugin enablement, filters, Graph Scope, or Legend settings with teammates.
 
 ## Troubleshooting
 

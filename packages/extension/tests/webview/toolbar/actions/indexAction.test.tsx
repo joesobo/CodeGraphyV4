@@ -40,10 +40,10 @@ describe('webview/toolbar/IndexAction', () => {
     buttonProps.length = 0;
     createRefreshConfig.mockImplementation((graphHasIndex: boolean, freshness: 'fresh' | 'stale' | 'missing') => (
       freshness === 'stale'
-        ? { phase: 'Refreshing Index', title: 'Reindex Repo', type: 'REFRESH_GRAPH' }
+        ? { phase: 'Refreshing Index', title: 'Reindex Workspace', type: 'REFRESH_GRAPH' }
         : graphHasIndex
         ? { phase: 'Refreshing Index', title: 'Refresh', type: 'REFRESH_GRAPH' }
-        : { phase: 'Indexing Repo', title: 'Index Repo', type: 'INDEX_GRAPH' }
+        : { phase: 'Indexing Workspace', title: 'Index Workspace', type: 'INDEX_GRAPH' }
     ));
   });
 
@@ -71,7 +71,7 @@ describe('webview/toolbar/IndexAction', () => {
       />,
     );
 
-    fireEvent.click(screen.getByTitle('Index Repo'));
+    fireEvent.click(screen.getByTitle('Index Workspace'));
 
     expect(requestGraphIndex).toHaveBeenCalledTimes(1);
     expect(requestGraphIndex.mock.calls[0][0]).toBe(false);

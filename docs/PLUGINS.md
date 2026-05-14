@@ -6,7 +6,7 @@ The VS Code extension visualizes CodeGraphy data and renders plugin controls, bu
 
 ## Published plugins
 
-- [CodeGraphy core extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
+- [CodeGraphy VS Code extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
 - [`@codegraphy/plugin-typescript`](https://www.npmjs.com/package/@codegraphy/plugin-typescript)
 - [`@codegraphy/plugin-python`](https://www.npmjs.com/package/@codegraphy/plugin-python)
@@ -27,10 +27,9 @@ The current plugin API supports more than file analysis:
 - `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
 - analysis hooks receive an optional `context` object; use `context.fileSystem` for timeline-safe repo reads
 - graph queries backed by the projected workspace-local index and current graph state
-- commands, exporters, toolbar actions, and the compatibility `registerView(...)` hook for optional future graph transforms
-- context menu items, commands, and exporters
-- host-saved exports via `api.saveExport(...)`
-- Tier 2 webview slots such as `toolbar`, `node-details`, `tooltip`, `timeline-panel`, `graph-overlay`
+- default filters, file colors, Node Types, Edge Types, symbols, and relationship evidence
+
+Plugins should stay headless. They communicate with `@codegraphy/core`; the VS Code extension communicates with VS Code and renders CodeGraphy UI.
 
 Core now owns the default explorer-style file and folder theming through Material Icon Theme. The built-in TypeScript, Python, C#, and Markdown plugins are intentionally minimal now: they mostly contribute ecosystem defaults, filters, and optional semantic enrichment instead of baseline file coloring.
 
@@ -94,19 +93,27 @@ import type { CodeGraphyAPI, IPlugin } from '@codegraphy/plugin-api';
 
 Use `import type` because the package is type-only.
 
+## Package name migration
+
+The public npm scope is `@codegraphy/*`.
+
+- Replace `@codegraphy-vscode/plugin-api` with `@codegraphy/plugin-api`.
+- Replace `@codegraphy-vscode/mcp` with `@codegraphy/mcp`.
+- Install first-party language plugins as npm packages such as `@codegraphy/plugin-python`, not as VS Code Marketplace companion extensions.
+
+The VS Code Marketplace extension id remains `codegraphy.codegraphy`.
+
 ## Analysis model
 
 `@codegraphy/core` owns discovery, workspace-local Settings, caching, Graph Projection, and plugin analysis. Plugins contribute analysis on top of that pipeline and can:
 
 - return per-file analysis results with relationships, symbols, and extra nodes
-- override or enrich lower-priority plugin results for the same file
 - add Node Types
 - add Edge Types
 - contribute language or framework-specific semantics
-- add exporters, commands, toolbar actions, and other UI surfaces through the host API
-- register optional view transforms for compatibility, even though the current built-in UI stays centered on the Graph View and Visible Graph
+- add plugin-owned relationship evidence without directly deleting or suppressing core baseline relationships
 
-Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.
+Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Enabled plugins run after core in the order stored in the workspace `plugins` array. That order keeps Graph Cache output deterministic and can resolve duplicate ids, but plugins should treat analysis as additive rather than as hidden semantic authority over core output.
 
 For node styling, the host resolves layers in this order:
 
@@ -114,7 +121,7 @@ For node styling, the host resolves layers in this order:
 2. plugin defaults
 3. custom user Legend Entries
 
-In practice, "win merge conflicts" means:
+In practice, deterministic duplicate handling means:
 
 - `nodes`, `symbols`, `nodeTypes`, and `edgeTypes` override by matching `id`
 - imports/reexports/loads/inherits override when they describe the same source relationship

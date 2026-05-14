@@ -9,7 +9,7 @@ import type { CodeGraphyIndexStaleReason } from '../../../../src/extension/repoS
 describe('repoSettings/freshness/details', () => {
   it('describes fresh and missing indexes', () => {
     expect(createFreshDetail()).toBe('CodeGraphy index is fresh.');
-    expect(createMissingDetail()).toBe('CodeGraphy index is missing. Index the repo to build the graph.');
+    expect(createMissingDetail()).toBe('CodeGraphy index is missing. Index the workspace to build the graph.');
   });
 
   it('describes stale reasons by user-facing priority', () => {
@@ -37,7 +37,7 @@ describe('repoSettings/freshness/details', () => {
       },
       {
         reason: 'missing-indexed-commit',
-        expected: 'CodeGraphy index is stale: the repo now has a commit, but the saved index does not.',
+        expected: 'CodeGraphy index is stale: the workspace now has a commit, but the saved index does not.',
       },
       {
         reason: 'current-commit-unavailable',
@@ -58,6 +58,6 @@ describe('repoSettings/freshness/details', () => {
   });
 
   it('falls back when no stale reason has a specific detail', () => {
-    expect(createStaleDetail([], [])).toBe('CodeGraphy index is stale. Reindex the repo to refresh it.');
+    expect(createStaleDetail([], [])).toBe('CodeGraphy index is stale. Reindex the workspace to refresh it.');
   });
 });
