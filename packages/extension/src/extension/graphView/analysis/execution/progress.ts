@@ -5,9 +5,9 @@ import type {
 } from '../execution';
 
 const ANALYSIS_PHASE_BY_MODE: Record<GraphViewAnalysisMode, string> = {
-  analyze: 'Indexing Repo',
+  analyze: 'Indexing Workspace',
   load: 'Loading Graph',
-  index: 'Indexing Repo',
+  index: 'Indexing Workspace',
   refresh: 'Refreshing Index',
   incremental: 'Applying Changes',
 };

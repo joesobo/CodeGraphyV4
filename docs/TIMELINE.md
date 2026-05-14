@@ -8,7 +8,7 @@ The Timeline View lets you visualize how your codebase's Relationship Graph evol
 
 1. Open a git repository in VS Code
 2. Open CodeGraphy from the activity bar
-3. Click **Index Repo** in the toolbar
+3. Click **Index Workspace** in the toolbar
 4. Wait for indexing to complete (progress is shown inline)
 5. Scrub, click, or play through the timeline
 
@@ -16,7 +16,7 @@ The Timeline View lets you visualize how your codebase's Relationship Graph evol
 
 Indexing analyzes the main branch's commit history (up to 500 commits) and caches Timeline Snapshots to disk so reopening the extension does not need to rebuild unchanged history.
 
-Timeline state is stored under `.codegraphy/` alongside the live Graph Cache and repo-local Settings.
+Timeline state is stored under `.codegraphy/` alongside the live Graph Cache and workspace-local Settings.
 
 Plugin analysis runs during timeline indexing too. Plugins that use the public analysis-hook `context.fileSystem` read files from the selected commit, so third-party plugins can contribute nodes and edges to historical snapshots without depending on the current `HEAD` workspace state.
 
@@ -56,7 +56,7 @@ During timeline mode, destructive file actions (Delete, Rename, Create File, Add
 
 CodeGraphy keeps using cached Timeline Snapshot data until you intentionally ask for a full rebuild.
 
-- Click **Re-index Repo** to force a full re-index from scratch.
+- Click **Re-index Workspace** to force a full re-index from scratch.
 - Click **Refresh Graph** to rerun graph physics/layout without rebuilding timeline or graph data.
 - While CodeGraphy is open, normal file saves update the live Graph Cache incrementally.
 - If files changed while CodeGraphy was closed, those pending changes are applied the next time you open it.

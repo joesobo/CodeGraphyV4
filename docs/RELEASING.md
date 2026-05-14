@@ -6,10 +6,11 @@ Release-facing metadata is not all in one package:
 
 - Core extension marketplace metadata lives in the repo root [`package.json`](../package.json)
 - Core extension versioning lives in [`packages/extension/package.json`](../packages/extension/package.json)
-- Plugin extension marketplace metadata lives in each `packages/plugin-*/package.json`
+- `@codegraphy/core` npm metadata lives in [`packages/core/package.json`](../packages/core/package.json)
+- Language plugin npm metadata lives in each `packages/plugin-*/package.json`
 - Plugin API npm metadata lives in [`packages/plugin-api/package.json`](../packages/plugin-api/package.json)
 - MCP npm metadata lives in [`packages/codegraphy-mcp/package.json`](../packages/codegraphy-mcp/package.json)
-- The core extension icon source lives at [`assets/icon.svg`](../assets/icon.svg)
+- The VS Code extension icon source lives at [`assets/icon.svg`](../assets/icon.svg)
 - Each published plugin ships its own badged icon at `packages/plugin-*/assets/icon.svg`
 
 ## Local release commands
@@ -20,7 +21,7 @@ Version the pending workspace releases first:
 pnpm run version-packages
 ```
 
-The repo-root [`package.json`](../package.json) is workspace metadata for the monorepo and stays pinned. The core Marketplace extension release version comes from [`packages/extension/package.json`](../packages/extension/package.json), while the root manifest still provides the marketplace metadata and packaged file list for `core` releases.
+The repo-root [`package.json`](../package.json) is workspace metadata for the monorepo and stays pinned. The Marketplace extension release version comes from [`packages/extension/package.json`](../packages/extension/package.json), while the root manifest still provides the marketplace metadata and packaged file list for extension releases.
 
 Run the full release gate first:
 
@@ -34,6 +35,7 @@ Package release artifacts locally:
 pnpm run release:package core
 pnpm run release:package mcp
 pnpm run release:package plugin-api
+pnpm run release:package plugin-markdown
 pnpm run release:package npm
 pnpm run release:package vsce
 pnpm run release:package typescript
@@ -43,12 +45,13 @@ pnpm run release:package godot
 pnpm run release:package all
 ```
 
-`core` release packaging rebuilds `@codegraphy/extension` from source first, so it does not rely on whatever `dist/` happened to be left in the repo. npm packages are packed into `artifacts/npm/`; VS Code extensions are packed into `artifacts/vsix/`.
+`core` is the `@codegraphy/core` npm package target. `extension`, `vsix`, `marketplace`, and `core-extension` target the VS Code Marketplace extension and rebuild `@codegraphy/extension` from source before staging the VSIX. npm packages are packed into `artifacts/npm/`; VS Code extensions are packed into `artifacts/vsix/`.
 
 Publish from a machine that already has `VSCE_PAT` and npm auth configured:
 
 ```bash
 pnpm run release:publish plugin-api
+pnpm run release:publish plugin-markdown
 pnpm run release:publish mcp
 pnpm run release:publish npm
 pnpm run release:publish vsce
@@ -60,7 +63,7 @@ pnpm run release:publish godot
 pnpm run release:publish all
 ```
 
-`pnpm run release:publish core` also rebuilds the core extension before staging and publishing. `all` and `npm` discover publishable workspace packages from `package.json` metadata, publish npm packages before Marketplace packages, and skip npm versions that already exist.
+`pnpm run release:publish core` publishes the `@codegraphy/core` npm package. Use `pnpm run release:publish extension` for the VS Code Marketplace extension. `all` and `npm` discover publishable workspace packages from `package.json` metadata, publish npm packages before Marketplace packages, and skip npm versions that already exist.
 
 Before the first local publish from this release setup, verify the authenticated publisher:
 
@@ -79,7 +82,7 @@ vsce verify-pat codegraphy
    - Use Node `22.22.0` LTS from [`.nvmrc`](../.nvmrc) / [`.node-version`](../.node-version).
 6. Add changesets only for unreleased user-facing workspace packages. Archive shipped changesets under [`docs/archive/changesets/`](./archive/changesets/).
 7. Run `pnpm run version-packages`.
-8. If the core Marketplace extension changed, verify `packages/extension/package.json` and [`packages/extension/CHANGELOG.md`](../packages/extension/CHANGELOG.md) have matching top entries.
+8. If the VS Code Marketplace extension changed, verify `packages/extension/package.json` and [`packages/extension/CHANGELOG.md`](../packages/extension/CHANGELOG.md) have matching top entries.
 9. Commit the generated version and changelog updates.
 10. Run `pnpm run release:check`.
 11. Publish every release target with `pnpm run release:publish all`.
@@ -117,7 +120,7 @@ V4 is prepared to publish as `codegraphy.codegraphy`.
 
 The existing Marketplace identifier is `codegraphy.codegraphy`. Marketplace ownership and publisher ID are different things: the owner account can be Joseph Soboleski while the immutable extension identifier still uses the publisher ID `codegraphy`.
 
-That means the core V4 release can update the existing Marketplace listing in place. Language plugins publish as npm packages under the `@codegraphy` scope instead of normal VS Code Marketplace companion extensions.
+That means the V4 VS Code extension release can update the existing Marketplace listing in place. Language plugins publish as npm packages under the `@codegraphy` scope instead of normal VS Code Marketplace companion extensions.
 
 If you ever move the core to a different publisher later, that would require a new Marketplace listing.
 

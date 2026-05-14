@@ -36,7 +36,7 @@ describe('graph view analysis execution progress', () => {
     sendInitialGraphViewAnalysisProgress('analyze', analyzed.handlers);
 
     expect(indexed.handlers.sendIndexProgress).toHaveBeenCalledWith({
-      phase: 'Indexing Repo',
+      phase: 'Indexing Workspace',
       current: 0,
       total: 1,
     });

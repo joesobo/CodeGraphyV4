@@ -37,7 +37,7 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
       false,
       'missing',
-      'CodeGraphy index is missing. Index the repo to build the graph.',
+      'CodeGraphy index is missing. Index the workspace to build the graph.',
     );
   });
 
@@ -123,7 +123,7 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
       false,
       'missing',
-      'CodeGraphy index is missing. Index the repo to build the graph.',
+      'CodeGraphy index is missing. Index the workspace to build the graph.',
     );
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(getGraphData());
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());

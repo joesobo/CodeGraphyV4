@@ -29,8 +29,8 @@ describe('webview/toolbar/refresh', () => {
 
   it('creates index and refresh configs from graph state', () => {
     expect(createRefreshConfig(false, 'missing')).toEqual({
-      phase: 'Indexing Repo',
-      title: 'Index Repo',
+      phase: 'Indexing Workspace',
+      title: 'Index Workspace',
       type: 'INDEX_GRAPH',
     });
     expect(createRefreshConfig(true, 'fresh')).toEqual({
@@ -40,7 +40,7 @@ describe('webview/toolbar/refresh', () => {
     });
     expect(createRefreshConfig(false, 'stale')).toEqual({
       phase: 'Refreshing Index',
-      title: 'Reindex Repo',
+      title: 'Reindex Workspace',
       type: 'REFRESH_GRAPH',
     });
   });
@@ -84,7 +84,7 @@ describe('webview/toolbar/refresh', () => {
     requestGraphIndex(false, 'missing', timeoutRef);
     graphStore.setState({
       graphIndexProgress: {
-        phase: 'Indexing Repo',
+        phase: 'Indexing Workspace',
         current: 1,
         total: 5,
       },
@@ -94,7 +94,7 @@ describe('webview/toolbar/refresh', () => {
 
     expect(graphStore.getState().graphIsIndexing).toBe(true);
     expect(graphStore.getState().graphIndexProgress).toEqual({
-      phase: 'Indexing Repo',
+      phase: 'Indexing Workspace',
       current: 1,
       total: 5,
     });
@@ -142,7 +142,7 @@ describe('webview/toolbar/refresh', () => {
     graphStore.setState({
       graphIsIndexing: false,
       graphIndexProgress: {
-        phase: 'Indexing Repo',
+        phase: 'Indexing Workspace',
         current: 0,
         total: 1,
       },
@@ -152,7 +152,7 @@ describe('webview/toolbar/refresh', () => {
 
     expect(graphStore.getState().graphIsIndexing).toBe(false);
     expect(graphStore.getState().graphIndexProgress).toEqual({
-      phase: 'Indexing Repo',
+      phase: 'Indexing Workspace',
       current: 0,
       total: 1,
     });

@@ -221,7 +221,7 @@ The indexing stage that turns discovered files and analysis results into graph n
 _Avoid_: Rendering
 
 **Graph Cache**:
-The repo-local LadybugDB graph data at `.codegraphy/graph.lbug` that stores indexed Relationship Graph data for CodeGraphy and agent access.
+The workspace-local LadybugDB graph data at `<workspace-root>/.codegraphy/graph.lbug` that stores indexed Relationship Graph data for CodeGraphy and agent access.
 _Avoid_: Saved index, saved DB, CodeGraphy database when speaking in domain terms
 
 **Live Update**:
@@ -234,13 +234,13 @@ _Avoid_: Re-index, live update
 
 **Refresh Graph**:
 The UI action that refreshes graph layout by rerunning force graph physics without rebuilding graph data.
-_Avoid_: Re-index Repo
+_Avoid_: Re-index Workspace
 
 **Re-index**:
 A user-triggered rebuild of graph data that reruns indexing and then refreshes the graph after data updates.
 _Avoid_: Refresh when only rerunning graph physics
 
-**Re-index Repo**:
+**Re-index Workspace**:
 The UI action that rebuilds Relationship Graph data by running indexing, saving the result, and then refreshing the graph.
 _Avoid_: Refresh Graph
 
@@ -326,7 +326,7 @@ _Avoid_: Workspace graph, current graph when precision matters
 
 ### Plugins And Core
 
-**Core Extension**:
+**VS Code Extension**:
 The CodeGraphy VS Code extension that owns visualization, VS Code lifecycle integration, editor commands, webviews, and VS Code-specific UI.
 _Avoid_: Core engine, plugin host only
 
@@ -335,25 +335,25 @@ The `@codegraphy/core` npm package that owns headless Indexing, Graph Cache acce
 _Avoid_: VS Code extension when referring to headless engine behavior
 
 **Plugin**:
-A CodeGraphy extension point that piggybacks on the base extension to add or improve analysis, graph types, controls, theming, exports, or UI.
+A headless CodeGraphy npm package that communicates with `@codegraphy/core` to add or improve analysis, graph types, filters, symbols, and relationship evidence.
 _Avoid_: VS Code extension when referring to the CodeGraphy capability
 
-**Plugin Extension**:
-A VS Code extension package that registers a CodeGraphy plugin.
-_Avoid_: Plugin when packaging or distribution matters
+**Plugin Package**:
+An npm package that declares `package.json#codegraphy` metadata and exports a CodeGraphy plugin runtime through normal package exports.
+_Avoid_: VS Code extension package
 
 **Built-in Plugin**:
 A plugin developed with CodeGraphy and shipped from the monorepo as part of the current product experience or examples.
 _Avoid_: Required plugin
 
 **Markdown Plugin**:
-The built-in plugin installed by default with the base CodeGraphy extension and still toggleable like other plugins.
+The headless plugin installed with `@codegraphy/core`, enabled by default for new CodeGraphy Workspaces, and still toggleable like other plugins.
 _Avoid_: External markdown extension
 
 ### Settings And Styling
 
 **Setting**:
-A repo-local persisted preference in `.codegraphy/settings.json` that changes graph behavior, appearance, filtering, or feature state.
+A workspace-local persisted preference in `.codegraphy/settings.json` that changes graph behavior, appearance, filtering, plugin enablement, or feature state.
 _Avoid_: Control when referring to the persisted value
 
 **Settings Control**:
@@ -542,7 +542,7 @@ _Avoid_: Graph export
 - **CodeGraphy MCP** should not be limited to the **Visible Graph**; it should ask the **Core Package** for **Relationship Graph** data and allow agent queries to apply **Graph Scope**, **Filter**, and **Search** to reduce noise.
 - A **Graph Query** is not a VS Code **View**; it is a narrowed agent-facing result from **Relationship Graph** data.
 - **Graph Queries** should reuse **Graph Scope**, **Filter**, **Search**, sorting, and pagination semantics instead of introducing MCP-specific equivalents for the same graph narrowing stages.
-- **Refresh Graph** and **Re-index Repo** should be distinct UI actions.
+- **Refresh Graph** and **Re-index Workspace** should be distinct UI actions.
 - **Refresh** only reruns the force graph simulation and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
 - CodeGraphy has two **Views**: the **Graph View** and the **Timeline View**.
@@ -551,9 +551,9 @@ _Avoid_: Graph export
 - **VS Code Theme Integration** is the top UI rule: extension chrome should inherit the active VS Code theme through CodeGraphy/shadcn semantic tokens before applying CodeGraphy-specific styling.
 - UI cleanup should establish the VS Code token bridge and local CodeGraphy UI-kit primitives before reshaping individual surfaces such as the **Graph Tool Rail**, **Search**, **Filter**, **Settings**, and **Graph Panels**.
 - The existing `components/ui` layer should follow shadcn's copy-and-own model: generated Radix/shadcn source lives in the repo, CodeGraphy owns and customizes it, and feature code may import from `components/ui` as the local CodeGraphy UI kit. Do not create a separate wrapper layer just to keep shadcn files pristine.
-- CodeGraphy should keep the existing root `components.json` and `@/...` alias for shadcn configuration because the **Core Extension** is currently the only UI owner. Do not introduce package imports or a shared UI package until another workspace consumes CodeGraphy UI components.
+- CodeGraphy should keep the existing root `components.json` and `@/...` alias for shadcn configuration because the **VS Code Extension** is currently the only UI owner. Do not introduce package imports or a shared UI package until another workspace consumes CodeGraphy UI components.
 - The first `components/ui` cleanup should prioritize token and theming correctness in existing primitives. Higher-level primitives such as graph rail buttons, panel sections, field rows, and search/filter chrome should be added only as each surface migrates and proves the need.
-- Implementation order after token and primitive cleanup is agent-owned and may change as dependencies become clear. The product requirement is that all Core Extension UI surfaces converge on the same VS Code token bridge and local CodeGraphy UI kit, including **Graph Stage** chrome, graph rendering colors, **Search**/**Filter**, **Graph Tool Rail**, **Settings**, **Timeline View**, **Graph Panels**, and **Legend**.
+- Implementation order after token and primitive cleanup is agent-owned and may change as dependencies become clear. The product requirement is that all VS Code Extension UI surfaces converge on the same VS Code token bridge and local CodeGraphy UI kit, including **Graph Stage** chrome, graph rendering colors, **Search**/**Filter**, **Graph Tool Rail**, **Settings**, **Timeline View**, **Graph Panels**, and **Legend**.
 - UI cleanup is done only when light, dark, high-contrast, and red/accent-heavy themes have been verified; UI chrome colors come from the active VS Code theme through the token bridge rather than hardcoded values; common controls use shared `components/ui` primitives; graph rendering consumes resolved CSS-token colors; and before/after screenshots cover **Graph View**, **Timeline View**, and key open-panel states.
 - UI cleanup verification should combine lightweight automated checks for token plumbing and hardcoded-color regressions with screenshot review for visual judgment in light, dark, high-contrast, and red/accent-heavy themes. Screenshot anchors are Solarized Light for light, GitHub Dark for dark, High Contrast for high contrast, and Red for the red/accent-heavy theme. The screenshot pass should include default **Graph View** and **Timeline View** states plus the **Legend** with default content as the representative panel screenshot so panel chrome is checked without seeded user data or multiplying every panel across every theme.
 - Automated hardcoded-color checks should scan all production webview TSX/CSS, not only changed files. UI chrome should not have hardcoded colors; it should use the VS Code token bridge or CodeGraphy `--cg-*` aliases. Hardcoded colors are acceptable only when they are semantic **Graph Data Color**, such as node, edge, Legend, node-type, edge-type, plugin, or graph-data palette values, and should not be used for component chrome.
@@ -582,7 +582,7 @@ _Avoid_: Graph export
 - Expanded Include and Exclude sections should each keep an always-visible inline input for adding custom **Filter Rules**, matching VS Code Search's pattern-entry feel rather than hiding rule creation behind an add button.
 - The **Filter** trigger count should show all enabled **Filter Rules**, regardless of origin, because those are the rules currently affecting the graph.
 - The expanded **Filter** surface should break enabled-rule counts down by Include and Exclude sections, while the collapsed trigger keeps a single total count.
-- The expanded or collapsed state of the **Filter** surface should be remembered as UI state across **Graph View** sessions; it is not repo-local graph behavior and should not persist in `.codegraphy/settings.json`.
+- The expanded or collapsed state of the **Filter** surface should be remembered as UI state across **Graph View** sessions; it is not workspace-local graph behavior and should not persist in `.codegraphy/settings.json`.
 - Include and Exclude rule-list sections inside the expanded **Filter** surface should default collapsed.
 - Include and Exclude rule-list section open or closed state should also be remembered as UI state across **Graph View** sessions, not persisted in `.codegraphy/settings.json`.
 - Adding an Include or Exclude **Filter Rule** should require expanding that section first; collapsed section headers are quiet summaries, not editing surfaces.
@@ -614,19 +614,19 @@ _Avoid_: Graph export
 - If the same pattern or graph item is matched by both Include and Exclude **Filter Rules**, Exclude wins. The UI should show a subtle conflict hint on the affected rows so users understand why the included pattern is still excluded.
 - The **Graph Tool Rail** is for high-frequency graph tools that change the current working view or open graph-local panels.
 - The **Graph Tool Rail** should be grouped and icon-first, with menus, popovers, or panels for dense multi-choice controls such as layout, node sizing, and **Graph Scope**.
-- **Graph Tool Rail** groups should use subtle mixed separators: compact spacing plus low-contrast 1px lines between major groups. Lifecycle actions such as **Re-index Repo** can be distinct without visually floating alone.
+- **Graph Tool Rail** groups should use subtle mixed separators: compact spacing plus low-contrast 1px lines between major groups. Lifecycle actions such as **Re-index Workspace** can be distinct without visually floating alone.
 - Compact multi-choice tools such as layout and node sizing should open small **Graph Tool Rail** popovers with compact icon-and-label choices, not large right-side panels. Their rail buttons should show the currently selected mode icon, and the current choice inside the popover should use a subtle active row plus a checkmark.
 - Conditional compact-popover choices should remain visible but disabled with a tooltip or short reason when unavailable, instead of disappearing.
 - **Graph Scope** controls should open through one **Graph Scope Panel** that combines **Node Type** and **Edge Type** scope controls instead of separate unrelated Nodes and Edges panels.
 - Color swatches in the **Graph Scope Panel** identify what a **Node Type** or **Edge Type** looks like while toggling scope; they are read-only circles, not color-editing controls.
 - The **Legend** should remain a direct **Graph Tool Rail** panel button because it owns graph semantic styling, not general display behavior.
-- Indexing actions such as **Re-index Repo** should remain a direct **Graph Tool Rail** control because they are primary graph lifecycle actions.
+- Indexing actions such as **Re-index Workspace** should remain a direct **Graph Tool Rail** control because they are primary graph lifecycle actions.
 - Export actions should live as an Export section inside **Settings**, not as primary **Graph Tool Rail** buttons and not under a vague "More" label, because they output graph data rather than shape the working graph view.
 - **Plugins** should remain a direct **Graph Tool Rail** panel button because plugins change what graph concepts and controls exist, but it belongs with configuration/system controls rather than active graph-working mode controls.
 - **Settings** should remain a direct **Graph Tool Rail** panel button, visually separated near the bottom, and should not absorb controls with clearer homes such as **Graph Scope** or **Legend**. It may include secondary action sections such as **Export** even though those actions are not persisted Settings.
 - **Settings** should be organized by intent with **Display Settings**, Forces, Performance, and Export sections.
 - Forces should remain a first-class **Settings** section, collapsed by default rather than hidden under Advanced.
-- **Settings** sections should default collapsed and remember their open or closed state as UI state the next time Settings opens; section collapse state is not repo-local graph behavior.
+- **Settings** sections should default collapsed and remember their open or closed state as UI state the next time Settings opens; section collapse state is not workspace-local graph behavior.
 - **Graph Panels** should be content-driven in width; content-heavy surfaces such as **Legend** may be wider, but the row layout should still be reviewed for clarity.
 - The **Legend** panel may remain wider than ordinary **Graph Panels** because it is an editing surface, but Legend rows should be simplified with clearer hierarchy, compact actions, and advanced details expanded only when needed.
 - **Graph Tool Popovers** should open near their rail button; larger **Graph Panels** such as **Graph Scope Panel**, **Legend**, **Plugins**, and **Settings** should stay right-side panels.
@@ -658,15 +658,15 @@ _Avoid_: Graph export
 - A **Timeline Snapshot** uses a commit as its **Graph Revision** and should show the files and relationships from that commit only.
 - The default **Graph Revision** is the current `HEAD` plus working tree state, updated by **Live Updates**.
 - Graph Context Menu mutation actions should stay available for the default **Graph Revision** and should be disabled for historical **Timeline Snapshots**.
-- The **Core Package** and **Core Extension** together provide the out-of-box Relationship Graph product and should work for most users without optional plugins.
-- The **Core Package** uses Tree-sitter coverage and the bundled **Markdown Plugin** to provide useful default analysis; the **Core Extension** adds visualization and Material icon styling.
-- A **Plugin** can add **Nodes**, **Node Types**, **Relationships**, **Edge Types**, preset filters, theming, exports, or UI.
+- The **Core Package** and **VS Code Extension** together provide the out-of-box Relationship Graph product and should work for most users without optional plugins.
+- The **Core Package** uses Tree-sitter coverage and the bundled **Markdown Plugin** to provide useful default analysis; the **VS Code Extension** adds visualization and Material icon styling.
+- A **Plugin** can add **Nodes**, **Node Types**, **Relationships**, **Edge Types**, Symbol Nodes, preset filters, and relationship evidence.
 - A **Plugin** can analyze files by reading lines, using AST tooling, or any other analysis approach appropriate to its language or framework.
-- A **Plugin Extension** is the packaging route for third-party plugins in the VS Code marketplace.
-- **Built-in Plugins** in this monorepo are examples and fast-development plugins, not required dependencies unless explicitly bundled.
-- The **Markdown Plugin** is bundled by default with the base extension, but users can still toggle it off.
+- A **Plugin Package** is the packaging route for third-party plugins.
+- **Built-in Plugins** in this monorepo are examples and fast-development plugins, not required dependencies unless explicitly installed or bundled by the Core Package.
+- The **Markdown Plugin** is installed with `@codegraphy/core` and enabled by default for new CodeGraphy Workspaces, but users can still toggle it off.
 - A **Settings Control** changes a **Setting**; it is not a separate persisted concept.
-- **Settings** are saved repo-locally under `.codegraphy/settings.json` so graph preferences survive between sessions.
+- **Settings** are saved workspace-locally under `.codegraphy/settings.json` so graph preferences survive between sessions.
 - **Graph Scope**, **Filter Setting**, **Display Setting**, **Favorite**, and **Legend Entry Toggle** are settings because they are saved between sessions.
 - **Filter Settings** are made of **Filter Rules** whose enabled state and user customizations must be understandable when rules come from defaults, plugins, or custom user entries.
 - Custom user **Filter Rules** and **Filter Rule Overrides** can be edited or removed; source-owned built-in and plugin-contributed **Filter Rules** can be toggled but not removed from their source.
@@ -681,7 +681,7 @@ _Avoid_: Graph export
 - A **Legend Entry Toggle** controls whether a **Legend Entry** applies its styling.
 - Turning off a **Legend Entry Toggle** does not hide matching nodes or edges; those graph items fall back to lower-priority styling.
 - Custom **Legend Entries** can be deleted; core and plugin defaults are not deleted like user entries.
-- Material Icon Theme styling currently belongs to the **Core Extension**, but it may become a plugin theming source later.
+- Material Icon Theme styling currently belongs to the **VS Code Extension**, but it may become a plugin theming source later.
 - Graph theming should remain compatible with VS Code themes.
 - A **Graph Export** writes the current **Visible Graph**; an **Index Export** writes cached analysis data for software or agent consumption.
 - **Export** is a secondary output action in the **Graph View**, not a primary graph-working control, and it can live as an action section inside **Settings**.
@@ -716,7 +716,7 @@ _Avoid_: Graph export
 > **Dev:** "Should right-clicking a file node preview it?"
 > **Domain expert:** "No. Right-clicking an unselected node should select it for **Context Selection**, but not preview or open it."
 >
-> **Dev:** "What happens when a user clicks Index Repo?"
+> **Dev:** "What happens when a user clicks Index Workspace?"
 > **Domain expert:** "**Indexing** runs **File Discovery**, **Tree-sitter Analysis**, **Plugin Analysis**, and **Graph Projection**, then saves the result in the **Graph Cache** for reuse and **Live Updates**."
 >
 > **Dev:** "Is Refresh the same as Re-index?"
@@ -732,10 +732,10 @@ _Avoid_: Graph export
 > **Domain expert:** "No. A **Timeline Snapshot** changes what nodes and edges render in the **Visible Graph** inside the **Graph View**."
 >
 > **Dev:** "Does someone need to fork CodeGraphy to add a new language relationship?"
-> **Domain expert:** "No. They can build a **Plugin** or **Plugin Extension** that piggybacks on the base extension and contributes new graph understanding."
+> **Domain expert:** "No. They can build a **Plugin Package** that integrates with `@codegraphy/core` and contributes new graph understanding."
 >
 > **Dev:** "Are graph controls different from settings?"
-> **Domain expert:** "Usually no. A UI control changes a **Setting**, and the **Setting** is the persisted repo-local value."
+> **Domain expert:** "Usually no. A UI control changes a **Setting**, and the **Setting** is the persisted workspace-local value."
 >
 > **Dev:** "If I turn off the Godot `*.gd` Legend Entry, do GDScript files disappear?"
 > **Domain expert:** "No. The **Legend Entry Toggle** only disables that styling, so matching nodes fall back to lower-priority styling."

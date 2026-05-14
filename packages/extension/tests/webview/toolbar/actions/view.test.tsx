@@ -67,7 +67,7 @@ import {
   getPluginExporterKey,
 } from '../../../../src/webview/components/export/model';
 
-const iconButtonTitles = ['Index Repo', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -113,7 +113,7 @@ describe('ToolbarActions', () => {
     expect(screen.getByTestId('toolbar-lifecycle-group')).toBeInTheDocument();
     expect(screen.getByTestId('toolbar-graph-tools-group')).toBeInTheDocument();
     expect(screen.getByTestId('toolbar-system-group')).toBeInTheDocument();
-    expect(screen.getByTitle('Index Repo')).toBeInTheDocument();
+    expect(screen.getByTitle('Index Workspace')).toBeInTheDocument();
     expect(screen.getByTitle('Layout')).toBeInTheDocument();
     expect(screen.getByTitle('Node Size')).toBeInTheDocument();
     expect(screen.getByTitle('New...')).toBeInTheDocument();
@@ -126,7 +126,7 @@ describe('ToolbarActions', () => {
 
   it('sends INDEX_GRAPH message when the initial index button is clicked', () => {
     renderWithProviders();
-    clickAction('Index Repo');
+    clickAction('Index Workspace');
 
     expect(postMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
     expect(graphStore.getState().graphIsIndexing).toBe(true);
@@ -141,7 +141,7 @@ describe('ToolbarActions', () => {
 
     renderWithProviders();
 
-    expect(screen.getByTitle('Reindex Repo')).toBeInTheDocument();
+    expect(screen.getByTitle('Reindex Workspace')).toBeInTheDocument();
   });
 
   it('sends REFRESH_GRAPH when a graph index already exists', () => {
@@ -156,7 +156,7 @@ describe('ToolbarActions', () => {
 
   it('clears the optimistic loading state if the extension never responds', () => {
     renderWithProviders();
-    clickAction('Index Repo');
+    clickAction('Index Workspace');
 
     act(() => {
       vi.advanceTimersByTime(10_000);
@@ -192,11 +192,11 @@ describe('ToolbarActions', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Repo', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
-      'Index Repo',
+      'Index Workspace',
       'Layout',
       'Node Size',
       'New...',

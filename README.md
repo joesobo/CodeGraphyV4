@@ -32,7 +32,7 @@
   <a href="https://www.npmjs.com/package/@codegraphy/plugin-api">Plugin API</a>
 </p>
 
-CodeGraphy turns a repository into an interactive Relationship Graph inside VS Code. It starts with File Nodes, then Indexing adds richer Edges from imports, references, calls, tests, folder/package structure, and plugin-provided analysis. The goal is simple: make the relationships between files visible enough that people and agents can navigate the codebase without guessing.
+CodeGraphy turns a folder into an interactive Relationship Graph inside VS Code. It starts with File Nodes, then Indexing adds richer Edges from imports, references, calls, tests, folder/package structure, and plugin-provided analysis. The goal is simple: make the relationships between files visible enough that people and agents can navigate a CodeGraphy Workspace without guessing.
 
 This repo is a work in progress and is being built through agentic engineering. It should be useful, but the public surface is still evolving.
 
