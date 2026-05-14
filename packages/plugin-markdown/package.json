@@ -1,18 +1,42 @@
 {
   "name": "@codegraphy/plugin-markdown",
   "version": "1.0.4",
-  "private": true,
   "description": "CodeGraphy markdown plugin",
   "license": "MIT",
+  "type": "module",
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
+  },
   "engines": {
     "node": ">=22.22.0 <23"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "codegraphy.json",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@codegraphy/plugin-api": "workspace:*"
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0",
+    "disclosures": []
   }
 }

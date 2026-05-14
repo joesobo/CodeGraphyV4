@@ -5,8 +5,10 @@ import type { IPlugin } from '@codegraphy/plugin-api';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   indexCodeGraphyWorkspace,
   readGraphCacheStatus,
+  readCodeGraphyWorkspaceSettings,
   readWorkspaceAnalysisDatabaseSnapshot,
 } from '../../src';
 
@@ -107,6 +109,27 @@ describe('indexCodeGraphyWorkspace', () => {
     expect(readGraphCacheStatus(workspaceRoot).state).toBe('available');
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath)).toEqual(
       expect.arrayContaining(['source.txt', 'target.txt']),
+    );
+  });
+
+  it('enables and runs the Markdown plugin by default for a new workspace', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-core-markdown-'));
+    await fs.writeFile(path.join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n', 'utf-8');
+    await fs.writeFile(path.join(workspaceRoot, 'Target.md'), 'Done.\n', 'utf-8');
+
+    const result = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+    });
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
+      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    }]);
+    expect(result.graph.edges).toContainEqual(
+      expect.objectContaining({
+        from: 'Home.md',
+        to: 'Target.md',
+        kind: 'reference',
+      }),
     );
   });
 });

@@ -19,6 +19,7 @@ test('release targets include every public workspace package', () => {
 
   assert.deepEqual(packageNames, [
     '@codegraphy/plugin-api',
+    '@codegraphy/plugin-markdown',
     '@codegraphy/core',
     '@codegraphy/mcp',
     'codegraphy-csharp',
@@ -47,6 +48,9 @@ test('all publish includes npm packages before marketplace packages', () => {
   const pluginApiIndex = releaseArgs.findIndex((args) =>
     args.includes('@codegraphy/plugin-api'),
   );
+  const markdownIndex = releaseArgs.findIndex((args) =>
+    args.includes('@codegraphy/plugin-markdown'),
+  );
   const corePackageIndex = releaseArgs.findIndex((args) =>
     args.includes('@codegraphy/core'),
   );
@@ -61,11 +65,13 @@ test('all publish includes npm packages before marketplace packages', () => {
   );
 
   assert.ok(pluginApiIndex >= 0, 'expected plugin API npm publish');
+  assert.ok(markdownIndex >= 0, 'expected Markdown plugin npm publish');
   assert.ok(corePackageIndex >= 0, 'expected core npm publish');
   assert.ok(mcpIndex >= 0, 'expected MCP npm publish');
   assert.ok(extensionIndex >= 0, 'expected extension marketplace publish');
   assert.ok(typescriptIndex >= 0, 'expected TypeScript marketplace publish');
   assert.ok(pluginApiIndex < corePackageIndex, 'expected plugin API to publish before core package');
+  assert.ok(markdownIndex < corePackageIndex, 'expected Markdown to publish before core package');
   assert.ok(corePackageIndex < mcpIndex, 'expected core package to publish before MCP');
   assert.ok(mcpIndex < extensionIndex, 'expected npm packages before extension marketplace publish');
   assert.ok(extensionIndex < typescriptIndex, 'expected extension before plugin marketplace publishes');
@@ -167,7 +173,7 @@ test('target groups can release only npm packages', () => {
 
   assert.deepEqual(
     targets.map((target) => target.packageName),
-    ['@codegraphy/plugin-api', '@codegraphy/core', '@codegraphy/mcp'],
+    ['@codegraphy/plugin-api', '@codegraphy/plugin-markdown', '@codegraphy/core', '@codegraphy/mcp'],
   );
 });
 
