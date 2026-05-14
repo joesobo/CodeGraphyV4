@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { walkDirectory } from '../../../../src/core/discovery/file/walk';
+import { walkDirectory } from '../../../src/discovery/file/walk';
 import * as fs from 'fs';
 
 vi.mock('fs', () => ({

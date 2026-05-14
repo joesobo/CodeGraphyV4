@@ -4,8 +4,8 @@ import type {
   IFileAnalysisResult,
 } from '../../../../core/plugins/types/contracts';
 import { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import { FileDiscovery } from '../../../../core/discovery/file/service';
-import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import { FileDiscovery } from '@codegraphy/core';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import { Configuration } from '../../../config/reader';
 import { EventBus } from '../../../../core/plugins/events/bus';
 import type { IWorkspaceAnalysisCache } from '../../cache';

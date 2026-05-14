@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { shouldIncludeFile } from '../../../../src/core/discovery/file/filter';
-import type { IFileFilterOptions } from '../../../../src/core/discovery/file/filter';
+import { shouldIncludeFile } from '../../../src/discovery/file/filter';
+import type { IFileFilterOptions } from '../../../src/discovery/file/filter';
 
 function opts(overrides: Partial<IFileFilterOptions> = {}): IFileFilterOptions {
   return {

@@ -1,4 +1,4 @@
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
 import type { EventBus } from '../../../core/plugins/events/bus';
 import { analyzeWorkspaceFiles } from '../fileAnalysis';

@@ -10,6 +10,19 @@ export {
   WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from './analysis/cache';
+export type {
+  IDiscoveredFile,
+  IDiscoveryOptions,
+  IDiscoveryResult,
+} from './discovery/contracts';
+export { createAbortError, throwIfAborted } from './discovery/abort';
+export { FileDiscovery } from './discovery/file/service';
+export {
+  DEFAULT_EXCLUDE,
+  matchesAnyPattern,
+  normalizeDiscoveryPath,
+  shouldSkipKnownDirectory,
+} from './discovery/pathMatching';
 export type { WorkspaceAnalysisDatabaseSnapshot } from './graphCache/database/storage';
 export {
   clearWorkspaceAnalysisDatabaseCache,

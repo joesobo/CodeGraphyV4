@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { WorkspacePipelineLifecycleFacade } from '../../../../src/extension/pipeline/service/lifecycleFacade';
 import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
 import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
-import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import type {
   IFileAnalysisResult,
   IProjectedConnection,

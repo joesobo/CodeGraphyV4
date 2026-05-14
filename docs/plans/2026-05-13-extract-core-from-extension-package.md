@@ -977,6 +977,11 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Moved LadybugDB Graph Cache unit coverage from the extension package to the core package.
   - Kept the VS Code extension as an adapter over `@codegraphy/core` for Graph Query and Graph Cache storage.
   - Validation: `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, targeted extension Graph Query/agent bridge/public API tests, and targeted extension pipeline cache/lifecycle tests.
+- 2026-05-14: Step 3 first slice completed: File Discovery moved into `@codegraphy/core`.
+  - Moved discovery contracts, path matching, gitignore loading, directory walking, and `FileDiscovery` into the core package.
+  - Moved discovery unit coverage from the extension package to the core package.
+  - Repointed VS Code pipeline and workspace watcher imports to `@codegraphy/core`.
+  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/discovery`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, `pnpm --filter @codegraphy/extension lint`, targeted extension workspace-file and pipeline tests, and `pnpm run test:release`.
 
 ### Step 1: Package Identity Groundwork
 

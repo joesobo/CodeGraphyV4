@@ -1,4 +1,4 @@
-import type { IDiscoveredFile } from '../../../core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import { throwIfWorkspaceAnalysisAborted } from '../abort';
 
 export interface WorkspacePipelinePreAnalyzeDependencies {

@@ -1,5 +1,5 @@
-import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
-import type { FileDiscovery } from '../../../../core/discovery/file/service';
+import type { IDiscoveredFile } from '@codegraphy/core';
+import type { FileDiscovery } from '@codegraphy/core';
 import {
   discoverWorkspacePipelineFiles,
   formatWorkspacePipelineLimitReachedMessage,

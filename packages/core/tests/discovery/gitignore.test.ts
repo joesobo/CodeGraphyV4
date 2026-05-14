@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { loadGitignore } from '../../../src/core/discovery/gitignore';
+import { loadGitignore } from '../../src/discovery/gitignore';
 
 describe('gitignore', () => {
   let tempDir: string;

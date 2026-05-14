@@ -4,7 +4,7 @@ import type {
   IFileAnalysisResult,
 } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../../serviceAdapters';
 import {
