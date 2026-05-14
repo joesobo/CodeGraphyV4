@@ -20,6 +20,11 @@ export interface LegendIconImport {
   contentsBase64: string;
 }
 
+export interface GraphItemCreatePayload {
+  directory: string;
+  ownerSectionId?: string;
+}
+
 export type WebviewToExtensionMessage =
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
@@ -31,8 +36,8 @@ export type WebviewToExtensionMessage =
   | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }
   | { type: 'DELETE_FILES'; payload: { paths: string[] } }
   | { type: 'RENAME_FILE'; payload: { path: string } }
-  | { type: 'CREATE_FILE'; payload: { directory: string } }
-  | { type: 'CREATE_FOLDER'; payload: { directory: string } }
+  | { type: 'CREATE_FILE'; payload: GraphItemCreatePayload }
+  | { type: 'CREATE_FOLDER'; payload: GraphItemCreatePayload }
   | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
   | {
       type: 'UPDATE_GRAPH_LAYOUT_PIN';

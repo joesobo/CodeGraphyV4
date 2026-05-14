@@ -518,6 +518,110 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
     });
   });
 
+  it('assigns a newly created file to the Graph Section from the context message', async () => {
+    let graphLayout: GraphLayoutSettings = {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Section 1',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 280,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {},
+    };
+    const context = createPrimaryMessageContext({
+      createFile: vi.fn(async () => 'src/new-file.ts'),
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        return key === 'graphLayout' ? graphLayout as T : defaultValue;
+      }),
+      updateConfig: vi.fn((key: string, value: unknown) => {
+        if (key === 'graphLayout') {
+          graphLayout = value as GraphLayoutSettings;
+        }
+        return Promise.resolve();
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'CREATE_FILE',
+      payload: {
+        directory: '.',
+        ownerSectionId: 'section-1',
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.createFile).toHaveBeenCalledWith('.');
+    expect(graphLayout.ownership['src/new-file.ts']).toMatchObject({
+      itemId: 'src/new-file.ts',
+      itemKind: 'node',
+      ownerSectionId: 'section-1',
+    });
+    expect(context.sendMessage).toHaveBeenLastCalledWith({
+      type: 'GRAPH_LAYOUT_UPDATED',
+      payload: expect.objectContaining({
+        ownership: {
+          'src/new-file.ts': expect.objectContaining({ ownerSectionId: 'section-1' }),
+        },
+      }),
+    });
+  });
+
+  it('assigns a newly created folder to the Graph Section from the context message', async () => {
+    let graphLayout: GraphLayoutSettings = {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Section 1',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 280,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {},
+    };
+    const context = createPrimaryMessageContext({
+      createFolder: vi.fn(async () => 'new-folder'),
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        return key === 'graphLayout' ? graphLayout as T : defaultValue;
+      }),
+      updateConfig: vi.fn((key: string, value: unknown) => {
+        if (key === 'graphLayout') {
+          graphLayout = value as GraphLayoutSettings;
+        }
+        return Promise.resolve();
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'CREATE_FOLDER',
+      payload: {
+        directory: '.',
+        ownerSectionId: 'section-1',
+      },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.createFolder).toHaveBeenCalledWith('.');
+    expect(graphLayout.ownership['new-folder']).toMatchObject({
+      itemId: 'new-folder',
+      itemKind: 'node',
+      ownerSectionId: 'section-1',
+    });
+  });
+
   it('removes ownership records when items move back to the root graph', async () => {
     const context = createPrimaryMessageContext({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
@@ -574,6 +678,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
 
   it('persists Graph Section deletion by promoting direct children', async () => {
     const context = createPrimaryMessageContext({
+      showWarningMessage: vi.fn(async (): Promise<'Delete' | undefined> => 'Delete'),
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'graphLayout') {
           return {
@@ -634,6 +739,11 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       payload: { sectionId: 'section-2' },
     }, context)).resolves.toEqual({ handled: true });
 
+    expect(context.showWarningMessage).toHaveBeenCalledWith(
+      'Are you sure you want to delete Graph Section "Section 2"?',
+      { modal: true },
+      'Delete',
+    );
     expect(context.updateConfig).toHaveBeenCalledWith('graphLayout', {
       collapsedNodes: {},
       pinnedNodes: {},
@@ -649,6 +759,48 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
         },
       },
     });
+  });
+
+  it('does not delete a Graph Section when confirmation is cancelled', async () => {
+    const context = createPrimaryMessageContext({
+      showWarningMessage: vi.fn(async () => undefined),
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'graphLayout') {
+          return {
+            collapsedNodes: {},
+            pinnedNodes: {},
+            sections: {
+              'section-1': {
+                id: 'section-1',
+                label: 'Section 1',
+                color: '#60a5fa',
+                x: 0,
+                y: 0,
+                width: 280,
+                height: 180,
+                collapsed: false,
+                updatedAt: '2026-05-07T09:00:00.000Z',
+              },
+            },
+            ownership: {},
+          } as T;
+        }
+
+        return defaultValue;
+      }),
+    });
+
+    await expect(dispatchGraphViewPrimaryMessage({
+      type: 'DELETE_GRAPH_LAYOUT_SECTION',
+      payload: { sectionId: 'section-1' },
+    }, context)).resolves.toEqual({ handled: true });
+
+    expect(context.showWarningMessage).toHaveBeenCalledWith(
+      'Are you sure you want to delete Graph Section "Section 1"?',
+      { modal: true },
+      'Delete',
+    );
+    expect(context.updateConfig).not.toHaveBeenCalled();
   });
 
   it('restores a deleted Graph Section through undo', async () => {
@@ -684,6 +836,7 @@ describe('graphView/webview/dispatch/primary graph layout', () => {
       },
     };
     const context = createPrimaryMessageContext({
+      showWarningMessage: vi.fn(async (): Promise<'Delete' | undefined> => 'Delete'),
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         return key === 'graphLayout' ? currentGraphLayout as T : defaultValue;
       }),

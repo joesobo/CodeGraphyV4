@@ -35,6 +35,7 @@ export function createPrimaryMessageContext(
     undo: vi.fn(() => Promise.resolve(undefined)),
     redo: vi.fn(() => Promise.resolve(undefined)),
     showInformationMessage: vi.fn(),
+    showWarningMessage: vi.fn(async () => 'Delete' as const),
     changeView: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
     updateDagMode: vi.fn(() => Promise.resolve()),

@@ -92,15 +92,6 @@ export function buildSingleFolderNodeEntries(
     ...buildFilterBlock(targets),
   );
 
-  if (mutationAvailability !== 'hidden') {
-    entries.push(
-      builtInItem('node-create-section-from-selection', 'Create Graph Section from Selection', 'createGraphSection', {
-        disabled: mutationAvailability === 'disabled',
-      }),
-      separator('node-separator-section'),
-    );
-  }
-
   if (target.id !== '(root)' && mutationAvailability !== 'hidden') {
     entries.push(...buildFolderDestructiveBlock(mutationAvailability === 'disabled'));
   }

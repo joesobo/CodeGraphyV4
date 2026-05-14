@@ -19,9 +19,19 @@ import { writeIconImports, type IconImportMessageHandlers } from './iconImports'
 export interface GraphLayoutMessageHandlers extends IconImportMessageHandlers {
   asWebviewUri?(uri: import('vscode').Uri): { toString(): string };
   getConfig<T>(key: string, defaultValue: T): T;
+  showWarningMessage?(
+    message: string,
+    options: { modal: boolean },
+    deleteAction: string,
+  ): Thenable<'Delete' | undefined>;
   updateConfig(key: string, value: unknown): Promise<void>;
   sendMessage(message: ExtensionToWebviewMessage): void;
 }
+
+type GraphLayoutPersistenceHandlers = Pick<
+  GraphLayoutMessageHandlers,
+  'asWebviewUri' | 'getConfig' | 'sendMessage' | 'updateConfig' | 'workspaceFolder'
+>;
 
 function readCurrentGraphLayout(handlers: Pick<GraphLayoutMessageHandlers, 'getConfig'>): GraphLayoutSettings {
   return normalizeGraphLayoutSettings(
@@ -30,7 +40,7 @@ function readCurrentGraphLayout(handlers: Pick<GraphLayoutMessageHandlers, 'getC
 }
 
 async function persistAndSendGraphLayout(
-  handlers: GraphLayoutMessageHandlers,
+  handlers: GraphLayoutPersistenceHandlers,
   graphLayout: GraphLayoutSettings,
   options: { iconUrls?: ReadonlyMap<string, string> } = {},
 ): Promise<void> {
@@ -47,10 +57,10 @@ async function persistAndSendGraphLayout(
   });
 }
 
-class UpdateGraphLayoutAction implements IUndoableAction {
+export class UpdateGraphLayoutAction implements IUndoableAction {
   constructor(
     readonly description: string,
-    private readonly handlers: GraphLayoutMessageHandlers,
+    private readonly handlers: GraphLayoutPersistenceHandlers,
     private readonly beforeLayout: GraphLayoutSettings,
     private readonly afterLayout: GraphLayoutSettings,
   ) {}
@@ -144,6 +154,17 @@ export async function applyGraphLayoutMessage(
 
     case 'DELETE_GRAPH_LAYOUT_SECTION': {
       const currentLayout = readCurrentGraphLayout(handlers);
+      const section = currentLayout.sections[message.payload.sectionId];
+      const label = section?.label || message.payload.sectionId;
+      const confirm = await handlers.showWarningMessage?.(
+        `Are you sure you want to delete Graph Section "${label}"?`,
+        { modal: true },
+        'Delete',
+      );
+      if (confirm !== 'Delete') {
+        return true;
+      }
+
       const nextLayout = deleteGraphLayoutSection(currentLayout, {
         ...message.payload,
         updatedAt: new Date().toISOString(),

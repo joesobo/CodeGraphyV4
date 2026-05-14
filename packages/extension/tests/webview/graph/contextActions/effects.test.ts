@@ -66,6 +66,38 @@ function sectionContext() {
   );
 }
 
+function folderInsideSectionContext() {
+  return resolveGraphContextActionContext(
+    { kind: 'node', targets: ['src'] },
+    {
+      graphLayout: {
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'Section 1',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 320,
+            height: 240,
+            collapsed: false,
+            updatedAt: '2026-05-13T09:45:00.000Z',
+          },
+        },
+        ownership: {
+          src: {
+            itemId: 'src',
+            itemKind: 'node',
+            ownerSectionId: 'section-1',
+            updatedAt: '2026-05-13T09:46:00.000Z',
+          },
+        },
+      },
+      graphMode: '2d',
+    },
+  );
+}
+
 function scaledBackgroundContext(graphViewportScale: number) {
   return resolveGraphContextActionContext(
     { kind: 'background', targets: [], graphPosition: { x: 40, y: -20 } },
@@ -295,6 +327,48 @@ describe('graph/contextActions/effects', () => {
             width: 280,
             x: -80,
             y: -20,
+          },
+        },
+      },
+    ]);
+  });
+
+  it('creates files and folders in a Graph Section context without using the section id as a filesystem directory', () => {
+    expect(getBuiltInContextActionEffects('createFile', sectionContext())).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_FILE',
+          payload: {
+            directory: '.',
+            ownerSectionId: 'section-1',
+          },
+        },
+      },
+    ]);
+    expect(getBuiltInContextActionEffects('createFolder', sectionContext())).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_FOLDER',
+          payload: {
+            directory: '.',
+            ownerSectionId: 'section-1',
+          },
+        },
+      },
+    ]);
+  });
+
+  it('creates files in a folder filesystem context while preserving the folder section owner', () => {
+    expect(getBuiltInContextActionEffects('createFile', folderInsideSectionContext())).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_FILE',
+          payload: {
+            directory: 'src',
+            ownerSectionId: 'section-1',
           },
         },
       },
