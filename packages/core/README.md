@@ -30,6 +30,7 @@ Plugin installation and workspace enablement are separate:
 
 - Installed plugins live in the user-level cache at `~/.codegraphy/plugins.json`.
 - Enabled plugins live in a CodeGraphy Workspace settings file at `<workspace-root>/.codegraphy/settings.json`.
+- New workspaces materialize `@codegraphy/plugin-markdown` as the first enabled plugin during first Indexing.
 - The enabled plugin order is the order of the workspace `plugins` array.
 - `plugins refresh` scans global npm roots for `@codegraphy/*` packages with CodeGraphy plugin metadata.
 - `plugins add <package>` records an explicitly named globally installed package, including non-`@codegraphy` packages.

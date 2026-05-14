@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@codegraphy/plugin-api": "workspace:*",
+    "@codegraphy/plugin-markdown": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
     "@ladybugdb/core": "^0.15.3",
     "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",

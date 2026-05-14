@@ -3,6 +3,8 @@ import * as path from 'node:path';
 import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../discovery/file/defaults';
 import { getWorkspaceSettingsPath } from './paths';
 
+export const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy/plugin-markdown';
+
 export interface CodeGraphyWorkspacePluginSettings {
   package: string;
   disabledFilterPatterns?: string[];
@@ -80,6 +82,15 @@ export function createDefaultCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceS
   };
 }
 
+export function createInitialCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceSettings {
+  return {
+    ...createDefaultCodeGraphyWorkspaceSettings(),
+    plugins: [{
+      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    }],
+  };
+}
+
 export function normalizeCodeGraphyWorkspaceSettings(
   value: unknown,
 ): CodeGraphyWorkspaceSettings {
@@ -136,9 +147,10 @@ export function writeCodeGraphyWorkspaceSettings(
 export function ensureCodeGraphyWorkspaceSettings(
   workspaceRoot: string,
 ): CodeGraphyWorkspaceSettings {
-  const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
   if (!fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))) {
+    const settings = createInitialCodeGraphyWorkspaceSettings();
     writeCodeGraphyWorkspaceSettings(workspaceRoot, settings);
+    return settings;
   }
-  return settings;
+  return readCodeGraphyWorkspaceSettings(workspaceRoot);
 }

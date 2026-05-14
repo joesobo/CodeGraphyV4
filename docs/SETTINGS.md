@@ -97,6 +97,24 @@ Example:
 
 Timeline indexing also respects the workspace-local filter and plugin settings. See [Timeline](./TIMELINE.md) for details.
 
+## Plugin settings
+
+Plugin enablement is workspace-local. Installing a plugin package only makes it available; enabling it writes an entry into the workspace `plugins` array.
+
+First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
+
+```json
+{
+  "plugins": [
+    {
+      "package": "@codegraphy/plugin-markdown"
+    }
+  ]
+}
+```
+
+Removing that entry disables Markdown for the workspace. Other installed plugins stay disabled until they are added to the `plugins` array through the VS Code UI, CLI, or MCP.
+
 ## Settings Panel
 
 Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while Graph Scope and Legend styling live in their own dedicated panels on the right side.

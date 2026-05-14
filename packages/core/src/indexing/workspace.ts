@@ -1,5 +1,6 @@
 import * as fs from 'node:fs/promises';
 import type { IGraphData, IPlugin } from '@codegraphy/plugin-api';
+import { createMarkdownPlugin } from '@codegraphy/plugin-markdown';
 import { createEmptyWorkspaceAnalysisCache, type IWorkspaceAnalysisCache } from '../analysis/cache';
 import {
   analyzeWorkspacePipelineFiles,
@@ -15,6 +16,7 @@ import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/stora
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
 import { persistCodeGraphyWorkspaceIndexMetadata } from '../workspace/meta';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   ensureCodeGraphyWorkspaceSettings,
   type CodeGraphyWorkspaceSettings,
 } from '../workspace/settings';
@@ -66,11 +68,34 @@ async function getFileStat(filePath: string): Promise<{ mtime: number; size: num
   }
 }
 
-function createRegistry(options: IndexCodeGraphyWorkspaceOptions): CorePluginRegistry {
+function shouldRegisterDefaultMarkdownPlugin(
+  options: IndexCodeGraphyWorkspaceOptions,
+  settings: CodeGraphyWorkspaceSettings,
+): boolean {
+  if (options.includeCorePlugins === false) {
+    return false;
+  }
+
+  const providedPluginIds = new Set((options.plugins ?? []).map(plugin => plugin.id));
+  return settings.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)
+    && !providedPluginIds.has('codegraphy.markdown');
+}
+
+function createRegistry(
+  options: IndexCodeGraphyWorkspaceOptions,
+  settings: CodeGraphyWorkspaceSettings,
+): CorePluginRegistry {
   const registry = new CorePluginRegistry();
 
   if (options.includeCorePlugins !== false) {
     registry.register(createTreeSitterPlugin(), { builtIn: true });
+  }
+
+  if (shouldRegisterDefaultMarkdownPlugin(options, settings)) {
+    registry.register(createMarkdownPlugin(), {
+      builtIn: true,
+      sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    });
   }
 
   for (const plugin of options.plugins ?? []) {
@@ -102,9 +127,9 @@ export async function indexCodeGraphyWorkspace(
 ): Promise<IndexCodeGraphyWorkspaceResult> {
   const workspaceRoot = resolveWorkspaceRoot(options.workspaceRoot);
   const discovery = new FileDiscovery();
-  const registry = createRegistry(options);
   const cache = createEmptyWorkspaceAnalysisCache();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
+  const registry = createRegistry(options, settings);
   const disabledPlugins = new Set(options.disabledPlugins ?? []);
   const disabledPluginPatterns = new Set(settings.disabledPluginFilterPatterns);
   const logInfo = options.logInfo ?? (() => undefined);

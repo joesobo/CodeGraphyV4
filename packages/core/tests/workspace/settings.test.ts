@@ -4,7 +4,9 @@ import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createCodeGraphyWorkspaceSettingsSignature,
+  ensureCodeGraphyWorkspaceSettings,
   getWorkspaceSettingsPath,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyWorkspaceSettings,
@@ -15,6 +17,23 @@ async function createWorkspace(): Promise<string> {
 }
 
 describe('CodeGraphy Workspace settings', () => {
+  it('materializes Markdown as the first default plugin for a new workspace', async () => {
+    const workspaceRoot = await createWorkspace();
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([]);
+
+    const settings = ensureCodeGraphyWorkspaceSettings(workspaceRoot);
+
+    expect(settings.plugins).toEqual([{
+      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    }]);
+    expect(JSON.parse(
+      await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
+    ).plugins).toEqual([{
+      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    }]);
+  });
+
   it('normalizes workspace plugin entries from settings.json', async () => {
     const workspaceRoot = await createWorkspace();
     await fs.mkdir(path.dirname(getWorkspaceSettingsPath(workspaceRoot)), { recursive: true });

@@ -13,6 +13,7 @@ CodeGraphy has two plugin surfaces:
 - [CodeGraphy C#](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp)
 - [CodeGraphy GDScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot)
 - [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
+- [`@codegraphy/plugin-markdown`](https://www.npmjs.com/package/@codegraphy/plugin-markdown)
 
 ## Start here
 
@@ -48,6 +49,7 @@ Installation and enablement are separate:
 - `codegraphy plugins enable <package> [workspace]` writes that plugin into the workspace-local `plugins` array.
 - `codegraphy plugins disable <package> [workspace]` removes that plugin from the workspace-local enabled set.
 - Enabling and disabling plugins do not run Indexing automatically; run `codegraphy index [workspace]` to refresh the Graph Cache.
+- `@codegraphy/core` depends on `@codegraphy/plugin-markdown` and materializes it as the first enabled plugin when a new CodeGraphy Workspace is indexed for the first time.
 
 Plugin packages declare CodeGraphy metadata in `package.json` so discovery can validate compatibility without importing arbitrary runtime code:
 
