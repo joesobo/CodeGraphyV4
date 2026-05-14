@@ -1010,6 +1010,11 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Added `indexCodeGraphyWorkspace(...)` so core can index exactly the requested CodeGraphy Workspace path and write `<workspace-root>/.codegraphy/graph.lbug`.
   - Kept the VS Code extension import surface as adapter exports over `@codegraphy/core` for the moved headless plugin modules.
   - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, and `pnpm --filter @codegraphy/extension typecheck`.
+- 2026-05-14: Step 4 first slice completed: core Workspace Settings and freshness status added.
+  - Added core-owned Workspace Settings read/write/normalization for `<workspace-root>/.codegraphy/settings.json`, including ordered `plugins` entries with `package`, `disabledFilterPatterns`, and `options`.
+  - Added workspace metadata, plugin/settings fingerprints, analysis-version fingerprints, and `readCodeGraphyWorkspaceStatus(...)` for fresh/stale/missing Graph Cache state.
+  - Updated `indexCodeGraphyWorkspace(...)` to materialize Workspace Settings, use them for Indexing, and persist matching metadata after writing the Graph Cache.
+  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/workspace/settings.test.ts tests/workspace/status.test.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, and `pnpm --filter @codegraphy/core build`.
 
 ### Step 1: Package Identity Groundwork
 
