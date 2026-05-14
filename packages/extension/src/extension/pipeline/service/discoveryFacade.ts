@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { readCodeGraphyWorkspaceStatus } from '@codegraphy/core';
 import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
@@ -18,8 +19,6 @@ import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
 } from './runtime/run';
-import { evaluateCodeGraphyIndexStatus } from '../../repoSettings/freshness';
-import { readCodeGraphyRepoMeta } from '../../repoSettings/meta';
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   async initialize(): Promise<void> {
@@ -73,15 +72,13 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       };
     }
 
-    const status = evaluateCodeGraphyIndexStatus({
-      meta: readCodeGraphyRepoMeta(workspaceRoot),
-      currentCommit: this._getCurrentCommitShaSync(workspaceRoot),
+    const status = readCodeGraphyWorkspaceStatus(workspaceRoot, {
       pluginSignature: this._getPluginSignature(),
       settingsSignature: this._getSettingsSignature(),
     });
 
     return {
-      freshness: status.freshness,
+      freshness: status.state,
       detail: status.detail,
     };
   }

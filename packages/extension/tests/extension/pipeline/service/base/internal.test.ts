@@ -431,12 +431,6 @@ describe('extension/pipeline/service/internalBase', () => {
 
   it('persists index metadata through delegated getters and warning logging', async () => {
     const source = new TestInternalBase();
-    const getCurrentCommitSha = vi
-      .spyOn(
-        source as unknown as { _getCurrentCommitSha: (workspaceRoot: string) => Promise<string | null> },
-        '_getCurrentCommitSha',
-      )
-      .mockResolvedValue('async-commit-sha');
     const getPluginSignature = vi
       .spyOn(source as unknown as { _getPluginSignature: () => string | null }, '_getPluginSignature')
       .mockReturnValue('plugin-signature');
@@ -452,10 +446,6 @@ describe('extension/pipeline/service/internalBase', () => {
       expect.any(Object),
     );
     const dependencies = vi.mocked(persistWorkspacePipelineIndexMetadata).mock.calls[0][1];
-    await expect(dependencies.getCurrentCommitSha('/workspace')).resolves.toBe(
-      'async-commit-sha',
-    );
-    expect(getCurrentCommitSha).toHaveBeenCalledWith('/workspace');
     expect(dependencies.getPluginSignature()).toBe('plugin-signature');
     expect(getPluginSignature).toHaveBeenCalledOnce();
     expect(dependencies.getSettingsSignature()).toBe('settings-signature');

@@ -87,7 +87,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 
 ## How It Works
 
-![CodeGraphy architecture and logic flow](./docs/media/readme/codegraphy-architecture.svg)
+![CodeGraphy architecture and logic flow](./docs/media/readme/codegraphy-architecture.png)
 
 Workspace files, Git history, and repo-local settings flow into the Core Extension. Indexing combines built-in Tree-sitter analysis with enabled plugins, stores relationship evidence in the Graph Cache, then Graph Projection produces the Visible Graph that powers the VS Code webview, exports, and CodeGraphy MCP.
 

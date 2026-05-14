@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import { writeCodeGraphyWorkspaceMeta } from '@codegraphy/core';
 import {
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from '../../../src/extension/pipeline/cache';
@@ -488,7 +489,8 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
   });
 
   it('reports an existing index as stale when plugin or settings signatures no longer match', () => {
-    createIndexedWorkspaceRoot();
+    vi.restoreAllMocks();
+    const workspaceRoot = createIndexedWorkspaceRoot();
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
@@ -497,13 +499,12 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
         update: vi.fn(() => Promise.resolve()),
       },
     } as unknown as vscode.ExtensionContext);
-
-    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
-      lastIndexedCommit: null,
       pluginSignature: 'old-plugin-signature',
       settingsSignature: 'settings-signature',
+      analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       pendingChangedFiles: [],
     });
     vi.spyOn(
@@ -522,12 +523,13 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     expect(analyzer.hasIndex()).toBe(true);
     expect(analyzer.getIndexStatus()).toEqual({
       freshness: 'stale',
-      detail: 'CodeGraphy index is stale: installed CodeGraphy plugins changed.',
+      detail: 'CodeGraphy Workspace Graph Cache is stale: enabled plugins changed.',
     });
   });
 
-  it('reports an existing index as stale when the workspace commit has changed since indexing', () => {
-    createIndexedWorkspaceRoot();
+  it('keeps an existing index fresh when only git commit state changes', () => {
+    vi.restoreAllMocks();
+    const workspaceRoot = createIndexedWorkspaceRoot();
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
@@ -536,13 +538,12 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
         update: vi.fn(() => Promise.resolve()),
       },
     } as unknown as vscode.ExtensionContext);
-
-    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
-      lastIndexedCommit: 'old-commit',
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
+      analysisVersion: WORKSPACE_ANALYSIS_CACHE_VERSION,
       pendingChangedFiles: [],
     });
     vi.spyOn(
@@ -557,22 +558,17 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
       '_getSettingsSignature',
     ).mockReturnValue('settings-signature');
-    vi.spyOn(
-      analyzer as unknown as {
-        _getCurrentCommitShaSync(workspaceRoot: string): string | null;
-      },
-      '_getCurrentCommitShaSync',
-    ).mockReturnValue('new-commit');
 
     expect(analyzer.hasIndex()).toBe(true);
     expect(analyzer.getIndexStatus()).toEqual({
-      freshness: 'stale',
-      detail: 'CodeGraphy index is stale: the workspace commit changed since the last index.',
+      freshness: 'fresh',
+      detail: 'CodeGraphy Workspace Graph Cache is fresh.',
     });
   });
 
-  it('reports an existing index as stale when a repo index recorded a commit but the current commit cannot be resolved', () => {
-    createIndexedWorkspaceRoot();
+  it('reports an existing index as stale when core analysis metadata is out of date', () => {
+    vi.restoreAllMocks();
+    const workspaceRoot = createIndexedWorkspaceRoot();
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
@@ -581,13 +577,12 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
         update: vi.fn(() => Promise.resolve()),
       },
     } as unknown as vscode.ExtensionContext);
-
-    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
+    writeCodeGraphyWorkspaceMeta(workspaceRoot, {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
-      lastIndexedCommit: 'old-commit',
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
+      analysisVersion: 'old-analysis-version',
       pendingChangedFiles: [],
     });
     vi.spyOn(
@@ -602,17 +597,11 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
       '_getSettingsSignature',
     ).mockReturnValue('settings-signature');
-    vi.spyOn(
-      analyzer as unknown as {
-        _getCurrentCommitShaSync(workspaceRoot: string): string | null;
-      },
-      '_getCurrentCommitShaSync',
-    ).mockReturnValue(null);
 
     expect(analyzer.hasIndex()).toBe(true);
     expect(analyzer.getIndexStatus()).toEqual({
       freshness: 'stale',
-      detail: 'CodeGraphy index is stale: the current workspace commit could not be resolved.',
+      detail: 'CodeGraphy Workspace Graph Cache is stale: the analysis schema changed.',
     });
   });
 

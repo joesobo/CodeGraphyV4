@@ -35,7 +35,9 @@ export interface CodeGraphyWorkspaceStatus {
 
 export interface ReadCodeGraphyWorkspaceStatusOptions {
   plugins?: ReadonlyArray<Pick<IPlugin, 'id' | 'version'>>;
+  pluginSignature?: string | null;
   settings?: CodeGraphyWorkspaceSettings;
+  settingsSignature?: string;
   exists?: (filePath: string) => boolean;
 }
 
@@ -119,8 +121,8 @@ export function readCodeGraphyWorkspaceStatus(
   const hasGraphCache = (options.exists ?? fs.existsSync)(graphCachePath);
   const meta = readCodeGraphyWorkspaceMeta(resolvedWorkspaceRoot);
   const settings = options.settings ?? readCodeGraphyWorkspaceSettings(resolvedWorkspaceRoot);
-  const settingsSignature = createCodeGraphyWorkspaceSettingsSignature(settings);
-  const pluginSignature = createCodeGraphyWorkspacePluginSignature(
+  const settingsSignature = options.settingsSignature ?? createCodeGraphyWorkspaceSettingsSignature(settings);
+  const pluginSignature = options.pluginSignature ?? createCodeGraphyWorkspacePluginSignature(
     options.plugins ?? createDefaultStatusPlugins(settings),
   );
   const staleReasons = collectStaleReasons({

@@ -3,11 +3,12 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import {
   copyRuntimePackage,
+  EXTENSION_EXTERNAL_PACKAGE_NAMES,
   EXTENSION_RUNTIME_PACKAGE_NAMES,
   getVendoredPackageRootPath,
   resolveRuntimePackageRootPath,
   syncExtensionRuntimePackages,
-} from '../../../scripts/runtimePackages';
+} from '../../../scripts/externalPackages';
 
 describe('runtime package build support', () => {
   it('resolves the installed Ladybug package root', () => {
@@ -81,5 +82,33 @@ describe('runtime package build support', () => {
     for (const packageName of EXTENSION_RUNTIME_PACKAGE_NAMES) {
       expect(() => resolveRuntimePackageRootPath(packageName)).not.toThrow();
     }
+  });
+
+  it('bundles core packages while externalizing only VS Code and native runtime packages', () => {
+    expect(EXTENSION_EXTERNAL_PACKAGE_NAMES).toEqual(
+      expect.arrayContaining([
+        'vscode',
+        '@ladybugdb/core',
+        'tree-sitter',
+      ]),
+    );
+    expect(EXTENSION_EXTERNAL_PACKAGE_NAMES).not.toEqual(
+      expect.arrayContaining([
+        '@codegraphy/core',
+        '@codegraphy/plugin-markdown',
+      ]),
+    );
+  });
+
+  it('declares core as an npm dependency instead of a VS Code extension dependency', () => {
+    const manifest = JSON.parse(
+      fs.readFileSync(path.resolve('package.json'), 'utf8'),
+    ) as {
+      dependencies?: Record<string, string>;
+      extensionDependencies?: string[];
+    };
+
+    expect(manifest.dependencies?.['@codegraphy/core']).toBe('workspace:*');
+    expect(manifest.extensionDependencies ?? []).not.toContain('@codegraphy/core');
   });
 });
