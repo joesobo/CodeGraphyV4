@@ -8,13 +8,11 @@ import {
 } from '../../../../../src/extension/pipeline/service/cache/index';
 import {
   readCodeGraphyRepoMeta,
-  writeCodeGraphyRepoMeta,
 } from '../../../../../src/extension/repoSettings/meta';
 import type { ICodeGraphyRepoMeta } from '../../../../../src/extension/repoSettings/meta';
 
 vi.mock('../../../../../src/extension/repoSettings/meta', () => ({
   readCodeGraphyRepoMeta: vi.fn(),
-  writeCodeGraphyRepoMeta: vi.fn(),
 }));
 
 describe('pipeline/service/cache/index', () => {
@@ -115,62 +113,60 @@ describe('pipeline/service/cache/index', () => {
     vi.setSystemTime(new Date('2026-04-16T08:45:00.000Z'));
 
     const warn = vi.fn();
+    const persistIndexMetadata = vi.fn();
     const dependencies = {
-      getCurrentCommitSha: vi.fn(async () => 'def456'),
       getPluginSignature: vi.fn(() => 'next-plugin-signature'),
       getSettingsSignature: vi.fn(() => 'next-settings-signature'),
+      persistIndexMetadata,
       warn,
     };
 
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
-    expect(writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', {
-      version: 1,
-      lastIndexedAt: '2026-04-16T08:45:00.000Z',
-      lastIndexedCommit: 'def456',
+    expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
       pluginSignature: 'next-plugin-signature',
       settingsSignature: 'next-settings-signature',
-      pendingChangedFiles: [],
     });
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it('clears pending changed files when index metadata is refreshed', async () => {
+  it('delegates pending changed file cleanup to core metadata persistence', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-04-16T08:45:00.000Z'));
     vi.mocked(readCodeGraphyRepoMeta).mockReturnValueOnce(meta({
       pendingChangedFiles: ['src/stale.ts'],
     }));
+    const persistIndexMetadata = vi.fn();
     const dependencies = {
-      getCurrentCommitSha: vi.fn(async () => 'def456'),
       getPluginSignature: vi.fn(() => 'plugin-signature'),
       getSettingsSignature: vi.fn(() => 'settings-signature'),
+      persistIndexMetadata,
       warn: vi.fn(),
     };
 
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 
-    expect(writeCodeGraphyRepoMeta).toHaveBeenCalledWith('/workspace', expect.objectContaining({
-      pendingChangedFiles: [],
-    }));
+    expect(persistIndexMetadata).toHaveBeenCalledWith('/workspace', {
+      pluginSignature: 'plugin-signature',
+      settingsSignature: 'settings-signature',
+    });
   });
 
   it('skips writes without a workspace root and warns on persistence failures', async () => {
     const warn = vi.fn();
+    const error = new Error('disk full');
+    const persistIndexMetadata = vi.fn(() => {
+      throw error;
+    });
     const dependencies = {
-      getCurrentCommitSha: vi.fn(async () => 'def456'),
       getPluginSignature: vi.fn(() => 'next-plugin-signature'),
       getSettingsSignature: vi.fn(() => 'next-settings-signature'),
+      persistIndexMetadata,
       warn,
     };
 
     await persistWorkspacePipelineIndexMetadata(undefined, dependencies);
-    expect(writeCodeGraphyRepoMeta).not.toHaveBeenCalled();
-
-    const error = new Error('disk full');
-    vi.mocked(readCodeGraphyRepoMeta).mockImplementationOnce(() => {
-      throw error;
-    });
+    expect(persistIndexMetadata).not.toHaveBeenCalled();
 
     await persistWorkspacePipelineIndexMetadata('/workspace', dependencies);
 

@@ -1238,6 +1238,30 @@ Done when:
 - the extension can index/query/render through core
 - plugins do not know about VS Code
 
+Implementation progress:
+
+- Kept `@codegraphy/core` as an npm dependency of `@codegraphy/extension`, not a VS Code `extensionDependencies` entry.
+- Split the extension build external list into an explicit package contract so `@codegraphy/core` and the Markdown plugin bundle into `dist/extension.js`, while native/runtime packages remain external and vendored into `dist/node_modules`.
+- Routed the VS Code extension's index-status adapter through `readCodeGraphyWorkspaceStatus(...)` so the extension and MCP report fresh/stale/missing Graph Cache state from the same core status model.
+- Persisted extension indexing metadata through core workspace metadata persistence so analysis-version and pending-change state stay compatible with MCP/CLI status.
+- Preserved VS Code lifecycle, webview, editor commands, graph rendering, and stale-dot presentation in the extension adapter.
+- Converted the package-facing architecture diagram reference from SVG to PNG so VSCE packaging accepts the README.
+
+Validation:
+
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/build/runtimePackages.test.ts`
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/service/cache/index.test.ts tests/extension/pipeline/lifecycle.test.ts tests/extension/pipeline/service/base/internal.test.ts tests/extension/build/runtimePackages.test.ts`
+- `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/workspace/status.test.ts`
+- `pnpm --filter @codegraphy/core build`
+- `pnpm --filter @codegraphy/core typecheck`
+- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy/core lint`
+- `pnpm --filter @codegraphy/extension lint`
+- `pnpm --filter @codegraphy/extension build:extension`
+- `pnpm run test:release`
+- `pnpm run package:vsix`
+- `git diff --check`
+
 ### Step 9: First-Party Plugin Package Migration
 
 Goal:

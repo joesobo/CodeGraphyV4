@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   indexCodeGraphyWorkspace,
+  readCodeGraphyWorkspaceMeta,
   readCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceStatus,
   writeCodeGraphyWorkspaceSettings,
@@ -65,6 +66,33 @@ describe('CodeGraphy Workspace status', () => {
       state: 'stale',
       hasGraphCache: true,
       staleReasons: ['settings-signature-changed'],
+    });
+  });
+
+  it('accepts adapter-provided signatures for callers with their own settings model', async () => {
+    const workspaceRoot = await createWorkspace();
+    await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [textPlugin],
+      showOrphans: true,
+    });
+    const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      pluginSignature: meta.pluginSignature,
+      settingsSignature: meta.settingsSignature ?? '',
+    })).toMatchObject({
+      state: 'fresh',
+      staleReasons: [],
+    });
+
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
+      pluginSignature: 'legacy-adapter-plugin@1.0.0',
+      settingsSignature: meta.settingsSignature ?? '',
+    })).toMatchObject({
+      state: 'stale',
+      staleReasons: ['plugin-signature-changed'],
     });
   });
 });

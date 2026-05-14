@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
-import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from '../../../repoSettings/meta';
+import { persistCodeGraphyWorkspaceIndexMetadata } from '@codegraphy/core';
+import { readCodeGraphyRepoMeta } from '../../../repoSettings/meta';
 import { getWorkspaceAnalysisDatabasePath } from '../../database/cache/storage';
 
 interface WorkspacePipelineSignatureDependencies {
@@ -9,7 +10,7 @@ interface WorkspacePipelineSignatureDependencies {
 
 interface WorkspacePipelinePersistIndexDependencies
   extends WorkspacePipelineSignatureDependencies {
-  getCurrentCommitSha(workspaceRoot: string): Promise<string | null>;
+  persistIndexMetadata?: typeof persistCodeGraphyWorkspaceIndexMetadata;
   warn(message: string, error: unknown): void;
 }
 
@@ -37,14 +38,9 @@ export async function persistWorkspacePipelineIndexMetadata(
   }
 
   try {
-    const meta = readCodeGraphyRepoMeta(workspaceRoot);
-    writeCodeGraphyRepoMeta(workspaceRoot, {
-      ...meta,
-      lastIndexedAt: new Date().toISOString(),
-      lastIndexedCommit: await dependencies.getCurrentCommitSha(workspaceRoot),
+    (dependencies.persistIndexMetadata ?? persistCodeGraphyWorkspaceIndexMetadata)(workspaceRoot, {
       pluginSignature: dependencies.getPluginSignature(),
       settingsSignature: dependencies.getSettingsSignature(),
-      pendingChangedFiles: [],
     });
   } catch (error) {
     dependencies.warn('[CodeGraphy] Failed to update repo index metadata.', error);
