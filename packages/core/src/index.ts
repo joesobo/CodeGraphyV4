@@ -160,6 +160,46 @@ export type {
   GraphCacheStatusDependencies,
 } from './graphCache/status';
 export { readGraphCacheStatus } from './graphCache/status';
+export {
+  indexCodeGraphyWorkspace,
+} from './indexing/workspace';
+export type {
+  IndexCodeGraphyWorkspaceOptions,
+  IndexCodeGraphyWorkspaceResult,
+} from './indexing/workspace';
+export {
+  CORE_PLUGIN_API_VERSION,
+  CorePluginRegistry,
+} from './plugins/registry';
+export type { CorePluginInfo } from './plugins/registry';
+export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';
+export { initializeAll, initializePlugin } from './plugins/lifecycle/initialize';
+export type { ILifecyclePluginInfo } from './plugins/lifecycle/contracts';
+export { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from './plugins/lifecycle/notify/analysis';
+export { notifyFilesChanged } from './plugins/lifecycle/notify/filesChanged';
+export type { IPluginFilesChangedResult } from './plugins/lifecycle/notify/filesChanged';
+export { getFileExtension, normalizePluginExtension } from './plugins/routing/fileExtensions';
+export { analyzeFile, analyzeFileResult } from './plugins/routing/router/analyze';
+export type { CoreFileAnalysisResultProvider } from './plugins/routing/router/analyze';
+export {
+  getPluginForFile,
+  getPluginsForExtension,
+  getPluginsForFile,
+  getSupportedExtensions,
+  supportsFile,
+} from './plugins/routing/router/lookups';
+export type { IRoutablePluginInfo } from './plugins/routing/router/lookups';
+export { getRelationKey } from './plugins/routing/router/results/keys';
+export {
+  createEmptyFileAnalysisResult,
+  mergeById,
+  mergeFileAnalysisResults,
+  mergeRelations,
+} from './plugins/routing/router/results/merge';
+export {
+  toProjectedConnectionsFromFileAnalysis,
+  withPluginProvenance,
+} from './plugins/routing/router/results/project';
 export { createTreeSitterPlugin } from './treeSitter/plugin';
 export { analyzeFileWithTreeSitter } from './treeSitter/runtime/analyze';
 export { preAnalyzeCSharpTreeSitterFiles } from './treeSitter/runtime/csharpIndex';

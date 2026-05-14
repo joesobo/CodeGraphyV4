@@ -1004,6 +1004,12 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Added Tree-sitter parser packages to `@codegraphy/core` dependencies while keeping VSIX vendoring in the extension build scripts.
   - Kept the VS Code extension Tree-sitter plugin and Git history path-host imports as adapter exports over `@codegraphy/core`.
   - Validation: `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/treeSitter`, `pnpm --filter @codegraphy/core build`, and `pnpm --filter @codegraphy/extension typecheck`.
+- 2026-05-14: Step 3 sixth slice completed: headless plugin runtime and explicit workspace Indexing added to `@codegraphy/core`.
+  - Moved plugin routing, workspace analysis context, pre-analysis lifecycle hooks, file-change hooks, and file-analysis result merging into the core package.
+  - Added a core-owned `CorePluginRegistry` for headless analysis plugins without VS Code/webview dependencies.
+  - Added `indexCodeGraphyWorkspace(...)` so core can index exactly the requested CodeGraphy Workspace path and write `<workspace-root>/.codegraphy/graph.lbug`.
+  - Kept the VS Code extension import surface as adapter exports over `@codegraphy/core` for the moved headless plugin modules.
+  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, and `pnpm --filter @codegraphy/extension typecheck`.
 
 ### Step 1: Package Identity Groundwork
 
