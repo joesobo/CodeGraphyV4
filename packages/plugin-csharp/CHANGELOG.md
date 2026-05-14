@@ -1,4 +1,4 @@
-# codegraphy-csharp
+# @codegraphy/plugin-csharp
 
 ## 2.0.4
 

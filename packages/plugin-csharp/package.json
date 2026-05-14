@@ -1,14 +1,16 @@
 {
-  "name": "codegraphy-csharp",
-  "displayName": "CodeGraphy C#",
+  "name": "@codegraphy/plugin-csharp",
   "version": "2.0.4",
-  "description": "Adds C# ecosystem defaults to CodeGraphy. Requires codegraphy.codegraphy.",
-  "publisher": "codegraphy",
+  "description": "CodeGraphy C# plugin",
   "license": "MIT",
-  "icon": "assets/icon.png",
-  "galleryBanner": {
-    "color": "#023859",
-    "theme": "dark"
+  "type": "module",
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
   },
   "repository": {
     "type": "git",
@@ -19,13 +21,8 @@
     "url": "https://github.com/joesobo/CodeGraphyV4/issues"
   },
   "engines": {
-    "node": ">=22.22.0 <23",
-    "vscode": "^1.85.0"
+    "node": ">=22.22.0 <23"
   },
-  "categories": [
-    "Visualization",
-    "Programming Languages"
-  ],
   "keywords": [
     "codegraphy",
     "codegraphy-plugin",
@@ -33,32 +30,28 @@
     "csharp",
     "dependencies"
   ],
-  "activationEvents": [
-    "onStartupFinished",
-    "onCommand:codegraphy.open",
-    "onView:codegraphy.graphView",
-    "onView:codegraphy.timelineView"
-  ],
-  "extensionDependencies": [
-    "codegraphy.codegraphy"
-  ],
-  "main": "./dist/extension.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
-    "dist/**",
-    "assets/**",
+    "dist",
+    "codegraphy.json",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "vscode:prepublish": "pnpm run build",
-    "build": "esbuild src/activate.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
     "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "package:vsix": "mkdir -p ../../artifacts/vsix && pnpm exec vsce package --no-dependencies --out ../../artifacts/vsix/codegraphy.codegraphy-csharp-${npm_package_version}.vsix",
-    "publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@codegraphy/plugin-api": "workspace:*"
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0",
+    "disclosures": []
   }
 }

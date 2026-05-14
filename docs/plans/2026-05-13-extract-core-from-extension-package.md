@@ -1283,6 +1283,41 @@ Done when:
 - workspace enablement controls them
 - existing graph output is preserved for enabled plugins
 
+Implementation progress:
+
+- Renamed the TypeScript, Python, C#, and Godot package manifests to `@codegraphy/plugin-typescript`, `@codegraphy/plugin-python`, `@codegraphy/plugin-csharp`, and `@codegraphy/plugin-godot`.
+- Converted those language plugins from VS Code companion extensions to headless npm plugin packages with `type: "module"`, `dist/plugin.js` exports, declaration output, public publish metadata, and `package.json#codegraphy` metadata.
+- Removed the language-plugin VS Code activation entrypoints, VSCE publish/package scripts, and `extensionDependencies`.
+- Kept plugin runtime behavior in the existing `src/plugin.ts` entrypoints and preserved plugin unit coverage, including Godot relationship/symbol analysis tests.
+- Updated release discovery/tests so first-party language plugins publish as npm packages before the VS Code extension instead of as normal VSIX release targets.
+- Updated plugin docs, release docs, package READMEs, and package changesets to describe global npm installation, installed-plugin cache refresh, workspace enablement, and path-first Indexing.
+
+Validation:
+
+- `pnpm --filter @codegraphy/plugin-typescript test`
+- `pnpm --filter @codegraphy/plugin-python test`
+- `pnpm --filter @codegraphy/plugin-csharp test`
+- `pnpm --filter @codegraphy/plugin-godot test`
+- `pnpm run typecheck:plugins`
+- `pnpm --filter @codegraphy/plugin-typescript lint`
+- `pnpm --filter @codegraphy/plugin-python lint`
+- `pnpm --filter @codegraphy/plugin-csharp lint`
+- `pnpm --filter @codegraphy/plugin-godot lint`
+- `pnpm --filter @codegraphy/plugin-typescript build`
+- `pnpm --filter @codegraphy/plugin-python build`
+- `pnpm --filter @codegraphy/plugin-csharp build`
+- `pnpm --filter @codegraphy/plugin-godot build`
+- `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/plugins/packageManifest.test.ts tests/plugins/installedCache.test.ts tests/workspace/settings.test.ts`
+- `pnpm --filter @codegraphy/mcp exec vitest run --config vitest.config.ts tests/plugins/command.test.ts tests/run/parse.test.ts`
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pluginIntegration/installed/activation.test.ts tests/extension/pluginIntegration/installed/statuses.test.ts tests/extension/pluginActivation/installed.test.ts`
+- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm run test:release`
+- `pnpm run release:package plugin-typescript`
+- `pnpm run release:package plugin-python`
+- `pnpm run release:package plugin-csharp`
+- `pnpm run release:package plugin-godot`
+- `git diff --check`
+
 ### Step 10: Godot Structured Analysis Showcase
 
 Goal:

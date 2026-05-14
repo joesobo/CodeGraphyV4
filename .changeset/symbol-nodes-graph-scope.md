@@ -1,7 +1,7 @@
 ---
 "@codegraphy/extension": minor
 "@codegraphy/plugin-api": minor
-"codegraphy-godot": minor
+"@codegraphy/plugin-godot": minor
 "@codegraphy/mcp": minor
 ---
 

@@ -1,4 +1,4 @@
-# codegraphy-python
+# @codegraphy/plugin-python
 
 ## 2.0.4
 

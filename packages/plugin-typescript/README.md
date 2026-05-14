@@ -2,19 +2,21 @@
 
 Adds TypeScript and JavaScript ecosystem metadata to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-- Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
-- Marketplace plugin: [CodeGraphy TypeScript/JavaScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript)
+- Package: [`@codegraphy/plugin-typescript`](https://www.npmjs.com/package/@codegraphy/plugin-typescript)
 - Plugin API: [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
 
 ## Install
 
-1. Install the core `codegraphy.codegraphy` extension.
-2. Install this plugin extension.
-3. Open CodeGraphy and index your workspace.
+```bash
+npm i -g @codegraphy/plugin-typescript
+codegraphy plugins refresh
+codegraphy plugins enable @codegraphy/plugin-typescript
+codegraphy index
+```
 
 ## What It Provides
 
-The built-in Tree-sitter plugin now handles JS/TS analysis inside the core extension.
+The built-in Tree-sitter plugin now handles JS/TS analysis inside `@codegraphy/core`.
 This plugin keeps the TypeScript/JavaScript ecosystem defaults that are still useful on top:
 
 - default ignore filters for common build output and package folders

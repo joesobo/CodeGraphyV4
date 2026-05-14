@@ -1,4 +1,4 @@
-# codegraphy-godot
+# @codegraphy/plugin-godot
 
 ## 2.1.2
 

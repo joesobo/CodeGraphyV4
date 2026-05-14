@@ -25,7 +25,7 @@ This package is type-only. Use `import type` in plugin code.
 Main surfaces in the current API:
 
 - per-file analysis objects with symbols, relationships, and Node Type / Edge Type contributions
-- graph queries backed by the projected repo-local index and current graph state: `getGraph`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getSubgraph`, `findPath`
+- graph queries backed by the projected CodeGraphy Workspace index and current graph state: `getGraph`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getSubgraph`, `findPath`
 - registrations: `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`, and the compatibility `registerView` hook
 - host-side export saving: `saveExport`
 - Graph View / webview product surfaces: plugin toolbar buttons, plugin slots, tooltip actions, and optional future-facing view transforms
@@ -85,9 +85,10 @@ const plugin: IPlugin = {
 };
 ```
 
-The published CodeGraphy marketplace plugins use the same API surface:
+The published CodeGraphy plugin packages use the same API surface:
 
-- [CodeGraphy TypeScript/JavaScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript)
-- [CodeGraphy Python](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python)
-- [CodeGraphy C#](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp)
-- [CodeGraphy GDScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot)
+- [`@codegraphy/plugin-typescript`](https://www.npmjs.com/package/@codegraphy/plugin-typescript)
+- [`@codegraphy/plugin-python`](https://www.npmjs.com/package/@codegraphy/plugin-python)
+- [`@codegraphy/plugin-csharp`](https://www.npmjs.com/package/@codegraphy/plugin-csharp)
+- [`@codegraphy/plugin-godot`](https://www.npmjs.com/package/@codegraphy/plugin-godot)
+- [`@codegraphy/plugin-markdown`](https://www.npmjs.com/package/@codegraphy/plugin-markdown)

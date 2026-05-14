@@ -1,4 +1,4 @@
-# codegraphy-typescript
+# @codegraphy/plugin-typescript
 
 ## 2.0.4
 

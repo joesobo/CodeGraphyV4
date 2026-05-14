@@ -1,18 +1,17 @@
 # Plugin Guide
 
-CodeGraphy has two plugin surfaces:
+CodeGraphy plugins are headless npm packages consumed by `@codegraphy/core`.
 
-- marketplace plugin extensions that register themselves with the core `codegraphy.codegraphy` extension
-- type-safe plugin implementations built against [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
+The VS Code extension visualizes CodeGraphy data and renders plugin controls, but plugin packages do not activate through VS Code and should not import `vscode`.
 
 ## Published plugins
 
 - [CodeGraphy core extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
-- [CodeGraphy TypeScript/JavaScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript)
-- [CodeGraphy Python](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python)
-- [CodeGraphy C#](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp)
-- [CodeGraphy GDScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot)
 - [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
+- [`@codegraphy/plugin-typescript`](https://www.npmjs.com/package/@codegraphy/plugin-typescript)
+- [`@codegraphy/plugin-python`](https://www.npmjs.com/package/@codegraphy/plugin-python)
+- [`@codegraphy/plugin-csharp`](https://www.npmjs.com/package/@codegraphy/plugin-csharp)
+- [`@codegraphy/plugin-godot`](https://www.npmjs.com/package/@codegraphy/plugin-godot)
 - [`@codegraphy/plugin-markdown`](https://www.npmjs.com/package/@codegraphy/plugin-markdown)
 
 ## Start here
@@ -39,7 +38,7 @@ For timeline compatibility, third-party plugins should avoid reading the live wo
 
 ## Packaging model
 
-During the core extraction, language plugins are moving toward headless npm packages that are consumed by `@codegraphy/core`.
+Language plugins ship as headless npm packages that are consumed by `@codegraphy/core`.
 
 Installation and enablement are separate:
 
@@ -57,8 +56,14 @@ Plugin packages declare CodeGraphy metadata in `package.json` so discovery can v
 {
   "name": "@codegraphy/plugin-python",
   "version": "1.2.3",
+  "type": "module",
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
   },
   "codegraphy": {
     "type": "plugin",

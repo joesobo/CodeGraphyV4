@@ -191,7 +191,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     workspaceFixture = undefined;
   });
 
-  it('sends installed external plugins to the webview after startup', async () => {
+  it('sends plugins registered by legacy dependent extensions to the webview after startup', async () => {
     const apiRef: { current?: ReturnType<typeof activate> } = {};
     const coreExtensionRef = {
       id: 'codegraphy.codegraphy',
@@ -215,8 +215,11 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
           extensionDependencies: ['codegraphy.codegraphy'],
         },
         activate: async () => {
-          const plugin = await import('../../../../../plugin-typescript/src/activate');
-          await plugin.activate({ extensionUri: vscode.Uri.file('/plugins/typescript') } as never);
+          const { createTypeScriptPlugin } = await import('../../../../../plugin-typescript/src/plugin');
+          const codeGraphy = await coreExtensionRef.activate();
+          codeGraphy?.registerPlugin(createTypeScriptPlugin(), {
+            extensionUri: vscode.Uri.file('/plugins/typescript'),
+          });
         },
       },
       {
@@ -226,8 +229,11 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
           extensionDependencies: ['codegraphy.codegraphy'],
         },
         activate: async () => {
-          const plugin = await import('../../../../../plugin-godot/src/activate');
-          await plugin.activate({ extensionUri: vscode.Uri.file('/plugins/godot') } as never);
+          const { createGDScriptPlugin } = await import('../../../../../plugin-godot/src/plugin');
+          const codeGraphy = await coreExtensionRef.activate();
+          codeGraphy?.registerPlugin(createGDScriptPlugin(), {
+            extensionUri: vscode.Uri.file('/plugins/godot'),
+          });
         },
       },
     ];

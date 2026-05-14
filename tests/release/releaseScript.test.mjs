@@ -19,17 +19,17 @@ test('release targets include every public workspace package', () => {
 
   assert.deepEqual(packageNames, [
     '@codegraphy/plugin-api',
+    '@codegraphy/plugin-csharp',
+    '@codegraphy/plugin-godot',
     '@codegraphy/plugin-markdown',
+    '@codegraphy/plugin-python',
+    '@codegraphy/plugin-typescript',
     '@codegraphy/core',
     '@codegraphy/mcp',
-    'codegraphy-csharp',
-    'codegraphy-godot',
-    'codegraphy-python',
-    'codegraphy-typescript',
   ]);
 });
 
-test('all publish includes npm packages before marketplace packages', () => {
+test('all publish includes npm packages before the marketplace extension', () => {
   const calls = [];
 
   runRelease('publish', 'all', repoRoot, (command, args, options = {}) => {
@@ -61,7 +61,7 @@ test('all publish includes npm packages before marketplace packages', () => {
     args.join(' ') === 'run publish:vsce',
   );
   const typescriptIndex = releaseArgs.findIndex((args) =>
-    args.includes('codegraphy-typescript'),
+    args.includes('@codegraphy/plugin-typescript'),
   );
 
   assert.ok(pluginApiIndex >= 0, 'expected plugin API npm publish');
@@ -69,12 +69,12 @@ test('all publish includes npm packages before marketplace packages', () => {
   assert.ok(corePackageIndex >= 0, 'expected core npm publish');
   assert.ok(mcpIndex >= 0, 'expected MCP npm publish');
   assert.ok(extensionIndex >= 0, 'expected extension marketplace publish');
-  assert.ok(typescriptIndex >= 0, 'expected TypeScript marketplace publish');
+  assert.ok(typescriptIndex >= 0, 'expected TypeScript plugin npm publish');
   assert.ok(pluginApiIndex < corePackageIndex, 'expected plugin API to publish before core package');
   assert.ok(markdownIndex < corePackageIndex, 'expected Markdown to publish before core package');
+  assert.ok(typescriptIndex < extensionIndex, 'expected plugin npm packages before extension marketplace publish');
   assert.ok(corePackageIndex < mcpIndex, 'expected core package to publish before MCP');
   assert.ok(mcpIndex < extensionIndex, 'expected npm packages before extension marketplace publish');
-  assert.ok(extensionIndex < typescriptIndex, 'expected extension before plugin marketplace publishes');
 });
 
 test('npm package release creates a tarball artifact', () => {
@@ -173,7 +173,16 @@ test('target groups can release only npm packages', () => {
 
   assert.deepEqual(
     targets.map((target) => target.packageName),
-    ['@codegraphy/plugin-api', '@codegraphy/plugin-markdown', '@codegraphy/core', '@codegraphy/mcp'],
+    [
+      '@codegraphy/plugin-api',
+      '@codegraphy/plugin-csharp',
+      '@codegraphy/plugin-godot',
+      '@codegraphy/plugin-markdown',
+      '@codegraphy/plugin-python',
+      '@codegraphy/plugin-typescript',
+      '@codegraphy/core',
+      '@codegraphy/mcp',
+    ],
   );
 });
 

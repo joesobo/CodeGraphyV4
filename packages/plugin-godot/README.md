@@ -2,15 +2,17 @@
 
 Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-- Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
-- Marketplace plugin: [CodeGraphy GDScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot)
+- Package: [`@codegraphy/plugin-godot`](https://www.npmjs.com/package/@codegraphy/plugin-godot)
 - Plugin API: [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
 
 ## Install
 
-1. Install the core `codegraphy.codegraphy` extension.
-2. Install this plugin extension.
-3. Open CodeGraphy and let it analyze your workspace.
+```bash
+npm i -g @codegraphy/plugin-godot
+codegraphy plugins refresh
+codegraphy plugins enable @codegraphy/plugin-godot
+codegraphy index
+```
 
 ## Detection coverage
 

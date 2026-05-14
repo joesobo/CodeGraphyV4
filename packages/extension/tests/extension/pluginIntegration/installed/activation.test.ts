@@ -121,7 +121,7 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     workspaceFixture = undefined;
   });
 
-  it('activates installed dependent plugins before the first analysis runs', async () => {
+  it('activates legacy dependent extensions before the first analysis runs', async () => {
     const apiRef: { current?: ReturnType<typeof activate> } = {};
     const coreExtensionRef = {
       id: 'codegraphy.codegraphy',
@@ -138,8 +138,11 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     );
 
     const activateInstalledPlugin = vi.fn(async () => {
-      const plugin = await import('../../../../../plugin-typescript/src/activate');
-      await plugin.activate({ extensionUri: vscode.Uri.file('/plugins/typescript') } as never);
+      const { createTypeScriptPlugin } = await import('../../../../../plugin-typescript/src/plugin');
+      const codeGraphy = await coreExtensionRef.activate();
+      codeGraphy?.registerPlugin(createTypeScriptPlugin(), {
+        extensionUri: vscode.Uri.file('/plugins/typescript'),
+      });
     });
 
     installedExtensionsValue = [

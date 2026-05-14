@@ -2,19 +2,21 @@
 
 Adds Python ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-- Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
-- Marketplace plugin: [CodeGraphy Python](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python)
+- Package: [`@codegraphy/plugin-python`](https://www.npmjs.com/package/@codegraphy/plugin-python)
 - Plugin API: [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
 
 ## Install
 
-1. Install the core `codegraphy.codegraphy` extension.
-2. Install this plugin extension.
-3. Open CodeGraphy and index your workspace.
+```bash
+npm i -g @codegraphy/plugin-python
+codegraphy plugins refresh
+codegraphy plugins enable @codegraphy/plugin-python
+codegraphy index
+```
 
 ## What It Provides
 
-The built-in Tree-sitter plugin now owns Python analysis inside the core extension.
+The built-in Tree-sitter plugin now owns Python analysis inside `@codegraphy/core`.
 This plugin is intentionally lightweight and only adds:
 
 - Python ecosystem ignore filters

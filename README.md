@@ -17,15 +17,15 @@
 </p>
 
 <p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy">Core Extension</a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy">VS Code Extension</a>
   ·
-  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript">TypeScript/JavaScript Plugin</a>
+  <a href="https://www.npmjs.com/package/@codegraphy/plugin-typescript">TypeScript/JavaScript Plugin</a>
   ·
-  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python">Python Plugin</a>
+  <a href="https://www.npmjs.com/package/@codegraphy/plugin-python">Python Plugin</a>
   ·
-  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp">C# Plugin</a>
+  <a href="https://www.npmjs.com/package/@codegraphy/plugin-csharp">C# Plugin</a>
   ·
-  <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot">GDScript Plugin</a>
+  <a href="https://www.npmjs.com/package/@codegraphy/plugin-godot">Godot Plugin</a>
   ·
   <a href="https://www.npmjs.com/package/@codegraphy/mcp">MCP</a>
   ·
@@ -52,8 +52,8 @@ This repo is a work in progress and is being built through agentic engineering. 
 | 2D and 3D renderers | Use the fast 2D canvas for everyday work or switch to 3D WebGL when the shape of the repo matters. |
 | Timeline | Index Git history and scrub through how the Relationship Graph changes over commits. |
 | Context actions | Preview, open, reveal, rename, delete, favorite, filter, and export directly from the graph. |
-| Graph Cache | Store repo-local analysis and settings in `.codegraphy/` so graph behavior stays with the repo. |
-| CodeGraphy MCP | Let agents query nodes, edges, relationships, symbols, and bounded paths through the Core Extension. |
+| Graph Cache | Store workspace-local analysis and settings in `.codegraphy/` so graph behavior stays with the CodeGraphy Workspace. |
+| CodeGraphy MCP | Let agents index and query nodes, edges, relationships, symbols, and bounded paths through `@codegraphy/core` without focusing VS Code. |
 
 ## Gallery
 
@@ -89,9 +89,9 @@ This repo is a work in progress and is being built through agentic engineering. 
 
 ![CodeGraphy architecture and logic flow](./docs/media/readme/codegraphy-architecture.png)
 
-Workspace files, Git history, and repo-local settings flow into the Core Extension. Indexing combines built-in Tree-sitter analysis with enabled plugins, stores relationship evidence in the Graph Cache, then Graph Projection produces the Visible Graph that powers the VS Code webview, exports, and CodeGraphy MCP.
+Workspace files, Git history, and workspace-local settings flow into `@codegraphy/core`. Indexing combines built-in Tree-sitter analysis with enabled plugins, stores relationship evidence in the Graph Cache, then Graph Projection produces the Visible Graph that powers the VS Code webview, exports, CLI, and CodeGraphy MCP.
 
-Graph Sections are saved in repo-local Graph Layout settings. In 2D, add them from the toolbar or background context menu, drag nodes into a frame to make them Section Members, then resize, label, color, pin, collapse, or expand the section as you organize the graph. Expanded sections behave like large graph nodes in the root force layout, while their members run section-local physics inside the frame; collapsed sections become compact nodes with projected incoming and outgoing edges.
+Graph Sections are saved in workspace-local Graph Layout settings. In 2D, add them from the toolbar or background context menu, drag nodes into a frame to make them Section Members, then resize, label, color, pin, collapse, or expand the section as you organize the graph. Expanded sections behave like large graph nodes in the root force layout, while their members run section-local physics inside the frame; collapsed sections become compact nodes with projected incoming and outgoing edges.
 
 Symbol Nodes are built from indexed declarations and appear alongside file, folder, package, and plugin nodes when you need code-level context. Common kinds include Function, Class, Interface, Type, Struct, Enum, Variable, and Constant. `contains` Edges connect files to their declarations, and symbol-aware relationship Edges show calls, references, inheritance, overrides, imports, and plugin-provided links when analysis can resolve them. Legend defaults style common symbol kinds automatically, custom Legend Entries can target symbol names, kinds, plugin kinds, languages, or containing file paths, and Graph Query/MCP exposes the same symbol payloads to agents.
 
@@ -101,20 +101,19 @@ The editable Excalidraw source for this diagram lives at [docs/media/readme/code
 
 ### VS Code
 
-1. Install the [CodeGraphy Core Extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+1. Install the [CodeGraphy VS Code Extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 2. Open a workspace in VS Code.
 3. Click the CodeGraphy activity bar icon.
-4. Open the graph, then run **Index Repo** when you want semantic relationships beyond discovered files.
-5. Optionally install language plugins for richer ecosystem defaults.
+4. Open the graph, then run **Index Workspace** when you want semantic relationships beyond discovered files.
+5. Optionally install and enable language plugin npm packages for richer ecosystem defaults.
 
-The Core Extension already ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, and C++. Markdown ships built in.
+The VS Code extension bundles `@codegraphy/core`, which already ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, and C++. Markdown is a real plugin package and is enabled by default for new CodeGraphy Workspaces.
 
 ### Agent Access
 
 ```bash
 npm install -g @codegraphy/mcp
 codegraphy setup
-codegraphy open .
 codegraphy index
 codex mcp list
 ```
@@ -132,19 +131,22 @@ See [MCP Setup](./docs/MCP.md) for manual Codex config, JSON examples, and verif
 | Command | What It Does |
 |---|---|
 | `codegraphy setup` | Configures the local CodeGraphy MCP entry for Codex. |
-| `codegraphy open <repo>` | Opens or focuses a repo in VS Code and marks it active for CLI Indexing. |
-| `codegraphy index` | Asks the Core Extension to run Indexing for the active repo. |
-| `codegraphy list` | Lists locally known repos from `~/.codegraphy/registry.json`. |
+| `codegraphy status [workspace]` | Reports fresh, stale, missing, or unusable Graph Cache state for the current folder or explicit CodeGraphy Workspace. |
+| `codegraphy index [workspace]` | Runs Indexing for the current folder or explicit CodeGraphy Workspace through `@codegraphy/core`. |
+| `codegraphy plugins refresh` | Records globally installed `@codegraphy/*` plugin packages in `~/.codegraphy/plugins.json`. |
+| `codegraphy plugins add <package>` | Records an explicitly named globally installed plugin package. |
+| `codegraphy plugins enable <package> [workspace]` | Enables an installed plugin for one CodeGraphy Workspace. |
+| `codegraphy plugins disable <package> [workspace]` | Disables an installed plugin for one CodeGraphy Workspace. |
 | `codegraphy mcp` | Starts the local stdio MCP server. |
 
 ## What Agents Can Query
 
-CodeGraphy MCP is an agent access layer, not a second indexer. It opens or focuses VS Code, asks the Core Extension to run Indexing when needed, and sends Graph Query requests through the same graph logic used by the UI.
+CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit Indexing and Graph Query requests to `@codegraphy/core`, reads the same workspace-local Graph Cache as the VS Code extension, and does not need to open or focus VS Code.
 
 | MCP Tool | Agent Can Ask For |
 |---|---|
-| `codegraphy_open_repo` | Open or focus a repo in VS Code and establish the active Core Extension connection. |
-| `codegraphy_index_repo` | Run Indexing through the Core Extension. |
+| `codegraphy_status` | Check whether a CodeGraphy Workspace has a fresh, stale, missing, or unusable Graph Cache. |
+| `codegraphy_index` | Run explicit Indexing for a CodeGraphy Workspace path. |
 | `codegraphy_list_nodes` | List File Nodes, Folder Nodes, Package Nodes, or plugin-added nodes. |
 | `codegraphy_list_edges` | List high-level `from` / `to` Edges and grouped Edge Types. |
 | `codegraphy_list_relationships` | Inspect relationship evidence grouped by node pair and Edge Type. |
@@ -157,13 +159,13 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It opens or focus
 |---|---|---|---|
 | `@codegraphy/core` | `packages/core` | `npm install @codegraphy/core` | Shared engine package for Indexing, Graph Cache access, and Graph Query execution. |
 | CodeGraphy VS Code Extension | `packages/extension` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | Graph View, VS Code lifecycle integration, commands, webviews, context menus, and editor integration. |
-| `@codegraphy/mcp` | `packages/codegraphy-mcp` | `npm install -g @codegraphy/mcp` | `codegraphy` CLI and local MCP server for agent access through the Core Extension. |
+| `@codegraphy/mcp` | `packages/codegraphy-mcp` | `npm install -g @codegraphy/mcp` | `codegraphy` CLI and local MCP server for agent access through `@codegraphy/core`. |
 | `@codegraphy/plugin-api` | `packages/plugin-api` | `npm install @codegraphy/plugin-api` | Typed contracts for external CodeGraphy plugins. |
-| TypeScript/JavaScript plugin | `packages/plugin-typescript` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript) | TypeScript and JavaScript ecosystem defaults and enrichment. |
-| Python plugin | `packages/plugin-python` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python) | Python ecosystem defaults and enrichment. |
-| C# plugin | `packages/plugin-csharp` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp) | C# ecosystem defaults and enrichment. |
-| GDScript/Godot plugin | `packages/plugin-godot` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot) | Godot project, scene, resource, and script enrichment. |
-| Markdown plugin | `packages/plugin-markdown` | bundled with the Core Extension | Markdown wikilink and note relationship enrichment. |
+| `@codegraphy/plugin-typescript` | `packages/plugin-typescript` | `npm install -g @codegraphy/plugin-typescript` | TypeScript and JavaScript ecosystem defaults and enrichment. |
+| `@codegraphy/plugin-python` | `packages/plugin-python` | `npm install -g @codegraphy/plugin-python` | Python ecosystem defaults and enrichment. |
+| `@codegraphy/plugin-csharp` | `packages/plugin-csharp` | `npm install -g @codegraphy/plugin-csharp` | C# ecosystem defaults and enrichment. |
+| `@codegraphy/plugin-godot` | `packages/plugin-godot` | `npm install -g @codegraphy/plugin-godot` | Godot project, scene, resource, and script enrichment. |
+| `@codegraphy/plugin-markdown` | `packages/plugin-markdown` | installed through `@codegraphy/core` | Markdown wikilink and note relationship enrichment enabled by default for new CodeGraphy Workspaces. |
 | Quality tools | `packages/quality-tools` | private workspace package | Architecture, coverage-risk, mutation, reachability, and test-shape checks. |
 
 ## Tech Stack
