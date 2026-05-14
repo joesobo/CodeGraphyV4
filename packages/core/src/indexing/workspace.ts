@@ -13,12 +13,22 @@ import type { IDiscoveredFile } from '../discovery/contracts';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
+import { persistCodeGraphyWorkspaceIndexMetadata } from '../workspace/meta';
+import {
+  ensureCodeGraphyWorkspaceSettings,
+  type CodeGraphyWorkspaceSettings,
+} from '../workspace/settings';
+import {
+  createCodeGraphyWorkspacePluginSignature,
+  createCodeGraphyWorkspaceSettingsSignature,
+} from '../workspace/signatures';
 import { createTreeSitterPlugin } from '../treeSitter/plugin';
 import { CorePluginRegistry } from '../plugins/registry';
 
 export interface IndexCodeGraphyWorkspaceOptions {
   workspaceRoot: string;
   plugins?: IPlugin[];
+  settings?: CodeGraphyWorkspaceSettings;
   includeCorePlugins?: boolean;
   include?: string[];
   filterPatterns?: string[];
@@ -70,6 +80,23 @@ function createRegistry(options: IndexCodeGraphyWorkspaceOptions): CorePluginReg
   return registry;
 }
 
+function createEffectiveIndexSettings(
+  workspaceRoot: string,
+  options: IndexCodeGraphyWorkspaceOptions,
+): CodeGraphyWorkspaceSettings {
+  const workspaceSettings = options.settings ?? ensureCodeGraphyWorkspaceSettings(workspaceRoot);
+  return {
+    ...workspaceSettings,
+    maxFiles: options.maxFiles ?? workspaceSettings.maxFiles,
+    include: options.include ?? workspaceSettings.include,
+    respectGitignore: options.respectGitignore ?? workspaceSettings.respectGitignore,
+    showOrphans: options.showOrphans ?? workspaceSettings.showOrphans,
+    filterPatterns: options.filterPatterns ?? workspaceSettings.filterPatterns,
+    disabledPluginFilterPatterns: options.disabledPluginFilterPatterns
+      ?? workspaceSettings.disabledPluginFilterPatterns,
+  };
+}
+
 export async function indexCodeGraphyWorkspace(
   options: IndexCodeGraphyWorkspaceOptions,
 ): Promise<IndexCodeGraphyWorkspaceResult> {
@@ -77,8 +104,9 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const registry = createRegistry(options);
   const cache = createEmptyWorkspaceAnalysisCache();
+  const settings = createEffectiveIndexSettings(workspaceRoot, options);
   const disabledPlugins = new Set(options.disabledPlugins ?? []);
-  const disabledPluginPatterns = new Set(options.disabledPluginFilterPatterns ?? []);
+  const disabledPluginPatterns = new Set(settings.disabledPluginFilterPatterns);
   const logInfo = options.logInfo ?? (() => undefined);
   const warn = options.warn ?? (() => undefined);
 
@@ -89,21 +117,21 @@ export async function indexCodeGraphyWorkspace(
     .filter(pattern => !disabledPluginPatterns.has(pattern));
   const discoveryResult = await discovery.discover({
     rootPath: workspaceRoot,
-    include: options.include ?? DEFAULT_INCLUDE,
+    include: settings.include.length > 0 ? settings.include : DEFAULT_INCLUDE,
     exclude: [
       ...new Set([
         ...pluginFilterPatterns,
-        ...(options.filterPatterns ?? []),
+        ...settings.filterPatterns,
       ]),
     ],
-    maxFiles: options.maxFiles ?? DEFAULT_MAX_FILES,
-    respectGitignore: options.respectGitignore ?? true,
+    maxFiles: settings.maxFiles ?? DEFAULT_MAX_FILES,
+    respectGitignore: settings.respectGitignore,
     signal: options.signal,
   });
 
   if (discoveryResult.limitReached) {
     warn(
-      `CodeGraphy: Found ${discoveryResult.totalFound}+ files, showing first ${options.maxFiles ?? DEFAULT_MAX_FILES}. ` +
+      `CodeGraphy: Found ${discoveryResult.totalFound}+ files, showing first ${settings.maxFiles}. ` +
       'Increase maxFiles in .codegraphy/settings.json to see more.',
     );
   }
@@ -147,13 +175,19 @@ export async function indexCodeGraphyWorkspace(
     disabledPlugins,
     fileAnalysis: analysisResult.fileAnalysis,
     getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
-    showOrphans: options.showOrphans ?? true,
+    showOrphans: settings.showOrphans,
     workspaceRoot,
   });
 
   registry.notifyPostAnalyze(graph);
   registry.notifyWorkspaceReady(graph);
   saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
+  persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
+    pluginSignature: createCodeGraphyWorkspacePluginSignature(
+      registry.list().map(info => info.plugin),
+    ),
+    settingsSignature: createCodeGraphyWorkspaceSettingsSignature(settings),
+  });
   logInfo(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
 
   return {

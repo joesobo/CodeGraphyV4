@@ -1,0 +1,132 @@
+import * as fs from 'node:fs';
+import type { IPlugin } from '@codegraphy/plugin-api';
+import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
+import { getGraphCachePath, resolveWorkspaceRoot } from './paths';
+import { readCodeGraphyWorkspaceMeta } from './meta';
+import { readCodeGraphyWorkspaceSettings, type CodeGraphyWorkspaceSettings } from './settings';
+import {
+  createCodeGraphyWorkspacePluginSignature,
+  createCodeGraphyWorkspaceSettingsSignature,
+} from './signatures';
+
+export type CodeGraphyWorkspaceStatusState = 'fresh' | 'stale' | 'missing';
+export type CodeGraphyWorkspaceStaleReason =
+  | 'never-indexed'
+  | 'graph-cache-missing'
+  | 'plugin-signature-changed'
+  | 'settings-signature-changed'
+  | 'analysis-version-changed'
+  | 'pending-changed-files';
+
+export interface CodeGraphyWorkspaceStatus {
+  workspaceRoot: string;
+  graphCachePath: string;
+  state: CodeGraphyWorkspaceStatusState;
+  hasGraphCache: boolean;
+  staleReasons: CodeGraphyWorkspaceStaleReason[];
+  detail: string;
+}
+
+export interface ReadCodeGraphyWorkspaceStatusOptions {
+  plugins?: ReadonlyArray<Pick<IPlugin, 'id' | 'version'>>;
+  settings?: CodeGraphyWorkspaceSettings;
+  exists?: (filePath: string) => boolean;
+}
+
+function createDetail(
+  state: CodeGraphyWorkspaceStatusState,
+  reasons: readonly CodeGraphyWorkspaceStaleReason[],
+): string {
+  if (state === 'fresh') {
+    return 'CodeGraphy Workspace Graph Cache is fresh.';
+  }
+
+  if (reasons.includes('never-indexed')) {
+    return 'CodeGraphy Workspace Graph Cache is missing. Run Indexing to build it.';
+  }
+
+  if (reasons.includes('graph-cache-missing')) {
+    return 'CodeGraphy Workspace Graph Cache file is missing. Run Indexing to rebuild it.';
+  }
+
+  if (reasons.includes('pending-changed-files')) {
+    return 'CodeGraphy Workspace Graph Cache is stale: files changed since the last Indexing run.';
+  }
+
+  if (reasons.includes('plugin-signature-changed')) {
+    return 'CodeGraphy Workspace Graph Cache is stale: enabled plugins changed.';
+  }
+
+  if (reasons.includes('settings-signature-changed')) {
+    return 'CodeGraphy Workspace Graph Cache is stale: Workspace Settings changed.';
+  }
+
+  if (reasons.includes('analysis-version-changed')) {
+    return 'CodeGraphy Workspace Graph Cache is stale: the analysis schema changed.';
+  }
+
+  return 'CodeGraphy Workspace Graph Cache is stale. Run Indexing to refresh it.';
+}
+
+function collectStaleReasons(input: {
+  hasGraphCache: boolean;
+  indexedAt: string | null;
+  metaPluginSignature: string | null;
+  metaSettingsSignature: string | null;
+  metaAnalysisVersion: string | null;
+  pendingChangedFiles: readonly string[];
+  pluginSignature: string | null;
+  settingsSignature: string;
+}): CodeGraphyWorkspaceStaleReason[] {
+  if (!input.hasGraphCache) {
+    return input.indexedAt === null ? ['never-indexed'] : ['graph-cache-missing'];
+  }
+
+  if (input.indexedAt === null) {
+    return ['never-indexed'];
+  }
+
+  return [
+    ...(input.pendingChangedFiles.length > 0 ? ['pending-changed-files' as const] : []),
+    ...(input.metaPluginSignature !== input.pluginSignature ? ['plugin-signature-changed' as const] : []),
+    ...(input.metaSettingsSignature !== input.settingsSignature ? ['settings-signature-changed' as const] : []),
+    ...(input.metaAnalysisVersion !== WORKSPACE_ANALYSIS_CACHE_VERSION ? ['analysis-version-changed' as const] : []),
+  ];
+}
+
+export function readCodeGraphyWorkspaceStatus(
+  workspaceRoot: string,
+  options: ReadCodeGraphyWorkspaceStatusOptions = {},
+): CodeGraphyWorkspaceStatus {
+  const resolvedWorkspaceRoot = resolveWorkspaceRoot(workspaceRoot);
+  const graphCachePath = getGraphCachePath(resolvedWorkspaceRoot);
+  const hasGraphCache = (options.exists ?? fs.existsSync)(graphCachePath);
+  const meta = readCodeGraphyWorkspaceMeta(resolvedWorkspaceRoot);
+  const settings = options.settings ?? readCodeGraphyWorkspaceSettings(resolvedWorkspaceRoot);
+  const settingsSignature = createCodeGraphyWorkspaceSettingsSignature(settings);
+  const pluginSignature = createCodeGraphyWorkspacePluginSignature(options.plugins ?? []);
+  const staleReasons = collectStaleReasons({
+    hasGraphCache,
+    indexedAt: meta.lastIndexedAt,
+    metaPluginSignature: meta.pluginSignature,
+    metaSettingsSignature: meta.settingsSignature,
+    metaAnalysisVersion: meta.analysisVersion,
+    pendingChangedFiles: meta.pendingChangedFiles,
+    pluginSignature,
+    settingsSignature,
+  });
+  const state: CodeGraphyWorkspaceStatusState = staleReasons.length === 0
+    ? 'fresh'
+    : hasGraphCache && !staleReasons.includes('never-indexed') && !staleReasons.includes('graph-cache-missing')
+      ? 'stale'
+      : 'missing';
+
+  return {
+    workspaceRoot: resolvedWorkspaceRoot,
+    graphCachePath,
+    state,
+    hasGraphCache,
+    staleReasons,
+    detail: createDetail(state, staleReasons),
+  };
+}

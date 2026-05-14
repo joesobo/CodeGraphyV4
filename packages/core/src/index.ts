@@ -220,9 +220,39 @@ export type { TreeSitterPathHost } from './treeSitter/runtime/pathHost';
 export {
   getCodeGraphyDirectoryPath,
   getGraphCachePath,
+  getWorkspaceMetaPath,
   getWorkspaceSettingsPath,
   resolveWorkspaceRoot,
 } from './workspace/paths';
+export type {
+  CodeGraphyWorkspacePluginSettings,
+  CodeGraphyWorkspaceSettings,
+} from './workspace/settings';
+export {
+  createDefaultCodeGraphyWorkspaceSettings,
+  ensureCodeGraphyWorkspaceSettings,
+  normalizeCodeGraphyWorkspaceSettings,
+  readCodeGraphyWorkspaceSettings,
+  writeCodeGraphyWorkspaceSettings,
+} from './workspace/settings';
+export type { CodeGraphyWorkspaceMeta } from './workspace/meta';
+export {
+  createDefaultCodeGraphyWorkspaceMeta,
+  persistCodeGraphyWorkspaceIndexMetadata,
+  readCodeGraphyWorkspaceMeta,
+  writeCodeGraphyWorkspaceMeta,
+} from './workspace/meta';
+export {
+  createCodeGraphyWorkspacePluginSignature,
+  createCodeGraphyWorkspaceSettingsSignature,
+} from './workspace/signatures';
+export type {
+  CodeGraphyWorkspaceStaleReason,
+  CodeGraphyWorkspaceStatus,
+  CodeGraphyWorkspaceStatusState,
+  ReadCodeGraphyWorkspaceStatusOptions,
+} from './workspace/status';
+export { readCodeGraphyWorkspaceStatus } from './workspace/status';
 export type {
   GraphQueryConfig,
   GraphQueryConnectionConfig,
