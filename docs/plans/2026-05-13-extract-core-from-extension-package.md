@@ -987,6 +987,12 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Moved File Analysis unit coverage from the extension package to the core package.
   - Kept the VS Code extension import surface as adapter exports over `@codegraphy/core` so the remaining extension pipeline can migrate incrementally.
   - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/analysis`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension pipeline tests.
+- 2026-05-14: Step 3 third slice completed: Graph Projection moved into `@codegraphy/core`.
+  - Moved file/package/folder/symbol graph node and edge builders into the core package.
+  - Moved graph projection unit coverage from the extension package to the core package.
+  - Added core graph color and edge identity helpers so Relationship Graph construction no longer depends on extension shared modules.
+  - Kept the VS Code extension graph import surface as adapter exports over `@codegraphy/core`.
+  - Validation: `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/graph`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension pipeline adapter/service tests.
 
 ### Step 1: Package Identity Groundwork
 

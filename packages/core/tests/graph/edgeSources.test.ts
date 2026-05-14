@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
+import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IProjectedConnection } from '../../src/analysis/projectedConnection';
 import {
   createEdgeSource,
   createQualifiedSourceId,
-} from '../../../../src/extension/pipeline/graph/edgeSources';
+} from '../../src/graph/edgeSources';
 
 function createPlugin(id: string, sources: IPlugin['sources'] = [
   { id: 'import', name: 'Import', description: 'Import relation' },
@@ -19,7 +20,7 @@ function createPlugin(id: string, sources: IPlugin['sources'] = [
   } as IPlugin;
 }
 
-describe('pipeline/graph/edgeSources', () => {
+describe('core/graph/edgeSources', () => {
   it('qualifies source ids with the plugin id', () => {
     expect(createQualifiedSourceId(createPlugin('plugin.typescript'), { sourceId: 'import' })).toBe(
       'plugin.typescript:import',

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
-import { buildWorkspaceGraphEdges } from '../../../../src/extension/pipeline/graph/edges';
+import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IProjectedConnection } from '../../src/analysis/projectedConnection';
+import { buildWorkspaceGraphEdges } from '../../src/graph/edges';
 
 function createPlugin(id: string): IPlugin {
   return {
@@ -33,7 +34,7 @@ function createOptions(
   };
 }
 
-describe('pipeline/graph/edges', () => {
+describe('core/graph/edges', () => {
   it('merges same-direction edges by kind and accumulates contributing sources', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       fileConnections: new Map<string, IProjectedConnection[]>([

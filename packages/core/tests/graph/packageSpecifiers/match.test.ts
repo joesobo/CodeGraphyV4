@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { isExternalPackageSpecifier } from '../../../../../src/extension/pipeline/graph/packageSpecifiers/match';
+import { isExternalPackageSpecifier } from '../../../src/graph/packageSpecifiers/match';
 
-describe('pipeline/graph/packageSpecifiers/match', () => {
+describe('core/graph/packageSpecifiers/match', () => {
   it('recognizes bare package specifiers, scoped packages, and builtins', () => {
     expect(isExternalPackageSpecifier('react')).toBe(true);
     expect(isExternalPackageSpecifier('react#subpath')).toBe(true);

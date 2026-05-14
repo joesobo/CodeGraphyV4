@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
-import { buildWorkspaceGraphNodes } from '../../../../src/extension/pipeline/graph/nodes';
+import { DEFAULT_NODE_COLOR } from '../../src/fileColors';
+import { buildWorkspaceGraphNodes } from '../../src/graph/nodes';
 
-describe('pipeline/graph/nodes', () => {
+describe('core/graph/nodes', () => {
   it('builds nodes with labels, sizes, and churn counts', () => {
     const nodes = buildWorkspaceGraphNodes({
       cacheFiles: {

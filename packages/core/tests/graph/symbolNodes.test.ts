@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createSymbolNode } from '../../../../src/extension/pipeline/graph/symbolNodes';
+import { createSymbolNode } from '../../src/graph/symbolNodes';
 
-describe('pipeline/graph/symbolNodes', () => {
+describe('core/graph/symbolNodes', () => {
   it('keeps language-specific property declarations under generic symbols', () => {
     const node = createSymbolNode(
       {

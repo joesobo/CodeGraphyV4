@@ -38,6 +38,15 @@ export {
   normalizeDiscoveryPath,
   shouldSkipKnownDirectory,
 } from './discovery/pathMatching';
+export {
+  DEFAULT_DIRECTION_COLOR,
+  DEFAULT_FOLDER_NODE_COLOR,
+  DEFAULT_NODE_COLOR,
+  DEFAULT_PACKAGE_NODE_COLOR,
+  FILE_TYPE_COLORS,
+  getFileColor,
+  normalizeHexColor,
+} from './fileColors';
 export type { WorkspaceAnalysisDatabaseSnapshot } from './graphCache/database/storage';
 export {
   clearWorkspaceAnalysisDatabaseCache,
@@ -62,6 +71,51 @@ export type {
   IGraphNodeSymbolMetadata,
   NodeType,
 } from './graph/contracts';
+export {
+  buildWorkspaceGraphData,
+  buildWorkspaceGraphDataFromAnalysis,
+} from './graph/data';
+export type {
+  IWorkspaceGraphAnalysisDataOptions,
+  IWorkspaceGraphDataOptions,
+} from './graph/data';
+export {
+  createGraphEdgeId,
+  getGraphEdgeIdSuffix,
+  replaceGraphEdgeIdEndpoints,
+} from './graph/edgeIdentity';
+export { createEdgeSource, createQualifiedSourceId } from './graph/edgeSources';
+export { resolveEdgeSourceIdentity } from './graph/edgeSources/identity';
+export { getConnectionTargetId } from './graph/edgeTargets';
+export { buildWorkspaceGraphEdges } from './graph/edges';
+export type {
+  IWorkspaceGraphEdgeBuildResult,
+  IWorkspaceGraphEdgesOptions,
+} from './graph/edges';
+export { buildWorkspaceGraphNodes } from './graph/nodes';
+export type { IWorkspaceGraphNodesOptions } from './graph/nodes';
+export {
+  getExternalPackageLabelFromNodeId,
+  getExternalPackageNodeId,
+  isExternalPackageNodeId,
+} from './graph/packageSpecifiers/nodeId';
+export { isExternalPackageSpecifier } from './graph/packageSpecifiers/match';
+export { getExternalPackageName } from './graph/packageSpecifiers/name';
+export {
+  buildWorkspacePipelineGraph,
+  buildWorkspacePipelineGraphForSource,
+  buildWorkspacePipelineGraphFromAnalysis,
+} from './graph/build';
+export type {
+  WorkspacePipelineGraphAnalysisDependencies,
+  WorkspacePipelineGraphDependencies,
+  WorkspacePipelineGraphSource,
+} from './graph/build';
+export { createCanonicalSymbolIds } from './graph/symbolIds';
+export { createContainsEdge, createSymbolNode } from './graph/symbolNodes';
+export { createSymbolRelationEdges, hasSymbolEndpoint } from './graph/symbolRelations';
+export { buildSymbolNodesAndEdges, projectFileAnalysisConnections } from './graph/symbols';
+export { normalizeSymbolKind, toRepoRelativeGraphPath } from './graph/symbolPaths';
 export type {
   GraphCacheState,
   GraphCacheStatus,
