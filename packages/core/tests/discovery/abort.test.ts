@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createAbortError, throwIfAborted } from '../../../src/core/discovery/abort';
+import { createAbortError, throwIfAborted } from '../../src/discovery/abort';
 
 describe('abort', () => {
   it('creates abort errors with the expected name and message', () => {

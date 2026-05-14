@@ -104,6 +104,12 @@ importers:
       '@ladybugdb/core':
         specifier: ^0.15.3
         version: 0.15.3
+      ignore:
+        specifier: ^7.0.5
+        version: 7.0.5
+      minimatch:
+        specifier: ^10.1.1
+        version: 10.2.4
 
   packages/extension:
     dependencies:

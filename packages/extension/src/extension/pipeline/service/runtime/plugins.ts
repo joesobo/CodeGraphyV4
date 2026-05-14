@@ -1,7 +1,7 @@
 import type * as vscode from 'vscode';
 import type { IProjectedConnection } from '../../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import type { IPluginStatus } from '../../../../shared/plugins/status';
 import {
   getWorkspacePipelinePluginStatuses,

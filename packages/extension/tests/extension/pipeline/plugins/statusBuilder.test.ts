@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import type { IProjectedConnection, IPlugin, IPluginInfo } from '../../../../src/core/plugins/types/contracts';
 import { buildWorkspacePluginStatuses } from '../../../../src/extension/pipeline/plugins/statusBuilder';
 

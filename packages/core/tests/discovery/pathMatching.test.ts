@@ -4,7 +4,7 @@ import {
   matchesAnyPattern,
   normalizeDiscoveryPath,
   shouldSkipKnownDirectory,
-} from '../../../src/core/discovery/pathMatching';
+} from '../../src/discovery/pathMatching';
 
 describe('pathMatching', () => {
   it('keeps the expected default exclude patterns', () => {
