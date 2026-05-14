@@ -32,7 +32,7 @@ export type {
   NodeType,
 } from '../../../../../plugin-api/src';
 
-export type { IProjectedConnection } from './projectedConnection';
+export type { IProjectedConnection } from '@codegraphy/core';
 
 /**
  * Information about a registered plugin.

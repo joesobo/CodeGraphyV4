@@ -982,6 +982,11 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Moved discovery unit coverage from the extension package to the core package.
   - Repointed VS Code pipeline and workspace watcher imports to `@codegraphy/core`.
   - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/discovery`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, `pnpm --filter @codegraphy/extension lint`, targeted extension workspace-file and pipeline tests, and `pnpm run test:release`.
+- 2026-05-14: Step 3 second slice completed: cache-aware File Analysis moved into `@codegraphy/core`.
+  - Moved workspace analysis abort handling, per-file analysis orchestration, symbol enrichment, target symbol resolution, and relationship projection helpers into the core package.
+  - Moved File Analysis unit coverage from the extension package to the core package.
+  - Kept the VS Code extension import surface as adapter exports over `@codegraphy/core` so the remaining extension pipeline can migrate incrementally.
+  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/analysis`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension pipeline tests.
 
 ### Step 1: Package Identity Groundwork
 

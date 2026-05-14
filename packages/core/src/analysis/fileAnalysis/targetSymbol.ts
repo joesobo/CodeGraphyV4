@@ -1,7 +1,7 @@
 import type {
   IAnalysisRelation,
   IAnalysisSymbol,
-} from '../../../core/plugins/types/contracts';
+} from '@codegraphy/plugin-api';
 import { resolveTargetSymbolId } from './targetSymbolName';
 
 export function enrichRelationTargetSymbol(

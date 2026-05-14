@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   createWorkspaceAnalysisAbortError,
   throwIfWorkspaceAnalysisAborted,
-} from '../../../src/extension/pipeline/abort';
+} from '../../src/analysis/abort';
 
-describe('pipeline/abort', () => {
+describe('analysis/abort', () => {
   it('creates abort errors with the expected name and message', () => {
     expect(createWorkspaceAnalysisAbortError()).toMatchObject({
       name: 'AbortError',

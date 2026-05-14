@@ -8,6 +8,7 @@ This package is the headless core that the VS Code extension, MCP server, and CL
 
 - CodeGraphy Workspace paths: resolve `.codegraphy/settings.json` and `.codegraphy/graph.lbug` for any folder path.
 - File Discovery: discover analyzable files and directories in any CodeGraphy Workspace without VS Code APIs.
+- File Analysis: run cache-aware per-file plugin analysis and project file relationships without VS Code APIs.
 - Graph Cache status: report whether a workspace-local Graph Cache exists without using VS Code APIs.
 - Graph Cache storage: load, save, clear, and inspect the LadybugDB-backed Graph Cache at `<workspace-root>/.codegraphy/graph.lbug`.
 - Graph Query: run node, edge, relationship, symbol, and path reports over Relationship Graph data plus persisted analysis metadata.

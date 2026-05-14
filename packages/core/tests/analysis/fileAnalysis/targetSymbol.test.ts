@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type {
   IAnalysisRelation,
   IAnalysisSymbol,
-} from '../../../../src/core/plugins/types/contracts';
-import { enrichRelationTargetSymbol } from '../../../../src/extension/pipeline/fileAnalysis/targetSymbol';
+} from '@codegraphy/plugin-api';
+import { enrichRelationTargetSymbol } from '../../../src/analysis/fileAnalysis/targetSymbol';
 
 function symbol(filePath: string, name: string): IAnalysisSymbol {
   return {

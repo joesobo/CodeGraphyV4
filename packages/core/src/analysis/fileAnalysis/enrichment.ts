@@ -1,6 +1,6 @@
 import type {
   IFileAnalysisResult,
-} from '../../../core/plugins/types/contracts';
+} from '@codegraphy/plugin-api';
 import { createSymbolsByFilePath } from './symbols';
 import { enrichRelationTargetSymbol } from './targetSymbol';
 

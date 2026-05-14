@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   projectConnectionMapFromFileAnalysis,
   projectProjectedConnectionsFromFileAnalysis,
-} from '../../../src/extension/pipeline/projection';
-import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
+} from '../../src/analysis/projection';
+import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
 
-describe('extension/pipeline/projection', () => {
+describe('analysis/projection', () => {
   it('projects file analysis relations into projected connections with normalized defaults', () => {
     const analysis: IFileAnalysisResult = {
       filePath: '/workspace/src/app.ts',

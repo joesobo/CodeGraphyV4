@@ -1,16 +1,15 @@
 /**
- * @fileoverview File-level edge projection used by the extension pipeline.
- * @module core/plugins/types/projectedConnection
+ * @fileoverview File-level edge projection used by the core analysis pipeline.
+ * @module core/analysis/projectedConnection
  */
 
-import type { GraphEdgeKind, GraphMetadata } from '../../../../../plugin-api/src';
+import type { GraphEdgeKind, GraphMetadata } from '@codegraphy/plugin-api';
 
 /**
  * Represents one file-level edge projected from richer analysis relations.
  *
- * This is an extension-internal compatibility shape used by the current
- * graph/timeline pipeline while the rest of the host still consumes
- * file-to-file edges.
+ * This compatibility shape is used while Graph Projection still consumes
+ * file-to-file edges derived from richer analysis relations.
  */
 export interface IProjectedConnection {
   /** Semantic meaning of the projected edge. */

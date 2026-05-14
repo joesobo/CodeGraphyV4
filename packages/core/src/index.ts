@@ -10,6 +10,21 @@ export {
   WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from './analysis/cache';
+export type { IProjectedConnection } from './analysis/projectedConnection';
+export {
+  createWorkspaceAnalysisAbortError,
+  throwIfWorkspaceAnalysisAborted,
+} from './analysis/abort';
+export {
+  projectConnectionMapFromFileAnalysis,
+  projectProjectedConnectionsFromFileAnalysis,
+} from './analysis/projection';
+export type {
+  IWorkspaceFileAnalysisOptions,
+  IWorkspaceFileAnalysisResult,
+  IWorkspaceFileProcessedPayload,
+} from './analysis/fileAnalysis';
+export { analyzeWorkspaceFiles } from './analysis/fileAnalysis';
 export type {
   IDiscoveredFile,
   IDiscoveryOptions,

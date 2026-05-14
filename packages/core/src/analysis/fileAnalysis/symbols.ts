@@ -1,7 +1,7 @@
 import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '../../../core/plugins/types/contracts';
+} from '@codegraphy/plugin-api';
 
 export function createSymbolsByFilePath(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,

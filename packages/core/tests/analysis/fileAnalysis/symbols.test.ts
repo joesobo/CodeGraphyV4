@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '../../../../src/core/plugins/types/contracts';
-import { createSymbolsByFilePath } from '../../../../src/extension/pipeline/fileAnalysis/symbols';
+} from '@codegraphy/plugin-api';
+import { createSymbolsByFilePath } from '../../../src/analysis/fileAnalysis/symbols';
 
 function symbol(filePath: string, name: string): IAnalysisSymbol {
   return {

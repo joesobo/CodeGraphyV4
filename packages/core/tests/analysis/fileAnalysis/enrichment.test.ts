@@ -3,8 +3,8 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '../../../../src/core/plugins/types/contracts';
-import { enrichWorkspaceFileAnalysis } from '../../../../src/extension/pipeline/fileAnalysis/enrichment';
+} from '@codegraphy/plugin-api';
+import { enrichWorkspaceFileAnalysis } from '../../../src/analysis/fileAnalysis/enrichment';
 
 function symbol(filePath: string, name: string): IAnalysisSymbol {
   return {

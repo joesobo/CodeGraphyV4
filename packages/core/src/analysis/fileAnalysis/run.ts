@@ -1,8 +1,6 @@
-import type { IDiscoveredFile } from '@codegraphy/core';
-import type {
-  IFileAnalysisResult,
-  IProjectedConnection,
-} from '../../../core/plugins/types/contracts';
+import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IDiscoveredFile } from '../../discovery/contracts';
+import type { IProjectedConnection } from '../projectedConnection';
 import { throwIfWorkspaceAnalysisAborted } from '../abort';
 import {
   projectConnectionMapFromFileAnalysis,
