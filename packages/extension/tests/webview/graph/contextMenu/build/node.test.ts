@@ -70,7 +70,7 @@ describe('graph/contextMenu/build/node', () => {
 
     expect(itemLabels(entries)).toContain('Open File');
     expect(itemLabels(entries)).toContain('Delete File');
-    expect(itemLabels(entries)).toContain('Create Graph Section from Selection');
+    expect(itemLabels(entries)).toContain('Wrap Selected in Graph Section');
   });
 
   it('does not offer Graph Section creation from a single folder context', () => {
@@ -84,7 +84,7 @@ describe('graph/contextMenu/build/node', () => {
 
     expect(itemLabels(entries)).toContain('New File...');
     expect(itemLabels(entries)).toContain('New Folder...');
-    expect(itemLabels(entries)).not.toContain('Create Graph Section from Selection');
+    expect(itemLabels(entries)).not.toContain('Wrap Selected in Graph Section');
     expect(itemLabels(entries)).not.toContain('New Graph Section');
   });
 
@@ -103,9 +103,25 @@ describe('graph/contextMenu/build/node', () => {
       'Add All to Favorites',
       'Pin Nodes',
       'Add Filter Patterns...',
-      'Create Graph Section from Selection',
+      'Wrap Selected in Graph Section',
       'Delete 2 Files',
     ]);
+  });
+
+  it('offers wrapping for mixed selections that include Graph Section nodes', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/app.ts', new Set(['src/app.ts', 'src', 'section-1'])),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      nodes: [
+        { id: 'src/app.ts', nodeType: 'file' },
+        { id: 'src', nodeType: 'folder' },
+        { id: 'section-1', isCollapsedGraphSection: true, isGraphSection: true, nodeType: 'graph-section' },
+      ],
+    });
+
+    expect(itemLabels(entries)).toContain('Wrap Selected in Graph Section');
   });
 
   it('returns no entries for an empty node selection', () => {

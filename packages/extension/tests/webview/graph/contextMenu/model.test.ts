@@ -81,7 +81,7 @@ describe('graph/contextMenuModel', () => {
       'Pin Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
-      'Create Graph Section from Selection',
+      'Wrap Selected in Graph Section',
       'Rename...',
       'Delete File',
     ]);
@@ -101,7 +101,7 @@ describe('graph/contextMenuModel', () => {
       'Focus Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
-      'Create Graph Section from Selection',
+      'Wrap Selected in Graph Section',
       'Rename...',
       'Delete File',
     ]);
@@ -199,7 +199,7 @@ describe('graph/contextMenuModel', () => {
       'Add All to Favorites',
       'Pin Nodes',
       'Add Filter Patterns...',
-      'Create Graph Section from Selection',
+      'Wrap Selected in Graph Section',
       'Delete 2 Files',
     ]);
   });
@@ -305,7 +305,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(singleSelectionEntries)).toContain('Create Graph Section from Selection');
+    expect(menuLabels(singleSelectionEntries)).toContain('Wrap Selected in Graph Section');
     expect(builtInActions(singleSelectionEntries)).toContain('createGraphSection');
 
     const selectionEntries = buildGraphContextMenuEntries({
@@ -314,7 +314,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(selectionEntries)).toContain('Create Graph Section from Selection');
+    expect(menuLabels(selectionEntries)).toContain('Wrap Selected in Graph Section');
     expect(builtInActions(selectionEntries)).toContain('createGraphSection');
   });
 
@@ -339,7 +339,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(selectionEntries)).toContain('Create Graph Section from Selection');
+    expect(menuLabels(selectionEntries)).toContain('Wrap Selected in Graph Section');
     expect(
       builtInMenuItems(selectionEntries, ['createGraphSection'])
         .every(entry => entry.disabled)

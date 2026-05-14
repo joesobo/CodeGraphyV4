@@ -30,7 +30,7 @@ export function buildNodeEntries(
 
   if (mutationAvailability !== 'hidden' && targets.length > 0) {
     entries.push(
-      builtInItem('node-create-section-from-selection', 'Create Graph Section from Selection', 'createGraphSection', {
+      builtInItem('node-create-section-from-selection', 'Wrap Selected in Graph Section', 'createGraphSection', {
         disabled: mutationAvailability === 'disabled',
       }),
       separator('node-separator-section'),

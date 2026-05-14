@@ -191,7 +191,7 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Focus Node')).toBeInTheDocument();
     expect(screen.getByText('Pin Node')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
-    expect(screen.getByText('Create Graph Section from Selection')).toBeInTheDocument();
+    expect(screen.getByText('Wrap Selected in Graph Section')).toBeInTheDocument();
     expect(screen.getByText('Rename...')).toBeInTheDocument();
     expect(screen.getByText('Delete File')).toBeInTheDocument();
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
@@ -677,7 +677,7 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
     expect(screen.getByText('Pin Nodes')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
-    expect(screen.getByText('Create Graph Section from Selection')).toBeInTheDocument();
+    expect(screen.getByText('Wrap Selected in Graph Section')).toBeInTheDocument();
     expect(screen.getByText('Delete 2 Files')).toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
     expect(screen.queryByText('Rename...')).not.toBeInTheDocument();

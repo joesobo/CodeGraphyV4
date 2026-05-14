@@ -22,6 +22,89 @@ function positionedNodeContext(targets: string[]) {
   );
 }
 
+function positionedMixedSelectionContext() {
+  return resolveGraphContextActionContext(
+    { kind: 'node', targets: ['src/app.ts', 'src', 'section-a'] },
+    {
+      graphLayout: {
+        sections: {
+          'section-a': {
+            id: 'section-a',
+            label: 'Feature A',
+            color: '#60a5fa',
+            x: 20,
+            y: 10,
+            width: 120,
+            height: 120,
+            collapsed: false,
+            updatedAt: '2026-05-13T09:45:00.000Z',
+          },
+        },
+        ownership: {},
+      },
+      graphMode: '2d',
+      nodePositions: new Map([
+        ['src/app.ts', { x: 0, y: 0 }],
+        ['src', { x: 100, y: 0 }],
+        ['section-a', { x: 50, y: 50 }],
+      ]),
+    },
+  );
+}
+
+function positionedNestedMixedSelectionContext() {
+  return resolveGraphContextActionContext(
+    { kind: 'node', targets: ['src/app.ts', 'section-child'] },
+    {
+      graphLayout: {
+        sections: {
+          'section-parent': {
+            id: 'section-parent',
+            label: 'Parent',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 320,
+            height: 240,
+            collapsed: false,
+            updatedAt: '2026-05-13T09:45:00.000Z',
+          },
+          'section-child': {
+            id: 'section-child',
+            label: 'Child',
+            color: '#22c55e',
+            x: 80,
+            y: 60,
+            width: 120,
+            height: 120,
+            collapsed: false,
+            updatedAt: '2026-05-13T09:46:00.000Z',
+          },
+        },
+        ownership: {
+          'src/app.ts': {
+            itemId: 'src/app.ts',
+            itemKind: 'node',
+            ownerSectionId: 'section-parent',
+            updatedAt: '2026-05-13T09:47:00.000Z',
+          },
+          'section-child': {
+            itemId: 'section-child',
+            itemKind: 'section',
+            ownerSectionId: 'section-parent',
+            updatedAt: '2026-05-13T09:47:00.000Z',
+          },
+        },
+      },
+      graphMode: '2d',
+      nodePositions: new Map([
+        ['src/app.ts', { x: 180, y: 120 }],
+        ['section-child', { x: 260, y: 150 }],
+      ]),
+    },
+  );
+}
+
 function positioned3DNodeContext(targets: string[], position: { x: number; y: number; z?: number }) {
   return resolveGraphContextActionContext(
     { kind: 'node', targets },
@@ -288,6 +371,47 @@ describe('graph/contextActions/effects', () => {
             width: 188,
             x: -52,
             y: -88,
+          },
+        },
+      },
+    ]);
+  });
+
+  it('wraps selected files, folders, and Graph Sections into a new Graph Section', () => {
+    expect(getBuiltInContextActionEffects('createGraphSection', positionedMixedSelectionContext())).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_GRAPH_LAYOUT_SECTION',
+          payload: {
+            color: '#60a5fa',
+            height: 178,
+            memberNodeIds: ['src/app.ts', 'src'],
+            memberSectionIds: ['section-a'],
+            width: 228,
+            x: -64,
+            y: -64,
+          },
+        },
+      },
+    ]);
+  });
+
+  it('wraps a mixed selection inside its common owning Graph Section', () => {
+    expect(getBuiltInContextActionEffects('createGraphSection', positionedNestedMixedSelectionContext())).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'CREATE_GRAPH_LAYOUT_SECTION',
+          payload: {
+            color: '#60a5fa',
+            height: 158,
+            memberNodeIds: ['src/app.ts'],
+            memberSectionIds: ['section-child'],
+            ownerSectionId: 'section-parent',
+            width: 208,
+            x: 16,
+            y: 6,
           },
         },
       },

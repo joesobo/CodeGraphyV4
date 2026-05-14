@@ -194,14 +194,15 @@ function getDefaultSectionBounds(context: GraphContextActionContext): SectionBou
 function convertSectionBoundsToOwnerLocal(
   context: GraphContextActionContext,
   bounds: SectionBounds,
+  ownerSectionId: string | undefined,
 ): SectionBounds {
-  if (!context.graphLayout || !context.ownerSectionId) {
+  if (!context.graphLayout || !ownerSectionId) {
     return bounds;
   }
 
   const ownerTopLeft = getGraphLayoutSectionWorldTopLeft(
     context.graphLayout,
-    context.ownerSectionId,
+    ownerSectionId,
   );
   if (!ownerTopLeft) {
     return bounds;
@@ -212,6 +213,27 @@ function convertSectionBoundsToOwnerLocal(
     x: bounds.x - ownerTopLeft.x,
     y: bounds.y - ownerTopLeft.y,
   };
+}
+
+function isSingleGraphSectionContext(context: GraphContextActionContext): boolean {
+  return context.selectionKind === 'node'
+    && context.targetIds.length === 1
+    && !!context.primaryTargetId
+    && !!context.graphLayout?.sections[context.primaryTargetId]
+    && context.ownerSectionId === context.primaryTargetId;
+}
+
+function getSelectedGraphSectionIds(context: GraphContextActionContext): string[] {
+  if (!context.graphLayout) {
+    return [];
+  }
+
+  return context.targetIds.filter(targetId => !!context.graphLayout?.sections[targetId]);
+}
+
+function getSelectedGraphNodeIds(context: GraphContextActionContext): string[] {
+  const sectionIds = new Set(getSelectedGraphSectionIds(context));
+  return context.targetIds.filter(targetId => !sectionIds.has(targetId));
 }
 
 function getSelectionSectionBounds(context: GraphContextActionContext): SectionBounds | undefined {
@@ -244,19 +266,26 @@ export function createGraphSectionEffects(context: GraphContextActionContext): G
     return [];
   }
 
-  const shouldWrapSelectedNodes = context.selectionKind === 'node' && !context.ownerSectionId;
+  const shouldWrapSelectedNodes = context.selectionKind === 'node'
+    && context.targetIds.length > 0
+    && !isSingleGraphSectionContext(context);
+  const ownerSectionId = shouldWrapSelectedNodes
+    ? context.wrapOwnerSectionId
+    : context.ownerSectionId;
   const bounds = shouldWrapSelectedNodes
     ? getSelectionSectionBounds(context) ?? getDefaultSectionBounds(context)
     : getDefaultSectionBounds(context);
-  const localBounds = convertSectionBoundsToOwnerLocal(context, bounds);
+  const localBounds = convertSectionBoundsToOwnerLocal(context, bounds, ownerSectionId);
+  const memberSectionIds = shouldWrapSelectedNodes ? getSelectedGraphSectionIds(context) : [];
 
   return [createPostMessageEffect({
     type: 'CREATE_GRAPH_LAYOUT_SECTION',
     payload: {
       color: DEFAULT_GRAPH_SECTION_COLOR,
       height: localBounds.height,
-      memberNodeIds: shouldWrapSelectedNodes ? [...context.targetIds] : [],
-      ...(context.ownerSectionId ? { ownerSectionId: context.ownerSectionId } : {}),
+      memberNodeIds: shouldWrapSelectedNodes ? getSelectedGraphNodeIds(context) : [],
+      ...(memberSectionIds.length > 0 ? { memberSectionIds } : {}),
+      ...(ownerSectionId ? { ownerSectionId } : {}),
       width: localBounds.width,
       x: localBounds.x,
       y: localBounds.y,

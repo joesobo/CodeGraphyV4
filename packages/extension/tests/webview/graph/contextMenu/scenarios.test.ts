@@ -92,7 +92,7 @@ describe('graph/contextMenu product scenarios', () => {
       'Focus Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
-      'Create Graph Section from Selection',
+      'Wrap Selected in Graph Section',
       'Rename...',
       'Delete File',
     ]);
@@ -169,7 +169,7 @@ describe('graph/contextMenu product scenarios', () => {
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns...',
-      'Create Graph Section from Selection',
+      'Wrap Selected in Graph Section',
       'Delete 2 Files',
     ]);
     expect(labels(entries)).not.toContain('Focus Node');

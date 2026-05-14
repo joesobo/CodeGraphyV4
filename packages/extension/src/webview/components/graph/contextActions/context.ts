@@ -32,6 +32,7 @@ export interface GraphContextActionContext {
   mutationDirectory: string;
   nodePositions: ReadonlyMap<string, GraphContextNodePosition2D | GraphContextNodePosition3D>;
   ownerSectionId?: string;
+  wrapOwnerSectionId?: string;
 }
 
 export function resolveGraphContextActionContext(
@@ -41,6 +42,7 @@ export function resolveGraphContextActionContext(
   const [primaryTargetId, secondaryTargetId] = selection.targets;
   const isEdgeSelection = selection.kind === 'edge';
   const ownerSectionId = resolveContextOwnerSectionId(selection, options.graphLayout);
+  const wrapOwnerSectionId = resolveCommonSelectionOwnerSectionId(selection, options.graphLayout);
 
   return {
     selectionKind: selection.kind,
@@ -56,6 +58,7 @@ export function resolveGraphContextActionContext(
     mutationDirectory: resolveMutationDirectory(primaryTargetId, options.graphLayout),
     nodePositions: options.nodePositions ?? new Map(),
     ...(ownerSectionId ? { ownerSectionId } : {}),
+    ...(wrapOwnerSectionId ? { wrapOwnerSectionId } : {}),
   };
 }
 
@@ -77,6 +80,38 @@ function resolveContextOwnerSectionId(
   }
 
   return graphLayout.ownership[targetId]?.ownerSectionId ?? undefined;
+}
+
+function resolveSelectionItemOwnerSectionId(
+  targetId: string,
+  graphLayout: Pick<GraphLayoutSettings, 'ownership' | 'sections'>,
+): string | null {
+  return graphLayout.ownership[targetId]?.ownerSectionId ?? null;
+}
+
+function resolveCommonSelectionOwnerSectionId(
+  selection: GraphContextSelection,
+  graphLayout: Pick<GraphLayoutSettings, 'ownership' | 'sections'> | undefined,
+): string | undefined {
+  if (!graphLayout || selection.kind !== 'node' || selection.targets.length === 0) {
+    return undefined;
+  }
+
+  const [firstTargetId] = selection.targets;
+  if (!firstTargetId) {
+    return undefined;
+  }
+
+  const firstOwnerSectionId = resolveSelectionItemOwnerSectionId(firstTargetId, graphLayout);
+  if (!firstOwnerSectionId) {
+    return undefined;
+  }
+
+  return selection.targets.every(targetId =>
+    resolveSelectionItemOwnerSectionId(targetId, graphLayout) === firstOwnerSectionId
+  )
+    ? firstOwnerSectionId
+    : undefined;
 }
 
 function resolveMutationDirectory(
