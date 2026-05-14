@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createSymbolRelationEdges } from '../../../../src/extension/pipeline/graph/symbolRelations';
+import { createSymbolRelationEdges } from '../../src/graph/symbolRelations';
 
-describe('pipeline/graph/symbolRelations', () => {
+describe('core/graph/symbolRelations', () => {
   it('keeps relation type and variant in symbol edge identities', () => {
     const edges = createSymbolRelationEdges(
       new Map([

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   createQualifiedSourceId,
   resolveEdgeSourceIdentity,
-} from '../../../../../src/extension/pipeline/graph/edgeSources/identity';
+} from '../../../src/graph/edgeSources/identity';
 
-describe('pipeline/graph/edgeSources/identity', () => {
+describe('core/graph/edgeSources/identity', () => {
   it('builds qualified source ids from the connection plugin id or plugin fallback', () => {
     expect(
       createQualifiedSourceId(

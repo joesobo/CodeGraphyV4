@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getExternalPackageName } from '../../../../../src/extension/pipeline/graph/packageSpecifiers/name';
+import { getExternalPackageName } from '../../../src/graph/packageSpecifiers/name';
 
-describe('pipeline/graph/packageSpecifiers/name', () => {
+describe('core/graph/packageSpecifiers/name', () => {
   it('extracts stable external package names from bare imports', () => {
     expect(getExternalPackageName('fs')).toBe('fs');
     expect(getExternalPackageName('node:fs/promises')).toBe('fs');

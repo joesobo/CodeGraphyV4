@@ -3,10 +3,10 @@ import {
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
   buildWorkspacePipelineGraphForSource,
-} from '../../../../src/extension/pipeline/graph/build';
-import * as workspaceGraphDataModule from '../../../../src/extension/pipeline/graph/data';
+} from '../../src/graph/build';
+import * as workspaceGraphDataModule from '../../src/graph/data';
 
-describe('pipeline/graph', () => {
+describe('core/graph', () => {
   it('passes churn counts through before building graph data', () => {
     vi.spyOn(workspaceGraphDataModule, 'buildWorkspaceGraphData').mockReturnValue({
       nodes: [],

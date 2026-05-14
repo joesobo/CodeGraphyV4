@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
-import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
+import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IProjectedConnection } from '../../src/analysis/projectedConnection';
+import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_NODE_COLOR } from '../../src/fileColors';
 import {
   buildWorkspaceGraphData,
   buildWorkspaceGraphDataFromAnalysis,
-} from '../../../../src/extension/pipeline/graph/data';
+} from '../../src/graph/data';
 
 function createPlugin(id: string): IPlugin {
   return {
@@ -22,7 +23,7 @@ function createPlugin(id: string): IPlugin {
   } as IPlugin;
 }
 
-describe('pipeline/graph/data', () => {
+describe('core/graph/data', () => {
   it('projects analysis symbols as symbol nodes contained by their files', () => {
     const graph = buildWorkspaceGraphDataFromAnalysis({
       cacheFiles: {

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
-import { getConnectionTargetId } from '../../../../src/extension/pipeline/graph/edgeTargets';
+import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IProjectedConnection } from '../../src/analysis/projectedConnection';
+import { getConnectionTargetId } from '../../src/graph/edgeTargets';
 
 function createPlugin(id: string): IPlugin {
   return {
@@ -13,7 +14,7 @@ function createPlugin(id: string): IPlugin {
   } as IPlugin;
 }
 
-describe('pipeline/graph/edgeTargets', () => {
+describe('core/graph/edgeTargets', () => {
   it('returns discovered workspace targets for resolved connections', () => {
     const connection: IProjectedConnection = {
       kind: 'import',

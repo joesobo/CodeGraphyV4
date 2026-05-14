@@ -3,9 +3,9 @@ import {
   getExternalPackageLabelFromNodeId,
   getExternalPackageNodeId,
   isExternalPackageNodeId,
-} from '../../../../../src/extension/pipeline/graph/packageSpecifiers/nodeId';
+} from '../../../src/graph/packageSpecifiers/nodeId';
 
-describe('pipeline/graph/packageSpecifiers/nodeId', () => {
+describe('core/graph/packageSpecifiers/nodeId', () => {
   it('creates synthetic package node ids', () => {
     expect(getExternalPackageNodeId('react')).toBe('pkg:react');
     expect(getExternalPackageNodeId('@scope/pkg/subpath')).toBe('pkg:@scope/pkg');
