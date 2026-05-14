@@ -37,7 +37,10 @@ export function setGraphViewWebviewMessageListener(
       webviewReadyHandled = true;
     }
 
-    const primaryResult = await dispatchGraphViewPrimaryMessage(message, context);
+    const primaryResult = await dispatchGraphViewPrimaryMessage(message, {
+      ...context,
+      asWebviewUri: uri => webview.asWebviewUri(uri),
+    });
     if (primaryResult.handled) {
       if (primaryResult.userGroups !== undefined) {
         context.setUserGroups(primaryResult.userGroups);

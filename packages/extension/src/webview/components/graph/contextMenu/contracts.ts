@@ -20,6 +20,12 @@ export type BuiltInContextMenuAction =
   | 'toggleFavorite'
   | 'pinNode'
   | 'unpinNode'
+  | 'collapseNode'
+  | 'expandNode'
+  | 'createGraphSection'
+  | 'expandGraphSection'
+  | 'collapseGraphSection'
+  | 'deleteGraphSection'
   | 'focus'
   | 'addToFilter'
   | 'addNodeLegend'
@@ -28,9 +34,7 @@ export type BuiltInContextMenuAction =
   | 'refresh'
   | 'fitView'
   | 'createFile'
-  | 'createFolder'
-  | 'collapseNode'
-  | 'expandNode';
+  | 'createFolder';
 
 export type GraphContextMenuAction =
   | { kind: 'builtin'; action: BuiltInContextMenuAction }
@@ -55,6 +59,7 @@ export interface GraphContextSelection {
   kind: GraphContextTargetKind;
   targets: string[];
   edgeId?: string;
+  graphPosition?: { x: number; y: number };
 }
 
 export interface GraphContextMenuNode {
@@ -68,6 +73,8 @@ export interface GraphContextMenuNode {
     filePath: string;
   };
   isCollapsed?: boolean;
+  isCollapsedGraphSection?: boolean;
+  isGraphSection?: boolean;
 }
 
 export interface BuildGraphContextMenuOptions {

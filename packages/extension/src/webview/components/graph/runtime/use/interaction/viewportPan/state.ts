@@ -2,6 +2,7 @@ import type {
   MouseEvent as ReactMouseEvent,
   MutableRefObject,
 } from 'react';
+import type { GraphLayoutMode } from '../../../../../../../shared/settings/graphLayout';
 import {
   isMarqueePastThreshold,
   type MarqueePoint,
@@ -11,8 +12,6 @@ import {
   readViewportPanCenter,
   readViewportPanZoom,
 } from './coordinates';
-
-type GraphMode = '2d' | '3d';
 
 export const VIEWPORT_PAN_DRAG_THRESHOLD_PX = 2;
 
@@ -28,7 +27,7 @@ export interface ViewportPanDragState {
 export interface GraphViewportPanRuntimeOptions {
   containerRef: UseGraphStateResult['containerRef'];
   fg2dRef: UseGraphStateResult['fg2dRef'];
-  graphMode: GraphMode;
+  graphMode: GraphLayoutMode;
   rightMouseDownRef: UseGraphStateResult['rightMouseDownRef'];
   suppressContextMenu(this: void): void;
 }

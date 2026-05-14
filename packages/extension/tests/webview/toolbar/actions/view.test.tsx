@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import { mdiLinkVariant } from '@mdi/js';
 import { TooltipProvider } from '../../../../src/webview/components/ui/overlay/tooltip';
 import { graphStore } from '../../../../src/webview/store/state';
@@ -24,9 +24,20 @@ vi.mock('../../../../src/webview/components/ui/menus/dropdown-menu', () => {
 
   const DropdownMenuItem = React.forwardRef<
     HTMLButtonElement,
-    { children: React.ReactNode; onSelect?: () => void }
-  >(({ children, onSelect }, ref) => (
-    <button ref={ref} type="button" onClick={onSelect}>
+    {
+      children: React.ReactNode;
+      className?: string;
+      disabled?: boolean;
+      onSelect?: () => void;
+    }
+  >(({ children, className, disabled, onSelect }, ref) => (
+    <button
+      ref={ref}
+      type="button"
+      className={className}
+      disabled={disabled}
+      onClick={onSelect}
+    >
       {children}
     </button>
   ));
@@ -56,7 +67,7 @@ import {
   getPluginExporterKey,
 } from '../../../../src/webview/components/export/model';
 
-const iconButtonTitles = ['Index Repo', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Repo', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -84,8 +95,11 @@ describe('ToolbarActions', () => {
       graphIsIndexing: false,
       graphIndexProgress: null,
       dagMode: null,
+      graphMode: '2d',
       nodeSizeMode: 'connections',
+      timelineActive: false,
       timelineCommits: [],
+      graphViewportScale: null,
     });
   });
 
@@ -102,6 +116,10 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('Index Repo')).toBeInTheDocument();
     expect(screen.getByTitle('Layout')).toBeInTheDocument();
     expect(screen.getByTitle('Node Size')).toBeInTheDocument();
+    expect(screen.getByTitle('New...')).toBeInTheDocument();
+    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New Folder...')).toBeInTheDocument();
+    expect(screen.getByText('New Graph Section')).toBeInTheDocument();
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
   });
@@ -174,18 +192,126 @@ describe('ToolbarActions', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Repo', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Repo', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
       'Index Repo',
       'Layout',
       'Node Size',
+      'New...',
       'Graph Scope',
       'Legends',
       'Plugins',
       'Settings',
     ]);
+  });
+
+  it('orders the graph tool rail create menu as file, folder, Graph Section without a separator', () => {
+    renderWithProviders();
+
+    const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
+
+    expect(createMenu).not.toBeNull();
+    expect(
+      within(createMenu as HTMLElement)
+        .getAllByRole('button')
+        .map(button => button.textContent?.trim()),
+    ).toEqual(['New File...', 'New Folder...', 'New Graph Section']);
+    expect(within(createMenu as HTMLElement).queryByTestId('dropdown-separator')).not.toBeInTheDocument();
+  });
+
+  it('posts root creation messages from the graph tool rail create menu', () => {
+    renderWithProviders();
+    expect(screen.getByText('New File...').closest('button')).toHaveClass('gap-2');
+
+    fireEvent.click(screen.getByText('New File...'));
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CREATE_FILE',
+      payload: { directory: '.' },
+    });
+
+    fireEvent.click(screen.getByText('New Folder...'));
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CREATE_FOLDER',
+      payload: { directory: '.' },
+    });
+
+    fireEvent.click(screen.getByText('New Graph Section'));
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CREATE_GRAPH_LAYOUT_SECTION',
+      payload: {
+        color: '#60a5fa',
+        height: 180,
+        memberNodeIds: [],
+        width: 280,
+        x: -140,
+        y: -90,
+      },
+    });
+  });
+
+  it('posts a root Graph Section with stable graph-space size when the graph is zoomed out', () => {
+    graphStore.setState({ graphViewportScale: 0.2 });
+    renderWithProviders();
+
+    fireEvent.click(screen.getByText('New Graph Section'));
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CREATE_GRAPH_LAYOUT_SECTION',
+      payload: {
+        color: '#60a5fa',
+        height: 180,
+        memberNodeIds: [],
+        width: 280,
+        x: -140,
+        y: -90,
+      },
+    });
+  });
+
+  it('keeps section creation available at the mutable timeline head and disables it for immutable snapshots', () => {
+    act(() => {
+      graphStore.setState({
+        currentCommitSha: 'head-sha',
+        timelineActive: true,
+        timelineCommits: [
+          { sha: 'old-sha', message: 'old', author: 'Test', parents: [], timestamp: 1 },
+          { sha: 'head-sha', message: 'head', author: 'Test', parents: ['old-sha'], timestamp: 2 },
+        ],
+      });
+    });
+    const { rerender } = renderWithProviders();
+    expect(screen.getByTitle('New...')).toBeInTheDocument();
+    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New Folder...')).toBeInTheDocument();
+    expect(screen.getByText('New Graph Section').closest('button')).toBeEnabled();
+
+    act(() => {
+      graphStore.setState({ currentCommitSha: 'old-sha' });
+    });
+    rerender(
+      <TooltipProvider>
+        <ToolbarActions />
+      </TooltipProvider>,
+    );
+    expect(screen.getByText('New Graph Section').closest('button')).toBeDisabled();
+
+    act(() => {
+      graphStore.setState({ graphMode: '3d', timelineActive: false });
+    });
+    rerender(
+      <TooltipProvider>
+        <ToolbarActions />
+      </TooltipProvider>,
+    );
+    expect(screen.getByTitle('New...')).toBeInTheDocument();
+    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New Folder...')).toBeInTheDocument();
+    expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
   });
 
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {

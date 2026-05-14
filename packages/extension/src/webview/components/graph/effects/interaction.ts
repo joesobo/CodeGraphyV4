@@ -16,6 +16,7 @@ export interface GraphInteractionEffectHandlers<TLink = unknown> {
   previewNode(nodeId: string): void;
   openNode(nodeId: string): void;
   focusNode(nodeId: string): void;
+  setGraphSectionCollapsed(sectionId: string, collapsed: boolean): void;
   sendInteraction(
     event: 'graph:nodeClick' | 'graph:nodeDoubleClick' | 'graph:backgroundClick',
     payload: unknown
@@ -34,6 +35,7 @@ type SetSelectionEffect = Extract<GraphInteractionEffect, { kind: 'setSelection'
 type PreviewNodeEffect = Extract<GraphInteractionEffect, { kind: 'previewNode' }>;
 type OpenNodeEffect = Extract<GraphInteractionEffect, { kind: 'openNode' }>;
 type FocusNodeEffect = Extract<GraphInteractionEffect, { kind: 'focusNode' }>;
+type SetGraphSectionCollapsedEffect = Extract<GraphInteractionEffect, { kind: 'setGraphSectionCollapsed' }>;
 type SendInteractionEffect = Extract<GraphInteractionEffect, { kind: 'sendInteraction' }>;
 
 const INTERACTION_EFFECT_HANDLERS = {
@@ -72,6 +74,10 @@ const INTERACTION_EFFECT_HANDLERS = {
   },
   focusNode: (effect, handlers) => {
     handlers.focusNode((effect as FocusNodeEffect).nodeId);
+  },
+  setGraphSectionCollapsed: (effect, handlers) => {
+    const collapseEffect = effect as SetGraphSectionCollapsedEffect;
+    handlers.setGraphSectionCollapsed(collapseEffect.sectionId, collapseEffect.collapsed);
   },
   sendInteraction: (effect, handlers) => {
     const interactionEffect = effect as SendInteractionEffect;

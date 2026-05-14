@@ -52,7 +52,8 @@ describe('graph/contextMenu product scenarios', () => {
       pluginItems: [],
     });
 
-    expect(labels(entries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File...', 'New Folder...', 'New Graph Section', 'Refresh', 'Fit All Nodes']);
+    expectBuiltInDisabled(entries, 'createGraphSection', false);
     expectBuiltInDisabled(entries, 'createFile', false);
     expectBuiltInDisabled(entries, 'createFolder', false);
   });
@@ -66,7 +67,8 @@ describe('graph/contextMenu product scenarios', () => {
       pluginItems: [],
     });
 
-    expect(labels(entries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File...', 'New Folder...', 'New Graph Section', 'Refresh', 'Fit All Nodes']);
+    expectBuiltInDisabled(entries, 'createGraphSection', true);
     expectBuiltInDisabled(entries, 'createFile', true);
     expectBuiltInDisabled(entries, 'createFolder', true);
     expectBuiltInDisabled(entries, 'refresh', false);
@@ -90,12 +92,14 @@ describe('graph/contextMenu product scenarios', () => {
       'Focus Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
+      'Wrap Selected in Graph Section',
       'Rename...',
       'Delete File',
     ]);
     expectBuiltInDisabled(entries, 'open', false);
     expectBuiltInDisabled(entries, 'copyRelative', false);
     expectBuiltInDisabled(entries, 'toggleFavorite', false);
+    expectBuiltInDisabled(entries, 'createGraphSection', true);
     expectBuiltInDisabled(entries, 'rename', true);
     expectBuiltInDisabled(entries, 'delete', true);
   });
@@ -165,11 +169,13 @@ describe('graph/contextMenu product scenarios', () => {
       'Copy Relative Paths',
       'Add All to Favorites',
       'Add Filter Patterns...',
+      'Wrap Selected in Graph Section',
       'Delete 2 Files',
     ]);
     expect(labels(entries)).not.toContain('Focus Node');
     expect(labels(entries)).not.toContain('Rename...');
     expect(labels(entries)).not.toContain('Add Legend Group...');
+    expectBuiltInDisabled(entries, 'createGraphSection', true);
     expectBuiltInDisabled(entries, 'delete', true);
   });
 });

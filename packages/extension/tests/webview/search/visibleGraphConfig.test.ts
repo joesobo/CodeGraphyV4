@@ -6,7 +6,12 @@ import { buildVisibleGraphConfig } from '../../../src/webview/search/visibleGrap
 describe('webview/search/visibleGraphConfig', () => {
   it('maps graph layout collapsed nodes into visible graph collapse config', () => {
     expect(buildVisibleGraphConfig({
-      graphLayout: { collapsedNodes: { src: true, tests: false }, pinnedNodes: {} },
+      graphLayout: {
+        collapsedNodes: { src: true, tests: false },
+        pinnedNodes: {},
+        sections: {},
+        ownership: {},
+      },
       searchOptions: { matchCase: false, wholeWord: false, regex: false },
       searchQuery: '',
       showOrphans: true,
@@ -25,7 +30,12 @@ describe('webview/search/visibleGraphConfig', () => {
     };
 
     const result = deriveVisibleGraph(graphData, buildVisibleGraphConfig({
-      graphLayout: { collapsedNodes: {}, pinnedNodes: {} },
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {},
+        sections: {},
+        ownership: {},
+      },
       searchOptions: { matchCase: false, wholeWord: false, regex: false },
       searchQuery: '',
       showOrphans: true,

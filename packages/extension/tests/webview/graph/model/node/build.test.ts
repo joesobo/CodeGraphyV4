@@ -22,9 +22,6 @@ describe('graph/model/node/build', () => {
           color: '#80c0ff',
           shape3D: 'cube',
           imageUrl: 'https://example.test/favorite.png',
-          isCollapsible: true,
-          isCollapsed: true,
-          collapsedDescendantCount: 12,
         },
       ],
       edges: [],
@@ -45,16 +42,13 @@ describe('graph/model/node/build', () => {
       shape2D: 'circle',
       size: 20.8,
     });
-    expect(nodes.find(node => node.id === 'favorite.ts')).toMatchObject({
+      expect(nodes.find(node => node.id === 'favorite.ts')).toMatchObject({
       color: '#5a86b3',
       borderColor: FAVORITE_BORDER_COLOR,
       borderWidth: 3,
       imageUrl: 'https://example.test/favorite.png',
       isFavorite: true,
       shape3D: 'cube',
-      isCollapsible: true,
-      isCollapsed: true,
-      collapsedDescendantCount: 12,
       size: 18,
     });
   });
@@ -170,6 +164,8 @@ describe('graph/model/node/build', () => {
             '3D': { x: 1, y: 2, z: 3 },
           },
         },
+        sections: {},
+        ownership: {},
       },
       timelineActive: false,
     });
@@ -202,6 +198,8 @@ describe('graph/model/node/build', () => {
             '3D': { x: 1, y: 2, z: 3 },
           },
         },
+        sections: {},
+        ownership: {},
       },
       timelineActive: false,
     });
@@ -217,30 +215,43 @@ describe('graph/model/node/build', () => {
     });
   });
 
-  it('applies pins to collapsed folder nodes without dropping collapse metadata', () => {
+  it('derives pinned Section Member render positions from direct owner local coordinates', () => {
     const nodes = buildGraphNodes({
       nodes: [
-        {
-          id: 'src',
-          label: 'src',
-          color: '#93C5FD',
-          collapsedDescendantCount: 12,
-          isCollapsible: true,
-          isCollapsed: true,
-          nodeType: 'folder',
-        },
+        { id: 'src/member.ts', label: 'member.ts', color: '#93C5FD' },
       ],
       edges: [],
-      nodeSizes: new Map([['src', 16]]),
+      nodeSizes: new Map([['src/member.ts', 16]]),
       theme: 'dark',
       favorites: new Set(),
       graphMode: '2d',
       graphLayout: {
-        collapsedNodes: { src: true },
+        collapsedNodes: {},
         pinnedNodes: {
-          src: {
-            nodeId: 'src',
-            '2D': { x: 40, y: -80 },
+          'src/member.ts': {
+            nodeId: 'src/member.ts',
+            '2D': { x: 20, y: 30 },
+          },
+        },
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'Section',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 200,
+            height: 160,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          'src/member.ts': {
+            itemId: 'src/member.ts',
+            itemKind: 'node',
+            ownerSectionId: 'section-1',
+            updatedAt: '2026-05-07T09:00:00.000Z',
           },
         },
       },
@@ -248,15 +259,10 @@ describe('graph/model/node/build', () => {
     });
 
     expect(nodes[0]).toMatchObject({
-      collapsedDescendantCount: 12,
-      fx: 40,
-      fy: -80,
-      isCollapsible: true,
-      isCollapsed: true,
-      isPinned: true,
-      nodeType: 'folder',
-      x: 40,
-      y: -80,
+      fx: 120,
+      fy: 80,
+      x: 120,
+      y: 80,
     });
   });
 
@@ -278,6 +284,8 @@ describe('graph/model/node/build', () => {
             '2D': { x: 40, y: -80 },
           },
         },
+        sections: {},
+        ownership: {},
       },
       previousNodes: [{ id: 'src/pinned.ts', x: 4, y: 8 }],
       timelineActive: true,
@@ -290,5 +298,283 @@ describe('graph/model/node/build', () => {
       x: 4,
       y: 8,
     });
+  });
+
+  it('adds expanded Graph Sections as 2D Section Nodes and marks owned members', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+      nodeSizes: new Map([['src/app.ts', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {},
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'UI Layer',
+            icon: 'TS',
+            color: '#60a5fa',
+            x: -120,
+            y: -80,
+            width: 300,
+            height: 220,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          'section-1': {
+            itemId: 'section-1',
+            itemKind: 'section',
+            ownerSectionId: null,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+          'src/app.ts': {
+            itemId: 'src/app.ts',
+            itemKind: 'node',
+            ownerSectionId: 'section-1',
+            updatedAt: '2026-05-07T09:01:00.000Z',
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'src/app.ts')).toMatchObject({
+      ownerSectionId: 'section-1',
+    });
+    expect(nodes.find(node => node.id === 'section-1')).toMatchObject({
+      borderColor: '#60a5fa',
+      color: '#60a5fa',
+      icon: 'TS',
+      isGraphSection: true,
+      label: 'UI Layer',
+      nodeType: 'graph-section',
+      sectionHeight: 220,
+      sectionWidth: 300,
+      x: 30,
+      y: 30,
+    });
+  });
+
+  it('derives nested Graph Section render positions from direct parent local coordinates', () => {
+    const nodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {},
+        sections: {
+          parent: {
+            id: 'parent',
+            label: 'Parent',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 300,
+            height: 200,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+          child: {
+            id: 'child',
+            label: 'Child',
+            color: '#22c55e',
+            x: 40,
+            y: 30,
+            width: 100,
+            height: 80,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          child: {
+            itemId: 'child',
+            itemKind: 'section',
+            ownerSectionId: 'parent',
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'parent')).toMatchObject({ x: 250, y: 150 });
+    expect(nodes.find(node => node.id === 'child')).toMatchObject({ x: 190, y: 120 });
+  });
+
+  it('derives pinned nested Graph Section render positions from direct parent local coordinates', () => {
+    const nodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {
+          child: {
+            nodeId: 'child',
+            '2D': { x: 60, y: 70 },
+          },
+        },
+        sections: {
+          parent: {
+            id: 'parent',
+            label: 'Parent',
+            color: '#60a5fa',
+            x: 100,
+            y: 50,
+            width: 300,
+            height: 200,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+          child: {
+            id: 'child',
+            label: 'Child',
+            color: '#22c55e',
+            x: 40,
+            y: 30,
+            width: 100,
+            height: 80,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          child: {
+            itemId: 'child',
+            itemKind: 'section',
+            ownerSectionId: 'parent',
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+      },
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'child')).toMatchObject({
+      fx: 160,
+      fy: 120,
+      x: 160,
+      y: 120,
+    });
+  });
+
+  it('preserves previous Graph Section physics state when rebuilding graph nodes', () => {
+    const nodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout: {
+        collapsedNodes: {},
+        pinnedNodes: {},
+        sections: {
+          'section-1': {
+            id: 'section-1',
+            label: 'UI Layer',
+            color: '#60a5fa',
+            x: -1200,
+            y: 800,
+            width: 300,
+            height: 220,
+            collapsed: false,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+        ownership: {
+          'section-1': {
+            itemId: 'section-1',
+            itemKind: 'section',
+            ownerSectionId: null,
+            updatedAt: '2026-05-07T09:00:00.000Z',
+          },
+        },
+      },
+      previousNodes: [
+        {
+          id: 'section-1',
+          vx: 3,
+          vy: -2,
+          x: 40,
+          y: -30,
+        } satisfies Pick<FGNode, 'id' | 'vx' | 'vy' | 'x' | 'y'>,
+      ],
+      timelineActive: false,
+    });
+
+    expect(nodes.find(node => node.id === 'section-1')).toMatchObject({
+      vx: 3,
+      vy: -2,
+      x: 40,
+      y: -30,
+    });
+  });
+
+  it('does not add Graph Section nodes in 3D or timeline snapshots', () => {
+    const graphLayout = {
+      collapsedNodes: {},
+      pinnedNodes: {},
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'UI Layer',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 300,
+          height: 220,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-1': {
+          itemId: 'section-1',
+          itemKind: 'section' as const,
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    };
+
+    const threeDimensionalNodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '3d',
+      graphLayout,
+      timelineActive: false,
+    });
+    const timelineNodes = buildGraphNodes({
+      nodes: [],
+      edges: [],
+      nodeSizes: new Map(),
+      theme: 'dark',
+      favorites: new Set(),
+      graphMode: '2d',
+      graphLayout,
+      timelineActive: true,
+    });
+
+    expect(threeDimensionalNodes).toEqual([]);
+    expect(timelineNodes).toEqual([]);
   });
 });

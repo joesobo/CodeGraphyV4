@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import type { GraphViewStoreState } from '../view/store';
 import type {
   GraphContextMenuEntry,
-  GraphContextMutationAvailability,
 } from '../contextMenu/contracts';
 import { buildGraphContextMenuEntries } from '../contextMenu/build/entries';
+import { getGraphContextMutationAvailability } from '../contextMenu/mutationAvailability';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { UseGraphStateResult } from '../runtime/use/state';
@@ -60,19 +60,6 @@ function getActivePinnedNodeIds(
   }
 
   return pinnedNodeIds;
-}
-
-export function getGraphContextMutationAvailability(
-  viewState: Pick<GraphViewStoreState, 'currentCommitSha' | 'timelineActive' | 'timelineCommits'>,
-): GraphContextMutationAvailability {
-  if (!viewState.timelineActive) {
-    return 'enabled';
-  }
-
-  const currentHeadSha = viewState.timelineCommits.at(-1)?.sha;
-  return currentHeadSha && viewState.currentCommitSha === currentHeadSha
-    ? 'enabled'
-    : 'disabled';
 }
 
 export function useGraphViewportModel({

@@ -23,6 +23,7 @@ export interface GraphKeyboardOptions {
   shiftKey: boolean;
   graphMode: '2d' | '3d';
   selectedNodeIds: string[];
+  selectedGraphSectionIds?: string[];
   allNodeIds: string[];
   targetIsEditable: boolean;
 }

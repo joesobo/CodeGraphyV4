@@ -53,44 +53,48 @@ export async function deleteGraphViewFiles(
 export async function createGraphViewFile(
   directory: string,
   handlers: GraphViewFileCreateHandlers,
-): Promise<void> {
-  if (!handlers.workspaceFolder) return;
+): Promise<string | void> {
+  if (!handlers.workspaceFolder) return undefined;
 
   const fileName = await handlers.showInputBox({
     prompt: 'Enter file name',
     placeHolder: 'newfile.ts',
     ignoreFocusOut: true,
   });
-  if (!fileName) return;
+  if (!fileName) return undefined;
 
   const filePath = directory === '.' ? fileName : `${directory}/${fileName}`;
 
   try {
     await handlers.executeCreateAction(filePath, handlers.workspaceFolder.uri);
+    return filePath;
   } catch (error) {
     handlers.showErrorMessage(`Failed to create file: ${toErrorMessage(error)}`);
+    return undefined;
   }
 }
 
 export async function createGraphViewFolder(
   directory: string,
   handlers: GraphViewFolderCreateHandlers,
-): Promise<void> {
-  if (!handlers.workspaceFolder) return;
+): Promise<string | void> {
+  if (!handlers.workspaceFolder) return undefined;
 
   const folderName = await handlers.showInputBox({
     prompt: 'Enter folder name',
     placeHolder: 'new-folder',
     ignoreFocusOut: true,
   });
-  if (!folderName) return;
+  if (!folderName) return undefined;
 
   const folderPath = directory === '.' ? folderName : `${directory}/${folderName}`;
 
   try {
     await handlers.executeCreateFolderAction(folderPath, handlers.workspaceFolder.uri);
+    return folderPath;
   } catch (error) {
     handlers.showErrorMessage(`Failed to create folder: ${toErrorMessage(error)}`);
+    return undefined;
   }
 }
 

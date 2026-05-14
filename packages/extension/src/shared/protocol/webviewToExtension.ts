@@ -10,11 +10,19 @@ import type {
   GraphLayoutCoordinate2D,
   GraphLayoutCoordinate3D,
   GraphLayoutMode,
+  GraphLayoutOwnershipUpdate,
+  GraphLayoutSectionCreate,
+  GraphLayoutSectionUpdate,
 } from '../settings/graphLayout';
 
 export interface LegendIconImport {
   imagePath: string;
   contentsBase64: string;
+}
+
+export interface GraphItemCreatePayload {
+  directory: string;
+  ownerSectionId?: string;
 }
 
 export type WebviewToExtensionMessage =
@@ -28,8 +36,8 @@ export type WebviewToExtensionMessage =
   | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }
   | { type: 'DELETE_FILES'; payload: { paths: string[] } }
   | { type: 'RENAME_FILE'; payload: { path: string } }
-  | { type: 'CREATE_FILE'; payload: { directory: string } }
-  | { type: 'CREATE_FOLDER'; payload: { directory: string } }
+  | { type: 'CREATE_FILE'; payload: GraphItemCreatePayload }
+  | { type: 'CREATE_FOLDER'; payload: GraphItemCreatePayload }
   | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
   | {
       type: 'UPDATE_GRAPH_LAYOUT_PIN';
@@ -44,6 +52,32 @@ export type WebviewToExtensionMessage =
       payload: {
         graphMode: GraphLayoutMode;
         nodeId: string;
+      };
+    }
+  | {
+      type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE';
+      payload: { nodeId: string; collapsed: boolean };
+    }
+  | {
+      type: 'CREATE_GRAPH_LAYOUT_SECTION';
+      payload: GraphLayoutSectionCreate;
+    }
+  | {
+      type: 'UPDATE_GRAPH_LAYOUT_SECTION';
+      payload: {
+        iconImports?: LegendIconImport[];
+        sectionId: string;
+        updates: GraphLayoutSectionUpdate;
+      };
+    }
+  | {
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER';
+      payload: GraphLayoutOwnershipUpdate;
+    }
+  | {
+      type: 'DELETE_GRAPH_LAYOUT_SECTION';
+      payload: {
+        sectionId: string;
       };
     }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
@@ -95,10 +129,6 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_NODE_COLOR'; payload: { nodeType: string; color: string } }
   | { type: 'UPDATE_NODE_VISIBILITY'; payload: { nodeType: string; visible: boolean } }
   | { type: 'UPDATE_EDGE_VISIBILITY'; payload: { edgeKind: string; visible: boolean } }
-  | {
-      type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE';
-      payload: { nodeId: string; collapsed: boolean };
-    }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
   | { type: 'INDEX_REPO' }
   | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }

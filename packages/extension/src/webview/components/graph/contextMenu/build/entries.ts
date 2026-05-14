@@ -9,6 +9,7 @@ import { buildEdgeEntries } from '../edge/entries';
 import {
   buildNodeEntries,
   buildSingleFolderNodeEntries,
+  buildSingleGraphSectionNodeEntries,
   buildSingleSymbolNodeEntries,
 } from '../node/entries';
 import { buildPluginEntriesForDecision } from '../plugin/entries';
@@ -54,18 +55,25 @@ export function buildGraphContextMenuEntries(
         favorites,
         pinnedNodeIds,
       )
-      : decision.kind === 'singleSymbolNode'
-        ? buildSingleSymbolNodeEntries(decision.target.id, favorites)
-        : decision.kind === 'edge'
-          ? buildEdgeEntries(decision.targets)
-          : decision.kind === 'emptyNodeSelection'
-            ? []
-            : buildNodeEntries(
-              getNodeTargetIds(decision),
-              timelineActive,
-              mutationAvailability,
-              favorites,
-              pinnedNodeIds,
-            );
+      : decision.kind === 'singleGraphSectionNode'
+        ? buildSingleGraphSectionNodeEntries(
+          decision.target.id,
+          !!decision.target.isCollapsedGraphSection,
+          mutationAvailability,
+          pinnedNodeIds,
+        )
+        : decision.kind === 'singleSymbolNode'
+          ? buildSingleSymbolNodeEntries(decision.target.id, favorites)
+          : decision.kind === 'edge'
+            ? buildEdgeEntries(decision.targets)
+            : decision.kind === 'emptyNodeSelection'
+              ? []
+              : buildNodeEntries(
+                getNodeTargetIds(decision),
+                timelineActive,
+                mutationAvailability,
+                favorites,
+                pinnedNodeIds,
+              );
   return [...baseEntries, ...buildPluginEntriesForDecision(decision, pluginItems)];
 }

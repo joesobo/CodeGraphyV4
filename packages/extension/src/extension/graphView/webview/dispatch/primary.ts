@@ -37,8 +37,8 @@ export interface GraphViewPrimaryMessageContext {
   copyToClipboard(text: string): Promise<void>;
   deleteFiles(paths: string[]): Promise<void>;
   renameFile(filePath: string): Promise<void>;
-  createFile(directory: string): Promise<void>;
-  createFolder(directory: string): Promise<void>;
+  createFile(directory: string): Promise<string | void>;
+  createFolder(directory: string): Promise<string | void>;
   toggleFavorites(paths: string[]): Promise<void>;
   addToExclude(patterns: string[]): Promise<void>;
   indexAndSendData(): Promise<void>;
@@ -49,6 +49,11 @@ export interface GraphViewPrimaryMessageContext {
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;
   showInformationMessage(detail: string): void;
+  showWarningMessage(
+    message: string,
+    options: vscode.MessageOptions,
+    deleteAction: string,
+  ): Thenable<'Delete' | undefined>;
   setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
   getDepthMode(): boolean;
@@ -72,6 +77,7 @@ export interface GraphViewPrimaryMessageContext {
   ): Thenable<readonly vscode.Uri[] | undefined>;
   createDirectory(uri: vscode.Uri): Thenable<void>;
   writeFile(uri: vscode.Uri, content: Uint8Array): Thenable<void>;
+  asWebviewUri?(uri: vscode.Uri): { toString(): string };
   copyFile(
     source: vscode.Uri,
     destination: vscode.Uri,

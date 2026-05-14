@@ -32,6 +32,20 @@ export function createSelectAllCommand(nodeIds: string[]): GraphKeyboardCommand 
   return createCommand({ kind: 'selectAll', nodeIds });
 }
 
+export function createDeleteGraphSectionsCommand(sectionIds: string[]): GraphKeyboardCommand {
+  return {
+    preventDefault: true,
+    stopPropagation: false,
+    effects: sectionIds.map(sectionId => ({
+      kind: 'postMessage',
+      message: {
+        type: 'DELETE_GRAPH_LAYOUT_SECTION',
+        payload: { sectionId },
+      },
+    })),
+  };
+}
+
 export function createZoomCommand(factor: number): GraphKeyboardCommand {
   return createCommand({ kind: 'zoom', factor });
 }

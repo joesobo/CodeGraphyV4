@@ -36,6 +36,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'undo'
   | 'redo'
   | 'showInformationMessage'
+  | 'showWarningMessage'
   | 'setDepthMode'
   | 'setDepthLimit'
   | 'indexRepository'
@@ -92,6 +93,9 @@ export function createGraphViewProviderMessagePrimaryActions(
     showInformationMessage: detail => {
       dependencies.window.showInformationMessage(detail);
     },
+    showWarningMessage: (message, options, deleteAction) =>
+      dependencies.window.showWarningMessage?.(message, options, deleteAction)
+      ?? vscode.window.showWarningMessage(message, options, deleteAction) as Thenable<'Delete' | undefined>,
     setDepthMode: depthMode => source.setDepthMode(depthMode),
     setDepthLimit: depthLimit => source.setDepthLimit(depthLimit),
     indexRepository: () => source._indexRepository(),

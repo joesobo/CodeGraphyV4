@@ -100,7 +100,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     ]);
   });
 
-  it('serializes graph layout pin records', () => {
+  it('serializes graph layout pins, sections, and grouped ownership records', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.graphLayout = {
       collapsedNodes: {},
@@ -110,10 +110,86 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
           '2D': { x: 10, y: 20 },
         },
       },
+      sections: {
+        'section-a': {
+          id: 'section-a',
+          label: 'Layer A',
+          color: '#5588aa',
+          x: 0,
+          y: 0,
+          width: 200,
+          height: 140,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          id: 'section-b',
+          label: 'Layer B',
+          color: '#55aa88',
+          x: 20,
+          y: 30,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:03:00.000Z',
+        },
+      },
+      ownership: {
+        'src/a.ts': {
+          itemId: 'src/a.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+        'src/b.ts': {
+          itemId: 'src/b.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+        'section-b': {
+          itemId: 'section-b',
+          itemKind: 'section',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:04:00.000Z',
+        },
+      },
     };
 
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
 
-    expect(parsed.graphLayout).toEqual(settings.graphLayout);
+    expect(parsed.graphLayout).toEqual({
+      collapsedNodes: {},
+      pinnedNodes: {
+        'src/a.ts': {
+          '2D': { x: 10, y: 20 },
+        },
+      },
+      sections: {
+        'section-a': {
+          label: 'Layer A',
+          color: '#5588aa',
+          x: 0,
+          y: 0,
+          width: 200,
+          height: 140,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          label: 'Layer B',
+          color: '#55aa88',
+          x: 20,
+          y: 30,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:03:00.000Z',
+        },
+      },
+      ownership: {
+        'section-a': ['src/a.ts', 'src/b.ts', 'section-b'],
+      },
+    });
   });
 });

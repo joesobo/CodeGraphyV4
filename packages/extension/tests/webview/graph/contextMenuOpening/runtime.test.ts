@@ -33,6 +33,7 @@ function createInteractionHandlers() {
   return {
     fitView: vi.fn(),
     focusNodeById: vi.fn(),
+    getBackgroundGraphPosition: vi.fn(() => ({ x: 24, y: -32 })),
     openBackgroundContextMenu: vi.fn(),
     openEdgeContextMenu: vi.fn(),
     openNodeContextMenu: vi.fn(),
@@ -48,13 +49,14 @@ function createLink(id: string): FGLink {
 }
 
 function createOpeningOptions(overrides: Record<string, unknown> = {}) {
+  const actionContext = {
+    mutationDirectory: 'src/app.ts',
+    primaryTargetId: 'src/app.ts',
+    selectionKind: 'node',
+    targetIds: ['src/app.ts'],
+  };
   return {
-    actionContext: {
-      mutationDirectory: 'src/app.ts',
-      primaryTargetId: 'src/app.ts',
-      selectionKind: 'node',
-      targetIds: ['src/app.ts'],
-    },
+    getActionContext: vi.fn(() => actionContext),
     fileInfoCacheRef: { current: new Map([['src/stale.ts', { path: 'src/stale.ts' }]]) },
     hoveredNodeRef: { current: null },
     interactionHandlers: createInteractionHandlers(),
@@ -122,6 +124,7 @@ describe('graph/contextMenuOpening/runtime', () => {
     const runtime = createGraphContextMenuOpeningRuntime(options as never);
     const action: GraphContextMenuAction = { kind: 'builtin', action: 'focus' };
     const graphEvent = { type: 'contextmenu' } as never;
+    const reactContextEvent = { nativeEvent: graphEvent } as never;
     const link = createLink('edge-a');
 
     runtime.handleMouseDownCapture({
@@ -138,7 +141,7 @@ describe('graph/contextMenuOpening/runtime', () => {
     runtime.handleNodeRightClick(createNode('src/app.ts'), graphEvent);
     runtime.handleLinkRightClick(link, graphEvent);
     runtime.handleBackgroundRightClick(graphEvent);
-    runtime.handleContextMenu();
+    runtime.handleContextMenu(reactContextEvent);
     runtime.handleMenuAction(action);
 
     expect(contextMenuRuntime.handleMouseDownCapture).toHaveBeenCalledWith({
@@ -155,7 +158,11 @@ describe('graph/contextMenuOpening/runtime', () => {
     expect(options.interactionHandlers.openNodeContextMenu).toHaveBeenCalledWith('src/app.ts', graphEvent);
     expect(options.interactionHandlers.openEdgeContextMenu).toHaveBeenCalledWith(link, graphEvent);
     expect(options.interactionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith(graphEvent);
-    expect(contextMenuRuntime.handleContextMenu).toHaveBeenCalledTimes(1);
-    expect(contextMenuRuntime.handleMenuAction).toHaveBeenCalledWith(action, options.actionContext);
+    expect(options.interactionHandlers.getBackgroundGraphPosition).toHaveBeenCalledWith(graphEvent);
+    expect(contextMenuRuntime.handleContextMenu).toHaveBeenCalledWith({ x: 24, y: -32 });
+    expect(options.getActionContext).toHaveBeenCalledTimes(1);
+    expect(contextMenuRuntime.handleMenuAction).toHaveBeenCalledWith(action, expect.objectContaining({
+      primaryTargetId: 'src/app.ts',
+    }));
   });
 });

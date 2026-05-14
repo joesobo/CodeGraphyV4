@@ -7,6 +7,7 @@ import type {
 } from 'react-force-graph-3d';
 import type { IFileInfo } from '../../../../shared/files/info';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { GraphLayoutSettings } from '../../../../shared/settings/graphLayout';
 import type { GraphContextSelection } from '../contextMenu/contracts';
 import {
   type GraphInteractionEffect,
@@ -27,6 +28,7 @@ export interface GraphInteractionHandlersDependencies {
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
+  graphLayout?: GraphLayoutSettings;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
   graphMode: '2d' | '3d';
@@ -58,6 +60,7 @@ export interface GraphInteractionHandlers {
   openBackgroundContextMenu: (this: void, event: MouseEvent) => void;
   openEdgeContextMenu: (this: void, link: FGLink, event: MouseEvent) => void;
   openNodeContextMenu: (this: void, nodeId: string, event: MouseEvent) => void;
+  getBackgroundGraphPosition: (this: void, event: MouseEvent) => { x: number; y: number } | undefined;
   previewNode: (this: void, nodeId: string) => void;
   requestNodeOpenById: (this: void, nodeId: string) => void;
   selectOnlyNode: (this: void, nodeId: string) => void;
@@ -109,6 +112,7 @@ export function createGraphInteractionHandlers(
     openBackgroundContextMenu: contextMenuHandlers.openBackgroundContextMenu,
     openEdgeContextMenu: contextMenuHandlers.openEdgeContextMenu,
     openNodeContextMenu: contextMenuHandlers.openNodeContextMenu,
+    getBackgroundGraphPosition: contextMenuHandlers.getBackgroundGraphPosition,
     previewNode: effectHandlers.previewNode,
     requestNodeOpenById: effectHandlers.requestNodeOpenById,
     selectOnlyNode: selectionHandlers.selectOnlyNode,

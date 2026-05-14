@@ -1,26 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import {
-  clearGraphLayoutNodePin,
+  assignGraphLayoutOwner,
+  createGraphLayoutSection,
   createDefaultGraphLayoutSettings,
+  deleteGraphLayoutSection,
   normalizeGraphLayoutSettings,
-  setGraphLayoutNodeCollapsed,
-  setGraphLayoutNodePin,
+  updateGraphLayoutSection,
+  wouldCreateGraphLayoutOwnershipCycle,
 } from '../../../../src/extension/repoSettings/graphLayout/model';
 
 describe('extension/repoSettings/graphLayout/model', () => {
-  it('creates empty layout state for collapsed and pinned nodes', () => {
+  it('creates empty layout state for pins, sections, and ownership', () => {
     expect(createDefaultGraphLayoutSettings()).toEqual({
       collapsedNodes: {},
       pinnedNodes: {},
+      sections: {},
+      ownership: {},
     });
   });
 
-  it('keeps dormant layout records without requiring visible graph nodes', () => {
+  it('keeps dormant pin and node ownership records without requiring visible graph nodes', () => {
     expect(normalizeGraphLayoutSettings({
-      collapsedNodes: {
-        'src/missing-folder': true,
-        bad: 'yes',
-      },
+      collapsedNodes: {},
       pinnedNodes: {
         'src/missing.ts': {
           nodeId: 'src/missing.ts',
@@ -28,11 +29,29 @@ describe('extension/repoSettings/graphLayout/model', () => {
           '3D': { x: 12, y: 24, z: -6 },
         },
       },
-      stray: true,
+      sections: {
+        'section-a': {
+          id: 'section-a',
+          label: 'UI Layer',
+          color: '#4488ff',
+          x: 10,
+          y: 20,
+          width: 300,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+      },
+      ownership: {
+        'src/missing.ts': {
+          itemId: 'src/missing.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
     })).toEqual({
-      collapsedNodes: {
-        'src/missing-folder': true,
-      },
+      collapsedNodes: {},
       pinnedNodes: {
         'src/missing.ts': {
           nodeId: 'src/missing.ts',
@@ -40,11 +59,164 @@ describe('extension/repoSettings/graphLayout/model', () => {
           '3D': { x: 12, y: 24, z: -6 },
         },
       },
+      sections: {
+        'section-a': {
+          id: 'section-a',
+          label: 'UI Layer',
+          color: '#4488ff',
+          x: 10,
+          y: 20,
+          width: 300,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+      },
+      ownership: {
+        'src/missing.ts': {
+          itemId: 'src/missing.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
     });
   });
 
-  it('normalizes malformed pin records before settings are persisted', () => {
+  it('normalizes compact persisted Graph Layout records from their map keys', () => {
     expect(normalizeGraphLayoutSettings({
+      collapsedNodes: {},
+      pinnedNodes: {
+        'src/a.ts': {
+          '2D': { x: 10, y: 20 },
+        },
+      },
+      sections: {
+        'section-a': {
+          label: 'Layer A',
+          color: '#4488ff',
+          x: 10,
+          y: 20,
+          width: 300,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          label: 'Nested',
+          color: '#22c55e',
+          x: 30,
+          y: 40,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
+      ownership: {
+        'src/a.ts': 'section-a',
+        'section-b': 'section-a',
+      },
+    })).toEqual({
+      collapsedNodes: {},
+      pinnedNodes: {
+        'src/a.ts': {
+          nodeId: 'src/a.ts',
+          '2D': { x: 10, y: 20 },
+        },
+      },
+      sections: {
+        'section-a': {
+          id: 'section-a',
+          label: 'Layer A',
+          color: '#4488ff',
+          x: 10,
+          y: 20,
+          width: 300,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          id: 'section-b',
+          label: 'Nested',
+          color: '#22c55e',
+          x: 30,
+          y: 40,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
+      ownership: {
+        'src/a.ts': {
+          itemId: 'src/a.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          itemId: 'section-b',
+          itemKind: 'section',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+      },
+    });
+  });
+
+  it('normalizes grouped persisted Graph Layout ownership by owner section', () => {
+    expect(normalizeGraphLayoutSettings({
+      sections: {
+        'section-a': {
+          label: 'Layer A',
+          color: '#4488ff',
+          x: 10,
+          y: 20,
+          width: 300,
+          height: 180,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          label: 'Nested',
+          color: '#22c55e',
+          x: 30,
+          y: 40,
+          width: 160,
+          height: 120,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
+      ownership: {
+        'section-a': ['src/a.ts', 'src/b.ts', 'section-b'],
+      },
+    })).toMatchObject({
+      ownership: {
+        'src/a.ts': {
+          itemId: 'src/a.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+        },
+        'src/b.ts': {
+          itemId: 'src/b.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+        },
+        'section-b': {
+          itemId: 'section-b',
+          itemKind: 'section',
+          ownerSectionId: 'section-a',
+        },
+      },
+    });
+  });
+
+  it('normalizes malformed layout records before settings are persisted', () => {
+    expect(normalizeGraphLayoutSettings({
+      collapsedNodes: {},
       pinnedNodes: {
         good: {
           nodeId: 'good',
@@ -59,10 +231,46 @@ describe('extension/repoSettings/graphLayout/model', () => {
           nodeId: 'invalidCoordinate',
           '2D': { x: Number.POSITIVE_INFINITY, y: 2 },
         },
-        noCoordinates: {
-          nodeId: 'noCoordinates',
+      },
+      sections: {
+        'section-a': {
+          id: 'section-a',
+          label: 'Section A',
+          color: '#223344',
+          x: 0,
+          y: 0,
+          width: 120,
+          height: 100,
+          collapsed: true,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'bad-section': {
+          id: 'bad-section',
+          label: '',
+          color: '#223344',
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 100,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
         },
       },
+      ownership: {
+        good: {
+          itemId: 'good',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+        orphanedOwner: {
+          itemId: 'orphanedOwner',
+          itemKind: 'node',
+          ownerSectionId: 'missing-section',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
+      stray: true,
     })).toEqual({
       collapsedNodes: {},
       pinnedNodes: {
@@ -72,52 +280,412 @@ describe('extension/repoSettings/graphLayout/model', () => {
           '3D': { x: 3, y: 4, z: 5 },
         },
       },
+      sections: {
+        'section-a': {
+          id: 'section-a',
+          label: 'Section A',
+          color: '#223344',
+          x: 0,
+          y: 0,
+          width: 120,
+          height: 100,
+          collapsed: true,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+      },
+      ownership: {
+        good: {
+          itemId: 'good',
+          itemKind: 'node',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
     });
   });
 
-  it('sets and clears collapsed node state independently of pins', () => {
-    const pinned = setGraphLayoutNodePin(createDefaultGraphLayoutSettings(), {
-      graphMode: '2d',
-      nodeId: 'src/app.ts',
-      position: { x: 10, y: 20 },
-    });
-    const collapsed = setGraphLayoutNodeCollapsed(pinned, 'src', true);
-    const expanded = setGraphLayoutNodeCollapsed(collapsed, 'src', false);
+  it('prevents section ownership cycles', () => {
+    const ownership = {
+      'section-a': {
+        itemId: 'section-a',
+        itemKind: 'section' as const,
+        ownerSectionId: 'section-b',
+        updatedAt: '2026-05-07T08:02:00.000Z',
+      },
+      'section-b': {
+        itemId: 'section-b',
+        itemKind: 'section' as const,
+        ownerSectionId: null,
+        updatedAt: '2026-05-07T08:03:00.000Z',
+      },
+    };
 
-    expect(collapsed).toEqual({
-      collapsedNodes: { src: true },
-      pinnedNodes: pinned.pinnedNodes,
+    expect(wouldCreateGraphLayoutOwnershipCycle(
+      ownership,
+      'section-b',
+      'section-a',
+    )).toBe(true);
+    expect(wouldCreateGraphLayoutOwnershipCycle(
+      ownership,
+      'section-b',
+      null,
+    )).toBe(false);
+  });
+
+  it('throws instead of assigning a section to its own descendant', () => {
+    const layout = normalizeGraphLayoutSettings({
+      sections: {
+        'section-a': {
+          id: 'section-a',
+          label: 'Section A',
+          color: '#223344',
+          x: 0,
+          y: 0,
+          width: 120,
+          height: 100,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+        'section-b': {
+          id: 'section-b',
+          label: 'Section B',
+          color: '#446688',
+          x: 20,
+          y: 20,
+          width: 120,
+          height: 100,
+          collapsed: false,
+          updatedAt: '2026-05-07T08:01:00.000Z',
+        },
+      },
+      ownership: {
+        'section-b': {
+          itemId: 'section-b',
+          itemKind: 'section',
+          ownerSectionId: 'section-a',
+          updatedAt: '2026-05-07T08:02:00.000Z',
+        },
+      },
     });
-    expect(expanded).toEqual({
+
+    expect(() => assignGraphLayoutOwner(layout, {
+      itemId: 'section-a',
+      itemKind: 'section',
+      ownerSectionId: 'section-b',
+      updatedAt: '2026-05-07T08:03:00.000Z',
+    })).toThrow('Graph Section ownership cannot create a cycle.');
+  });
+
+  it('creates generated Graph Sections and assigns selected nodes as members', () => {
+    const layout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
+      color: '#60a5fa',
+      height: 180,
+      memberNodeIds: ['src/app.ts', 'src/utils.ts', 'src/app.ts'],
+      updatedAt: '2026-05-07T09:00:00.000Z',
+      width: 280,
+      x: -140,
+      y: -90,
+    });
+
+    expect(layout.sections).toEqual({
+      'section-1': {
+        id: 'section-1',
+        label: 'Section 1',
+        color: '#60a5fa',
+        x: -140,
+        y: -90,
+        width: 280,
+        height: 180,
+        collapsed: false,
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+    });
+    expect(layout.ownership).toEqual({
+      'src/app.ts': {
+        itemId: 'src/app.ts',
+        itemKind: 'node',
+        ownerSectionId: 'section-1',
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+      'src/utils.ts': {
+        itemId: 'src/utils.ts',
+        itemKind: 'node',
+        ownerSectionId: 'section-1',
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+    });
+  });
+
+  it('updates Graph Section presentation and bounds without changing membership', () => {
+    const layout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
+      color: '#60a5fa',
+      height: 180,
+      memberNodeIds: ['src/app.ts'],
+      updatedAt: '2026-05-07T09:00:00.000Z',
+      width: 280,
+      x: -140,
+      y: -90,
+    });
+
+    const updated = updateGraphLayoutSection(layout, {
+      sectionId: 'section-1',
+      updates: {
+        color: '#22c55e',
+        height: 210,
+        label: 'UI Work',
+        width: 320,
+        x: -120,
+        y: -80,
+      },
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+
+    expect(updated.sections['section-1']).toEqual({
+      id: 'section-1',
+      label: 'UI Work',
+      color: '#22c55e',
+      x: -120,
+      y: -80,
+      width: 320,
+      height: 210,
+      collapsed: false,
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+    expect(updated.ownership['src/app.ts']).toEqual(layout.ownership['src/app.ts']);
+  });
+
+  it('updates and clears a Graph Section icon without changing membership', () => {
+    const layout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
+      height: 180,
+      icon: 'TS',
+      memberNodeIds: ['src/app.ts'],
+      updatedAt: '2026-05-07T09:00:00.000Z',
+      width: 280,
+      x: -140,
+      y: -90,
+    });
+
+    const updated = updateGraphLayoutSection(layout, {
+      sectionId: 'section-1',
+      updates: { icon: 'UI' },
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+    const cleared = updateGraphLayoutSection(updated, {
+      sectionId: 'section-1',
+      updates: { icon: '' },
+      updatedAt: '2026-05-07T09:20:00.000Z',
+    });
+
+    expect(updated.sections['section-1']).toMatchObject({ icon: 'UI' });
+    expect(cleared.sections['section-1']).not.toHaveProperty('icon');
+    expect(cleared.ownership['src/app.ts']).toEqual(layout.ownership['src/app.ts']);
+  });
+
+  it('creates nested Graph Sections and assigns selected sections as direct children', () => {
+    const parentLayout = createGraphLayoutSection(createDefaultGraphLayoutSettings(), {
+      height: 240,
+      updatedAt: '2026-05-07T09:00:00.000Z',
+      width: 360,
+      x: 0,
+      y: 0,
+    });
+    const childLayout = createGraphLayoutSection(parentLayout, {
+      height: 120,
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:05:00.000Z',
+      width: 180,
+      x: 40,
+      y: 40,
+    });
+
+    const wrapperLayout = createGraphLayoutSection(childLayout, {
+      height: 180,
+      memberNodeIds: ['src/app.ts'],
+      memberSectionIds: ['section-2'],
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:10:00.000Z',
+      width: 260,
+      x: 20,
+      y: 20,
+    });
+
+    expect(parentLayout.ownership).toEqual({});
+    expect(childLayout.ownership['section-2']).toEqual({
+      itemId: 'section-2',
+      itemKind: 'section',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:05:00.000Z',
+    });
+    expect(wrapperLayout.ownership['section-3']).toEqual({
+      itemId: 'section-3',
+      itemKind: 'section',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:10:00.000Z',
+    });
+    expect(wrapperLayout.ownership['section-2']).toEqual({
+      itemId: 'section-2',
+      itemKind: 'section',
+      ownerSectionId: 'section-3',
+      updatedAt: '2026-05-07T09:10:00.000Z',
+    });
+    expect(wrapperLayout.ownership['src/app.ts']).toEqual({
+      itemId: 'src/app.ts',
+      itemKind: 'node',
+      ownerSectionId: 'section-3',
+      updatedAt: '2026-05-07T09:10:00.000Z',
+    });
+  });
+
+  it('keeps descendant sections and pinned member coordinates local when moving a parent Section Frame', () => {
+    const layout = normalizeGraphLayoutSettings({
       collapsedNodes: {},
-      pinnedNodes: pinned.pinnedNodes,
+      pinnedNodes: {
+        'src/app.ts': {
+          nodeId: 'src/app.ts',
+          '2D': { x: 60, y: 70 },
+          '3D': { x: 1, y: 2, z: 3 },
+        },
+      },
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Parent',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 300,
+          height: 220,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-2': {
+          id: 'section-2',
+          label: 'Child',
+          color: '#22c55e',
+          x: 40,
+          y: 40,
+          width: 120,
+          height: 90,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-2': {
+          itemId: 'section-2',
+          itemKind: 'section',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-2',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    });
+
+    const moved = updateGraphLayoutSection(layout, {
+      sectionId: 'section-1',
+      updates: { x: 25, y: -10 },
+      updatedAt: '2026-05-07T09:15:00.000Z',
+    });
+
+    expect(moved.sections['section-1']).toMatchObject({ x: 25, y: -10 });
+    expect(moved.sections['section-2']).toMatchObject({ x: 40, y: 40 });
+    expect(moved.pinnedNodes['src/app.ts']).toEqual({
+      nodeId: 'src/app.ts',
+      '2D': { x: 60, y: 70 },
+      '3D': { x: 1, y: 2, z: 3 },
     });
   });
 
-  it('sets and clears 2D and 3D pins independently', () => {
-    const pinned2d = setGraphLayoutNodePin(createDefaultGraphLayoutSettings(), {
-      graphMode: '2d',
-      nodeId: 'src/app.ts',
-      position: { x: 10, y: 20 },
+  it('deletes only a Graph Section by promoting direct children to the deleted section owner', () => {
+    const layout = normalizeGraphLayoutSettings({
+      collapsedNodes: {},
+      pinnedNodes: {
+        'section-2': {
+          nodeId: 'section-2',
+          '2D': { x: 40, y: 40 },
+        },
+      },
+      sections: {
+        'section-1': {
+          id: 'section-1',
+          label: 'Parent',
+          color: '#60a5fa',
+          x: 0,
+          y: 0,
+          width: 300,
+          height: 220,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-2': {
+          id: 'section-2',
+          label: 'Deleted',
+          color: '#22c55e',
+          x: 40,
+          y: 40,
+          width: 120,
+          height: 90,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-3': {
+          id: 'section-3',
+          label: 'Child',
+          color: '#f59e0b',
+          x: 60,
+          y: 60,
+          width: 80,
+          height: 70,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        'section-2': {
+          itemId: 'section-2',
+          itemKind: 'section',
+          ownerSectionId: 'section-1',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'section-3': {
+          itemId: 'section-3',
+          itemKind: 'section',
+          ownerSectionId: 'section-2',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node',
+          ownerSectionId: 'section-2',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
     });
-    const pinnedBoth = setGraphLayoutNodePin(pinned2d, {
-      graphMode: '3d',
-      nodeId: 'src/app.ts',
-      position: { x: 1, y: 2, z: 3 },
-    });
-    const only3d = clearGraphLayoutNodePin(pinnedBoth, 'src/app.ts', '2d');
-    const cleared = clearGraphLayoutNodePin(only3d, 'src/app.ts', '3d');
 
-    expect(pinnedBoth.pinnedNodes['src/app.ts']).toEqual({
-      nodeId: 'src/app.ts',
-      '2D': { x: 10, y: 20 },
-      '3D': { x: 1, y: 2, z: 3 },
+    const nextLayout = deleteGraphLayoutSection(layout, {
+      sectionId: 'section-2',
+      updatedAt: '2026-05-07T09:20:00.000Z',
     });
-    expect(only3d.pinnedNodes['src/app.ts']).toEqual({
-      nodeId: 'src/app.ts',
-      '3D': { x: 1, y: 2, z: 3 },
+
+    expect(nextLayout.sections['section-2']).toBeUndefined();
+    expect(nextLayout.pinnedNodes['section-2']).toBeUndefined();
+    expect(nextLayout.ownership['section-2']).toBeUndefined();
+    expect(nextLayout.ownership['section-3']).toEqual({
+      itemId: 'section-3',
+      itemKind: 'section',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:20:00.000Z',
     });
-    expect(cleared.pinnedNodes).toEqual({});
-    expect(cleared.collapsedNodes).toEqual({});
+    expect(nextLayout.ownership['src/app.ts']).toEqual({
+      itemId: 'src/app.ts',
+      itemKind: 'node',
+      ownerSectionId: 'section-1',
+      updatedAt: '2026-05-07T09:20:00.000Z',
+    });
   });
 });

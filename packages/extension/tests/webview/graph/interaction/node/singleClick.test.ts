@@ -119,4 +119,29 @@ describe('graph/interaction node single click', () => {
       ],
     });
   });
+
+  it('expands a collapsed Graph Section on a plain click', () => {
+    const result = getNodeSingleClickCommand(
+      makeNodeSingleClickOptions({
+        nodeId: 'section-1',
+        label: 'Section 1',
+        isCollapsedGraphSection: true,
+      }),
+    );
+
+    expect(result).toEqual({
+      nextLastClick: null,
+      effects: [
+        { kind: 'setGraphSectionCollapsed', sectionId: 'section-1', collapsed: false },
+        {
+          kind: 'sendInteraction',
+          event: 'graph:nodeClick',
+          payload: {
+            node: { id: 'section-1', label: 'Section 1' },
+            event: { x: 12, y: 24 },
+          },
+        },
+      ],
+    });
+  });
 });

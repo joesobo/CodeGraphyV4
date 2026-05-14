@@ -31,8 +31,8 @@ export interface GraphViewProviderFileActionMethods {
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;
   _renameFile(filePath: string): Promise<void>;
-  _createFile(directory: string): Promise<void>;
-  _createFolder(directory: string): Promise<void>;
+  _createFile(directory: string): Promise<string | void>;
+  _createFolder(directory: string): Promise<string | void>;
   _toggleFavorites(paths: string[]): Promise<void>;
 }
 
@@ -169,8 +169,8 @@ export function createGraphViewProviderFileActionMethods(
     });
   };
 
-  const _createFile = async (directory: string): Promise<void> => {
-    await dependencies.createFile(directory, {
+  const _createFile = async (directory: string): Promise<string | void> => {
+    return dependencies.createFile(directory, {
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeCreateAction: async (filePath, workspaceFolderUri) => {
@@ -187,8 +187,8 @@ export function createGraphViewProviderFileActionMethods(
     });
   };
 
-  const _createFolder = async (directory: string): Promise<void> => {
-    await dependencies.createFolder(directory, {
+  const _createFolder = async (directory: string): Promise<string | void> => {
+    return dependencies.createFolder(directory, {
       workspaceFolder: dependencies.getWorkspaceFolder(),
       showInputBox: options => dependencies.showInputBox(options),
       executeCreateFolderAction: async (folderPath, workspaceFolderUri) => {

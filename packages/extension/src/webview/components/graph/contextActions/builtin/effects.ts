@@ -5,8 +5,11 @@ import {
   createClipboardEffects,
   createCreateFileEffects,
   createCreateFolderEffects,
-  createClearPinNodeEffects,
   createGraphLayoutCollapseEffects,
+  createGraphSectionEffects,
+  createGraphSectionCollapseEffects,
+  createGraphSectionDeleteEffects,
+  createClearPinNodeEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
@@ -59,13 +62,21 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   refresh: () => createRefreshEffects(),
   fitView: () => createFitViewEffects(),
   createFile: (context: GraphContextActionContext) =>
-    createCreateFileEffects(context.mutationDirectory),
+    createCreateFileEffects(context.mutationDirectory, context.ownerSectionId),
   createFolder: (context: GraphContextActionContext) =>
-    createCreateFolderEffects(context.mutationDirectory),
+    createCreateFolderEffects(context.mutationDirectory, context.ownerSectionId),
   collapseNode: (context: GraphContextActionContext) =>
     createGraphLayoutCollapseEffects(context.primaryTargetId, true),
   expandNode: (context: GraphContextActionContext) =>
     createGraphLayoutCollapseEffects(context.primaryTargetId, false),
+  createGraphSection: (context: GraphContextActionContext) =>
+    createGraphSectionEffects(context),
+  expandGraphSection: (context: GraphContextActionContext) =>
+    createGraphSectionCollapseEffects(context, false),
+  collapseGraphSection: (context: GraphContextActionContext) =>
+    createGraphSectionCollapseEffects(context, true),
+  deleteGraphSection: (context: GraphContextActionContext) =>
+    createGraphSectionDeleteEffects(context),
 } satisfies Record<BuiltInContextMenuAction, (context: GraphContextActionContext) => GraphContextEffect[]>;
 
 export function getBuiltInContextActionEffectsImpl(

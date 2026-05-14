@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
 
 vi.mock('../../../../../src/webview/components/graph/rendering/shapes/draw/twoDimensional', () => ({
@@ -91,10 +91,15 @@ function createContext(): {
         textBaseline: ctx.textBaseline as CanvasTextBaseline,
       });
     }),
+    beginPath: vi.fn(),
+    closePath: vi.fn(),
     fillStyle: '',
     font: '',
     globalAlpha: 1,
     lineWidth: 0,
+    lineTo: vi.fn(),
+    moveTo: vi.fn(),
+    quadraticCurveTo: vi.fn(),
     strokeStyle: '',
     textAlign: 'left' as CanvasTextAlign,
     textBaseline: 'alphabetic' as CanvasTextBaseline,
@@ -107,6 +112,10 @@ function createContext(): {
 }
 
 describe('graph/rendering/node/body', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('draws the node body and stroke using node styling', () => {
     const { ctx, operations } = createContext();
 
@@ -160,6 +169,41 @@ describe('graph/rendering/node/body', () => {
         kind: 'stroke',
         lineWidth: 1.5,
         strokeStyle: 'Highlight',
+      }),
+    ]);
+  });
+
+  it('draws collapsed Graph Sections as rounded squares', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeBody({
+      ctx,
+      decoration: undefined,
+      globalScale: 1,
+      isSelected: false,
+      node: createNode({
+        id: 'section-1',
+        isCollapsedGraphSection: true,
+        isGraphSection: true,
+        nodeType: 'graph-section',
+        shape2D: 'square',
+      }),
+      opacity: 1,
+    });
+
+    expect(drawShape).not.toHaveBeenCalled();
+    expect(ctx.beginPath).toHaveBeenCalledOnce();
+    expect(ctx.moveTo).toHaveBeenCalledWith(16, 32);
+    expect(ctx.quadraticCurveTo).toHaveBeenCalledWith(40, 32, 40, 40);
+    expect(ctx.closePath).toHaveBeenCalledOnce();
+    expect(operations).toEqual([
+      expect.objectContaining({
+        fillStyle: '#3b82f6',
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        kind: 'stroke',
+        strokeStyle: '#1d4ed8',
       }),
     ]);
   });

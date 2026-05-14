@@ -41,8 +41,10 @@ function createState(
     directionColor: '#ffffff',
     particleSpeed: 0,
     particleSize: 1,
+    physicsPaused: false,
     showLabels: true,
     graphMode: '2d',
+    graphViewportScale: null,
     nodeSizeMode: 'uniform',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     depthMode: false,
@@ -81,6 +83,8 @@ function createState(
     graphLayout: {
       collapsedNodes: {},
       pinnedNodes: {},
+      sections: {},
+      ownership: {},
     },
     ...overrides,
   };
@@ -155,20 +159,13 @@ describe('webview/store/messageHandlers/graph', () => {
           '2D': { x: 12, y: 24 },
         },
       },
+      sections: {},
+      ownership: {},
     };
     expect(handleGraphLayoutUpdated({
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: graphLayout,
     })).toEqual({ graphLayout });
-  });
-
-  it('maps graph layout updates into persisted layout state', () => {
-    expect(handleGraphLayoutUpdated({
-      type: 'GRAPH_LAYOUT_UPDATED',
-      payload: { collapsedNodes: { src: true }, pinnedNodes: {} },
-    })).toEqual({
-      graphLayout: { collapsedNodes: { src: true }, pinnedNodes: {} },
-    });
   });
 
   it('maps settings and filter payloads', () => {

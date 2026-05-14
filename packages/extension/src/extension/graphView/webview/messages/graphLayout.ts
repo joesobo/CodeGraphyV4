@@ -1,19 +1,37 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import {
+  assignGraphLayoutOwner,
   clearGraphLayoutNodePin,
+  createGraphLayoutSection,
   createDefaultGraphLayoutSettings,
+  deleteGraphLayoutSection,
   normalizeGraphLayoutSettings,
   setGraphLayoutNodeCollapsed,
   setGraphLayoutNodePin,
+  updateGraphLayoutSection,
   type GraphLayoutSettings,
 } from '../../../repoSettings/graphLayout/model';
+import { getUndoManager, type IUndoableAction } from '../../../undoManager';
+import { addGraphSectionIconUrls } from '../../graphLayout/message';
+import { writeIconImports, type IconImportMessageHandlers } from './iconImports';
 
-export interface GraphLayoutMessageHandlers {
+export interface GraphLayoutMessageHandlers extends IconImportMessageHandlers {
+  asWebviewUri?(uri: import('vscode').Uri): { toString(): string };
   getConfig<T>(key: string, defaultValue: T): T;
+  showWarningMessage?(
+    message: string,
+    options: { modal: boolean },
+    deleteAction: string,
+  ): Thenable<'Delete' | undefined>;
   updateConfig(key: string, value: unknown): Promise<void>;
   sendMessage(message: ExtensionToWebviewMessage): void;
 }
+
+type GraphLayoutPersistenceHandlers = Pick<
+  GraphLayoutMessageHandlers,
+  'asWebviewUri' | 'getConfig' | 'sendMessage' | 'updateConfig' | 'workspaceFolder'
+>;
 
 function readCurrentGraphLayout(handlers: Pick<GraphLayoutMessageHandlers, 'getConfig'>): GraphLayoutSettings {
   return normalizeGraphLayoutSettings(
@@ -22,14 +40,38 @@ function readCurrentGraphLayout(handlers: Pick<GraphLayoutMessageHandlers, 'getC
 }
 
 async function persistAndSendGraphLayout(
-  handlers: GraphLayoutMessageHandlers,
+  handlers: GraphLayoutPersistenceHandlers,
   graphLayout: GraphLayoutSettings,
+  options: { iconUrls?: ReadonlyMap<string, string> } = {},
 ): Promise<void> {
   await handlers.updateConfig('graphLayout', graphLayout);
   handlers.sendMessage({
     type: 'GRAPH_LAYOUT_UPDATED',
-    payload: graphLayout,
+    payload: addGraphSectionIconUrls(graphLayout, {
+      asWebviewUri: handlers.asWebviewUri
+        ? uri => handlers.asWebviewUri?.(uri) ?? uri
+        : undefined,
+      iconUrls: options.iconUrls,
+      workspaceFolder: handlers.workspaceFolder,
+    }),
   });
+}
+
+export class UpdateGraphLayoutAction implements IUndoableAction {
+  constructor(
+    readonly description: string,
+    private readonly handlers: GraphLayoutPersistenceHandlers,
+    private readonly beforeLayout: GraphLayoutSettings,
+    private readonly afterLayout: GraphLayoutSettings,
+  ) {}
+
+  async execute(): Promise<void> {
+    await persistAndSendGraphLayout(this.handlers, this.afterLayout);
+  }
+
+  async undo(): Promise<void> {
+    await persistAndSendGraphLayout(this.handlers, this.beforeLayout);
+  }
 }
 
 export async function applyGraphLayoutMessage(
@@ -63,6 +105,77 @@ export async function applyGraphLayoutMessage(
       );
 
       await persistAndSendGraphLayout(handlers, nextLayout);
+      return true;
+    }
+
+    case 'CREATE_GRAPH_LAYOUT_SECTION': {
+      const nextLayout = createGraphLayoutSection(readCurrentGraphLayout(handlers), {
+        ...message.payload,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await persistAndSendGraphLayout(handlers, nextLayout);
+      return true;
+    }
+
+    case 'UPDATE_GRAPH_LAYOUT_SECTION': {
+      const { iconImports: _iconImports, ...patch } = message.payload;
+      await writeIconImports(_iconImports, handlers);
+      const iconUrls = new Map(
+        (_iconImports ?? []).map(iconImport => [
+          iconImport.imagePath,
+          `data:image/${iconImport.imagePath.endsWith('.svg') ? 'svg+xml' : 'png'};base64,${iconImport.contentsBase64}`,
+        ]),
+      );
+      const nextLayout = updateGraphLayoutSection(readCurrentGraphLayout(handlers), {
+        ...patch,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await persistAndSendGraphLayout(handlers, nextLayout, { iconUrls });
+      return true;
+    }
+
+    case 'UPDATE_GRAPH_LAYOUT_OWNER': {
+      const currentLayout = readCurrentGraphLayout(handlers);
+      const nextLayout = assignGraphLayoutOwner(currentLayout, {
+        ...message.payload,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await getUndoManager().execute(new UpdateGraphLayoutAction(
+        'Move Graph Item',
+        handlers,
+        currentLayout,
+        nextLayout,
+      ));
+      return true;
+    }
+
+    case 'DELETE_GRAPH_LAYOUT_SECTION': {
+      const currentLayout = readCurrentGraphLayout(handlers);
+      const section = currentLayout.sections[message.payload.sectionId];
+      const label = section?.label || message.payload.sectionId;
+      const confirm = await handlers.showWarningMessage?.(
+        `Are you sure you want to delete Graph Section "${label}"?`,
+        { modal: true },
+        'Delete',
+      );
+      if (confirm !== 'Delete') {
+        return true;
+      }
+
+      const nextLayout = deleteGraphLayoutSection(currentLayout, {
+        ...message.payload,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await getUndoManager().execute(new UpdateGraphLayoutAction(
+        'Delete Graph Section',
+        handlers,
+        currentLayout,
+        nextLayout,
+      ));
       return true;
     }
 

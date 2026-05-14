@@ -103,14 +103,10 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     });
   });
 
-  it('keeps normalized graph layout state and drops invalid layout records', () => {
+  it('keeps normalized graph layout settings and drops invalid layout records', () => {
     expect(normalizePersistedSettingsShape({
       graphLayout: {
-        collapsedNodes: {
-          src: true,
-          tests: false,
-          invalid: 'yes',
-        },
+        collapsedNodes: {},
         pinnedNodes: {
           'src/a.ts': {
             nodeId: 'src/a.ts',
@@ -121,20 +117,57 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
             '2D': { x: Number.NaN, y: 20 },
           },
         },
-        sections: { ignored: true },
-        ownership: { ignored: true },
+        sections: {
+          'section-a': {
+            id: 'section-a',
+            label: 'Layer A',
+            color: '#5588aa',
+            x: 0,
+            y: 0,
+            width: 200,
+            height: 140,
+            collapsed: false,
+            updatedAt: '2026-05-07T08:01:00.000Z',
+          },
+        },
+        ownership: {
+          'src/a.ts': {
+            itemId: 'src/a.ts',
+            itemKind: 'node',
+            ownerSectionId: 'section-a',
+            updatedAt: '2026-05-07T08:02:00.000Z',
+          },
+        },
       },
       graphSectionDrafts: {},
     })).toEqual({
       graphLayout: {
-        collapsedNodes: {
-          src: true,
-          tests: false,
-        },
+        collapsedNodes: {},
         pinnedNodes: {
           'src/a.ts': {
             nodeId: 'src/a.ts',
             '2D': { x: 10, y: 20 },
+          },
+        },
+        sections: {
+          'section-a': {
+            id: 'section-a',
+            label: 'Layer A',
+            color: '#5588aa',
+            x: 0,
+            y: 0,
+            width: 200,
+            height: 140,
+            collapsed: false,
+            updatedAt: '2026-05-07T08:01:00.000Z',
+          },
+        },
+        ownership: {
+          'src/a.ts': {
+            itemId: 'src/a.ts',
+            itemKind: 'node',
+            ownerSectionId: 'section-a',
+            updatedAt: '2026-05-07T08:02:00.000Z',
           },
         },
       },

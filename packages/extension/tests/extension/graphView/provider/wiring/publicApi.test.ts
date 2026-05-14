@@ -204,7 +204,9 @@ describe('assignGraphViewProviderPublicMethods', () => {
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
         collapsedNodes: {},
+        ownership: {},
         pinnedNodes: {},
+        sections: {},
       },
     });
     expect(target._methodContainers.timeline.invalidateTimelineCache).toHaveBeenCalledTimes(1);

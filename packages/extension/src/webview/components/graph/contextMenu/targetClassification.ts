@@ -10,7 +10,13 @@ export interface ClassifiedTarget {
 }
 
 type PluginTargetType = ClassifiedTarget['targetType'];
-type SingleNodeDecision = Extract<GraphContextMenuDecision, { target: unknown }>;
+type SingleNodeDecision = Extract<GraphContextMenuDecision, {
+  kind:
+    | 'singleFileNode'
+    | 'singleFolderNode'
+    | 'singlePackageNode'
+    | 'singlePluginNode';
+}>;
 
 const SINGLE_NODE_DECISION_KINDS = new Set<SingleNodeDecision['kind']>([
   'singleFileNode',

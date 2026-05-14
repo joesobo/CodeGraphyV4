@@ -172,7 +172,9 @@ describe('graph view provider listener plugin context', () => {
       type: 'GRAPH_LAYOUT_UPDATED',
       payload: {
         collapsedNodes: {},
+        ownership: {},
         pinnedNodes: {},
+        sections: {},
       },
     });
     expect(source._sendCachedTimeline).toHaveBeenCalledOnce();

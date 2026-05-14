@@ -1,11 +1,15 @@
 import { useEffect, type MutableRefObject } from 'react';
+import type { GraphLayoutSettings } from '../../../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../../../shared/settings/physics';
+import type { FGLink, FGNode } from '../../../../model/build';
 import { initPhysics, syncPhysicsAnimation } from '../../../physics';
 import { resolvePhysicsInitAction } from '../../../physicsLifecycle/init/action';
 import type { PhysicsRuntimeRefs } from './refs';
 
 interface UsePhysicsRuntimeInitOptions extends PhysicsRuntimeRefs {
+  graphDataRef?: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
   graphMode: '2d' | '3d';
+  graphLayout?: GraphLayoutSettings;
   physicsPaused: boolean;
   physicsInitialisedRef: MutableRefObject<boolean>;
   physicsSettingsRef: MutableRefObject<IPhysicsSettings>;
@@ -14,9 +18,11 @@ interface UsePhysicsRuntimeInitOptions extends PhysicsRuntimeRefs {
 }
 
 export function usePhysicsRuntimeInit({
-  fg2dRef,
-  fg3dRef,
+	  fg2dRef,
+	  fg3dRef,
+	  graphDataRef,
   graphMode,
+  graphLayout,
   pendingThreeDimensionalInitRef,
   physicsInitialisedRef,
   physicsPaused,
@@ -48,7 +54,15 @@ export function usePhysicsRuntimeInit({
 
         physicsInitialisedRef.current = true;
         previousPhysicsRef.current = { ...physicsSettingsRef.current };
-        initPhysics(action.instance, physicsSettingsRef.current);
+        if (graphLayout) {
+          initPhysics(action.instance, physicsSettingsRef.current, {
+            graphLayout,
+            graphMode,
+            links: graphDataRef?.current.links,
+          });
+        } else {
+          initPhysics(action.instance, physicsSettingsRef.current);
+        }
         if (physicsPaused) {
           syncPhysicsAnimation(action.instance, true);
         }
@@ -64,9 +78,11 @@ export function usePhysicsRuntimeInit({
       if (frame !== null) cancelAnimationFrame(frame);
     };
   }, [
-    fg2dRef,
-    fg3dRef,
+	    fg2dRef,
+	    fg3dRef,
+	    graphDataRef,
     graphMode,
+    graphLayout,
     pendingThreeDimensionalInitRef,
     physicsInitialisedRef,
     physicsPaused,

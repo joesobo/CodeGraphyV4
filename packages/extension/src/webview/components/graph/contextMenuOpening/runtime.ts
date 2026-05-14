@@ -24,18 +24,19 @@ type GraphContextMenuRuntime = ReturnType<typeof createGraphContextMenuRuntime>;
 export interface GraphContextMenuOpeningRuntime {
   contextMenuRuntime: GraphContextMenuRuntime;
   handleBackgroundRightClick(this: void, event: MouseEvent): void;
-  handleContextMenu(this: void): void;
+  handleContextMenu(this: void, event?: ReactMouseEvent<HTMLDivElement>): void;
   handleLinkRightClick(this: void, link: FGLink, event: MouseEvent): void;
   handleMenuAction(this: void, action: GraphContextMenuAction): void;
   handleMouseDownCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
   handleMouseMoveCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
   handleMouseUpCapture(this: void, event: ReactMouseEvent<HTMLDivElement>): void;
+  handleNodeContextMenuById(this: void, nodeId: string, event: MouseEvent): void;
   handleNodeRightClick(this: void, node: FGNode, event: MouseEvent): void;
 }
 
 export interface GraphContextMenuOpeningOptions {
-  actionContext: GraphContextActionContext;
   fileInfoCacheRef: UseGraphStateResult['fileInfoCacheRef'];
+  getActionContext(): GraphContextActionContext;
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
   lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
@@ -66,7 +67,7 @@ function createGraphContextMenuOpeningDependencies({
   setTooltipData,
   stopTooltipTracking,
   tooltipTimeoutRef,
-}: Omit<GraphContextMenuOpeningOptions, 'actionContext'>): GraphContextMenuRuntimeDependencies<FGNode> {
+}: Omit<GraphContextMenuOpeningOptions, 'getActionContext'>): GraphContextMenuRuntimeDependencies<FGNode> {
   return {
     hoveredNodeRef,
     lastContainerContextMenuEventRef,
@@ -92,20 +93,28 @@ function createGraphContextMenuOpeningDependencies({
 function createGraphContextMenuOpeningHandlers(
   contextMenuRuntime: GraphContextMenuRuntime,
   interactionHandlers: GraphInteractionHandlersRuntime,
-  actionContext: GraphContextActionContext,
+  getActionContext: GraphContextMenuOpeningOptions['getActionContext'],
+  refs: GraphContextMenuOpeningOptions['refs'],
 ): Omit<GraphContextMenuOpeningRuntime, 'contextMenuRuntime'> {
+  function clearRightClickBackgroundFallback(): void {
+    contextMenuRuntime.clearRightClickFallbackTimer();
+    refs.rightMouseDownRef.current = null;
+  }
+
   return {
     handleBackgroundRightClick: event => {
       interactionHandlers.openBackgroundContextMenu(event);
     },
-    handleContextMenu: () => {
-      contextMenuRuntime.handleContextMenu();
+    handleContextMenu: (event) => {
+      contextMenuRuntime.handleContextMenu(
+        event ? interactionHandlers.getBackgroundGraphPosition(event.nativeEvent) : undefined,
+      );
     },
     handleLinkRightClick: (link, event) => {
       interactionHandlers.openEdgeContextMenu(link, event);
     },
     handleMenuAction: action => {
-      contextMenuRuntime.handleMenuAction(action, actionContext);
+      contextMenuRuntime.handleMenuAction(action, getActionContext());
     },
     handleMouseDownCapture: event => {
       contextMenuRuntime.handleMouseDownCapture({
@@ -124,7 +133,12 @@ function createGraphContextMenuOpeningHandlers(
     handleMouseUpCapture: event => {
       contextMenuRuntime.handleMouseUpCapture({ button: event.button });
     },
+    handleNodeContextMenuById: (nodeId, event) => {
+      clearRightClickBackgroundFallback();
+      interactionHandlers.openNodeContextMenu(nodeId, event);
+    },
     handleNodeRightClick: (node, event) => {
+      clearRightClickBackgroundFallback();
       interactionHandlers.openNodeContextMenu(node.id, event);
     },
   };
@@ -142,7 +156,8 @@ export function createGraphContextMenuOpeningRuntime(
     ...createGraphContextMenuOpeningHandlers(
       contextMenuRuntime,
       options.interactionHandlers,
-      options.actionContext,
+      () => options.getActionContext(),
+      options.refs,
     ),
   };
 }

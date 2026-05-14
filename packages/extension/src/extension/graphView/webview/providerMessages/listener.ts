@@ -34,6 +34,11 @@ interface GraphViewWorkspaceLike {
 
 interface GraphViewWindowLike {
   showInformationMessage(message: string): void;
+  showWarningMessage?(
+    message: string,
+    options: vscode.MessageOptions,
+    deleteAction: string,
+  ): Thenable<'Delete' | undefined>;
   showOpenDialog(
     options: vscode.OpenDialogOptions,
   ): PromiseLike<readonly vscode.Uri[] | undefined>;
@@ -115,8 +120,8 @@ export interface GraphViewProviderMessageListenerSource {
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;
   _renameFile(filePath: string): Promise<void>;
-  _createFile(directory: string): Promise<void>;
-  _createFolder(directory: string): Promise<void>;
+  _createFile(directory: string): Promise<string | void>;
+  _createFolder(directory: string): Promise<string | void>;
   _toggleFavorites(paths: string[]): Promise<void>;
   _addToExclude(patterns: string[]): Promise<void>;
   _loadAndSendData(): Promise<void>;

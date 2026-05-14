@@ -4,12 +4,14 @@ import {
   makeEdgeContextSelection,
   makeNodeContextSelection,
 } from '../../contextMenu/selection';
+import { findDeepestGraphLayoutSectionAtWorldPoint } from '../../../../../shared/settings/graphLayout';
 import { getNodeContextMenuSelection } from '../../interaction/model';
 import type { FGLink } from '../../model/build';
 import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../../support/linkTargets';
 import type { GraphInteractionHandlersDependencies } from '../handlers';
 
 export interface ContextMenuHandlers {
+  getBackgroundGraphPosition(this: void, event: MouseEvent): { x: number; y: number } | undefined;
   openBackgroundContextMenu(this: void, event: MouseEvent): void;
   openEdgeContextMenu(this: void, link: FGLink, event: MouseEvent): void;
   openNodeContextMenu(this: void, nodeId: string, event: MouseEvent): void;
@@ -44,6 +46,24 @@ export function getContextMenuPointerState(
   };
 }
 
+export function getBackgroundGraphPosition(
+  dependencies: GraphInteractionHandlersDependencies,
+  event: MouseEvent,
+): { x: number; y: number } | undefined {
+  if (dependencies.graphMode !== '2d') {
+    return undefined;
+  }
+
+  const container = dependencies.containerRef.current;
+  const graph = dependencies.fg2dRef.current;
+  if (!container || !graph?.screen2GraphCoords) {
+    return undefined;
+  }
+
+  const rect = container.getBoundingClientRect();
+  return graph.screen2GraphCoords(event.clientX - rect.left, event.clientY - rect.top);
+}
+
 function openContextMenuFromGraphCallback(
   dependencies: GraphInteractionHandlersDependencies,
   event?: MouseEvent,
@@ -69,10 +89,15 @@ export function createContextMenuHandlers(
   dependencies: GraphInteractionHandlersDependencies,
   selectionHandlers: ContextMenuSelectionHandlers,
 ): ContextMenuHandlers {
-  const openNodeContextMenu = (nodeId: string, event: MouseEvent): void => {
+  const openNodeContextMenuAtPosition = (
+    nodeId: string,
+    event: MouseEvent,
+    graphPosition?: { x: number; y: number },
+    scopedToNode = false,
+  ): void => {
     const selection = getNodeContextMenuSelection(
       nodeId,
-      dependencies.selectedNodesSetRef.current,
+      scopedToNode ? new Set() : dependencies.selectedNodesSetRef.current,
     );
 
     flushSync(() => {
@@ -82,11 +107,15 @@ export function createContextMenuHandlers(
       }
 
       dependencies.setContextSelection(
-        makeNodeContextSelection(nodeId, new Set(selection.nodeIds)),
+        makeNodeContextSelection(nodeId, new Set(selection.nodeIds), graphPosition),
       );
     });
     dependencies.lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(dependencies, event);
+  };
+
+  const openNodeContextMenu = (nodeId: string, event: MouseEvent): void => {
+    openNodeContextMenuAtPosition(nodeId, event);
   };
 
   const openEdgeContextMenu = (link: FGLink, event: MouseEvent): void => {
@@ -115,14 +144,25 @@ export function createContextMenuHandlers(
   };
 
   const openBackgroundContextMenu = (event: MouseEvent): void => {
+    const graphPosition = getBackgroundGraphPosition(dependencies, event);
+    const sectionId = dependencies.graphMode === '2d' && dependencies.graphLayout && graphPosition
+      ? findDeepestGraphLayoutSectionAtWorldPoint(dependencies.graphLayout, graphPosition)
+      : null;
+
+    if (sectionId) {
+      openNodeContextMenuAtPosition(sectionId, event, graphPosition, true);
+      return;
+    }
+
     flushSync(() => {
-      dependencies.setContextSelection(makeBackgroundContextSelection());
+      dependencies.setContextSelection(makeBackgroundContextSelection(graphPosition));
     });
     dependencies.lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(dependencies, event);
   };
 
   return {
+    getBackgroundGraphPosition: event => getBackgroundGraphPosition(dependencies, event),
     openBackgroundContextMenu,
     openEdgeContextMenu,
     openNodeContextMenu,

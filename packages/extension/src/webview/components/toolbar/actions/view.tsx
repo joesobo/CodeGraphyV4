@@ -6,6 +6,8 @@ import { GRAPH_TOOL_PANEL_BUTTONS, SYSTEM_PANEL_BUTTONS } from './model';
 import { PluginToolbarActions } from '../plugin/Actions';
 import { LayoutModePopover } from '../LayoutModePopover';
 import { NodeSizeModePopover } from '../NodeSizeModePopover';
+import { CreateToolbarAction } from './create';
+import { getGraphContextMutationAvailability } from '../../graph/contextMenu/mutationAvailability';
 
 export {
   getToolbarActionIconPath,
@@ -21,21 +23,34 @@ export function ToolbarActions(): React.ReactElement {
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
+  const graphMode = useGraphStore(s => s.graphMode);
+  const currentCommitSha = useGraphStore(s => s.currentCommitSha);
+  const timelineActive = useGraphStore(s => s.timelineActive);
+  const timelineCommits = useGraphStore(s => s.timelineCommits);
+  const mutationAvailability = getGraphContextMutationAvailability({
+    currentCommitSha,
+    timelineActive,
+    timelineCommits,
+  });
 
   return (
     <div className="flex flex-col items-center gap-2" data-testid="toolbar-actions">
       <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-lifecycle-group">
-      <IndexToolbarAction
-        graphHasIndex={graphHasIndex}
-        graphIndexFreshness={graphIndexFreshness}
-        graphIndexDetail={graphIndexDetail}
-        graphIsIndexing={graphIsIndexing}
-      />
+        <IndexToolbarAction
+          graphHasIndex={graphHasIndex}
+          graphIndexFreshness={graphIndexFreshness}
+          graphIndexDetail={graphIndexDetail}
+          graphIsIndexing={graphIsIndexing}
+        />
       </div>
       <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />
       <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-graph-tools-group">
         <LayoutModePopover />
         <NodeSizeModePopover />
+        <CreateToolbarAction
+          graphMode={graphMode}
+          mutationAvailability={mutationAvailability}
+        />
         <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
         <ToolbarPanelButtons
           activePanel={activePanel}

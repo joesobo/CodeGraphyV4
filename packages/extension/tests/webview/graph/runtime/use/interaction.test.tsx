@@ -6,6 +6,7 @@ import type {
 } from '../../../../../src/webview/components/graph/contextMenu/contracts';
 import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { useGraphInteractionRuntime } from '../../../../../src/webview/components/graph/runtime/use/interaction';
+import type { GraphLayoutSettings } from '../../../../../src/shared/settings/graphLayout';
 
 const interactionRuntimeHarness = vi.hoisted(() => ({
   applyCursorToGraphSurface: vi.fn(),
@@ -83,6 +84,59 @@ function createSelection(targets: string[]): GraphContextSelection {
   return {
     kind: targets.length > 0 ? 'node' : 'background',
     targets,
+  };
+}
+
+function createNestedGraphLayout(nodeOwner: string | null = null): GraphLayoutSettings {
+  return {
+    collapsedNodes: {},
+    pinnedNodes: {},
+    sections: {
+      'section-parent': {
+        id: 'section-parent',
+        label: 'Parent',
+        color: '#60a5fa',
+        x: 0,
+        y: 0,
+        width: 200,
+        height: 200,
+        collapsed: false,
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+      'section-child': {
+        id: 'section-child',
+        label: 'Child',
+        color: '#22c55e',
+        x: 20,
+        y: 20,
+        width: 80,
+        height: 80,
+        collapsed: false,
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+    },
+    ownership: {
+      'section-parent': {
+        itemId: 'section-parent',
+        itemKind: 'section',
+        ownerSectionId: null,
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+      'section-child': {
+        itemId: 'section-child',
+        itemKind: 'section',
+        ownerSectionId: 'section-parent',
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+      ...(nodeOwner === undefined ? {} : {
+        'src/app.ts': {
+          itemId: 'src/app.ts',
+          itemKind: 'node' as const,
+          ownerSectionId: nodeOwner,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      }),
+    },
   };
 }
 
@@ -215,18 +269,18 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     );
 
     result.current.handleMouseDownCapture({
-      button: 1,
+      button: 2,
       clientX: 10,
       clientY: 20,
       ctrlKey: true,
       preventDefault: vi.fn(),
     } as never);
     result.current.handleMouseMoveCapture({
-      clientX: 30,
-      clientY: 40,
+      clientX: 11,
+      clientY: 20,
       preventDefault: vi.fn(),
     } as never);
-    result.current.handleMouseUpCapture({ button: 1, preventDefault: vi.fn() } as never);
+    result.current.handleMouseUpCapture({ button: 2, preventDefault: vi.fn() } as never);
     result.current.handleNodeRightClick(createNode('src/node.ts'), { type: 'contextmenu' } as never);
     result.current.handleBackgroundRightClick({ type: 'contextmenu' } as never);
     result.current.handleLinkRightClick(createLink('edge-a'), { type: 'contextmenu' } as never);
@@ -249,19 +303,17 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     result.current.handleMenuAction(secondAction);
     result.current.handleEngineStop();
 
-    expect(contextMenuRuntime.handleMouseDownCapture).toHaveBeenCalledWith(expect.objectContaining({
-      button: 1,
+    expect(contextMenuRuntime.handleMouseDownCapture).toHaveBeenCalledWith({
+      button: 2,
       clientX: 10,
       clientY: 20,
       ctrlKey: true,
-    }));
-    expect(contextMenuRuntime.handleMouseMoveCapture).toHaveBeenCalledWith(expect.objectContaining({
-      clientX: 30,
-      clientY: 40,
-    }));
-    expect(contextMenuRuntime.handleMouseUpCapture).toHaveBeenCalledWith(expect.objectContaining({
-      button: 1,
-    }));
+    });
+    expect(contextMenuRuntime.handleMouseMoveCapture).toHaveBeenCalledWith({
+      clientX: 11,
+      clientY: 20,
+    });
+    expect(contextMenuRuntime.handleMouseUpCapture).toHaveBeenCalledWith({ button: 2 });
     expect(interactionHandlers.openNodeContextMenu).toHaveBeenCalledWith('src/node.ts', { type: 'contextmenu' });
     expect(interactionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith({ type: 'contextmenu' });
     expect(interactionHandlers.openEdgeContextMenu).toHaveBeenCalledWith(createLink('edge-a'), { type: 'contextmenu' });
@@ -279,6 +331,73 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       targetIds: ['src/two.ts'],
     }));
     expect(interactionRuntimeHarness.postMessage).toHaveBeenCalledWith({ type: 'PHYSICS_STABILIZED' });
+  });
+
+  it('uses the live context selection when a section menu action runs before React rerenders', () => {
+    const interactionHandlers = createInteractionHandlers();
+    const contextMenuRuntime = createContextMenuRuntime();
+    const tooltipRuntime = createTooltipRuntime();
+    const setContextSelection = vi.fn();
+
+    interactionRuntimeHarness.createGraphInteractionHandlers.mockReturnValue(interactionHandlers);
+    interactionRuntimeHarness.createGraphContextMenuRuntime.mockReturnValue(contextMenuRuntime);
+    interactionRuntimeHarness.useGraphTooltip.mockReturnValue(tooltipRuntime);
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+
+    const { result } = renderHook(() => useGraphInteractionRuntime({
+      dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
+      fileInfoCacheRef: { current: new Map() } as never,
+      graphContextSelection: createSelection([]),
+      graphCursorRef: { current: 'default' as never },
+      graphDataRef: { current: { links: [], nodes: [] } } as never,
+      graphLayout: createNestedGraphLayout(undefined),
+      graphMode: '2d',
+      highlightedNeighborsRef: { current: new Set() },
+      highlightedNodeRef: { current: null },
+      isMacPlatform: false,
+      lastClickRef: { current: null },
+      lastContainerContextMenuEventRef: { current: 0 },
+      lastGraphContextEventRef: { current: 0 },
+      refs: {
+        containerRef: { current: document.createElement('div') },
+        fg2dRef: { current: undefined },
+        fg3dRef: { current: undefined },
+        rightClickFallbackTimerRef: { current: null },
+        rightMouseDownRef: { current: null },
+        selectedNodesSetRef: { current: new Set() },
+      },
+      setContextSelection,
+      setHighlightVersion: vi.fn(),
+      setSelectedNodes: vi.fn(),
+      timelineActive: false,
+    }));
+
+    const interactionOptions = interactionRuntimeHarness.createGraphInteractionHandlers.mock.calls[0]?.[0];
+    interactionOptions.setContextSelection({
+      kind: 'node',
+      targets: ['section-parent'],
+      graphPosition: { x: 20, y: 20 },
+    });
+    const action: GraphContextMenuAction = {
+      action: 'createGraphSection',
+      kind: 'builtin',
+    };
+
+    result.current.handleMenuAction(action);
+
+    expect(setContextSelection).toHaveBeenCalledWith({
+      kind: 'node',
+      targets: ['section-parent'],
+      graphPosition: { x: 20, y: 20 },
+    });
+    expect(contextMenuRuntime.handleMenuAction).toHaveBeenCalledWith(action, expect.objectContaining({
+      ownerSectionId: 'section-parent',
+      primaryTargetId: 'section-parent',
+      selectionKind: 'node',
+      targetIds: ['section-parent'],
+    }));
   });
 
   it('refreshes delegated handlers when runtime dependencies change on rerender', () => {
@@ -342,6 +461,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       clientX: 5,
       clientY: 6,
       ctrlKey: false,
+      preventDefault: vi.fn(),
     } as never);
     result.current.handleContextMenu();
 
@@ -468,5 +588,163 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     frameCallbacks[0]?.(0);
 
     expect(interactionRuntimeHarness.applyCursorToGraphSurface).not.toHaveBeenCalled();
+  });
+
+  it('assigns a dragged node to the deepest expanded Graph Section at the drop point', () => {
+    const interactionHandlers = createInteractionHandlers();
+    const contextMenuRuntime = createContextMenuRuntime();
+    const tooltipRuntime = createTooltipRuntime();
+
+    interactionRuntimeHarness.createGraphInteractionHandlers.mockReturnValue(interactionHandlers);
+    interactionRuntimeHarness.createGraphContextMenuRuntime.mockReturnValue(contextMenuRuntime);
+    interactionRuntimeHarness.useGraphTooltip.mockReturnValue(tooltipRuntime);
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+
+    const { result } = renderHook(() => useGraphInteractionRuntime({
+      dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
+      fileInfoCacheRef: { current: new Map() } as never,
+      graphContextSelection: createSelection([]),
+      graphCursorRef: { current: 'default' as never },
+      graphDataRef: { current: { links: [], nodes: [] } } as never,
+      graphLayout: createNestedGraphLayout(undefined),
+      graphMode: '2d',
+      highlightedNeighborsRef: { current: new Set() },
+      highlightedNodeRef: { current: null },
+      isMacPlatform: false,
+      lastClickRef: { current: null },
+      lastContainerContextMenuEventRef: { current: 0 },
+      lastGraphContextEventRef: { current: 0 },
+      refs: {
+        containerRef: { current: document.createElement('div') },
+        fg2dRef: { current: undefined },
+        fg3dRef: { current: undefined },
+        rightClickFallbackTimerRef: { current: null },
+        rightMouseDownRef: { current: null },
+        selectedNodesSetRef: { current: new Set() },
+      },
+      setContextSelection: vi.fn(),
+      setHighlightVersion: vi.fn(),
+      setSelectedNodes: vi.fn(),
+      timelineActive: false,
+    }));
+
+    result.current.handleNodeDragEnd({ id: 'src/app.ts', x: 40, y: 40 } as FGNode);
+
+    expect(interactionRuntimeHarness.postMessage).toHaveBeenCalledWith({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'src/app.ts',
+        itemKind: 'node',
+        ownerSectionId: 'section-child',
+      },
+    });
+  });
+
+  it('moves selected peer nodes while dragging a selected node', () => {
+    const interactionHandlers = createInteractionHandlers();
+    const contextMenuRuntime = createContextMenuRuntime();
+    const tooltipRuntime = createTooltipRuntime();
+
+    interactionRuntimeHarness.createGraphInteractionHandlers.mockReturnValue(interactionHandlers);
+    interactionRuntimeHarness.createGraphContextMenuRuntime.mockReturnValue(contextMenuRuntime);
+    interactionRuntimeHarness.useGraphTooltip.mockReturnValue(tooltipRuntime);
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+
+    const primary = { id: 'src/app.ts', x: 15, y: 12 } as FGNode;
+    const sibling = { id: 'src/util.ts', x: 30, y: 40 } as FGNode;
+    const { result } = renderHook(() => useGraphInteractionRuntime({
+      dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
+      fileInfoCacheRef: { current: new Map() } as never,
+      graphContextSelection: createSelection(['src/app.ts', 'src/util.ts']),
+      graphCursorRef: { current: 'default' as never },
+      graphDataRef: { current: { links: [], nodes: [primary, sibling] } } as never,
+      graphLayout: createNestedGraphLayout(undefined),
+      graphMode: '2d',
+      highlightedNeighborsRef: { current: new Set() },
+      highlightedNodeRef: { current: null },
+      isMacPlatform: false,
+      lastClickRef: { current: null },
+      lastContainerContextMenuEventRef: { current: 0 },
+      lastGraphContextEventRef: { current: 0 },
+      refs: {
+        containerRef: { current: document.createElement('div') },
+        fg2dRef: { current: undefined },
+        fg3dRef: { current: undefined },
+        rightClickFallbackTimerRef: { current: null },
+        rightMouseDownRef: { current: null },
+        selectedNodesSetRef: { current: new Set(['src/app.ts', 'src/util.ts']) },
+      },
+      setContextSelection: vi.fn(),
+      setHighlightVersion: vi.fn(),
+      setSelectedNodes: vi.fn(),
+      timelineActive: false,
+    }));
+
+    result.current.handleNodeDrag(primary, { x: 5, y: -3 });
+
+    expect(primary.isDragging).toBe(true);
+    expect(sibling).toMatchObject({
+      fx: 35,
+      fy: 37,
+      isDragging: true,
+      x: 35,
+      y: 37,
+    });
+  });
+
+  it('removes a dragged node from its Graph Section when dropped outside every expanded frame', () => {
+    const interactionHandlers = createInteractionHandlers();
+    const contextMenuRuntime = createContextMenuRuntime();
+    const tooltipRuntime = createTooltipRuntime();
+
+    interactionRuntimeHarness.createGraphInteractionHandlers.mockReturnValue(interactionHandlers);
+    interactionRuntimeHarness.createGraphContextMenuRuntime.mockReturnValue(contextMenuRuntime);
+    interactionRuntimeHarness.useGraphTooltip.mockReturnValue(tooltipRuntime);
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+
+    const { result } = renderHook(() => useGraphInteractionRuntime({
+      dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
+      fileInfoCacheRef: { current: new Map() } as never,
+      graphContextSelection: createSelection([]),
+      graphCursorRef: { current: 'default' as never },
+      graphDataRef: { current: { links: [], nodes: [] } } as never,
+      graphLayout: createNestedGraphLayout('section-child'),
+      graphMode: '2d',
+      highlightedNeighborsRef: { current: new Set() },
+      highlightedNodeRef: { current: null },
+      isMacPlatform: false,
+      lastClickRef: { current: null },
+      lastContainerContextMenuEventRef: { current: 0 },
+      lastGraphContextEventRef: { current: 0 },
+      refs: {
+        containerRef: { current: document.createElement('div') },
+        fg2dRef: { current: undefined },
+        fg3dRef: { current: undefined },
+        rightClickFallbackTimerRef: { current: null },
+        rightMouseDownRef: { current: null },
+        selectedNodesSetRef: { current: new Set() },
+      },
+      setContextSelection: vi.fn(),
+      setHighlightVersion: vi.fn(),
+      setSelectedNodes: vi.fn(),
+      timelineActive: false,
+    }));
+
+    result.current.handleNodeDragEnd({ id: 'src/app.ts', x: -20, y: -20 } as FGNode);
+
+    expect(interactionRuntimeHarness.postMessage).toHaveBeenCalledWith({
+      type: 'UPDATE_GRAPH_LAYOUT_OWNER',
+      payload: {
+        itemId: 'src/app.ts',
+        itemKind: 'node',
+        ownerSectionId: null,
+      },
+    });
   });
 });

@@ -1,5 +1,11 @@
-import type { ReactElement } from 'react';
+import { useRef, type ReactElement } from 'react';
 import type { ThemeKind } from '../../../theme/useTheme';
+import type { LegendIconImport } from '../../../../shared/protocol/webviewToExtension';
+import {
+  getGraphLayoutPinCoordinate,
+  type GraphLayoutSection,
+  type GraphLayoutSectionUpdate,
+} from '../../../../shared/settings/graphLayout';
 import type { GraphAppearance } from '../appearance/model';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { GraphViewStoreState } from '../view/store';
@@ -7,10 +13,15 @@ import type { UseGraphCallbacksResult } from '../rendering/useGraphCallbacks';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
 import type { UseGraphStateResult } from '../runtime/use/state';
+import type { FGNode } from '../model/build';
+import type { SectionFrameNodePosition } from '../sectionFrames/model';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
+import { postNodeDragEndMessages } from '../runtime/use/interaction/nodeDrag';
 import { Viewport } from './view';
 import { useGraphViewportModel } from './model';
+import { postMessage } from '../../../vscodeApi';
+import { graphStore } from '../../../store/state';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -44,6 +55,7 @@ function buildRenderingRuntimeOptions({
     getLinkParticles: callbacks.getLinkParticles,
     getParticleColor: callbacks.getParticleColor,
     graphDataRef: graphState.graphDataRef,
+    graphLayout: viewState.graphLayout,
     graphLayoutKey,
     graphMode: viewState.graphMode,
     highlightVersion: graphState.highlightVersion,
@@ -93,6 +105,43 @@ function useGraphViewportModelOptions({
   });
 }
 
+function getPinnedSectionIds(
+  sections: readonly GraphLayoutSection[],
+  pinnedNodes: GraphViewStoreState['graphLayout']['pinnedNodes'],
+): Set<string> {
+  const pinnedSectionIds = new Set<string>();
+  for (const section of sections) {
+    if (getGraphLayoutPinCoordinate(pinnedNodes[section.id], '2d')) {
+      pinnedSectionIds.add(section.id);
+    }
+  }
+
+  return pinnedSectionIds;
+}
+
+function getSectionFrameNodePositions(
+  nodes: readonly FGNode[],
+): Map<string, SectionFrameNodePosition> {
+  const positions = new Map<string, SectionFrameNodePosition>();
+
+  for (const node of nodes) {
+    if (!node.isGraphSection || node.isCollapsedGraphSection) {
+      continue;
+    }
+
+    positions.set(node.id, node);
+  }
+
+  return positions;
+}
+
+function shouldPublishGraphViewportScale(
+  previous: number | null,
+  next: number,
+): boolean {
+  return previous === null || Math.abs(previous - next) >= 0.01;
+}
+
 export function GraphViewportShell({
   appearance,
   callbacks,
@@ -104,6 +153,7 @@ export function GraphViewportShell({
   theme,
   viewState,
 }: GraphViewportShellProps): ReactElement {
+  const lastPublishedViewportScaleRef = useRef<number | null>(null);
   const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
     appearance,
     callbacks,
@@ -139,6 +189,52 @@ export function GraphViewportShell({
     viewState,
   });
 
+  function handleUpdateSection(
+    sectionId: string,
+    updates: GraphLayoutSectionUpdate,
+    iconImports?: LegendIconImport[],
+  ): void {
+    postMessage({
+      type: 'UPDATE_GRAPH_LAYOUT_SECTION',
+      payload: iconImports?.length
+        ? { sectionId, updates, iconImports }
+        : { sectionId, updates },
+    });
+  }
+
+  function handleSectionDragEnd(sectionId: string): void {
+    const node = graphState.graphDataRef.current.nodes.find(candidate => candidate.id === sectionId);
+    if (!node) {
+      return;
+    }
+
+    postNodeDragEndMessages(
+      node,
+      viewState.graphLayout,
+      viewState.graphMode,
+      viewState.timelineActive,
+      graphState.graphDataRef.current.nodes,
+    );
+  }
+
+  const sectionFrames = viewState.graphMode === '2d' && !viewState.timelineActive
+    ? Object.values(viewState.graphLayout.sections)
+    : [];
+  const pinnedSectionIds = getPinnedSectionIds(sectionFrames, viewState.graphLayout.pinnedNodes);
+  const sectionFrameNodePositions = getSectionFrameNodePositions(graphState.graphData.nodes);
+  const publishGraphViewportScale = (globalScale: number): void => {
+    if (viewState.graphMode !== '2d' || !Number.isFinite(globalScale) || globalScale <= 0) {
+      return;
+    }
+
+    if (!shouldPublishGraphViewportScale(lastPublishedViewportScaleRef.current, globalScale)) {
+      return;
+    }
+
+    lastPublishedViewportScaleRef.current = globalScale;
+    graphStore.getState().setGraphViewportScale(globalScale);
+  };
+
   return (
     <Viewport
       canvasBackgroundColor={viewportModel.canvasBackgroundColor}
@@ -155,6 +251,16 @@ export function GraphViewportShell({
       handleMouseUpCapture={interactions.handleMouseUpCapture}
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
+      sectionFrameGraph={graphState.fg2dRef.current}
+      sectionFrameOwnership={viewState.graphLayout.ownership}
+      sectionNodePositions={sectionFrameNodePositions}
+      pinnedSectionIds={pinnedSectionIds}
+      sectionFrames={sectionFrames}
+      onOpenSectionContextMenu={(sectionId, event) => {
+        interactions.handleNodeContextMenuById(sectionId, event.nativeEvent);
+      }}
+      onSectionDragEnd={handleSectionDragEnd}
+      onUpdateSection={handleUpdateSection}
       surface2dProps={{
         fg2dRef: graphState.fg2dRef,
         getArrowColor: callbacks.getArrowColor,
@@ -166,7 +272,10 @@ export function GraphViewportShell({
         linkCanvasObject: callbacks.linkCanvasObject,
         nodeCanvasObject: callbacks.nodeCanvasObject,
         nodePointerAreaPaint: callbacks.nodePointerAreaPaint,
-        onRenderFramePost: viewportRuntime.renderPluginOverlays,
+        onRenderFramePost: (ctx, globalScale) => {
+          publishGraphViewportScale(globalScale);
+          viewportRuntime.renderPluginOverlays(ctx, globalScale);
+        },
         particleSize: viewState.particleSize,
         particleSpeed: viewState.particleSpeed,
         sharedProps: viewportModel.sharedProps,

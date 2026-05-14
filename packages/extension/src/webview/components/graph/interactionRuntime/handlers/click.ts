@@ -95,6 +95,8 @@ export function createClickHandlers(
       metaKey: event.metaKey,
       clientX: event.clientX,
       clientY: event.clientY,
+      isCollapsedGraphSection: node.isCollapsedGraphSection,
+      isGraphSection: node.isGraphSection,
       isMacPlatform: dependencies.isMacPlatform,
       selectedNodeIds: dependencies.selectedNodesSetRef.current,
       lastClick: dependencies.lastClickRef.current,
