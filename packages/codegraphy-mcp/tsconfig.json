@@ -9,7 +9,12 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "vitest/globals"],
+    "baseUrl": ".",
+    "paths": {
+      "@codegraphy/core": ["../core/src/index.ts"],
+      "@codegraphy/plugin-api": ["../plugin-api/src/index.ts"]
+    }
   },
   "include": [
     "src/**/*.ts",

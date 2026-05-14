@@ -2,6 +2,7 @@ import { runListCommand } from '../list/command';
 import { runMcpServer } from '../mcp/server';
 import { runIndexCommand } from '../index/command';
 import { runOpenCommand } from '../open/command';
+import { runPluginsCommand } from '../plugins/command';
 import { runSetupCommand } from '../setup/command';
 import type { CliCommand } from './parse';
 
@@ -21,6 +22,7 @@ function createHelpResult(): CommandExecutionResult {
       '  codegraphy list',
       '  codegraphy open <repo>',
       '  codegraphy index',
+      '  codegraphy plugins <refresh|add|list|enable|disable>',
       '  codegraphy mcp',
     ].join('\n'),
   };
@@ -36,6 +38,8 @@ export async function runCliCommand(command: CliCommand): Promise<CommandExecuti
       return runOpenCommand(command.repoPath);
     case 'index':
       return runIndexCommand();
+    case 'plugins':
+      return runPluginsCommand(command);
     case 'mcp':
       await runMcpServer();
       return { exitCode: 0, output: '' };

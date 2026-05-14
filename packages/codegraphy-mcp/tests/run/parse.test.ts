@@ -15,6 +15,34 @@ describe('run/parse', () => {
     expect(parseCliCommand(['index'])).toEqual({ name: 'index' });
   });
 
+  it('parses plugin cache and workspace commands', () => {
+    expect(parseCliCommand(['plugins', 'refresh'])).toEqual({
+      name: 'plugins',
+      action: 'refresh',
+    });
+    expect(parseCliCommand(['plugins', 'add', 'private-plugin'])).toEqual({
+      name: 'plugins',
+      action: 'add',
+      packageName: 'private-plugin',
+    });
+    expect(parseCliCommand(['plugins', 'enable', '@codegraphy/plugin-python', '/workspace/project'])).toEqual({
+      name: 'plugins',
+      action: 'enable',
+      packageName: '@codegraphy/plugin-python',
+      workspacePath: '/workspace/project',
+    });
+    expect(parseCliCommand(['plugins', 'disable', '@codegraphy/plugin-python'])).toEqual({
+      name: 'plugins',
+      action: 'disable',
+      packageName: '@codegraphy/plugin-python',
+    });
+    expect(parseCliCommand(['plugins', 'list', '/workspace/project'])).toEqual({
+      name: 'plugins',
+      action: 'list',
+      workspacePath: '/workspace/project',
+    });
+  });
+
   it('does not parse old status and reindex commands', () => {
     expect(parseCliCommand(['status', '/repo'])).toEqual({ name: 'help' });
     expect(parseCliCommand(['reindex', '/repo'])).toEqual({ name: 'help' });
