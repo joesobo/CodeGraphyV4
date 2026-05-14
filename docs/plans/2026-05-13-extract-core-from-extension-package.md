@@ -998,6 +998,12 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Moved orchestration unit coverage from the extension package to the core package.
   - Kept VS Code-specific warning UI, workspace root lookup, and persistence wiring in extension adapters.
   - Validation: `pnpm --filter @codegraphy/core typecheck`, targeted core workspace analysis tests, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension analysis/service tests.
+- 2026-05-14: Step 3 fifth slice completed: Tree-sitter Analysis moved into `@codegraphy/core`.
+  - Moved the Tree-sitter plugin wrapper, parser runtime, language catalog, C# pre-analysis index, path host, and per-language analyzers into the core package.
+  - Moved Tree-sitter runtime unit coverage from the extension package to the core package.
+  - Added Tree-sitter parser packages to `@codegraphy/core` dependencies while keeping VSIX vendoring in the extension build scripts.
+  - Kept the VS Code extension Tree-sitter plugin and Git history path-host imports as adapter exports over `@codegraphy/core`.
+  - Validation: `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/treeSitter`, `pnpm --filter @codegraphy/core build`, and `pnpm --filter @codegraphy/extension typecheck`.
 
 ### Step 1: Package Identity Groundwork
 

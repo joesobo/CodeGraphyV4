@@ -1,0 +1,74 @@
+import type Parser from 'tree-sitter';
+import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import { analyzeCFile } from './analyzeC/file';
+import { analyzeCppFile } from './analyzeCpp/file';
+import { analyzeCSharpFile } from './analyzeCSharp/file';
+import { analyzeDartFile } from './analyzeDart/file';
+import { analyzeGoFile } from './analyzeGo/file';
+import { analyzeHaskellFile } from './analyzeHaskell/file';
+import { analyzeJavaFile } from './analyzeJava/file';
+import { analyzeJavaScriptFamilyFile } from './analyzeJavaScript/file';
+import { analyzeKotlinFile } from './analyzeKotlin/file';
+import { analyzeLuaFile } from './analyzeLua/file';
+import { analyzePhpFile } from './analyzePhp/file';
+import { analyzePythonFile } from './analyzePython/file';
+import { analyzeRubyFile } from './analyzeRuby/file';
+import { analyzeRustFile } from './analyzeRust/file';
+import { analyzeSwiftFile } from './analyzeSwift/file';
+import {
+  createTreeSitterRuntime,
+} from './languages/parser';
+
+type TreeSitterFileAnalyzer = (
+  filePath: string,
+  tree: Parser.Tree,
+  workspaceRoot: string,
+) => IFileAnalysisResult | null;
+
+const TREE_SITTER_FILE_ANALYZERS: Record<string, TreeSitterFileAnalyzer> = {
+  'c': analyzeCFile,
+  cpp: analyzeCppFile,
+  csharp: analyzeCSharpFile,
+  dart: analyzeDartFile,
+  go: analyzeGoFile,
+  haskell: analyzeHaskellFile,
+  java: analyzeJavaFile,
+  javascript: analyzeJavaScriptFamilyFile,
+  kotlin: analyzeKotlinFile,
+  lua: analyzeLuaFile,
+  php: analyzePhpFile,
+  python: analyzePythonFile,
+  ruby: analyzeRubyFile,
+  rust: analyzeRustFile,
+  swift: analyzeSwiftFile,
+  tsx: analyzeJavaScriptFamilyFile,
+  typescript: analyzeJavaScriptFamilyFile,
+};
+
+export async function analyzeFileWithTreeSitter(
+  filePath: string,
+  content: string,
+  workspaceRoot: string,
+): Promise<IFileAnalysisResult | null> {
+  const runtime = await createTreeSitterRuntime(filePath);
+  if (!runtime) {
+    return null;
+  }
+
+  const tree = runtime.parser.parse(content);
+  return analyzeTreeSitterTree(filePath, tree, workspaceRoot, runtime.languageKind);
+}
+
+export function analyzeTreeSitterTree(
+  filePath: string,
+  tree: Parser.Tree,
+  workspaceRoot: string,
+  languageKind: string,
+): IFileAnalysisResult | null {
+  const analyzeLanguage = TREE_SITTER_FILE_ANALYZERS[languageKind];
+  if (!analyzeLanguage) {
+    return null;
+  }
+
+  return analyzeLanguage(filePath, tree, workspaceRoot);
+}

@@ -8,6 +8,7 @@ This package is the headless core that the VS Code extension, MCP server, and CL
 
 - CodeGraphy Workspace paths: resolve `.codegraphy/settings.json` and `.codegraphy/graph.lbug` for any folder path.
 - File Discovery: discover analyzable files and directories in any CodeGraphy Workspace without VS Code APIs.
+- Tree-sitter Analysis: parse supported languages and produce file, symbol, import, call, inherit, reference, and type-import relationships.
 - File Analysis: run cache-aware per-file plugin analysis and project file relationships without VS Code APIs.
 - Workspace Analysis: orchestrate discovery, pre-analysis hooks, file analysis, cache updates, and graph rebuilds through headless dependencies.
 - Graph Projection: build file, package, folder, and symbol Relationship Graph nodes and edges from analysis results.
