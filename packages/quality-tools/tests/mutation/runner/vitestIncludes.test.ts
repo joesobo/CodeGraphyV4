@@ -170,6 +170,19 @@ describe('resolveScopedVitestIncludes', () => {
     expect(includes).toContain('packages/extension/tests/webview/graph/runtime/use/graph/interaction.test.tsx');
   });
 
+  it('includes ancestor feature tests for source modules split below a tested feature file', () => {
+    const includes = resolveScopedVitestIncludes(
+      target({
+        absolutePath: '/repo/packages/extension/src/webview/components/graph/runtime/physics/member/simulation/circleCollision.ts',
+        kind: 'file',
+        packageRelativePath: 'src/webview/components/graph/runtime/physics/member/simulation/circleCollision.ts',
+        relativePath: 'packages/extension/src/webview/components/graph/runtime/physics/member/simulation/circleCollision.ts',
+      }),
+    );
+
+    expect(includes).toContain('packages/extension/tests/webview/graph/runtime/physics.test.ts');
+  });
+
   it('returns undefined when the target is outside src', () => {
     expect(
       resolveScopedVitestIncludes(
