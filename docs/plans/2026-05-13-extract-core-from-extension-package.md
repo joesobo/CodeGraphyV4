@@ -971,6 +971,12 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Repointed workspace package dependencies and imports to `@codegraphy/plugin-api`.
   - Updated release target discovery so `core` resolves to the npm `@codegraphy/core` package and `extension` / `vsix` / `marketplace` resolves to the VSIX release.
   - Validation: `node --test tests/release/releaseScript.test.mjs`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core build`, `pnpm run typecheck:plugins`, `pnpm --filter @codegraphy/mcp test`, and targeted extension import-analysis tests.
+- 2026-05-14: Step 2 core Graph Cache and Graph Query API completed.
+  - Moved Graph Query execution into `@codegraphy/core` and removed the duplicate extension-local Graph Query implementation.
+  - Moved workspace Graph Cache path/status/storage contracts into `@codegraphy/core`.
+  - Moved LadybugDB Graph Cache unit coverage from the extension package to the core package.
+  - Kept the VS Code extension as an adapter over `@codegraphy/core` for Graph Query and Graph Cache storage.
+  - Validation: `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, targeted extension Graph Query/agent bridge/public API tests, and targeted extension pipeline cache/lifecycle tests.
 
 ### Step 1: Package Identity Groundwork
 

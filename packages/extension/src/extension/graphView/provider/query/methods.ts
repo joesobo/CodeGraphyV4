@@ -1,5 +1,5 @@
-import type { GraphQueryRequest, GraphQueryResult } from '../../../../core/graphQuery';
-import { executeGraphQuery } from '../../../../core/graphQuery';
+import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy/core';
+import { executeGraphQuery } from '@codegraphy/core';
 import type { IAnalysisRelation, IAnalysisSymbol } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 

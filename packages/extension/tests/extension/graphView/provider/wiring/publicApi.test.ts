@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { GraphQueryRequest } from '../../../../../src/core/graphQuery';
+import type { GraphQueryRequest } from '@codegraphy/core';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import {
   assignGraphViewProviderPublicMethods,

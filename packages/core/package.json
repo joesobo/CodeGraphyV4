@@ -31,6 +31,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/plugin-api": "workspace:*"
+    "@codegraphy/plugin-api": "workspace:*",
+    "@ladybugdb/core": "^0.15.3"
   }
 }

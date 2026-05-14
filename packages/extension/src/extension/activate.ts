@@ -7,7 +7,7 @@ import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed
 import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
 import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
 import { createCodeGraphyAgentUriHandler } from './agentBridge/uri';
-import type { GraphQueryRequest, GraphQueryResult } from '../core/graphQuery';
+import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy/core';
 import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
