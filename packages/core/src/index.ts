@@ -160,6 +160,23 @@ export type {
   GraphCacheStatusDependencies,
 } from './graphCache/status';
 export { readGraphCacheStatus } from './graphCache/status';
+export { createTreeSitterPlugin } from './treeSitter/plugin';
+export { analyzeFileWithTreeSitter } from './treeSitter/runtime/analyze';
+export { preAnalyzeCSharpTreeSitterFiles } from './treeSitter/runtime/csharpIndex';
+export {
+  TREE_SITTER_SOURCE_IDS,
+  TREE_SITTER_SUPPORTED_EXTENSIONS,
+} from './treeSitter/runtime/languages';
+export { resolveTreeSitterImportPath } from './treeSitter/runtime/resolve';
+export {
+  treeSitterPathExists,
+  treeSitterPathIsDirectory,
+  treeSitterPathIsFile,
+  treeSitterReadDirectory,
+  treeSitterReadTextFile,
+  withTreeSitterPathHost,
+} from './treeSitter/runtime/pathHost';
+export type { TreeSitterPathHost } from './treeSitter/runtime/pathHost';
 export {
   getCodeGraphyDirectoryPath,
   getGraphCachePath,
