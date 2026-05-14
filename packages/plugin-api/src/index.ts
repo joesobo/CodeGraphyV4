@@ -43,6 +43,8 @@ export type {
   IGraphEdgeSource,
   IGraphData,
   NodeType,
+  IGraphNodeRange,
+  IGraphNodeSymbolMetadata,
 } from './graph';
 
 // Decorations

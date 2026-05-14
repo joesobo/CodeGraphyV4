@@ -1,4 +1,4 @@
-import type { GraphQueryRequest, GraphQueryResult } from '../../../core/graphQuery';
+import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy/core';
 
 export type CodeGraphyAgentUriStatus =
   | 'failed'
