@@ -30,7 +30,11 @@ describe('directIncludes', () => {
       'packages/extension/tests/extension.graphViewProvider.mutations.test.ts',
       'packages/extension/tests/extension.graphViewProvider.mutations.test.tsx',
       'packages/extension/tests/extension/graphViewProviderRule.test.ts',
-      'packages/extension/tests/extension/graphViewProviderRule.test.tsx'
+      'packages/extension/tests/extension/graphViewProviderRule.test.tsx',
+      'packages/extension/tests/extension.test.ts',
+      'packages/extension/tests/extension.test.tsx',
+      'packages/extension/tests/extension.mutations.test.ts',
+      'packages/extension/tests/extension.mutations.test.tsx'
     ]);
   });
 });
