@@ -53,7 +53,7 @@ export function resolveGraphContextActionContext(
     ...(options.graphLayout ? { graphLayout: options.graphLayout } : {}),
     graphPosition: selection.graphPosition,
     graphViewportScale: options.graphViewportScale,
-    mutationDirectory: resolveMutationDirectory(primaryTargetId),
+    mutationDirectory: resolveMutationDirectory(primaryTargetId, options.graphLayout),
     nodePositions: options.nodePositions ?? new Map(),
     ...(ownerSectionId ? { ownerSectionId } : {}),
   };
@@ -68,11 +68,22 @@ function resolveContextOwnerSectionId(
   }
 
   const [targetId] = selection.targets;
-  return targetId && graphLayout.sections[targetId] ? targetId : undefined;
+  if (!targetId) {
+    return undefined;
+  }
+
+  if (graphLayout.sections[targetId]) {
+    return targetId;
+  }
+
+  return graphLayout.ownership[targetId]?.ownerSectionId ?? undefined;
 }
 
-function resolveMutationDirectory(primaryTargetId: string | undefined): string {
-  if (!primaryTargetId || primaryTargetId === '(root)') {
+function resolveMutationDirectory(
+  primaryTargetId: string | undefined,
+  graphLayout: Pick<GraphLayoutSettings, 'sections'> | undefined,
+): string {
+  if (!primaryTargetId || primaryTargetId === '(root)' || graphLayout?.sections[primaryTargetId]) {
     return '.';
   }
 

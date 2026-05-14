@@ -52,12 +52,30 @@ export function createRefreshEffects(): GraphContextEffect[] {
   return [createPostMessageEffect({ type: 'REFRESH_GRAPH' })];
 }
 
-export function createCreateFileEffects(directory = '.'): GraphContextEffect[] {
-  return [createPostMessageEffect({ type: 'CREATE_FILE', payload: { directory } })];
+export function createCreateFileEffects(
+  directory = '.',
+  ownerSectionId?: string,
+): GraphContextEffect[] {
+  return [createPostMessageEffect({
+    type: 'CREATE_FILE',
+    payload: {
+      directory,
+      ...(ownerSectionId ? { ownerSectionId } : {}),
+    },
+  })];
 }
 
-export function createCreateFolderEffects(directory = '.'): GraphContextEffect[] {
-  return [createPostMessageEffect({ type: 'CREATE_FOLDER', payload: { directory } })];
+export function createCreateFolderEffects(
+  directory = '.',
+  ownerSectionId?: string,
+): GraphContextEffect[] {
+  return [createPostMessageEffect({
+    type: 'CREATE_FOLDER',
+    payload: {
+      directory,
+      ...(ownerSectionId ? { ownerSectionId } : {}),
+    },
+  })];
 }
 
 export function createGraphLayoutCollapseEffects(

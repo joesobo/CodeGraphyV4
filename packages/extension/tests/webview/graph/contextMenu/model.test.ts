@@ -132,7 +132,6 @@ describe('graph/contextMenuModel', () => {
       'Pin Node',
       'Add Filter Pattern...',
       'Add Legend Group...',
-      'Create Graph Section from Selection',
       'Rename Folder...',
       'Delete Folder',
     ]);
@@ -161,7 +160,7 @@ describe('graph/contextMenuModel', () => {
       nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
     });
 
-    const creationEntries = builtInMenuItems(entries, ['createFile', 'createFolder', 'rename', 'delete']);
+    const creationEntries = builtInMenuItems(entries, ['createFile', 'createFolder', 'createGraphSection', 'rename', 'delete']);
 
     expect(creationEntries.map(entry => entry.label)).toEqual([
       'New File...',
@@ -170,6 +169,7 @@ describe('graph/contextMenuModel', () => {
       'Delete Folder',
     ]);
     expect(creationEntries.every(entry => entry.disabled)).toBe(true);
+    expect(builtInActions(entries)).not.toContain('createGraphSection');
   });
 
   it('does not show rename or delete actions for the synthetic root folder node', () => {

@@ -40,7 +40,6 @@ export type ExtensionToWebviewMessage =
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }
   | { type: 'FAVORITES_UPDATED'; payload: { favorites: string[] } }
-   
   | { type: 'THEME_CHANGED'; payload: { kind: 'light' | 'dark' | 'high-contrast' } }
   | { type: 'FILE_INFO'; payload: IFileInfo }
   | {

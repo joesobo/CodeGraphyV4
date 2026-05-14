@@ -34,7 +34,6 @@ const immutableFolderLabels = [
   'Focus Node',
   'Add Filter Pattern...',
   'Add Legend Group...',
-  'Create Graph Section from Selection',
   'Rename Folder...',
   'Delete Folder',
 ];
@@ -42,7 +41,6 @@ const immutableFolderLabels = [
 const immutableFolderDisabledLabels = [
   'New File...',
   'New Folder...',
-  'Create Graph Section from Selection',
   'Rename Folder...',
   'Delete Folder',
 ];
@@ -73,6 +71,21 @@ describe('graph/contextMenu/build/node', () => {
     expect(itemLabels(entries)).toContain('Open File');
     expect(itemLabels(entries)).toContain('Delete File');
     expect(itemLabels(entries)).toContain('Create Graph Section from Selection');
+  });
+
+  it('does not offer Graph Section creation from a single folder context', () => {
+    const entries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src', new Set()),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      nodes: [{ id: 'src', nodeType: 'folder' }],
+    });
+
+    expect(itemLabels(entries)).toContain('New File...');
+    expect(itemLabels(entries)).toContain('New Folder...');
+    expect(itemLabels(entries)).not.toContain('Create Graph Section from Selection');
+    expect(itemLabels(entries)).not.toContain('New Graph Section');
   });
 
   it('builds multi-file node actions from the selected targets', () => {
