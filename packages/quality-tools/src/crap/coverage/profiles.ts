@@ -1,13 +1,15 @@
 export interface CoverageProfile {
   coveragePath: string;
   cwd: string;
+  env?: Record<string, string>;
   args: string[];
   command: string;
 }
 
 import {
   extensionCoverageProfile,
-  qualityToolsCoverageProfile
+  qualityToolsCoverageProfile,
+  workspacePackageCoverageProfile
 } from './factories';
 
 export function createCoverageProfiles(repoRoot: string, packageName?: string): CoverageProfile[] {
@@ -15,8 +17,12 @@ export function createCoverageProfiles(repoRoot: string, packageName?: string): 
     return [qualityToolsCoverageProfile(repoRoot)];
   }
 
-  if (packageName) {
+  if (packageName === 'extension') {
     return [extensionCoverageProfile(repoRoot)];
+  }
+
+  if (packageName) {
+    return [workspacePackageCoverageProfile(repoRoot, packageName)];
   }
 
   return [extensionCoverageProfile(repoRoot), qualityToolsCoverageProfile(repoRoot)];

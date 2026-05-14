@@ -14,7 +14,7 @@ describe('createCoverageProfiles', () => {
     ]);
   });
 
-  it('uses extension coverage for non-quality packages', () => {
+  it('uses extension coverage for the extension package', () => {
     const profiles = createCoverageProfiles('/repo', 'extension');
     expect(profiles).toEqual([
       {
@@ -22,6 +22,25 @@ describe('createCoverageProfiles', () => {
         command: 'pnpm',
         coveragePath: '/repo/coverage/coverage-final.json',
         cwd: '/repo'
+      }
+    ]);
+  });
+
+  it('uses workspace-scoped coverage for other packages', () => {
+    const profiles = createCoverageProfiles('/repo', 'plugin-godot');
+    expect(profiles).toEqual([
+      {
+        args: ['--filter', '@codegraphy/extension', 'exec', 'vitest', 'run', '--config', 'vitest.config.ts', '--coverage'],
+        command: 'pnpm',
+        coveragePath: '/repo/coverage/coverage-final.json',
+        cwd: '/repo',
+        env: {
+          CODEGRAPHY_VITEST_INCLUDE_JSON: JSON.stringify([
+            'packages/plugin-godot/tests/**/*.test.ts',
+            'packages/plugin-godot/tests/**/*.test.tsx'
+          ]),
+          CODEGRAPHY_VITEST_SCOPE: 'workspace'
+        }
       }
     ]);
   });

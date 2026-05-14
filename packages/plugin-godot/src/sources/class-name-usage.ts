@@ -8,7 +8,7 @@
 import * as path from 'path';
 import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
-import { normalizePath } from '../parser';
+import { normalizePath, parseGDScriptDocument } from '../parser';
 import { detectUsagesInLine } from './class-name-detector';
 
 export { detectUsagesInLine } from './class-name-detector';
@@ -22,12 +22,9 @@ const SOURCE_ID = 'class-name-usage';
  */
 export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelation[] {
   const relations: IAnalysisRelation[] = [];
-  const lines = content.split('\n');
 
-  for (let i = 0; i < lines.length; i++) {
-    const lineWithoutComment = lines[i].split('#')[0];
-
-    const usages = detectUsagesInLine(lineWithoutComment);
+  for (const statement of parseGDScriptDocument(content).statements) {
+    const usages = detectUsagesInLine(statement.code, statement.line);
     for (const ref of usages) {
       const resolved = ctx.resolver.resolve(ref.resPath, ctx.relativeFilePath);
       if (resolved) {

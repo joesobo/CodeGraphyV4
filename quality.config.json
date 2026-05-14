@@ -168,14 +168,14 @@
     "plugin-csharp": {
       "boundaries": {
         "entrypoints": [
-          "src/activate.ts"
+          "src/plugin.ts"
         ]
       }
     },
     "plugin-godot": {
       "boundaries": {
         "entrypoints": [
-          "src/activate.ts"
+          "src/plugin.ts"
         ]
       }
     },
@@ -189,14 +189,14 @@
     "plugin-python": {
       "boundaries": {
         "entrypoints": [
-          "src/activate.ts"
+          "src/plugin.ts"
         ]
       }
     },
     "plugin-typescript": {
       "boundaries": {
         "entrypoints": [
-          "src/activate.ts"
+          "src/plugin.ts"
         ]
       }
     }

@@ -121,3 +121,9 @@ In practice, "win merge conflicts" means:
 - distinct call/reference targets stay separate so symbol-aware routing is preserved
 
 Markdown-style wikilink scanning is implemented as a wildcard plugin so it can inspect any file, not just `.md` files.
+
+### Structured plugin analysis
+
+Plugins can combine core parser results, plugin-owned parsers, and text fallbacks inside one package. They do not need to declare a separate analysis tier.
+
+`@codegraphy/plugin-godot` is the first structured-analysis showcase. It keeps one npm package, but routes GDScript statements, text-resource tags, and `project.godot` settings through structured parser helpers before emitting the same relationship and Symbol Node output. This lets the plugin gradually move expensive line scanning behind Godot-aware parsing without introducing a Godot LSP process or VS Code-specific dependency.

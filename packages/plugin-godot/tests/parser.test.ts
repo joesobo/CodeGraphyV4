@@ -3,7 +3,14 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { detectClassNameDeclaration, isResPath, normalizePath } from '../src/parser';
+import {
+  detectClassNameDeclaration,
+  isResPath,
+  normalizePath,
+  parseGDScriptDocument,
+  parseGDScriptResourceReferences,
+  stripGDScriptComment,
+} from '../src/parser';
 
 describe('GDScript parser', () => {
   describe('normalizePath', () => {
@@ -70,7 +77,93 @@ describe('GDScript parser', () => {
       expect(detectClassNameDeclaration('extends Node2D', 1)).toBeNull();
       expect(detectClassNameDeclaration('var player: Player', 1)).toBeNull();
       expect(detectClassNameDeclaration('# class_name Commented', 1)).toBeNull();
+      expect(detectClassNameDeclaration('var class_name Player', 1)).toBeNull();
       expect(detectClassNameDeclaration('', 1)).toBeNull();
+    });
+  });
+
+  describe('stripGDScriptComment', () => {
+    it('keeps leading whitespace when there is no comment', () => {
+      expect(stripGDScriptComment('  var x = 1')).toBe('  var x = 1');
+    });
+
+    it('strips comments after a line that starts with a quoted string', () => {
+      expect(stripGDScriptComment('"literal" # trailing comment')).toBe('"literal"');
+    });
+
+    it('keeps hash characters inside single-quoted strings', () => {
+      expect(stripGDScriptComment("const Scene = preload('res://menu#v2.tscn') # comment"))
+        .toBe("const Scene = preload('res://menu#v2.tscn')");
+    });
+
+    it('keeps hash characters after escaped quotes inside strings', () => {
+      expect(stripGDScriptComment('var text = "say \\"#not-comment\\"" # comment'))
+        .toBe('var text = "say \\"#not-comment\\""');
+    });
+  });
+
+  describe('parseGDScriptDocument', () => {
+    it('preserves line numbers while stripping comments outside quoted strings', () => {
+      const document = parseGDScriptDocument([
+        '# full comment',
+        'const Scene = preload("res://scenes/menu#v2.tscn") # inline comment',
+        '',
+        'var x = 1',
+      ].join('\n'));
+
+      expect(document.statements).toEqual([
+        {
+          line: 2,
+          raw: 'const Scene = preload("res://scenes/menu#v2.tscn") # inline comment',
+          code: 'const Scene = preload("res://scenes/menu#v2.tscn")',
+          trimmed: 'const Scene = preload("res://scenes/menu#v2.tscn")',
+        },
+        {
+          line: 4,
+          raw: 'var x = 1',
+          code: 'var x = 1',
+          trimmed: 'var x = 1',
+        },
+      ]);
+    });
+  });
+
+  describe('parseGDScriptResourceReferences', () => {
+    it('parses load-like and inheritance references from structured statements', () => {
+      const references = parseGDScriptResourceReferences([
+        'extends "res://scripts/base.gd"',
+        'const Scene = preload("res://scenes/main.tscn")',
+        'var data = load("res://resources/data.tres")',
+        'var runtime = ResourceLoader.load("user://save.tres")',
+        '# preload("res://ignored.tscn")',
+      ].join('\n'));
+
+      expect(references).toEqual([
+        {
+          line: 1,
+          referenceType: 'extends',
+          resPath: 'res://scripts/base.gd',
+          importType: 'static',
+        },
+        {
+          line: 2,
+          referenceType: 'preload',
+          resPath: 'res://scenes/main.tscn',
+          importType: 'static',
+        },
+        {
+          line: 3,
+          referenceType: 'load',
+          resPath: 'res://resources/data.tres',
+          importType: 'dynamic',
+        },
+        {
+          line: 4,
+          referenceType: 'load',
+          resPath: 'user://save.tres',
+          importType: 'dynamic',
+        },
+      ]);
     });
   });
 });

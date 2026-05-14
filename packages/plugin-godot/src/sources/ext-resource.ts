@@ -7,37 +7,7 @@
 import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
-
-const EXT_RESOURCE_TAG_REGEX = /^\[\s*ext_resource\b(.*)\]$/;
-const TAG_FIELD_REGEX = /\b([A-Za-z_][A-Za-z0-9_]*)=(?:"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)'|([^\s\]]+))/g;
-
-interface ExtResourceTag {
-  path: string;
-  uid?: string;
-}
-
-function parseExtResourceTag(line: string): ExtResourceTag | null {
-  const tagMatch = line.trim().match(EXT_RESOURCE_TAG_REGEX);
-  if (!tagMatch) {
-    return null;
-  }
-
-  const fields: Record<string, string> = {};
-  TAG_FIELD_REGEX.lastIndex = 0;
-  let fieldMatch;
-  while ((fieldMatch = TAG_FIELD_REGEX.exec(tagMatch[1])) !== null) {
-    fields[fieldMatch[1]] = fieldMatch[2] ?? fieldMatch[3] ?? fieldMatch[4] ?? '';
-  }
-
-  if (!fields.path) {
-    return null;
-  }
-
-  return {
-    path: fields.path,
-    uid: fields.uid,
-  };
-}
+import { parseGodotTextResourceDocument } from '../textResource/parser';
 
 export function detect(
   content: string,
@@ -45,23 +15,17 @@ export function detect(
   ctx: GDScriptRuleContext,
 ): IAnalysisRelation[] {
   const relations: IAnalysisRelation[] = [];
-  const lines = content.split('\n');
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
-  for (const line of lines) {
-    if (!line.trim() || line.trimStart().startsWith(';')) {
-      continue;
-    }
-
-    const resource = parseExtResourceTag(line);
-    if (!resource) {
+  for (const tag of parseGodotTextResourceDocument(content).tags) {
+    if (tag.name !== 'ext_resource' || !tag.fields.path) {
       continue;
     }
 
     const resolved = ctx.resolver.resolveTextResourcePath(
-      resource.path,
+      tag.fields.path,
       ctx.relativeFilePath,
-      resource.uid,
+      tag.fields.uid,
     );
     const resolvedPath = resolved
       ? materializeResolvedPath({
@@ -72,7 +36,7 @@ export function detect(
       : null;
     relations.push({
       kind: 'load',
-      specifier: resource.path,
+      specifier: tag.fields.path,
       resolvedPath,
       type: 'static',
       sourceId: 'ext-resource',
