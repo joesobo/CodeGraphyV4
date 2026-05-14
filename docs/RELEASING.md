@@ -95,20 +95,20 @@ vsce verify-pat codegraphy
    - `pnpm run release:publish godot`
 16. Open each Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
 17. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
-18. Open the npm package pages for [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api) and [`@codegraphy-vscode/mcp`](https://www.npmjs.com/package/@codegraphy-vscode/mcp), then verify the README and repository links.
+18. Open the npm package pages for [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api) and [`@codegraphy/mcp`](https://www.npmjs.com/package/@codegraphy/mcp), then verify the README and repository links.
 
 ## GitHub Actions
 
 Use the `Release` workflow with `workflow_dispatch`.
 
 - `mode=package` builds and uploads release artifacts.
-- `target` can be `all`, `npm`, `vsce`, `core`, `mcp`, `plugin-api`, `typescript`, `python`, `csharp`, or `godot`.
+- `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `mcp`, `plugin-api`, `typescript`, `python`, `csharp`, or `godot`.
 - `mode=publish` runs the same checks, packages release artifacts, publishes selected Marketplace targets, and publishes selected npm packages.
 
 Required secrets:
 
 - `VSCE_PAT` for Marketplace publishing
-- `NPM_TOKEN` for npm packages under the `@codegraphy-vscode` scope
+- `NPM_TOKEN` for npm packages under the `@codegraphy` scope
 
 ## Marketplace migration note
 
@@ -127,5 +127,5 @@ If you ever move the core to a different publisher later, that would require a n
 - Python plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python>
 - C# plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp>
 - GDScript plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot>
-- Plugin API: <https://www.npmjs.com/package/@codegraphy-vscode/plugin-api>
-- MCP: <https://www.npmjs.com/package/@codegraphy-vscode/mcp>
+- Plugin API: <https://www.npmjs.com/package/@codegraphy/plugin-api>
+- MCP: <https://www.npmjs.com/package/@codegraphy/mcp>

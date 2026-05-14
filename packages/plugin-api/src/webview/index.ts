@@ -1,6 +1,6 @@
 /**
  * @fileoverview Webview-side type re-exports.
- * @module @codegraphy-vscode/plugin-api/webview
+ * @module @codegraphy/plugin-api/webview
  */
 
 export type { CodeGraphyWebviewAPI } from './api';

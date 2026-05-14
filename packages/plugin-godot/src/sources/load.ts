@@ -4,7 +4,7 @@
  * @module plugins/godot/sources/load
  */
 
-import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { isResPath } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';

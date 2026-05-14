@@ -1,6 +1,6 @@
 /**
  * @fileoverview Disposable pattern for resource cleanup.
- * @module @codegraphy-vscode/plugin-api/disposable
+ * @module @codegraphy/plugin-api/disposable
  */
 
 /**

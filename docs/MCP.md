@@ -9,7 +9,7 @@ The MCP package does not index source files and does not read the Graph Cache fo
 | Piece | Installed From | Role |
 |---|---|---|
 | CodeGraphy Core Extension | VS Code Marketplace | indexes the repo, owns the Graph Cache, renders the graph, and executes Graph Query |
-| `@codegraphy-vscode/mcp` | npm | installs the `codegraphy` CLI and local stdio MCP server |
+| `@codegraphy/mcp` | npm | installs the `codegraphy` CLI and local stdio MCP server |
 | Codex MCP entry | `codegraphy setup` or manual config | lets Codex launch `codegraphy mcp` |
 
 ## Prerequisites
@@ -22,7 +22,7 @@ The MCP package does not index source files and does not read the Graph Cache fo
 ## Quick Start
 
 ```bash
-npm install -g @codegraphy-vscode/mcp
+npm install -g @codegraphy/mcp
 codegraphy setup
 codegraphy open .
 codex mcp list
@@ -47,7 +47,7 @@ codegraphy index
 2. Install the MCP package:
 
 ```bash
-npm install -g @codegraphy-vscode/mcp
+npm install -g @codegraphy/mcp
 ```
 
 3. Configure Codex:

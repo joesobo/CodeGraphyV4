@@ -92,7 +92,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
 
   it('records top-level type-only imports as type-import relations without value bindings', () => {
     resolveTreeSitterImportPath.mockReturnValue('/workspace/packages/plugin-api/src/index.ts');
-    getStringSpecifier.mockReturnValue('@codegraphy-vscode/plugin-api');
+    getStringSpecifier.mockReturnValue('@codegraphy/plugin-api');
     const importedBindings = new Map();
     const relations: never[] = [];
 
@@ -134,14 +134,14 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(addTypeImportRelation).toHaveBeenCalledWith(
       relations,
       '/workspace/packages/plugin-typescript/src/plugin.ts',
-      '@codegraphy-vscode/plugin-api',
+      '@codegraphy/plugin-api',
       '/workspace/packages/plugin-api/src/index.ts',
       {
         bindingKind: 'named',
         importedName: 'Plugin',
         localName: 'Plugin',
         resolvedPath: '/workspace/packages/plugin-api/src/index.ts',
-        specifier: '@codegraphy-vscode/plugin-api',
+        specifier: '@codegraphy/plugin-api',
       },
     );
   });
@@ -215,7 +215,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
 
   it('records inline type-only specifier imports without value bindings', () => {
     resolveTreeSitterImportPath.mockReturnValue('/workspace/packages/plugin-api/src/index.ts');
-    getStringSpecifier.mockReturnValue('@codegraphy-vscode/plugin-api');
+    getStringSpecifier.mockReturnValue('@codegraphy/plugin-api');
     const importedBindings = new Map();
     const relations: never[] = [];
 
@@ -257,14 +257,14 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(addTypeImportRelation).toHaveBeenCalledWith(
       relations,
       '/workspace/packages/plugin-typescript/src/plugin.ts',
-      '@codegraphy-vscode/plugin-api',
+      '@codegraphy/plugin-api',
       '/workspace/packages/plugin-api/src/index.ts',
       {
         bindingKind: 'named',
         importedName: 'Plugin',
         localName: 'Plugin',
         resolvedPath: '/workspace/packages/plugin-api/src/index.ts',
-        specifier: '@codegraphy-vscode/plugin-api',
+        specifier: '@codegraphy/plugin-api',
       },
     );
   });

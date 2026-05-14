@@ -13,6 +13,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy-vscode/plugin-api": "workspace:*"
+    "@codegraphy/plugin-api": "workspace:*"
   }
 }

@@ -23,9 +23,10 @@ Historical plans, specs, and superseded guides live under `docs/archive/`.
 
 | Package | Path | Where To Start | Role |
 |---|---|---|
-| CodeGraphy core extension | `packages/extension` | [root README](../README.md), [extension docs](../packages/extension/docs/README.md), and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, Indexing, Graph Cache, Settings, exports, and Graph Query execution |
-| `@codegraphy-vscode/mcp` | `packages/codegraphy-mcp` | [MCP setup](./MCP.md) and [package README](../packages/codegraphy-mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
-| `@codegraphy-vscode/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
+| `@codegraphy/core` | `packages/core` | [root README](../README.md) and [core package README](../packages/core/README.md) | shared engine package for Indexing, Graph Cache access, and Graph Query execution |
+| CodeGraphy VS Code extension | `packages/extension` | [root README](../README.md), [extension docs](../packages/extension/docs/README.md), and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, VS Code lifecycle integration, commands, webviews, context menus, and editor integration |
+| `@codegraphy/mcp` | `packages/codegraphy-mcp` | [MCP setup](./MCP.md) and [package README](../packages/codegraphy-mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
+| `@codegraphy/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
 | language plugins | `packages/plugin-*` | `packages/plugin-*/README.md` | optional language-specific graph enrichment on top of the Core Extension baseline |
 | quality tools | `packages/quality-tools` | [quality docs](./quality/README.md) and [package README](../packages/quality-tools/README.md) | local architecture, coverage-risk, mutation, and SCRAP checks |
 

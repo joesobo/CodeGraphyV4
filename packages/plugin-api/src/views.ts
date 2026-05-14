@@ -2,7 +2,7 @@
  * @fileoverview View system types for CodeGraphy.
  * Views are plugin-defined graph transforms the host may expose as optional
  * alternate surfaces on top of the unified graph experience.
- * @module @codegraphy-vscode/plugin-api/views
+ * @module @codegraphy/plugin-api/views
  */
 
 import type { IGraphData } from './graph';

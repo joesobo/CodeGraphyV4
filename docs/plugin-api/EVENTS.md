@@ -9,7 +9,7 @@ Important: this is the full typed event surface exposed by the plugin API. Not e
 ## Usage
 
 ```typescript
-import type { CodeGraphyAPI } from '@codegraphy-vscode/plugin-api';
+import type { CodeGraphyAPI } from '@codegraphy/plugin-api';
 
 export function onLoad(api: CodeGraphyAPI): void {
   api.on('graph:nodeClick', ({ node, event }) => {
@@ -115,7 +115,7 @@ Note:
 - `EventName`: union of all keys in `EventPayloads`.
 
 ```typescript
-import type { EventName, EventPayloads } from '@codegraphy-vscode/plugin-api';
+import type { EventName, EventPayloads } from '@codegraphy/plugin-api';
 
 function on<E extends EventName>(event: E, payload: EventPayloads[E]): void {
   // typed by event name

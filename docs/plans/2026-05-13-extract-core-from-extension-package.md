@@ -961,6 +961,17 @@ Keep these terms:
 
 Run the goal as a sequence of small PRs. Each step should leave the repo in a shippable state and preserve existing graph behavior unless the step explicitly changes the product model.
 
+## Implementation Progress
+
+- 2026-05-14: Draft PR opened from `codex/core-package-extraction` with this runbook as the tracking artifact.
+- 2026-05-14: Step 1 package identity groundwork completed.
+  - Added public `@codegraphy/core` workspace package with build, lint, typecheck, test, package exports, README, and LICENSE.
+  - Renamed public package metadata from `@codegraphy-vscode/plugin-api` to `@codegraphy/plugin-api`.
+  - Renamed public package metadata from `@codegraphy-vscode/mcp` to `@codegraphy/mcp`.
+  - Repointed workspace package dependencies and imports to `@codegraphy/plugin-api`.
+  - Updated release target discovery so `core` resolves to the npm `@codegraphy/core` package and `extension` / `vsix` / `marketplace` resolves to the VSIX release.
+  - Validation: `node --test tests/release/releaseScript.test.mjs`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core build`, `pnpm run typecheck:plugins`, `pnpm --filter @codegraphy/mcp test`, and targeted extension import-analysis tests.
+
 ### Step 1: Package Identity Groundwork
 
 Goal:

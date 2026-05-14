@@ -18,8 +18,9 @@ test('release targets include every public workspace package', () => {
     .map((target) => target.packageName);
 
   assert.deepEqual(packageNames, [
-    '@codegraphy-vscode/plugin-api',
-    '@codegraphy-vscode/mcp',
+    '@codegraphy/plugin-api',
+    '@codegraphy/core',
+    '@codegraphy/mcp',
     'codegraphy-csharp',
     'codegraphy-godot',
     'codegraphy-python',
@@ -44,12 +45,15 @@ test('all publish includes npm packages before marketplace packages', () => {
   const releaseArgs = releaseCalls.map((call) => call.args);
 
   const pluginApiIndex = releaseArgs.findIndex((args) =>
-    args.includes('@codegraphy-vscode/plugin-api'),
+    args.includes('@codegraphy/plugin-api'),
+  );
+  const corePackageIndex = releaseArgs.findIndex((args) =>
+    args.includes('@codegraphy/core'),
   );
   const mcpIndex = releaseArgs.findIndex((args) =>
-    args.includes('@codegraphy-vscode/mcp'),
+    args.includes('@codegraphy/mcp'),
   );
-  const coreIndex = releaseArgs.findIndex((args) =>
+  const extensionIndex = releaseArgs.findIndex((args) =>
     args.join(' ') === 'run publish:vsce',
   );
   const typescriptIndex = releaseArgs.findIndex((args) =>
@@ -57,12 +61,14 @@ test('all publish includes npm packages before marketplace packages', () => {
   );
 
   assert.ok(pluginApiIndex >= 0, 'expected plugin API npm publish');
+  assert.ok(corePackageIndex >= 0, 'expected core npm publish');
   assert.ok(mcpIndex >= 0, 'expected MCP npm publish');
-  assert.ok(coreIndex >= 0, 'expected core marketplace publish');
+  assert.ok(extensionIndex >= 0, 'expected extension marketplace publish');
   assert.ok(typescriptIndex >= 0, 'expected TypeScript marketplace publish');
-  assert.ok(pluginApiIndex < mcpIndex, 'expected plugin API to publish before MCP');
-  assert.ok(mcpIndex < coreIndex, 'expected npm packages before core marketplace publish');
-  assert.ok(coreIndex < typescriptIndex, 'expected core before plugin marketplace publishes');
+  assert.ok(pluginApiIndex < corePackageIndex, 'expected plugin API to publish before core package');
+  assert.ok(corePackageIndex < mcpIndex, 'expected core package to publish before MCP');
+  assert.ok(mcpIndex < extensionIndex, 'expected npm packages before extension marketplace publish');
+  assert.ok(extensionIndex < typescriptIndex, 'expected extension before plugin marketplace publishes');
 });
 
 test('npm package release creates a tarball artifact', () => {
@@ -76,14 +82,14 @@ test('npm package release creates a tarball artifact', () => {
   assert.deepEqual(calls, [
     {
       command: 'pnpm',
-      args: ['--filter', '@codegraphy-vscode/mcp', 'run', 'build'],
+      args: ['--filter', '@codegraphy/mcp', 'run', 'build'],
       options: { cwd: repoRoot },
     },
     {
       command: 'pnpm',
       args: [
         '--filter',
-        '@codegraphy-vscode/mcp',
+        '@codegraphy/mcp',
         'pack',
         '--pack-destination',
         path.join(repoRoot, 'artifacts', 'npm'),
@@ -115,14 +121,14 @@ test('npm package publish builds before publishing', () => {
     },
     {
       command: 'pnpm',
-      args: ['--filter', '@codegraphy-vscode/mcp', 'run', 'build'],
+      args: ['--filter', '@codegraphy/mcp', 'run', 'build'],
       options: { cwd: repoRoot },
     },
     {
       command: 'pnpm',
       args: [
         '--filter',
-        '@codegraphy-vscode/mcp',
+        '@codegraphy/mcp',
         'publish',
         '--access',
         'public',
@@ -161,6 +167,20 @@ test('target groups can release only npm packages', () => {
 
   assert.deepEqual(
     targets.map((target) => target.packageName),
-    ['@codegraphy-vscode/plugin-api', '@codegraphy-vscode/mcp'],
+    ['@codegraphy/plugin-api', '@codegraphy/core', '@codegraphy/mcp'],
   );
+});
+
+test('core target resolves to the npm core package and extension target resolves to the VSIX release', () => {
+  assert.deepEqual(resolveReleaseTargets('core', repoRoot).map((target) => target.packageName), [
+    '@codegraphy/core',
+  ]);
+
+  assert.deepEqual(resolveReleaseTargets('extension', repoRoot), [
+    {
+      id: 'extension',
+      aliases: ['extension', 'vsix', 'marketplace', 'core-extension'],
+      kind: 'extension',
+    },
+  ]);
 });

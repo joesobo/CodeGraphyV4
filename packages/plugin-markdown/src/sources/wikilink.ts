@@ -5,7 +5,7 @@
  * @module plugins/markdown/sources/wikilink
  */
 
-import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { PathResolver } from '../PathResolver';
 import {
   isFenceStart,

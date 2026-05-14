@@ -154,9 +154,9 @@ export function collectReleaseTargets(baseDir = repoRoot) {
   return [
     ...npmTargets,
     {
-      id: 'core',
-      aliases: ['core'],
-      kind: 'core',
+      id: 'extension',
+      aliases: ['extension', 'vsix', 'marketplace', 'core-extension'],
+      kind: 'extension',
     },
     ...vsceTargets,
   ];
@@ -178,7 +178,7 @@ export function resolveReleaseTargets(requestedTarget, baseDir = repoRoot) {
   }
 
   if (requestedTarget === 'vsce') {
-    return releaseTargets.filter((target) => target.kind === 'core' || target.kind === 'vsce');
+    return releaseTargets.filter((target) => target.kind === 'extension' || target.kind === 'vsce');
   }
 
   return releaseTargets.filter((target) => targetMatches(target, requestedTarget));
@@ -254,7 +254,7 @@ function runVsceRelease(mode, target, baseDir, runCommand) {
 }
 
 function runReleaseTarget(mode, target, baseDir, runCommand) {
-  if (target.kind === 'core') {
+  if (target.kind === 'extension') {
     return runCoreRelease(mode, baseDir, runCommand);
   }
 

@@ -11,8 +11,8 @@
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://img.shields.io/badge/core%20extension-5.4.0-0b7285" alt="Core extension version" /></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy"><img src="https://img.shields.io/badge/install-VS%20Code%20Marketplace-0078d4" alt="Install from the VS Code Marketplace" /></a>
-  <a href="https://www.npmjs.com/package/@codegraphy-vscode/mcp"><img src="https://img.shields.io/npm/v/%40codegraphy-vscode%2Fmcp?label=mcp" alt="MCP package version" /></a>
-  <a href="https://www.npmjs.com/package/@codegraphy-vscode/plugin-api"><img src="https://img.shields.io/npm/v/%40codegraphy-vscode%2Fplugin-api?label=plugin%20api" alt="Plugin API version" /></a>
+  <a href="https://www.npmjs.com/package/@codegraphy/mcp"><img src="https://img.shields.io/npm/v/%40codegraphy%2Fmcp?label=mcp" alt="MCP package version" /></a>
+  <a href="https://www.npmjs.com/package/@codegraphy/plugin-api"><img src="https://img.shields.io/npm/v/%40codegraphy%2Fplugin-api?label=plugin%20api" alt="Plugin API version" /></a>
   <a href="https://trello.com/b/wG65Lfrb/codegraphy"><img src="https://img.shields.io/badge/roadmap-Trello-0052cc" alt="Trello roadmap" /></a>
 </p>
 
@@ -27,9 +27,9 @@
   ·
   <a href="https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot">GDScript Plugin</a>
   ·
-  <a href="https://www.npmjs.com/package/@codegraphy-vscode/mcp">MCP</a>
+  <a href="https://www.npmjs.com/package/@codegraphy/mcp">MCP</a>
   ·
-  <a href="https://www.npmjs.com/package/@codegraphy-vscode/plugin-api">Plugin API</a>
+  <a href="https://www.npmjs.com/package/@codegraphy/plugin-api">Plugin API</a>
 </p>
 
 CodeGraphy turns a repository into an interactive Relationship Graph inside VS Code. It starts with File Nodes, then Indexing adds richer Edges from imports, references, calls, tests, folder/package structure, and plugin-provided analysis. The goal is simple: make the relationships between files visible enough that people and agents can navigate the codebase without guessing.
@@ -112,7 +112,7 @@ The Core Extension already ships native Tree-sitter coverage for JavaScript, Typ
 ### Agent Access
 
 ```bash
-npm install -g @codegraphy-vscode/mcp
+npm install -g @codegraphy/mcp
 codegraphy setup
 codegraphy open .
 codegraphy index
@@ -155,9 +155,10 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It opens or focus
 
 | Package | Path | Install | What It Owns |
 |---|---|---|---|
-| CodeGraphy Core Extension | `packages/extension` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | Graph View, Indexing, Graph Projection, Graph Cache, repo-local Settings, exports, and Graph Query execution. |
-| `@codegraphy-vscode/mcp` | `packages/codegraphy-mcp` | `npm install -g @codegraphy-vscode/mcp` | `codegraphy` CLI and local MCP server for agent access through the Core Extension. |
-| `@codegraphy-vscode/plugin-api` | `packages/plugin-api` | `npm install @codegraphy-vscode/plugin-api` | Typed contracts for external CodeGraphy plugins. |
+| `@codegraphy/core` | `packages/core` | `npm install @codegraphy/core` | Shared engine package for Indexing, Graph Cache access, and Graph Query execution. |
+| CodeGraphy VS Code Extension | `packages/extension` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | Graph View, VS Code lifecycle integration, commands, webviews, context menus, and editor integration. |
+| `@codegraphy/mcp` | `packages/codegraphy-mcp` | `npm install -g @codegraphy/mcp` | `codegraphy` CLI and local MCP server for agent access through the Core Extension. |
+| `@codegraphy/plugin-api` | `packages/plugin-api` | `npm install @codegraphy/plugin-api` | Typed contracts for external CodeGraphy plugins. |
 | TypeScript/JavaScript plugin | `packages/plugin-typescript` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript) | TypeScript and JavaScript ecosystem defaults and enrichment. |
 | Python plugin | `packages/plugin-python` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python) | Python ecosystem defaults and enrichment. |
 | C# plugin | `packages/plugin-csharp` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp) | C# ecosystem defaults and enrichment. |
@@ -198,7 +199,7 @@ pnpm --filter @codegraphy/extension test
 pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/SettingsPanel.test.tsx
 ```
 
-Plugin authors should start with the [Plugin Guide](./docs/PLUGINS.md), the [plugin lifecycle docs](./docs/plugin-api/LIFECYCLE.md), and [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api).
+Plugin authors should start with the [Plugin Guide](./docs/PLUGINS.md), the [plugin lifecycle docs](./docs/plugin-api/LIFECYCLE.md), and [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api).
 
 ## Project State
 

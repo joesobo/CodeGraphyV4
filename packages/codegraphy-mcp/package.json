@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy-vscode/mcp",
+  "name": "@codegraphy/mcp",
   "version": "1.0.4",
   "description": "CodeGraphy MCP CLI and local query server",
   "license": "MIT",
@@ -27,7 +27,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy-vscode/plugin-api": "workspace:*",
+    "@codegraphy/plugin-api": "workspace:*",
     "@ladybugdb/core": "^0.15.3",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.1.12"

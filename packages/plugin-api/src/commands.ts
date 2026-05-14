@@ -1,6 +1,6 @@
 /**
  * @fileoverview Command and context menu types for plugin-contributed actions.
- * @module @codegraphy-vscode/plugin-api/commands
+ * @module @codegraphy/plugin-api/commands
  */
 
 import type { IGraphNode, IGraphEdge } from './graph';

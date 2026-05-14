@@ -1,6 +1,6 @@
 # CodeGraphy MCP
 
-`@codegraphy-vscode/mcp` installs the `codegraphy` CLI and local MCP server.
+`@codegraphy/mcp` installs the `codegraphy` CLI and local MCP server.
 
 It is a lightweight agent Adapter over the CodeGraphy Core Extension. The Core Extension owns Indexing, Graph Cache access, plugin wiring, and Graph Query execution. The MCP package opens or focuses the repo in VS Code, sends Indexing or Graph Query requests, and returns the Core Extension response.
 
@@ -14,7 +14,7 @@ It is a lightweight agent Adapter over the CodeGraphy Core Extension. The Core E
 ## Quick Start
 
 ```bash
-npm install -g @codegraphy-vscode/mcp
+npm install -g @codegraphy/mcp
 codegraphy setup
 codegraphy open .
 codex mcp list

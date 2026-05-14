@@ -1,8 +1,8 @@
 ---
 "@codegraphy/extension": minor
-"@codegraphy-vscode/plugin-api": minor
+"@codegraphy/plugin-api": minor
 "codegraphy-godot": minor
-"@codegraphy-vscode/mcp": minor
+"@codegraphy/mcp": minor
 ---
 
 Add Symbol and Variable nodes to the Relationship Graph with Graph Scope controls, `contains` and `overrides` edges, scoped Legend defaults, symbol-aware exports, and richer Graph Query/MCP symbol payloads.

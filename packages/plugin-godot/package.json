@@ -60,6 +60,6 @@
     "publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate"
   },
   "dependencies": {
-    "@codegraphy-vscode/plugin-api": "workspace:*"
+    "@codegraphy/plugin-api": "workspace:*"
   }
 }

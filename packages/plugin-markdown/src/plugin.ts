@@ -8,7 +8,7 @@
 import type {
   IFileAnalysisResult,
   IPlugin,
-} from '@codegraphy-vscode/plugin-api';
+} from '@codegraphy/plugin-api';
 import { PathResolver } from './PathResolver';
 import manifest from '../codegraphy.json';
 

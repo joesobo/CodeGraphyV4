@@ -5,14 +5,14 @@
 ### Patch Changes
 
 - Updated dependencies [[`73d0118`](https://github.com/joesobo/CodeGraphyV4/commit/73d0118012efc8709be3604b348628a6260b45c1)]:
-  - @codegraphy-vscode/plugin-api@2.0.0
+  - @codegraphy/plugin-api@2.0.0
 
 ## 2.0.3
 
 ### Patch Changes
 
 - Updated dependencies [[`2f81974`](https://github.com/joesobo/CodeGraphyV4/commit/2f819740837de3f77b6717f4af3894e30e167e1f)]:
-  - @codegraphy-vscode/plugin-api@1.2.0
+  - @codegraphy/plugin-api@1.2.0
 
 ## 2.0.2
 
@@ -25,7 +25,7 @@
 ### Patch Changes
 
 - Updated dependencies [[`bae8657`](https://github.com/joesobo/CodeGraphyV4/commit/bae86577832441943b8cc83130617d1f79c0dc83)]:
-  - @codegraphy-vscode/plugin-api@1.1.0
+  - @codegraphy/plugin-api@1.1.0
 
 ## 2.0.0
 
@@ -36,7 +36,7 @@
 ### Patch Changes
 
 - Updated dependencies [[`f0311fb`](https://github.com/joesobo/CodeGraphyV4/commit/f0311fb0bcae07227f42c6f9f41018b0ad4ae955), [`75c8321`](https://github.com/joesobo/CodeGraphyV4/commit/75c83218175213d5adb9c205191d92003770db20), [`94ec5e4`](https://github.com/joesobo/CodeGraphyV4/commit/94ec5e45db07ea588db74c5a549bf3201ac2784c)]:
-  - @codegraphy-vscode/plugin-api@1.0.0
+  - @codegraphy/plugin-api@1.0.0
 
 ## 1.0.1
 
@@ -47,4 +47,4 @@
 - Refresh the published extension and plugin package listings with updated README links, package icons, and marketplace metadata.
 
 - Updated dependencies []:
-  - @codegraphy-vscode/plugin-api@0.1.1
+  - @codegraphy/plugin-api@0.1.1

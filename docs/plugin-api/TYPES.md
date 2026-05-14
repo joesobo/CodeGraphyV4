@@ -37,14 +37,14 @@ import type {
   IToolbarAction,
   IToolbarActionItem,
   ViewDependency,
-} from '@codegraphy-vscode/plugin-api';
+} from '@codegraphy/plugin-api';
 
 import type {
   CodeGraphyWebviewAPI,
   NodeRenderFn,
   OverlayRenderFn,
   TooltipProviderFn,
-} from '@codegraphy-vscode/plugin-api/webview';
+} from '@codegraphy/plugin-api/webview';
 ```
 
 ## Core Plugin Contract
@@ -234,7 +234,7 @@ Current limitation: folder icon theming is still core-only. The API does not yet
 
 ## Webview Types (Tier 2)
 
-From `@codegraphy-vscode/plugin-api/webview`:
+From `@codegraphy/plugin-api/webview`:
 
 - `CodeGraphyWebviewAPI`
 - `NodeRenderContext`, `NodeRenderFn`
@@ -244,10 +244,10 @@ From `@codegraphy-vscode/plugin-api/webview`:
 
 ## Package Export Notes
 
-`@codegraphy-vscode/plugin-api` is currently a type-definition package with `types` exports for:
-- `@codegraphy-vscode/plugin-api`
-- `@codegraphy-vscode/plugin-api/events`
-- `@codegraphy-vscode/plugin-api/plugin`
-- `@codegraphy-vscode/plugin-api/webview`
+`@codegraphy/plugin-api` is currently a type-definition package with `types` exports for:
+- `@codegraphy/plugin-api`
+- `@codegraphy/plugin-api/events`
+- `@codegraphy/plugin-api/plugin`
+- `@codegraphy/plugin-api/webview`
 
 Use `import type` for these symbols in plugin code.

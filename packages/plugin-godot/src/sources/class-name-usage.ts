@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { normalizePath } from '../parser';
 import { detectUsagesInLine } from './class-name-detector';

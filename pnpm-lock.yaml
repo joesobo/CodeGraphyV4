@@ -83,7 +83,7 @@ importers:
 
   packages/codegraphy-mcp:
     dependencies:
-      '@codegraphy-vscode/plugin-api':
+      '@codegraphy/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
       '@ladybugdb/core':
@@ -95,6 +95,12 @@ importers:
       zod:
         specifier: ^4.1.12
         version: 4.3.6
+
+  packages/core:
+    dependencies:
+      '@codegraphy/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
 
   packages/extension:
     dependencies:
@@ -293,31 +299,31 @@ importers:
 
   packages/plugin-csharp:
     dependencies:
-      '@codegraphy-vscode/plugin-api':
+      '@codegraphy/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-godot:
     dependencies:
-      '@codegraphy-vscode/plugin-api':
+      '@codegraphy/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-markdown:
     dependencies:
-      '@codegraphy-vscode/plugin-api':
+      '@codegraphy/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-python:
     dependencies:
-      '@codegraphy-vscode/plugin-api':
+      '@codegraphy/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-typescript:
     dependencies:
-      '@codegraphy-vscode/plugin-api':
+      '@codegraphy/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 

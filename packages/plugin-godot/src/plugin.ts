@@ -10,7 +10,7 @@ import type {
   IAnalysisSymbol,
   IPlugin,
   IPluginAnalysisContext,
-} from '@codegraphy-vscode/plugin-api';
+} from '@codegraphy/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
 import type { GDScriptFileAnalysisResult } from './analysis';
