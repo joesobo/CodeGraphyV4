@@ -83,6 +83,9 @@ importers:
 
   packages/codegraphy-mcp:
     dependencies:
+      '@codegraphy/core':
+        specifier: workspace:*
+        version: link:../core
       '@codegraphy/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api

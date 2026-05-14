@@ -1015,6 +1015,13 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Added workspace metadata, plugin/settings fingerprints, analysis-version fingerprints, and `readCodeGraphyWorkspaceStatus(...)` for fresh/stale/missing Graph Cache state.
   - Updated `indexCodeGraphyWorkspace(...)` to materialize Workspace Settings, use them for Indexing, and persist matching metadata after writing the Graph Cache.
   - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/workspace/settings.test.ts tests/workspace/status.test.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, and `pnpm --filter @codegraphy/core build`.
+- 2026-05-14: Step 5 first slice completed: installed plugin metadata cache and CLI plugin commands added.
+  - Added core-owned parsing for `package.json#codegraphy` plugin metadata, including Plugin API compatibility, default options, and capability disclosures without importing runtime code.
+  - Added user-level installed plugin cache helpers for `~/.codegraphy/plugins.json` plus the user settings path at `~/.codegraphy/settings.json`.
+  - Added metadata-only plugin cache operations for `plugins refresh` over global `@codegraphy/*` packages and `plugins add <package>` for explicitly named global packages.
+  - Added workspace-local plugin enable/disable helpers that mutate only `<workspace-root>/.codegraphy/settings.json` and preserve plugin order as array order.
+  - Added CLI commands for `codegraphy plugins refresh`, `add`, `list`, `enable`, and `disable`; enable fails from the installed-plugin cache instead of scanning global npm roots.
+  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/plugins/packageManifest.test.ts tests/plugins/installedCache.test.ts tests/workspace/settings.test.ts`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/mcp exec vitest run --config vitest.config.ts tests/run/parse.test.ts tests/plugins/command.test.ts`, `pnpm --filter @codegraphy/mcp test`, `pnpm --filter @codegraphy/mcp typecheck`, `pnpm --filter @codegraphy/mcp lint`, `pnpm --filter @codegraphy/mcp build`, `pnpm --filter @codegraphy/extension typecheck`, `pnpm run test:release`, and `git diff --check`.
 
 ### Step 1: Package Identity Groundwork
 

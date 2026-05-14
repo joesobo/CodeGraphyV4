@@ -1,8 +1,30 @@
-export type CliCommandName = 'help' | 'index' | 'list' | 'mcp' | 'open' | 'setup';
+export type CliCommandName = 'help' | 'index' | 'list' | 'mcp' | 'open' | 'plugins' | 'setup';
+export type PluginsCommandAction = 'add' | 'disable' | 'enable' | 'help' | 'list' | 'refresh';
 
 export interface CliCommand {
   name: CliCommandName;
+  action?: PluginsCommandAction;
+  packageName?: string;
   repoPath?: string;
+  workspacePath?: string;
+}
+
+function parsePluginsCommand(argv: string[]): CliCommand {
+  const [action, packageName, workspacePath] = argv;
+
+  switch (action) {
+    case 'add':
+      return { name: 'plugins', action, packageName };
+    case 'disable':
+    case 'enable':
+      return { name: 'plugins', action, packageName, workspacePath };
+    case 'list':
+      return { name: 'plugins', action, workspacePath: packageName };
+    case 'refresh':
+      return { name: 'plugins', action };
+    default:
+      return { name: 'plugins', action: 'help' };
+  }
 }
 
 export function parseCliCommand(argv: string[]): CliCommand {
@@ -24,6 +46,8 @@ export function parseCliCommand(argv: string[]): CliCommand {
       return { name: 'index' };
     case 'mcp':
       return { name: 'mcp' };
+    case 'plugins':
+      return parsePluginsCommand(rest);
     default:
       return { name: 'help' };
   }

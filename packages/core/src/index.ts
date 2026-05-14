@@ -172,6 +172,29 @@ export {
   CorePluginRegistry,
 } from './plugins/registry';
 export type { CorePluginInfo } from './plugins/registry';
+export type {
+  CodeGraphyPluginDisclosure,
+  CodeGraphyPluginPackageManifest,
+} from './plugins/packageManifest';
+export { parseCodeGraphyPluginPackageManifest } from './plugins/packageManifest';
+export type {
+  AddCodeGraphyInstalledPluginOptions,
+  CodeGraphyInstalledPluginCache,
+  CodeGraphyInstalledPluginRecord,
+  CodeGraphyUserStateOptions,
+  RefreshCodeGraphyInstalledPluginsOptions,
+} from './plugins/installedCache';
+export {
+  addCodeGraphyInstalledPlugin,
+  disableCodeGraphyWorkspacePlugin,
+  enableCodeGraphyWorkspacePlugin,
+  getCodeGraphyUserDirectoryPath,
+  getCodeGraphyUserSettingsPath,
+  getInstalledPluginsCachePath,
+  readCodeGraphyInstalledPluginCache,
+  refreshCodeGraphyInstalledPlugins,
+  writeCodeGraphyInstalledPluginCache,
+} from './plugins/installedCache';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';
 export { initializeAll, initializePlugin } from './plugins/lifecycle/initialize';
 export type { ILifecyclePluginInfo } from './plugins/lifecycle/contracts';

@@ -26,7 +26,7 @@ The current plugin API supports more than file analysis:
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
 - `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
 - analysis hooks receive an optional `context` object; use `context.fileSystem` for timeline-safe repo reads
-- graph queries backed by the projected repo-local index and current graph state
+- graph queries backed by the projected workspace-local index and current graph state
 - commands, exporters, toolbar actions, and the compatibility `registerView(...)` hook for optional future graph transforms
 - context menu items, commands, and exporters
 - host-saved exports via `api.saveExport(...)`
@@ -38,15 +38,38 @@ For timeline compatibility, third-party plugins should avoid reading the live wo
 
 ## Packaging model
 
-Third-party plugins should ship as their own VS Code extensions.
+During the core extraction, language plugins are moving toward headless npm packages that are consumed by `@codegraphy/core`.
 
-At activation time, the plugin extension should:
+Installation and enablement are separate:
 
-1. get the `codegraphy.codegraphy` extension export
-2. activate it if needed
-3. call `registerPlugin(...)` with its plugin implementation
+- `npm i -g @codegraphy/plugin-python` installs a plugin package for the developer's toolchain.
+- `codegraphy plugins refresh` records installed `@codegraphy/*` plugin packages in `~/.codegraphy/plugins.json`.
+- `codegraphy plugins add <package>` records an explicitly named globally installed plugin package, including private or non-`@codegraphy` packages.
+- `codegraphy plugins enable <package> [workspace]` writes that plugin into the workspace-local `plugins` array.
+- `codegraphy plugins disable <package> [workspace]` removes that plugin from the workspace-local enabled set.
+- Enabling and disabling plugins do not run Indexing automatically; run `codegraphy index [workspace]` to refresh the Graph Cache.
 
-The plugin implementation itself can live in the same VS Code extension package or in a shared library package.
+Plugin packages declare CodeGraphy metadata in `package.json` so discovery can validate compatibility without importing arbitrary runtime code:
+
+```json
+{
+  "name": "@codegraphy/plugin-python",
+  "version": "1.2.3",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0",
+    "defaultOptions": {
+      "includeTests": true
+    },
+    "disclosures": []
+  }
+}
+```
+
+The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, refresh, list, enable, or disable commands.
 
 ## Plugin author setup
 
@@ -66,7 +89,7 @@ Use `import type` because the package is type-only.
 
 ## Analysis model
 
-The Core Extension owns discovery, repo-local Settings, caching, Graph Projection, and export flow. Plugins contribute analysis and UI on top of that pipeline and can:
+`@codegraphy/core` owns discovery, workspace-local Settings, caching, Graph Projection, and plugin analysis. Plugins contribute analysis on top of that pipeline and can:
 
 - return per-file analysis results with relationships, symbols, and extra nodes
 - override or enrich lower-priority plugin results for the same file

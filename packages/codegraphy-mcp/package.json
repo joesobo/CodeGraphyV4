@@ -27,6 +27,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@codegraphy/core": "workspace:*",
     "@codegraphy/plugin-api": "workspace:*",
     "@ladybugdb/core": "^0.15.3",
     "@modelcontextprotocol/sdk": "^1.29.0",
