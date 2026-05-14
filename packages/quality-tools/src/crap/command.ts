@@ -41,6 +41,11 @@ export function runCrapCli(
   const profiles = dependencies.createCoverageProfiles(REPO_ROOT, target.packageName);
 
   profiles.forEach((profile) => {
+    if (profile.env) {
+      dependencies.runCommand(profile.command, profile.args, profile.cwd, profile.env);
+      return;
+    }
+
     dependencies.runCommand(profile.command, profile.args, profile.cwd);
   });
 

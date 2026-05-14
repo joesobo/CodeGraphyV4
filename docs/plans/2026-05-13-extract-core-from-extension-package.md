@@ -1339,6 +1339,41 @@ Done when:
 - parser-backed internals reduce plugin line-scanning responsibility
 - no Godot LSP/external-process dependency is required in the first structured rewrite
 
+Implementation progress:
+
+- Added a parser-backed GDScript statement model that strips comments outside quoted strings while preserving line numbers and raw source text for Symbol Node ranges.
+- Centralized GDScript `extends`, `preload(...)`, `load(...)`, class-name, and declaration extraction around the structured statement parser.
+- Added a Godot text-resource parser for `.tscn`, `.tres`, and `project.godot` style files, including quoted and bare tag fields.
+- Routed `ext_resource`, project settings, and resource-UID registration through the text-resource parser so UID-preferred resolution works without ad-hoc header regexes.
+- Split Godot parsing, path resolution, and plugin orchestration into feature modules so the structured analyzer stays under the mutation-site threshold.
+- Kept relationship and Symbol Node output compatible while improving inline-comment handling and bare `uid=` support.
+- Avoided Godot LSP, external processes, local network dependencies, and plugin-to-VS-Code communication.
+
+Validation:
+
+- `pnpm --filter @codegraphy/plugin-godot test`
+- `pnpm --filter @codegraphy/plugin-godot typecheck`
+- `pnpm --filter @codegraphy/plugin-godot lint`
+- `pnpm --filter @codegraphy/plugin-godot build`
+- `pnpm run crap -- packages/plugin-godot`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/comments.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/quotes.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/className.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/resourceLoads.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/resourceExtends.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/resources.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/textResource`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/textResource/tagFields.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/pathResolver`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/PathResolver.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin`
+- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/packageIcons.test.ts tests/integration/pluginActivationEvents.test.ts tests/extension/pipeline/adapters.test.ts tests/extension/pipeline/analysis/delegates.test.ts`
+- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy/quality-tools exec vitest run tests/crap/coverage/profileFactories.test.ts tests/crap/coverage/profiles.test.ts tests/crap/command.test.ts`
+- `pnpm --filter @codegraphy/quality-tools typecheck`
+- `git diff --check`
+
 ### Step 11: Docs, Changesets, Migration Notes
 
 Goal:

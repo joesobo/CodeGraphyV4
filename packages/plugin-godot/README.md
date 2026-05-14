@@ -23,6 +23,9 @@ codegraphy index
   - `class_name` references
   - `class_name` declarations as Symbol Nodes
   - function, constant, variable, and enum declarations as Symbol Nodes
+- Structured parsing:
+  - GDScript statements are parsed before relationship and Symbol Node extraction, so inline comments are ignored without breaking quoted `#` characters.
+  - Godot text-resource tags and `project.godot` sections are parsed before dependency extraction, including quoted and bare field values.
 - `project.godot`:
   - `application/run/main_scene`
   - `[autoload]`

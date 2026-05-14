@@ -134,6 +134,25 @@ describe('createGDScriptPlugin lifecycle', () => {
     ]));
   });
 
+  it('analyzeFile should emit declaration signatures without inline comments', async () => {
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
+    const analysis = await plugin.analyzeFile(
+      '/workspace/scripts/player_stats.gd',
+      'const DEFAULT_HEALTH := 100 # tuned for tutorial pacing',
+      '/workspace',
+    );
+
+    expect(analysis.symbols).toEqual([
+      expect.objectContaining({
+        id: 'scripts/player_stats.gd#DEFAULT_HEALTH:constant',
+        signature: 'const DEFAULT_HEALTH := 100',
+        range: expect.objectContaining({
+          endColumn: 28,
+        }),
+      }),
+    ]);
+  });
+
   it('onPreAnalyze should build class_name map from file contents', async () => {
     const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
     await plugin.initialize('/workspace');
@@ -219,6 +238,103 @@ describe('createGDScriptPlugin lifecycle', () => {
     expect(conns.some(conn => conn.specifier === 'Player')).toBe(false);
   });
 
+  it('onFilesChanged should not request reanalysis when indexed metadata is unchanged', async () => {
+    const plugin = createGodotPlugin();
+    await plugin.onPreAnalyze!(
+      [
+        {
+          absolutePath: '/workspace/scripts/player.gd',
+          relativePath: 'scripts/player.gd',
+          content: 'class_name Player\n',
+        },
+      ],
+      '/workspace',
+    );
+
+    const changedFiles = await plugin.onFilesChanged!(
+      [
+        {
+          absolutePath: '/workspace/scripts/player.gd',
+          relativePath: 'scripts/player.gd',
+          content: 'class_name Player\n',
+        },
+      ],
+      '/workspace',
+    );
+
+    expect(changedFiles).toEqual([]);
+  });
+
+  it('onFilesChanged should request script reanalysis when class names change', async () => {
+    const plugin = createGodotPlugin();
+    await plugin.onPreAnalyze!(
+      [
+        {
+          absolutePath: '/workspace/scripts/player.gd',
+          relativePath: 'scripts/player.gd',
+          content: 'class_name Player\n',
+        },
+        {
+          absolutePath: '/workspace/scripts/enemy.gd',
+          relativePath: 'scripts/enemy.gd',
+          content: 'class_name Enemy\n',
+        },
+      ],
+      '/workspace',
+    );
+
+    const changedFiles = await plugin.onFilesChanged!(
+      [
+        {
+          absolutePath: '/workspace/scripts/player.gd',
+          relativePath: 'scripts/player.gd',
+          content: 'class_name Hero\n',
+        },
+      ],
+      '/workspace',
+    );
+
+    expect(changedFiles).toEqual([
+      'scripts/player.gd',
+      'scripts/enemy.gd',
+    ]);
+  });
+
+  it('onFilesChanged should request text resource reanalysis when resource UIDs change', async () => {
+    const plugin = createGodotPlugin();
+    await plugin.onPreAnalyze!(
+      [
+        {
+          absolutePath: '/workspace/resources/loadout.tres',
+          relativePath: 'resources/loadout.tres',
+          content: '[gd_resource type=Resource uid=uid://loadout]',
+        },
+        {
+          absolutePath: '/workspace/scenes/preview.tscn',
+          relativePath: 'scenes/preview.tscn',
+          content: '[gd_scene load_steps=2 format=3]',
+        },
+      ],
+      '/workspace',
+    );
+
+    const changedFiles = await plugin.onFilesChanged!(
+      [
+        {
+          absolutePath: '/workspace/resources/loadout.tres',
+          relativePath: 'resources/loadout.tres',
+          content: '[gd_resource type=Resource uid=uid://new-loadout]',
+        },
+      ],
+      '/workspace',
+    );
+
+    expect(changedFiles).toEqual([
+      'resources/loadout.tres',
+      'scenes/preview.tscn',
+    ]);
+  });
+
   it('analyzeFile should not mutate the resolver with class_name declarations from the current file', async () => {
     const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
     await plugin.initialize('/workspace');
@@ -293,6 +409,35 @@ var config = load("res://data/config.tres")`;
     ]);
     expect(analysis.relations.every(relation => relation.sourceId === 'ext-resource')).toBe(true);
     expect(analysis.relations.every(relation => relation.kind === 'load')).toBe(true);
+  });
+
+  it('onPreAnalyze should register text resource UIDs from structured headers', async () => {
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
+    await plugin.initialize('/workspace');
+
+    await plugin.onPreAnalyze!(
+      [
+        {
+          absolutePath: '/workspace/resources/player_loadout.tres',
+          relativePath: 'resources/player_loadout.tres',
+          content: '[gd_resource type=Resource uid=uid://player-loadout]',
+        },
+      ],
+      '/workspace',
+    );
+
+    const analysis = await plugin.analyzeFile(
+      '/workspace/scenes/loadout_preview.tscn',
+      '[ext_resource type="Resource" uid="uid://player-loadout" path="res://wrong/path.tres" id="1_loadout"]',
+      '/workspace',
+    );
+
+    expect(analysis.relations).toEqual([
+      expect.objectContaining({
+        specifier: 'res://wrong/path.tres',
+        resolvedPath: '/workspace/resources/player_loadout.tres',
+      }),
+    ]);
   });
 
   it('analyzeFile should detect project settings resource paths in project.godot files', async () => {
