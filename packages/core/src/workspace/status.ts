@@ -1,9 +1,15 @@
 import * as fs from 'node:fs';
 import type { IPlugin } from '@codegraphy/plugin-api';
+import { createMarkdownPlugin } from '@codegraphy/plugin-markdown';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
+import { createTreeSitterPlugin } from '../treeSitter/plugin';
 import { getGraphCachePath, resolveWorkspaceRoot } from './paths';
 import { readCodeGraphyWorkspaceMeta } from './meta';
-import { readCodeGraphyWorkspaceSettings, type CodeGraphyWorkspaceSettings } from './settings';
+import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  readCodeGraphyWorkspaceSettings,
+  type CodeGraphyWorkspaceSettings,
+} from './settings';
 import {
   createCodeGraphyWorkspacePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
@@ -94,6 +100,16 @@ function collectStaleReasons(input: {
   ];
 }
 
+function createDefaultStatusPlugins(
+  settings: CodeGraphyWorkspaceSettings,
+): Array<Pick<IPlugin, 'id' | 'version'>> {
+  const plugins: Array<Pick<IPlugin, 'id' | 'version'>> = [createTreeSitterPlugin()];
+  if (settings.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)) {
+    plugins.push(createMarkdownPlugin());
+  }
+  return plugins;
+}
+
 export function readCodeGraphyWorkspaceStatus(
   workspaceRoot: string,
   options: ReadCodeGraphyWorkspaceStatusOptions = {},
@@ -104,7 +120,9 @@ export function readCodeGraphyWorkspaceStatus(
   const meta = readCodeGraphyWorkspaceMeta(resolvedWorkspaceRoot);
   const settings = options.settings ?? readCodeGraphyWorkspaceSettings(resolvedWorkspaceRoot);
   const settingsSignature = createCodeGraphyWorkspaceSettingsSignature(settings);
-  const pluginSignature = createCodeGraphyWorkspacePluginSignature(options.plugins ?? []);
+  const pluginSignature = createCodeGraphyWorkspacePluginSignature(
+    options.plugins ?? createDefaultStatusPlugins(settings),
+  );
   const staleReasons = collectStaleReasons({
     hasGraphCache,
     indexedAt: meta.lastIndexedAt,

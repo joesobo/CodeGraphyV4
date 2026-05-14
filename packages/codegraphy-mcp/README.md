@@ -2,13 +2,11 @@
 
 `@codegraphy/mcp` installs the `codegraphy` CLI and local MCP server.
 
-It is a lightweight agent Adapter over the CodeGraphy Core Extension. The Core Extension owns Indexing, Graph Cache access, plugin wiring, and Graph Query execution. The MCP package opens or focuses the repo in VS Code, sends Indexing or Graph Query requests, and returns the Core Extension response.
+It is a lightweight agent adapter over `@codegraphy/core`. MCP and CLI commands run against a CodeGraphy Workspace, which is the current folder by default or an explicit path when one is provided. The package can run Indexing, read workspace status, and execute Graph Query without opening or focusing VS Code.
 
 ## Prerequisites
 
 - Node `22.22.0` or newer within the supported Node 22 range.
-- VS Code with the CodeGraphy extension installed.
-- The VS Code `code` shell command available.
 - Codex or another MCP-capable agent.
 
 ## Quick Start
@@ -16,14 +14,15 @@ It is a lightweight agent Adapter over the CodeGraphy Core Extension. The Core E
 ```bash
 npm install -g @codegraphy/mcp
 codegraphy setup
-codegraphy open .
+codegraphy index
+codegraphy status
 codex mcp list
 ```
 
-If the repo has no Graph Cache yet:
+To index a different CodeGraphy Workspace:
 
 ```bash
-codegraphy index
+codegraphy index /absolute/path/to/folder
 ```
 
 ## Commands
@@ -31,14 +30,15 @@ codegraphy index
 | Command | What It Does |
 |---|---|
 | `codegraphy setup` | Adds the CodeGraphy MCP entry to Codex when possible |
-| `codegraphy open <repo>` | Opens or focuses a repo in VS Code and marks it active for CLI Indexing |
-| `codegraphy index` | Asks the Core Extension to run Indexing for the active repo |
+| `codegraphy status [workspace]` | Reports Graph Cache state, stale reasons, and enabled plugins for the current or explicit CodeGraphy Workspace |
+| `codegraphy index [workspace]` | Runs Indexing for the current or explicit CodeGraphy Workspace |
 | `codegraphy plugins refresh` | Scans global npm roots for installed `@codegraphy/*` plugin packages and updates `~/.codegraphy/plugins.json` |
 | `codegraphy plugins add <package>` | Adds one explicitly named globally installed plugin package to `~/.codegraphy/plugins.json` |
 | `codegraphy plugins list [workspace]` | Shows installed plugins and which ones are enabled for a CodeGraphy Workspace |
 | `codegraphy plugins enable <package> [workspace]` | Enables a cached plugin package for the current or explicit CodeGraphy Workspace |
 | `codegraphy plugins disable <package> [workspace]` | Removes a plugin package from the workspace-local enabled plugin array |
-| `codegraphy list` | Lists locally known repos from `~/.codegraphy/registry.json` |
+| `codegraphy list` | Lists legacy locally known repos from `~/.codegraphy/registry.json` |
+| `codegraphy open <repo>` | Legacy registry command for opening a repo in VS Code |
 | `codegraphy mcp` | Starts the local stdio MCP server |
 
 Plugin commands use `@codegraphy/core` directly and do not import plugin runtime code. Installing a plugin package only makes it available; enabling it writes the workspace-local `plugins` array and tells the user to run Indexing explicitly.
@@ -47,15 +47,15 @@ Plugin commands use `@codegraphy/core` directly and do not import plugin runtime
 
 | Tool | What It Does |
 |---|---|
-| `codegraphy_open_repo` | Opens or focuses a repo in VS Code and establishes the active Core Extension connection |
-| `codegraphy_index_repo` | Asks the Core Extension to run Indexing for the active repo |
-| `codegraphy_list_nodes` | Lists graph nodes, defaulting to File Nodes |
-| `codegraphy_list_edges` | Lists high-level `from` / `to` connections with grouped Edge Types |
-| `codegraphy_list_relationships` | Lists detailed relationships grouped by node pair and Edge Type |
-| `codegraphy_list_symbols` | Lists declarations or relationship-backed symbol evidence |
-| `codegraphy_find_paths` | Finds bounded directed node paths from one exact node path to another |
+| `codegraphy_status` | Reports CodeGraphy Workspace status for the MCP server working directory or an explicit `path` |
+| `codegraphy_index` | Runs Indexing for the MCP server working directory or an explicit `path` without focusing VS Code |
+| `codegraphy_list_nodes` | Lists graph nodes, defaulting to File Nodes; accepts optional `path` |
+| `codegraphy_list_edges` | Lists high-level `from` / `to` connections with grouped Edge Types; accepts optional `path` |
+| `codegraphy_list_relationships` | Lists detailed relationships grouped by node pair and Edge Type; accepts optional `path` |
+| `codegraphy_list_symbols` | Lists declarations or relationship-backed symbol evidence; accepts optional `path` |
+| `codegraphy_find_paths` | Finds bounded directed node paths from one exact node path to another; accepts optional `path` |
 
-Query tools require an active repo from `codegraphy_open_repo`. If the active repo has no Graph Cache, the tool response tells the agent to run `codegraphy_index_repo()`.
+Query tools do not require a prior open/select call. If the CodeGraphy Workspace has no Graph Cache, the tool response tells the agent to run `codegraphy_index`, then retry.
 
 Broad list calls are paginated with `limit` and `offset`. The default page size is 500.
 

@@ -1,37 +1,30 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as z from 'zod/v4';
-import {
-  requestCodeGraphyIndexRepo,
-} from '../coreExtension/indexing';
+import type { GraphQueryReport } from '../coreExtension/model';
+import { requestCodeGraphyIndexWorkspace } from '../workspace/indexing';
 import type {
-  GraphQueryInput,
-  GraphQueryReport,
-  GraphQueryResult,
-  IndexRepoInput,
-  IndexRepoResult,
-  OpenRepoInput,
-  OpenRepoResult,
-  ToolErrorResult,
-} from '../coreExtension/model';
-import { requestCodeGraphyOpenRepo } from '../coreExtension/open';
-import { requestGraphQuery } from '../coreExtension/query';
-
-interface SessionState {
-  activeRepo?: string;
-  graphCacheExists?: boolean;
-}
+  IndexWorkspaceResult,
+  WorkspaceGraphQueryInput,
+  WorkspaceGraphQueryResult,
+  WorkspacePathInput,
+  WorkspaceStatusResult,
+} from '../workspace/model';
+import { requestWorkspaceGraphQuery } from '../workspace/query';
+import { readCodeGraphyWorkspaceStatusForCli } from '../workspace/status';
 
 interface CodeGraphyMcpServerDependencies {
-  openRepo(input: OpenRepoInput): Promise<OpenRepoResult | ToolErrorResult> | OpenRepoResult | ToolErrorResult;
-  indexRepo(input: IndexRepoInput): Promise<IndexRepoResult | ToolErrorResult>;
-  runGraphQuery(input: GraphQueryInput): Promise<GraphQueryResult>;
+  cwd(): string;
+  indexWorkspace(input: WorkspacePathInput): Promise<IndexWorkspaceResult>;
+  runGraphQuery(input: WorkspaceGraphQueryInput): Promise<WorkspaceGraphQueryResult>;
+  statusWorkspace(input: WorkspacePathInput): Promise<WorkspaceStatusResult> | WorkspaceStatusResult;
 }
 
 const DEFAULT_DEPENDENCIES: CodeGraphyMcpServerDependencies = {
-  openRepo: requestCodeGraphyOpenRepo,
-  indexRepo: requestCodeGraphyIndexRepo,
-  runGraphQuery: requestGraphQuery,
+  cwd: () => process.cwd(),
+  indexWorkspace: requestCodeGraphyIndexWorkspace,
+  runGraphQuery: requestWorkspaceGraphQuery,
+  statusWorkspace: readCodeGraphyWorkspaceStatusForCli,
 };
 
 const directionSchema = z.enum(['asc', 'desc']).optional();
@@ -48,7 +41,11 @@ const scopeSchema = z.object({
   nodes: z.record(z.string(), z.boolean()).optional(),
   edges: z.record(z.string(), z.boolean()).optional(),
 }).optional();
+const workspacePathSchema = {
+  path: z.string().optional(),
+};
 const listQuerySchema = {
+  ...workspacePathSchema,
   scope: scopeSchema,
   filters: filterSchema,
   search: z.string().optional(),
@@ -68,27 +65,26 @@ function createToolResult<T extends Record<string, unknown>>(result: T) {
   };
 }
 
-function createRepoNotOpenResult(): ToolErrorResult {
+function splitWorkspacePath(input: Record<string, unknown>): {
+  workspacePath?: string;
+  arguments: Record<string, unknown>;
+} {
+  const { path, ...args } = input;
   return {
-    error: 'repo_not_open',
-    message: 'Open a repo first with `codegraphy_open_repo({"repo":"/absolute/path/to/repo"})`.',
+    workspacePath: typeof path === 'string' ? path : undefined,
+    arguments: args,
   };
 }
 
-function createGraphCacheNotFoundResult(): ToolErrorResult {
-  return {
-    error: 'graph_cache_not_found',
-    message: 'This repo has not been indexed by CodeGraphy yet. Run `codegraphy_index_repo()`, then retry this query.',
-  };
-}
-
-function isToolError(result: Record<string, unknown>): result is ToolErrorResult {
-  return typeof result.error === 'string';
+function resolveInputWorkspacePath(
+  workspacePath: string | undefined,
+  dependencies: CodeGraphyMcpServerDependencies,
+): string {
+  return workspacePath ?? dependencies.cwd();
 }
 
 function registerGraphQueryTool(
   server: McpServer,
-  session: SessionState,
   dependencies: CodeGraphyMcpServerDependencies,
   report: GraphQueryReport,
   name: string,
@@ -102,24 +98,17 @@ function registerGraphQueryTool(
       inputSchema: z.object(inputSchema),
     },
     async (input) => {
-      if (!session.activeRepo) {
-        return createToolResult(createRepoNotOpenResult());
-      }
-      if (session.graphCacheExists === false) {
-        return createToolResult(createGraphCacheNotFoundResult());
-      }
-
+      const queryInput = splitWorkspacePath(input);
       return createToolResult(await dependencies.runGraphQuery({
-        repo: session.activeRepo,
+        workspacePath: resolveInputWorkspacePath(queryInput.workspacePath, dependencies),
         report,
-        arguments: input,
+        arguments: queryInput.arguments,
       }));
     },
   );
 }
 
 export function createCodeGraphyMcpServer(
-  session: SessionState = {},
   dependencies: CodeGraphyMcpServerDependencies = DEFAULT_DEPENDENCIES,
 ): McpServer {
   const server = new McpServer({
@@ -128,51 +117,33 @@ export function createCodeGraphyMcpServer(
   });
 
   server.registerTool(
-    'codegraphy_open_repo',
+    'codegraphy_status',
     {
-      description: 'Open or focus a repo in VS Code and establish the active CodeGraphy Core Extension connection.',
-      inputSchema: z.object({
-        repo: z.string(),
-      }),
+      description: 'Report CodeGraphy Workspace status for the current folder or an explicit path.',
+      inputSchema: z.object(workspacePathSchema),
     },
-    async ({ repo }) => {
-      const result = await dependencies.openRepo({ repoPath: repo });
-      if (!isToolError(result)) {
-        session.activeRepo = result.repo;
-        session.graphCacheExists = result.graphCacheExists;
-      }
-
-      return createToolResult(result);
-    },
+    async ({ path }) => createToolResult(await dependencies.statusWorkspace({
+      workspacePath: resolveInputWorkspacePath(path, dependencies),
+    })),
   );
 
   server.registerTool(
-    'codegraphy_index_repo',
+    'codegraphy_index',
     {
-      description: 'Ask the active CodeGraphy Core Extension to run Indexing for the open repo. Large repos can take some time.',
-      inputSchema: z.object({}),
+      description: 'Run Indexing for the current or explicit CodeGraphy Workspace path without focusing VS Code.',
+      inputSchema: z.object(workspacePathSchema),
     },
-    async () => {
-      if (!session.activeRepo) {
-        return createToolResult(createRepoNotOpenResult());
-      }
-
-      const result = await dependencies.indexRepo({ repo: session.activeRepo });
-      if (!isToolError(result)) {
-        session.graphCacheExists = true;
-      }
-
-      return createToolResult(result);
-    },
+    async ({ path }) => createToolResult(await dependencies.indexWorkspace({
+      workspacePath: resolveInputWorkspacePath(path, dependencies),
+    })),
   );
 
   registerGraphQueryTool(
     server,
-    session,
     dependencies,
     'nodes',
     'codegraphy_list_nodes',
-    'List indexed Relationship Graph nodes. Defaults to File Nodes; folders and packages are included through Graph Scope.',
+    'List indexed Relationship Graph nodes for a CodeGraphy Workspace. Defaults to File Nodes; folders and packages are included through Graph Scope.',
     {
       ...listQuerySchema,
       showOrphans: z.boolean().optional(),
@@ -181,7 +152,6 @@ export function createCodeGraphyMcpServer(
 
   registerGraphQueryTool(
     server,
-    session,
     dependencies,
     'edges',
     'codegraphy_list_edges',
@@ -196,7 +166,6 @@ export function createCodeGraphyMcpServer(
 
   registerGraphQueryTool(
     server,
-    session,
     dependencies,
     'relationships',
     'codegraphy_list_relationships',
@@ -211,7 +180,6 @@ export function createCodeGraphyMcpServer(
 
   registerGraphQueryTool(
     server,
-    session,
     dependencies,
     'symbols',
     'codegraphy_list_symbols',
@@ -227,12 +195,12 @@ export function createCodeGraphyMcpServer(
 
   registerGraphQueryTool(
     server,
-    session,
     dependencies,
     'paths',
     'codegraphy_find_paths',
     'Return bounded directed node paths from one exact node path to another. Paths contain nodes only.',
     {
+      ...workspacePathSchema,
       from: z.string(),
       to: z.string(),
       maxDepth: z.number().int().positive().optional(),

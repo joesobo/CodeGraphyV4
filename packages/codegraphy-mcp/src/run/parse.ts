@@ -1,4 +1,4 @@
-export type CliCommandName = 'help' | 'index' | 'list' | 'mcp' | 'open' | 'plugins' | 'setup';
+export type CliCommandName = 'help' | 'index' | 'list' | 'mcp' | 'open' | 'plugins' | 'setup' | 'status';
 export type PluginsCommandAction = 'add' | 'disable' | 'enable' | 'help' | 'list' | 'refresh';
 
 export interface CliCommand {
@@ -43,7 +43,9 @@ export function parseCliCommand(argv: string[]): CliCommand {
     case 'open':
       return { name: 'open', repoPath: rest[0] };
     case 'index':
-      return { name: 'index' };
+      return rest[0] ? { name: 'index', workspacePath: rest[0] } : { name: 'index' };
+    case 'status':
+      return rest[0] ? { name: 'status', workspacePath: rest[0] } : { name: 'status' };
     case 'mcp':
       return { name: 'mcp' };
     case 'plugins':

@@ -11,8 +11,20 @@ describe('run/parse', () => {
     expect(parseCliCommand(['open', '/repo'])).toEqual({ name: 'open', repoPath: '/repo' });
   });
 
-  it('parses index without repo arguments', () => {
+  it('parses index with an optional workspace path', () => {
     expect(parseCliCommand(['index'])).toEqual({ name: 'index' });
+    expect(parseCliCommand(['index', '/workspace/project'])).toEqual({
+      name: 'index',
+      workspacePath: '/workspace/project',
+    });
+  });
+
+  it('parses status with an optional workspace path', () => {
+    expect(parseCliCommand(['status'])).toEqual({ name: 'status' });
+    expect(parseCliCommand(['status', '/workspace/project'])).toEqual({
+      name: 'status',
+      workspacePath: '/workspace/project',
+    });
   });
 
   it('parses plugin cache and workspace commands', () => {
@@ -43,8 +55,7 @@ describe('run/parse', () => {
     });
   });
 
-  it('does not parse old status and reindex commands', () => {
-    expect(parseCliCommand(['status', '/repo'])).toEqual({ name: 'help' });
+  it('does not parse old reindex commands', () => {
     expect(parseCliCommand(['reindex', '/repo'])).toEqual({ name: 'help' });
   });
 

@@ -4,6 +4,7 @@ import { runIndexCommand } from '../index/command';
 import { runOpenCommand } from '../open/command';
 import { runPluginsCommand } from '../plugins/command';
 import { runSetupCommand } from '../setup/command';
+import { runStatusCommand } from '../status/command';
 import type { CliCommand } from './parse';
 
 export interface CommandExecutionResult {
@@ -21,7 +22,8 @@ function createHelpResult(): CommandExecutionResult {
       '  codegraphy setup',
       '  codegraphy list',
       '  codegraphy open <repo>',
-      '  codegraphy index',
+      '  codegraphy status [workspace]',
+      '  codegraphy index [workspace]',
       '  codegraphy plugins <refresh|add|list|enable|disable>',
       '  codegraphy mcp',
     ].join('\n'),
@@ -36,8 +38,10 @@ export async function runCliCommand(command: CliCommand): Promise<CommandExecuti
       return runListCommand();
     case 'open':
       return runOpenCommand(command.repoPath);
+    case 'status':
+      return runStatusCommand(command.workspacePath);
     case 'index':
-      return runIndexCommand();
+      return runIndexCommand(command.workspacePath);
     case 'plugins':
       return runPluginsCommand(command);
     case 'mcp':

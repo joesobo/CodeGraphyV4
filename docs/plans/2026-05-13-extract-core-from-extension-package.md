@@ -1191,6 +1191,32 @@ Done when:
 - MCP can status/index/query a workspace path without prior select/open
 - MCP calls do not focus VS Code
 
+Implementation progress:
+
+- Added core-backed path resolution, status, indexing, and Graph Query helpers under `@codegraphy/mcp`.
+- Changed `codegraphy index [workspace]` to index the current folder or explicit CodeGraphy Workspace path through `@codegraphy/core`.
+- Added `codegraphy status [workspace]` with JSON workspace status, stale reasons, and enabled plugin package names.
+- Replaced normal MCP open/index-repo tools with path-first `codegraphy_status`, `codegraphy_index`, and query tools that accept optional `path`.
+- Confirmed MCP query tools can report a missing Graph Cache without opening or focusing VS Code.
+- Updated `CONTEXT.md`, `docs/MCP.md`, and the MCP package README to describe the path-first core-backed model.
+
+Validation:
+
+- `pnpm --filter @codegraphy/mcp exec vitest run --config vitest.config.ts tests/run/parse.test.ts tests/index/command.test.ts tests/status/command.test.ts tests/mcp/server.test.ts`
+- `pnpm --filter @codegraphy/mcp exec vitest run --config vitest.config.ts tests/workspace/coreBacked.test.ts`
+- `pnpm --filter @codegraphy/mcp test`
+- `pnpm --filter @codegraphy/mcp typecheck`
+- `pnpm --filter @codegraphy/mcp lint`
+- `pnpm --filter @codegraphy/mcp build`
+- `pnpm --filter @codegraphy/plugin-markdown build`
+- `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/workspace/status.test.ts tests/indexing/workspace.test.ts`
+- `pnpm --filter @codegraphy/core typecheck`
+- `pnpm --filter @codegraphy/core lint`
+- `pnpm --filter @codegraphy/core build`
+- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm run test:release`
+- `git diff --check`
+
 ### Step 8: VS Code Extension Adapter And VSIX Packaging
 
 Goal:

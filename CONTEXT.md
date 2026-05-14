@@ -10,6 +10,10 @@ CodeGraphy visualizes relationships in a codebase as an interactive graph so peo
 The main CodeGraphy graph that shows relationships between files and related codebase concepts.
 _Avoid_: Dependency graph, repo graph, workspace graph, force graph
 
+**CodeGraphy Workspace**:
+A folder CodeGraphy can analyze, before or after Indexing has produced a Graph Cache. The workspace does not have to be a git repo or repo root.
+_Avoid_: Repo when git behavior is not required, indexed folder
+
 **Node**:
 A graph item representing a file, folder, package, or plugin-defined codebase concept.
 _Avoid_: Vertex, dot, point
@@ -205,7 +209,7 @@ The parser engine CodeGraphy uses to run language grammars during Tree-sitter An
 _Avoid_: Language coverage, analyzer
 
 **Core Tree-sitter Language Coverage**:
-A language grammar and CodeGraphy analyzer path bundled in the Core Extension that produces baseline relationships during Tree-sitter Analysis.
+A language grammar and CodeGraphy analyzer path bundled in the Core Package that produces baseline relationships during Tree-sitter Analysis.
 _Avoid_: Tree-sitter support when only the parser runtime or grammar package is present
 
 **Plugin Analysis**:
@@ -243,7 +247,7 @@ _Avoid_: Refresh Graph
 ### Agent Access
 
 **CodeGraphy MCP**:
-The local MCP server and CLI that let agents open a repo in the Core Extension, ask the Core Extension to run Indexing, and request focused Graph Query results from the Core Extension.
+The local MCP server and CLI that let agents inspect a CodeGraphy Workspace, ask `@codegraphy/core` to run Indexing, and request focused Graph Query results without opening or focusing VS Code.
 _Avoid_: Agent bridge, MCP indexer, MCP graph
 
 **Graph Query**:
@@ -323,8 +327,12 @@ _Avoid_: Workspace graph, current graph when precision matters
 ### Plugins And Core
 
 **Core Extension**:
-The base CodeGraphy VS Code extension that owns graph data shape, processing, rendering, user features, built-in baseline analysis, styling, caching, and plugin hosting.
-_Avoid_: Plugin host only, empty shell
+The CodeGraphy VS Code extension that owns visualization, VS Code lifecycle integration, editor commands, webviews, and VS Code-specific UI.
+_Avoid_: Core engine, plugin host only
+
+**Core Package**:
+The `@codegraphy/core` npm package that owns headless Indexing, Graph Cache access, plugin wiring, and Graph Query.
+_Avoid_: VS Code extension when referring to headless engine behavior
 
 **Plugin**:
 A CodeGraphy extension point that piggybacks on the base extension to add or improve analysis, graph types, controls, theming, exports, or UI.
@@ -519,7 +527,7 @@ _Avoid_: Graph export
 - **Filter** applies persistent include/exclude criteria to graph consideration; **Collapse** keeps important graph items available behind a collapsed node.
 - **Indexing** starts with **File Discovery**, then runs **Tree-sitter Analysis**, then **Plugin Analysis**, then **Graph Projection**.
 - The **Tree-sitter Runtime** alone does not create **Relationships**; CodeGraphy needs **Core Tree-sitter Language Coverage** or **Plugin Analysis** to produce useful graph data for a language.
-- A language has **Core Tree-sitter Language Coverage** when the **Core Extension** bundles its grammar, maps its file extensions, and extracts baseline relationships that project into the **Relationship Graph**.
+- A language has **Core Tree-sitter Language Coverage** when the **Core Package** bundles its grammar, maps its file extensions, and extracts baseline relationships that project into the **Relationship Graph**.
 - **Core Tree-sitter Language Coverage** should be depth-first: a smaller set of languages with meaningful baseline relationships is better than a broad set of parser-only languages.
 - **Core Tree-sitter Language Coverage** should reuse shared Tree-sitter analysis code where languages follow the same parser-backed patterns, keeping language-specific code small.
 - When a language or ecosystem needs complex project-aware semantics, shallow **Core Tree-sitter Language Coverage** can provide baseline relationships while deeper support belongs in **Plugin Analysis**.
@@ -529,9 +537,9 @@ _Avoid_: Graph export
 - **Graph Cache** stores indexed graph data so reopening the repo does not require full **Indexing**.
 - **Live Updates** keep the **Graph Cache** and graph data current as files change.
 - Any graph-changing update from added files, renamed files, changed code, or settings that affect graph data should be saved to **Graph Cache**.
-- **CodeGraphy MCP** is a lightweight command and query Adapter; the **Core Extension** owns **Graph Cache** access, **Indexing**, plugin wiring, and Graph Query execution.
-- **CodeGraphy MCP** opens or focuses a repo in the **Core Extension**, establishes the active repo connection, asks the **Core Extension** to run **Indexing**, and returns Graph Query results.
-- **CodeGraphy MCP** should not be limited to the **Visible Graph**; it should ask the **Core Extension** for **Relationship Graph** data and allow agent queries to apply **Graph Scope**, **Filter**, and **Search** to reduce noise.
+- **CodeGraphy MCP** is a lightweight command and query adapter; the **Core Package** owns **Graph Cache** access, **Indexing**, plugin wiring, and Graph Query execution.
+- **CodeGraphy MCP** runs against the current or explicit **CodeGraphy Workspace** path and should not require a prior repo selection or VS Code focus for normal Indexing and Graph Query.
+- **CodeGraphy MCP** should not be limited to the **Visible Graph**; it should ask the **Core Package** for **Relationship Graph** data and allow agent queries to apply **Graph Scope**, **Filter**, and **Search** to reduce noise.
 - A **Graph Query** is not a VS Code **View**; it is a narrowed agent-facing result from **Relationship Graph** data.
 - **Graph Queries** should reuse **Graph Scope**, **Filter**, **Search**, sorting, and pagination semantics instead of introducing MCP-specific equivalents for the same graph narrowing stages.
 - **Refresh Graph** and **Re-index Repo** should be distinct UI actions.
@@ -636,7 +644,7 @@ _Avoid_: Graph export
 - **2D Zoom** changes rendered graph scale, while **3D Zoom** changes camera distance.
 - **Continuous Zoom** should use the same zoom step as repeated single zoom actions.
 - **3D Zoom** should clamp camera distance relative to the current graph context so holding zoom out does not make the graph effectively disappear.
-- **Graph Query** behavior should live in a Core Extension **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
+- **Graph Query** behavior should live in a Core Package **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
 - The **Graph Query** **Module** should return the graph data callers ask for while exposing opt-in query stages such as **Graph Scope** Node Type and Edge Type enablement, **Filter** conditions, **Search**, sorting, pagination, and **Show Orphans** where applicable.
 - **Graph Scope** query behavior is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.
 - Core **Edge Types** should use canonical core ids such as `nests`; namespaced ids are appropriate for plugin-owned **Edge Types**.
@@ -650,8 +658,8 @@ _Avoid_: Graph export
 - A **Timeline Snapshot** uses a commit as its **Graph Revision** and should show the files and relationships from that commit only.
 - The default **Graph Revision** is the current `HEAD` plus working tree state, updated by **Live Updates**.
 - Graph Context Menu mutation actions should stay available for the default **Graph Revision** and should be disabled for historical **Timeline Snapshots**.
-- The **Core Extension** is the out-of-box Relationship Graph product and should work for most users without optional plugins.
-- The **Core Extension** uses Tree-sitter coverage, the bundled **Markdown Plugin**, and Material icon styling to provide a useful default graph.
+- The **Core Package** and **Core Extension** together provide the out-of-box Relationship Graph product and should work for most users without optional plugins.
+- The **Core Package** uses Tree-sitter coverage and the bundled **Markdown Plugin** to provide useful default analysis; the **Core Extension** adds visualization and Material icon styling.
 - A **Plugin** can add **Nodes**, **Node Types**, **Relationships**, **Edge Types**, preset filters, theming, exports, or UI.
 - A **Plugin** can analyze files by reading lines, using AST tooling, or any other analysis approach appropriate to its language or framework.
 - A **Plugin Extension** is the packaging route for third-party plugins in the VS Code marketplace.
@@ -715,7 +723,7 @@ _Avoid_: Graph export
 > **Domain expert:** "No. **Refresh** reruns the force graph simulation. **Re-index** rebuilds graph data, saves it, then refreshes the graph."
 >
 > **Dev:** "Does CodeGraphy MCP build its own graph?"
-> **Domain expert:** "No. **CodeGraphy MCP** opens a repo in the **Core Extension**, asks the extension to run **Indexing** when needed, and returns **Graph Query** results produced by the **Core Extension**."
+> **Domain expert:** "No. **CodeGraphy MCP** asks the **Core Package** to run **Indexing** when needed and returns **Graph Query** results produced by the **Core Package**."
 >
 > **Dev:** "Is the current collapsed graph a view?"
 > **Domain expert:** "No. Use **Visible Graph** for graph state. A **View** is the VS Code UI container, such as the **Graph View** or **Timeline View**."
@@ -740,8 +748,8 @@ _Avoid_: Graph export
 - "dependency" is not generic relationship direction; resolved: use **Dependency** only when the edge type specifically means one node needs another.
 - "downstream" is directional only; resolved: it says a relationship exists in that direction, not what kind of relationship the edge represents.
 - "connection" is acceptable in conversation as an informal synonym for **Relationship**, but docs and code should prefer **Relationship**.
-- **CodeGraphy MCP** does not read or manipulate **Graph Cache** data directly; the **Core Extension** owns Graph Cache access and **Graph Query** execution.
-- Current MCP and extension code exposes freshness/staleness language; resolved: **Graph Cache** is expected to auto-update with graph changes, so freshness/staleness should not be treated as canonical domain language.
+- **CodeGraphy MCP** delegates **Graph Cache** reads/writes and **Graph Query** execution to the **Core Package**.
+- Current MCP and extension code exposes freshness/staleness language; resolved: stale status is a status/reporting concern, not a replacement term for **Graph Cache** or **Relationship Graph**.
 - "package" can be local or external; resolved: use **Workspace Package** when CodeGraphy can read and expand it, and **External Package** when the package is outside the local context and represented as one node.
 - "collapse dependents" was ambiguous; resolved: **Collapse** absorbs downstream relationship nodes, not upstream nodes.
 - Shared downstream relationship targets stay visible when they are still related to by visible nodes outside the collapsed subgraph.

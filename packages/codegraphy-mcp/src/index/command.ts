@@ -1,17 +1,17 @@
-import { readRepoRegistry } from '../repoRegistry/file';
+import type { IndexWorkspaceResult, WorkspacePathInput } from '../workspace/model';
+import { requestCodeGraphyIndexWorkspace } from '../workspace/indexing';
+import { resolveCodeGraphyWorkspacePath } from '../workspace/paths';
 import type { CommandExecutionResult } from '../run/command';
-import { requestCodeGraphyIndexRepo } from '../coreExtension/indexing';
-import type { IndexRepoInput, IndexRepoResult, ToolErrorResult } from '../coreExtension/model';
 
 interface IndexCommandDependencies {
-  readRepoRegistry(): ReturnType<typeof readRepoRegistry>;
-  requestIndexRepo(input: IndexRepoInput): Promise<IndexRepoResult | ToolErrorResult>;
+  cwd(): string;
+  indexWorkspace(input: WorkspacePathInput): Promise<IndexWorkspaceResult>;
   writeStatus(message: string): void;
 }
 
 const DEFAULT_DEPENDENCIES: IndexCommandDependencies = {
-  readRepoRegistry,
-  requestIndexRepo: requestCodeGraphyIndexRepo,
+  cwd: () => process.cwd(),
+  indexWorkspace: requestCodeGraphyIndexWorkspace,
   writeStatus: (message) => {
     process.stderr.write(`${message}\n`);
   },
@@ -22,23 +22,15 @@ function renderCommandResult(result: Record<string, unknown>): string {
 }
 
 export async function runIndexCommand(
+  workspacePath?: string,
   dependencies: IndexCommandDependencies = DEFAULT_DEPENDENCIES,
 ): Promise<CommandExecutionResult> {
-  const activeRepo = dependencies.readRepoRegistry().activeRepo;
-  if (!activeRepo) {
-    return {
-      exitCode: 1,
-      output: 'Open a repo first with `codegraphy open /absolute/path/to/repo`.',
-    };
-  }
-
-  dependencies.writeStatus(
-    `CodeGraphy indexing started for ${activeRepo}. Waiting for the Core Extension response...`,
-  );
-  const result = await dependencies.requestIndexRepo({ repo: activeRepo });
+  const resolvedWorkspaceRoot = resolveCodeGraphyWorkspacePath(workspacePath, dependencies.cwd());
+  dependencies.writeStatus(`CodeGraphy indexing started for ${resolvedWorkspaceRoot}...`);
+  const result = await dependencies.indexWorkspace({ workspacePath: resolvedWorkspaceRoot });
 
   return {
-    exitCode: 'error' in result ? 1 : 0,
+    exitCode: 0,
     output: renderCommandResult(result),
   };
 }
