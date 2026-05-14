@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { preAnalyzeWorkspacePipelineFiles } from '../../../../src/extension/pipeline/analysis/preAnalyze';
+import { preAnalyzeWorkspacePipelineFiles } from '../../src/analysis/workspacePreAnalyze';
 
 describe('pipeline/analysis/preAnalyze', () => {
   it('reads duplicate relative paths only once before notifying plugins', async () => {

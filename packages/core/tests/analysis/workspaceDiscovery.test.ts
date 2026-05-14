@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
+import { DEFAULT_EXCLUDE } from '../../src/discovery/pathMatching';
 import {
   discoverWorkspacePipelineFiles,
   formatWorkspacePipelineLimitReachedMessage,
-} from '../../../src/extension/pipeline/discovery';
+} from '../../src/analysis/workspaceDiscovery';
 
 describe('pipeline/discovery', () => {
   it('merges default, plugin, and user filters before discovery', async () => {
@@ -33,8 +33,8 @@ describe('pipeline/discovery', () => {
       maxFiles: 25,
       include: ['**/*'],
       exclude: [
-        ...new Set([
-          ...DEFAULT_EXCLUDE_PATTERNS,
+          ...new Set([
+          ...DEFAULT_EXCLUDE,
           '**/*.dist.ts',
           '**/*.generated.ts',
         ]),

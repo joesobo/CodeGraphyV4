@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { IDiscoveredFile } from '@codegraphy/core';
-import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
+import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IDiscoveredFile } from '../../src/discovery/contracts';
 import {
   analyzeWorkspacePipelineFiles,
   analyzeWorkspacePipelineSourceFiles,
-} from '../../../../src/extension/pipeline/analysis/files';
-import * as workspaceFileAnalysisModule from '../../../../src/extension/pipeline/fileAnalysis';
+} from '../../src/analysis/workspaceFiles';
+import * as workspaceFileAnalysisModule from '../../src/analysis/fileAnalysis';
 
 function createDiscoveredFile(relativePath: string): IDiscoveredFile {
   const extensionIndex = relativePath.lastIndexOf('.');

@@ -993,6 +993,11 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Added core graph color and edge identity helpers so Relationship Graph construction no longer depends on extension shared modules.
   - Kept the VS Code extension graph import surface as adapter exports over `@codegraphy/core`.
   - Validation: `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/graph`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension pipeline adapter/service tests.
+- 2026-05-14: Step 3 fourth slice completed: workspace analysis orchestration moved into `@codegraphy/core`.
+  - Moved discovery filter merging, workspace analysis orchestration, plugin pre-analysis, file-analysis delegation, rebuild state, and analysis cache helpers into the core package.
+  - Moved orchestration unit coverage from the extension package to the core package.
+  - Kept VS Code-specific warning UI, workspace root lookup, and persistence wiring in extension adapters.
+  - Validation: `pnpm --filter @codegraphy/core typecheck`, targeted core workspace analysis tests, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension analysis/service tests.
 
 ### Step 1: Package Identity Groundwork
 

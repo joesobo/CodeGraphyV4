@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
+import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
 import {
   clearWorkspacePipelineCache,
   rebuildWorkspacePipelineGraph,
   rebuildWorkspacePipelineGraphForSource,
-} from '../../../../src/extension/pipeline/analysis/state';
-import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../../../src/extension/pipeline/cache';
+} from '../../src/analysis/workspaceState';
+import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../src/analysis/cache';
 
 describe('pipeline/analysis/state', () => {
   it('returns an empty graph when rebuilding without cached file connections', () => {

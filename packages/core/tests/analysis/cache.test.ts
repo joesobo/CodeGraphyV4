@@ -5,7 +5,7 @@ import {
   saveWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
-} from '../../../src/extension/pipeline/cache';
+} from '../../src/analysis/cache';
 
 describe('pipeline/cache', () => {
   it('creates an empty cache with the current version', () => {

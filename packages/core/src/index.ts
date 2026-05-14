@@ -25,6 +25,44 @@ export type {
   IWorkspaceFileProcessedPayload,
 } from './analysis/fileAnalysis';
 export { analyzeWorkspaceFiles } from './analysis/fileAnalysis';
+export {
+  analyzeWorkspacePipelineFiles,
+  analyzeWorkspacePipelineSourceFiles,
+} from './analysis/workspaceFiles';
+export type {
+  WorkspacePipelineFilesDependencies,
+  WorkspacePipelineFilesSource,
+} from './analysis/workspaceFiles';
+export {
+  analyzeWorkspaceWithAnalyzer,
+} from './analysis/workspaceAnalyze';
+export type {
+  WorkspacePipelineAnalysisDependencies,
+  WorkspacePipelineAnalysisSource,
+  WorkspacePipelineEventBus,
+} from './analysis/workspaceAnalyze';
+export {
+  discoverWorkspacePipelineFiles,
+  formatWorkspacePipelineLimitReachedMessage,
+} from './analysis/workspaceDiscovery';
+export type {
+  WorkspacePipelineDiscoveryConfig,
+  WorkspacePipelineDiscoveryDependencies,
+  WorkspacePipelineDiscoveryResult,
+} from './analysis/workspaceDiscovery';
+export {
+  preAnalyzeWorkspacePipelineFiles,
+} from './analysis/workspacePreAnalyze';
+export type { WorkspacePipelinePreAnalyzeDependencies } from './analysis/workspacePreAnalyze';
+export {
+  clearWorkspacePipelineCache,
+  rebuildWorkspacePipelineGraph,
+  rebuildWorkspacePipelineGraphForSource,
+} from './analysis/workspaceState';
+export type {
+  WorkspacePipelineRebuildDependencies,
+  WorkspacePipelineRebuildSource,
+} from './analysis/workspaceState';
 export type {
   IDiscoveredFile,
   IDiscoveryOptions,
