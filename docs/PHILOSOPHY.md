@@ -48,11 +48,11 @@ The graph must produce consistent layouts. If nodes shuffle randomly each time, 
 CodeGraphy now has a built-in analysis pipeline:
 - core discovers files once
 - core reads each file once
-- core uses Tree-sitter where it has coverage
-- built-in and external plugins run after core on the same in-memory file data
-- later plugin output can override or extend lower-priority results
+- core registers `codegraphy.treesitter` as a built-in plugin where Tree-sitter coverage exists
+- built-in core plugins and enabled npm plugin packages run through the same core plugin registry on the same in-memory file data
+- later plugin output can add to or deterministically merge with earlier results
 
-That means the core is no longer "empty" until a language plugin shows up. You still get useful graph edges out of the box where Tree-sitter coverage exists, and plugins stay valuable for language- or framework-specific semantics.
+That means the core is no longer "empty" until an external language plugin shows up. You still get useful graph edges out of the box where Tree-sitter coverage exists, and optional npm plugins stay valuable for language- or framework-specific semantics.
 
 Today that built-in baseline covers JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, and C++.
 
@@ -76,8 +76,8 @@ The graph reveals patterns that are invisible in the file tree:
 
 - **Not a replacement for the file system.** You still need folders. CodeGraphy is an additional lens.
 - **Not just a pretty picture.** Every visual element conveys meaningful information.
-- **Not only a plugin host.** The core owns discovery, indexing, projection, and repo-local state.
-- **Not plugin-first anymore.** The core owns baseline analysis, and plugins extend or correct it.
+- **Not only a plugin host.** The core owns discovery, indexing, projection, Graph Cache state, and built-in analysis plugins.
+- **Not external-plugin-first anymore.** The core owns the built-in Tree-sitter plugin, and optional npm plugins enrich it.
 
 ## Inspiration
 

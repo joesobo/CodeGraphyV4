@@ -523,6 +523,7 @@ Recommended paths:
 
 1. Core Structured Analysis
    - owned by `@codegraphy/core`
+   - implemented as the core-owned built-in `codegraphy.treesitter` plugin
    - uses bundled Tree-sitter grammars and CodeGraphy-owned extractors
    - produces baseline relationships for broadly useful languages
    - should stay shallow, predictable, and dependency-light
@@ -543,7 +544,7 @@ This keeps the core from becoming responsible for every language's deepest seman
 
 These paths are not mutually exclusive plugin categories. A single plugin may use multiple analysis paths in one package:
 
-- a plugin can consume core Tree-sitter baseline results where they are good enough
+- a plugin can rely on the core-owned Tree-sitter plugin producing baseline graph evidence before optional workspace package plugins run
 - a plugin can add parser-backed Plugin Structured Analysis for relationships that need deeper language knowledge
 - a plugin can keep Plugin Text Analysis for narrow cases, unusual file formats, or relationships not covered by the parser
 - a plugin can move relationship sources from text analysis to structured analysis over time without becoming a different kind of plugin
@@ -605,8 +606,8 @@ Current lifecycle order in practice:
 2. `initialize(workspaceRoot)` runs once per plugin/workspace initialization
 3. File Discovery runs
 4. `onPreAnalyze(...)` receives discovered files and content
-5. core Tree-sitter baseline analysis runs per file where coverage exists
-6. plugin `analyzeFile(...)` runs per matching file in plugin priority order
+5. the core-owned `codegraphy.treesitter` plugin analyzes matching files where coverage exists
+6. enabled npm plugin packages run `analyzeFile(...)` per matching file in workspace order
 7. Graph Projection builds the Relationship Graph
 8. `onPostAnalyze(graph)` runs after graph build
 9. `onWorkspaceReady(graph)` is notified or replayed
@@ -643,29 +644,23 @@ Decision:
 - preserve visualization customization as extension-owned behavior, not plugin-owned behavior, unless a future separate extension API is deliberately designed
 - make non-baseline plugin capabilities visible through disclosures, especially `workspaceWrites`, `outsideWorkspaceWrites`, `externalProcesses`, `network`, `secrets`, and `extraFileReads`
 
-### 18. Core Analysis Output Is Normalized Before Plugins See It
+### 18. Core Tree-sitter Output Is Normalized Before Graph Projection
 
 Decision:
 
 - plugins should not consume raw core Tree-sitter ASTs
-- plugins should consume normalized CodeGraphy analysis results
+- the core-owned Tree-sitter plugin emits normalized CodeGraphy analysis results
 - normalized analysis can include symbols, relations, node/type contributions, relationship sources, and other stable CodeGraphy-owned analysis data
 - if a plugin wants deeper AST access, the plugin should own its parser dependency and parser-version choices
 - this keeps core Tree-sitter runtime internals replaceable and avoids coupling plugin packages to core grammar versions
-- a plugin can still enrich core baseline results by receiving normalized per-file baseline analysis during its analysis hook
-
-Follow-up decision:
-
-- plugin `analyzeFile(...)` should receive the normalized core baseline result for the same file
-- this lets plugins enrich core analysis without duplicating broad baseline work
-- the baseline should be exposed through plugin analysis context rather than as a raw Tree-sitter tree
-- a missing baseline means core has no useful structured coverage for that file, not that plugin analysis should skip it
+- optional npm plugins enrich the graph by emitting their own normalized analysis results after the built-in Tree-sitter plugin runs
+- this PR does not expose raw Tree-sitter trees or a separate baseline-result parameter to plugin packages
 
 Merge authority decision:
 
 - plugin analysis is additive in the first implementation
 - plugins can add relationships, symbols, nodes, metadata, node types, edge types, file colors, filters, and relationship evidence
-- plugins should not directly mutate, delete, or suppress core baseline relationships
+- plugins should not directly mutate, delete, or suppress relationships emitted by the core-owned Tree-sitter plugin
 - if a plugin finds a more specific relationship, it should add that relationship with its own provenance instead of erasing core output
 - this keeps Graph Cache provenance deterministic and prevents plugin order from becoming hidden semantic authority
 - a future explicit suppression API can be designed later if real examples prove it is necessary
@@ -673,8 +668,8 @@ Merge authority decision:
 Plugin ordering decision:
 
 - keep plugin order, but demote its semantic importance
-- core baseline analysis always runs before plugin analysis
-- enabled plugins run after core in workspace-configured order
+- the core-owned Tree-sitter plugin runs before optional npm plugin packages
+- enabled npm plugin packages run in workspace-configured order
 - plugin order is for stable Graph Cache output, predictable provenance ordering, display defaults, and deterministic conflict resolution when plugins emit the same ids
 - plugin order should not decide whether core relationships survive
 - if two plugins emit the same node, symbol, node type, edge type, or metadata id, the merge rules should be explicit and deterministic
@@ -1128,7 +1123,7 @@ Changes:
 - keep install/discovery separate from enablement
 - keep `plugins enable` from scanning global npm installs
 - load plugin runtime only during explicit Indexing
-- pass normalized core baseline analysis into plugin `analyzeFile(...)`
+- run the core-owned Tree-sitter plugin through the same plugin runtime before optional npm plugin packages
 - keep plugin enrichment additive-only
 
 Done when:
