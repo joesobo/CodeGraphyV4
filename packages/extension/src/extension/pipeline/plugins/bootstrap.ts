@@ -1,9 +1,11 @@
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-  ensureCodeGraphyWorkspaceSettings,
+  getWorkspaceSettingsPath,
   loadCodeGraphyWorkspacePluginPackages,
+  readCodeGraphyWorkspaceSettings,
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy/core';
+import * as fs from 'node:fs';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
 import { createMarkdownPlugin } from '../../../../../plugin-markdown/src/plugin';
@@ -78,7 +80,9 @@ export async function initializeWorkspacePipeline(
   dependencies: WorkspacePipelineInitializationDependencies,
 ): Promise<void> {
   const workspaceRoot = dependencies.getWorkspaceRoot();
-  const settings = workspaceRoot ? ensureCodeGraphyWorkspaceSettings(workspaceRoot) : undefined;
+  const settings = workspaceRoot && fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))
+    ? readCodeGraphyWorkspaceSettings(workspaceRoot)
+    : undefined;
   if (shouldRegisterMarkdownPlugin(settings)) {
     const markdownOptions = getDefaultMarkdownPluginOptions(settings);
     registry.register(createMarkdownPlugin(), {

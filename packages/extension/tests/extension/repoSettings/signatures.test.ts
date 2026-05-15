@@ -82,6 +82,7 @@ describe('extension/repoSettings/signatures', () => {
       disabledCustomFilterPatterns: [],
       disabledPluginFilterPatterns: [],
       pluginOrder: [],
+      plugins: [],
       nodeVisibility: [],
       edgeVisibility: [],
     }));
@@ -110,6 +111,7 @@ describe('extension/repoSettings/signatures', () => {
       disabledCustomFilterPatterns: ['custom/**'],
       disabledPluginFilterPatterns: ['plugin/**'],
       pluginOrder: ['codegraphy.typescript'],
+      plugins: [],
       nodeVisibility: [
         ['file', true],
         ['package', false],

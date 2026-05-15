@@ -140,8 +140,17 @@ function normalizePersistedPlugins(normalized: Record<string, unknown>): void {
     return;
   }
 
-  const plugins = Array.isArray(normalized.plugins) ? normalized.plugins : [];
-  normalized.plugins = plugins
+  if (!Array.isArray(normalized.plugins)) {
+    delete normalized.plugins;
+    return;
+  }
+
+  if (normalized.plugins.length === 0) {
+    normalized.plugins = [];
+    return;
+  }
+
+  const plugins = normalized.plugins
     .filter(isPlainObject)
     .map((plugin) => {
       const packageName = typeof plugin.package === 'string' ? plugin.package.trim() : '';
@@ -164,6 +173,13 @@ function normalizePersistedPlugins(normalized: Record<string, unknown>): void {
       return normalizedPlugin;
     })
     .filter((plugin): plugin is Record<string, unknown> => plugin !== null);
+
+  if (plugins.length === 0) {
+    delete normalized.plugins;
+    return;
+  }
+
+  normalized.plugins = plugins;
 }
 
 function normalizePersistedLegend(normalized: Record<string, unknown>): void {

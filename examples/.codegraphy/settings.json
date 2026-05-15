@@ -8,6 +8,11 @@
   "showOrphans": true,
   "pluginOrder": [],
   "disabledPlugins": [],
+  "plugins": [
+    {
+      "package": "@codegraphy/plugin-markdown"
+    }
+  ],
   "nodeColors": {
     "file": "#A1A1AA",
     "folder": "#A1A1AA",

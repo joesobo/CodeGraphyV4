@@ -46,7 +46,10 @@ describe('pluginLifecycle', () => {
 
       await initializePlugin(info, '/ws', initialized);
 
-      expect(initialize).toHaveBeenCalledWith('/ws');
+      expect(initialize).toHaveBeenCalledWith(
+        '/ws',
+        expect.objectContaining({ mode: 'workspace' }),
+      );
       expect(initialized.has(plugin.id)).toBe(true);
     });
 
@@ -96,8 +99,14 @@ describe('pluginLifecycle', () => {
 
       await initializeAll(plugins, '/ws', initialized);
 
-      expect(initA).toHaveBeenCalledWith('/ws');
-      expect(initB).toHaveBeenCalledWith('/ws');
+      expect(initA).toHaveBeenCalledWith(
+        '/ws',
+        expect.objectContaining({ mode: 'workspace' }),
+      );
+      expect(initB).toHaveBeenCalledWith(
+        '/ws',
+        expect.objectContaining({ mode: 'workspace' }),
+      );
     });
   });
 

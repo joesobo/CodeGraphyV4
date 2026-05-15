@@ -230,7 +230,10 @@ describe('PluginRegistry v2', () => {
       await registry.initializePlugin(plugin.id, '/workspace');
 
       expect(initialize).toHaveBeenCalledTimes(1);
-      expect(initialize).toHaveBeenCalledWith('/workspace');
+      expect(initialize).toHaveBeenCalledWith(
+        '/workspace',
+        expect.objectContaining({ mode: 'workspace' }),
+      );
     });
   });
 
