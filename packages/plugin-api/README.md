@@ -17,7 +17,7 @@ pnpm add -D @codegraphy/plugin-api
 ## Usage
 
 ```ts
-import type { CodeGraphyAPI, IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy/plugin-api';
 ```
 
 This package is type-only. Use `import type` in plugin code.
@@ -25,11 +25,13 @@ This package is type-only. Use `import type` in plugin code.
 Main surfaces in the current API:
 
 - per-file analysis objects with symbols, relationships, and Node Type / Edge Type contributions
-- graph queries backed by the projected CodeGraphy Workspace index and current graph state: `getGraph`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getSubgraph`, `findPath`
 - default styling via `fileColors`, which already lets a plugin contribute Legend styling for extension matches, exact file names, and glob patterns
 - analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
+- lifecycle hooks for headless analysis: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `analyzeFile`, `onPostAnalyze`, `onGraphRebuild`, and `onUnload`
 
 Recommended plugins are headless npm packages. They communicate with `@codegraphy/core`; the VS Code extension owns VS Code UI, commands, webviews, and editor integration.
+
+Extension-owned plugin bridge types such as webview injections, commands, decorations, context menus, and toolbar actions intentionally live in `@codegraphy/extension`, not in this public headless package.
 
 Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged additively in the workspace plugin order. Plugins should add more specific evidence instead of deleting or suppressing core baseline relationships.
 

@@ -5,9 +5,7 @@
  * CodeGraphy plugins. It defines:
  *
  * - {@link IPlugin} — the plugin interface (apiVersion is required)
- * - {@link CodeGraphyAPI} — the host API passed to plugins via onLoad
- * - {@link CodeGraphyWebviewAPI} — the webview-side API for custom rendering
- * - Graph, decoration, event, view, and command types
+ * - Graph, analysis, connection, and lifecycle event types
  *
  * @module @codegraphy/plugin-api
  */
@@ -46,9 +44,6 @@ export type {
   IGraphNodeRange,
   IGraphNodeSymbolMetadata,
 } from './graph';
-
-// Decorations
-export type { NodeDecoration, EdgeDecoration, TooltipSection } from './decorations';
 
 // Events
 export type {
@@ -108,27 +103,3 @@ export type {
   IPluginAnalysisFileSystem,
   IPluginFileColorDefinition,
 } from './plugin';
-
-// Host API
-export type { CodeGraphyAPI, ExportRequest, IExporter, IToolbarAction, IToolbarActionItem } from './api';
-
-// Views
-export type { IView, IViewContext, ViewDependency } from './views';
-
-// Commands
-export type { ICommand, IContextMenuItem } from './commands';
-
-// Webview types (re-exported from sub-module)
-export type {
-  CodeGraphyWebviewAPI,
-  NodeRenderFn,
-  NodeRenderContext,
-  OverlayRenderFn,
-  OverlayRenderContext,
-  TooltipProviderFn,
-  TooltipContext,
-  TooltipContent,
-  BadgeOpts,
-  RingOpts,
-  LabelOpts,
-} from './webview';

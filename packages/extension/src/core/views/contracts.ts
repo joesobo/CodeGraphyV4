@@ -1,21 +1,38 @@
 /**
  * @fileoverview Extension-local view registry contracts.
- * Re-exports the canonical plugin API view types and adds registry metadata.
  * @module core/views/contracts
  */
 
-export type {
-  IView,
-  IViewContext,
-  ViewDependency,
-} from '../../../../plugin-api/src/views';
+import type { IGraphData } from '../../shared/graph/contracts';
+
+export type ViewDependency =
+  | 'focusedFile'
+  | 'depthLimit';
+
+export interface IView {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  pluginId?: string;
+  recomputeOn?: readonly ViewDependency[];
+  transform(data: IGraphData, context: IViewContext): IGraphData;
+  isAvailable?(context: IViewContext): boolean;
+}
+
+export interface IViewContext {
+  focusedFile?: string;
+  activePlugins: Set<string>;
+  workspaceRoot?: string;
+  depthLimit?: number;
+}
 
 /**
  * Information about a registered view.
  */
 export interface IViewInfo {
   /** The view instance */
-  view: import('../../../../plugin-api/src/views').IView;
+  view: IView;
   /** Whether this is a core (built-in) view */
   core: boolean;
   /** Registration order (lower = registered earlier) */

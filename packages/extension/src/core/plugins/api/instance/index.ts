@@ -49,10 +49,16 @@ import { DecorationManager, EdgeDecoration, NodeDecoration } from '../../decorat
 import { ViewRegistry } from '../../../views/registry';
 import { IView } from '../../../views/contracts';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
-import type { ExportRequest, IExporter, IToolbarAction } from '../../../../../../plugin-api/src/api';
-import type { ICommand, IContextMenuItem } from '../../../../../../plugin-api/src/commands';
+import type {
+  CodeGraphyAPI,
+  ExportRequest,
+  ICommand,
+  IContextMenuItem,
+  IExporter,
+  IToolbarAction,
+} from '../contracts';
 
-export class CodeGraphyAPIImpl {
+export class CodeGraphyAPIImpl implements CodeGraphyAPI {
   readonly version = '2.0.0';
   private readonly _context: ApiContext;
 

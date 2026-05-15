@@ -1,9 +1,5 @@
 # Plugin API Types
 
-![Type Surface Diagram](./diagrams/type-surface.excalidraw)
-
-Diagram source: `docs/plugin-api/diagrams/type-surface.excalidraw`
-
 This document references the canonical type package in `packages/plugin-api/src`.
 
 ## Import Surface
@@ -18,34 +14,17 @@ import type {
   IFileAnalysisResult,
   IPluginNodeType,
   IPluginEdgeType,
-  CodeGraphyAPI,
   EventName,
   EventPayloads,
   IConnectionSource,
   IGraphNode,
   IGraphEdge,
   IGraphData,
-  NodeDecoration,
-  EdgeDecoration,
-  IView,
-  IViewContext,
-  ICommand,
-  IContextMenuItem,
   Disposable,
-  ExportRequest,
-  IExporter,
-  IToolbarAction,
-  IToolbarActionItem,
-  ViewDependency,
 } from '@codegraphy/plugin-api';
-
-import type {
-  CodeGraphyWebviewAPI,
-  NodeRenderFn,
-  OverlayRenderFn,
-  TooltipProviderFn,
-} from '@codegraphy/plugin-api/webview';
 ```
+
+The public package is headless. Extension-owned bridge types for webviews, commands, decorations, toolbar actions, and graph-view injections live in `@codegraphy/extension`.
 
 ## Core Plugin Contract
 
@@ -55,13 +34,12 @@ Defined in `plugin.ts`.
 
 Key points:
 - `apiVersion: string` is required (for example `'^2.0.0'`).
-- `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
 - `sources?: IConnectionSource[]` declares the plugin's Relationship Source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot, context?)` is the plugin analysis hook for returning relationships, symbols, and contributed Node Types or Edge Types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new Node Types, Edge Types, and defaults.
-- Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+- Optional hooks: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### `IPluginAnalysisContext`
 
@@ -150,22 +128,11 @@ interface IAnalysisFile {
 }
 ```
 
-## Host API
+## Extension-Owned Surfaces
 
-### `CodeGraphyAPI`
+The public npm Plugin API does not expose `CodeGraphyAPI`, webview contracts, decorations, commands, context menus, exporters, toolbar actions, or plugin-defined graph views. Those contracts are extension-owned and remain inside `packages/extension` because they are visualization and VS Code integration surfaces.
 
-Defined in `api.ts`.
-
-Main areas:
-- Events: `on`, `once`, `off`
-- Decorations: `decorateNode`, `decorateEdge`, `clearDecorations`
-- Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`
-  - these read from the projected repo-local index and current graph state, not only transient in-memory plugin output
-- Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
-  - `registerView` is a compatibility / future-facing hook for plugin-defined graph transforms; the current built-in product stays centered on the Graph View and Visible Graph rather than exposing separate core graph views
-- Tier 2 bridge: `sendToWebview`, `onWebviewMessage`
-- Export saving: `saveExport`
-- Utilities: `getWorkspaceRoot`, `log`
+Headless plugins should express analysis through `IPlugin` hooks and `IFileAnalysisResult`. The CLI and MCP consume the same core analysis path without installing VS Code or webview dependencies.
 
 ## Data Types
 
@@ -204,21 +171,6 @@ If you see projected file-to-file edges inside the extension codebase, those are
 - `GraphEdgeKind` = reserved core kinds plus namespaced custom kinds (`pluginId:kind`)
 - External Package nodes let plugins and host views include unresolved external imports like `fs` or `react` without pretending they are workspace files.
 
-### Decorations (`decorations.ts`)
-
-- `NodeDecoration`: `badge`, `border`, `tooltip.sections`, `label`, `size`, `opacity`, `color`, `icon`, `group`, `priority`
-- `EdgeDecoration`: `color`, `width`, `style`, `label`, `particles`, `opacity`, `curvature`, `priority`
-- `TooltipSection`: `title`, `content`
-
-### Views and Commands
-
-- `IView`, `IViewContext`, `ViewDependency` in `views.ts`
-- `ICommand`, `IContextMenuItem` in `commands.ts`
-- `IExporter`, `ExportRequest`, `IToolbarAction`, `IToolbarActionItem` in `api.ts`
-- `Disposable` in `disposable.ts`
-
-Plugin views are an optional compatibility surface for graph transforms layered on top of the Visible Graph. They are not the built-in way users switch the graph anymore, and the current host experience stays centered on the Graph View.
-
 ## Theme-Style Plugins
 
 The current public API already supports a file-theme style plugin through `fileColors`:
@@ -232,22 +184,11 @@ Those plugin defaults sit above core defaults and below custom Legend Entries, s
 
 Current limitation: folder icon theming is still core-only. The API does not yet expose a folder-name or folder-icon contract comparable to the built-in Material Icon Theme integration.
 
-## Webview Types (Tier 2)
-
-From `@codegraphy/plugin-api/webview`:
-
-- `CodeGraphyWebviewAPI`
-- `NodeRenderContext`, `NodeRenderFn`
-- `OverlayRenderContext`, `OverlayRenderFn`
-- `TooltipContext`, `TooltipContent`, `TooltipProviderFn`
-- Drawing helper option types: `BadgeOpts`, `RingOpts`, `LabelOpts`
-
 ## Package Export Notes
 
 `@codegraphy/plugin-api` is currently a type-definition package with `types` exports for:
 - `@codegraphy/plugin-api`
 - `@codegraphy/plugin-api/events`
 - `@codegraphy/plugin-api/plugin`
-- `@codegraphy/plugin-api/webview`
 
 Use `import type` for these symbols in plugin code.

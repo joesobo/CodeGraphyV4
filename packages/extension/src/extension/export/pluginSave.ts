@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import type { ExportRequest } from '../../../../plugin-api/src/api';
+import type { ExportRequest } from '../../core/plugins/api/contracts';
 import { saveExportBuffer, toErrorMessage } from './fileSave';
 
 const DEFAULT_FILTER_LABEL = 'All Files';
