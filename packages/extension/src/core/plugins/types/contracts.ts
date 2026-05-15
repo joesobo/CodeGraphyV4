@@ -44,4 +44,8 @@ export interface IPluginInfo {
   builtIn: boolean;
   /** Source extension ID for community plugins */
   sourceExtension?: string;
+  /** Source npm package for package-installed plugins */
+  sourcePackage?: string;
+  /** Workspace-specific plugin options */
+  options?: Record<string, unknown>;
 }

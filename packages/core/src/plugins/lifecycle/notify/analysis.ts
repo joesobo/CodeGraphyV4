@@ -1,7 +1,10 @@
 import type { IPluginAnalysisContext } from '@codegraphy/plugin-api';
 import type { IGraphData } from '../../../graph/contracts';
 import type { ILifecyclePluginInfo } from '../contracts';
-import { createWorkspacePluginAnalysisContext } from '../../context/workspace';
+import {
+  createWorkspacePluginAnalysisContext,
+  withWorkspacePluginAnalysisOptions,
+} from '../../context/workspace';
 
 type AnalyzeFile = {
   absolutePath: string;
@@ -25,7 +28,11 @@ export async function notifyPreAnalyze(
     }
 
     try {
-      await info.plugin.onPreAnalyze(files, workspaceRoot, analysisContext);
+      await info.plugin.onPreAnalyze(
+        files,
+        workspaceRoot,
+        withWorkspacePluginAnalysisOptions(analysisContext, info.options),
+      );
     } catch (error) {
       logLifecycleError('onPreAnalyze', info.plugin.id, error);
     }

@@ -115,6 +115,8 @@ First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
 
 Removing that entry disables Markdown for the workspace. Other installed plugins stay disabled until they are added to the `plugins` array through the VS Code UI, CLI, or MCP.
 
+Plugin `options` are also workspace-local. During Indexing, CodeGraphy merges package-level defaults with the workspace entry and passes the result to plugin hooks as `context.options`.
+
 ## Settings Panel
 
 Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while Graph Scope and Legend styling live in their own dedicated panels on the right side.

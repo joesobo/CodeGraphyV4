@@ -14,6 +14,12 @@ function sortRecord<T extends string | boolean>(record: Record<string, T>): Arra
     .map((key): [string, T] => [key, record[key]]);
 }
 
+function sortOptionsRecord(record: Record<string, unknown> | undefined): Array<[string, unknown]> {
+  return Object.keys(record ?? {})
+    .sort((left, right) => left.localeCompare(right))
+    .map(key => [key, record?.[key]]);
+}
+
 export function createCodeGraphyPluginSignature(
   plugins: ReadonlyArray<PluginSignatureEntry>,
 ): string | null {
@@ -42,6 +48,11 @@ function createStableListSettings(settings: Partial<ICodeGraphyRepoSettings>) {
     disabledCustomFilterPatterns: settings.disabledCustomFilterPatterns ?? [],
     disabledPluginFilterPatterns: settings.disabledPluginFilterPatterns ?? [],
     pluginOrder: settings.pluginOrder ?? [],
+    plugins: (settings.plugins ?? []).map(plugin => ({
+      package: plugin.package,
+      disabledFilterPatterns: plugin.disabledFilterPatterns ?? [],
+      options: sortOptionsRecord(plugin.options),
+    })),
   };
 }
 

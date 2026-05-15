@@ -6,6 +6,17 @@ const WILDCARD_EXTENSION = '*';
 /** Minimal plugin info subset needed for routing lookups. */
 export interface IRoutablePluginInfo {
   plugin: IPlugin;
+  options?: Record<string, unknown>;
+}
+
+function getPluginIdsForExtension(
+  extension: string,
+  extensionMap: Map<string, string[]>,
+): string[] {
+  return [
+    ...(extensionMap.get(extension) ?? []),
+    ...(extensionMap.get(WILDCARD_EXTENSION) ?? []),
+  ];
 }
 
 /**
@@ -18,17 +29,7 @@ export function getPluginForFile(
   extensionMap: Map<string, string[]>,
 ): IPlugin | undefined {
   const ext = getFileExtension(filePath);
-  const pluginIds: string[] = [];
-  const extensionPluginIds = extensionMap.get(ext);
-  const wildcardPluginIds = extensionMap.get(WILDCARD_EXTENSION);
-  if (extensionPluginIds) {
-    pluginIds.push(...extensionPluginIds);
-  }
-  if (wildcardPluginIds) {
-    pluginIds.push(...wildcardPluginIds);
-  }
-
-  for (const pluginId of pluginIds) {
+  for (const pluginId of getPluginIdsForExtension(ext, extensionMap)) {
     const plugin = plugins.get(pluginId)?.plugin;
     if (plugin) {
       return plugin;
@@ -47,18 +48,8 @@ export function getPluginsForExtension(
   extensionMap: Map<string, string[]>,
 ): IPlugin[] {
   const normalizedExt = normalizePluginExtension(extension);
-  const pluginIds: string[] = [];
-  const extensionPluginIds = extensionMap.get(normalizedExt);
-  const wildcardPluginIds = extensionMap.get(WILDCARD_EXTENSION);
-  if (extensionPluginIds) {
-    pluginIds.push(...extensionPluginIds);
-  }
-  if (wildcardPluginIds) {
-    pluginIds.push(...wildcardPluginIds);
-  }
-
   const result: IPlugin[] = [];
-  for (const pluginId of pluginIds) {
+  for (const pluginId of getPluginIdsForExtension(normalizedExt, extensionMap)) {
     const plugin = plugins.get(pluginId)?.plugin;
     if (plugin) {
       result.push(plugin);
@@ -94,4 +85,15 @@ export function getPluginsForFile(
 ): IPlugin[] {
   const ext = getFileExtension(filePath);
   return getPluginsForExtension(ext, plugins, extensionMap);
+}
+
+export function getPluginInfosForFile(
+  filePath: string,
+  plugins: Map<string, IRoutablePluginInfo>,
+  extensionMap: Map<string, string[]>,
+): IRoutablePluginInfo[] {
+  const ext = getFileExtension(filePath);
+  return getPluginIdsForExtension(ext, extensionMap)
+    .map(pluginId => plugins.get(pluginId))
+    .filter((pluginInfo): pluginInfo is IRoutablePluginInfo => pluginInfo !== undefined);
 }

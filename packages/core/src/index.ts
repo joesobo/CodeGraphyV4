@@ -173,6 +173,11 @@ export {
 } from './plugins/registry';
 export type { CorePluginInfo } from './plugins/registry';
 export type {
+  LoadedCodeGraphyWorkspacePluginPackage,
+  LoadCodeGraphyWorkspacePluginPackagesOptions,
+} from './plugins/packageRuntime';
+export { loadCodeGraphyWorkspacePluginPackages } from './plugins/packageRuntime';
+export type {
   CodeGraphyPluginDisclosure,
   CodeGraphyPluginPackageManifest,
 } from './plugins/packageManifest';
@@ -196,6 +201,7 @@ export {
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';
+export { withWorkspacePluginAnalysisOptions } from './plugins/context/workspace';
 export { initializeAll, initializePlugin } from './plugins/lifecycle/initialize';
 export type { ILifecyclePluginInfo } from './plugins/lifecycle/contracts';
 export { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from './plugins/lifecycle/notify/analysis';
@@ -269,6 +275,7 @@ export {
 } from './workspace/meta';
 export {
   createCodeGraphyWorkspacePluginSignature,
+  createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from './workspace/signatures';
 export type {

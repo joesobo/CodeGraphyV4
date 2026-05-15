@@ -23,13 +23,20 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
 
   if (!isOpen) return null;
 
-  const handleTogglePlugin = (pluginId: string, enabled: boolean) => {
+  const handleTogglePlugin = (pluginId: string, packageName: string | undefined, enabled: boolean) => {
     graphStore.setState((state) => ({
       pluginStatuses: state.pluginStatuses.map((plugin) =>
         plugin.id === pluginId ? { ...plugin, enabled } : plugin
       ),
     }));
-    postMessage({ type: 'TOGGLE_PLUGIN', payload: { pluginId, enabled } });
+    postMessage({
+      type: 'TOGGLE_PLUGIN',
+      payload: {
+        pluginId,
+        ...(packageName ? { packageName } : {}),
+        enabled,
+      },
+    });
   };
 
   const handleDropPlugin = (event: React.DragEvent, targetIndex: number) => {
@@ -100,7 +107,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                       </div>
                       <Switch
                         checked={plugin.enabled}
-                        onCheckedChange={(val) => handleTogglePlugin(plugin.id, val)}
+                        onCheckedChange={(val) => handleTogglePlugin(plugin.id, plugin.packageName, val)}
                       />
                     </div>
                   </div>

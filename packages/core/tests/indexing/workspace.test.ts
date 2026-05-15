@@ -8,8 +8,11 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   indexCodeGraphyWorkspace,
   readGraphCacheStatus,
+  readCodeGraphyWorkspaceStatus,
   readCodeGraphyWorkspaceSettings,
   readWorkspaceAnalysisDatabaseSnapshot,
+  writeCodeGraphyInstalledPluginCache,
+  writeCodeGraphyWorkspaceSettings,
 } from '../../src';
 
 async function createWorkspace(): Promise<string> {
@@ -17,6 +20,77 @@ async function createWorkspace(): Promise<string> {
   await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target.txt\n', 'utf-8');
   await fs.writeFile(path.join(workspaceRoot, 'target.txt'), 'done\n', 'utf-8');
   return workspaceRoot;
+}
+
+async function createPackageBackedPluginPackage(
+  packageRoot: string,
+): Promise<void> {
+  await fs.mkdir(packageRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({
+      name: '@acme/codegraphy-plugin-options',
+      version: '1.0.0',
+      type: 'module',
+      exports: './plugin.js',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+        defaultOptions: {
+          targetFile: 'target.txt',
+        },
+      },
+    }, null, 2),
+    'utf-8',
+  );
+  await fs.writeFile(
+    path.join(packageRoot, 'plugin.js'),
+    `
+let preAnalyzeTargetFile = '';
+
+export default function createPlugin() {
+  return {
+    id: 'acme.options',
+    name: 'Options Plugin',
+    version: '1.0.0',
+    apiVersion: '^2.0.0',
+    supportedExtensions: ['.txt'],
+    sources: [{
+      id: 'configured-target',
+      name: 'Configured Target',
+      description: 'References the target file configured in plugin options.'
+    }],
+    async onPreAnalyze(_files, _workspaceRoot, context) {
+      preAnalyzeTargetFile = typeof context?.options?.targetFile === 'string'
+        ? context.options.targetFile
+        : '';
+    },
+    async analyzeFile(filePath, _content, workspaceRoot, context) {
+      const targetFile = typeof context?.options?.targetFile === 'string'
+        ? context.options.targetFile
+        : '';
+      if (!filePath.endsWith('source.txt') || targetFile.length === 0 || targetFile !== preAnalyzeTargetFile) {
+        return { filePath, relations: [] };
+      }
+
+      const targetPath = new URL(targetFile, \`file://\${workspaceRoot}/\`).pathname;
+      return {
+        filePath,
+        relations: [{
+          kind: 'reference',
+          sourceId: 'configured-target',
+          fromFilePath: filePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: targetFile
+        }]
+      };
+    }
+  };
+}
+`,
+    'utf-8',
+  );
 }
 
 function createTextPlugin(calls: {
@@ -131,5 +205,57 @@ describe('indexCodeGraphyWorkspace', () => {
         kind: 'reference',
       }),
     );
+  });
+
+  it('loads enabled npm plugin packages and delivers workspace options to plugin hooks', async () => {
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-core-home-'));
+    const packageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-package-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-options',
+    );
+
+    await createPackageBackedPluginPackage(packageRoot);
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-options',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+        defaultOptions: {
+          targetFile: 'target.txt',
+        },
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        package: '@acme/codegraphy-plugin-options',
+        options: {
+          targetFile: 'target.txt',
+        },
+      }],
+    });
+
+    const result = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      userHomeDir: homeDir,
+    });
+
+    expect(result.graph.edges).toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target.txt',
+        kind: 'reference',
+      }),
+    );
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { userHomeDir: homeDir })).toMatchObject({
+      state: 'fresh',
+      staleReasons: [],
+    });
   });
 });

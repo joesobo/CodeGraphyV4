@@ -20,7 +20,13 @@ export class PluginRegistry extends PluginRegistryLifecycle {
 
   register(
     plugin: IPlugin,
-    options: { builtIn?: boolean; sourceExtension?: string; deferReadinessReplay?: boolean } = {},
+    options: {
+      builtIn?: boolean;
+      sourceExtension?: string;
+      sourcePackage?: string;
+      options?: Record<string, unknown>;
+      deferReadinessReplay?: boolean;
+    } = {},
   ): void {
     if (this._plugins.has(plugin.id)) {
       throw new Error(`Plugin with ID '${plugin.id}' is already registered`);

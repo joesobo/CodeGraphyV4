@@ -3,6 +3,7 @@ import type { IPlugin } from '@codegraphy/plugin-api';
 import { createMarkdownPlugin } from '@codegraphy/plugin-markdown';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
 import { createTreeSitterPlugin } from '../treeSitter/plugin';
+import { readCodeGraphyInstalledPluginCache } from '../plugins/installedCache';
 import { getGraphCachePath, resolveWorkspaceRoot } from './paths';
 import { readCodeGraphyWorkspaceMeta } from './meta';
 import {
@@ -11,6 +12,7 @@ import {
   type CodeGraphyWorkspaceSettings,
 } from './settings';
 import {
+  createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspacePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from './signatures';
@@ -39,6 +41,7 @@ export interface ReadCodeGraphyWorkspaceStatusOptions {
   settings?: CodeGraphyWorkspaceSettings;
   settingsSignature?: string;
   exists?: (filePath: string) => boolean;
+  userHomeDir?: string;
 }
 
 function createDetail(
@@ -102,7 +105,7 @@ function collectStaleReasons(input: {
   ];
 }
 
-function createDefaultStatusPlugins(
+function createDefaultStatusRuntimePlugins(
   settings: CodeGraphyWorkspaceSettings,
 ): Array<Pick<IPlugin, 'id' | 'version'>> {
   const plugins: Array<Pick<IPlugin, 'id' | 'version'>> = [createTreeSitterPlugin()];
@@ -110,6 +113,33 @@ function createDefaultStatusPlugins(
     plugins.push(createMarkdownPlugin());
   }
   return plugins;
+}
+
+function createDefaultStatusPluginSignature(
+  settings: CodeGraphyWorkspaceSettings,
+  homeDir: string | undefined,
+): string | null {
+  const installedRecordsByPackage = new Map(
+    readCodeGraphyInstalledPluginCache({
+      ...(homeDir ? { homeDir } : {}),
+    })
+      .plugins
+      .map(plugin => [plugin.package, plugin] as const),
+  );
+  const enabledPackagePlugins = settings.plugins
+    .filter(plugin => plugin.package !== CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME);
+  const packagePlugins = enabledPackagePlugins
+    .map(plugin => installedRecordsByPackage.get(plugin.package))
+    .filter((plugin): plugin is NonNullable<typeof plugin> => plugin !== undefined);
+  const missingPackagePlugins = enabledPackagePlugins
+    .filter(plugin => !installedRecordsByPackage.has(plugin.package))
+    .map(plugin => plugin.package);
+
+  return createCodeGraphyWorkspacePackageAwarePluginSignature({
+    runtimePlugins: createDefaultStatusRuntimePlugins(settings),
+    packagePlugins,
+    missingPackagePlugins,
+  });
 }
 
 export function readCodeGraphyWorkspaceStatus(
@@ -122,9 +152,10 @@ export function readCodeGraphyWorkspaceStatus(
   const meta = readCodeGraphyWorkspaceMeta(resolvedWorkspaceRoot);
   const settings = options.settings ?? readCodeGraphyWorkspaceSettings(resolvedWorkspaceRoot);
   const settingsSignature = options.settingsSignature ?? createCodeGraphyWorkspaceSettingsSignature(settings);
-  const pluginSignature = options.pluginSignature ?? createCodeGraphyWorkspacePluginSignature(
-    options.plugins ?? createDefaultStatusPlugins(settings),
-  );
+  const pluginSignature = options.pluginSignature
+    ?? (options.plugins
+      ? createCodeGraphyWorkspacePluginSignature(options.plugins)
+      : createDefaultStatusPluginSignature(settings, options.userHomeDir));
   const staleReasons = collectStaleReasons({
     hasGraphCache,
     indexedAt: meta.lastIndexedAt,
