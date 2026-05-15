@@ -37,4 +37,28 @@ describe('Godot project root resolution', () => {
       ),
     ).toBe(workspaceRoot);
   });
+
+  it('falls back to the workspace root when the file is outside the workspace', () => {
+    const workspaceRoot = '/workspace';
+
+    expect(
+      resolveGodotProjectRoot(
+        '/outside/game/scripts/player.gd',
+        workspaceRoot,
+        new Set(['game']),
+      ),
+    ).toBe(workspaceRoot);
+  });
+
+  it('does not resolve spoofed project markers outside the workspace', () => {
+    const workspaceRoot = '/workspace';
+
+    expect(
+      resolveGodotProjectRoot(
+        '/outside/game/scripts/player.gd',
+        workspaceRoot,
+        new Set(['../outside/game/scripts']),
+      ),
+    ).toBe(workspaceRoot);
+  });
 });

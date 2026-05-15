@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { detectClassNameDeclaration } from '../../src/gdscript/className';
+import {
+  detectClassNameDeclaration,
+  extractGDScriptClassNameDeclarations,
+} from '../../src/gdscript/className';
 
 describe('detectClassNameDeclaration', () => {
   it('detects class_name declarations with spacing variants', () => {
@@ -29,5 +32,28 @@ describe('detectClassNameDeclaration', () => {
     expect(detectClassNameDeclaration('var class_name Player', 1)).toBeNull();
     expect(detectClassNameDeclaration('const label = "class_name Player"', 1)).toBeNull();
     expect(detectClassNameDeclaration('', 1)).toBeNull();
+  });
+});
+
+describe('extractGDScriptClassNameDeclarations', () => {
+  it('extracts class_name declarations through the GDScript parser package', () => {
+    expect(extractGDScriptClassNameDeclarations([
+      '@icon("res://icon.svg")',
+      '  class_name Player # exported class',
+      'extends Node2D',
+    ].join('\n'))).toEqual([
+      {
+        resPath: 'Player',
+        referenceType: 'class_name',
+        importType: 'static',
+        line: 2,
+        isDeclaration: true,
+      },
+    ]);
+  });
+
+  it('ignores parser-recovered class_name-like statements that are not declarations', () => {
+    expect(extractGDScriptClassNameDeclarations('var class_name AlsoIgnored')).toEqual([]);
+    expect(extractGDScriptClassNameDeclarations('class_name')).toEqual([]);
   });
 });

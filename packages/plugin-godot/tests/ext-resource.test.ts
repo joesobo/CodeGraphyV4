@@ -105,6 +105,33 @@ describe('ext-resource rule', () => {
     expect(connections[0].toFilePath).toBe('/workspace/my-game/resources/player_loadout.tres');
   });
 
+  it('should preserve uid fallback when the package parser cannot parse legacy quoting', () => {
+    resolver.replaceFileResourceUid('scripts/fallback.gd', 'uid://fallback-script');
+
+    const content = [
+      '[gd_scene load_steps=2 format=3]',
+      "[ext_resource type='Script' uid='uid://fallback-script' path='../../wrong/fallback.gd' id='1_script']",
+    ].join('\n');
+
+    const connections = detectExtResource(content, '/workspace/my-game/scenes/ui/loadout_preview.tscn', {
+      ...ctx,
+      relativeFilePath: 'scenes/ui/loadout_preview.tscn',
+    });
+
+    expect(connections).toHaveLength(1);
+    expect(connections[0].specifier).toBe('../../wrong/fallback.gd');
+    expect(connections[0].toFilePath).toBe('/workspace/my-game/scripts/fallback.gd');
+  });
+
+  it('should ignore non-ext_resource tags and ext_resource tags without paths', () => {
+    const content = [
+      '[node name="Sprite" path="res://textures/not-ext-resource.png"]',
+      '[ext_resource type="Script" id="missing_path"]',
+    ].join('\n');
+
+    expect(detectExtResource(content, testFile, ctx)).toEqual([]);
+  });
+
   it('should materialize nested-workspace relative paths without duplicating the project folder', () => {
     const nestedWorkspaceRoot = '/workspace/examples';
     const nestedResolver = new GDScriptPathResolver(nestedWorkspaceRoot);

@@ -46,4 +46,36 @@ describe('parseGDScriptResourceReferences', () => {
       'var data = load("./relative.tres")',
     ].join('\n'))).toEqual([]);
   });
+
+  it('falls back to statement scanning when the parser recovers a malformed load line', () => {
+    expect(parseGDScriptResourceReferences(
+      'const First = preload("res://first.tscn"); const Second = preload("res://second.tscn")',
+    )).toEqual([
+      {
+        line: 1,
+        referenceType: 'preload',
+        resPath: 'res://first.tscn',
+        importType: 'static',
+      },
+      {
+        line: 1,
+        referenceType: 'preload',
+        resPath: 'res://second.tscn',
+        importType: 'static',
+      },
+    ]);
+  });
+
+  it('deduplicates repeated fallback references from the same statement line', () => {
+    expect(parseGDScriptResourceReferences(
+      'const First = preload("res://same.tscn"); const Second = preload("res://same.tscn")',
+    )).toEqual([
+      {
+        line: 1,
+        referenceType: 'preload',
+        resPath: 'res://same.tscn',
+        importType: 'static',
+      },
+    ]);
+  });
 });

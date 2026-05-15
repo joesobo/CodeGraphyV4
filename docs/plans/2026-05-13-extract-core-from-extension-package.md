@@ -561,18 +561,17 @@ Godot is the best current showcase:
 Potential Godot upgrade paths:
 
 - `@codegraphy/plugin-godot` could become a Plugin Structured Analysis package by using a GDScript parser and a Godot resource parser
-- `tree-sitter-gdscript` already exists as a GDScript grammar
-- `tree-sitter-godot-resource` already exists and targets Godot text resource files such as `.tscn` and `.tres`
-- `@gdquest/lezer-gdscript` exists as another JavaScript parser option, though it appears much smaller and older
+- `@gdquest/lezer-gdscript` exists as a JavaScript GDScript parser option
+- `@fernforestgames/godot-resource-parser` exists as a JavaScript parser for Godot 4 `.tscn` and `.tres` files
 - Godot exposes a GDScript language server; using it would be a deeper semantic path, but it would likely require `externalProcesses` and possibly local `network` disclosures because the plugin would connect to or start Godot's language-server process
 
 Recommended Godot showcase plugin:
 
 - keep `@codegraphy/plugin-godot` as the first showcase for Plugin Structured Analysis
-- first centralize GDScript relationship sources behind structured plugin-owned helpers
+- first move most GDScript relationship sources to parser-backed Plugin Structured Analysis
 - keep Plugin Text Analysis fallbacks for anything the structured parser path cannot support yet
-- then move `.tscn`, `.tres`, and `project.godot` relationship sources to structured resource extraction where practical
-- keep relationship outputs identical first, then add package-backed AST/resource parsers once the structured helper path is stable
+- then move `.tscn`, `.tres`, and `project.godot` relationship sources to parser-backed resource extraction where practical
+- keep relationship outputs identical first, then add deeper Godot-specific relationships once the parser-backed path is stable
 - avoid Godot LSP in the first structured rewrite because it changes runtime requirements and forces external-process/local-network UX immediately
 - consider a later optional `@codegraphy/plugin-godot-lsp` or `@codegraphy/plugin-godot-semantic` package if compiler-accurate relationships become worth the extra dependency
 
@@ -1327,7 +1326,7 @@ Goal:
 Changes:
 
 - keep `@codegraphy/plugin-godot` as one package
-- centralize most GDScript line scanning behind structured plugin-owned extraction helpers
+- replace most GDScript line scanning with parser-backed extraction
 - keep Plugin Text Analysis fallbacks where parser support is incomplete
 - move `.tscn`, `.tres`, and `project.godot` parsing toward structured resource parsing where practical
 - preserve existing relationship output first
@@ -1336,19 +1335,20 @@ Changes:
 Done when:
 
 - Godot plugin output matches previous behavior first
-- structured helper internals reduce scattered plugin line-scanning responsibility
+- parser-backed internals reduce plugin line-scanning responsibility
 - no Godot LSP/external-process dependency is required in the first structured rewrite
 
 Implementation progress:
 
-- Added a structured GDScript statement model that strips comments outside quoted strings while preserving line numbers and raw source text for Symbol Node ranges.
-- Centralized GDScript `extends`, `preload(...)`, `load(...)`, class-name, and declaration extraction around the structured statement parser.
-- Added a Godot text-resource parser for `.tscn`, `.tres`, and `project.godot` style files, including quoted and bare tag fields.
-- Routed `ext_resource`, project settings, and resource-UID registration through the text-resource parser so UID-preferred resolution works without ad-hoc header regexes.
+- Added `@gdquest/lezer-gdscript` as the plugin-owned GDScript parser dependency.
+- Added `@fernforestgames/godot-resource-parser` as the plugin-owned Godot `.tscn` / `.tres` parser dependency.
+- Added a parser-backed GDScript syntax adapter that preserves source ranges and line numbers for relationship and Symbol Node extraction.
+- Routed GDScript `preload(...)`, `load(...)`, `ResourceLoader.load(...)`, and `class_name` extraction through the GDScript parser before falling back to existing text extractors for parser gaps.
+- Routed `.tscn` and `.tres` `ext_resource` extraction and resource-UID registration through the Godot resource parser before falling back to text-resource parsing for unsupported syntax.
+- Kept `project.godot` settings on the lightweight text parser because the selected Godot resource parser targets scene/resource files, not project settings.
 - Split Godot parsing, path resolution, and plugin orchestration into feature modules so the structured analyzer stays under the mutation-site threshold.
 - Kept relationship and Symbol Node output compatible while improving inline-comment handling and bare `uid=` support.
 - Avoided Godot LSP, external processes, local network dependencies, and plugin-to-VS-Code communication.
-- Deferred package-backed Godot AST/resource parsing (`tree-sitter-gdscript`, `tree-sitter-godot-resource`, or similar) to a follow-up after this extraction PR preserves relationship parity.
 
 Validation:
 
@@ -1356,23 +1356,29 @@ Validation:
 - `pnpm --filter @codegraphy/plugin-godot typecheck`
 - `pnpm --filter @codegraphy/plugin-godot lint`
 - `pnpm --filter @codegraphy/plugin-godot build`
-- `pnpm run crap -- packages/plugin-godot`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/comments.ts`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/quotes.ts`
+- `pnpm run boundaries -- plugin-godot --strict`
+- `pnpm run crap -- plugin-godot`
 - `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/className.ts`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/resourceLoads.ts`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/resourceExtends.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/classNameLine.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/resourceLoadStatements.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/resourceLoadSyntax.ts`
 - `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/resources.ts`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/textResource`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/textResource/tagFields.ts`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/pathResolver`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/PathResolver.ts`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin.ts`
-- `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/stringLiteral.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/syntaxTree.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/textResource/resourceAst.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/projectRoot/collection.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/projectRoot/resolve.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/sources/ext-resource.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin/metadata.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin/symbol/className.ts`
+- `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin/symbol/extract.ts`
 - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/packageIcons.test.ts tests/integration/pluginActivationEvents.test.ts tests/extension/pipeline/adapters.test.ts tests/extension/pipeline/analysis/delegates.test.ts`
 - `pnpm --filter @codegraphy/extension typecheck`
 - `pnpm --filter @codegraphy/quality-tools exec vitest run tests/crap/coverage/profileFactories.test.ts tests/crap/coverage/profiles.test.ts tests/crap/command.test.ts`
 - `pnpm --filter @codegraphy/quality-tools typecheck`
+- `pnpm run lint`
+- `pnpm run typecheck`
+- `pnpm run test`
 - `git diff --check`
 
 ### Step 11: Docs, Changesets, Migration Notes

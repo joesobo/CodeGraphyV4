@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractSymbols } from '../../src/plugin/symbol';
+import { extractSymbols } from '../../src/plugin/symbol/extract';
 
 describe('extractSymbols', () => {
   it('combines class_name and declaration symbols in source order', () => {
