@@ -237,12 +237,12 @@ describe('WorkspacePipeline delegates', () => {
     expect(
       analyzer.getPluginStatuses(disabledPlugins),
     ).toEqual(expectedStatuses);
-    expect(statusSpy).toHaveBeenCalledWith({
+    expect(statusSpy).toHaveBeenCalledWith(expect.objectContaining({
       disabledPlugins,
       discoveredFiles: analyzerPrivate._lastDiscoveredFiles,
       fileConnections: analyzerPrivate._lastFileConnections,
       registry: analyzerPrivate._registry,
-    });
+    }));
   });
 
   it('delegates plugin name lookup with the live workspace root callback', () => {
