@@ -18,7 +18,7 @@ vi.mock('../../src/treeSitter/runtime/csharpIndex', async () => {
   };
 });
 
-describe('extension/pipeline/plugins/treesitter/plugin', () => {
+describe('core tree-sitter built-in plugin', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
