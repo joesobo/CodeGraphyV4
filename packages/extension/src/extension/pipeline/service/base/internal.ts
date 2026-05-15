@@ -112,7 +112,9 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
   }
 
   protected _getPluginSignature(): string | null {
-    return createWorkspacePipelinePluginSignature(this._registry.list());
+    return createWorkspacePipelinePluginSignature(this._registry.list(), {
+      settings: this._config.getAll(),
+    });
   }
 
   protected _getSettingsSignature(): string {

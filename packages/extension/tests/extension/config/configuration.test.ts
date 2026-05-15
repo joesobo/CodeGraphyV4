@@ -92,25 +92,32 @@ describe('Configuration', () => {
       const all: ICodeGraphyConfig = config.getAll();
 
       expect(all).toEqual({
+        version: 1,
         maxFiles: DEFAULT_MAX_FILES,
         include: ['**/*'],
         respectGitignore: true,
         showOrphans: true,
+        filterPatterns: [],
         bidirectionalEdges: 'separate',
         disabledCustomFilterPatterns: [],
         disabledPluginFilterPatterns: [],
+        plugins: [],
       });
     });
 
     it('should return custom values in getAll', () => {
       mockConfig.maxFiles = 200;
       mockConfig.showOrphans = false;
+      mockConfig.filterPatterns = ['dist/**'];
+      mockConfig.plugins = [{ package: '@codegraphy/plugin-python' }];
 
       const config = new Configuration();
       const all = config.getAll();
 
       expect(all.maxFiles).toBe(200);
       expect(all.showOrphans).toBe(false);
+      expect(all.filterPatterns).toEqual(['dist/**']);
+      expect(all.plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
     });
   });
 

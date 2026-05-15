@@ -4,6 +4,7 @@
  */
 
 import * as vscode from 'vscode';
+import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy/core';
 import type { IGroup } from '../../shared/settings/groups';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import { getCodeGraphyConfiguration, onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
@@ -73,6 +74,10 @@ export class Configuration {
     return this.config.get<boolean>('showOrphans', true);
   }
 
+  get filterPatterns(): string[] {
+    return this.config.get<string[]>('filterPatterns', []);
+  }
+
   /**
    * How to display bidirectional connections.
    * @default 'separate'
@@ -87,6 +92,10 @@ export class Configuration {
 
   get disabledPluginFilterPatterns(): string[] {
     return this.config.get<string[]>('disabledPluginFilterPatterns', []);
+  }
+
+  get plugins(): CodeGraphyWorkspacePluginSettings[] {
+    return this.config.get<CodeGraphyWorkspacePluginSettings[]>('plugins', []);
   }
 
   /**
@@ -127,13 +136,16 @@ export class Configuration {
    */
   getAll(): ICodeGraphyConfig {
     return {
+      version: 1,
       maxFiles: this.maxFiles,
       include: this.include,
       respectGitignore: this.respectGitignore,
       showOrphans: this.showOrphans,
+      filterPatterns: this.filterPatterns,
       bidirectionalEdges: this.bidirectionalEdges,
       disabledCustomFilterPatterns: this.disabledCustomFilterPatterns,
       disabledPluginFilterPatterns: this.disabledPluginFilterPatterns,
+      plugins: this.plugins,
     };
   }
 

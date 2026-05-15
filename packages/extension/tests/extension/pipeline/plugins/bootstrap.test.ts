@@ -148,12 +148,12 @@ describe('pipeline/plugins/bootstrap', () => {
 
     expect(registry.register).toHaveBeenCalledTimes(2);
     expect(registry.register.mock.calls.map(([, options]) => options)).toEqual([
-      { builtIn: true, sourcePackage: '@codegraphy/plugin-markdown' },
       { builtIn: true },
+      { builtIn: true, sourcePackage: '@codegraphy/plugin-markdown' },
     ]);
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual(['codegraphy.markdown', 'codegraphy.treesitter']);
+    ).toEqual(['codegraphy.treesitter', 'codegraphy.markdown']);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 

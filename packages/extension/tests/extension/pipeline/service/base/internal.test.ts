@@ -91,7 +91,13 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
   }
 
   _config = {
-    getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true })),
+    getAll: vi.fn(() => ({
+      version: 1,
+      showOrphans: true,
+      respectGitignore: true,
+      filterPatterns: [],
+      plugins: [],
+    })),
   } as unknown as Configuration;
 
   _registry = {
@@ -362,6 +368,7 @@ describe('extension/pipeline/service/internalBase', () => {
     expect(source.getPluginSignature()).toBe('plugin-signature');
     expect(createWorkspacePipelinePluginSignature).toHaveBeenCalledWith(
       source._registry.list(),
+      { settings: source._config.getAll() },
     );
 
     expect(source.getSettingsSignature()).toBe('settings-signature');

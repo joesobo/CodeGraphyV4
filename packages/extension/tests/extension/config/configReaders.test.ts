@@ -100,6 +100,28 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
+  describe('filterPatterns', () => {
+    it('returns the configured custom filter patterns', () => {
+      mockConfig['filterPatterns'] = ['dist/**'];
+      expect(new Configuration().filterPatterns).toEqual(['dist/**']);
+    });
+
+    it('defaults to empty array', () => {
+      expect(new Configuration().filterPatterns).toEqual([]);
+    });
+  });
+
+  describe('plugins', () => {
+    it('returns the configured workspace plugin entries', () => {
+      mockConfig['plugins'] = [{ package: '@codegraphy/plugin-python' }];
+      expect(new Configuration().plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
+    });
+
+    it('defaults to empty array', () => {
+      expect(new Configuration().plugins).toEqual([]);
+    });
+  });
+
   describe('timelineMaxCommits', () => {
     it('returns the configured value', () => {
       mockConfig['timeline.maxCommits'] = 200;
@@ -152,6 +174,8 @@ describe('Configuration (configReaders)', () => {
       mockConfig['respectGitignore'] = false;
       mockConfig['showOrphans'] = false;
       mockConfig['bidirectionalEdges'] = 'combined';
+      mockConfig['filterPatterns'] = ['dist/**'];
+      mockConfig['plugins'] = [{ package: '@codegraphy/plugin-python' }];
 
       const all = new Configuration().getAll();
 
@@ -160,12 +184,16 @@ describe('Configuration (configReaders)', () => {
       expect(all.respectGitignore).toBe(false);
       expect(all.showOrphans).toBe(false);
       expect(all.bidirectionalEdges).toBe('combined');
+      expect(all.filterPatterns).toEqual(['dist/**']);
+      expect(all.plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
     });
 
     it('uses defaults for unconfigured values', () => {
       const all = new Configuration().getAll();
       expect(all.maxFiles).toBe(DEFAULT_MAX_FILES);
       expect(all.showOrphans).toBe(true);
+      expect(all.filterPatterns).toEqual([]);
+      expect(all.plugins).toEqual([]);
     });
   });
 

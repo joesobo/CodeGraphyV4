@@ -83,6 +83,8 @@ export async function initializeWorkspacePipeline(
   const settings = workspaceRoot && fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))
     ? readCodeGraphyWorkspaceSettings(workspaceRoot)
     : undefined;
+  registry.register(createTreeSitterPlugin(), { builtIn: true });
+
   if (shouldRegisterMarkdownPlugin(settings)) {
     const markdownOptions = getDefaultMarkdownPluginOptions(settings);
     registry.register(createMarkdownPlugin(), {
@@ -91,7 +93,6 @@ export async function initializeWorkspacePipeline(
       ...(markdownOptions ? { options: markdownOptions } : {}),
     });
   }
-  registry.register(createTreeSitterPlugin(), { builtIn: true });
 
   if (workspaceRoot && settings) {
     const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
