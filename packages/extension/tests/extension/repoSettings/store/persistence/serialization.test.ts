@@ -7,7 +7,7 @@ type LegacySettingsShape = ReturnType<typeof createDefaultCodeGraphyRepoSettings
   edgeColors?: Record<string, string>;
   folderNodeColor?: string;
   nodeColors?: unknown;
-  plugins?: string[];
+  legacyPlugins?: string[];
 };
 
 describe('extension/repoSettings/store/persistence/serialization', () => {
@@ -16,7 +16,7 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     settings.exclude = ['legacy'];
     settings.edgeColors = { import: '#123456' };
     settings.folderNodeColor = '#445566';
-    settings.plugins = ['codegraphy.typescript'];
+    settings.legacyPlugins = ['codegraphy.typescript'];
 
     const serialized = serializeSettings(settings);
     const parsed = JSON.parse(serialized) as Record<string, unknown>;
@@ -25,11 +25,32 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     expect(parsed.exclude).toBeUndefined();
     expect(parsed.edgeColors).toBeUndefined();
     expect(parsed.folderNodeColor).toBeUndefined();
-    expect(parsed.plugins).toBeUndefined();
+    expect(parsed.legacyPlugins).toBeUndefined();
     expect(settings.exclude).toEqual(['legacy']);
     expect(settings.edgeColors).toEqual({ import: '#123456' });
     expect(settings.folderNodeColor).toBe('#445566');
-    expect(settings.plugins).toEqual(['codegraphy.typescript']);
+    expect(settings.legacyPlugins).toEqual(['codegraphy.typescript']);
+  });
+
+  it('serializes package-backed plugin entries', () => {
+    const settings = createDefaultCodeGraphyRepoSettings();
+    settings.plugins = [
+      { package: '@codegraphy/plugin-markdown' },
+      {
+        package: '@codegraphy/plugin-python',
+        options: { includeTests: true },
+      },
+    ];
+
+    const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
+
+    expect(parsed.plugins).toEqual([
+      { package: '@codegraphy/plugin-markdown' },
+      {
+        package: '@codegraphy/plugin-python',
+        options: { includeTests: true },
+      },
+    ]);
   });
 
   it('keeps malformed values for known settings so validation remains explicit', () => {

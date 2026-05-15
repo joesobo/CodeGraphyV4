@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import type { IPlugin } from '@codegraphy/plugin-api';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
 import type { CodeGraphyWorkspaceSettings } from './settings';
+import type { CodeGraphyInstalledPluginRecord } from '../plugins/installedCache';
 
 function sortRecord(value: Record<string, unknown> | undefined): Array<[string, unknown]> {
   return Object.keys(value ?? {})
@@ -19,6 +20,20 @@ export function createCodeGraphyWorkspacePluginSignature(
   return plugins
     .map(plugin => `${plugin.id}@${plugin.version}`)
     .join('|');
+}
+
+export function createCodeGraphyWorkspacePackageAwarePluginSignature(input: {
+  runtimePlugins: ReadonlyArray<Pick<IPlugin, 'id' | 'version'>>;
+  packagePlugins?: ReadonlyArray<Pick<CodeGraphyInstalledPluginRecord, 'package' | 'version'>>;
+  missingPackagePlugins?: readonly string[];
+}): string | null {
+  const entries = [
+    ...input.runtimePlugins.map(plugin => `${plugin.id}@${plugin.version}`),
+    ...(input.packagePlugins ?? []).map(plugin => `npm:${plugin.package}@${plugin.version}`),
+    ...(input.missingPackagePlugins ?? []).map(packageName => `npm:${packageName}@missing`),
+  ];
+
+  return entries.length > 0 ? entries.join('|') : null;
 }
 
 export function createCodeGraphyWorkspaceSettingsSignature(

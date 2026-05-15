@@ -1,6 +1,9 @@
 import type { IPluginAnalysisContext } from '@codegraphy/plugin-api';
 import type { ILifecyclePluginInfo } from '../contracts';
-import { createWorkspacePluginAnalysisContext } from '../../context/workspace';
+import {
+  createWorkspacePluginAnalysisContext,
+  withWorkspacePluginAnalysisOptions,
+} from '../../context/workspace';
 
 type AnalyzeFile = {
   absolutePath: string;
@@ -68,7 +71,7 @@ export async function notifyFilesChanged(
       const nextPaths = await info.plugin.onFilesChanged(
         pluginFiles,
         workspaceRoot,
-        analysisContext,
+        withWorkspacePluginAnalysisOptions(analysisContext, info.options),
       );
       collectAdditionalFilePaths(nextPaths, additionalFilePaths);
     } catch (error) {

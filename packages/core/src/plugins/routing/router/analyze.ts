@@ -3,7 +3,7 @@ import type {
   IPluginAnalysisContext,
 } from '@codegraphy/plugin-api';
 import type { IProjectedConnection } from '../../../analysis/projectedConnection';
-import { getPluginsForFile, type IRoutablePluginInfo } from './lookups';
+import { getPluginInfosForFile, type IRoutablePluginInfo } from './lookups';
 import {
   createEmptyFileAnalysisResult,
   mergeFileAnalysisResults,
@@ -12,7 +12,10 @@ import {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
 } from './results/project';
-import { createWorkspacePluginAnalysisContext } from '../../context/workspace';
+import {
+  createWorkspacePluginAnalysisContext,
+  withWorkspacePluginAnalysisOptions,
+} from '../../context/workspace';
 
 export type CoreFileAnalysisResultProvider = (
   filePath: string,
@@ -53,7 +56,7 @@ export async function analyzeFileResult(
   coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
   analysisContext: IPluginAnalysisContext = createWorkspacePluginAnalysisContext(workspaceRoot),
 ): Promise<IFileAnalysisResult | null> {
-  const matchingPlugins = getPluginsForFile(filePath, plugins, extensionMap);
+  const matchingPlugins = getPluginInfosForFile(filePath, plugins, extensionMap);
   const coreResult = await coreAnalyzeFileResult?.(filePath, content, workspaceRoot) ?? null;
   const normalizedCoreResult = coreResult
     ? mergeFileAnalysisResults(createEmptyFileAnalysisResult(filePath), coreResult)
@@ -66,7 +69,8 @@ export async function analyzeFileResult(
   let mergedResult = normalizedCoreResult ?? createEmptyFileAnalysisResult(filePath);
 
   for (let index = matchingPlugins.length - 1; index >= 0; index -= 1) {
-    const plugin = matchingPlugins[index];
+    const pluginInfo = matchingPlugins[index];
+    const plugin = pluginInfo.plugin;
     if (!plugin.analyzeFile) {
       continue;
     }
@@ -74,7 +78,12 @@ export async function analyzeFileResult(
     try {
       const pluginResult = withPluginProvenance(
         plugin,
-        await plugin.analyzeFile(filePath, content, workspaceRoot, analysisContext),
+        await plugin.analyzeFile(
+          filePath,
+          content,
+          workspaceRoot,
+          withWorkspacePluginAnalysisOptions(analysisContext, pluginInfo.options),
+        ),
       );
 
       mergedResult = mergeFileAnalysisResults(mergedResult, pluginResult);

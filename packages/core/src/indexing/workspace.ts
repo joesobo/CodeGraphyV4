@@ -22,10 +22,15 @@ import {
 } from '../workspace/settings';
 import {
   createCodeGraphyWorkspacePluginSignature,
+  createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from '../workspace/signatures';
 import { createTreeSitterPlugin } from '../treeSitter/plugin';
 import { CorePluginRegistry } from '../plugins/registry';
+import {
+  loadCodeGraphyWorkspacePluginPackages,
+  type LoadedCodeGraphyWorkspacePluginPackage,
+} from '../plugins/packageRuntime';
 
 export interface IndexCodeGraphyWorkspaceOptions {
   workspaceRoot: string;
@@ -43,6 +48,7 @@ export interface IndexCodeGraphyWorkspaceOptions {
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
   logInfo?: (message: string) => void;
   warn?: (message: string) => void;
+  userHomeDir?: string;
 }
 
 export interface IndexCodeGraphyWorkspaceResult {
@@ -81,20 +87,43 @@ function shouldRegisterDefaultMarkdownPlugin(
     && !providedPluginIds.has('codegraphy.markdown');
 }
 
-function createRegistry(
+function getDefaultMarkdownPluginOptions(
+  settings: CodeGraphyWorkspaceSettings,
+): Record<string, unknown> | undefined {
+  return settings.plugins.find(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)?.options;
+}
+
+async function createRegistry(
   options: IndexCodeGraphyWorkspaceOptions,
   settings: CodeGraphyWorkspaceSettings,
-): CorePluginRegistry {
+): Promise<{
+  registry: CorePluginRegistry;
+  loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
+}> {
   const registry = new CorePluginRegistry();
+  const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+    settings,
+    ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
+    ...(options.warn ? { warn: options.warn } : {}),
+  });
 
   if (options.includeCorePlugins !== false) {
     registry.register(createTreeSitterPlugin(), { builtIn: true });
   }
 
   if (shouldRegisterDefaultMarkdownPlugin(options, settings)) {
+    const markdownOptions = getDefaultMarkdownPluginOptions(settings);
     registry.register(createMarkdownPlugin(), {
       builtIn: true,
       sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      ...(markdownOptions ? { options: markdownOptions } : {}),
+    });
+  }
+
+  for (const loadedPlugin of loadedPackagePlugins) {
+    registry.register(loadedPlugin.plugin, {
+      sourcePackage: loadedPlugin.packageName,
+      ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
     });
   }
 
@@ -102,7 +131,7 @@ function createRegistry(
     registry.register(plugin);
   }
 
-  return registry;
+  return { registry, loadedPackagePlugins };
 }
 
 function createEffectiveIndexSettings(
@@ -129,7 +158,7 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const cache = createEmptyWorkspaceAnalysisCache();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
-  const registry = createRegistry(options, settings);
+  const { registry, loadedPackagePlugins } = await createRegistry(options, settings);
   const disabledPlugins = new Set(options.disabledPlugins ?? []);
   const disabledPluginPatterns = new Set(settings.disabledPluginFilterPatterns);
   const logInfo = options.logInfo ?? (() => undefined);
@@ -208,7 +237,13 @@ export async function indexCodeGraphyWorkspace(
   registry.notifyWorkspaceReady(graph);
   saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
   persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
-    pluginSignature: createCodeGraphyWorkspacePluginSignature(
+    pluginSignature: createCodeGraphyWorkspacePackageAwarePluginSignature({
+      runtimePlugins: registry
+        .list()
+        .filter(info => info.builtIn || !info.sourcePackage)
+        .map(info => info.plugin),
+      packagePlugins: loadedPackagePlugins.map(loadedPlugin => loadedPlugin.record),
+    }) ?? createCodeGraphyWorkspacePluginSignature(
       registry.list().map(info => info.plugin),
     ),
     settingsSignature: createCodeGraphyWorkspaceSettingsSignature(settings),

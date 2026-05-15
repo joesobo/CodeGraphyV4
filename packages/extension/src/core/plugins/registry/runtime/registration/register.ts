@@ -32,7 +32,12 @@ export interface RegistryV2Config {
  */
 export function validateAndCreatePluginInfo(
   plugin: IPlugin,
-  options: { builtIn?: boolean; sourceExtension?: string },
+  options: {
+    builtIn?: boolean;
+    sourceExtension?: string;
+    sourcePackage?: string;
+    options?: Record<string, unknown>;
+  },
   config: RegistryV2Config,
 ): IPluginInfoV2 {
   const apiVersion = plugin.apiVersion;
@@ -48,7 +53,9 @@ export function validateAndCreatePluginInfo(
   const info: IPluginInfoV2 = {
     plugin,
     builtIn: options.builtIn ?? false,
-    sourceExtension: options.sourceExtension,
+    ...(options.sourceExtension ? { sourceExtension: options.sourceExtension } : {}),
+    ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
+    ...(options.options ? { options: { ...options.options } } : {}),
   };
 
   const apiConfiguration = {

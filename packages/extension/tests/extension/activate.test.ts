@@ -23,6 +23,7 @@ function getRegisteredProvider(): GraphViewProvider {
 describe('activate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (vscode.extensions as unknown as { all: unknown[] }).all = [];
   });
 
   it('dispatches webview messages through the provider', async () => {
@@ -65,5 +66,23 @@ describe('activate', () => {
       page: { offset: 0, limit: 500, returned: 1, total: 1 },
     });
     expect(queryGraphSpy).toHaveBeenCalledWith(query);
+  });
+
+  it('does not activate VS Code extensions that depend on CodeGraphy', () => {
+    const activateDependentExtension = vi.fn(async () => undefined);
+    (vscode.extensions as unknown as { all: unknown[] }).all = [
+      {
+        id: 'codegraphy.codegraphy-typescript',
+        isActive: false,
+        packageJSON: {
+          extensionDependencies: ['codegraphy.codegraphy'],
+        },
+        activate: activateDependentExtension,
+      },
+    ];
+
+    activate(makeMockContext() as unknown as vscode.ExtensionContext);
+
+    expect(activateDependentExtension).not.toHaveBeenCalled();
   });
 });

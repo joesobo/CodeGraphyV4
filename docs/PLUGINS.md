@@ -25,7 +25,7 @@ The current plugin API supports more than file analysis:
 - per-file analysis objects with symbols, relationships, Node Types, and Edge Types
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
 - `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
-- analysis hooks receive an optional `context` object; use `context.fileSystem` for timeline-safe repo reads
+- analysis hooks receive an optional `context` object; use `context.fileSystem` for timeline-safe workspace reads and `context.options` for workspace-local plugin settings
 - graph queries backed by the projected workspace-local index and current graph state
 - default filters, file colors, Node Types, Edge Types, symbols, and relationship evidence
 
@@ -76,6 +76,8 @@ Plugin packages declare CodeGraphy metadata in `package.json` so discovery can v
 ```
 
 The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, refresh, list, enable, or disable commands.
+
+When Indexing loads an enabled package, `@codegraphy/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
 
 ## Plugin author setup
 

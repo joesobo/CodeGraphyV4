@@ -40,6 +40,7 @@ export interface IPluginAnalysisContext {
   mode: 'workspace' | 'timeline';
   commitSha?: string;
   fileSystem: IPluginAnalysisFileSystem;
+  options?: Record<string, unknown>;
 }
 
 export interface IPluginFileColorDefinition {
@@ -163,7 +164,7 @@ export interface IPlugin {
    * Initialization hook called when the plugin is first loaded.
    * Use to set up state or resources.
    */
-  initialize?(workspaceRoot: string): Promise<void>;
+  initialize?(workspaceRoot: string, context?: IPluginAnalysisContext): Promise<void>;
 
   // ---------------------------------------------------------------------------
   // Lifecycle hooks

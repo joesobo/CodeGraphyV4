@@ -8,4 +8,5 @@ import type { IPlugin } from '@codegraphy/plugin-api';
 /** Minimal plugin info subset needed for lifecycle operations. */
 export interface ILifecyclePluginInfo {
   plugin: IPlugin;
+  options?: Record<string, unknown>;
 }

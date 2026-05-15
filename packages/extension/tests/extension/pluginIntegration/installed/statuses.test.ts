@@ -6,6 +6,7 @@ import type { GraphViewProvider } from '../../../../src/extension/graphViewProvi
 import { getGraphViewProviderInternals } from '../../graphViewProvider/internals';
 import {
   createPluginIntegrationWorkspace,
+  installPluginIntegrationPackage,
   type PluginIntegrationWorkspace,
 } from '../workspaceFixture';
 
@@ -28,20 +29,13 @@ let currentContext:
       subscriptions: Array<{ dispose: () => void }>;
     }
   | undefined;
-let installedExtensionsValue: Array<{
-  id: string;
-  isActive: boolean;
-  packageJSON?: { extensionDependencies?: string[] };
-  activate: () => Promise<unknown>;
-}> = [];
+let originalHome: string | undefined;
+let installedPackage:
+  | Awaited<ReturnType<typeof installPluginIntegrationPackage>>
+  | undefined;
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
-  configurable: true,
-});
-
-Object.defineProperty(vscode.extensions, 'all', {
-  get: () => installedExtensionsValue,
   configurable: true,
 });
 
@@ -115,11 +109,7 @@ async function waitForPluginStatuses(
     };
   }>,
 ): Promise<Array<{ id: string }>> {
-  const requiredPluginIds = [
-    'codegraphy.markdown',
-    'codegraphy.typescript',
-    'codegraphy.gdscript',
-  ];
+  const requiredPluginIds = ['codegraphy.markdown', 'acme.integration'];
 
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const pluginMessage = getMessages()
@@ -143,14 +133,19 @@ async function waitForPluginStatuses(
 describe('extension/pluginIntegration/installedPluginStatuses', () => {
   beforeAll(async () => {
     workspaceFixture = await createPluginIntegrationWorkspace();
+    installedPackage = await installPluginIntegrationPackage(
+      workspaceFixture.workspacePath,
+      workspaceFixture.scratchPath,
+    );
   });
 
   beforeEach(() => {
     currentContext = undefined;
+    originalHome = process.env.HOME;
+    process.env.HOME = installedPackage!.homeDir;
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceFixture!.workspacePath), name: 'workspace', index: 0 },
     ];
-    installedExtensionsValue = [];
     vi.clearAllMocks();
 
     (vscode.workspace.getConfiguration as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
@@ -183,6 +178,11 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     for (const subscription of [...(currentContext?.subscriptions ?? [])].reverse()) {
       subscription?.dispose();
     }
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
     currentContext = undefined;
   });
 
@@ -191,56 +191,9 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     workspaceFixture = undefined;
   });
 
-  it('sends plugins registered by legacy dependent extensions to the webview after startup', async () => {
-    const apiRef: { current?: ReturnType<typeof activate> } = {};
-    const coreExtensionRef = {
-      id: 'codegraphy.codegraphy',
-      isActive: false,
-      activate: vi.fn(async () => {
-        await Promise.resolve();
-        return apiRef.current;
-      }),
-    };
-
-    (vscode.extensions.getExtension as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      (extensionId: string) =>
-        extensionId === 'codegraphy.codegraphy' ? coreExtensionRef : undefined,
-    );
-
-    installedExtensionsValue = [
-      {
-        id: 'codegraphy.codegraphy-typescript',
-        isActive: false,
-        packageJSON: {
-          extensionDependencies: ['codegraphy.codegraphy'],
-        },
-        activate: async () => {
-          const { createTypeScriptPlugin } = await import('../../../../../plugin-typescript/src/plugin');
-          const codeGraphy = await coreExtensionRef.activate();
-          codeGraphy?.registerPlugin(createTypeScriptPlugin(), {
-            extensionUri: vscode.Uri.file('/plugins/typescript'),
-          });
-        },
-      },
-      {
-        id: 'codegraphy.codegraphy-godot',
-        isActive: false,
-        packageJSON: {
-          extensionDependencies: ['codegraphy.codegraphy'],
-        },
-        activate: async () => {
-          const { createGDScriptPlugin } = await import('../../../../../plugin-godot/src/plugin');
-          const codeGraphy = await coreExtensionRef.activate();
-          codeGraphy?.registerPlugin(createGDScriptPlugin(), {
-            extensionUri: vscode.Uri.file('/plugins/godot'),
-          });
-        },
-      },
-    ];
-
+  it('sends package-enabled plugins to the webview after startup', async () => {
     currentContext = createContext();
-    const api = activate(currentContext as unknown as vscode.ExtensionContext);
-    apiRef.current = api;
+    activate(currentContext as unknown as vscode.ExtensionContext);
 
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
@@ -262,8 +215,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     expect(plugins).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: 'codegraphy.markdown' }),
-        expect.objectContaining({ id: 'codegraphy.typescript' }),
-        expect.objectContaining({ id: 'codegraphy.gdscript' }),
+        expect.objectContaining({ id: installedPackage!.pluginId }),
       ]),
     );
     await internals._analysisMethods._analyzeAndSendData();

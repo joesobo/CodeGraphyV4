@@ -82,6 +82,7 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
 
     statuses.push({
       id: plugin.id,
+      ...(pluginInfo.sourcePackage ? { packageName: pluginInfo.sourcePackage } : {}),
       name: plugin.name,
       version: plugin.version,
       supportedExtensions: plugin.supportedExtensions,

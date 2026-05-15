@@ -4,6 +4,7 @@
  */
 
 import type { ILifecyclePluginInfo } from './contracts';
+import { createWorkspacePluginAnalysisContext } from '../context/workspace';
 
 /**
  * Initializes all registered plugins.
@@ -36,7 +37,10 @@ export async function initializePlugin(
   }
 
   try {
-    await info.plugin.initialize(workspaceRoot);
+    await info.plugin.initialize(
+      workspaceRoot,
+      createWorkspacePluginAnalysisContext(workspaceRoot, { pluginOptions: info.options }),
+    );
   } catch (error) {
     initializedSet.delete(pluginId);
     console.error(`[CodeGraphy] Error initializing plugin ${pluginId}:`, error);

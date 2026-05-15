@@ -25,11 +25,13 @@ export interface CorePluginInfo {
   plugin: IPlugin;
   builtIn: boolean;
   sourcePackage?: string;
+  options?: Record<string, unknown>;
 }
 
 interface RegisterPluginOptions {
   builtIn?: boolean;
   sourcePackage?: string;
+  options?: Record<string, unknown>;
 }
 
 function parseSemver(version: string): { major: number; minor: number; patch: number } | undefined {
@@ -182,7 +184,8 @@ export class CorePluginRegistry {
     const info: CorePluginInfo = {
       plugin,
       builtIn: options.builtIn ?? false,
-      sourcePackage: options.sourcePackage,
+      ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
+      ...(options.options ? { options: { ...options.options } } : {}),
     };
 
     this.plugins.set(plugin.id, info);
