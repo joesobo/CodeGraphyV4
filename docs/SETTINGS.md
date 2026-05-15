@@ -117,6 +117,25 @@ Removing that entry disables Markdown for the workspace. Other installed plugins
 
 Plugin `options` are also workspace-local. During Indexing, CodeGraphy merges package-level defaults with the workspace entry and passes the result to plugin hooks as `context.options`.
 
+When a plugin package declares `codegraphy.defaultOptions`, enabling that plugin copies those defaults into the workspace entry. That makes the settings explicit and editable:
+
+```json
+{
+  "plugins": [
+    {
+      "package": "@codegraphy/plugin-godot",
+      "options": {
+        "includeSceneResources": true,
+        "includeAutoloads": true,
+        "includeClassNameUsage": true
+      }
+    }
+  ]
+}
+```
+
+CLI, MCP, and the VS Code plugin popup should all produce the same workspace shape when they enable the same installed plugin.
+
 ## Settings Panel
 
 Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while Graph Scope and Legend styling live in their own dedicated panels on the right side.

@@ -13,6 +13,7 @@ export interface GraphViewSettingsMessageState {
 export interface GraphViewSettingsMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
+  getInstalledPluginDefaultOptions?(packageName: string): Record<string, unknown> | undefined;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;
   smartRebuild(id: string): void;

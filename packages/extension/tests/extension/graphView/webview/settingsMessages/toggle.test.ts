@@ -155,6 +155,52 @@ describe('graph view settings toggle message', () => {
     expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
   });
 
+  it('copies package default options into workspace settings when enabling a package-backed plugin', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [{ package: '@codegraphy/plugin-markdown' }] as T;
+        }
+        return defaultValue;
+      }),
+      getInstalledPluginDefaultOptions: vi.fn((packageName: string) => {
+        if (packageName === '@codegraphy/plugin-godot') {
+          return {
+            includeSceneResources: true,
+            includeAutoloads: true,
+          };
+        }
+        return undefined;
+      }),
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.godot',
+          packageName: '@codegraphy/plugin-godot',
+          enabled: true,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+      { package: '@codegraphy/plugin-markdown' },
+      {
+        package: '@codegraphy/plugin-godot',
+        options: {
+          includeSceneResources: true,
+          includeAutoloads: true,
+        },
+      },
+    ]);
+  });
+
   it('clears legacy disabled-plugin state when enabling a package-backed plugin', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python', 'codegraphy.treesitter']),

@@ -78,6 +78,49 @@ The npm package's normal `exports` field owns runtime import behavior. The `code
 
 When Indexing loads an enabled package, `@codegraphy/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
 
+Default options are copied into workspace settings when the plugin is enabled so the user can see and edit the starting values for that workspace. For example, enabling a Godot plugin whose package manifest contains:
+
+```json
+{
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0",
+    "defaultOptions": {
+      "includeSceneResources": true,
+      "includeAutoloads": true,
+      "includeClassNameUsage": true
+    }
+  }
+}
+```
+
+writes a workspace entry like:
+
+```json
+{
+  "plugins": [
+    {
+      "package": "@codegraphy/plugin-godot",
+      "options": {
+        "includeSceneResources": true,
+        "includeAutoloads": true,
+        "includeClassNameUsage": true
+      }
+    }
+  ]
+}
+```
+
+If that workspace later disables `includeClassNameUsage`, the effective runtime options become:
+
+```json
+{
+  "includeSceneResources": true,
+  "includeAutoloads": true,
+  "includeClassNameUsage": false
+}
+```
+
 ## Plugin author setup
 
 Install the type package:

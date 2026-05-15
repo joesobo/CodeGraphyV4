@@ -9,6 +9,7 @@ function updateWorkspacePluginSettings(
   plugins: CodeGraphyWorkspacePluginSettings[],
   packageName: string,
   enabled: boolean,
+  defaultOptions?: Record<string, unknown>,
 ): CodeGraphyWorkspacePluginSettings[] {
   if (!enabled) {
     return plugins.filter(plugin => plugin.package !== packageName);
@@ -18,7 +19,12 @@ function updateWorkspacePluginSettings(
     return plugins;
   }
 
-  return [...plugins, { package: packageName }];
+  const nextPlugin: CodeGraphyWorkspacePluginSettings = { package: packageName };
+  if (defaultOptions && Object.keys(defaultOptions).length > 0) {
+    nextPlugin.options = { ...defaultOptions };
+  }
+
+  return [...plugins, nextPlugin];
 }
 
 export async function applySettingsToggleMessage(
@@ -41,6 +47,9 @@ export async function applySettingsToggleMessage(
             handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
             message.payload.packageName,
             message.payload.enabled,
+            message.payload.enabled
+              ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)
+              : undefined,
           ),
         );
         if (message.payload.enabled && hadLegacyDisabledPlugin) {
