@@ -89,7 +89,9 @@ This repo is a work in progress and is being built through agentic engineering. 
 
 ![CodeGraphy architecture and logic flow](./docs/media/readme/codegraphy-architecture.png)
 
-Workspace files, Git history, and workspace-local settings flow into `@codegraphy/core`. Indexing combines built-in Tree-sitter analysis with enabled plugins, stores relationship evidence in the Graph Cache, then Graph Projection produces the Visible Graph that powers the VS Code webview, exports, CLI, and CodeGraphy MCP.
+Workspace files, Git history, and workspace-local settings flow into `@codegraphy/core`. The core package owns path-based Indexing, built-in Tree-sitter analysis, enabled plugin execution, Graph Cache reads/writes, and Graph Query. It has no VS Code dependency, so the same engine can run from the VS Code extension, the `codegraphy` CLI, or the local MCP server.
+
+The VS Code extension uses `@codegraphy/core` to build and refresh the workspace Graph Cache, then projects that data into the Visible Graph for the webview, exports, Graph Sections, Symbol Nodes, Timeline, and editor interactions. `@codegraphy/mcp` uses the same core APIs for headless agent access: `codegraphy index [workspace]` writes the Graph Cache, Graph Query tools read it, and neither path needs to open or focus VS Code.
 
 Graph Sections are saved in workspace-local Graph Layout settings. In 2D, add them from the toolbar or background context menu, drag nodes into a frame to make them Section Members, then resize, label, color, pin, collapse, or expand the section as you organize the graph. Expanded sections behave like large graph nodes in the root force layout, while their members run section-local physics inside the frame; collapsed sections become compact nodes with projected incoming and outgoing edges.
 
@@ -159,7 +161,7 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit
 |---|---|---|---|
 | `@codegraphy/core` | `packages/core` | `npm install @codegraphy/core` | Shared engine package for Indexing, Graph Cache access, and Graph Query execution. |
 | CodeGraphy VS Code Extension | `packages/extension` | [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | Graph View, VS Code lifecycle integration, commands, webviews, context menus, and editor integration. |
-| `@codegraphy/mcp` | `packages/codegraphy-mcp` | `npm install -g @codegraphy/mcp` | `codegraphy` CLI and local MCP server for agent access through `@codegraphy/core`. |
+| `@codegraphy/mcp` | `packages/mcp` | `npm install -g @codegraphy/mcp` | `codegraphy` CLI and local MCP server for agent access through `@codegraphy/core`. |
 | `@codegraphy/plugin-api` | `packages/plugin-api` | `npm install @codegraphy/plugin-api` | Typed contracts for external CodeGraphy plugins. |
 | `@codegraphy/plugin-typescript` | `packages/plugin-typescript` | `npm install -g @codegraphy/plugin-typescript` | TypeScript and JavaScript ecosystem defaults and enrichment. |
 | `@codegraphy/plugin-python` | `packages/plugin-python` | `npm install -g @codegraphy/plugin-python` | Python ecosystem defaults and enrichment. |
@@ -173,7 +175,8 @@ CodeGraphy MCP is an agent access layer, not a second indexer. It sends explicit
 | Area | Stack |
 |---|---|
 | Monorepo | pnpm workspaces, Turbo, Changesets |
-| Core extension | TypeScript, VS Code Extension API |
+| Core package | TypeScript, Tree-sitter, LadybugDB, headless plugin execution |
+| VS Code extension | TypeScript, VS Code Extension API |
 | Analysis | Native Tree-sitter plus plugin-provided analyzers |
 | Graph storage | LadybugDB-backed `.codegraphy/graph.lbug` Graph Cache |
 | Webview | React, Vite, Zustand, Tailwind, Radix/shadcn-owned UI primitives |
@@ -221,7 +224,7 @@ The active roadmap lives on [Trello](https://trello.com/b/wG65Lfrb/codegraphy). 
 | [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, panels, and timeline behavior. |
 | [Plugin Guide](./docs/PLUGINS.md) | Build and package plugins for CodeGraphy. |
 | [MCP Setup](./docs/MCP.md) | CLI commands, MCP tools, Codex setup, and verification flow. |
-| [MCP Package](./packages/codegraphy-mcp/README.md) | Package-level install, commands, tools, prompts, and skill link. |
+| [MCP Package](./packages/mcp/README.md) | Package-level install, commands, tools, prompts, and skill link. |
 | [CodeGraphy MCP Skill](./skills/codegraphy-mcp/SKILL.md) | Reusable skill that teaches agents to use CodeGraphy first for relationship and impact questions. |
 | [Contributing](./CONTRIBUTING.md) | Development setup and contribution workflow. |
 

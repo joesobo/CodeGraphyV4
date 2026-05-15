@@ -81,24 +81,6 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@20.19.37)(jiti@1.21.7)(jsdom@25.0.1)(tsx@4.21.0)(yaml@2.8.2)
 
-  packages/codegraphy-mcp:
-    dependencies:
-      '@codegraphy/core':
-        specifier: workspace:*
-        version: link:../core
-      '@codegraphy/plugin-api':
-        specifier: workspace:*
-        version: link:../plugin-api
-      '@ladybugdb/core':
-        specifier: ^0.15.3
-        version: 0.15.3
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.29.0
-        version: 1.29.0(zod@4.3.6)
-      zod:
-        specifier: ^4.1.12
-        version: 4.3.6
-
   packages/core:
     dependencies:
       '@codegraphy/plugin-api':
@@ -363,6 +345,24 @@ importers:
       vite:
         specifier: ^6.2.0
         version: 6.4.1(@types/node@20.19.37)(jiti@1.21.7)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/mcp:
+    dependencies:
+      '@codegraphy/core':
+        specifier: workspace:*
+        version: link:../core
+      '@codegraphy/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+      '@ladybugdb/core':
+        specifier: ^0.15.3
+        version: 0.15.3
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.29.0
+        version: 1.29.0(zod@4.3.6)
+      zod:
+        specifier: ^4.1.12
+        version: 4.3.6
 
   packages/plugin-api: {}
 

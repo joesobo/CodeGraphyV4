@@ -142,7 +142,7 @@
         ]
       }
     },
-    "codegraphy-mcp": {
+    "mcp": {
       "boundaries": {
         "entrypoints": [
           "src/cli/main.ts"
