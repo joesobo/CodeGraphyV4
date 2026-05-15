@@ -52,7 +52,6 @@ vi.mock('vscode', () => ({
 }));
 
 class TestLifecycleFacade extends WorkspacePipelineLifecycleFacade {
-  readonly syncPluginOrder = vi.fn();
   readonly getWorkspaceRoot = vi.fn<() => string | undefined>(() => '/workspace');
   readonly persistCache = vi.fn();
 
@@ -69,7 +68,6 @@ class TestLifecycleFacade extends WorkspacePipelineLifecycleFacade {
   _registry = {
     list: vi.fn(() => []),
     disposeAll: vi.fn(),
-    setPluginOrder: vi.fn(),
   } as unknown as PluginRegistry;
   _cache = { files: {} } as unknown as IWorkspaceAnalysisCache;
   _lastDiscoveredFiles = [
@@ -84,10 +82,6 @@ class TestLifecycleFacade extends WorkspacePipelineLifecycleFacade {
     IProjectedConnection[]
   >;
   _lastWorkspaceRoot = '/workspace';
-
-  protected override _syncPluginOrder(): void {
-    this.syncPluginOrder();
-  }
 
   protected override _getWorkspaceRoot(): string | undefined {
     return this.getWorkspaceRoot();
@@ -136,12 +130,11 @@ describe('pipeline/service/lifecycleFacade', () => {
     vi.mocked(resolveWorkspacePipelinePluginFilePaths).mockReturnValue(['/workspace/src/a.ts']);
   });
 
-  it('returns plugin statuses after syncing plugin order', () => {
+  it('returns plugin statuses using the installed plugin status context', () => {
     const facade = new TestLifecycleFacade();
     const disabledPlugins = new Set(['plugin.disabled']);
 
     expect(facade.getPluginStatuses(disabledPlugins)).toEqual([{ id: 'plugin.a' }]);
-    expect(facade.syncPluginOrder).toHaveBeenCalledOnce();
     expect(readWorkspacePluginStatusContext).toHaveBeenCalledWith('/workspace');
     expect(getWorkspacePipelineStatusList).toHaveBeenCalledWith(
       facade._registry,

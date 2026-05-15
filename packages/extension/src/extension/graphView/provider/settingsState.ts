@@ -7,7 +7,6 @@ import type { IGroup } from '../../../shared/settings/groups';
 import type { IPhysicsSettings } from '../../../shared/settings/physics';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { getGraphViewConfigTarget } from '../settings/reader';
-import { loadGraphViewDisabledState } from '../settings/disabled';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';
 import { loadGraphViewGroupState } from '../groups/state';
 import { captureGraphViewSettingsSnapshot } from '../settings/snapshot';
@@ -66,7 +65,6 @@ export interface GraphViewProviderSettingsStateMethodDependencies {
     config: GraphViewProviderSettingsConfigLike,
   ): ReturnType<typeof loadGraphViewGroupState>;
   applyLoadedGroupState: typeof applyLoadedGraphViewGroupState;
-  loadDisabledState: typeof loadGraphViewDisabledState;
   sendProviderSettings: typeof sendGraphViewProviderSettings;
   sendProviderAllSettings: typeof sendGraphViewProviderAllSettings;
   captureSettingsSnapshot(
@@ -86,7 +84,6 @@ export function createDefaultGraphViewProviderSettingsStateMethodDependencies():
     getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
     loadGroupState: loadGraphViewGroupState,
     applyLoadedGroupState: applyLoadedGraphViewGroupState,
-    loadDisabledState: loadGraphViewDisabledState,
     sendProviderSettings: sendGraphViewProviderSettings,
     sendProviderAllSettings: sendGraphViewProviderAllSettings,
     captureSettingsSnapshot: captureGraphViewSettingsSnapshot,
@@ -125,17 +122,9 @@ export function createGraphViewProviderSettingsStateMethods(
   };
 
   const _loadDisabledRulesAndPlugins = (): boolean => {
-    const config = dependencies.getConfiguration('codegraphy');
-    const disabledState = dependencies.loadDisabledState(
-      source._disabledPlugins,
-      {
-        configuredDisabledPlugins: config.get<string[]>('disabledPlugins', []),
-        disabledPluginsInspect: config.inspect<string[]>('disabledPlugins'),
-      },
-    );
-
-    source._disabledPlugins = disabledState.disabledPlugins;
-    return disabledState.changed;
+    const changed = source._disabledPlugins.size > 0;
+    source._disabledPlugins = new Set();
+    return changed;
   };
 
   const _sendSettings = (): void => {

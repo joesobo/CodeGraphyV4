@@ -128,7 +128,7 @@ describe('graph view provider listener settings context', () => {
     expect(context.getPlaybackSpeed()).toBe(1);
   });
 
-  it('persists disabled plugin updates silently to avoid redundant refresh work', async () => {
+  it('persists workspace plugin updates silently to avoid redundant refresh work', async () => {
     const configuration = {
       get: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
       update: vi.fn(() => Promise.resolve()),
@@ -165,11 +165,12 @@ describe('graph view provider listener settings context', () => {
       } as never,
     );
 
-    await context.updateConfig('disabledPlugins', ['codegraphy.python']);
+    const plugins = [{ package: '@codegraphy/plugin-python' }];
+    await context.updateConfig('plugins', plugins);
 
     expect(repoSettings.updateCodeGraphyConfigurationSilently).toHaveBeenCalledWith(
-      'disabledPlugins',
-      ['codegraphy.python'],
+      'plugins',
+      plugins,
     );
     expect(configuration.update).not.toHaveBeenCalled();
   });

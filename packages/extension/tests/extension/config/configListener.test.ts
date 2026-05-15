@@ -46,14 +46,14 @@ describe('configListener', () => {
     expect(provider.refreshPhysicsSettings).toHaveBeenCalledOnce();
   });
 
-  it('calls refreshToggleSettings for disabledPlugins changes', () => {
+  it('calls refreshToggleSettings for plugin setting changes', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.disabledPlugins' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.plugins' });
 
     expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
   });
@@ -97,16 +97,17 @@ describe('configListener', () => {
     expect(provider.refresh).not.toHaveBeenCalled();
   });
 
-  it('triggers a full refresh for plugin order changes', () => {
+  it('refreshes toggle settings for workspace plugin changes', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.pluginOrder' || key === 'codegraphy' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.plugins' || key === 'codegraphy' });
 
-    expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
   });
 
   it('skips re-analysis for legend configuration changes', () => {

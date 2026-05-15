@@ -91,12 +91,11 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
   }
 
   _config = {
-    getAll: vi.fn(() => ({ pluginOrder: ['plugin.a', 'plugin.b'] })),
+    getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true })),
   } as unknown as Configuration;
 
   _registry = {
     list: vi.fn(() => [{ plugin: { id: 'plugin.a' } }]),
-    setPluginOrder: vi.fn(),
   } as unknown as PluginRegistry;
 
   _discovery = {
@@ -104,10 +103,6 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
   } as unknown as FileDiscovery;
 
   _cache = { files: { 'src/a.ts': { cached: true } } } as unknown as IWorkspaceAnalysisCache;
-
-  public syncPluginOrder(): void {
-    this._syncPluginOrder();
-  }
 
   public preAnalyzePlugins(
     files: Array<{ absolutePath: string; relativePath: string }>,
@@ -227,17 +222,6 @@ describe('extension/pipeline/service/internalBase', () => {
       },
     ]);
     vi.mocked(persistWorkspacePipelineIndexMetadata).mockResolvedValue(undefined);
-  });
-
-  it('syncs plugin order from the current configuration', () => {
-    const source = new TestInternalBase();
-
-    source.syncPluginOrder();
-
-    expect(source._registry.setPluginOrder).toHaveBeenCalledWith([
-      'plugin.a',
-      'plugin.b',
-    ]);
   });
 
   it('delegates pre-analysis through the shared helper with registry and discovery callbacks', async () => {

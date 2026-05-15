@@ -12,7 +12,6 @@ function createState(
   overrides: Partial<GraphViewSettingsMessageState> = {},
 ): GraphViewSettingsMessageState {
   return {
-    disabledPlugins: new Set<string>(),
     filterPatterns: [],
     ...overrides,
   };

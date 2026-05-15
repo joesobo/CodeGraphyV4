@@ -15,7 +15,6 @@ function createSource(
 ): GraphViewProviderSettingsStateMethodsSource {
   const get = vi.fn((key: string) => {
     if (key === 'codegraphy.legend') return undefined;
-    if (key === 'codegraphy.disabledPlugins') return ['plugin.saved'];
     return undefined;
   }) as WorkspaceStateGetMock;
   const workspaceState = {
@@ -76,10 +75,6 @@ function createDependencies(
         filterPatterns: [],
       }) as never),
       applyLoadedGroupState: vi.fn(),
-      loadDisabledState: vi.fn(() => ({
-        disabledPlugins: new Set<string>(),
-        changed: false,
-      })),
       sendProviderSettings: vi.fn(),
       sendProviderAllSettings: vi.fn(),
       captureSettingsSnapshot: vi.fn(() => ({ snapshot: true }) as never),
@@ -168,7 +163,7 @@ describe('graphView/provider/settingsState', () => {
     expect(workspaceState.update).not.toHaveBeenCalled();
   });
 
-  it('loads disabled plugins from the current config value before inspection fallbacks', () => {
+  it('clears legacy in-memory disabled plugin state without reading config', () => {
     const get = vi.fn((_key: string) => ['plugin.saved']) as WorkspaceStateGetMock;
     const workspaceState = {
       get,
@@ -177,33 +172,17 @@ describe('graphView/provider/settingsState', () => {
     const source = createSource({
       _context: { workspaceState },
     });
-    const initialDisabledPlugins = source._disabledPlugins;
-    const disabledPluginsInspect = { workspaceValue: ['plugin.config'] };
-    const { configuration, dependencies } = createDependencies({
-      loadDisabledState: vi.fn(() => ({
-        disabledPlugins: new Set<string>(['plugin.saved']),
-        changed: true,
-      })),
-    });
-
-    configuration.get.mockImplementation((key: string, fallback: string[]) =>
-      key === 'disabledPlugins' ? ['plugin.current'] : fallback,
-    );
-    configuration.inspect.mockImplementation((_key: string) => disabledPluginsInspect);
+    const { configuration, dependencies } = createDependencies();
 
     const methods = createGraphViewProviderSettingsStateMethods(source, dependencies);
 
     expect(methods._loadDisabledRulesAndPlugins()).toBe(true);
 
-    expect(dependencies.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(configuration.get).toHaveBeenNthCalledWith(1, 'disabledPlugins', []);
-    expect(configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledPlugins');
-    expect(dependencies.loadDisabledState).toHaveBeenCalledWith(initialDisabledPlugins, {
-      configuredDisabledPlugins: ['plugin.current'],
-      disabledPluginsInspect,
-    });
+    expect(dependencies.getConfiguration).not.toHaveBeenCalledWith('codegraphy');
+    expect(configuration.get).not.toHaveBeenCalled();
+    expect(configuration.inspect).not.toHaveBeenCalled();
     expect(workspaceState.get).not.toHaveBeenCalled();
-    expect([...source._disabledPlugins]).toEqual(['plugin.saved']);
+    expect([...source._disabledPlugins]).toEqual([]);
   });
 
   it('sends settings through the codegraphy configuration and provider message bridge', () => {

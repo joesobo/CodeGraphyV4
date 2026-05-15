@@ -32,10 +32,6 @@ const mocks = vi.hoisted(() => {
       filterPatterns: [],
     })),
     applyLoadedGroupState: vi.fn(),
-    loadDisabledState: vi.fn(() => ({
-      disabledPlugins: new Set<string>(),
-      changed: false,
-    })),
     sendProviderSettings: vi.fn(),
     sendProviderAllSettings: vi.fn(),
     captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
@@ -61,10 +57,6 @@ vi.mock('../../../../src/extension/graphView/groups/state', () => ({
 
 vi.mock('../../../../src/extension/graphView/groups/sync', () => ({
   applyLoadedGraphViewGroupState: mocks.applyLoadedGroupState,
-}));
-
-vi.mock('../../../../src/extension/graphView/settings/disabled', () => ({
-  loadGraphViewDisabledState: mocks.loadDisabledState,
 }));
 
 vi.mock('../../../../src/extension/graphView/settings/snapshot', () => ({
@@ -128,7 +120,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
     mocks.getConfigTarget.mockClear();
     mocks.loadGroupState.mockReset();
     mocks.applyLoadedGroupState.mockReset();
-    mocks.loadDisabledState.mockReset();
     mocks.sendProviderSettings.mockReset();
     mocks.sendProviderAllSettings.mockReset();
     mocks.captureSettingsSnapshot.mockReset();
@@ -136,10 +127,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
     mocks.loadGroupState.mockReturnValue({
       userGroups: [],
       filterPatterns: [],
-    });
-    mocks.loadDisabledState.mockReturnValue({
-      disabledPlugins: new Set<string>(),
-      changed: false,
     });
     mocks.captureSettingsSnapshot.mockReturnValue({ snapshot: true });
   });
@@ -152,7 +139,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(typeof dependencies.getConfigTarget).toBe('function');
     expect(dependencies.loadGroupState).toBe(mocks.loadGroupState);
     expect(dependencies.applyLoadedGroupState).toBe(mocks.applyLoadedGroupState);
-    expect(dependencies.loadDisabledState).toBe(mocks.loadDisabledState);
     expect(dependencies.sendProviderSettings).toBe(mocks.sendProviderSettings);
     expect(dependencies.sendProviderAllSettings).toBe(mocks.sendProviderAllSettings);
     expect(dependencies.captureSettingsSnapshot).toBe(mocks.captureSettingsSnapshot);
@@ -195,33 +181,17 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(source._filterPatterns).toEqual(['updated/**']);
   });
 
-  it('loads disabled state through the current config value before inspection fallbacks', () => {
+  it('clears legacy in-memory disabled plugin state without reading config', () => {
     const source = createSource();
-    const disabledPluginsInspect = { workspaceValue: ['plugin.config'] };
-    mocks.configuration.get.mockImplementation((key: string, fallback: unknown) =>
-      key === 'disabledPlugins' ? ['plugin.current'] : fallback,
-    );
-    mocks.configuration.inspect.mockImplementation(((_key: string) => disabledPluginsInspect) as never);
-    mocks.loadDisabledState.mockReturnValue({
-      disabledPlugins: new Set<string>(['plugin.config']),
-      changed: true,
-    });
 
     const methods = createGraphViewProviderSettingsStateMethods(source);
 
     expect(methods._loadDisabledRulesAndPlugins()).toBe(true);
 
-    expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(mocks.configuration.get).toHaveBeenNthCalledWith(1, 'disabledPlugins', []);
-    expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledPlugins');
-    expect(mocks.loadDisabledState).toHaveBeenCalledWith(
-      new Set<string>(['plugin.current']),
-      {
-        configuredDisabledPlugins: ['plugin.current'],
-        disabledPluginsInspect,
-      },
-    );
-    expect([...source._disabledPlugins]).toEqual(['plugin.config']);
+    expect(mocks.getConfiguration).not.toHaveBeenCalledWith('codegraphy');
+    expect(mocks.configuration.get).not.toHaveBeenCalled();
+    expect(mocks.configuration.inspect).not.toHaveBeenCalled();
+    expect([...source._disabledPlugins]).toEqual([]);
   });
 
   it('sends settings through the default provider message bridge', () => {

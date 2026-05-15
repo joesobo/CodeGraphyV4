@@ -53,14 +53,14 @@ describe('configListener (extra mutant coverage)', () => {
     expect(provider.emitEvent).not.toHaveBeenCalled();
   });
 
-  it('calls refreshToggleSettings for disabledPlugins changes', () => {
+  it('calls refreshToggleSettings for plugin setting changes', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.disabledPlugins' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.plugins' });
 
     expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
   });

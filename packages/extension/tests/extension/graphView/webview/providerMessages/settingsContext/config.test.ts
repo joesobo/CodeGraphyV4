@@ -25,7 +25,6 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'directionMode',
       'disabledCustomFilterPatterns',
       'disabledPluginFilterPatterns',
-      'disabledPlugins',
       'edgeVisibility',
       'filterPatterns',
       'graphLayout',
@@ -34,7 +33,7 @@ describe('graphView/webview/providerMessages/settingsContext/persistence', () =>
       'nodeVisibility',
       'particleSize',
       'particleSpeed',
-      'pluginOrder',
+      'plugins',
       'showLabels',
     ]);
   });

@@ -33,7 +33,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
           maxFiles: number;
           respectGitignore: boolean;
           showOrphans: boolean;
-          pluginOrder: string[];
         };
       };
       _discovery: {
@@ -41,7 +40,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       };
       _registry: {
         notifyFilesChanged: ReturnType<typeof vi.fn>;
-        setPluginOrder: ReturnType<typeof vi.fn>;
       };
       _analyzeFiles: ReturnType<typeof vi.fn>;
       _buildGraphDataFromAnalysis: ReturnType<typeof vi.fn>;
@@ -60,7 +58,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       maxFiles: 25,
       respectGitignore: true,
       showOrphans: true,
-      pluginOrder: [],
     });
     analyzerPrivate._discovery.discover = vi.fn(async () => ({
       durationMs: 1,
@@ -127,7 +124,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
           maxFiles: number;
           respectGitignore: boolean;
           showOrphans: boolean;
-          pluginOrder: string[];
         };
       };
       _discovery: {
@@ -135,7 +131,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       };
       _registry: {
         notifyFilesChanged: ReturnType<typeof vi.fn>;
-        setPluginOrder: ReturnType<typeof vi.fn>;
       };
       _analyzeFiles: ReturnType<typeof vi.fn>;
       _buildGraphDataFromAnalysis: ReturnType<typeof vi.fn>;
@@ -150,7 +145,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       maxFiles: 25,
       respectGitignore: true,
       showOrphans: true,
-      pluginOrder: [],
     });
     analyzerPrivate._discovery.discover = vi.fn(async () => ({
       durationMs: 1,
@@ -208,7 +202,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
           maxFiles: number;
           respectGitignore: boolean;
           showOrphans: boolean;
-          pluginOrder: string[];
         };
       };
       _discovery: {
@@ -216,7 +209,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       };
       _registry: {
         notifyFilesChanged: ReturnType<typeof vi.fn>;
-        setPluginOrder: ReturnType<typeof vi.fn>;
       };
       _readAnalysisFiles?: ReturnType<typeof vi.fn>;
     };
@@ -232,7 +224,6 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       maxFiles: 25,
       respectGitignore: true,
       showOrphans: true,
-      pluginOrder: [],
     });
     analyzerPrivate._discovery.discover = vi.fn(async () => ({
       durationMs: 1,

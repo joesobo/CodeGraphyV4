@@ -44,8 +44,6 @@ export function captureGraphViewSettingsSnapshot(
     edgeVisibility: readConfigRecord<boolean>(config, 'edgeVisibility'),
     legendVisibility: readConfigRecord<boolean>(config, 'legendVisibility'),
     legendOrder: readConfigList(config, 'legendOrder'),
-    pluginOrder: readConfigList(config, 'pluginOrder'),
-    disabledPlugins: readConfigList(config, 'disabledPlugins'),
     particleSpeed: config.get('particleSpeed', 0.005),
     particleSize: config.get('particleSize', 4),
     showLabels: config.get('showLabels', true),

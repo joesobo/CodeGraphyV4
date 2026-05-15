@@ -40,8 +40,6 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     edgeVisibility: { imports: true, nests: false },
     legendVisibility: {},
     legendOrder: [],
-    pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
-    disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,

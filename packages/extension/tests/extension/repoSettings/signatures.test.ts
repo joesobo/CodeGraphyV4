@@ -43,18 +43,6 @@ describe('extension/repoSettings/signatures', () => {
     );
   });
 
-  it('does not invalidate the stored index when only disabled plugins change', () => {
-    const enabledState = createDefaultCodeGraphyRepoSettings();
-    const disabledState = createDefaultCodeGraphyRepoSettings();
-
-    enabledState.disabledPlugins = [];
-    disabledState.disabledPlugins = ['codegraphy.python'];
-
-    expect(createCodeGraphySettingsSignature(enabledState)).toBe(
-      createCodeGraphySettingsSignature(disabledState),
-    );
-  });
-
   it('changes the settings signature when tracked scalar and list settings change', () => {
     const base = createDefaultCodeGraphyRepoSettings();
     const changed = createDefaultCodeGraphyRepoSettings();
@@ -64,7 +52,7 @@ describe('extension/repoSettings/signatures', () => {
     changed.filterPatterns = ['**/*.png'];
     changed.disabledCustomFilterPatterns = ['**/*.png'];
     changed.disabledPluginFilterPatterns = ['**/*.generated.ts'];
-    changed.pluginOrder = ['codegraphy.typescript'];
+    changed.plugins = [{ package: '@codegraphy/plugin-typescript' }];
 
     expect(createCodeGraphySettingsSignature(changed)).not.toBe(
       createCodeGraphySettingsSignature(base),
@@ -81,7 +69,6 @@ describe('extension/repoSettings/signatures', () => {
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
       disabledPluginFilterPatterns: [],
-      pluginOrder: [],
       plugins: [],
       nodeVisibility: [],
       edgeVisibility: [],
@@ -98,7 +85,7 @@ describe('extension/repoSettings/signatures', () => {
       depthLimit: 4,
       include: ['src/**/*.ts'],
       filterPatterns: ['**/*.png'],
-      pluginOrder: ['codegraphy.typescript'],
+      plugins: [{ package: '@codegraphy/plugin-typescript', options: { project: 'tsconfig.json' } }],
       nodeVisibility: { package: false, file: true },
       edgeVisibility: { import: false, call: true },
     })).toBe(hashStableSettings({
@@ -110,8 +97,11 @@ describe('extension/repoSettings/signatures', () => {
       filterPatterns: ['**/*.png'],
       disabledCustomFilterPatterns: ['custom/**'],
       disabledPluginFilterPatterns: ['plugin/**'],
-      pluginOrder: ['codegraphy.typescript'],
-      plugins: [],
+      plugins: [{
+        package: '@codegraphy/plugin-typescript',
+        disabledFilterPatterns: [],
+        options: [['project', 'tsconfig.json']],
+      }],
       nodeVisibility: [
         ['file', true],
         ['package', false],

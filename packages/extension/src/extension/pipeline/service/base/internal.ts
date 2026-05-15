@@ -111,10 +111,6 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     return readWorkspacePipelineFileStat(filePath, vscode.workspace.fs);
   }
 
-  protected _syncPluginOrder(): void {
-    this._registry.setPluginOrder(this._config.getAll().pluginOrder);
-  }
-
   protected _getPluginSignature(): string | null {
     return createWorkspacePipelinePluginSignature(this._registry.list());
   }

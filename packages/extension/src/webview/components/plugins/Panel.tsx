@@ -24,6 +24,10 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
   if (!isOpen) return null;
 
   const handleTogglePlugin = (pluginId: string, packageName: string | undefined, enabled: boolean) => {
+    if (!packageName) {
+      return;
+    }
+
     graphStore.setState((state) => ({
       pluginStatuses: state.pluginStatuses.map((plugin) =>
         plugin.id === pluginId ? { ...plugin, enabled } : plugin
@@ -33,7 +37,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
       type: 'TOGGLE_PLUGIN',
       payload: {
         pluginId,
-        ...(packageName ? { packageName } : {}),
+        packageName,
         enabled,
       },
     });
@@ -47,9 +51,12 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
     }
 
     const reordered = reorderPluginStatuses(plugins, dragIndex, targetIndex);
+    const packageNames = reordered
+      .filter(plugin => plugin.enabled && plugin.packageName)
+      .map(plugin => plugin.packageName as string);
     postMessage({
-      type: 'UPDATE_PLUGIN_ORDER',
-      payload: { pluginIds: reordered.map(plugin => plugin.id) },
+      type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
+      payload: { packageNames },
     });
     setDragIndex(null);
     setDragOverIndex(null);
@@ -86,7 +93,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                 return (
                   <div
                     key={plugin.id}
-                    draggable
+                    draggable={Boolean(plugin.packageName && plugin.enabled)}
                     onDragStart={() => setDragIndex(index)}
                     onDragOver={(event) => {
                       event.preventDefault();
@@ -107,6 +114,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                       </div>
                       <Switch
                         checked={plugin.enabled}
+                        disabled={!plugin.packageName}
                         onCheckedChange={(val) => handleTogglePlugin(plugin.id, plugin.packageName, val)}
                       />
                     </div>

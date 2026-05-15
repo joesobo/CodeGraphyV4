@@ -10,7 +10,6 @@ function createState(
   overrides: Partial<GraphViewSettingsMessageState> = {},
 ): GraphViewSettingsMessageState {
   return {
-    disabledPlugins: new Set<string>(),
     filterPatterns: [],
     ...overrides,
   };
@@ -255,23 +254,26 @@ describe('graph view settings router', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('re-enables plugins and rebuilds the plugin-owned edges from cache', async () => {
-    const state = createState({
-      disabledPlugins: new Set(['codegraphy.python']),
-    });
+  it('enables package-backed plugins and rebuilds the plugin-owned edges from cache', async () => {
+    const state = createState();
     const handlers = createHandlers();
 
     await applySettingsMessage(
       {
         type: 'TOGGLE_PLUGIN',
-        payload: { pluginId: 'codegraphy.python', enabled: true },
+        payload: {
+          pluginId: 'codegraphy.python',
+          packageName: '@codegraphy/plugin-python',
+          enabled: true,
+        },
       },
       state,
       handlers,
     );
 
-    expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+      { package: '@codegraphy/plugin-python' },
+    ]);
     expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
