@@ -1,11 +1,16 @@
 import { GDScriptPathResolver } from '../PathResolver';
 import {
-  detectClassNameDeclaration,
-  parseGDScriptDocument,
+  extractGDScriptClassNameDeclarations,
 } from '../parser';
 import { parseGodotTextResourceDocument } from '../textResource/parser';
+import { readGodotResourceUid } from '../textResource/resourceAst';
 
 export function extractResourceUid(content: string): string | null {
+  const parsedUid = readGodotResourceUid(content);
+  if (parsedUid) {
+    return parsedUid;
+  }
+
   for (const tag of parseGodotTextResourceDocument(content).tags) {
     if ((tag.name === 'gd_scene' || tag.name === 'gd_resource') && tag.fields.uid) {
       return tag.fields.uid;
@@ -18,11 +23,8 @@ export function extractResourceUid(content: string): string | null {
 export function extractClassNames(content: string): string[] {
   const classNames = new Set<string>();
 
-  for (const statement of parseGDScriptDocument(content).statements) {
-    const ref = detectClassNameDeclaration(statement.code, statement.line);
-    if (ref) {
-      classNames.add(ref.resPath);
-    }
+  for (const ref of extractGDScriptClassNameDeclarations(content)) {
+    classNames.add(ref.resPath);
   }
 
   return [...classNames];

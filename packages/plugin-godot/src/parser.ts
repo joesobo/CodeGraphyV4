@@ -8,6 +8,7 @@ export type {
 
 export {
   detectClassNameDeclaration,
+  extractGDScriptClassNameDeclarations,
 } from './gdscript/className';
 
 export {

@@ -8,6 +8,26 @@ import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
 import { parseGodotTextResourceDocument } from '../textResource/parser';
+import { parseGodotResourceAst } from '../textResource/resourceAst';
+
+interface ExtResourceReference {
+  path: string;
+  uid?: string;
+}
+
+function readExtResourceReferences(content: string): ExtResourceReference[] {
+  const ast = parseGodotResourceAst(content);
+  if (ast) {
+    return ast.extResources;
+  }
+
+  return parseGodotTextResourceDocument(content).tags
+    .filter((tag) => tag.name === 'ext_resource' && tag.fields.path)
+    .map((tag) => ({
+      path: tag.fields.path,
+      ...(tag.fields.uid ? { uid: tag.fields.uid } : {}),
+    }));
+}
 
 export function detect(
   content: string,
@@ -17,15 +37,11 @@ export function detect(
   const relations: IAnalysisRelation[] = [];
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
-  for (const tag of parseGodotTextResourceDocument(content).tags) {
-    if (tag.name !== 'ext_resource' || !tag.fields.path) {
-      continue;
-    }
-
+  for (const resource of readExtResourceReferences(content)) {
     const resolved = ctx.resolver.resolveTextResourcePath(
-      tag.fields.path,
+      resource.path,
       ctx.relativeFilePath,
-      tag.fields.uid,
+      resource.uid,
     );
     const resolvedPath = resolved
       ? materializeResolvedPath({
@@ -36,7 +52,7 @@ export function detect(
       : null;
     relations.push({
       kind: 'load',
-      specifier: tag.fields.path,
+      specifier: resource.path,
       resolvedPath,
       type: 'static',
       sourceId: 'ext-resource',

@@ -24,8 +24,9 @@ codegraphy index
   - `class_name` declarations as Symbol Nodes
   - function, constant, variable, and enum declarations as Symbol Nodes
 - Structured parsing:
-  - GDScript statements are parsed before relationship and Symbol Node extraction, so inline comments are ignored without breaking quoted `#` characters.
-  - Godot text-resource tags and `project.godot` sections are parsed before dependency extraction, including quoted and bare field values.
+  - `@gdquest/lezer-gdscript` parses GDScript before `preload()`, `load()`, `ResourceLoader.load()`, and `class_name` extraction, with text fallbacks for parser gaps.
+  - `@fernforestgames/godot-resource-parser` parses Godot 4 `.tscn` and `.tres` files before external-resource dependency extraction, with text fallbacks for unsupported syntax.
+  - `project.godot` sections use the plugin's lightweight text parser for resource-bearing settings.
 - `project.godot`:
   - `application/run/main_scene`
   - `[autoload]`

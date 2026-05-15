@@ -1,7 +1,6 @@
 import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
 import {
-  detectClassNameDeclaration,
-  parseGDScriptDocument,
+  extractGDScriptClassNameDeclarations,
 } from '../../parser';
 import manifest from '../../../codegraphy.json';
 
@@ -12,12 +11,7 @@ export function extractClassNameSymbols(
 ): IAnalysisSymbol[] {
   const symbols: IAnalysisSymbol[] = [];
 
-  for (const statement of parseGDScriptDocument(content).statements) {
-    const ref = detectClassNameDeclaration(statement.code, statement.line);
-    if (!ref) {
-      continue;
-    }
-
+  for (const ref of extractGDScriptClassNameDeclarations(content)) {
     const signature = `class_name ${ref.resPath}`;
     symbols.push({
       id: `${relativeFilePath}#${ref.resPath}:godot-class-name`,

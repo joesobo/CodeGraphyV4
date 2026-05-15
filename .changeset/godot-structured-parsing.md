@@ -2,4 +2,4 @@
 "@codegraphy/plugin-godot": patch
 ---
 
-Improve Godot analysis with structured GDScript and text-resource parsing while preserving existing relationship output.
+Improve Godot analysis with plugin-owned GDScript and Godot resource parser packages while preserving existing relationship output.

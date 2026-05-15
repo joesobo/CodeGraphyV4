@@ -15,7 +15,7 @@ import {
   registerGodotFileMetadata,
 } from './plugin/metadata';
 import { detectRelations } from './plugin/relations';
-import { extractSymbols } from './plugin/symbol';
+import { extractSymbols } from './plugin/symbol/extract';
 import type {
   GodotWorkspaceFile,
   IGDScriptAnalyzeFilePlugin,
