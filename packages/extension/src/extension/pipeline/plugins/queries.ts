@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { IDiscoveredFile } from '@codegraphy/core';
+import type { CodeGraphyInstalledPluginRecord, IDiscoveredFile } from '@codegraphy/core';
 import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
 import type { IPluginStatus } from '../../../shared/plugins/status';
@@ -14,7 +14,9 @@ export interface WorkspacePipelinePluginStatusDependencies {
   disabledPlugins: ReadonlySet<string>;
   discoveredFiles: IDiscoveredFile[];
   fileConnections: Map<string, IProjectedConnection[]>;
+  installedPlugins?: readonly CodeGraphyInstalledPluginRecord[];
   registry: WorkspacePipelinePluginRegistry;
+  workspaceEnabledPackageNames?: ReadonlySet<string>;
 }
 
 export function getWorkspacePipelinePluginStatuses(
@@ -24,7 +26,9 @@ export function getWorkspacePipelinePluginStatuses(
     disabledPlugins: dependencies.disabledPlugins,
     discoveredFiles: dependencies.discoveredFiles,
     fileConnections: dependencies.fileConnections,
+    installedPlugins: dependencies.installedPlugins,
     pluginInfos: dependencies.registry.list(),
+    workspaceEnabledPackageNames: dependencies.workspaceEnabledPackageNames,
   });
 }
 

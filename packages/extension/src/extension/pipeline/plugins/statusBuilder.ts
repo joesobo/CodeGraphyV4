@@ -4,7 +4,7 @@
  */
 
 import * as path from 'path';
-import type { IDiscoveredFile } from '@codegraphy/core';
+import type { CodeGraphyInstalledPluginRecord, IDiscoveredFile } from '@codegraphy/core';
 import type { IProjectedConnection, IPluginInfo } from '../../../core/plugins/types/contracts';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 
@@ -12,7 +12,9 @@ export interface IWorkspacePluginStatusOptions {
   disabledPlugins: ReadonlySet<string>;
   discoveredFiles: Pick<IDiscoveredFile, 'relativePath'>[];
   fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
+  installedPlugins?: readonly CodeGraphyInstalledPluginRecord[];
   pluginInfos: IPluginInfo[];
+  workspaceEnabledPackageNames?: ReadonlySet<string>;
 }
 
 function supportsExtension(pluginExtensions: readonly string[], extension: string): boolean {
@@ -69,16 +71,22 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
     disabledPlugins,
     discoveredFiles,
     fileConnections,
+    installedPlugins = [],
     pluginInfos,
+    workspaceEnabledPackageNames,
   } = options;
 
   const statuses: IPluginStatus[] = [];
+  const registeredPackageNames = new Set<string>();
 
   for (const pluginInfo of pluginInfos) {
     const plugin = pluginInfo.plugin;
     const matchingFiles = getPluginMatchingFiles(pluginInfo, discoveredFiles);
     const totalConnections = countPluginConnections(pluginInfo, fileConnections);
     const status = getPluginWorkspaceStatus(matchingFiles.length, totalConnections);
+    if (pluginInfo.sourcePackage) {
+      registeredPackageNames.add(pluginInfo.sourcePackage);
+    }
 
     statuses.push({
       id: plugin.id,
@@ -87,9 +95,29 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
       version: plugin.version,
       supportedExtensions: plugin.supportedExtensions,
       status,
-      enabled: !disabledPlugins.has(plugin.id),
+      enabled: pluginInfo.sourcePackage && workspaceEnabledPackageNames
+        ? workspaceEnabledPackageNames.has(pluginInfo.sourcePackage)
+        : !disabledPlugins.has(plugin.id),
       connectionCount: totalConnections,
     });
   }
+
+  for (const plugin of installedPlugins) {
+    if (registeredPackageNames.has(plugin.package)) {
+      continue;
+    }
+
+    statuses.push({
+      id: plugin.package,
+      packageName: plugin.package,
+      name: plugin.package,
+      version: plugin.version,
+      supportedExtensions: [],
+      status: 'installed',
+      enabled: workspaceEnabledPackageNames?.has(plugin.package) ?? false,
+      connectionCount: 0,
+    });
+  }
+
   return statuses;
 }

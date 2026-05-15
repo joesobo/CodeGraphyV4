@@ -17,6 +17,7 @@ import {
   getWorkspacePipelinePluginName,
   getWorkspacePipelineStatusList,
 } from '../../../../src/extension/pipeline/service/runtime/plugins';
+import { readWorkspacePluginStatusContext } from '../../../../src/extension/pipeline/plugins/statusContext';
 
 vi.mock('../../../../src/extension/pipeline/service/cache/storage', () => ({
   clearWorkspacePipelineStoredCache: vi.fn(),
@@ -30,6 +31,10 @@ vi.mock('../../../../src/extension/pipeline/service/cache/invalidation', () => (
 vi.mock('../../../../src/extension/pipeline/service/runtime/plugins', () => ({
   getWorkspacePipelinePluginName: vi.fn(),
   getWorkspacePipelineStatusList: vi.fn(),
+}));
+
+vi.mock('../../../../src/extension/pipeline/plugins/statusContext', () => ({
+  readWorkspacePluginStatusContext: vi.fn(),
 }));
 
 vi.mock('vscode', () => ({
@@ -115,6 +120,18 @@ describe('pipeline/service/lifecycleFacade', () => {
     vi.mocked(clearWorkspacePipelineStoredCache).mockReturnValue({ files: { 'src/a.ts': { cached: true } } } as never);
     vi.mocked(getWorkspacePipelineStatusList).mockReturnValue([{ id: 'plugin.a' }] as never);
     vi.mocked(getWorkspacePipelinePluginName).mockReturnValue('TypeScript');
+    vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
+      installedPlugins: [
+        {
+          package: '@codegraphy/plugin-python',
+          version: '2.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+        },
+      ],
+      workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+    });
     vi.mocked(invalidateWorkspacePipelineFiles).mockReturnValue(['src/a.ts']);
     vi.mocked(resolveWorkspacePipelinePluginFilePaths).mockReturnValue(['/workspace/src/a.ts']);
   });
@@ -125,11 +142,24 @@ describe('pipeline/service/lifecycleFacade', () => {
 
     expect(facade.getPluginStatuses(disabledPlugins)).toEqual([{ id: 'plugin.a' }]);
     expect(facade.syncPluginOrder).toHaveBeenCalledOnce();
+    expect(readWorkspacePluginStatusContext).toHaveBeenCalledWith('/workspace');
     expect(getWorkspacePipelineStatusList).toHaveBeenCalledWith(
       facade._registry,
       disabledPlugins,
       facade._lastDiscoveredFiles,
       facade._lastFileConnections,
+      {
+        installedPlugins: [
+          {
+            package: '@codegraphy/plugin-python',
+            version: '2.0.0',
+            apiVersion: '^2.0.0',
+            disclosures: [],
+            packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+          },
+        ],
+        workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+      },
     );
   });
 
