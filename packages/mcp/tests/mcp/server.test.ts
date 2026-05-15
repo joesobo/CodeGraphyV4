@@ -51,6 +51,11 @@ describe('mcp/server', () => {
     expect(names).toEqual(expect.arrayContaining([
       'codegraphy_status',
       'codegraphy_index',
+      'codegraphy_plugins_refresh',
+      'codegraphy_plugins_add',
+      'codegraphy_plugins_list',
+      'codegraphy_plugins_enable',
+      'codegraphy_plugins_disable',
       'codegraphy_list_nodes',
       'codegraphy_list_edges',
       'codegraphy_list_relationships',
@@ -67,6 +72,60 @@ describe('mcp/server', () => {
     expect(tools.tools.find((tool) => tool.name === 'codegraphy_index')?.description).toContain(
       'CodeGraphy Workspace',
     );
+  });
+
+  it('exposes plugin tools with the same path-first command shape as the CLI', async () => {
+    const calls: unknown[] = [];
+    const client = await connectServer({
+      ...createDependencies(),
+      runPluginsCommand: async (command) => {
+        calls.push(command);
+        return {
+          exitCode: 0,
+          output: `ran ${command.action}`,
+        };
+      },
+    });
+
+    await client.callTool({ name: 'codegraphy_plugins_refresh', arguments: {} });
+    await client.callTool({
+      name: 'codegraphy_plugins_add',
+      arguments: { packageName: '@codegraphy/plugin-python' },
+    });
+    await client.callTool({
+      name: 'codegraphy_plugins_list',
+      arguments: { path: '/workspace/project' },
+    });
+    const enableResult = await client.callTool({
+      name: 'codegraphy_plugins_enable',
+      arguments: { packageName: '@codegraphy/plugin-python', path: '/workspace/project' },
+    });
+    await client.callTool({
+      name: 'codegraphy_plugins_disable',
+      arguments: { packageName: '@codegraphy/plugin-python', path: '/workspace/project' },
+    });
+
+    expect(enableResult.structuredContent).toEqual({
+      exitCode: 0,
+      output: 'ran enable',
+    });
+    expect(calls).toEqual([
+      { name: 'plugins', action: 'refresh' },
+      { name: 'plugins', action: 'add', packageName: '@codegraphy/plugin-python' },
+      { name: 'plugins', action: 'list', workspacePath: '/workspace/project' },
+      {
+        name: 'plugins',
+        action: 'enable',
+        packageName: '@codegraphy/plugin-python',
+        workspacePath: '/workspace/project',
+      },
+      {
+        name: 'plugins',
+        action: 'disable',
+        packageName: '@codegraphy/plugin-python',
+        workspacePath: '/workspace/project',
+      },
+    ]);
   });
 
   it('indexes and queries the current workspace without an open call', async () => {

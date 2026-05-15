@@ -135,6 +135,11 @@ args = ["mcp"]
 |---|---|---|
 | `codegraphy_status` | Reports CodeGraphy Workspace status for the MCP server working directory or an explicit `path` | decide whether to index before querying |
 | `codegraphy_index` | Runs Indexing for the MCP server working directory or an explicit `path` without focusing VS Code | initialize or overwrite the Graph Cache |
+| `codegraphy_plugins_refresh` | Scans global npm roots for installed CodeGraphy plugin packages | update the user-level installed-plugin cache |
+| `codegraphy_plugins_add` | Adds one explicitly named globally installed plugin package | register a plugin that refresh does not auto-discover |
+| `codegraphy_plugins_list` | Shows installed plugins and workspace enablement | inspect available and enabled plugins |
+| `codegraphy_plugins_enable` | Enables a cached plugin package for the current or explicit CodeGraphy Workspace | opt a workspace into plugin analysis |
+| `codegraphy_plugins_disable` | Removes a plugin from the workspace-local enabled plugin array | turn off plugin analysis without uninstalling the package |
 | `codegraphy_list_nodes` | Lists graph nodes, defaulting to File Nodes; accepts optional `path` | discover exact node paths |
 | `codegraphy_list_edges` | Lists high-level `from` / `to` connections with grouped Edge Types; accepts optional `path` | see immediate file/folder/package connections |
 | `codegraphy_list_relationships` | Lists detailed relationships grouped by node pair and Edge Type; accepts optional `path` | inspect symbol-backed connection evidence |

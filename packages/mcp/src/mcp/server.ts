@@ -2,6 +2,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as z from 'zod/v4';
 import type { GraphQueryReport } from '../coreExtension/model';
+import { runPluginsCommand } from '../plugins/command';
+import type { CommandExecutionResult } from '../run/command';
+import type { CliCommand, PluginsCommandAction } from '../run/parse';
 import { requestCodeGraphyIndexWorkspace } from '../workspace/indexing';
 import type {
   IndexWorkspaceResult,
@@ -17,6 +20,7 @@ interface CodeGraphyMcpServerDependencies {
   cwd(): string;
   indexWorkspace(input: WorkspacePathInput): Promise<IndexWorkspaceResult>;
   runGraphQuery(input: WorkspaceGraphQueryInput): Promise<WorkspaceGraphQueryResult>;
+  runPluginsCommand?(command: CliCommand): Promise<CommandExecutionResult>;
   statusWorkspace(input: WorkspacePathInput): Promise<WorkspaceStatusResult> | WorkspaceStatusResult;
 }
 
@@ -44,6 +48,10 @@ const scopeSchema = z.object({
 const workspacePathSchema = {
   path: z.string().optional(),
 };
+const packagePluginSchema = {
+  ...workspacePathSchema,
+  packageName: z.string().min(1),
+};
 const listQuerySchema = {
   ...workspacePathSchema,
   scope: scopeSchema,
@@ -63,6 +71,22 @@ function createToolResult<T extends Record<string, unknown>>(result: T) {
     structuredContent: result,
     content: [{ type: 'text' as const, text: renderToolText(result) }],
   };
+}
+
+async function executePluginsCommand(
+  command: CliCommand,
+  dependencies: CodeGraphyMcpServerDependencies,
+): Promise<CommandExecutionResult> {
+  return dependencies.runPluginsCommand
+    ? dependencies.runPluginsCommand(command)
+    : runPluginsCommand(command, { cwd: () => dependencies.cwd() });
+}
+
+function createPluginCommandResult(result: CommandExecutionResult) {
+  return createToolResult({
+    exitCode: result.exitCode,
+    output: result.output,
+  });
 }
 
 function splitWorkspacePath(input: Record<string, unknown>): {
@@ -137,6 +161,60 @@ export function createCodeGraphyMcpServer(
       workspacePath: resolveInputWorkspacePath(path, dependencies),
     })),
   );
+
+  server.registerTool(
+    'codegraphy_plugins_refresh',
+    {
+      description: 'Refresh ~/.codegraphy/plugins.json from globally installed CodeGraphy plugin packages.',
+      inputSchema: z.object({}),
+    },
+    async () => createPluginCommandResult(await executePluginsCommand({
+      name: 'plugins',
+      action: 'refresh',
+    }, dependencies)),
+  );
+
+  server.registerTool(
+    'codegraphy_plugins_add',
+    {
+      description: 'Add an explicitly named globally installed CodeGraphy plugin package to ~/.codegraphy/plugins.json.',
+      inputSchema: z.object({ packageName: packagePluginSchema.packageName }),
+    },
+    async ({ packageName }) => createPluginCommandResult(await executePluginsCommand({
+      name: 'plugins',
+      action: 'add',
+      packageName,
+    }, dependencies)),
+  );
+
+  server.registerTool(
+    'codegraphy_plugins_list',
+    {
+      description: 'List installed plugins and which ones are enabled for the current or explicit CodeGraphy Workspace.',
+      inputSchema: z.object(workspacePathSchema),
+    },
+    async ({ path }) => createPluginCommandResult(await executePluginsCommand({
+      name: 'plugins',
+      action: 'list',
+      workspacePath: path,
+    }, dependencies)),
+  );
+
+  for (const action of ['enable', 'disable'] satisfies PluginsCommandAction[]) {
+    server.registerTool(
+      `codegraphy_plugins_${action}`,
+      {
+        description: `${action === 'enable' ? 'Enable' : 'Disable'} a cached plugin package for the current or explicit CodeGraphy Workspace.`,
+        inputSchema: z.object(packagePluginSchema),
+      },
+      async ({ packageName, path }) => createPluginCommandResult(await executePluginsCommand({
+        name: 'plugins',
+        action,
+        packageName,
+        workspacePath: path,
+      }, dependencies)),
+    );
+  }
 
   registerGraphQueryTool(
     server,

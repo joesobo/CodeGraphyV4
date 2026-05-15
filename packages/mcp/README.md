@@ -49,6 +49,11 @@ Plugin commands use `@codegraphy/core` directly and do not import plugin runtime
 |---|---|
 | `codegraphy_status` | Reports CodeGraphy Workspace status for the MCP server working directory or an explicit `path` |
 | `codegraphy_index` | Runs Indexing for the MCP server working directory or an explicit `path` without focusing VS Code |
+| `codegraphy_plugins_refresh` | Scans global npm roots for installed CodeGraphy plugin packages and updates `~/.codegraphy/plugins.json` |
+| `codegraphy_plugins_add` | Adds one explicitly named globally installed plugin package to `~/.codegraphy/plugins.json` |
+| `codegraphy_plugins_list` | Shows installed plugins and which ones are enabled for the current or explicit CodeGraphy Workspace |
+| `codegraphy_plugins_enable` | Enables a cached plugin package for the current or explicit CodeGraphy Workspace |
+| `codegraphy_plugins_disable` | Removes a plugin package from the workspace-local enabled plugin array |
 | `codegraphy_list_nodes` | Lists graph nodes, defaulting to File Nodes; accepts optional `path` |
 | `codegraphy_list_edges` | Lists high-level `from` / `to` connections with grouped Edge Types; accepts optional `path` |
 | `codegraphy_list_relationships` | Lists detailed relationships grouped by node pair and Edge Type; accepts optional `path` |
