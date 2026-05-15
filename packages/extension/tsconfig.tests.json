@@ -5,6 +5,8 @@
     "noUnusedParameters": false,
     "types": ["vitest/globals", "node"],
     "paths": {
+      "@codegraphy/core": ["../core/src/index.ts"],
+      "@codegraphy/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
       "@/*": ["./src/*"],
       "react-force-graph-2d": ["./tests/types/react-force-graph-2d"],
       "react-force-graph-3d": ["./tests/types/react-force-graph-3d"]

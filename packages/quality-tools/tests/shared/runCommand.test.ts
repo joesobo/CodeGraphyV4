@@ -12,7 +12,7 @@ describe('runCommand', () => {
     expect(vi.mocked(childProcess.execFileSync)).toHaveBeenCalledWith(
       'pnpm',
       ['test'],
-      { cwd: '/repo', stdio: 'inherit' }
+      { cwd: '/repo', env: process.env, stdio: 'inherit' }
     );
   });
 });

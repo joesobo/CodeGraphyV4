@@ -20,6 +20,7 @@
     "baseUrl": ".",
     "paths": {
       "@codegraphy/core": ["../core/src/index.ts"],
+      "@codegraphy/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
       "@/*": ["./src/*"]
     }
   },
