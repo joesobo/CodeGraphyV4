@@ -569,10 +569,10 @@ Potential Godot upgrade paths:
 Recommended Godot showcase plugin:
 
 - keep `@codegraphy/plugin-godot` as the first showcase for Plugin Structured Analysis
-- first move most GDScript relationship sources to parser-backed Plugin Structured Analysis
+- first centralize GDScript relationship sources behind structured plugin-owned helpers
 - keep Plugin Text Analysis fallbacks for anything the structured parser path cannot support yet
-- then move `.tscn`, `.tres`, and `project.godot` relationship sources to parser-backed resource extraction where practical
-- keep relationship outputs identical first, then add deeper Godot-specific relationships once the parser-backed path is stable
+- then move `.tscn`, `.tres`, and `project.godot` relationship sources to structured resource extraction where practical
+- keep relationship outputs identical first, then add package-backed AST/resource parsers once the structured helper path is stable
 - avoid Godot LSP in the first structured rewrite because it changes runtime requirements and forces external-process/local-network UX immediately
 - consider a later optional `@codegraphy/plugin-godot-lsp` or `@codegraphy/plugin-godot-semantic` package if compiler-accurate relationships become worth the extra dependency
 
@@ -1327,7 +1327,7 @@ Goal:
 Changes:
 
 - keep `@codegraphy/plugin-godot` as one package
-- replace most GDScript line scanning with parser-backed extraction
+- centralize most GDScript line scanning behind structured plugin-owned extraction helpers
 - keep Plugin Text Analysis fallbacks where parser support is incomplete
 - move `.tscn`, `.tres`, and `project.godot` parsing toward structured resource parsing where practical
 - preserve existing relationship output first
@@ -1336,18 +1336,19 @@ Changes:
 Done when:
 
 - Godot plugin output matches previous behavior first
-- parser-backed internals reduce plugin line-scanning responsibility
+- structured helper internals reduce scattered plugin line-scanning responsibility
 - no Godot LSP/external-process dependency is required in the first structured rewrite
 
 Implementation progress:
 
-- Added a parser-backed GDScript statement model that strips comments outside quoted strings while preserving line numbers and raw source text for Symbol Node ranges.
+- Added a structured GDScript statement model that strips comments outside quoted strings while preserving line numbers and raw source text for Symbol Node ranges.
 - Centralized GDScript `extends`, `preload(...)`, `load(...)`, class-name, and declaration extraction around the structured statement parser.
 - Added a Godot text-resource parser for `.tscn`, `.tres`, and `project.godot` style files, including quoted and bare tag fields.
 - Routed `ext_resource`, project settings, and resource-UID registration through the text-resource parser so UID-preferred resolution works without ad-hoc header regexes.
 - Split Godot parsing, path resolution, and plugin orchestration into feature modules so the structured analyzer stays under the mutation-site threshold.
 - Kept relationship and Symbol Node output compatible while improving inline-comment handling and bare `uid=` support.
 - Avoided Godot LSP, external processes, local network dependencies, and plugin-to-VS-Code communication.
+- Deferred package-backed Godot AST/resource parsing (`tree-sitter-gdscript`, `tree-sitter-godot-resource`, or similar) to a follow-up after this extraction PR preserves relationship parity.
 
 Validation:
 
