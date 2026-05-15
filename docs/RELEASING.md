@@ -9,7 +9,7 @@ Release-facing metadata is not all in one package:
 - `@codegraphy/core` npm metadata lives in [`packages/core/package.json`](../packages/core/package.json)
 - Language plugin npm metadata lives in each `packages/plugin-*/package.json`
 - Plugin API npm metadata lives in [`packages/plugin-api/package.json`](../packages/plugin-api/package.json)
-- MCP npm metadata lives in [`packages/codegraphy-mcp/package.json`](../packages/codegraphy-mcp/package.json)
+- MCP npm metadata lives in [`packages/mcp/package.json`](../packages/mcp/package.json)
 - The VS Code extension icon source lives at [`assets/icon.svg`](../assets/icon.svg)
 - Each published plugin ships its own badged icon at `packages/plugin-*/assets/icon.svg`
 

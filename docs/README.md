@@ -9,7 +9,7 @@ The rest of the docs are split by purpose:
 - `docs/plans/` - active task plans and working notes
 - `docs/plugin-api/` - plugin contract, lifecycle, and type reference
 - `docs/quality/` - quality-tooling docs and commands
-- `packages/codegraphy-mcp/README.md` - MCP package install, commands, prompts, and saved-view query notes
+- `packages/mcp/README.md` - MCP package install, commands, prompts, and saved-view query notes
 - `skills/codegraphy-mcp/SKILL.md` - reusable agent skill for using CodeGraphy first on repo-structure and impact questions
 - `packages/plugin-*/README.md` and `packages/plugin-api/README.md` - release-facing package readmes for npm plugin packages and the Plugin API
 - `packages/extension/docs/` - current extension-package architecture, messages, lifecycle, and testing notes
@@ -25,7 +25,7 @@ Historical plans, specs, and superseded guides live under `docs/archive/`.
 |---|---|---|
 | `@codegraphy/core` | `packages/core` | [root README](../README.md) and [core package README](../packages/core/README.md) | shared engine package for Indexing, Graph Cache access, and Graph Query execution |
 | CodeGraphy VS Code extension | `packages/extension` | [root README](../README.md), [extension docs](../packages/extension/docs/README.md), and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, VS Code lifecycle integration, commands, webviews, context menus, and editor integration |
-| `@codegraphy/mcp` | `packages/codegraphy-mcp` | [MCP setup](./MCP.md) and [package README](../packages/codegraphy-mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
+| `@codegraphy/mcp` | `packages/mcp` | [MCP setup](./MCP.md) and [package README](../packages/mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
 | `@codegraphy/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
 | language plugins | `packages/plugin-*` | `packages/plugin-*/README.md` | optional headless npm plugins for language-specific graph enrichment on top of the core baseline |
 | quality tools | `packages/quality-tools` | [quality docs](./quality/README.md) and [package README](../packages/quality-tools/README.md) | local architecture, coverage-risk, mutation, and SCRAP checks |
@@ -38,7 +38,7 @@ The monorepo package boundary is the main way to navigate the project:
 
 - `packages/core` owns Indexing, File Discovery, Tree-sitter analysis, plugin analysis, Graph Cache storage, and Graph Query execution.
 - `packages/extension` owns the VS Code host, React webview, editor lifecycle, commands, webviews, and visualization adapters over `@codegraphy/core`.
-- `packages/codegraphy-mcp` owns agent access and forwards path-first Indexing and Graph Query requests to `@codegraphy/core`.
+- `packages/mcp` owns agent access and forwards path-first Indexing and Graph Query requests to `@codegraphy/core`.
 - `packages/plugin-api` owns the public TypeScript contracts for plugins.
 - `packages/plugin-*` packages are optional headless npm language plugins.
 - `packages/quality-tools` owns the checks that keep modules deep, package boundaries visible, and high-risk code covered.
