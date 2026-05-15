@@ -58,7 +58,6 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
   _lastFileConnections = new Map() as never;
   _lastWorkspaceRoot = '';
 
-  _syncPluginOrder = vi.fn();
   _getWorkspaceRoot = vi.fn(() => '/workspace');
   getPluginFilterPatterns = vi.fn(() => ['plugin-filter']);
   _persistCache = vi.fn();
@@ -99,7 +98,6 @@ describe('pipeline/service/refreshFacade', () => {
       edges: [],
     });
 
-    expect(facade._syncPluginOrder).toHaveBeenCalledOnce();
     expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
     expect(refreshWorkspacePipelineChangedFiles).not.toHaveBeenCalled();
   });
@@ -119,7 +117,6 @@ describe('pipeline/service/refreshFacade', () => {
     );
 
     expect(result).toEqual({ nodes: [{ id: 'refresh' }], edges: [] });
-    expect(facade._syncPluginOrder).toHaveBeenCalledOnce();
     expect(createWorkspacePipelineDiscoveryDependencies).toHaveBeenCalledWith(facade._discovery);
     expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
       'discovery-deps',

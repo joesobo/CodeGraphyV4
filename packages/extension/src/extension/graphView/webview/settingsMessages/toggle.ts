@@ -29,18 +29,12 @@ function updateWorkspacePluginSettings(
 
 export async function applySettingsToggleMessage(
   message: WebviewToExtensionMessage,
-  state: GraphViewSettingsMessageState,
+  _state: GraphViewSettingsMessageState,
   handlers: GraphViewSettingsMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
     case 'TOGGLE_PLUGIN':
       if (message.payload.packageName) {
-        const hadLegacyDisabledPlugin = state.disabledPlugins.has(message.payload.pluginId);
-        if (message.payload.enabled) {
-          state.disabledPlugins.delete(message.payload.pluginId);
-        } else {
-          state.disabledPlugins.add(message.payload.pluginId);
-        }
         await handlers.updateConfig(
           'plugins',
           updateWorkspacePluginSettings(
@@ -49,24 +43,14 @@ export async function applySettingsToggleMessage(
             message.payload.enabled,
             message.payload.enabled
               ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)
-              : undefined,
+            : undefined,
           ),
         );
-        if (message.payload.enabled && hadLegacyDisabledPlugin) {
-          await handlers.updateConfig('disabledPlugins', [...state.disabledPlugins]);
-        }
         handlers.smartRebuild(message.payload.pluginId);
         return true;
       }
 
-      if (message.payload.enabled) {
-        state.disabledPlugins.delete(message.payload.pluginId);
-      } else {
-        state.disabledPlugins.add(message.payload.pluginId);
-      }
-      await handlers.updateConfig('disabledPlugins', [...state.disabledPlugins]);
-      handlers.smartRebuild(message.payload.pluginId);
-      return true;
+      return false;
 
     default:
       return false;

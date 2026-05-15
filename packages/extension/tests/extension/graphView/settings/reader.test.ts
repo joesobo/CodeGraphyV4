@@ -2,12 +2,10 @@ import { describe, expect, it } from 'vitest';
 import * as vscode from 'vscode';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
 import {
-  areGraphViewSetsEqual,
   getGraphViewConfigTarget,
   normalizeDirectionColor,
   normalizeFolderNodeColor,
   readGraphViewSettings,
-  resolveGraphViewDisabledState,
 } from '../../../../src/extension/graphView/settings/reader';
 
 describe('graphView/settings/reader', () => {
@@ -27,40 +25,6 @@ describe('graphView/settings/reader', () => {
 
   it('returns global config target when no workspace folders exist', () => {
     expect(getGraphViewConfigTarget(undefined)).toBe(vscode.ConfigurationTarget.Global);
-  });
-
-  it('treats sets with the same members as equal', () => {
-    expect(areGraphViewSetsEqual(new Set(['a', 'b']), new Set(['b', 'a']))).toBe(true);
-  });
-
-  it('treats sets with different sizes as unequal', () => {
-    expect(areGraphViewSetsEqual(new Set(['a']), new Set(['a', 'b']))).toBe(false);
-  });
-
-  it('treats sets with missing members as unequal', () => {
-    expect(areGraphViewSetsEqual(new Set(['a', 'b']), new Set(['a', 'c']))).toBe(false);
-  });
-
-  it('prefers configured disabled state over stored fallback state', () => {
-    const result = resolveGraphViewDisabledState(
-      new Set(['old-plugin']),
-      ['configured-plugin'],
-      ['stored-plugin']
-    );
-
-    expect([...result.disabledPlugins]).toEqual(['configured-plugin']);
-    expect(result.changed).toBe(true);
-  });
-
-  it('falls back to stored disabled state when config values are absent', () => {
-    const result = resolveGraphViewDisabledState(
-      new Set(['stored-plugin']),
-      undefined,
-      ['stored-plugin']
-    );
-
-    expect([...result.disabledPlugins]).toEqual(['stored-plugin']);
-    expect(result.changed).toBe(false);
   });
 
   it('reads graph view settings with normalized defaults', () => {

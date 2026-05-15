@@ -78,28 +78,6 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
-  describe('disabledPlugins', () => {
-    it('returns the configured disabled plugins', () => {
-      mockConfig['disabledPlugins'] = ['codegraphy.python'];
-      expect(new Configuration().disabledPlugins).toEqual(['codegraphy.python']);
-    });
-
-    it('defaults to empty array', () => {
-      expect(new Configuration().disabledPlugins).toEqual([]);
-    });
-  });
-
-  describe('pluginOrder', () => {
-    it('returns the configured plugin order', () => {
-      mockConfig['pluginOrder'] = ['codegraphy.typescript', 'codegraphy.markdown'];
-      expect(new Configuration().pluginOrder).toEqual(['codegraphy.typescript', 'codegraphy.markdown']);
-    });
-
-    it('defaults to empty array', () => {
-      expect(new Configuration().pluginOrder).toEqual([]);
-    });
-  });
-
   describe('disabledCustomFilterPatterns', () => {
     it('returns the configured disabled custom filter patterns', () => {
       mockConfig['disabledCustomFilterPatterns'] = ['**/*.generated.ts'];
@@ -174,7 +152,6 @@ describe('Configuration (configReaders)', () => {
       mockConfig['respectGitignore'] = false;
       mockConfig['showOrphans'] = false;
       mockConfig['bidirectionalEdges'] = 'combined';
-      mockConfig['disabledPlugins'] = ['d1'];
 
       const all = new Configuration().getAll();
 
@@ -183,14 +160,12 @@ describe('Configuration (configReaders)', () => {
       expect(all.respectGitignore).toBe(false);
       expect(all.showOrphans).toBe(false);
       expect(all.bidirectionalEdges).toBe('combined');
-      expect(all.disabledPlugins).toEqual(['d1']);
     });
 
     it('uses defaults for unconfigured values', () => {
       const all = new Configuration().getAll();
       expect(all.maxFiles).toBe(DEFAULT_MAX_FILES);
       expect(all.showOrphans).toBe(true);
-      expect(all.disabledPlugins).toEqual([]);
     });
   });
 

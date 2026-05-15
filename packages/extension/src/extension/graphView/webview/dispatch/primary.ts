@@ -16,7 +16,6 @@ export interface GraphViewPrimaryMessageContext {
   getCurrentCommitSha(): string | undefined;
   getCanMutateGraphRevision(): boolean;
   getUserGroups(): IGroup[];
-  getDisabledPlugins(): Set<string>;
   getFilterPatterns(): string[];
   getGraphData(): IGraphData;
   getAnalyzer():

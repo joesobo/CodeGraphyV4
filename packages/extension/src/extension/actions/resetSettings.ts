@@ -33,8 +33,6 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   edgeVisibility: 'edgeVisibility',
   legendVisibility: 'legendVisibility',
   legendOrder: 'legendOrder',
-  pluginOrder: 'pluginOrder',
-  disabledPlugins: 'disabledPlugins',
   particleSpeed: 'particleSpeed',
   particleSize: 'particleSize',
   showLabels: 'showLabels',

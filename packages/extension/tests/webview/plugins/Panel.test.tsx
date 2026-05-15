@@ -46,6 +46,7 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.typescript',
         name: 'TypeScript',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-typescript',
         supportedExtensions: ['.ts'],
         status: 'active',
         enabled: true,
@@ -72,6 +73,7 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.typescript',
         name: 'TypeScript',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-typescript',
         supportedExtensions: ['.ts'],
         status: 'active',
         enabled: true,
@@ -83,7 +85,11 @@ describe('PluginsPanel', () => {
 
     expect(sentMessages).toContainEqual({
       type: 'TOGGLE_PLUGIN',
-      payload: { pluginId: 'codegraphy.typescript', enabled: false },
+      payload: {
+        pluginId: 'codegraphy.typescript',
+        packageName: '@codegraphy/plugin-typescript',
+        enabled: false,
+      },
     });
     expect(graphStore.getState().pluginStatuses).toEqual([
       expect.objectContaining({
@@ -99,6 +105,7 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.typescript',
         name: 'TypeScript',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-typescript',
         supportedExtensions: ['.ts'],
         status: 'active',
         enabled: true,
@@ -110,12 +117,13 @@ describe('PluginsPanel', () => {
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
-  it('posts a plugin-order message when rows are dragged into a new order', () => {
+  it('posts a workspace plugin package order message when enabled package rows are dragged into a new order', () => {
     const { container } = renderPanel([
       {
         id: 'codegraphy.typescript',
         name: 'TypeScript',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-typescript',
         supportedExtensions: ['.ts'],
         status: 'active',
         enabled: true,
@@ -125,6 +133,7 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.markdown',
         name: 'Markdown',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-markdown',
         supportedExtensions: ['.md'],
         status: 'active',
         enabled: true,
@@ -138,8 +147,10 @@ describe('PluginsPanel', () => {
     fireEvent.drop(draggableRows[0]);
 
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_PLUGIN_ORDER',
-      payload: { pluginIds: ['codegraphy.markdown', 'codegraphy.typescript'] },
+      type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
+      payload: {
+        packageNames: ['@codegraphy/plugin-markdown', '@codegraphy/plugin-typescript'],
+      },
     });
   });
 
@@ -149,6 +160,7 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.typescript',
         name: 'TypeScript',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-typescript',
         supportedExtensions: ['.ts'],
         status: 'active',
         enabled: true,
@@ -158,6 +170,7 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.markdown',
         name: 'Markdown',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-markdown',
         supportedExtensions: ['.md'],
         status: 'active',
         enabled: true,
@@ -172,7 +185,7 @@ describe('PluginsPanel', () => {
     fireEvent.drop(draggableRows[0]);
 
     expect(sentMessages).not.toContainEqual(
-      expect.objectContaining({ type: 'UPDATE_PLUGIN_ORDER' }),
+      expect.objectContaining({ type: 'UPDATE_PLUGIN_PACKAGE_ORDER' }),
     );
     expect(draggableRows[0]?.className).not.toContain('ring-[var(--cg-primary-ring)]');
   });
@@ -183,15 +196,17 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.typescript',
         name: 'TypeScript',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-typescript',
         supportedExtensions: ['.ts'],
         status: 'active',
-        enabled: false,
+        enabled: true,
         connectionCount: 12,
       },
       {
         id: 'codegraphy.markdown',
         name: 'Markdown',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-markdown',
         supportedExtensions: ['.md'],
         status: 'active',
         enabled: true,
@@ -204,12 +219,11 @@ describe('PluginsPanel', () => {
     fireEvent.dragOver(draggableRows[1]);
 
     expect(draggableRows[0]?.className).toContain('opacity-60');
-    expect(draggableRows[0]?.className).toContain('opacity-50');
     expect(draggableRows[1]?.className).toContain('ring-[var(--cg-primary-ring)]');
 
     fireEvent.dragEnd(draggableRows[0]);
 
-    expect(draggableRows[0]?.className).toBe('opacity-50');
+    expect(draggableRows[0]?.className).toBe('');
     expect(draggableRows[1]?.className).toBe('');
   });
 
@@ -219,6 +233,7 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.typescript',
         name: 'TypeScript',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-typescript',
         supportedExtensions: ['.ts'],
         status: 'active',
         enabled: true,
@@ -228,6 +243,7 @@ describe('PluginsPanel', () => {
         id: 'codegraphy.markdown',
         name: 'Markdown',
         version: '1.0.0',
+        packageName: '@codegraphy/plugin-markdown',
         supportedExtensions: ['.md'],
         status: 'active',
         enabled: true,

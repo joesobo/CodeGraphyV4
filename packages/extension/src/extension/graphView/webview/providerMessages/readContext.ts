@@ -11,7 +11,6 @@ type GraphViewProviderReadContext = Pick<
   | 'getCanMutateGraphRevision'
   | 'getUserGroups'
   | 'getDepthMode'
-  | 'getDisabledPlugins'
   | 'getFilterPatterns'
   | 'getPluginFilterGroups'
   | 'getPluginFilterPatterns'
@@ -41,7 +40,6 @@ export function createGraphViewProviderMessageReadContext(
     },
     getUserGroups: () => source._userGroups,
     getDepthMode: () => source._depthMode,
-    getDisabledPlugins: () => source._disabledPlugins,
     getFilterPatterns: () => source._filterPatterns,
     getPluginFilterPatterns: () =>
       typeof source._analyzer?.getPluginFilterPatterns === 'function'

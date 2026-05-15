@@ -101,16 +101,6 @@ function addPluginToExtensionMap(
   }
 }
 
-function rebuildPluginExtensionMap(
-  plugins: Iterable<IPlugin>,
-  extensionMap: Map<string, string[]>,
-): void {
-  extensionMap.clear();
-  for (const plugin of plugins) {
-    addPluginToExtensionMap(plugin, extensionMap);
-  }
-}
-
 function listPluginContributions<TDefinition>(
   plugins: Map<string, CorePluginInfo>,
   getDefinitions: (plugin: IPlugin) => TDefinition[],
@@ -140,27 +130,6 @@ function notifyWorkspaceReady(
       console.error(`[CodeGraphy] Error in onWorkspaceReady for ${info.plugin.id}:`, error);
     }
   }
-}
-
-function buildReorderedPluginMap(
-  plugins: Map<string, CorePluginInfo>,
-  pluginIds: readonly string[],
-): Map<string, CorePluginInfo> {
-  const reordered = new Map<string, CorePluginInfo>();
-  for (const pluginId of pluginIds) {
-    const info = plugins.get(pluginId);
-    if (info) {
-      reordered.set(pluginId, info);
-    }
-  }
-
-  for (const [pluginId, info] of plugins) {
-    if (!reordered.has(pluginId)) {
-      reordered.set(pluginId, info);
-    }
-  }
-
-  return reordered;
 }
 
 type AnalyzeFile = {
@@ -294,19 +263,6 @@ export class CorePluginRegistry {
 
   setCoreAnalyzeFileResult(analyzeFileResultProvider: CoreFileAnalysisResultProvider | undefined): void {
     this.coreAnalyzeFileResult = analyzeFileResultProvider;
-  }
-
-  setPluginOrder(pluginIds: readonly string[] | undefined): void {
-    if (!pluginIds || pluginIds.length === 0 || this.plugins.size <= 1) {
-      return;
-    }
-
-    const reordered = buildReorderedPluginMap(this.plugins, pluginIds);
-    this.plugins.clear();
-    for (const [pluginId, info] of reordered) {
-      this.plugins.set(pluginId, info);
-    }
-    rebuildPluginExtensionMap([...this.plugins.values()].map(info => info.plugin), this.extensionMap);
   }
 
   async notifyPreAnalyze(

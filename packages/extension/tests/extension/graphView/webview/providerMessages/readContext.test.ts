@@ -46,7 +46,6 @@ describe('graph view provider listener read context', () => {
     expect(context.getCanMutateGraphRevision()).toBe(true);
     expect(context.getUserGroups()).toEqual(source._userGroups);
     expect(context.getDepthMode()).toBe(true);
-    expect(context.getDisabledPlugins()).toBe(source._disabledPlugins);
     expect(context.getFilterPatterns()).toEqual(['dist/**']);
     expect(context.getGraphData()).toBe(source._graphData);
     expect(context.getAnalyzer()).toBe(analyzer);

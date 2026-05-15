@@ -35,29 +35,6 @@ describe('PluginRegistry collection', () => {
     expect(registry.supportsFile('src/app.py')).toBe(false);
   });
 
-  it('reorders registry listing and extension routing when plugin order changes', () => {
-    const registry = createConfiguredRegistry();
-    const first = createMockPlugin({ id: 'first', supportedExtensions: ['.ts'] });
-    const second = createMockPlugin({ id: 'second', supportedExtensions: ['.ts'] });
-    const third = createMockPlugin({ id: 'third', supportedExtensions: ['.md'] });
-
-    registry.register(first);
-    registry.register(second);
-    registry.register(third);
-    registry.setPluginOrder(['second', 'missing', 'first']);
-
-    expect(registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual([
-      'second',
-      'first',
-      'third',
-    ]);
-    expect(registry.getPluginForFile('app.ts')?.id).toBe('second');
-    expect(registry.getPluginsForExtension('.ts').map((plugin) => plugin.id)).toEqual([
-      'second',
-      'first',
-    ]);
-  });
-
   it('returns empty array when no plugins are registered', () => {
     const registry = createConfiguredRegistry();
 
@@ -217,39 +194,6 @@ describe('PluginRegistry collection', () => {
         defaultVisible: true,
       },
     ]);
-  });
-
-  it('does not reorder when plugin order is empty or only one plugin is registered', () => {
-    const registry = createConfiguredRegistry();
-    registry.register(createMockPlugin({ id: 'solo', supportedExtensions: ['.ts'] }));
-
-    registry.setPluginOrder(undefined);
-    registry.setPluginOrder([]);
-    registry.setPluginOrder(['solo']);
-
-    expect(registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual(['solo']);
-    expect(registry.getPluginForFile('app.ts')?.id).toBe('solo');
-  });
-
-  it('does not reorder when plugin ids are omitted or empty for a multi-plugin registry', () => {
-    const registry = createConfiguredRegistry();
-    registry.register(createMockPlugin({ id: 'first', supportedExtensions: ['.ts'] }));
-    registry.register(createMockPlugin({ id: 'second', supportedExtensions: ['.ts'] }));
-
-    registry.setPluginOrder(undefined);
-    expect(registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual(['first', 'second']);
-
-    registry.setPluginOrder([]);
-    expect(registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual(['first', 'second']);
-  });
-
-  it('does not reorder a single-plugin registry even when a plugin order is provided', () => {
-    const registry = createConfiguredRegistry();
-    registry.register(createMockPlugin({ id: 'solo', supportedExtensions: ['.ts'] }));
-
-    registry.setPluginOrder(['missing', 'solo']);
-
-    expect(registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual(['solo']);
   });
 
   it('disposes every registered plugin through unregister', () => {

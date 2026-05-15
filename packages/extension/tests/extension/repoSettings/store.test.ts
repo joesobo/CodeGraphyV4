@@ -94,11 +94,11 @@ describe('extension/repoSettings/store', () => {
       changes.push(event.changedKeys);
     });
 
-    await store.updateSilently('disabledPlugins', ['codegraphy.python']);
+    await store.updateSilently('plugins', [{ package: '@codegraphy/plugin-python' }]);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
-    expect(store.get('disabledPlugins', [])).toEqual(['codegraphy.python']);
-    expect(persisted.disabledPlugins).toEqual(['codegraphy.python']);
+    expect(store.get('plugins', [])).toEqual([{ package: '@codegraphy/plugin-python' }]);
+    expect(persisted.plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
     expect(changes).toEqual([]);
   });
 

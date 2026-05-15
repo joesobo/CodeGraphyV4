@@ -143,29 +143,38 @@ describe('graph view settings update message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('maxFiles', 250);
   });
 
-  it('persists plugin order and reprocesses the listed plugins', async () => {
+  it('persists workspace plugin package order through the plugins array', async () => {
     const state = createState();
-    const handlers = createHandlers();
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [
+            { package: '@codegraphy/plugin-markdown' },
+            { package: '@codegraphy/plugin-python' },
+          ] as T;
+        }
+        return defaultValue;
+      }),
+    });
 
     await expect(
       applySettingsUpdateMessage(
         {
-          type: 'UPDATE_PLUGIN_ORDER',
-          payload: { pluginIds: ['plugin.typescript', 'plugin.markdown'] },
+          type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
+          payload: {
+            packageNames: ['@codegraphy/plugin-python', '@codegraphy/plugin-markdown'],
+          },
         },
         state,
         handlers,
       ),
     ).resolves.toBe(true);
 
-    expect(handlers.updateConfig).toHaveBeenCalledWith('pluginOrder', [
-      'plugin.typescript',
-      'plugin.markdown',
+    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+      { package: '@codegraphy/plugin-python' },
+      { package: '@codegraphy/plugin-markdown' },
     ]);
-    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith([
-      'plugin.typescript',
-      'plugin.markdown',
-    ]);
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
   it('updates label visibility and publishes it immediately', async () => {

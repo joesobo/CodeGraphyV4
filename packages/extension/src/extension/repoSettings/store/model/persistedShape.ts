@@ -8,8 +8,6 @@ const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'include',
   'respectGitignore',
   'showOrphans',
-  'pluginOrder',
-  'disabledPlugins',
   'plugins',
   'nodeColors',
   'nodeVisibility',

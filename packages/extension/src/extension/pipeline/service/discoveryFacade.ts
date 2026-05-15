@@ -88,7 +88,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
   ): Promise<IGraphData> {
-    this._syncPluginOrder();
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       console.log('[CodeGraphy] No workspace folder open');
@@ -131,7 +130,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    this._syncPluginOrder();
     return analyzeWorkspacePipeline(
       this as unknown as WorkspacePipelineSourceOwner,
       this._cache,
@@ -147,7 +145,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
   }
 
   rebuildGraph(disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
-    this._syncPluginOrder();
     return rebuildWorkspacePipelineGraph(
       this as unknown as WorkspacePipelineSourceOwner,
       disabledPlugins,

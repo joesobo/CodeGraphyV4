@@ -6,7 +6,6 @@ import { applySettingsDirectionMessage } from './direction';
 import { applySettingsToggleMessage } from './toggle';
 
 export interface GraphViewSettingsMessageState {
-  disabledPlugins: Set<string>;
   filterPatterns: string[];
 }
 

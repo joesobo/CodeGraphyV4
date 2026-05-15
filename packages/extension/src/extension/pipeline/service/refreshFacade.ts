@@ -15,7 +15,6 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    this._syncPluginOrder();
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       return { nodes: [], edges: [] };

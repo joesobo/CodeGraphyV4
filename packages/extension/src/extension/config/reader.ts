@@ -81,23 +81,6 @@ export class Configuration {
     return this.config.get<'separate' | 'combined'>('bidirectionalEdges', 'separate');
   }
 
-  /**
-   * Plugin toggle state persisted in repo-local settings.
-   * Entries are plugin IDs (e.g., "codegraphy.typescript").
-   * @default []
-   */
-  get disabledPlugins(): string[] {
-    return this.config.get<string[]>('disabledPlugins', []);
-  }
-
-  /**
-   * Plugin processing order, highest priority first.
-   * @default []
-   */
-  get pluginOrder(): string[] {
-    return this.config.get<string[]>('pluginOrder', []);
-  }
-
   get disabledCustomFilterPatterns(): string[] {
     return this.config.get<string[]>('disabledCustomFilterPatterns', []);
   }
@@ -149,8 +132,6 @@ export class Configuration {
       respectGitignore: this.respectGitignore,
       showOrphans: this.showOrphans,
       bidirectionalEdges: this.bidirectionalEdges,
-      disabledPlugins: this.disabledPlugins,
-      pluginOrder: this.pluginOrder,
       disabledCustomFilterPatterns: this.disabledCustomFilterPatterns,
       disabledPluginFilterPatterns: this.disabledPluginFilterPatterns,
     };

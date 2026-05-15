@@ -74,8 +74,6 @@ describe('ResetSettingsAction', () => {
     edgeVisibility: { imports: true, calls: false },
     legendVisibility: { 'default:fileExtension:ts': false },
     legendOrder: ['default:fileExtension:ts'],
-    pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
-    disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.002,
     particleSize: 8,
     showLabels: false,
@@ -119,8 +117,6 @@ describe('ResetSettingsAction', () => {
       edgeVisibility: { imports: true, calls: false },
       legendVisibility: { 'default:fileExtension:ts': false },
       legendOrder: ['default:fileExtension:ts'],
-      pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
-      disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.002,
       particleSize: 8,
       showLabels: false,
@@ -197,8 +193,6 @@ describe('ResetSettingsAction', () => {
     expect(settingsStore.nodeColors).toEqual({ file: '#111111', folder: '#222222' });
     expect(settingsStore.nodeVisibility).toEqual({ file: true, folder: false });
     expect(settingsStore.edgeVisibility).toEqual({ imports: true, calls: false });
-    expect(settingsStore.pluginOrder).toEqual(['codegraphy.markdown', 'codegraphy.typescript']);
-    expect(settingsStore.disabledPlugins).toEqual(['codegraphy.python']);
     expect(settingsStore.maxFiles).toBe(1000);
     expect(settingsStore.bidirectionalEdges).toBe('combined');
     expect(settingsStore.nodeSizeMode).toBe('file-size');
