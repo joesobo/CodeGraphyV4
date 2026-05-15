@@ -3,6 +3,7 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
+  normalizeCodeGraphyWorkspaceSettings,
   readCodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyWorkspacePluginSettings,
@@ -55,7 +56,9 @@ export function createWorkspacePipelinePluginSignature(
 export function createWorkspacePipelineSettingsSignature(
   config: Configuration,
 ): string {
-  return createCodeGraphyWorkspaceSettingsSignature(config.getAll());
+  return createCodeGraphyWorkspaceSettingsSignature(
+    normalizeCodeGraphyWorkspaceSettings(config.getAll()),
+  );
 }
 
 export async function readWorkspacePipelineCurrentCommitSha(

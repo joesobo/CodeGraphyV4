@@ -110,6 +110,15 @@ describe('pipeline/service/cache/signatures', () => {
     } as never));
   });
 
+  it('normalizes partial settings snapshots before hashing them', () => {
+    expect(() => createWorkspacePipelineSettingsSignature({
+      getAll: () => ({
+        showOrphans: true,
+        respectGitignore: true,
+      }),
+    } as never)).not.toThrow();
+  });
+
   it('reads and trims the current commit sha asynchronously', async () => {
     vi.mocked(execGitCommand).mockResolvedValue('abc123\n');
 

@@ -71,8 +71,8 @@ describe('WorkspacePipeline analysis', () => {
 
     expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([true, true]);
     expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual([
-      'codegraphy.markdown',
       'codegraphy.treesitter',
+      'codegraphy.markdown',
     ]);
   });
 
