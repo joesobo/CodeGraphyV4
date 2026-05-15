@@ -2,8 +2,13 @@ import type { EventBus } from '../../../../events/bus';
 import type { DecorationManager } from '../../../../decoration/manager';
 import type { ViewRegistry } from '../../../../../views/registry';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
-import type { ExportRequest, IExporter, IToolbarAction } from '../../../../../../../../plugin-api/src/api';
-import type { ICommand, IContextMenuItem } from '../../../../../../../../plugin-api/src/commands';
+import type {
+  ExportRequest,
+  ICommand,
+  IContextMenuItem,
+  IExporter,
+  IToolbarAction,
+} from '../../../contracts';
 import type { DisposableStore } from '../../../../disposable';
 
 export type GraphDataProvider = () => IGraphData;

@@ -5,7 +5,6 @@
 
 export type {
   CoreNodeType,
-  CodeGraphyAPI,
   CoreEdgeKind,
   GraphEdgeKind,
   GraphMetadata,
@@ -23,7 +22,6 @@ export type {
   IGraphEdge,
   IGraphEdgeSource,
   IGraphNode,
-  IPlugin,
   IPluginAnalysisContext,
   IPluginAnalysisFileSystem,
   IPluginEdgeType,
@@ -31,15 +29,37 @@ export type {
   IPluginNodeType,
   NodeType,
 } from '../../../../../plugin-api/src';
+import type { IPlugin as HeadlessPlugin } from '../../../../../plugin-api/src';
+import type { CodeGraphyAPI } from '../api/contracts';
 
 export type { IProjectedConnection } from '@codegraphy/core';
+export type { CodeGraphyAPI };
+
+export interface IPluginWebviewContributions {
+  scripts?: string[];
+  styles?: string[];
+}
+
+export interface IPlugin extends HeadlessPlugin {
+  /** Extension-owned API bridge for plugin surfaces that are not part of the headless npm contract. */
+  onLoad?(api: CodeGraphyAPI): void;
+
+  /** Extension-owned webview readiness hook. Language plugins should stay headless. */
+  onWebviewReady?(): void;
+
+  /** Extension-local webview contract version for injected graph-view assets. */
+  webviewApiVersion?: string;
+
+  /** Extension-local webview assets injected into the CodeGraphy graph view. */
+  webviewContributions?: IPluginWebviewContributions;
+}
 
 /**
  * Information about a registered plugin.
  */
 export interface IPluginInfo {
   /** The plugin instance */
-  plugin: import('../../../../../plugin-api/src').IPlugin;
+  plugin: IPlugin;
   /** Whether this is a built-in plugin */
   builtIn: boolean;
   /** Source extension ID for community plugins */

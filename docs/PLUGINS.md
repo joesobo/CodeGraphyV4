@@ -26,7 +26,6 @@ The current plugin API supports more than file analysis:
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
 - `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
 - analysis hooks receive an optional `context` object; use `context.fileSystem` for timeline-safe workspace reads and `context.options` for workspace-local plugin settings
-- graph queries backed by the projected workspace-local index and current graph state
 - default filters, file colors, Node Types, Edge Types, symbols, and relationship evidence
 
 Plugins should stay headless. They communicate with `@codegraphy/core`; the VS Code extension communicates with VS Code and renders CodeGraphy UI.
@@ -90,7 +89,7 @@ pnpm add -D @codegraphy/plugin-api
 Minimal usage:
 
 ```ts
-import type { CodeGraphyAPI, IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy/plugin-api';
 ```
 
 Use `import type` because the package is type-only.
