@@ -8,6 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Button } from '../ui/button';
 import {
   getPluginsPanelItemClassName,
+  getPluginStatusLabel,
   reorderPluginStatuses,
 } from './model';
 
@@ -90,6 +91,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
           ) : (
             <div className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]">
               {plugins.map((plugin, index) => {
+                const statusLabel = getPluginStatusLabel(plugin);
                 return (
                   <div
                     key={plugin.id}
@@ -111,6 +113,11 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                     <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]">
                       <div className="min-w-0 flex-1">
                         <span className="block truncate text-xs font-medium">{plugin.name}</span>
+                        {statusLabel && (
+                          <span className="block truncate text-[10px] text-muted-foreground">
+                            {statusLabel}
+                          </span>
+                        )}
                       </div>
                       <Switch
                         checked={plugin.enabled}

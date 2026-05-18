@@ -117,6 +117,23 @@ describe('PluginsPanel', () => {
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
+  it('labels enabled plugin packages whose runtime is unavailable', () => {
+    renderPanel([
+      {
+        id: '@codegraphy/plugin-python',
+        name: '@codegraphy/plugin-python',
+        version: '2.0.0',
+        packageName: '@codegraphy/plugin-python',
+        supportedExtensions: [],
+        status: 'unavailable',
+        enabled: true,
+        connectionCount: 0,
+      },
+    ]);
+
+    expect(screen.getByText('Runtime unavailable')).toBeInTheDocument();
+  });
+
   it('posts a workspace plugin package order message when enabled package rows are dragged into a new order', () => {
     const { container } = renderPanel([
       {

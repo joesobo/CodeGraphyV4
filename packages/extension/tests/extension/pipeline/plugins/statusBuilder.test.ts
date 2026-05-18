@@ -373,6 +373,35 @@ describe('pipeline/plugins/statusBuilder', () => {
     });
   });
 
+  it('marks enabled installed packages without a registered runtime as unavailable', () => {
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [],
+      fileConnections: new Map(),
+      installedPlugins: [
+        {
+          package: '@codegraphy/plugin-python',
+          version: '2.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+        },
+      ],
+      pluginInfos: [],
+      workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+    });
+
+    expect(statuses).toEqual([
+      expect.objectContaining({
+        id: '@codegraphy/plugin-python',
+        packageName: '@codegraphy/plugin-python',
+        status: 'unavailable',
+        enabled: true,
+        supportedExtensions: [],
+      }),
+    ]);
+  });
+
   it('keeps registered package plugins enabled when no workspace settings file exists yet', () => {
     const pluginInfos = [
       {

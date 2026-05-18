@@ -107,14 +107,16 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
       continue;
     }
 
+    const enabled = workspaceEnabledPackageNames?.has(plugin.package) ?? false;
+
     statuses.push({
       id: plugin.package,
       packageName: plugin.package,
       name: plugin.package,
       version: plugin.version,
       supportedExtensions: [],
-      status: 'installed',
-      enabled: workspaceEnabledPackageNames?.has(plugin.package) ?? false,
+      status: enabled ? 'unavailable' : 'installed',
+      enabled,
       connectionCount: 0,
     });
   }
