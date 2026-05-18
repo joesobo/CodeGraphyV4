@@ -71,6 +71,6 @@ export function requestCodeGraphyOpenRepo(
     graphCacheExists,
     message: graphCacheExists
       ? 'CodeGraphy repo opened.'
-      : 'Graph Cache has not been created yet. Run `codegraphy_index_repo()` before querying.',
+      : `Graph Cache has not been created yet. Run \`codegraphy index ${repo}\` before querying.`,
   };
 }

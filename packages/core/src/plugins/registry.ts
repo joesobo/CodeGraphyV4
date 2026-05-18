@@ -61,6 +61,10 @@ function satisfiesSemverRange(version: string, range: string): boolean {
   if (!target) return false;
 
   const normalized = range.trim();
+  if (/^\d+$/.test(normalized)) {
+    return target.major === Number(normalized);
+  }
+
   if (normalized.startsWith('^')) {
     const minimum = parseSemver(normalized.slice(1));
     if (!minimum) return false;
