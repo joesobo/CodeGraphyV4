@@ -6,13 +6,12 @@
 /**
  * A handle to a resource that can be released.
  *
- * Many registration methods (e.g. `registerView`, `decorateNode`, `on`)
- * return a `Disposable`. Call {@link dispose} to unregister or release
- * the associated resource.
+ * Host-owned lifecycle helpers can return a `Disposable`. Call
+ * {@link dispose} to unregister or release the associated resource.
  *
  * @example
  * ```typescript
- * const sub = api.on('nodeClick', (payload) => { ... });
+ * const sub = subscribeToResource(() => { ... });
  * // Later, when no longer needed:
  * sub.dispose();
  * ```
