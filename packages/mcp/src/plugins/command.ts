@@ -77,6 +77,19 @@ function findCachedPlugin(
   return cache.plugins.find(plugin => plugin.package === packageName);
 }
 
+function listInstalledPluginsWithBundledMarkdown(
+  cache: CodeGraphyInstalledPluginCache,
+): CodeGraphyInstalledPluginRecord[] {
+  if (cache.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)) {
+    return cache.plugins;
+  }
+
+  return [
+    createBundledMarkdownInstalledPluginRecord(),
+    ...cache.plugins,
+  ];
+}
+
 function createMissingPackageResult(action: 'add' | 'disable' | 'enable'): CommandExecutionResult {
   return {
     exitCode: 1,
@@ -184,9 +197,11 @@ function runListCommand(
   dependencies: PluginsCommandDependencies,
 ): CommandExecutionResult {
   const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
-  const installedPlugins = dependencies.readInstalledPluginCache({
-    homeDir: dependencies.homeDir,
-  }).plugins;
+  const installedPlugins = listInstalledPluginsWithBundledMarkdown(
+    dependencies.readInstalledPluginCache({
+      homeDir: dependencies.homeDir,
+    }),
+  );
   const enabledPlugins = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins;
   const enabledPackages = new Set(enabledPlugins.map(plugin => plugin.package));
   const disabledPlugins = installedPlugins.filter(plugin => !enabledPackages.has(plugin.package));
