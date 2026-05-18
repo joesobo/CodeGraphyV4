@@ -9,6 +9,7 @@ import {
   ensureCodeGraphyWorkspaceSettings,
   getWorkspaceSettingsPath,
   readCodeGraphyWorkspaceSettings,
+  readCodeGraphyWorkspaceSettingsOrInitial,
   writeCodeGraphyWorkspaceSettings,
 } from '../../src';
 
@@ -32,6 +33,15 @@ describe('CodeGraphy Workspace settings', () => {
     ).plugins).toEqual([{
       package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     }]);
+  });
+
+  it('reports initial Markdown defaults without writing settings for a new workspace', async () => {
+    const workspaceRoot = await createWorkspace();
+
+    expect(readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins).toEqual([{
+      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    }]);
+    await expect(fs.access(getWorkspaceSettingsPath(workspaceRoot))).rejects.toThrow();
   });
 
   it('normalizes workspace plugin entries from settings.json', async () => {

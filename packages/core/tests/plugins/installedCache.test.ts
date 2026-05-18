@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   addCodeGraphyInstalledPlugin,
   enableCodeGraphyWorkspacePlugin,
   getInstalledPluginsCachePath,
@@ -146,9 +147,12 @@ describe('CodeGraphy installed plugin cache', () => {
     }).plugins).toEqual([]);
     expect(JSON.parse(
       await fs.readFile(path.join(workspaceRoot, '.codegraphy', 'settings.json'), 'utf-8'),
-    ).plugins).toEqual([{
-      package: '@codegraphy/plugin-python',
-      options: { includeTests: true },
-    }]);
+    ).plugins).toEqual([
+      { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
+      {
+        package: '@codegraphy/plugin-python',
+        options: { includeTests: true },
+      },
+    ]);
   });
 });

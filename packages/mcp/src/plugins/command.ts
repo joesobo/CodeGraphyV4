@@ -4,7 +4,7 @@ import {
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   readCodeGraphyInstalledPluginCache,
-  readCodeGraphyWorkspaceSettings,
+  readCodeGraphyWorkspaceSettingsOrInitial,
   refreshCodeGraphyInstalledPlugins,
   type AddCodeGraphyInstalledPluginOptions,
   type CodeGraphyInstalledPluginCache,
@@ -181,7 +181,7 @@ function runListCommand(
   const installedPlugins = dependencies.readInstalledPluginCache({
     homeDir: dependencies.homeDir,
   }).plugins;
-  const enabledPlugins = readCodeGraphyWorkspaceSettings(workspaceRoot).plugins;
+  const enabledPlugins = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins;
   const enabledPackages = new Set(enabledPlugins.map(plugin => plugin.package));
   const disabledPlugins = installedPlugins.filter(plugin => !enabledPackages.has(plugin.package));
 

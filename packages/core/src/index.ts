@@ -264,6 +264,7 @@ export {
   ensureCodeGraphyWorkspaceSettings,
   normalizeCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceSettings,
+  readCodeGraphyWorkspaceSettingsOrInitial,
   writeCodeGraphyWorkspaceSettings,
 } from './workspace/settings';
 export type { CodeGraphyWorkspaceMeta } from './workspace/meta';

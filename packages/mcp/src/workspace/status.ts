@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import {
-  readCodeGraphyWorkspaceSettings,
+  readCodeGraphyWorkspaceSettingsOrInitial,
   readCodeGraphyWorkspaceStatus,
 } from '@codegraphy/core';
 import type { WorkspacePathInput, WorkspaceStatusResult } from './model';
@@ -32,7 +32,7 @@ export function readCodeGraphyWorkspaceStatusForCli(
 ): WorkspaceStatusResult {
   const workspaceRoot = resolveCodeGraphyWorkspacePath(input.workspacePath, dependencies.cwd());
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
-  const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
+  const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
 
   return {
     workspaceRoot: status.workspaceRoot,

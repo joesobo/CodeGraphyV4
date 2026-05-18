@@ -8,7 +8,7 @@ import {
   type CodeGraphyPluginPackageManifest,
 } from './packageManifest';
 import {
-  readCodeGraphyWorkspaceSettings,
+  readCodeGraphyWorkspaceSettingsOrInitial,
   writeCodeGraphyWorkspaceSettings,
 } from '../workspace/settings';
 
@@ -274,7 +274,7 @@ export function enableCodeGraphyWorkspacePlugin(
   workspaceRoot: string,
   plugin: CodeGraphyInstalledPluginRecord,
 ): void {
-  const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
+  const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
   const existingIndex = settings.plugins.findIndex(entry => entry.package === plugin.package);
   const entry = {
     package: plugin.package,
@@ -306,7 +306,7 @@ export function disableCodeGraphyWorkspacePlugin(
   workspaceRoot: string,
   packageName: string,
 ): void {
-  const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
+  const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
   writeCodeGraphyWorkspaceSettings(workspaceRoot, {
     ...settings,
     plugins: settings.plugins.filter(plugin => plugin.package !== packageName),

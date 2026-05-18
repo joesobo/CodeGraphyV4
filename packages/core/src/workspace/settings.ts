@@ -132,6 +132,16 @@ export function readCodeGraphyWorkspaceSettings(
   }
 }
 
+export function readCodeGraphyWorkspaceSettingsOrInitial(
+  workspaceRoot: string,
+): CodeGraphyWorkspaceSettings {
+  if (!fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))) {
+    return createInitialCodeGraphyWorkspaceSettings();
+  }
+
+  return readCodeGraphyWorkspaceSettings(workspaceRoot);
+}
+
 export function writeCodeGraphyWorkspaceSettings(
   workspaceRoot: string,
   settings: CodeGraphyWorkspaceSettings,

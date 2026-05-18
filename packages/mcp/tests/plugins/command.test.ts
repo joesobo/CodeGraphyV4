@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
@@ -122,10 +123,13 @@ describe('plugins/command', () => {
       exitCode: 0,
       output: `Enabled @codegraphy/plugin-python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
-    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
-      package: '@codegraphy/plugin-python',
-      options: { includeTests: true },
-    }]);
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
+      { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
+      {
+        package: '@codegraphy/plugin-python',
+        options: { includeTests: true },
+      },
+    ]);
 
     const disableResult = await runPluginsCommand({
       name: 'plugins',
@@ -138,7 +142,9 @@ describe('plugins/command', () => {
       exitCode: 0,
       output: `Disabled @codegraphy/plugin-python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
-    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([]);
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
+      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    }]);
   });
 
   it('lists enabled workspace plugins separately from installed disabled plugins', async () => {
@@ -166,8 +172,9 @@ describe('plugins/command', () => {
 
     expect(result.output).toContain(`CodeGraphy plugins for ${workspaceRoot}`);
     expect(result.output).toContain('Enabled in workspace:');
-    expect(result.output).toContain('1. @codegraphy/plugin-python');
+    expect(result.output).toContain('1. @codegraphy/plugin-markdown');
+    expect(result.output).toContain('2. @codegraphy/plugin-python');
     expect(result.output).toContain('Installed but disabled:');
-    expect(result.output).toContain('- @codegraphy/plugin-markdown');
+    expect(result.output).not.toContain('- @codegraphy/plugin-markdown');
   });
 });
