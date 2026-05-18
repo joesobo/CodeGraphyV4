@@ -158,7 +158,6 @@
       "boundaries": {
         "entrypoints": [
           "src/index.ts",
-          "src/webview/index.ts",
           "src/plugin.ts",
           "src/events.ts"
         ]
