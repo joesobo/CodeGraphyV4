@@ -1,18 +1,11 @@
 /**
- * @fileoverview Host-defined base graph transforms kept for compatibility with
- * the plugin view registry.
+ * @fileoverview Extension-owned graph view registrations.
  * @module core/views/catalog
  */
 
 import { IView } from './contracts';
 
-/**
- * Legacy base-graph view registration kept for plugin API compatibility.
- *
- * CodeGraphy's built-in experience is now one unified graph surface, but the
- * host still keeps a pass-through base transform registered for optional
- * plugin-defined view integrations.
- */
+/** Default graph transform registered by the VS Code extension host. */
 export const baseGraphView: IView = {
   id: 'codegraphy.graph',
   name: 'Graph',
@@ -20,12 +13,12 @@ export const baseGraphView: IView = {
   description: 'Base graph transform for the unified graph surface',
 
   transform(data, _context) {
-    // Pass through - the unified graph surface owns the built-in experience.
+    // Pass through - presentation state owns the built-in graph experience.
     return data;
   },
 };
 
-/** Base transforms the host registers on startup. */
+/** View transforms the extension registers on startup. */
 export const coreViews: IView[] = [
   baseGraphView,
 ];
