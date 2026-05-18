@@ -147,6 +147,35 @@ describe('plugins/command', () => {
     }]);
   });
 
+  it('enables bundled Markdown without requiring it in the user installed plugin cache', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-markdown-'));
+
+    const disableResult = await runPluginsCommand({
+      name: 'plugins',
+      action: 'disable',
+      packageName: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      workspacePath: workspaceRoot,
+    }, { homeDir });
+    expect(disableResult.exitCode).toBe(0);
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([]);
+
+    const enableResult = await runPluginsCommand({
+      name: 'plugins',
+      action: 'enable',
+      packageName: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      workspacePath: workspaceRoot,
+    }, { homeDir });
+
+    expect(enableResult).toEqual({
+      exitCode: 0,
+      output: `Enabled ${CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME} for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+    });
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
+      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    }]);
+  });
+
   it('lists enabled workspace plugins separately from installed disabled plugins', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));

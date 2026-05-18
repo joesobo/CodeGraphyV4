@@ -2,12 +2,14 @@ import * as fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { createMarkdownPlugin } from '@codegraphy/plugin-markdown';
 import {
   parseCodeGraphyPluginPackageManifest,
   type CodeGraphyPluginDisclosure,
   type CodeGraphyPluginPackageManifest,
 } from './packageManifest';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   readCodeGraphyWorkspaceSettingsOrInitial,
   writeCodeGraphyWorkspaceSettings,
 } from '../workspace/settings';
@@ -137,6 +139,17 @@ export function writeCodeGraphyInstalledPluginCache(
   fs.mkdirSync(path.dirname(cachePath), { recursive: true });
   fs.writeFileSync(cachePath, `${JSON.stringify(normalized, null, 2)}\n`);
   return normalized;
+}
+
+export function createBundledMarkdownInstalledPluginRecord(): CodeGraphyInstalledPluginRecord {
+  const plugin = createMarkdownPlugin();
+  return {
+    package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    version: plugin.version,
+    apiVersion: plugin.apiVersion,
+    disclosures: [],
+    packageRoot: '',
+  };
 }
 
 async function readPackageManifest(packageRoot: string): Promise<CodeGraphyInstalledPluginRecord | null> {

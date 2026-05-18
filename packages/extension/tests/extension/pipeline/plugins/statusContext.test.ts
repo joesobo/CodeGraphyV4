@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   getWorkspaceSettingsPath,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
@@ -63,6 +64,7 @@ describe('pipeline/plugins/statusContext', () => {
     const context = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
 
     expect(context.installedPlugins.map(plugin => plugin.package)).toEqual([
+      CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       '@codegraphy/plugin-python',
       '@codegraphy/plugin-godot',
     ]);
@@ -90,9 +92,31 @@ describe('pipeline/plugins/statusContext', () => {
     const context = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
 
     expect(context.installedPlugins.map(plugin => plugin.package)).toEqual([
+      CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       '@codegraphy/plugin-python',
     ]);
     expect(context.workspaceEnabledPackageNames).toBeUndefined();
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);
+  });
+
+  it('includes bundled Markdown as an installed disabled plugin when workspace settings remove it', () => {
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      version: 1,
+      maxFiles: 1000,
+      include: ['**/*'],
+      respectGitignore: true,
+      showOrphans: true,
+      filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      disabledPluginFilterPatterns: [],
+      plugins: [],
+    });
+
+    const context = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
+
+    expect(context.installedPlugins.map(plugin => plugin.package)).toContain(
+      CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    );
+    expect(context.workspaceEnabledPackageNames?.has(CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)).toBe(false);
   });
 });

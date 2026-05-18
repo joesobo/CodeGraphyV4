@@ -1,6 +1,8 @@
 import * as path from 'node:path';
 import {
   addCodeGraphyInstalledPlugin,
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   readCodeGraphyInstalledPluginCache,
@@ -68,6 +70,10 @@ function findCachedPlugin(
   cache: CodeGraphyInstalledPluginCache,
   packageName: string,
 ): CodeGraphyInstalledPluginRecord | undefined {
+  if (packageName === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME) {
+    return createBundledMarkdownInstalledPluginRecord();
+  }
+
   return cache.plugins.find(plugin => plugin.package === packageName);
 }
 
