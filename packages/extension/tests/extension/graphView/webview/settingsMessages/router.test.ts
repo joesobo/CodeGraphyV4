@@ -42,6 +42,7 @@ function createHandlers(
     getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
     reprocessPluginFiles: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
@@ -254,7 +255,7 @@ describe('graph view settings router', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('enables package-backed plugins and rebuilds the plugin-owned edges from cache', async () => {
+  it('enables package-backed plugins and reloads workspace plugins before analysis', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -274,7 +275,9 @@ describe('graph view settings router', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       { package: '@codegraphy/plugin-python' },
     ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 

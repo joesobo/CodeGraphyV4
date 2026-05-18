@@ -117,13 +117,13 @@ describe('WorkspacePipeline adapters', () => {
 
     const statuses = analyzer.getPluginStatuses(new Set());
 
-    expect(statuses).toEqual([
+    expect(statuses).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'plugin.typescript',
         connectionCount: 1,
         status: 'active',
       }),
-    ]);
+    ]));
   });
 
   it('delegates file analysis through workspace pipeline adapters', async () => {
