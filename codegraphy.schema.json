@@ -27,23 +27,10 @@
       "type": "string",
       "description": "Semver range of the CodeGraphy API this plugin is compatible with"
     },
-    "tier": {
-      "type": "integer",
-      "enum": [1, 2],
-      "description": "Plugin tier: 1 = built-in, 2 = community"
-    },
     "supportedExtensions": {
       "type": "array",
       "items": { "type": "string" },
       "description": "File extensions this plugin handles (e.g. [\".ts\", \".tsx\"])"
-    },
-    "capabilities": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": ["connections", "decorations", "events", "views", "commands", "context-menus"]
-      },
-      "description": "Capabilities this plugin provides"
     },
     "sources": {
       "type": "array",
@@ -92,27 +79,6 @@
       "type": "array",
       "items": { "type": "string" },
       "description": "Glob patterns to exclude from file discovery by default"
-    },
-    "webviewApiVersion": {
-      "type": "string",
-      "description": "Semver range of the webview API this plugin targets"
-    },
-    "webviewContributions": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "scripts": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Script files contributed to the webview"
-        },
-        "styles": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Stylesheet files contributed to the webview"
-        }
-      },
-      "description": "Assets this plugin contributes to the webview"
     }
   }
 }

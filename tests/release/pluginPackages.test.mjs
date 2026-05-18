@@ -23,6 +23,10 @@ const languagePluginPackages = [
     dir: 'plugin-godot',
     packageName: '@codegraphy/plugin-godot',
   },
+  {
+    dir: 'plugin-markdown',
+    packageName: '@codegraphy/plugin-markdown',
+  },
 ];
 
 function readPackageManifest(packageDir) {
@@ -31,9 +35,16 @@ function readPackageManifest(packageDir) {
   );
 }
 
+function readCodeGraphyManifest(packageDir) {
+  return JSON.parse(
+    readFileSync(path.join(repoRoot, 'packages', packageDir, 'codegraphy.json'), 'utf8'),
+  );
+}
+
 test('first-party language plugins are headless CodeGraphy npm plugin packages', () => {
   for (const { dir, packageName } of languagePluginPackages) {
     const manifest = readPackageManifest(dir);
+    const pluginManifest = readCodeGraphyManifest(dir);
 
     assert.equal(manifest.name, packageName);
     assert.equal(manifest.type, 'module');
@@ -45,6 +56,9 @@ test('first-party language plugins are headless CodeGraphy npm plugin packages',
     assert.equal(manifest.codegraphy.type, 'plugin');
     assert.equal(manifest.codegraphy.apiVersion, '^2.0.0');
     assert.deepEqual(manifest.codegraphy.disclosures, []);
+    assert.ok(!('tier' in pluginManifest), `${packageName} should not declare a plugin tier`);
+    assert.ok(!('capabilities' in pluginManifest), `${packageName} should not declare extension capabilities`);
+    assert.ok(!('webviewContributions' in pluginManifest), `${packageName} should not declare webview contributions`);
     assert.ok(!('activationEvents' in manifest), `${packageName} should not activate as a VS Code extension`);
     assert.ok(!('extensionDependencies' in manifest), `${packageName} should not depend on VS Code extensions`);
     assert.ok(!('categories' in manifest), `${packageName} should not publish as a marketplace category`);

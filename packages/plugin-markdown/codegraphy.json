@@ -4,11 +4,16 @@
   "name": "Markdown",
   "version": "1.0.0",
   "apiVersion": "^2.0.0",
-  "tier": 1,
-  "supportedExtensions": ["*"],
+  "supportedExtensions": [
+    "*"
+  ],
   "defaultFilters": [],
   "fileColors": {},
   "sources": [
-    { "id": "wikilink", "name": "Wikilinks", "description": "[[Note Name]], ![[embed]]" }
+    {
+      "id": "wikilink",
+      "name": "Wikilinks",
+      "description": "[[Note Name]], ![[embed]]"
+    }
   ]
 }

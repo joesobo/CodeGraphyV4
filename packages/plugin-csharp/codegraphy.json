@@ -4,8 +4,9 @@
   "name": "C#",
   "version": "1.0.0",
   "apiVersion": "^2.0.0",
-  "tier": 1,
-  "supportedExtensions": [".cs"],
+  "supportedExtensions": [
+    ".cs"
+  ],
   "defaultFilters": [
     "**/bin/**",
     "**/obj/**",
