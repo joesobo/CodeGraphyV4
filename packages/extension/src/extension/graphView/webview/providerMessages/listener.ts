@@ -82,6 +82,7 @@ export interface GraphViewProviderMessageListenerSource {
   _depthMode: boolean;
   _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
+  _analyzerInitialized: boolean;
   _firstAnalysis: boolean;
   _webviewReadyNotified: boolean;
   _webviewMethods: {
@@ -93,6 +94,7 @@ export interface GraphViewProviderMessageListenerSource {
         getPluginFilterPatterns(): string[];
         getPluginFilterGroups?(disabledPlugins?: ReadonlySet<string>): IPluginFilterPatternGroup[];
         lastFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
+        reloadWorkspacePlugins?(): Promise<void>;
         readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
         registry?: {
           notifyWebviewReady(): void;

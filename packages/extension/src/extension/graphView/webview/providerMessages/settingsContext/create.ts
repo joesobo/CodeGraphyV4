@@ -16,6 +16,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'getConfig'
   | 'updateConfig'
   | 'getInstalledPluginDefaultOptions'
+  | 'reloadWorkspacePlugins'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
   | 'reprocessPluginFiles'
@@ -53,6 +54,10 @@ export function createGraphViewProviderMessageSettingsContext(
     updateConfig: async (key, value) => persistConfig(key, value),
     getInstalledPluginDefaultOptions: (packageName: string) =>
       readInstalledPluginDefaultOptions(packageName),
+    reloadWorkspacePlugins: async () => {
+      source._analyzerInitialized = false;
+      await source._analyzer?.reloadWorkspacePlugins?.();
+    },
     sendGraphControls: () => {
       source._sendGraphControls?.();
     },

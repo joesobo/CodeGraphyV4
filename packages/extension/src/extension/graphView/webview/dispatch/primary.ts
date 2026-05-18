@@ -85,6 +85,7 @@ export interface GraphViewPrimaryMessageContext {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   getInstalledPluginDefaultOptions?(packageName: string): Record<string, unknown> | undefined;
+  reloadWorkspacePlugins(): Promise<void>;
   sendGraphControls(): void;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];

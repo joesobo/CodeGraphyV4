@@ -22,6 +22,8 @@ function createHandlers(
     const handlers = {
       getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
       updateConfig: vi.fn(() => Promise.resolve()),
+      reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
+      analyzeAndSendData: vi.fn(() => Promise.resolve()),
       smartRebuild: vi.fn(),
       getPluginFilterPatterns: vi.fn(() => []),
       sendGraphControls: vi.fn(),
@@ -91,7 +93,9 @@ describe('graph view settings toggle message', () => {
       { package: '@codegraphy/plugin-markdown' },
     ]);
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('disabledPlugins', expect.anything());
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('enables package-backed plugins by adding them to the workspace plugins list', async () => {
@@ -123,7 +127,9 @@ describe('graph view settings toggle message', () => {
       { package: '@codegraphy/plugin-markdown' },
       { package: '@codegraphy/plugin-python' },
     ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('copies package default options into workspace settings when enabling a package-backed plugin', async () => {
@@ -185,7 +191,7 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(false);
   });
 
-  it('returns immediately because package toggles rebuild cached plugin edges instead of reprocessing files', async () => {
+  it('reloads package plugins instead of only rebuilding cached plugin edges', async () => {
     const state = createState();
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
@@ -210,7 +216,9 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 });

@@ -29,6 +29,11 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     console.log('[CodeGraphy] WorkspacePipeline initialized');
   }
 
+  async reloadWorkspacePlugins(): Promise<void> {
+    this._registry.disposeAll();
+    await this.initialize();
+  }
+
   getPluginFilterPatterns(
     disabledPlugins: ReadonlySet<string> = new Set(),
   ): string[] {
