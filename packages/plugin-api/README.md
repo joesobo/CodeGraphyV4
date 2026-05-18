@@ -11,7 +11,7 @@ Type definitions for building CodeGraphy plugins.
 ## Install
 
 ```bash
-pnpm add -D @codegraphy/plugin-api
+npm install -D @codegraphy/plugin-api
 ```
 
 ## Usage

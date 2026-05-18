@@ -17,8 +17,6 @@ The rest of the docs are split by purpose:
 
 If a doc describes old refactor intent instead of current behavior, it belongs in `docs/archive/`.
 
-Historical plans, specs, and superseded guides live under `docs/archive/`.
-
 ## Public Package Guide
 
 | Package | Path | Where To Start | Role |

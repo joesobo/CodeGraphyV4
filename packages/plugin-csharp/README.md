@@ -7,6 +7,8 @@ Adds C# ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/
 
 ## Install
 
+Install `@codegraphy/mcp` first if the `codegraphy` CLI is not already available.
+
 ```bash
 npm i -g @codegraphy/plugin-csharp
 codegraphy plugins refresh
