@@ -191,6 +191,7 @@ export type {
 } from './plugins/installedCache';
 export {
   addCodeGraphyInstalledPlugin,
+  createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   getCodeGraphyUserDirectoryPath,
