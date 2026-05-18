@@ -3,7 +3,7 @@ import {
   analyzeFullCommitGraph,
   createGitHistoryNode,
 } from '../../../src/extension/gitHistory/fullCommitAnalysis';
-import { resolveTreeSitterImportPath } from '../../../src/extension/pipeline/plugins/treesitter/runtime/resolve';
+import { resolveTreeSitterImportPath } from '@codegraphy/core';
 
 describe('gitHistory/fullCommitAnalysis', () => {
   it('creates graph nodes from workspace-relative file paths', () => {

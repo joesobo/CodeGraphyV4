@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { IPlugin } from '../../../../../src/core/plugins/types/contracts';
+import type { IPlugin } from '../../../../../../plugin-api/src';
 import {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
-} from '../../../../../src/core/plugins/routing/router/results/project';
+} from '@codegraphy/core';
 
 describe('routing/results/project', () => {
   it('adds the plugin id to relations that do not already have provenance', () => {
