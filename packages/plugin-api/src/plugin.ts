@@ -194,7 +194,7 @@ export interface IPlugin {
 
   /**
    * Called when the plugin is about to be unloaded.
-   * Dispose all resources, event subscriptions, and decorations here.
+   * Dispose parser state, caches, event subscriptions, and other headless resources here.
    */
   onUnload?(): void;
 }

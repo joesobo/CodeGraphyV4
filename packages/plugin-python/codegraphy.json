@@ -4,8 +4,10 @@
   "name": "Python",
   "version": "1.0.0",
   "apiVersion": "^2.0.0",
-  "tier": 1,
-  "supportedExtensions": [".py", ".pyi"],
+  "supportedExtensions": [
+    ".py",
+    ".pyi"
+  ],
   "defaultFilters": [
     "**/venv/**",
     "**/.venv/**",

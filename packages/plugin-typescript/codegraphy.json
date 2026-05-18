@@ -4,8 +4,14 @@
   "name": "TypeScript/JavaScript",
   "version": "1.0.0",
   "apiVersion": "^2.0.0",
-  "tier": 1,
-  "supportedExtensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
+  "supportedExtensions": [
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs"
+  ],
   "defaultFilters": [
     "**/node_modules/**",
     "**/dist/**",
