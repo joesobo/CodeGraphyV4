@@ -125,8 +125,6 @@ args = ["mcp"]
 | `codegraphy plugins list [workspace]` | Shows installed plugins and workspace enablement | inspect available and enabled plugins |
 | `codegraphy plugins enable <package> [workspace]` | Enables a cached plugin package for the current or explicit CodeGraphy Workspace | opt a workspace into plugin analysis |
 | `codegraphy plugins disable <package> [workspace]` | Removes a plugin from the workspace-local enabled plugin array | turn off plugin analysis without uninstalling the package |
-| `codegraphy list` | Lists legacy locally known repos from `~/.codegraphy/registry.json` | inspect old registry state |
-| `codegraphy open <repo>` | Legacy command that opens a repo in VS Code | compatibility with older workflows |
 | `codegraphy mcp` | Starts the local stdio MCP server | manual MCP runtime |
 
 ## MCP Tools

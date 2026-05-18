@@ -7,7 +7,7 @@
 <rect x="848" y="64" width="298" height="456" rx="22" fill="#fffaf0" stroke="#d8d0bc"/>
 <rect x="128" y="558" width="1006" height="146" rx="22" fill="#fffaf0" stroke="#d8d0bc"/>
 <text x="60" y="92" font-size="15" font-weight="700" fill="#5d6877">Inputs</text>
-<text x="336" y="92" font-size="15" font-weight="700" fill="#5d6877">Core Extension and Analysis</text>
+<text x="336" y="92" font-size="15" font-weight="700" fill="#5d6877">@codegraphy/core Engine</text>
 <text x="874" y="92" font-size="15" font-weight="700" fill="#5d6877">Graph Model</text>
 <text x="154" y="588" font-size="15" font-weight="700" fill="#5d6877">Surfaces</text>
 <g>

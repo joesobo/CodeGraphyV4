@@ -158,12 +158,12 @@
       "fillStyle": "solid",
       "fontSize": 15,
       "fontFamily": 1,
-      "text": "Core Extension and Analysis",
-      "rawText": "Core Extension and Analysis",
+      "text": "@codegraphy/core Engine",
+      "rawText": "@codegraphy/core Engine",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "Core Extension and Analysis",
+      "originalText": "@codegraphy/core Engine",
       "lineHeight": 1.25
     },
     {

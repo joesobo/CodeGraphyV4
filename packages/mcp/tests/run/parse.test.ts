@@ -2,13 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { parseCliCommand } from '../../src/run/parse';
 
 describe('run/parse', () => {
-  it('parses list and setup commands', () => {
-    expect(parseCliCommand(['list'])).toEqual({ name: 'list' });
+  it('parses setup commands', () => {
     expect(parseCliCommand(['setup'])).toEqual({ name: 'setup' });
-  });
-
-  it('parses open with a repo path', () => {
-    expect(parseCliCommand(['open', '/repo'])).toEqual({ name: 'open', repoPath: '/repo' });
   });
 
   it('parses index with an optional workspace path', () => {
@@ -55,7 +50,9 @@ describe('run/parse', () => {
     });
   });
 
-  it('does not parse old reindex commands', () => {
+  it('does not parse old repo workflow commands', () => {
+    expect(parseCliCommand(['list'])).toEqual({ name: 'help' });
+    expect(parseCliCommand(['open', '/repo'])).toEqual({ name: 'help' });
     expect(parseCliCommand(['reindex', '/repo'])).toEqual({ name: 'help' });
   });
 

@@ -37,8 +37,6 @@ codegraphy index /absolute/path/to/folder
 | `codegraphy plugins list [workspace]` | Shows installed plugins and which ones are enabled for a CodeGraphy Workspace |
 | `codegraphy plugins enable <package> [workspace]` | Enables a cached plugin package for the current or explicit CodeGraphy Workspace |
 | `codegraphy plugins disable <package> [workspace]` | Removes a plugin package from the workspace-local enabled plugin array |
-| `codegraphy list` | Lists legacy locally known repos from `~/.codegraphy/registry.json` |
-| `codegraphy open <repo>` | Legacy registry command for opening a repo in VS Code |
 | `codegraphy mcp` | Starts the local stdio MCP server |
 
 Plugin commands use `@codegraphy/core` directly and do not import plugin runtime code. Installing a plugin package only makes it available; enabling it writes the workspace-local `plugins` array and tells the user to run Indexing explicitly.

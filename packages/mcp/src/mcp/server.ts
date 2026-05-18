@@ -1,13 +1,13 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as z from 'zod/v4';
-import type { GraphQueryReport } from '../coreExtension/model';
 import { runPluginsCommand } from '../plugins/command';
 import type { CommandExecutionResult } from '../run/command';
 import type { CliCommand, PluginsCommandAction } from '../run/parse';
 import { requestCodeGraphyIndexWorkspace } from '../workspace/indexing';
 import type {
   IndexWorkspaceResult,
+  GraphQueryReport,
   WorkspaceGraphQueryInput,
   WorkspaceGraphQueryResult,
   WorkspacePathInput,

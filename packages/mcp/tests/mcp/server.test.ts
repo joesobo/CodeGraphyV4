@@ -42,13 +42,13 @@ function createDependencies(): NonNullable<Parameters<typeof createCodeGraphyMcp
 }
 
 describe('mcp/server', () => {
-  it('registers path-first workspace tools without the selected-repo workflow', async () => {
+  it('registers the path-first workspace tools', async () => {
     const client = await connectServer(createDependencies());
 
     const tools = await client.listTools();
     const names = tools.tools.map((tool) => tool.name);
 
-    expect(names).toEqual(expect.arrayContaining([
+    expect(names).toEqual([
       'codegraphy_status',
       'codegraphy_index',
       'codegraphy_plugins_refresh',
@@ -61,14 +61,7 @@ describe('mcp/server', () => {
       'codegraphy_list_relationships',
       'codegraphy_list_symbols',
       'codegraphy_find_paths',
-    ]));
-    expect(names).not.toEqual(expect.arrayContaining([
-      'codegraphy_open_repo',
-      'codegraphy_index_repo',
-      'codegraphy_select_repo',
-      'codegraphy_request_reindex',
-      'codegraphy_view_graph',
-    ]));
+    ]);
     expect(tools.tools.find((tool) => tool.name === 'codegraphy_index')?.description).toContain(
       'CodeGraphy Workspace',
     );

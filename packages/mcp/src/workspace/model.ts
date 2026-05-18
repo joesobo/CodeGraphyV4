@@ -1,4 +1,9 @@
-import type { GraphQueryReport } from '../coreExtension/model';
+export type GraphQueryReport =
+  | 'nodes'
+  | 'edges'
+  | 'relationships'
+  | 'symbols'
+  | 'paths';
 
 export interface WorkspacePathInput {
   workspacePath?: string;
