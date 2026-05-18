@@ -158,12 +158,12 @@
       "fillStyle": "solid",
       "fontSize": 15,
       "fontFamily": 1,
-      "text": "Core Extension and Analysis",
-      "rawText": "Core Extension and Analysis",
+      "text": "@codegraphy/core Engine",
+      "rawText": "@codegraphy/core Engine",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "Core Extension and Analysis",
+      "originalText": "@codegraphy/core Engine",
       "lineHeight": 1.25
     },
     {
@@ -2496,12 +2496,12 @@
       "fillStyle": "solid",
       "fontSize": 12,
       "fontFamily": 1,
-      "text": "packages/extension owns Core + webview. packages/plugin-* enrich analysis through packages/plugin-api. packages/codegraphy-mcp lets agents query the same Graph Cache.",
-      "rawText": "packages/extension owns Core + webview. packages/plugin-* enrich analysis through packages/plugin-api. packages/codegraphy-mcp lets agents query the same Graph Cache.",
+      "text": "packages/extension owns Core + webview. packages/plugin-* enrich analysis through packages/plugin-api. packages/mcp lets agents query the same Graph Cache.",
+      "rawText": "packages/extension owns Core + webview. packages/plugin-* enrich analysis through packages/plugin-api. packages/mcp lets agents query the same Graph Cache.",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "packages/extension owns Core + webview. packages/plugin-* enrich analysis through packages/plugin-api. packages/codegraphy-mcp lets agents query the same Graph Cache.",
+      "originalText": "packages/extension owns Core + webview. packages/plugin-* enrich analysis through packages/plugin-api. packages/mcp lets agents query the same Graph Cache.",
       "lineHeight": 1.25
     }
   ],

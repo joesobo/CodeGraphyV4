@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { readCodeGraphyWorkspaceStatus } from '@codegraphy/core';
 import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
@@ -18,8 +19,6 @@ import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
 } from './runtime/run';
-import { evaluateCodeGraphyIndexStatus } from '../../repoSettings/freshness';
-import { readCodeGraphyRepoMeta } from '../../repoSettings/meta';
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   async initialize(): Promise<void> {
@@ -28,6 +27,11 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     });
 
     console.log('[CodeGraphy] WorkspacePipeline initialized');
+  }
+
+  async reloadWorkspacePlugins(): Promise<void> {
+    this._registry.disposeAll();
+    await this.initialize();
   }
 
   getPluginFilterPatterns(
@@ -62,26 +66,24 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     if (!workspaceRoot) {
       return {
         freshness: 'missing',
-        detail: 'CodeGraphy index is missing. Index the repo to build the graph.',
+        detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
       };
     }
 
     if (!this.hasIndex()) {
       return {
         freshness: 'missing',
-        detail: 'CodeGraphy index is missing. Index the repo to build the graph.',
+        detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
       };
     }
 
-    const status = evaluateCodeGraphyIndexStatus({
-      meta: readCodeGraphyRepoMeta(workspaceRoot),
-      currentCommit: this._getCurrentCommitShaSync(workspaceRoot),
+    const status = readCodeGraphyWorkspaceStatus(workspaceRoot, {
       pluginSignature: this._getPluginSignature(),
       settingsSignature: this._getSettingsSignature(),
     });
 
     return {
-      freshness: status.freshness,
+      freshness: status.state,
       detail: status.detail,
     };
   }
@@ -91,7 +93,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
   ): Promise<IGraphData> {
-    this._syncPluginOrder();
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       console.log('[CodeGraphy] No workspace folder open');
@@ -134,7 +135,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    this._syncPluginOrder();
     return analyzeWorkspacePipeline(
       this as unknown as WorkspacePipelineSourceOwner,
       this._cache,
@@ -150,7 +150,6 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
   }
 
   rebuildGraph(disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
-    this._syncPluginOrder();
     return rebuildWorkspacePipelineGraph(
       this as unknown as WorkspacePipelineSourceOwner,
       disabledPlugins,

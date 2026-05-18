@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import {
   DEFAULT_EXCLUDE,
   matchesAnyPattern,
-} from '../../core/discovery/pathMatching';
+} from '@codegraphy/core';
 
 const WORKSPACE_REFRESH_IGNORE_PATTERNS = [
   '**/.codegraphy/**',

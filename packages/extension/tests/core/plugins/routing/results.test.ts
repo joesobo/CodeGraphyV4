@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { IPlugin } from '../../../../src/core/plugins/types/contracts';
-import { getRelationKey } from '../../../../src/core/plugins/routing/router/results/keys';
+import type { IPlugin } from '../../../../../plugin-api/src';
+import { getRelationKey } from '@codegraphy/core';
 import {
   createEmptyFileAnalysisResult,
   mergeFileAnalysisResults,
-} from '../../../../src/core/plugins/routing/router/results/merge';
+} from '@codegraphy/core';
 import {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
-} from '../../../../src/core/plugins/routing/router/results/project';
+} from '@codegraphy/core';
 
 describe('routing/results', () => {
   it('builds distinct relation keys for resolved call targets', () => {

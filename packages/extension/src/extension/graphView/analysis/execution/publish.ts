@@ -20,7 +20,7 @@ function resolveGraphIndexStatus(
     freshness: hasIndex ? 'fresh' : 'missing',
     detail: hasIndex
       ? 'CodeGraphy index is fresh.'
-      : 'CodeGraphy index is missing. Index the repo to build the graph.',
+      : 'CodeGraphy index is missing. Index the workspace to build the graph.',
   };
 }
 

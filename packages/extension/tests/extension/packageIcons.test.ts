@@ -7,20 +7,29 @@ import { describe, expect, it } from 'vitest';
 type PackageSpec = {
   label: string;
   manifestPath: string;
-  expectedIcon: string;
-  expectedSvgIcon: string;
+  iconPath: string;
+  svgIconPath: string;
 };
 
 type PackageManifest = {
   icon?: string;
+  activationEvents?: string[];
+  contributes?: unknown;
+  extensionDependencies?: string[];
 };
 
-const packageSpecs: PackageSpec[] = [
-  { label: 'core extension', manifestPath: 'package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
-  { label: 'TypeScript plugin', manifestPath: 'packages/plugin-typescript/package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
-  { label: 'Python plugin', manifestPath: 'packages/plugin-python/package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
-  { label: 'C# plugin', manifestPath: 'packages/plugin-csharp/package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
-  { label: 'GDScript plugin', manifestPath: 'packages/plugin-godot/package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
+const coreExtensionSpec: PackageSpec = {
+  label: 'core extension',
+  manifestPath: 'package.json',
+  iconPath: 'assets/icon.png',
+  svgIconPath: 'assets/icon.svg',
+};
+
+const pluginSpecs: PackageSpec[] = [
+  { label: 'TypeScript plugin', manifestPath: 'packages/plugin-typescript/package.json', iconPath: 'assets/icon.png', svgIconPath: 'assets/icon.svg' },
+  { label: 'Python plugin', manifestPath: 'packages/plugin-python/package.json', iconPath: 'assets/icon.png', svgIconPath: 'assets/icon.svg' },
+  { label: 'C# plugin', manifestPath: 'packages/plugin-csharp/package.json', iconPath: 'assets/icon.png', svgIconPath: 'assets/icon.svg' },
+  { label: 'GDScript plugin', manifestPath: 'packages/plugin-godot/package.json', iconPath: 'assets/icon.png', svgIconPath: 'assets/icon.svg' },
 ];
 
 function resolveRepoRoot() {
@@ -41,24 +50,34 @@ function hashFile(path: string) {
 }
 
 describe('package icon metadata', () => {
-  it('uses the shared icon asset name across published packages', () => {
-    for (const spec of packageSpecs) {
-      const { manifest, manifestPath } = readManifest(spec);
-      const packageDir = dirname(manifestPath);
+  it('uses the shared icon asset name for the VS Code extension package', () => {
+    const { manifest, manifestPath } = readManifest(coreExtensionSpec);
+    const packageDir = dirname(manifestPath);
 
-      expect(manifest.icon, `${spec.label} manifest icon`).toBe(spec.expectedIcon);
-      expect(manifest.icon, `${spec.label} manifest icon name`).not.toContain('marketplace');
-      expect(existsSync(resolve(packageDir, spec.expectedIcon)), `${spec.label} icon file`).toBe(true);
-      expect(existsSync(resolve(packageDir, spec.expectedSvgIcon)), `${spec.label} svg icon file`).toBe(true);
+    expect(manifest.icon, 'core extension manifest icon').toBe(coreExtensionSpec.iconPath);
+    expect(manifest.icon, 'core extension manifest icon name').not.toContain('marketplace');
+    expect(existsSync(resolve(packageDir, coreExtensionSpec.iconPath)), 'core extension icon file').toBe(true);
+    expect(existsSync(resolve(packageDir, coreExtensionSpec.svgIconPath)), 'core extension svg icon file').toBe(true);
+  });
+
+  it('keeps first-party language plugin packages free of VS Code marketplace metadata', () => {
+    for (const spec of pluginSpecs) {
+      const { manifest } = readManifest(spec);
+
+      expect(manifest.icon, `${spec.label} manifest icon`).toBeUndefined();
+      expect(manifest.activationEvents, `${spec.label} activation events`).toBeUndefined();
+      expect(manifest.contributes, `${spec.label} VS Code contributions`).toBeUndefined();
+      expect(manifest.extensionDependencies, `${spec.label} extension dependencies`).toBeUndefined();
     }
   });
 
-  it('ships distinct plugin icon art instead of reusing the core icon', () => {
-    const [{ manifestPath, manifest: coreManifest }, ...pluginPackages] = packageSpecs.map(readManifest);
-    const coreIconPath = resolve(dirname(manifestPath), String(coreManifest.icon));
+  it('keeps distinct plugin icon source art instead of reusing the core icon', () => {
+    const { manifestPath } = readManifest(coreExtensionSpec);
+    const coreIconPath = resolve(dirname(manifestPath), coreExtensionSpec.iconPath);
     const coreHash = hashFile(coreIconPath);
-    const pluginHashes = pluginPackages.map(({ manifestPath: pluginManifestPath, manifest }) => {
-      const iconPath = resolve(dirname(pluginManifestPath), String(manifest.icon));
+    const pluginHashes = pluginSpecs.map((spec) => {
+      const { manifestPath: pluginManifestPath } = readManifest(spec);
+      const iconPath = resolve(dirname(pluginManifestPath), spec.iconPath);
       const iconHash = hashFile(iconPath);
 
       expect(iconHash).not.toBe(coreHash);
@@ -69,10 +88,10 @@ describe('package icon metadata', () => {
   });
 
   it('ships svg sources without hard outline strokes', () => {
-    for (const spec of packageSpecs) {
+    for (const spec of [coreExtensionSpec, ...pluginSpecs]) {
       const { manifestPath } = readManifest(spec);
       const packageDir = dirname(manifestPath);
-      const svgIconPath = resolve(packageDir, spec.expectedSvgIcon);
+      const svgIconPath = resolve(packageDir, spec.svgIconPath);
       const svg = readFileSync(svgIconPath, 'utf8');
 
       expect(svg, `${spec.label} svg outline`).not.toContain('stroke=');

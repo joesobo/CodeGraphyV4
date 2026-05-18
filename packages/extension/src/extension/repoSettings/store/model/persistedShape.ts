@@ -8,8 +8,7 @@ const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'include',
   'respectGitignore',
   'showOrphans',
-  'pluginOrder',
-  'disabledPlugins',
+  'plugins',
   'nodeColors',
   'nodeVisibility',
   'edgeVisibility',
@@ -134,6 +133,53 @@ function normalizePersistedFilterPatterns(normalized: Record<string, unknown>): 
   normalized.filterPatterns = Array.from(new Set(filterPatterns));
 }
 
+function normalizePersistedPlugins(normalized: Record<string, unknown>): void {
+  if (!('plugins' in normalized)) {
+    return;
+  }
+
+  if (!Array.isArray(normalized.plugins)) {
+    delete normalized.plugins;
+    return;
+  }
+
+  if (normalized.plugins.length === 0) {
+    normalized.plugins = [];
+    return;
+  }
+
+  const plugins = normalized.plugins
+    .filter(isPlainObject)
+    .map((plugin) => {
+      const packageName = typeof plugin.package === 'string' ? plugin.package.trim() : '';
+      if (packageName.length === 0) {
+        return null;
+      }
+
+      const normalizedPlugin: Record<string, unknown> = {
+        package: packageName,
+      };
+      if (Array.isArray(plugin.disabledFilterPatterns)) {
+        const disabledFilterPatterns = readStringArray(plugin.disabledFilterPatterns);
+        if (disabledFilterPatterns.length > 0) {
+          normalizedPlugin.disabledFilterPatterns = Array.from(new Set(disabledFilterPatterns));
+        }
+      }
+      if (isPlainObject(plugin.options)) {
+        normalizedPlugin.options = { ...plugin.options };
+      }
+      return normalizedPlugin;
+    })
+    .filter((plugin): plugin is Record<string, unknown> => plugin !== null);
+
+  if (plugins.length === 0) {
+    delete normalized.plugins;
+    return;
+  }
+
+  normalized.plugins = plugins;
+}
+
 function normalizePersistedLegend(normalized: Record<string, unknown>): void {
   if ('legend' in normalized) {
     normalized.legend = normalizePersistedLegendRules(normalized.legend);
@@ -171,6 +217,7 @@ export function normalizePersistedSettingsShape(
   }
 
   const normalized = pickTopLevelSettings(value);
+  normalizePersistedPlugins(normalized);
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);
   normalizePersistedGraphLayout(normalized);

@@ -24,12 +24,12 @@ export function createRefreshConfig(
   graphIndexFreshness: 'fresh' | 'stale' | 'missing',
 ): ToolbarRefreshConfig {
   if (graphIndexFreshness === 'stale') {
-    return { phase: 'Refreshing Index', title: 'Reindex Repo', type: 'REFRESH_GRAPH' };
+    return { phase: 'Refreshing Index', title: 'Reindex Workspace', type: 'REFRESH_GRAPH' };
   }
 
   return graphHasIndex
     ? { phase: 'Refreshing Index', title: 'Refresh', type: 'REFRESH_GRAPH' }
-    : { phase: 'Indexing Repo', title: 'Index Repo', type: 'INDEX_GRAPH' };
+    : { phase: 'Indexing Workspace', title: 'Index Workspace', type: 'INDEX_GRAPH' };
 }
 
 export function requestGraphIndex(

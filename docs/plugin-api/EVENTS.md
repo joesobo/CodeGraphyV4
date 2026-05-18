@@ -4,21 +4,18 @@ Historical diagram source: `docs/plugin-api/diagrams/event-system.excalidraw`
 
 This document tracks the canonical event contract in [`packages/plugin-api/src/events.ts`](../../packages/plugin-api/src/events.ts).
 
-Important: this is the full typed event surface exposed by the plugin API. Not every event in the contract is emitted by the current host runtime today. Use this doc as the payload reference, and prefer the events you can observe in the current product such as graph interaction events, `analysis:fileProcessed`, and `plugin:registered` / `plugin:unregistered`.
+Important: this is a typed payload reference, not a public subscription API. The headless plugin contract no longer exposes `CodeGraphyAPI.on(...)`; extension-owned bridges may still use these payload types internally. Not every event in the contract is emitted by the current host runtime today.
 
 ## Usage
 
 ```typescript
-import type { CodeGraphyAPI } from '@codegraphy-vscode/plugin-api';
+import type { EventName, EventPayloads } from '@codegraphy/plugin-api';
 
-export function onLoad(api: CodeGraphyAPI): void {
-  api.on('graph:nodeClick', ({ node, event }) => {
-    api.log('info', `Clicked ${node.id} at ${event.x},${event.y}`);
-  });
-
-  api.on('plugin:registered', ({ pluginId }) => {
-    api.log('info', `Plugin registered: ${pluginId}`);
-  });
+function handleEvent<E extends EventName>(
+  event: E,
+  payload: EventPayloads[E],
+): void {
+  // payload is typed by event name
 }
 ```
 
@@ -115,7 +112,7 @@ Note:
 - `EventName`: union of all keys in `EventPayloads`.
 
 ```typescript
-import type { EventName, EventPayloads } from '@codegraphy-vscode/plugin-api';
+import type { EventName, EventPayloads } from '@codegraphy/plugin-api';
 
 function on<E extends EventName>(event: E, payload: EventPayloads[E]): void {
   // typed by event name

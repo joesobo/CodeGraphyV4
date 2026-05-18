@@ -2,15 +2,19 @@
 
 Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-- Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
-- Marketplace plugin: [CodeGraphy GDScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot)
-- Plugin API: [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api)
+- Package: [`@codegraphy/plugin-godot`](https://www.npmjs.com/package/@codegraphy/plugin-godot)
+- Plugin API: [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
 
 ## Install
 
-1. Install the core `codegraphy.codegraphy` extension.
-2. Install this plugin extension.
-3. Open CodeGraphy and let it analyze your workspace.
+Install `@codegraphy/mcp` first if the `codegraphy` CLI is not already available.
+
+```bash
+npm i -g @codegraphy/plugin-godot
+codegraphy plugins refresh
+codegraphy plugins enable @codegraphy/plugin-godot
+codegraphy index
+```
 
 ## Detection coverage
 
@@ -21,6 +25,10 @@ Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.vi
   - `class_name` references
   - `class_name` declarations as Symbol Nodes
   - function, constant, variable, and enum declarations as Symbol Nodes
+- Structured parsing:
+  - `@gdquest/lezer-gdscript` parses GDScript before `preload()`, `load()`, `ResourceLoader.load()`, and `class_name` extraction, with text fallbacks for parser gaps.
+  - `@fernforestgames/godot-resource-parser` parses Godot 4 `.tscn` and `.tres` files before external-resource dependency extraction, with text fallbacks for unsupported syntax.
+  - `project.godot` sections use the plugin's lightweight text parser for resource-bearing settings.
 - `project.godot`:
   - `application/run/main_scene`
   - `[autoload]`

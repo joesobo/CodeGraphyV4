@@ -1,14 +1,16 @@
 {
-  "name": "codegraphy-godot",
-  "displayName": "CodeGraphy GDScript",
+  "name": "@codegraphy/plugin-godot",
   "version": "2.1.2",
-  "description": "Adds GDScript dependency detection to CodeGraphy. Requires codegraphy.codegraphy.",
-  "publisher": "codegraphy",
+  "description": "CodeGraphy Godot plugin",
   "license": "MIT",
-  "icon": "assets/icon.png",
-  "galleryBanner": {
-    "color": "#023859",
-    "theme": "dark"
+  "type": "module",
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
   },
   "repository": {
     "type": "git",
@@ -19,13 +21,8 @@
     "url": "https://github.com/joesobo/CodeGraphyV4/issues"
   },
   "engines": {
-    "node": ">=22.22.0 <23",
-    "vscode": "^1.85.0"
+    "node": ">=22.22.0 <23"
   },
-  "categories": [
-    "Visualization",
-    "Programming Languages"
-  ],
   "keywords": [
     "codegraphy",
     "codegraphy-plugin",
@@ -34,32 +31,32 @@
     "gdscript",
     "dependencies"
   ],
-  "activationEvents": [
-    "onStartupFinished",
-    "onCommand:codegraphy.open",
-    "onView:codegraphy.graphView",
-    "onView:codegraphy.timelineView"
-  ],
-  "extensionDependencies": [
-    "codegraphy.codegraphy"
-  ],
-  "main": "./dist/extension.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
-    "dist/**",
-    "assets/**",
+    "dist",
+    "codegraphy.json",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
-    "vscode:prepublish": "pnpm run build",
-    "build": "esbuild src/activate.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js",
     "test": "vitest run",
-    "lint": "eslint \"src/**/*.ts\" \"tests/activate.test.ts\"",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "package:vsix": "mkdir -p ../../artifacts/vsix && pnpm exec vsce package --no-dependencies --out ../../artifacts/vsix/codegraphy.codegraphy-godot-${npm_package_version}.vsix",
-    "publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate"
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy-vscode/plugin-api": "workspace:*"
+    "@codegraphy/plugin-api": "workspace:*",
+    "@fernforestgames/godot-resource-parser": "0.1.3",
+    "@gdquest/lezer-gdscript": "0.1.2",
+    "@lezer/highlight": "^1.2.3",
+    "@lezer/lr": "^1.4.10"
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0",
+    "disclosures": []
   }
 }

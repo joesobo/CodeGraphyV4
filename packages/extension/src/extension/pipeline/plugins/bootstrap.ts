@@ -1,3 +1,11 @@
+import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  getWorkspaceSettingsPath,
+  loadCodeGraphyWorkspacePluginPackages,
+  readCodeGraphyWorkspaceSettings,
+  type CodeGraphyWorkspaceSettings,
+} from '@codegraphy/core';
+import * as fs from 'node:fs';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
 import { createMarkdownPlugin } from '../../../../../plugin-markdown/src/plugin';
@@ -9,6 +17,22 @@ export interface WorkspacePipelinePluginFilterSource {
 
 export interface WorkspacePipelineInitializationDependencies {
   getWorkspaceRoot(): string | undefined;
+  userHomeDir?: string;
+  warn?: (message: string) => void;
+}
+
+function getDefaultMarkdownPluginOptions(
+  settings: CodeGraphyWorkspaceSettings | undefined,
+): Record<string, unknown> | undefined {
+  return settings?.plugins.find(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)?.options;
+}
+
+function shouldRegisterMarkdownPlugin(settings: CodeGraphyWorkspaceSettings | undefined): boolean {
+  if (!settings) {
+    return true;
+  }
+
+  return settings.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME);
 }
 
 export function getWorkspacePipelinePluginFilterPatterns(
@@ -55,10 +79,36 @@ export async function initializeWorkspacePipeline(
   registry: PluginRegistry,
   dependencies: WorkspacePipelineInitializationDependencies,
 ): Promise<void> {
-  registry.register(createMarkdownPlugin(), { builtIn: true });
+  const workspaceRoot = dependencies.getWorkspaceRoot();
+  const settings = workspaceRoot && fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))
+    ? readCodeGraphyWorkspaceSettings(workspaceRoot)
+    : undefined;
   registry.register(createTreeSitterPlugin(), { builtIn: true });
 
-  const workspaceRoot = dependencies.getWorkspaceRoot();
+  if (shouldRegisterMarkdownPlugin(settings)) {
+    const markdownOptions = getDefaultMarkdownPluginOptions(settings);
+    registry.register(createMarkdownPlugin(), {
+      builtIn: true,
+      sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      ...(markdownOptions ? { options: markdownOptions } : {}),
+    });
+  }
+
+  if (workspaceRoot && settings) {
+    const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+      settings,
+      ...(dependencies.userHomeDir ? { homeDir: dependencies.userHomeDir } : {}),
+      ...(dependencies.warn ? { warn: dependencies.warn } : {}),
+    });
+
+    for (const loadedPlugin of loadedPackagePlugins) {
+      registry.register(loadedPlugin.plugin, {
+        sourcePackage: loadedPlugin.packageName,
+        ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
+      });
+    }
+  }
+
   if (workspaceRoot) {
     await registry.initializeAll(workspaceRoot);
   }

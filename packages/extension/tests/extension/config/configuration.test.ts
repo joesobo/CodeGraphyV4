@@ -26,7 +26,6 @@ describe('Configuration', () => {
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
-      disabledPlugins: [],
     };
 
     // Setup mock to return values from mockConfig
@@ -58,10 +57,6 @@ describe('Configuration', () => {
       expect(config.showOrphans).toBe(true);
     });
 
-    it('should return default disabledPlugins as empty array', () => {
-      const config = new Configuration();
-      expect(config.disabledPlugins).toEqual([]);
-    });
   });
 
   describe('custom values', () => {
@@ -89,11 +84,6 @@ describe('Configuration', () => {
       expect(config.showOrphans).toBe(false);
     });
 
-    it('should return custom disabledPlugins', () => {
-      mockConfig.disabledPlugins = ['codegraphy.python'];
-      const config = new Configuration();
-      expect(config.disabledPlugins).toEqual(['codegraphy.python']);
-    });
   });
 
   describe('getAll', () => {
@@ -102,29 +92,32 @@ describe('Configuration', () => {
       const all: ICodeGraphyConfig = config.getAll();
 
       expect(all).toEqual({
+        version: 1,
         maxFiles: DEFAULT_MAX_FILES,
         include: ['**/*'],
         respectGitignore: true,
         showOrphans: true,
+        filterPatterns: [],
         bidirectionalEdges: 'separate',
         disabledCustomFilterPatterns: [],
         disabledPluginFilterPatterns: [],
-        disabledPlugins: [],
-        pluginOrder: [],
+        plugins: [],
       });
     });
 
     it('should return custom values in getAll', () => {
       mockConfig.maxFiles = 200;
       mockConfig.showOrphans = false;
-      mockConfig.disabledPlugins = ['codegraphy.python'];
+      mockConfig.filterPatterns = ['dist/**'];
+      mockConfig.plugins = [{ package: '@codegraphy/plugin-python' }];
 
       const config = new Configuration();
       const all = config.getAll();
 
       expect(all.maxFiles).toBe(200);
       expect(all.showOrphans).toBe(false);
-      expect(all.disabledPlugins).toEqual(['codegraphy.python']);
+      expect(all.filterPatterns).toEqual(['dist/**']);
+      expect(all.plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
     });
   });
 

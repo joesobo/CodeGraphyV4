@@ -25,7 +25,7 @@ describe('repoSettings/freshness/index', () => {
     });
   });
 
-  it('reports a missing index when the repo has never been indexed', () => {
+  it('reports a missing index when the workspace has never been indexed', () => {
     expect(evaluateCodeGraphyIndexStatus({
       meta: {
         ...indexedMeta,
@@ -38,7 +38,7 @@ describe('repoSettings/freshness/index', () => {
       freshness: 'missing',
       hasIndex: false,
       staleReasons: ['never-indexed'],
-      detail: 'CodeGraphy index is missing. Index the repo to build the graph.',
+      detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
     });
   });
 
@@ -114,7 +114,7 @@ describe('repoSettings/freshness/index', () => {
     });
   });
 
-  it('reports missing indexed commit when a repo now has a commit', () => {
+  it('reports missing indexed commit when a workspace now has a commit', () => {
     expect(evaluateCodeGraphyIndexStatus({
       meta: {
         ...indexedMeta,
@@ -126,7 +126,7 @@ describe('repoSettings/freshness/index', () => {
     })).toMatchObject({
       freshness: 'stale',
       staleReasons: ['missing-indexed-commit'],
-      detail: 'CodeGraphy index is stale: the repo now has a commit, but the saved index does not.',
+      detail: 'CodeGraphy index is stale: the workspace now has a commit, but the saved index does not.',
     });
   });
 

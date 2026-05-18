@@ -4,39 +4,29 @@
  * @module plugins/godot/sources/ext-resource
  */
 
-import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
+import { parseGodotTextResourceDocument } from '../textResource/parser';
+import { parseGodotResourceAst } from '../textResource/resourceAst';
 
-const EXT_RESOURCE_TAG_REGEX = /^\[\s*ext_resource\b(.*)\]$/;
-const TAG_FIELD_REGEX = /\b([A-Za-z_][A-Za-z0-9_]*)=(?:"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)'|([^\s\]]+))/g;
-
-interface ExtResourceTag {
+interface ExtResourceReference {
   path: string;
   uid?: string;
 }
 
-function parseExtResourceTag(line: string): ExtResourceTag | null {
-  const tagMatch = line.trim().match(EXT_RESOURCE_TAG_REGEX);
-  if (!tagMatch) {
-    return null;
+function readExtResourceReferences(content: string): ExtResourceReference[] {
+  const ast = parseGodotResourceAst(content);
+  if (ast) {
+    return ast.extResources;
   }
 
-  const fields: Record<string, string> = {};
-  TAG_FIELD_REGEX.lastIndex = 0;
-  let fieldMatch;
-  while ((fieldMatch = TAG_FIELD_REGEX.exec(tagMatch[1])) !== null) {
-    fields[fieldMatch[1]] = fieldMatch[2] ?? fieldMatch[3] ?? fieldMatch[4] ?? '';
-  }
-
-  if (!fields.path) {
-    return null;
-  }
-
-  return {
-    path: fields.path,
-    uid: fields.uid,
-  };
+  return parseGodotTextResourceDocument(content).tags
+    .filter((tag) => tag.name === 'ext_resource' && tag.fields.path)
+    .map((tag) => ({
+      path: tag.fields.path,
+      ...(tag.fields.uid ? { uid: tag.fields.uid } : {}),
+    }));
 }
 
 export function detect(
@@ -45,19 +35,9 @@ export function detect(
   ctx: GDScriptRuleContext,
 ): IAnalysisRelation[] {
   const relations: IAnalysisRelation[] = [];
-  const lines = content.split('\n');
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
-  for (const line of lines) {
-    if (!line.trim() || line.trimStart().startsWith(';')) {
-      continue;
-    }
-
-    const resource = parseExtResourceTag(line);
-    if (!resource) {
-      continue;
-    }
-
+  for (const resource of readExtResourceReferences(content)) {
     const resolved = ctx.resolver.resolveTextResourcePath(
       resource.path,
       ctx.relativeFilePath,

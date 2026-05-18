@@ -4,6 +4,7 @@
  */
 
 import * as vscode from 'vscode';
+import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy/core';
 import type { IGroup } from '../../shared/settings/groups';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import { getCodeGraphyConfiguration, onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
@@ -73,6 +74,10 @@ export class Configuration {
     return this.config.get<boolean>('showOrphans', true);
   }
 
+  get filterPatterns(): string[] {
+    return this.config.get<string[]>('filterPatterns', []);
+  }
+
   /**
    * How to display bidirectional connections.
    * @default 'separate'
@@ -81,29 +86,16 @@ export class Configuration {
     return this.config.get<'separate' | 'combined'>('bidirectionalEdges', 'separate');
   }
 
-  /**
-   * Plugin toggle state persisted in repo-local settings.
-   * Entries are plugin IDs (e.g., "codegraphy.typescript").
-   * @default []
-   */
-  get disabledPlugins(): string[] {
-    return this.config.get<string[]>('disabledPlugins', []);
-  }
-
-  /**
-   * Plugin processing order, highest priority first.
-   * @default []
-   */
-  get pluginOrder(): string[] {
-    return this.config.get<string[]>('pluginOrder', []);
-  }
-
   get disabledCustomFilterPatterns(): string[] {
     return this.config.get<string[]>('disabledCustomFilterPatterns', []);
   }
 
   get disabledPluginFilterPatterns(): string[] {
     return this.config.get<string[]>('disabledPluginFilterPatterns', []);
+  }
+
+  get plugins(): CodeGraphyWorkspacePluginSettings[] {
+    return this.config.get<CodeGraphyWorkspacePluginSettings[]>('plugins', []);
   }
 
   /**
@@ -144,15 +136,16 @@ export class Configuration {
    */
   getAll(): ICodeGraphyConfig {
     return {
+      version: 1,
       maxFiles: this.maxFiles,
       include: this.include,
       respectGitignore: this.respectGitignore,
       showOrphans: this.showOrphans,
+      filterPatterns: this.filterPatterns,
       bidirectionalEdges: this.bidirectionalEdges,
-      disabledPlugins: this.disabledPlugins,
-      pluginOrder: this.pluginOrder,
       disabledCustomFilterPatterns: this.disabledCustomFilterPatterns,
       disabledPluginFilterPatterns: this.disabledPluginFilterPatterns,
+      plugins: this.plugins,
     };
   }
 

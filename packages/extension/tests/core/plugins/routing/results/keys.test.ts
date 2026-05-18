@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getRelationKey } from '../../../../../src/core/plugins/routing/router/results/keys';
+import { getRelationKey } from '@codegraphy/core';
 
 describe('routing/results/keys', () => {
   it('serializes every base relation field in order and uses empty placeholders for missing optionals', () => {

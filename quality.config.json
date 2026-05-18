@@ -62,7 +62,6 @@
       "mutation": {
         "exclude": [
           "src/**/e2e/**",
-          "src/**/core/discovery/file/defaults.ts",
           "src/**/core/plugins/versioning/apiVersions.ts",
           "src/**/*.d.ts",
           "src/**/extension/config/defaults.ts",
@@ -143,7 +142,7 @@
         ]
       }
     },
-    "codegraphy-mcp": {
+    "mcp": {
       "boundaries": {
         "entrypoints": [
           "src/cli/main.ts"
@@ -159,7 +158,6 @@
       "boundaries": {
         "entrypoints": [
           "src/index.ts",
-          "src/webview/index.ts",
           "src/plugin.ts",
           "src/events.ts"
         ]
@@ -168,14 +166,14 @@
     "plugin-csharp": {
       "boundaries": {
         "entrypoints": [
-          "src/activate.ts"
+          "src/plugin.ts"
         ]
       }
     },
     "plugin-godot": {
       "boundaries": {
         "entrypoints": [
-          "src/activate.ts"
+          "src/plugin.ts"
         ]
       }
     },
@@ -189,14 +187,14 @@
     "plugin-python": {
       "boundaries": {
         "entrypoints": [
-          "src/activate.ts"
+          "src/plugin.ts"
         ]
       }
     },
     "plugin-typescript": {
       "boundaries": {
         "entrypoints": [
-          "src/activate.ts"
+          "src/plugin.ts"
         ]
       }
     }

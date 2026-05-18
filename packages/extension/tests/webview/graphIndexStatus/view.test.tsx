@@ -16,7 +16,7 @@ describe('GraphIndexStatus', () => {
     const { container } = render(
       <GraphIndexStatus
         isIndexing={false}
-        progress={{ phase: 'Indexing Repo', current: 1, total: 4 }}
+        progress={{ phase: 'Indexing Workspace', current: 1, total: 4 }}
       />,
     );
 
@@ -27,12 +27,12 @@ describe('GraphIndexStatus', () => {
     render(
       <GraphIndexStatus
         isIndexing={true}
-        progress={{ phase: 'Indexing Repo', current: 1, total: 4 }}
+        progress={{ phase: 'Indexing Workspace', current: 1, total: 4 }}
       />,
     );
 
     expect(screen.getByTestId('graph-index-status')).toBeInTheDocument();
-    expect(screen.getByText('Indexing Repo')).toBeInTheDocument();
+    expect(screen.getByText('Indexing Workspace')).toBeInTheDocument();
     expect(screen.getByText('25%')).toBeInTheDocument();
     expect(screen.getByTestId('graph-index-status-fill')).toHaveStyle({ width: '25%' });
   });
@@ -41,7 +41,7 @@ describe('GraphIndexStatus', () => {
     render(
       <GraphIndexStatus
         isIndexing={true}
-        progress={{ phase: 'Indexing Repo', current: 3, total: 0 }}
+        progress={{ phase: 'Indexing Workspace', current: 3, total: 0 }}
       />,
     );
 

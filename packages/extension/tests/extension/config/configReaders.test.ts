@@ -78,28 +78,6 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
-  describe('disabledPlugins', () => {
-    it('returns the configured disabled plugins', () => {
-      mockConfig['disabledPlugins'] = ['codegraphy.python'];
-      expect(new Configuration().disabledPlugins).toEqual(['codegraphy.python']);
-    });
-
-    it('defaults to empty array', () => {
-      expect(new Configuration().disabledPlugins).toEqual([]);
-    });
-  });
-
-  describe('pluginOrder', () => {
-    it('returns the configured plugin order', () => {
-      mockConfig['pluginOrder'] = ['codegraphy.typescript', 'codegraphy.markdown'];
-      expect(new Configuration().pluginOrder).toEqual(['codegraphy.typescript', 'codegraphy.markdown']);
-    });
-
-    it('defaults to empty array', () => {
-      expect(new Configuration().pluginOrder).toEqual([]);
-    });
-  });
-
   describe('disabledCustomFilterPatterns', () => {
     it('returns the configured disabled custom filter patterns', () => {
       mockConfig['disabledCustomFilterPatterns'] = ['**/*.generated.ts'];
@@ -119,6 +97,28 @@ describe('Configuration (configReaders)', () => {
 
     it('defaults to empty array', () => {
       expect(new Configuration().disabledPluginFilterPatterns).toEqual([]);
+    });
+  });
+
+  describe('filterPatterns', () => {
+    it('returns the configured custom filter patterns', () => {
+      mockConfig['filterPatterns'] = ['dist/**'];
+      expect(new Configuration().filterPatterns).toEqual(['dist/**']);
+    });
+
+    it('defaults to empty array', () => {
+      expect(new Configuration().filterPatterns).toEqual([]);
+    });
+  });
+
+  describe('plugins', () => {
+    it('returns the configured workspace plugin entries', () => {
+      mockConfig['plugins'] = [{ package: '@codegraphy/plugin-python' }];
+      expect(new Configuration().plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
+    });
+
+    it('defaults to empty array', () => {
+      expect(new Configuration().plugins).toEqual([]);
     });
   });
 
@@ -174,7 +174,8 @@ describe('Configuration (configReaders)', () => {
       mockConfig['respectGitignore'] = false;
       mockConfig['showOrphans'] = false;
       mockConfig['bidirectionalEdges'] = 'combined';
-      mockConfig['disabledPlugins'] = ['d1'];
+      mockConfig['filterPatterns'] = ['dist/**'];
+      mockConfig['plugins'] = [{ package: '@codegraphy/plugin-python' }];
 
       const all = new Configuration().getAll();
 
@@ -183,14 +184,16 @@ describe('Configuration (configReaders)', () => {
       expect(all.respectGitignore).toBe(false);
       expect(all.showOrphans).toBe(false);
       expect(all.bidirectionalEdges).toBe('combined');
-      expect(all.disabledPlugins).toEqual(['d1']);
+      expect(all.filterPatterns).toEqual(['dist/**']);
+      expect(all.plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
     });
 
     it('uses defaults for unconfigured values', () => {
       const all = new Configuration().getAll();
       expect(all.maxFiles).toBe(DEFAULT_MAX_FILES);
       expect(all.showOrphans).toBe(true);
-      expect(all.disabledPlugins).toEqual([]);
+      expect(all.filterPatterns).toEqual([]);
+      expect(all.plugins).toEqual([]);
     });
   });
 

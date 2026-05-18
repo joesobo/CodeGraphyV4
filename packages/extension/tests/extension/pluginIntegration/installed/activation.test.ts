@@ -6,6 +6,7 @@ import type { GraphViewProvider } from '../../../../src/extension/graphViewProvi
 import { getGraphViewProviderInternals } from '../../graphViewProvider/internals';
 import {
   createPluginIntegrationWorkspace,
+  installPluginIntegrationPackage,
   type PluginIntegrationWorkspace,
 } from '../workspaceFixture';
 
@@ -28,20 +29,13 @@ let currentContext:
       subscriptions: Array<{ dispose: () => void }>;
     }
   | undefined;
-let installedExtensionsValue: Array<{
-  id: string;
-  isActive: boolean;
-  packageJSON?: { extensionDependencies?: string[] };
-  activate: () => Promise<unknown>;
-}> = [];
+let originalHome: string | undefined;
+let installedPackage:
+  | Awaited<ReturnType<typeof installPluginIntegrationPackage>>
+  | undefined;
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
-  configurable: true,
-});
-
-Object.defineProperty(vscode.extensions, 'all', {
-  get: () => installedExtensionsValue,
   configurable: true,
 });
 
@@ -73,14 +67,19 @@ function getRegisteredProvider(): GraphViewProvider {
 describe('extension/pluginIntegration/installedPluginActivation', () => {
   beforeAll(async () => {
     workspaceFixture = await createPluginIntegrationWorkspace();
+    installedPackage = await installPluginIntegrationPackage(
+      workspaceFixture.workspacePath,
+      workspaceFixture.scratchPath,
+    );
   });
 
   beforeEach(() => {
     currentContext = undefined;
+    originalHome = process.env.HOME;
+    process.env.HOME = installedPackage!.homeDir;
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceFixture!.workspacePath), name: 'workspace', index: 0 },
     ];
-    installedExtensionsValue = [];
     vi.clearAllMocks();
 
     (vscode.workspace.getConfiguration as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
@@ -113,6 +112,11 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     for (const subscription of [...(currentContext?.subscriptions ?? [])].reverse()) {
       subscription?.dispose();
     }
+    if (originalHome === undefined) {
+      delete process.env.HOME;
+    } else {
+      process.env.HOME = originalHome;
+    }
     currentContext = undefined;
   });
 
@@ -121,54 +125,20 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     workspaceFixture = undefined;
   });
 
-  it('activates installed dependent plugins before the first analysis runs', async () => {
-    const apiRef: { current?: ReturnType<typeof activate> } = {};
-    const coreExtensionRef = {
-      id: 'codegraphy.codegraphy',
-      isActive: false,
-      activate: vi.fn(async () => {
-        await Promise.resolve();
-        return apiRef.current;
-      }),
-    };
-
-    (vscode.extensions.getExtension as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      (extensionId: string) =>
-        extensionId === 'codegraphy.codegraphy' ? coreExtensionRef : undefined,
-    );
-
-    const activateInstalledPlugin = vi.fn(async () => {
-      const plugin = await import('../../../../../plugin-typescript/src/activate');
-      await plugin.activate({ extensionUri: vscode.Uri.file('/plugins/typescript') } as never);
-    });
-
-    installedExtensionsValue = [
-      {
-        id: 'codegraphy.codegraphy-typescript',
-        isActive: false,
-        packageJSON: {
-          extensionDependencies: ['codegraphy.codegraphy'],
-        },
-        activate: activateInstalledPlugin,
-      },
-    ];
-
+  it('loads package-enabled plugins before the first analysis runs', async () => {
     currentContext = createContext();
     const api = activate(currentContext as unknown as vscode.ExtensionContext);
-    apiRef.current = api;
 
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
     await internals._analysisMethods._analyzeAndSendData();
     await internals._analysisMethods._analyzeAndSendData();
 
-    expect(activateInstalledPlugin).toHaveBeenCalledOnce();
-    expect(coreExtensionRef.activate).toHaveBeenCalledOnce();
     expect(api.getGraphData().edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           from: 'src/index.ts',
-          to: 'src/utils.ts#clamp:function',
+          to: 'src/utils.ts',
         }),
       ]),
     );
@@ -180,7 +150,7 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     ).map((pluginInfo) => pluginInfo.plugin.id);
 
     expect(pluginIds).toEqual(
-      expect.arrayContaining(['codegraphy.markdown', 'codegraphy.typescript']),
+      expect.arrayContaining(['codegraphy.markdown', installedPackage!.pluginId]),
     );
     expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
       workspaceFixture!.workspacePath,

@@ -8,7 +8,7 @@
 	"scripts": {
 		"vscode:prepublish": "pnpm run build",
 		"build": "turbo run build",
-		"build:devhost": "pnpm --filter @codegraphy/extension run build && pnpm --filter codegraphy-typescript run build && pnpm --filter codegraphy-python run build && pnpm --filter codegraphy-csharp run build && pnpm --filter codegraphy-godot run build",
+		"build:devhost": "pnpm --filter @codegraphy/extension run build && pnpm --filter @codegraphy/plugin-typescript run build && pnpm --filter @codegraphy/plugin-python run build && pnpm --filter @codegraphy/plugin-csharp run build && pnpm --filter @codegraphy/plugin-godot run build",
 		"build:extension": "pnpm --filter @codegraphy/extension run build:extension",
 		"build:webview": "pnpm --filter @codegraphy/extension run build:webview",
 		"watch": "pnpm --filter @codegraphy/extension run watch",
@@ -38,8 +38,9 @@
 		"test:release": "node --test tests/release/*.test.mjs",
 		"typecheck": "turbo run typecheck",
 		"typecheck:extension": "pnpm --filter @codegraphy/extension run typecheck",
-		"typecheck:plugin-api": "pnpm --filter @codegraphy-vscode/plugin-api run typecheck",
-		"typecheck:plugins": "turbo run typecheck --filter=codegraphy-typescript --filter=codegraphy-python --filter=codegraphy-csharp --filter=codegraphy-godot --filter=@codegraphy/plugin-markdown",
+		"typecheck:core": "pnpm --filter @codegraphy/core run typecheck",
+		"typecheck:plugin-api": "pnpm --filter @codegraphy/plugin-api run typecheck",
+		"typecheck:plugins": "turbo run typecheck --filter=@codegraphy/plugin-typescript --filter=@codegraphy/plugin-python --filter=@codegraphy/plugin-csharp --filter=@codegraphy/plugin-godot --filter=@codegraphy/plugin-markdown",
 		"prepare": "husky",
 		"test:e2e": "pnpm run build:e2e && node dist-e2e/extension/src/e2e/runTest.js",
 		"build:e2e": "pnpm run build && tsc -p packages/extension/src/e2e/tsconfig.json"

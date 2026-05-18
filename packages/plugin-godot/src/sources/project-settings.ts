@@ -5,48 +5,34 @@
  * @module plugins/godot/sources/project-settings
  */
 
-import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
+import {
+  parseGodotProjectSettingsDocument,
+  unquoteGodotValue,
+} from '../textResource/parser';
 
 interface IProjectSettingReference {
   specifier: string;
-}
-
-function unquote(value: string): string {
-  if (
-    (value.startsWith('"') && value.endsWith('"'))
-    || (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
-  }
-
-  return value;
 }
 
 function normalizeAutoloadValue(value: string): string {
   return value.startsWith('*') ? value.slice(1) : value;
 }
 
-function parseProjectSettingLine(section: string | null, line: string): IProjectSettingReference | null {
-  const separatorIndex = line.indexOf('=');
-  if (separatorIndex < 0) {
-    return null;
-  }
-
-  const key = line.slice(0, separatorIndex).trim();
-  const rawValue = line.slice(separatorIndex + 1).trim();
-  if (!key || !rawValue) {
-    return null;
-  }
-
+function parseProjectSettingReference(
+  section: string | null,
+  key: string,
+  rawValue: string,
+): IProjectSettingReference | null {
   if (section === 'application' && key === 'run/main_scene') {
-    const specifier = unquote(rawValue);
+    const specifier = unquoteGodotValue(rawValue);
     return specifier ? { specifier } : null;
   }
 
   if (section === 'autoload') {
-    const specifier = normalizeAutoloadValue(unquote(rawValue));
+    const specifier = normalizeAutoloadValue(unquoteGodotValue(rawValue));
     return specifier ? { specifier } : null;
   }
 
@@ -60,21 +46,9 @@ export function detect(
 ): IAnalysisRelation[] {
   const relations: IAnalysisRelation[] = [];
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
-  let section: string | null = null;
 
-  for (const rawLine of content.split('\n')) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith(';')) {
-      continue;
-    }
-
-    const sectionMatch = line.match(/^\[\s*([^\]]+)\s*\]$/);
-    if (sectionMatch) {
-      section = sectionMatch[1].trim();
-      continue;
-    }
-
-    const reference = parseProjectSettingLine(section, line);
+  for (const setting of parseGodotProjectSettingsDocument(content).settings) {
+    const reference = parseProjectSettingReference(setting.section, setting.key, setting.value);
     if (!reference) {
       continue;
     }

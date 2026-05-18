@@ -4,44 +4,38 @@
  * @module plugins/godot/sources/extends
  */
 
-import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
-import { isResPath } from '../parser';
+import { parseGDScriptResourceReferences } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
 
 /** Detects extends statements with file paths: extends "res://scripts/base.gd" */
 export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelation[] {
   const relations: IAnalysisRelation[] = [];
-  const lines = content.split('\n');
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
-  for (let i = 0; i < lines.length; i++) {
-    const lineWithoutComment = lines[i].split('#')[0];
-    if (!lineWithoutComment.trim()) continue;
-
-    const match = lineWithoutComment.trim().match(/^extends\s+["']([^"']+)["']/);
-    if (match) {
-      const resPath = match[1];
-      if (isResPath(resPath)) {
-        const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
-        const resolvedPath = resolved
-          ? materializeResolvedPath({
-              projectRoot,
-              resolvedPath: resolved,
-              workspaceRoot: ctx.workspaceRoot,
-            })
-          : null;
-        relations.push({
-          kind: 'inherit',
-          specifier: resPath,
-          resolvedPath,
-          type: 'static',
-          sourceId: 'extends',
-          fromFilePath: filePath,
-          toFilePath: resolvedPath,
-        });
-      }
+  for (const reference of parseGDScriptResourceReferences(content)) {
+    if (reference.referenceType !== 'extends') {
+      continue;
     }
+
+    const resolved = ctx.resolver.resolve(reference.resPath, ctx.relativeFilePath);
+    const resolvedPath = resolved
+      ? materializeResolvedPath({
+          projectRoot,
+          resolvedPath: resolved,
+          workspaceRoot: ctx.workspaceRoot,
+        })
+      : null;
+    relations.push({
+      kind: 'inherit',
+      specifier: reference.resPath,
+      resolvedPath,
+      type: 'static',
+      sourceId: 'extends',
+      fromFilePath: filePath,
+      toFilePath: resolvedPath,
+    });
   }
 
   return relations;

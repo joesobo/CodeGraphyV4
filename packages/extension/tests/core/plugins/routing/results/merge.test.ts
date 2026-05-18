@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { IFileAnalysisResult } from '../../../../../src/core/plugins/types/contracts';
+import type { IFileAnalysisResult } from '../../../../../../plugin-api/src';
 import {
   createEmptyFileAnalysisResult,
   mergeById,
   mergeFileAnalysisResults,
   mergeRelations,
-} from '../../../../../src/core/plugins/routing/router/results/merge';
+} from '@codegraphy/core';
 
 describe('routing/results/merge', () => {
   it('builds an empty analysis result for a file path', () => {

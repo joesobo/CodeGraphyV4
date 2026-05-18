@@ -10,15 +10,17 @@ import {
   getWorkspacePipelinePluginName,
   getWorkspacePipelineStatusList,
 } from './runtime/plugins';
+import { readWorkspacePluginStatusContext } from '../plugins/statusContext';
 
 export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFacade {
   getPluginStatuses(disabledPlugins: Set<string>): IPluginStatus[] {
-    this._syncPluginOrder();
+    const pluginStatusContext = readWorkspacePluginStatusContext(this._getWorkspaceRoot());
     return getWorkspacePipelineStatusList(
       this._registry,
       disabledPlugins,
       this._lastDiscoveredFiles,
       this._lastFileConnections,
+      pluginStatusContext,
     );
   }
 

@@ -17,8 +17,6 @@ export interface ISettingsSnapshot {
   edgeVisibility: Record<string, boolean>;
   legendVisibility: Record<string, boolean>;
   legendOrder: string[];
-  pluginOrder: string[];
-  disabledPlugins: string[];
   particleSpeed: number;
   particleSize: number;
   showLabels: boolean;

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Source metadata for plugin-contributed relation families.
- * @module @codegraphy-vscode/plugin-api/connection
+ * @module @codegraphy/plugin-api/connection
  */
 
 /**

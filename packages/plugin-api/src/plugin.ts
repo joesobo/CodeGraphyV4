@@ -4,7 +4,7 @@
  * Plugin API v2 is required. Every plugin must declare `apiVersion`
  * and is validated by the host at registration time.
  *
- * @module @codegraphy-vscode/plugin-api/plugin
+ * @module @codegraphy/plugin-api/plugin
  */
 
 import type {
@@ -14,7 +14,6 @@ import type {
 } from './analysis';
 import type { IConnectionSource } from './connection';
 import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
-import type { CodeGraphyAPI } from './api';
 
 /**
  * File metadata passed to bulk analysis hooks.
@@ -40,6 +39,7 @@ export interface IPluginAnalysisContext {
   mode: 'workspace' | 'timeline';
   commitSha?: string;
   fileSystem: IPluginAnalysisFileSystem;
+  options?: Record<string, unknown>;
 }
 
 export interface IPluginFileColorDefinition {
@@ -66,11 +66,6 @@ export interface IPluginFileColorDefinition {
  *   async analyzeFile(filePath) {
  *     return { filePath, relations: [] };
  *   },
- *   onLoad(api) {
- *     api.on('analysis:completed', ({ graph }) => {
- *       // decorate nodes with coverage data
- *     });
- *   }
  * };
  * ```
  */
@@ -88,9 +83,6 @@ export interface IPlugin {
    * Semver range indicating which Plugin API version this plugin targets.
    */
   apiVersion: string;
-
-  /** Optional semver range for the webview-side API contract. */
-  webviewApiVersion?: string;
 
   /** File extensions this plugin can handle (e.g., `['.ts', '.tsx']`, or `['*']` for all files). */
   supportedExtensions: string[];
@@ -119,15 +111,6 @@ export interface IPlugin {
    * files matching these patterns are excluded from analysis.
    */
   defaultFilters?: string[];
-
-  /**
-   * Optional Tier-2 webview contributions injected by the host.
-   * Asset paths may be absolute URLs or extension-relative paths.
-   */
-  webviewContributions?: {
-    scripts?: string[];
-    styles?: string[];
-  };
 
   // ---------------------------------------------------------------------------
   // Core analysis contract
@@ -163,29 +146,17 @@ export interface IPlugin {
    * Initialization hook called when the plugin is first loaded.
    * Use to set up state or resources.
    */
-  initialize?(workspaceRoot: string): Promise<void>;
+  initialize?(workspaceRoot: string, context?: IPluginAnalysisContext): Promise<void>;
 
   // ---------------------------------------------------------------------------
   // Lifecycle hooks
   // ---------------------------------------------------------------------------
 
   /**
-   * Called when the plugin is loaded and the host API is available.
-   * This is the primary entry point for plugins to register
-   * event handlers, optional graph transforms, commands, and decorations.
-   */
-  onLoad?(api: CodeGraphyAPI): void;
-
-  /**
    * Called when the workspace has been fully scanned and the initial
    * graph is ready.
    */
   onWorkspaceReady?(graph: IGraphData): void;
-
-  /**
-   * Called when the webview has loaded and is ready to receive messages.
-   */
-  onWebviewReady?(): void;
 
   /**
    * Called before per-file analysis begins.
@@ -223,7 +194,7 @@ export interface IPlugin {
 
   /**
    * Called when the plugin is about to be unloaded.
-   * Dispose all resources, event subscriptions, and decorations here.
+   * Dispose parser state, caches, event subscriptions, and other headless resources here.
    */
   onUnload?(): void;
 }

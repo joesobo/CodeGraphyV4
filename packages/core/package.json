@@ -1,0 +1,57 @@
+{
+  "name": "@codegraphy/core",
+  "version": "0.1.0",
+  "description": "CodeGraphy core indexing and graph query engine",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22.22.0 <23"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/index.ts dist/index.js",
+    "lint": "eslint src tests vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy/plugin-api": "workspace:*",
+    "@codegraphy/plugin-markdown": "workspace:*",
+    "@driftlog/tree-sitter-dart": "1.0.4",
+    "@ladybugdb/core": "^0.15.3",
+    "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",
+    "@tree-sitter-grammars/tree-sitter-lua": "0.4.1",
+    "ignore": "^7.0.5",
+    "minimatch": "^10.1.1",
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-c": "0.24.1",
+    "tree-sitter-c-sharp": "0.23.1",
+    "tree-sitter-cpp": "0.23.4",
+    "tree-sitter-go": "0.25.0",
+    "tree-sitter-haskell": "0.23.1",
+    "tree-sitter-java": "0.23.5",
+    "tree-sitter-javascript": "^0.25.0",
+    "tree-sitter-php": "0.24.2",
+    "tree-sitter-python": "0.25.0",
+    "tree-sitter-ruby": "0.23.1",
+    "tree-sitter-rust": "0.24.0",
+    "tree-sitter-swift": "0.7.1",
+    "tree-sitter-typescript": "^0.23.2"
+  }
+}

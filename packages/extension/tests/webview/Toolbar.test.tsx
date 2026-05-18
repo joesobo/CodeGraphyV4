@@ -103,11 +103,11 @@ describe('Toolbar', () => {
       .getAllByRole('button')
       .map((button) => button.getAttribute('title'))
       .filter((title): title is string =>
-        ['Index Repo', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+        ['Index Workspace', 'Layout', 'Node Size', 'Graph Scope', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
       );
 
     expect(orderedTitles).toEqual([
-      'Index Repo',
+      'Index Workspace',
       'Layout',
       'Node Size',
       'Graph Scope',
@@ -167,7 +167,7 @@ describe('Toolbar', () => {
   it('refresh button sends INDEX_GRAPH before a graph index exists', () => {
     render(<Toolbar />);
 
-    fireEvent.click(screen.getByTitle('Index Repo'));
+    fireEvent.click(screen.getByTitle('Index Workspace'));
 
     expect(findMessage('INDEX_GRAPH')).toBeTruthy();
   });

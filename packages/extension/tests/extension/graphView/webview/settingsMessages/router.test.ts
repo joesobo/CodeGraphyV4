@@ -10,7 +10,6 @@ function createState(
   overrides: Partial<GraphViewSettingsMessageState> = {},
 ): GraphViewSettingsMessageState {
   return {
-    disabledPlugins: new Set<string>(),
     filterPatterns: [],
     ...overrides,
   };
@@ -43,6 +42,7 @@ function createHandlers(
     getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
     reprocessPluginFiles: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
@@ -255,24 +255,29 @@ describe('graph view settings router', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('re-enables plugins and rebuilds the plugin-owned edges from cache', async () => {
-    const state = createState({
-      disabledPlugins: new Set(['codegraphy.python']),
-    });
+  it('enables package-backed plugins and reloads workspace plugins before analysis', async () => {
+    const state = createState();
     const handlers = createHandlers();
 
     await applySettingsMessage(
       {
         type: 'TOGGLE_PLUGIN',
-        payload: { pluginId: 'codegraphy.python', enabled: true },
+        payload: {
+          pluginId: 'codegraphy.python',
+          packageName: '@codegraphy/plugin-python',
+          enabled: true,
+        },
       },
       state,
       handlers,
     );
 
-    expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+      { package: '@codegraphy/plugin-python' },
+    ]);
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 

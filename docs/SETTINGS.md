@@ -1,16 +1,16 @@
 # Settings
 
-CodeGraphy now keeps repo-specific graph settings under `.codegraphy/settings.json`.
+CodeGraphy keeps CodeGraphy Workspace settings under `.codegraphy/settings.json`.
 
 - The graph UI writes to that file for you.
 - The file is mostly internal, but still human-editable.
 - CodeGraphy watches it for changes and updates relevant graph state when it changes.
-- `.codegraphy/settings.json` is the source of truth for repo-local behavior.
+- `.codegraphy/settings.json` is the source of truth for workspace-local behavior.
 - These settings are no longer intended to be managed from VS Code's built-in Settings UI.
 
-## Repo-local settings file
+## Workspace-local settings file
 
-The repo-local settings file lives at:
+The workspace-local settings file lives at:
 
 ```text
 .codegraphy/settings.json
@@ -23,8 +23,7 @@ Common top-level sections include:
 - `edgeVisibility`
 - `edgeColors`
 - `legend` (the stored Legend Entry list used by the Legends popup)
-- `pluginOrder`
-- `disabledPlugins`
+- `plugins`
 - `physics`
 - `timeline`
 
@@ -47,11 +46,17 @@ Example:
     "import": "#60A5FA",
     "reference": "#F97316"
   },
-  "pluginOrder": [
-    "codegraphy.markdown",
-    "codegraphy.typescript"
+  "plugins": [
+    {
+      "package": "@codegraphy/plugin-markdown"
+    },
+    {
+      "package": "@codegraphy/plugin-python",
+      "options": {
+        "includeTests": true
+      }
+    }
   ],
-  "disabledPlugins": [],
   "legend": [
     { "id": "tests", "pattern": "*/tests/**", "color": "#22C55E" }
   ]
@@ -75,8 +80,7 @@ Example:
 | `particleSize` | number | `4` | Particle size in pixels |
 | `favorites` | string[] | `[]` | Favorite file paths |
 | `legend` | object[] | `[]` | Stored Legend Entries: `{ id, pattern, color, ... }` |
-| `pluginOrder` | string[] | `[]` | Plugin processing order, bottom-to-top |
-| `disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
+| `plugins` | object[] | `[]` | Ordered enabled plugin package entries for this CodeGraphy Workspace |
 | `nodeVisibility` | object | generated | Graph Scope by Node Type id |
 | `nodeColors` | object | generated | Node-type colors by id |
 | `edgeVisibility` | object | generated | Graph Scope by Edge Type id |
@@ -91,7 +95,46 @@ Example:
 | `timeline.maxCommits` | number | `500` | Maximum commits to index (10-5000) |
 | `timeline.playbackSpeed` | number | `1.0` | Playback speed multiplier (0.1-10.0) |
 
-Timeline indexing also respects the repo-local filter and plugin settings. See [Timeline](./TIMELINE.md) for details.
+Timeline indexing also respects the workspace-local filter and plugin settings. See [Timeline](./TIMELINE.md) for details.
+
+## Plugin settings
+
+Plugin enablement is workspace-local. Installing a plugin package only makes it available; enabling it writes an entry into the workspace `plugins` array.
+
+First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
+
+```json
+{
+  "plugins": [
+    {
+      "package": "@codegraphy/plugin-markdown"
+    }
+  ]
+}
+```
+
+Removing that entry disables Markdown for the workspace. Other installed plugins stay disabled until they are added to the `plugins` array through the VS Code UI, CLI, or MCP.
+
+Plugin `options` are also workspace-local. During Indexing, CodeGraphy merges package-level defaults with the workspace entry and passes the result to plugin hooks as `context.options`.
+
+When a plugin package declares `codegraphy.defaultOptions`, enabling that plugin copies those defaults into the workspace entry. That makes the settings explicit and editable:
+
+```json
+{
+  "plugins": [
+    {
+      "package": "@codegraphy/plugin-godot",
+      "options": {
+        "includeSceneResources": true,
+        "includeAutoloads": true,
+        "includeClassNameUsage": true
+      }
+    }
+  ]
+}
+```
+
+CLI, MCP, and the VS Code plugin popup should all produce the same workspace shape when they enable the same installed plugin.
 
 ## Settings Panel
 
@@ -336,9 +379,23 @@ This setting is also accessible from the Settings panel.
 }
 ```
 
-## Repo-local vs global settings
+## Workspace-local vs user-level state
 
-CodeGraphy’s graph/index behavior lives with the repo under `.codegraphy/`. By default CodeGraphy also adds `.codegraphy/` to the repo `.gitignore`, so these settings stay local unless you intentionally choose a different sharing strategy.
+CodeGraphy’s workspace behavior lives under `<workspace-root>/.codegraphy/`.
+
+- `.codegraphy/settings.json` is workspace-local configuration. Teams can commit it when they want shared CodeGraphy behavior.
+- `.codegraphy/graph.lbug` is generated Graph Cache output and should stay local by default.
+- `~/.codegraphy/plugins.json` is user-level installed-plugin cache state and is not part of any source workspace.
+- `~/.codegraphy/settings.json` is user-level CodeGraphy default state.
+
+Recommended `.gitignore` entries:
+
+```gitignore
+.codegraphy/graph.lbug
+.codegraphy/cache/
+```
+
+Do not ignore all of `.codegraphy/` if you want to share workspace plugin enablement, filters, Graph Scope, or Legend settings with teammates.
 
 ## Troubleshooting
 

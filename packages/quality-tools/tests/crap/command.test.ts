@@ -111,6 +111,31 @@ describe('mutation killers for command.ts', () => {
     expect(dependencies.runCommand).toHaveBeenCalledWith('pnpm', ['vitest'], REPO_ROOT);
   });
 
+  it('passes coverage profile environment variables to the command runner', () => {
+    const target = packageTarget();
+    const profiles = [
+      {
+        args: ['vitest'],
+        command: 'pnpm',
+        coveragePath: '/coverage/a.json',
+        cwd: REPO_ROOT,
+        env: {
+          CODEGRAPHY_VITEST_SCOPE: 'workspace'
+        }
+      }
+    ];
+    const dependencies = createDependencies(target, profiles, []);
+
+    runCrapCli(['--', 'quality-tools/'], dependencies);
+
+    expect(dependencies.runCommand).toHaveBeenCalledWith(
+      'pnpm',
+      ['vitest'],
+      REPO_ROOT,
+      { CODEGRAPHY_VITEST_SCOPE: 'workspace' },
+    );
+  });
+
   it('kills mutation: --threshold string literal is exact', () => {
     const target = packageTarget();
     const profiles = [

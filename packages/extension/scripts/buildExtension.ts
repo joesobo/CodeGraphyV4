@@ -1,7 +1,10 @@
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
-import { syncExtensionRuntimePackages } from './runtimePackages';
+import {
+  EXTENSION_EXTERNAL_PACKAGE_NAMES,
+  syncExtensionRuntimePackages,
+} from './externalPackages';
 
 const scriptDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const outputFilePath = path.resolve(scriptDirectoryPath, '../../../dist/extension.js');
@@ -10,27 +13,7 @@ const buildOptions: esbuild.BuildOptions = {
   entryPoints: [path.resolve(scriptDirectoryPath, '../src/extension/activate.ts')],
   bundle: true,
   outfile: outputFilePath,
-  external: [
-    'vscode',
-    '@ladybugdb/core',
-    'tree-sitter',
-    'tree-sitter-c',
-    'tree-sitter-cpp',
-    'tree-sitter-c-sharp',
-    '@driftlog/tree-sitter-dart',
-    'tree-sitter-go',
-    'tree-sitter-haskell',
-    'tree-sitter-java',
-    'tree-sitter-javascript',
-    '@tree-sitter-grammars/tree-sitter-kotlin',
-    '@tree-sitter-grammars/tree-sitter-lua',
-    'tree-sitter-php',
-    'tree-sitter-python',
-    'tree-sitter-ruby',
-    'tree-sitter-rust',
-    'tree-sitter-swift',
-    'tree-sitter-typescript',
-  ],
+  external: [...EXTENSION_EXTERNAL_PACKAGE_NAMES],
   format: 'cjs',
   platform: 'node',
 };

@@ -4,7 +4,7 @@ import type {
   IFileAnalysisResult,
 } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
-import type { IDiscoveredFile } from '../../../../core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../../serviceAdapters';
 import {
@@ -111,12 +111,10 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     return readWorkspacePipelineFileStat(filePath, vscode.workspace.fs);
   }
 
-  protected _syncPluginOrder(): void {
-    this._registry.setPluginOrder(this._config.getAll().pluginOrder);
-  }
-
   protected _getPluginSignature(): string | null {
-    return createWorkspacePipelinePluginSignature(this._registry.list());
+    return createWorkspacePipelinePluginSignature(this._registry.list(), {
+      settings: this._config.getAll(),
+    });
   }
 
   protected _getSettingsSignature(): string {
@@ -149,7 +147,6 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
 
   protected async _persistIndexMetadata(): Promise<void> {
     await persistWorkspacePipelineIndexMetadata(this._getWorkspaceRoot(), {
-      getCurrentCommitSha: async workspaceRoot => this._getCurrentCommitSha(workspaceRoot),
       getPluginSignature: () => this._getPluginSignature(),
       getSettingsSignature: () => this._getSettingsSignature(),
       warn: (message: string, error: unknown) => {

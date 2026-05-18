@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import path from 'path';
 import * as vscode from 'vscode';
-import type { IProjectedConnection, IFileAnalysisResult, IPlugin } from '../../../src/core/plugins/types/contracts';
+import type { IFileAnalysisResult, IPlugin } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
-import * as workspaceFileAnalysisModule from '../../../src/extension/pipeline/fileAnalysis';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -118,16 +117,16 @@ describe('WorkspacePipeline adapters', () => {
 
     const statuses = analyzer.getPluginStatuses(new Set());
 
-    expect(statuses).toEqual([
+    expect(statuses).toEqual(expect.arrayContaining([
       expect.objectContaining({
         id: 'plugin.typescript',
         connectionCount: 1,
         status: 'active',
       }),
-    ]);
+    ]));
   });
 
-  it('delegates file analysis through workspaceFileAnalysis adapters', async () => {
+  it('delegates file analysis through workspace pipeline adapters', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext
@@ -140,28 +139,13 @@ describe('WorkspacePipeline adapters', () => {
         analyzeFileResult: (
           absolutePath: string,
           content: string,
-          workspaceRoot: string
-        ) => Promise<IFileAnalysisResult | null>;
-      };
-      _analyzeFiles: (
-        files: Array<{ absolutePath: string; extension: string; name: string; relativePath: string }>,
         workspaceRoot: string
-      ) => Promise<{
-        fileAnalysis: Map<string, IFileAnalysisResult>;
-        fileConnections: Map<string, IProjectedConnection[]>;
-      }>;
+      ) => Promise<IFileAnalysisResult | null>;
+      };
+      _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
     };
     const eventBus = { emit: vi.fn() };
-    const expectedConnections = new Map<string, IProjectedConnection[]>([['src/index.ts', []]]);
     const file = createDiscoveredFile('src/index.ts');
-    const analyzeWorkspaceFilesSpy = vi.spyOn(workspaceFileAnalysisModule, 'analyzeWorkspaceFiles').mockResolvedValue({
-      cacheHits: 1,
-      cacheMisses: 2,
-      fileAnalysis: new Map([
-        ['src/index.ts', createEmptyAnalysisResult(file.absolutePath)],
-      ]),
-      fileConnections: expectedConnections,
-    });
     const getFileStatSpy = vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });
     const readContentSpy = vi.spyOn(analyzerPrivate._discovery, 'readContent').mockResolvedValue("import './utils'");
     const analyzeFileSpy = vi
@@ -170,33 +154,22 @@ describe('WorkspacePipeline adapters', () => {
 
     analyzer.setEventBus(eventBus as never);
     const result = await analyzerPrivate._analyzeFiles([file], '/test/workspace');
-    const options = analyzeWorkspaceFilesSpy.mock.calls[0][0];
 
     expect(result).toEqual({
-      cacheHits: 1,
-      cacheMisses: 2,
+      cacheHits: 0,
+      cacheMisses: 1,
       fileAnalysis: new Map([
         ['src/index.ts', createEmptyAnalysisResult(file.absolutePath)],
       ]),
-      fileConnections: expectedConnections,
+      fileConnections: new Map([['src/index.ts', []]]),
     });
-    expect(options.cache).toBe(analyzerPrivate._cache);
-    expect(options.files).toEqual([file]);
-    expect(options.workspaceRoot).toBe('/test/workspace');
-    await options.getFileStat(file.absolutePath);
     expect(getFileStatSpy).toHaveBeenCalledWith(file.absolutePath);
-    await options.readContent(file);
     expect(readContentSpy).toHaveBeenCalledWith(file);
-    await options.analyzeFile(file.absolutePath, "import './utils'", '/test/workspace');
     expect(analyzeFileSpy).toHaveBeenCalledWith(file.absolutePath, "import './utils'", '/test/workspace');
-    options.emitFileProcessed?.({
-      filePath: 'src/index.ts',
-      connections: [],
-    });
     expect(eventBus.emit).toHaveBeenCalledWith('analysis:fileProcessed', {
-      filePath: 'src/index.ts',
+      filePath: file.relativePath,
       connections: [],
     });
-    expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis: 1 cache hits, 2 misses');
+    expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis: 0 cache hits, 1 misses');
   });
 });

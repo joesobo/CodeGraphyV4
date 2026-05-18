@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphQueryRequest } from '../../../src/core/graphQuery';
+import type { GraphQueryRequest } from '@codegraphy/core';
 import { handleCodeGraphyAgentUri } from '../../../src/extension/agentBridge/uri';
 
 function createDependencies(

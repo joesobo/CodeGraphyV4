@@ -4,6 +4,10 @@ import { describe, expect, it } from 'vitest';
 
 interface ExtensionManifest {
   activationEvents?: string[];
+  codegraphy?: {
+    type?: string;
+  };
+  contributes?: unknown;
   extensionDependencies?: string[];
 }
 
@@ -19,18 +23,13 @@ function readManifest(packageName: typeof pluginPackages[number]): ExtensionMani
   return JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as ExtensionManifest;
 }
 
-describe('plugin extension activation events', () => {
-  it.each(pluginPackages)('%s activates when the core graph is used', (packageName) => {
+describe('first-party language plugin package manifests', () => {
+  it.each(pluginPackages)('%s is a headless CodeGraphy plugin package', (packageName) => {
     const manifest = readManifest(packageName);
 
-    expect(manifest.extensionDependencies).toContain('codegraphy.codegraphy');
-    expect(manifest.activationEvents).toEqual(
-      expect.arrayContaining([
-        'onStartupFinished',
-        'onCommand:codegraphy.open',
-        'onView:codegraphy.graphView',
-        'onView:codegraphy.timelineView',
-      ]),
-    );
+    expect(manifest.codegraphy?.type).toBe('plugin');
+    expect(manifest.extensionDependencies).toBeUndefined();
+    expect(manifest.activationEvents).toBeUndefined();
+    expect(manifest.contributes).toBeUndefined();
   });
 });

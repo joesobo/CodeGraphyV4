@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME } from '@codegraphy/core';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 import {
@@ -16,8 +17,7 @@ describe('extension/repoSettings/defaults', () => {
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
-      pluginOrder: [],
-      disabledPlugins: [],
+      plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
       nodeColors: createDefaultNodeColors(),
       nodeVisibility: createDefaultNodeVisibility(),
       edgeVisibility: createDefaultEdgeVisibility(),
@@ -66,8 +66,8 @@ describe('extension/repoSettings/defaults', () => {
     expect(second).toEqual(first);
     expect(second).not.toBe(first);
     expect(second.include).not.toBe(first.include);
-    expect(second.pluginOrder).not.toBe(first.pluginOrder);
-    expect(second.disabledPlugins).not.toBe(first.disabledPlugins);
+    expect(second.plugins).not.toBe(first.plugins);
+    expect(second.plugins[0]).not.toBe(first.plugins[0]);
     expect(second.nodeColors).not.toBe(first.nodeColors);
     expect(second.nodeVisibility).not.toBe(first.nodeVisibility);
     expect(second.edgeVisibility).not.toBe(first.edgeVisibility);

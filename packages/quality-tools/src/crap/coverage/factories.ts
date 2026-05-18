@@ -29,3 +29,22 @@ export function qualityToolsCoverageProfile(repoRoot: string): CoverageProfile {
     join(repoRoot, 'coverage/quality-tools/coverage-final.json')
   );
 }
+
+export function workspacePackageCoverageProfile(
+  repoRoot: string,
+  packageName: string
+): CoverageProfile {
+  return {
+    coveragePath: join(repoRoot, 'coverage/coverage-final.json'),
+    cwd: repoRoot,
+    env: {
+      CODEGRAPHY_VITEST_INCLUDE_JSON: JSON.stringify([
+        `packages/${packageName}/tests/**/*.test.ts`,
+        `packages/${packageName}/tests/**/*.test.tsx`
+      ]),
+      CODEGRAPHY_VITEST_SCOPE: 'workspace'
+    },
+    args: ['--filter', '@codegraphy/extension', 'exec', 'vitest', 'run', '--config', 'vitest.config.ts', '--coverage'],
+    command: 'pnpm'
+  };
+}

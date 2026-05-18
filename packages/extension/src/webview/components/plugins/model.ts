@@ -43,3 +43,11 @@ export function reorderPluginStatuses(
   reordered.splice(targetIndex, 0, movedPlugin);
   return reordered;
 }
+
+export function getPluginStatusLabel(plugin: IPluginStatus): string | undefined {
+  if (plugin.status === 'unavailable') {
+    return 'Runtime unavailable';
+  }
+
+  return undefined;
+}

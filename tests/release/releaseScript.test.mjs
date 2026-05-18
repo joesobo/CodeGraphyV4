@@ -18,16 +18,18 @@ test('release targets include every public workspace package', () => {
     .map((target) => target.packageName);
 
   assert.deepEqual(packageNames, [
-    '@codegraphy-vscode/plugin-api',
-    '@codegraphy-vscode/mcp',
-    'codegraphy-csharp',
-    'codegraphy-godot',
-    'codegraphy-python',
-    'codegraphy-typescript',
+    '@codegraphy/plugin-api',
+    '@codegraphy/plugin-csharp',
+    '@codegraphy/plugin-godot',
+    '@codegraphy/plugin-markdown',
+    '@codegraphy/plugin-python',
+    '@codegraphy/plugin-typescript',
+    '@codegraphy/core',
+    '@codegraphy/mcp',
   ]);
 });
 
-test('all publish includes npm packages before marketplace packages', () => {
+test('all publish includes npm packages before the marketplace extension', () => {
   const calls = [];
 
   runRelease('publish', 'all', repoRoot, (command, args, options = {}) => {
@@ -44,25 +46,35 @@ test('all publish includes npm packages before marketplace packages', () => {
   const releaseArgs = releaseCalls.map((call) => call.args);
 
   const pluginApiIndex = releaseArgs.findIndex((args) =>
-    args.includes('@codegraphy-vscode/plugin-api'),
+    args.includes('@codegraphy/plugin-api'),
+  );
+  const markdownIndex = releaseArgs.findIndex((args) =>
+    args.includes('@codegraphy/plugin-markdown'),
+  );
+  const corePackageIndex = releaseArgs.findIndex((args) =>
+    args.includes('@codegraphy/core'),
   );
   const mcpIndex = releaseArgs.findIndex((args) =>
-    args.includes('@codegraphy-vscode/mcp'),
+    args.includes('@codegraphy/mcp'),
   );
-  const coreIndex = releaseArgs.findIndex((args) =>
+  const extensionIndex = releaseArgs.findIndex((args) =>
     args.join(' ') === 'run publish:vsce',
   );
   const typescriptIndex = releaseArgs.findIndex((args) =>
-    args.includes('codegraphy-typescript'),
+    args.includes('@codegraphy/plugin-typescript'),
   );
 
   assert.ok(pluginApiIndex >= 0, 'expected plugin API npm publish');
+  assert.ok(markdownIndex >= 0, 'expected Markdown plugin npm publish');
+  assert.ok(corePackageIndex >= 0, 'expected core npm publish');
   assert.ok(mcpIndex >= 0, 'expected MCP npm publish');
-  assert.ok(coreIndex >= 0, 'expected core marketplace publish');
-  assert.ok(typescriptIndex >= 0, 'expected TypeScript marketplace publish');
-  assert.ok(pluginApiIndex < mcpIndex, 'expected plugin API to publish before MCP');
-  assert.ok(mcpIndex < coreIndex, 'expected npm packages before core marketplace publish');
-  assert.ok(coreIndex < typescriptIndex, 'expected core before plugin marketplace publishes');
+  assert.ok(extensionIndex >= 0, 'expected extension marketplace publish');
+  assert.ok(typescriptIndex >= 0, 'expected TypeScript plugin npm publish');
+  assert.ok(pluginApiIndex < corePackageIndex, 'expected plugin API to publish before core package');
+  assert.ok(markdownIndex < corePackageIndex, 'expected Markdown to publish before core package');
+  assert.ok(typescriptIndex < extensionIndex, 'expected plugin npm packages before extension marketplace publish');
+  assert.ok(corePackageIndex < mcpIndex, 'expected core package to publish before MCP');
+  assert.ok(mcpIndex < extensionIndex, 'expected npm packages before extension marketplace publish');
 });
 
 test('npm package release creates a tarball artifact', () => {
@@ -76,14 +88,14 @@ test('npm package release creates a tarball artifact', () => {
   assert.deepEqual(calls, [
     {
       command: 'pnpm',
-      args: ['--filter', '@codegraphy-vscode/mcp', 'run', 'build'],
+      args: ['--filter', '@codegraphy/mcp', 'run', 'build'],
       options: { cwd: repoRoot },
     },
     {
       command: 'pnpm',
       args: [
         '--filter',
-        '@codegraphy-vscode/mcp',
+        '@codegraphy/mcp',
         'pack',
         '--pack-destination',
         path.join(repoRoot, 'artifacts', 'npm'),
@@ -115,14 +127,14 @@ test('npm package publish builds before publishing', () => {
     },
     {
       command: 'pnpm',
-      args: ['--filter', '@codegraphy-vscode/mcp', 'run', 'build'],
+      args: ['--filter', '@codegraphy/mcp', 'run', 'build'],
       options: { cwd: repoRoot },
     },
     {
       command: 'pnpm',
       args: [
         '--filter',
-        '@codegraphy-vscode/mcp',
+        '@codegraphy/mcp',
         'publish',
         '--access',
         'public',
@@ -161,6 +173,29 @@ test('target groups can release only npm packages', () => {
 
   assert.deepEqual(
     targets.map((target) => target.packageName),
-    ['@codegraphy-vscode/plugin-api', '@codegraphy-vscode/mcp'],
+    [
+      '@codegraphy/plugin-api',
+      '@codegraphy/plugin-csharp',
+      '@codegraphy/plugin-godot',
+      '@codegraphy/plugin-markdown',
+      '@codegraphy/plugin-python',
+      '@codegraphy/plugin-typescript',
+      '@codegraphy/core',
+      '@codegraphy/mcp',
+    ],
   );
+});
+
+test('core target resolves to the npm core package and extension target resolves to the VSIX release', () => {
+  assert.deepEqual(resolveReleaseTargets('core', repoRoot).map((target) => target.packageName), [
+    '@codegraphy/core',
+  ]);
+
+  assert.deepEqual(resolveReleaseTargets('extension', repoRoot), [
+    {
+      id: 'extension',
+      aliases: ['extension', 'vsix', 'marketplace', 'core-extension'],
+      kind: 'extension',
+    },
+  ]);
 });

@@ -66,8 +66,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     edgeVisibility: { imports: true, nests: false },
     legendVisibility: {},
     legendOrder: [],
-    pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
-    disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
@@ -94,8 +92,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       edgeVisibility: { imports: true, nests: false },
       legendVisibility: {},
       legendOrder: [],
-      pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
-      disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.001,
       particleSize: 4,
       showLabels: true,
@@ -163,8 +159,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(updatedKeys).toContain('nodeColors');
     expect(updatedKeys).toContain('nodeVisibility');
     expect(updatedKeys).toContain('edgeVisibility');
-    expect(updatedKeys).toContain('pluginOrder');
-    expect(updatedKeys).toContain('disabledPlugins');
     expect(updatedKeys).toContain('particleSpeed');
     expect(updatedKeys).toContain('particleSize');
     expect(updatedKeys).toContain('showLabels');
@@ -214,8 +208,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'nodeColors' && value === SNAPSHOT.nodeColors)).toBe(true);
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'nodeVisibility' && value === SNAPSHOT.nodeVisibility)).toBe(true);
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'edgeVisibility' && value === SNAPSHOT.edgeVisibility)).toBe(true);
-    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'pluginOrder' && value === SNAPSHOT.pluginOrder)).toBe(true);
-    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'disabledPlugins' && value === SNAPSHOT.disabledPlugins)).toBe(true);
   });
 
   it('updates repo settings without a VS Code config target argument', async () => {

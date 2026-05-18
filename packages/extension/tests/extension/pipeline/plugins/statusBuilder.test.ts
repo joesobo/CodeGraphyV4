@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import type { IProjectedConnection, IPlugin, IPluginInfo } from '../../../../src/core/plugins/types/contracts';
 import { buildWorkspacePluginStatuses } from '../../../../src/extension/pipeline/plugins/statusBuilder';
 
@@ -302,5 +302,129 @@ describe('pipeline/plugins/statusBuilder', () => {
         connectionCount: 1,
       }),
     ]);
+  });
+
+  it('lists globally installed package plugins as disabled when workspace settings do not enable them', () => {
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [],
+      fileConnections: new Map(),
+      installedPlugins: [
+        {
+          package: '@codegraphy/plugin-python',
+          version: '2.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+        },
+      ],
+      pluginInfos: [],
+      workspaceEnabledPackageNames: new Set(),
+    });
+
+    expect(statuses).toEqual([
+      {
+        id: '@codegraphy/plugin-python',
+        packageName: '@codegraphy/plugin-python',
+        name: '@codegraphy/plugin-python',
+        version: '2.0.0',
+        supportedExtensions: [],
+        status: 'installed',
+        enabled: false,
+        connectionCount: 0,
+      },
+    ]);
+  });
+
+  it('does not duplicate an installed package plugin that is already registered for the workspace', () => {
+    const pluginInfos = [
+      {
+        ...createPluginInfo({
+          id: 'codegraphy.python',
+          name: 'Python',
+          supportedExtensions: ['.py'],
+        }),
+        sourcePackage: '@codegraphy/plugin-python',
+      },
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [{ relativePath: 'main.py' }],
+      fileConnections: new Map([['main.py', []]]),
+      installedPlugins: [
+        {
+          package: '@codegraphy/plugin-python',
+          version: '2.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+        },
+      ],
+      pluginInfos,
+      workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+    });
+
+    expect(statuses).toHaveLength(1);
+    expect(statuses[0]).toMatchObject({
+      id: 'codegraphy.python',
+      packageName: '@codegraphy/plugin-python',
+      enabled: true,
+    });
+  });
+
+  it('marks enabled installed packages without a registered runtime as unavailable', () => {
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [],
+      fileConnections: new Map(),
+      installedPlugins: [
+        {
+          package: '@codegraphy/plugin-python',
+          version: '2.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+        },
+      ],
+      pluginInfos: [],
+      workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+    });
+
+    expect(statuses).toEqual([
+      expect.objectContaining({
+        id: '@codegraphy/plugin-python',
+        packageName: '@codegraphy/plugin-python',
+        status: 'unavailable',
+        enabled: true,
+        supportedExtensions: [],
+      }),
+    ]);
+  });
+
+  it('keeps registered package plugins enabled when no workspace settings file exists yet', () => {
+    const pluginInfos = [
+      {
+        ...createPluginInfo({
+          id: 'codegraphy.markdown',
+          name: 'Markdown',
+          supportedExtensions: ['.md'],
+        }),
+        sourcePackage: '@codegraphy/plugin-markdown',
+      },
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [{ relativePath: 'README.md' }],
+      fileConnections: new Map([['README.md', []]]),
+      pluginInfos,
+    });
+
+    expect(statuses[0]).toMatchObject({
+      id: 'codegraphy.markdown',
+      packageName: '@codegraphy/plugin-markdown',
+      enabled: true,
+    });
   });
 });

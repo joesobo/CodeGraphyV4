@@ -3,15 +3,12 @@ import { GraphViewProvider } from './graphViewProvider';
 import { registerConfigHandler } from './config/listener';
 import { initializeCurrentCodeGraphyConfiguration } from './repoSettings/current';
 import { registerCommands } from './commands/register';
-import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed';
 import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
 import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
 import { createCodeGraphyAgentUriHandler } from './agentBridge/uri';
-import type { GraphQueryRequest, GraphQueryResult } from '../core/graphQuery';
+import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy/core';
 import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
-
-const CODEGRAPHY_EXTENSION_ID = 'codegraphy.codegraphy';
 
 /** Public API returned by activate() — usable from e2e tests. */
 export interface CodeGraphyAPI {
@@ -27,16 +24,13 @@ export interface CodeGraphyAPI {
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
   /** Register an external v2 plugin. */
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;
-  /** Query the current Relationship Graph through the Core Extension. */
+  /** Query the current Relationship Graph through @codegraphy/core. */
   queryGraph(request: GraphQueryRequest): GraphQueryResult;
 }
 
 export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   initializeCurrentCodeGraphyConfiguration(context);
   const provider = new GraphViewProvider(context.extensionUri, context);
-  provider.setInstalledPluginActivationPromise(
-    activateInstalledCodeGraphyPlugins(vscode.extensions.all, CODEGRAPHY_EXTENSION_ID),
-  );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(

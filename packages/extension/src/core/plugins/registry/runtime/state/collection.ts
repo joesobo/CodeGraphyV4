@@ -7,7 +7,6 @@ import type {
   IPluginNodeType,
   IProjectedConnection,
 } from '../../../types/contracts';
-import { rebuildPluginExtensionMap } from '../maps/extensionMap';
 import {
   analyzeFile,
   analyzeFileResult,
@@ -19,7 +18,6 @@ import {
   supportsFile,
 } from '../../../routing/router/lookups';
 import { listPluginContributions } from '../maps/contributions';
-import { buildReorderedPluginMap, replacePluginMap } from '../maps/order';
 import { PluginRegistryState } from './store';
 
 export abstract class PluginRegistryCollection extends PluginRegistryState {
@@ -105,20 +103,6 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     analyzeFileResultProvider: typeof this._coreAnalyzeFileResult,
   ): void {
     this._coreAnalyzeFileResult = analyzeFileResultProvider;
-  }
-
-  setPluginOrder(pluginIds: string[] | undefined): void {
-    if (!pluginIds || pluginIds.length === 0 || this._plugins.size <= 1) {
-      return;
-    }
-
-    const reorderedPlugins = buildReorderedPluginMap(this._plugins, pluginIds);
-    replacePluginMap(this._plugins, reorderedPlugins);
-
-    rebuildPluginExtensionMap(
-      Array.from(this._plugins.values(), (pluginInfo) => pluginInfo.plugin),
-      this._extensionMap,
-    );
   }
 
   disposeAll(): void {

@@ -16,11 +16,6 @@ interface IGraphViewSettingsReader {
   get<T>(section: string, defaultValue: T): T;
 }
 
-export interface IGraphViewDisabledState {
-  disabledPlugins: Set<string>;
-  changed: boolean;
-}
-
 export function normalizeDirectionColor(value: string | undefined): string {
   return normalizeHexColor(value, DEFAULT_DIRECTION_COLOR);
 }
@@ -35,29 +30,6 @@ export function getGraphViewConfigTarget(
   return workspaceFolders?.length
     ? vscode.ConfigurationTarget.Workspace
     : vscode.ConfigurationTarget.Global;
-}
-
-export function areGraphViewSetsEqual<T>(setA: Set<T>, setB: Set<T>): boolean {
-  if (setA.size !== setB.size) return false;
-
-  for (const value of setA) {
-    if (!setB.has(value)) return false;
-  }
-
-  return true;
-}
-
-export function resolveGraphViewDisabledState(
-  currentDisabledPlugins: Set<string>,
-  configuredPlugins: readonly string[] | undefined,
-  storedPlugins: readonly string[] | undefined
-): IGraphViewDisabledState {
-  const disabledPlugins = new Set(configuredPlugins ?? storedPlugins ?? []);
-
-  return {
-    disabledPlugins,
-    changed: !areGraphViewSetsEqual(currentDisabledPlugins, disabledPlugins),
-  };
 }
 
 export function readGraphViewSettings(

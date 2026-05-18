@@ -1,4 +1,4 @@
-# @codegraphy-vscode/plugin-api
+# @codegraphy/plugin-api
 
 ## 2.0.0
 

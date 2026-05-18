@@ -63,8 +63,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     edgeVisibility: { imports: true, calls: false },
     legendVisibility: {},
     legendOrder: [],
-    pluginOrder: ['codegraphy.markdown'],
-    disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
@@ -94,8 +92,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       edgeVisibility: { imports: true, calls: false },
       legendVisibility: {},
       legendOrder: [],
-      pluginOrder: ['codegraphy.markdown'],
-      disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.001,
       particleSize: 4,
       showLabels: true,
@@ -153,8 +149,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     expect(keys).toContain('nodeColors');
     expect(keys).toContain('nodeVisibility');
     expect(keys).toContain('edgeVisibility');
-    expect(keys).toContain('pluginOrder');
-    expect(keys).toContain('disabledPlugins');
     expect(keys).toContain('nodeSizeMode');
     for (const call of calls) {
       if (call[0] === 'nodeSizeMode') {

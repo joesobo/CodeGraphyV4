@@ -11,7 +11,6 @@ function createState(
   overrides: Partial<GraphViewSettingsMessageState> = {},
 ): GraphViewSettingsMessageState {
   return {
-    disabledPlugins: new Set<string>(),
     filterPatterns: [],
     ...overrides,
   };
@@ -23,6 +22,8 @@ function createHandlers(
     const handlers = {
       getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
       updateConfig: vi.fn(() => Promise.resolve()),
+      reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
+      analyzeAndSendData: vi.fn(() => Promise.resolve()),
       smartRebuild: vi.fn(),
       getPluginFilterPatterns: vi.fn(() => []),
       sendGraphControls: vi.fn(),
@@ -38,30 +39,7 @@ function createHandlers(
 }
 
 describe('graph view settings toggle message', () => {
-  it('re-enables plugins, persists the disabled-plugin list, and rebuilds cached plugin edges', async () => {
-    const state = createState({
-      disabledPlugins: new Set(['codegraphy.python']),
-    });
-    const handlers = createHandlers();
-
-    const handled = await applySettingsToggleMessage(
-      {
-        type: 'TOGGLE_PLUGIN',
-        payload: { pluginId: 'codegraphy.python', enabled: true },
-      },
-      state,
-      handlers,
-    );
-
-    expect(handled).toBe(true);
-    expect([...state.disabledPlugins]).toEqual([]);
-    expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
-    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
-  });
-
-  it('disables plugins, persists the expanded disabled-plugin set, and rebuilds cached plugin edges', async () => {
+  it('ignores legacy plugin-id-only toggles', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -74,40 +52,129 @@ describe('graph view settings toggle message', () => {
       handlers,
     );
 
-    expect(handled).toBe(true);
-    expect([...state.disabledPlugins]).toEqual(['codegraphy.python']);
-    expect(state.disabledPlugins.has('codegraphy.python')).toBe(true);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', [
-      'codegraphy.python',
-    ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handled).toBe(false);
+    expect(handlers.updateConfig).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
-  it('disables one plugin without dropping existing disabled plugins', async () => {
-    const state = createState({
-      disabledPlugins: new Set(['codegraphy.typescript']),
+  it('disables package-backed plugins by removing them from the workspace plugins list', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [
+            { package: '@codegraphy/plugin-markdown' },
+            {
+              package: '@codegraphy/plugin-python',
+              options: { includeTests: true },
+            },
+          ] as T;
+        }
+        return defaultValue;
+      }),
     });
-    const handlers = createHandlers();
 
-    await expect(
-      applySettingsToggleMessage(
-        {
-          type: 'TOGGLE_PLUGIN',
-          payload: { pluginId: 'codegraphy.python', enabled: false },
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.python',
+          packageName: '@codegraphy/plugin-python',
+          enabled: false,
         },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
+      },
+      state,
+      handlers,
+    );
 
-    expect([...state.disabledPlugins]).toEqual([
-      'codegraphy.typescript',
-      'codegraphy.python',
+    expect(handled).toBe(true);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+      { package: '@codegraphy/plugin-markdown' },
     ]);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', [
-      'codegraphy.typescript',
-      'codegraphy.python',
+    expect(handlers.updateConfig).not.toHaveBeenCalledWith('disabledPlugins', expect.anything());
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('enables package-backed plugins by adding them to the workspace plugins list', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [{ package: '@codegraphy/plugin-markdown' }] as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.python',
+          packageName: '@codegraphy/plugin-python',
+          enabled: true,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+      { package: '@codegraphy/plugin-markdown' },
+      { package: '@codegraphy/plugin-python' },
+    ]);
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
+  it('copies package default options into workspace settings when enabling a package-backed plugin', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [{ package: '@codegraphy/plugin-markdown' }] as T;
+        }
+        return defaultValue;
+      }),
+      getInstalledPluginDefaultOptions: vi.fn((packageName: string) => {
+        if (packageName === '@codegraphy/plugin-godot') {
+          return {
+            includeSceneResources: true,
+            includeAutoloads: true,
+          };
+        }
+        return undefined;
+      }),
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.godot',
+          packageName: '@codegraphy/plugin-godot',
+          enabled: true,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+      { package: '@codegraphy/plugin-markdown' },
+      {
+        package: '@codegraphy/plugin-godot',
+        options: {
+          includeSceneResources: true,
+          includeAutoloads: true,
+        },
+      },
     ]);
   });
 
@@ -124,22 +191,34 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(false);
   });
 
-  it('returns immediately because toggles rebuild cached plugin edges instead of reprocessing files', async () => {
+  it('reloads package plugins instead of only rebuilding cached plugin edges', async () => {
     const state = createState();
     const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [{ package: '@codegraphy/plugin-python' }] as T;
+        }
+        return defaultValue;
+      }),
       reprocessPluginFiles: vi.fn(() => new Promise<void>(() => undefined)),
     });
     const handled = await applySettingsToggleMessage(
       {
         type: 'TOGGLE_PLUGIN',
-        payload: { pluginId: 'codegraphy.python', enabled: false },
+        payload: {
+          pluginId: 'codegraphy.python',
+          packageName: '@codegraphy/plugin-python',
+          enabled: false,
+        },
       },
       state,
       handlers,
     );
 
     expect(handled).toBe(true);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 });

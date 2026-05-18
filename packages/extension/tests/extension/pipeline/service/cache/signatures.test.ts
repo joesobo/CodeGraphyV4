@@ -5,10 +5,6 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { execGitCommand } from '../../../../../src/extension/gitHistory/exec';
 import {
-  createCodeGraphyPluginSignature,
-  createCodeGraphySettingsSignature,
-} from '../../../../../src/extension/repoSettings/signatures';
-import {
   createWorkspacePipelinePluginSignature,
   createWorkspacePipelineSettingsSignature,
   readWorkspacePipelineCurrentCommitSha,
@@ -19,45 +15,108 @@ vi.mock('../../../../../src/extension/gitHistory/exec', () => ({
   execGitCommand: vi.fn(),
 }));
 
-vi.mock('../../../../../src/extension/repoSettings/signatures', () => ({
-  createCodeGraphyPluginSignature: vi.fn(),
-  createCodeGraphySettingsSignature: vi.fn(),
-}));
-
 describe('pipeline/service/cache/signatures', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('maps plugin ids and versions before creating the workspace plugin signature', () => {
-    vi.mocked(createCodeGraphyPluginSignature).mockReturnValue('plugin-signature');
-
+  it('fingerprints built-in runtime plugins and npm package plugins with package versions', () => {
     const signature = createWorkspacePipelinePluginSignature([
-      { plugin: { id: 'plugin.alpha', version: '1.0.0', extra: 'ignored' } },
-      { plugin: { id: 'plugin.beta', version: '2.0.0', extra: 'ignored' } },
-    ] as never);
+      {
+        builtIn: true,
+        plugin: { id: 'codegraphy.treesitter', version: '1.0.0', extra: 'ignored' },
+      },
+      {
+        builtIn: true,
+        sourcePackage: '@codegraphy/plugin-markdown',
+        plugin: { id: 'codegraphy.markdown', version: '1.0.4', extra: 'ignored' },
+      },
+      {
+        builtIn: false,
+        sourcePackage: '@codegraphy/plugin-python',
+        plugin: { id: 'codegraphy.python', version: 'runtime-version', extra: 'ignored' },
+      },
+    ] as never, {
+      installedPlugins: [
+        { package: '@codegraphy/plugin-python', version: '2.0.4' },
+      ],
+      settings: {
+        plugins: [
+          { package: '@codegraphy/plugin-markdown' },
+          { package: '@codegraphy/plugin-python' },
+        ],
+      },
+    });
 
-    expect(createCodeGraphyPluginSignature).toHaveBeenCalledWith([
-      { plugin: { id: 'plugin.alpha', version: '1.0.0' } },
-      { plugin: { id: 'plugin.beta', version: '2.0.0' } },
-    ]);
-    expect(signature).toBe('plugin-signature');
+    expect(signature).toBe(
+      'codegraphy.treesitter@1.0.0|codegraphy.markdown@1.0.4|npm:@codegraphy/plugin-python@2.0.4',
+    );
   });
 
-  it('passes the full config snapshot into the settings signature creator', () => {
-    vi.mocked(createCodeGraphySettingsSignature).mockReturnValue('settings-signature');
+  it('marks enabled workspace plugin packages that are not loaded into the runtime fingerprint', () => {
+    expect(createWorkspacePipelinePluginSignature([], {
+      installedPlugins: [],
+      settings: {
+        plugins: [
+          { package: '@codegraphy/plugin-python' },
+        ],
+      },
+    })).toBe('npm:@codegraphy/plugin-python@missing');
+  });
+
+  it('includes workspace plugin settings and filter patterns in the settings signature', () => {
     const config = {
-      getAll: vi.fn(() => ({ showOrphans: true, maxFiles: 50 })),
+      getAll: vi.fn(() => ({
+        version: 1,
+        maxFiles: 50,
+        include: ['src/**'],
+        respectGitignore: true,
+        showOrphans: true,
+        filterPatterns: ['dist/**'],
+        disabledCustomFilterPatterns: [],
+        disabledPluginFilterPatterns: [],
+        plugins: [{ package: '@codegraphy/plugin-python', options: { includeTests: true } }],
+      })),
     };
 
     const signature = createWorkspacePipelineSettingsSignature(config as never);
 
     expect(config.getAll).toHaveBeenCalledOnce();
-    expect(createCodeGraphySettingsSignature).toHaveBeenCalledWith({
-      showOrphans: true,
-      maxFiles: 50,
-    });
-    expect(signature).toBe('settings-signature');
+    expect(signature).not.toBe(createWorkspacePipelineSettingsSignature({
+      getAll: () => ({
+        version: 1,
+        maxFiles: 50,
+        include: ['src/**'],
+        respectGitignore: true,
+        showOrphans: true,
+        filterPatterns: [],
+        disabledCustomFilterPatterns: [],
+        disabledPluginFilterPatterns: [],
+        plugins: [{ package: '@codegraphy/plugin-python', options: { includeTests: true } }],
+      }),
+    } as never));
+    expect(signature).not.toBe(createWorkspacePipelineSettingsSignature({
+      getAll: () => ({
+        version: 1,
+        maxFiles: 50,
+        include: ['src/**'],
+        respectGitignore: true,
+        showOrphans: true,
+        filterPatterns: ['dist/**'],
+        disabledCustomFilterPatterns: [],
+        disabledPluginFilterPatterns: [],
+        plugins: [],
+      }),
+    } as never));
+  });
+
+  it('normalizes partial settings snapshots before hashing them', () => {
+    expect(() => createWorkspacePipelineSettingsSignature({
+      getAll: () => ({
+        showOrphans: true,
+        respectGitignore: true,
+      }),
+    } as never)).not.toThrow();
   });
 
   it('reads and trims the current commit sha asynchronously', async () => {

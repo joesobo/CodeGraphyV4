@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { WorkspacePipelineDiscoveryFacade } from '../../../../src/extension/pipeline/service/discoveryFacade';
 import type { Configuration } from '../../../../src/extension/config/reader';
-import type { FileDiscovery } from '../../../../src/core/discovery/file/service';
+import type { FileDiscovery } from '@codegraphy/core';
 import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
 import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
-import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
+import type { IDiscoveredFile } from '@codegraphy/core';
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
@@ -57,7 +57,6 @@ vi.mock('vscode', () => ({
 }));
 
 class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
-  readonly syncPluginOrder = vi.fn();
   readonly getWorkspaceRoot = vi.fn<() => string | undefined>(() => '/workspace');
   readonly clearCache = vi.fn();
 
@@ -72,20 +71,15 @@ class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
   }
 
   _config = {
-    getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true, pluginOrder: ['plugin.a'] })),
+    getAll: vi.fn(() => ({ showOrphans: true, respectGitignore: true })),
   } as unknown as Configuration;
 
   _discovery = { kind: 'discovery' } as unknown as FileDiscovery;
   _registry = {
     id: 'registry',
     list: vi.fn(() => []),
-    setPluginOrder: vi.fn(),
   } as unknown as PluginRegistry;
   _cache = { files: {} } as unknown as IWorkspaceAnalysisCache;
-
-  protected override _syncPluginOrder(): void {
-    this.syncPluginOrder();
-  }
 
   protected override _getWorkspaceRoot(): string | undefined {
     return this.getWorkspaceRoot();
@@ -158,7 +152,6 @@ describe('pipeline/service/discoveryFacade', () => {
 
     await expect(facade.discoverGraph()).resolves.toEqual({ nodes: [], edges: [] });
 
-    expect(facade.syncPluginOrder).toHaveBeenCalledOnce();
     expect(discoverWorkspacePipelineFilesWithWarnings).not.toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] No workspace folder open');
   });
@@ -181,7 +174,7 @@ describe('pipeline/service/discoveryFacade', () => {
     expect(discoverWorkspacePipelineFilesWithWarnings).toHaveBeenCalledWith(
       'discovery-deps',
       '/workspace',
-      { showOrphans: true, respectGitignore: true, pluginOrder: ['plugin.a'] },
+      { showOrphans: true, respectGitignore: true },
       [],
       ['plugin-filter'],
       expect.any(AbortSignal),

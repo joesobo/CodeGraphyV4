@@ -12,7 +12,6 @@ function createContext(
     getCurrentCommitSha: vi.fn(() => undefined),
     getCanMutateGraphRevision: vi.fn(() => true),
     getUserGroups: vi.fn(() => []),
-    getDisabledPlugins: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() })),
     sendGraphControls: vi.fn(),
@@ -68,14 +67,11 @@ function createContext(
 
 describe('createGraphViewPrimarySettingsMessageState', () => {
   it('reads the current settings state from the primary message context', () => {
-    const disabledPlugins = new Set(['plugin-a']);
     const context = createContext({
-      getDisabledPlugins: vi.fn(() => disabledPlugins),
       getFilterPatterns: vi.fn(() => ['dist/**']),
     });
 
     expect(createGraphViewPrimarySettingsMessageState(context)).toEqual({
-      disabledPlugins,
       filterPatterns: ['dist/**'],
     });
   });

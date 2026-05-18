@@ -7,7 +7,6 @@ export const SILENT_CONFIG_KEYS = new Set([
   'bidirectionalEdges',
   'directionColor',
   'directionMode',
-  'disabledPlugins',
   'disabledCustomFilterPatterns',
   'disabledPluginFilterPatterns',
   'edgeVisibility',
@@ -18,7 +17,7 @@ export const SILENT_CONFIG_KEYS = new Set([
   'nodeVisibility',
   'particleSize',
   'particleSpeed',
-  'pluginOrder',
+  'plugins',
   'showLabels',
 ]);
 

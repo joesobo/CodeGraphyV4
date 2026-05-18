@@ -6,6 +6,7 @@ import type {
 } from '../listener';
 import { createSettingsConfigPersistence } from './persistence';
 import { reprocessPluginFiles } from './pluginFiles';
+import { readInstalledPluginDefaultOptions } from '../../settingsMessages/defaultOptions';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
@@ -14,6 +15,8 @@ type GraphViewProviderSettingsContext = Pick<
   | 'updateNodeSizeMode'
   | 'getConfig'
   | 'updateConfig'
+  | 'getInstalledPluginDefaultOptions'
+  | 'reloadWorkspacePlugins'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
   | 'reprocessPluginFiles'
@@ -49,6 +52,12 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getConfig: (key, defaultValue) => config.get(key, defaultValue) ?? defaultValue,
     updateConfig: async (key, value) => persistConfig(key, value),
+    getInstalledPluginDefaultOptions: (packageName: string) =>
+      readInstalledPluginDefaultOptions(packageName),
+    reloadWorkspacePlugins: async () => {
+      source._analyzerInitialized = false;
+      await source._analyzer?.reloadWorkspacePlugins?.();
+    },
     sendGraphControls: () => {
       source._sendGraphControls?.();
     },

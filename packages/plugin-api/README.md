@@ -1,8 +1,8 @@
-# `@codegraphy-vscode/plugin-api`
+# `@codegraphy/plugin-api`
 
 Type definitions for building CodeGraphy plugins.
 
-- [CodeGraphy core extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
+- [CodeGraphy VS Code extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - [Plugin Guide](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/PLUGINS.md)
 - [Plugin lifecycle](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/plugin-api/LIFECYCLE.md)
 - [Plugin types](https://github.com/joesobo/CodeGraphyV4/blob/main/docs/plugin-api/TYPES.md)
@@ -11,13 +11,13 @@ Type definitions for building CodeGraphy plugins.
 ## Install
 
 ```bash
-pnpm add -D @codegraphy-vscode/plugin-api
+npm install -D @codegraphy/plugin-api
 ```
 
 ## Usage
 
 ```ts
-import type { CodeGraphyAPI, IPlugin } from '@codegraphy-vscode/plugin-api';
+import type { IPlugin } from '@codegraphy/plugin-api';
 ```
 
 This package is type-only. Use `import type` in plugin code.
@@ -25,14 +25,15 @@ This package is type-only. Use `import type` in plugin code.
 Main surfaces in the current API:
 
 - per-file analysis objects with symbols, relationships, and Node Type / Edge Type contributions
-- graph queries backed by the projected repo-local index and current graph state: `getGraph`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getSubgraph`, `findPath`
-- registrations: `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`, and the compatibility `registerView` hook
-- host-side export saving: `saveExport`
-- Graph View / webview product surfaces: plugin toolbar buttons, plugin slots, tooltip actions, and optional future-facing view transforms
 - default styling via `fileColors`, which already lets a plugin contribute Legend styling for extension matches, exact file names, and glob patterns
 - analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
+- lifecycle hooks for headless analysis: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `analyzeFile`, `onPostAnalyze`, `onGraphRebuild`, and `onUnload`
 
-Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged on top in plugin order, with higher-priority plugins winning conflicts.
+Recommended plugins are headless npm packages. They communicate with `@codegraphy/core`; the VS Code extension owns VS Code UI, commands, webviews, and editor integration.
+
+Extension-owned plugin bridge types such as webview injections, commands, decorations, context menus, and toolbar actions intentionally live in `@codegraphy/extension`, not in this public headless package.
+
+Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged additively in the workspace plugin order. Plugins should add more specific evidence instead of deleting or suppressing core baseline relationships.
 
 Current Legend Layer precedence in the host is:
 
@@ -40,8 +41,7 @@ Current Legend Layer precedence in the host is:
 2. plugin defaults
 3. custom user Legend Entries
 
-That means a plugin can already behave like a theme pack for File Nodes by shipping `fileColors`, and a user can layer that above or below the built-in Material defaults through the Legends and Plugins popups.
-Current limitation: the public API does not yet expose a first-class folder-theme contract like the core Material layer, so full file-explorer parity would need an API extension.
+That means a plugin can contribute default Legend styling for its own files or concepts, and a user can layer custom Legend Entries above built-in defaults through the Legends and Plugins popups.
 
 Exact merge behavior:
 
@@ -85,9 +85,10 @@ const plugin: IPlugin = {
 };
 ```
 
-The published CodeGraphy marketplace plugins use the same API surface:
+The published CodeGraphy plugin packages use the same API surface:
 
-- [CodeGraphy TypeScript/JavaScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript)
-- [CodeGraphy Python](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python)
-- [CodeGraphy C#](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp)
-- [CodeGraphy GDScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot)
+- [`@codegraphy/plugin-typescript`](https://www.npmjs.com/package/@codegraphy/plugin-typescript)
+- [`@codegraphy/plugin-python`](https://www.npmjs.com/package/@codegraphy/plugin-python)
+- [`@codegraphy/plugin-csharp`](https://www.npmjs.com/package/@codegraphy/plugin-csharp)
+- [`@codegraphy/plugin-godot`](https://www.npmjs.com/package/@codegraphy/plugin-godot)
+- [`@codegraphy/plugin-markdown`](https://www.npmjs.com/package/@codegraphy/plugin-markdown)

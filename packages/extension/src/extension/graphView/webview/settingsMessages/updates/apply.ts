@@ -11,7 +11,7 @@ import type {
 import { applySimpleSettingsUpdate } from './simple';
 import { applyFilterPatternsUpdate } from './filterPatterns';
 import { applyShowLabelsUpdate } from './labels';
-import { applyPluginOrderUpdate } from './pluginOrder';
+import { applyPluginPackageOrderUpdate } from './pluginPackageOrder';
 import { applyGraphControlMessage } from './controls';
 
 function getNextDisabledFilterPatterns(
@@ -185,8 +185,8 @@ async function applyDirectSettingsUpdateMessage(
       return applyFilterPatternsUpdate(message, state, handlers);
     case 'UPDATE_SHOW_LABELS':
       return applyShowLabelsUpdate(message, handlers);
-    case 'UPDATE_PLUGIN_ORDER':
-      return applyPluginOrderUpdate(message, handlers);
+    case 'UPDATE_PLUGIN_PACKAGE_ORDER':
+      return applyPluginPackageOrderUpdate(message, handlers);
     default:
       return false;
   }

@@ -18,6 +18,22 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     });
   });
 
+  it('drops legacy pluginOrder and disabledPlugins settings', () => {
+    expect(normalizePersistedSettingsShape({
+      pluginOrder: ['codegraphy.python'],
+      disabledPlugins: ['codegraphy.markdown'],
+      plugins: [
+        { package: '@codegraphy/plugin-markdown' },
+        { package: '@codegraphy/plugin-python' },
+      ],
+    })).toEqual({
+      plugins: [
+        { package: '@codegraphy/plugin-markdown' },
+        { package: '@codegraphy/plugin-python' },
+      ],
+    });
+  });
+
   it('keeps explicit legend and node color settings only', () => {
     expect(normalizePersistedSettingsShape({
       legend: [{ id: 'legend-1', pattern: 'tests/**', color: '#abcdef' }],

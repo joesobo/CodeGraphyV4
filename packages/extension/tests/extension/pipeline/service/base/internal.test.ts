@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { WorkspacePipelineInternalBase } from '../../../../../src/extension/pipeline/service/base/internal';
 import type { Configuration } from '../../../../../src/extension/config/reader';
-import type { FileDiscovery } from '../../../../../src/core/discovery/file/service';
+import type { FileDiscovery } from '@codegraphy/core';
 import type { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
 import type { IWorkspaceAnalysisCache } from '../../../../../src/extension/pipeline/cache';
 import { readWorkspacePipelineFileStat } from '../../../../../src/extension/pipeline/serviceAdapters';
@@ -91,12 +91,17 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
   }
 
   _config = {
-    getAll: vi.fn(() => ({ pluginOrder: ['plugin.a', 'plugin.b'] })),
+    getAll: vi.fn(() => ({
+      version: 1,
+      showOrphans: true,
+      respectGitignore: true,
+      filterPatterns: [],
+      plugins: [],
+    })),
   } as unknown as Configuration;
 
   _registry = {
     list: vi.fn(() => [{ plugin: { id: 'plugin.a' } }]),
-    setPluginOrder: vi.fn(),
   } as unknown as PluginRegistry;
 
   _discovery = {
@@ -104,10 +109,6 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
   } as unknown as FileDiscovery;
 
   _cache = { files: { 'src/a.ts': { cached: true } } } as unknown as IWorkspaceAnalysisCache;
-
-  public syncPluginOrder(): void {
-    this._syncPluginOrder();
-  }
 
   public preAnalyzePlugins(
     files: Array<{ absolutePath: string; relativePath: string }>,
@@ -227,17 +228,6 @@ describe('extension/pipeline/service/internalBase', () => {
       },
     ]);
     vi.mocked(persistWorkspacePipelineIndexMetadata).mockResolvedValue(undefined);
-  });
-
-  it('syncs plugin order from the current configuration', () => {
-    const source = new TestInternalBase();
-
-    source.syncPluginOrder();
-
-    expect(source._registry.setPluginOrder).toHaveBeenCalledWith([
-      'plugin.a',
-      'plugin.b',
-    ]);
   });
 
   it('delegates pre-analysis through the shared helper with registry and discovery callbacks', async () => {
@@ -378,6 +368,7 @@ describe('extension/pipeline/service/internalBase', () => {
     expect(source.getPluginSignature()).toBe('plugin-signature');
     expect(createWorkspacePipelinePluginSignature).toHaveBeenCalledWith(
       source._registry.list(),
+      { settings: source._config.getAll() },
     );
 
     expect(source.getSettingsSignature()).toBe('settings-signature');
@@ -431,12 +422,6 @@ describe('extension/pipeline/service/internalBase', () => {
 
   it('persists index metadata through delegated getters and warning logging', async () => {
     const source = new TestInternalBase();
-    const getCurrentCommitSha = vi
-      .spyOn(
-        source as unknown as { _getCurrentCommitSha: (workspaceRoot: string) => Promise<string | null> },
-        '_getCurrentCommitSha',
-      )
-      .mockResolvedValue('async-commit-sha');
     const getPluginSignature = vi
       .spyOn(source as unknown as { _getPluginSignature: () => string | null }, '_getPluginSignature')
       .mockReturnValue('plugin-signature');
@@ -452,10 +437,6 @@ describe('extension/pipeline/service/internalBase', () => {
       expect.any(Object),
     );
     const dependencies = vi.mocked(persistWorkspacePipelineIndexMetadata).mock.calls[0][1];
-    await expect(dependencies.getCurrentCommitSha('/workspace')).resolves.toBe(
-      'async-commit-sha',
-    );
-    expect(getCurrentCommitSha).toHaveBeenCalledWith('/workspace');
     expect(dependencies.getPluginSignature()).toBe('plugin-signature');
     expect(getPluginSignature).toHaveBeenCalledOnce();
     expect(dependencies.getSettingsSignature()).toBe('settings-signature');

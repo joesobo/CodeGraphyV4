@@ -3,6 +3,10 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  type CodeGraphyWorkspacePluginSettings,
+} from '@codegraphy/core';
+import {
   createDefaultEdgeVisibility,
   createDefaultNodeColors,
   createDefaultNodeVisibility,
@@ -18,8 +22,7 @@ export interface ICodeGraphyRepoSettings {
   include: string[];
   respectGitignore: boolean;
   showOrphans: boolean;
-  pluginOrder: string[];
-  disabledPlugins: string[];
+  plugins: CodeGraphyWorkspacePluginSettings[];
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
@@ -62,8 +65,9 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     include: ['**/*'],
     respectGitignore: true,
     showOrphans: true,
-    pluginOrder: [],
-    disabledPlugins: [],
+    plugins: [{
+      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+    }],
     nodeColors: createDefaultNodeColors(),
     nodeVisibility: createDefaultNodeVisibility(),
     edgeVisibility: createDefaultEdgeVisibility(),

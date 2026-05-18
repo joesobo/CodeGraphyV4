@@ -1,45 +1,46 @@
 # Plugin Lifecycle
 
-![Plugin Lifecycle Diagram](./diagrams/plugin-lifecycle.excalidraw)
+CodeGraphy plugins are headless npm packages loaded by `@codegraphy/core` during explicit workspace indexing. They do not activate as VS Code extensions, do not import `vscode`, and do not receive a VS Code or webview API from `@codegraphy/plugin-api`.
 
-[Open in Excalidraw](https://excalidraw.com/#json=E_nILqzLfKdU_NKoiu92k,chSfru6ee8Hp_697-H8Vsw)
+The VS Code extension has its own lifecycle and may bridge extension-only visualization surfaces internally, but that bridge is not part of the public npm Plugin API.
 
 ## One-Time Phases
 
-Every plugin goes through these phases exactly once, in order:
-
 ### 1. Discovery
 
-The plugin's VS Code extension activates. It grabs CodeGraphy's exported API and calls `registerPlugin()`.
+Discovery reads installed package metadata without importing plugin runtime code. A CodeGraphy plugin package declares itself in `package.json`:
 
-```typescript
-import * as vscode from 'vscode';
-import manifest from './codegraphy.json';
-import { createMyPlugin } from './plugin';
-
-export async function activate(context: vscode.ExtensionContext) {
-  const cg = vscode.extensions.getExtension('codegraphy.codegraphy');
-  if (!cg) return;
-
-  const api = cg.isActive ? cg.exports : await cg.activate();
-  api.registerPlugin(createMyPlugin(manifest), { extensionUri: context.extensionUri });
+```json
+{
+  "name": "@codegraphy/plugin-python",
+  "version": "1.2.3",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0",
+    "defaultOptions": {
+      "includeTests": true
+    },
+    "disclosures": []
+  }
 }
 ```
 
-At this point the core validates the plugin's `apiVersion` from its `codegraphy.json` manifest:
+`codegraphy plugins refresh` records discovered plugin packages in the user plugin cache. A plugin becomes active only when it is present in the workspace-local `plugins` array.
 
-- Compatible version range: proceed.
-- Future version: error with clear message.
-- Unsupported/deprecated version: reject registration with a migration message.
+### 2. Runtime Load
 
-More precisely: runtime validates `plugin.apiVersion` on the object you pass to `registerPlugin(...)`.
-
-- `codegraphy.json` is the recommended way to keep plugin metadata in one place
-- it is not the thing the host directly reads at registration time
-
-Minimum required plugin object:
+When a workspace is indexed, core loads enabled plugin packages from their normal npm `exports` entry and validates the runtime plugin object:
 
 ```typescript
+import type { IPlugin } from '@codegraphy/plugin-api';
+
 const plugin: IPlugin = {
   id: 'acme.plugin',
   name: 'Acme Plugin',
@@ -49,211 +50,36 @@ const plugin: IPlugin = {
 };
 ```
 
-Recommended setup:
+Core rejects plugins with incompatible `apiVersion` ranges before analysis runs.
 
-- store metadata in `codegraphy.json`
-- import that manifest into `plugin.ts`
-- build the runtime `IPlugin` object from that manifest
+### 3. Initialize
 
-### 2. onLoad(api)
-
-The core calls `onLoad` with the full `CodeGraphyAPI` object. This is where the plugin sets up everything it needs:
+`initialize(workspaceRoot, context?)` runs once for each enabled plugin before file analysis. Use it to prepare parser state, read workspace-local configuration through `context.fileSystem`, or normalize `context.options`.
 
 ```typescript
-onLoad(api: CodeGraphyAPI) {
-  // Subscribe to events
-  api.on('graph:nodeClick', (e) => { /* ... */ });
-
-  // Register commands
-  api.registerCommand({
-    id: 'my-plugin.doThing',
-    title: 'Do Thing',
-    action: () => { /* ... */ },
-  });
-
-  // Register context menu items
-  api.registerContextMenuItem({
-    label: 'View Details',
-    when: 'node',
-    action: (node) => { /* ... */ },
-  });
-
-  // Register an optional compatibility graph transform
-  api.registerView({
-    id: 'my-plugin.custom-view',
-    name: 'My View',
-    icon: 'graph',
-    description: 'A plugin-defined graph transform',
-    recomputeOn: ['focusedFile'],
-    transform(data, context) { return data; },
-  });
-
-  // Register an exporter
-  api.registerExporter({
-    id: 'my-plugin.export.summary',
-    label: 'Summary Export',
-    async run() {
-      const graph = api.getGraph();
-      await api.saveExport({
-        filename: 'summary.json',
-        content: JSON.stringify(graph, null, 2),
-      });
-    },
-  });
-
-  // Register a dedicated toolbar button with plugin-owned actions
-  api.registerToolbarAction({
-    id: 'my-plugin.tools',
-    label: 'Plugin Tools',
-    items: [
-      {
-        id: 'open-summary',
-        label: 'Open Summary',
-        run: async () => {
-          await showSummaryPanel(api.getGraph());
-        },
-      },
-    ],
-  });
+async initialize(workspaceRoot, context) {
+  const configPath = `${workspaceRoot}/acme.config.json`;
+  const configText = await context?.fileSystem.readTextFile(configPath);
+  this.config = configText ? JSON.parse(configText) : {};
 }
 ```
 
-`registerView(...)` still exists in the API, but treat it as a compatibility / future-facing hook. The current built-in UI stays centered on the Graph View and Visible Graph instead of surfacing plugin-defined views as a primary product concept.
-
-Every `api.on()`, `api.register*()`, and `api.decorateNode/Edge()` call returns a `Disposable`. See [Auto-Cleanup](#auto-cleanup-disposable-pattern) below.
-
-### 3. onWorkspaceReady(graph)
-
-Called once the workspace has been analyzed and graph data is available. The plugin can now query nodes/edges and attach initial decorations.
-
-If a plugin is registered after this phase already happened, CodeGraphy replays `onWorkspaceReady` with the latest graph snapshot (Obsidian-style "run now if already ready"). For externally-registered plugins, replay is deferred until `initialize()` completes when applicable.
-
-```typescript
-onWorkspaceReady(graph: IGraphData) {
-  for (const node of graph.nodes) {
-    const metrics = computeMetrics(node);
-    api.decorateNode(node.id, {
-      badge: { text: `${metrics.complexity}`, color: '#f07070' },
-    });
-  }
-}
-```
-
-### 4. onWebviewReady()
-
-Called the first time the webview is ready. For Tier 2 plugins, this means contributed JS/CSS injections were dispatched and `CodeGraphyWebviewAPI` is available in the webview context.
-
-When a workspace is open, this runs after the first `onWorkspaceReady` dispatch.
-
-If a plugin is registered after the webview is already ready, CodeGraphy replays `onWebviewReady` for that plugin after Tier-2 injection dispatch and (when applicable) `initialize()` completion.
-
-### 5. onUnload()
-
-Called when the plugin is deactivating. All registered Disposables are auto-cleaned before this runs. Use this only for cleanup that the Disposable pattern doesn't cover.
-
-```typescript
-onUnload() {
-  // Optional: close external resources, flush caches, etc.
-}
-```
-
-## Recurring Hooks
-
-These hooks are called multiple times during the plugin's lifetime:
+## Recurring Analysis Hooks
 
 ### onPreAnalyze(files, workspaceRoot, context?)
 
-Called before each analysis pass with the full list of discovered files. Use this to build workspace-wide indexes needed for cross-file resolution.
+Called before a full analysis pass with the discovered file list. Use this for workspace-wide indexes such as Markdown wikilink lookup tables, Godot `class_name` maps, or framework route manifests.
 
-```typescript
-onPreAnalyze(files, workspaceRoot, context) {
-  // Build a lookup map, parse config files, etc.
-  this.fileIndex = new Map();
-  for (const f of files) {
-    this.fileIndex.set(f.relativePath, f);
-  }
-}
-```
-
-**Example:** The GDScript plugin uses this to build a `class_name` map so `extends Player` resolves to the correct file. The Markdown plugin builds a file index for wikilink resolution.
-
-`context?.mode === 'timeline'` means this pre-analysis run is being built from git history, not the live workspace.
-
-### onFilesChanged(files, workspaceRoot, context?)
-
-Called before an incremental save-driven Live Update when CodeGraphy already has a warmed Graph Cache.
-
-Use this when your plugin keeps cross-file state that can be updated from a small changed-file set. Return additional workspace-relative file paths when those dependents also need re-analysis.
-
-```typescript
-async onFilesChanged(files, workspaceRoot, context) {
-  let requiresDependents = false;
-
-  for (const file of files) {
-    const changed = updateLocalIndex(file.relativePath, file.content);
-    requiresDependents ||= changed;
-  }
-
-  return requiresDependents
-    ? ['src/runtime/container.ts', 'src/runtime/registry.ts']
-    : [];
-}
-```
-
-Behavior:
-
-- return `[]` or `undefined` when re-analyzing only the changed files is enough
-- return workspace-relative file paths when dependents should also be re-analyzed
-- if your plugin only implements `onPreAnalyze(...)` and not `onFilesChanged(...)`, CodeGraphy falls back to a full re-index for safety
-- if `onFilesChanged(...)` throws, CodeGraphy also falls back to a full re-index
+`context.mode === 'timeline'` means the file-system adapter reads a historical commit snapshot instead of the live workspace.
 
 ### analyzeFile(filePath, content, workspaceRoot, context?)
 
-Called for each file after the core has prepared the file payload. Plugins return a per-file analysis object containing any mix of:
-
-- node type contributions
-- edge type contributions
-- analysis nodes
-- symbols
-- relationships through the `relations` field
-
-The host merges core output first and then plugin output in plugin priority order.
-
-Plugins that contribute code analysis should implement this hook.
-
-Use plain plugin-local `sourceId` values in plugin output, like `import`, `reference`, `preload`, or `wikilink`.
-
-- plugin output: `sourceId: 'reference'`
-- merged graph provenance later: `id: 'acme.plugin:reference'`
+Called for each file after core has prepared the file payload. Plugins return `IFileAnalysisResult` with any mix of node type contributions, edge type contributions, extra nodes, symbols, and relationships.
 
 ```typescript
 async analyzeFile(filePath, content, workspaceRoot, context) {
   return {
     filePath,
-    nodeTypes: [
-      {
-        id: 'service',
-        label: 'Service',
-        defaultColor: '#22c55e',
-        defaultVisible: true,
-      },
-    ],
-    edgeTypes: [
-      {
-        id: 'acme:injects',
-        label: 'Injects',
-        defaultColor: '#f59e0b',
-        defaultVisible: true,
-      },
-    ],
-    nodes: [
-      {
-        id: `${filePath}#service:BillingService`,
-        nodeType: 'service',
-        label: 'BillingService',
-        filePath,
-      },
-    ],
     symbols: [
       {
         id: `${filePath}:function:buildInvoice`,
@@ -272,113 +98,58 @@ async analyzeFile(filePath, content, workspaceRoot, context) {
         toSymbolId: '/repo/src/shared/money.ts:function:formatMoney',
         specifier: './shared/money',
       },
-      {
-        kind: 'acme:injects',
-        sourceId: 'injects',
-        fromFilePath: filePath,
-        fromNodeId: `${filePath}#service:BillingService`,
-        toFilePath: '/repo/src/runtime/container.ts',
-        specifier: '@runtime/container',
-      },
     ],
   };
 }
 ```
 
-When plugin behavior depends on the repo state outside the current file, use `context.fileSystem` instead of raw Node `fs`. In timeline mode the host resolves those reads against the selected commit.
-
 Path contract:
 
-- `filePath` is the absolute workspace path for the file being analyzed
-- `fromFilePath` is also absolute
-- resolved `toFilePath` values are absolute workspace paths
-- unresolved package/runtime targets should use `toFilePath: null`
+- `filePath` and `fromFilePath` are absolute workspace paths.
+- Resolved `toFilePath` values are absolute workspace paths.
+- Unresolved package or runtime targets use `toFilePath: null`.
+- `sourceId` is plugin-local, like `import`, `reference`, `preload`, or `wikilink`; the host qualifies provenance later.
 
-Examples:
+### onFilesChanged(files, workspaceRoot, context?)
+
+Called before an incremental save-driven re-analysis when CodeGraphy already has a warm Graph Cache. Return additional workspace-relative files when dependents also need analysis.
 
 ```typescript
-// Resolved workspace file
-{
-  kind: 'import',
-  sourceId: 'import',
-  fromFilePath: '/repo/src/app.ts',
-  toFilePath: '/repo/src/shared/index.ts',
-  specifier: './shared',
-}
+async onFilesChanged(files, workspaceRoot, context) {
+  let needsDependents = false;
 
-// Unresolved package/runtime import
-{
-  kind: 'import',
-  sourceId: 'import',
-  fromFilePath: '/repo/src/app.ts',
-  toFilePath: null,
-  specifier: 'react',
+  for (const file of files) {
+    needsDependents ||= updateLocalIndex(file.relativePath, file.content);
+  }
+
+  return needsDependents ? ['src/runtime/container.ts'] : [];
 }
 ```
+
+If a plugin only implements `onPreAnalyze(...)` and not `onFilesChanged(...)`, CodeGraphy can fall back to a full re-index for safety.
 
 ### onPostAnalyze(graph)
 
-Called after analysis completes with the full graph data. Use this to attach decorations, compute metrics, or update badges based on the latest graph state.
-
-```typescript
-onPostAnalyze(graph: IGraphData) {
-  for (const node of graph.nodes) {
-    api.decorateNode(node.id, computeDecorations(node));
-  }
-}
-```
+Called after analysis completes and the graph has been projected. Use this for headless bookkeeping that depends on the final graph shape.
 
 ### onGraphRebuild(graph)
 
-Called when the graph is rebuilt without re-analysis (for example after Graph Scope settings or plugin toggles change). Cached relationship data is used to rebuild the graph. Plugins should re-apply their decorations since the rendered node set may have changed.
+Called when cached relationship data is projected again without re-running file analysis, such as after Graph Scope settings or plugin toggles change.
 
-```typescript
-onGraphRebuild(graph: IGraphData) {
-  // Same logic as onPostAnalyze — re-apply decorations
-  api.clearDecorations();
-  for (const node of graph.nodes) {
-    api.decorateNode(node.id, computeDecorations(node));
-  }
-}
-```
+### onWorkspaceReady(graph)
 
-## Auto-Cleanup (Disposable Pattern)
+Called once the workspace graph is ready. Headless plugins should treat this as a notification hook rather than a UI entry point.
 
-Inspired by Obsidian's `register()` pattern and VS Code's `Disposable` system. Every registration returns a `Disposable`:
+### onUnload()
 
-```typescript
-interface Disposable {
-  dispose(): void;
-}
-```
-
-When `onUnload` fires, **all** Disposables registered by that plugin are automatically disposed. Event subscriptions are removed, commands are unregistered, plugin-defined views/transforms are removed, decorations are cleared, and webview contributions are torn down. No manual cleanup needed.
-
-```typescript
-onLoad(api: CodeGraphyAPI) {
-  // All of these auto-clean on unload:
-  api.on('graph:nodeClick', handler);
-  api.registerView(myView);
-  api.registerCommand(myCommand);
-  api.registerContextMenuItem(myMenuItem);
-  api.registerExporter(myExporter);
-  api.registerToolbarAction(myToolbarAction);
-  api.decorateNode('file.ts', decoration);
-
-  // Manual disposal if needed during runtime:
-  const sub = api.on('analysis:completed', handler);
-  sub.dispose(); // removes just this subscription
-}
-```
+Called when the plugin is unloaded. Close parser workers, flush plugin-owned caches, and release resources that are not owned by the host.
 
 ## Full Lifecycle Example
 
 ```typescript
-import type { IPlugin, CodeGraphyAPI, IGraphData } from '@codegraphy-vscode/plugin-api';
+import type { IPlugin } from '@codegraphy/plugin-api';
 
 export function createMetricsPlugin(): IPlugin {
-  let api: CodeGraphyAPI;
-
   return {
     id: 'codegraphy-metrics',
     name: 'Metrics',
@@ -386,73 +157,27 @@ export function createMetricsPlugin(): IPlugin {
     apiVersion: '^2.0.0',
     supportedExtensions: ['*'],
 
-    async analyzeFile(filePath, content, workspaceRoot) {
-      return {
-        filePath,
-        relations: [],
-      };
+    async initialize(workspaceRoot, context) {
+      await warmParserState(workspaceRoot, context?.options);
     },
 
     async onFilesChanged(files) {
       return files.map((file) => file.relativePath);
     },
 
-    onLoad(_api) {
-      api = _api;
-
-      api.on('workspace:fileChanged', (e) => {
-        // Re-compute metrics for changed file
-        const node = api.getNode(e.filePath);
-        if (node) {
-          api.decorateNode(node.id, computeDecorations(node));
-        }
-      });
-
-      api.registerContextMenuItem({
-        label: 'View Metrics',
-        when: 'node',
-        action: (node) => showMetricsPanel(node),
-      });
-
-      api.registerExporter({
-        id: 'codegraphy-metrics.export',
-        label: 'Metrics Snapshot',
-        async run() {
-          await api.saveExport({
-            filename: 'metrics.json',
-            content: JSON.stringify(api.getGraph(), null, 2),
-          });
-        },
-      });
-
-      api.registerToolbarAction({
-        id: 'codegraphy-metrics.tools',
-        label: 'Metrics',
-        items: [
-          {
-            id: 'open-metrics-panel',
-            label: 'Open Metrics Panel',
-            run: () => showMetricsPanel(api.getGraph()),
-          },
-        ],
-      });
+    async analyzeFile(filePath) {
+      return {
+        filePath,
+        relations: [],
+      };
     },
 
     onPostAnalyze(graph) {
-      for (const node of graph.nodes) {
-        api.decorateNode(node.id, computeDecorations(node));
-      }
-    },
-
-    onGraphRebuild(graph) {
-      api.clearDecorations();
-      for (const node of graph.nodes) {
-        api.decorateNode(node.id, computeDecorations(node));
-      }
+      rememberLatestMetrics(graph);
     },
 
     onUnload() {
-      // Everything auto-cleaned
+      clearMetricsCache();
     },
   };
 }

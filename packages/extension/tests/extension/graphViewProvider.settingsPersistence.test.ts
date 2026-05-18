@@ -49,24 +49,8 @@ describe('GraphViewProvider settings persistence', () => {
     };
   });
 
-  it('prefers repo-local disabled toggles over workspaceState', () => {
-    const configuredPlugins = ['codegraphy.python'];
+  it('ignores legacy disabled plugin workspace state after plugin enablement moves to workspace settings', () => {
     const legacyWorkspacePlugins = ['legacy.plugin'];
-
-    configGet.mockImplementation(<T>(key: string, defaultValue: T): T => {
-      if (key === 'disabledPlugins') {
-        return configuredPlugins as T;
-      }
-
-      return defaultValue;
-    });
-    configInspect.mockImplementation((key: string) => {
-      if (key === 'disabledPlugins') {
-        return { workspaceValue: configuredPlugins };
-      }
-
-      return undefined;
-    });
 
     workspaceStateGet.mockImplementation((key: string) => {
       if (key === 'codegraphy.disabledPlugins') return legacyWorkspacePlugins;
@@ -82,8 +66,10 @@ describe('GraphViewProvider settings persistence', () => {
       _disabledPlugins: Set<string>;
     };
 
-    expect([...providerState._disabledPlugins]).toEqual(configuredPlugins);
+    expect([...providerState._disabledPlugins]).toEqual([]);
     expect([...providerState._disabledPlugins]).not.toEqual(legacyWorkspacePlugins);
+    expect(configGet).not.toHaveBeenCalledWith('disabledPlugins', []);
+    expect(configInspect).not.toHaveBeenCalledWith('disabledPlugins');
   });
 
   it('persists edge visibility and plugin toggles to the repo settings store', async () => {
@@ -131,21 +117,22 @@ describe('GraphViewProvider settings persistence', () => {
       type: 'TOGGLE_PLUGIN',
       payload: {
         pluginId: 'codegraphy.python',
+        packageName: '@codegraphy/plugin-python',
         enabled: false,
       },
     });
 
     const edgeVisibilityUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'edgeVisibility');
-    const pluginsUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'disabledPlugins');
+    const pluginsUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'plugins');
 
     expect(edgeVisibilityUpdateCall).toBeDefined();
     expect(edgeVisibilityUpdateCall?.[1]).toEqual({ IMPORTS: false });
     expect(pluginsUpdateCall).toBeDefined();
-    expect(pluginsUpdateCall?.[1]).toEqual(['codegraphy.python']);
+    expect(pluginsUpdateCall?.[1]).toEqual([]);
 
     expect(
       workspaceStateUpdate.mock.calls.some(
-        ([key]) => key === 'codegraphy.edgeVisibility' || key === 'codegraphy.disabledPlugins'
+        ([key]) => key === 'codegraphy.edgeVisibility' || key === 'codegraphy.plugins'
       )
     ).toBe(false);
   });
