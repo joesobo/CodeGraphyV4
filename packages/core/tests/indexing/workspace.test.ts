@@ -258,4 +258,40 @@ describe('indexCodeGraphyWorkspace', () => {
       staleReasons: [],
     });
   });
+
+  it('honors disabled filter patterns from enabled workspace plugin entries', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.writeFile(path.join(workspaceRoot, 'ignored.txt'), 'target.txt\n', 'utf-8');
+
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+    };
+
+    const result = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [{
+        ...createTextPlugin(calls),
+        defaultFilters: ['**/ignored.txt'],
+      }],
+      settings: {
+        ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+        plugins: [{
+          package: '@codegraphy/plugin-text',
+          disabledFilterPatterns: ['**/ignored.txt'],
+        }],
+      },
+      showOrphans: true,
+    });
+
+    expect(result.files.map(file => file.relativePath)).toContain('ignored.txt');
+    expect(calls.analyzeFile).toHaveBeenCalledWith(
+      path.join(workspaceRoot, 'ignored.txt'),
+      'target.txt\n',
+      path.resolve(workspaceRoot),
+    );
+  });
 });

@@ -39,7 +39,6 @@ export interface IndexCodeGraphyWorkspaceOptions {
   includeCorePlugins?: boolean;
   include?: string[];
   filterPatterns?: string[];
-  disabledPluginFilterPatterns?: string[];
   disabledPlugins?: Iterable<string>;
   maxFiles?: number;
   respectGitignore?: boolean;
@@ -146,9 +145,13 @@ function createEffectiveIndexSettings(
     respectGitignore: options.respectGitignore ?? workspaceSettings.respectGitignore,
     showOrphans: options.showOrphans ?? workspaceSettings.showOrphans,
     filterPatterns: options.filterPatterns ?? workspaceSettings.filterPatterns,
-    disabledPluginFilterPatterns: options.disabledPluginFilterPatterns
-      ?? workspaceSettings.disabledPluginFilterPatterns,
   };
+}
+
+function getDisabledPluginFilterPatterns(settings: CodeGraphyWorkspaceSettings): Set<string> {
+  return new Set(
+    settings.plugins.flatMap(plugin => plugin.disabledFilterPatterns ?? []),
+  );
 }
 
 export async function indexCodeGraphyWorkspace(
@@ -160,7 +163,7 @@ export async function indexCodeGraphyWorkspace(
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
   const { registry, loadedPackagePlugins } = await createRegistry(options, settings);
   const disabledPlugins = new Set(options.disabledPlugins ?? []);
-  const disabledPluginPatterns = new Set(settings.disabledPluginFilterPatterns);
+  const disabledPluginPatterns = getDisabledPluginFilterPatterns(settings);
   const logInfo = options.logInfo ?? (() => undefined);
   const warn = options.warn ?? (() => undefined);
 

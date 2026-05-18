@@ -57,7 +57,6 @@ describe('pipeline/plugins/statusContext', () => {
       showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
-      disabledPluginFilterPatterns: [],
       plugins: [{ package: '@codegraphy/plugin-python' }],
     });
 
@@ -108,7 +107,6 @@ describe('pipeline/plugins/statusContext', () => {
       showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
-      disabledPluginFilterPatterns: [],
       plugins: [],
     });
 

@@ -47,7 +47,6 @@ export function createCodeGraphyWorkspaceSettingsSignature(
     showOrphans: settings.showOrphans,
     filterPatterns: settings.filterPatterns,
     disabledCustomFilterPatterns: settings.disabledCustomFilterPatterns,
-    disabledPluginFilterPatterns: settings.disabledPluginFilterPatterns,
     plugins: settings.plugins.map(plugin => ({
       package: plugin.package,
       disabledFilterPatterns: plugin.disabledFilterPatterns ?? [],

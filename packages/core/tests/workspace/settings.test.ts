@@ -30,9 +30,30 @@ describe('CodeGraphy Workspace settings', () => {
     }]);
     expect(JSON.parse(
       await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
-    ).plugins).toEqual([{
-      package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-    }]);
+    )).toEqual(expect.not.objectContaining({
+      disabledPluginFilterPatterns: expect.anything(),
+    }));
+    expect(JSON.parse(
+      await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
+    )).toMatchObject({
+      plugins: [{
+        package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      }],
+    });
+  });
+
+  it('normalizes legacy top-level disabled plugin filters away', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.mkdir(path.dirname(getWorkspaceSettingsPath(workspaceRoot)), { recursive: true });
+    await fs.writeFile(
+      getWorkspaceSettingsPath(workspaceRoot),
+      JSON.stringify({
+        disabledPluginFilterPatterns: ['**/dist/**'],
+      }),
+      'utf-8',
+    );
+
+    expect('disabledPluginFilterPatterns' in readCodeGraphyWorkspaceSettings(workspaceRoot)).toBe(false);
   });
 
   it('reports initial Markdown defaults without writing settings for a new workspace', async () => {

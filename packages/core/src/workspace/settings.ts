@@ -19,7 +19,6 @@ export interface CodeGraphyWorkspaceSettings {
   showOrphans: boolean;
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];
-  disabledPluginFilterPatterns: string[];
   plugins: CodeGraphyWorkspacePluginSettings[];
 }
 
@@ -77,7 +76,6 @@ export function createDefaultCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceS
     showOrphans: true,
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
-    disabledPluginFilterPatterns: [],
     plugins: [],
   };
 }
@@ -115,7 +113,6 @@ export function normalizeCodeGraphyWorkspaceSettings(
       : defaults.showOrphans,
     filterPatterns: [...new Set(readStringArray(value.filterPatterns))],
     disabledCustomFilterPatterns: [...new Set(readStringArray(value.disabledCustomFilterPatterns))],
-    disabledPluginFilterPatterns: [...new Set(readStringArray(value.disabledPluginFilterPatterns))],
     plugins: normalizePluginSettings(value.plugins),
   };
 }
