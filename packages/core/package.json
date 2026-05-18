@@ -25,7 +25,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/index.ts dist/index.js",
     "lint": "eslint src tests vitest.config.ts",
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
