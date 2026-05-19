@@ -358,6 +358,126 @@ describe('graph/viewport/shell', () => {
 		}));
 	});
 
+	it('does not render persisted Section Frames without runtime Graph Section nodes', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const viewState = createViewState();
+		viewState.graphMode = '2d';
+		viewState.timelineActive = false;
+		viewState.graphLayout = {
+			collapsedNodes: {},
+			pinnedNodes: {},
+			sections: {
+				'section-ui': {
+					id: 'section-ui',
+					label: 'UI',
+					color: '#60a5fa',
+					x: 100,
+					y: 120,
+					width: 300,
+					height: 180,
+					collapsed: false,
+					updatedAt: '2026-05-19T09:00:00.000Z',
+				},
+			},
+			ownership: {},
+		};
+
+		render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		expect(harness.viewport).toHaveBeenCalledWith(expect.objectContaining({
+			sectionFrames: [],
+			sectionNodePositions: new Map(),
+		}));
+	});
+
+	it('passes only expanded runtime-backed Section Frames to the viewport', () => {
+		const graphData = createGraphData();
+		graphData.nodes = [
+			...graphData.nodes,
+			{
+				baseOpacity: 1,
+				borderColor: '#60a5fa',
+				borderWidth: 1,
+				color: '#60a5fa',
+				id: 'section-ui',
+				isCollapsedGraphSection: false,
+				isFavorite: false,
+				isGraphSection: true,
+				isPinned: false,
+				label: 'UI',
+				sectionHeight: 180,
+				sectionWidth: 300,
+				size: 48,
+				x: 250,
+				y: 210,
+			},
+		] as never;
+		const graphState = createGraphState(graphData);
+		const viewState = createViewState();
+		viewState.graphMode = '2d';
+		viewState.timelineActive = false;
+		viewState.graphLayout = {
+			collapsedNodes: {},
+			pinnedNodes: {},
+			sections: {
+				'section-ui': {
+					id: 'section-ui',
+					label: 'UI',
+					color: '#60a5fa',
+					x: 100,
+					y: 120,
+					width: 300,
+					height: 180,
+					collapsed: false,
+					updatedAt: '2026-05-19T09:00:00.000Z',
+				},
+				'section-stale': {
+					id: 'section-stale',
+					label: 'Stale',
+					color: '#f97316',
+					x: -100,
+					y: -120,
+					width: 200,
+					height: 140,
+					collapsed: false,
+					updatedAt: '2026-05-19T09:00:00.000Z',
+				},
+			},
+			ownership: {},
+		};
+
+		render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		const viewportProps = harness.viewport.mock.calls[0]?.[0] as {
+			sectionFrames: Array<{ id: string }>;
+			sectionNodePositions: Map<string, unknown>;
+		};
+
+		expect(viewportProps.sectionFrames.map(section => section.id)).toEqual(['section-ui']);
+		expect([...viewportProps.sectionNodePositions.keys()]).toEqual(['section-ui']);
+	});
+
 	it('posts section ownership updates after an expanded Section Frame is dragged into another section', () => {
 		const graphData = createGraphData();
 		const graphState = createGraphState(graphData);

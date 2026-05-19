@@ -10,7 +10,15 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import { runTests } from '@vscode/test-electron';
-import { e2eScenarios } from './scenarios';
+import {
+  parseCodeGraphyPluginPackageManifest,
+  readCodeGraphyWorkspaceSettingsOrInitial,
+  writeCodeGraphyInstalledPluginCache,
+  writeCodeGraphyWorkspaceSettings,
+  type CodeGraphyInstalledPluginRecord,
+  type CodeGraphyWorkspacePluginSettings,
+} from '@codegraphy/core';
+import { e2eScenarios, type E2EScenario } from './scenarios';
 
 function cleanupScenarioArtifacts(
   workspacePath: string,
@@ -24,6 +32,59 @@ function cleanupScenarioArtifacts(
   }
 }
 
+function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPluginRecord {
+  const packageJsonPath = path.join(packageRoot, 'package.json');
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as unknown;
+  const manifest = parseCodeGraphyPluginPackageManifest(packageJson);
+  if (!manifest) {
+    throw new Error(`E2E scenario package is not a CodeGraphy plugin: ${packageRoot}`);
+  }
+
+  return {
+    ...manifest,
+    packageRoot,
+  };
+}
+
+function createWorkspacePluginSettings(
+  plugin: CodeGraphyInstalledPluginRecord,
+): CodeGraphyWorkspacePluginSettings {
+  const settings: CodeGraphyWorkspacePluginSettings = { package: plugin.package };
+  if (plugin.defaultOptions && Object.keys(plugin.defaultOptions).length > 0) {
+    settings.options = { ...plugin.defaultOptions };
+  }
+
+  return settings;
+}
+
+function prepareScenarioWorkspacePlugins(
+  scenario: E2EScenario,
+  repoRoot: string,
+  workspacePath: string,
+  homeDir: string,
+): void {
+  const plugins = scenario.workspacePluginPackageRelativePaths
+    .map(relativePath => readScenarioPackageRecord(path.resolve(repoRoot, relativePath)));
+
+  writeCodeGraphyInstalledPluginCache({ version: 1, plugins }, { homeDir });
+
+  if (plugins.length === 0) {
+    return;
+  }
+
+  const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspacePath);
+  const enabledPackages = new Set(settings.plugins.map(plugin => plugin.package));
+  writeCodeGraphyWorkspaceSettings(workspacePath, {
+    ...settings,
+    plugins: [
+      ...settings.plugins,
+      ...plugins
+        .filter(plugin => !enabledPackages.has(plugin.package))
+        .map(createWorkspacePluginSettings),
+    ],
+  });
+}
+
 async function main(): Promise<void> {
   const repoRoot = path.resolve(__dirname, '../../../..');
   // The compiled Mocha suite entry point
@@ -35,6 +96,7 @@ async function main(): Promise<void> {
     );
     const userDataPath = path.join(vscodeProfilePath, 'u');
     const extensionsPath = path.join(vscodeProfilePath, 'e');
+    const homeDir = path.join(vscodeProfilePath, 'home');
     const extensionDevelopmentPath = [
       repoRoot,
       ...scenario.pluginDevelopmentRelativePaths.map((relativePath) =>
@@ -43,13 +105,17 @@ async function main(): Promise<void> {
     ];
     const workspacePath = path.resolve(repoRoot, scenario.workspaceRelativePath);
     const hadGitignore = fs.existsSync(path.join(workspacePath, '.gitignore'));
+    const originalHome = process.env.HOME;
+    prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, homeDir);
 
     try {
+      process.env.HOME = homeDir;
       await runTests({
         extensionDevelopmentPath,
         extensionTestsPath,
         extensionTestsEnv: {
           CODEGRAPHY_E2E_SCENARIO: scenario.name,
+          HOME: homeDir,
         },
         launchArgs: [
           workspacePath,
@@ -65,6 +131,11 @@ async function main(): Promise<void> {
         ],
       });
     } finally {
+      if (originalHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = originalHome;
+      }
       cleanupScenarioArtifacts(workspacePath, hadGitignore);
       fs.rmSync(vscodeProfilePath, { recursive: true, force: true });
     }
