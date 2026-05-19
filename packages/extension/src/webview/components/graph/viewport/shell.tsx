@@ -84,6 +84,7 @@ function buildRenderingRuntimeOptions({
 function useGraphViewportModelOptions({
   appearance,
   graphState,
+  graphViewContributions,
   interactions,
   handleEngineStop,
   viewportRuntime,
@@ -91,6 +92,7 @@ function useGraphViewportModelOptions({
 }: {
   appearance?: GraphAppearance;
   graphState: UseGraphStateResult;
+  graphViewContributions?: CoreGraphViewContributionSet;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
   viewportRuntime: Pick<UseGraphRenderingRuntimeResult, 'containerSize' | 'renderPluginOverlays'>;
@@ -101,6 +103,7 @@ function useGraphViewportModelOptions({
       contextSelection: graphState.contextSelection,
       graphData: graphState.graphData,
     },
+    graphViewContributions,
     handleEngineStop,
     appearance,
     interactions,
@@ -189,6 +192,7 @@ export function GraphViewportShell({
   const viewportModel = useGraphViewportModelOptions({
     appearance,
     graphState,
+    graphViewContributions,
     handleEngineStop,
     interactions,
     viewportRuntime,

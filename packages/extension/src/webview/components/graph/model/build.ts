@@ -30,6 +30,8 @@ export type FGNode = NodeObject & {
   isPinned: boolean;
   icon?: string;
   nodeType?: NodeType;
+  ownerPluginId?: string;
+  runtimeNodeType?: string;
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;
@@ -67,8 +69,10 @@ export type FGLink = LinkObject & {
   curvatureGroupId?: string;
   kind?: string;
   metadata?: GraphMetadata;
+  ownerPluginId?: string;
   projectedEdgeCount?: number;
   projectedEdgeIds?: string[];
+  runtimeEdgeType?: string;
 };
 
 export interface BuildGraphDataOptions {

@@ -12,6 +12,7 @@ import {
   buildSingleGraphSectionNodeEntries,
   buildSingleSymbolNodeEntries,
 } from '../node/entries';
+import { buildGraphViewContextMenuEntries } from '../graphView/entries';
 import { buildPluginEntriesForDecision } from '../plugin/entries';
 import type { GraphContextMenuDecision } from '../decision/model';
 
@@ -41,7 +42,9 @@ export function buildGraphContextMenuEntries(
     favorites,
     pinnedNodeIds = new Set<string>(),
     pluginItems,
+    graphViewContributions,
     nodes,
+    edges,
   } = options;
   const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
   const decision = decideGraphContextMenu(selection, nodes);
@@ -75,5 +78,14 @@ export function buildGraphContextMenuEntries(
                 favorites,
                 pinnedNodeIds,
               );
-  return [...baseEntries, ...buildPluginEntriesForDecision(decision, pluginItems)];
+  return [
+    ...baseEntries,
+    ...buildPluginEntriesForDecision(decision, pluginItems),
+    ...buildGraphViewContextMenuEntries({
+      decision,
+      edges,
+      graphViewContributions,
+      selection,
+    }),
+  ];
 }

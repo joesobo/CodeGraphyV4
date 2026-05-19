@@ -38,6 +38,9 @@ export function applyContextEffects(
       case 'postMessage':
         handlers.postMessage(effect.message);
         break;
+      case 'runGraphViewContextMenuContribution':
+        void effect.run(effect.context);
+        break;
     }
   }
 }

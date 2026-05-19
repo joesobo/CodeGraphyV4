@@ -218,6 +218,10 @@ function createGraphNode(
   isLight: boolean,
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
 ): FGNode {
+  const runtimeNode = node as IGraphNode & {
+    ownerPluginId?: string;
+    runtimeNodeType?: string;
+  };
   const previous = previousNodeStates.get(node.id);
   const ownerSectionId = getGraphNodeOwnerSectionId(node.id, options.graphLayout, options.timelineActive);
   const pinCoordinate = resolveGraphNodePinCoordinate(
@@ -234,6 +238,8 @@ function createGraphNode(
     ...style,
     isPinned: !!pinCoordinate,
     nodeType: node.nodeType,
+    ownerPluginId: runtimeNode.ownerPluginId,
+    runtimeNodeType: runtimeNode.runtimeNodeType,
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,

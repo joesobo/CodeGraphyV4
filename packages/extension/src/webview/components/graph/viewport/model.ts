@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { GraphViewStoreState } from '../view/store';
 import type {
   GraphContextMenuEntry,
@@ -28,6 +29,7 @@ export interface GraphViewportModel {
 
 export interface GraphViewportModelOptions {
   graphState: Pick<UseGraphStateResult, 'contextSelection' | 'graphData'>;
+  graphViewContributions?: CoreGraphViewContributionSet;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
   appearance?: GraphAppearance;
@@ -64,6 +66,7 @@ function getActivePinnedNodeIds(
 
 export function useGraphViewportModel({
   graphState,
+  graphViewContributions,
   interactions,
   handleEngineStop,
   appearance,
@@ -98,7 +101,9 @@ export function useGraphViewportModel({
     favorites: viewState.favorites,
     pinnedNodeIds: getActivePinnedNodeIds(viewState),
     pluginItems: viewState.pluginContextMenuItems,
+    graphViewContributions,
     nodes: graphState.graphData.nodes,
+    edges: graphState.graphData.links,
   });
 
   const { canvasBackgroundColor, containerBackgroundColor, borderColor } = getGraphSurfaceColors(appearance);

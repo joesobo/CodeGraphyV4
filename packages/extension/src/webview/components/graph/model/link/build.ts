@@ -7,6 +7,10 @@ import type { ProjectedGraphEdge } from '../sectionProjection';
 
 export function buildGraphLinks(edges: Array<IGraphEdge | ProjectedGraphEdge>, mode: BidirectionalEdgeMode): FGLink[] {
   const links: FGLink[] = processEdges(edges, mode).map(edge => {
+    const runtimeEdge = edge as IGraphEdge & {
+      ownerPluginId?: string;
+      runtimeEdgeType?: string;
+    };
     const link: FGLink = {
       id: edge.id,
       from: edge.from,
@@ -18,6 +22,8 @@ export function buildGraphLinks(edges: Array<IGraphEdge | ProjectedGraphEdge>, m
       curvatureGroupId: edge.kind,
       kind: edge.kind,
       metadata: edge.metadata,
+      ownerPluginId: runtimeEdge.ownerPluginId,
+      runtimeEdgeType: runtimeEdge.runtimeEdgeType,
     };
 
     if (edge.projectedEdgeCount !== undefined || edge.projectedEdgeIds !== undefined) {

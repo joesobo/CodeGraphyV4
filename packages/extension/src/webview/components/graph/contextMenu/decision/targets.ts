@@ -6,6 +6,8 @@ export interface GraphContextNodeTarget {
   isCollapsedGraphSection?: boolean;
   nodeKind: GraphContextNodeKind;
   nodeType: string;
+  ownerPluginId?: string;
+  runtimeNodeType?: string;
   symbol?: {
     id: string;
     name: string;
@@ -19,6 +21,8 @@ export interface GraphContextNodeSource {
   isCollapsedGraphSection?: boolean;
   isGraphSection?: boolean;
   nodeType?: string;
+  ownerPluginId?: string;
+  runtimeNodeType?: string;
   symbol?: {
     id: string;
     name: string;
@@ -57,6 +61,8 @@ export function classifyGraphContextNodeTarget(
         ? 'symbol'
         : resolveNodeKind(resolvedNodeType),
     nodeType: resolvedNodeType,
+    ...(nodeSource?.ownerPluginId ? { ownerPluginId: nodeSource.ownerPluginId } : {}),
+    ...(nodeSource?.runtimeNodeType ? { runtimeNodeType: nodeSource.runtimeNodeType } : {}),
     ...(resolvedSymbol ? { symbol: resolvedSymbol } : {}),
   };
 }
