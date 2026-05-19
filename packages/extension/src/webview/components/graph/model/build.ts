@@ -9,7 +9,10 @@ import type { NodeType } from '../../../../shared/graph/contracts';
 import { buildGraphLinks } from './link/build';
 import { buildGraphNodes } from './node/build';
 import { projectGraphSectionsForRendering } from './sectionProjection';
-import { applyGraphViewRuntimeContributions } from './runtimeContributions';
+import {
+  applyGraphViewProjectionContributions,
+  applyGraphViewRuntimeContributions,
+} from './runtimeContributions';
 export { processEdges } from './edgeProcessing';
 import { calculateNodeSizes } from './node/sizing';
 export { DEFAULT_NODE_SIZE, FAVORITE_BORDER_COLOR, getDepthOpacity, getDepthSizeMultiplier, getNodeType, resolveDirectionColor } from './node/display';
@@ -83,6 +86,43 @@ export interface BuildGraphDataOptions {
   random?: () => number;
 }
 
+function withGraphSectionProjectionContribution(
+  contributions: CoreGraphViewContributionSet | undefined,
+  options: Pick<BuildGraphDataOptions, 'graphLayout' | 'timelineActive'> & {
+    graphMode: GraphLayoutMode;
+  },
+): CoreGraphViewContributionSet | undefined {
+  if (!options.graphLayout) {
+    return contributions;
+  }
+
+  return {
+    runtimeNodes: contributions?.runtimeNodes ?? [],
+    runtimeEdges: contributions?.runtimeEdges ?? [],
+    projections: [
+      ...(contributions?.projections ?? []),
+      {
+        pluginId: 'codegraphy.organize',
+        contribution: {
+          id: 'codegraphy.organize.graph-section-projection',
+          label: 'Graph Section Projection',
+          project({ visibleGraph }) {
+            return projectGraphSectionsForRendering({
+              data: visibleGraph,
+              graphLayout: options.graphLayout,
+              graphMode: options.graphMode,
+              timelineActive: options.timelineActive,
+            }).data;
+          },
+        },
+      },
+    ],
+    forces: contributions?.forces ?? [],
+    contextMenu: contributions?.contextMenu ?? [],
+    ui: contributions?.ui ?? [],
+  };
+}
+
 export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[]; links: FGLink[] } {
   const appearance = options.appearance ?? DEFAULT_GRAPH_APPEARANCE;
   const graphMode = options.graphMode ?? '2d';
@@ -90,17 +130,19 @@ export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[
     options.data,
     options.graphViewContributions,
   );
-  const projected = projectGraphSectionsForRendering({
-    data: runtimeData,
-    graphLayout: options.graphLayout,
-    graphMode,
-    timelineActive: options.timelineActive,
-  });
-  const nodeSizes = calculateNodeSizes(projected.data.nodes, projected.data.edges, options.nodeSizeMode);
+  const projectedData = applyGraphViewProjectionContributions(
+    runtimeData,
+    withGraphSectionProjectionContribution(options.graphViewContributions, {
+      graphLayout: options.graphLayout,
+      graphMode,
+      timelineActive: options.timelineActive,
+    }),
+  );
+  const nodeSizes = calculateNodeSizes(projectedData.nodes, projectedData.edges, options.nodeSizeMode);
   const nodes = buildGraphNodes({
     allNodeIds: runtimeData.nodes.map(node => node.id),
-    nodes: projected.data.nodes,
-    edges: projected.data.edges,
+    nodes: projectedData.nodes,
+    edges: projectedData.edges,
     appearance,
     nodeSizes,
     theme: options.theme,
@@ -111,7 +153,7 @@ export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[
     previousNodes: options.previousNodes,
     random: options.random,
   });
-  const links = buildGraphLinks(projected.data.edges, options.bidirectionalMode);
+  const links = buildGraphLinks(projectedData.edges, options.bidirectionalMode);
 
   return { nodes, links };
 }

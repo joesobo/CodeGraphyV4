@@ -85,4 +85,61 @@ describe('graph/model/runtimeContributions', () => {
       }),
     ]);
   });
+
+  it('applies plugin projection contributions before Graph View model construction', () => {
+    const data: IGraphData = {
+      nodes: [
+        { id: 'src/App.tsx', label: 'App.tsx', color: '#60a5fa' },
+        { id: 'src/Details.tsx', label: 'Details.tsx', color: '#60a5fa' },
+      ],
+      edges: [{
+        id: 'src/App.tsx->src/Details.tsx#import',
+        from: 'src/App.tsx',
+        to: 'src/Details.tsx',
+        kind: 'import',
+        sources: [],
+      }],
+    };
+    const graphViewContributions: CoreGraphViewContributionSet = {
+      ...createEmptyContributions(),
+      projections: [{
+        pluginId: 'codegraphy.organize',
+        contribution: {
+          id: 'codegraphy.organize.collapse',
+          label: 'Collapse',
+          project({ visibleGraph }) {
+            return {
+              nodes: [{
+                id: 'section:frontend',
+                label: 'Frontend',
+                color: '#84cc16',
+                collapsedDescendantCount: visibleGraph.nodes.length,
+                nodeType: 'organize:section',
+              }],
+              edges: [],
+            };
+          },
+        },
+      }],
+    };
+
+    const graphData = buildGraphData({
+      data,
+      graphViewContributions,
+      nodeSizeMode: 'uniform',
+      theme: 'dark',
+      favorites: new Set(),
+      bidirectionalMode: 'separate',
+      timelineActive: false,
+    });
+
+    expect(graphData.nodes).toEqual([
+      expect.objectContaining({
+        id: 'section:frontend',
+        collapsedDescendantCount: 2,
+        nodeType: 'organize:section',
+      }),
+    ]);
+    expect(graphData.links).toEqual([]);
+  });
 });
