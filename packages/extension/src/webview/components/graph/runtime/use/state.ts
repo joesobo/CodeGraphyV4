@@ -7,6 +7,7 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
@@ -48,6 +49,7 @@ export interface UseGraphStateOptions {
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
   favorites: Set<string>;
   graphLayout?: GraphLayoutSettings;
+  graphViewContributions?: CoreGraphViewContributionSet;
   graphMode?: GraphLayoutMode;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   nodeSizeMode: NodeSizeMode;
@@ -132,6 +134,7 @@ export function useGraphState({
   edgeDecorations,
   favorites,
   graphLayout,
+  graphViewContributions,
   graphMode,
   nodeDecorations,
   nodeSizeMode,
@@ -200,6 +203,7 @@ export function useGraphState({
       theme: themeRef.current,
       favorites: favoritesRef.current,
       graphLayout,
+      graphViewContributions,
       graphMode: resolvedGraphMode,
       bidirectionalMode,
       timelineActive,
@@ -208,7 +212,7 @@ export function useGraphState({
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, graphLayout, graphMode, timelineActive]);
+  }, [appearance, bidirectionalMode, data, graphLayout, graphMode, graphViewContributions, timelineActive]);
 
   useEffect(() => {
     if (!timelineActive) return;

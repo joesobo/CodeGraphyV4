@@ -1,10 +1,16 @@
 import { useEffect, useRef, type MutableRefObject } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import type { GraphLayoutSettings } from '../../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
 import { applyGraphSectionBoundsForce, applyPhysicsSettings } from '../../physics';
+import {
+  createGraphViewForceAdapterState,
+  syncGraphViewForceAdapters,
+} from '../../physics/pluginForces';
+import type { GraphPhysicsControls } from '../../physics/model';
 import { usePhysicsRuntimeInit } from './hook/init';
 import { usePhysicsRuntimeLayoutKey, usePhysicsRuntimeLayoutReset } from './hook/layout';
 import { usePhysicsRuntimePause } from './hook/pause';
@@ -22,6 +28,7 @@ interface UsePhysicsRuntimeProps {
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
   graphDataRef?: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
   graphLayout?: GraphLayoutSettings;
+  graphViewContributions?: CoreGraphViewContributionSet;
   graphMode: '2d' | '3d';
   layoutKey: string;
   physicsPaused?: boolean;
@@ -33,6 +40,7 @@ export function usePhysicsRuntime({
   fg3dRef,
   graphDataRef,
   graphLayout,
+  graphViewContributions,
   graphMode,
   layoutKey,
   physicsPaused = false,
@@ -43,6 +51,7 @@ export function usePhysicsRuntime({
   const pendingThreeDimensionalInitRef = useRef(graphMode === '3d');
   const previousPhysicsRef = useRef<IPhysicsSettings | null>(null);
   const previousLayoutKeyRef = useRef<string | null>(null);
+  const forceAdapterStateRef = useRef(createGraphViewForceAdapterState());
 
   physicsSettingsRef.current = physicsSettings;
 
@@ -97,6 +106,41 @@ export function usePhysicsRuntime({
     physicsSettingsRef,
     previousLayoutKeyRef,
   });
+
+  useEffect(() => {
+    const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
+    if (!graph || !physicsInitialisedRef.current || typeof graph.d3Force !== 'function') {
+      return;
+    }
+
+    syncGraphViewForceAdapters(
+      graph as GraphPhysicsControls,
+      forceAdapterStateRef.current,
+      graphViewContributions,
+      graphDataRef?.current ?? { nodes: [], links: [] },
+    );
+  }, [fg2dRef, fg3dRef, graphDataRef, graphMode, graphViewContributions, layoutKey, physicsInitialisedRef]);
+
+  useEffect(() => {
+    const fg2d = fg2dRef.current;
+    const fg3d = fg3dRef.current;
+    const forceAdapterState = forceAdapterStateRef.current;
+    const graphData = graphDataRef?.current ?? { nodes: [], links: [] };
+
+    return () => {
+      const graph = selectActivePhysicsGraph(graphMode, fg2d, fg3d);
+      if (!graph || typeof graph.d3Force !== 'function') {
+        return;
+      }
+
+      syncGraphViewForceAdapters(
+        graph as GraphPhysicsControls,
+        forceAdapterState,
+        undefined,
+        graphData,
+      );
+    };
+  }, [fg2dRef, fg3dRef, graphDataRef, graphMode]);
 
   useEffect(() => {
     const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
