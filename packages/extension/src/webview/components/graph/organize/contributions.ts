@@ -74,7 +74,14 @@ export function hasOrganizeGraphSectionContributions(
 }
 
 function getSectionNodeSize(section: Pick<GraphLayoutSection, 'height' | 'width'>): number {
-  return Math.max(24, Math.min(96, Math.sqrt(section.width * section.height) / 6));
+  return Math.max(24, Math.min(48, Math.sqrt(section.width * section.height) / 12));
+}
+
+function shouldCreateGraphSectionRuntimeSurfaces(
+  graphMode: GraphLayoutMode,
+  timelineActive: boolean,
+): boolean {
+  return graphMode === '2d' && !timelineActive;
 }
 
 function getSectionCenter(
@@ -316,7 +323,10 @@ export function createOrganizeGraphViewContributions({
     contribution: {
       id: ORGANIZE_GRAPH_SECTION_NODE_CONTRIBUTION_ID,
       label: 'Graph Section Nodes',
-      createNodes: ({ visibleGraph }) => createGraphSectionRuntimeNodes(graphLayout, visibleGraph),
+      createNodes: ({ visibleGraph, graphMode = '2d', timelineActive = false }) =>
+        shouldCreateGraphSectionRuntimeSurfaces(graphMode, timelineActive)
+          ? createGraphSectionRuntimeNodes(graphLayout, visibleGraph)
+          : [],
     },
   });
   if (
@@ -331,8 +341,10 @@ export function createOrganizeGraphViewContributions({
       contribution: {
         id: ORGANIZE_SECTION_MEMBERSHIP_EDGE_CONTRIBUTION_ID,
         label: 'Graph Section Membership Edges',
-        createEdges: ({ visibleGraph }) =>
-          createGraphSectionMembershipRuntimeEdges(graphLayout, visibleGraph),
+        createEdges: ({ visibleGraph, graphMode = '2d', timelineActive = false }) =>
+          shouldCreateGraphSectionRuntimeSurfaces(graphMode, timelineActive)
+            ? createGraphSectionMembershipRuntimeEdges(graphLayout, visibleGraph)
+            : [],
       },
     });
   }
