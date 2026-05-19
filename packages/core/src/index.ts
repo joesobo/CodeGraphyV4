@@ -178,6 +178,7 @@ export type {
   CorePluginAccessCheck,
   CorePluginAccessContext,
 } from './plugins/access/checks';
+export { createWorkspacePluginDataHost } from './plugins/data/host';
 export type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
