@@ -196,7 +196,9 @@ describe('graph/viewport/model', () => {
 			timelineActive: true,
 		}));
 		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith({
+			edges: graphData.links,
 			favorites: viewState.favorites,
+			graphViewContributions: undefined,
 			mutationAvailability: 'enabled',
 			nodes: graphData.nodes,
 			pinnedNodeIds: new Set(),
