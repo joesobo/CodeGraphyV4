@@ -18,6 +18,7 @@ export interface E2EScenario {
   name: E2EScenarioName;
   workspaceRelativePath: string;
   pluginDevelopmentRelativePaths: string[];
+  workspacePluginPackageRelativePaths: string[];
   graphNodeExtension: string;
   expectedNodeIds: string[];
   minimumExpectedEdgeIds: string[];
@@ -32,7 +33,8 @@ export const e2eScenarios: E2EScenario[] = [
   {
     name: 'typescript',
     workspaceRelativePath: 'examples/example-typescript',
-    pluginDevelopmentRelativePaths: ['packages/plugin-typescript'],
+    pluginDevelopmentRelativePaths: [],
+    workspacePluginPackageRelativePaths: ['packages/plugin-typescript'],
     graphNodeExtension: '.ts',
     expectedNodeIds: [
       'src/index.ts',
@@ -94,7 +96,8 @@ export const e2eScenarios: E2EScenario[] = [
   {
     name: 'godot',
     workspaceRelativePath: 'examples/example-godot',
-    pluginDevelopmentRelativePaths: ['packages/plugin-godot'],
+    pluginDevelopmentRelativePaths: [],
+    workspacePluginPackageRelativePaths: ['packages/plugin-godot'],
     graphNodeExtension: '.gd',
     expectedNodeIds: [
       'scripts/player.gd',

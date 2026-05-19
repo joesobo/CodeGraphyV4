@@ -117,6 +117,44 @@ describe('PluginsPanel', () => {
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
+  it('hides core and legacy extension plugin rows that cannot be toggled as packages', () => {
+    renderPanel([
+      {
+        id: 'codegraphy.treesitter',
+        name: 'Tree-sitter',
+        version: '1.0.0',
+        supportedExtensions: ['*'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 42,
+      },
+      {
+        id: 'codegraphy.legacy-extension',
+        name: 'Legacy Extension Plugin',
+        version: '1.0.0',
+        supportedExtensions: ['.legacy'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 1,
+      },
+      {
+        id: 'codegraphy.organize',
+        name: 'Organize',
+        version: '1.0.0',
+        packageName: '@codegraphy/organize',
+        supportedExtensions: [],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+      },
+    ]);
+
+    expect(screen.queryByText('Tree-sitter')).not.toBeInTheDocument();
+    expect(screen.queryByText('Legacy Extension Plugin')).not.toBeInTheDocument();
+    expect(screen.getByText('Organize')).toBeInTheDocument();
+    expect(screen.queryAllByRole('switch')).toHaveLength(1);
+  });
+
   it('labels enabled plugin packages whose runtime is unavailable', () => {
     renderPanel([
       {

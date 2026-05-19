@@ -142,6 +142,17 @@ function getSectionFrameNodePositions(
   return positions;
 }
 
+function getRuntimeBackedSectionFrames(
+  sections: readonly GraphLayoutSection[],
+  sectionNodePositions: ReadonlyMap<string, SectionFrameNodePosition>,
+): GraphLayoutSection[] {
+  if (sectionNodePositions.size === 0) {
+    return [];
+  }
+
+  return sections.filter(section => sectionNodePositions.has(section.id));
+}
+
 function shouldPublishGraphViewportScale(
   previous: number | null,
   next: number,
@@ -230,8 +241,9 @@ export function GraphViewportShell({
   const sectionFrames = viewState.graphMode === '2d' && !viewState.timelineActive
     ? Object.values(viewState.graphLayout.sections)
     : [];
-  const pinnedSectionIds = getPinnedSectionIds(sectionFrames, viewState.graphLayout.pinnedNodes);
   const sectionFrameNodePositions = getSectionFrameNodePositions(graphState.graphData.nodes);
+  const runtimeBackedSectionFrames = getRuntimeBackedSectionFrames(sectionFrames, sectionFrameNodePositions);
+  const pinnedSectionIds = getPinnedSectionIds(runtimeBackedSectionFrames, viewState.graphLayout.pinnedNodes);
   const publishGraphViewportScale = (globalScale: number): void => {
     if (viewState.graphMode !== '2d' || !Number.isFinite(globalScale) || globalScale <= 0) {
       return;
@@ -265,7 +277,7 @@ export function GraphViewportShell({
       sectionFrameOwnership={viewState.graphLayout.ownership}
       sectionNodePositions={sectionFrameNodePositions}
       pinnedSectionIds={pinnedSectionIds}
-      sectionFrames={sectionFrames}
+      sectionFrames={runtimeBackedSectionFrames}
       onOpenSectionContextMenu={(sectionId, event) => {
         interactions.handleNodeContextMenuById(sectionId, event.nativeEvent);
       }}

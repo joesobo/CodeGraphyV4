@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { postMessage } from '../../vscodeApi';
 import { graphStore, useGraphStore } from '../../store/state';
 import { mdiClose } from '@mdi/js';
@@ -18,7 +18,11 @@ interface PluginsPanelProps {
 }
 
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
-  const plugins = useGraphStore(s => s.pluginStatuses);
+  const pluginStatuses = useGraphStore(s => s.pluginStatuses);
+  const plugins = useMemo(
+    () => pluginStatuses.filter(plugin => plugin.packageName),
+    [pluginStatuses],
+  );
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
