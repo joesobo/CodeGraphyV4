@@ -19,6 +19,16 @@ export interface PluginIntegrationPackage {
   homeDir: string;
   packageName: string;
   pluginId: string;
+  graphViewContributionIds?: {
+    projection: string;
+    runtimeNode: string;
+  };
+}
+
+interface InstallPluginIntegrationPackageOptions {
+  graphViewContributions?: 'organize';
+  packageName?: string;
+  pluginId?: string;
 }
 
 export async function createPluginIntegrationWorkspace(): Promise<PluginIntegrationWorkspace> {
@@ -38,11 +48,21 @@ export async function createPluginIntegrationWorkspace(): Promise<PluginIntegrat
 export async function installPluginIntegrationPackage(
   workspacePath: string,
   scratchPath: string,
+  options: InstallPluginIntegrationPackageOptions = {},
 ): Promise<PluginIntegrationPackage> {
   const homeDir = path.join(scratchPath, 'home');
-  const packageName = '@acme/codegraphy-plugin-integration';
-  const pluginId = 'acme.integration';
-  const packageRoot = path.join(scratchPath, 'global', 'node_modules', '@acme', 'codegraphy-plugin-integration');
+  const packageName = options.packageName ?? '@acme/codegraphy-plugin-integration';
+  const pluginId = options.pluginId ?? 'acme.integration';
+  const graphViewContributionIds = options.graphViewContributions === 'organize'
+    ? {
+      projection: 'codegraphy.organize.graph-section-projection',
+      runtimeNode: 'codegraphy.organize.section-nodes',
+    }
+    : undefined;
+  const [packageScope, packageBasename] = packageName.split('/');
+  const packageRoot = packageName.startsWith('@') && packageBasename
+    ? path.join(scratchPath, 'global', 'node_modules', packageScope, packageBasename)
+    : path.join(scratchPath, 'global', 'node_modules', packageName);
 
   await fs.mkdir(packageRoot, { recursive: true });
   await fs.writeFile(
@@ -74,6 +94,24 @@ export default function createPlugin() {
       name: 'Integration Import',
       description: 'Adds a package-backed relationship for integration tests.'
     }],
+    ${graphViewContributionIds ? `
+    graphView: {
+      runtimeNodes: [{
+        id: '${graphViewContributionIds.runtimeNode}',
+        label: 'Graph Section Nodes',
+        createNodes() {
+          return [];
+        }
+      }],
+      projections: [{
+        id: '${graphViewContributionIds.projection}',
+        label: 'Graph Section Projection',
+        project({ visibleGraph }) {
+          return visibleGraph;
+        }
+      }]
+    },
+    ` : ''}
     async analyzeFile(filePath, _content, workspaceRoot, context) {
       if (!filePath.endsWith('/src/index.ts')) {
         return { filePath, relations: [] };
@@ -130,5 +168,5 @@ export default function createPlugin() {
     }],
   });
 
-  return { homeDir, packageName, pluginId };
+  return { homeDir, packageName, pluginId, graphViewContributionIds };
 }

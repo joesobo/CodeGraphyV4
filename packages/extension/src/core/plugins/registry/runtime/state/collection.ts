@@ -1,5 +1,12 @@
 import type {
+  IAccessProvider,
   IFileAnalysisResult,
+  IGraphViewContextMenuContribution,
+  IGraphViewForceAdapterContribution,
+  IGraphViewProjectionContribution,
+  IGraphViewRuntimeEdgeContribution,
+  IGraphViewRuntimeNodeContribution,
+  IGraphViewUiSlotContribution,
   IPlugin,
   IPluginAnalysisContext,
   IPluginEdgeType,
@@ -7,6 +14,14 @@ import type {
   IPluginNodeType,
   IProjectedConnection,
 } from '../../../types/contracts';
+import {
+  createEmptyGraphViewContributionSet,
+  resolvePluginAccess,
+  type CoreGraphViewContributionEntry,
+  type CoreGraphViewContributionSet,
+  type CorePluginAccessCheck,
+  type CorePluginAccessContext,
+} from '@codegraphy/core';
 import {
   analyzeFile,
   analyzeFileResult,
@@ -23,6 +38,98 @@ import { PluginRegistryState } from './store';
 export abstract class PluginRegistryCollection extends PluginRegistryState {
   get(pluginId: string): IPluginInfo | undefined {
     return this._plugins.get(pluginId);
+  }
+
+  private listAccessProviders(): IAccessProvider[] {
+    return this.list()
+      .map(info => info.plugin.accessProvider)
+      .filter((provider): provider is IAccessProvider => provider !== undefined);
+  }
+
+  async getPluginAvailability(
+    pluginId: string,
+    context: CorePluginAccessContext = {},
+  ): Promise<CorePluginAccessCheck | undefined> {
+    const info = this._plugins.get(pluginId);
+    if (!info) {
+      return undefined;
+    }
+
+    return resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
+  }
+
+  private async pushAvailableGraphViewContributions<TContribution extends { requiresAccess?: unknown }>(
+    plugin: IPlugin,
+    contributions: readonly TContribution[] | undefined,
+    target: CoreGraphViewContributionEntry<TContribution>[],
+    context: CorePluginAccessContext,
+  ): Promise<void> {
+    for (const contribution of contributions ?? []) {
+      const contributionAccess = await resolvePluginAccess(
+        plugin,
+        this.listAccessProviders(),
+        context,
+        contribution.requiresAccess as never,
+      );
+      if (contributionAccess.available) {
+        target.push({
+          pluginId: plugin.id,
+          contribution,
+        });
+      }
+    }
+  }
+
+  async listAvailableGraphViewContributions(
+    context: CorePluginAccessContext = {},
+  ): Promise<CoreGraphViewContributionSet> {
+    const contributions = createEmptyGraphViewContributionSet();
+
+    for (const info of this._plugins.values()) {
+      const pluginAccess = await resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
+      if (!pluginAccess.available) {
+        continue;
+      }
+
+      await this.pushAvailableGraphViewContributions<IGraphViewRuntimeNodeContribution>(
+        info.plugin,
+        info.plugin.graphView?.runtimeNodes,
+        contributions.runtimeNodes,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewRuntimeEdgeContribution>(
+        info.plugin,
+        info.plugin.graphView?.runtimeEdges,
+        contributions.runtimeEdges,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewProjectionContribution>(
+        info.plugin,
+        info.plugin.graphView?.projections,
+        contributions.projections,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewForceAdapterContribution>(
+        info.plugin,
+        info.plugin.graphView?.forces,
+        contributions.forces,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewContextMenuContribution>(
+        info.plugin,
+        info.plugin.graphView?.contextMenu,
+        contributions.contextMenu,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewUiSlotContribution>(
+        info.plugin,
+        info.plugin.graphView?.ui,
+        contributions.ui,
+        context,
+      );
+    }
+
+    return contributions;
   }
 
   getPluginForFile(filePath: string): IPlugin | undefined {
