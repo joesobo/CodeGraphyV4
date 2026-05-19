@@ -465,6 +465,12 @@ importers:
         specifier: workspace:*
         version: link:../plugin-api
 
+  packages/pro:
+    dependencies:
+      '@codegraphy/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+
   packages/quality-tools:
     devDependencies:
       '@stryker-mutator/api':
