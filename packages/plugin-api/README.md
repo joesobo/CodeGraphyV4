@@ -17,7 +17,7 @@ npm install -D @codegraphy/plugin-api
 ## Usage
 
 ```ts
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin, IPluginFactory } from '@codegraphy/plugin-api';
 ```
 
 This package is type-only. Use `import type` in plugin code.
@@ -26,6 +26,7 @@ Main surfaces in the current API:
 
 - per-file analysis objects with symbols, relationships, and Node Type / Edge Type contributions
 - default styling via `fileColors`, which already lets a plugin contribute Legend styling for extension matches, exact file names, and glob patterns
+- package plugin factories can receive `IPluginFactoryOptions` with merged workspace options and a plugin-owned data host
 - analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
 - lifecycle hooks for headless analysis: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `analyzeFile`, `onPostAnalyze`, `onGraphRebuild`, and `onUnload`
 
@@ -83,6 +84,23 @@ const plugin: IPlugin = {
   apiVersion: '^2.0.0',
   supportedExtensions: ['.ts'],
 };
+```
+
+Minimal package factory with workspace-owned plugin data:
+
+```ts
+const createPlugin: IPluginFactory = ({ dataHost } = {}) => ({
+  id: 'acme.plugin',
+  name: 'Acme Plugin',
+  version: '1.0.0',
+  apiVersion: '^2.0.0',
+  supportedExtensions: [],
+  async initialize() {
+    await dataHost?.saveData({ expanded: true });
+  },
+});
+
+export default createPlugin;
 ```
 
 The published CodeGraphy plugin packages use the same API surface:

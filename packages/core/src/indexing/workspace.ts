@@ -95,6 +95,7 @@ function getDefaultMarkdownPluginOptions(
 async function createRegistry(
   options: IndexCodeGraphyWorkspaceOptions,
   settings: CodeGraphyWorkspaceSettings,
+  workspaceRoot: string,
 ): Promise<{
   registry: CorePluginRegistry;
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
@@ -102,6 +103,7 @@ async function createRegistry(
   const registry = new CorePluginRegistry();
   const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
     settings,
+    workspaceRoot,
     ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
     ...(options.warn ? { warn: options.warn } : {}),
   });
@@ -161,7 +163,7 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const cache = createEmptyWorkspaceAnalysisCache();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
-  const { registry, loadedPackagePlugins } = await createRegistry(options, settings);
+  const { registry, loadedPackagePlugins } = await createRegistry(options, settings, workspaceRoot);
   const disabledPlugins = new Set(options.disabledPlugins ?? []);
   const disabledPluginPatterns = getDisabledPluginFilterPatterns(settings);
   const logInfo = options.logInfo ?? (() => undefined);

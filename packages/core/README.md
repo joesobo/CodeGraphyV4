@@ -35,7 +35,8 @@ Plugin installation and workspace enablement are separate:
 - `plugins refresh` scans global npm roots for `@codegraphy/*` packages with CodeGraphy plugin metadata.
 - `plugins add <package>` records an explicitly named globally installed package, including non-`@codegraphy` packages.
 - Enabling or disabling a plugin changes workspace settings only; plugin runtime loading still waits for explicit Indexing.
-- Indexing imports enabled npm plugin packages through their normal package `exports`, merges manifest `defaultOptions` with workspace-local `options`, and delivers the result to plugin lifecycle and analysis hooks as `context.options`.
+- Indexing imports enabled npm plugin packages through their normal package `exports`, merges manifest `defaultOptions` with workspace-local `options`, delivers the result to package factories as `factoryOptions.options`, and delivers the same result to plugin lifecycle and analysis hooks as `context.options`.
+- Package factories loaded for a concrete CodeGraphy Workspace also receive `factoryOptions.dataHost`, a plugin-owned persistence host bound to the plugin id returned by the factory.
 
 Plugin npm packages identify themselves with package metadata:
 

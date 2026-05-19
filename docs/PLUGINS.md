@@ -87,7 +87,28 @@ codegraphy index /path/to/indexed-folder
 
 The private package should declare `"name": "@codegraphy/organize"` and a `codegraphy` manifest block like any other plugin package.
 
-When Indexing loads an enabled package, `@codegraphy/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
+When Indexing loads an enabled package, `@codegraphy/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to package plugin factories as `factoryOptions.options`, and to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
+
+Package factories also receive a workspace-scoped `factoryOptions.dataHost` when the package is loaded for a concrete CodeGraphy Workspace:
+
+```ts
+import type { IPluginFactory } from '@codegraphy/plugin-api';
+
+const createPlugin: IPluginFactory = ({ dataHost, options } = {}) => ({
+  id: 'acme.organize',
+  name: 'Acme Organize',
+  version: '1.0.0',
+  apiVersion: '^2.0.0',
+  supportedExtensions: [],
+  async initialize() {
+    await dataHost?.saveData({ mode: options?.mode ?? 'default' });
+  },
+});
+
+export default createPlugin;
+```
+
+The data host persists under the plugin id returned by the factory, not under the npm package name. Use it from lifecycle hooks, analysis hooks, and Graph View contributions after the factory returns.
 
 Default options are copied into workspace settings when the plugin is enabled so the user can see and edit the starting values for that workspace. For example, enabling a Godot plugin whose package manifest contains:
 

@@ -134,6 +134,7 @@ The public npm Plugin API exposes host-agnostic Graph View contribution contract
 
 - Access Provider checks through `IAccessProvider`
 - plugin-owned data through `loadData` / `saveData`
+- package factory host services through `IPluginFactoryOptions`
 - runtime Graph View nodes and edges
 - graph projections that run after the free Visible Graph exists
 - additive D3 force adapters

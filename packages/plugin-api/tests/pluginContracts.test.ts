@@ -11,6 +11,8 @@ import type {
   IGraphViewUiSlotContribution,
   IPlugin,
   IPluginDataHost,
+  IPluginFactory,
+  IPluginFactoryOptions,
 } from '../src';
 
 describe('plugin API contracts', () => {
@@ -138,5 +140,24 @@ describe('plugin API contracts', () => {
 
     expectTypeOf(host.loadData({ expanded: true })).toEqualTypeOf<{ expanded: boolean }>();
     await host.saveData({ expanded: false }, { undoLabel: 'Collapse section' });
+  });
+
+  it('types package plugin factories that receive workspace host services', () => {
+    const factory: IPluginFactory = (options?: IPluginFactoryOptions) => ({
+      id: 'codegraphy.organize',
+      name: 'CodeGraphy Organize',
+      version: '0.1.0',
+      apiVersion: '^2.0.0',
+      supportedExtensions: [],
+      async initialize() {
+        await options?.dataHost?.saveData({ sections: [] });
+      },
+    });
+
+    expectTypeOf<IPluginFactoryOptions>().toMatchTypeOf<{
+      dataHost?: IPluginDataHost;
+      options?: Record<string, unknown>;
+    }>();
+    expectTypeOf(factory).parameter(0).toEqualTypeOf<IPluginFactoryOptions | undefined>();
   });
 });
