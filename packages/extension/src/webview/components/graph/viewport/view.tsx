@@ -126,12 +126,26 @@ function ViewportPluginOverlay({
   pluginHost,
 }: Pick<ViewportProps, 'pluginHost'>): ReactElement | null {
   return pluginHost ? (
-    <SlotHost
-      pluginHost={pluginHost}
-      slot="graph-overlay"
-      data-testid="graph-overlay-slot"
-      className="absolute inset-0 z-10 pointer-events-none"
-    />
+    <>
+      <SlotHost
+        pluginHost={pluginHost}
+        slot="graph.stage.worldOverlay"
+        data-testid="graph-world-overlay-slot"
+        className="absolute inset-0 z-10 pointer-events-none"
+      />
+      <SlotHost
+        pluginHost={pluginHost}
+        slot="graph-overlay"
+        data-testid="graph-overlay-slot"
+        className="absolute inset-0 z-10 pointer-events-none"
+      />
+      <SlotHost
+        pluginHost={pluginHost}
+        slot="graph.stage.viewportOverlay"
+        data-testid="graph-viewport-overlay-slot"
+        className="absolute inset-0 z-30 pointer-events-none"
+      />
+    </>
   ) : null;
 }
 

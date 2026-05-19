@@ -10,6 +10,10 @@ export type WebviewDisposable = Disposable;
 
 export type GraphPluginSlot =
   | 'toolbar'
+  | 'graph.toolbar'
+  | 'graph.panelSlot'
+  | 'graph.stage.worldOverlay'
+  | 'graph.stage.viewportOverlay'
   | 'node-details'
   | 'tooltip'
   | 'timeline-panel'

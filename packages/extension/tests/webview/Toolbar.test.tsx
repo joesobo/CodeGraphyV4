@@ -179,4 +179,18 @@ describe('Toolbar', () => {
 
     expect(screen.getByTitle('Refresh')).toBeInTheDocument();
   });
+
+  it('hosts Graph View toolbar slot contributions under graph.toolbar', () => {
+    const pluginHost = {
+      attachSlotHost: vi.fn(),
+      detachSlotHost: vi.fn(),
+    };
+
+    render(<Toolbar pluginHost={pluginHost as never} />);
+
+    expect(pluginHost.attachSlotHost).toHaveBeenCalledWith(
+      'graph.toolbar',
+      expect.any(HTMLDivElement),
+    );
+  });
 });

@@ -21,6 +21,12 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
             <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />
             <SlotHost
               pluginHost={pluginHost}
+              slot="graph.toolbar"
+              data-testid="graph-toolbar-plugin-slot"
+              className="flex flex-col items-center gap-1.5"
+            />
+            <SlotHost
+              pluginHost={pluginHost}
               slot="toolbar"
               data-testid="toolbar-plugin-slot"
               className="flex flex-col items-center gap-1.5"

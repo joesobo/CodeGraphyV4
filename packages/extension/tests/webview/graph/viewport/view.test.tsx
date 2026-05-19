@@ -229,4 +229,22 @@ describe('Viewport', () => {
     expect(handleMenuAction).toHaveBeenCalledWith({ kind: 'builtin', action: 'open' });
     expect(screen.getByTestId('separator')).toBeInTheDocument();
   });
+
+  it('hosts Graph View stage slots separately for world and viewport overlays', () => {
+    const pluginHost = {
+      attachSlotHost: vi.fn(),
+      detachSlotHost: vi.fn(),
+    };
+
+    renderViewport({ pluginHost: pluginHost as never });
+
+    expect(pluginHost.attachSlotHost).toHaveBeenCalledWith(
+      'graph.stage.worldOverlay',
+      expect.any(HTMLDivElement),
+    );
+    expect(pluginHost.attachSlotHost).toHaveBeenCalledWith(
+      'graph.stage.viewportOverlay',
+      expect.any(HTMLDivElement),
+    );
+  });
 });

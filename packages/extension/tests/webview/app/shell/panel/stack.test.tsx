@@ -7,7 +7,7 @@ const slotHostSpy = vi.fn();
 vi.mock('../../../../../src/webview/pluginHost/slotHost/view', () => ({
   SlotHost: (props: Record<string, unknown>) => {
     slotHostSpy(props);
-    return <div data-testid="node-details-slot" />;
+    return <div data-testid={String(props['data-testid'])} />;
   },
 }));
 
@@ -51,6 +51,25 @@ describe('app/PanelStack', () => {
       slot: 'node-details',
       'data-testid': 'node-details-slot',
       className: expect.stringContaining('bg-[var(--cg-popover-translucent)]'),
+    }));
+  });
+
+  it('hosts Graph View panel slot contributions under graph.panelSlot', () => {
+    const pluginHost = { kind: 'host' };
+    render(
+      <PanelStack
+        activePanel="none"
+        hasGraphNodes
+        pluginHost={pluginHost as never}
+        onClosePanel={() => {}}
+      />,
+    );
+
+    expect(screen.getByTestId('graph-panel-slot')).toBeInTheDocument();
+    expect(slotHostSpy).toHaveBeenCalledWith(expect.objectContaining({
+      pluginHost,
+      slot: 'graph.panelSlot',
+      'data-testid': 'graph-panel-slot',
     }));
   });
 
