@@ -14,6 +14,7 @@ import type {
 } from './analysis';
 import type { CodeGraphyAccessKey, IAccessProvider } from './access';
 import type { IConnectionSource } from './connection';
+import type { IPluginDataHost } from './data';
 import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
 import type { IGraphViewContributions } from './graphView';
 
@@ -51,6 +52,15 @@ export interface IPluginFileColorDefinition {
   /** Relative path from the plugin root to an image asset. */
   imagePath?: string;
 }
+
+export interface IPluginFactoryOptions {
+  /** Workspace-scoped persistence owned by the plugin id returned from the factory. */
+  dataHost?: IPluginDataHost;
+  /** Merged package default options and CodeGraphy Workspace plugin options. */
+  options?: Record<string, unknown>;
+}
+
+export type IPluginFactory = (options?: IPluginFactoryOptions) => IPlugin | Promise<IPlugin>;
 
 /**
  * The main plugin interface for CodeGraphy.

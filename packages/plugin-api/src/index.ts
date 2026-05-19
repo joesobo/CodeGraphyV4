@@ -135,6 +135,8 @@ export type {
 // Plugin interface
 export type {
   IPlugin,
+  IPluginFactory,
+  IPluginFactoryOptions,
   IAnalysisFile,
   IPluginAnalysisContext,
   IPluginAnalysisFileSystem,

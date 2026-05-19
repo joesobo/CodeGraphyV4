@@ -1,11 +1,17 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type {
+  IPlugin,
+  IPluginDataHost,
+  IPluginDataSaveOptions,
+  IPluginFactoryOptions,
+} from '@codegraphy/plugin-api';
 import {
   type CodeGraphyInstalledPluginRecord,
   readCodeGraphyInstalledPluginCache,
 } from './installedCache';
+import { createWorkspacePluginDataHost } from './data/host';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   type CodeGraphyWorkspacePluginSettings,
@@ -17,7 +23,12 @@ interface PackageJsonWithEntrypoint {
   main?: unknown;
 }
 
-type UnknownPluginFactory = () => unknown;
+interface PackagePluginFactoryInvocation {
+  options?: IPluginFactoryOptions;
+  bindPluginId?(pluginId: string): void;
+}
+
+type UnknownPluginFactory = (options?: IPluginFactoryOptions) => unknown;
 
 export interface LoadedCodeGraphyWorkspacePluginPackage {
   plugin: IPlugin;
@@ -30,6 +41,7 @@ export interface LoadCodeGraphyWorkspacePluginPackagesOptions {
   settings: CodeGraphyWorkspaceSettings;
   homeDir?: string;
   warn?: (message: string) => void;
+  workspaceRoot?: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -50,6 +62,62 @@ function mergePluginOptions(
   };
 
   return Object.keys(merged).length > 0 ? merged : undefined;
+}
+
+function createDeferredWorkspacePluginDataHost(
+  workspaceRoot: string,
+): {
+  dataHost: IPluginDataHost;
+  bindPluginId(pluginId: string): void;
+} {
+  let boundDataHost: IPluginDataHost | undefined;
+  const getBoundDataHost = (): IPluginDataHost => {
+    if (!boundDataHost) {
+      throw new Error('CodeGraphy plugin data host is not bound to a plugin yet.');
+    }
+
+    return boundDataHost;
+  };
+
+  return {
+    dataHost: {
+      loadData<T>(fallback: T): T {
+        return getBoundDataHost().loadData(fallback);
+      },
+      async saveData<T>(data: T, options?: IPluginDataSaveOptions): Promise<void> {
+        await getBoundDataHost().saveData(data, options);
+      },
+    },
+    bindPluginId(pluginId: string): void {
+      boundDataHost = createWorkspacePluginDataHost(workspaceRoot, pluginId);
+    },
+  };
+}
+
+function createPackagePluginFactoryInvocation(
+  record: CodeGraphyInstalledPluginRecord,
+  settings: CodeGraphyWorkspacePluginSettings,
+  workspaceRoot: string | undefined,
+): {
+  invocation: PackagePluginFactoryInvocation;
+  options?: Record<string, unknown>;
+} {
+  const options = mergePluginOptions(record, settings);
+  const dataHost = workspaceRoot
+    ? createDeferredWorkspacePluginDataHost(workspaceRoot)
+    : undefined;
+  const factoryOptions: IPluginFactoryOptions = {
+    ...(options ? { options } : {}),
+    ...(dataHost ? { dataHost: dataHost.dataHost } : {}),
+  };
+
+  return {
+    invocation: {
+      ...(Object.keys(factoryOptions).length > 0 ? { options: factoryOptions } : {}),
+      ...(dataHost ? { bindPluginId: (pluginId: string) => dataHost.bindPluginId(pluginId) } : {}),
+    },
+    ...(options ? { options } : {}),
+  };
 }
 
 function getEntrypointFromExports(exportsValue: unknown): string | undefined {
@@ -94,19 +162,25 @@ function resolvePackageEntrypoint(
   return path.resolve(packageRoot, entrypoint);
 }
 
-async function createPluginFromModule(moduleNamespace: unknown, packageName: string): Promise<IPlugin> {
+async function createPluginFromModule(
+  moduleNamespace: unknown,
+  packageName: string,
+  invocation: PackagePluginFactoryInvocation = {},
+): Promise<IPlugin> {
   if (!isRecord(moduleNamespace)) {
     throw new Error(`CodeGraphy plugin package '${packageName}' did not export a module object.`);
   }
 
   const exportedPlugin: unknown = moduleNamespace.default ?? moduleNamespace.createPlugin ?? moduleNamespace.plugin;
   const plugin: unknown = isPluginFactory(exportedPlugin)
-    ? await exportedPlugin()
+    ? await exportedPlugin(invocation.options)
     : exportedPlugin;
 
   if (!isRecord(plugin) || typeof plugin.id !== 'string') {
     throw new Error(`CodeGraphy plugin package '${packageName}' did not export a plugin factory or plugin object.`);
   }
+
+  invocation.bindPluginId?.(plugin.id);
 
   return plugin as unknown as IPlugin;
 }
@@ -114,14 +188,15 @@ async function createPluginFromModule(moduleNamespace: unknown, packageName: str
 async function loadCodeGraphyWorkspacePluginPackage(
   settings: CodeGraphyWorkspacePluginSettings,
   record: CodeGraphyInstalledPluginRecord,
+  workspaceRoot: string | undefined,
 ): Promise<LoadedCodeGraphyWorkspacePluginPackage> {
   const packageJson = JSON.parse(
     await fs.readFile(path.join(record.packageRoot, 'package.json'), 'utf-8'),
   ) as PackageJsonWithEntrypoint;
   const modulePath = resolvePackageEntrypoint(record.packageRoot, packageJson);
   const moduleNamespace: unknown = await import(pathToFileURL(modulePath).href);
-  const plugin = await createPluginFromModule(moduleNamespace, record.package);
-  const options = mergePluginOptions(record, settings);
+  const { invocation, options } = createPackagePluginFactoryInvocation(record, settings, workspaceRoot);
+  const plugin = await createPluginFromModule(moduleNamespace, record.package, invocation);
 
   return {
     plugin,
@@ -154,7 +229,7 @@ export async function loadCodeGraphyWorkspacePluginPackages(
     }
 
     try {
-      loaded.push(await loadCodeGraphyWorkspacePluginPackage(pluginSettings, record));
+      loaded.push(await loadCodeGraphyWorkspacePluginPackage(pluginSettings, record, options.workspaceRoot));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       warn(`CodeGraphy plugin package '${pluginSettings.package}' could not be loaded: ${message}`);

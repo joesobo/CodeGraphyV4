@@ -6,4 +6,4 @@
 "@codegraphy/pro": minor
 ---
 
-Add the Extract Pro foundation: Access Provider contracts, plugin-owned data persistence, Graph View runtime/projection/context-menu/UI/force-adapter contribution contracts and hosts, a Pro account/access plugin shell, and local plugin linking for private paid plugins such as `@codegraphy/organize`.
+Add the Extract Pro foundation: Access Provider contracts, plugin-owned data persistence delivered to package plugin factories, Graph View runtime/projection/context-menu/UI/force-adapter contribution contracts and hosts, a Pro account/access plugin shell, and local plugin linking for private paid plugins such as `@codegraphy/organize`.
