@@ -22,6 +22,7 @@ describe('source/delegates/analysis', () => {
     delegates._sendContextMenuItems();
     delegates._sendPluginExporters();
     delegates._sendPluginToolbarActions();
+    delegates._sendGraphViewContributionStatuses();
     delegates._sendPluginWebviewInjections();
     await delegates._loadAndSendData!();
     await delegates._indexAndSendData!();
@@ -44,6 +45,7 @@ describe('source/delegates/analysis', () => {
     expect(owner._pluginMethods._sendContextMenuItems).toHaveBeenCalledTimes(1);
     expect(owner._pluginMethods._sendPluginExporters).toHaveBeenCalledTimes(1);
     expect(owner._pluginMethods._sendPluginToolbarActions).toHaveBeenCalledTimes(1);
+    expect(owner._pluginMethods._sendGraphViewContributionStatuses).toHaveBeenCalledTimes(1);
     expect(owner._pluginMethods._sendPluginWebviewInjections).toHaveBeenCalledTimes(1);
     expect(owner._analysisMethods._loadAndSendData).toHaveBeenCalledTimes(1);
     expect(owner._analysisMethods._indexAndSendData).toHaveBeenCalledTimes(1);

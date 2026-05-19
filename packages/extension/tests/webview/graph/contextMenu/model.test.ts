@@ -318,6 +318,28 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(selectionEntries)).toContain('createGraphSection');
   });
 
+  it('hides Graph Section creation when Organize graph view contributions are unavailable', () => {
+    const backgroundEntries = buildGraphContextMenuEntries({
+      selection: makeBackgroundContextSelection(),
+      timelineActive: false,
+      favorites: new Set(),
+      graphSectionsAvailable: false,
+      pluginItems: [],
+    });
+    expect(menuLabels(backgroundEntries)).not.toContain('New Graph Section');
+    expect(builtInActions(backgroundEntries)).not.toContain('createGraphSection');
+
+    const selectionEntries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts'])),
+      timelineActive: false,
+      favorites: new Set(),
+      graphSectionsAvailable: false,
+      pluginItems: [],
+    });
+    expect(menuLabels(selectionEntries)).not.toContain('Wrap Selected in Graph Section');
+    expect(builtInActions(selectionEntries)).not.toContain('createGraphSection');
+  });
+
   it('keeps Graph Section creation visible but disabled in immutable timeline snapshots', () => {
     const backgroundEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),

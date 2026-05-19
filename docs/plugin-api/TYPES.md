@@ -211,6 +211,8 @@ Plugin id implies storage ownership. Hosts persist plugin data under the plugin 
 
 Graph View runtime nodes and edges are display artifacts. They do not become Graph Cache facts and are not exposed as Graph Query relationships unless a plugin also contributes analysis data through Core.
 
+Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `graphMode` reports the current `2d` or `3d` view, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
+
 ## Theme-Style Plugins
 
 The current public API already supports a file-theme style plugin through `fileColors`:

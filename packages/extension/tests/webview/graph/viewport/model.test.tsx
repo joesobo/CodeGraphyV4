@@ -118,6 +118,7 @@ function createViewState(): Pick<
 	| 'favorites'
 	| 'graphLayout'
 	| 'graphMode'
+	| 'graphSectionsAvailable'
 	| 'physicsSettings'
 	| 'pluginContextMenuItems'
 	| 'setGraphMode'
@@ -137,6 +138,7 @@ function createViewState(): Pick<
 		favorites: new Set(['src/app.ts']),
 		graphLayout: { collapsedNodes: {}, pinnedNodes: {}, sections: {}, ownership: {} },
 		graphMode: '2d',
+		graphSectionsAvailable: true,
 		physicsSettings,
 		pluginContextMenuItems: [],
 		setGraphMode: vi.fn(),
@@ -199,6 +201,7 @@ describe('graph/viewport/model', () => {
 			edges: graphData.links,
 			favorites: viewState.favorites,
 			graphViewContributions: undefined,
+			graphSectionsAvailable: true,
 			mutationAvailability: 'enabled',
 			nodes: graphData.nodes,
 			pinnedNodeIds: new Set(),

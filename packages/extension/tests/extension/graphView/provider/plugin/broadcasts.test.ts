@@ -37,6 +37,9 @@ describe('graphView/provider/plugin/broadcasts', () => {
         sendPluginToolbarActions: vi.fn((_analyzer, callback) =>
           callback({ type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED', payload: { actions: [] } }),
         ),
+        sendGraphViewContributionStatuses: vi.fn((_analyzer, _context, callback) =>
+          callback({ type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED', payload: { contributions: [] } }),
+        ),
         sendPluginWebviewInjections: vi.fn((_analyzer, _resolveAssetPath, callback) =>
           callback({ type: 'PLUGIN_WEBVIEW_INJECT', payload: { kind: 'script', src: 'asset://script.js' } }),
         ),
@@ -54,6 +57,7 @@ describe('graphView/provider/plugin/broadcasts', () => {
     methods._sendContextMenuItems();
     methods._sendPluginExporters();
     methods._sendPluginToolbarActions();
+    methods._sendGraphViewContributionStatuses();
     methods._sendPluginWebviewInjections();
     methods._sendGroupsUpdated();
 
@@ -64,6 +68,56 @@ describe('graphView/provider/plugin/broadcasts', () => {
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'LEGENDS_UPDATED',
       payload: { legends: [] },
+    });
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+      payload: { contributions: [] },
+    });
+  });
+
+  it('sends Graph View contribution statuses with the active workspace root', () => {
+    const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
+    const sendGraphViewContributionStatuses = vi.fn(async (_analyzer, context, callback) => {
+      expect(context).toEqual({ workspaceRoot: '/workspace' });
+      callback({
+        type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+        payload: {
+          contributions: [{
+            kind: 'runtimeNodes',
+            pluginId: 'codegraphy.organize',
+            contributionId: 'codegraphy.organize.section-nodes',
+            label: 'Graph Section Nodes',
+          }],
+        },
+      });
+    });
+    const source = createPluginSource();
+    const methods = createGraphViewProviderPluginBroadcastMethods(
+      source,
+      {
+        sendGraphViewContributionStatuses,
+        getWorkspaceFolders: vi.fn(() => [workspaceFolder]),
+      },
+      1,
+    );
+
+    methods._sendGraphViewContributionStatuses();
+
+    expect(sendGraphViewContributionStatuses).toHaveBeenCalledWith(
+      source._analyzer,
+      { workspaceRoot: '/workspace' },
+      expect.any(Function),
+    );
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+      payload: {
+        contributions: [{
+          kind: 'runtimeNodes',
+          pluginId: 'codegraphy.organize',
+          contributionId: 'codegraphy.organize.section-nodes',
+          label: 'Graph Section Nodes',
+        }],
+      },
     });
   });
 

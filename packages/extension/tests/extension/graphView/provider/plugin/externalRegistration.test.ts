@@ -13,6 +13,7 @@ function createBroadcasts(): GraphViewProviderPluginBroadcastMethods {
     _sendContextMenuItems: vi.fn(),
     _sendPluginExporters: vi.fn(),
     _sendPluginToolbarActions: vi.fn(),
+    _sendGraphViewContributionStatuses: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
   };
@@ -53,6 +54,7 @@ describe('graphView/provider/plugin/externalRegistration', () => {
         sendPluginStatuses: expect.any(Function),
         sendContextMenuItems: expect.any(Function),
         sendPluginToolbarActions: expect.any(Function),
+        sendGraphViewContributionStatuses: expect.any(Function),
         sendPluginWebviewInjections: expect.any(Function),
         invalidateTimelineCache: expect.any(Function),
         analyzeAndSendData: expect.any(Function),

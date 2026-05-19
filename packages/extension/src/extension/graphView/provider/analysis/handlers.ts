@@ -62,6 +62,7 @@ export function createGraphViewProviderAnalysisHandlers(
     },
     sendPluginExporters: () => source._sendPluginExporters?.(),
     sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),
+    sendGraphViewContributionStatuses: () => source._sendGraphViewContributionStatuses?.(),
     markWorkspaceReady: graphData => callbacks.markWorkspaceReady(graphData),
     isAbortError: error => callbacks.isAbortError(error),
     logError: (message, error) => {

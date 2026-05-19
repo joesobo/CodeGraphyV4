@@ -26,6 +26,8 @@ export interface IGraphViewContributionBase {
 
 export interface IGraphViewContributionContext {
   visibleGraph: IGraphData;
+  graphMode?: '2d' | '3d';
+  timelineActive?: boolean;
   workspaceRoot?: string;
 }
 

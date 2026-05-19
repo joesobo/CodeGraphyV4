@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  sendGraphViewContributionStatuses,
   sendGraphViewContextMenuItems,
   sendGraphViewPluginExporters,
   sendGraphViewPluginToolbarActions,
@@ -121,6 +122,70 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
         styles: ['plugin.test:dist/plugin.css'],
       },
     });
+  });
+
+  it('sends available Graph View contribution statuses without posting function values', async () => {
+    const sendMessage = vi.fn();
+    const runtimeNode = vi.fn();
+    const project = vi.fn();
+    const analyzer = {
+      registry: {
+        listAvailableGraphViewContributions: vi.fn(async () => ({
+          runtimeNodes: [{
+            pluginId: 'codegraphy.organize',
+            contribution: {
+              id: 'codegraphy.organize.section-nodes',
+              label: 'Graph Section Nodes',
+              createNodes: runtimeNode,
+            },
+          }],
+          runtimeEdges: [],
+          projections: [{
+            pluginId: 'codegraphy.organize',
+            contribution: {
+              id: 'codegraphy.organize.graph-section-projection',
+              label: 'Graph Section Projection',
+              project,
+            },
+          }],
+          forces: [],
+          contextMenu: [],
+          ui: [],
+        })),
+      },
+    };
+
+    await sendGraphViewContributionStatuses(
+      analyzer,
+      { workspaceRoot: '/workspace' },
+      sendMessage,
+    );
+
+    expect(analyzer.registry.listAvailableGraphViewContributions).toHaveBeenCalledWith({
+      workspaceRoot: '/workspace',
+    });
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+      payload: {
+        contributions: [
+          {
+            kind: 'runtimeNodes',
+            pluginId: 'codegraphy.organize',
+            contributionId: 'codegraphy.organize.section-nodes',
+            label: 'Graph Section Nodes',
+          },
+          {
+            kind: 'projections',
+            pluginId: 'codegraphy.organize',
+            contributionId: 'codegraphy.organize.graph-section-projection',
+            label: 'Graph Section Projection',
+          },
+        ],
+      },
+    });
+    expect(sendMessage.mock.calls[0]?.[0]).not.toHaveProperty(
+      'payload.contributions.0.contribution.createNodes',
+    );
   });
 
   it('skips plugin dispatches when no analyzer is available', () => {

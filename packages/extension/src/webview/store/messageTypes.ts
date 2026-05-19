@@ -5,8 +5,11 @@ import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/
 import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
-import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
-import type { IPluginFilterPatternGroup } from '../../shared/protocol/extensionToWebview';
+import type {
+  ExtensionToWebviewMessage,
+  IGraphViewContributionStatus,
+  IPluginFilterPatternGroup,
+} from '../../shared/protocol/extensionToWebview';
 import type {
   IGraphEdgeTypeDefinition,
   IGraphNodeTypeDefinition,
@@ -69,6 +72,7 @@ export interface IStoreFields {
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
   pluginToolbarActions: IPluginToolbarAction[];
+  graphViewContributionStatuses: IGraphViewContributionStatus[];
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
   activeFilePath: string | null;

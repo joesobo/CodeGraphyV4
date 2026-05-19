@@ -95,10 +95,18 @@ export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[
   const runtimeData = applyGraphViewRuntimeContributions(
     options.data,
     options.graphViewContributions,
+    {
+      graphMode,
+      timelineActive: options.timelineActive,
+    },
   );
   const projectedData = applyGraphViewProjectionContributions(
     runtimeData,
     options.graphViewContributions,
+    {
+      graphMode,
+      timelineActive: options.timelineActive,
+    },
   );
   const nodeSizes = calculateNodeSizes(projectedData.nodes, projectedData.edges, options.nodeSizeMode);
   const nodes = buildGraphNodes({

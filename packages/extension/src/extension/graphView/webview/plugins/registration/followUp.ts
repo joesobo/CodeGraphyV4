@@ -12,6 +12,7 @@ export function sendExternalPluginRegistrationUpdates(
   handlers.sendContextMenuItems();
   handlers.sendPluginExporters?.();
   handlers.sendPluginToolbarActions?.();
+  handlers.sendGraphViewContributionStatuses?.();
   handlers.sendPluginWebviewInjections();
 }
 

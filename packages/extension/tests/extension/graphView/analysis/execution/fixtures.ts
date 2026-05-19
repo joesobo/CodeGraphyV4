@@ -60,6 +60,7 @@ export function createExecutionHandlers(
     sendContextMenuItems: vi.fn(),
     sendGraphIndexStatusUpdated: vi.fn(),
     sendIndexProgress: vi.fn(),
+    sendGraphViewContributionStatuses: vi.fn(),
     markWorkspaceReady: vi.fn(),
     isAbortError: vi.fn(() => false),
     logError: vi.fn(),

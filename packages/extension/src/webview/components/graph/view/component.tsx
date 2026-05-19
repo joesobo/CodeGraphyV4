@@ -4,7 +4,7 @@
  * @module webview/components/Graph
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
@@ -26,6 +26,7 @@ import { GraphViewportShell } from '../viewport/shell';
 import { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { useGraphAppearance } from '../appearance/use';
+import { createOrganizeGraphViewContributions } from '../organize/contributions';
 
 interface GraphProps {
   data: IGraphData;
@@ -50,6 +51,13 @@ export default function Graph({
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
   const appearance = useGraphAppearance(theme);
+  const resolvedGraphViewContributions = useMemo(
+    () => graphViewContributions ?? createOrganizeGraphViewContributions({
+      graphLayout: viewState.graphLayout,
+      statuses: viewState.graphViewContributionStatuses,
+    }),
+    [graphViewContributions, viewState.graphLayout, viewState.graphViewContributionStatuses],
+  );
 
   const graphState = useGraphState({
     appearance,
@@ -60,7 +68,7 @@ export default function Graph({
     edgeDecorations,
     favorites: viewState.favorites,
     graphLayout: viewState.graphLayout,
-    graphViewContributions,
+    graphViewContributions: resolvedGraphViewContributions,
     graphMode: viewState.graphMode,
     nodeDecorations,
     nodeSizeMode: viewState.nodeSizeMode,
@@ -132,7 +140,7 @@ export default function Graph({
       callbacks={callbacks}
       graphLayoutKey={graphLayoutKey}
       graphState={graphState}
-      graphViewContributions={graphViewContributions}
+      graphViewContributions={resolvedGraphViewContributions}
       handleEngineStop={handleEngineStop}
       interactions={interactions}
       pluginHost={pluginHost}

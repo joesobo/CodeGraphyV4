@@ -70,6 +70,7 @@ function createState(
     pluginContextMenuItems: [],
     pluginExporters: [],
     pluginToolbarActions: [],
+    graphViewContributionStatuses: [],
     activePanel: 'none',
     maxFiles: 500,
     activeFilePath: null,

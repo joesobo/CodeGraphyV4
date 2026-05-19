@@ -183,7 +183,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphLayout' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
+	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphLayout' | 'graphMode' | 'graphSectionsAvailable' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -202,6 +202,8 @@ function createViewState(): Pick<
 		favorites: new Set(['src/app.ts']),
 		graphLayout: { collapsedNodes: {}, pinnedNodes: {}, sections: {}, ownership: {} },
 		graphMode: '3d',
+		graphSectionsAvailable: true,
+		graphViewContributionStatuses: [],
 		nodeSizeMode: 'connections',
 		particleSize: 3,
 		particleSpeed: 0.2,
