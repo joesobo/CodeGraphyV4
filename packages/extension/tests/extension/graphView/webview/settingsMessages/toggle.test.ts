@@ -98,6 +98,41 @@ describe('graph view settings toggle message', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
+  it('removes the Organize package from workspace plugins when toggled off', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [
+            { package: '@codegraphy/plugin-markdown' },
+            { package: '@codegraphy/organize' },
+          ] as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.organize',
+          packageName: '@codegraphy/organize',
+          enabled: false,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+      { package: '@codegraphy/plugin-markdown' },
+    ]);
+    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+  });
+
   it('enables package-backed plugins by adding them to the workspace plugins list', async () => {
     const state = createState();
     const handlers = createHandlers({

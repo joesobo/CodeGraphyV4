@@ -257,6 +257,44 @@ describe('pipeline/plugins/bootstrap', () => {
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
   });
 
+  it('does not register installed package plugins that are not enabled for the current CodeGraphy Workspace', async () => {
+    const registry = createRegistry();
+    const workspaceRoot = await createWorkspace();
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-home-'));
+    const packageRoot = path.join(
+      await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-extension-global-')),
+      'node_modules',
+      '@acme',
+      'codegraphy-plugin-extension-bootstrap',
+    );
+
+    await createPluginPackage(packageRoot);
+    writeCodeGraphyInstalledPluginCache({
+      version: 1,
+      plugins: [{
+        package: '@acme/codegraphy-plugin-extension-bootstrap',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        disclosures: [],
+        packageRoot,
+      }],
+    }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{ package: '@codegraphy/plugin-markdown' }],
+    });
+
+    await initializeWorkspacePipeline(registry as never, {
+      getWorkspaceRoot: () => workspaceRoot,
+      userHomeDir: homeDir,
+    });
+
+    expect(
+      registry.register.mock.calls.map(([plugin]) => plugin.id),
+    ).toEqual(['codegraphy.treesitter', 'codegraphy.markdown']);
+    expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);
+  });
+
   it('passes workspace plugin data host to package factories in the extension pipeline', async () => {
     const registry = createRegistry();
     const workspaceRoot = await createWorkspace();

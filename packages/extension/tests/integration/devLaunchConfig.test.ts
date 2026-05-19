@@ -45,20 +45,14 @@ function readTaskConfig(label: string): TaskConfiguration {
 }
 
 describe('dev launch config', () => {
-  it('loads the core extension and external CodeGraphy plugins in the extension host', () => {
+  it('loads only the core VS Code extension in the extension host', () => {
     const configuration = readLaunchConfig();
 
     expect(configuration.type).toBe('extensionHost');
     expect(configuration.request).toBe('launch');
-    expect(configuration.args).toEqual(
-      expect.arrayContaining([
-        '--extensionDevelopmentPath=${workspaceFolder}',
-        '--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-typescript',
-        '--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-python',
-        '--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-csharp',
-        '--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-godot',
-      ]),
-    );
+    expect(
+      configuration.args?.filter(arg => arg.startsWith('--extensionDevelopmentPath=')),
+    ).toEqual(['--extensionDevelopmentPath=${workspaceFolder}']);
   });
 
   it('uses a dedicated prelaunch build that materializes extension and plugin outputs in the active worktree', () => {

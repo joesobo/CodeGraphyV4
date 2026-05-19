@@ -34,9 +34,20 @@ describe('graph/model/runtimeContributions', () => {
               id: 'section:frontend',
               label: 'Frontend',
               color: '#84cc16',
-              nodeType: 'organize:section',
+              hiddenDescendantCount: 0,
+              icon: 'FE',
+              isCollapsedGraphSection: false,
+              isGraphSection: true,
               metadata: { owner: 'design' },
-            }];
+              nodeType: 'graph-section',
+              ownerPluginId: 'codegraphy.organize',
+              ownerSectionId: null,
+              runtimeNodeType: 'codegraphy.organize.graph-section',
+              sectionHeight: 180,
+              sectionWidth: 280,
+              shape2D: 'square',
+              size: 36,
+            } as unknown as IGraphData['nodes'][number]];
           },
         },
       }],
@@ -72,8 +83,19 @@ describe('graph/model/runtimeContributions', () => {
     expect(graphData.nodes.find(node => node.id === 'section:frontend')).toMatchObject({
       id: 'section:frontend',
       label: 'Frontend',
+      hiddenDescendantCount: 0,
+      icon: 'FE',
+      isCollapsedGraphSection: false,
+      isGraphSection: true,
       metadata: { owner: 'design' },
-      nodeType: 'organize:section',
+      nodeType: 'graph-section',
+      ownerPluginId: 'codegraphy.organize',
+      ownerSectionId: null,
+      runtimeNodeType: 'codegraphy.organize.graph-section',
+      sectionHeight: 180,
+      sectionWidth: 280,
+      shape2D: 'square',
+      size: 36,
     });
     expect(graphData.links).toEqual([
       expect.objectContaining({

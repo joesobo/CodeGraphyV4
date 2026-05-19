@@ -85,6 +85,8 @@ codegraphy plugins enable @codegraphy/organize /path/to/indexed-folder
 codegraphy index /path/to/indexed-folder
 ```
 
+When testing through F5, launch only the public CodeGraphy VS Code extension. Do not add headless plugin package folders to VS Code's `extensionDevelopmentPath`; the extension host loads linked packages from `~/.codegraphy/plugins.json` and the opened workspace's `.codegraphy/settings.json`.
+
 The private package should declare `"name": "@codegraphy/organize"` and a `codegraphy` manifest block like any other plugin package.
 
 When Indexing loads an enabled package, `@codegraphy/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to package plugin factories as `factoryOptions.options`, and to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
