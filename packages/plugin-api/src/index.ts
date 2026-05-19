@@ -13,8 +13,23 @@
 // Disposable
 export type { Disposable } from './disposable';
 
+// Access
+export type {
+  CodeGraphyAccessKey,
+  CodeGraphyAccessState,
+  IAccessProvider,
+  IAccessRequest,
+  IAccessResult,
+} from './access';
+
 // Connection source metadata
 export type { IConnectionSource } from './connection';
+
+// Plugin data
+export type {
+  IPluginDataHost,
+  IPluginDataSaveOptions,
+} from './data';
 
 // Analysis
 export type {
@@ -44,6 +59,28 @@ export type {
   IGraphNodeRange,
   IGraphNodeSymbolMetadata,
 } from './graph';
+
+// Graph View contributions
+export type {
+  GraphViewAccessRequirement,
+  GraphViewContextMenuTargetSelector,
+  GraphViewUiContributionView,
+  GraphViewUiSlot,
+  IGraphViewContributionBase,
+  IGraphViewContributionContext,
+  IGraphViewContextMenuContribution,
+  IGraphViewContextMenuRunContext,
+  IGraphViewContributions,
+  IGraphViewForceAdapter,
+  IGraphViewForceAdapterContext,
+  IGraphViewForceAdapterContribution,
+  IGraphViewProjectionContribution,
+  IGraphViewRuntimeEdge,
+  IGraphViewRuntimeEdgeContribution,
+  IGraphViewRuntimeNode,
+  IGraphViewRuntimeNodeContribution,
+  IGraphViewUiSlotContribution,
+} from './graphView';
 
 // Events
 export type {

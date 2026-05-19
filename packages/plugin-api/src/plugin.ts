@@ -12,8 +12,10 @@ import type {
   IPluginEdgeType,
   IPluginNodeType,
 } from './analysis';
+import type { CodeGraphyAccessKey, IAccessProvider } from './access';
 import type { IConnectionSource } from './connection';
 import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
+import type { IGraphViewContributions } from './graphView';
 
 /**
  * File metadata passed to bulk analysis hooks.
@@ -87,6 +89,12 @@ export interface IPlugin {
   /** File extensions this plugin can handle (e.g., `['.ts', '.tsx']`, or `['*']` for all files). */
   supportedExtensions: string[];
 
+  /** Access required before this plugin's gated contributions can run. */
+  requiresAccess?: CodeGraphyAccessKey | readonly CodeGraphyAccessKey[];
+
+  /** Optional Access Provider registered by account/status plugins such as Pro. */
+  accessProvider?: IAccessProvider;
+
   /**
    * Connection sources this plugin supports.
    * Each source describes a category of relations the plugin can emit.
@@ -111,6 +119,9 @@ export interface IPlugin {
    * files matching these patterns are excluded from analysis.
    */
   defaultFilters?: string[];
+
+  /** Optional Graph View runtime, UI, menu, projection, and force contributions. */
+  graphView?: IGraphViewContributions;
 
   // ---------------------------------------------------------------------------
   // Core analysis contract
