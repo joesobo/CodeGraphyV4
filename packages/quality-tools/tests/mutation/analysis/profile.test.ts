@@ -24,8 +24,8 @@ describe('mutation profiles', () => {
   it('discovers supported mutation packages including quality-tools', () => {
     const packages = discoverMutationPackageNames(REPO_ROOT);
     expect(packages).toContain('extension');
+    expect(packages).toContain('plugin-api');
     expect(packages).toContain('quality-tools');
-    expect(packages).not.toContain('plugin-api');
   });
 
   it('uses the shared root config for extension and generic workspace packages', () => {

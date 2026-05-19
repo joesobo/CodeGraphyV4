@@ -24,6 +24,7 @@ test('release targets include every public workspace package', () => {
     '@codegraphy/plugin-markdown',
     '@codegraphy/plugin-python',
     '@codegraphy/plugin-typescript',
+    '@codegraphy/pro',
     '@codegraphy/core',
     '@codegraphy/mcp',
   ]);
@@ -180,6 +181,7 @@ test('target groups can release only npm packages', () => {
       '@codegraphy/plugin-markdown',
       '@codegraphy/plugin-python',
       '@codegraphy/plugin-typescript',
+      '@codegraphy/pro',
       '@codegraphy/core',
       '@codegraphy/mcp',
     ],

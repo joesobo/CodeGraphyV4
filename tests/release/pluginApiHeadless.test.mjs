@@ -22,7 +22,14 @@ function listFilesIfPresent(relativePath) {
 test('plugin API package publishes only headless plugin contracts', () => {
   const manifest = JSON.parse(readPluginApiFile('package.json'));
 
-  assert.deepEqual(Object.keys(manifest.exports), ['.', './events', './plugin']);
+  assert.deepEqual(Object.keys(manifest.exports), [
+    '.',
+    './events',
+    './plugin',
+    './access',
+    './data',
+    './graph-view',
+  ]);
   assert.deepEqual(listFilesIfPresent('src/webview'), []);
 
   const indexSource = readPluginApiFile('src/index.ts');
