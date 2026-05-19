@@ -36,6 +36,10 @@ export interface AddCodeGraphyInstalledPluginOptions extends CodeGraphyUserState
   globalPackageRoots: string[];
 }
 
+export interface LinkCodeGraphyInstalledPluginPackageOptions extends CodeGraphyUserStateOptions {
+  packageRoot: string;
+}
+
 export function getCodeGraphyUserDirectoryPath(homeDir: string = os.homedir()): string {
   return path.join(homeDir, '.codegraphy');
 }
@@ -281,6 +285,21 @@ export async function addCodeGraphyInstalledPlugin(
     `CodeGraphy plugin package '${options.packageName}' was not found in global npm package roots. ` +
     `Run \`npm i -g ${options.packageName}\` first.`,
   );
+}
+
+export async function linkCodeGraphyInstalledPluginPackage(
+  options: LinkCodeGraphyInstalledPluginPackageOptions,
+): Promise<CodeGraphyInstalledPluginRecord> {
+  const record = await readPackageManifest(options.packageRoot);
+  if (!record) {
+    throw new Error(`Package at '${options.packageRoot}' is not a CodeGraphy plugin.`);
+  }
+
+  writeCodeGraphyInstalledPluginCache(
+    upsertInstalledPluginRecord(readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir }), record),
+    { homeDir: options.homeDir },
+  );
+  return record;
 }
 
 export function enableCodeGraphyWorkspacePlugin(

@@ -32,6 +32,11 @@ describe('run/parse', () => {
       action: 'add',
       packageName: 'private-plugin',
     });
+    expect(parseCliCommand(['plugins', 'link', '/private/organize'])).toEqual({
+      name: 'plugins',
+      action: 'link',
+      packageRoot: '/private/organize',
+    });
     expect(parseCliCommand(['plugins', 'enable', '@codegraphy/plugin-python', '/workspace/project'])).toEqual({
       name: 'plugins',
       action: 'enable',

@@ -43,6 +43,7 @@ Installation and enablement are separate:
 - `npm i -g @codegraphy/plugin-python` installs a plugin package for the developer's toolchain.
 - `codegraphy plugins refresh` records installed `@codegraphy/*` plugin packages in `~/.codegraphy/plugins.json`.
 - `codegraphy plugins add <package>` records an explicitly named globally installed plugin package, including private or non-`@codegraphy` packages.
+- `codegraphy plugins link <package-root>` records a local package checkout directly in `~/.codegraphy/plugins.json`, which is the preferred local-development path for private plugins such as `@codegraphy/organize`.
 - `codegraphy plugins enable <package> [workspace]` writes that plugin into the workspace-local `plugins` array.
 - `codegraphy plugins disable <package> [workspace]` removes that plugin from the workspace-local enabled set.
 - Enabling and disabling plugins do not run Indexing automatically; run `codegraphy index [workspace]` to refresh the Graph Cache.
@@ -74,7 +75,17 @@ Plugin packages declare CodeGraphy metadata in `package.json` so discovery can v
 }
 ```
 
-The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, refresh, list, enable, or disable commands.
+The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, refresh, list, enable, disable, or link commands.
+
+For local private plugin development, keep the private source outside this public monorepo and link its package root:
+
+```bash
+codegraphy plugins link ~/src/codegraphy-organize
+codegraphy plugins enable @codegraphy/organize /path/to/indexed-folder
+codegraphy index /path/to/indexed-folder
+```
+
+The private package should declare `"name": "@codegraphy/organize"` and a `codegraphy` manifest block like any other plugin package.
 
 When Indexing loads an enabled package, `@codegraphy/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
 

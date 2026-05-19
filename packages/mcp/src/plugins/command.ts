@@ -5,6 +5,7 @@ import {
   createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
+  linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettingsOrInitial,
   refreshCodeGraphyInstalledPlugins,
@@ -12,6 +13,7 @@ import {
   type CodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyUserStateOptions,
+  type LinkCodeGraphyInstalledPluginPackageOptions,
   type RefreshCodeGraphyInstalledPluginsOptions,
 } from '@codegraphy/core';
 import type { CommandExecutionResult } from '../run/command';
@@ -24,6 +26,7 @@ type PluginsCommandDependencies = {
   disableWorkspacePlugin(workspaceRoot: string, packageName: string): void;
   enableWorkspacePlugin(workspaceRoot: string, plugin: CodeGraphyInstalledPluginRecord): void;
   homeDir?: string;
+  linkInstalledPlugin(options: LinkCodeGraphyInstalledPluginPackageOptions): Promise<CodeGraphyInstalledPluginRecord>;
   readInstalledPluginCache(options?: CodeGraphyUserStateOptions): CodeGraphyInstalledPluginCache;
   refreshInstalledPlugins(options: RefreshCodeGraphyInstalledPluginsOptions): Promise<CodeGraphyInstalledPluginCache>;
   resolveGlobalPackageRoots(): string[];
@@ -34,6 +37,7 @@ const DEFAULT_DEPENDENCIES: PluginsCommandDependencies = {
   cwd: () => process.cwd(),
   disableWorkspacePlugin: disableCodeGraphyWorkspacePlugin,
   enableWorkspacePlugin: enableCodeGraphyWorkspacePlugin,
+  linkInstalledPlugin: linkCodeGraphyInstalledPluginPackage,
   readInstalledPluginCache: readCodeGraphyInstalledPluginCache,
   refreshInstalledPlugins: refreshCodeGraphyInstalledPlugins,
   resolveGlobalPackageRoots: resolveNpmGlobalPackageRoots,
@@ -48,10 +52,18 @@ function createHelpResult(): CommandExecutionResult {
       'Commands:',
       '  codegraphy plugins refresh',
       '  codegraphy plugins add <package>',
+      '  codegraphy plugins link <package-root>',
       '  codegraphy plugins list [workspace]',
       '  codegraphy plugins enable <package> [workspace]',
       '  codegraphy plugins disable <package> [workspace]',
     ].join('\n'),
+  };
+}
+
+function createMissingPackageRootResult(): CommandExecutionResult {
+  return {
+    exitCode: 1,
+    output: 'Usage: codegraphy plugins link <package-root>',
   };
 }
 
@@ -143,6 +155,26 @@ async function runAddCommand(
   return {
     exitCode: 0,
     output: `Added ${record.package} to ~/.codegraphy/plugins.json.`,
+  };
+}
+
+async function runLinkCommand(
+  command: CliCommand,
+  dependencies: PluginsCommandDependencies,
+): Promise<CommandExecutionResult> {
+  if (!command.packageRoot) {
+    return createMissingPackageRootResult();
+  }
+
+  const packageRoot = path.resolve(dependencies.cwd(), command.packageRoot);
+  const record = await dependencies.linkInstalledPlugin({
+    homeDir: dependencies.homeDir,
+    packageRoot,
+  });
+
+  return {
+    exitCode: 0,
+    output: `Linked ${record.package} from ${record.packageRoot} into ~/.codegraphy/plugins.json.`,
   };
 }
 
@@ -245,6 +277,8 @@ export async function runPluginsCommand(
         return runRefreshCommand(mergedDependencies);
       case 'add':
         return runAddCommand(command, mergedDependencies);
+      case 'link':
+        return runLinkCommand(command, mergedDependencies);
       case 'enable':
         return runEnableCommand(command, mergedDependencies);
       case 'disable':

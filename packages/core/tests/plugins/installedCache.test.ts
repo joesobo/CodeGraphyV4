@@ -8,6 +8,7 @@ import {
   addCodeGraphyInstalledPlugin,
   enableCodeGraphyWorkspacePlugin,
   getInstalledPluginsCachePath,
+  linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   refreshCodeGraphyInstalledPlugins,
 } from '../../src';
@@ -126,6 +127,38 @@ describe('CodeGraphy installed plugin cache', () => {
       apiVersion: '^2.0.0',
       disclosures: ['externalProcesses'],
       packageRoot: path.join(globalRoot, 'private-plugin'),
+    });
+    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
+  });
+
+  it('links a private local plugin package root into the user-level cache', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-organize-package-'));
+    await fs.writeFile(
+      path.join(packageRoot, 'package.json'),
+      `${JSON.stringify({
+        name: '@codegraphy/organize',
+        version: '0.1.0',
+        codegraphy: {
+          type: 'plugin',
+          apiVersion: '^2.0.0',
+          disclosures: ['workspaceWrites'],
+        },
+      }, null, 2)}\n`,
+      'utf-8',
+    );
+
+    const record = await linkCodeGraphyInstalledPluginPackage({
+      homeDir,
+      packageRoot,
+    });
+
+    expect(record).toEqual({
+      package: '@codegraphy/organize',
+      version: '0.1.0',
+      apiVersion: '^2.0.0',
+      disclosures: ['workspaceWrites'],
+      packageRoot,
     });
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
   });

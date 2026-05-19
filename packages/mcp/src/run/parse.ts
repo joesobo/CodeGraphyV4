@@ -1,10 +1,11 @@
 export type CliCommandName = 'help' | 'index' | 'mcp' | 'plugins' | 'setup' | 'status';
-export type PluginsCommandAction = 'add' | 'disable' | 'enable' | 'help' | 'list' | 'refresh';
+export type PluginsCommandAction = 'add' | 'disable' | 'enable' | 'help' | 'link' | 'list' | 'refresh';
 
 export interface CliCommand {
   name: CliCommandName;
   action?: PluginsCommandAction;
   packageName?: string;
+  packageRoot?: string;
   workspacePath?: string;
 }
 
@@ -14,6 +15,8 @@ function parsePluginsCommand(argv: string[]): CliCommand {
   switch (action) {
     case 'add':
       return { name: 'plugins', action, packageName };
+    case 'link':
+      return { name: 'plugins', action, packageRoot: packageName };
     case 'disable':
     case 'enable':
       return { name: 'plugins', action, packageName, workspacePath };
