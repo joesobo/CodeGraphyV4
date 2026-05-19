@@ -14,6 +14,7 @@ export interface GraphViewSettingsMessageHandlers {
   updateConfig(key: string, value: unknown): Promise<void>;
   getInstalledPluginDefaultOptions?(packageName: string): Record<string, unknown> | undefined;
   reloadWorkspacePlugins(): Promise<void>;
+  sendGraphViewContributionStatuses?(): void;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;
   smartRebuild(id: string): void;

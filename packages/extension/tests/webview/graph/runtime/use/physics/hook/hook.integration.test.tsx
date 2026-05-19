@@ -6,6 +6,7 @@ import {
 } from '../../../../../../../src/webview/components/graph/runtime/use/physics/hook';
 
 const physicsHarness = vi.hoisted(() => ({
+  applyGraphSectionBoundsForce: vi.fn(),
   applyPhysicsSettings: vi.fn(),
   havePhysicsSettingsChanged: vi.fn(),
   initPhysics: vi.fn(),
@@ -13,6 +14,7 @@ const physicsHarness = vi.hoisted(() => ({
 }));
 
 vi.mock('../../../../../../../src/webview/components/graph/runtime/physics', () => ({
+  applyGraphSectionBoundsForce: physicsHarness.applyGraphSectionBoundsForce,
   applyPhysicsSettings: physicsHarness.applyPhysicsSettings,
   havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
   initPhysics: physicsHarness.initPhysics,
@@ -25,6 +27,32 @@ const SETTINGS: IPhysicsSettings = {
   linkDistance: 120,
   linkForce: 0.4,
   repelForce: 500,
+};
+
+const GRAPH_LAYOUT = {
+  collapsedNodes: {},
+  pinnedNodes: {},
+  sections: {
+    'section-ui': {
+      id: 'section-ui',
+      label: 'UI',
+      color: '#60a5fa',
+      x: 100,
+      y: 120,
+      width: 300,
+      height: 180,
+      collapsed: false,
+      updatedAt: '2026-05-19T09:00:00.000Z',
+    },
+  },
+  ownership: {
+    'src/app.ts': {
+      itemId: 'src/app.ts',
+      itemKind: 'file',
+      ownerSectionId: 'section-ui',
+      updatedAt: '2026-05-19T09:00:00.000Z',
+    },
+  },
 };
 
 type UsePhysicsRuntimeOptions = Parameters<typeof usePhysicsRuntime>[0];
@@ -56,6 +84,7 @@ function havePhysicsChanged(
 
 describe('usePhysicsRuntime', () => {
   beforeEach(() => {
+    physicsHarness.applyGraphSectionBoundsForce.mockReset();
     physicsHarness.applyPhysicsSettings.mockReset();
     physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.initPhysics.mockReset();
@@ -327,6 +356,41 @@ describe('usePhysicsRuntime', () => {
 
     expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledOnce();
     expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
+  });
+
+  it('removes section physics when section layout stops being available', () => {
+    const graph = create2DGraph();
+    const link = { id: 'a-to-b', source: 'src/app.ts', target: 'src/lib.ts' };
+    const graphDataRef = { current: { nodes: [], links: [link] } };
+
+    const { rerender } = renderHook(
+      ({ graphLayout }) => usePhysicsRuntime({
+        fg2dRef: { current: graph },
+        fg3dRef: { current: undefined },
+        graphDataRef: graphDataRef as never,
+        graphLayout: graphLayout as never,
+        graphMode: '2d',
+        layoutKey: 'layout:a',
+        physicsSettings: SETTINGS,
+      }),
+      { initialProps: { graphLayout: GRAPH_LAYOUT as typeof GRAPH_LAYOUT | undefined } },
+    );
+
+    rerender({ graphLayout: undefined });
+
+    expect(physicsHarness.applyGraphSectionBoundsForce.mock.calls.at(-1)).toEqual([
+      graph,
+      {
+        graphLayout: undefined,
+        graphMode: '2d',
+        links: [link],
+        settings: SETTINGS,
+      },
+    ]);
+    expect(physicsHarness.applyPhysicsSettings.mock.calls.at(-1)).toEqual([
+      graph,
+      SETTINGS,
+    ]);
   });
 
   it('syncs the active graph immediately when initialization completes in a paused state', () => {

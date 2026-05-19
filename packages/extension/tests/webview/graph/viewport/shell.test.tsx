@@ -403,6 +403,55 @@ describe('graph/viewport/shell', () => {
 		}));
 	});
 
+	it('does not pass persisted section layout into physics when Graph Sections are unavailable', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const viewState = createViewState();
+		viewState.graphMode = '2d';
+		viewState.graphSectionsAvailable = false;
+		viewState.graphLayout = {
+			collapsedNodes: {},
+			pinnedNodes: {},
+			sections: {
+				'section-ui': {
+					id: 'section-ui',
+					label: 'UI',
+					color: '#60a5fa',
+					x: 100,
+					y: 120,
+					width: 300,
+					height: 180,
+					collapsed: false,
+					updatedAt: '2026-05-19T09:00:00.000Z',
+				},
+			},
+			ownership: {
+				'src/app.ts': {
+					itemId: 'src/app.ts',
+					itemKind: 'node',
+					ownerSectionId: 'section-ui',
+					updatedAt: '2026-05-19T09:00:00.000Z',
+				},
+			},
+		};
+
+		render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		expect(harness.useGraphRenderingRuntime).toHaveBeenCalledWith(expect.objectContaining({
+			graphLayout: undefined,
+		}));
+	});
+
 	it('passes only expanded runtime-backed Section Frames to the viewport', () => {
 		const graphData = createGraphData();
 		graphData.nodes = [
