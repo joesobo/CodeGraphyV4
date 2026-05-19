@@ -30,6 +30,15 @@
     },
     "./plugin": {
       "types": "./src/plugin.ts"
+    },
+    "./access": {
+      "types": "./src/access.ts"
+    },
+    "./data": {
+      "types": "./src/data.ts"
+    },
+    "./graph-view": {
+      "types": "./src/graphView.ts"
     }
   },
   "types": "src/index.ts",
@@ -37,7 +46,8 @@
     "access": "public"
   },
   "scripts": {
-    "lint": "eslint src",
+    "lint": "eslint src tests vitest.config.ts",
+    "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "files": [
