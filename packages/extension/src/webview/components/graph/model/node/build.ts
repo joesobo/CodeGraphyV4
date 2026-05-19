@@ -237,6 +237,7 @@ function createGraphNode(
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,
+    metadata: node.metadata,
     isCollapsible: node.isCollapsible,
     isCollapsed: node.isCollapsed,
     collapsedDescendantCount: node.collapsedDescendantCount,

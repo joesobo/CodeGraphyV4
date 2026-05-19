@@ -1,5 +1,6 @@
 import type { LinkObject, NodeObject } from 'react-force-graph-2d';
-import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { GraphMetadata, IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { GraphLayoutMode, GraphLayoutSettings } from '../../../../shared/settings/graphLayout';
 import type { ThemeKind } from '../../../theme/useTheme';
@@ -8,6 +9,7 @@ import type { NodeType } from '../../../../shared/graph/contracts';
 import { buildGraphLinks } from './link/build';
 import { buildGraphNodes } from './node/build';
 import { projectGraphSectionsForRendering } from './sectionProjection';
+import { applyGraphViewRuntimeContributions } from './runtimeContributions';
 export { processEdges } from './edgeProcessing';
 import { calculateNodeSizes } from './node/sizing';
 export { DEFAULT_NODE_SIZE, FAVORITE_BORDER_COLOR, getDepthOpacity, getDepthSizeMultiplier, getNodeType, resolveDirectionColor } from './node/display';
@@ -28,6 +30,7 @@ export type FGNode = NodeObject & {
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;
+  metadata?: GraphMetadata;
   collapsedDescendantCount?: number;
   hiddenDescendantCount?: number;
   isCollapsible?: boolean;
@@ -60,12 +63,14 @@ export type FGLink = LinkObject & {
   curvature?: number;
   curvatureGroupId?: string;
   kind?: string;
+  metadata?: GraphMetadata;
   projectedEdgeCount?: number;
   projectedEdgeIds?: string[];
 };
 
 export interface BuildGraphDataOptions {
   data: IGraphData;
+  graphViewContributions?: CoreGraphViewContributionSet;
   appearance?: GraphAppearance;
   nodeSizeMode: NodeSizeMode;
   theme: ThemeKind;
@@ -81,15 +86,19 @@ export interface BuildGraphDataOptions {
 export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[]; links: FGLink[] } {
   const appearance = options.appearance ?? DEFAULT_GRAPH_APPEARANCE;
   const graphMode = options.graphMode ?? '2d';
+  const runtimeData = applyGraphViewRuntimeContributions(
+    options.data,
+    options.graphViewContributions,
+  );
   const projected = projectGraphSectionsForRendering({
-    data: options.data,
+    data: runtimeData,
     graphLayout: options.graphLayout,
     graphMode,
     timelineActive: options.timelineActive,
   });
   const nodeSizes = calculateNodeSizes(projected.data.nodes, projected.data.edges, options.nodeSizeMode);
   const nodes = buildGraphNodes({
-    allNodeIds: options.data.nodes.map(node => node.id),
+    allNodeIds: runtimeData.nodes.map(node => node.id),
     nodes: projected.data.nodes,
     edges: projected.data.edges,
     appearance,

@@ -128,6 +128,9 @@ export interface IGraphNode {
   /** Symbol metadata when this node represents a code symbol. */
   symbol?: IGraphNodeSymbolMetadata;
 
+  /** Optional plugin presentation metadata for details, popups, exports, and filters. */
+  metadata?: GraphMetadata;
+
   /** Whether this folder-like node can collapse descendant nodes in the graph view. */
   isCollapsible?: boolean;
 
@@ -196,6 +199,9 @@ export interface IGraphEdge {
 
   /** All contributing plugin sources merged into this edge. */
   sources: IGraphEdgeSource[];
+
+  /** Optional plugin presentation metadata for details, popups, exports, and filters. */
+  metadata?: GraphMetadata;
 }
 
 /**

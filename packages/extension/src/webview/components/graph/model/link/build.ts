@@ -16,10 +16,11 @@ export function buildGraphLinks(edges: Array<IGraphEdge | ProjectedGraphEdge>, m
       bidirectional: edge.bidirectional ?? false,
       baseColor: edge.color ?? (edge.bidirectional ? '#60a5fa' : undefined),
       curvatureGroupId: edge.kind,
+      kind: edge.kind,
+      metadata: edge.metadata,
     };
 
     if (edge.projectedEdgeCount !== undefined || edge.projectedEdgeIds !== undefined) {
-      link.kind = edge.kind;
       link.projectedEdgeCount = edge.projectedEdgeCount;
       link.projectedEdgeIds = edge.projectedEdgeIds;
     }
