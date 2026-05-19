@@ -19,6 +19,7 @@ export function buildNodeEntries(
   mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
+  options: { includeGraphSection?: boolean } = {},
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [
     ...buildOpenBlock(targets, timelineActive),
@@ -28,7 +29,7 @@ export function buildNodeEntries(
     ...buildFilterBlock(targets),
   ];
 
-  if (mutationAvailability !== 'hidden' && targets.length > 0) {
+  if (mutationAvailability !== 'hidden' && targets.length > 0 && options.includeGraphSection !== false) {
     entries.push(
       builtInItem('node-create-section-from-selection', 'Wrap Selected in Graph Section', 'createGraphSection', {
         disabled: mutationAvailability === 'disabled',
@@ -104,6 +105,7 @@ export function buildSingleGraphSectionNodeEntries(
   collapsed: boolean,
   mutationAvailability: GraphContextMutationAvailability,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
+  options: { includeGraphSection?: boolean } = {},
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [];
 
@@ -112,7 +114,9 @@ export function buildSingleGraphSectionNodeEntries(
     entries.push(
       builtInItem('node-create-file', 'New File...', 'createFile', { disabled }),
       builtInItem('node-create-folder', 'New Folder...', 'createFolder', { disabled }),
-      builtInItem('node-create-graph-section', 'New Graph Section', 'createGraphSection', { disabled }),
+      ...(options.includeGraphSection === false
+        ? []
+        : [builtInItem('node-create-graph-section', 'New Graph Section', 'createGraphSection', { disabled })]),
       separator('node-separator-create'),
     );
   }

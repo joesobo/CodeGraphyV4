@@ -46,6 +46,7 @@ type GraphViewProviderPluginContext = Pick<
   | 'sendContextMenuItems'
   | 'sendPluginExporters'
   | 'sendPluginToolbarActions'
+  | 'sendGraphViewContributionStatuses'
   | 'sendPluginWebviewInjections'
   | 'sendActiveFile'
   | 'waitForFirstWorkspaceReady'
@@ -87,6 +88,7 @@ export function createGraphViewProviderMessagePluginContext(
     sendContextMenuItems: () => source._sendContextMenuItems(),
     sendPluginExporters: () => source._sendPluginExporters?.(),
     sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),
+    sendGraphViewContributionStatuses: () => source._sendGraphViewContributionStatuses?.(),
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections(),
     sendActiveFile: () => source._sendMessage({
       type: 'ACTIVE_FILE_UPDATED',

@@ -69,6 +69,7 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(getGraphData());
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
   });
@@ -141,6 +142,7 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendPluginExporters).toHaveBeenCalledOnce();
     expect(handlers.sendPluginToolbarActions).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith({ nodes: [], edges: [] });
   });
 

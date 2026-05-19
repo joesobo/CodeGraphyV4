@@ -56,6 +56,7 @@ export function createGraphViewProviderExternalPluginRegistration(
         sendContextMenuItems: () => broadcasts._sendContextMenuItems(),
         sendPluginExporters: () => broadcasts._sendPluginExporters(),
         sendPluginToolbarActions: () => broadcasts._sendPluginToolbarActions(),
+        sendGraphViewContributionStatuses: () => broadcasts._sendGraphViewContributionStatuses(),
         sendPluginWebviewInjections: () => broadcasts._sendPluginWebviewInjections(),
         invalidateTimelineCache: () => source._invalidateTimelineCache(),
         analyzeAndSendData: () => source._analyzeAndSendData(),

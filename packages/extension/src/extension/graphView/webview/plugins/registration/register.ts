@@ -42,6 +42,7 @@ export interface GraphViewExternalPluginRegistrationHandlers {
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
+  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   invalidateTimelineCache?(): Promise<void>;
   analyzeAndSendData(): Promise<void>;

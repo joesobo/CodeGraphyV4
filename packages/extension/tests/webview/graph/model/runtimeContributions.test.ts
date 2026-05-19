@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { buildGraphData } from '../../../../src/webview/components/graph/model/build';
@@ -163,5 +163,49 @@ describe('graph/model/runtimeContributions', () => {
       }),
     ]);
     expect(graphData.links).toEqual([]);
+  });
+
+  it('passes live graph mode and timeline state to runtime and projection contributions', () => {
+    const createNodes = vi.fn(() => []);
+    const project = vi.fn(({ visibleGraph }) => visibleGraph);
+    const graphViewContributions: CoreGraphViewContributionSet = {
+      ...createEmptyContributions(),
+      runtimeNodes: [{
+        pluginId: 'codegraphy.organize',
+        contribution: {
+          id: 'codegraphy.organize.section-node',
+          label: 'Section Node',
+          createNodes,
+        },
+      }],
+      projections: [{
+        pluginId: 'codegraphy.organize',
+        contribution: {
+          id: 'codegraphy.organize.collapse',
+          label: 'Collapse',
+          project,
+        },
+      }],
+    };
+
+    buildGraphData({
+      data: { nodes: [], edges: [] },
+      graphViewContributions,
+      nodeSizeMode: 'uniform',
+      theme: 'dark',
+      favorites: new Set(),
+      bidirectionalMode: 'separate',
+      graphMode: '3d',
+      timelineActive: true,
+    });
+
+    expect(createNodes).toHaveBeenCalledWith(expect.objectContaining({
+      graphMode: '3d',
+      timelineActive: true,
+    }));
+    expect(project).toHaveBeenCalledWith(expect.objectContaining({
+      graphMode: '3d',
+      timelineActive: true,
+    }));
   });
 });

@@ -51,6 +51,7 @@ export const INITIAL_STATE: GraphStateFields = {
   pluginContextMenuItems: [],
   pluginExporters: [],
   pluginToolbarActions: [],
+  graphViewContributionStatuses: [],
   expandedGroupId: null,
   activePanel: 'none' as const,
   maxFiles: DEFAULT_MAX_FILES,

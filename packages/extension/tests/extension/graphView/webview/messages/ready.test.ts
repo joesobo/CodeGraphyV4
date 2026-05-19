@@ -22,6 +22,7 @@ function createHandlers() {
     sendContextMenuItems: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendPluginToolbarActions: vi.fn(),
+    sendGraphViewContributionStatuses: vi.fn(),
     sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
     notifyWebviewReady: vi.fn(),
@@ -59,6 +60,7 @@ describe('graph view ready message', () => {
     expect(handlers.sendCachedTimeline).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(handlers.sendActiveFile).toHaveBeenCalledOnce();
     expect(handlers.sendMessage).toHaveBeenCalledWith({

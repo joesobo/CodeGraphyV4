@@ -9,7 +9,10 @@ import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/
 import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
-import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
+import type {
+  ExtensionToWebviewMessage,
+  IGraphViewContributionStatus,
+} from '../../shared/protocol/extensionToWebview';
 import type { IPluginFilterPatternGroup } from '../../shared/protocol/extensionToWebview';
 import type {
   IGraphEdgeTypeDefinition,
@@ -67,6 +70,7 @@ export interface GraphState {
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
   pluginToolbarActions: IPluginToolbarAction[];
+  graphViewContributionStatuses: IGraphViewContributionStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];
   nodeColors: Record<string, string>;

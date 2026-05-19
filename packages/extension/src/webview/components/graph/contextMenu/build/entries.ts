@@ -47,9 +47,12 @@ export function buildGraphContextMenuEntries(
     edges,
   } = options;
   const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
+  const graphSectionsAvailable = options.graphSectionsAvailable ?? true;
   const decision = decideGraphContextMenu(selection, nodes);
   const baseEntries = decision.kind === 'background'
-    ? buildBackgroundEntries(mutationAvailability)
+    ? buildBackgroundEntries(mutationAvailability, {
+      includeGraphSection: graphSectionsAvailable,
+    })
     : decision.kind === 'singleFolderNode'
       ? buildSingleFolderNodeEntries(
         decision.target,
@@ -64,6 +67,9 @@ export function buildGraphContextMenuEntries(
           !!decision.target.isCollapsedGraphSection,
           mutationAvailability,
           pinnedNodeIds,
+          {
+            includeGraphSection: graphSectionsAvailable,
+          },
         )
         : decision.kind === 'singleSymbolNode'
           ? buildSingleSymbolNodeEntries(decision.target.id, favorites)
@@ -77,6 +83,9 @@ export function buildGraphContextMenuEntries(
                 mutationAvailability,
                 favorites,
                 pinnedNodeIds,
+                {
+                  includeGraphSection: graphSectionsAvailable,
+                },
               );
   return [
     ...baseEntries,

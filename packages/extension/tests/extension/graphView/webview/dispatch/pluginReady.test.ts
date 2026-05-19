@@ -35,6 +35,7 @@ function createContext(
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendPluginToolbarActions: vi.fn(),
+    sendGraphViewContributionStatuses: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
@@ -62,6 +63,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     expect(context.sendCachedTimeline).toHaveBeenCalledOnce();
     expect(context.sendDecorations).toHaveBeenCalledOnce();
     expect(context.sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(context.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(context.sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(context.sendActiveFile).toHaveBeenCalledOnce();
     expect(context.notifyWebviewReady).toHaveBeenCalledOnce();

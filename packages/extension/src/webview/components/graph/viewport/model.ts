@@ -42,6 +42,7 @@ export interface GraphViewportModelOptions {
     | 'favorites'
     | 'graphLayout'
     | 'graphMode'
+    | 'graphSectionsAvailable'
     | 'physicsSettings'
     | 'pluginContextMenuItems'
     | 'setGraphMode'
@@ -101,6 +102,7 @@ export function useGraphViewportModel({
     favorites: viewState.favorites,
     pinnedNodeIds: getActivePinnedNodeIds(viewState),
     pluginItems: viewState.pluginContextMenuItems,
+    graphSectionsAvailable: viewState.graphSectionsAvailable,
     graphViewContributions,
     nodes: graphState.graphData.nodes,
     edges: graphState.graphData.links,

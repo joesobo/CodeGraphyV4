@@ -42,6 +42,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _sendContextMenuItems: vi.fn(),
     _sendPluginExporters: vi.fn(),
     _sendPluginToolbarActions: vi.fn(),
+    _sendGraphViewContributionStatuses: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
     registerExternalPlugin: vi.fn(),
   };

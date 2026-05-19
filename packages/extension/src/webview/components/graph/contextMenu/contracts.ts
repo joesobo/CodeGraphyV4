@@ -99,6 +99,7 @@ export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
   timelineActive: boolean;
   mutationAvailability?: GraphContextMutationAvailability;
+  graphSectionsAvailable?: boolean;
   favorites: ReadonlySet<string>;
   pinnedNodeIds?: ReadonlySet<string>;
   pluginItems: readonly IPluginContextMenuItem[];

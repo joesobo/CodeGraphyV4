@@ -40,6 +40,7 @@ export interface GraphViewPluginMessageContext {
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
+  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;

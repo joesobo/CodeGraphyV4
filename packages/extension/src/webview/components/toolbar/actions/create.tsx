@@ -22,6 +22,7 @@ import { postMessage } from '../../../vscodeApi';
 import type { GraphContextMutationAvailability } from '../../graph/contextMenu/contracts';
 
 interface CreateToolbarActionProps {
+  graphSectionsAvailable: boolean;
   graphMode: '2d' | '3d';
   mutationAvailability: GraphContextMutationAvailability;
 }
@@ -50,10 +51,12 @@ function postRootFolderCreation(): void {
 }
 
 export function CreateToolbarAction({
+  graphSectionsAvailable,
   graphMode,
   mutationAvailability,
 }: CreateToolbarActionProps): React.ReactElement {
-  const sectionCreationAvailable = graphMode === '2d'
+  const sectionCreationAvailable = graphSectionsAvailable
+    && graphMode === '2d'
     && mutationAvailability !== 'hidden';
   const sectionCreationDisabled = mutationAvailability === 'disabled';
 

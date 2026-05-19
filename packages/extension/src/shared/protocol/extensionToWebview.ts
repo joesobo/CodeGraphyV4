@@ -23,6 +23,21 @@ export interface IPluginFilterPatternGroup {
   patterns: string[];
 }
 
+export type GraphViewContributionStatusKind =
+  | 'runtimeNodes'
+  | 'runtimeEdges'
+  | 'projections'
+  | 'forces'
+  | 'contextMenu'
+  | 'ui';
+
+export interface IGraphViewContributionStatus {
+  kind: GraphViewContributionStatusKind;
+  pluginId: string;
+  contributionId: string;
+  label: string;
+}
+
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | {
@@ -96,6 +111,7 @@ export type ExtensionToWebviewMessage =
       };
     }
   | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
+  | { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED'; payload: { contributions: IGraphViewContributionStatus[] } }
   | { type: 'PLUGIN_EXPORTERS_UPDATED'; payload: { items: IPluginExporterItem[] } }
   | { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED'; payload: { items: IPluginToolbarAction[] } }
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }

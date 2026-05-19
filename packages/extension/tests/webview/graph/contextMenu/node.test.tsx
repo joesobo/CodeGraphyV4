@@ -37,6 +37,25 @@ async function selectTwoNodesForMultiMenu(graphContainer: HTMLElement): Promise<
   });
 }
 
+function enableOrganizeGraphSections(): void {
+  graphStore.setState({
+    graphViewContributionStatuses: [
+      {
+        kind: 'runtimeNodes',
+        pluginId: 'codegraphy.organize',
+        contributionId: 'codegraphy.organize.section-nodes',
+        label: 'Graph Section Nodes',
+      },
+      {
+        kind: 'projections',
+        pluginId: 'codegraphy.organize',
+        contributionId: 'codegraphy.organize.graph-section-projection',
+        label: 'Graph Section Projection',
+      },
+    ],
+  });
+}
+
 const menuData: IGraphData = {
   nodes: [
     { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', x: 12, y: -24 },
@@ -92,6 +111,7 @@ describe('Graph context menu (node)', () => {
       graphMode: '2d',
       timelineActive: false,
       pluginContextMenuItems: [],
+      graphViewContributionStatuses: [],
     });
   });
 
@@ -103,6 +123,7 @@ describe('Graph context menu (node)', () => {
       graphMode: '2d',
       timelineActive: false,
       pluginContextMenuItems: [],
+      graphViewContributionStatuses: [],
     });
   });
 
@@ -173,6 +194,7 @@ describe('Graph context menu (node)', () => {
   });
 
   it('shows node menu actions when right-clicking a node', async () => {
+    enableOrganizeGraphSections();
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -665,6 +687,7 @@ describe('Graph context menu (node)', () => {
   });
 
   it('shows multi-node actions when opening menu on selected node set', async () => {
+    enableOrganizeGraphSections();
     const { container } = render(<Graph data={selectionData} />);
     const graphContainer = getGraphContainer(container);
 

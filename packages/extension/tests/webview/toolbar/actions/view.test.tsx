@@ -77,6 +77,25 @@ function renderWithProviders() {
   );
 }
 
+function enableOrganizeGraphSections() {
+  graphStore.setState({
+    graphViewContributionStatuses: [
+      {
+        kind: 'runtimeNodes',
+        pluginId: 'codegraphy.organize',
+        contributionId: 'codegraphy.organize.section-nodes',
+        label: 'Graph Section Nodes',
+      },
+      {
+        kind: 'projections',
+        pluginId: 'codegraphy.organize',
+        contributionId: 'codegraphy.organize.graph-section-projection',
+        label: 'Graph Section Projection',
+      },
+    ],
+  });
+}
+
 function clickAction(title: string) {
   fireEvent.click(screen.getByTitle(title));
 }
@@ -100,6 +119,7 @@ describe('ToolbarActions', () => {
       timelineActive: false,
       timelineCommits: [],
       graphViewportScale: null,
+      graphViewContributionStatuses: [],
     });
   });
 
@@ -108,6 +128,7 @@ describe('ToolbarActions', () => {
   });
 
   it('renders lifecycle, graph tools, and system groups', () => {
+    enableOrganizeGraphSections();
     renderWithProviders();
 
     expect(screen.getByTestId('toolbar-lifecycle-group')).toBeInTheDocument();
@@ -122,6 +143,14 @@ describe('ToolbarActions', () => {
     expect(screen.getByText('New Graph Section')).toBeInTheDocument();
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
+  });
+
+  it('hides Graph Section creation when Organize graph view contributions are absent', () => {
+    renderWithProviders();
+
+    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New Folder...')).toBeInTheDocument();
+    expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
   });
 
   it('sends INDEX_GRAPH message when the initial index button is clicked', () => {
@@ -208,6 +237,7 @@ describe('ToolbarActions', () => {
   });
 
   it('orders the graph tool rail create menu as file, folder, Graph Section without a separator', () => {
+    enableOrganizeGraphSections();
     renderWithProviders();
 
     const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
@@ -222,6 +252,7 @@ describe('ToolbarActions', () => {
   });
 
   it('posts root creation messages from the graph tool rail create menu', () => {
+    enableOrganizeGraphSections();
     renderWithProviders();
     expect(screen.getByText('New File...').closest('button')).toHaveClass('gap-2');
 
@@ -256,6 +287,7 @@ describe('ToolbarActions', () => {
 
   it('posts a root Graph Section with stable graph-space size when the graph is zoomed out', () => {
     graphStore.setState({ graphViewportScale: 0.2 });
+    enableOrganizeGraphSections();
     renderWithProviders();
 
     fireEvent.click(screen.getByText('New Graph Section'));
@@ -274,6 +306,7 @@ describe('ToolbarActions', () => {
   });
 
   it('keeps section creation available at the mutable timeline head and disables it for immutable snapshots', () => {
+    enableOrganizeGraphSections();
     act(() => {
       graphStore.setState({
         currentCommitSha: 'head-sha',
