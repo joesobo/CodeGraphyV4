@@ -96,6 +96,7 @@ export async function applyWebviewReady(
 
   if (state.hasWorkspace && state.firstAnalysis) {
     await handlers.waitForFirstWorkspaceReady();
+    handlers.sendGraphViewContributionStatuses?.();
   }
 
   if (state.readyNotified) {

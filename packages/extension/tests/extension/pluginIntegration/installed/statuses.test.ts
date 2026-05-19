@@ -130,12 +130,53 @@ async function waitForPluginStatuses(
     .at(-1)?.payload?.plugins ?? [];
 }
 
+async function waitForGraphViewContributionStatuses(
+  getMessages: () => Array<{
+    type?: string;
+    payload?: {
+      contributions?: Array<{
+        contributionId: string;
+        kind: string;
+        pluginId: string;
+      }>;
+    };
+  }>,
+): Promise<Array<{ contributionId: string; kind: string; pluginId: string }>> {
+  const requiredContributionIds = [
+    installedPackage!.graphViewContributionIds!.runtimeNode,
+    installedPackage!.graphViewContributionIds!.projection,
+  ];
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const contributionMessage = getMessages()
+      .filter(message => message.type === 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED')
+      .at(-1);
+    const contributions = contributionMessage?.payload?.contributions ?? [];
+    const contributionIds = new Set(contributions.map(contribution => contribution.contributionId));
+
+    if (requiredContributionIds.every(contributionId => contributionIds.has(contributionId))) {
+      return contributions;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+
+  return getMessages()
+    .filter(message => message.type === 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED')
+    .at(-1)?.payload?.contributions ?? [];
+}
+
 describe('extension/pluginIntegration/installedPluginStatuses', () => {
   beforeAll(async () => {
     workspaceFixture = await createPluginIntegrationWorkspace();
     installedPackage = await installPluginIntegrationPackage(
       workspaceFixture.workspacePath,
       workspaceFixture.scratchPath,
+      {
+        graphViewContributions: 'organize',
+        packageName: '@codegraphy/organize',
+        pluginId: 'codegraphy.organize',
+      },
     );
   });
 
@@ -223,5 +264,44 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       workspaceFixture!.workspacePath,
     );
     expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
+  }, 15000);
+
+  it('sends package-enabled Organize graph view contributions to the webview after startup', async () => {
+    currentContext = createContext();
+    activate(currentContext as unknown as vscode.ExtensionContext);
+
+    const provider = getRegisteredProvider();
+    const { mockWebview, getMessageHandler } = resolveGraphWebview(provider);
+
+    await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+
+    const getContributionMessages = () =>
+      mockWebview.postMessage.mock.calls.map((call: unknown[]) => call[0] as {
+        type?: string;
+        payload?: {
+          contributions?: Array<{
+            contributionId: string;
+            kind: string;
+            pluginId: string;
+          }>;
+        };
+      });
+
+    const contributions = await waitForGraphViewContributionStatuses(getContributionMessages);
+
+    expect(contributions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          contributionId: installedPackage!.graphViewContributionIds!.runtimeNode,
+          kind: 'runtimeNodes',
+          pluginId: installedPackage!.pluginId,
+        }),
+        expect.objectContaining({
+          contributionId: installedPackage!.graphViewContributionIds!.projection,
+          kind: 'projections',
+          pluginId: installedPackage!.pluginId,
+        }),
+      ]),
+    );
   }, 15000);
 });
