@@ -20,6 +20,7 @@ export interface CodeGraphyWorkspaceSettings {
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];
   plugins: CodeGraphyWorkspacePluginSettings[];
+  pluginData?: Record<string, unknown>;
 }
 
 function readStringArray(value: unknown): string[] {
@@ -34,6 +35,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function readOptions(value: unknown): Record<string, unknown> | undefined {
   return isRecord(value) ? { ...value } : undefined;
+}
+
+function normalizePluginData(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? { ...value } : {};
 }
 
 function normalizePluginSettings(value: unknown): CodeGraphyWorkspacePluginSettings[] {
@@ -77,6 +82,7 @@ export function createDefaultCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceS
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     plugins: [],
+    pluginData: {},
   };
 }
 
@@ -114,6 +120,7 @@ export function normalizeCodeGraphyWorkspaceSettings(
     filterPatterns: [...new Set(readStringArray(value.filterPatterns))],
     disabledCustomFilterPatterns: [...new Set(readStringArray(value.disabledCustomFilterPatterns))],
     plugins: normalizePluginSettings(value.plugins),
+    pluginData: normalizePluginData(value.pluginData),
   };
 }
 
