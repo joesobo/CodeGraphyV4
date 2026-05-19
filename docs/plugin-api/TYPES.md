@@ -128,9 +128,19 @@ interface IAnalysisFile {
 }
 ```
 
-## Extension-Owned Surfaces
+## Graph View and Host Surfaces
 
-The public npm Plugin API does not expose `CodeGraphyAPI`, webview contracts, decorations, commands, context menus, exporters, toolbar actions, or plugin-defined graph views. Those contracts are extension-owned and remain inside `packages/extension` because they are visualization and VS Code integration surfaces.
+The public npm Plugin API exposes host-agnostic Graph View contribution contracts for paid and third-party plugins:
+
+- Access Provider checks through `IAccessProvider`
+- plugin-owned data through `loadData` / `saveData`
+- runtime Graph View nodes and edges
+- graph projections that run after the free Visible Graph exists
+- additive D3 force adapters
+- context-menu target selectors for background, node, edge, multi-selection, runtime node type, and runtime edge type
+- named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
+
+The public API still does not expose VS Code-specific `CodeGraphyAPI`, raw webview contracts, decorations, or the raw force-graph instance. VS Code remains the first host shell, not the plugin API boundary.
 
 Headless plugins should express analysis through `IPlugin` hooks and `IFileAnalysisResult`. The CLI and MCP consume the same core analysis path without installing VS Code or webview dependencies.
 
@@ -171,6 +181,35 @@ If you see projected file-to-file edges inside the extension codebase, those are
 - `GraphEdgeKind` = reserved core kinds plus namespaced custom kinds (`pluginId:kind`)
 - External Package nodes let plugins and host views include unresolved external imports like `fs` or `react` without pretending they are workspace files.
 
+### Access (`access.ts`)
+
+- `IAccessProvider`
+- `IAccessRequest`
+- `IAccessResult`
+- `CodeGraphyAccessKey`
+- `CodeGraphyAccessState`
+
+Use Access Provider plugins, such as `@codegraphy/pro`, to report whether paid capabilities like `organize` are available. Paid plugins declare `requiresAccess` on the plugin or on individual Graph View contributions.
+
+### Plugin Data (`data.ts`)
+
+- `IPluginDataHost`
+- `loadData<T>(fallback: T): T`
+- `saveData<T>(data: T, options?: { undoLabel?: string }): Promise<void>`
+
+Plugin id implies storage ownership. Hosts persist plugin data under the plugin id instead of asking plugins to register separate namespaces.
+
+### Graph View (`graphView.ts`)
+
+- `IGraphViewRuntimeNodeContribution`
+- `IGraphViewRuntimeEdgeContribution`
+- `IGraphViewProjectionContribution`
+- `IGraphViewForceAdapterContribution`
+- `IGraphViewContextMenuContribution`
+- `IGraphViewUiSlotContribution`
+
+Graph View runtime nodes and edges are display artifacts. They do not become Graph Cache facts and are not exposed as Graph Query relationships unless a plugin also contributes analysis data through Core.
+
 ## Theme-Style Plugins
 
 The current public API already supports a file-theme style plugin through `fileColors`:
@@ -188,7 +227,10 @@ Current limitation: folder icon theming is still core-only. The API does not yet
 
 `@codegraphy/plugin-api` is currently a type-definition package with `types` exports for:
 - `@codegraphy/plugin-api`
+- `@codegraphy/plugin-api/access`
+- `@codegraphy/plugin-api/data`
 - `@codegraphy/plugin-api/events`
+- `@codegraphy/plugin-api/graph-view`
 - `@codegraphy/plugin-api/plugin`
 
 Use `import type` for these symbols in plugin code.
