@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
 import {
@@ -31,6 +32,7 @@ interface GraphProps {
   theme?: ThemeKind;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
+  graphViewContributions?: CoreGraphViewContributionSet;
   onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
@@ -41,6 +43,7 @@ export default function Graph({
   theme = 'dark',
   nodeDecorations,
   edgeDecorations,
+  graphViewContributions,
   onAddFilterRequested = () => {},
   onAddLegendRequested = () => {},
   pluginHost,
@@ -57,6 +60,7 @@ export default function Graph({
     edgeDecorations,
     favorites: viewState.favorites,
     graphLayout: viewState.graphLayout,
+    graphViewContributions,
     graphMode: viewState.graphMode,
     nodeDecorations,
     nodeSizeMode: viewState.nodeSizeMode,
@@ -128,6 +132,7 @@ export default function Graph({
       callbacks={callbacks}
       graphLayoutKey={graphLayoutKey}
       graphState={graphState}
+      graphViewContributions={graphViewContributions}
       handleEngineStop={handleEngineStop}
       interactions={interactions}
       pluginHost={pluginHost}

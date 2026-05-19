@@ -57,6 +57,7 @@ export interface IGraphViewForceAdapterContext extends IGraphViewContributionCon
 }
 
 export interface IGraphViewForceAdapter {
+  initialize?(nodes: IGraphViewRuntimeNode[]): void;
   tick?(alpha?: number): void;
   dispose(): void;
 }

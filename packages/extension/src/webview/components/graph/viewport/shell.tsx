@@ -1,4 +1,5 @@
 import { useRef, type ReactElement } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { LegendIconImport } from '../../../../shared/protocol/webviewToExtension';
 import {
@@ -28,6 +29,7 @@ export interface GraphViewportShellProps {
   callbacks: UseGraphCallbacksResult;
   graphLayoutKey: string;
   graphState: UseGraphStateResult;
+  graphViewContributions?: CoreGraphViewContributionSet;
   handleEngineStop(this: void): void;
   interactions: UseGraphInteractionRuntimeResult;
   pluginHost?: WebviewPluginHost;
@@ -40,10 +42,11 @@ function buildRenderingRuntimeOptions({
   callbacks,
   graphLayoutKey,
   graphState,
+  graphViewContributions,
   pluginHost,
   theme,
   viewState,
-}: Pick<GraphViewportShellProps, 'appearance' | 'callbacks' | 'graphLayoutKey' | 'graphState' | 'pluginHost' | 'theme' | 'viewState'>) {
+}: Pick<GraphViewportShellProps, 'appearance' | 'callbacks' | 'graphLayoutKey' | 'graphState' | 'graphViewContributions' | 'pluginHost' | 'theme' | 'viewState'>) {
   return {
     appearance,
     containerRef: graphState.containerRef,
@@ -56,6 +59,7 @@ function buildRenderingRuntimeOptions({
     getParticleColor: callbacks.getParticleColor,
     graphDataRef: graphState.graphDataRef,
     graphLayout: viewState.graphLayout,
+    graphViewContributions,
     graphLayoutKey,
     graphMode: viewState.graphMode,
     highlightVersion: graphState.highlightVersion,
@@ -147,6 +151,7 @@ export function GraphViewportShell({
   callbacks,
   graphLayoutKey,
   graphState,
+  graphViewContributions,
   handleEngineStop,
   interactions,
   pluginHost,
@@ -159,6 +164,7 @@ export function GraphViewportShell({
     callbacks,
     graphLayoutKey,
     graphState,
+    graphViewContributions,
     pluginHost,
     theme,
     viewState,

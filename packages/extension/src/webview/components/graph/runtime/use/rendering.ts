@@ -1,6 +1,7 @@
 import {
   type MutableRefObject,
 } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type {
   ForceGraphMethods as FG2DMethods,
   LinkObject,
@@ -41,6 +42,7 @@ export interface UseGraphRenderingRuntimeOptions {
   getParticleColor: (this: void, link: LinkObject) => string;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
   graphLayout?: GraphLayoutSettings;
+  graphViewContributions?: CoreGraphViewContributionSet;
   graphLayoutKey: string;
   graphMode: '2d' | '3d';
   highlightVersion: number;
@@ -78,6 +80,7 @@ export function useGraphRenderingRuntime({
   getParticleColor,
   graphDataRef,
   graphLayout,
+  graphViewContributions,
   graphLayoutKey,
   graphMode,
   highlightVersion,
@@ -137,12 +140,13 @@ export function useGraphRenderingRuntime({
     physicsPaused,
   });
 
-	  usePhysicsRuntime({
-	    fg2dRef,
-	    fg3dRef,
-	    graphDataRef,
-	    graphLayout,
-	    graphMode,
+  usePhysicsRuntime({
+    fg2dRef,
+    fg3dRef,
+    graphDataRef,
+    graphLayout,
+    graphViewContributions,
+    graphMode,
     layoutKey: graphLayoutKey,
     physicsPaused,
     physicsSettings,
