@@ -3,7 +3,11 @@ import type { BidirectionalEdgeMode } from '../../../../../shared/settings/modes
 import { computeLinkCurvature } from './curvature';
 import type { FGLink } from '../build';
 import { processEdges } from '../edgeProcessing';
-import type { ProjectedGraphEdge } from '../sectionProjection';
+
+interface ProjectedGraphEdge extends IGraphEdge {
+  projectedEdgeCount?: number;
+  projectedEdgeIds?: string[];
+}
 
 export function buildGraphLinks(edges: Array<IGraphEdge | ProjectedGraphEdge>, mode: BidirectionalEdgeMode): FGLink[] {
   const links: FGLink[] = processEdges(edges, mode).map(edge => {
