@@ -340,6 +340,29 @@ describe('graph/contextMenuModel', () => {
     expect(builtInActions(selectionEntries)).not.toContain('createGraphSection');
   });
 
+  it('hides pin actions when Organize graph view contributions are unavailable', () => {
+    const singleFileEntries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src/app.ts', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set(),
+      graphSectionsAvailable: false,
+      pluginItems: [],
+    });
+    expect(menuLabels(singleFileEntries)).not.toContain('Pin Node');
+    expect(builtInActions(singleFileEntries)).not.toContain('pinNode');
+
+    const folderEntries = buildGraphContextMenuEntries({
+      selection: makeNodeContextSelection('src', new Set<string>()),
+      timelineActive: false,
+      favorites: new Set(),
+      graphSectionsAvailable: false,
+      pluginItems: [],
+      nodes: [{ id: 'src', nodeType: 'folder' }],
+    });
+    expect(menuLabels(folderEntries)).not.toContain('Pin Node');
+    expect(builtInActions(folderEntries)).not.toContain('pinNode');
+  });
+
   it('keeps Graph Section creation visible but disabled in immutable timeline snapshots', () => {
     const backgroundEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),

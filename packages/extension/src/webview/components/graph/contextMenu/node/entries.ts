@@ -19,13 +19,16 @@ export function buildNodeEntries(
   mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
-  options: { includeGraphSection?: boolean } = {},
+  options: { includeGraphSection?: boolean; includePin?: boolean } = {},
 ): GraphContextMenuEntry[] {
+  const includePin = options.includePin !== false;
   const entries: GraphContextMenuEntry[] = [
     ...buildOpenBlock(targets, timelineActive),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
-    ...(mutationAvailability === 'enabled' && !timelineActive ? buildPinBlock(targets, pinnedNodeIds) : []),
+    ...(includePin && mutationAvailability === 'enabled' && !timelineActive
+      ? buildPinBlock(targets, pinnedNodeIds)
+      : []),
     ...buildFilterBlock(targets),
   ];
 
@@ -67,9 +70,11 @@ export function buildSingleFolderNodeEntries(
   mutationAvailability: GraphContextMutationAvailability,
   favorites: ReadonlySet<string>,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
+  options: { includePin?: boolean } = {},
 ): GraphContextMenuEntry[] {
   const targets = [target.id];
   const entries: GraphContextMenuEntry[] = [];
+  const includePin = options.includePin !== false;
 
   if (mutationAvailability !== 'hidden') {
     const disabled = mutationAvailability === 'disabled';
@@ -89,7 +94,9 @@ export function buildSingleFolderNodeEntries(
     builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'),
     ...buildCopyBlock(targets),
     ...buildFavoriteBlock(targets, favorites),
-    ...(mutationAvailability === 'enabled' && !timelineActive ? buildPinBlock(targets, pinnedNodeIds) : []),
+    ...(includePin && mutationAvailability === 'enabled' && !timelineActive
+      ? buildPinBlock(targets, pinnedNodeIds)
+      : []),
     ...buildFilterBlock(targets),
   );
 
@@ -105,9 +112,10 @@ export function buildSingleGraphSectionNodeEntries(
   collapsed: boolean,
   mutationAvailability: GraphContextMutationAvailability,
   pinnedNodeIds: ReadonlySet<string> = new Set(),
-  options: { includeGraphSection?: boolean } = {},
+  options: { includeGraphSection?: boolean; includePin?: boolean } = {},
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [];
+  const includePin = options.includePin !== false;
 
   if (mutationAvailability !== 'hidden') {
     const disabled = mutationAvailability === 'disabled';
@@ -131,7 +139,7 @@ export function buildSingleGraphSectionNodeEntries(
     builtInItem('node-focus', 'Focus Node', 'focus'),
   );
 
-  if (mutationAvailability === 'enabled') {
+  if (includePin && mutationAvailability === 'enabled') {
     entries.push(...buildPinBlock([target], pinnedNodeIds));
   }
 

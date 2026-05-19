@@ -707,6 +707,7 @@ describe('Graph context menu (node)', () => {
   });
 
   it('sends UPDATE_GRAPH_LAYOUT_PIN for the selected nodes when clicking Pin Nodes', async () => {
+    enableOrganizeGraphSections();
     const { container } = render(<Graph data={selectionData} />);
     const graphContainer = getGraphContainer(container);
 

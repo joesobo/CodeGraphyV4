@@ -60,6 +60,9 @@ export function buildGraphContextMenuEntries(
         mutationAvailability,
         favorites,
         pinnedNodeIds,
+        {
+          includePin: graphSectionsAvailable,
+        },
       )
       : decision.kind === 'singleGraphSectionNode'
         ? buildSingleGraphSectionNodeEntries(
@@ -69,6 +72,7 @@ export function buildGraphContextMenuEntries(
           pinnedNodeIds,
           {
             includeGraphSection: graphSectionsAvailable,
+            includePin: graphSectionsAvailable,
           },
         )
         : decision.kind === 'singleSymbolNode'
@@ -85,6 +89,7 @@ export function buildGraphContextMenuEntries(
                 pinnedNodeIds,
                 {
                   includeGraphSection: graphSectionsAvailable,
+                  includePin: graphSectionsAvailable,
                 },
               );
   return [
