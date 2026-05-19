@@ -173,6 +173,12 @@ export {
 } from './plugins/registry';
 export type { CorePluginInfo } from './plugins/registry';
 export type {
+  CoreGraphViewContributionEntry,
+  CoreGraphViewContributionSet,
+  CorePluginAccessCheck,
+  CorePluginAccessContext,
+} from './plugins/access/checks';
+export type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
 } from './plugins/packageRuntime';
