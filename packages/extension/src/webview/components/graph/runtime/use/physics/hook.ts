@@ -51,6 +51,7 @@ export function usePhysicsRuntime({
   const pendingThreeDimensionalInitRef = useRef(graphMode === '3d');
   const previousPhysicsRef = useRef<IPhysicsSettings | null>(null);
   const previousLayoutKeyRef = useRef<string | null>(null);
+  const previousSectionLayoutRef = useRef<GraphLayoutSettings | undefined>(undefined);
   const forceAdapterStateRef = useRef(createGraphViewForceAdapterState());
 
   physicsSettingsRef.current = physicsSettings;
@@ -148,7 +149,18 @@ export function usePhysicsRuntime({
       return;
     }
 
+    const hadSectionLayout = previousSectionLayoutRef.current !== undefined;
+    previousSectionLayoutRef.current = graphLayout;
     if (!graphLayout) {
+      if (hadSectionLayout) {
+        applyGraphSectionBoundsForce(graph, {
+          graphLayout: undefined,
+          graphMode,
+          links: graphDataRef?.current.links,
+          settings: physicsSettingsRef.current,
+        });
+        applyPhysicsSettings(graph, physicsSettingsRef.current);
+      }
       return;
     }
 

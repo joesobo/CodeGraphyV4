@@ -23,6 +23,7 @@ function createHandlers(
       getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
       updateConfig: vi.fn(() => Promise.resolve()),
       reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
+      sendGraphViewContributionStatuses: vi.fn(),
       analyzeAndSendData: vi.fn(() => Promise.resolve()),
       smartRebuild: vi.fn(),
       getPluginFilterPatterns: vi.fn(() => []),
@@ -255,5 +256,48 @@ describe('graph view settings toggle message', () => {
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+  });
+
+  it('sends fresh graph view contribution statuses after package toggles reload plugins', async () => {
+    const state = createState();
+    const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
+    const sendGraphViewContributionStatuses = vi.fn();
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [
+            { package: '@codegraphy/plugin-markdown' },
+            { package: '@codegraphy/organize' },
+          ] as T;
+        }
+        return defaultValue;
+      }),
+      reloadWorkspacePlugins,
+      sendGraphViewContributionStatuses,
+      analyzeAndSendData,
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.organize',
+          packageName: '@codegraphy/organize',
+          enabled: false,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(reloadWorkspacePlugins.mock.invocationCallOrder[0])
+      .toBeLessThan(sendGraphViewContributionStatuses.mock.invocationCallOrder[0]);
+    expect(sendGraphViewContributionStatuses.mock.invocationCallOrder[0])
+      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
   });
 });

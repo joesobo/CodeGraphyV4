@@ -58,7 +58,7 @@ function buildRenderingRuntimeOptions({
     getLinkParticles: callbacks.getLinkParticles,
     getParticleColor: callbacks.getParticleColor,
     graphDataRef: graphState.graphDataRef,
-    graphLayout: viewState.graphLayout,
+    graphLayout: viewState.graphSectionsAvailable ? viewState.graphLayout : undefined,
     graphViewContributions,
     graphLayoutKey,
     graphMode: viewState.graphMode,

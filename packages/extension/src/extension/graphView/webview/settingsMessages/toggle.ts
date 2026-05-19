@@ -47,6 +47,7 @@ export async function applySettingsToggleMessage(
           ),
         );
         await handlers.reloadWorkspacePlugins();
+        handlers.sendGraphViewContributionStatuses?.();
         await handlers.analyzeAndSendData();
         return true;
       }
