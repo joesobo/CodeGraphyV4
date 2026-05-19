@@ -110,6 +110,7 @@ describe('graph/organize/contributions', () => {
       hiddenDescendantCount: 2,
       nodeType: 'graph-section',
       runtimeNodeType: 'codegraphy.organize.graph-section',
+      size: 24,
     });
     expect(graphData.links).toEqual([
       expect.objectContaining({
@@ -122,6 +123,41 @@ describe('graph/organize/contributions', () => {
         to: 'section-ui',
       }),
     ]);
+  });
+
+  it('does not create Organize Graph Section nodes in 3D or timeline views', () => {
+    const graphLayout = createGraphLayout();
+    const graphViewContributions = createOrganizeGraphViewContributions({
+      graphLayout,
+      statuses: organizeStatuses,
+    });
+    const data = {
+      nodes: [
+        { id: 'src/app.ts', label: 'app.ts', color: '#93c5fd' },
+        { id: 'src/button.ts', label: 'button.ts', color: '#93c5fd' },
+      ],
+      edges: [],
+    };
+    const sharedOptions = {
+      data,
+      graphLayout,
+      graphViewContributions,
+      nodeSizeMode: 'uniform' as const,
+      theme: 'dark' as const,
+      favorites: new Set<string>(),
+      bidirectionalMode: 'separate' as const,
+    };
+
+    expect(buildGraphData({
+      ...sharedOptions,
+      graphMode: '3d',
+      timelineActive: false,
+    }).nodes.map(node => node.id)).toEqual(['src/app.ts', 'src/button.ts']);
+    expect(buildGraphData({
+      ...sharedOptions,
+      graphMode: '2d',
+      timelineActive: true,
+    }).nodes.map(node => node.id)).toEqual(['src/app.ts', 'src/button.ts']);
   });
 
   it('does not expose Organize Graph View behavior without the contribution statuses', () => {
