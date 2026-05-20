@@ -5,6 +5,7 @@
 
 import type {
   GraphPluginSlot,
+  GraphViewViewportState,
   IGraphViewContributions,
   NodeRenderFn,
   OverlayRenderFn,
@@ -39,6 +40,7 @@ type GraphInteractionMessage = {
 };
 
 type GraphViewContributionListener = () => void;
+type GraphViewViewportStateListener = (state: GraphViewViewportState | null) => void;
 
 function createEmptyWebviewGraphViewContributionSet(): CoreGraphViewContributionSet {
   return {
@@ -62,7 +64,9 @@ export class WebviewPluginHost {
   private readonly _messageHandlers = new Map<string, Set<(msg: { type: string; data: unknown }) => void>>();
   private readonly _graphViewContributions = new Map<string, Set<IGraphViewContributions>>();
   private readonly _graphViewContributionListeners = new Set<GraphViewContributionListener>();
+  private readonly _graphViewViewportStateListeners = new Set<GraphViewViewportStateListener>();
   private _graphViewContributionSnapshot: CoreGraphViewContributionSet | undefined;
+  private _graphViewViewportState: GraphViewViewportState | null = null;
 
   createAPI(pluginId: string, postMessage: (msg: GraphInteractionMessage) => void): CodeGraphyWebviewAPI {
     return createPluginWebviewApi(
@@ -73,6 +77,8 @@ export class WebviewPluginHost {
       (pid, id, fn) => registerOverlay(pid, id, fn, this._overlays),
       (pid, fn) => registerTooltipProvider(pid, fn, this._tooltipProviders),
       (pid, contributions) => this.registerGraphViewContributions(pid, contributions),
+      () => this.getGraphViewViewportState(),
+      (handler) => this.subscribeGraphViewViewportState(handler),
       this._messageHandlers,
       { drawBadge: (ctx, opts) => WebviewPluginHost.drawBadge(ctx, opts), drawProgressRing: (ctx, opts) => WebviewPluginHost.drawProgressRing(ctx, opts), drawLabel: (ctx, opts) => WebviewPluginHost.drawLabel(ctx, opts) },
     );
@@ -93,6 +99,25 @@ export class WebviewPluginHost {
   }
   getOverlays(): Array<{ id: string; fn: OverlayRenderFn }> { return Array.from(this._overlays.entries()).map(([id, entry]) => ({ id, fn: entry.fn })); }
   getTooltipContent(context: TooltipContext): TooltipContent | null { return aggregateTooltipContent(context, this._tooltipProviders); }
+
+  getGraphViewViewportState(): GraphViewViewportState | null {
+    return this._graphViewViewportState;
+  }
+
+  setGraphViewViewportState(state: GraphViewViewportState | null): void {
+    this._graphViewViewportState = state;
+    for (const listener of this._graphViewViewportStateListeners) {
+      listener(state);
+    }
+  }
+
+  subscribeGraphViewViewportState(listener: GraphViewViewportStateListener): Disposable {
+    this._graphViewViewportStateListeners.add(listener);
+    listener(this._graphViewViewportState);
+    return toDisposable(() => {
+      this._graphViewViewportStateListeners.delete(listener);
+    });
+  }
 
   getGraphViewContributions(): CoreGraphViewContributionSet {
     if (this._graphViewContributionSnapshot) {

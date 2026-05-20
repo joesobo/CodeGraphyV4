@@ -1,4 +1,5 @@
-import { useRef, type ReactElement } from 'react';
+import { useEffect, useRef, type ReactElement } from 'react';
+import type { GraphViewViewportNode } from '../../../pluginHost/api/contracts/webview';
 import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
@@ -13,6 +14,12 @@ import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport } from './view';
 import { useGraphViewportModel } from './model';
 import { graphStore } from '../../../store/state';
+
+interface GraphViewport2dControls {
+  graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
+  screen2GraphCoords?(x: number, y: number): { x: number; y: number };
+  zoom?(): number;
+}
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -109,6 +116,41 @@ function shouldPublishGraphViewportScale(
   return previous === null || Math.abs(previous - next) >= 0.01;
 }
 
+function readViewportBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function readViewportNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function readViewportOwnerSectionId(value: unknown): string | null | undefined {
+  return typeof value === 'string' || value === null ? value : undefined;
+}
+
+function toGraphViewViewportNodes(nodes: UseGraphStateResult['graphData']['nodes']): GraphViewViewportNode[] {
+  return nodes.map(node => ({
+    fx: node.fx,
+    fy: node.fy,
+    fz: node.fz,
+    id: node.id,
+    isCollapsedGraphSection: readViewportBoolean(node.isCollapsedGraphSection),
+    isDragging: node.isDragging,
+    isGraphSection: readViewportBoolean(node.isGraphSection),
+    isPinned: node.isPinned,
+    ownerSectionId: readViewportOwnerSectionId(node.ownerSectionId),
+    sectionHeight: readViewportNumber(node.sectionHeight),
+    sectionWidth: readViewportNumber(node.sectionWidth),
+    size: node.size,
+    vx: node.vx,
+    vy: node.vy,
+    vz: node.vz,
+    x: node.x,
+    y: node.y,
+    z: node.z,
+  }));
+}
+
 export function GraphViewportShell({
   appearance,
   callbacks,
@@ -172,6 +214,28 @@ export function GraphViewportShell({
     graphStore.getState().setGraphViewportScale(globalScale);
   };
 
+  const publishGraphViewViewportState = (globalScale: number): void => {
+    if (!pluginHost) {
+      return;
+    }
+
+    const graph = graphState.fg2dRef.current as GraphViewport2dControls | undefined;
+    pluginHost.setGraphViewViewportState({
+      graphMode: viewState.graphMode,
+      graphToScreen: (x, y) => graph?.graph2ScreenCoords?.(x, y) ?? { x, y },
+      nodes: toGraphViewViewportNodes(graphState.graphDataRef.current.nodes),
+      screenToGraph: (x, y) => graph?.screen2GraphCoords?.(x, y) ?? { x, y },
+      timelineActive: viewState.timelineActive,
+      zoom: graph?.zoom?.() ?? globalScale,
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      pluginHost?.setGraphViewViewportState(null);
+    };
+  }, [pluginHost]);
+
   return (
     <Viewport
       canvasBackgroundColor={viewportModel.canvasBackgroundColor}
@@ -201,6 +265,7 @@ export function GraphViewportShell({
         nodePointerAreaPaint: callbacks.nodePointerAreaPaint,
         onRenderFramePost: (ctx, globalScale) => {
           publishGraphViewportScale(globalScale);
+          publishGraphViewViewportState(globalScale);
           viewportRuntime.renderPluginOverlays(ctx, globalScale);
         },
         particleSize: viewState.particleSize,

@@ -262,11 +262,19 @@ describe('graph/viewport/shell', () => {
 	it('wires rendering runtime, viewport model, and the Viewport component', () => {
 		const graphData = createGraphData();
 		const graphState = createGraphState(graphData);
+		graphState.fg2dRef.current = {
+			graph2ScreenCoords: (x: number, y: number) => ({ x: x + 10, y: y + 20 }),
+			screen2GraphCoords: (x: number, y: number) => ({ x: x - 10, y: y - 20 }),
+			zoom: () => 1.75,
+		} as never;
 		const interactions = createInteractions();
 		const callbacks = createCallbacks();
 		const viewState = createViewState();
 		const handleEngineStop = vi.fn();
-		const pluginHost = { getOverlays: vi.fn() };
+		const pluginHost = {
+			getOverlays: vi.fn(),
+			setGraphViewViewportState: vi.fn(),
+		};
 
 		render(
 			<GraphViewportShell
@@ -356,6 +364,21 @@ describe('graph/viewport/shell', () => {
 				sharedProps: expect.objectContaining({ dagMode: 'td' }),
 			}),
 			tooltipData: interactions.tooltipData,
+		}));
+
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			surface2dProps: {
+				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
+			};
+		};
+		viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2);
+		expect(pluginHost.setGraphViewViewportState).toHaveBeenCalledWith(expect.objectContaining({
+			graphMode: '3d',
+			nodes: expect.arrayContaining([
+				expect.objectContaining({ id: 'src/app.ts' }),
+			]),
+			timelineActive: true,
+			zoom: 1.75,
 		}));
 	});
 

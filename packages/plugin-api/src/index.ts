@@ -158,7 +158,10 @@ export type {
 export type {
   BadgeOptions,
   CodeGraphyWebviewAPI,
+  GraphViewPoint2D,
   GraphPluginSlot,
+  GraphViewViewportNode,
+  GraphViewViewportState,
   LabelOptions,
   NodeRenderContext,
   NodeRenderFn,

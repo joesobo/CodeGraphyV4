@@ -36,6 +36,41 @@ export interface OverlayRenderContext {
 
 export type OverlayRenderFn = (context: OverlayRenderContext) => void;
 
+export interface GraphViewPoint2D {
+  x: number;
+  y: number;
+}
+
+export interface GraphViewViewportNode {
+  fx?: number;
+  fy?: number;
+  fz?: number;
+  id: string;
+  isCollapsedGraphSection?: boolean;
+  isDragging?: boolean;
+  isGraphSection?: boolean;
+  isPinned?: boolean;
+  ownerSectionId?: string | null;
+  sectionHeight?: number;
+  sectionWidth?: number;
+  size?: number;
+  vx?: number;
+  vy?: number;
+  vz?: number;
+  x?: number;
+  y?: number;
+  z?: number;
+}
+
+export interface GraphViewViewportState {
+  graphMode: '2d' | '3d';
+  graphToScreen(x: number, y: number): GraphViewPoint2D;
+  nodes: readonly GraphViewViewportNode[];
+  screenToGraph(x: number, y: number): GraphViewPoint2D;
+  timelineActive: boolean;
+  zoom: number;
+}
+
 export interface TooltipContext {
   node: IGraphNode;
   neighbors: IGraphNode[];
@@ -86,6 +121,8 @@ export interface LabelOptions {
 export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
+  getGraphViewViewportState(): GraphViewViewportState | null;
+  onGraphViewViewportState(handler: (state: GraphViewViewportState | null) => void): Disposable;
   registerNodeRenderer(type: string, fn: NodeRenderFn): Disposable;
   registerOverlay(id: string, fn: OverlayRenderFn): Disposable;
   registerTooltipProvider(fn: TooltipProviderFn): Disposable;
