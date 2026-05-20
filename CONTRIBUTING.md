@@ -25,7 +25,6 @@ Thanks for your interest in contributing to CodeGraphy!
 4. Run tests to verify:
    ```bash
    pnpm test
-   pnpm run test:playwright
    ```
 
 ### Development workflow
@@ -49,7 +48,6 @@ Thanks for your interest in contributing to CodeGraphy!
    pnpm run lint
    pnpm run typecheck
    pnpm test
-   pnpm run test:playwright
    ```
 
 ## Code style
@@ -100,11 +98,12 @@ docs: update README with installation instructions
 - Aim for meaningful coverage, not 100%
 
 ```bash
-pnpm test             # Run once
-pnpm run test:watch   # Watch mode
-pnpm exec vitest run tests/path/to/file.test.ts  # Single file
-pnpm run playwright:install  # Install Playwright browser (one-time per machine)
-pnpm run test:playwright     # Browser smoke test suite
+pnpm test             # Unit, Playwright, and VS Code tests
+pnpm run test:unit    # All package Vitest suites
+pnpm run test:playwright  # Browser smoke test suite
+pnpm run test:vscode      # VS Code Electron extension-host suite
+pnpm --filter @codegraphy/extension exec playwright install chromium  # Browser install
+pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/path/to/file.test.ts
 ```
 
 The repo pins Node in [`.nvmrc`](./.nvmrc) and [`.node-version`](./.node-version). Use that exact runtime before running release or quality-tool commands.

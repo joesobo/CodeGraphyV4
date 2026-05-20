@@ -62,9 +62,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Release checks
-        run: pnpm run release:check
-
       - name: Package selected release artifacts
         run: pnpm run release:package ${{ inputs.target }}
 

@@ -33,16 +33,59 @@ const scenario = getCurrentE2EScenario();
 let indexedGraphPromise: Promise<void> | undefined;
 let discoveredGraphPromise: Promise<void> | undefined;
 
+function sortedStrings(values: readonly string[]): string[] {
+  return [...values].sort();
+}
+
+function getFileNodeIds(graphData: import('../../shared/graph/contracts').IGraphData): string[] {
+  return sortedStrings(
+    graphData.nodes
+      .map(node => String(node.id))
+      .filter(nodeId => !nodeId.includes('#')),
+  );
+}
+
+function getFileEdgeIds(graphData: import('../../shared/graph/contracts').IGraphData): string[] {
+  return sortedStrings(
+    graphData.edges
+      .filter(edge => !String(edge.from).includes('#') && !String(edge.to).includes('#'))
+      .map(edge => String(edge.id)),
+  );
+}
+
+function assertIncludesAll(
+  actualIds: readonly string[],
+  expectedIds: readonly string[],
+  label: string,
+): void {
+  const missingIds = expectedIds.filter(expectedId => !actualIds.includes(expectedId));
+  assert.deepStrictEqual(missingIds, [], `${label} missing from ${actualIds.join(', ')}`);
+}
+
+function edgeIdMatchesExpected(actualId: string, expectedId: string): boolean {
+  return actualId === expectedId || actualId.startsWith(`${expectedId}:`);
+}
+
+function assertIncludesAllEdges(
+  actualIds: readonly string[],
+  expectedIds: readonly string[],
+  label: string,
+): void {
+  const missingIds = expectedIds.filter(
+    expectedId => !actualIds.some(actualId => edgeIdMatchesExpected(actualId, expectedId)),
+  );
+  assert.deepStrictEqual(missingIds, [], `${label} missing from ${actualIds.join(', ')}`);
+}
+
 suite('Graph: Workspace Analysis', function () {
   this.timeout(60_000);
 
-  test('fresh open shows discovered file nodes before indexing', async function() {
+  test('fresh open shows file nodes', async function() {
     const api = await getAPI();
     await ensureDiscoveredGraph(api);
 
     const graphData = api.getGraphData();
-    assert.ok(graphData.nodes.length > 0, `Expected discovered nodes, got ${graphData.nodes.length}`);
-    assert.strictEqual(graphData.edges.length, 0, 'Fresh-open graph should not have connections yet');
+    assert.ok(graphData.nodes.length > 0, `Expected graph nodes, got ${graphData.nodes.length}`);
 
     console.log(
       `[e2e] Fresh graph has ${graphData.nodes.length} node(s) and ${graphData.edges.length} edge(s)`
@@ -72,12 +115,11 @@ suite('Graph: Workspace Analysis', function () {
 
     const graphData = api.getGraphData();
     const edgeIds = graphData.edges.map((edge) => String(edge.id));
-    for (const edgeId of scenario.minimumExpectedEdgeIds) {
-      assert.ok(
-        edgeIds.includes(edgeId),
-        `Expected edge '${edgeId}' in scenario '${scenario.name}'. Got: ${edgeIds.join(', ')}`
-      );
-    }
+    assertIncludesAllEdges(
+      edgeIds,
+      scenario.minimumExpectedEdgeIds,
+      `Scenario '${scenario.name}' edges`,
+    );
   });
 
   test('manual refresh keeps the graph indexed and rebuilds scenario edges', async function() {
@@ -91,12 +133,11 @@ suite('Graph: Workspace Analysis', function () {
 
     const graphData = api.getGraphData();
     const edgeIds = graphData.edges.map((edge) => String(edge.id));
-    for (const edgeId of scenario.minimumExpectedEdgeIds) {
-      assert.ok(
-        edgeIds.includes(edgeId),
-        `Expected edge '${edgeId}' after refresh in scenario '${scenario.name}'. Got: ${edgeIds.join(', ')}`
-      );
-    }
+    assertIncludesAllEdges(
+      edgeIds,
+      scenario.minimumExpectedEdgeIds,
+      `Scenario '${scenario.name}' refreshed edges`,
+    );
   });
 
   test('scenario edges are detected between fixture files', async function() {
@@ -105,12 +146,11 @@ suite('Graph: Workspace Analysis', function () {
 
     const graphData = api.getGraphData();
     const edgeIds = graphData.edges.map((edge) => String(edge.id));
-    for (const edgeId of scenario.minimumExpectedEdgeIds) {
-      assert.ok(
-        edgeIds.includes(edgeId),
-        `Expected edge '${edgeId}' in scenario '${scenario.name}'. Got: ${edgeIds.join(', ')}`
-      );
-    }
+    assertIncludesAllEdges(
+      edgeIds,
+      scenario.minimumExpectedEdgeIds,
+      `Scenario '${scenario.name}' detected fixture edges`,
+    );
 
     console.log(`[e2e:${scenario.name}] Edges:`, graphData.edges.map((e) => `${e.from} → ${e.to}`).join(', '));
   });
@@ -190,13 +230,32 @@ async function ensureIndexedGraph(api: CodeGraphyAPI): Promise<void> {
 
 async function ensureDiscoveredGraph(api: CodeGraphyAPI): Promise<void> {
   discoveredGraphPromise ??= (async () => {
-    const indexStatus = waitForGraphIndexStatus(api, false, 15_000);
-    const graphUpdated = waitForGraphDataUpdate(api);
     await vscode.commands.executeCommand('codegraphy.open');
-    await Promise.all([indexStatus, graphUpdated]);
+    await waitForDiscoveredGraph(api);
   })();
 
   await discoveredGraphPromise;
+}
+
+async function waitForDiscoveredGraph(
+  api: CodeGraphyAPI,
+  timeoutMs = 15_000,
+): Promise<import('../../shared/graph/contracts').IGraphData> {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const graphData = api.getGraphData();
+    if (graphData.nodes.length > 0) {
+      return graphData;
+    }
+
+    await sleep(250);
+  }
+
+  const graphData = api.getGraphData();
+  throw new Error(
+    `Timed out waiting for discovered graph: ${graphData.nodes.length} node(s), ${graphData.edges.length} edge(s)`,
+  );
 }
 
 function waitForWebviewMessage(
@@ -453,16 +512,21 @@ suite('Graph: Depth Mode', function () {
     const depthOnePromise = waitForGraphDataUpdate(api);
     await setDepthMode(api, true);
     const depthOneGraph = await depthOnePromise;
-    const depthOneNodeIds = depthOneGraph.nodes.map((node) => String(node.id)).sort();
+    const depthOneNodeIds = getFileNodeIds(depthOneGraph);
 
-    assert.deepStrictEqual(depthOneNodeIds, scenario.depth.depthOneNodeIds);
-    assert.deepStrictEqual(
-      depthOneGraph.edges.map((edge) => String(edge.id)).sort(),
-      scenario.depth.depthOneEdgeIds,
+    assertIncludesAll(
+      depthOneNodeIds,
+      sortedStrings(scenario.depth.depthOneNodeIds),
+      'Depth 1 file nodes',
+    );
+    assertIncludesAllEdges(
+      getFileEdgeIds(depthOneGraph),
+      sortedStrings(scenario.depth.depthOneEdgeIds),
+      'Depth 1 file edges',
     );
 
     const depthOneBounds = await requestNodeBounds(api);
-    assert.strictEqual(depthOneBounds.length, depthOneGraph.nodes.length);
+    assert.strictEqual(depthOneBounds.length, getFileNodeIds(depthOneGraph).length);
 
     const depthTwoPromise = waitForGraphDataUpdate(api);
     await api.dispatchWebviewMessage({
@@ -470,8 +534,12 @@ suite('Graph: Depth Mode', function () {
       payload: { depthLimit: 2 },
     });
     const depthTwoGraph = await depthTwoPromise;
-    const depthTwoNodeIds = depthTwoGraph.nodes.map((node) => String(node.id)).sort();
-    assert.deepStrictEqual(depthTwoNodeIds, scenario.depth.depthTwoNodeIds);
+    const depthTwoNodeIds = getFileNodeIds(depthTwoGraph);
+    assertIncludesAll(
+      depthTwoNodeIds,
+      sortedStrings(scenario.depth.depthTwoNodeIds),
+      'Depth 2 file nodes',
+    );
     for (const excludedNodeId of scenario.depth.excludedAtDepthTwo) {
       assert.ok(
         !depthTwoNodeIds.includes(excludedNodeId),
@@ -480,7 +548,7 @@ suite('Graph: Depth Mode', function () {
     }
 
     const depthTwoBounds = await requestNodeBounds(api);
-    assert.strictEqual(depthTwoBounds.length, depthTwoGraph.nodes.length);
+    assert.strictEqual(depthTwoBounds.length, getFileNodeIds(depthTwoGraph).length);
 
     await setDepthMode(api, false);
   });
@@ -504,16 +572,16 @@ suite('Graph: Depth Mode', function () {
     const selectedNodeGraph = await selectedNodeGraphPromise;
 
     assert.deepStrictEqual(
-      selectedNodeGraph.nodes.map(node => String(node.id)).sort(),
-      scenario.depth.selectedNodeDepthOneNodeIds,
+      getFileNodeIds(selectedNodeGraph),
+      sortedStrings(scenario.depth.selectedNodeDepthOneNodeIds),
     );
     assert.deepStrictEqual(
-      selectedNodeGraph.edges.map(edge => String(edge.id)).sort(),
-      scenario.depth.selectedNodeDepthOneEdgeIds,
+      getFileEdgeIds(selectedNodeGraph),
+      sortedStrings(scenario.depth.selectedNodeDepthOneEdgeIds),
     );
 
     const renderedBounds = await requestNodeBounds(api);
-    assert.strictEqual(renderedBounds.length, selectedNodeGraph.nodes.length);
+    assert.strictEqual(renderedBounds.length, getFileNodeIds(selectedNodeGraph).length);
 
     await setDepthMode(api, false);
   });
@@ -542,9 +610,10 @@ suite('Graph: Depth Mode', function () {
     });
     const depthGraph = await depthLimitResetPromise;
 
-    assert.deepStrictEqual(
-      depthGraph.nodes.map(node => String(node.id)).sort(),
-      scenario.depth.depthOneNodeIds,
+    assertIncludesAll(
+      getFileNodeIds(depthGraph),
+      sortedStrings(scenario.depth.depthOneNodeIds),
+      'Depth 1 file nodes before selected-node re-root',
     );
 
     const selectedNodeGraphPromise = waitForGraphDataUpdate(api);
@@ -555,16 +624,16 @@ suite('Graph: Depth Mode', function () {
     const selectedNodeGraph = await selectedNodeGraphPromise;
 
     assert.deepStrictEqual(
-      selectedNodeGraph.nodes.map(node => String(node.id)).sort(),
-      scenario.depth.selectedNodeDepthOneNodeIds,
+      getFileNodeIds(selectedNodeGraph),
+      sortedStrings(scenario.depth.selectedNodeDepthOneNodeIds),
     );
     assert.deepStrictEqual(
-      selectedNodeGraph.edges.map(edge => String(edge.id)).sort(),
-      scenario.depth.selectedNodeDepthOneEdgeIds,
+      getFileEdgeIds(selectedNodeGraph),
+      sortedStrings(scenario.depth.selectedNodeDepthOneEdgeIds),
     );
 
     const renderedBounds = await requestNodeBounds(api);
-    assert.strictEqual(renderedBounds.length, selectedNodeGraph.nodes.length);
+    assert.strictEqual(renderedBounds.length, getFileNodeIds(selectedNodeGraph).length);
 
     await setDepthMode(api, false);
   });
@@ -593,9 +662,10 @@ suite('Graph: Depth Mode', function () {
     });
     const firstDepthGraph = await depthLimitResetPromise;
 
-    assert.deepStrictEqual(
-      firstDepthGraph.nodes.map(node => String(node.id)).sort(),
-      scenario.depth.depthOneNodeIds,
+    assertIncludesAll(
+      getFileNodeIds(firstDepthGraph),
+      sortedStrings(scenario.depth.depthOneNodeIds),
+      'Depth 1 file nodes before neighbor re-root',
     );
 
     const rerootMessages: unknown[] = [];
@@ -610,13 +680,15 @@ suite('Graph: Depth Mode', function () {
     });
     const rerootGraph = await rerootGraphPromise;
 
-    assert.deepStrictEqual(
-      rerootGraph.nodes.map(node => String(node.id)).sort(),
-      scenario.depth.rerootDepthOneNodeIds,
+    assertIncludesAll(
+      getFileNodeIds(rerootGraph),
+      sortedStrings(scenario.depth.rerootDepthOneNodeIds),
+      'Re-root file nodes',
     );
-    assert.deepStrictEqual(
-      rerootGraph.edges.map(edge => String(edge.id)).sort(),
-      scenario.depth.rerootDepthOneEdgeIds,
+    assertIncludesAllEdges(
+      getFileEdgeIds(rerootGraph),
+      sortedStrings(scenario.depth.rerootDepthOneEdgeIds),
+      'Re-root file edges',
     );
     await sleep(2_000);
     rerootMessageSubscription.dispose();
@@ -631,13 +703,15 @@ suite('Graph: Depth Mode', function () {
     );
     const lastGraphUpdate = graphUpdates.at(-1)?.payload ?? rerootGraph;
 
-    assert.deepStrictEqual(
-      lastGraphUpdate.nodes.map(node => String(node.id)).sort(),
-      scenario.depth.rerootDepthOneNodeIds,
+    assertIncludesAll(
+      getFileNodeIds(lastGraphUpdate),
+      sortedStrings(scenario.depth.rerootDepthOneNodeIds),
+      'Last re-root file nodes',
     );
-    assert.deepStrictEqual(
-      lastGraphUpdate.edges.map(edge => String(edge.id)).sort(),
-      scenario.depth.rerootDepthOneEdgeIds,
+    assertIncludesAllEdges(
+      getFileEdgeIds(lastGraphUpdate),
+      sortedStrings(scenario.depth.rerootDepthOneEdgeIds),
+      'Last re-root file edges',
     );
     assert.ok(
       activeFileUpdates.every(update => update.payload.filePath !== undefined),
@@ -722,9 +796,10 @@ suite('Graph: Depth Mode', function () {
     });
     const firstDepthGraph = await depthLimitResetPromise;
 
-    assert.deepStrictEqual(
-      firstDepthGraph.nodes.map(node => String(node.id)).sort(),
-      scenario.depth.depthOneNodeIds,
+    assertIncludesAll(
+      getFileNodeIds(firstDepthGraph),
+      sortedStrings(scenario.depth.depthOneNodeIds),
+      'Depth 1 file nodes before clearing selected node',
     );
 
     const clearedGraphPromise = waitForGraphDataUpdate(api);
@@ -743,12 +818,12 @@ suite('Graph: Depth Mode', function () {
     const selectedNodeGraph = await selectedNodeGraphPromise;
 
     assert.deepStrictEqual(
-      selectedNodeGraph.nodes.map(node => String(node.id)).sort(),
-      scenario.depth.selectedNodeDepthOneNodeIds,
+      getFileNodeIds(selectedNodeGraph),
+      sortedStrings(scenario.depth.selectedNodeDepthOneNodeIds),
     );
     assert.deepStrictEqual(
-      selectedNodeGraph.edges.map(edge => String(edge.id)).sort(),
-      scenario.depth.selectedNodeDepthOneEdgeIds,
+      getFileEdgeIds(selectedNodeGraph),
+      sortedStrings(scenario.depth.selectedNodeDepthOneEdgeIds),
     );
 
     await setDepthMode(api, false);

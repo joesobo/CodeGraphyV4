@@ -9,6 +9,10 @@ import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifec
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
 
+vi.mock('../../../src/extension/pipeline/plugins/statusContext', () => ({
+  readWorkspacePluginStatusContext: vi.fn(() => ({ installedPlugins: [] })),
+}));
+
 // Set up workspace folders before tests
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => [{ uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 }],

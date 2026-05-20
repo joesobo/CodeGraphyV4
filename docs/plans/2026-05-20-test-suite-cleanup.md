@@ -43,6 +43,15 @@ Package scripts:
 3. Update CI so the default test path includes unit, Playwright, and VS Code tests.
 4. Preserve quality-tool commands as explicit local analysis tools.
 
+## First Slice Decisions
+
+- Root `pnpm test` now composes `test:unit`, `test:playwright`, and `test:vscode`.
+- Playwright remains the browser/webview lane; VS Code E2E is the Electron extension-host lane.
+- The root release checks and `tests/release` suite are removed. The release workflow packages/publishes artifacts; CI owns lint, typecheck, tests, and build.
+- `@codegraphy/extension` owns all three test lanes because it has Vitest, browser, and VS Code behavior.
+- Other packages expose only Vitest through `test` unless they grow a real browser or VS Code test surface.
+- Mutation tooling stays in `@codegraphy/quality-tools` and continues to target Vitest, not Playwright or VS Code E2E.
+
 ## Follow-Up Slices
 
 - Add meaningful Vitest coverage for the thin plugin packages.
