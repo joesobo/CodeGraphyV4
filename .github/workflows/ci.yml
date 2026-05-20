@@ -99,9 +99,12 @@ jobs:
           - suite: extension-node
             turbo-cache: unit-extension-node
             command: pnpm exec turbo run test:node --filter=@codegraphy/extension
-          - suite: extension-webview
-            turbo-cache: unit-extension-webview
-            command: pnpm exec turbo run test:webview --filter=@codegraphy/extension
+          - suite: extension-webview-1
+            turbo-cache: unit-extension-webview-1
+            command: pnpm exec turbo run test:webview --filter=@codegraphy/extension -- --shard=1/2
+          - suite: extension-webview-2
+            turbo-cache: unit-extension-webview-2
+            command: pnpm exec turbo run test:webview --filter=@codegraphy/extension -- --shard=2/2
 
     steps:
       - name: Checkout
