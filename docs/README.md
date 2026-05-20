@@ -26,7 +26,7 @@ If a doc describes old refactor intent instead of current behavior, it belongs i
 | `@codegraphy/mcp` | `packages/mcp` | [MCP setup](./MCP.md) and [package README](../packages/mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
 | `@codegraphy/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
 | language plugins | `packages/plugin-*` | `packages/plugin-*/README.md` | optional headless npm plugins for language-specific graph enrichment on top of the core-owned Tree-sitter plugin |
-| quality tools | `packages/quality-tools` | [quality docs](./quality/README.md) and [package README](../packages/quality-tools/README.md) | local architecture, coverage-risk, mutation, and SCRAP checks |
+| quality tools | external `@poleski/quality-tools` package | [quality docs](./quality/README.md) | local architecture, coverage-risk, mutation, and SCRAP checks |
 
 `@codegraphy/core`, the VS Code extension, and `@codegraphy/mcp` all read and write the same workspace-local Graph Cache. MCP can index/query a CodeGraphy Workspace without opening or focusing VS Code.
 
@@ -39,4 +39,4 @@ The monorepo package boundary is the main way to navigate the project:
 - `packages/mcp` owns agent access and forwards path-first Indexing and Graph Query requests to `@codegraphy/core`.
 - `packages/plugin-api` owns the public TypeScript contracts for plugins.
 - `packages/plugin-*` packages are optional headless npm language plugins.
-- `packages/quality-tools` owns the checks that keep modules deep, package boundaries visible, and high-risk code covered.
+- `@poleski/quality-tools` owns the checks that keep modules deep, package boundaries visible, and high-risk code covered.

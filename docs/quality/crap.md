@@ -17,5 +17,4 @@ Examples:
 ```bash
 pnpm run crap -- extension/
 pnpm run crap -- extension/src/webview/
-pnpm run crap -- quality-tools/
 ```

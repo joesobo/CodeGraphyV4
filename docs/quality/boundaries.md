@@ -7,7 +7,6 @@
 ```bash
 pnpm run boundaries -- extension/
 pnpm run boundaries -- extension/src/webview/
-pnpm run boundaries -- quality-tools/
 ```
 
 ## What it checks

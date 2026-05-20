@@ -7,7 +7,6 @@
 ```bash
 pnpm run reachability -- extension/
 pnpm run reachability -- extension/src/webview/
-pnpm run reachability -- quality-tools/ --strict
 ```
 
 ## What it checks

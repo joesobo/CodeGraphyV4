@@ -71,13 +71,6 @@ Examples:
 ```bash
 pnpm run scrap -- extension/
 pnpm run scrap -- extension/tests/webview/
-pnpm run scrap -- quality-tools/
-pnpm run scrap -- quality-tools/tests/scrap/metrics.basics.test.ts --json
-pnpm run scrap -- quality-tools/ --write-baseline
-pnpm run scrap -- quality-tools/ --compare reports/scrap/quality-tools.json --verbose
-pnpm run scrap -- quality-tools/ --policy split
-pnpm run scrap -- quality-tools/ --policy split
-pnpm run scrap -- quality-tools/ --policy review
 ```
 
 Vitest / TypeScript-specific signals worth tracking:

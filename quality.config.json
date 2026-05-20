@@ -126,22 +126,6 @@
         ]
       }
     },
-    "quality-tools": {
-      "mutation": {
-        "exclude": [
-          "src/cli/**/*.ts"
-        ]
-      },
-      "boundaries": {
-        "entrypoints": [
-          "src/**/command.ts"
-        ],
-        "exclude": [
-          "src/cli/**/*.ts",
-          "tests/**/*.ts"
-        ]
-      }
-    },
     "mcp": {
       "boundaries": {
         "entrypoints": [
