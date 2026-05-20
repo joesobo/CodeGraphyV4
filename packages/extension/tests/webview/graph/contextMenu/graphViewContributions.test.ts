@@ -42,36 +42,36 @@ describe('Graph View context menu contributions', () => {
   it('matches background, node, edge, and multi-selection selectors', () => {
     const graphViewContributions = createContributions([
       {
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'organize.background',
-          label: 'Create Section',
+          id: 'acme.background',
+          label: 'Create Runtime Item',
           targets: [{ kind: 'background' }],
           run: vi.fn(),
         },
       },
       {
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'organize.node',
-          label: 'Assign Owner',
+          id: 'acme.node',
+          label: 'Tag Node',
           targets: [{ kind: 'node', nodeTypes: ['file'] }],
           run: vi.fn(),
         },
       },
       {
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'organize.edge',
+          id: 'acme.edge',
           label: 'Inspect Import',
           targets: [{ kind: 'edge', edgeKinds: ['import'] }],
           run: vi.fn(),
         },
       },
       {
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'organize.multi',
+          id: 'acme.multi',
           label: 'Group Selection',
           targets: [{ kind: 'multiSelection', nodeTypes: ['file'] }],
           run: vi.fn(),
@@ -85,7 +85,7 @@ describe('Graph View context menu contributions', () => {
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
-    }))).toContain('Create Section');
+    }))).toContain('Create Runtime Item');
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'node', targets: ['src/app.ts'] },
@@ -94,7 +94,7 @@ describe('Graph View context menu contributions', () => {
       pluginItems: [],
       graphViewContributions,
       nodes: [{ id: 'src/app.ts', nodeType: 'file' }],
-    }))).toContain('Assign Owner');
+    }))).toContain('Tag Node');
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: { kind: 'edge', edgeId: 'src/app.ts->src/util.ts#import', targets: ['src/app.ts', 'src/util.ts'] },
@@ -121,59 +121,59 @@ describe('Graph View context menu contributions', () => {
   it('matches runtime node and runtime edge type selectors', () => {
     const graphViewContributions = createContributions([
       {
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'organize.section-node',
-          label: 'Section Settings',
-          targets: [{ kind: 'runtimeNodeType', runtimeNodeTypes: ['graph-section'] }],
+          id: 'acme.runtime-node',
+          label: 'Runtime Settings',
+          targets: [{ kind: 'runtimeNodeType', runtimeNodeTypes: ['acme-panel'] }],
           run: vi.fn(),
         },
       },
       {
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'organize.member-edge',
-          label: 'Explain Membership',
-          targets: [{ kind: 'runtimeEdgeType', runtimeEdgeTypes: ['section-member'] }],
+          id: 'acme.runtime-edge',
+          label: 'Explain Runtime Link',
+          targets: [{ kind: 'runtimeEdgeType', runtimeEdgeTypes: ['acme-link'] }],
           run: vi.fn(),
         },
       },
     ]);
 
     expect(itemLabels(buildGraphContextMenuEntries({
-      selection: { kind: 'node', targets: ['section:frontend'] },
+      selection: { kind: 'node', targets: ['runtime:frontend'] },
       timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
-      nodes: [{ id: 'section:frontend', runtimeNodeType: 'graph-section' }],
-    }))).toContain('Section Settings');
+      nodes: [{ id: 'runtime:frontend', runtimeNodeType: 'acme-panel' }],
+    }))).toContain('Runtime Settings');
 
     expect(itemLabels(buildGraphContextMenuEntries({
       selection: {
         kind: 'edge',
-        edgeId: 'section:frontend->src/app.ts#section-member',
-        targets: ['section:frontend', 'src/app.ts'],
+        edgeId: 'runtime:frontend->src/app.ts#acme-link',
+        targets: ['runtime:frontend', 'src/app.ts'],
       },
       timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       graphViewContributions,
       edges: [{
-        id: 'section:frontend->src/app.ts#section-member',
+        id: 'runtime:frontend->src/app.ts#acme-link',
         kind: 'reference',
-        runtimeEdgeType: 'section-member',
+        runtimeEdgeType: 'acme-link',
       }],
-    }))).toContain('Explain Membership');
+    }))).toContain('Explain Runtime Link');
   });
 
   it('runs matched graph view context menu contributions with selected ids', () => {
     const run = vi.fn();
     const graphViewContributions = createContributions([{
-      pluginId: 'codegraphy.organize',
+      pluginId: 'acme.graph-tools',
       contribution: {
-        id: 'organize.node',
-        label: 'Assign Owner',
+        id: 'acme.node',
+        label: 'Tag Node',
         targets: [{ kind: 'node', nodeTypes: ['file'] }],
         run,
       },
@@ -189,7 +189,7 @@ describe('Graph View context menu contributions', () => {
       nodes,
     });
 
-    const action = findItem(entries, 'Assign Owner')?.action;
+    const action = findItem(entries, 'Tag Node')?.action;
     expect(action).toBeDefined();
 
     const effects = getGraphContextActionEffects(
@@ -207,6 +207,136 @@ describe('Graph View context menu contributions', () => {
       target: { kind: 'node', nodeTypes: ['file'] },
       selectedNodeIds: ['src/app.ts'],
       selectedEdgeIds: [],
+    });
+  });
+
+  it('lets graph view plugins resolve labels and visibility from the run context', () => {
+    const graphViewContributions = createContributions([{
+      pluginId: 'acme.graph-tools',
+      contribution: {
+        id: 'acme.fixed-position',
+        label: 'Fix Position',
+        getLabel: context =>
+          context.selectedNodeIds.includes('src/fixed.ts') ? 'Release Position' : 'Fix Position',
+        isVisible: context => context.selectedNodeIds.length === 1,
+        targets: [{ kind: 'node', nodeTypes: ['file'] }],
+        run: vi.fn(),
+      },
+    }]);
+
+    const pinnedEntries = buildGraphContextMenuEntries({
+      selection: { kind: 'node', targets: ['src/pinned.ts'] },
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      graphViewContributions,
+      nodes: [{ id: 'src/fixed.ts', nodeType: 'file' }],
+    });
+    expect(itemLabels(pinnedEntries)).toContain('Fix Position');
+
+    const multiSelectionEntries = buildGraphContextMenuEntries({
+      selection: { kind: 'node', targets: ['src/fixed.ts', 'src/app.ts'] },
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      graphViewContributions,
+      nodes: [
+        { id: 'src/fixed.ts', nodeType: 'file' },
+        { id: 'src/app.ts', nodeType: 'file' },
+      ],
+    });
+    expect(itemLabels(multiSelectionEntries)).not.toContain('Fix Position');
+    expect(itemLabels(multiSelectionEntries)).not.toContain('Release Position');
+  });
+
+  it('passes background graph positions to graph view plugin menu actions', () => {
+    const run = vi.fn();
+    const graphViewContributions = createContributions([{
+      pluginId: 'acme.graph-tools',
+      contribution: {
+        id: 'acme.create-runtime-item',
+        label: 'Create Runtime Item',
+        targets: [{ kind: 'background' }],
+        run,
+      },
+    }]);
+    const selection = {
+      kind: 'background' as const,
+      graphPosition: { x: 120, y: 80 },
+      targets: [],
+    };
+    const entries = buildGraphContextMenuEntries({
+      selection,
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      graphViewContributions,
+    });
+
+    const action = findItem(entries, 'Create Runtime Item')?.action;
+    expect(action).toBeDefined();
+
+    const effects = getGraphContextActionEffects(
+      action!,
+      resolveGraphContextActionContext(selection, { nodes: [] }),
+    );
+    applyContextEffects(effects, {
+      clearCachedFile: vi.fn(),
+      fitView: vi.fn(),
+      focusNode: vi.fn(),
+      postMessage: vi.fn(),
+    });
+
+    expect(run).toHaveBeenCalledWith({
+      target: { kind: 'background' },
+      selectedNodeIds: [],
+      selectedEdgeIds: [],
+      graphPosition: { x: 120, y: 80 },
+    });
+  });
+
+  it('passes selected node graph positions to graph view plugin menu actions', () => {
+    const run = vi.fn();
+    const graphViewContributions = createContributions([{
+      pluginId: 'acme.graph-tools',
+      contribution: {
+        id: 'acme.fixed-position',
+        label: 'Fix Position',
+        targets: [{ kind: 'node', nodeTypes: ['file'] }],
+        run,
+      },
+    }]);
+    const selection = { kind: 'node' as const, targets: ['src/app.ts'] };
+    const entries = buildGraphContextMenuEntries({
+      selection,
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      graphViewContributions,
+      nodes: [{ id: 'src/app.ts', nodeType: 'file', x: 42, y: 24 }],
+    });
+
+    const action = findItem(entries, 'Fix Position')?.action;
+    expect(action).toBeDefined();
+
+    const effects = getGraphContextActionEffects(
+      action!,
+      resolveGraphContextActionContext(selection, { nodes: [] }),
+    );
+    applyContextEffects(effects, {
+      clearCachedFile: vi.fn(),
+      fitView: vi.fn(),
+      focusNode: vi.fn(),
+      postMessage: vi.fn(),
+    });
+
+    expect(run).toHaveBeenCalledWith({
+      target: { kind: 'node', nodeTypes: ['file'] },
+      selectedNodeIds: ['src/app.ts'],
+      selectedEdgeIds: [],
+      selectedNodePositions: {
+        'src/app.ts': { x: 42, y: 24 },
+      },
     });
   });
 });

@@ -19,6 +19,11 @@ export interface GraphViewForceAdapterState {
   installed: Map<string, InstalledForceAdapter>;
 }
 
+export interface GraphViewForceSyncContext {
+  graphMode?: '2d' | '3d';
+  timelineActive?: boolean;
+}
+
 export function createGraphViewForceAdapterState(): GraphViewForceAdapterState {
   return {
     installed: new Map(),
@@ -64,6 +69,7 @@ export function syncGraphViewForceAdapters(
   state: GraphViewForceAdapterState,
   contributions: CoreGraphViewContributionSet | undefined,
   graphData: { nodes: FGNode[]; links: FGLink[] },
+  context: GraphViewForceSyncContext = {},
 ): void {
   const activeNamespaces = new Set<string>();
   const visibleGraph = createVisibleGraph(graphData);
@@ -86,6 +92,7 @@ export function syncGraphViewForceAdapters(
       nodes: graphData.nodes,
       edges: visibleGraph.edges,
       visibleGraph,
+      ...context,
     }) as GraphViewForceAdapter;
     state.installed.set(namespace, {
       adapter,

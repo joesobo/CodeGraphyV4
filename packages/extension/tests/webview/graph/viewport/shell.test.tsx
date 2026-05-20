@@ -183,7 +183,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphLayout' | 'graphMode' | 'graphSectionsAvailable' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
+	'bidirectionalMode' | 'currentCommitSha' | 'dagMode' | 'depthMode' | 'directionMode' | 'favorites' | 'graphMode' | 'graphViewContributionStatuses' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive' | 'timelineCommits'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -200,9 +200,7 @@ function createViewState(): Pick<
 		depthMode: false,
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),
-		graphLayout: { collapsedNodes: {}, pinnedNodes: {}, sections: {}, ownership: {} },
 		graphMode: '3d',
-		graphSectionsAvailable: true,
 		graphViewContributionStatuses: [],
 		nodeSizeMode: 'connections',
 		particleSize: 3,
@@ -273,7 +271,7 @@ describe('graph/viewport/shell', () => {
 		render(
 			<GraphViewportShell
 				callbacks={callbacks}
-				graphLayoutKey="connections::"
+				graphDataLayoutKey="connections::"
 				graphState={graphState}
 				handleEngineStop={handleEngineStop}
 				interactions={interactions}
@@ -293,8 +291,8 @@ describe('graph/viewport/shell', () => {
 			getLinkParticles: callbacks.getLinkParticles,
 			getParticleColor: callbacks.getParticleColor,
 			graphDataRef: graphState.graphDataRef,
-			graphLayout: viewState.graphLayout,
-			graphLayoutKey: 'connections::',
+			graphDataLayoutKey: 'connections::',
+			graphViewContributions: undefined,
 			graphMode: '3d',
 			meshesRef: graphState.meshesRef,
 			nodeSizeMode: 'connections',
@@ -308,6 +306,7 @@ describe('graph/viewport/shell', () => {
 			spritesRef: graphState.spritesRef,
 			theme: 'light',
 			favorites: viewState.favorites,
+			timelineActive: true,
 			directionMode: 'arrows',
 		}));
 		expect(harness.useGraphViewportModel).toHaveBeenCalledWith(expect.objectContaining({
@@ -360,253 +359,4 @@ describe('graph/viewport/shell', () => {
 		}));
 	});
 
-	it('does not render persisted Section Frames without runtime Graph Section nodes', () => {
-		const graphData = createGraphData();
-		const graphState = createGraphState(graphData);
-		const viewState = createViewState();
-		viewState.graphMode = '2d';
-		viewState.timelineActive = false;
-		viewState.graphLayout = {
-			collapsedNodes: {},
-			pinnedNodes: {},
-			sections: {
-				'section-ui': {
-					id: 'section-ui',
-					label: 'UI',
-					color: '#60a5fa',
-					x: 100,
-					y: 120,
-					width: 300,
-					height: 180,
-					collapsed: false,
-					updatedAt: '2026-05-19T09:00:00.000Z',
-				},
-			},
-			ownership: {},
-		};
-
-		render(
-			<GraphViewportShell
-				callbacks={createCallbacks()}
-				graphLayoutKey="connections::"
-				graphState={graphState}
-				handleEngineStop={vi.fn()}
-				interactions={createInteractions()}
-				theme="light"
-				viewState={viewState}
-			/>,
-		);
-
-		expect(harness.viewport).toHaveBeenCalledWith(expect.objectContaining({
-			sectionFrames: [],
-			sectionNodePositions: new Map(),
-		}));
-	});
-
-	it('does not pass persisted section layout into physics when Graph Sections are unavailable', () => {
-		const graphData = createGraphData();
-		const graphState = createGraphState(graphData);
-		const viewState = createViewState();
-		viewState.graphMode = '2d';
-		viewState.graphSectionsAvailable = false;
-		viewState.graphLayout = {
-			collapsedNodes: {},
-			pinnedNodes: {},
-			sections: {
-				'section-ui': {
-					id: 'section-ui',
-					label: 'UI',
-					color: '#60a5fa',
-					x: 100,
-					y: 120,
-					width: 300,
-					height: 180,
-					collapsed: false,
-					updatedAt: '2026-05-19T09:00:00.000Z',
-				},
-			},
-			ownership: {
-				'src/app.ts': {
-					itemId: 'src/app.ts',
-					itemKind: 'node',
-					ownerSectionId: 'section-ui',
-					updatedAt: '2026-05-19T09:00:00.000Z',
-				},
-			},
-		};
-
-		render(
-			<GraphViewportShell
-				callbacks={createCallbacks()}
-				graphLayoutKey="connections::"
-				graphState={graphState}
-				handleEngineStop={vi.fn()}
-				interactions={createInteractions()}
-				theme="light"
-				viewState={viewState}
-			/>,
-		);
-
-		expect(harness.useGraphRenderingRuntime).toHaveBeenCalledWith(expect.objectContaining({
-			graphLayout: undefined,
-		}));
-	});
-
-	it('passes only expanded runtime-backed Section Frames to the viewport', () => {
-		const graphData = createGraphData();
-		graphData.nodes = [
-			...graphData.nodes,
-			{
-				baseOpacity: 1,
-				borderColor: '#60a5fa',
-				borderWidth: 1,
-				color: '#60a5fa',
-				id: 'section-ui',
-				isCollapsedGraphSection: false,
-				isFavorite: false,
-				isGraphSection: true,
-				isPinned: false,
-				label: 'UI',
-				sectionHeight: 180,
-				sectionWidth: 300,
-				size: 48,
-				x: 250,
-				y: 210,
-			},
-		] as never;
-		const graphState = createGraphState(graphData);
-		const viewState = createViewState();
-		viewState.graphMode = '2d';
-		viewState.timelineActive = false;
-		viewState.graphLayout = {
-			collapsedNodes: {},
-			pinnedNodes: {},
-			sections: {
-				'section-ui': {
-					id: 'section-ui',
-					label: 'UI',
-					color: '#60a5fa',
-					x: 100,
-					y: 120,
-					width: 300,
-					height: 180,
-					collapsed: false,
-					updatedAt: '2026-05-19T09:00:00.000Z',
-				},
-				'section-stale': {
-					id: 'section-stale',
-					label: 'Stale',
-					color: '#f97316',
-					x: -100,
-					y: -120,
-					width: 200,
-					height: 140,
-					collapsed: false,
-					updatedAt: '2026-05-19T09:00:00.000Z',
-				},
-			},
-			ownership: {},
-		};
-
-		render(
-			<GraphViewportShell
-				callbacks={createCallbacks()}
-				graphLayoutKey="connections::"
-				graphState={graphState}
-				handleEngineStop={vi.fn()}
-				interactions={createInteractions()}
-				theme="light"
-				viewState={viewState}
-			/>,
-		);
-
-		const viewportProps = harness.viewport.mock.calls[0]?.[0] as {
-			sectionFrames: Array<{ id: string }>;
-			sectionNodePositions: Map<string, unknown>;
-		};
-
-		expect(viewportProps.sectionFrames.map(section => section.id)).toEqual(['section-ui']);
-		expect([...viewportProps.sectionNodePositions.keys()]).toEqual(['section-ui']);
-	});
-
-	it('posts section ownership updates after an expanded Section Frame is dragged into another section', () => {
-		const graphData = createGraphData();
-		const graphState = createGraphState(graphData);
-		graphState.graphDataRef.current.nodes = [
-			{
-				id: 'section-1',
-				isGraphSection: true,
-				sectionHeight: 300,
-				sectionWidth: 300,
-				x: 150,
-				y: 150,
-			},
-			{
-				id: 'section-2',
-				isGraphSection: true,
-				sectionHeight: 120,
-				sectionWidth: 120,
-				x: 120,
-				y: 120,
-			},
-		] as never;
-		const viewState = createViewState();
-		viewState.graphMode = '2d';
-		viewState.timelineActive = false;
-		viewState.graphLayout = {
-			collapsedNodes: {},
-			pinnedNodes: {},
-			sections: {
-				'section-1': {
-					id: 'section-1',
-					label: 'Parent',
-					color: '#60a5fa',
-					x: 0,
-					y: 0,
-					width: 300,
-					height: 300,
-					collapsed: false,
-					updatedAt: '2026-05-13T09:30:00.000Z',
-				},
-				'section-2': {
-					id: 'section-2',
-					label: 'Child',
-					color: '#22c55e',
-					x: 420,
-					y: 0,
-					width: 120,
-					height: 120,
-					collapsed: false,
-					updatedAt: '2026-05-13T09:30:00.000Z',
-				},
-			},
-			ownership: {},
-		};
-
-		render(
-			<GraphViewportShell
-				callbacks={createCallbacks()}
-				graphLayoutKey="connections::"
-				graphState={graphState}
-				handleEngineStop={vi.fn()}
-				interactions={createInteractions()}
-				theme="light"
-				viewState={viewState}
-			/>,
-		);
-
-		const viewportProps = harness.viewport.mock.calls[0]?.[0] as {
-			onSectionDragEnd(sectionId: string): void;
-		};
-		viewportProps.onSectionDragEnd('section-2');
-
-		expect(harness.postMessage).toHaveBeenCalledWith({
-			type: 'UPDATE_GRAPH_LAYOUT_OWNER',
-			payload: {
-				itemId: 'section-2',
-				itemKind: 'section',
-				ownerSectionId: 'section-1',
-			},
-		});
-	});
 });

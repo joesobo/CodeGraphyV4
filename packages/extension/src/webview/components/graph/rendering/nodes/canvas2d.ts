@@ -1,5 +1,4 @@
 import { renderNodeBody } from '../node/body';
-import { renderCollapsedSectionBadge } from '../node/collapsedSectionBadge';
 import { renderNodeCollapseIndicator } from '../node/collapseIndicator';
 import { renderNodeLabel } from '../node/label';
 import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
@@ -8,10 +7,6 @@ import { paintNodePointerArea } from '../node/pointer';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';
 import { type FGNode } from '../../model/build';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../appearance/model';
-
-function shouldRenderNodeCanvas(node: FGNode): boolean {
-  return !node.isGraphSection || !!node.isCollapsedGraphSection;
-}
 
 function isNodeHighlighted(
   dependencies: Pick<NodeCanvasRendererDependencies, 'highlightedNeighborsRef' | 'highlightedNodeRef'>,
@@ -42,10 +37,6 @@ export function renderNodeCanvas(
   ctx: CanvasRenderingContext2D,
   globalScale: number,
 ): void {
-  if (!shouldRenderNodeCanvas(node)) {
-    return;
-  }
-
   const isHighlighted = isNodeHighlighted(dependencies, node.id);
   const isSelected = dependencies.selectedNodesSetRef.current.has(node.id);
   const decoration = dependencies.nodeDecorationsRef.current?.[node.id];
@@ -67,12 +58,6 @@ export function renderNodeCanvas(
   renderNodeImageOverlay(ctx, node, dependencies.triggerImageRerender);
   renderNodeCollapseIndicator(ctx, node, globalScale, appearance);
   renderNodePinBadge({
-    appearance,
-    ctx,
-    globalScale,
-    node,
-  });
-  renderCollapsedSectionBadge({
     appearance,
     ctx,
     globalScale,

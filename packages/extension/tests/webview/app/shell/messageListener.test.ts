@@ -119,6 +119,73 @@ describe('app message listener', () => {
     expect(handleExtensionMessage).not.toHaveBeenCalled();
   });
 
+  it('removes disabled plugin registrations before forwarding plugin status updates', () => {
+    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
+    const pluginHost = {
+      deliverMessage: vi.fn(),
+      removePlugin: vi.fn(),
+    } as unknown as WebviewPluginHost;
+    const handleExtensionMessage = vi.fn();
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+
+    const handler = createMessageHandler(injectPluginAssets, pluginHost);
+    const message = {
+      type: 'PLUGINS_UPDATED',
+      payload: {
+        plugins: [
+          { id: 'acme.graph-tools', enabled: false },
+          { id: 'codegraphy.markdown', enabled: true },
+        ],
+      },
+    };
+
+    handler({ data: message } as MessageEvent<unknown>);
+
+    expect(pluginHost.removePlugin).toHaveBeenCalledWith('acme.graph-tools');
+    expect(pluginHost.removePlugin).not.toHaveBeenCalledWith('codegraphy.markdown');
+    expect(handleExtensionMessage).toHaveBeenCalledWith(message);
+  });
+
+  it('removes a package plugin by its last runtime plugin id when package status becomes unavailable', () => {
+    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
+    const resetPluginAssets = vi.fn();
+    const pluginHost = {
+      deliverMessage: vi.fn(),
+      removePlugin: vi.fn(),
+    } as unknown as WebviewPluginHost;
+    const handleExtensionMessage = vi.fn();
+    vi.spyOn(graphStore, 'getState').mockReturnValue({
+      handleExtensionMessage,
+    } as unknown as ReturnType<typeof graphStore.getState>);
+
+    const handler = createMessageHandler(injectPluginAssets, pluginHost, resetPluginAssets);
+    handler({
+      data: {
+        type: 'PLUGINS_UPDATED',
+        payload: {
+          plugins: [
+            { id: 'acme.graph-tools', packageName: '@acme/graph-tools', enabled: true },
+          ],
+        },
+      },
+    } as MessageEvent<unknown>);
+    handler({
+      data: {
+        type: 'PLUGINS_UPDATED',
+        payload: {
+          plugins: [
+            { id: '@acme/graph-tools', packageName: '@acme/graph-tools', enabled: false },
+          ],
+        },
+      },
+    } as MessageEvent<unknown>);
+
+    expect(pluginHost.removePlugin).toHaveBeenCalledWith('acme.graph-tools');
+    expect(resetPluginAssets).toHaveBeenCalledWith('acme.graph-tools');
+  });
+
   it('forwards non-plugin messages to the graph store handler', () => {
     const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
     const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;

@@ -31,7 +31,6 @@ export interface GraphViewPluginMessageContext {
   analyzeAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
-  sendGraphLayout?(): void;
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: unknown): void;

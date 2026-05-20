@@ -1,13 +1,4 @@
 import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
-import {
-  createDefaultGraphLayoutSettings,
-  getGraphLayoutPinCoordinate,
-  type GraphLayoutCoordinate2D,
-  type GraphLayoutCoordinate3D,
-  type GraphLayoutMode,
-  type GraphLayoutSection,
-  type GraphLayoutSettings,
-} from '../../../../../shared/settings/graphLayout';
 import type { ThemeKind } from '../../../../theme/useTheme';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
@@ -27,8 +18,7 @@ export interface BuildGraphNodesOptions {
   nodeSizes: Map<string, number>;
   theme: ThemeKind;
   favorites: Set<string>;
-  graphLayout?: GraphLayoutSettings;
-  graphMode?: GraphLayoutMode;
+  graphMode?: '2d' | '3d';
   timelineActive: boolean;
   previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
   random?: () => number;
@@ -83,8 +73,6 @@ function getNodeBorderWidth(isFocused: boolean, isFavorite: boolean): number {
   return isFavorite ? 3 : 2;
 }
 
-type GraphNodePinCoordinate = GraphLayoutCoordinate2D | GraphLayoutCoordinate3D;
-
 interface GraphNodeStyle {
   baseOpacity: number;
   borderColor: string;
@@ -107,35 +95,10 @@ interface GraphNodePositionState {
 }
 
 interface RuntimeGraphNodePresentation {
-  hiddenDescendantCount?: number;
-  icon?: string;
-  isCollapsedGraphSection?: boolean;
-  isGraphSection?: boolean;
+  [key: string]: unknown;
   ownerPluginId?: string;
-  ownerSectionId?: string | null;
   runtimeNodeType?: string;
-  sectionHeight?: number;
-  sectionWidth?: number;
   size?: number;
-}
-
-function getActiveGraphNodePinCoordinate(
-  nodeId: string,
-  options: {
-    graphLayout: GraphLayoutSettings;
-    graphMode: GraphLayoutMode;
-    timelineActive: boolean;
-  },
-): GraphNodePinCoordinate | undefined {
-  return options.timelineActive
-    ? undefined
-    : getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[nodeId], options.graphMode);
-}
-
-function read3DCoordinate(
-  coordinate: GraphNodePinCoordinate | undefined,
-): GraphLayoutCoordinate3D | undefined {
-  return coordinate && 'z' in coordinate ? coordinate : undefined;
 }
 
 function createGraphNodeStyle(
@@ -168,53 +131,18 @@ function createGraphNodeStyle(
 function createGraphNodePositionState(
   node: IGraphNode,
   previous: PreviousNodeState | undefined,
-  pinCoordinate: GraphNodePinCoordinate | undefined,
-  graphMode: GraphLayoutMode,
 ): GraphNodePositionState {
-  const pinCoordinate3D = graphMode === '3d' ? read3DCoordinate(pinCoordinate) : undefined;
-
+  const z = (node as { z?: unknown }).z;
   return {
-    fx: pinCoordinate?.x,
-    fy: pinCoordinate?.y,
-    fz: pinCoordinate3D?.z,
+    fx: previous?.fx,
+    fy: previous?.fy,
+    fz: previous?.fz,
     vx: previous?.vx,
     vy: previous?.vy,
     vz: previous?.vz,
-    x: pinCoordinate?.x ?? node.x ?? previous?.x,
-    y: pinCoordinate?.y ?? node.y ?? previous?.y,
-    z: pinCoordinate3D?.z ?? previous?.z,
-  };
-}
-
-function getGraphNodeOwnerSectionId(
-  nodeId: string,
-  graphLayout: GraphLayoutSettings,
-  timelineActive: boolean,
-): string | null {
-  return timelineActive ? null : (graphLayout.ownership[nodeId]?.ownerSectionId ?? null);
-}
-
-function resolveGraphNodePinCoordinate(
-  pinCoordinate: GraphNodePinCoordinate | undefined,
-  ownerSectionId: string | null,
-  options: {
-    graphLayout: GraphLayoutSettings;
-    graphMode: GraphLayoutMode;
-  },
-): GraphNodePinCoordinate | undefined {
-  if (!pinCoordinate || options.graphMode !== '2d' || !ownerSectionId) {
-    return pinCoordinate;
-  }
-
-  const ownerSection = options.graphLayout.sections[ownerSectionId];
-  if (!ownerSection) {
-    return pinCoordinate;
-  }
-
-  const ownerTopLeft = getSectionWorldTopLeft(ownerSection, options.graphLayout);
-  return {
-    x: ownerTopLeft.x + pinCoordinate.x,
-    y: ownerTopLeft.y + pinCoordinate.y,
+    x: node.x ?? previous?.x,
+    y: node.y ?? previous?.y,
+    z: typeof z === 'number' ? z : previous?.z,
   };
 }
 
@@ -223,33 +151,22 @@ function createGraphNode(
   options: {
     appearance: GraphAppearance;
     favorites: ReadonlySet<string>;
-    graphLayout: GraphLayoutSettings;
-    graphMode: GraphLayoutMode;
     nodeSizes: ReadonlyMap<string, number>;
-    timelineActive: boolean;
   },
   isLight: boolean,
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
 ): FGNode {
   const runtimeNode = node as IGraphNode & RuntimeGraphNodePresentation;
   const previous = previousNodeStates.get(node.id);
-  const ownerSectionId = getGraphNodeOwnerSectionId(node.id, options.graphLayout, options.timelineActive);
-  const resolvedOwnerSectionId = runtimeNode.ownerSectionId !== undefined
-    ? runtimeNode.ownerSectionId
-    : ownerSectionId;
-  const pinCoordinate = resolveGraphNodePinCoordinate(
-    getActiveGraphNodePinCoordinate(node.id, options),
-    resolvedOwnerSectionId,
-    options,
-  );
   const style = createGraphNodeStyle(node, options, isLight);
-  const position = createGraphNodePositionState(node, previous, pinCoordinate, options.graphMode);
+  const position = createGraphNodePositionState(node, previous);
 
   return {
+    ...runtimeNode,
     id: node.id,
     label: node.label,
     ...style,
-    isPinned: !!pinCoordinate,
+    isPinned: runtimeNode.isPinned === true,
     nodeType: node.nodeType,
     ownerPluginId: runtimeNode.ownerPluginId,
     runtimeNodeType: runtimeNode.runtimeNodeType,
@@ -259,39 +176,9 @@ function createGraphNode(
     metadata: node.metadata,
     isCollapsible: node.isCollapsible,
     isCollapsed: node.isCollapsed,
-    hiddenDescendantCount: runtimeNode.hiddenDescendantCount,
-    icon: runtimeNode.icon,
-    isCollapsedGraphSection: runtimeNode.isCollapsedGraphSection,
-    isGraphSection: runtimeNode.isGraphSection,
     collapsedDescendantCount: node.collapsedDescendantCount,
-    ownerSectionId: resolvedOwnerSectionId,
-    sectionHeight: runtimeNode.sectionHeight,
-    sectionWidth: runtimeNode.sectionWidth,
     ...position,
   } as FGNode;
-}
-
-function getSectionWorldTopLeft(
-  section: GraphLayoutSection,
-  graphLayout: GraphLayoutSettings,
-  visited = new Set<string>(),
-): GraphLayoutCoordinate2D {
-  if (visited.has(section.id)) {
-    return { x: section.x, y: section.y };
-  }
-
-  const ownerSectionId = graphLayout.ownership[section.id]?.ownerSectionId ?? null;
-  const ownerSection = ownerSectionId ? graphLayout.sections[ownerSectionId] : undefined;
-  if (!ownerSection) {
-    return { x: section.x, y: section.y };
-  }
-
-  visited.add(section.id);
-  const ownerTopLeft = getSectionWorldTopLeft(ownerSection, graphLayout, visited);
-  return {
-    x: ownerTopLeft.x + section.x,
-    y: ownerTopLeft.y + section.y,
-  };
 }
 
 export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
@@ -302,8 +189,6 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
     nodeSizes,
     theme,
     favorites,
-    graphLayout = createDefaultGraphLayoutSettings(),
-    graphMode = '2d',
     timelineActive,
     previousNodes = [],
     random = Math.random,
@@ -312,7 +197,7 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   const previousNodeStates = createPreviousNodeStateMap(previousNodes);
   const graphNodes = nodes.map(node => createGraphNode(
     node,
-    { appearance, nodeSizes, favorites, graphLayout, graphMode, timelineActive },
+    { appearance, nodeSizes, favorites },
     isLight,
     previousNodeStates,
   ));

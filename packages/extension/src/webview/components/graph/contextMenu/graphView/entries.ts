@@ -1,9 +1,9 @@
 import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import { separator } from '../common/entryFactories';
 import type {
-  GraphContextMenuAction,
   GraphContextMenuEdge,
   GraphContextMenuEntry,
+  GraphContextMenuNode,
   GraphContextSelection,
 } from '../contracts';
 import type { GraphContextMenuDecision } from '../decision/model';
@@ -69,6 +69,34 @@ function edgeMatches(
     listAllows(selector.runtimeEdgeTypes, edge.runtimeEdgeType);
 }
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
+function createSelectedNodePositions(
+  selection: GraphContextSelection,
+  nodes: readonly GraphContextMenuNode[] | undefined,
+): Readonly<Record<string, { x: number; y: number; z?: number }>> | undefined {
+  if (selection.kind !== 'node' || !nodes?.length) {
+    return undefined;
+  }
+
+  const nodesById = new Map(nodes.map(node => [node.id, node]));
+  const positions: Record<string, { x: number; y: number; z?: number }> = {};
+  for (const nodeId of selection.targets) {
+    const node = nodesById.get(nodeId);
+    if (!isFiniteNumber(node?.x) || !isFiniteNumber(node.y)) {
+      continue;
+    }
+
+    positions[nodeId] = isFiniteNumber(node.z)
+      ? { x: node.x, y: node.y, z: node.z }
+      : { x: node.x, y: node.y };
+  }
+
+  return Object.keys(positions).length > 0 ? positions : undefined;
+}
+
 function selectorMatches(
   selector: GraphViewContextMenuTargetSelector,
   decision: GraphContextMenuDecision,
@@ -95,25 +123,15 @@ function selectorMatches(
 function createRunContext(
   selector: GraphViewContextMenuTargetSelector,
   selection: GraphContextSelection,
+  nodes: readonly GraphContextMenuNode[] | undefined,
 ): Parameters<GraphViewContextMenuContribution['run']>[0] {
+  const selectedNodePositions = createSelectedNodePositions(selection, nodes);
   return {
     target: selector,
     selectedNodeIds: selection.kind === 'node' ? selection.targets : [],
     selectedEdgeIds: selection.kind === 'edge' && selection.edgeId ? [selection.edgeId] : [],
-  };
-}
-
-function createGraphViewContextMenuAction(
-  entry: GraphViewContextMenuEntry,
-  selector: GraphViewContextMenuTargetSelector,
-  selection: GraphContextSelection,
-): GraphContextMenuAction {
-  return {
-    kind: 'graphViewPlugin',
-    pluginId: entry.pluginId,
-    contributionId: entry.contribution.id,
-    context: createRunContext(selector, selection),
-    run: context => entry.contribution.run(context),
+    ...(selection.graphPosition ? { graphPosition: selection.graphPosition } : {}),
+    ...(selectedNodePositions ? { selectedNodePositions } : {}),
   };
 }
 
@@ -122,6 +140,7 @@ export function buildGraphViewContextMenuEntries(
     decision: GraphContextMenuDecision;
     edges?: readonly GraphContextMenuEdge[];
     graphViewContributions?: CoreGraphViewContributionSet;
+    nodes?: readonly GraphContextMenuNode[];
     selection: GraphContextSelection;
   },
 ): GraphContextMenuEntry[] {
@@ -134,12 +153,22 @@ export function buildGraphViewContextMenuEntries(
     if (!selector) {
       continue;
     }
+    const context = createRunContext(selector, options.selection, options.nodes);
+    if (entry.contribution.isVisible && !entry.contribution.isVisible(context)) {
+      continue;
+    }
 
     entries.push({
       kind: 'item',
       id: `graph-view-plugin-${entry.pluginId}-${entry.contribution.id}`,
-      label: entry.contribution.label,
-      action: createGraphViewContextMenuAction(entry, selector, options.selection),
+      label: entry.contribution.getLabel?.(context) ?? entry.contribution.label,
+      action: {
+        kind: 'graphViewPlugin',
+        pluginId: entry.pluginId,
+        contributionId: entry.contribution.id,
+        context,
+        run: nextContext => entry.contribution.run(nextContext),
+      },
     });
   }
 

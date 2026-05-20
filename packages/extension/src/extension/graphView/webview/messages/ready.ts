@@ -25,7 +25,6 @@ export interface GraphViewReadyHandlers {
   loadAndSendData(): void;
   sendFavorites(): void;
   sendSettings(): void;
-  sendGraphLayout?(): void;
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: { type: string; payload: unknown }): void;
@@ -52,7 +51,6 @@ export async function applyWebviewReady(
   handlers.loadAndSendData();
   handlers.sendFavorites();
   handlers.sendSettings();
-  handlers.sendGraphLayout?.();
   handlers.sendPhysicsSettings();
   handlers.sendGroupsUpdated();
   handlers.sendMessage({

@@ -203,7 +203,7 @@ describe('graphView/provider/plugin/methods', () => {
     methods._sendGroupsUpdated();
 
     expect(resolveWebviewAssetPath).toHaveBeenCalledWith('icon.svg', 'plugin.test');
-    expect(registerBuiltInPluginRoots).toHaveBeenCalledOnce();
+    expect(registerBuiltInPluginRoots).toHaveBeenCalledTimes(2);
   });
 
   it('passes the current workspace folder into group updates', () => {

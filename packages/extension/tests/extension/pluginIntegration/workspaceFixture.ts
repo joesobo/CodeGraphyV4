@@ -18,6 +18,7 @@ export interface PluginIntegrationWorkspace {
 export interface PluginIntegrationPackage {
   homeDir: string;
   packageName: string;
+  packageRoot: string;
   pluginId: string;
   graphViewContributionIds?: {
     projection: string;
@@ -26,9 +27,10 @@ export interface PluginIntegrationPackage {
 }
 
 interface InstallPluginIntegrationPackageOptions {
-  graphViewContributions?: 'organize';
+  graphViewContributions?: boolean;
   packageName?: string;
   pluginId?: string;
+  webviewContributions?: boolean;
 }
 
 export async function createPluginIntegrationWorkspace(): Promise<PluginIntegrationWorkspace> {
@@ -53,10 +55,10 @@ export async function installPluginIntegrationPackage(
   const homeDir = path.join(scratchPath, 'home');
   const packageName = options.packageName ?? '@acme/codegraphy-plugin-integration';
   const pluginId = options.pluginId ?? 'acme.integration';
-  const graphViewContributionIds = options.graphViewContributions === 'organize'
+  const graphViewContributionIds = options.graphViewContributions === true
     ? {
-      projection: 'codegraphy.organize.graph-section-projection',
-      runtimeNode: 'codegraphy.organize.section-nodes',
+      projection: 'acme.integration.runtime-projection',
+      runtimeNode: 'acme.integration.runtime-nodes',
     }
     : undefined;
   const [packageScope, packageBasename] = packageName.split('/');
@@ -89,6 +91,13 @@ export default function createPlugin() {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.ts'],
+    ${options.webviewContributions ? `
+    webviewApiVersion: '^1.0.0',
+    webviewContributions: {
+      scripts: ['webview.js'],
+      styles: ['webview.css']
+    },
+    ` : ''}
     sources: [{
       id: 'integration-import',
       name: 'Integration Import',
@@ -98,14 +107,14 @@ export default function createPlugin() {
     graphView: {
       runtimeNodes: [{
         id: '${graphViewContributionIds.runtimeNode}',
-        label: 'Graph Section Nodes',
+        label: 'Runtime Nodes',
         createNodes() {
           return [];
         }
       }],
       projections: [{
         id: '${graphViewContributionIds.projection}',
-        label: 'Graph Section Projection',
+        label: 'Runtime Projection',
         project({ visibleGraph }) {
           return visibleGraph;
         }
@@ -142,6 +151,18 @@ export default function createPlugin() {
 `,
     'utf-8',
   );
+  if (options.webviewContributions) {
+    await fs.writeFile(
+      path.join(packageRoot, 'webview.js'),
+      'export function activate() {}\n',
+      'utf-8',
+    );
+    await fs.writeFile(
+      path.join(packageRoot, 'webview.css'),
+      ':root { --integration-plugin-loaded: 1; }\n',
+      'utf-8',
+    );
+  }
 
   writeCodeGraphyInstalledPluginCache({
     version: 1,
@@ -168,5 +189,5 @@ export default function createPlugin() {
     }],
   });
 
-  return { homeDir, packageName, pluginId, graphViewContributionIds };
+  return { homeDir, packageName, packageRoot, pluginId, graphViewContributionIds };
 }

@@ -42,25 +42,4 @@ describe('graph/rendering/node/pointer', () => {
     expect(ctx.fill).toHaveBeenCalled();
   });
 
-  it('skips expanded Graph Section pointer areas so member nodes stay clickable', () => {
-    const ctx = {
-      beginPath: vi.fn(),
-      fill: vi.fn(),
-      fillStyle: '',
-      rect: vi.fn(),
-    } as unknown as CanvasRenderingContext2D;
-
-    paintNodePointerArea(createNode({
-      id: 'section-1',
-      isGraphSection: true,
-      isCollapsedGraphSection: false,
-      nodeType: 'graph-section',
-      sectionHeight: 180,
-      sectionWidth: 280,
-    }), '#ffffff', ctx);
-
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.rect).not.toHaveBeenCalled();
-    expect(ctx.fill).not.toHaveBeenCalled();
-  });
 });

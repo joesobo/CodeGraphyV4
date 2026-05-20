@@ -10,7 +10,6 @@ export function useAppState() {
   const isLoading = useGraphStore(s => s.isLoading);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const graphIndexProgress = useGraphStore(s => s.graphIndexProgress);
-  const graphLayout = useGraphStore(s => s.graphLayout);
   const searchQuery = useGraphStore(s => s.searchQuery);
   const searchOptions = useGraphStore(s => s.searchOptions);
   const legends = useGraphStore(s => s.legends);
@@ -35,7 +34,6 @@ export function useAppState() {
     isLoading,
     graphIsIndexing,
     graphIndexProgress,
-    graphLayout,
     searchQuery,
     searchOptions,
     legends,

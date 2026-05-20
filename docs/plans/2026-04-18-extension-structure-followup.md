@@ -1,10 +1,10 @@
-# Extension Organize Follow-up
+# Extension Structure Follow-up
 
 ## Goal
 
 After the code-index rearchitecture PR lands, run a focused organization follow-up for `packages/extension`.
 
-The goal is not to satisfy every mechanical organize hint. The goal is to make the extension package easier to navigate by moving obvious feature clusters into feature folders, mirroring source/test structure where useful, and replacing vague folder/file names with names that carry domain context.
+The goal is not to satisfy every mechanical structure hint. The goal is to make the extension package easier to navigate by moving obvious feature clusters into feature folders, mirroring source/test structure where useful, and replacing vague folder/file names with names that carry domain context.
 
 ## Scope
 
@@ -28,7 +28,7 @@ Out:
 - Prefer feature folders over technical layers.
 - Path carries feature context; filename carries role.
 - Do not create folders named `file`, `model`, `get`, `index`, `default`, `low`, `max`, `alt`, or `auto`.
-- Use better names when organize suggests generic names:
+- Use better names when structure analysis suggests generic names:
   - `auto` -> `autoFit` when the files are viewport fitting behavior.
   - `default` -> `dependencies` when the files wire default dependencies.
   - `single` -> `singleClick` when the files are click behavior.

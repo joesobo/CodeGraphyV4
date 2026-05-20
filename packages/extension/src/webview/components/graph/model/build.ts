@@ -2,7 +2,6 @@ import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { GraphMetadata, IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
-import type { GraphLayoutMode, GraphLayoutSettings } from '../../../../shared/settings/graphLayout';
 import type { ThemeKind } from '../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../appearance/model';
 import type { NodeType } from '../../../../shared/graph/contracts';
@@ -39,15 +38,10 @@ export type FGNode = NodeObject & {
   hiddenDescendantCount?: number;
   isCollapsible?: boolean;
   isCollapsed?: boolean;
-  isCollapsedGraphSection?: boolean;
   isDragging?: boolean;
-  isGraphSection?: boolean;
   fx?: number;
   fy?: number;
   fz?: number;
-  ownerSectionId?: string | null;
-  sectionHeight?: number;
-  sectionWidth?: number;
   vx?: number;
   vy?: number;
   vz?: number;
@@ -81,8 +75,7 @@ export interface BuildGraphDataOptions {
   nodeSizeMode: NodeSizeMode;
   theme: ThemeKind;
   favorites: Set<string>;
-  graphLayout?: GraphLayoutSettings;
-  graphMode?: GraphLayoutMode;
+  graphMode?: '2d' | '3d';
   bidirectionalMode: BidirectionalEdgeMode;
   timelineActive: boolean;
   previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
@@ -116,7 +109,6 @@ export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[
     nodeSizes,
     theme: options.theme,
     favorites: options.favorites,
-    graphLayout: options.graphLayout,
     graphMode,
     timelineActive: options.timelineActive,
     previousNodes: options.previousNodes,

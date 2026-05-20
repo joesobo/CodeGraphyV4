@@ -12,7 +12,6 @@ function makeProvider() {
     emitEvent: vi.fn(),
     invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
     sendPlaybackSpeed: vi.fn(),
-    sendGraphLayout: vi.fn(),
   };
 }
 
@@ -143,24 +142,6 @@ describe('configListener', () => {
     expect(provider.refreshGroupSettings).toHaveBeenCalledOnce();
 
     vi.useRealTimers();
-  });
-
-  it('syncs graph layout without reloading the graph when layout changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({
-      affectsConfiguration: (key) =>
-        key === 'codegraphy' ||
-        key === 'codegraphy.graphLayout',
-    });
-
-    expect(provider.sendGraphLayout).toHaveBeenCalledOnce();
-    expect(provider.refresh).not.toHaveBeenCalled();
-    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
   });
 
   it('triggers full refresh for unrecognized codegraphy settings', () => {

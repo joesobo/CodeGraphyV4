@@ -7,8 +7,6 @@ import { PluginToolbarActions } from '../plugin/Actions';
 import { LayoutModePopover } from '../LayoutModePopover';
 import { NodeSizeModePopover } from '../NodeSizeModePopover';
 import { CreateToolbarAction } from './create';
-import { getGraphContextMutationAvailability } from '../../graph/contextMenu/mutationAvailability';
-import { hasOrganizeGraphSectionContributions } from '../../graph/organize/contributions';
 
 export {
   getToolbarActionIconPath,
@@ -24,17 +22,6 @@ export function ToolbarActions(): React.ReactElement {
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
-  const graphMode = useGraphStore(s => s.graphMode);
-  const currentCommitSha = useGraphStore(s => s.currentCommitSha);
-  const timelineActive = useGraphStore(s => s.timelineActive);
-  const timelineCommits = useGraphStore(s => s.timelineCommits);
-  const graphViewContributionStatuses = useGraphStore(s => s.graphViewContributionStatuses);
-  const mutationAvailability = getGraphContextMutationAvailability({
-    currentCommitSha,
-    timelineActive,
-    timelineCommits,
-  });
-  const graphSectionsAvailable = hasOrganizeGraphSectionContributions(graphViewContributionStatuses);
 
   return (
     <div className="flex flex-col items-center gap-2" data-testid="toolbar-actions">
@@ -50,11 +37,7 @@ export function ToolbarActions(): React.ReactElement {
       <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-graph-tools-group">
         <LayoutModePopover />
         <NodeSizeModePopover />
-        <CreateToolbarAction
-          graphSectionsAvailable={graphSectionsAvailable}
-          graphMode={graphMode}
-          mutationAvailability={mutationAvailability}
-        />
+        <CreateToolbarAction />
         <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
         <ToolbarPanelButtons
           activePanel={activePanel}

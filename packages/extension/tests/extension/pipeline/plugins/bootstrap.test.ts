@@ -246,12 +246,12 @@ describe('pipeline/plugins/bootstrap', () => {
 
     expect(registry.register).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'acme.extension-bootstrap' }),
-      {
+      expect.objectContaining({
         sourcePackage: '@acme/codegraphy-plugin-extension-bootstrap',
         options: {
           mode: 'strict',
         },
-      },
+      }),
     );
     expect(registry.register).toHaveBeenCalledTimes(3);
     expect(registry.initializeAll).toHaveBeenCalledWith(workspaceRoot);

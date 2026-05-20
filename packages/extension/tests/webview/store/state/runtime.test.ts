@@ -208,9 +208,9 @@ describe('GraphStore', () => {
   it('handles GRAPH_VIEW_CONTRIBUTIONS_UPDATED message', () => {
     const contributions = [{
       kind: 'runtimeNodes' as const,
-      pluginId: 'codegraphy.organize',
-      contributionId: 'codegraphy.organize.section-nodes',
-      label: 'Graph Section Nodes',
+      pluginId: 'acme.graph-tools',
+      contributionId: 'acme.graph-tools.runtime-nodes',
+      label: 'Runtime Nodes',
     }];
 
     store.getState().handleExtensionMessage({

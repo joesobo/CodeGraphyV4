@@ -77,20 +77,20 @@ function renderWithProviders() {
   );
 }
 
-function enableOrganizeGraphSections() {
+function enableRuntimeGraphViewContributions() {
   graphStore.setState({
     graphViewContributionStatuses: [
       {
         kind: 'runtimeNodes',
-        pluginId: 'codegraphy.organize',
-        contributionId: 'codegraphy.organize.section-nodes',
-        label: 'Graph Section Nodes',
+        pluginId: 'acme.graph-tools',
+        contributionId: 'acme.graph-tools.runtime-nodes',
+        label: 'Runtime Nodes',
       },
       {
         kind: 'projections',
-        pluginId: 'codegraphy.organize',
-        contributionId: 'codegraphy.organize.graph-section-projection',
-        label: 'Graph Section Projection',
+        pluginId: 'acme.graph-tools',
+        contributionId: 'acme.graph-tools.projection',
+        label: 'Runtime Projection',
       },
     ],
   });
@@ -127,8 +127,8 @@ describe('ToolbarActions', () => {
     vi.useRealTimers();
   });
 
-  it('renders lifecycle, graph tools, and system groups', () => {
-    enableOrganizeGraphSections();
+  it('renders lifecycle, graph tools, and system groups without feature-specific public actions', () => {
+    enableRuntimeGraphViewContributions();
     renderWithProviders();
 
     expect(screen.getByTestId('toolbar-lifecycle-group')).toBeInTheDocument();
@@ -140,17 +140,15 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('New...')).toBeInTheDocument();
     expect(screen.getByText('New File...')).toBeInTheDocument();
     expect(screen.getByText('New Folder...')).toBeInTheDocument();
-    expect(screen.getByText('New Graph Section')).toBeInTheDocument();
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
   });
 
-  it('hides Graph Section creation when Organize graph view contributions are absent', () => {
+  it('keeps the public create menu limited to filesystem actions', () => {
     renderWithProviders();
 
     expect(screen.getByText('New File...')).toBeInTheDocument();
     expect(screen.getByText('New Folder...')).toBeInTheDocument();
-    expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
   });
 
   it('sends INDEX_GRAPH message when the initial index button is clicked', () => {
@@ -236,8 +234,8 @@ describe('ToolbarActions', () => {
     ]);
   });
 
-  it('orders the graph tool rail create menu as file, folder, Graph Section without a separator', () => {
-    enableOrganizeGraphSections();
+  it('orders the graph tool rail create menu as file and folder without a separator', () => {
+    enableRuntimeGraphViewContributions();
     renderWithProviders();
 
     const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
@@ -247,12 +245,12 @@ describe('ToolbarActions', () => {
       within(createMenu as HTMLElement)
         .getAllByRole('button')
         .map(button => button.textContent?.trim()),
-    ).toEqual(['New File...', 'New Folder...', 'New Graph Section']);
+    ).toEqual(['New File...', 'New Folder...']);
     expect(within(createMenu as HTMLElement).queryByTestId('dropdown-separator')).not.toBeInTheDocument();
   });
 
   it('posts root creation messages from the graph tool rail create menu', () => {
-    enableOrganizeGraphSections();
+    enableRuntimeGraphViewContributions();
     renderWithProviders();
     expect(screen.getByText('New File...').closest('button')).toHaveClass('gap-2');
 
@@ -270,43 +268,10 @@ describe('ToolbarActions', () => {
       payload: { directory: '.' },
     });
 
-    fireEvent.click(screen.getByText('New Graph Section'));
-
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'CREATE_GRAPH_LAYOUT_SECTION',
-      payload: {
-        color: '#60a5fa',
-        height: 180,
-        memberNodeIds: [],
-        width: 280,
-        x: -140,
-        y: -90,
-      },
-    });
   });
 
-  it('posts a root Graph Section with stable graph-space size when the graph is zoomed out', () => {
-    graphStore.setState({ graphViewportScale: 0.2 });
-    enableOrganizeGraphSections();
-    renderWithProviders();
-
-    fireEvent.click(screen.getByText('New Graph Section'));
-
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'CREATE_GRAPH_LAYOUT_SECTION',
-      payload: {
-        color: '#60a5fa',
-        height: 180,
-        memberNodeIds: [],
-        width: 280,
-        x: -140,
-        y: -90,
-      },
-    });
-  });
-
-  it('keeps section creation available at the mutable timeline head and disables it for immutable snapshots', () => {
-    enableOrganizeGraphSections();
+  it('keeps public creation actions visible at immutable timeline snapshots', () => {
+    enableRuntimeGraphViewContributions();
     act(() => {
       graphStore.setState({
         currentCommitSha: 'head-sha',
@@ -321,7 +286,6 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('New...')).toBeInTheDocument();
     expect(screen.getByText('New File...')).toBeInTheDocument();
     expect(screen.getByText('New Folder...')).toBeInTheDocument();
-    expect(screen.getByText('New Graph Section').closest('button')).toBeEnabled();
 
     act(() => {
       graphStore.setState({ currentCommitSha: 'old-sha' });
@@ -331,7 +295,8 @@ describe('ToolbarActions', () => {
         <ToolbarActions />
       </TooltipProvider>,
     );
-    expect(screen.getByText('New Graph Section').closest('button')).toBeDisabled();
+    expect(screen.getByText('New File...').closest('button')).toBeEnabled();
+    expect(screen.getByText('New Folder...').closest('button')).toBeEnabled();
 
     act(() => {
       graphStore.setState({ graphMode: '3d', timelineActive: false });
@@ -344,7 +309,6 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('New...')).toBeInTheDocument();
     expect(screen.getByText('New File...')).toBeInTheDocument();
     expect(screen.getByText('New Folder...')).toBeInTheDocument();
-    expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
   });
 
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {

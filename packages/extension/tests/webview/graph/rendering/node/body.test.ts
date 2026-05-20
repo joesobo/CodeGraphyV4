@@ -173,41 +173,6 @@ describe('graph/rendering/node/body', () => {
     ]);
   });
 
-  it('draws collapsed Graph Sections as rounded squares', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeBody({
-      ctx,
-      decoration: undefined,
-      globalScale: 1,
-      isSelected: false,
-      node: createNode({
-        id: 'section-1',
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
-      }),
-      opacity: 1,
-    });
-
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.beginPath).toHaveBeenCalledOnce();
-    expect(ctx.moveTo).toHaveBeenCalledWith(16, 32);
-    expect(ctx.quadraticCurveTo).toHaveBeenCalledWith(40, 32, 40, 40);
-    expect(ctx.closePath).toHaveBeenCalledOnce();
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: '#3b82f6',
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        kind: 'stroke',
-        strokeStyle: '#1d4ed8',
-      }),
-    ]);
-  });
-
   it('uses the theme-resolved selected border color when no decoration overrides it', () => {
     const { ctx, operations } = createContext();
 

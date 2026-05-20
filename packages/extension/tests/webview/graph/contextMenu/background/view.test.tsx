@@ -25,25 +25,6 @@ async function waitForThreeDimensionalSurface(): Promise<void> {
   });
 }
 
-function enableOrganizeGraphSections(): void {
-  graphStore.setState({
-    graphViewContributionStatuses: [
-      {
-        kind: 'runtimeNodes',
-        pluginId: 'codegraphy.organize',
-        contributionId: 'codegraphy.organize.section-nodes',
-        label: 'Graph Section Nodes',
-      },
-      {
-        kind: 'projections',
-        pluginId: 'codegraphy.organize',
-        contributionId: 'codegraphy.organize.graph-section-projection',
-        label: 'Graph Section Projection',
-      },
-    ],
-  });
-}
-
 const menuData: IGraphData = {
   nodes: [
     { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
@@ -285,53 +266,6 @@ describe('Graph context menu (background)', () => {
     const createMsg = findMessage('CREATE_FOLDER');
     expect(createMsg).toBeTruthy();
     expect(createMsg!.payload.directory).toBe('.');
-  });
-
-  it('creates a Graph Section centered on the right-clicked background graph position', async () => {
-    enableOrganizeGraphSections();
-    const graphMethods = ForceGraph2D.getMockMethods();
-    graphMethods.screen2GraphCoords.mockClear();
-    graphMethods.screen2GraphCoords.mockImplementation((x: number, y: number) => ({ x, y }));
-    const { container } = render(<Graph data={menuData} />);
-    const graphContainer = getGraphContainer(container);
-    vi.spyOn(graphContainer, 'getBoundingClientRect').mockReturnValue({
-      bottom: 500,
-      height: 400,
-      left: 50,
-      right: 650,
-      top: 80,
-      width: 600,
-      x: 50,
-      y: 80,
-      toJSON: () => ({}),
-    });
-
-    await act(async () => {
-      fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('New Graph Section')).toBeInTheDocument();
-    });
-
-    clearSentMessages();
-    await act(async () => {
-      fireEvent.click(screen.getByText('New Graph Section'));
-    });
-
-    const createMsg = findMessage('CREATE_GRAPH_LAYOUT_SECTION');
-    expect(createMsg).toEqual({
-      type: 'CREATE_GRAPH_LAYOUT_SECTION',
-      payload: {
-        color: '#60a5fa',
-        height: 180,
-        memberNodeIds: [],
-        width: 280,
-        x: 110,
-        y: 130,
-      },
-    });
-    expect(graphMethods.screen2GraphCoords).toHaveBeenCalledWith(250, 220);
   });
 
   it('fits view in 2d when clicking Fit All Nodes', async () => {

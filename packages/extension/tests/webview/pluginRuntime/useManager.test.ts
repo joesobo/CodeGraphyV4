@@ -224,6 +224,35 @@ describe('usePluginManager', () => {
     expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(1);
   });
 
+  it('can re-activate the same script after plugin assets are reset', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      export function activate() {
+        globalThis.__useManagerActivationCount = (globalThis.__useManagerActivationCount || 0) + 1;
+      }
+    `);
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'toggle-plugin',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+    });
+
+    result.current.resetPluginAssets('toggle-plugin');
+
+    await act(async () => {
+      await result.current.injectPluginAssets({
+        pluginId: 'toggle-plugin',
+        scripts: [scriptUrl],
+        styles: [],
+      });
+    });
+
+    expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(2);
+  });
+
   it('warns when a script has no activate export', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const { result } = renderHook(() => usePluginManager());

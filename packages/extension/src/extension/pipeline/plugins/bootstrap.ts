@@ -105,6 +105,7 @@ export async function initializeWorkspacePipeline(
     for (const loadedPlugin of loadedPackagePlugins) {
       registry.register(loadedPlugin.plugin, {
         sourcePackage: loadedPlugin.packageName,
+        sourcePackageRoot: loadedPlugin.record.packageRoot,
         ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
       });
     }

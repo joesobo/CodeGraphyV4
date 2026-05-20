@@ -132,6 +132,37 @@ describe('WebviewPluginHost', () => {
     expect(host.getOverlays()).toEqual([]);
   });
 
+  it('registers graph-view contributions from scoped plugin APIs and removes them on dispose', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const listener = vi.fn();
+    const contribution = {
+      id: 'acme.plugin.runtime-node',
+      label: 'Runtime Node',
+      createNodes: () => [{ id: 'runtime-node', label: 'Runtime', color: '#ffffff' }],
+    };
+
+    const unsubscribe = host.subscribeGraphViewContributions(listener);
+    const disposable = api.registerGraphViewContributions({
+      runtimeNodes: [contribution],
+    });
+
+    expect(host.getGraphViewContributions().runtimeNodes).toEqual([
+      {
+        pluginId: 'acme.plugin',
+        contribution,
+      },
+    ]);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    disposable.dispose();
+
+    expect(host.getGraphViewContributions().runtimeNodes).toEqual([]);
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    unsubscribe.dispose();
+  });
+
   it('aggregates tooltip sections and ignores failing providers', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const host = new WebviewPluginHost();

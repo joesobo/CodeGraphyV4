@@ -11,7 +11,6 @@ function makeProvider() {
     emitEvent: vi.fn(),
     invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
     sendPlaybackSpeed: vi.fn(),
-    sendGraphLayout: vi.fn(),
   };
 }
 
@@ -96,17 +95,6 @@ describe('executeConfigAction', () => {
       clearTimeoutSpy.mockRestore();
       vi.useRealTimers();
     }
-  });
-
-  it('sends graph layout without refreshing for layout category changes', () => {
-    const provider = makeProvider();
-    const event = makeEvent('codegraphy.graphLayout');
-
-    executeConfigAction('layout', event as never, provider as never);
-
-    expect(provider.sendGraphLayout).toHaveBeenCalledOnce();
-    expect(provider.refresh).not.toHaveBeenCalled();
-    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
   });
 
   describe('general category', () => {

@@ -92,13 +92,9 @@ export function useGraphEventEffects({
   }, [applyWebviewMessageEffects, graphDataRef, graphMode, tooltipPath]);
 
   useEffect(() => {
-    const selectedNodeSet = new Set(selectedNodes);
     const handleKeyDown = createGraphKeyboardListener({
       graphMode,
       selectedNodeIds: selectedNodes,
-      selectedGraphSectionIds: graphDataRef.current.nodes
-        .filter(node => !!node.isGraphSection && selectedNodeSet.has(node.id))
-        .map(node => node.id),
       getAllNodeIds: () => graphDataRef.current.nodes.map(node => node.id),
       fitView: () => interactionHandlers.fitView(),
       setSelection: nodeIds => interactionHandlers.setSelection(nodeIds),

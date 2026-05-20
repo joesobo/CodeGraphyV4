@@ -11,7 +11,6 @@ export type GraphContextMenuDecision =
   | { kind: 'emptyNodeSelection' }
   | { kind: 'singleFileNode'; target: GraphContextNodeTarget }
   | { kind: 'singleFolderNode'; target: GraphContextNodeTarget }
-  | { kind: 'singleGraphSectionNode'; target: GraphContextNodeTarget }
   | { kind: 'singlePackageNode'; target: GraphContextNodeTarget }
   | { kind: 'singleSymbolNode'; target: GraphContextNodeTarget }
   | { kind: 'singlePluginNode'; target: GraphContextNodeTarget }

@@ -84,9 +84,9 @@ describe('graphView/provider/plugin/broadcasts', () => {
         payload: {
           contributions: [{
             kind: 'runtimeNodes',
-            pluginId: 'codegraphy.organize',
-            contributionId: 'codegraphy.organize.section-nodes',
-            label: 'Graph Section Nodes',
+            pluginId: 'acme.graph-tools',
+            contributionId: 'acme.graph-tools.runtime-nodes',
+            label: 'Runtime Nodes',
           }],
         },
       });
@@ -113,9 +113,9 @@ describe('graphView/provider/plugin/broadcasts', () => {
       payload: {
         contributions: [{
           kind: 'runtimeNodes',
-          pluginId: 'codegraphy.organize',
-          contributionId: 'codegraphy.organize.section-nodes',
-          label: 'Graph Section Nodes',
+          pluginId: 'acme.graph-tools',
+          contributionId: 'acme.graph-tools.runtime-nodes',
+          label: 'Runtime Nodes',
         }],
       },
     });
@@ -158,7 +158,7 @@ describe('graphView/provider/plugin/broadcasts', () => {
     methods._sendGroupsUpdated();
 
     expect(resolveWebviewAssetPath).toHaveBeenCalledWith('icon.svg', 'plugin.test');
-    expect(registerBuiltInPluginRoots).toHaveBeenCalledOnce();
+    expect(registerBuiltInPluginRoots).toHaveBeenCalledTimes(2);
   });
 
   it('sends graph controls and plugin exporters through the provider bridge', () => {
