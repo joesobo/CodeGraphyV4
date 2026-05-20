@@ -57,6 +57,12 @@ async function main(): Promise<void> {
           userDataPath,
           '--extensions-dir',
           extensionsPath,
+          '--use-inmemory-secretstorage',
+          '--sync',
+          'off',
+          '--disable-telemetry',
+          '--disable-updates',
+          '--disable-workspace-trust',
           // Disable other extensions so they don't interfere
           '--disable-extensions',
           // Don't show the welcome tab
