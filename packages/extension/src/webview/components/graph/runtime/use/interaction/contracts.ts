@@ -46,6 +46,7 @@ export interface UseGraphInteractionRuntimeOptions {
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
   setHighlightVersion: Dispatch<SetStateAction<number>>;
   setSelectedNodes: Dispatch<SetStateAction<string[]>>;
+  timelineActive?: boolean;
 }
 
 export interface UseGraphInteractionRuntimeResult {

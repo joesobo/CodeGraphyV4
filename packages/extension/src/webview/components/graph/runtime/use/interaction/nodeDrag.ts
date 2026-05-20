@@ -27,6 +27,14 @@ interface NodeDragEndOptions {
   graphData: NodeDragGraphData;
   graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
   graphMode: GraphMode;
+  timelineActive?: boolean;
+}
+
+interface NodeDragPolicyContext {
+  graphData?: NodeDragGraphData;
+  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
+  graphMode: GraphMode;
+  timelineActive?: boolean;
 }
 
 function isFiniteNumber(value: unknown): value is number {
@@ -47,12 +55,16 @@ export function markNodeDragging(node: FGNode): void {
 
 function shouldKeepFixedPosition(
   node: FGNode,
-  graphMode: GraphMode,
-  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
+  options: NodeDragPolicyContext,
 ): boolean {
-  for (const entry of graphViewContributions?.nodeDragEnd ?? []) {
+  for (const entry of options.graphViewContributions?.nodeDragEnd ?? []) {
     try {
-      const result = entry.contribution.onNodeDragEnd({ graphMode, node });
+      const result = entry.contribution.onNodeDragEnd({
+        graphMode: options.graphMode,
+        node,
+        nodes: options.graphData?.nodes ?? [node],
+        timelineActive: options.timelineActive ?? false,
+      });
       if (result?.keepFixedPosition === true) {
         return true;
       }
@@ -67,11 +79,11 @@ function shouldKeepFixedPosition(
 function releaseNodeDrag(
   node: FGNode,
   graphMode: GraphMode,
-  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
+  options: Omit<NodeDragPolicyContext, 'graphMode'> = {},
 ): void {
   node.isDragging = false;
 
-  if (shouldKeepFixedPosition(node, graphMode, graphViewContributions)) {
+  if (shouldKeepFixedPosition(node, { ...options, graphMode })) {
     return;
   }
 
@@ -179,8 +191,15 @@ export function postNodeDragEndMessages(
   node: FGNode,
   graphMode: GraphMode,
   graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
+  options: {
+    graphData?: NodeDragGraphData;
+    timelineActive?: boolean;
+  } = {},
 ): void {
-  releaseNodeDrag(node, graphMode, graphViewContributions);
+  releaseNodeDrag(node, graphMode, {
+    ...options,
+    graphViewContributions,
+  });
 }
 
 export function postDraggedNodesDragEndMessages(
@@ -193,6 +212,10 @@ export function postDraggedNodesDragEndMessages(
       node,
       options.graphMode,
       options.graphViewContributions,
+      {
+        graphData: options.graphData,
+        timelineActive: options.timelineActive,
+      },
     );
   }
 }

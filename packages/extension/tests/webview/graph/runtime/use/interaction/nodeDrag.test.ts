@@ -65,7 +65,7 @@ describe('graph/runtime/use/interaction node drag', () => {
       fz: 36,
       isDragging: true,
       isPinned: false,
-    } as FGNode;
+    } as unknown as FGNode;
 
     postNodeDragEndMessages(node, '3d');
 
@@ -85,7 +85,7 @@ describe('graph/runtime/use/interaction node drag', () => {
       fz: 36,
       isDragging: true,
       isPinned: true,
-    } as FGNode;
+    } as unknown as FGNode;
 
     postNodeDragEndMessages(node, '3d');
 
@@ -121,11 +121,61 @@ describe('graph/runtime/use/interaction node drag', () => {
     expect(onNodeDragEnd).toHaveBeenCalledWith({
       graphMode: '2d',
       node,
+      nodes: [node],
+      timelineActive: false,
     });
     expect(node).toMatchObject({
       fx: 12,
       fy: 24,
       isDragging: false,
+    });
+  });
+
+  it('passes live graph nodes and timeline state to plugin drag policies', () => {
+    const node = {
+      id: 'node',
+      fx: 12,
+      fy: 24,
+      isDragging: true,
+      isPinned: true,
+      x: 12,
+      y: 24,
+    } as FGNode;
+    const section = {
+      id: 'section-ui',
+      isGraphSection: true,
+      sectionHeight: 100,
+      sectionWidth: 160,
+      x: 40,
+      y: 50,
+    } as unknown as FGNode;
+    const onNodeDragEnd = vi.fn(() => undefined);
+
+    postDraggedNodesDragEndMessages(
+      node,
+      null,
+      {
+        graphData: { nodes: [node, section] },
+        graphMode: '2d',
+        graphViewContributions: {
+          nodeDragEnd: [{
+            pluginId: 'codegraphy.organize',
+            contribution: {
+              id: 'codegraphy.organize.section-drag-end',
+              label: 'Section Drag End',
+              onNodeDragEnd,
+            },
+          }],
+        },
+        timelineActive: true,
+      },
+    );
+
+    expect(onNodeDragEnd).toHaveBeenCalledWith({
+      graphMode: '2d',
+      node,
+      nodes: [node, section],
+      timelineActive: true,
     });
   });
 

@@ -146,6 +146,7 @@ export default function Graph({
     setContextSelection: graphState.setContextSelection,
     setHighlightVersion: graphState.setHighlightVersion,
     setSelectedNodes: graphState.setSelectedNodes,
+    timelineActive: viewState.timelineActive,
   });
 
   const activeGraph = selectActivePhysicsGraph(

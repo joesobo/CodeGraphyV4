@@ -85,6 +85,8 @@ export interface IGraphViewNodeDragState extends IGraphViewRuntimeNode {
 export interface IGraphViewNodeDragEndContext {
   graphMode: '2d' | '3d';
   node: IGraphViewNodeDragState;
+  nodes: readonly IGraphViewNodeDragState[];
+  timelineActive: boolean;
 }
 
 export interface IGraphViewNodeDragEndResult {
