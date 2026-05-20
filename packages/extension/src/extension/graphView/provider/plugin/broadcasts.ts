@@ -119,6 +119,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
     },
     _sendPluginWebviewInjections: () => {
       source._registerBuiltInPluginRoots();
+      source._refreshWebviewResourceRoots();
       resolved.sendPluginWebviewInjections(
         source._analyzer,
         (assetPath, pluginId) => source._resolveWebviewAssetPath(assetPath, pluginId),

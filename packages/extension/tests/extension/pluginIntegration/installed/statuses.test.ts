@@ -335,4 +335,43 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       },
     });
   }, 15000);
+
+  it('re-sends package plugin webview assets after analysis initializes package plugins', async () => {
+    currentContext = createContext();
+    activate(currentContext as unknown as vscode.ExtensionContext);
+
+    const provider = getRegisteredProvider();
+    const internals = getGraphViewProviderInternals(provider);
+    const { mockWebview, getMessageHandler } = resolveGraphWebview(provider);
+
+    await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+    mockWebview.postMessage.mockClear();
+
+    await internals._analysisMethods._analyzeAndSendData();
+
+    const injectionMessages = mockWebview.postMessage.mock.calls
+      .map((call: unknown[]) => call[0] as {
+        type?: string;
+        payload?: {
+          pluginId?: string;
+          scripts?: string[];
+          styles?: string[];
+        };
+      })
+      .filter(message => message.type === 'PLUGIN_WEBVIEW_INJECT');
+
+    expect(injectionMessages).toContainEqual({
+      type: 'PLUGIN_WEBVIEW_INJECT',
+      payload: {
+        pluginId: installedPackage!.pluginId,
+        scripts: [`${installedPackage!.packageRoot}/webview.js`],
+        styles: [`${installedPackage!.packageRoot}/webview.css`],
+      },
+    });
+
+    const resourceRootPaths = (
+      mockWebview.options as { localResourceRoots?: Array<{ fsPath?: string }> }
+    ).localResourceRoots?.map(root => root.fsPath);
+    expect(resourceRootPaths).toContain(installedPackage!.packageRoot);
+  }, 15000);
 });

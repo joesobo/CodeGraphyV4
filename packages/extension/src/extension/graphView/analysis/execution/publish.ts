@@ -60,6 +60,7 @@ export function publishAnalyzedGraph(
   handlers.sendPluginExporters?.();
   handlers.sendPluginToolbarActions?.();
   handlers.sendGraphViewContributionStatuses?.();
+  handlers.sendPluginWebviewInjections?.();
   state.analyzer?.registry.notifyPostAnalyze(graphData);
   handlers.markWorkspaceReady(graphData);
 }
@@ -72,5 +73,6 @@ export function publishAnalysisFailure(
   handlers.sendPluginExporters?.();
   handlers.sendPluginToolbarActions?.();
   handlers.sendGraphViewContributionStatuses?.();
+  handlers.sendPluginWebviewInjections?.();
   handlers.markWorkspaceReady(graphData);
 }
