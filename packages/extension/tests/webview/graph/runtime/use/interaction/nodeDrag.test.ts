@@ -109,9 +109,9 @@ describe('graph/runtime/use/interaction node drag', () => {
 
     postNodeDragEndMessages(node, '2d', {
       nodeDragEnd: [{
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'codegraphy.organize.pin-drag-end',
+          id: 'acme.graph-tools.pin-drag-end',
           label: 'Pinned Node Drag End',
           onNodeDragEnd,
         },
@@ -141,11 +141,12 @@ describe('graph/runtime/use/interaction node drag', () => {
       x: 12,
       y: 24,
     } as FGNode;
-    const section = {
-      id: 'section-ui',
-      isGraphSection: true,
-      sectionHeight: 100,
-      sectionWidth: 160,
+    const pluginRuntimeNode = {
+      id: 'plugin-runtime-node',
+      ownerPluginId: 'acme.graph-tools',
+      runtimeNodeType: 'workspace-group',
+      workspaceGroupHeight: 100,
+      workspaceGroupWidth: 160,
       x: 40,
       y: 50,
     } as unknown as FGNode;
@@ -155,13 +156,13 @@ describe('graph/runtime/use/interaction node drag', () => {
       node,
       null,
       {
-        graphData: { nodes: [node, section] },
+        graphData: { nodes: [node, pluginRuntimeNode] },
         graphMode: '2d',
         graphViewContributions: {
           nodeDragEnd: [{
-            pluginId: 'codegraphy.organize',
+            pluginId: 'acme.graph-tools',
             contribution: {
-              id: 'codegraphy.organize.section-drag-end',
+              id: 'acme.graph-tools.drag-end',
               label: 'Section Drag End',
               onNodeDragEnd,
             },
@@ -174,7 +175,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     expect(onNodeDragEnd).toHaveBeenCalledWith({
       graphMode: '2d',
       node,
-      nodes: [node, section],
+      nodes: [node, pluginRuntimeNode],
       timelineActive: true,
     });
   });

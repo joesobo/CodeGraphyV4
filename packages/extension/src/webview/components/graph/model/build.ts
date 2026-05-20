@@ -16,7 +16,7 @@ import { calculateNodeSizes } from './node/sizing';
 export { DEFAULT_NODE_SIZE, FAVORITE_BORDER_COLOR, getDepthOpacity, getDepthSizeMultiplier, getNodeType, resolveDirectionColor } from './node/display';
 export { calculateNodeSizes, toD3Repel } from './node/sizing';
 
-export type FGNode = NodeObject & {
+export type FGNode = NodeObject & Record<string, unknown> & {
   id: string;
   label: string;
   size: number;
@@ -35,7 +35,6 @@ export type FGNode = NodeObject & {
   imageUrl?: string;
   metadata?: GraphMetadata;
   collapsedDescendantCount?: number;
-  hiddenDescendantCount?: number;
   isCollapsible?: boolean;
   isCollapsed?: boolean;
   isDragging?: boolean;

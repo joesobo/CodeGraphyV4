@@ -5,7 +5,7 @@
 
 import type { Disposable } from './disposable';
 import type { IGraphEdge, IGraphNode } from './graph';
-import type { IGraphViewContributions } from './graphView';
+import type { IGraphViewContributions, IGraphViewNodeDragState } from './graphView';
 
 export type GraphPluginSlot =
   | 'toolbar'
@@ -41,25 +41,9 @@ export interface GraphViewPoint2D {
   y: number;
 }
 
-export interface GraphViewViewportNode {
-  fx?: number;
-  fy?: number;
-  fz?: number;
+export interface GraphViewViewportNode extends Partial<IGraphViewNodeDragState> {
+  [key: string]: unknown;
   id: string;
-  isCollapsedGraphSection?: boolean;
-  isDragging?: boolean;
-  isGraphSection?: boolean;
-  isPinned?: boolean;
-  ownerSectionId?: string | null;
-  sectionHeight?: number;
-  sectionWidth?: number;
-  size?: number;
-  vx?: number;
-  vy?: number;
-  vz?: number;
-  x?: number;
-  y?: number;
-  z?: number;
 }
 
 export interface GraphViewViewportState {

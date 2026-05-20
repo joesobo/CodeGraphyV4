@@ -261,8 +261,8 @@ describe('ToolbarActions', () => {
         contextMenu: [{
           pluginId: 'acme.graph-tools',
           contribution: {
-            id: 'acme.new-section',
-            label: 'New Section...',
+            id: 'acme.new-plugin-node',
+            label: 'New Plugin Node...',
             placement: { menu: 'create' },
             targets: [{ kind: 'background' }],
             run,
@@ -280,9 +280,9 @@ describe('ToolbarActions', () => {
       within(createMenu as HTMLElement)
         .getAllByRole('button')
         .map(button => button.textContent?.trim()),
-    ).toEqual(['New File...', 'New Folder...', 'New Section...']);
+    ).toEqual(['New File...', 'New Folder...', 'New Plugin Node...']);
 
-    fireEvent.click(screen.getByText('New Section...'));
+    fireEvent.click(screen.getByText('New Plugin Node...'));
 
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'background' },

@@ -27,6 +27,7 @@ export type {
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
   IGraphViewNodeDragEndContribution,
+  IGraphViewNodeDragState,
   IGraphViewProjectionContribution,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
