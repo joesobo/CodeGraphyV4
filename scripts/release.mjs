@@ -195,7 +195,6 @@ function formatUsage(baseDir = repoRoot) {
 
   return [
     'Usage:',
-    `  pnpm run release:package <${targetList}>`,
     `  pnpm run release:publish <${targetList}>`,
   ].join('\n');
 }
@@ -266,7 +265,7 @@ function runReleaseTarget(mode, target, baseDir, runCommand) {
 }
 
 export function runRelease(mode, requestedTarget, baseDir = repoRoot, runCommand = run) {
-  if (mode !== 'package' && mode !== 'publish') {
+  if (mode !== 'publish') {
     console.error(formatUsage(baseDir));
     process.exit(1);
   }

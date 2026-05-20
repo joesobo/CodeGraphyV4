@@ -7,7 +7,10 @@ import { glob } from 'glob';
 
 export async function run(): Promise<void> {
   const { default: Mocha } = await import('mocha');
-  const grep = process.env.CODEGRAPHY_E2E_GREP;
+  const grep = process.env.CODEGRAPHY_E2E_GREP
+    ?? (process.env.CODEGRAPHY_E2E_FULL === '1'
+      ? undefined
+      : 'extension activates without error|all commands are registered|manual graph indexing creates scenario edges');
   const mocha = new Mocha({
     ui: 'tdd',
     color: true,

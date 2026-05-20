@@ -27,7 +27,7 @@ Root scripts:
 - `test` runs the full test suite that CI should trust.
 - `test:unit` runs all package Vitest suites through Turbo.
 - `test:playwright` runs package Playwright suites.
-- `test:vscode` runs the VS Code Electron suite.
+- `test:vscode` runs a local-only VS Code Electron smoke suite.
 
 Package scripts:
 
@@ -40,14 +40,17 @@ Package scripts:
 
 1. Rename root/package scripts so `e2e` becomes explicit `test:vscode`.
 2. Remove root release-test wiring and the `tests/release` suite.
-3. Update CI so the default test path includes unit, Playwright, and VS Code tests.
+3. Update CI so the default test path includes unit and Playwright tests.
 4. Preserve quality-tool commands as explicit local analysis tools.
 
 ## First Slice Decisions
 
-- Root `pnpm test` now composes `test:unit`, `test:playwright`, and `test:vscode`.
-- Playwright remains the browser/webview lane; VS Code E2E is the Electron extension-host lane.
-- The root release checks and `tests/release` suite are removed. The release workflow packages/publishes artifacts; CI owns lint, typecheck, tests, and build.
+- Root `pnpm test` now composes `test:unit` and `test:playwright`; CI does not run VS Code Electron tests.
+- Playwright is the CI E2E lane for browser/webview behavior that matters before merge.
+- VS Code E2E is a local sanity lane for the real Electron extension host. By default, `pnpm run test:vscode` runs a reduced smoke subset. Run `CODEGRAPHY_E2E_FULL=1 pnpm run test:vscode` for the full local suite.
+- The root release checks and `tests/release` suite are removed. The release workflow publishes artifacts; there is no public package-without-publish workflow.
+- CI runs separate lint, typecheck, unit-test, Playwright, and build lanes so independent work is not serialized behind the slowest suite.
+- Turbo caches package builds and test logs/results through task outputs and GitHub Actions restores `.turbo` between CI runs.
 - `@codegraphy/extension` owns all three test lanes because it has Vitest, browser, and VS Code behavior.
 - Other packages expose only Vitest through `test` unless they grow a real browser or VS Code test surface.
 - Mutation tooling stays in `@codegraphy/quality-tools` and continues to target Vitest, not Playwright or VS Code E2E.

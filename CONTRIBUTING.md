@@ -98,10 +98,11 @@ docs: update README with installation instructions
 - Aim for meaningful coverage, not 100%
 
 ```bash
-pnpm test             # Unit, Playwright, and VS Code tests
+pnpm test             # Unit and Playwright suites that CI trusts
 pnpm run test:unit    # All package Vitest suites
-pnpm run test:playwright  # Browser smoke test suite
-pnpm run test:vscode      # VS Code Electron extension-host suite
+pnpm run test:playwright  # Browser/webview E2E suite
+pnpm run test:vscode      # Local VS Code Electron smoke suite
+CODEGRAPHY_E2E_FULL=1 pnpm run test:vscode  # Full local VS Code Electron suite
 pnpm --filter @codegraphy/extension exec playwright install chromium  # Browser install
 pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/path/to/file.test.ts
 ```

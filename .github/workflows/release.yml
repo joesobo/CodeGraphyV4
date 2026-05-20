@@ -3,14 +3,6 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      mode:
-        description: Package artifacts only or publish them
-        required: true
-        default: package
-        type: choice
-        options:
-          - package
-          - publish
       target:
         description: Which release target to run
         required: true
@@ -32,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.workflow }}-${{ github.ref }}-${{ inputs.mode }}-${{ inputs.target }}
+  group: release-${{ github.workflow }}-${{ github.ref }}-${{ inputs.target }}
   cancel-in-progress: false
 
 jobs:
@@ -62,16 +54,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Package selected release artifacts
-        run: pnpm run release:package ${{ inputs.target }}
-
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-artifacts
-          path: artifacts/
-          retention-days: 30
-
       - name: Publish selected target
-        if: ${{ inputs.mode == 'publish' }}
         run: pnpm run release:publish ${{ inputs.target }}

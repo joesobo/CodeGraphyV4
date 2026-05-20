@@ -4,19 +4,18 @@
  * Launches a real VS Code instance with the extension loaded and runs the
  * Mocha test suite against it. Tests have access to the full `vscode` API.
  *
- * Run with: pnpm run test:vscode
+ * Run smoke subset with: pnpm run test:vscode
+ * Run full local suite with: CODEGRAPHY_E2E_FULL=1 pnpm run test:vscode
  */
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import { runTests } from '@vscode/test-electron';
-import {
-  createInitialCodeGraphyWorkspaceSettings,
-  writeCodeGraphyInstalledPluginCache,
-  writeCodeGraphyWorkspaceSettings,
-  type CodeGraphyInstalledPluginRecord,
-} from '@codegraphy/core';
 import { e2eScenarios } from './scenarios';
+
+const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy/plugin-markdown';
+const DEFAULT_MAX_FILES = 1000;
+const DEFAULT_INCLUDE = ['**/*'];
 
 function findRepoRoot(startDir: string): string {
   let currentDir = startDir;
@@ -51,6 +50,80 @@ interface CodeGraphyPluginPackageJson {
     apiVersion?: unknown;
     disclosures?: unknown;
   };
+}
+
+type CodeGraphyPluginDisclosure =
+  | 'network'
+  | 'secrets'
+  | 'externalProcesses'
+  | 'workspaceWrites'
+  | 'outsideWorkspaceWrites'
+  | 'extraFileReads';
+
+interface CodeGraphyInstalledPluginRecord {
+  package: string;
+  version: string;
+  apiVersion: string;
+  disclosures: CodeGraphyPluginDisclosure[];
+  packageRoot: string;
+}
+
+interface CodeGraphyWorkspacePluginSettings {
+  package: string;
+}
+
+interface CodeGraphyWorkspaceSettings {
+  version: 1;
+  maxFiles: number;
+  include: string[];
+  respectGitignore: boolean;
+  showOrphans: boolean;
+  filterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  plugins: CodeGraphyWorkspacePluginSettings[];
+}
+
+function writeJsonFile(filePath: string, value: unknown): void {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function createInitialWorkspaceSettings(
+  pluginRecords: readonly CodeGraphyInstalledPluginRecord[],
+): CodeGraphyWorkspaceSettings {
+  return {
+    version: 1,
+    maxFiles: DEFAULT_MAX_FILES,
+    include: DEFAULT_INCLUDE,
+    respectGitignore: true,
+    showOrphans: true,
+    filterPatterns: [],
+    disabledCustomFilterPatterns: [],
+    plugins: [
+      { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
+      ...pluginRecords.map(plugin => ({ package: plugin.package })),
+    ],
+  };
+}
+
+function writeScenarioInstalledPluginCache(
+  homeDir: string,
+  pluginRecords: readonly CodeGraphyInstalledPluginRecord[],
+): void {
+  writeJsonFile(path.join(homeDir, '.codegraphy', 'plugins.json'), {
+    version: 1,
+    plugins: pluginRecords,
+  });
+}
+
+function writeScenarioWorkspaceSettings(
+  workspacePath: string,
+  pluginRecords: readonly CodeGraphyInstalledPluginRecord[],
+): void {
+  writeJsonFile(
+    path.join(workspacePath, '.codegraphy', 'settings.json'),
+    createInitialWorkspaceSettings(pluginRecords),
+  );
 }
 
 function readScenarioPluginRecord(
@@ -100,17 +173,8 @@ function writeScenarioPluginState(
     readScenarioPluginRecord(repoRoot, relativePath),
   );
 
-  writeCodeGraphyInstalledPluginCache(
-    { version: 1, plugins: pluginRecords },
-    { homeDir },
-  );
-  writeCodeGraphyWorkspaceSettings(workspacePath, {
-    ...createInitialCodeGraphyWorkspaceSettings(),
-    plugins: [
-      ...createInitialCodeGraphyWorkspaceSettings().plugins,
-      ...pluginRecords.map(plugin => ({ package: plugin.package })),
-    ],
-  });
+  writeScenarioInstalledPluginCache(homeDir, pluginRecords);
+  writeScenarioWorkspaceSettings(workspacePath, pluginRecords);
 }
 
 async function main(): Promise<void> {
@@ -118,7 +182,7 @@ async function main(): Promise<void> {
   const extensionTestsPath = path.resolve(
     repoRoot,
     'packages/extension/dist-e2e/extension/src/e2e/suite/run',
-    );
+  );
 
   for (const scenario of e2eScenarios) {
     const vscodeProfilePath = fs.mkdtempSync(
