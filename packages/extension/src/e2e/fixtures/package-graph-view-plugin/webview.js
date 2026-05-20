@@ -2,13 +2,13 @@ export function activate(api) {
   api.registerGraphViewContributions({
     contextMenu: [
       {
-        id: 'e2e.organize.new-section',
-        label: 'New Section...',
+        id: 'e2e.graph-view-plugin.create-item',
+        label: 'New Plugin Item...',
         placement: { menu: 'create' },
         targets: [{ kind: 'background' }],
         run(context) {
           api.sendMessage({
-            type: 'createSection',
+            type: 'createItem',
             data: {
               position: context.graphPosition ?? { x: 0, y: 0 },
               selectedNodeIds: context.selectedNodeIds,
@@ -17,15 +17,15 @@ export function activate(api) {
         },
       },
       {
-        id: 'e2e.organize.pin-node',
-        label: 'Pin Node',
+        id: 'e2e.graph-view-plugin.node-action',
+        label: 'Plugin Node Action',
         targets: [{ kind: 'node' }],
         isVisible(context) {
           return context.selectedNodeIds.length === 1;
         },
         run(context) {
           api.sendMessage({
-            type: 'pinNode',
+            type: 'nodeAction',
             data: {
               nodeId: context.selectedNodeIds[0],
               position: context.selectedNodePositions?.[context.selectedNodeIds[0]]

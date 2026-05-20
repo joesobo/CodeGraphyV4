@@ -9,8 +9,8 @@ interface CodeGraphyAPI {
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
 }
 
-const ORGANIZE_PACKAGE = '@codegraphy/e2e-organize-plugin';
-const ORGANIZE_PLUGIN_ID = 'e2e.organize';
+const PACKAGE_NAME = '@codegraphy/e2e-graph-view-plugin';
+const PLUGIN_ID = 'e2e.graph-view-plugin';
 
 async function getAPI(): Promise<CodeGraphyAPI> {
   const ext = vscode.extensions.getExtension<CodeGraphyAPI>('codegraphy.codegraphy');
@@ -42,23 +42,23 @@ function waitForExtensionMessageWhere<TMessage>(
   });
 }
 
-suite('Organize package plugin lifecycle', function () {
+suite('Package Graph View plugin lifecycle', function () {
   this.timeout(60_000);
 
   test('injects, disables, cleans up, and re-injects package webview contributions', async function() {
     const api = await getAPI();
 
-    await vscode.commands.executeCommand('codegraphy.open');
-
-    await waitForExtensionMessageWhere<{
+    const injected = waitForExtensionMessageWhere<{
       type: 'PLUGIN_WEBVIEW_INJECT';
       payload: { pluginId: string };
     }>(
       api,
       'PLUGIN_WEBVIEW_INJECT',
-      message => message.payload.pluginId === ORGANIZE_PLUGIN_ID,
+      message => message.payload.pluginId === PLUGIN_ID,
       30_000,
     );
+    await vscode.commands.executeCommand('codegraphy.open');
+    await injected;
 
     const disabled = waitForExtensionMessageWhere<{
       type: 'PLUGINS_UPDATED';
@@ -67,7 +67,7 @@ suite('Organize package plugin lifecycle', function () {
       api,
       'PLUGINS_UPDATED',
       message => message.payload.plugins.some(plugin =>
-        plugin.packageName === ORGANIZE_PACKAGE && plugin.enabled === false
+        plugin.packageName === PACKAGE_NAME && plugin.enabled === false
       ),
       30_000,
     );
@@ -75,8 +75,8 @@ suite('Organize package plugin lifecycle', function () {
     await api.dispatchWebviewMessage({
       type: 'TOGGLE_PLUGIN',
       payload: {
-        pluginId: ORGANIZE_PLUGIN_ID,
-        packageName: ORGANIZE_PACKAGE,
+        pluginId: PLUGIN_ID,
+        packageName: PACKAGE_NAME,
         enabled: false,
       },
     });
@@ -89,15 +89,15 @@ suite('Organize package plugin lifecycle', function () {
     }>(
       api,
       'PLUGIN_WEBVIEW_INJECT',
-      message => message.payload.pluginId === ORGANIZE_PLUGIN_ID,
+      message => message.payload.pluginId === PLUGIN_ID,
       30_000,
     );
 
     await api.dispatchWebviewMessage({
       type: 'TOGGLE_PLUGIN',
       payload: {
-        pluginId: ORGANIZE_PLUGIN_ID,
-        packageName: ORGANIZE_PACKAGE,
+        pluginId: PLUGIN_ID,
+        packageName: PACKAGE_NAME,
         enabled: true,
       },
     });

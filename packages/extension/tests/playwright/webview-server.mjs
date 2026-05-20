@@ -346,7 +346,7 @@ const depthHtml = `<!doctype html>
   </body>
 </html>`;
 
-const organizeGraph = {
+const packageGraphViewPluginGraph = {
   nodes: [
     { id: 'src/index.ts', label: 'index.ts', color: '#38bdf8', x: 0, y: 0 },
     { id: 'src/utils.ts', label: 'utils.ts', color: '#22c55e', x: 140, y: 0 },
@@ -362,18 +362,18 @@ const organizeGraph = {
   ],
 };
 
-const organizePluginScript = `
+const packageGraphViewPluginScript = `
   export function activate(api) {
     api.registerGraphViewContributions({
       contextMenu: [
         {
-          id: 'e2e.organize.new-section',
-          label: 'New Section...',
+          id: 'e2e.graph-view-plugin.create-item',
+          label: 'New Plugin Item...',
           placement: { menu: 'create' },
           targets: [{ kind: 'background' }],
           run(context) {
             api.sendMessage({
-              type: 'createSection',
+              type: 'createItem',
               data: {
                 position: context.graphPosition ?? { x: 0, y: 0 },
                 selectedNodeIds: context.selectedNodeIds,
@@ -382,15 +382,15 @@ const organizePluginScript = `
           },
         },
         {
-          id: 'e2e.organize.pin-node',
-          label: 'Pin Node',
+          id: 'e2e.graph-view-plugin.node-action',
+          label: 'Plugin Node Action',
           targets: [{ kind: 'node' }],
           isVisible(context) {
             return context.selectedNodeIds.length === 1;
           },
           run(context) {
             api.sendMessage({
-              type: 'pinNode',
+              type: 'nodeAction',
               data: {
                 nodeId: context.selectedNodeIds[0],
                 position: context.selectedNodePositions?.[context.selectedNodeIds[0]]
@@ -406,12 +406,12 @@ const organizePluginScript = `
   }
 `;
 
-const organizeHarnessScript = `
+const packageGraphViewPluginHarnessScript = `
   (() => {
     window.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ = true;
-    const graph = ${JSON.stringify(organizeGraph)};
-    const packageName = '@codegraphy/e2e-organize-plugin';
-    const pluginId = 'e2e.organize';
+    const graph = ${JSON.stringify(packageGraphViewPluginGraph)};
+    const packageName = '@codegraphy/e2e-graph-view-plugin';
+    const pluginId = 'e2e.graph-view-plugin';
     const state = {
       enabled: true,
       messages: [],
@@ -421,8 +421,8 @@ const organizeHarnessScript = `
     const postToWebview = (message) => window.postMessage(message, '*');
 
     const renderHarnessState = () => {
-      byTestId('organize-harness-enabled').textContent = state.enabled ? 'on' : 'off';
-      byTestId('organize-harness-messages').textContent = state.messages
+      byTestId('package-plugin-harness-enabled').textContent = state.enabled ? 'on' : 'off';
+      byTestId('package-plugin-harness-messages').textContent = state.messages
         .map((message) => message.type)
         .join('\\n');
     };
@@ -455,7 +455,7 @@ const organizeHarnessScript = `
               ? {
                 id: pluginId,
                 packageName,
-                name: 'E2E Organize Plugin',
+                name: 'E2E Graph View Plugin',
                 version: '1.0.0',
                 supportedExtensions: [],
                 status: 'installed',
@@ -482,7 +482,7 @@ const organizeHarnessScript = `
         type: 'PLUGIN_WEBVIEW_INJECT',
         payload: {
           pluginId,
-          scripts: ['/plugin/e2e-organize.js'],
+          scripts: ['/plugin/e2e-graph-view-plugin.js'],
           styles: [],
         },
       });
@@ -537,12 +537,12 @@ const organizeHarnessScript = `
   })();
 `;
 
-const organizeHtml = `<!doctype html>
+const packageGraphViewPluginHtml = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CodeGraphy Organize Plugin Harness</title>
+    <title>CodeGraphy Package Graph View Plugin Harness</title>
     <link rel="stylesheet" href="/dist/webview/index.css" />
     <style>
       body {
@@ -550,7 +550,7 @@ const organizeHtml = `<!doctype html>
         overflow: hidden;
       }
 
-      [data-testid="organize-harness-panel"] {
+      [data-testid="package-plugin-harness-panel"] {
         position: fixed;
         right: 12px;
         bottom: 12px;
@@ -565,7 +565,7 @@ const organizeHtml = `<!doctype html>
         font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       }
 
-      [data-testid="organize-harness-panel"] strong {
+      [data-testid="package-plugin-harness-panel"] strong {
         display: inline-block;
         min-width: 72px;
         color: #a1a1aa;
@@ -574,12 +574,12 @@ const organizeHtml = `<!doctype html>
   </head>
   <body>
     <div id="root"></div>
-    <div data-testid="organize-harness-panel">
-      <div><strong>enabled</strong><span data-testid="organize-harness-enabled"></span></div>
+    <div data-testid="package-plugin-harness-panel">
+      <div><strong>enabled</strong><span data-testid="package-plugin-harness-enabled"></span></div>
       <div><strong>messages</strong></div>
-      <div data-testid="organize-harness-messages"></div>
+      <div data-testid="package-plugin-harness-messages"></div>
     </div>
-    <script>${organizeHarnessScript}</script>
+    <script>${packageGraphViewPluginHarnessScript}</script>
     <script type="module" src="/dist/webview/index.js"></script>
   </body>
 </html>`;
@@ -600,18 +600,18 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (requestPath === '/organize-plugin') {
+    if (requestPath === '/package-graph-view-plugin') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(organizeHtml);
+      res.end(packageGraphViewPluginHtml);
       return;
     }
 
-    if (requestPath === '/plugin/e2e-organize.js') {
+    if (requestPath === '/plugin/e2e-graph-view-plugin.js') {
       res.writeHead(200, {
         'Content-Type': 'application/javascript; charset=utf-8',
         'Cache-Control': 'no-store',
       });
-      res.end(organizePluginScript);
+      res.end(packageGraphViewPluginScript);
       return;
     }
 
