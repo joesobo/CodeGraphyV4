@@ -87,22 +87,23 @@ jobs:
         run: pnpm run typecheck
 
   unit-tests:
+    name: Unit tests / ${{ matrix.label }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         include:
-          - suite: packages
+          - label: Packages
             turbo-cache: unit-packages
             command: pnpm exec turbo run test --filter='!@codegraphy/extension'
-          - suite: extension-node
+          - label: Extension node
             turbo-cache: unit-extension-node
             command: pnpm exec turbo run test:node --filter=@codegraphy/extension
-          - suite: extension-webview-1
+          - label: Extension webview shard 1 of 2
             turbo-cache: unit-extension-webview-1
             command: pnpm exec turbo run test:webview --filter=@codegraphy/extension -- --shard=1/2
-          - suite: extension-webview-2
+          - label: Extension webview shard 2 of 2
             turbo-cache: unit-extension-webview-2
             command: pnpm exec turbo run test:webview --filter=@codegraphy/extension -- --shard=2/2
 
@@ -136,7 +137,7 @@ jobs:
             ${{ runner.os }}-turbo-unit-
             ${{ runner.os }}-turbo-
 
-      - name: Unit tests (${{ matrix.suite }})
+      - name: Run ${{ matrix.label }}
         run: ${{ matrix.command }}
 
   playwright:

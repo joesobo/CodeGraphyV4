@@ -12,7 +12,7 @@ The target shape is:
 - Root scripts compose package scripts instead of carrying package-specific details.
 - Mutation testing stays a local quality-tool workflow that runs against Vitest, not Playwright or VS Code E2E.
 
-## Current Problems
+## Original Problems
 
 - Root `package.json` mixes Vitest, release-contract tests, Playwright, VS Code E2E, watch helpers, and package-specific aliases.
 - The names `test:e2e` and `test:playwright` are easy to confuse. Playwright currently tests the built webview in a browser; VS Code E2E launches Electron with the extension loaded.
@@ -54,6 +54,17 @@ Package scripts:
 - `@codegraphy/extension` owns all three test lanes because it has Vitest, browser, and VS Code behavior.
 - Other packages expose only Vitest through `test` unless they grow a real browser or VS Code test surface.
 - Mutation tooling stays in `@codegraphy/quality-tools` and continues to target Vitest, not Playwright or VS Code E2E.
+
+## Current CI Shape
+
+CI runs build, lint, typecheck, Playwright, and unit tests as independent jobs. Unit tests use a matrix with human-readable check names:
+
+- `Unit tests / Packages` runs all package Vitest suites except `@codegraphy/extension`.
+- `Unit tests / Extension node` runs the extension Vitest `node` project.
+- `Unit tests / Extension webview shard 1 of 2` runs the first half of the extension Vitest `webview` project.
+- `Unit tests / Extension webview shard 2 of 2` runs the second half of the extension Vitest `webview` project.
+
+The current PR run target is under 3 minutes wall-clock. The webview shards are intentionally separate because the extension webview suite is the long pole once package, lint, typecheck, build, and Playwright lanes run in parallel.
 
 ## Follow-Up Slices
 
