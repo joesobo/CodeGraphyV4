@@ -31,15 +31,16 @@ pnpm --filter @codegraphy/extension lint
 pnpm --filter @codegraphy/extension typecheck
 ```
 
-CI runs extension unit tests as separate `node` and `webview` Vitest projects. The webview project is sharded in CI with Vitest's `--shard` flag because it is the long pole after the repo-wide lanes run in parallel.
+CI runs extension unit tests as separate `node` and grouped `webview` Vitest lanes. The webview groups are defined in `vitest.includes.ts` because the check names should describe the behavior under test, not an arbitrary shard number.
 
 ```bash
 pnpm exec turbo run test:node --filter=@codegraphy/extension
-pnpm exec turbo run test:webview --filter=@codegraphy/extension -- --shard=1/2
-pnpm exec turbo run test:webview --filter=@codegraphy/extension -- --shard=2/2
+CODEGRAPHY_VITEST_WEBVIEW_GROUP=graph pnpm exec turbo run test:webview --filter=@codegraphy/extension
+CODEGRAPHY_VITEST_WEBVIEW_GROUP=appPlugins pnpm exec turbo run test:webview --filter=@codegraphy/extension
+CODEGRAPHY_VITEST_WEBVIEW_GROUP=panelsExport pnpm exec turbo run test:webview --filter=@codegraphy/extension
 ```
 
-Mutation runs do not reuse the CI shards automatically. `pnpm run mutate -- extension/src/...` still uses Stryker's Vitest runner with focused includes, so mutation speed comes from narrowing the target and from Stryker incremental state rather than from the GitHub Actions matrix.
+Mutation runs do not reuse the CI groups automatically. `pnpm run mutate -- extension/src/...` still uses Stryker's Vitest runner with focused includes, so mutation speed comes from narrowing the target and from Stryker incremental state rather than from the GitHub Actions matrix.
 
 ## Test organization
 

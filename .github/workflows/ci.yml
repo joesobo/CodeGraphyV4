@@ -100,12 +100,15 @@ jobs:
           - label: Extension node
             turbo-cache: unit-extension-node
             command: pnpm exec turbo run test:node --filter=@codegraphy/extension
-          - label: Extension webview shard 1 of 2
-            turbo-cache: unit-extension-webview-1
-            command: pnpm exec turbo run test:webview --filter=@codegraphy/extension -- --shard=1/2
-          - label: Extension webview shard 2 of 2
-            turbo-cache: unit-extension-webview-2
-            command: pnpm exec turbo run test:webview --filter=@codegraphy/extension -- --shard=2/2
+          - label: Extension webview graph interaction and rendering
+            turbo-cache: unit-extension-webview-graph
+            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=graph pnpm exec turbo run test:webview --filter=@codegraphy/extension
+          - label: Extension webview app shell and plugins
+            turbo-cache: unit-extension-webview-app-plugins
+            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=appPlugins pnpm exec turbo run test:webview --filter=@codegraphy/extension
+          - label: Extension webview panels, search, and exports
+            turbo-cache: unit-extension-webview-panels-export
+            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=panelsExport pnpm exec turbo run test:webview --filter=@codegraphy/extension
 
     steps:
       - name: Checkout

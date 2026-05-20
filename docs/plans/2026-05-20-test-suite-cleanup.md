@@ -61,10 +61,11 @@ CI runs build, lint, typecheck, Playwright, and unit tests as independent jobs. 
 
 - `Unit tests / Packages` runs all package Vitest suites except `@codegraphy/extension`.
 - `Unit tests / Extension node` runs the extension Vitest `node` project.
-- `Unit tests / Extension webview shard 1 of 2` runs the first half of the extension Vitest `webview` project.
-- `Unit tests / Extension webview shard 2 of 2` runs the second half of the extension Vitest `webview` project.
+- `Unit tests / Extension webview graph interaction and rendering` runs graph model, interaction, rendering, controls, and Graph Scope webview tests.
+- `Unit tests / Extension webview app shell and plugins` runs webview app shell, store, plugin host/runtime, plugin panel, theme, VS Code API bridge, and webview-extension integration tests.
+- `Unit tests / Extension webview panels, search, and exports` runs settings, legends, search, timeline, toolbar, generic components, tooltip, and export tests.
 
-The current PR run target is under 3 minutes wall-clock. The webview shards are intentionally separate because the extension webview suite is the long pole once package, lint, typecheck, build, and Playwright lanes run in parallel.
+The current PR run target is under 3 minutes wall-clock. The webview groups are intentionally separate because the extension webview suite is the long pole once package, lint, typecheck, build, and Playwright lanes run in parallel.
 
 ## Follow-Up Slices
 
