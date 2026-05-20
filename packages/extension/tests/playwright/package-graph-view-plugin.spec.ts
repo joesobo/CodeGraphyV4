@@ -27,48 +27,48 @@ async function rightClickNode(page: Page, nodeId: string): Promise<void> {
   }, nodeId);
 }
 
-async function toggleOrganizePlugin(page: Page): Promise<void> {
+async function togglePackagePlugin(page: Page): Promise<void> {
   await page.getByTitle('Plugins').click();
   await page.getByRole('switch').first().click();
   await page.getByTitle('Plugins').click();
 }
 
-test.describe('organize package plugin webview lifecycle', () => {
-  test('adds and removes section and pin actions when the package plugin is toggled', async ({
+test.describe('package graph-view plugin webview lifecycle', () => {
+  test('adds and removes Graph View actions when the package plugin is toggled', async ({
     page,
   }) => {
-    await page.goto('/organize-plugin');
+    await page.goto('/package-graph-view-plugin');
 
-    await expect(page.getByTestId('organize-harness-enabled')).toHaveText('on');
-    await expect(page.getByTestId('organize-harness-messages')).toContainText('activated');
+    await expect(page.getByTestId('package-plugin-harness-enabled')).toHaveText('on');
+    await expect(page.getByTestId('package-plugin-harness-messages')).toContainText('activated');
 
     await openCreateMenu(page);
-    await expect(page.getByText('New Section...')).toBeVisible();
+    await expect(page.getByText('New Plugin Item...')).toBeVisible();
     await closeFloatingMenus(page);
 
     await rightClickNode(page, 'src/index.ts');
-    await expect(page.getByText('Pin Node')).toBeVisible();
+    await expect(page.getByText('Plugin Node Action')).toBeVisible();
     await closeFloatingMenus(page);
 
-    await toggleOrganizePlugin(page);
+    await togglePackagePlugin(page);
 
-    await expect(page.getByTestId('organize-harness-enabled')).toHaveText('off');
+    await expect(page.getByTestId('package-plugin-harness-enabled')).toHaveText('off');
     await openCreateMenu(page);
-    await expect(page.getByText('New Section...')).toHaveCount(0);
+    await expect(page.getByText('New Plugin Item...')).toHaveCount(0);
     await closeFloatingMenus(page);
 
     await rightClickNode(page, 'src/index.ts');
-    await expect(page.getByText('Pin Node')).toHaveCount(0);
+    await expect(page.getByText('Plugin Node Action')).toHaveCount(0);
     await closeFloatingMenus(page);
 
-    await toggleOrganizePlugin(page);
+    await togglePackagePlugin(page);
 
-    await expect(page.getByTestId('organize-harness-enabled')).toHaveText('on');
+    await expect(page.getByTestId('package-plugin-harness-enabled')).toHaveText('on');
     await openCreateMenu(page);
-    await expect(page.getByText('New Section...')).toBeVisible();
+    await expect(page.getByText('New Plugin Item...')).toBeVisible();
     await closeFloatingMenus(page);
 
     await rightClickNode(page, 'src/index.ts');
-    await expect(page.getByText('Pin Node')).toBeVisible();
+    await expect(page.getByText('Plugin Node Action')).toBeVisible();
   });
 });

@@ -36,7 +36,7 @@ export const e2eScenarios: E2EScenario[] = [
     pluginDevelopmentRelativePaths: [],
     workspacePluginPackageRelativePaths: [
       'packages/plugin-typescript',
-      'packages/extension/src/e2e/fixtures/organize-plugin',
+      'packages/extension/src/e2e/fixtures/package-graph-view-plugin',
     ],
     graphNodeExtension: '.ts',
     expectedNodeIds: [
@@ -102,7 +102,7 @@ export const e2eScenarios: E2EScenario[] = [
     pluginDevelopmentRelativePaths: [],
     workspacePluginPackageRelativePaths: [
       'packages/plugin-godot',
-      'packages/extension/src/e2e/fixtures/organize-plugin',
+      'packages/extension/src/e2e/fixtures/package-graph-view-plugin',
     ],
     graphNodeExtension: '.gd',
     expectedNodeIds: [

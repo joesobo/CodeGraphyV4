@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy/e2e-organize-plugin",
+  "name": "@codegraphy/e2e-graph-view-plugin",
   "version": "1.0.0",
   "type": "module",
   "exports": "./plugin.js",
