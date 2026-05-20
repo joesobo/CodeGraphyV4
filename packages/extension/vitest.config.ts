@@ -1,30 +1,33 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { resolveMutationVitestIncludes } from './vitest.includes';
+import {
+  extensionNodeTestIncludes,
+  extensionWebviewTestIncludes,
+  resolveMutationVitestIncludes,
+} from './vitest.includes';
 
 const workspaceRoot = resolve(__dirname, '../..');
 const extensionNodeModules = resolve(__dirname, 'node_modules');
 const vitestScope = process.env.CODEGRAPHY_VITEST_SCOPE ?? 'extension';
-const include = resolveMutationVitestIncludes(process.env);
+const useMutationCompatibleConfig =
+  Boolean(process.env.CODEGRAPHY_VITEST_INCLUDE_JSON) || vitestScope === 'workspace';
 const coverageInclude = vitestScope === 'workspace'
   ? ['packages/*/src/**/*.{ts,tsx}']
   : ['packages/extension/src/**/*.{ts,tsx}'];
 const coverageExclude = vitestScope === 'workspace'
   ? ['packages/*/src/**/*.d.ts']
   : ['packages/extension/src/**/*.d.ts'];
+const webviewSetupFiles = [resolve(__dirname, 'tests/setup.ts')];
 
 export default defineConfig({
   root: workspaceRoot,
   plugins: [react()],
   test: {
     globals: true,
-    environment: 'jsdom',
     server: {
       sourcemap: false,
     },
-    include,
-    setupFiles: [resolve(__dirname, 'tests/setup.ts')],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
@@ -32,6 +35,33 @@ export default defineConfig({
       include: coverageInclude,
       exclude: coverageExclude,
     },
+    ...(useMutationCompatibleConfig
+      ? {
+          environment: 'jsdom',
+          include: resolveMutationVitestIncludes(process.env),
+          setupFiles: webviewSetupFiles,
+        }
+      : {
+          projects: [
+            {
+              extends: true,
+              test: {
+                name: 'node',
+                environment: 'node',
+                include: extensionNodeTestIncludes,
+              },
+            },
+            {
+              extends: true,
+              test: {
+                name: 'webview',
+                environment: 'jsdom',
+                include: extensionWebviewTestIncludes,
+                setupFiles: webviewSetupFiles,
+              },
+            },
+          ],
+        }),
   },
   resolve: {
     alias: {

@@ -17,6 +17,8 @@
     "watch:webview": "vite build --config vite.config.ts --watch",
     "dev": "pnpm run watch",
     "test": "vitest run --config vitest.config.ts",
+    "test:node": "vitest run --config vitest.config.ts --project node",
+    "test:webview": "vitest run --config vitest.config.ts --project webview",
     "test:playwright": "playwright test --config playwright.config.ts",
     "test:vscode": "pnpm run build:vscode && node dist-e2e/extension/src/e2e/runTest.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.ts\" \"tests/**/*.{ts,tsx}\"",

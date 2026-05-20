@@ -22,7 +22,12 @@
       "outputs": []
     },
     "test": {
-      "dependsOn": ["^test"],
+      "outputs": []
+    },
+    "test:node": {
+      "outputs": []
+    },
+    "test:webview": {
       "outputs": []
     },
     "test:playwright": {

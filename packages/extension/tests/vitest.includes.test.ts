@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   extensionMutationIncludes,
+  extensionNodeTestIncludes,
+  extensionWebviewTestIncludes,
   resolveMutationVitestIncludes,
   workspaceMutationIncludes,
 } from '../vitest.includes';
@@ -13,6 +15,15 @@ describe('vitest includes', () => {
 
   it('defaults mutation scope to extension tests', () => {
     expect(resolveMutationVitestIncludes({})).toEqual(extensionMutationIncludes);
+  });
+
+  it('keeps node and webview test projects disjoint', () => {
+    expect(extensionNodeTestIncludes).toContain('packages/extension/tests/extension/**/*.test.{ts,tsx}');
+    expect(extensionNodeTestIncludes).toContain('!packages/extension/tests/extension/pluginIntegration/typescript.test.ts');
+    expect(extensionNodeTestIncludes).not.toContain('packages/extension/tests/webview/**/*.test.{ts,tsx}');
+    expect(extensionWebviewTestIncludes).toContain('packages/extension/tests/extension/pluginIntegration/typescript.test.ts');
+    expect(extensionWebviewTestIncludes).toContain('packages/extension/tests/webview/**/*.test.{ts,tsx}');
+    expect(extensionWebviewTestIncludes).not.toContain('packages/extension/tests/extension/**/*.test.{ts,tsx}');
   });
 
   it('switches mutation scope to workspace tests when requested', () => {

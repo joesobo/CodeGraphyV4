@@ -2,6 +2,21 @@ export const extensionMutationIncludes = [
   'packages/extension/tests/**/*.test.{ts,tsx}',
 ];
 
+export const extensionNodeTestIncludes = [
+  'packages/extension/tests/core/**/*.test.{ts,tsx}',
+  'packages/extension/tests/extension/**/*.test.{ts,tsx}',
+  '!packages/extension/tests/extension/pluginIntegration/typescript.test.ts',
+  'packages/extension/tests/integration/**/*.test.ts',
+  'packages/extension/tests/shared/**/*.test.{ts,tsx}',
+  'packages/extension/tests/*.test.ts',
+];
+
+export const extensionWebviewTestIncludes = [
+  'packages/extension/tests/extension/pluginIntegration/typescript.test.ts',
+  'packages/extension/tests/integration/**/*.test.tsx',
+  'packages/extension/tests/webview/**/*.test.{ts,tsx}',
+];
+
 export const workspaceMutationIncludes = [
   'packages/*/tests/**/*.test.{ts,tsx}',
 ];
