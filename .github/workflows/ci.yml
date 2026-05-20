@@ -89,6 +89,19 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: packages
+            turbo-cache: unit-packages
+            command: pnpm exec turbo run test --filter='!@codegraphy/extension'
+          - suite: extension-node
+            turbo-cache: unit-extension-node
+            command: pnpm exec turbo run test:node --filter=@codegraphy/extension
+          - suite: extension-webview
+            turbo-cache: unit-extension-webview
+            command: pnpm exec turbo run test:webview --filter=@codegraphy/extension
 
     steps:
       - name: Checkout
@@ -114,13 +127,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-unit-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-${{ matrix.turbo-cache }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-turbo-${{ matrix.turbo-cache }}-
             ${{ runner.os }}-turbo-unit-
             ${{ runner.os }}-turbo-
 
-      - name: Unit tests
-        run: pnpm run test:unit
+      - name: Unit tests (${{ matrix.suite }})
+        run: ${{ matrix.command }}
 
   playwright:
     runs-on: ubuntu-latest
