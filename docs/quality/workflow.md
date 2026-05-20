@@ -13,7 +13,7 @@ Suggested order for a change:
 6. run CRAP on the affected package or source subtree
 7. run SCRAP on the affected test file or test directory
 
-Dogfood rule:
+Tool ownership:
 
-- `packages/quality-tools` must meet the same standards it enforces for the rest of the repo
-- Run all six tools (organize, boundaries, reachability, CRAP, mutation, and SCRAP) on quality-tools before shipping changes
+- `@poleski/quality-tools` owns the analyzer implementation in its own repository.
+- CodeGraphy owns the local `quality.config.json` policy and uses the root scripts to run the linked package.

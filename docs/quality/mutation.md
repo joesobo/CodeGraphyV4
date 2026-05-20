@@ -13,10 +13,9 @@ Examples:
 ```bash
 pnpm run mutate -- extension/
 pnpm run mutate -- extension/src/webview/components/NodeTooltip.tsx
-pnpm run mutate -- quality-tools/
 ```
 
-Mutation scope is defined in the repo root [quality.config.json](../../quality.config.json). The Stryker config files now only carry runner settings like the Vitest config path and reporters.
+Mutation scope is defined in the repo root [quality.config.json](../../quality.config.json). Stryker orchestration now lives in `@poleski/quality-tools`; CodeGraphy only provides Vitest scope through `packages/extension/vitest.config.ts`.
 
 Operational notes:
 

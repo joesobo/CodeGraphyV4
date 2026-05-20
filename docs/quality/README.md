@@ -29,7 +29,7 @@ pnpm run scrap -- extension/
 Targets can be:
 
 - the repo root `.` for a monorepo-wide package-source sweep
-- a package shorthand like `extension/` or `quality-tools/`
+- a package shorthand like `extension/`
 - a package-relative file or directory under `packages/...`
 - a specific file path
 
@@ -44,8 +44,8 @@ Current command expectations:
 
 Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed.
 
-Implementation now lives in `packages/quality-tools/`.
+Implementation now lives in the external `@poleski/quality-tools` package.
 
 Extension-specific architecture and lifecycle notes live in `packages/extension/docs/`.
 
-These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `22.22.0` LTS. `packages/quality-tools` uses `path.matchesGlob`, so older Node versions are not supported.
+These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `22.22.0` LTS. `@poleski/quality-tools` uses `path.matchesGlob`, so older Node versions are not supported.

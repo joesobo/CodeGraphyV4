@@ -6,7 +6,7 @@
 
 ```bash
 pnpm run organize -- extension/
-pnpm run organize -- packages/quality-tools/src/organize/
+pnpm run organize -- packages/extension/src/webview/
 pnpm run organize -- some/arbitrary/dir/
 ```
 

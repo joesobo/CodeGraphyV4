@@ -5,7 +5,7 @@ import { resolveMutationVitestIncludes } from './vitest.includes';
 
 const workspaceRoot = resolve(__dirname, '../..');
 const extensionNodeModules = resolve(__dirname, 'node_modules');
-const vitestScope = process.env.CODEGRAPHY_VITEST_SCOPE ?? 'extension';
+const vitestScope = process.env.QUALITY_TOOLS_VITEST_SCOPE ?? 'extension';
 const include = resolveMutationVitestIncludes(process.env);
 const coverageInclude = vitestScope === 'workspace'
   ? ['packages/*/src/**/*.{ts,tsx}']
