@@ -54,6 +54,10 @@ function assertMutationTargetsSupported(targets: readonly QualityTarget[]): void
   }
 }
 
+function shouldRunPreflightTypecheck(args: readonly string[]): boolean {
+  return !args.includes('--skip-typecheck') && process.env.CODEGRAPHY_MUTATE_SKIP_TYPECHECK !== '1';
+}
+
 export function runMutationCli(
   rawArgs: string[],
   dependencies: MutationCliDependencies = DEFAULT_DEPENDENCIES
@@ -65,7 +69,9 @@ export function runMutationCli(
     dependencies,
   );
   assertMutationTargetsSupported(targets);
-  dependencies.runPreflightTypecheck();
+  if (shouldRunPreflightTypecheck(args)) {
+    dependencies.runPreflightTypecheck();
+  }
   targets.forEach((target) => {
     dependencies.runMutation(target);
   });

@@ -52,6 +52,14 @@ function createDependencies(): MutationCliDependencies {
 }
 
 describe('command', () => {
+  it('skips the preflight typecheck when explicitly requested', () => {
+    const dependencies = createDependencies();
+    runMutationCli(['quality-tools/', '--skip-typecheck'], dependencies);
+
+    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
+    expect(dependencies.runMutation).toHaveBeenCalledTimes(1);
+  });
+
   it('runs a single explicit target', () => {
     const dependencies = createDependencies();
     runMutationCli(['quality-tools/'], dependencies);

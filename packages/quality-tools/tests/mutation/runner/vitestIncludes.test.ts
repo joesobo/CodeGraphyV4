@@ -54,6 +54,22 @@ describe('resolveScopedVitestIncludes', () => {
     expect(includes).toContain('packages/plugin-typescript/tests/**/focusedImports.filter.test.ts');
   });
 
+  it('does not run every webview test for a top-level webview source file', () => {
+    const includes = resolveScopedVitestIncludes(
+      target({
+        absolutePath: '/repo/packages/extension/src/webview/vscodeApi.ts',
+        kind: 'file',
+        packageRelativePath: 'src/webview/vscodeApi.ts',
+        relativePath: 'packages/extension/src/webview/vscodeApi.ts',
+      }),
+    );
+
+    expect(includes).toContain('packages/extension/tests/webview/vscodeApi.test.ts');
+    expect(includes).toContain('packages/extension/tests/webview/vscodeApi.mutations.test.ts');
+    expect(includes).not.toContain('packages/extension/tests/webview/**/*.test.ts');
+    expect(includes).not.toContain('packages/extension/tests/webview/**/*.test.tsx');
+  });
+
   it('includes the mirrored feature test tree for service-style source files', () => {
     const includes = resolveScopedVitestIncludes(
       target({
