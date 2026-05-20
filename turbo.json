@@ -28,6 +28,7 @@
       "outputs": []
     },
     "test:webview": {
+      "env": ["CODEGRAPHY_VITEST_WEBVIEW_GROUP"],
       "outputs": []
     },
     "test:playwright": {

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import {
   extensionNodeTestIncludes,
-  extensionWebviewTestIncludes,
+  resolveExtensionWebviewTestIncludes,
   resolveMutationVitestIncludes,
 } from './vitest.includes';
 
@@ -56,7 +56,7 @@ export default defineConfig({
               test: {
                 name: 'webview',
                 environment: 'jsdom',
-                include: extensionWebviewTestIncludes,
+                include: resolveExtensionWebviewTestIncludes(process.env),
                 setupFiles: webviewSetupFiles,
               },
             },
