@@ -99,14 +99,14 @@ describe('graph view settings toggle message', () => {
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
-  it('removes the Organize package from workspace plugins when toggled off', async () => {
+  it('removes package-backed plugins from workspace plugins when toggled off', async () => {
     const state = createState();
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
           return [
             { package: '@codegraphy/plugin-markdown' },
-            { package: '@codegraphy/organize' },
+            { package: '@acme/graph-tools' },
           ] as T;
         }
         return defaultValue;
@@ -117,8 +117,8 @@ describe('graph view settings toggle message', () => {
       {
         type: 'TOGGLE_PLUGIN',
         payload: {
-          pluginId: 'codegraphy.organize',
-          packageName: '@codegraphy/organize',
+          pluginId: 'acme.graph-tools',
+          packageName: '@acme/graph-tools',
           enabled: false,
         },
       },
@@ -268,7 +268,7 @@ describe('graph view settings toggle message', () => {
         if (key === 'plugins') {
           return [
             { package: '@codegraphy/plugin-markdown' },
-            { package: '@codegraphy/organize' },
+            { package: '@acme/graph-tools' },
           ] as T;
         }
         return defaultValue;
@@ -282,8 +282,8 @@ describe('graph view settings toggle message', () => {
       {
         type: 'TOGGLE_PLUGIN',
         payload: {
-          pluginId: 'codegraphy.organize',
-          packageName: '@codegraphy/organize',
+          pluginId: 'acme.graph-tools',
+          packageName: '@acme/graph-tools',
           enabled: false,
         },
       },

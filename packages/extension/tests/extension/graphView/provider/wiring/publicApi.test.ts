@@ -88,7 +88,6 @@ function createTarget() {
     updateGraphData: vi.fn(),
     getGraphData,
     sendPlaybackSpeed: vi.fn(),
-    sendGraphLayout: vi.fn(),
     invalidateTimelineCache: vi.fn(async () => undefined),
     registerExternalPlugin: vi.fn(),
     queryGraph: vi.fn(),
@@ -172,7 +171,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
       graphData: previousGraphData,
       getGraphData,
       queryMethods,
-      webviewMethods,
     } = createTarget();
     const graphData: IGraphData = {
       nodes: [{ id: 'src/feature.ts', label: 'feature.ts', color: '#123456' }],
@@ -185,7 +183,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
     target.updateGraphData(graphData);
     expect(target.getGraphData()).toBe(previousGraphData);
     target.sendPlaybackSpeed();
-    target.sendGraphLayout();
     await target.invalidateTimelineCache();
     target.registerExternalPlugin({ id: 'plugin.test' });
     expect(target.queryGraph(query)).toEqual({
@@ -200,15 +197,6 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(target._methodContainers.viewContext.updateGraphData).toHaveBeenCalledWith(graphData);
     expect(getGraphData).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.timeline.sendPlaybackSpeed).toHaveBeenCalledTimes(1);
-    expect(webviewMethods.sendToWebview).toHaveBeenCalledWith({
-      type: 'GRAPH_LAYOUT_UPDATED',
-      payload: {
-        collapsedNodes: {},
-        ownership: {},
-        pinnedNodes: {},
-        sections: {},
-      },
-    });
     expect(target._methodContainers.timeline.invalidateTimelineCache).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.plugin.registerExternalPlugin).toHaveBeenCalledWith(
       { id: 'plugin.test' },

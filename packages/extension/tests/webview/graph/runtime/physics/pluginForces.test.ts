@@ -49,29 +49,29 @@ describe('Graph View plugin force adapters', () => {
   it('installs additive namespaced forces and disposes them without touching base graph forces', () => {
     const graph = createFakePhysicsGraph();
     const state = createGraphViewForceAdapterState();
-    const sectionNode = {
-      id: 'section:frontend',
-      label: 'Frontend',
+    const runtimeNode = {
+      id: 'runtime:frontend',
+      label: 'Runtime Frontend',
       color: '#84cc16',
       size: 16,
       x: 0,
     } as FGNode;
     const graphData = {
-      nodes: [sectionNode],
+      nodes: [runtimeNode],
       links: [] as FGLink[],
     };
     let disposeCount = 0;
     const contributions: CoreGraphViewContributionSet = {
       ...createEmptyContributions(),
       forces: [{
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'codegraphy.organize.section-physics',
-          label: 'Section Physics',
+          id: 'acme.graph-tools.runtime-force',
+          label: 'Runtime Force',
           create({ nodes }) {
             return {
               tick(alpha = 1) {
-                const node = nodes.find(candidate => candidate.id === 'section:frontend');
+                const node = nodes.find(candidate => candidate.id === 'runtime:frontend');
                 if (node) {
                   node.x = (node.x ?? 0) + alpha;
                 }
@@ -87,11 +87,11 @@ describe('Graph View plugin force adapters', () => {
 
     syncGraphViewForceAdapters(graph, state, contributions, graphData);
 
-    const namespace = 'plugin:codegraphy.organize:codegraphy.organize.section-physics';
+    const namespace = 'plugin:acme.graph-tools:acme.graph-tools.runtime-force';
     const installedForce = graph.d3Force(namespace) as (alpha: number) => void;
     installedForce(2);
 
-    expect(sectionNode.x).toBe(2);
+    expect(runtimeNode.x).toBe(2);
     expect(graph.d3Force('charge')).toEqual({ base: 'charge' });
     expect(graph.d3Force('link')).toEqual({ base: 'link' });
 
@@ -101,5 +101,38 @@ describe('Graph View plugin force adapters', () => {
     expect(graph.d3Force(namespace)).toBeUndefined();
     expect(graph.d3Force('charge')).toEqual({ base: 'charge' });
     expect(graph.d3Force('link')).toEqual({ base: 'link' });
+  });
+
+  it('passes graph mode and timeline state to force contributions', () => {
+    const graph = createFakePhysicsGraph();
+    const state = createGraphViewForceAdapterState();
+    const contexts: Array<{ graphMode: '2d' | '3d' | undefined; timelineActive: boolean | undefined }> = [];
+    const contributions: CoreGraphViewContributionSet = {
+      ...createEmptyContributions(),
+      forces: [{
+        pluginId: 'acme.graph-tools',
+        contribution: {
+          id: 'acme.graph-tools.runtime-force',
+          label: 'Runtime Force',
+          create(context) {
+            contexts.push({
+              graphMode: context.graphMode,
+              timelineActive: context.timelineActive,
+            });
+            return { dispose() {} };
+          },
+        },
+      }],
+    };
+
+    syncGraphViewForceAdapters(
+      graph,
+      state,
+      contributions,
+      { nodes: [], links: [] },
+      { graphMode: '3d', timelineActive: true },
+    );
+
+    expect(contexts).toEqual([{ graphMode: '3d', timelineActive: true }]);
   });
 });

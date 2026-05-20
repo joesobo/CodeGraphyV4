@@ -33,37 +33,7 @@ export function renderNodeBody({
 }
 
 function drawNodeBodyPath(ctx: CanvasRenderingContext2D, node: FGNode): void {
-  if (node.isCollapsedGraphSection) {
-    drawRoundedSectionSquare(ctx, node.x!, node.y!, node.size);
-    return;
-  }
-
   drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size);
-}
-
-function drawRoundedSectionSquare(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  size: number,
-): void {
-  const left = x - size;
-  const top = y - size;
-  const right = x + size;
-  const bottom = y + size;
-  const radius = Math.min(size * 0.5, 8);
-
-  ctx.beginPath();
-  ctx.moveTo(left + radius, top);
-  ctx.lineTo(right - radius, top);
-  ctx.quadraticCurveTo(right, top, right, top + radius);
-  ctx.lineTo(right, bottom - radius);
-  ctx.quadraticCurveTo(right, bottom, right - radius, bottom);
-  ctx.lineTo(left + radius, bottom);
-  ctx.quadraticCurveTo(left, bottom, left, bottom - radius);
-  ctx.lineTo(left, top + radius);
-  ctx.quadraticCurveTo(left, top, left + radius, top);
-  ctx.closePath();
 }
 
 function getNodeFillColor(

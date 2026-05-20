@@ -65,48 +65,27 @@ describe('graph/interaction node double click', () => {
     });
   });
 
-  it('does not expand collapsed Graph Sections on double click', () => {
+  it('does not open plugin runtime nodes directly on double click', () => {
     const result = getNodeDoubleClickCommand(makeNodeDoubleClickOptions({
-      isCollapsedGraphSection: true,
-      isGraphSection: true,
-      nodeId: 'section-1',
-      label: 'Section 1',
+      isRuntimeNode: true,
+      nodeId: 'plugin-node',
+      label: 'Plugin Node',
     }));
 
     expect(result).toEqual({
       nextLastClick: null,
       effects: [
-        { kind: 'selectOnlyNode', nodeId: 'section-1' },
+        { kind: 'selectOnlyNode', nodeId: 'plugin-node' },
         {
           kind: 'sendInteraction',
           event: 'graph:nodeDoubleClick',
           payload: {
-            node: { id: 'section-1', label: 'Section 1' },
+            node: { id: 'plugin-node', label: 'Plugin Node' },
             event: { x: 12, y: 24 },
           },
         },
       ],
     });
-    expect(result.effects).not.toContainEqual({
-      kind: 'setGraphSectionCollapsed',
-      sectionId: 'section-1',
-      collapsed: false,
-    });
-  });
-
-  it('does not collapse expanded Graph Sections on double click', () => {
-    const result = getNodeDoubleClickCommand(makeNodeDoubleClickOptions({
-      isCollapsedGraphSection: false,
-      isGraphSection: true,
-      nodeId: 'section-1',
-      label: 'Section 1',
-    }));
-
-    expect(result.effects).not.toContainEqual({
-      kind: 'setGraphSectionCollapsed',
-      sectionId: 'section-1',
-      collapsed: true,
-    });
-    expect(result.effects).not.toContainEqual({ kind: 'openNode', nodeId: 'section-1' });
+    expect(result.effects).not.toContainEqual({ kind: 'openNode', nodeId: 'plugin-node' });
   });
 });

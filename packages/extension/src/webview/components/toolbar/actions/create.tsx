@@ -3,12 +3,7 @@ import {
   mdiFilePlusOutline,
   mdiFolderPlusOutline,
   mdiPlusBoxOutline,
-  mdiVectorSquarePlus,
 } from '@mdi/js';
-import {
-  DEFAULT_GRAPH_SECTION_COLOR,
-  getDefaultGraphSectionSize,
-} from '../../../../shared/settings/graphLayout';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import {
@@ -19,28 +14,6 @@ import {
 } from '../../ui/menus/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/overlay/tooltip';
 import { postMessage } from '../../../vscodeApi';
-import type { GraphContextMutationAvailability } from '../../graph/contextMenu/contracts';
-
-interface CreateToolbarActionProps {
-  graphSectionsAvailable: boolean;
-  graphMode: '2d' | '3d';
-  mutationAvailability: GraphContextMutationAvailability;
-}
-
-function postRootGraphSectionCreation(): void {
-  const size = getDefaultGraphSectionSize();
-  postMessage({
-    type: 'CREATE_GRAPH_LAYOUT_SECTION',
-    payload: {
-      color: DEFAULT_GRAPH_SECTION_COLOR,
-      height: size.height,
-      memberNodeIds: [],
-      width: size.width,
-      x: -(size.width / 2),
-      y: -(size.height / 2),
-    },
-  });
-}
 
 function postRootFileCreation(): void {
   postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
@@ -50,16 +23,7 @@ function postRootFolderCreation(): void {
   postMessage({ type: 'CREATE_FOLDER', payload: { directory: '.' } });
 }
 
-export function CreateToolbarAction({
-  graphSectionsAvailable,
-  graphMode,
-  mutationAvailability,
-}: CreateToolbarActionProps): React.ReactElement {
-  const sectionCreationAvailable = graphSectionsAvailable
-    && graphMode === '2d'
-    && mutationAvailability !== 'hidden';
-  const sectionCreationDisabled = mutationAvailability === 'disabled';
-
+export function CreateToolbarAction(): React.ReactElement {
   return (
     <DropdownMenu>
       <Tooltip>
@@ -87,16 +51,6 @@ export function CreateToolbarAction({
           <MdiIcon path={mdiFolderPlusOutline} size={15} className="shrink-0" />
           <span>New Folder...</span>
         </DropdownMenuItem>
-        {sectionCreationAvailable ? (
-          <DropdownMenuItem
-            className="gap-2"
-            disabled={sectionCreationDisabled}
-            onSelect={postRootGraphSectionCreation}
-          >
-            <MdiIcon path={mdiVectorSquarePlus} size={15} className="shrink-0" />
-            <span>New Graph Section</span>
-          </DropdownMenuItem>
-        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

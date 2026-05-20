@@ -4,7 +4,7 @@
  * @module webview/components/Graph
  */
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
@@ -15,7 +15,7 @@ import { getGraphNavigator, getGraphWindow } from '../environment/browser';
 import { buildGraphCallbackOptions } from './callbackOptions';
 import { useGraphDebugApi } from '../debug/api';
 import { buildGraphDebugOptions } from '../debug/options';
-import { buildGraphLayoutKey } from './layoutKey';
+import { buildGraphDataLayoutKey } from './layoutKey';
 import { detectMacPlatform } from '../environment/platform';
 import { useGraphViewStoreState } from './store';
 import { useGraphCallbacks } from '../rendering/useGraphCallbacks';
@@ -26,7 +26,6 @@ import { GraphViewportShell } from '../viewport/shell';
 import { ThemeKind } from '../../../theme/useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { useGraphAppearance } from '../appearance/use';
-import { createOrganizeGraphViewContributions } from '../organize/contributions';
 
 interface GraphProps {
   data: IGraphData;
@@ -37,6 +36,48 @@ interface GraphProps {
   onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
+}
+
+function hasGraphViewContributions(
+  contributions: CoreGraphViewContributionSet | undefined,
+): contributions is CoreGraphViewContributionSet {
+  return !!contributions
+    && (
+      contributions.runtimeNodes.length > 0
+      || contributions.runtimeEdges.length > 0
+      || contributions.projections.length > 0
+      || contributions.forces.length > 0
+      || contributions.contextMenu.length > 0
+      || contributions.ui.length > 0
+    );
+}
+
+function useResolvedGraphViewContributions(
+  graphViewContributions: CoreGraphViewContributionSet | undefined,
+  pluginHost: WebviewPluginHost | undefined,
+): CoreGraphViewContributionSet | undefined {
+  const [contributionVersion, setContributionVersion] = useState(0);
+
+  useEffect(() => {
+    if (!pluginHost || graphViewContributions) {
+      return undefined;
+    }
+
+    const subscription = pluginHost.subscribeGraphViewContributions(() => {
+      setContributionVersion(version => version + 1);
+    });
+    return () => subscription.dispose();
+  }, [graphViewContributions, pluginHost]);
+
+  void contributionVersion;
+  if (graphViewContributions) {
+    return graphViewContributions;
+  }
+
+  const pluginContributions = pluginHost?.getGraphViewContributions();
+  return hasGraphViewContributions(pluginContributions)
+    ? pluginContributions
+    : undefined;
 }
 
 export default function Graph({
@@ -51,12 +92,9 @@ export default function Graph({
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
   const appearance = useGraphAppearance(theme);
-  const resolvedGraphViewContributions = useMemo(
-    () => graphViewContributions ?? createOrganizeGraphViewContributions({
-      graphLayout: viewState.graphLayout,
-      statuses: viewState.graphViewContributionStatuses,
-    }),
-    [graphViewContributions, viewState.graphLayout, viewState.graphViewContributionStatuses],
+  const resolvedGraphViewContributions = useResolvedGraphViewContributions(
+    graphViewContributions,
+    pluginHost,
   );
 
   const graphState = useGraphState({
@@ -67,7 +105,6 @@ export default function Graph({
     directionMode: viewState.directionMode,
     edgeDecorations,
     favorites: viewState.favorites,
-    graphLayout: viewState.graphLayout,
     graphViewContributions: resolvedGraphViewContributions,
     graphMode: viewState.graphMode,
     nodeDecorations,
@@ -76,7 +113,7 @@ export default function Graph({
     theme,
     timelineActive: viewState.timelineActive,
   });
-  const graphLayoutKey = buildGraphLayoutKey(graphState.graphData, viewState.nodeSizeMode);
+  const graphDataLayoutKey = buildGraphDataLayoutKey(graphState.graphData, viewState.nodeSizeMode);
   const isMacPlatform = detectMacPlatform(getGraphNavigator());
 
   const interactions = useGraphInteractionRuntime({
@@ -86,7 +123,6 @@ export default function Graph({
     graphContextSelection: graphState.contextSelection,
     graphCursorRef: graphState.graphCursorRef,
     graphDataRef: graphState.graphDataRef,
-    graphLayout: viewState.graphLayout,
     graphMode: viewState.graphMode,
     highlightedNeighborsRef: graphState.highlightedNeighborsRef,
     highlightedNodeRef: graphState.highlightedNodeRef,
@@ -108,7 +144,6 @@ export default function Graph({
     setContextSelection: graphState.setContextSelection,
     setHighlightVersion: graphState.setHighlightVersion,
     setSelectedNodes: graphState.setSelectedNodes,
-    timelineActive: viewState.timelineActive,
   });
 
   const activeGraph = selectActivePhysicsGraph(
@@ -138,7 +173,7 @@ export default function Graph({
     <GraphViewportShell
       appearance={appearance}
       callbacks={callbacks}
-      graphLayoutKey={graphLayoutKey}
+      graphDataLayoutKey={graphDataLayoutKey}
       graphState={graphState}
       graphViewContributions={resolvedGraphViewContributions}
       handleEngineStop={handleEngineStop}

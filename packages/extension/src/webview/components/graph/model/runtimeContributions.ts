@@ -1,9 +1,8 @@
 import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
-import type { GraphLayoutMode } from '../../../../shared/settings/graphLayout';
 
 export interface GraphViewRuntimeContributionContext {
-  graphMode?: GraphLayoutMode;
+  graphMode?: '2d' | '3d';
   timelineActive?: boolean;
 }
 

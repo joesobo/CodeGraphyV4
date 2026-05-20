@@ -109,10 +109,14 @@ export interface IGraphViewContextMenuRunContext {
   target: GraphViewContextMenuTargetSelector;
   selectedNodeIds: readonly string[];
   selectedEdgeIds: readonly string[];
+  graphPosition?: { x: number; y: number };
+  selectedNodePositions?: Readonly<Record<string, { x: number; y: number; z?: number }>>;
 }
 
 export interface IGraphViewContextMenuContribution extends IGraphViewContributionBase {
   targets: readonly GraphViewContextMenuTargetSelector[];
+  getLabel?(context: IGraphViewContextMenuRunContext): string;
+  isVisible?(context: IGraphViewContextMenuRunContext): boolean;
   run(context: IGraphViewContextMenuRunContext): void | Promise<void>;
 }
 

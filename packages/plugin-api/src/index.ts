@@ -135,10 +135,34 @@ export type {
 // Plugin interface
 export type {
   IPlugin,
+  IPluginExportRequest,
+  IPluginExporter,
   IPluginFactory,
   IPluginFactoryOptions,
+  IPluginHostApi,
+  IPluginToolbarAction,
+  IPluginToolbarActionItem,
+  IPluginWebviewContributions,
+  IPluginWebviewMessage,
   IAnalysisFile,
   IPluginAnalysisContext,
   IPluginAnalysisFileSystem,
   IPluginFileColorDefinition,
 } from './plugin';
+
+// Webview plugin API
+export type {
+  BadgeOptions,
+  CodeGraphyWebviewAPI,
+  GraphPluginSlot,
+  LabelOptions,
+  NodeRenderContext,
+  NodeRenderFn,
+  OverlayRenderContext,
+  OverlayRenderFn,
+  RingOptions,
+  TooltipAction,
+  TooltipContent,
+  TooltipContext,
+  TooltipProviderFn,
+} from './webview';

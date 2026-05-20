@@ -5,7 +5,6 @@ import type {
   SetStateAction,
 } from 'react';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
-import type { GraphLayoutSettings } from '../../../../../../shared/settings/graphLayout';
 import type { GraphContextMenuAction, GraphContextSelection } from '../../../contextMenu/contracts';
 import type { createGraphInteractionHandlers } from '../../../interactionRuntime/handlers';
 import type { FGNode } from '../../../model/build';
@@ -23,7 +22,6 @@ export interface UseGraphInteractionRuntimeOptions {
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: UseGraphStateResult['graphDataRef'];
-  graphLayout?: GraphLayoutSettings;
   graphMode: '2d' | '3d';
   highlightedNeighborsRef: UseGraphStateResult['highlightedNeighborsRef'];
   highlightedNodeRef: UseGraphStateResult['highlightedNodeRef'];
@@ -46,7 +44,6 @@ export interface UseGraphInteractionRuntimeOptions {
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
   setHighlightVersion: Dispatch<SetStateAction<number>>;
   setSelectedNodes: Dispatch<SetStateAction<string[]>>;
-  timelineActive?: boolean;
 }
 
 export interface UseGraphInteractionRuntimeResult {

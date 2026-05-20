@@ -1,7 +1,5 @@
 import type { MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
-import type { GraphLayoutOwnership, GraphLayoutSection, GraphLayoutSectionUpdate } from '../../../../shared/settings/graphLayout';
-import type { LegendIconImport } from '../../../../shared/protocol/webviewToExtension';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
 import {
@@ -28,8 +26,6 @@ import {
 import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBoundary';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
-import { SectionFrames } from '../sectionFrames/view';
-import type { SectionFrameNodePosition } from '../sectionFrames/model';
 
 export interface ViewportProps {
   canvasBackgroundColor: string;
@@ -46,30 +42,12 @@ export interface ViewportProps {
   handleMouseUpCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
   marqueeSelection?: GraphMarqueeSelectionState | null;
   menuEntries: GraphContextMenuEntry[];
-  sectionFrameGraph?: {
-    graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
-    screen2GraphCoords?(x: number, y: number): { x: number; y: number };
-  };
-  sectionFrameOwnership?: Readonly<Record<string, GraphLayoutOwnership>>;
-  sectionNodePositions?: ReadonlyMap<string, SectionFrameNodePosition>;
-  pinnedSectionIds?: ReadonlySet<string>;
-  sectionFrames?: readonly GraphLayoutSection[];
-  onUpdateSection?(
-    this: void,
-    sectionId: string,
-    updates: GraphLayoutSectionUpdate,
-    iconImports?: LegendIconImport[],
-  ): void;
-  onOpenSectionContextMenu?(this: void, sectionId: string, event: ReactMouseEvent<HTMLDivElement>): void;
-  onSectionDragEnd?(this: void, sectionId: string): void;
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
   surface3dProps: Omit<Surface3dProps, 'backgroundColor' | 'directionMode'>;
   tooltipData: GraphTooltipState;
   onSurface3dError?: (error: Error) => void;
   pluginHost?: WebviewPluginHost;
 }
-
-const EMPTY_PINNED_SECTION_IDS = new Set<string>();
 
 interface ViewportSurfaceProps {
   canvasBackgroundColor: string;
@@ -208,18 +186,10 @@ export function Viewport({
   handleMouseUpCapture,
   marqueeSelection,
   menuEntries,
-  sectionFrameGraph,
-  sectionFrameOwnership = {},
-  sectionNodePositions,
-  pinnedSectionIds = EMPTY_PINNED_SECTION_IDS,
-  sectionFrames = [],
   surface2dProps,
   surface3dProps,
   tooltipData,
   onSurface3dError,
-  onOpenSectionContextMenu,
-  onSectionDragEnd,
-  onUpdateSection = () => {},
   pluginHost,
 }: ViewportProps): ReactElement {
   return (
@@ -245,16 +215,6 @@ export function Viewport({
             surface3dProps={surface3dProps}
           />
           <ViewportPluginOverlay pluginHost={pluginHost} />
-          <SectionFrames
-            graph={sectionFrameGraph}
-            ownership={sectionFrameOwnership}
-            sectionNodePositions={sectionNodePositions}
-            pinnedSectionIds={pinnedSectionIds}
-            sections={sectionFrames}
-            onOpenSectionContextMenu={onOpenSectionContextMenu}
-            onSectionDragEnd={onSectionDragEnd}
-            onUpdateSection={onUpdateSection}
-          />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
         </div>
       </ContextMenuTrigger>

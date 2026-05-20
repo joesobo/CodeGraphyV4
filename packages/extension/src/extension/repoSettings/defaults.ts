@@ -11,10 +11,6 @@ import {
   createDefaultNodeColors,
   createDefaultNodeVisibility,
 } from '../../shared/graphControls/defaults/maps';
-import {
-  createDefaultGraphLayoutSettings,
-  type GraphLayoutSettings,
-} from '../../shared/settings/graphLayout';
 
 export interface ICodeGraphyRepoSettings {
   version: 1;
@@ -55,7 +51,6 @@ export interface ICodeGraphyRepoSettings {
     maxCommits: number;
     playbackSpeed: number;
   };
-  graphLayout: GraphLayoutSettings;
 }
 
 export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
@@ -100,6 +95,5 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
       maxCommits: 500,
       playbackSpeed: 1,
     },
-    graphLayout: createDefaultGraphLayoutSettings(),
   };
 }

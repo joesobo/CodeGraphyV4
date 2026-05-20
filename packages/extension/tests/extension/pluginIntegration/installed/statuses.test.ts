@@ -173,9 +173,10 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       workspaceFixture.workspacePath,
       workspaceFixture.scratchPath,
       {
-        graphViewContributions: 'organize',
-        packageName: '@codegraphy/organize',
-        pluginId: 'codegraphy.organize',
+        graphViewContributions: true,
+        packageName: '@acme/graph-tools',
+        pluginId: 'acme.graph-tools',
+        webviewContributions: true,
       },
     );
   });
@@ -266,7 +267,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
   }, 15000);
 
-  it('sends package-enabled Organize graph view contributions to the webview after startup', async () => {
+  it('sends package-enabled graph view contributions to the webview after startup', async () => {
     currentContext = createContext();
     activate(currentContext as unknown as vscode.ExtensionContext);
 
@@ -303,5 +304,35 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
         }),
       ]),
     );
+  }, 15000);
+
+  it('injects package plugin webview assets from the installed package root', async () => {
+    currentContext = createContext();
+    activate(currentContext as unknown as vscode.ExtensionContext);
+
+    const provider = getRegisteredProvider();
+    const { mockWebview, getMessageHandler } = resolveGraphWebview(provider);
+
+    await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+
+    const injectionMessages = mockWebview.postMessage.mock.calls
+      .map((call: unknown[]) => call[0] as {
+        type?: string;
+        payload?: {
+          pluginId?: string;
+          scripts?: string[];
+          styles?: string[];
+        };
+      })
+      .filter(message => message.type === 'PLUGIN_WEBVIEW_INJECT');
+
+    expect(injectionMessages).toContainEqual({
+      type: 'PLUGIN_WEBVIEW_INJECT',
+      payload: {
+        pluginId: installedPackage!.pluginId,
+        scripts: [`${installedPackage!.packageRoot}/webview.js`],
+        styles: [`${installedPackage!.packageRoot}/webview.css`],
+      },
+    });
   }, 15000);
 });

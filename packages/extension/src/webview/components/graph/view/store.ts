@@ -1,6 +1,5 @@
 import { useGraphStore } from '../../../store/state';
 import type { GraphState } from '../../../store/state';
-import { hasOrganizeGraphSectionContributions } from '../organize/contributions';
 
 export type GraphViewStoreState = Pick<
   GraphState,
@@ -9,7 +8,6 @@ export type GraphViewStoreState = Pick<
   | 'dagMode'
   | 'directionMode'
   | 'favorites'
-  | 'graphLayout'
   | 'graphViewContributionStatuses'
   | 'graphMode'
   | 'nodeSizeMode'
@@ -23,9 +21,7 @@ export type GraphViewStoreState = Pick<
   | 'timelineActive'
   | 'timelineCommits'
   | 'depthMode'
-> & {
-  graphSectionsAvailable: boolean;
-};
+>;
 
 export function useGraphViewStoreState(): GraphViewStoreState {
   return {
@@ -35,11 +31,7 @@ export function useGraphViewStoreState(): GraphViewStoreState {
     depthMode: useGraphStore(state => state.depthMode),
     directionMode: useGraphStore(state => state.directionMode),
     favorites: useGraphStore(state => state.favorites),
-    graphLayout: useGraphStore(state => state.graphLayout),
     graphViewContributionStatuses: useGraphStore(state => state.graphViewContributionStatuses),
-    graphSectionsAvailable: useGraphStore(state =>
-      hasOrganizeGraphSectionContributions(state.graphViewContributionStatuses)
-    ),
     graphMode: useGraphStore(state => state.graphMode),
     nodeSizeMode: useGraphStore(state => state.nodeSizeMode),
     particleSize: useGraphStore(state => state.particleSize),

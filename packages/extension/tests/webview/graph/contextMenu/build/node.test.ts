@@ -26,7 +26,6 @@ function disabledLabels(entries: readonly GraphContextMenuEntry[]): string[] {
 const immutableFolderLabels = [
   'New File...',
   'New Folder...',
-  'Collapse Folder',
   'Reveal in Explorer',
   'Copy Relative Path',
   'Copy Absolute Path',
@@ -70,10 +69,9 @@ describe('graph/contextMenu/build/node', () => {
 
     expect(itemLabels(entries)).toContain('Open File');
     expect(itemLabels(entries)).toContain('Delete File');
-    expect(itemLabels(entries)).toContain('Wrap Selected in Graph Section');
   });
 
-  it('does not offer Graph Section creation from a single folder context', () => {
+  it('builds child creation actions from a single folder context', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('src', new Set()),
       timelineActive: false,
@@ -84,8 +82,6 @@ describe('graph/contextMenu/build/node', () => {
 
     expect(itemLabels(entries)).toContain('New File...');
     expect(itemLabels(entries)).toContain('New Folder...');
-    expect(itemLabels(entries)).not.toContain('Wrap Selected in Graph Section');
-    expect(itemLabels(entries)).not.toContain('New Graph Section');
   });
 
   it('builds multi-file node actions from the selected targets', () => {
@@ -96,32 +92,36 @@ describe('graph/contextMenu/build/node', () => {
       pluginItems: [],
     });
 
-    expect(itemLabels(entries)).toHaveLength(7);
+    expect(itemLabels(entries)).toHaveLength(5);
     expect(itemLabels(entries)).toEqual([
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
-      'Pin Nodes',
       'Add Filter Patterns...',
-      'Wrap Selected in Graph Section',
       'Delete 2 Files',
     ]);
   });
 
-  it('offers wrapping for mixed selections that include Graph Section nodes', () => {
+  it('keeps mixed selections with plugin nodes on generic public actions', () => {
     const entries = buildGraphContextMenuEntries({
-      selection: makeNodeContextSelection('src/app.ts', new Set(['src/app.ts', 'src', 'section-1'])),
+      selection: makeNodeContextSelection('src/app.ts', new Set(['src/app.ts', 'src', 'plugin-node'])),
       timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
       nodes: [
         { id: 'src/app.ts', nodeType: 'file' },
         { id: 'src', nodeType: 'folder' },
-        { id: 'section-1', isCollapsedGraphSection: true, isGraphSection: true, nodeType: 'graph-section' },
+        { id: 'plugin-node', nodeType: 'example-widget', ownerPluginId: 'plugin.example' },
       ],
     });
 
-    expect(itemLabels(entries)).toContain('Wrap Selected in Graph Section');
+    expect(itemLabels(entries)).toEqual([
+      'Open 3 Files',
+      'Copy Relative Paths',
+      'Add All to Favorites',
+      'Add Filter Patterns...',
+      'Delete 3 Files',
+    ]);
   });
 
   it('returns no entries for an empty node selection', () => {

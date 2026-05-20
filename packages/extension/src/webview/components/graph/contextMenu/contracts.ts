@@ -20,14 +20,6 @@ export type BuiltInContextMenuAction =
   | 'copyEdgeTarget'
   | 'copyEdgeBoth'
   | 'toggleFavorite'
-  | 'pinNode'
-  | 'unpinNode'
-  | 'collapseNode'
-  | 'expandNode'
-  | 'createGraphSection'
-  | 'expandGraphSection'
-  | 'collapseGraphSection'
-  | 'deleteGraphSection'
   | 'focus'
   | 'addToFilter'
   | 'addNodeLegend'
@@ -75,6 +67,9 @@ export interface GraphContextMenuNode {
   id: string;
   label?: string;
   color?: string;
+  x?: number;
+  y?: number;
+  z?: number;
   ownerPluginId?: string;
   nodeType?: string;
   runtimeNodeType?: string;
@@ -84,8 +79,6 @@ export interface GraphContextMenuNode {
     filePath: string;
   };
   isCollapsed?: boolean;
-  isCollapsedGraphSection?: boolean;
-  isGraphSection?: boolean;
 }
 
 export interface GraphContextMenuEdge {
@@ -99,9 +92,7 @@ export interface BuildGraphContextMenuOptions {
   selection: GraphContextSelection;
   timelineActive: boolean;
   mutationAvailability?: GraphContextMutationAvailability;
-  graphSectionsAvailable?: boolean;
   favorites: ReadonlySet<string>;
-  pinnedNodeIds?: ReadonlySet<string>;
   pluginItems: readonly IPluginContextMenuItem[];
   graphViewContributions?: CoreGraphViewContributionSet;
   nodes?: readonly GraphContextMenuNode[];

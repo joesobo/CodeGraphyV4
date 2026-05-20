@@ -36,6 +36,7 @@ export function validateAndCreatePluginInfo(
     builtIn?: boolean;
     sourceExtension?: string;
     sourcePackage?: string;
+    sourcePackageRoot?: string;
     options?: Record<string, unknown>;
   },
   config: RegistryV2Config,
@@ -55,6 +56,7 @@ export function validateAndCreatePluginInfo(
     builtIn: options.builtIn ?? false,
     ...(options.sourceExtension ? { sourceExtension: options.sourceExtension } : {}),
     ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
+    ...(options.sourcePackageRoot ? { sourcePackageRoot: options.sourcePackageRoot } : {}),
     ...(options.options ? { options: { ...options.options } } : {}),
   };
 

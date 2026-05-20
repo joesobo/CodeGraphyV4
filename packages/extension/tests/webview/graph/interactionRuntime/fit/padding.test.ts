@@ -28,17 +28,4 @@ describe('graph/interactionRuntime/fitPadding', () => {
     expect(getFitViewPadding([node(12), node(44)])).toBe(152);
   });
 
-  it('pads zoom-to-fit fallback by expanded Graph Section bounds', () => {
-    expect(getFitViewPadding([
-      node(12),
-      {
-        ...node(16),
-        id: 'section-1',
-        isCollapsedGraphSection: false,
-        isGraphSection: true,
-        sectionHeight: 120,
-        sectionWidth: 240,
-      },
-    ])).toBe(380);
-  });
 });

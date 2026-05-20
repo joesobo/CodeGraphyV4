@@ -3,7 +3,6 @@ export type ConfigCategory =
   | 'toggles'
   | 'display'
   | 'legend'
-  | 'layout'
   | 'general';
 
 interface CodeGraphyConfigurationChangeLike {
@@ -39,10 +38,6 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
 
   if (affectsAny('codegraphy.legend')) {
     return 'legend';
-  }
-
-  if (affectsAny('codegraphy.graphLayout')) {
-    return 'layout';
   }
 
   if (event.affectsConfiguration('codegraphy')) {

@@ -132,19 +132,19 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
       registry: {
         listAvailableGraphViewContributions: vi.fn(async () => ({
           runtimeNodes: [{
-            pluginId: 'codegraphy.organize',
+            pluginId: 'acme.graph-tools',
             contribution: {
-              id: 'codegraphy.organize.section-nodes',
-              label: 'Graph Section Nodes',
+              id: 'acme.graph-tools.runtime-nodes',
+              label: 'Runtime Nodes',
               createNodes: runtimeNode,
             },
           }],
           runtimeEdges: [],
           projections: [{
-            pluginId: 'codegraphy.organize',
+            pluginId: 'acme.graph-tools',
             contribution: {
-              id: 'codegraphy.organize.graph-section-projection',
-              label: 'Graph Section Projection',
+              id: 'acme.graph-tools.projection',
+              label: 'Runtime Projection',
               project,
             },
           }],
@@ -170,15 +170,15 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
         contributions: [
           {
             kind: 'runtimeNodes',
-            pluginId: 'codegraphy.organize',
-            contributionId: 'codegraphy.organize.section-nodes',
-            label: 'Graph Section Nodes',
+            pluginId: 'acme.graph-tools',
+            contributionId: 'acme.graph-tools.runtime-nodes',
+            label: 'Runtime Nodes',
           },
           {
             kind: 'projections',
-            pluginId: 'codegraphy.organize',
-            contributionId: 'codegraphy.organize.graph-section-projection',
-            label: 'Graph Section Projection',
+            pluginId: 'acme.graph-tools',
+            contributionId: 'acme.graph-tools.projection',
+            label: 'Runtime Projection',
           },
         ],
       },

@@ -16,7 +16,6 @@ import { getGraphSurfaceColors } from '../rendering/surface/colors';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
 import { postMessage } from '../../../vscodeApi';
-import { getGraphLayoutPinCoordinate } from '../../../../shared/settings/graphLayout';
 
 export interface GraphViewportModel {
   canvasBackgroundColor: string;
@@ -40,29 +39,13 @@ export interface GraphViewportModelOptions {
     | 'currentCommitSha'
     | 'dagMode'
     | 'favorites'
-    | 'graphLayout'
     | 'graphMode'
-    | 'graphSectionsAvailable'
     | 'physicsSettings'
     | 'pluginContextMenuItems'
     | 'setGraphMode'
     | 'timelineActive'
     | 'timelineCommits'
   >;
-}
-
-function getActivePinnedNodeIds(
-  viewState: Pick<GraphViewStoreState, 'graphLayout' | 'graphMode'>,
-): Set<string> {
-  const pinnedNodeIds = new Set<string>();
-
-  for (const [nodeId, pinnedNode] of Object.entries(viewState.graphLayout.pinnedNodes)) {
-    if (getGraphLayoutPinCoordinate(pinnedNode, viewState.graphMode)) {
-      pinnedNodeIds.add(nodeId);
-    }
-  }
-
-  return pinnedNodeIds;
 }
 
 export function useGraphViewportModel({
@@ -100,9 +83,7 @@ export function useGraphViewportModel({
     timelineActive: viewState.timelineActive,
     mutationAvailability: getGraphContextMutationAvailability(viewState),
     favorites: viewState.favorites,
-    pinnedNodeIds: getActivePinnedNodeIds(viewState),
     pluginItems: viewState.pluginContextMenuItems,
-    graphSectionsAvailable: viewState.graphSectionsAvailable,
     graphViewContributions,
     nodes: graphState.graphData.nodes,
     edges: graphState.graphData.links,

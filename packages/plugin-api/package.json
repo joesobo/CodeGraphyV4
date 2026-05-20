@@ -39,6 +39,9 @@
     },
     "./graph-view": {
       "types": "./src/graphView.ts"
+    },
+    "./webview": {
+      "types": "./src/webview.ts"
     }
   },
   "types": "src/index.ts",

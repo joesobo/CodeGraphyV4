@@ -25,26 +25,20 @@ describe('graph/model/runtimeContributions', () => {
     const graphViewContributions: CoreGraphViewContributionSet = {
       ...createEmptyContributions(),
       runtimeNodes: [{
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'codegraphy.organize.section-node',
-          label: 'Section Node',
+          id: 'acme.graph-tools.runtime-node',
+          label: 'Runtime Node',
           createNodes() {
             return [{
-              id: 'section:frontend',
+              id: 'runtime:frontend',
               label: 'Frontend',
               color: '#84cc16',
-              hiddenDescendantCount: 0,
               icon: 'FE',
-              isCollapsedGraphSection: false,
-              isGraphSection: true,
               metadata: { owner: 'design' },
-              nodeType: 'graph-section',
-              ownerPluginId: 'codegraphy.organize',
-              ownerSectionId: null,
-              runtimeNodeType: 'codegraphy.organize.graph-section',
-              sectionHeight: 180,
-              sectionWidth: 280,
+              nodeType: 'acme-runtime',
+              ownerPluginId: 'acme.graph-tools',
+              runtimeNodeType: 'acme.graph-tools.runtime-node',
               shape2D: 'square',
               size: 36,
             } as unknown as IGraphData['nodes'][number]];
@@ -52,16 +46,16 @@ describe('graph/model/runtimeContributions', () => {
         },
       }],
       runtimeEdges: [{
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'codegraphy.organize.section-member-edge',
-          label: 'Section Member Edge',
+          id: 'acme.graph-tools.runtime-edge',
+          label: 'Runtime Edge',
           createEdges() {
             return [{
-              id: 'section:frontend->src/App.tsx#organize:member',
-              from: 'section:frontend',
+              id: 'runtime:frontend->src/App.tsx#acme:member',
+              from: 'runtime:frontend',
               to: 'src/App.tsx',
-              kind: 'organize:member',
+              kind: 'acme:member',
               metadata: { role: 'member' },
               sources: [],
             }];
@@ -80,28 +74,22 @@ describe('graph/model/runtimeContributions', () => {
       timelineActive: false,
     });
 
-    expect(graphData.nodes.find(node => node.id === 'section:frontend')).toMatchObject({
-      id: 'section:frontend',
+    expect(graphData.nodes.find(node => node.id === 'runtime:frontend')).toMatchObject({
+      id: 'runtime:frontend',
       label: 'Frontend',
-      hiddenDescendantCount: 0,
       icon: 'FE',
-      isCollapsedGraphSection: false,
-      isGraphSection: true,
       metadata: { owner: 'design' },
-      nodeType: 'graph-section',
-      ownerPluginId: 'codegraphy.organize',
-      ownerSectionId: null,
-      runtimeNodeType: 'codegraphy.organize.graph-section',
-      sectionHeight: 180,
-      sectionWidth: 280,
+      nodeType: 'acme-runtime',
+      ownerPluginId: 'acme.graph-tools',
+      runtimeNodeType: 'acme.graph-tools.runtime-node',
       shape2D: 'square',
       size: 36,
     });
     expect(graphData.links).toEqual([
       expect.objectContaining({
-        id: 'section:frontend->src/App.tsx#organize:member',
-        from: 'section:frontend',
-        kind: 'organize:member',
+        id: 'runtime:frontend->src/App.tsx#acme:member',
+        from: 'runtime:frontend',
+        kind: 'acme:member',
         metadata: { role: 'member' },
         to: 'src/App.tsx',
       }),
@@ -125,18 +113,18 @@ describe('graph/model/runtimeContributions', () => {
     const graphViewContributions: CoreGraphViewContributionSet = {
       ...createEmptyContributions(),
       projections: [{
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'codegraphy.organize.collapse',
-          label: 'Collapse',
+          id: 'acme.graph-tools.projection',
+          label: 'Runtime Projection',
           project({ visibleGraph }) {
             return {
               nodes: [{
-                id: 'section:frontend',
+                id: 'runtime:frontend',
                 label: 'Frontend',
                 color: '#84cc16',
                 collapsedDescendantCount: visibleGraph.nodes.length,
-                nodeType: 'organize:section',
+                nodeType: 'acme-runtime',
               }],
               edges: [],
             };
@@ -157,9 +145,9 @@ describe('graph/model/runtimeContributions', () => {
 
     expect(graphData.nodes).toEqual([
       expect.objectContaining({
-        id: 'section:frontend',
+        id: 'runtime:frontend',
         collapsedDescendantCount: 2,
-        nodeType: 'organize:section',
+        nodeType: 'acme-runtime',
       }),
     ]);
     expect(graphData.links).toEqual([]);
@@ -171,18 +159,18 @@ describe('graph/model/runtimeContributions', () => {
     const graphViewContributions: CoreGraphViewContributionSet = {
       ...createEmptyContributions(),
       runtimeNodes: [{
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'codegraphy.organize.section-node',
-          label: 'Section Node',
+          id: 'acme.graph-tools.runtime-node',
+          label: 'Runtime Node',
           createNodes,
         },
       }],
       projections: [{
-        pluginId: 'codegraphy.organize',
+        pluginId: 'acme.graph-tools',
         contribution: {
-          id: 'codegraphy.organize.collapse',
-          label: 'Collapse',
+          id: 'acme.graph-tools.projection',
+          label: 'Runtime Projection',
           project,
         },
       }],

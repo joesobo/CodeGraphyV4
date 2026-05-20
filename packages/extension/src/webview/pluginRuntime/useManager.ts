@@ -17,6 +17,7 @@ import {
 export interface IPluginManager {
   pluginHost: WebviewPluginHost;
   injectPluginAssets: (payload: PluginInjectPayload) => Promise<void>;
+  resetPluginAssets: (pluginId: string) => void;
 }
 
 /**
@@ -73,9 +74,20 @@ export function usePluginManager(): IPluginManager {
       }
     }
 
+    function resetPluginAssets(pluginId: string): void {
+      pluginApisRef.current.delete(pluginId);
+      const activationPrefix = `${pluginId}::`;
+      for (const key of Array.from(activatedScriptKeysRef.current)) {
+        if (key.startsWith(activationPrefix)) {
+          activatedScriptKeysRef.current.delete(key);
+        }
+      }
+    }
+
     return {
       pluginHost: pluginHostRef.current,
       injectPluginAssets,
+      resetPluginAssets,
     };
   // All state is in refs — no dependencies needed
   }, []);

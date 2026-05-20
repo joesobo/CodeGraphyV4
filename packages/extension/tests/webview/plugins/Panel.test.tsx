@@ -138,10 +138,10 @@ describe('PluginsPanel', () => {
         connectionCount: 1,
       },
       {
-        id: 'codegraphy.organize',
-        name: 'Organize',
+        id: 'acme.graph-tools',
+        name: 'Graph Tools',
         version: '1.0.0',
-        packageName: '@codegraphy/organize',
+        packageName: '@acme/graph-tools',
         supportedExtensions: [],
         status: 'installed',
         enabled: true,
@@ -151,7 +151,7 @@ describe('PluginsPanel', () => {
 
     expect(screen.queryByText('Tree-sitter')).not.toBeInTheDocument();
     expect(screen.queryByText('Legacy Extension Plugin')).not.toBeInTheDocument();
-    expect(screen.getByText('Organize')).toBeInTheDocument();
+    expect(screen.getByText('Graph Tools')).toBeInTheDocument();
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 

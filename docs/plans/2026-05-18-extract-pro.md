@@ -8,11 +8,9 @@
 
 ## Goal
 
-Extract paid Organize behavior out of the free/base extension path while expanding the public plugin API so Pro, Organize, and future plugins can integrate with Core and the Graph View without depending on VS Code-specific code.
+Extract paid feature behavior out of the free/base extension path while expanding the public plugin API so private first-party and future community plugins can integrate with Core and the Graph View without depending on VS Code-specific code.
 
 Free CodeGraphy keeps Relationship Graph inspection, Graph Scope, filters/search, Legend/theme editing, normal graph rendering/physics, Graph Cache, Graph Query, CLI/MCP access, and free first-party plugins.
-
-Paid Organize owns Collapse, Pinned Nodes, Graph Sections, Section Frames, Section Members, ownership, selected paid exports, and section physics.
 
 ## Product Terms
 
@@ -20,7 +18,7 @@ Paid Organize owns Collapse, Pinned Nodes, Graph Sections, Section Frames, Secti
 - Use **CodeGraphy Workspace** for any folder CodeGraphy can analyze.
 - Use **Graph Cache** for `<workspace-root>/.codegraphy/graph.lbug`.
 - Treat Pro as the optional account/access plugin.
-- Treat Organize as the paid feature plugin.
+- Treat paid feature behavior as private package-owned behavior that integrates through the public plugin API.
 
 ## Execution Slices
 
@@ -29,7 +27,7 @@ Paid Organize owns Collapse, Pinned Nodes, Graph Sections, Section Frames, Secti
 3. Add plugin data `loadData` / `saveData` persistence scoped by plugin id under Workspace Settings.
 4. Add Graph View contribution hosts for runtime nodes/edges, projection, context menus, named UI slots, and additive force adapters.
 5. Create the optional public `@codegraphy/pro` package for account/status UI contribution and Access Provider registration.
-6. Extract Organize features behind plugin contributions and remove free/base extension Organize behavior without legacy `graphLayout` migration.
+6. Extract paid feature behavior behind plugin contributions and remove free/base extension ownership without legacy feature-specific migration.
 7. Add focused red-green tests for each public behavior, then run the repo quality gates.
 8. Update product docs, package docs, changesets, Trello checklist state, and the PR description after implementation is green.
 
@@ -40,5 +38,5 @@ A plugin can contribute an additive D3 force adapter through the public plugin A
 ## Non-Goals For This PR
 
 - No billing provider implementation. Account, Stripe/Supabase/Vercel, and subscription mechanics belong to the follow-up Pro Account, Billing, and Access card.
-- No Bookmarks implementation. Bookmarks build on the extracted Pro/Organize foundation.
+- No Bookmarks implementation. Bookmarks build on the extracted private-plugin foundation.
 - No Team Bookmark Sync implementation.

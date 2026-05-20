@@ -9,24 +9,6 @@ import {
   setPluginUserGroups,
   setPluginWebviewReadyNotified,
 } from './pluginState';
-import { createGraphLayoutUpdatedMessage } from '../../graphLayout/message';
-
-type GraphLayoutWebviewSource = GraphViewProviderMessageListenerSource & {
-  _view?: { webview: { asWebviewUri(uri: import('vscode').Uri): { toString(): string } } };
-  _panels?: ReadonlyArray<{ webview: { asWebviewUri(uri: import('vscode').Uri): { toString(): string } } }>;
-};
-
-function createGraphLayoutMessage(
-  source: GraphViewProviderMessageListenerSource,
-  dependencies: GraphViewProviderMessageListenerDependencies,
-) {
-  const webviewSource = source as GraphLayoutWebviewSource;
-  const webview = webviewSource._view?.webview ?? webviewSource._panels?.[0]?.webview;
-  return createGraphLayoutUpdatedMessage({
-    workspaceFolder: dependencies.workspace.workspaceFolders?.[0],
-    asWebviewUri: webview ? uri => webview.asWebviewUri(uri) : undefined,
-  });
-}
 
 type GraphViewProviderPluginContext = Pick<
   GraphViewMessageListenerContext,
@@ -40,7 +22,6 @@ type GraphViewProviderPluginContext = Pick<
   | 'sendGraphControls'
   | 'sendFavorites'
   | 'sendSettings'
-  | 'sendGraphLayout'
   | 'sendCachedTimeline'
   | 'sendDecorations'
   | 'sendContextMenuItems'
@@ -82,7 +63,6 @@ export function createGraphViewProviderMessagePluginContext(
     sendGraphControls: () => source._sendGraphControls?.(),
     sendFavorites: () => source._sendFavorites(),
     sendSettings: () => source._sendSettings(),
-    sendGraphLayout: () => source._sendMessage(createGraphLayoutMessage(source, dependencies)),
     sendCachedTimeline: () => source._sendCachedTimeline(),
     sendDecorations: () => source._sendDecorations(),
     sendContextMenuItems: () => source._sendContextMenuItems(),

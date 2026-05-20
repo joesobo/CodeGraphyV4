@@ -26,7 +26,6 @@ export interface GraphViewPluginReadyContext {
   loadAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
-  sendGraphLayout?(): void;
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: unknown): void;
@@ -70,7 +69,6 @@ export async function dispatchGraphViewPluginReadyMessage(
       loadAndSendData: () => void context.loadAndSendData(),
       sendFavorites: () => context.sendFavorites(),
       sendSettings: () => context.sendSettings(),
-      sendGraphLayout: () => context.sendGraphLayout?.(),
       sendPhysicsSettings: () => context.sendPhysicsSettings(),
       sendGroupsUpdated: () => context.sendGroupsUpdated(),
       sendMessage: message => context.sendMessage(message),

@@ -10,7 +10,7 @@
 | Double-click | Select and focus the node; File Nodes also open the file as a persistent editor tab |
 | Right-click | Set Context Selection if needed and open the context menu without previewing or opening a file |
 | `Ctrl+Click` (macOS) | Open the context menu (same as right-click) |
-| Drag | Reposition the node (position is saved) |
+| Drag | Reposition the node for the current graph session |
 | Hover | Show tooltip with file details |
 | Hover cursor | Pointer cursor |
 | `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
@@ -25,23 +25,6 @@
 | Scroll | Zoom in/out |
 | Hover cursor | Default cursor |
 | Right-click | Open background context menu |
-
-## Graph Sections
-
-Graph Sections are editable 2D frames for organizing nodes inside the Relationship Graph.
-
-| Action | Effect |
-|--------|--------|
-| Toolbar New menu | Create a root-level Graph Section after `New File...` and `New Folder...` |
-| Background context menu | Create a Graph Section at the clicked graph position |
-| Multi-selection context menu | Create a Graph Section around the selected nodes |
-| Drag node into frame | Assign the node to the deepest expanded section under the drop point |
-| Drag Section header | Move the whole Section Frame through the root graph layout |
-| Resize handles | Resize the expanded Section Frame, respecting the minimum size |
-| Header label / color / icon | Rename, recolor, or assign an icon to the Section |
-| Collapse / Expand | Collapse the Section into one compact node or expand it back into its frame |
-
-Expanded Section Frames participate in the root force layout as rectangular graph nodes. Section Members run section-local force physics inside the frame, collide with one another and the section body, and can still keep edges to nodes outside the section. Collapsed Sections project member edges onto the compact section node.
 
 ## Context menu
 

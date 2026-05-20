@@ -10,14 +10,15 @@ import type {
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
   IPlugin,
+  CodeGraphyWebviewAPI,
   IPluginDataHost,
   IPluginFactory,
   IPluginFactoryOptions,
 } from '../src';
 
 describe('plugin API contracts', () => {
-  it('lets Pro register access plumbing and contribute account UI without owning Organize behavior', () => {
-    const organizeAccess = 'organize' as CodeGraphyAccessKey;
+  it('lets packages register access plumbing and contribute account UI without owning feature behavior', () => {
+    const premiumAccess = 'premiumFeature' as CodeGraphyAccessKey;
 
     const plugin = {
       id: 'codegraphy.pro',
@@ -27,10 +28,10 @@ describe('plugin API contracts', () => {
       supportedExtensions: [],
       accessProvider: {
         id: 'codegraphy.pro.access',
-        provides: [organizeAccess],
+        provides: [premiumAccess],
         async getAccess() {
           return {
-            access: organizeAccess,
+            access: premiumAccess,
             state: 'granted',
           };
         },
@@ -49,51 +50,51 @@ describe('plugin API contracts', () => {
     expectTypeOf(plugin.graphView.ui[0].slot).toEqualTypeOf<'graph.toolbar'>();
   });
 
-  it('lets Organize contribute gated runtime graph behavior through public Graph View contracts', () => {
-    const organizeAccess = 'organize' as CodeGraphyAccessKey;
+  it('lets plugins contribute gated runtime graph behavior through public Graph View contracts', () => {
+    const premiumAccess = 'premiumFeature' as CodeGraphyAccessKey;
 
     const runtimeNode = {
-      id: 'codegraphy.organize.section-node',
-      label: 'Section Node',
-      requiresAccess: organizeAccess,
+      id: 'acme.graph.runtime-node',
+      label: 'Runtime Node',
+      requiresAccess: premiumAccess,
       createNodes() {
         return [{
-          id: 'section:frontend',
-          label: 'Frontend',
+          id: 'runtime:frontend',
+          label: 'Runtime Frontend',
           color: '#84cc16',
-          nodeType: 'organize:section',
+          nodeType: 'acme:runtime',
         }];
       },
     } satisfies IGraphViewRuntimeNodeContribution;
 
     const runtimeEdge = {
-      id: 'codegraphy.organize.section-member-edge',
-      label: 'Section Member Edge',
-      requiresAccess: organizeAccess,
+      id: 'acme.graph.runtime-edge',
+      label: 'Runtime Edge',
+      requiresAccess: premiumAccess,
       createEdges() {
         return [{
-          id: 'section:frontend->src/App.tsx#organize:member',
-          from: 'section:frontend',
+          id: 'runtime:frontend->src/App.tsx#acme:member',
+          from: 'runtime:frontend',
           to: 'src/App.tsx',
-          kind: 'organize:member',
+          kind: 'acme:member',
           sources: [],
         }];
       },
     } satisfies IGraphViewRuntimeEdgeContribution;
 
     const projection = {
-      id: 'codegraphy.organize.collapse',
-      label: 'Collapse Projection',
-      requiresAccess: organizeAccess,
+      id: 'acme.graph.projection',
+      label: 'Runtime Projection',
+      requiresAccess: premiumAccess,
       project({ visibleGraph }) {
         return visibleGraph;
       },
     } satisfies IGraphViewProjectionContribution;
 
     const force = {
-      id: 'codegraphy.organize.section-physics',
-      label: 'Section Physics',
-      requiresAccess: organizeAccess,
+      id: 'acme.graph.force',
+      label: 'Runtime Force',
+      requiresAccess: premiumAccess,
       create() {
         return {
           tick() {},
@@ -103,20 +104,20 @@ describe('plugin API contracts', () => {
     } satisfies IGraphViewForceAdapterContribution;
 
     const contextMenu = {
-      id: 'codegraphy.organize.assign-section',
-      label: 'Assign to Section',
-      requiresAccess: organizeAccess,
+      id: 'acme.graph.context-menu',
+      label: 'Run Runtime Action',
+      requiresAccess: premiumAccess,
       targets: [{ kind: 'multiSelection' }],
       run() {},
     } satisfies IGraphViewContextMenuContribution;
 
     const plugin = {
-      id: 'codegraphy.organize',
-      name: 'CodeGraphy Organize',
+      id: 'acme.graph-tools',
+      name: 'Acme Graph Tools',
       version: '0.1.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['*'],
-      requiresAccess: organizeAccess,
+      requiresAccess: premiumAccess,
       graphView: {
         runtimeNodes: [runtimeNode],
         runtimeEdges: [runtimeEdge],
@@ -144,13 +145,13 @@ describe('plugin API contracts', () => {
 
   it('types package plugin factories that receive workspace host services', () => {
     const factory: IPluginFactory = (options?: IPluginFactoryOptions) => ({
-      id: 'codegraphy.organize',
-      name: 'CodeGraphy Organize',
+      id: 'acme.graph-tools',
+      name: 'Acme Graph Tools',
       version: '0.1.0',
       apiVersion: '^2.0.0',
       supportedExtensions: [],
       async initialize() {
-        await options?.dataHost?.saveData({ sections: [] });
+        await options?.dataHost?.saveData({ runtimeNodes: [] });
       },
     });
 
@@ -159,5 +160,55 @@ describe('plugin API contracts', () => {
       options?: Record<string, unknown>;
     }>();
     expectTypeOf(factory).parameter(0).toEqualTypeOf<IPluginFactoryOptions | undefined>();
+  });
+
+  it('types package plugins that ship webview assets and bridge messages through the host API', () => {
+    const plugin = {
+      id: 'acme.graph-tools',
+      name: 'Acme Graph Tools',
+      version: '0.1.0',
+      apiVersion: '^2.0.0',
+      supportedExtensions: [],
+      webviewApiVersion: '^1.0.0',
+      webviewContributions: {
+        scripts: ['dist/webview.js'],
+        styles: ['dist/webview.css'],
+      },
+      onLoad(api) {
+        api.sendToWebview({
+          type: 'runtimeDataUpdated',
+          data: { nodes: [] },
+        });
+        api.onWebviewMessage((message) => {
+          api.log('info', message.type);
+        });
+      },
+      onWebviewReady() {
+        // no-op: contract assertion only
+      },
+    } satisfies IPlugin;
+
+    expectTypeOf(plugin.webviewContributions.scripts[0]).toEqualTypeOf<string>();
+    expectTypeOf(plugin.onLoad).toMatchTypeOf<IPlugin['onLoad']>();
+    expectTypeOf(plugin.onWebviewReady).toMatchTypeOf<IPlugin['onWebviewReady']>();
+  });
+
+  it('types webview plugins that register Graph View contributions through the public webview API', () => {
+    const api = {
+      registerGraphViewContributions(contributions) {
+        expectTypeOf(contributions.runtimeNodes![0]!).toMatchTypeOf<IGraphViewRuntimeNodeContribution>();
+        return { dispose() {} };
+      },
+    } satisfies Pick<CodeGraphyWebviewAPI, 'registerGraphViewContributions'>;
+
+    const disposable = api.registerGraphViewContributions({
+      runtimeNodes: [{
+        id: 'acme.runtime-node',
+        label: 'Runtime Node',
+        createNodes: () => [{ id: 'runtime', label: 'Runtime', color: '#ffffff' }],
+      }],
+    });
+
+    expectTypeOf(disposable.dispose).toEqualTypeOf<() => void>();
   });
 });

@@ -1,9 +1,4 @@
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
-import {
-  DEFAULT_GRAPH_LAYOUT_SETTINGS,
-  setGraphLayoutNodeCollapsed,
-  type GraphLayoutSettings,
-} from '../../../../../shared/settings/graphLayout';
 import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,
@@ -153,28 +148,6 @@ async function applyParticleSettingMessage(
   return true;
 }
 
-async function applyGraphLayoutCollapseMessage(
-  message: WebviewToExtensionMessage,
-  handlers: GraphViewSettingsMessageHandlers,
-): Promise<boolean> {
-  if (message.type !== 'UPDATE_GRAPH_LAYOUT_COLLAPSE') {
-    return false;
-  }
-
-  const currentLayout = handlers.getConfig<GraphLayoutSettings>(
-    'graphLayout',
-    DEFAULT_GRAPH_LAYOUT_SETTINGS,
-  );
-  const nextLayout = setGraphLayoutNodeCollapsed(
-    currentLayout,
-    message.payload.nodeId,
-    message.payload.collapsed,
-  );
-  await handlers.updateConfig('graphLayout', nextLayout);
-  handlers.sendMessage({ type: 'GRAPH_LAYOUT_UPDATED', payload: nextLayout });
-  return true;
-}
-
 async function applyDirectSettingsUpdateMessage(
   message: WebviewToExtensionMessage,
   state: GraphViewSettingsMessageState,
@@ -209,7 +182,6 @@ const statefulSettingsMessageAppliers = [
 const statelessSettingsMessageAppliers = [
   applySimpleSettingsUpdate,
   applyParticleSettingMessage,
-  applyGraphLayoutCollapseMessage,
   applyGraphControlMessage,
 ] as const satisfies ReadonlyArray<(
   message: WebviewToExtensionMessage,

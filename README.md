@@ -46,7 +46,6 @@ This repo is a work in progress and is being built through agentic engineering. 
 | Symbol Nodes | Expand files into functions, classes, interfaces, types, variables, constants, and plugin-provided declarations when you need code-level context. |
 | Search and Filters | Search temporarily, then use persistent Filters to remove generated files, tests, docs, or any other noise from the Visible Graph. |
 | Graph Scope | Turn Node Types and Edge Types on or off so the graph matches the question you are asking. |
-| Graph Sections | Organize related nodes into resizable 2D section frames that keep their own local physics while still showing cross-section edges. |
 | Material Icon Theme nodes | File and folder nodes use Material Icon Theme shapes and colors instead of generic dots. |
 | VS Code theme integration | Graph surfaces, panels, buttons, text, and directional arrows follow the active VS Code color theme. |
 | 2D and 3D renderers | Use the fast 2D canvas for everyday work or switch to 3D WebGL when the shape of the repo matters. |
@@ -73,10 +72,6 @@ This repo is a work in progress and is being built through agentic engineering. 
 |:--:|:--:|
 | ![2D Relationship Graph with Material Icon Theme nodes](./docs/media/readme/relationship-graph-2d.png) | ![3D Relationship Graph with file labels and depth](./docs/media/readme/relationship-graph-3d.png) |
 
-| Graph Sections |
-|:--:|
-| ![CodeGraphy 2D graph organized into colored Graph Section frames with local node clusters](./docs/media/readme/graph-sections.png) |
-
 | Timeline |
 |:--:|
 | ![Timeline panel showing commit playback controls](./docs/media/readme/timeline-panel.png) |
@@ -91,9 +86,7 @@ This repo is a work in progress and is being built through agentic engineering. 
 
 Workspace files, Git history, and workspace-local settings flow into `@codegraphy/core`. The core package owns path-based Indexing, built-in Tree-sitter analysis, enabled plugin execution, Graph Cache reads/writes, and Graph Query. It has no VS Code dependency, so the same engine can run from the VS Code extension, the `codegraphy` CLI, or the local MCP server.
 
-The VS Code extension uses `@codegraphy/core` to build and refresh the workspace Graph Cache, then projects that data into the Visible Graph for the webview, exports, Graph Sections, Symbol Nodes, Timeline, and editor interactions. Language plugins are npm packages loaded through core from the user-level installed-plugin cache and the workspace-local `plugins` array; they are not activated as dependent VS Code extensions. `@codegraphy/mcp` uses the same core APIs for headless agent access: `codegraphy index [workspace]` writes the Graph Cache, Graph Query tools read it, and neither path needs to open or focus VS Code.
-
-Graph Sections are saved in workspace-local Graph Layout settings. In 2D, add them from the toolbar or background context menu, drag nodes into a frame to make them Section Members, then resize, label, color, pin, collapse, or expand the section as you organize the graph. Expanded sections behave like large graph nodes in the root force layout, while their members run section-local physics inside the frame; collapsed sections become compact nodes with projected incoming and outgoing edges.
+The VS Code extension uses `@codegraphy/core` to build and refresh the workspace Graph Cache, then projects that data into the Visible Graph for the webview, exports, Symbol Nodes, Timeline, and editor interactions. Language and feature plugins are npm packages loaded through core from the user-level installed-plugin cache and the workspace-local `plugins` array; they are not activated as dependent VS Code extensions. `@codegraphy/mcp` uses the same core APIs for headless agent access: `codegraphy index [workspace]` writes the Graph Cache, Graph Query tools read it, and neither path needs to open or focus VS Code.
 
 Symbol Nodes are built from indexed declarations and appear alongside file, folder, package, and plugin nodes when you need code-level context. Common kinds include Function, Class, Interface, Type, Struct, Enum, Variable, and Constant. `contains` Edges connect files to their declarations, and symbol-aware relationship Edges show calls, references, inheritance, overrides, imports, and plugin-provided links when analysis can resolve them. Legend defaults style common symbol kinds automatically, custom Legend Entries can target symbol names, kinds, plugin kinds, languages, or containing file paths, and Graph Query/MCP exposes the same symbol payloads to agents.
 

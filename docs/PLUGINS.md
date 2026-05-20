@@ -43,7 +43,7 @@ Installation and enablement are separate:
 - `npm i -g @codegraphy/plugin-python` installs a plugin package for the developer's toolchain.
 - `codegraphy plugins refresh` records installed `@codegraphy/*` plugin packages in `~/.codegraphy/plugins.json`.
 - `codegraphy plugins add <package>` records an explicitly named globally installed plugin package, including private or non-`@codegraphy` packages.
-- `codegraphy plugins link <package-root>` records a local package checkout directly in `~/.codegraphy/plugins.json`, which is the preferred local-development path for private plugins such as `@codegraphy/organize`.
+- `codegraphy plugins link <package-root>` records a local package checkout directly in `~/.codegraphy/plugins.json`, which is the preferred local-development path for private plugins.
 - `codegraphy plugins enable <package> [workspace]` writes that plugin into the workspace-local `plugins` array.
 - `codegraphy plugins disable <package> [workspace]` removes that plugin from the workspace-local enabled set.
 - Enabling and disabling plugins do not run Indexing automatically; run `codegraphy index [workspace]` to refresh the Graph Cache.
@@ -80,8 +80,8 @@ The npm package's normal `exports` field owns runtime import behavior. The `code
 For local private plugin development, keep the private source outside this public monorepo and link its package root:
 
 ```bash
-codegraphy plugins link ~/src/codegraphy-organize
-codegraphy plugins enable @codegraphy/organize /path/to/indexed-folder
+codegraphy plugins link ~/src/acme-graph-tools
+codegraphy plugins enable @acme/graph-tools /path/to/indexed-folder
 codegraphy index /path/to/indexed-folder
 ```
 
@@ -89,9 +89,7 @@ When testing through F5, launch only the public CodeGraphy VS Code extension. Do
 
 The Plugins panel is a package toggle surface. It shows package-backed plugins that can be enabled, disabled, and reordered for the current CodeGraphy Workspace. Core runtime internals such as Tree-sitter, and legacy VS Code extension plugin entries without a package backing, are not shown as plugin toggle rows.
 
-Disabling a package removes it from the workspace `plugins` array and reloads Graph View contributions. For Organize, persisted Graph Section layout data may remain in `.codegraphy/settings.json`, but Section Frames only render when the enabled Organize package contributes runtime Graph Section nodes.
-
-The private package should declare `"name": "@codegraphy/organize"` and a `codegraphy` manifest block like any other plugin package.
+Disabling a package removes it from the workspace `plugins` array and reloads Graph View contributions. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, and UI slots only render while that package is enabled and loaded.
 
 When Indexing loads an enabled package, `@codegraphy/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to package plugin factories as `factoryOptions.options`, and to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
 
@@ -101,8 +99,8 @@ Package factories also receive a workspace-scoped `factoryOptions.dataHost` when
 import type { IPluginFactory } from '@codegraphy/plugin-api';
 
 const createPlugin: IPluginFactory = ({ dataHost, options } = {}) => ({
-  id: 'acme.organize',
-  name: 'Acme Organize',
+  id: 'acme.graph-tools',
+  name: 'Acme Graph Tools',
   version: '1.0.0',
   apiVersion: '^2.0.0',
   supportedExtensions: [],

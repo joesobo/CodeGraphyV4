@@ -1,5 +1,4 @@
 import { isPlainObject } from './plainObject';
-import { normalizeGraphLayoutSettings } from '../../graphLayout/model';
 import { pruneGraphControlConfigMap, type GraphControlConfigKey } from '../../../../shared/graphControls/settings';
 
 const TOP_LEVEL_SETTINGS_KEYS = new Set([
@@ -31,7 +30,6 @@ const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'nodeSizeMode',
   'physics',
   'timeline',
-  'graphLayout',
 ]);
 
 const PHYSICS_SETTINGS_KEYS = new Set([
@@ -186,12 +184,6 @@ function normalizePersistedLegend(normalized: Record<string, unknown>): void {
   }
 }
 
-function normalizePersistedGraphLayout(normalized: Record<string, unknown>): void {
-  if ('graphLayout' in normalized) {
-    normalized.graphLayout = normalizeGraphLayoutSettings(normalized.graphLayout);
-  }
-}
-
 function normalizeGraphControlConfigMap(
   normalized: Record<string, unknown>,
   key: GraphControlConfigKey,
@@ -220,7 +212,6 @@ export function normalizePersistedSettingsShape(
   normalizePersistedPlugins(normalized);
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);
-  normalizePersistedGraphLayout(normalized);
   normalizePersistedGraphControls(normalized);
   return normalized;
 }

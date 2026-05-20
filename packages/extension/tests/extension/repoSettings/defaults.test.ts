@@ -50,12 +50,6 @@ describe('extension/repoSettings/defaults', () => {
         maxCommits: 500,
         playbackSpeed: 1,
       },
-      graphLayout: {
-        collapsedNodes: {},
-        pinnedNodes: {},
-        sections: {},
-        ownership: {},
-      },
     });
   });
 
@@ -75,10 +69,5 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.filterPatterns).not.toBe(first.filterPatterns);
     expect(second.physics).not.toBe(first.physics);
     expect(second.timeline).not.toBe(first.timeline);
-    expect(second.graphLayout).not.toBe(first.graphLayout);
-    expect(second.graphLayout.collapsedNodes).not.toBe(first.graphLayout.collapsedNodes);
-    expect(second.graphLayout.pinnedNodes).not.toBe(first.graphLayout.pinnedNodes);
-    expect(second.graphLayout.sections).not.toBe(first.graphLayout.sections);
-    expect(second.graphLayout.ownership).not.toBe(first.graphLayout.ownership);
   });
 });
