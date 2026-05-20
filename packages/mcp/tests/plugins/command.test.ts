@@ -105,12 +105,12 @@ describe('plugins/command', () => {
 
   it('links a private local plugin package without requiring global npm install', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
-    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-organize-package-'));
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-private-package-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-'));
     await fs.writeFile(
       path.join(packageRoot, 'package.json'),
       `${JSON.stringify({
-        name: '@codegraphy/organize',
+        name: '@acme/codegraphy-private-plugin',
         version: '0.1.0',
         codegraphy: {
           type: 'plugin',
@@ -131,11 +131,11 @@ describe('plugins/command', () => {
 
     expect(result).toEqual({
       exitCode: 0,
-      output: `Linked @codegraphy/organize from ${packageRoot} into ~/.codegraphy/plugins.json.`,
+      output: `Linked @acme/codegraphy-private-plugin from ${packageRoot} into ~/.codegraphy/plugins.json.`,
     });
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([
       expect.objectContaining({
-        package: '@codegraphy/organize',
+        package: '@acme/codegraphy-private-plugin',
         packageRoot,
       }),
     ]);

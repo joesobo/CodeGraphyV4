@@ -133,11 +133,11 @@ describe('CodeGraphy installed plugin cache', () => {
 
   it('links a private local plugin package root into the user-level cache', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
-    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-organize-package-'));
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-private-package-'));
     await fs.writeFile(
       path.join(packageRoot, 'package.json'),
       `${JSON.stringify({
-        name: '@codegraphy/organize',
+        name: '@acme/codegraphy-private-plugin',
         version: '0.1.0',
         codegraphy: {
           type: 'plugin',
@@ -154,7 +154,7 @@ describe('CodeGraphy installed plugin cache', () => {
     });
 
     expect(record).toEqual({
-      package: '@codegraphy/organize',
+      package: '@acme/codegraphy-private-plugin',
       version: '0.1.0',
       apiVersion: '^2.0.0',
       disclosures: ['workspaceWrites'],

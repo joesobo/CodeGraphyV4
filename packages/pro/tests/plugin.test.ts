@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import type { CodeGraphyAccessKey } from '@codegraphy/plugin-api';
 import { createProPlugin } from '../src/plugin';
 
 describe('@codegraphy/pro plugin', () => {
-  it('registers as the Pro access provider without owning Organize implementation', () => {
+  it('registers as the Pro access provider without owning paid feature implementation', () => {
     const plugin = createProPlugin();
 
     expect(plugin).toMatchObject({
@@ -12,7 +13,7 @@ describe('@codegraphy/pro plugin', () => {
       supportedExtensions: [],
     });
     expect(plugin.requiresAccess).toBeUndefined();
-    expect(plugin.accessProvider?.provides).toEqual(['organize']);
+    expect(plugin.accessProvider?.provides).toEqual([]);
     expect(plugin.graphView?.runtimeNodes).toBeUndefined();
     expect(plugin.graphView?.projections).toBeUndefined();
     expect(plugin.graphView?.forces).toBeUndefined();
@@ -37,34 +38,37 @@ describe('@codegraphy/pro plugin', () => {
     ]);
   });
 
-  it('reports organize access from the configured Pro account status', async () => {
+  it('reports configured paid feature access from the Pro account status', async () => {
+    const accessKey = 'premium-layout' as CodeGraphyAccessKey;
     const plugin = createProPlugin({
+      accessKeys: [accessKey],
       getAccountStatus: () => ({
         signedIn: true,
         plan: 'pro',
         access: {
-          organize: 'granted',
+          [accessKey]: 'granted',
         },
       }),
     });
 
     await expect(plugin.accessProvider?.getAccess({
-      access: 'organize',
-      pluginId: 'codegraphy.organize',
+      access: accessKey,
+      pluginId: 'acme.premium-layout',
     })).resolves.toEqual({
-      access: 'organize',
+      access: accessKey,
       state: 'granted',
     });
   });
 
-  it('keeps organize gated when no Pro account is connected', async () => {
-    const plugin = createProPlugin();
+  it('keeps configured paid feature access gated when no Pro account is connected', async () => {
+    const accessKey = 'premium-layout' as CodeGraphyAccessKey;
+    const plugin = createProPlugin({ accessKeys: [accessKey] });
 
     await expect(plugin.accessProvider?.getAccess({
-      access: 'organize',
-      pluginId: 'codegraphy.organize',
+      access: accessKey,
+      pluginId: 'acme.premium-layout',
     })).resolves.toEqual({
-      access: 'organize',
+      access: accessKey,
       state: 'missing',
       reason: 'CodeGraphy Pro account is not connected.',
     });

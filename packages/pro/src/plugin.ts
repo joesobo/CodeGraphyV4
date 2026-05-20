@@ -7,8 +7,6 @@ import type {
 } from '@codegraphy/plugin-api';
 import manifest from '../codegraphy.json';
 
-const ORGANIZE_ACCESS = 'organize' as CodeGraphyAccessKey;
-
 export type ProPlan = 'free' | 'pro' | 'team' | 'unknown';
 
 export interface ProAccountStatus {
@@ -18,6 +16,7 @@ export interface ProAccountStatus {
 }
 
 export interface ProPluginOptions {
+  accessKeys?: readonly CodeGraphyAccessKey[];
   getAccountStatus?(): ProAccountStatus | Promise<ProAccountStatus>;
 }
 
@@ -52,7 +51,7 @@ function createAccessResult(
 function createProAccessProvider(options: ProPluginOptions): IAccessProvider {
   return {
     id: 'codegraphy.pro.access',
-    provides: [ORGANIZE_ACCESS],
+    provides: options.accessKeys ?? [],
     async getAccess(request): Promise<IAccessResult> {
       const status = await readAccountStatus(options);
       const state = status.access[request.access] ?? 'missing';

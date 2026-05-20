@@ -16,17 +16,17 @@ function createPlugin(overrides: Partial<IPlugin>): IPlugin {
 
 describe('Core plugin Access checks', () => {
   it('keeps Access Provider plugins available while hiding gated plugin contributions without granted Access', async () => {
-    const organizeAccess = 'organize' as CodeGraphyAccessKey;
+    const paidFeatureAccess = 'premium-layout' as CodeGraphyAccessKey;
     const registry = new CorePluginRegistry();
 
     registry.register(createPlugin({
       id: 'codegraphy.pro',
       accessProvider: {
         id: 'codegraphy.pro.access',
-        provides: [organizeAccess],
+        provides: [paidFeatureAccess],
         async getAccess() {
           return {
-            access: organizeAccess,
+            access: paidFeatureAccess,
             state: 'missing',
             reason: 'Sign in to CodeGraphy Pro.',
           };
@@ -43,12 +43,12 @@ describe('Core plugin Access checks', () => {
     }));
 
     registry.register(createPlugin({
-      id: 'codegraphy.organize',
-      requiresAccess: organizeAccess,
+      id: 'acme.premium-layout',
+      requiresAccess: paidFeatureAccess,
       graphView: {
         forces: [{
-          id: 'codegraphy.organize.section-physics',
-          label: 'Section Physics',
+          id: 'acme.premium-layout.force',
+          label: 'Premium Layout Force',
           create() {
             return { dispose() {} };
           },
@@ -61,11 +61,11 @@ describe('Core plugin Access checks', () => {
       available: true,
       access: [],
     });
-    await expect(registry.getPluginAvailability('codegraphy.organize')).resolves.toMatchObject({
-      pluginId: 'codegraphy.organize',
+    await expect(registry.getPluginAvailability('acme.premium-layout')).resolves.toMatchObject({
+      pluginId: 'acme.premium-layout',
       available: false,
       access: [{
-        access: organizeAccess,
+        access: paidFeatureAccess,
         state: 'missing',
       }],
     });
@@ -79,17 +79,17 @@ describe('Core plugin Access checks', () => {
   });
 
   it('exposes gated plugin contributions when an Access Provider grants Access', async () => {
-    const organizeAccess = 'organize' as CodeGraphyAccessKey;
+    const paidFeatureAccess = 'premium-layout' as CodeGraphyAccessKey;
     const registry = new CorePluginRegistry();
 
     registry.register(createPlugin({
       id: 'codegraphy.pro',
       accessProvider: {
         id: 'codegraphy.pro.access',
-        provides: [organizeAccess],
+        provides: [paidFeatureAccess],
         async getAccess() {
           return {
-            access: organizeAccess,
+            access: paidFeatureAccess,
             state: 'granted',
           };
         },
@@ -97,12 +97,12 @@ describe('Core plugin Access checks', () => {
     }));
 
     registry.register(createPlugin({
-      id: 'codegraphy.organize',
-      requiresAccess: organizeAccess,
+      id: 'acme.premium-layout',
+      requiresAccess: paidFeatureAccess,
       graphView: {
         forces: [{
-          id: 'codegraphy.organize.section-physics',
-          label: 'Section Physics',
+          id: 'acme.premium-layout.force',
+          label: 'Premium Layout Force',
           create() {
             return { dispose() {} };
           },
@@ -110,18 +110,18 @@ describe('Core plugin Access checks', () => {
       },
     }));
 
-    await expect(registry.getPluginAvailability('codegraphy.organize')).resolves.toMatchObject({
-      pluginId: 'codegraphy.organize',
+    await expect(registry.getPluginAvailability('acme.premium-layout')).resolves.toMatchObject({
+      pluginId: 'acme.premium-layout',
       available: true,
       access: [{
-        access: organizeAccess,
+        access: paidFeatureAccess,
         state: 'granted',
       }],
     });
     await expect(registry.listAvailableGraphViewContributions()).resolves.toMatchObject({
       forces: [{
-        pluginId: 'codegraphy.organize',
-        contribution: { id: 'codegraphy.organize.section-physics' },
+        pluginId: 'acme.premium-layout',
+        contribution: { id: 'acme.premium-layout.force' },
       }],
     });
   });

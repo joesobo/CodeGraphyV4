@@ -2,7 +2,7 @@
 
 CodeGraphy Pro is the optional account and Access Provider plugin for paid CodeGraphy capabilities.
 
-This package does not implement paid Organize behavior directly. It registers the Pro account surface and provides Access state, such as `organize`, for paid plugins that declare `requiresAccess`.
+This package does not implement paid feature behavior directly. It registers the Pro account surface and provides configurable Access state for paid plugins that declare `requiresAccess`.
 
 ## Contributions
 

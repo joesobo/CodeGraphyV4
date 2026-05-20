@@ -18,9 +18,9 @@ async function createWorkspace(): Promise<string> {
 describe('Workspace plugin data host', () => {
   it('loads fallback data without writing settings before a plugin saves data', async () => {
     const workspaceRoot = await createWorkspace();
-    const host = createWorkspacePluginDataHost(workspaceRoot, 'codegraphy.organize');
+    const host = createWorkspacePluginDataHost(workspaceRoot, 'acme.workspace-notes');
 
-    expect(host.loadData({ sections: [] })).toEqual({ sections: [] });
+    expect(host.loadData({ notes: [] })).toEqual({ notes: [] });
     await expect(fs.access(getWorkspaceSettingsPath(workspaceRoot))).rejects.toThrow();
   });
 
@@ -33,13 +33,13 @@ describe('Workspace plugin data host', () => {
       }],
     });
 
-    const host = createWorkspacePluginDataHost(workspaceRoot, 'codegraphy.organize');
-    await host.saveData({ sections: ['frontend'] }, { undoLabel: 'Save section' });
+    const host = createWorkspacePluginDataHost(workspaceRoot, 'acme.workspace-notes');
+    await host.saveData({ notes: ['frontend'] }, { undoLabel: 'Save plugin data' });
 
-    expect(createWorkspacePluginDataHost(workspaceRoot, 'codegraphy.organize').loadData({
-      sections: [],
+    expect(createWorkspacePluginDataHost(workspaceRoot, 'acme.workspace-notes').loadData({
+      notes: [],
     })).toEqual({
-      sections: ['frontend'],
+      notes: ['frontend'],
     });
     expect(JSON.parse(
       await fs.readFile(getWorkspaceSettingsPath(workspaceRoot), 'utf-8'),
@@ -48,8 +48,8 @@ describe('Workspace plugin data host', () => {
         package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       }],
       pluginData: {
-        'codegraphy.organize': {
-          sections: ['frontend'],
+        'acme.workspace-notes': {
+          notes: ['frontend'],
         },
       },
     });
