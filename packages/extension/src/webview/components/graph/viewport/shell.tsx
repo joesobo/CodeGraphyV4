@@ -124,31 +124,27 @@ function readViewportNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
-function readViewportOwnerSectionId(value: unknown): string | null | undefined {
-  return typeof value === 'string' || value === null ? value : undefined;
-}
-
 function toGraphViewViewportNodes(nodes: UseGraphStateResult['graphData']['nodes']): GraphViewViewportNode[] {
-  return nodes.map(node => ({
-    fx: node.fx,
-    fy: node.fy,
-    fz: node.fz,
-    id: node.id,
-    isCollapsedGraphSection: readViewportBoolean(node.isCollapsedGraphSection),
-    isDragging: node.isDragging,
-    isGraphSection: readViewportBoolean(node.isGraphSection),
-    isPinned: node.isPinned,
-    ownerSectionId: readViewportOwnerSectionId(node.ownerSectionId),
-    sectionHeight: readViewportNumber(node.sectionHeight),
-    sectionWidth: readViewportNumber(node.sectionWidth),
-    size: node.size,
-    vx: node.vx,
-    vy: node.vy,
-    vz: node.vz,
-    x: node.x,
-    y: node.y,
-    z: node.z,
-  }));
+  return nodes.map(node => {
+    const viewportNode = node as GraphViewViewportNode;
+
+    return {
+      ...viewportNode,
+      fx: readViewportNumber(node.fx),
+      fy: readViewportNumber(node.fy),
+      fz: readViewportNumber(node.fz),
+      id: node.id,
+      isDragging: readViewportBoolean(node.isDragging),
+      isPinned: readViewportBoolean(node.isPinned),
+      size: readViewportNumber(node.size),
+      vx: readViewportNumber(node.vx),
+      vy: readViewportNumber(node.vy),
+      vz: readViewportNumber(node.vz),
+      x: readViewportNumber(node.x),
+      y: readViewportNumber(node.y),
+      z: readViewportNumber(node.z),
+    };
+  });
 }
 
 export function GraphViewportShell({

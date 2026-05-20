@@ -42,6 +42,7 @@ function createGraphData(): UseGraphStateResult['graphData'] {
 				borderColor: '#1f2937',
 				borderWidth: 1,
 				color: '#93C5FD',
+				customRuntimeState: { owner: 'plugin-a' },
 				id: 'src/app.ts',
 				isFavorite: false,
 				isPinned: false,
@@ -375,7 +376,10 @@ describe('graph/viewport/shell', () => {
 		expect(pluginHost.setGraphViewViewportState).toHaveBeenCalledWith(expect.objectContaining({
 			graphMode: '3d',
 			nodes: expect.arrayContaining([
-				expect.objectContaining({ id: 'src/app.ts' }),
+				expect.objectContaining({
+					customRuntimeState: { owner: 'plugin-a' },
+					id: 'src/app.ts',
+				}),
 			]),
 			timelineActive: true,
 			zoom: 1.75,

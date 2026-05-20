@@ -300,8 +300,8 @@ describe('Graph View context menu contributions', () => {
     const graphViewContributions = createContributions([{
       pluginId: 'acme.graph-tools',
       contribution: {
-        id: 'acme.new-section',
-        label: 'New Section...',
+        id: 'acme.new-plugin-node',
+        label: 'New Plugin Node...',
         placement: { menu: 'create' },
         targets: [{ kind: 'background' }],
         run: vi.fn(),
@@ -319,7 +319,7 @@ describe('Graph View context menu contributions', () => {
     expect(itemLabels(entries).slice(0, 3)).toEqual([
       'New File...',
       'New Folder...',
-      'New Section...',
+      'New Plugin Node...',
     ]);
   });
 

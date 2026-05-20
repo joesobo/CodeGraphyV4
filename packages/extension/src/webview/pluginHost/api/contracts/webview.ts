@@ -5,7 +5,7 @@
 
 import type { IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
 import type { Disposable } from '../../../../core/plugins/disposable';
-import type { IGraphViewContributions } from '../../../../core/plugins/types/contracts';
+import type { IGraphViewContributions, IGraphViewNodeDragState } from '../../../../core/plugins/types/contracts';
 
 export type { IGraphViewContributions };
 
@@ -45,25 +45,9 @@ export interface GraphViewPoint2D {
   y: number;
 }
 
-export interface GraphViewViewportNode {
-  fx?: number;
-  fy?: number;
-  fz?: number;
+export interface GraphViewViewportNode extends Partial<IGraphViewNodeDragState> {
+  [key: string]: unknown;
   id: string;
-  isCollapsedGraphSection?: boolean;
-  isDragging?: boolean;
-  isGraphSection?: boolean;
-  isPinned?: boolean;
-  ownerSectionId?: string | null;
-  sectionHeight?: number;
-  sectionWidth?: number;
-  size?: number;
-  vx?: number;
-  vy?: number;
-  vz?: number;
-  x?: number;
-  y?: number;
-  z?: number;
 }
 
 export interface GraphViewViewportState {
