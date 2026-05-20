@@ -59,6 +59,7 @@ interface GraphViewContributionSet {
   runtimeEdges: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
   projections: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
   forces: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
+  nodeDragEnd: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
   contextMenu: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
   ui: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
 }
@@ -81,6 +82,7 @@ function collectContributionStatuses(
     'runtimeEdges',
     'projections',
     'forces',
+    'nodeDragEnd',
     'contextMenu',
     'ui',
   ] as const satisfies readonly GraphViewContributionStatusKind[]) {

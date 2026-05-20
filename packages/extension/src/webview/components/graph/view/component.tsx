@@ -47,6 +47,7 @@ function hasGraphViewContributions(
       || contributions.runtimeEdges.length > 0
       || contributions.projections.length > 0
       || contributions.forces.length > 0
+      || contributions.nodeDragEnd.length > 0
       || contributions.contextMenu.length > 0
       || contributions.ui.length > 0
     );
@@ -123,6 +124,7 @@ export default function Graph({
     graphContextSelection: graphState.contextSelection,
     graphCursorRef: graphState.graphCursorRef,
     graphDataRef: graphState.graphDataRef,
+    graphViewContributions: resolvedGraphViewContributions,
     graphMode: viewState.graphMode,
     highlightedNeighborsRef: graphState.highlightedNeighborsRef,
     highlightedNodeRef: graphState.highlightedNodeRef,

@@ -68,6 +68,33 @@ export interface IGraphViewForceAdapterContribution extends IGraphViewContributi
   create(context: IGraphViewForceAdapterContext): IGraphViewForceAdapter;
 }
 
+export interface IGraphViewNodeDragState extends IGraphViewRuntimeNode {
+  fx?: number;
+  fy?: number;
+  fz?: number;
+  isDragging?: boolean;
+  isPinned?: boolean;
+  vx?: number;
+  vy?: number;
+  vz?: number;
+  x?: number;
+  y?: number;
+  z?: number;
+}
+
+export interface IGraphViewNodeDragEndContext {
+  graphMode: '2d' | '3d';
+  node: IGraphViewNodeDragState;
+}
+
+export interface IGraphViewNodeDragEndResult {
+  keepFixedPosition?: boolean;
+}
+
+export interface IGraphViewNodeDragEndContribution extends IGraphViewContributionBase {
+  onNodeDragEnd(context: IGraphViewNodeDragEndContext): IGraphViewNodeDragEndResult | void;
+}
+
 export type GraphViewUiSlot =
   | 'graph.toolbar'
   | 'graph.panelSlot'
@@ -125,6 +152,7 @@ export interface IGraphViewContributions {
   runtimeEdges?: readonly IGraphViewRuntimeEdgeContribution[];
   projections?: readonly IGraphViewProjectionContribution[];
   forces?: readonly IGraphViewForceAdapterContribution[];
+  nodeDragEnd?: readonly IGraphViewNodeDragEndContribution[];
   contextMenu?: readonly IGraphViewContextMenuContribution[];
   ui?: readonly IGraphViewUiSlotContribution[];
 }

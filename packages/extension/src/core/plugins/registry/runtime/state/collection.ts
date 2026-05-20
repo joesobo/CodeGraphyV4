@@ -3,6 +3,7 @@ import type {
   IFileAnalysisResult,
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
+  IGraphViewNodeDragEndContribution,
   IGraphViewProjectionContribution,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
@@ -113,6 +114,12 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
         info.plugin,
         info.plugin.graphView?.forces,
         contributions.forces,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewNodeDragEndContribution>(
+        info.plugin,
+        info.plugin.graphView?.nodeDragEnd,
+        contributions.nodeDragEnd,
         context,
       );
       await this.pushAvailableGraphViewContributions<IGraphViewContextMenuContribution>(

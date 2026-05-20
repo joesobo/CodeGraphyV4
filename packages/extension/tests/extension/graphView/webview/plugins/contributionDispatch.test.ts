@@ -149,6 +149,7 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
             },
           }],
           forces: [],
+          nodeDragEnd: [],
           contextMenu: [],
           ui: [],
         })),

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
   applyNodeDrag,
@@ -77,7 +77,27 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
-  it('keeps pinned node coordinates fixed at drag end', () => {
+  it('releases pinned graph nodes when no plugin drag policy keeps them fixed', () => {
+    const node = {
+      id: 'node',
+      fx: 12,
+      fy: 24,
+      fz: 36,
+      isDragging: true,
+      isPinned: true,
+    } as FGNode;
+
+    postNodeDragEndMessages(node, '3d');
+
+    expect(node).toMatchObject({
+      fx: undefined,
+      fy: undefined,
+      fz: undefined,
+      isDragging: false,
+    });
+  });
+
+  it('keeps fixed coordinates when a plugin drag policy owns the node', () => {
     const node = {
       id: 'node',
       fx: 12,
@@ -85,9 +105,23 @@ describe('graph/runtime/use/interaction node drag', () => {
       isDragging: true,
       isPinned: true,
     } as FGNode;
+    const onNodeDragEnd = vi.fn(() => ({ keepFixedPosition: true }));
 
-    postNodeDragEndMessages(node, '2d');
+    postNodeDragEndMessages(node, '2d', {
+      nodeDragEnd: [{
+        pluginId: 'codegraphy.organize',
+        contribution: {
+          id: 'codegraphy.organize.pin-drag-end',
+          label: 'Pinned Node Drag End',
+          onNodeDragEnd,
+        },
+      }],
+    });
 
+    expect(onNodeDragEnd).toHaveBeenCalledWith({
+      graphMode: '2d',
+      node,
+    });
     expect(node).toMatchObject({
       fx: 12,
       fy: 24,

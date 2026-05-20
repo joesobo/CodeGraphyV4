@@ -71,6 +71,7 @@ export function useGraphInteractionRuntime({
   graphContextSelection,
   graphCursorRef,
   graphDataRef,
+  graphViewContributions,
   graphMode,
   highlightedNeighborsRef,
   highlightedNodeRef,
@@ -187,6 +188,7 @@ export function useGraphInteractionRuntime({
   function handleNodeDragEnd(node: FGNode): void {
     postDraggedNodesDragEndMessages(node, nodeDragGroupRef.current, {
       graphData: graphDataRef.current,
+      graphViewContributions,
       graphMode,
     });
     nodeDragGroupRef.current = null;

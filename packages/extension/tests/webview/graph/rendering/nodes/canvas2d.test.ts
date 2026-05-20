@@ -395,9 +395,8 @@ describe('graph/rendering/nodes/canvas2d', () => {
     }));
   });
 
-  it('renders a pin badge for pinned nodes without changing the node body', () => {
+  it('does not render a built-in pin badge for pinned nodes', () => {
     const { ctx, operations } = createContext();
-    vi.stubGlobal('Path2D', vi.fn());
 
     renderNodeCanvas(
       createDependencies({ showLabels: false }),
@@ -407,19 +406,10 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
 
     expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
-    expect(ctx.arc).not.toHaveBeenCalled();
-    expect(ctx.translate).toHaveBeenCalledWith(
-      expect.closeTo(29.775),
-      expect.closeTo(31.375),
-    );
-    expect(ctx.scale).toHaveBeenCalledWith(0.45208333333333334, 0.45208333333333334);
-    expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
+    expect(ctx.translate).not.toHaveBeenCalled();
+    expect(ctx.scale).not.toHaveBeenCalled();
     expect(operations).not.toContainEqual(expect.objectContaining({
       fillStyle: 'rgb(28, 62, 118)',
-    }));
-    expect(operations).toContainEqual(expect.objectContaining({
-      fillStyle: '#ffffff',
-      kind: 'fill',
     }));
   });
 

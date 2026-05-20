@@ -5,6 +5,7 @@ import type {
   IAccessResult,
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
+  IGraphViewNodeDragEndContribution,
   IGraphViewProjectionContribution,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
@@ -32,6 +33,7 @@ export interface CoreGraphViewContributionSet {
   runtimeEdges: CoreGraphViewContributionEntry<IGraphViewRuntimeEdgeContribution>[];
   projections: CoreGraphViewContributionEntry<IGraphViewProjectionContribution>[];
   forces: CoreGraphViewContributionEntry<IGraphViewForceAdapterContribution>[];
+  nodeDragEnd: CoreGraphViewContributionEntry<IGraphViewNodeDragEndContribution>[];
   contextMenu: CoreGraphViewContributionEntry<IGraphViewContextMenuContribution>[];
   ui: CoreGraphViewContributionEntry<IGraphViewUiSlotContribution>[];
 }
@@ -42,6 +44,7 @@ export function createEmptyGraphViewContributionSet(): CoreGraphViewContribution
     runtimeEdges: [],
     projections: [],
     forces: [],
+    nodeDragEnd: [],
     contextMenu: [],
     ui: [],
   };

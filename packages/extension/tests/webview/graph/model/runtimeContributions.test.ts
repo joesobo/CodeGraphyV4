@@ -9,6 +9,7 @@ function createEmptyContributions(): CoreGraphViewContributionSet {
     runtimeEdges: [],
     projections: [],
     forces: [],
+    nodeDragEnd: [],
     contextMenu: [],
     ui: [],
   };

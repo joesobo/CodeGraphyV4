@@ -46,13 +46,14 @@ function createEmptyWebviewGraphViewContributionSet(): CoreGraphViewContribution
     runtimeEdges: [],
     projections: [],
     forces: [],
+    nodeDragEnd: [],
     contextMenu: [],
     ui: [],
   };
 }
 
 export class WebviewPluginHost {
-  private readonly _nodeRenderers = new Map<string, { pluginId: string; fn: NodeRenderFn }>();
+  private readonly _nodeRenderers = new Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>();
   private readonly _overlays = new Map<string, { pluginId: string; fn: OverlayRenderFn }>();
   private readonly _tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }> = [];
   private readonly _containers = new Map<string, HTMLDivElement>();
@@ -80,7 +81,15 @@ export class WebviewPluginHost {
     deliverPluginMessage(pluginId, msg, this._messageHandlers);
   }
 
-  getNodeRenderer(type: string): NodeRenderFn | undefined { return this._nodeRenderers.get(type)?.fn; }
+  getNodeRenderer(type: string): NodeRenderFn | undefined {
+    return this._nodeRenderers.get(type)?.at(-1)?.fn;
+  }
+
+  getNodeRenderers(type: string): NodeRenderFn[] {
+    const typeRenderers = this._nodeRenderers.get(type) ?? [];
+    const wildcardRenderers = type === '*' ? [] : (this._nodeRenderers.get('*') ?? []);
+    return [...typeRenderers, ...wildcardRenderers].map(entry => entry.fn);
+  }
   getOverlays(): Array<{ id: string; fn: OverlayRenderFn }> { return Array.from(this._overlays.entries()).map(([id, entry]) => ({ id, fn: entry.fn })); }
   getTooltipContent(context: TooltipContext): TooltipContent | null { return aggregateTooltipContent(context, this._tooltipProviders); }
 
@@ -92,6 +101,7 @@ export class WebviewPluginHost {
         merged.runtimeEdges.push(...(contributions.runtimeEdges ?? []).map(contribution => ({ pluginId, contribution })));
         merged.projections.push(...(contributions.projections ?? []).map(contribution => ({ pluginId, contribution })));
         merged.forces.push(...(contributions.forces ?? []).map(contribution => ({ pluginId, contribution })));
+        merged.nodeDragEnd.push(...(contributions.nodeDragEnd ?? []).map(contribution => ({ pluginId, contribution })));
         merged.contextMenu.push(...(contributions.contextMenu ?? []).map(contribution => ({ pluginId, contribution })));
         merged.ui.push(...(contributions.ui ?? []).map(contribution => ({ pluginId, contribution })));
       }

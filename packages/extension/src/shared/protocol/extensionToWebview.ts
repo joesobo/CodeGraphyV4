@@ -27,6 +27,7 @@ export type GraphViewContributionStatusKind =
   | 'runtimeEdges'
   | 'projections'
   | 'forces'
+  | 'nodeDragEnd'
   | 'contextMenu'
   | 'ui';
 

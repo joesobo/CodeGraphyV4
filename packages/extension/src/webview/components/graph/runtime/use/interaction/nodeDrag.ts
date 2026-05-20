@@ -1,3 +1,4 @@
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { FGNode } from '../../../model/build';
 
 type GraphMode = '2d' | '3d';
@@ -24,6 +25,7 @@ interface ApplyNodeDragOptions {
 
 interface NodeDragEndOptions {
   graphData: NodeDragGraphData;
+  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>;
   graphMode: GraphMode;
 }
 
@@ -43,10 +45,33 @@ export function markNodeDragging(node: FGNode): void {
   node.isDragging = true;
 }
 
-function releaseNodeDrag(node: FGNode, graphMode: GraphMode): void {
+function shouldKeepFixedPosition(
+  node: FGNode,
+  graphMode: GraphMode,
+  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
+): boolean {
+  for (const entry of graphViewContributions?.nodeDragEnd ?? []) {
+    try {
+      const result = entry.contribution.onNodeDragEnd({ graphMode, node });
+      if (result?.keepFixedPosition === true) {
+        return true;
+      }
+    } catch (error) {
+      console.error('[CodeGraphy] Plugin node drag end contribution error:', error);
+    }
+  }
+
+  return false;
+}
+
+function releaseNodeDrag(
+  node: FGNode,
+  graphMode: GraphMode,
+  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
+): void {
   node.isDragging = false;
 
-  if (node.isPinned) {
+  if (shouldKeepFixedPosition(node, graphMode, graphViewContributions)) {
     return;
   }
 
@@ -153,8 +178,9 @@ function getDragEndNodes(
 export function postNodeDragEndMessages(
   node: FGNode,
   graphMode: GraphMode,
+  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
 ): void {
-  releaseNodeDrag(node, graphMode);
+  releaseNodeDrag(node, graphMode, graphViewContributions);
 }
 
 export function postDraggedNodesDragEndMessages(
@@ -166,6 +192,7 @@ export function postDraggedNodesDragEndMessages(
     postNodeDragEndMessages(
       node,
       options.graphMode,
+      options.graphViewContributions,
     );
   }
 }

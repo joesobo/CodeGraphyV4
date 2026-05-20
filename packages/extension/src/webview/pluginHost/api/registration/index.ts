@@ -28,7 +28,7 @@ export function registerNodeRenderer(
   pluginId: string,
   type: string,
   fn: NodeRenderFn,
-  nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>,
+  nodeRenderers: Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>,
 ): WebviewDisposable {
   return registerNodeRendererImpl(pluginId, type, fn, nodeRenderers);
 }

@@ -120,6 +120,18 @@ describe('WebviewPluginHost', () => {
     expect(host.getNodeRenderer('.ts')).toBe(secondRenderer);
   });
 
+  it('returns type-specific node renderers with wildcard renderers', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const typeRenderer = vi.fn();
+    const wildcardRenderer = vi.fn();
+
+    api.registerNodeRenderer('.ts', typeRenderer);
+    api.registerNodeRenderer('*', wildcardRenderer);
+
+    expect(host.getNodeRenderers('.ts')).toEqual([typeRenderer, wildcardRenderer]);
+  });
+
   it('returns qualified overlay ids and removes a plugin overlay on dispose', () => {
     const host = new WebviewPluginHost();
     const api = host.createAPI('acme.plugin', vi.fn());

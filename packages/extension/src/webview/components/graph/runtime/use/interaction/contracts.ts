@@ -4,6 +4,7 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import type { GraphContextMenuAction, GraphContextSelection } from '../../../contextMenu/contracts';
 import type { createGraphInteractionHandlers } from '../../../interactionRuntime/handlers';
@@ -22,6 +23,7 @@ export interface UseGraphInteractionRuntimeOptions {
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphDataRef: UseGraphStateResult['graphDataRef'];
+  graphViewContributions?: CoreGraphViewContributionSet;
   graphMode: '2d' | '3d';
   highlightedNeighborsRef: UseGraphStateResult['highlightedNeighborsRef'];
   highlightedNodeRef: UseGraphStateResult['highlightedNodeRef'];

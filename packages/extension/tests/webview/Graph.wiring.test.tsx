@@ -284,6 +284,7 @@ describe('Graph wiring', () => {
 			runtimeEdges: [],
 			projections: [],
 			forces: [],
+			nodeDragEnd: [],
 			contextMenu: [],
 			ui: [],
 		};

@@ -3,6 +3,7 @@ import type {
   IGraphData,
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
+  IGraphViewNodeDragEndContribution,
   IGraphViewProjectionContribution,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
@@ -319,6 +320,12 @@ export class CorePluginRegistry {
         info.plugin,
         info.plugin.graphView?.forces,
         contributions.forces,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewNodeDragEndContribution>(
+        info.plugin,
+        info.plugin.graphView?.nodeDragEnd,
+        contributions.nodeDragEnd,
         context,
       );
       await this.pushAvailableGraphViewContributions<IGraphViewContextMenuContribution>(

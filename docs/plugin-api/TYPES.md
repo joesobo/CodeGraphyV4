@@ -138,6 +138,7 @@ The public npm Plugin API exposes host-agnostic Graph View contribution contract
 - runtime Graph View nodes and edges
 - graph projections that run after the free Visible Graph exists
 - additive D3 force adapters
+- node drag-end policies for plugin-owned fixed-position behavior
 - context-menu target selectors for background, node, edge, multi-selection, runtime node type, and runtime edge type
 - named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
 
@@ -206,12 +207,15 @@ Plugin id implies storage ownership. Hosts persist plugin data under the plugin 
 - `IGraphViewRuntimeEdgeContribution`
 - `IGraphViewProjectionContribution`
 - `IGraphViewForceAdapterContribution`
+- `IGraphViewNodeDragEndContribution`
 - `IGraphViewContextMenuContribution`
 - `IGraphViewUiSlotContribution`
 
 Graph View runtime nodes and edges are display artifacts. They do not become Graph Cache facts and are not exposed as Graph Query relationships unless a plugin also contributes analysis data through Core.
 
 Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `graphMode` reports the current `2d` or `3d` view, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
+
+Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy`/`fz` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
 
 ## Theme-Style Plugins
 
