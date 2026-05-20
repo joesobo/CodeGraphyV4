@@ -74,6 +74,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
   sendGraphViewContributionStatuses?(): void;
+  sendPluginWebviewInjections?(): void;
   markWorkspaceReady(graphData: IGraphData): void;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;

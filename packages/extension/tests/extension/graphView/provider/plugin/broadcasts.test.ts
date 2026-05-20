@@ -125,9 +125,11 @@ describe('graphView/provider/plugin/broadcasts', () => {
     const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
     const resolveWebviewAssetPath = vi.fn(() => 'asset://icon.svg');
     const registerBuiltInPluginRoots = vi.fn();
+    const refreshWebviewResourceRoots = vi.fn();
     const source = createPluginSource({
       _resolveWebviewAssetPath: resolveWebviewAssetPath,
       _registerBuiltInPluginRoots: registerBuiltInPluginRoots,
+      _refreshWebviewResourceRoots: refreshWebviewResourceRoots,
     });
     const methods = createGraphViewProviderPluginBroadcastMethods(
       source,
@@ -159,6 +161,10 @@ describe('graphView/provider/plugin/broadcasts', () => {
 
     expect(resolveWebviewAssetPath).toHaveBeenCalledWith('icon.svg', 'plugin.test');
     expect(registerBuiltInPluginRoots).toHaveBeenCalledTimes(2);
+    expect(refreshWebviewResourceRoots).toHaveBeenCalledTimes(1);
+    expect(refreshWebviewResourceRoots.mock.invocationCallOrder[0]).toBeLessThan(
+      resolveWebviewAssetPath.mock.invocationCallOrder[0]!,
+    );
   });
 
   it('sends graph controls and plugin exporters through the provider bridge', () => {
