@@ -18,6 +18,7 @@ describe('extension/repoSettings/defaults', () => {
       respectGitignore: true,
       showOrphans: true,
       plugins: [{ package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME }],
+      pluginData: {},
       nodeColors: createDefaultNodeColors(),
       nodeVisibility: createDefaultNodeVisibility(),
       edgeVisibility: createDefaultEdgeVisibility(),
@@ -62,6 +63,7 @@ describe('extension/repoSettings/defaults', () => {
     expect(second.include).not.toBe(first.include);
     expect(second.plugins).not.toBe(first.plugins);
     expect(second.plugins[0]).not.toBe(first.plugins[0]);
+    expect(second.pluginData).not.toBe(first.pluginData);
     expect(second.nodeColors).not.toBe(first.nodeColors);
     expect(second.nodeVisibility).not.toBe(first.nodeVisibility);
     expect(second.edgeVisibility).not.toBe(first.edgeVisibility);

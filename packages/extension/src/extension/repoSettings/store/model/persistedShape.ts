@@ -8,6 +8,7 @@ const TOP_LEVEL_SETTINGS_KEYS = new Set([
   'respectGitignore',
   'showOrphans',
   'plugins',
+  'pluginData',
   'nodeColors',
   'nodeVisibility',
   'edgeVisibility',
@@ -178,6 +179,16 @@ function normalizePersistedPlugins(normalized: Record<string, unknown>): void {
   normalized.plugins = plugins;
 }
 
+function normalizePersistedPluginData(normalized: Record<string, unknown>): void {
+  if (!('pluginData' in normalized)) {
+    return;
+  }
+
+  if (!isPlainObject(normalized.pluginData)) {
+    delete normalized.pluginData;
+  }
+}
+
 function normalizePersistedLegend(normalized: Record<string, unknown>): void {
   if ('legend' in normalized) {
     normalized.legend = normalizePersistedLegendRules(normalized.legend);
@@ -210,6 +221,7 @@ export function normalizePersistedSettingsShape(
 
   const normalized = pickTopLevelSettings(value);
   normalizePersistedPlugins(normalized);
+  normalizePersistedPluginData(normalized);
   normalizePersistedFilterPatterns(normalized);
   normalizePersistedLegend(normalized);
   normalizePersistedGraphControls(normalized);
