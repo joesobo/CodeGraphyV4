@@ -22,4 +22,5 @@ Operational notes:
 
 - `pnpm run mutate` runs all supported packages and can take hours.
 - The extension package uses a longer Stryker dry-run timeout because its initial instrumented Vitest startup is materially slower than a normal test run.
+- The CI unit-test matrix does not automatically speed up mutation runs. Stryker launches its own Vitest runner, so local mutation speed comes from scoped targets, `reports/mutation/stryker-incremental*.json`, and focused test includes.
 - Prefer package- or file-scoped mutation runs during development.
