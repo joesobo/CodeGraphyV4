@@ -3,10 +3,19 @@
  * Called by @vscode/test-electron after VS Code starts.
  */
 import * as path from 'path';
+import { createRequire } from 'module';
 import { glob } from 'glob';
+import type MochaConstructor from 'mocha';
 
 export async function run(): Promise<void> {
-  const { default: Mocha } = await import('mocha');
+  const repoRoot = path.resolve(__dirname, '../../../../..');
+  const requireFromExtension = createRequire(
+    path.join(repoRoot, 'packages/extension/package.json'),
+  );
+  const mochaModule = requireFromExtension('mocha') as
+    | typeof MochaConstructor
+    | { default: typeof MochaConstructor };
+  const Mocha = 'default' in mochaModule ? mochaModule.default : mochaModule;
   const grep = process.env.CODEGRAPHY_E2E_GREP;
   const mocha = new Mocha({
     ui: 'tdd',

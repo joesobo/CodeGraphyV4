@@ -142,6 +142,9 @@ export interface IGraphViewContextMenuRunContext {
 
 export interface IGraphViewContextMenuContribution extends IGraphViewContributionBase {
   targets: readonly GraphViewContextMenuTargetSelector[];
+  placement?: {
+    menu: 'create';
+  };
   getLabel?(context: IGraphViewContextMenuRunContext): string;
   isVisible?(context: IGraphViewContextMenuRunContext): boolean;
   run(context: IGraphViewContextMenuRunContext): void | Promise<void>;

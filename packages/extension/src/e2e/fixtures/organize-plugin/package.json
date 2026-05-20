@@ -1,0 +1,11 @@
+{
+  "name": "@codegraphy/e2e-organize-plugin",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": "./plugin.js",
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0",
+    "disclosures": []
+  }
+}

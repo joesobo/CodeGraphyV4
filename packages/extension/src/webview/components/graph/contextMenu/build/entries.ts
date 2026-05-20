@@ -32,6 +32,26 @@ function getNodeTargetIds(
     : decision.targets.map(target => target.id);
 }
 
+function insertCreateMenuEntries(
+  baseEntries: GraphContextMenuEntry[],
+  createEntries: GraphContextMenuEntry[],
+): GraphContextMenuEntry[] {
+  if (createEntries.length === 0) {
+    return baseEntries;
+  }
+
+  const separatorIndex = baseEntries.findIndex(entry => entry.id === 'background-separator-primary');
+  if (separatorIndex === -1) {
+    return [...baseEntries, ...createEntries];
+  }
+
+  return [
+    ...baseEntries.slice(0, separatorIndex),
+    ...createEntries,
+    ...baseEntries.slice(separatorIndex),
+  ];
+}
+
 export function buildGraphContextMenuEntries(
   options: BuildGraphContextMenuOptions
 ): GraphContextMenuEntry[] {
@@ -66,8 +86,20 @@ export function buildGraphContextMenuEntries(
                 mutationAvailability,
                 favorites,
               );
+  const graphViewCreateEntries = decision.kind === 'background'
+    ? buildGraphViewContextMenuEntries({
+      decision,
+      edges,
+      graphViewContributions,
+      includeSeparator: false,
+      nodes,
+      placement: 'create',
+      selection,
+    })
+    : [];
+  const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
   return [
-    ...baseEntries,
+    ...positionedBaseEntries,
     ...buildPluginEntriesForDecision(decision, pluginItems),
     ...buildGraphViewContextMenuEntries({
       decision,

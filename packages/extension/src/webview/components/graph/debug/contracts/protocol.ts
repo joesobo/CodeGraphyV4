@@ -18,3 +18,10 @@ export interface GraphDebugControls {
   zoom?(this: void): number;
   zoomToFit?(this: void, durationMs?: number, padding?: number): void;
 }
+
+export interface GraphDebugApi {
+  fitView(this: void): void;
+  fitViewWithPadding(this: void, padding: number): void;
+  getSnapshot(this: void): GraphDebugSnapshot;
+  openNodeContextMenu(this: void, nodeId: string): void;
+}

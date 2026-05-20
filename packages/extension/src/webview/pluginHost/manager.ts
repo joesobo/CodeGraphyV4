@@ -62,6 +62,7 @@ export class WebviewPluginHost {
   private readonly _messageHandlers = new Map<string, Set<(msg: { type: string; data: unknown }) => void>>();
   private readonly _graphViewContributions = new Map<string, Set<IGraphViewContributions>>();
   private readonly _graphViewContributionListeners = new Set<GraphViewContributionListener>();
+  private _graphViewContributionSnapshot: CoreGraphViewContributionSet | undefined;
 
   createAPI(pluginId: string, postMessage: (msg: GraphInteractionMessage) => void): CodeGraphyWebviewAPI {
     return createPluginWebviewApi(
@@ -94,6 +95,10 @@ export class WebviewPluginHost {
   getTooltipContent(context: TooltipContext): TooltipContent | null { return aggregateTooltipContent(context, this._tooltipProviders); }
 
   getGraphViewContributions(): CoreGraphViewContributionSet {
+    if (this._graphViewContributionSnapshot) {
+      return this._graphViewContributionSnapshot;
+    }
+
     const merged = createEmptyWebviewGraphViewContributionSet();
     for (const [pluginId, contributionSets] of this._graphViewContributions) {
       for (const contributions of contributionSets) {
@@ -107,6 +112,7 @@ export class WebviewPluginHost {
       }
     }
 
+    this._graphViewContributionSnapshot = merged;
     return merged;
   }
 
@@ -128,6 +134,7 @@ export class WebviewPluginHost {
     }
 
     pluginContributions.add(contributions);
+    this.invalidateGraphViewContributionSnapshot();
     this.notifyGraphViewContributionListeners();
 
     return toDisposable(() => {
@@ -136,8 +143,13 @@ export class WebviewPluginHost {
       if (currentContributions?.size === 0) {
         this._graphViewContributions.delete(pluginId);
       }
+      this.invalidateGraphViewContributionSnapshot();
       this.notifyGraphViewContributionListeners();
     });
+  }
+
+  private invalidateGraphViewContributionSnapshot(): void {
+    this._graphViewContributionSnapshot = undefined;
   }
 
   private notifyGraphViewContributionListeners(): void {
@@ -166,6 +178,7 @@ export class WebviewPluginHost {
       this._slotHosts,
     );
     if (this._graphViewContributions.delete(pluginId)) {
+      this.invalidateGraphViewContributionSnapshot();
       this.notifyGraphViewContributionListeners();
     }
   }

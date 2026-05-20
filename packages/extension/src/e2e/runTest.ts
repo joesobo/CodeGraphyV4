@@ -9,8 +9,9 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { runTests } from '@vscode/test-electron';
+import { createRequire } from 'module';
 import { e2eScenarios, type E2EScenario } from './scenarios';
+import type { runTests as runVSCodeTests } from '@vscode/test-electron';
 
 interface CodeGraphyInstalledPluginRecord {
   package: string;
@@ -181,6 +182,12 @@ function prepareScenarioWorkspacePlugins(
 
 async function main(): Promise<void> {
   const repoRoot = path.resolve(__dirname, '../../../..');
+  const requireFromExtension = createRequire(
+    path.join(repoRoot, 'packages/extension/package.json'),
+  );
+  const { runTests } = requireFromExtension('@vscode/test-electron') as {
+    runTests: typeof runVSCodeTests;
+  };
   // The compiled Mocha suite entry point
   const extensionTestsPath = path.resolve(__dirname, './suite/run');
 

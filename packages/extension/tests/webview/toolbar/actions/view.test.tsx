@@ -69,10 +69,10 @@ import {
 
 const iconButtonTitles = ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
 
-function renderWithProviders() {
+function renderWithProviders(props: Partial<React.ComponentProps<typeof ToolbarActions>> = {}) {
   return render(
     <TooltipProvider>
-      <ToolbarActions />
+      <ToolbarActions {...props} />
     </TooltipProvider>,
   );
 }
@@ -247,6 +247,48 @@ describe('ToolbarActions', () => {
         .map(button => button.textContent?.trim()),
     ).toEqual(['New File...', 'New Folder...']);
     expect(within(createMenu as HTMLElement).queryByTestId('dropdown-separator')).not.toBeInTheDocument();
+  });
+
+  it('renders graph-view create contributions beside file and folder actions', () => {
+    const run = vi.fn();
+    const pluginHost = {
+      getGraphViewContributions: vi.fn(() => ({
+        runtimeNodes: [],
+        runtimeEdges: [],
+        projections: [],
+        forces: [],
+        nodeDragEnd: [],
+        contextMenu: [{
+          pluginId: 'acme.graph-tools',
+          contribution: {
+            id: 'acme.new-section',
+            label: 'New Section...',
+            placement: { menu: 'create' },
+            targets: [{ kind: 'background' }],
+            run,
+          },
+        }],
+        ui: [],
+      })),
+      subscribeGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
+    };
+
+    renderWithProviders({ pluginHost: pluginHost as never });
+
+    const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
+    expect(
+      within(createMenu as HTMLElement)
+        .getAllByRole('button')
+        .map(button => button.textContent?.trim()),
+    ).toEqual(['New File...', 'New Folder...', 'New Section...']);
+
+    fireEvent.click(screen.getByText('New Section...'));
+
+    expect(run).toHaveBeenCalledWith({
+      target: { kind: 'background' },
+      selectedNodeIds: [],
+      selectedEdgeIds: [],
+    });
   });
 
   it('posts root creation messages from the graph tool rail create menu', () => {

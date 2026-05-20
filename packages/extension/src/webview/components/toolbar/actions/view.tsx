@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { useGraphStore } from '../../../store/state';
 import { IndexToolbarAction } from './indexAction';
 import { ToolbarPanelButtons } from './panelButtons';
@@ -14,10 +16,40 @@ export {
   getToolbarActionKey,
 } from './model';
 
-export function ToolbarActions(): React.ReactElement {
+function useGraphViewContributions(
+  pluginHost: WebviewPluginHost | undefined,
+): CoreGraphViewContributionSet | undefined {
+  const [contributionVersion, setContributionVersion] = useState(0);
+  const canReadGraphViewContributions =
+    typeof pluginHost?.getGraphViewContributions === 'function'
+    && typeof pluginHost.subscribeGraphViewContributions === 'function';
+
+  useEffect(() => {
+    if (!canReadGraphViewContributions) {
+      return undefined;
+    }
+
+    const subscription = pluginHost.subscribeGraphViewContributions(() => {
+      setContributionVersion(version => version + 1);
+    });
+    return () => subscription.dispose();
+  }, [canReadGraphViewContributions, pluginHost]);
+
+  void contributionVersion;
+  return canReadGraphViewContributions
+    ? pluginHost.getGraphViewContributions()
+    : undefined;
+}
+
+export function ToolbarActions({
+  pluginHost,
+}: {
+  pluginHost?: WebviewPluginHost;
+}): React.ReactElement {
   const activePanel = useGraphStore(s => s.activePanel);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
+  const graphViewContributions = useGraphViewContributions(pluginHost);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
@@ -37,7 +69,7 @@ export function ToolbarActions(): React.ReactElement {
       <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-graph-tools-group">
         <LayoutModePopover />
         <NodeSizeModePopover />
-        <CreateToolbarAction />
+        <CreateToolbarAction graphViewContributions={graphViewContributions} />
         <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
         <ToolbarPanelButtons
           activePanel={activePanel}

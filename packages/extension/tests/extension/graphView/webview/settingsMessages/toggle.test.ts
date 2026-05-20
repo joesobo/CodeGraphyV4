@@ -23,7 +23,11 @@ function createHandlers(
       getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
       updateConfig: vi.fn(() => Promise.resolve()),
       reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
+      sendPluginStatuses: vi.fn(),
+      sendContextMenuItems: vi.fn(),
+      sendPluginToolbarActions: vi.fn(),
       sendGraphViewContributionStatuses: vi.fn(),
+      sendPluginWebviewInjections: vi.fn(),
       analyzeAndSendData: vi.fn(() => Promise.resolve()),
       smartRebuild: vi.fn(),
       getPluginFilterPatterns: vi.fn(() => []),
@@ -298,6 +302,61 @@ describe('graph view settings toggle message', () => {
     expect(reloadWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphViewContributionStatuses.mock.invocationCallOrder[0]);
     expect(sendGraphViewContributionStatuses.mock.invocationCallOrder[0])
+      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+  });
+
+  it('broadcasts package plugin cleanup before re-analysis when a package is toggled off', async () => {
+    const state = createState();
+    const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
+    const sendPluginStatuses = vi.fn();
+    const sendContextMenuItems = vi.fn();
+    const sendPluginToolbarActions = vi.fn();
+    const sendGraphViewContributionStatuses = vi.fn();
+    const sendPluginWebviewInjections = vi.fn();
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [
+            { package: '@codegraphy/plugin-markdown' },
+            { package: '@acme/graph-tools' },
+          ] as T;
+        }
+        return defaultValue;
+      }),
+      reloadWorkspacePlugins,
+      sendPluginStatuses,
+      sendContextMenuItems,
+      sendPluginToolbarActions,
+      sendGraphViewContributionStatuses,
+      sendPluginWebviewInjections,
+      analyzeAndSendData,
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'acme.graph-tools',
+          packageName: '@acme/graph-tools',
+          enabled: false,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(sendPluginStatuses).toHaveBeenCalledOnce();
+    expect(sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(sendPluginToolbarActions).toHaveBeenCalledOnce();
+    expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
+    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
+    expect(sendPluginStatuses.mock.invocationCallOrder[0])
+      .toBeGreaterThan(reloadWorkspacePlugins.mock.invocationCallOrder[0]);
+    expect(sendPluginStatuses.mock.invocationCallOrder[0])
+      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+    expect(sendPluginWebviewInjections.mock.invocationCallOrder[0])
       .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
   });
 });

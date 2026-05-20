@@ -296,6 +296,33 @@ describe('Graph View context menu contributions', () => {
     });
   });
 
+  it('places graph view create-menu contributions with the background filesystem create actions', () => {
+    const graphViewContributions = createContributions([{
+      pluginId: 'acme.graph-tools',
+      contribution: {
+        id: 'acme.new-section',
+        label: 'New Section...',
+        placement: { menu: 'create' },
+        targets: [{ kind: 'background' }],
+        run: vi.fn(),
+      },
+    }]);
+
+    const entries = buildGraphContextMenuEntries({
+      selection: { kind: 'background', targets: [] },
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+      graphViewContributions,
+    });
+
+    expect(itemLabels(entries).slice(0, 3)).toEqual([
+      'New File...',
+      'New Folder...',
+      'New Section...',
+    ]);
+  });
+
   it('passes selected node graph positions to graph view plugin menu actions', () => {
     const run = vi.fn();
     const graphViewContributions = createContributions([{

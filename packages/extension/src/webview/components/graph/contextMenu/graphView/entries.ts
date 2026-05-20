@@ -12,6 +12,7 @@ import type { GraphContextNodeTarget } from '../decision/targets';
 type GraphViewContextMenuEntry = CoreGraphViewContributionSet['contextMenu'][number];
 type GraphViewContextMenuContribution = GraphViewContextMenuEntry['contribution'];
 type GraphViewContextMenuTargetSelector = GraphViewContextMenuContribution['targets'][number];
+type GraphViewContextMenuPlacement = NonNullable<GraphViewContextMenuContribution['placement']>['menu'];
 
 function getSingleNodeTarget(decision: GraphContextMenuDecision): GraphContextNodeTarget | undefined {
   return 'target' in decision ? decision.target : undefined;
@@ -140,13 +141,21 @@ export function buildGraphViewContextMenuEntries(
     decision: GraphContextMenuDecision;
     edges?: readonly GraphContextMenuEdge[];
     graphViewContributions?: CoreGraphViewContributionSet;
+    includeSeparator?: boolean;
+    placement?: GraphViewContextMenuPlacement | 'default';
     nodes?: readonly GraphContextMenuNode[];
     selection: GraphContextSelection;
   },
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [];
+  const placement = options.placement ?? 'default';
 
   for (const entry of options.graphViewContributions?.contextMenu ?? []) {
+    const contributionPlacement = entry.contribution.placement?.menu ?? 'default';
+    if (contributionPlacement !== placement) {
+      continue;
+    }
+
     const selector = entry.contribution.targets.find(target =>
       selectorMatches(target, options.decision, options.edges)
     );
@@ -172,7 +181,7 @@ export function buildGraphViewContextMenuEntries(
     });
   }
 
-  return entries.length > 0
+  return entries.length > 0 && options.includeSeparator !== false
     ? [separator('graph-view-plugins-separator'), ...entries]
-    : [];
+    : entries;
 }

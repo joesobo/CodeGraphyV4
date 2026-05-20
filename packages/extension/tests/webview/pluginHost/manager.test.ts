@@ -175,6 +175,30 @@ describe('WebviewPluginHost', () => {
     unsubscribe.dispose();
   });
 
+  it('returns a stable graph-view contribution snapshot until registrations change', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const contribution = {
+      id: 'acme.plugin.runtime-node',
+      label: 'Runtime Node',
+      createNodes: () => [{ id: 'runtime-node', label: 'Runtime', color: '#ffffff' }],
+    };
+
+    const disposable = api.registerGraphViewContributions({
+      runtimeNodes: [contribution],
+    });
+    const firstSnapshot = host.getGraphViewContributions();
+    const secondSnapshot = host.getGraphViewContributions();
+
+    expect(secondSnapshot).toBe(firstSnapshot);
+
+    disposable.dispose();
+    const emptySnapshot = host.getGraphViewContributions();
+
+    expect(emptySnapshot).not.toBe(firstSnapshot);
+    expect(host.getGraphViewContributions()).toBe(emptySnapshot);
+  });
+
   it('aggregates tooltip sections and ignores failing providers', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const host = new WebviewPluginHost();

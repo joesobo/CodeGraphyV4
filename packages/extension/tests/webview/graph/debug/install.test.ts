@@ -51,6 +51,42 @@ describe('webview/graph/debug/install', () => {
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__).toBeUndefined();
   });
 
+  it('opens a node context menu through the graph debug api', () => {
+    const openNodeContextMenu = vi.fn();
+    const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({
+      x: x + z,
+      y: y + z,
+    }));
+    const win = { __CODEGRAPHY_ENABLE_GRAPH_DEBUG__: true } as Window;
+
+    installGraphDebugApi({
+      containerRef: {
+        current: {
+          getBoundingClientRect: () => ({ left: 10, top: 20 }),
+        } as HTMLElement,
+      },
+      fitView: vi.fn(),
+      fg2dRef: {
+        current: {
+          graph2ScreenCoords,
+        },
+      },
+      fg3dRef: { current: undefined },
+      graphDataRef: { current: { nodes: [{ id: 'a.ts', size: 4, x: 1, y: 2, z: 3 }] } },
+      graphMode: '2d',
+      openNodeContextMenu,
+      win,
+    });
+
+    win.__CODEGRAPHY_GRAPH_DEBUG__?.openNodeContextMenu('a.ts');
+
+    expect(openNodeContextMenu).toHaveBeenCalledOnce();
+    expect(openNodeContextMenu.mock.calls[0]?.[0]).toBe('a.ts');
+    expect(openNodeContextMenu.mock.calls[0]?.[1].clientX).toBe(14);
+    expect(openNodeContextMenu.mock.calls[0]?.[1].clientY).toBe(25);
+    expect(graph2ScreenCoords).toHaveBeenCalledWith(1, 2, 3);
+  });
+
   it('uses the 3d graph ref for padding fit and snapshot generation', () => {
     const fitView = vi.fn();
     const graph2ScreenCoords = vi.fn((x: number, y: number, z: number) => ({

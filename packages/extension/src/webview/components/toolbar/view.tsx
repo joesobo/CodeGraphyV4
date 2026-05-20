@@ -15,7 +15,7 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
         data-testid="toolbar"
         className="flex h-full min-h-0 flex-col items-center gap-2 bg-transparent"
       >
-        <ToolbarActions />
+        <ToolbarActions pluginHost={pluginHost} />
         {pluginHost ? (
           <>
             <div className="h-px w-5 bg-[var(--cg-divider-subtle)]" aria-hidden="true" />

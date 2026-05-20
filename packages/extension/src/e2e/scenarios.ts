@@ -34,7 +34,10 @@ export const e2eScenarios: E2EScenario[] = [
     name: 'typescript',
     workspaceRelativePath: 'examples/example-typescript',
     pluginDevelopmentRelativePaths: [],
-    workspacePluginPackageRelativePaths: ['packages/plugin-typescript'],
+    workspacePluginPackageRelativePaths: [
+      'packages/plugin-typescript',
+      'packages/extension/src/e2e/fixtures/organize-plugin',
+    ],
     graphNodeExtension: '.ts',
     expectedNodeIds: [
       'src/index.ts',
@@ -97,7 +100,10 @@ export const e2eScenarios: E2EScenario[] = [
     name: 'godot',
     workspaceRelativePath: 'examples/example-godot',
     pluginDevelopmentRelativePaths: [],
-    workspacePluginPackageRelativePaths: ['packages/plugin-godot'],
+    workspacePluginPackageRelativePaths: [
+      'packages/plugin-godot',
+      'packages/extension/src/e2e/fixtures/organize-plugin',
+    ],
     graphNodeExtension: '.gd',
     expectedNodeIds: [
       'scripts/player.gd',

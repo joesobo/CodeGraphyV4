@@ -17,6 +17,11 @@ type GraphViewProviderSettingsContext = Pick<
   | 'updateConfig'
   | 'getInstalledPluginDefaultOptions'
   | 'reloadWorkspacePlugins'
+  | 'sendPluginStatuses'
+  | 'sendContextMenuItems'
+  | 'sendPluginToolbarActions'
+  | 'sendGraphViewContributionStatuses'
+  | 'sendPluginWebviewInjections'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
   | 'reprocessPluginFiles'
@@ -57,6 +62,24 @@ export function createGraphViewProviderMessageSettingsContext(
     reloadWorkspacePlugins: async () => {
       source._analyzerInitialized = false;
       await source._analyzer?.reloadWorkspacePlugins?.();
+      if (source._analyzer?.reloadWorkspacePlugins) {
+        source._analyzerInitialized = true;
+      }
+    },
+    sendPluginStatuses: () => {
+      source._sendPluginStatuses();
+    },
+    sendContextMenuItems: () => {
+      source._sendContextMenuItems();
+    },
+    sendPluginToolbarActions: () => {
+      source._sendPluginToolbarActions?.();
+    },
+    sendGraphViewContributionStatuses: () => {
+      source._sendGraphViewContributionStatuses?.();
+    },
+    sendPluginWebviewInjections: () => {
+      source._sendPluginWebviewInjections();
     },
     sendGraphControls: () => {
       source._sendGraphControls?.();

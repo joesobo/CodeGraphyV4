@@ -19,6 +19,7 @@ export function buildGraphDebugOptions({
   fg3dRef: { current: GraphDebugControls | undefined };
   graphDataRef: UseGraphStateResult['graphDataRef'];
   graphMode: '2d' | '3d';
+  openNodeContextMenu: UseGraphInteractionRuntimeResult['handleNodeContextMenuById'];
   win?: Window;
 } {
   return {
@@ -28,6 +29,7 @@ export function buildGraphDebugOptions({
     fg3dRef: graphState.fg3dRef,
     graphDataRef: graphState.graphDataRef,
     graphMode,
+    openNodeContextMenu: interactions.handleNodeContextMenuById,
     win,
   };
 }

@@ -217,6 +217,8 @@ Graph View contributions run from a live host context. `visibleGraph` is the cur
 
 Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy`/`fz` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
 
+Context menu contributions render in the normal graph context menu by default. Contributions that set `placement: { menu: 'create' }` join the graph background create actions instead, so the same action appears beside `New File...` and `New Folder...` in the background context menu and in the toolbar `New...` popup while the plugin is enabled.
+
 ## Theme-Style Plugins
 
 The current public API already supports a file-theme style plugin through `fileColors`:

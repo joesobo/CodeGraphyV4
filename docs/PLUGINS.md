@@ -89,7 +89,7 @@ When testing through F5, launch only the public CodeGraphy VS Code extension. Do
 
 The Plugins panel is a package toggle surface. It shows package-backed plugins that can be enabled, disabled, and reordered for the current CodeGraphy Workspace. Core runtime internals such as Tree-sitter, and legacy VS Code extension plugin entries without a package backing, are not shown as plugin toggle rows.
 
-Disabling a package removes it from the workspace `plugins` array and reloads Graph View contributions. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, and UI slots only render while that package is enabled and loaded.
+Disabling a package removes it from the workspace `plugins` array and reloads Graph View contributions. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, toolbar create entries, webview injections, and UI slots only render while that package is enabled and loaded. The Graph View host broadcasts the refreshed plugin status and contribution state immediately after a package toggle, before the follow-up graph analysis finishes.
 
 When Indexing loads an enabled package, `@codegraphy/core` merges `codegraphy.defaultOptions` from the package manifest with the workspace entry's `options` object. Workspace options win. The merged object is passed to package plugin factories as `factoryOptions.options`, and to `initialize`, `onPreAnalyze`, `onFilesChanged`, and `analyzeFile` as `context.options`, so the same plugin package can run with different settings in different CodeGraphy Workspaces.
 

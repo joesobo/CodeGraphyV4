@@ -175,6 +175,51 @@ describe('graph view provider listener settings context', () => {
     expect(configuration.update).not.toHaveBeenCalled();
   });
 
+  it('marks the analyzer initialized after reloading workspace plugins', async () => {
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      get: vi.fn((_: string, defaultValue: unknown) => defaultValue),
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
+    const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
+    const source = {
+      _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
+      _analyzerInitialized: true,
+      _analyzer: { reloadWorkspacePlugins },
+      _dagMode: null,
+      _nodeSizeMode: 'connections',
+      _getPhysicsSettings: vi.fn(() => ({
+        repelForce: 1,
+        linkDistance: 2,
+        linkForce: 3,
+        damping: 4,
+        centerForce: 5,
+      })),
+      _sendMessage: vi.fn(),
+      _sendAllSettings: vi.fn(),
+      _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    };
+    const context = createGraphViewProviderMessageSettingsContext(
+      source as never,
+      {
+        workspace: {
+          workspaceFolders: [],
+          getConfiguration: vi.fn(),
+        },
+        getConfigTarget: vi.fn(() => 'workspace'),
+        captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
+        createResetSettingsAction: vi.fn(),
+        executeUndoAction: vi.fn(() => Promise.resolve()),
+        dagModeKey: 'dagMode',
+        nodeSizeModeKey: 'nodeSizeMode',
+      } as never,
+    );
+
+    await context.reloadWorkspacePlugins();
+
+    expect(reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(source._analyzerInitialized).toBe(true);
+  });
+
   it('persists filter and max-file changes silently so they do not auto-reindex', async () => {
     const configuration = {
       get: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),

@@ -346,6 +346,244 @@ const depthHtml = `<!doctype html>
   </body>
 </html>`;
 
+const organizeGraph = {
+  nodes: [
+    { id: 'src/index.ts', label: 'index.ts', color: '#38bdf8', x: 0, y: 0 },
+    { id: 'src/utils.ts', label: 'utils.ts', color: '#22c55e', x: 140, y: 0 },
+  ],
+  edges: [
+    {
+      id: 'src/index.ts->src/utils.ts',
+      from: 'src/index.ts',
+      to: 'src/utils.ts',
+      kind: 'import',
+      sources: [],
+    },
+  ],
+};
+
+const organizePluginScript = `
+  export function activate(api) {
+    api.registerGraphViewContributions({
+      contextMenu: [
+        {
+          id: 'e2e.organize.new-section',
+          label: 'New Section...',
+          placement: { menu: 'create' },
+          targets: [{ kind: 'background' }],
+          run(context) {
+            api.sendMessage({
+              type: 'createSection',
+              data: {
+                position: context.graphPosition ?? { x: 0, y: 0 },
+                selectedNodeIds: context.selectedNodeIds,
+              },
+            });
+          },
+        },
+        {
+          id: 'e2e.organize.pin-node',
+          label: 'Pin Node',
+          targets: [{ kind: 'node' }],
+          isVisible(context) {
+            return context.selectedNodeIds.length === 1;
+          },
+          run(context) {
+            api.sendMessage({
+              type: 'pinNode',
+              data: {
+                nodeId: context.selectedNodeIds[0],
+                position: context.selectedNodePositions?.[context.selectedNodeIds[0]]
+                  ?? context.graphPosition
+                  ?? { x: 0, y: 0 },
+              },
+            });
+          },
+        },
+      ],
+    });
+    api.sendMessage({ type: 'activated', data: { ok: true } });
+  }
+`;
+
+const organizeHarnessScript = `
+  (() => {
+    window.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ = true;
+    const graph = ${JSON.stringify(organizeGraph)};
+    const packageName = '@codegraphy/e2e-organize-plugin';
+    const pluginId = 'e2e.organize';
+    const state = {
+      enabled: true,
+      messages: [],
+    };
+
+    const byTestId = (testId) => document.querySelector('[data-testid="' + testId + '"]');
+    const postToWebview = (message) => window.postMessage(message, '*');
+
+    const renderHarnessState = () => {
+      byTestId('organize-harness-enabled').textContent = state.enabled ? 'on' : 'off';
+      byTestId('organize-harness-messages').textContent = state.messages
+        .map((message) => message.type)
+        .join('\\n');
+    };
+
+    const publishBaseGraphState = () => {
+      postToWebview({
+        type: 'GRAPH_INDEX_STATUS_UPDATED',
+        payload: {
+          hasIndex: true,
+          freshness: 'fresh',
+          detail: 'CodeGraphy index is fresh.',
+        },
+      });
+      postToWebview({
+        type: 'SETTINGS_UPDATED',
+        payload: { bidirectionalEdges: 'separate', showOrphans: true },
+      });
+      postToWebview({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: graph,
+      });
+    };
+
+    const publishPluginStatus = () => {
+      postToWebview({
+        type: 'PLUGINS_UPDATED',
+        payload: {
+          plugins: [
+            state.enabled
+              ? {
+                id: pluginId,
+                packageName,
+                name: 'E2E Organize Plugin',
+                version: '1.0.0',
+                supportedExtensions: [],
+                status: 'installed',
+                enabled: true,
+                connectionCount: 0,
+              }
+              : {
+                id: packageName,
+                packageName,
+                name: packageName,
+                version: '1.0.0',
+                supportedExtensions: [],
+                status: 'installed',
+                enabled: false,
+                connectionCount: 0,
+              },
+          ],
+        },
+      });
+    };
+
+    const injectPlugin = () => {
+      postToWebview({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId,
+          scripts: ['/plugin/e2e-organize.js'],
+          styles: [],
+        },
+      });
+    };
+
+    const publishPluginState = () => {
+      publishPluginStatus();
+      if (state.enabled) {
+        injectPlugin();
+      }
+      renderHarnessState();
+    };
+
+    const publishAll = () => {
+      publishBaseGraphState();
+      publishPluginState();
+      window.setTimeout(() => postToWebview({ type: 'FIT_VIEW' }), 300);
+    };
+
+    const handleWebviewMessage = (message) => {
+      switch (message?.type) {
+        case 'WEBVIEW_READY':
+          publishAll();
+          break;
+        case 'TOGGLE_PLUGIN':
+          state.enabled = Boolean(message.payload?.enabled);
+          publishPluginState();
+          break;
+        case 'GRAPH_INTERACTION':
+          if (typeof message.payload?.event === 'string' && message.payload.event.startsWith('plugin:' + pluginId + ':')) {
+            state.messages.push({
+              type: message.payload.event.split(':').at(-1),
+              data: message.payload.data,
+            });
+            renderHarnessState();
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.acquireVsCodeApi = () => ({
+      getState: () => null,
+      postMessage: handleWebviewMessage,
+      setState: () => {},
+    });
+
+    window.addEventListener('load', () => {
+      renderHarnessState();
+    }, { once: true });
+  })();
+`;
+
+const organizeHtml = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeGraphy Organize Plugin Harness</title>
+    <link rel="stylesheet" href="/dist/webview/index.css" />
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      [data-testid="organize-harness-panel"] {
+        position: fixed;
+        right: 12px;
+        bottom: 12px;
+        z-index: 60;
+        width: min(22rem, calc(100vw - 24px));
+        border: 1px solid rgba(63, 63, 70, 0.9);
+        border-radius: 8px;
+        background: rgba(24, 24, 27, 0.9);
+        color: #f4f4f5;
+        padding: 10px 12px;
+        pointer-events: none;
+        font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      [data-testid="organize-harness-panel"] strong {
+        display: inline-block;
+        min-width: 72px;
+        color: #a1a1aa;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div data-testid="organize-harness-panel">
+      <div><strong>enabled</strong><span data-testid="organize-harness-enabled"></span></div>
+      <div><strong>messages</strong></div>
+      <div data-testid="organize-harness-messages"></div>
+    </div>
+    <script>${organizeHarnessScript}</script>
+    <script type="module" src="/dist/webview/index.js"></script>
+  </body>
+</html>`;
+
 const server = http.createServer(async (req, res) => {
   try {
     const requestPath = req.url ?? '/';
@@ -359,6 +597,21 @@ const server = http.createServer(async (req, res) => {
     if (requestPath === '/depth-view') {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(depthHtml);
+      return;
+    }
+
+    if (requestPath === '/organize-plugin') {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(organizeHtml);
+      return;
+    }
+
+    if (requestPath === '/plugin/e2e-organize.js') {
+      res.writeHead(200, {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'Cache-Control': 'no-store',
+      });
+      res.end(organizePluginScript);
       return;
     }
 
