@@ -111,7 +111,7 @@ describe('WorkspacePipeline adapters', () => {
     ]);
     analyzerPrivate._lastWorkspaceRoot = '/test/workspace';
     vi.spyOn(analyzerPrivate._registry, 'list').mockReturnValue([
-      { plugin: typescriptPlugin, builtIn: true },
+      { plugin: typescriptPlugin, builtIn: false },
     ]);
     vi.spyOn(analyzerPrivate._registry, 'getPluginForFile').mockReturnValue(typescriptPlugin);
 
