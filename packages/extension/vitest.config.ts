@@ -1,18 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { resolveMutationVitestIncludes } from './vitest.includes';
 
 const workspaceRoot = resolve(__dirname, '../..');
 const extensionNodeModules = resolve(__dirname, 'node_modules');
-const vitestScope = process.env.QUALITY_TOOLS_VITEST_SCOPE ?? 'extension';
-const include = resolveMutationVitestIncludes(process.env);
-const coverageInclude = vitestScope === 'workspace'
-  ? ['packages/*/src/**/*.{ts,tsx}']
-  : ['packages/extension/src/**/*.{ts,tsx}'];
-const coverageExclude = vitestScope === 'workspace'
-  ? ['packages/*/src/**/*.d.ts']
-  : ['packages/extension/src/**/*.d.ts'];
 
 export default defineConfig({
   root: workspaceRoot,
@@ -23,14 +14,14 @@ export default defineConfig({
     server: {
       sourcemap: false,
     },
-    include,
+    include: ['packages/extension/tests/**/*.test.{ts,tsx}'],
     setupFiles: [resolve(__dirname, 'tests/setup.ts')],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
       reportsDirectory: resolve(workspaceRoot, 'coverage'),
-      include: coverageInclude,
-      exclude: coverageExclude,
+      include: ['packages/extension/src/**/*.{ts,tsx}'],
+      exclude: ['packages/extension/src/**/*.d.ts'],
     },
   },
   resolve: {
