@@ -12,6 +12,6 @@
       "react-force-graph-3d": ["./tests/types/react-force-graph-3d"]
     }
   },
-  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "vitest.includes.ts"],
+  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts"],
   "exclude": ["tests/playwright"]
 }

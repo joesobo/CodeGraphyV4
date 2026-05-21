@@ -1,4 +1,5 @@
 {
+  "reportsDir": "reports/quality-tools",
   "defaults": {
     "mutation": {
       "include": [
@@ -54,12 +55,31 @@
   },
   "packages": {
     "extension": {
+      "crap": {
+        "coverage": {
+          "command": "pnpm",
+          "args": [
+            "exec",
+            "vitest",
+            "run",
+            "--config",
+            "vitest.config.ts",
+            "--coverage",
+            "--testTimeout",
+            "60000",
+            "--silent"
+          ],
+          "cwd": "{packageRoot}",
+          "coveragePath": "{repoRoot}/coverage/coverage-final.json"
+        }
+      },
       "organize": {
         "fileFanOut": { "warning": 9, "split": 11 },
         "folderFanOut": { "warning": 14, "split": 16 },
         "depth": { "warning": 7, "deep": 8 }
       },
       "mutation": {
+        "strykerConfig": "stryker.extension.config.cjs",
         "exclude": [
           "src/**/e2e/**",
           "src/**/core/plugins/versioning/apiVersions.ts",

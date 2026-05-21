@@ -24,6 +24,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "scripts", "vitest.config.ts", "vitest.includes.ts"],
+  "include": ["src", "scripts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist", "src/e2e", "../../packages/plugin-*/tests"]
 }
