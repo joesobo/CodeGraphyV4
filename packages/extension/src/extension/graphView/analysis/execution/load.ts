@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { CodeGraphyIndexFreshness } from '../../../repoSettings/freshness';
 import type {
   GraphViewAnalysisExecutionHandlers,
   GraphViewAnalysisExecutionState,
@@ -18,9 +19,27 @@ type GraphViewAnalyzer = NonNullable<GraphViewAnalysisExecutionState['analyzer']
 
 function shouldDiscoverGraph(
   mode: GraphViewAnalysisExecutionState['mode'],
-  analyzer: GraphViewAnalyzer,
+  freshness: CodeGraphyIndexFreshness,
 ): boolean {
-  return mode === 'load' && !analyzer.hasIndex();
+  return mode === 'load' && freshness === 'missing';
+}
+
+function shouldRefreshGraphIndex(
+  mode: GraphViewAnalysisExecutionState['mode'],
+  freshness: CodeGraphyIndexFreshness,
+): boolean {
+  return mode === 'index'
+    || mode === 'refresh'
+    || (freshness === 'stale' && (mode === 'load' || mode === 'analyze'));
+}
+
+function getGraphIndexFreshness(analyzer: GraphViewAnalyzer): CodeGraphyIndexFreshness {
+  const status = analyzer.getIndexStatus?.();
+  if (status) {
+    return status.freshness;
+  }
+
+  return analyzer.hasIndex() ? 'fresh' : 'missing';
 }
 
 async function discoverGraphViewRawData(
@@ -59,7 +78,8 @@ export async function loadGraphViewRawData(
     return { rawGraphData: EMPTY_GRAPH_DATA, shouldDiscover: false };
   }
 
-  const shouldDiscover = shouldDiscoverGraph(state.mode, analyzer);
+  const indexFreshness = getGraphIndexFreshness(analyzer);
+  const shouldDiscover = shouldDiscoverGraph(state.mode, indexFreshness);
   const forwardProgress = createGraphViewAnalysisProgressForwarder(state.mode, handlers);
 
   if (!shouldDiscover) {
@@ -73,7 +93,7 @@ export async function loadGraphViewRawData(
     };
   }
 
-  if (state.mode === 'refresh') {
+  if (shouldRefreshGraphIndex(state.mode, indexFreshness)) {
     return {
       rawGraphData: await refreshGraphViewRawData(signal, state, forwardProgress),
       shouldDiscover,
