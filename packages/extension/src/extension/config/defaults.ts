@@ -3,7 +3,7 @@
  * @module extension/config/defaults
  */
 
-import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy/core';
+import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy-dev/core';
 
 /**
  * Default exclude patterns for file discovery.

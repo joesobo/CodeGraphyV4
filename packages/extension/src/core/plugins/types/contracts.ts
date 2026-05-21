@@ -32,7 +32,7 @@ export type {
 import type { IPlugin as HeadlessPlugin } from '../../../../../plugin-api/src';
 import type { CodeGraphyAPI } from '../api/contracts';
 
-export type { IProjectedConnection } from '@codegraphy/core';
+export type { IProjectedConnection } from '@codegraphy-dev/core';
 export type { CodeGraphyAPI };
 
 export interface IPluginWebviewContributions {

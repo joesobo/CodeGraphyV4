@@ -1,1 +1,1 @@
-export { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from '@codegraphy/core';
+export { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from '@codegraphy-dev/core';

@@ -1,7 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [
-    "package-lock.json",
+    "pnpm-lock.yaml",
     "tsconfig*.json",
     "packages/**/tsconfig*.json",
     "packages/extension/postcss.config.cjs",
@@ -10,8 +10,8 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "typecheck"],
-      "outputs": []
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
     },
     "lint": {
       "dependsOn": ["^lint"],
@@ -22,8 +22,21 @@
       "outputs": []
     },
     "test": {
-      "dependsOn": ["typecheck", "^test"],
       "outputs": []
+    },
+    "test:node": {
+      "outputs": []
+    },
+    "test:webview": {
+      "env": ["CODEGRAPHY_VITEST_WEBVIEW_GROUP"],
+      "outputs": []
+    },
+    "test:playwright": {
+      "outputs": [
+        "$TURBO_ROOT$/dist/webview/**",
+        "$TURBO_ROOT$/playwright-report/**",
+        "$TURBO_ROOT$/test-results/**"
+      ]
     },
     "watch": {
       "cache": false,

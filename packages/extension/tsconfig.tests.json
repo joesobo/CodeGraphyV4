@@ -5,13 +5,13 @@
     "noUnusedParameters": false,
     "types": ["vitest/globals", "node"],
     "paths": {
-      "@codegraphy/core": ["../core/src/index.ts"],
-      "@codegraphy/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
+      "@codegraphy-dev/core": ["../core/src/index.ts"],
+      "@codegraphy-dev/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
       "@/*": ["./src/*"],
       "react-force-graph-2d": ["./tests/types/react-force-graph-2d"],
       "react-force-graph-3d": ["./tests/types/react-force-graph-3d"]
     }
   },
-  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts"],
+  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "vitest.includes.ts"],
   "exclude": ["tests/playwright"]
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../../src/analysis/projectedConnection';
 import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_NODE_COLOR } from '../../src/fileColors';
 import {

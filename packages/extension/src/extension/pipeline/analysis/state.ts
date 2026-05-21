@@ -2,8 +2,8 @@ export {
   clearWorkspacePipelineCache,
   rebuildWorkspacePipelineGraph,
   rebuildWorkspacePipelineGraphForSource,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 export type {
   WorkspacePipelineRebuildDependencies,
   WorkspacePipelineRebuildSource,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';

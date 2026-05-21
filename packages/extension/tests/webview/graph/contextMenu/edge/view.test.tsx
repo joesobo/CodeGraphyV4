@@ -55,11 +55,13 @@ describe('Graph context menu (edge)', () => {
   afterEach(() => {
     vi.clearAllMocks();
     ForceGraph2D.clearMockPositions();
-    graphStore.setState({
-      favorites: new Set<string>(),
-      graphMode: '2d',
-      timelineActive: false,
-      pluginContextMenuItems: [],
+    act(() => {
+      graphStore.setState({
+        favorites: new Set<string>(),
+        graphMode: '2d',
+        timelineActive: false,
+        pluginContextMenuItems: [],
+      });
     });
   });
 

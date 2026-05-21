@@ -32,7 +32,7 @@ describe('core-backed CodeGraphy Workspace commands', () => {
     expect(status).toMatchObject({
       workspaceRoot,
       state: 'fresh',
-      enabledPlugins: ['@codegraphy/plugin-markdown'],
+      enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
     });
     expect(queryResult.edges).toEqual([
       expect.objectContaining({

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { createProvenance } from '../../../src/graphQuery/relationships/provenance';
 
 function relation(pluginId: string | undefined): IAnalysisRelation {

@@ -4,8 +4,8 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   resolve: {
     alias: {
-      '@codegraphy/plugin-api': resolve(__dirname, '../plugin-api/src/index.ts'),
-      '@codegraphy/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
+      '@codegraphy-dev/plugin-api': resolve(__dirname, '../plugin-api/src/index.ts'),
+      '@codegraphy-dev/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
     },
   },
   test: {

@@ -158,12 +158,12 @@
       "fillStyle": "solid",
       "fontSize": 15,
       "fontFamily": 1,
-      "text": "@codegraphy/core Engine",
-      "rawText": "@codegraphy/core Engine",
+      "text": "@codegraphy-dev/core Engine",
+      "rawText": "@codegraphy-dev/core Engine",
       "textAlign": "center",
       "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "@codegraphy/core Engine",
+      "originalText": "@codegraphy-dev/core Engine",
       "lineHeight": 1.25
     },
     {

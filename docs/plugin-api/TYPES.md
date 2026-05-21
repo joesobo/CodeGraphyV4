@@ -21,10 +21,10 @@ import type {
   IGraphEdge,
   IGraphData,
   Disposable,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 ```
 
-The public package is headless. Extension-owned bridge types for webviews, commands, decorations, toolbar actions, and graph-view injections live in `@codegraphy/extension`.
+The public package is headless. Extension-owned bridge types for webviews, commands, decorations, toolbar actions, and graph-view injections live in `@codegraphy-dev/extension`.
 
 ## Core Plugin Contract
 
@@ -186,9 +186,9 @@ Current limitation: folder icon theming is still core-only. The API does not yet
 
 ## Package Export Notes
 
-`@codegraphy/plugin-api` is currently a type-definition package with `types` exports for:
-- `@codegraphy/plugin-api`
-- `@codegraphy/plugin-api/events`
-- `@codegraphy/plugin-api/plugin`
+`@codegraphy-dev/plugin-api` is currently a type-definition package with `types` exports for:
+- `@codegraphy-dev/plugin-api`
+- `@codegraphy-dev/plugin-api/events`
+- `@codegraphy-dev/plugin-api/plugin`
 
 Use `import type` for these symbols in plugin code.

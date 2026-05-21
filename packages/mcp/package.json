@@ -1,6 +1,6 @@
 {
-  "name": "@codegraphy/mcp",
-  "version": "1.0.4",
+  "name": "@codegraphy-dev/mcp",
+  "version": "1.1.0",
   "description": "CodeGraphy MCP CLI and local query server",
   "license": "MIT",
   "type": "module",
@@ -22,13 +22,12 @@
   "scripts": {
     "build": "node ./scripts/build.mjs",
     "test": "vitest run --config vitest.config.ts",
-    "test:watch": "vitest --config vitest.config.ts",
     "lint": "eslint src tests scripts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/core": "workspace:*",
-    "@codegraphy/plugin-api": "workspace:*",
+    "@codegraphy-dev/core": "workspace:*",
+    "@codegraphy-dev/plugin-api": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
     "@ladybugdb/core": "^0.15.3",
     "@modelcontextprotocol/sdk": "^1.29.0",

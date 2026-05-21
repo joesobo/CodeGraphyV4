@@ -1,5 +1,5 @@
-export { analyzeWorkspaceWithAnalyzer } from '@codegraphy/core';
+export { analyzeWorkspaceWithAnalyzer } from '@codegraphy-dev/core';
 export type {
   WorkspacePipelineAnalysisDependencies,
   WorkspacePipelineAnalysisSource,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';

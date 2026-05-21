@@ -6,7 +6,7 @@ import {
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import {
   getWorkspacePipelinePluginFilterGroups,
   getWorkspacePipelinePluginFilterPatterns,
@@ -149,7 +149,7 @@ describe('pipeline/plugins/bootstrap', () => {
     expect(registry.register).toHaveBeenCalledTimes(2);
     expect(registry.register.mock.calls.map(([, options]) => options)).toEqual([
       { builtIn: true },
-      { builtIn: true, sourcePackage: '@codegraphy/plugin-markdown' },
+      { builtIn: true, sourcePackage: '@codegraphy-dev/plugin-markdown' },
     ]);
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
@@ -185,7 +185,7 @@ describe('pipeline/plugins/bootstrap', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...readCodeGraphyWorkspaceSettings(workspaceRoot),
       plugins: [{
-        package: '@codegraphy/plugin-markdown',
+        package: '@codegraphy-dev/plugin-markdown',
       }, {
         package: '@acme/codegraphy-plugin-extension-bootstrap',
         options: {

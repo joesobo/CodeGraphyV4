@@ -64,9 +64,9 @@ describe('graph view settings toggle message', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
           return [
-            { package: '@codegraphy/plugin-markdown' },
+            { package: '@codegraphy-dev/plugin-markdown' },
             {
-              package: '@codegraphy/plugin-python',
+              package: '@codegraphy-dev/plugin-python',
               options: { includeTests: true },
             },
           ] as T;
@@ -80,7 +80,7 @@ describe('graph view settings toggle message', () => {
         type: 'TOGGLE_PLUGIN',
         payload: {
           pluginId: 'codegraphy.python',
-          packageName: '@codegraphy/plugin-python',
+          packageName: '@codegraphy-dev/plugin-python',
           enabled: false,
         },
       },
@@ -90,7 +90,7 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy/plugin-markdown' },
+      { package: '@codegraphy-dev/plugin-markdown' },
     ]);
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('disabledPlugins', expect.anything());
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
@@ -103,7 +103,7 @@ describe('graph view settings toggle message', () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
-          return [{ package: '@codegraphy/plugin-markdown' }] as T;
+          return [{ package: '@codegraphy-dev/plugin-markdown' }] as T;
         }
         return defaultValue;
       }),
@@ -114,7 +114,7 @@ describe('graph view settings toggle message', () => {
         type: 'TOGGLE_PLUGIN',
         payload: {
           pluginId: 'codegraphy.python',
-          packageName: '@codegraphy/plugin-python',
+          packageName: '@codegraphy-dev/plugin-python',
           enabled: true,
         },
       },
@@ -124,8 +124,8 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy/plugin-markdown' },
-      { package: '@codegraphy/plugin-python' },
+      { package: '@codegraphy-dev/plugin-markdown' },
+      { package: '@codegraphy-dev/plugin-python' },
     ]);
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
@@ -137,12 +137,12 @@ describe('graph view settings toggle message', () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
-          return [{ package: '@codegraphy/plugin-markdown' }] as T;
+          return [{ package: '@codegraphy-dev/plugin-markdown' }] as T;
         }
         return defaultValue;
       }),
       getInstalledPluginDefaultOptions: vi.fn((packageName: string) => {
-        if (packageName === '@codegraphy/plugin-godot') {
+        if (packageName === '@codegraphy-dev/plugin-godot') {
           return {
             includeSceneResources: true,
             includeAutoloads: true,
@@ -157,7 +157,7 @@ describe('graph view settings toggle message', () => {
         type: 'TOGGLE_PLUGIN',
         payload: {
           pluginId: 'codegraphy.godot',
-          packageName: '@codegraphy/plugin-godot',
+          packageName: '@codegraphy-dev/plugin-godot',
           enabled: true,
         },
       },
@@ -167,9 +167,9 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy/plugin-markdown' },
+      { package: '@codegraphy-dev/plugin-markdown' },
       {
-        package: '@codegraphy/plugin-godot',
+        package: '@codegraphy-dev/plugin-godot',
         options: {
           includeSceneResources: true,
           includeAutoloads: true,
@@ -196,7 +196,7 @@ describe('graph view settings toggle message', () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
-          return [{ package: '@codegraphy/plugin-python' }] as T;
+          return [{ package: '@codegraphy-dev/plugin-python' }] as T;
         }
         return defaultValue;
       }),
@@ -207,7 +207,7 @@ describe('graph view settings toggle message', () => {
         type: 'TOGGLE_PLUGIN',
         payload: {
           pluginId: 'codegraphy.python',
-          packageName: '@codegraphy/plugin-python',
+          packageName: '@codegraphy-dev/plugin-python',
           enabled: false,
         },
       },

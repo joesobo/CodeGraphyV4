@@ -13,8 +13,7 @@ Suggested order for a change:
 6. run CRAP on the affected package or source subtree
 7. run SCRAP on the affected test file or test directory
 
-Tool ownership:
+Dogfood rule:
 
-- `@poleski/quality-tools` owns the analyzer implementation in its own repository.
-- CodeGraphy owns the local `quality.config.json` policy and uses the root scripts to run the linked package.
-- Generated quality artifacts belong under `reports/quality-tools/`.
+- CodeGraphy should continue to dogfood the external `@poleski/quality-tools` package through the root scripts.
+- Run the focused tool set on any CodeGraphy wrapper changes before shipping changes.

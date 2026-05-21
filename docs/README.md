@@ -21,22 +21,22 @@ If a doc describes old refactor intent instead of current behavior, it belongs i
 
 | Package | Path | Where To Start | Role |
 |---|---|---|
-| `@codegraphy/core` | `packages/core` | [root README](../README.md) and [core package README](../packages/core/README.md) | shared engine package for Indexing, Graph Cache access, and Graph Query execution |
+| `@codegraphy-dev/core` | `packages/core` | [root README](../README.md) and [core package README](../packages/core/README.md) | shared engine package for Indexing, Graph Cache access, and Graph Query execution |
 | CodeGraphy VS Code extension | `packages/extension` | [root README](../README.md), [extension docs](../packages/extension/docs/README.md), and [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy) | graph UI, VS Code lifecycle integration, commands, webviews, context menus, and editor integration |
-| `@codegraphy/mcp` | `packages/mcp` | [MCP setup](./MCP.md) and [package README](../packages/mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
-| `@codegraphy/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
+| `@codegraphy-dev/mcp` | `packages/mcp` | [MCP setup](./MCP.md) and [package README](../packages/mcp/README.md) | `codegraphy` CLI and local MCP server for agents |
+| `@codegraphy-dev/plugin-api` | `packages/plugin-api` | [plugin API README](../packages/plugin-api/README.md) and [plugin docs](./plugin-api/) | typed contracts for external CodeGraphy plugins |
 | language plugins | `packages/plugin-*` | `packages/plugin-*/README.md` | optional headless npm plugins for language-specific graph enrichment on top of the core-owned Tree-sitter plugin |
 | quality tools | external `@poleski/quality-tools` package | [quality docs](./quality/README.md) | local architecture, coverage-risk, mutation, and SCRAP checks |
 
-`@codegraphy/core`, the VS Code extension, and `@codegraphy/mcp` all read and write the same workspace-local Graph Cache. MCP can index/query a CodeGraphy Workspace without opening or focusing VS Code.
+`@codegraphy-dev/core`, the VS Code extension, and `@codegraphy-dev/mcp` all read and write the same workspace-local Graph Cache. MCP can index/query a CodeGraphy Workspace without opening or focusing VS Code.
 
 ## Internal Package Orientation
 
 The monorepo package boundary is the main way to navigate the project:
 
 - `packages/core` owns Indexing, File Discovery, the built-in Tree-sitter plugin, plugin analysis, Graph Cache storage, and Graph Query execution.
-- `packages/extension` owns the VS Code host, React webview, editor lifecycle, commands, webviews, and visualization adapters over `@codegraphy/core`.
-- `packages/mcp` owns agent access and forwards path-first Indexing and Graph Query requests to `@codegraphy/core`.
+- `packages/extension` owns the VS Code host, React webview, editor lifecycle, commands, webviews, and visualization adapters over `@codegraphy-dev/core`.
+- `packages/mcp` owns agent access and forwards path-first Indexing and Graph Query requests to `@codegraphy-dev/core`.
 - `packages/plugin-api` owns the public TypeScript contracts for plugins.
 - `packages/plugin-*` packages are optional headless npm language plugins.
-- `@poleski/quality-tools` owns the checks that keep modules deep, package boundaries visible, and high-risk code covered.
+- `@poleski/quality-tools` owns the reusable checks that keep modules deep, package boundaries visible, and high-risk code covered.

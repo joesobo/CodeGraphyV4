@@ -7,7 +7,7 @@
  * - {@link IPlugin} — the plugin interface (apiVersion is required)
  * - Graph, analysis, connection, and lifecycle event types
  *
- * @module @codegraphy/plugin-api
+ * @module @codegraphy-dev/plugin-api
  */
 
 // Disposable

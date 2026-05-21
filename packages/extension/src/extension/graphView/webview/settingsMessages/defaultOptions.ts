@@ -1,7 +1,7 @@
 import {
   readCodeGraphyInstalledPluginCache,
   type CodeGraphyUserStateOptions,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 
 export function readInstalledPluginDefaultOptions(
   packageName: string,

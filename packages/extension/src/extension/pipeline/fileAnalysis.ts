@@ -1,6 +1,6 @@
-export { analyzeWorkspaceFiles } from '@codegraphy/core';
+export { analyzeWorkspaceFiles } from '@codegraphy-dev/core';
 export type {
   IWorkspaceFileAnalysisOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileProcessedPayload,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';

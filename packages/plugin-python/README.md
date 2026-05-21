@@ -2,23 +2,23 @@
 
 Adds Python ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-- Package: [`@codegraphy/plugin-python`](https://www.npmjs.com/package/@codegraphy/plugin-python)
-- Plugin API: [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
+- Package: [`@codegraphy-dev/plugin-python`](https://www.npmjs.com/package/@codegraphy-dev/plugin-python)
+- Plugin API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
 
 ## Install
 
-Install `@codegraphy/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
 
 ```bash
-npm i -g @codegraphy/plugin-python
+npm i -g @codegraphy-dev/plugin-python
 codegraphy plugins refresh
-codegraphy plugins enable @codegraphy/plugin-python
+codegraphy plugins enable @codegraphy-dev/plugin-python
 codegraphy index
 ```
 
 ## What It Provides
 
-The built-in Tree-sitter plugin now owns Python analysis inside `@codegraphy/core`.
+The built-in Tree-sitter plugin now owns Python analysis inside `@codegraphy-dev/core`.
 This plugin is intentionally lightweight and only adds:
 
 - Python ecosystem ignore filters

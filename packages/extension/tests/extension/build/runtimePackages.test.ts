@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   copyRuntimePackage,
   EXTENSION_EXTERNAL_PACKAGE_NAMES,
@@ -9,6 +10,11 @@ import {
   resolveRuntimePackageRootPath,
   syncExtensionRuntimePackages,
 } from '../../../scripts/externalPackages';
+
+const EXTENSION_PACKAGE_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../..',
+);
 
 describe('runtime package build support', () => {
   it('resolves the installed Ladybug package root', () => {
@@ -94,21 +100,21 @@ describe('runtime package build support', () => {
     );
     expect(EXTENSION_EXTERNAL_PACKAGE_NAMES).not.toEqual(
       expect.arrayContaining([
-        '@codegraphy/core',
-        '@codegraphy/plugin-markdown',
+        '@codegraphy-dev/core',
+        '@codegraphy-dev/plugin-markdown',
       ]),
     );
   });
 
   it('declares core as an npm dependency instead of a VS Code extension dependency', () => {
     const manifest = JSON.parse(
-      fs.readFileSync(path.resolve('package.json'), 'utf8'),
+      fs.readFileSync(path.join(EXTENSION_PACKAGE_ROOT, 'package.json'), 'utf8'),
     ) as {
       dependencies?: Record<string, string>;
       extensionDependencies?: string[];
     };
 
-    expect(manifest.dependencies?.['@codegraphy/core']).toBe('workspace:*');
-    expect(manifest.extensionDependencies ?? []).not.toContain('@codegraphy/core');
+    expect(manifest.dependencies?.['@codegraphy-dev/core']).toBe('workspace:*');
+    expect(manifest.extensionDependencies ?? []).not.toContain('@codegraphy-dev/core');
   });
 });

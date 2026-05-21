@@ -3,7 +3,7 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import { readRowsSync, withConnection } from './io/connection';
 import { getWorkspaceAnalysisDatabasePath } from './io/paths';
 import { createSnapshotFileEntry } from './records/file';

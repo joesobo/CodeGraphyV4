@@ -5,7 +5,7 @@
  * @module plugins/godot
  */
 
-import type { IPluginAnalysisContext } from '@codegraphy/plugin-api';
+import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { collectGodotProjectRoots } from './projectRoot';
 import manifest from '../codegraphy.json';

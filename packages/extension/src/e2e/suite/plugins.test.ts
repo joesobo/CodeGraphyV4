@@ -34,6 +34,10 @@ const scenario = getCurrentE2EScenario();
 const pluginSuiteName = `Plugin: ${scenario.name}`;
 let indexedGraphPromise: Promise<void> | undefined;
 
+function edgeIdMatchesExpected(actualId: string, expectedId: string): boolean {
+  return actualId === expectedId || actualId.startsWith(`${expectedId}:`);
+}
+
 function waitForExtensionMessageWhere<TMessage>(
   api: CodeGraphyAPI,
   type: string,
@@ -126,7 +130,10 @@ suite(pluginSuiteName, function () {
     const graphData = api.getGraphData();
     const edgeIds = graphData.edges.map((edge) => String(edge.id));
     for (const edgeId of scenario.minimumExpectedEdgeIds) {
-      assert.ok(edgeIds.includes(edgeId), `Expected edge '${edgeId}' in ${scenario.name} graph`);
+      assert.ok(
+        edgeIds.some(actualEdgeId => edgeIdMatchesExpected(actualEdgeId, edgeId)),
+        `Expected edge '${edgeId}' in ${scenario.name} graph`,
+      );
     }
   });
 

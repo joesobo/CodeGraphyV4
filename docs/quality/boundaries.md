@@ -1,12 +1,13 @@
 # Boundaries
 
-`boundaries` checks configured dependency-layer sources inside the selected target.
+`boundaries` checks dependency-layer sources inside a package source graph.
 
 ## Quick start
 
 ```bash
 pnpm run boundaries -- extension/
 pnpm run boundaries -- extension/src/webview/
+pnpm run boundaries -- packages/plugin-godot/src/
 ```
 
 ## What it checks
@@ -19,7 +20,7 @@ Use `pnpm run reachability -- ...` when you want focused dead-surface and dead-e
 
 The command reads `quality.config.json`:
 
-- `defaults.boundaries.include` / `exclude` define the configured file surface
+- `defaults.boundaries.include` / `exclude` define the source file surface
 - `packages.<name>.boundaries.layers` define the layer sources for that package
 - `packages.<name>.boundaries.entrypoints` define files that may have no inbound edges
 

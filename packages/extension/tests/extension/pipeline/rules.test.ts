@@ -6,12 +6,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
 import type { IProjectedConnection } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
-import { readWorkspacePluginStatusContext } from '../../../src/extension/pipeline/plugins/statusContext';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
 
 vi.mock('../../../src/extension/pipeline/plugins/statusContext', () => ({
-  readWorkspacePluginStatusContext: vi.fn(),
+  readWorkspacePluginStatusContext: vi.fn(() => ({ installedPlugins: [] })),
 }));
 
 // Set up workspace folders before tests
@@ -39,9 +38,6 @@ describe('WorkspacePipeline sources', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
-      installedPlugins: [],
-    });
 
     mockContext = {
       subscriptions: [],
