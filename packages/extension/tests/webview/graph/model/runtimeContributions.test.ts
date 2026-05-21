@@ -40,7 +40,11 @@ describe('graph/model/runtimeContributions', () => {
               nodeType: 'acme-runtime',
               ownerPluginId: 'acme.graph-tools',
               runtimeNodeType: 'acme.graph-tools.runtime-node',
-              shape2D: 'square',
+              shape2D: 'rectangle',
+              shapeSize2D: {
+                height: 48,
+                width: 96,
+              },
               size: 36,
             } as unknown as IGraphData['nodes'][number]];
           },
@@ -83,7 +87,11 @@ describe('graph/model/runtimeContributions', () => {
       nodeType: 'acme-runtime',
       ownerPluginId: 'acme.graph-tools',
       runtimeNodeType: 'acme.graph-tools.runtime-node',
-      shape2D: 'square',
+      shape2D: 'rectangle',
+      shapeSize2D: {
+        height: 48,
+        width: 96,
+      },
       size: 36,
     });
     expect(graphData.links).toEqual([

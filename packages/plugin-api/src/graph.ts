@@ -10,6 +10,7 @@ export type NodeType = CoreNodeType | (string & {});
 export type GraphNodeShape2D =
   | 'circle'
   | 'square'
+  | 'rectangle'
   | 'diamond'
   | 'triangle'
   | 'hexagon'
@@ -118,6 +119,15 @@ export interface IGraphNode {
 
   /** Optional 2D shape override for the node. */
   shape2D?: GraphNodeShape2D;
+
+  /** Optional 2D visual size override. Width and height are graph-space units centered on the node. */
+  shapeSize2D?: {
+    height: number;
+    width: number;
+  };
+
+  /** Optional 2D fill opacity override for custom visual nodes. */
+  fillOpacity2D?: number;
 
   /** Optional 2D pointer hit area override. Width and height are graph-space units centered on the node. */
   pointerArea2D?: {

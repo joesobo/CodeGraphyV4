@@ -1,7 +1,13 @@
 import type { FGNode } from '../../../model/build';
+import { getRectangularNodeArea2D, getRectangularNodeAreaRadius } from '../../../model/node/rectangularArea';
 import { COLLISION_PADDING } from '../model';
 
 export function getGraphCollisionRadius(node: FGNode): number {
+	const visualArea = getRectangularNodeArea2D(node.shapeSize2D);
+	if (visualArea) {
+		return getRectangularNodeAreaRadius(visualArea) + COLLISION_PADDING;
+	}
+
 	return (node.size ?? 0) + COLLISION_PADDING;
 }
 

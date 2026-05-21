@@ -12,6 +12,10 @@ export interface SvgExportNode {
   borderColor: string;
   borderWidth: number;
   shape2D?: NodeShape2D;
+  shapeSize2D?: {
+    height: number;
+    width: number;
+  };
   imageUrl?: string;
   x?: number;
   y?: number;

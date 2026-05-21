@@ -146,6 +146,54 @@ describe('graph/rendering/node/body', () => {
     ]);
   });
 
+  it('draws sized rectangle node bodies from plugin presentation data', () => {
+    const { ctx } = createContext();
+
+    renderNodeBody({
+      ctx,
+      node: createNode({
+        shape2D: 'rectangle',
+        shapeSize2D: {
+          height: 80,
+          width: 120,
+        },
+      }),
+      globalScale: 1,
+      decoration: undefined,
+      opacity: 1,
+      isSelected: false,
+    });
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'rectangle', 24, 48, 16, {
+      height: 80,
+      width: 120,
+    });
+  });
+
+  it('uses plugin fill opacity for the node body without fading the border', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeBody({
+      ctx,
+      node: createNode({ fillOpacity2D: 0.15 }),
+      globalScale: 1,
+      decoration: undefined,
+      opacity: 0.8,
+      isSelected: false,
+    });
+
+    expect(operations).toEqual([
+      expect.objectContaining({
+        globalAlpha: 0.12,
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        globalAlpha: 0.8,
+        kind: 'stroke',
+      }),
+    ]);
+  });
+
   it('uses selected-node contrast styling, decoration colors, and scaled minimum border width', () => {
     const { ctx, operations } = createContext();
 
@@ -161,7 +209,7 @@ describe('graph/rendering/node/body', () => {
     expect(operations).toEqual([
       expect.objectContaining({
         fillStyle: '#facc15',
-        globalAlpha: 1,
+        globalAlpha: 0.4,
         kind: 'fill',
       }),
       expect.objectContaining({
@@ -188,7 +236,7 @@ describe('graph/rendering/node/body', () => {
     expect(operations).toEqual([
       expect.objectContaining({
         fillStyle: '#3b82f6',
-        globalAlpha: 1,
+        globalAlpha: 0.6,
         kind: 'fill',
       }),
       expect.objectContaining({

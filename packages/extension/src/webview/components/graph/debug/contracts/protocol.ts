@@ -5,6 +5,10 @@ export interface GraphDebugSnapshot {
   nodes: Array<{
     id: string;
     screenX: number;
+    shapeSize2D?: {
+      height: number;
+      width: number;
+    };
     screenY: number;
     size: number;
     x: number;

@@ -1,6 +1,7 @@
 import { drawTriangle, drawHexagon } from '../regularPolygons';
 import type { NodeShape2D } from '../../../../../../shared/settings/modes';
 import { drawStar } from '../starPolygon';
+import type { RectangularNodeArea2D } from '../../../model/node/rectangularArea';
 
 export { drawTriangle, drawHexagon } from '../regularPolygons';
 export { drawStar } from '../starPolygon';
@@ -17,6 +18,7 @@ export function drawShape(
   x: number,
   y: number,
   size: number,
+  shapeSize?: RectangularNodeArea2D,
 ): void {
   switch (shape) {
     case 'circle':
@@ -24,6 +26,9 @@ export function drawShape(
       break;
     case 'square':
       drawSquare(ctx, x, y, size);
+      break;
+    case 'rectangle':
+      drawRectangle(ctx, x, y, size, shapeSize);
       break;
     case 'diamond':
       drawDiamond(ctx, x, y, size);
@@ -58,6 +63,20 @@ function drawSquare(
 ): void {
   ctx.beginPath();
   ctx.rect(x - size, y - size, size * 2, size * 2);
+  ctx.closePath();
+}
+
+function drawRectangle(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  shapeSize: RectangularNodeArea2D | undefined,
+): void {
+  const width = shapeSize?.width ?? size * 2;
+  const height = shapeSize?.height ?? size * 2;
+  ctx.beginPath();
+  ctx.rect(x - (width / 2), y - (height / 2), width, height);
   ctx.closePath();
 }
 

@@ -24,6 +24,7 @@ export function renderNodeBody({
 }: RenderNodeBodyOptions): void {
   drawNodeBodyPath(ctx, node);
   ctx.fillStyle = getNodeFillColor(node, decoration);
+  ctx.globalAlpha = opacity * getNodeFillOpacity(node);
   ctx.fill();
 
   ctx.strokeStyle = getNodeBorderColor(node, isSelected, appearance);
@@ -33,6 +34,11 @@ export function renderNodeBody({
 }
 
 function drawNodeBodyPath(ctx: CanvasRenderingContext2D, node: FGNode): void {
+  if (node.shapeSize2D) {
+    drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size, node.shapeSize2D);
+    return;
+  }
+
   drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size);
 }
 
@@ -43,6 +49,12 @@ function getNodeFillColor(
   return node.nodeType === 'folder'
     ? node.color
     : (decoration?.color ?? node.color);
+}
+
+function getNodeFillOpacity(node: FGNode): number {
+  return typeof node.fillOpacity2D === 'number' && Number.isFinite(node.fillOpacity2D)
+    ? Math.min(1, Math.max(0, node.fillOpacity2D))
+    : 1;
 }
 
 function getNodeBorderColor(

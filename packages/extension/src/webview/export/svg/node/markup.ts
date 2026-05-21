@@ -11,7 +11,7 @@ export function buildNodeShapeElement(
     return `<circle cx="${position.x}" cy="${position.y}" r="${node.size}" fill="${node.color}" stroke="${node.borderColor}" stroke-width="${node.borderWidth}"/>`;
   }
 
-  return `<path d="${svgShapePath(shape, position.x, position.y, node.size)}" fill="${node.color}" stroke="${node.borderColor}" stroke-width="${node.borderWidth}"/>`;
+  return `<path d="${svgShapePath(shape, position.x, position.y, node.size, node.shapeSize2D)}" fill="${node.color}" stroke="${node.borderColor}" stroke-width="${node.borderWidth}"/>`;
 }
 
 export function buildNodeLabelElement(

@@ -1,16 +1,14 @@
 import { drawShape } from '../shapes/draw/twoDimensional';
 import type { FGNode } from '../../model/build';
-
-function isFinitePositiveNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0;
-}
+import { getRectangularNodeArea2D } from '../../model/node/rectangularArea';
 
 function paintRectangularPointerArea(
   node: FGNode,
   ctx: CanvasRenderingContext2D,
 ): boolean {
-  const area = node.pointerArea2D;
-  if (!isFinitePositiveNumber(area?.height) || !isFinitePositiveNumber(area.width)) {
+  const area = getRectangularNodeArea2D(node.pointerArea2D)
+    ?? getRectangularNodeArea2D(node.shapeSize2D);
+  if (!area) {
     return false;
   }
 
