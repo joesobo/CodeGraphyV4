@@ -38,7 +38,6 @@ function repoTarget(): QualityTarget {
 
 function createDependencies(): MutationCliDependencies {
   return {
-    discoverMutationPackageNames: vi.fn(() => ['plugin-godot', 'quality-tools']),
     resolveQualityTarget: vi.fn((_repoRoot: string, input?: string) => (
       input === '.'
         ? repoTarget()
@@ -100,15 +99,15 @@ describe('command', () => {
     );
   });
 
-  it('runs all discovered packages when no target is provided', async () => {
+  it('fails fast when no target is provided', async () => {
     const dependencies = createDependencies();
-    await runMutationCli([], dependencies);
 
-    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
-    expect(dependencies.discoverMutationPackageNames).toHaveBeenCalledWith(REPO_ROOT);
-    expect(dependencies.resolveQualityTarget).toHaveBeenNthCalledWith(1, REPO_ROOT, 'plugin-godot');
-    expect(dependencies.resolveQualityTarget).toHaveBeenNthCalledWith(2, REPO_ROOT, 'quality-tools');
-    expect(dependencies.runMutation).toHaveBeenCalledTimes(2);
+    await expect(runMutationCli([], dependencies)).rejects.toThrow(
+      'Mutation requires an explicit package, directory, or file target.',
+    );
+    expect(dependencies.resolveQualityTarget).not.toHaveBeenCalled();
+    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
+    expect(dependencies.runMutation).not.toHaveBeenCalled();
   });
 
   it('uses --mutate as the effective mutation target', async () => {

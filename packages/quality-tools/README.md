@@ -26,11 +26,12 @@ pnpm run scrap -- quality-tools/ --policy review
 Mutation target forms:
 
 ```bash
-pnpm run mutate                    # all supported mutation packages
 pnpm run mutate -- plugin-csharp/  # one package
 pnpm run mutate -- packages/plugin-csharp/src/parserContent.ts  # one file
 pnpm run mutate -- packages/extension/src/webview/vscodeApi.ts
 ```
+
+Mutation requires an explicit package, directory, or file target. Do not run bare `pnpm run mutate`; all-package mutation refresh belongs to the CI seed workflow.
 
 The mutation configs ignore heavyweight local artifacts like package-local `.vscode-test/` folders and `.stryker-tmp/`, so downloaded VS Code test bundles do not get copied into Stryker sandboxes.
 

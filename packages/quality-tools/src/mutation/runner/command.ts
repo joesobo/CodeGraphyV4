@@ -1,19 +1,16 @@
 import { cleanCliArgs, flagValue, parseBareTargetArg } from '../../shared/cliArgs';
 import { REPO_ROOT } from '../../shared/resolve/repoRoot';
 import { resolveQualityTarget, type QualityTarget } from '../../shared/resolve/target';
-import { discoverMutationPackageNames } from '../analysis/profile';
 import { runMutation, type MutationRunOptions } from './run';
 import { execFileSync } from 'child_process';
 
 export interface MutationCliDependencies {
-  discoverMutationPackageNames: typeof discoverMutationPackageNames;
   resolveQualityTarget: typeof resolveQualityTarget;
   runMutation: (target: QualityTarget, options?: MutationRunOptions) => Promise<void>;
   runPreflightTypecheck: () => void;
 }
 
 const DEFAULT_DEPENDENCIES: MutationCliDependencies = {
-  discoverMutationPackageNames,
   resolveQualityTarget,
   runMutation,
   runPreflightTypecheck: () => {
@@ -37,10 +34,10 @@ function resolveCliTargets(
     return [dependencies.resolveQualityTarget(REPO_ROOT, input)];
   }
 
-  return dependencies.discoverMutationPackageNames(REPO_ROOT).map((packageName) => (
-    dependencies.resolveQualityTarget(REPO_ROOT, packageName)
-  ));
-} 
+  throw new Error(
+    'Mutation requires an explicit package, directory, or file target. Example: `pnpm run mutate -- extension/` or `pnpm run mutate -- packages/extension/src/foo.ts`.',
+  );
+}
 
 function assertMutationTargetsSupported(targets: readonly QualityTarget[]): void {
   for (const target of targets) {
