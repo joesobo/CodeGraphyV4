@@ -52,6 +52,10 @@ function createPreviousNodeStateMap(
   }]));
 }
 
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
 function getNodeBorderColor(
   isFocused: boolean,
   isFavorite: boolean,
@@ -94,6 +98,15 @@ interface GraphNodePositionState {
   z: number | undefined;
 }
 
+interface RuntimeGraphNodePositionState {
+  fx?: unknown;
+  fy?: unknown;
+  fz?: unknown;
+  vx?: unknown;
+  vy?: unknown;
+  vz?: unknown;
+}
+
 interface RuntimeGraphNodePresentation {
   [key: string]: unknown;
   ownerPluginId?: string;
@@ -132,14 +145,15 @@ function createGraphNodePositionState(
   node: IGraphNode,
   previous: PreviousNodeState | undefined,
 ): GraphNodePositionState {
+  const runtimePosition = node as RuntimeGraphNodePositionState;
   const z = (node as { z?: unknown }).z;
   return {
-    fx: previous?.fx,
-    fy: previous?.fy,
-    fz: previous?.fz,
-    vx: previous?.vx,
-    vy: previous?.vy,
-    vz: previous?.vz,
+    fx: readFiniteNumber(runtimePosition.fx) ?? previous?.fx,
+    fy: readFiniteNumber(runtimePosition.fy) ?? previous?.fy,
+    fz: readFiniteNumber(runtimePosition.fz) ?? previous?.fz,
+    vx: readFiniteNumber(runtimePosition.vx) ?? previous?.vx,
+    vy: readFiniteNumber(runtimePosition.vy) ?? previous?.vy,
+    vz: readFiniteNumber(runtimePosition.vz) ?? previous?.vz,
     x: node.x ?? previous?.x,
     y: node.y ?? previous?.y,
     z: typeof z === 'number' ? z : previous?.z,

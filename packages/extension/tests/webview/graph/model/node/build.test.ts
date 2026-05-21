@@ -145,4 +145,47 @@ describe('graph/model/node/build', () => {
     });
   });
 
+  it('honors runtime node supplied fixed coordinates over previous physics state', () => {
+    const nodes = buildGraphNodes({
+      nodes: [
+        {
+          id: 'runtime-section',
+          label: 'Runtime Section',
+          color: '#60a5fa',
+          fx: 25,
+          fy: 35,
+          vx: 0,
+          vy: 0,
+          x: 25,
+          y: 35,
+        } as never,
+      ],
+      edges: [],
+      nodeSizes: new Map([['runtime-section', 16]]),
+      theme: 'dark',
+      favorites: new Set(),
+      timelineActive: false,
+      previousNodes: [
+        {
+          id: 'runtime-section',
+          fx: 100,
+          fy: 200,
+          vx: 8,
+          vy: 9,
+          x: 100,
+          y: 200,
+        } satisfies Pick<FGNode, 'fx' | 'fy' | 'id' | 'vx' | 'vy' | 'x' | 'y'>,
+      ],
+    });
+
+    expect(nodes.find(node => node.id === 'runtime-section')).toMatchObject({
+      fx: 25,
+      fy: 35,
+      vx: 0,
+      vy: 0,
+      x: 25,
+      y: 35,
+    });
+  });
+
 });
