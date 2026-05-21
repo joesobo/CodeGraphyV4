@@ -136,6 +136,8 @@ export type GraphViewContextMenuTargetSelector =
 
 export interface IGraphViewContextMenuRunContext {
   target: GraphViewContextMenuTargetSelector;
+  graphMode: '2d' | '3d';
+  timelineActive: boolean;
   selectedNodeIds: readonly string[];
   selectedEdgeIds: readonly string[];
   graphPosition?: { x: number; y: number };

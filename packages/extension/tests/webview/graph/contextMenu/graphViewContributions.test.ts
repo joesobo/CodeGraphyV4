@@ -206,6 +206,8 @@ describe('Graph View context menu contributions', () => {
 
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'node', nodeTypes: ['file'] },
+      graphMode: '2d',
+      timelineActive: false,
       selectedNodeIds: ['src/app.ts'],
       selectedEdgeIds: [],
     });
@@ -250,6 +252,32 @@ describe('Graph View context menu contributions', () => {
     expect(itemLabels(multiSelectionEntries)).not.toContain('Release Position');
   });
 
+  it('passes graph mode and timeline state to graph view plugin visibility checks', () => {
+    const graphViewContributions = createContributions([{
+      pluginId: 'acme.graph-tools',
+      contribution: {
+        id: 'acme.live-2d-action',
+        label: 'Live 2D Action',
+        isVisible: context => context.graphMode === '2d' && context.timelineActive === false,
+        targets: [{ kind: 'background' }],
+        run: vi.fn(),
+      },
+    }]);
+    const buildEntries = (graphMode: '2d' | '3d', timelineActive: boolean): readonly GraphContextMenuEntry[] =>
+      buildGraphContextMenuEntries({
+        selection: { kind: 'background', targets: [] },
+        timelineActive,
+        graphMode,
+        favorites: new Set(),
+        pluginItems: [],
+        graphViewContributions,
+      });
+
+    expect(itemLabels(buildEntries('2d', false))).toContain('Live 2D Action');
+    expect(itemLabels(buildEntries('3d', false))).not.toContain('Live 2D Action');
+    expect(itemLabels(buildEntries('2d', true))).not.toContain('Live 2D Action');
+  });
+
   it('passes background graph positions to graph view plugin menu actions', () => {
     const run = vi.fn();
     const graphViewContributions = createContributions([{
@@ -290,6 +318,8 @@ describe('Graph View context menu contributions', () => {
 
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'background' },
+      graphMode: '2d',
+      timelineActive: false,
       selectedNodeIds: [],
       selectedEdgeIds: [],
       graphPosition: { x: 120, y: 80 },
@@ -360,6 +390,8 @@ describe('Graph View context menu contributions', () => {
 
     expect(run).toHaveBeenCalledWith({
       target: { kind: 'node', nodeTypes: ['file'] },
+      graphMode: '2d',
+      timelineActive: false,
       selectedNodeIds: ['src/app.ts'],
       selectedEdgeIds: [],
       selectedNodePositions: {

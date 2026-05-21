@@ -80,6 +80,7 @@ export function useGraphViewportModel({
 
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
+    graphMode: viewState.graphMode,
     timelineActive: viewState.timelineActive,
     mutationAvailability: getGraphContextMutationAvailability(viewState),
     favorites: viewState.favorites,

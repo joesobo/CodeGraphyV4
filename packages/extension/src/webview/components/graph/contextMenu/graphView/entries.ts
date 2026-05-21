@@ -124,11 +124,15 @@ function selectorMatches(
 function createRunContext(
   selector: GraphViewContextMenuTargetSelector,
   selection: GraphContextSelection,
+  graphMode: '2d' | '3d',
+  timelineActive: boolean,
   nodes: readonly GraphContextMenuNode[] | undefined,
 ): Parameters<GraphViewContextMenuContribution['run']>[0] {
   const selectedNodePositions = createSelectedNodePositions(selection, nodes);
   return {
     target: selector,
+    graphMode,
+    timelineActive,
     selectedNodeIds: selection.kind === 'node' ? selection.targets : [],
     selectedEdgeIds: selection.kind === 'edge' && selection.edgeId ? [selection.edgeId] : [],
     ...(selection.graphPosition ? { graphPosition: selection.graphPosition } : {}),
@@ -140,15 +144,18 @@ export function buildGraphViewContextMenuEntries(
   options: {
     decision: GraphContextMenuDecision;
     edges?: readonly GraphContextMenuEdge[];
+    graphMode?: '2d' | '3d';
     graphViewContributions?: CoreGraphViewContributionSet;
     includeSeparator?: boolean;
     placement?: GraphViewContextMenuPlacement | 'default';
     nodes?: readonly GraphContextMenuNode[];
     selection: GraphContextSelection;
+    timelineActive: boolean;
   },
 ): GraphContextMenuEntry[] {
   const entries: GraphContextMenuEntry[] = [];
   const placement = options.placement ?? 'default';
+  const graphMode = options.graphMode ?? '2d';
 
   for (const entry of options.graphViewContributions?.contextMenu ?? []) {
     const contributionPlacement = entry.contribution.placement?.menu ?? 'default';
@@ -162,7 +169,13 @@ export function buildGraphViewContextMenuEntries(
     if (!selector) {
       continue;
     }
-    const context = createRunContext(selector, options.selection, options.nodes);
+    const context = createRunContext(
+      selector,
+      options.selection,
+      graphMode,
+      options.timelineActive,
+      options.nodes,
+    );
     if (entry.contribution.isVisible && !entry.contribution.isVisible(context)) {
       continue;
     }
