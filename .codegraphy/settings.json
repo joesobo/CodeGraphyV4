@@ -1,27 +1,51 @@
 {
   "version": 1,
-  "maxFiles": 1000,
+  "maxFiles": 3000,
   "include": [
     "**/*"
   ],
   "respectGitignore": true,
   "showOrphans": true,
-  "pluginOrder": [],
-  "disabledPlugins": [],
+  "plugins": [
+    {
+      "package": "@codegraphy-dev/plugin-markdown"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-typescript"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-godot"
+    }
+  ],
   "nodeColors": {
     "file": "#A1A1AA",
     "folder": "#A1A1AA",
-    "package": "#F59E0B"
-  },
-  "nodeColorEnabled": {
-    "file": true,
-    "folder": true,
-    "package": true
+    "package": "#F59E0B",
+    "symbol": "#7C3AED",
+    "symbol:function": "#8B5CF6",
+    "symbol:class": "#3B82F6",
+    "symbol:interface": "#06B6D4",
+    "symbol:type": "#EC4899",
+    "symbol:struct": "#0EA5E9",
+    "symbol:enum": "#F59E0B",
+    "variable": "#14B8A6",
+    "symbol:constant": "#22C55E",
+    "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
   },
   "nodeVisibility": {
     "file": true,
     "folder": false,
-    "package": false
+    "package": false,
+    "symbol": false,
+    "symbol:function": true,
+    "symbol:class": true,
+    "symbol:interface": true,
+    "symbol:type": true,
+    "symbol:struct": true,
+    "symbol:enum": true,
+    "variable": false,
+    "symbol:constant": true,
+    "plugin:codegraphy.gdscript:symbol:godot-class-name": true
   },
   "edgeVisibility": {
     "nests": true,
@@ -32,14 +56,18 @@
     "inherit": true,
     "reference": true,
     "test": true,
-    "load": true
+    "load": true,
+    "contains": true,
+    "overrides": true
   },
   "favorites": [],
   "bidirectionalEdges": "separate",
   "legend": [],
   "legendVisibility": {},
   "legendOrder": [],
-  "filterPatterns": [],
+  "filterPatterns": [
+    "**/tests/**"
+  ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
   "showLabels": true,
@@ -62,5 +90,11 @@
   "timeline": {
     "maxCommits": 500,
     "playbackSpeed": 1
+  },
+  "graphLayout": {
+    "collapsedNodes": {},
+    "pinnedNodes": {},
+    "sections": {},
+    "ownership": {}
   }
 }
