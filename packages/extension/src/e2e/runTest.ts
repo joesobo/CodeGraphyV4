@@ -13,7 +13,7 @@ import * as os from 'os';
 import { runTests } from '@vscode/test-electron';
 import { e2eScenarios } from './scenarios';
 
-const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy/plugin-markdown';
+const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy-dev/plugin-markdown';
 const DEFAULT_MAX_FILES = 1000;
 const DEFAULT_INCLUDE = ['**/*'];
 

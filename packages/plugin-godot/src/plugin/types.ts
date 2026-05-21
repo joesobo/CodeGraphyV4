@@ -1,7 +1,7 @@
 import type {
   IPlugin,
   IPluginAnalysisContext,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import type { GDScriptPathResolver } from '../PathResolver';
 import type { GDScriptFileAnalysisResult } from '../analysis';
 

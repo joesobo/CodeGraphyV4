@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
 import { listGraphRelationships } from '../../src/graphQuery';
 

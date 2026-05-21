@@ -32,16 +32,16 @@ describe('run/parse', () => {
       action: 'add',
       packageName: 'private-plugin',
     });
-    expect(parseCliCommand(['plugins', 'enable', '@codegraphy/plugin-python', '/workspace/project'])).toEqual({
+    expect(parseCliCommand(['plugins', 'enable', '@codegraphy-dev/plugin-python', '/workspace/project'])).toEqual({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy/plugin-python',
+      packageName: '@codegraphy-dev/plugin-python',
       workspacePath: '/workspace/project',
     });
-    expect(parseCliCommand(['plugins', 'disable', '@codegraphy/plugin-python'])).toEqual({
+    expect(parseCliCommand(['plugins', 'disable', '@codegraphy-dev/plugin-python'])).toEqual({
       name: 'plugins',
       action: 'disable',
-      packageName: '@codegraphy/plugin-python',
+      packageName: '@codegraphy-dev/plugin-python',
     });
     expect(parseCliCommand(['plugins', 'list', '/workspace/project'])).toEqual({
       name: 'plugins',

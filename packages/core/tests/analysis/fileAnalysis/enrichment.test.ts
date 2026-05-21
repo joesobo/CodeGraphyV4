@@ -3,7 +3,7 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import { enrichWorkspaceFileAnalysis } from '../../../src/analysis/fileAnalysis/enrichment';
 
 function symbol(filePath: string, name: string): IAnalysisSymbol {

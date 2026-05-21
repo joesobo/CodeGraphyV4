@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME } from '@codegraphy/core';
+import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME } from '@codegraphy-dev/core';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import { DEFAULT_MAX_FILES } from '../../../src/shared/settings/defaults';
 import {

@@ -23,7 +23,7 @@ describe('extension/pipeline/treesitter/javascript/typeImports/collect', () => {
         ]),
         [node({ type: 'import' }), node({ type: 'type' })],
       ),
-      '@codegraphy/plugin-api',
+      '@codegraphy-dev/plugin-api',
       '/workspace/packages/plugin-api/src/index.ts',
     )).toEqual([
       {
@@ -31,14 +31,14 @@ describe('extension/pipeline/treesitter/javascript/typeImports/collect', () => {
         importedName: 'default',
         localName: 'PluginContract',
         resolvedPath: '/workspace/packages/plugin-api/src/index.ts',
-        specifier: '@codegraphy/plugin-api',
+        specifier: '@codegraphy-dev/plugin-api',
       },
       {
         bindingKind: 'namespace',
         importedName: '*',
         localName: 'Contracts',
         resolvedPath: '/workspace/packages/plugin-api/src/index.ts',
-        specifier: '@codegraphy/plugin-api',
+        specifier: '@codegraphy-dev/plugin-api',
       },
     ]);
   });

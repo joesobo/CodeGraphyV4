@@ -3,7 +3,7 @@
  * @module core/plugins/lifecycle/contracts
  */
 
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 
 /** Minimal plugin info subset needed for lifecycle operations. */
 export interface ILifecyclePluginInfo {

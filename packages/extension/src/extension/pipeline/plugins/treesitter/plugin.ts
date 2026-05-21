@@ -1,1 +1,1 @@
-export { createTreeSitterPlugin } from '@codegraphy/core';
+export { createTreeSitterPlugin } from '@codegraphy-dev/core';

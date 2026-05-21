@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { indexCodeGraphyWorkspace } from '@codegraphy/core';
+import { indexCodeGraphyWorkspace } from '@codegraphy-dev/core';
 import type { IndexWorkspaceResult, WorkspacePathInput } from './model';
 import { resolveCodeGraphyWorkspacePath } from './paths';
 

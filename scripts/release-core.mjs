@@ -85,7 +85,7 @@ function run(command, args, options = {}) {
 }
 
 export function prepareCoreReleaseBase(baseDir = repoRoot, runCommand = run) {
-  runCommand('pnpm', ['--filter', '@codegraphy/extension', 'run', 'build'], {
+  runCommand('pnpm', ['--filter', '@codegraphy-dev/extension', 'run', 'build'], {
     cwd: baseDir,
   });
 }

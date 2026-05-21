@@ -1,6 +1,6 @@
 /**
  * @fileoverview Graph data types for CodeGraphy visualization.
- * @module @codegraphy/plugin-api/graph
+ * @module @codegraphy-dev/plugin-api/graph
  */
 
 export type CoreNodeType = 'file' | 'folder' | 'package';

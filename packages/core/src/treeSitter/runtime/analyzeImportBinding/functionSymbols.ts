@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { getIdentifierText } from '../analyze/text';
 import { createSymbol } from '../analyze/results';
 

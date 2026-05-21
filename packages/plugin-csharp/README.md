@@ -2,23 +2,23 @@
 
 Adds C# ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-- Package: [`@codegraphy/plugin-csharp`](https://www.npmjs.com/package/@codegraphy/plugin-csharp)
-- Plugin API: [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
+- Package: [`@codegraphy-dev/plugin-csharp`](https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp)
+- Plugin API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
 
 ## Install
 
-Install `@codegraphy/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
 
 ```bash
-npm i -g @codegraphy/plugin-csharp
+npm i -g @codegraphy-dev/plugin-csharp
 codegraphy plugins refresh
-codegraphy plugins enable @codegraphy/plugin-csharp
+codegraphy plugins enable @codegraphy-dev/plugin-csharp
 codegraphy index
 ```
 
 ## What It Provides
 
-The built-in Tree-sitter plugin now owns C# analysis inside `@codegraphy/core`.
+The built-in Tree-sitter plugin now owns C# analysis inside `@codegraphy-dev/core`.
 This plugin is intentionally lightweight and only adds:
 
 - C# ecosystem ignore filters

@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy/plugin-godot",
+  "name": "@codegraphy-dev/plugin-godot",
   "version": "2.1.2",
   "description": "CodeGraphy Godot plugin",
   "license": "MIT",
@@ -48,7 +48,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/plugin-api": "workspace:*",
+    "@codegraphy-dev/plugin-api": "workspace:*",
     "@fernforestgames/godot-resource-parser": "0.1.3",
     "@gdquest/lezer-gdscript": "0.1.2",
     "@lezer/highlight": "^1.2.3",

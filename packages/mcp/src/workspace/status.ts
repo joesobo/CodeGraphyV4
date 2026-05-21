@@ -2,7 +2,7 @@ import * as path from 'node:path';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
   readCodeGraphyWorkspaceStatus,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import type { WorkspacePathInput, WorkspaceStatusResult } from './model';
 import { resolveCodeGraphyWorkspacePath } from './paths';
 

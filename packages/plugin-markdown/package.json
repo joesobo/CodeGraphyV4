@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy/plugin-markdown",
+  "name": "@codegraphy-dev/plugin-markdown",
   "version": "1.0.4",
   "description": "CodeGraphy markdown plugin",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/plugin-api": "workspace:*"
+    "@codegraphy-dev/plugin-api": "workspace:*"
   },
   "codegraphy": {
     "type": "plugin",

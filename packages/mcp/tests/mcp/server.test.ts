@@ -25,7 +25,7 @@ function createDependencies(): NonNullable<Parameters<typeof createCodeGraphyMcp
       state: 'fresh',
       hasGraphCache: true,
       staleReasons: [],
-      enabledPlugins: ['@codegraphy/plugin-markdown'],
+      enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
       message: 'CodeGraphy Workspace Graph Cache is fresh.',
     }),
     indexWorkspace: async ({ workspacePath }: { workspacePath?: string }) => ({
@@ -83,7 +83,7 @@ describe('mcp/server', () => {
     await client.callTool({ name: 'codegraphy_plugins_refresh', arguments: {} });
     await client.callTool({
       name: 'codegraphy_plugins_add',
-      arguments: { packageName: '@codegraphy/plugin-python' },
+      arguments: { packageName: '@codegraphy-dev/plugin-python' },
     });
     await client.callTool({
       name: 'codegraphy_plugins_list',
@@ -91,11 +91,11 @@ describe('mcp/server', () => {
     });
     const enableResult = await client.callTool({
       name: 'codegraphy_plugins_enable',
-      arguments: { packageName: '@codegraphy/plugin-python', path: '/workspace/project' },
+      arguments: { packageName: '@codegraphy-dev/plugin-python', path: '/workspace/project' },
     });
     await client.callTool({
       name: 'codegraphy_plugins_disable',
-      arguments: { packageName: '@codegraphy/plugin-python', path: '/workspace/project' },
+      arguments: { packageName: '@codegraphy-dev/plugin-python', path: '/workspace/project' },
     });
 
     expect(enableResult.structuredContent).toEqual({
@@ -104,18 +104,18 @@ describe('mcp/server', () => {
     });
     expect(calls).toEqual([
       { name: 'plugins', action: 'refresh' },
-      { name: 'plugins', action: 'add', packageName: '@codegraphy/plugin-python' },
+      { name: 'plugins', action: 'add', packageName: '@codegraphy-dev/plugin-python' },
       { name: 'plugins', action: 'list', workspacePath: '/workspace/project' },
       {
         name: 'plugins',
         action: 'enable',
-        packageName: '@codegraphy/plugin-python',
+        packageName: '@codegraphy-dev/plugin-python',
         workspacePath: '/workspace/project',
       },
       {
         name: 'plugins',
         action: 'disable',
-        packageName: '@codegraphy/plugin-python',
+        packageName: '@codegraphy-dev/plugin-python',
         workspacePath: '/workspace/project',
       },
     ]);

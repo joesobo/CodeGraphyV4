@@ -26,7 +26,7 @@ Mutation scope is defined in the repo root [quality.config.json](../../quality.c
 Operational notes:
 
 - The CI mutation-seed workflow is responsible for orchestrating all-package mutation refreshes. Local mutation commands require an explicit package, directory, or file target.
-- Root `pnpm run mutate` is a CodeGraphy wrapper: it hydrates a missing package incremental report from the latest `main` seed, then delegates to the generic `@codegraphy/quality-tools` mutation runner.
+- Root `pnpm run mutate` is a CodeGraphy wrapper: it hydrates a missing package incremental report from the latest `main` seed, then delegates to the generic `@codegraphy-dev/quality-tools` mutation runner.
 - The local seed cache lives under the local `main` checkout at `reports/mutation/`. Feature worktrees copy package seeds from there into their own `reports/mutation/<package>/` directory and never write mutation results back to `main`.
 - The first successful mutation-seed workflow on `main` may take hours. Later refreshes restore package caches and should mostly rerun changed mutants.
 - The extension package uses a longer Stryker dry-run timeout because its initial instrumented Vitest startup is materially slower than a normal test run.

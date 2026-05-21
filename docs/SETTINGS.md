@@ -48,10 +48,10 @@ Example:
   },
   "plugins": [
     {
-      "package": "@codegraphy/plugin-markdown"
+      "package": "@codegraphy-dev/plugin-markdown"
     },
     {
-      "package": "@codegraphy/plugin-python",
+      "package": "@codegraphy-dev/plugin-python",
       "options": {
         "includeTests": true
       }
@@ -107,7 +107,7 @@ First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
 {
   "plugins": [
     {
-      "package": "@codegraphy/plugin-markdown"
+      "package": "@codegraphy-dev/plugin-markdown"
     }
   ]
 }
@@ -123,7 +123,7 @@ When a plugin package declares `codegraphy.defaultOptions`, enabling that plugin
 {
   "plugins": [
     {
-      "package": "@codegraphy/plugin-godot",
+      "package": "@codegraphy-dev/plugin-godot",
       "options": {
         "includeSceneResources": true,
         "includeAutoloads": true,

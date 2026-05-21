@@ -4,7 +4,7 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';
 import type { ImportedBinding } from './model';
 

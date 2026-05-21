@@ -12,7 +12,7 @@ describe('status/command', () => {
         state: 'missing',
         hasGraphCache: false,
         staleReasons: ['never-indexed'],
-        enabledPlugins: ['@codegraphy/plugin-markdown'],
+        enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
         message: 'CodeGraphy Workspace Graph Cache is missing. Run `codegraphy index` to build it.',
       }),
     });
@@ -20,7 +20,7 @@ describe('status/command', () => {
     expect(JSON.parse(result.output)).toMatchObject({
       workspaceRoot: '/workspace/project',
       state: 'missing',
-      enabledPlugins: ['@codegraphy/plugin-markdown'],
+      enabledPlugins: ['@codegraphy-dev/plugin-markdown'],
     });
   });
 });

@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy/plugin-typescript",
+  "name": "@codegraphy-dev/plugin-typescript",
   "version": "2.0.4",
   "description": "CodeGraphy TypeScript and JavaScript plugin",
   "license": "MIT",
@@ -48,7 +48,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/plugin-api": "workspace:*"
+    "@codegraphy-dev/plugin-api": "workspace:*"
   },
   "codegraphy": {
     "type": "plugin",

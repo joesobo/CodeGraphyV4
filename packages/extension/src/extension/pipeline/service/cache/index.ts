@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { persistCodeGraphyWorkspaceIndexMetadata } from '@codegraphy/core';
+import { persistCodeGraphyWorkspaceIndexMetadata } from '@codegraphy-dev/core';
 import { readCodeGraphyRepoMeta } from '../../../repoSettings/meta';
 import { getWorkspaceAnalysisDatabasePath } from '../../database/cache/storage';
 

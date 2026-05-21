@@ -2,7 +2,7 @@ import type Parser from 'tree-sitter';
 import type {
   IAnalysisRelation,
   IAnalysisSymbol,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import { resolveJavaTypePath } from '../projectRoots';
 import type { ImportedBinding } from '../analyze/model';
 import { getIdentifierText } from '../analyze/nodes';

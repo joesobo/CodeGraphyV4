@@ -7,7 +7,7 @@ import {
   getWorkspaceSettingsPath,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import { readWorkspacePluginStatusContext } from '../../../../src/extension/pipeline/plugins/statusContext';
 
 describe('pipeline/plugins/statusContext', () => {
@@ -32,18 +32,18 @@ describe('pipeline/plugins/statusContext', () => {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy/plugin-python',
+            package: '@codegraphy-dev/plugin-python',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
           },
           {
-            package: '@codegraphy/plugin-godot',
+            package: '@codegraphy-dev/plugin-godot',
             version: '3.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy/plugin-godot',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
           },
         ],
       },
@@ -57,18 +57,18 @@ describe('pipeline/plugins/statusContext', () => {
       showOrphans: true,
       filterPatterns: [],
       disabledCustomFilterPatterns: [],
-      plugins: [{ package: '@codegraphy/plugin-python' }],
+      plugins: [{ package: '@codegraphy-dev/plugin-python' }],
     });
 
     const context = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
 
     expect(context.installedPlugins.map(plugin => plugin.package)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-      '@codegraphy/plugin-python',
-      '@codegraphy/plugin-godot',
+      '@codegraphy-dev/plugin-python',
+      '@codegraphy-dev/plugin-godot',
     ]);
-    expect(context.workspaceEnabledPackageNames?.has('@codegraphy/plugin-python')).toBe(true);
-    expect(context.workspaceEnabledPackageNames?.has('@codegraphy/plugin-godot')).toBe(false);
+    expect(context.workspaceEnabledPackageNames?.has('@codegraphy-dev/plugin-python')).toBe(true);
+    expect(context.workspaceEnabledPackageNames?.has('@codegraphy-dev/plugin-godot')).toBe(false);
   });
 
   it('does not materialize workspace settings when the workspace has no settings file yet', () => {
@@ -77,11 +77,11 @@ describe('pipeline/plugins/statusContext', () => {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy/plugin-python',
+            package: '@codegraphy-dev/plugin-python',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
           },
         ],
       },
@@ -92,7 +92,7 @@ describe('pipeline/plugins/statusContext', () => {
 
     expect(context.installedPlugins.map(plugin => plugin.package)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-      '@codegraphy/plugin-python',
+      '@codegraphy-dev/plugin-python',
     ]);
     expect(context.workspaceEnabledPackageNames).toBeUndefined();
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);

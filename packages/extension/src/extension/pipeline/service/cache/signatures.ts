@@ -7,7 +7,7 @@ import {
   readCodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyWorkspacePluginSettings,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import type { Configuration } from '../../../config/reader';
 import { execGitCommand } from '../../../gitHistory/exec';
 

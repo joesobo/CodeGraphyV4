@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { IDiscoveredFile } from '@codegraphy/core';
+import type { IDiscoveredFile } from '@codegraphy-dev/core';
 
 export interface WorkspaceFileChangeSelection {
   files: IDiscoveredFile[];

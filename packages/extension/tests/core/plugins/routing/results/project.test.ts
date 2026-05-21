@@ -3,7 +3,7 @@ import type { IPlugin } from '../../../../../../plugin-api/src';
 import {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 
 describe('routing/results/project', () => {
   it('adds the plugin id to relations that do not already have provenance', () => {

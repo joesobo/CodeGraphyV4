@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { EventBus } from '../../../../../src/core/plugins/events/bus';
-import { FileDiscovery } from '@codegraphy/core';
+import { FileDiscovery } from '@codegraphy-dev/core';
 import { PluginRegistry } from '../../../../../src/core/plugins/registry/manager';
 import { WorkspacePipelineStateBase } from '../../../../../src/extension/pipeline/service/base/state';
 

@@ -1,4 +1,4 @@
-# @codegraphy/plugin-api
+# @codegraphy-dev/plugin-api
 
 ## 2.0.0
 

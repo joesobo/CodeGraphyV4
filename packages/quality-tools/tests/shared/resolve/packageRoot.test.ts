@@ -14,7 +14,7 @@ function createWorkspace(): string {
   const repoRoot = mkdtempSync(join(tmpdir(), 'quality-tools-package-root-'));
   tempDirs.push(repoRoot);
   mkdirSync(join(repoRoot, 'packages', 'quality-tools', 'src', 'shared'), { recursive: true });
-  writeFileSync(join(repoRoot, 'packages', 'quality-tools', 'package.json'), '{"name":"@codegraphy/quality-tools"}');
+  writeFileSync(join(repoRoot, 'packages', 'quality-tools', 'package.json'), '{"name":"@codegraphy-dev/quality-tools"}');
   return repoRoot;
 }
 

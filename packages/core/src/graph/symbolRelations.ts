@@ -1,4 +1,4 @@
-import type { IAnalysisRelation, IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation, IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IGraphEdge } from './contracts';
 import { createGraphEdgeId } from './edgeIdentity';
 import { createCanonicalSymbolIds } from './symbolIds';

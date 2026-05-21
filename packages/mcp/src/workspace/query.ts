@@ -7,8 +7,8 @@ import {
   readCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceStatus,
   readWorkspaceAnalysisDatabaseSnapshot,
-} from '@codegraphy/core';
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/core';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { WorkspaceGraphQueryInput, WorkspaceGraphQueryResult } from './model';
 import { resolveCodeGraphyWorkspacePath } from './paths';
 

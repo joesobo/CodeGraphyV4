@@ -1,6 +1,6 @@
 import type {
   IFileAnalysisResult,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import { createSymbolsByFilePath } from './symbols';
 import { enrichRelationTargetSymbol } from './targetSymbol';
 

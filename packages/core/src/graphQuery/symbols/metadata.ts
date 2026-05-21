@@ -1,4 +1,4 @@
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { GraphQuerySymbolReportItem } from '../model';
 
 export function readSymbolMetadata(symbol: IAnalysisSymbol, field: string): string | undefined {

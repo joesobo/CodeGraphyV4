@@ -83,10 +83,10 @@ importers:
 
   packages/core:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
-      '@codegraphy/plugin-markdown':
+      '@codegraphy-dev/plugin-markdown':
         specifier: workspace:*
         version: link:../plugin-markdown
       '@driftlog/tree-sitter-dart':
@@ -152,7 +152,7 @@ importers:
 
   packages/extension:
     dependencies:
-      '@codegraphy/core':
+      '@codegraphy-dev/core':
         specifier: workspace:*
         version: link:../core
       '@driftlog/tree-sitter-dart':
@@ -348,10 +348,10 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@codegraphy/core':
+      '@codegraphy-dev/core':
         specifier: workspace:*
         version: link:../core
-      '@codegraphy/plugin-api':
+      '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
       '@driftlog/tree-sitter-dart':
@@ -425,13 +425,13 @@ importers:
 
   packages/plugin-csharp:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-godot:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
       '@fernforestgames/godot-resource-parser':
@@ -449,19 +449,19 @@ importers:
 
   packages/plugin-markdown:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-python:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-typescript:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
