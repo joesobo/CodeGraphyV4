@@ -69,7 +69,7 @@ describe('WorkspacePipeline sources', () => {
 
       const names = statuses.map(s => s.name);
       expect(names).toContain('Markdown');
-      expect(names).toContain('Tree-sitter');
+      expect(names).not.toContain('Tree-sitter');
     });
 
     it('marks registered runtime plugins as enabled when no disabled set', async () => {

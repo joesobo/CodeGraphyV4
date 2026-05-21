@@ -66,6 +66,10 @@ function getPluginWorkspaceStatus(
   return totalConnections > 0 ? 'active' : 'installed';
 }
 
+function isUserFacingPlugin(pluginInfo: IPluginInfo): boolean {
+  return !pluginInfo.builtIn || !!pluginInfo.sourcePackage;
+}
+
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
   const {
     disabledPlugins,
@@ -79,7 +83,7 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
   const statuses: IPluginStatus[] = [];
   const registeredPackageNames = new Set<string>();
 
-  for (const pluginInfo of pluginInfos) {
+  for (const pluginInfo of pluginInfos.filter(isUserFacingPlugin)) {
     const plugin = pluginInfo.plugin;
     const matchingFiles = getPluginMatchingFiles(pluginInfo, discoveredFiles);
     const totalConnections = countPluginConnections(pluginInfo, fileConnections);
