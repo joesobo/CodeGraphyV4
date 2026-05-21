@@ -1,5 +1,11 @@
 # @codegraphy-dev/extension
 
+## 5.5.1
+
+### Patch Changes
+
+- [`43f6561`](https://github.com/joesobo/CodeGraphyV4/commit/43f656135eeae08beda9f6f4fc418964fc1d58b3) Thanks [@joesobo](https://github.com/joesobo)! - Rebuild stale Graph Cache data before publishing graph data so newly enabled npm plugins are not overwritten by cached analysis.
+
 ## 5.5.0
 
 ### Minor Changes
