@@ -17,3 +17,4 @@ Tool ownership:
 
 - `@poleski/quality-tools` owns the analyzer implementation in its own repository.
 - CodeGraphy owns the local `quality.config.json` policy and uses the root scripts to run the linked package.
+- Generated quality artifacts belong under `reports/quality-tools/`.

@@ -19,7 +19,7 @@ export default defineConfig({
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
-      reportsDirectory: resolve(workspaceRoot, 'coverage'),
+      reportsDirectory: resolve(workspaceRoot, 'reports/quality-tools/crap/extension'),
       include: ['packages/extension/src/**/*.{ts,tsx}'],
       exclude: ['packages/extension/src/**/*.d.ts'],
     },

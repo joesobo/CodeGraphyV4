@@ -1,6 +1,6 @@
 # Reachability
 
-`reachability` reports dead surfaces and dead ends inside the analyzed package source graph.
+`reachability` reports dead surfaces and dead ends inside the selected configured file graph.
 
 ## Quick start
 
@@ -11,8 +11,8 @@ pnpm run reachability -- extension/src/webview/
 
 ## What it checks
 
-- dead surfaces: files with no inbound references inside the analyzed package scope
-- dead ends: files with no inbound or outbound source references inside the analyzed package scope
+- dead surfaces: files with no inbound references inside the selected scope
+- dead ends: files with no inbound or outbound references inside the selected scope
 
 ## Configuration
 

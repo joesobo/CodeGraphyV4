@@ -18,3 +18,5 @@ Examples:
 pnpm run crap -- extension/
 pnpm run crap -- extension/src/webview/
 ```
+
+Coverage for CRAP runs is written under `reports/quality-tools/crap/<target>/`.

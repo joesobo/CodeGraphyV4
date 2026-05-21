@@ -67,10 +67,12 @@
             "--coverage",
             "--testTimeout",
             "60000",
-            "--silent"
+            "--silent",
+            "--coverage.reportsDirectory",
+            "{repoRoot}/{reportsDir}/crap/{reportKey}"
           ],
           "cwd": "{packageRoot}",
-          "coveragePath": "{repoRoot}/coverage/coverage-final.json"
+          "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
         }
       },
       "organize": {

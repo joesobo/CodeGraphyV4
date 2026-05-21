@@ -1369,8 +1369,8 @@ Validation:
 - `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin/symbol/extract.ts`
 - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/packageIcons.test.ts tests/integration/pluginActivationEvents.test.ts tests/extension/pipeline/adapters.test.ts tests/extension/pipeline/analysis/delegates.test.ts`
 - `pnpm --filter @codegraphy/extension typecheck`
-- `pnpm --filter @codegraphy/quality-tools exec vitest run tests/crap/coverage/profileFactories.test.ts tests/crap/coverage/profiles.test.ts tests/crap/command.test.ts`
-- `pnpm --filter @codegraphy/quality-tools typecheck`
+- Historical internal quality-tools validation: `pnpm --filter @codegraphy/quality-tools exec vitest run tests/crap/coverage/profileFactories.test.ts tests/crap/coverage/profiles.test.ts tests/crap/command.test.ts`
+- Historical internal quality-tools validation: `pnpm --filter @codegraphy/quality-tools typecheck`
 - `pnpm run lint`
 - `pnpm run typecheck`
 - `pnpm run test`

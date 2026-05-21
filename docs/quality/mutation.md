@@ -11,6 +11,7 @@ Current standards:
 Examples:
 
 ```bash
+pnpm run mutate -- .
 pnpm run mutate -- extension/
 pnpm run mutate -- extension/src/webview/components/NodeTooltip.tsx
 ```
