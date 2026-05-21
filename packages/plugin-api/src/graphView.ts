@@ -31,7 +31,19 @@ export interface IGraphViewContributionContext {
   workspaceRoot?: string;
 }
 
-export interface IGraphViewRuntimeNode extends IGraphNode {
+export interface IGraphViewRuntimeNodePositionState {
+  x?: number;
+  y?: number;
+  z?: number;
+  fx?: number;
+  fy?: number;
+  fz?: number;
+  vx?: number;
+  vy?: number;
+  vz?: number;
+}
+
+export interface IGraphViewRuntimeNode extends IGraphNode, IGraphViewRuntimeNodePositionState {
   ownerPluginId?: string;
   runtimeNodeType?: string;
 }
@@ -69,17 +81,8 @@ export interface IGraphViewForceAdapterContribution extends IGraphViewContributi
 }
 
 export interface IGraphViewNodeDragState extends IGraphViewRuntimeNode {
-  fx?: number;
-  fy?: number;
-  fz?: number;
   isDragging?: boolean;
   isPinned?: boolean;
-  vx?: number;
-  vy?: number;
-  vz?: number;
-  x?: number;
-  y?: number;
-  z?: number;
 }
 
 export interface IGraphViewNodeDragEndContext {

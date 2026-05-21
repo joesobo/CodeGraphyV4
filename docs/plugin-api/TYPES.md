@@ -215,6 +215,8 @@ Graph View runtime nodes and edges are display artifacts. They do not become Gra
 
 Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `graphMode` reports the current `2d` or `3d` view, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
 
+Runtime node contributions may supply D3 coordinate state (`x`/`y`/`z`), fixed coordinate state (`fx`/`fy`/`fz`), and velocity state (`vx`/`vy`/`vz`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to the force simulation without inventing a separate layout channel.
+
 Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy`/`fz` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
 
 Context menu contributions render in the normal graph context menu by default. Contributions that set `placement: { menu: 'create' }` join the graph background create actions instead, so the same action appears beside `New File...` and `New Folder...` in the background context menu and in the toolbar `New...` popup while the plugin is enabled.

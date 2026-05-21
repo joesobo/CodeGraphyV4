@@ -6,6 +6,7 @@ import type {
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
   IGraphViewProjectionContribution,
+  IGraphViewRuntimeNode,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
@@ -53,17 +54,25 @@ describe('plugin API contracts', () => {
   it('lets plugins contribute gated runtime graph behavior through public Graph View contracts', () => {
     const premiumAccess = 'premiumFeature' as CodeGraphyAccessKey;
 
+    const positionedRuntimeNode = {
+      id: 'runtime:frontend',
+      label: 'Runtime Frontend',
+      color: '#84cc16',
+      nodeType: 'acme:runtime',
+      x: 120,
+      y: 240,
+      fx: 120,
+      fy: 240,
+      vx: 0,
+      vy: 0,
+    } satisfies IGraphViewRuntimeNode;
+
     const runtimeNode = {
       id: 'acme.graph.runtime-node',
       label: 'Runtime Node',
       requiresAccess: premiumAccess,
       createNodes() {
-        return [{
-          id: 'runtime:frontend',
-          label: 'Runtime Frontend',
-          color: '#84cc16',
-          nodeType: 'acme:runtime',
-        }];
+        return [positionedRuntimeNode];
       },
     } satisfies IGraphViewRuntimeNodeContribution;
 
