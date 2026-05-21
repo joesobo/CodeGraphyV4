@@ -184,9 +184,10 @@ describe('plugin API contracts', () => {
         styles: ['dist/webview.css'],
       },
       onLoad(api) {
+        const graph = api.getGraph();
         api.sendToWebview({
           type: 'runtimeDataUpdated',
-          data: { nodes: [] },
+          data: { nodes: graph.nodes },
         });
         api.onWebviewMessage((message) => {
           api.log('info', message.type);

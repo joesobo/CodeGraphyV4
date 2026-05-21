@@ -61,6 +61,7 @@ export interface IPluginToolbarAction {
 }
 
 export interface IPluginHostApi {
+  getGraph(): IGraphData;
   sendToWebview(message: IPluginWebviewMessage): void;
   onWebviewMessage(handler: (message: IPluginWebviewMessage) => void): Disposable;
   registerExporter(exporter: IPluginExporter): Disposable;
