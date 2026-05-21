@@ -50,10 +50,12 @@ export function ToolbarActions({
   const setActivePanel = useGraphStore(s => s.setActivePanel);
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const graphViewContributions = useGraphViewContributions(pluginHost);
+  const graphMode = useGraphStore(s => s.graphMode);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
+  const timelineActive = useGraphStore(s => s.timelineActive);
 
   return (
     <div className="flex flex-col items-center gap-2" data-testid="toolbar-actions">
@@ -69,7 +71,11 @@ export function ToolbarActions({
       <div className="flex flex-col items-center gap-1.5" data-testid="toolbar-graph-tools-group">
         <LayoutModePopover />
         <NodeSizeModePopover />
-        <CreateToolbarAction graphViewContributions={graphViewContributions} />
+        <CreateToolbarAction
+          graphMode={graphMode}
+          graphViewContributions={graphViewContributions}
+          timelineActive={timelineActive}
+        />
         <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
         <ToolbarPanelButtons
           activePanel={activePanel}

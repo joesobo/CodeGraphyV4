@@ -58,6 +58,7 @@ export function buildGraphContextMenuEntries(
 ): GraphContextMenuEntry[] {
   const {
     selection,
+    graphMode = '2d',
     timelineActive,
     favorites,
     pluginItems,
@@ -93,11 +94,13 @@ export function buildGraphContextMenuEntries(
     ? buildGraphViewContextMenuEntries({
       decision,
       edges,
+      graphMode,
       graphViewContributions,
       includeSeparator: false,
       nodes,
       placement: 'create',
       selection,
+      timelineActive,
     })
     : [];
   const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
@@ -107,9 +110,11 @@ export function buildGraphContextMenuEntries(
     ...buildGraphViewContextMenuEntries({
       decision,
       edges,
+      graphMode,
       graphViewContributions,
       nodes,
       selection,
+      timelineActive,
     }),
   ];
 }
