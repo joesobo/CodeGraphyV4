@@ -97,14 +97,16 @@ The first successful seed may take hours. Later `main` seed refreshes should mos
 ### Local Worktree
 
 1. User runs a normal mutate command with a package, directory, or file target.
-2. The quality-tool wrapper resolves the target to its Package Stryker Project.
+2. The CodeGraphy wrapper resolves the target to its Package Stryker Project.
 3. If the package Local Mutation Cache already exists in the current worktree, use it.
-4. Otherwise check whether the Local Main Seed Cache is up to date with the latest CI seed artifact.
-5. If the Local Main Seed Cache is missing or stale, update `<local-main-checkout>/reports/mutation/` from the CI seed artifact.
-6. Copy the needed package report from the Local Main Seed Cache into the current worktree's `reports/mutation/<package>/` directory.
-7. If hydration is unavailable or the package is missing from the seed, run cold and create the package Local Mutation Cache.
-8. Stryker runs normally with that package's `--incrementalFile`.
-9. Stryker writes back only to the current worktree's package Local Mutation Cache.
+4. Otherwise find the local checkout that is currently on the `main` branch.
+5. Read `<local-main-checkout>/reports/mutation/seed-sha.txt` and compare it to the commit SHA attached to the latest CI seed artifact.
+6. If the Local Main Seed Cache is missing or stale, update `<local-main-checkout>/reports/mutation/` from the CI seed artifact.
+7. If hydration is unavailable or the package is missing from the seed, fail clearly and tell the user to run the mutation seed workflow on `main`.
+8. Copy the needed package report from the Local Main Seed Cache into the current worktree's `reports/mutation/<package>/` directory.
+9. The wrapper invokes the normal generic mutate runner for that package or file target.
+10. Stryker runs normally with that package's `--incrementalFile`.
+11. Stryker writes back only to the current worktree's package Local Mutation Cache.
 
 The local worktree never writes directly to the shared Main Mutation Seed or the Local Main Seed Cache. It only copies from them. Only the seed-refresh path updates the Local Main Seed Cache from CI.
 
@@ -181,7 +183,7 @@ Recommended shape:
 - trigger on every `push` to `main`
 - support `workflow_dispatch`
 - use a workflow-level concurrency group so only the latest seed refresh for `main` keeps running
-- restore the previous CI seed before mutation
+- restore the previous CI seed cache before mutation
 - run package mutation seed refreshes in a GitHub Actions matrix
 - each matrix job runs one package-scoped command, such as `pnpm run mutate -- extension/`
 - each matrix job uploads that package's updated incremental report as a package seed artifact
@@ -190,13 +192,26 @@ Recommended shape:
 
 This should be separate from the required PR CI checks. Mutation seed refresh is a developer-speed accelerator, not a merge gate.
 
+Stryker does not save CI state by itself. It writes the incremental JSON file into the runner workspace path passed by `--incrementalFile`. GitHub-hosted runners are ephemeral, so the workflow must explicitly preserve those files. This plan uses two GitHub Actions mechanisms:
+
+- **Actions cache** for CI-to-CI speed: package matrix jobs restore the previous package seed cache before running Stryker, then save the updated package seed cache after the run.
+- **Actions artifact** for local machines: the assemble job uploads a combined Main Mutation Seed artifact that local worktrees can download with `gh`.
+
+For this plan:
+
+- Each package job restores that package's previous `reports/mutation/<package>/` cache.
+- Each package job runs Stryker, which updates that package's incremental JSON on disk.
+- Each package job uploads its updated package report.
+- The assemble job combines package reports into one Main Mutation Seed artifact.
+- Local hydration later downloads that assembled artifact when local `main` is missing or stale.
+
 Do not use no-arg `pnpm run mutate` for CI seed refresh. That command is intentionally invalid. A package matrix lets CI run independent package Stryker projects on separate runners, so wall-clock time trends toward the slowest package plus artifact assembly instead of the sum of all packages.
 
 The CI seed workflow should own all-package orchestration at the GitHub Actions matrix level. Parallelizing packages inside one runner would compete for the same CPU and memory; matrix jobs give each package its own runner while Stryker still manages mutant-level concurrency inside that package.
 
-### Quality Tool
+### CodeGraphy Wrapper
 
-Add seed hydration before `runStryker(...)`.
+Add seed hydration before invoking the generic quality-tools mutate runner.
 
 Suggested responsibilities:
 
@@ -214,6 +229,8 @@ Suggested responsibilities:
   - cold run because no seed was available for this package
 
 The wrapper should never let branch worktrees write mutation results back into the Local Main Seed Cache. Branch worktrees update only their own package Local Mutation Cache.
+
+The generic quality-tools mutate runner should stay seed-policy-free so it can later be extracted for normal single-project repos.
 
 ## Edge Cases To Design
 
@@ -290,7 +307,7 @@ The wrapper should never let branch worktrees write mutation results back into t
 - Accepted: local seed staleness is decided by comparing the Local Main Seed Cache's stored commit SHA to the latest CI seed artifact's commit SHA.
 - Accepted: the Local Main Seed Cache is the local main checkout's `reports/mutation/` tree, with `seed-sha.txt` at the root and package incremental reports under package directories.
 - Accepted: no-arg `pnpm run mutate` is invalid; users must run `pnpm run mutate -- <package-or-path>`.
-- Pending: how the wrapper should locate the local main checkout.
+- Accepted: locating the local main checkout means finding the worktree currently on `main` so the wrapper can read/write `<local-main-checkout>/reports/mutation/seed-sha.txt` and package seed files.
 
 ## Recommended Next Decision
 
