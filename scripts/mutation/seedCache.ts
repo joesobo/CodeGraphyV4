@@ -25,6 +25,7 @@ export interface MutationSeedRun {
 export interface HydrateMutationSeedOptions {
   packageName: string;
   repoRoot: string;
+  env?: Partial<Pick<NodeJS.ProcessEnv, 'GITHUB_REF' | 'GITHUB_REF_NAME'>>;
   stdout?: Pick<typeof console, 'error'>;
   execFileSync?: typeof defaultExecFileSync;
 }
@@ -70,8 +71,12 @@ function runText(
   }).trim();
 }
 
-function currentBranch(repoRoot: string, execFileSync: typeof defaultExecFileSync): string {
-  if (process.env.GITHUB_REF === 'refs/heads/main' || process.env.GITHUB_REF_NAME === 'main') {
+function currentBranch(
+  repoRoot: string,
+  execFileSync: typeof defaultExecFileSync,
+  env: Partial<Pick<NodeJS.ProcessEnv, 'GITHUB_REF' | 'GITHUB_REF_NAME'>>,
+): string {
+  if (env.GITHUB_REF === 'refs/heads/main' || env.GITHUB_REF_NAME === 'main') {
     return 'main';
   }
 
@@ -239,6 +244,7 @@ function copyPackageSeed(sourceRepoRoot: string, destinationRepoRoot: string, pa
 
 export function hydrateMutationSeed(options: HydrateMutationSeedOptions): HydrateMutationSeedResult {
   const {
+    env = process.env,
     execFileSync = defaultExecFileSync,
     packageName,
     repoRoot,
@@ -250,7 +256,7 @@ export function hydrateMutationSeed(options: HydrateMutationSeedOptions): Hydrat
     return { packageName, status: 'local-cache' };
   }
 
-  if (currentBranch(repoRoot, execFileSync) === 'main') {
+  if (currentBranch(repoRoot, execFileSync, env) === 'main') {
     stdout.error(`[mutation] No ${packageName} incremental cache found on main; Stryker will create it.`);
     return { packageName, status: 'main-checkout' };
   }

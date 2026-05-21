@@ -84,6 +84,7 @@ describe('hydrateMutationSeed', () => {
     const execFileSync = vi.fn();
 
     const result = hydrateMutationSeed({
+      env: {},
       execFileSync: execFileSync as unknown as typeof execFileSyncType,
       packageName: 'extension',
       repoRoot,
@@ -98,6 +99,7 @@ describe('hydrateMutationSeed', () => {
     const repoRoot = createRepoRoot('codegraphy-seed-main-');
 
     const result = hydrateMutationSeed({
+      env: {},
       execFileSync: createExecFileSync({
         branch: 'main',
         currentRepoRoot: repoRoot,
@@ -118,6 +120,7 @@ describe('hydrateMutationSeed', () => {
     writePackageSeed(mainRepoRoot, 'extension', '{"fromMain":true}');
 
     const result = hydrateMutationSeed({
+      env: {},
       execFileSync: createExecFileSync({ currentRepoRoot, mainRepoRoot }),
       packageName: 'extension',
       repoRoot: currentRepoRoot,
@@ -134,6 +137,7 @@ describe('hydrateMutationSeed', () => {
     writeSeedSha(mainRepoRoot, 'old-sha');
 
     hydrateMutationSeed({
+      env: {},
       execFileSync: createExecFileSync({
         currentRepoRoot,
         latestSha: 'new-sha',
@@ -162,6 +166,7 @@ describe('hydrateMutationSeed', () => {
     }) as unknown as typeof execFileSyncType;
 
     expect(() => hydrateMutationSeed({
+      env: {},
       execFileSync,
       packageName: 'extension',
       repoRoot: currentRepoRoot,
