@@ -30,4 +30,15 @@ describe('graph/rendering/surface/view/nodeValue', () => {
       size: 12,
     }))).toBe(5200);
   });
+
+  it('uses the visual rectangle diagonal when plugin nodes provide sized rectangles', () => {
+    expect(getGraphNodeValue(createNode({
+      shape2D: 'rectangle',
+      shapeSize2D: {
+        height: 80,
+        width: 120,
+      },
+      size: 12,
+    }))).toBe(5200);
+  });
 });

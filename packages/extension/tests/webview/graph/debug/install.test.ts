@@ -168,7 +168,21 @@ describe('webview/graph/debug/install', () => {
           zoomToFit: zoomToFit3d,
         },
       },
-      graphDataRef: { current: { nodes: [{ id: 'flat', size: 5, x: 2, y: 3, z: 9 }] } },
+      graphDataRef: {
+        current: {
+          nodes: [{
+            id: 'flat',
+            shapeSize2D: {
+              height: 20,
+              width: 40,
+            },
+            size: 5,
+            x: 2,
+            y: 3,
+            z: 9,
+          }],
+        },
+      },
       graphMode: '2d',
       win,
     });
@@ -187,6 +201,10 @@ describe('webview/graph/debug/install', () => {
       nodes: [{
         id: 'flat',
         screenX: 3,
+        shapeSize2D: {
+          height: 20,
+          width: 40,
+        },
         screenY: 4,
         size: 5,
         x: 2,

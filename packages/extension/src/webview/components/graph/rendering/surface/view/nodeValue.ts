@@ -1,16 +1,10 @@
 import type { FGNode } from '../../../model/build';
-
-function isFinitePositiveNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0;
-}
+import { getRectangularNodeArea2D, getRectangularNodeAreaRadius } from '../../../model/node/rectangularArea';
 
 function getPointerAreaRadius(node: FGNode): number | undefined {
-  const area = node.pointerArea2D;
-  if (!isFinitePositiveNumber(area?.height) || !isFinitePositiveNumber(area.width)) {
-    return undefined;
-  }
-
-  return Math.hypot(area.height, area.width) / 2;
+  const area = getRectangularNodeArea2D(node.shapeSize2D)
+    ?? getRectangularNodeArea2D(node.pointerArea2D);
+  return area ? getRectangularNodeAreaRadius(area) : undefined;
 }
 
 export function getGraphNodeValue(node: FGNode): number {

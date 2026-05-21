@@ -13,6 +13,7 @@ describe('exportSvgShapes', () => {
   describe('svgShapePath', () => {
     it.each([
       ['square', 'M5,15h10v10h-10Z'],
+      ['rectangle', 'M5,15h10v10h-10Z'],
       ['diamond', 'M10,15L15,20L10,25L5,20Z'],
       [
         'triangle',
@@ -33,6 +34,13 @@ describe('exportSvgShapes', () => {
     it('returns an empty path for circle and unknown shapes', () => {
       expect(svgShapePath('circle', 0, 0, 10)).toBe('');
       expect(svgShapePath(undefined, 0, 0, 10)).toBe('');
+    });
+
+    it('returns a centered rectangle path with explicit width and height', () => {
+      expect(svgShapePath('rectangle', 10, 20, 5, {
+        height: 12,
+        width: 30,
+      })).toBe('M-5,14h30v12h-30Z');
     });
   });
 });

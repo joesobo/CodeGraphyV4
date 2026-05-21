@@ -113,4 +113,23 @@ describe('physics/root settings', () => {
     expect(collisionForce.radius()({ size: 9 })).toBe(13);
     expect(collisionForce.iterations()).toBe(16);
   });
+
+  it('uses sized rectangle bounds for the collision radius', () => {
+    const { d3Force, instance } = createPhysicsInstance();
+
+    initPhysics(instance, SETTINGS);
+    const collisionForce = getInstalledD3Force<{
+      radius: () => (node: FGNode) => number;
+    }>(d3Force, 'collision');
+
+    expect(collisionForce.radius()({
+      id: 'section-ui',
+      size: 9,
+      shape2D: 'rectangle',
+      shapeSize2D: {
+        height: 80,
+        width: 120,
+      },
+    } as FGNode)).toBe(76.11102550927978);
+  });
 });

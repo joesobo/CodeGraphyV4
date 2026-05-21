@@ -62,4 +62,22 @@ describe('graph/rendering/node/pointer', () => {
     expect(ctx.fill).not.toHaveBeenCalled();
   });
 
+  it('uses sized rectangle node bodies as the pointer area by default', () => {
+    const ctx = {
+      fill: vi.fn(),
+      fillRect: vi.fn(),
+      fillStyle: '',
+    } as unknown as CanvasRenderingContext2D;
+
+    paintNodePointerArea(createNode({
+      shape2D: 'rectangle',
+      shapeSize2D: {
+        height: 80,
+        width: 120,
+      },
+    }), '#ffffff', ctx);
+
+    expect(drawShape).not.toHaveBeenCalled();
+    expect(ctx.fillRect).toHaveBeenCalledWith(-36, 8, 120, 80);
+  });
 });
