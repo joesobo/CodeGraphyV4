@@ -98,11 +98,13 @@ describe('Graph context menu (node)', () => {
   afterEach(() => {
     vi.clearAllMocks();
     ForceGraph2D.clearMockPositions();
-    graphStore.setState({
-      favorites: new Set<string>(),
-      graphMode: '2d',
-      timelineActive: false,
-      pluginContextMenuItems: [],
+    act(() => {
+      graphStore.setState({
+        favorites: new Set<string>(),
+        graphMode: '2d',
+        timelineActive: false,
+        pluginContextMenuItems: [],
+      });
     });
   });
 
@@ -457,6 +459,7 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Symbol ID')).toBeInTheDocument();
     expect(screen.getByText('Copy Symbol Name')).toBeInTheDocument();
     expect(screen.getByText('Add to Favorites')).toBeInTheDocument();
+    expect(screen.getAllByText('Focus Node')).toHaveLength(1);
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
     expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
     expect(screen.queryByText('Delete File')).not.toBeInTheDocument();

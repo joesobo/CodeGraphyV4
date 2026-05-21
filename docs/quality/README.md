@@ -1,6 +1,6 @@
 # Quality Tools
 
-CodeGraphy uses five complementary quality checks:
+CodeGraphy uses six complementary quality checks:
 
 - `Organize`: directory structure, file naming, and cohesion analysis
 - `Boundaries`: dependency-layer sources and runtime/package boundary enforcement
@@ -42,7 +42,7 @@ Current command expectations:
 - `mutate` expects a package root or a path inside `src/`
 - `scrap` works best on package roots and test files/directories
 
-Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed.
+Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed. CI's Vitest split does not automatically shard Stryker mutation runs; mutation speed still depends on target scope, Stryker incremental state, and the Vitest tests selected for the mutation target.
 
 Implementation now lives in `packages/quality-tools/`.
 

@@ -57,14 +57,13 @@ suite('File Ops: Graph refresh', function () {
   test('creating a new file triggers graph refresh', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
+    await api.dispatchWebviewMessage({ type: 'UPDATE_DEPTH_MODE', payload: { depthMode: false } });
     await sleep(3_000);
 
     const folders = vscode.workspace.workspaceFolders;
     assert.ok(folders && folders.length > 0, 'Workspace folder required');
     workspaceRoot = folders[0].uri.fsPath;
     tmpFile = path.join(workspaceRoot, ...scenario.tempFileRelativePath.split('/'));
-    const previousNodeCount = api.getGraphData().nodes.length;
-
     const updatePromise = waitForGraphUpdate(api);
     fs.writeFileSync(tmpFile, scenario.tempFileContents);
     await updatePromise;
@@ -72,8 +71,8 @@ suite('File Ops: Graph refresh', function () {
 
     const graphData = api.getGraphData();
     assert.ok(
-      graphData.nodes.length > previousNodeCount,
-      `Expected node count to increase after creating a file. Before=${previousNodeCount}, After=${graphData.nodes.length}`
+      graphData.nodes.some((node) => String(node.id).includes('__e2e_temp__')),
+      `Expected graph to include the created temp file. Nodes=${graphData.nodes.map(node => String(node.id)).join(', ')}`
     );
   });
 
