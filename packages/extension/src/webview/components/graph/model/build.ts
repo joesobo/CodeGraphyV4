@@ -30,6 +30,10 @@ export type FGNode = NodeObject & Record<string, unknown> & {
   nodeType?: NodeType;
   ownerPluginId?: string;
   runtimeNodeType?: string;
+  pointerArea2D?: {
+    height: number;
+    width: number;
+  };
   shape2D?: NodeShape2D;
   shape3D?: NodeShape3D;
   imageUrl?: string;

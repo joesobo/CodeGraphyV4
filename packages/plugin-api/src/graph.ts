@@ -119,6 +119,12 @@ export interface IGraphNode {
   /** Optional 2D shape override for the node. */
   shape2D?: GraphNodeShape2D;
 
+  /** Optional 2D pointer hit area override. Width and height are graph-space units centered on the node. */
+  pointerArea2D?: {
+    height: number;
+    width: number;
+  };
+
   /** Optional 3D shape override for the node. */
   shape3D?: GraphNodeShape3D;
 

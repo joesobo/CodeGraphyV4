@@ -12,6 +12,7 @@ import {
   DIRECTIONAL_ARROW_LENGTH_2D,
 } from '../../link/contracts';
 import { getLinkCanvasObjectMode } from '../../link/metrics';
+import { getGraphNodeValue } from './nodeValue';
 
 type ForceGraph2DRef = MutableRefObject<FG2DMethods<NodeObject, LinkObject> | undefined>;
 
@@ -60,10 +61,7 @@ export function Surface2d({
       nodeCanvasObject={nodeCanvasObject}
       nodeCanvasObjectMode={() => 'replace'}
       nodePointerAreaPaint={nodePointerAreaPaint}
-      nodeVal={(node: NodeObject) => {
-        const radius = (node as FGNode).size ?? 16;
-        return Math.max(1, radius * radius);
-      }}
+      nodeVal={(node: NodeObject) => getGraphNodeValue(node as FGNode)}
       nodeRelSize={1}
       linkColor={getLinkColor}
       linkWidth={getLinkWidth}
