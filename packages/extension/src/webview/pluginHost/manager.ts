@@ -17,7 +17,7 @@ import type {
   LabelOpts,
   CodeGraphyWebviewAPI,
 } from './api/contracts/webview';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import { toDisposable, type Disposable } from '../../core/plugins/disposable';
 import { drawBadge, drawProgressRing, drawLabel } from './api/drawing';
 import { createPluginWebviewApi } from './api';

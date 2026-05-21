@@ -4,7 +4,7 @@
  * @module plugins/godot/sources/extends
  */
 
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { parseGDScriptResourceReferences } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';

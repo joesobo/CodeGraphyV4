@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { createSymbolMetadata } from '../../../src/graphQuery/relationships/symbolMetadata';
 
 describe('core/graphQuery/relationships/symbolMetadata', () => {

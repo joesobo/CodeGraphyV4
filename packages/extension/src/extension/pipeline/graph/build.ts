@@ -2,9 +2,9 @@ export {
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphForSource,
   buildWorkspacePipelineGraphFromAnalysis,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 export type {
   WorkspacePipelineGraphAnalysisDependencies,
   WorkspacePipelineGraphDependencies,
   WorkspacePipelineGraphSource,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';

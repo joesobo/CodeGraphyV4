@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import { analyzeCFile } from './analyzeC/file';
 import { analyzeCppFile } from './analyzeCpp/file';
 import { analyzeCSharpFile } from './analyzeCSharp/file';

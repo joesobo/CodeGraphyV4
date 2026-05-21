@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IDiscoveredFile } from '../../src/discovery/contracts';
 import {
   analyzeWorkspacePipelineFiles,

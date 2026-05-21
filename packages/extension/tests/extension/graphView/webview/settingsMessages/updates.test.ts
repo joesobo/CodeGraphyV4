@@ -149,8 +149,8 @@ describe('graph view settings update message', () => {
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
         if (key === 'plugins') {
           return [
-            { package: '@codegraphy/plugin-markdown' },
-            { package: '@codegraphy/plugin-python' },
+            { package: '@codegraphy-dev/plugin-markdown' },
+            { package: '@codegraphy-dev/plugin-python' },
           ] as T;
         }
         return defaultValue;
@@ -162,7 +162,7 @@ describe('graph view settings update message', () => {
         {
           type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
           payload: {
-            packageNames: ['@codegraphy/plugin-python', '@codegraphy/plugin-markdown'],
+            packageNames: ['@codegraphy-dev/plugin-python', '@codegraphy-dev/plugin-markdown'],
           },
         },
         state,
@@ -171,8 +171,8 @@ describe('graph view settings update message', () => {
     ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy/plugin-python' },
-      { package: '@codegraphy/plugin-markdown' },
+      { package: '@codegraphy-dev/plugin-python' },
+      { package: '@codegraphy-dev/plugin-markdown' },
     ]);
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });

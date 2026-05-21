@@ -1,8 +1,8 @@
-export type { WorkspaceAnalysisDatabaseSnapshot } from '@codegraphy/core';
+export type { WorkspaceAnalysisDatabaseSnapshot } from '@codegraphy-dev/core';
 export {
   clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';

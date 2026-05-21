@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { resolveJavaTypePath } from '../projectRoots';
 import type { ImportedBinding } from '../analyze/model';
 import { getLastPathSegment, getNodeText } from '../analyze/nodes';

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy/core';
+import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy-dev/core';
 import type { EventName, EventPayloads } from '../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';

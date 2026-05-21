@@ -5,7 +5,7 @@ import {
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 
 const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
 
@@ -180,7 +180,7 @@ export default function createPlugin() {
   writeCodeGraphyWorkspaceSettings(workspacePath, {
     ...readCodeGraphyWorkspaceSettings(workspacePath),
     plugins: [{
-      package: '@codegraphy/plugin-markdown',
+      package: '@codegraphy-dev/plugin-markdown',
     }, {
       package: packageName,
       options: {

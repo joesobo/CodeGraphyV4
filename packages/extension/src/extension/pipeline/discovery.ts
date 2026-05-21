@@ -1,9 +1,9 @@
 export {
   discoverWorkspacePipelineFiles,
   formatWorkspacePipelineLimitReachedMessage,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 export type {
   WorkspacePipelineDiscoveryConfig,
   WorkspacePipelineDiscoveryDependencies,
   WorkspacePipelineDiscoveryResult,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';

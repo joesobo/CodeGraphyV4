@@ -2,23 +2,23 @@
 
 Adds TypeScript and JavaScript ecosystem metadata to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-- Package: [`@codegraphy/plugin-typescript`](https://www.npmjs.com/package/@codegraphy/plugin-typescript)
-- Plugin API: [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
+- Package: [`@codegraphy-dev/plugin-typescript`](https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript)
+- Plugin API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
 
 ## Install
 
-Install `@codegraphy/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
 
 ```bash
-npm i -g @codegraphy/plugin-typescript
+npm i -g @codegraphy-dev/plugin-typescript
 codegraphy plugins refresh
-codegraphy plugins enable @codegraphy/plugin-typescript
+codegraphy plugins enable @codegraphy-dev/plugin-typescript
 codegraphy index
 ```
 
 ## What It Provides
 
-The built-in Tree-sitter plugin now handles JS/TS analysis inside `@codegraphy/core`.
+The built-in Tree-sitter plugin now handles JS/TS analysis inside `@codegraphy-dev/core`.
 This plugin keeps the TypeScript/JavaScript ecosystem defaults that are still useful on top:
 
 - default ignore filters for common build output and package folders

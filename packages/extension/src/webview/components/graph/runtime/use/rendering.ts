@@ -1,7 +1,7 @@
 import {
   type MutableRefObject,
 } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type {
   ForceGraphMethods as FG2DMethods,
   LinkObject,

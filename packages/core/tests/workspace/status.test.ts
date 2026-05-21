@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -57,7 +57,7 @@ describe('CodeGraphy Workspace status', () => {
     const settings = readCodeGraphyWorkspaceSettings(workspaceRoot);
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
-      plugins: [{ package: '@codegraphy/plugin-python' }],
+      plugins: [{ package: '@codegraphy-dev/plugin-python' }],
     });
 
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {

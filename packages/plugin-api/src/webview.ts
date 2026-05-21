@@ -1,6 +1,6 @@
 /**
  * @fileoverview CodeGraphy webview plugin API contracts.
- * @module @codegraphy/plugin-api/webview
+ * @module @codegraphy-dev/plugin-api/webview
  */
 
 import type { Disposable } from './disposable';

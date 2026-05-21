@@ -1,4 +1,4 @@
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IGraphData } from '../graph/contracts';
 
 export interface GraphQueryData {

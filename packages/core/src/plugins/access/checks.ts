@@ -11,7 +11,7 @@ import type {
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
   IPlugin,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 
 export interface CorePluginAccessContext {
   workspaceRoot?: string;

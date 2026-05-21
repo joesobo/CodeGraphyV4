@@ -2,4 +2,4 @@ export {
   getExternalPackageLabelFromNodeId,
   getExternalPackageNodeId,
   isExternalPackageNodeId,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';

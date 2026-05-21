@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { FileDiscovery } from '@codegraphy/core';
+import type { FileDiscovery } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { Configuration } from '../../config/reader';
 import type { IWorkspaceAnalysisCache } from '../cache';

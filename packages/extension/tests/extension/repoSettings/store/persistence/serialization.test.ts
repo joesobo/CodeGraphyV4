@@ -35,9 +35,9 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
   it('serializes package-backed plugin entries', () => {
     const settings = createDefaultCodeGraphyRepoSettings();
     settings.plugins = [
-      { package: '@codegraphy/plugin-markdown' },
+      { package: '@codegraphy-dev/plugin-markdown' },
       {
-        package: '@codegraphy/plugin-python',
+        package: '@codegraphy-dev/plugin-python',
         options: { includeTests: true },
       },
     ];
@@ -45,9 +45,9 @@ describe('extension/repoSettings/store/persistence/serialization', () => {
     const parsed = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
 
     expect(parsed.plugins).toEqual([
-      { package: '@codegraphy/plugin-markdown' },
+      { package: '@codegraphy-dev/plugin-markdown' },
       {
-        package: '@codegraphy/plugin-python',
+        package: '@codegraphy-dev/plugin-python',
         options: { includeTests: true },
       },
     ]);

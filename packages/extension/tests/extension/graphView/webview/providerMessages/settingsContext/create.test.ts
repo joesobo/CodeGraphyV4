@@ -165,7 +165,7 @@ describe('graph view provider listener settings context', () => {
       } as never,
     );
 
-    const plugins = [{ package: '@codegraphy/plugin-python' }];
+    const plugins = [{ package: '@codegraphy-dev/plugin-python' }];
     await context.updateConfig('plugins', plugins);
 
     expect(repoSettings.updateCodeGraphyConfigurationSilently).toHaveBeenCalledWith(

@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { CodeGraphyInstalledPluginRecord, IDiscoveredFile } from '@codegraphy/core';
+import type { CodeGraphyInstalledPluginRecord, IDiscoveredFile } from '@codegraphy-dev/core';
 import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
 import type { IPluginStatus } from '../../../shared/plugins/status';

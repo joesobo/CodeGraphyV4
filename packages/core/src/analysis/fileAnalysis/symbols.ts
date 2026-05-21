@@ -1,7 +1,7 @@
 import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 
 export function createSymbolsByFilePath(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,

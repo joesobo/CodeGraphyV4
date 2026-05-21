@@ -39,7 +39,7 @@ interface E2EWorkspaceSettings {
   plugins: CodeGraphyWorkspacePluginSettings[];
 }
 
-const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy/plugin-markdown';
+const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy-dev/plugin-markdown';
 const DEFAULT_MAX_FILES = 1000;
 const DEFAULT_INCLUDE = ['**/*'];
 

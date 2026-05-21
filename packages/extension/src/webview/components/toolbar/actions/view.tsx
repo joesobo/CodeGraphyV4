@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { useGraphStore } from '../../../store/state';
 import { IndexToolbarAction } from './indexAction';

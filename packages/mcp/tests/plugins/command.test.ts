@@ -7,7 +7,7 @@ import {
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginRecord,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import { describe, expect, it } from 'vitest';
 
 import { runPluginsCommand } from '../../src/plugins/command';
@@ -45,7 +45,7 @@ describe('plugins/command', () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-'));
-    await createPackage(globalRoot, '@codegraphy/plugin-python', {
+    await createPackage(globalRoot, '@codegraphy-dev/plugin-python', {
       version: '1.2.3',
       codegraphy: {
         type: 'plugin',
@@ -67,7 +67,7 @@ describe('plugins/command', () => {
       output: 'Refreshed 1 CodeGraphy plugin in ~/.codegraphy/plugins.json.',
     });
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins.map(plugin => plugin.package)).toEqual([
-      '@codegraphy/plugin-python',
+      '@codegraphy-dev/plugin-python',
     ]);
     await expect(fs.stat(path.join(workspaceRoot, '.codegraphy', 'settings.json'))).rejects.toMatchObject({
       code: 'ENOENT',
@@ -147,7 +147,7 @@ describe('plugins/command', () => {
   it('enables and disables a cached plugin for one workspace', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
-    const record = createPluginRecord('@codegraphy/plugin-python', '/global/@codegraphy/plugin-python');
+    const record = createPluginRecord('@codegraphy-dev/plugin-python', '/global/@codegraphy-dev/plugin-python');
     writeCodeGraphyInstalledPluginCache({
       version: 1,
       plugins: [record],
@@ -156,18 +156,18 @@ describe('plugins/command', () => {
     const enableResult = await runPluginsCommand({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy/plugin-python',
+      packageName: '@codegraphy-dev/plugin-python',
       workspacePath: workspaceRoot,
     }, { homeDir });
 
     expect(enableResult).toEqual({
       exitCode: 0,
-      output: `Enabled @codegraphy/plugin-python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+      output: `Enabled @codegraphy-dev/plugin-python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
       { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
       {
-        package: '@codegraphy/plugin-python',
+        package: '@codegraphy-dev/plugin-python',
         options: { includeTests: true },
       },
     ]);
@@ -175,13 +175,13 @@ describe('plugins/command', () => {
     const disableResult = await runPluginsCommand({
       name: 'plugins',
       action: 'disable',
-      packageName: '@codegraphy/plugin-python',
+      packageName: '@codegraphy-dev/plugin-python',
       workspacePath: workspaceRoot,
     }, { homeDir });
 
     expect(disableResult).toEqual({
       exitCode: 0,
-      output: `Disabled @codegraphy/plugin-python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
+      output: `Disabled @codegraphy-dev/plugin-python for ${workspaceRoot}. Run \`codegraphy index ${workspaceRoot}\` to refresh the Graph Cache.`,
     });
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
       package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
@@ -245,14 +245,14 @@ describe('plugins/command', () => {
     writeCodeGraphyInstalledPluginCache({
       version: 1,
       plugins: [
-        createPluginRecord('@codegraphy/plugin-markdown', '/global/@codegraphy/plugin-markdown'),
-        createPluginRecord('@codegraphy/plugin-python', '/global/@codegraphy/plugin-python'),
+        createPluginRecord('@codegraphy-dev/plugin-markdown', '/global/@codegraphy-dev/plugin-markdown'),
+        createPluginRecord('@codegraphy-dev/plugin-python', '/global/@codegraphy-dev/plugin-python'),
       ],
     }, { homeDir });
     await runPluginsCommand({
       name: 'plugins',
       action: 'enable',
-      packageName: '@codegraphy/plugin-python',
+      packageName: '@codegraphy-dev/plugin-python',
       workspacePath: workspaceRoot,
     }, { homeDir });
 
@@ -264,9 +264,9 @@ describe('plugins/command', () => {
 
     expect(result.output).toContain(`CodeGraphy plugins for ${workspaceRoot}`);
     expect(result.output).toContain('Enabled in workspace:');
-    expect(result.output).toContain('1. @codegraphy/plugin-markdown');
-    expect(result.output).toContain('2. @codegraphy/plugin-python');
+    expect(result.output).toContain('1. @codegraphy-dev/plugin-markdown');
+    expect(result.output).toContain('2. @codegraphy-dev/plugin-python');
     expect(result.output).toContain('Installed but disabled:');
-    expect(result.output).not.toContain('- @codegraphy/plugin-markdown');
+    expect(result.output).not.toContain('- @codegraphy-dev/plugin-markdown');
   });
 });

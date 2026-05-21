@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { hasRelationshipFilters, relationMatchesConfig } from '../../../src/graphQuery/symbols/relationshipFilters';
 
 const relation: IAnalysisRelation = {

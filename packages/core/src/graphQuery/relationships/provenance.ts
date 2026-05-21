@@ -1,4 +1,4 @@
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { GraphQueryRelationshipProvenance } from '../model';
 
 const TREE_SITTER_PLUGIN_ID = 'codegraphy.treesitter';

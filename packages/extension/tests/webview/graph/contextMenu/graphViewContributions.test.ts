@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import { buildGraphContextMenuEntries } from '../../../../src/webview/components/graph/contextMenu/build/entries';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
 import { getGraphContextActionEffects } from '../../../../src/webview/components/graph/contextActions/effects';

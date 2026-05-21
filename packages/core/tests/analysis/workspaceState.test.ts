@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import {
   clearWorkspacePipelineCache,
   rebuildWorkspacePipelineGraph,

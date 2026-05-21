@@ -1,8 +1,8 @@
 # CodeGraphy MCP
 
-`@codegraphy/mcp` installs the `codegraphy` CLI and local MCP server.
+`@codegraphy-dev/mcp` installs the `codegraphy` CLI and local MCP server.
 
-It is a lightweight agent adapter over `@codegraphy/core`. MCP and CLI commands run against a CodeGraphy Workspace, which is the current folder by default or an explicit path when one is provided. The package can run Indexing, read workspace status, and execute Graph Query without opening or focusing VS Code.
+It is a lightweight agent adapter over `@codegraphy-dev/core`. MCP and CLI commands run against a CodeGraphy Workspace, which is the current folder by default or an explicit path when one is provided. The package can run Indexing, read workspace status, and execute Graph Query without opening or focusing VS Code.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ It is a lightweight agent adapter over `@codegraphy/core`. MCP and CLI commands 
 ## Quick Start
 
 ```bash
-npm install -g @codegraphy/mcp
+npm install -g @codegraphy-dev/mcp
 codegraphy setup
 codegraphy index
 codegraphy status
@@ -32,14 +32,14 @@ codegraphy index /absolute/path/to/folder
 | `codegraphy setup` | Adds the CodeGraphy MCP entry to Codex when possible |
 | `codegraphy status [workspace]` | Reports Graph Cache state, stale reasons, and enabled plugins for the current or explicit CodeGraphy Workspace |
 | `codegraphy index [workspace]` | Runs Indexing for the current or explicit CodeGraphy Workspace |
-| `codegraphy plugins refresh` | Scans global npm roots for installed `@codegraphy/*` plugin packages and updates `~/.codegraphy/plugins.json` |
+| `codegraphy plugins refresh` | Scans global npm roots for installed `@codegraphy-dev/*` plugin packages and updates `~/.codegraphy/plugins.json` |
 | `codegraphy plugins add <package>` | Adds one explicitly named globally installed plugin package to `~/.codegraphy/plugins.json` |
 | `codegraphy plugins list [workspace]` | Shows installed plugins and which ones are enabled for a CodeGraphy Workspace |
 | `codegraphy plugins enable <package> [workspace]` | Enables a cached plugin package for the current or explicit CodeGraphy Workspace |
 | `codegraphy plugins disable <package> [workspace]` | Removes a plugin package from the workspace-local enabled plugin array |
 | `codegraphy mcp` | Starts the local stdio MCP server |
 
-Plugin commands use `@codegraphy/core` directly and do not import plugin runtime code. Installing a plugin package only makes it available; enabling it writes the workspace-local `plugins` array and tells the user to run Indexing explicitly.
+Plugin commands use `@codegraphy-dev/core` directly and do not import plugin runtime code. Installing a plugin package only makes it available; enabling it writes the workspace-local `plugins` array and tells the user to run Indexing explicitly.
 
 ## MCP Tools
 

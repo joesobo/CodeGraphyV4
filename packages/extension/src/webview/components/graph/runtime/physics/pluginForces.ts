@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphEdgeKind, IGraphData } from '../../../../../shared/graph/contracts';
 import type { FGLink, FGNode } from '../../model/build';
 import type { GraphPhysicsControls } from './model';

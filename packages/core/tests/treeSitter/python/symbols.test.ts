@@ -3,7 +3,7 @@ import type Parser from 'tree-sitter';
 import type {
   IAnalysisRelation,
   IAnalysisSymbol,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import {
   handlePythonCall,
   handlePythonClassDefinition,

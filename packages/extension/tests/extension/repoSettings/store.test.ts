@@ -94,11 +94,11 @@ describe('extension/repoSettings/store', () => {
       changes.push(event.changedKeys);
     });
 
-    await store.updateSilently('plugins', [{ package: '@codegraphy/plugin-python' }]);
+    await store.updateSilently('plugins', [{ package: '@codegraphy-dev/plugin-python' }]);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
-    expect(store.get('plugins', [])).toEqual([{ package: '@codegraphy/plugin-python' }]);
-    expect(persisted.plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
+    expect(store.get('plugins', [])).toEqual([{ package: '@codegraphy-dev/plugin-python' }]);
+    expect(persisted.plugins).toEqual([{ package: '@codegraphy-dev/plugin-python' }]);
     expect(changes).toEqual([]);
   });
 
@@ -112,7 +112,7 @@ describe('extension/repoSettings/store', () => {
       JSON.stringify({
         ...createSettingsWithOverrides({}),
         plugins: [
-          { package: '@codegraphy/plugin-markdown' },
+          { package: '@codegraphy-dev/plugin-markdown' },
           { package: '@codegraphy/organize' },
         ],
         pluginData: {
@@ -127,7 +127,7 @@ describe('extension/repoSettings/store', () => {
     );
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
-    await store.updateSilently('plugins', [{ package: '@codegraphy/plugin-markdown' }]);
+    await store.updateSilently('plugins', [{ package: '@codegraphy-dev/plugin-markdown' }]);
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
     expect(persisted.pluginData).toEqual({

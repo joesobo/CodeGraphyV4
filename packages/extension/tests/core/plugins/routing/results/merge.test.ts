@@ -5,7 +5,7 @@ import {
   mergeById,
   mergeFileAnalysisResults,
   mergeRelations,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 
 describe('routing/results/merge', () => {
   it('builds an empty analysis result for a file path', () => {

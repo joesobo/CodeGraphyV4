@@ -1,4 +1,4 @@
-# `@codegraphy/core`
+# `@codegraphy-dev/core`
 
 Shared CodeGraphy engine package for workspace indexing, Graph Cache access, and Graph Query behavior.
 
@@ -30,9 +30,9 @@ Plugin installation and workspace enablement are separate:
 
 - Installed plugins live in the user-level cache at `~/.codegraphy/plugins.json`.
 - Enabled plugins live in a CodeGraphy Workspace settings file at `<workspace-root>/.codegraphy/settings.json`.
-- New workspaces materialize `@codegraphy/plugin-markdown` as the first enabled plugin during first Indexing.
+- New workspaces materialize `@codegraphy-dev/plugin-markdown` as the first enabled plugin during first Indexing.
 - The enabled plugin order is the order of the workspace `plugins` array.
-- `plugins refresh` scans global npm roots for `@codegraphy/*` packages with CodeGraphy plugin metadata.
+- `plugins refresh` scans global npm roots for `@codegraphy-dev/*` packages with CodeGraphy plugin metadata.
 - `plugins add <package>` records an explicitly named globally installed package, including non-`@codegraphy` packages.
 - Enabling or disabling a plugin changes workspace settings only; plugin runtime loading still waits for explicit Indexing.
 - Indexing imports enabled npm plugin packages through their normal package `exports`, merges manifest `defaultOptions` with workspace-local `options`, delivers the result to package factories as `factoryOptions.options`, and delivers the same result to plugin lifecycle and analysis hooks as `context.options`.
@@ -42,7 +42,7 @@ Plugin npm packages identify themselves with package metadata:
 
 ```json
 {
-  "name": "@codegraphy/plugin-python",
+  "name": "@codegraphy-dev/plugin-python",
   "version": "1.2.3",
   "codegraphy": {
     "type": "plugin",

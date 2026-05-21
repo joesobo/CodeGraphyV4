@@ -1,7 +1,7 @@
 import type {
   IFileAnalysisResult,
   IPluginAnalysisContext,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../../../analysis/projectedConnection';
 import { getPluginInfosForFile, type IRoutablePluginInfo } from './lookups';
 import {

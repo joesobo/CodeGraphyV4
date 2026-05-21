@@ -2,10 +2,10 @@ import type {
   IProjectedConnection,
   IFileAnalysisResult,
 } from '../../core/plugins/types/contracts';
-import type { IDiscoveredFile } from '@codegraphy/core';
+import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
-import type { FileDiscovery } from '@codegraphy/core';
+import type { FileDiscovery } from '@codegraphy-dev/core';
 import type * as vscode from 'vscode';
 import type { IWorkspaceAnalysisCache } from './cache';
 import type { IGraphData } from '../../shared/graph/contracts';

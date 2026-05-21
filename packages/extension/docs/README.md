@@ -1,6 +1,6 @@
 # Extension Docs
 
-This folder documents the current `@codegraphy/extension` package.
+This folder documents the current `@codegraphy-dev/extension` package.
 
 - `boundaries.md` - package boundaries and ownership
 - `messages.md` - extension/webview message flow

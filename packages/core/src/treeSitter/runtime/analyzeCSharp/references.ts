@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { CSharpWalkState } from './model';
 import { getCSharpTypeName, resolveCSharpUsingImport } from './resolution';
 import { getIdentifierText } from '../analyze/nodes';

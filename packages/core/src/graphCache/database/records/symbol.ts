@@ -1,4 +1,4 @@
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { SymbolRow } from './contracts';
 import {
   parseOptionalJson,

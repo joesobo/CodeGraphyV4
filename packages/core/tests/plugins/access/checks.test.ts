@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { CorePluginRegistry } from '../../../src';
-import type { CodeGraphyAccessKey, IPlugin } from '@codegraphy/plugin-api';
+import type { CodeGraphyAccessKey, IPlugin } from '@codegraphy-dev/plugin-api';
 
 function createPlugin(overrides: Partial<IPlugin>): IPlugin {
   return {

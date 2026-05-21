@@ -116,8 +116,8 @@ Retested after cleanup:
 
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- codegraphy-mcp/ --strict`: pass, 0 dead surfaces, 0 dead ends
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/shared/graphControls tests/shared/visibleGraph tests/webview/search tests/webview/settingsPanel`: pass, 42 files / 221 tests
-- `pnpm --filter @codegraphy/quality-tools exec vitest run --config vitest.config.ts tests/boundaries/selection.test.ts`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/shared/graphControls tests/shared/visibleGraph tests/webview/search tests/webview/settingsPanel`: pass, 42 files / 221 tests
+- `pnpm --filter @codegraphy-dev/quality-tools exec vitest run --config vitest.config.ts tests/boundaries/selection.test.ts`: pass
 - `pnpm run mutate -- quality-tools/src/boundaries/selection.ts`: pass, 100% mutation score, 0 survivors
 - `pnpm run lint`: pass
 - `pnpm run typecheck`: pass
@@ -148,8 +148,8 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/core/graphQuery`: pass, 9 files / 54 tests
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/core/graphQuery`: pass, 9 files / 54 tests
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
 - `pnpm run crap -- extension/src/core/graphQuery`: pass, all functions CRAP <= 8
 - `pnpm run boundaries -- extension/src/core/graphQuery`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
@@ -183,8 +183,8 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graphControls/filtering`: pass, 2 files / 12 tests
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graphControls/filtering`: pass, 2 files / 12 tests
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
 - `pnpm run boundaries -- extension/src/webview/graphControls/filtering`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/webview/graphControls/filtering`: pass, all functions CRAP <= 8; `edges.ts` and `nodes.ts` at 100% statements, branches, functions, and lines
@@ -214,9 +214,9 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/javascript/typeImports tests/extension/pipeline/treesitter/javascript/imports.test.ts tests/extension/pipeline/treesitter/analyze.test.ts`: pass, 6 files / 37 tests
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
-- `pnpm --filter @codegraphy/extension exec eslint src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript tests/extension/pipeline/treesitter/javascript/typeImports tests/extension/pipeline/treesitter/javascript/imports.test.ts`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/javascript/typeImports tests/extension/pipeline/treesitter/javascript/imports.test.ts tests/extension/pipeline/treesitter/analyze.test.ts`: pass, 6 files / 37 tests
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript tests/extension/pipeline/treesitter/javascript/typeImports tests/extension/pipeline/treesitter/javascript/imports.test.ts`: pass
 - `pnpm run boundaries -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeJavaScript`: pass, all functions CRAP <= 8
@@ -253,11 +253,11 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/analyze.test.ts tests/extension/pipeline/treesitter/c/analyze.test.ts tests/extension/pipeline/treesitter/cpp/analyze.test.ts tests/extension/pipeline/treesitter/haskell/analyze.test.ts tests/extension/pipeline/treesitter/stringSpecifier.test.ts`: pass, 5 files / 18 tests
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/cfamily`: pass, 4 files / 14 tests
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/haskell/symbols.test.ts tests/extension/pipeline/treesitter/haskell/analyze.test.ts`: pass, 2 files / 5 tests
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
-- `pnpm --filter @codegraphy/extension exec eslint src/extension/pipeline/plugins/treesitter/runtime/analyze.ts src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily src/extension/pipeline/plugins/treesitter/runtime/analyzeHaskell/symbols.ts src/extension/pipeline/plugins/treesitter/runtime/analyze/stringSpecifier.ts tests/extension/pipeline/treesitter/analyze.test.ts tests/extension/pipeline/treesitter/cfamily tests/extension/pipeline/treesitter/haskell/symbols.test.ts`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/analyze.test.ts tests/extension/pipeline/treesitter/c/analyze.test.ts tests/extension/pipeline/treesitter/cpp/analyze.test.ts tests/extension/pipeline/treesitter/haskell/analyze.test.ts tests/extension/pipeline/treesitter/stringSpecifier.test.ts`: pass, 5 files / 18 tests
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/cfamily`: pass, 4 files / 14 tests
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/treesitter/haskell/symbols.test.ts tests/extension/pipeline/treesitter/haskell/analyze.test.ts`: pass, 2 files / 5 tests
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/extension/pipeline/plugins/treesitter/runtime/analyze.ts src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily src/extension/pipeline/plugins/treesitter/runtime/analyzeHaskell/symbols.ts src/extension/pipeline/plugins/treesitter/runtime/analyze/stringSpecifier.ts tests/extension/pipeline/treesitter/analyze.test.ts tests/extension/pipeline/treesitter/cfamily tests/extension/pipeline/treesitter/haskell/symbols.test.ts`: pass
 - `pnpm run boundaries -- extension/src/extension/pipeline/plugins/treesitter/runtime`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/extension/pipeline/plugins/treesitter/runtime`: pass, all functions CRAP <= 8
 - `pnpm run crap -- extension/src/extension/pipeline/plugins/treesitter/runtime/analyzeCFamily`: pass, all functions CRAP <= 8
@@ -299,8 +299,8 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/shared/visibleGraph`: pass, 9 files / 50 tests
-- `pnpm --filter @codegraphy/extension exec eslint src/shared/visibleGraph tests/shared/visibleGraph`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/shared/visibleGraph`: pass, 9 files / 50 tests
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/shared/visibleGraph tests/shared/visibleGraph`: pass
 - `pnpm run boundaries -- extension/src/shared/visibleGraph`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/shared/visibleGraph`: pass, all functions CRAP <= 8
@@ -338,9 +338,9 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graphCornerControls`: pass, 5 files / 27 tests
-- `pnpm --filter @codegraphy/extension exec eslint src/webview/components/graphCornerControls tests/webview/graphCornerControls`: pass
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graphCornerControls`: pass, 5 files / 27 tests
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/webview/components/graphCornerControls tests/webview/graphCornerControls`: pass
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
 - `pnpm run boundaries -- extension/src/webview/components/graphCornerControls`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/webview/components/graphCornerControls`: pass, all functions CRAP <= 8
@@ -374,9 +374,9 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/repoSettings/freshness`: pass, 3 files / 18 tests
-- `pnpm --filter @codegraphy/extension exec eslint src/extension/repoSettings/freshness tests/extension/repoSettings/freshness`: pass
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/repoSettings/freshness`: pass, 3 files / 18 tests
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/extension/repoSettings/freshness tests/extension/repoSettings/freshness`: pass
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
 - `pnpm run boundaries -- extension/src/extension/repoSettings/freshness`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/extension/repoSettings/freshness`: pass, all functions CRAP <= 8
@@ -407,9 +407,9 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/workspaceFiles/refresh`: pass, 4 files / 27 tests
-- `pnpm --filter @codegraphy/extension exec eslint src/extension/workspaceFiles/refresh tests/extension/workspaceFiles/refresh`: pass
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/workspaceFiles/refresh`: pass, 4 files / 27 tests
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/extension/workspaceFiles/refresh tests/extension/workspaceFiles/refresh`: pass
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
 - `pnpm run boundaries -- extension/src/extension/workspaceFiles/refresh`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/extension/workspaceFiles/refresh`: pass, all functions CRAP <= 8
@@ -443,9 +443,9 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/core/discovery/file/walk.test.ts`: pass, 1 file / 13 tests
-- `pnpm --filter @codegraphy/extension exec eslint src/core/discovery/file/walk.ts tests/core/discovery/file/walk.test.ts`: pass
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/core/discovery/file/walk.test.ts`: pass, 1 file / 13 tests
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/core/discovery/file/walk.ts tests/core/discovery/file/walk.test.ts`: pass
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
 - `pnpm run boundaries -- extension/src/core/discovery/file`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/core/discovery/file`: pass, all functions CRAP <= 8
@@ -483,9 +483,9 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/fileAnalysis`: pass, 5 files / 24 tests
-- `pnpm --filter @codegraphy/extension exec eslint src/extension/pipeline/fileAnalysis.ts src/extension/pipeline/fileAnalysis tests/extension/pipeline/fileAnalysis`: pass
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/fileAnalysis`: pass, 5 files / 24 tests
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/extension/pipeline/fileAnalysis.ts src/extension/pipeline/fileAnalysis tests/extension/pipeline/fileAnalysis`: pass
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
 - `pnpm run boundaries -- extension/src/extension/pipeline/fileAnalysis`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/extension/pipeline/fileAnalysis`: pass, all functions CRAP <= 8
@@ -525,9 +525,9 @@ Changes made:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/agentBridge/uri.test.ts tests/extension/agentBridge/uri`: pass, 9 files / 34 tests
-- `pnpm --filter @codegraphy/extension exec eslint src/extension/agentBridge/uri.ts 'src/extension/agentBridge/uri/**/*.ts' tests/extension/agentBridge/uri.test.ts 'tests/extension/agentBridge/uri/**/*.ts'`: pass
-- `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/agentBridge/uri.test.ts tests/extension/agentBridge/uri`: pass, 9 files / 34 tests
+- `pnpm --filter @codegraphy-dev/extension exec eslint src/extension/agentBridge/uri.ts 'src/extension/agentBridge/uri/**/*.ts' tests/extension/agentBridge/uri.test.ts 'tests/extension/agentBridge/uri/**/*.ts'`: pass
+- `pnpm --filter @codegraphy-dev/extension exec tsc --noEmit -p tsconfig.tests.json`: pass
 - `pnpm run boundaries -- extension/src/extension/agentBridge/uri`: pass, 0 layer violations, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run crap -- extension/src/extension/agentBridge/uri`: pass, all functions CRAP <= 8

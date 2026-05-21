@@ -1,5 +1,5 @@
-import type { IDiscoveredFile } from '@codegraphy/core';
-import type { FileDiscovery } from '@codegraphy/core';
+import type { IDiscoveredFile } from '@codegraphy-dev/core';
+import type { FileDiscovery } from '@codegraphy-dev/core';
 import {
   discoverWorkspacePipelineFiles,
   formatWorkspacePipelineLimitReachedMessage,

@@ -15,7 +15,7 @@ import {
   type CodeGraphyUserStateOptions,
   type LinkCodeGraphyInstalledPluginPackageOptions,
   type RefreshCodeGraphyInstalledPluginsOptions,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import type { CommandExecutionResult } from '../run/command';
 import type { CliCommand } from '../run/parse';
 import { resolveNpmGlobalPackageRoots } from './globalPackages';

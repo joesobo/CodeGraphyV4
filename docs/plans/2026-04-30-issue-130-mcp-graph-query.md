@@ -580,7 +580,7 @@ Update:
 Changesets:
 
 - `@codegraphy-vscode/mcp`: major
-- `@codegraphy/extension`: likely minor or major depending on exported user-facing behavior
+- `@codegraphy-dev/extension`: likely minor or major depending on exported user-facing behavior
 - plugin API only if contracts change
 
 Docs should use:
@@ -603,7 +603,7 @@ Docs should not use:
 Targeted tests while iterating:
 
 ```bash
-pnpm --filter @codegraphy/extension test
+pnpm --filter @codegraphy-dev/extension test
 pnpm --filter @codegraphy-vscode/mcp test
 pnpm --filter @codegraphy-vscode/mcp run typecheck
 pnpm --filter @codegraphy-vscode/mcp run lint

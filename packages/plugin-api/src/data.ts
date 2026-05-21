@@ -1,6 +1,6 @@
 /**
  * @fileoverview Plugin-owned data persistence contracts.
- * @module @codegraphy/plugin-api/data
+ * @module @codegraphy-dev/plugin-api/data
  */
 
 export interface IPluginDataSaveOptions {

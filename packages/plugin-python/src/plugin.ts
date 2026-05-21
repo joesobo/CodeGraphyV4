@@ -1,4 +1,4 @@
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import manifest from '../codegraphy.json';
 
 /**
