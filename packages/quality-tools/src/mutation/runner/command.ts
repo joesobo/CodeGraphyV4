@@ -2,13 +2,13 @@ import { cleanCliArgs, flagValue, parseBareTargetArg } from '../../shared/cliArg
 import { REPO_ROOT } from '../../shared/resolve/repoRoot';
 import { resolveQualityTarget, type QualityTarget } from '../../shared/resolve/target';
 import { discoverMutationPackageNames } from '../analysis/profile';
-import { runMutation } from './run';
+import { runMutation, type MutationRunOptions } from './run';
 import { execFileSync } from 'child_process';
 
 export interface MutationCliDependencies {
   discoverMutationPackageNames: typeof discoverMutationPackageNames;
   resolveQualityTarget: typeof resolveQualityTarget;
-  runMutation: (target: QualityTarget) => Promise<void>;
+  runMutation: (target: QualityTarget, options?: MutationRunOptions) => Promise<void>;
   runPreflightTypecheck: () => void;
 }
 
@@ -76,7 +76,10 @@ export async function runMutationCli(
   if (shouldRunPreflightTypecheck(args, targets)) {
     dependencies.runPreflightTypecheck();
   }
+  const runOptions = {
+    force: args.includes('--force'),
+  };
   for (const target of targets) {
-    await dependencies.runMutation(target);
+    await dependencies.runMutation(target, runOptions);
   }
 }

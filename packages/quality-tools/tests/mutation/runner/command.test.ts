@@ -83,6 +83,20 @@ describe('command', () => {
         kind: 'file',
         relativePath: 'packages/extension/src/webview/vscodeApi.ts',
       }),
+      { force: false },
+    );
+  });
+
+  it('passes force reruns through to the mutation runner', async () => {
+    const dependencies = createDependencies();
+    await runMutationCli(['--force', 'packages/extension/src/webview/vscodeApi.ts'], dependencies);
+
+    expect(dependencies.runMutation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'file',
+        relativePath: 'packages/extension/src/webview/vscodeApi.ts',
+      }),
+      { force: true },
     );
   });
 
@@ -116,6 +130,7 @@ describe('command', () => {
         kind: 'file',
         relativePath: 'packages/extension/src/webview/components/Graph.tsx',
       }),
+      { force: false },
     );
   });
 

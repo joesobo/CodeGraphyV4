@@ -25,5 +25,6 @@ Operational notes:
 - The CI unit-test matrix does not automatically speed up mutation runs. Stryker launches its own Vitest runner, so local mutation speed comes from scoped targets, `reports/mutation/stryker-incremental*.json`, and focused test includes.
 - The mutation runner prints a progress heartbeat every 60 seconds while Stryker is still running.
 - Extension mutation defaults to two Stryker workers and reuses Vitest runners instead of restarting one after every mutant. Override with `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` when debugging runner isolation.
-- File-scoped mutation targets skip the preflight typecheck by default to keep the local loop short. Package and directory targets still run the preflight typecheck.
+- File-scoped mutation targets skip the preflight typecheck by default to keep the local loop short. They also reuse an unchanged incremental report when the source and scoped test files still match the saved report. Pass `--force` to rerun Stryker anyway.
+- Package and directory targets still run the preflight typecheck.
 - Prefer package- or file-scoped mutation runs during development.

@@ -3,13 +3,22 @@ import { resolvePackageToolGlobs } from '../../config/quality';
 import { type QualityTarget } from '../../shared/resolve/target';
 import { REPO_ROOT } from '../../shared/resolve/repoRoot';
 import { buildMutateGlobs } from '../analysis/mutateGlobs';
-import { copySharedMutationReports, incrementalReportPath } from '../reporting/reportArtifacts';
+import {
+  copyIncrementalMutationReport,
+  copySharedMutationReports,
+  incrementalReportPath,
+} from '../reporting/reportArtifacts';
 import { reportMutationSiteViolations } from '../reporting/check';
 import { resolveMutationProfile } from '../analysis/profile';
 import { sanitizeReportKey } from '../../shared/util/reportKey';
 import { resolveScopedVitestIncludes } from './vitestIncludes';
+import { readReusableMutationReport } from './incrementalCache';
 
 const MUTATION_PROGRESS_INTERVAL_MS = 60_000;
+
+export interface MutationRunOptions {
+  force?: boolean;
+}
 
 function formatElapsedDuration(milliseconds: number): string {
   const totalSeconds = Math.floor(milliseconds / 1_000);
@@ -21,12 +30,15 @@ function formatElapsedDuration(milliseconds: number): string {
     : `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
 }
 
-function buildArgs(target: QualityTarget): { args: string[]; reportKey: string } {
+function buildArgs(target: QualityTarget, options: MutationRunOptions = {}): { args: string[]; reportKey: string } {
   const profile = resolveMutationProfile(target);
   const reportKey = target.kind === 'package'
     ? profile.packageName
     : sanitizeReportKey(target.relativePath);
   const args = ['run', profile.configPath, '--incrementalFile', incrementalReportPath(reportKey)];
+  if (options.force) {
+    args.push('--force');
+  }
   const configPatterns = resolvePackageToolGlobs(REPO_ROOT, profile.packageName, 'mutation');
   args.push('-m', buildMutateGlobs(target, configPatterns).join(','));
 
@@ -70,9 +82,26 @@ function runStryker(args: string[], env: NodeJS.ProcessEnv, target: QualityTarge
   });
 }
 
-export async function runMutation(target: QualityTarget): Promise<void> {
-  const { args, reportKey } = buildArgs(target);
+function shouldForceMutation(options: MutationRunOptions): boolean {
+  return options.force === true || process.env.CODEGRAPHY_MUTATE_FORCE === '1';
+}
+
+export async function runMutation(target: QualityTarget, options: MutationRunOptions = {}): Promise<void> {
+  const forceMutation = shouldForceMutation(options);
+  const { args, reportKey } = buildArgs(target, { force: forceMutation });
   const scopedVitestIncludes = resolveScopedVitestIncludes(target);
+  const reportCache = forceMutation
+    ? undefined
+    : readReusableMutationReport(REPO_ROOT, target, incrementalReportPath(reportKey), scopedVitestIncludes ?? []);
+  if (reportCache) {
+    const reportPath = copyIncrementalMutationReport(reportKey, REPO_ROOT);
+    console.log(
+      `[mutation] Reusing unchanged incremental report for ${target.relativePath} (${reportCache.mutantCount} mutants, ${reportCache.mutationScore.toFixed(2)}% score).`,
+    );
+    reportMutationSiteViolations(reportPath);
+    return;
+  }
+
   const env = {
     ...process.env,
     CODEGRAPHY_MUTATION_RUN: '1',

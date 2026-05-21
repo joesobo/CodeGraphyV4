@@ -33,3 +33,17 @@ export function copySharedMutationReports(reportKey: string, repoRoot = process.
 
   return join(targetDirectory, 'mutation.json');
 }
+
+export function copyIncrementalMutationReport(reportKey: string, repoRoot = process.cwd()): string {
+  const targetDirectory = join(repoRoot, reportDirectory(reportKey));
+  mkdirSync(targetDirectory, { recursive: true });
+
+  const sharedJson = join(repoRoot, ROOT_REPORT_DIR, 'mutation.json');
+  const targetJson = join(targetDirectory, 'mutation.json');
+  const targetIncremental = join(repoRoot, incrementalReportPath(reportKey));
+
+  cpSync(targetIncremental, targetJson);
+  cpSync(targetIncremental, sharedJson);
+
+  return targetJson;
+}
