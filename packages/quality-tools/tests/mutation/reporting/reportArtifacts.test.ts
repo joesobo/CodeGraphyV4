@@ -3,7 +3,6 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
 import {
-  copyIncrementalMutationReport,
   copySharedMutationReports,
   incrementalReportPath,
   reportDirectory
@@ -47,17 +46,4 @@ describe('mutation report artifacts', () => {
     expect(existsSync(join(directory, 'reports/mutation/quality-tools/nested/mutation.html'))).toBe(false);
   });
 
-  it('promotes a package incremental report to the shared and package JSON reports', () => {
-    const directory = mkdtempSync(join(tmpdir(), 'quality-tools-artifacts-cache-'));
-    const incrementalPath = join(directory, incrementalReportPath('quality-tools'));
-    mkdirSync(join(directory, 'reports/mutation/quality-tools'), { recursive: true });
-    writeFileSync(incrementalPath, '{"cached":true}');
-
-    const reportPath = copyIncrementalMutationReport('quality-tools', directory);
-
-    expect(JSON.parse(readFileSync(reportPath, 'utf-8'))).toEqual({ cached: true });
-    expect(
-      JSON.parse(readFileSync(join(directory, 'reports/mutation/mutation.json'), 'utf-8')),
-    ).toEqual({ cached: true });
-  });
 });

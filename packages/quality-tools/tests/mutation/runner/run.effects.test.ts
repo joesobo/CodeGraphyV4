@@ -12,9 +12,7 @@ const spawn = vi.fn((_command: string, _args: string[], _options: SpawnOptions):
   return child as ChildProcess;
 });
 const copySharedMutationReports = vi.fn(() => '/repo/reports/mutation.json');
-const copyIncrementalMutationReport = vi.fn(() => '/repo/reports/mutation.json');
 const reportMutationSiteViolations = vi.fn();
-const readReusableMutationReport = vi.fn(() => undefined as { mutantCount: number; mutationScore: number } | undefined);
 const resolvePackageToolGlobs = vi.fn(() => ({
   include: ['packages/quality-tools/src/**/*.ts'],
   exclude: ['packages/quality-tools/src/cli/**/*.ts']
@@ -43,7 +41,6 @@ vi.mock('child_process', async (importOriginal) => {
 });
 
 vi.mock('../../../src/mutation/reporting/reportArtifacts', () => ({
-  copyIncrementalMutationReport,
   copySharedMutationReports,
   incrementalReportPath: vi.fn((reportKey: string) => `reports/mutation/${reportKey}/stryker-incremental-${reportKey}.json`)
 }));
@@ -66,10 +63,6 @@ vi.mock('../../../src/mutation/analysis/profile', () => ({
 
 vi.mock('../../../src/mutation/runner/vitestIncludes', () => ({
   resolveScopedVitestIncludes
-}));
-
-vi.mock('../../../src/mutation/runner/incrementalCache', () => ({
-  readReusableMutationReport,
 }));
 
 function target(): QualityTarget {
@@ -98,10 +91,7 @@ describe('runMutation', () => {
   beforeEach(() => {
     spawn.mockClear();
     copySharedMutationReports.mockClear();
-    copyIncrementalMutationReport.mockClear();
     reportMutationSiteViolations.mockClear();
-    readReusableMutationReport.mockClear();
-    readReusableMutationReport.mockReturnValue(undefined);
     resolvePackageToolGlobs.mockClear();
     buildMutateGlobs.mockClear();
     resolveMutationProfile.mockClear();
@@ -192,28 +182,7 @@ describe('runMutation', () => {
     }
   });
 
-  it('reuses an unchanged incremental report for file targets', async () => {
-    readReusableMutationReport.mockReturnValue({
-      mutantCount: 6,
-      mutationScore: 100,
-    });
-    const { runMutation } = await import('../../../src/mutation/runner/run');
-
-    await runMutation(fileTarget());
-
-    expect(spawn).not.toHaveBeenCalled();
-    expect(copyIncrementalMutationReport).toHaveBeenCalledWith(
-      'packages-quality-tools-src-mutation-runner-run.ts',
-      REPO_ROOT,
-    );
-    expect(reportMutationSiteViolations).toHaveBeenCalledWith('/repo/reports/mutation.json');
-  });
-
-  it('passes force reruns through to Stryker instead of reusing the incremental report', async () => {
-    readReusableMutationReport.mockReturnValue({
-      mutantCount: 6,
-      mutationScore: 100,
-    });
+  it('passes force reruns through to Stryker incremental mode', async () => {
     const { runMutation } = await import('../../../src/mutation/runner/run');
 
     await runMutation(fileTarget(), { force: true });
@@ -223,7 +192,6 @@ describe('runMutation', () => {
       expect.arrayContaining(['--force']),
       expect.any(Object),
     );
-    expect(copyIncrementalMutationReport).not.toHaveBeenCalled();
   });
 
   it('passes scoped vitest includes for directory targets', async () => {

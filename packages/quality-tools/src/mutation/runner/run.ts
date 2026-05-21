@@ -3,16 +3,11 @@ import { resolvePackageToolGlobs } from '../../config/quality';
 import { type QualityTarget } from '../../shared/resolve/target';
 import { REPO_ROOT } from '../../shared/resolve/repoRoot';
 import { buildMutateGlobs } from '../analysis/mutateGlobs';
-import {
-  copyIncrementalMutationReport,
-  copySharedMutationReports,
-  incrementalReportPath,
-} from '../reporting/reportArtifacts';
+import { copySharedMutationReports, incrementalReportPath } from '../reporting/reportArtifacts';
 import { reportMutationSiteViolations } from '../reporting/check';
 import { resolveMutationProfile } from '../analysis/profile';
 import { sanitizeReportKey } from '../../shared/util/reportKey';
 import { resolveScopedVitestIncludes } from './vitestIncludes';
-import { readReusableMutationReport } from './incrementalCache';
 
 const MUTATION_PROGRESS_INTERVAL_MS = 60_000;
 
@@ -35,7 +30,7 @@ function buildArgs(target: QualityTarget, options: MutationRunOptions = {}): { a
   const reportKey = target.kind === 'package'
     ? profile.packageName
     : sanitizeReportKey(target.relativePath);
-  const args = ['run', profile.configPath, '--incrementalFile', incrementalReportPath(reportKey)];
+  const args = ['run', profile.configPath, '--incrementalFile', incrementalReportPath(profile.packageName)];
   if (options.force) {
     args.push('--force');
   }
@@ -90,18 +85,6 @@ export async function runMutation(target: QualityTarget, options: MutationRunOpt
   const forceMutation = shouldForceMutation(options);
   const { args, reportKey } = buildArgs(target, { force: forceMutation });
   const scopedVitestIncludes = resolveScopedVitestIncludes(target);
-  const reportCache = forceMutation
-    ? undefined
-    : readReusableMutationReport(REPO_ROOT, target, incrementalReportPath(reportKey), scopedVitestIncludes ?? []);
-  if (reportCache) {
-    const reportPath = copyIncrementalMutationReport(reportKey, REPO_ROOT);
-    console.log(
-      `[mutation] Reusing unchanged incremental report for ${target.relativePath} (${reportCache.mutantCount} mutants, ${reportCache.mutationScore.toFixed(2)}% score).`,
-    );
-    reportMutationSiteViolations(reportPath);
-    return;
-  }
-
   const env = {
     ...process.env,
     CODEGRAPHY_MUTATION_RUN: '1',
