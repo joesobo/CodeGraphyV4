@@ -32,15 +32,15 @@ export interface IGraphViewContributionContext {
 }
 
 export interface IGraphViewRuntimeNodePositionState {
-  x?: number;
-  y?: number;
-  z?: number;
-  fx?: number;
-  fy?: number;
-  fz?: number;
-  vx?: number;
-  vy?: number;
-  vz?: number;
+  x?: number | undefined;
+  y?: number | undefined;
+  z?: number | undefined;
+  fx?: number | undefined;
+  fy?: number | undefined;
+  fz?: number | undefined;
+  vx?: number | undefined;
+  vy?: number | undefined;
+  vz?: number | undefined;
 }
 
 export interface IGraphViewRuntimeNode extends IGraphNode, IGraphViewRuntimeNodePositionState {
