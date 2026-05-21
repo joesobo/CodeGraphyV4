@@ -196,6 +196,7 @@ describe('graph/viewport/model', () => {
 		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith({
 			edges: graphData.links,
 			favorites: viewState.favorites,
+			graphMode: '2d',
 			graphViewContributions: undefined,
 			mutationAvailability: 'enabled',
 			nodes: graphData.nodes,

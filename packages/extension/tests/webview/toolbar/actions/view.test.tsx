@@ -285,9 +285,11 @@ describe('ToolbarActions', () => {
     fireEvent.click(screen.getByText('New Plugin Node...'));
 
     expect(run).toHaveBeenCalledWith({
+      graphMode: '2d',
       target: { kind: 'background' },
       selectedNodeIds: [],
       selectedEdgeIds: [],
+      timelineActive: false,
     });
   });
 
