@@ -16,7 +16,9 @@ import { useGraphViewportModel } from './model';
 import { graphStore } from '../../../store/state';
 
 interface GraphViewport2dControls {
+  d3ReheatSimulation?(): void;
   graph2ScreenCoords?(x: number, y: number): { x: number; y: number };
+  resumeAnimation?(): void;
   screen2GraphCoords?(x: number, y: number): { x: number; y: number };
   zoom?(): number;
 }
@@ -147,6 +149,20 @@ function toGraphViewViewportNodes(nodes: UseGraphStateResult['graphData']['nodes
   });
 }
 
+function updateGraphViewViewportNode(
+  nodes: UseGraphStateResult['graphData']['nodes'],
+  nodeId: string,
+  updates: Record<string, unknown>,
+): boolean {
+  const node = nodes.find(candidate => candidate.id === nodeId);
+  if (!node) {
+    return false;
+  }
+
+  Object.assign(node, updates);
+  return true;
+}
+
 export function GraphViewportShell({
   appearance,
   callbacks,
@@ -220,8 +236,12 @@ export function GraphViewportShell({
       graphMode: viewState.graphMode,
       graphToScreen: (x, y) => graph?.graph2ScreenCoords?.(x, y) ?? { x, y },
       nodes: toGraphViewViewportNodes(graphState.graphDataRef.current.nodes),
+      reheatSimulation: () => graph?.d3ReheatSimulation?.(),
+      resumeAnimation: () => graph?.resumeAnimation?.(),
       screenToGraph: (x, y) => graph?.screen2GraphCoords?.(x, y) ?? { x, y },
       timelineActive: viewState.timelineActive,
+      updateNode: (nodeId, updates) =>
+        updateGraphViewViewportNode(graphState.graphDataRef.current.nodes, nodeId, updates),
       zoom: graph?.zoom?.() ?? globalScale,
     });
   };

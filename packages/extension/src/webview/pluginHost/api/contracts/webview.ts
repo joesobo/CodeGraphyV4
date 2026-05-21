@@ -50,12 +50,17 @@ export interface GraphViewViewportNode extends Partial<IGraphViewNodeDragState> 
   id: string;
 }
 
+export type GraphViewViewportNodeUpdate = Partial<IGraphViewNodeDragState> & Record<string, unknown>;
+
 export interface GraphViewViewportState {
   graphMode: '2d' | '3d';
   graphToScreen(x: number, y: number): GraphViewPoint2D;
   nodes: readonly GraphViewViewportNode[];
+  reheatSimulation(): void;
+  resumeAnimation(): void;
   screenToGraph(x: number, y: number): GraphViewPoint2D;
   timelineActive: boolean;
+  updateNode(nodeId: string, updates: GraphViewViewportNodeUpdate): boolean;
   zoom: number;
 }
 

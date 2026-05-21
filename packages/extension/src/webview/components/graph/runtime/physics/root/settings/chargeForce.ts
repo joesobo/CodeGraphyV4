@@ -5,7 +5,18 @@ import { DEFAULT_CHARGE_RANGE, type GraphPhysicsControls } from '../../model';
 
 function getGraphChargeStrength(repelForce: number): (node: FGNode) => number {
 	const defaultStrength = toD3Repel(repelForce);
-	return (node: FGNode) => node.isDragging ? 0 : defaultStrength;
+	return (node: FGNode) => {
+		if (node.isDragging) {
+			return 0;
+		}
+
+		const multiplier = node.chargeStrengthMultiplier2D;
+		if (typeof multiplier !== 'number' || !Number.isFinite(multiplier) || multiplier < 0) {
+			return defaultStrength;
+		}
+
+		return multiplier === 0 ? 0 : defaultStrength * multiplier;
+	};
 }
 
 export function applyChargeSettings(

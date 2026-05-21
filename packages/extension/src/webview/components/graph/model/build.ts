@@ -35,6 +35,8 @@ export type FGNode = NodeObject & Record<string, unknown> & {
     height: number;
     width: number;
   };
+  chargeStrengthMultiplier2D?: number;
+  collisionRadius2D?: number;
   pointerArea2D?: {
     height: number;
     width: number;

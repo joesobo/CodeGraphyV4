@@ -57,6 +57,18 @@ describe('physics/root settings', () => {
     expect(strength({ id: 'src/app.ts' } as FGNode)).toBeLessThan(0);
   });
 
+  it('scales charge for plugin-owned graph physics overrides', () => {
+    const { charge, instance } = createPhysicsInstance();
+
+    applyPhysicsSettings(instance, SETTINGS);
+    const strength = charge.strength.mock.calls[0][0] as (node: FGNode) => number;
+
+    expect(strength({ id: 'section-ui', chargeStrengthMultiplier2D: 0 } as FGNode)).toBe(0);
+    expect(strength({ id: 'section-ui', chargeStrengthMultiplier2D: 0.5 } as FGNode)).toBe(
+      strength({ id: 'src/app.ts' } as FGNode) * 0.5,
+    );
+  });
+
   it('skips non-callable strength forces and still reheats the simulation', () => {
     const { instance } = createCustomPhysicsInstance({
       charge: { strength: SETTINGS.repelForce },
@@ -131,5 +143,25 @@ describe('physics/root settings', () => {
         width: 120,
       },
     } as FGNode)).toBe(76.11102550927978);
+  });
+
+  it('uses explicit plugin collision radius overrides before visual rectangle bounds', () => {
+    const { d3Force, instance } = createPhysicsInstance();
+
+    initPhysics(instance, SETTINGS);
+    const collisionForce = getInstalledD3Force<{
+      radius: () => (node: FGNode) => number;
+    }>(d3Force, 'collision');
+
+    expect(collisionForce.radius()({
+      id: 'section-ui',
+      collisionRadius2D: 0,
+      size: 9,
+      shape2D: 'rectangle',
+      shapeSize2D: {
+        height: 80,
+        width: 120,
+      },
+    } as FGNode)).toBe(4);
   });
 });

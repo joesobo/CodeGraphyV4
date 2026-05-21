@@ -183,12 +183,29 @@ describe('graph/contextMenuModel', () => {
     ]);
   });
 
-  it('treats plugin-owned runtime nodes as plugin nodes without feature-specific built-in actions', () => {
+  it('does not offer file actions for plugin-owned runtime nodes', () => {
     const entries = buildGraphContextMenuEntries({
       selection: makeNodeContextSelection('plugin-node', new Set<string>()),
       timelineActive: false,
       favorites: new Set<string>(),
       pluginItems: [],
+      graphViewContributions: {
+        runtimeNodes: [],
+        runtimeEdges: [],
+        projections: [],
+        forces: [],
+        nodeDragEnd: [],
+        contextMenu: [{
+          pluginId: 'plugin.example',
+          contribution: {
+            id: 'plugin-widget-action',
+            label: 'Plugin Widget Action',
+            targets: [{ kind: 'runtimeNodeType', runtimeNodeTypes: ['example-widget'] }],
+            run: () => {},
+          },
+        }],
+        ui: [],
+      },
       nodes: [{
         id: 'plugin-node',
         label: 'Plugin Node',
@@ -199,18 +216,11 @@ describe('graph/contextMenuModel', () => {
     });
 
     expect(menuLabels(entries)).toEqual([
-      'Open File',
-      'Reveal in Explorer',
-      'Copy Relative Path',
-      'Copy Absolute Path',
-      'Add to Favorites',
       'Focus Node',
-      'Add Filter Pattern...',
-      'Add Legend Group...',
-      'Rename...',
-      'Delete File',
+      'Plugin Widget Action',
     ]);
-    expect(entries.some(entry => entry.kind === 'item' && entry.action.kind === 'graphViewPlugin')).toBe(false);
+    expect(menuLabels(entries)).not.toContain('Delete File');
+    expect(entries.some(entry => entry.kind === 'item' && entry.action.kind === 'graphViewPlugin')).toBe(true);
   });
 
   it('keeps plugin-authored node actions out of the public built-in action set', () => {

@@ -48,6 +48,12 @@ export function buildSingleSymbolNodeEntries(
   ];
 }
 
+export function buildSinglePluginNodeEntries(): GraphContextMenuEntry[] {
+  return [
+    builtInItem('node-focus', 'Focus Node', 'focus'),
+  ];
+}
+
 export function buildSingleFolderNodeEntries(
   target: GraphContextNodeTarget,
   mutationAvailability: GraphContextMutationAvailability,

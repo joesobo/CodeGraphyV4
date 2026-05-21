@@ -386,4 +386,73 @@ describe('graph/viewport/shell', () => {
 		}));
 	});
 
+	it('publishes mutable viewport controls for plugin-owned world overlays', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const reheatSimulation = vi.fn();
+		const resumeAnimation = vi.fn();
+		graphState.fg2dRef.current = {
+			d3ReheatSimulation: reheatSimulation,
+			graph2ScreenCoords: (x: number, y: number) => ({ x, y }),
+			resumeAnimation,
+			screen2GraphCoords: (x: number, y: number) => ({ x, y }),
+			zoom: () => 1,
+		} as never;
+		const interactions = createInteractions();
+		const callbacks = createCallbacks();
+		const viewState = { ...createViewState(), graphMode: '2d' as const };
+		const pluginHost = {
+			getOverlays: vi.fn(),
+			setGraphViewViewportState: vi.fn(),
+		};
+
+		render(
+			<GraphViewportShell
+				callbacks={callbacks}
+				graphDataLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={interactions}
+				pluginHost={pluginHost as never}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			surface2dProps: {
+				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
+			};
+		};
+		viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1);
+		const viewportState = pluginHost.setGraphViewViewportState.mock.calls.at(-1)?.[0] as {
+			reheatSimulation(): void;
+			resumeAnimation(): void;
+			updateNode(nodeId: string, updates: Record<string, unknown>): boolean;
+		};
+
+		expect(viewportState.updateNode('src/app.ts', {
+			fx: 42,
+			fy: 24,
+			sectionHeight: 144,
+			sectionWidth: 288,
+			x: 42,
+			y: 24,
+		})).toBe(true);
+		expect(graphState.graphDataRef.current.nodes[0]).toMatchObject({
+			fx: 42,
+			fy: 24,
+			sectionHeight: 144,
+			sectionWidth: 288,
+			x: 42,
+			y: 24,
+		});
+		expect(viewportState.updateNode('missing.ts', { x: 1 })).toBe(false);
+
+		viewportState.resumeAnimation();
+		viewportState.reheatSimulation();
+		expect(resumeAnimation).toHaveBeenCalledOnce();
+		expect(reheatSimulation).toHaveBeenCalledOnce();
+	});
+
 });
