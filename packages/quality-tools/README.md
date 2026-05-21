@@ -29,9 +29,12 @@ Mutation target forms:
 pnpm run mutate -- plugin-csharp/  # one package
 pnpm run mutate -- packages/plugin-csharp/src/parserContent.ts  # one file
 pnpm run mutate -- packages/extension/src/webview/vscodeApi.ts
+pnpm run mutate -- extension src/webview/vscodeApi.ts
 ```
 
 Mutation requires an explicit package, directory, or file target. Do not run bare `pnpm run mutate`; all-package mutation refresh belongs to the CI seed workflow.
+
+At the CodeGraphy repo root, `pnpm run mutate` is a repo-specific wrapper. It hydrates a missing package incremental report from the latest `main` mutation seed, then delegates to the generic `@codegraphy/quality-tools` mutation runner. The generic package-local command remains seed-policy-free for future extraction.
 
 The mutation configs ignore heavyweight local artifacts like package-local `.vscode-test/` folders and `.stryker-tmp/`, so downloaded VS Code test bundles do not get copied into Stryker sandboxes.
 
