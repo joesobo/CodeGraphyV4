@@ -1,0 +1,134 @@
+name: Mutation Seed
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-seed-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  discover-packages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      packages: ${{ steps.packages.outputs.packages }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Discover mutation packages
+        id: packages
+        run: |
+          packages="$(pnpm exec tsx packages/quality-tools/src/cli/listMutationPackages.ts --json)"
+          echo "packages=${packages}" >> "$GITHUB_OUTPUT"
+          echo "Mutation packages: ${packages}"
+
+  seed-package:
+    name: Mutation seed / ${{ matrix.package }}
+    needs: discover-packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    if: ${{ needs.discover-packages.outputs.packages != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.discover-packages.outputs.packages) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore package mutation seed cache
+        uses: actions/cache@v4
+        with:
+          path: reports/mutation/${{ matrix.package }}
+          key: ${{ runner.os }}-mutation-seed-${{ matrix.package }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-mutation-seed-${{ matrix.package }}-
+
+      - name: Refresh ${{ matrix.package }} mutation seed
+        run: pnpm run mutate -- ${{ matrix.package }}/
+
+      - name: Verify ${{ matrix.package }} incremental report exists
+        run: test -f "reports/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json"
+
+      - name: Upload ${{ matrix.package }} mutation seed
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-seed-${{ matrix.package }}
+          path: reports/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json
+          if-no-files-found: error
+          retention-days: 14
+
+  assemble-seed:
+    name: Assemble mutation seed
+    needs: seed-package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Download package mutation seeds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-seed-*
+          path: package-seeds
+
+      - name: Assemble main mutation seed artifact
+        run: |
+          mkdir -p reports/mutation
+
+          while IFS= read -r file; do
+            name="$(basename "$file")"
+            package="${name#stryker-incremental-}"
+            package="${package%.json}"
+            mkdir -p "reports/mutation/${package}"
+            cp "$file" "reports/mutation/${package}/${name}"
+          done < <(find package-seeds -type f -name 'stryker-incremental-*.json' | sort)
+
+          printf '%s\n' "${GITHUB_SHA}" > reports/mutation/seed-sha.txt
+          find reports/mutation -type f | sort
+
+      - name: Upload main mutation seed
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-mutation-seed
+          path: |
+            reports/mutation/seed-sha.txt
+            reports/mutation/*/stryker-incremental-*.json
+          if-no-files-found: error
+          retention-days: 14

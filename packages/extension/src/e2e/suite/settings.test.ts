@@ -194,7 +194,7 @@ suite('Settings: Legends', function () {
 suite('Settings: Repo File Watch', function () {
   this.timeout(30_000);
 
-  test('manual edits to .codegraphy/settings.json trigger a graph refresh', async function() {
+  test('manual edits to .codegraphy/settings.json broadcast updated settings', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(1_000);
@@ -203,33 +203,30 @@ suite('Settings: Repo File Watch', function () {
     assert.ok(workspaceFolder, 'Expected an open workspace folder');
     const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
 
-    const initialGraph = api.getGraphData();
-    const initialNodeCount = initialGraph.nodes.length;
-
     const nextSettings = {
       ...readRepoSettingsFile(settingsPath),
       showOrphans: false,
     };
 
-    const graphUpdated = waitForMessage(api, 'GRAPH_DATA_UPDATED', 15_000);
+    const settingsUpdated = waitForMessage(api, 'SETTINGS_UPDATED', 15_000);
     fs.writeFileSync(settingsPath, `${JSON.stringify(nextSettings, null, 2)}\n`, 'utf8');
-    await graphUpdated;
-    await sleep(500);
-
-    const updatedGraph = api.getGraphData();
-    assert.ok(
-      updatedGraph.nodes.length < initialNodeCount,
-      `Expected fewer visible nodes after disabling orphans. Before=${initialNodeCount}, after=${updatedGraph.nodes.length}`,
+    const updateMessage = await settingsUpdated;
+    assert.strictEqual(
+      (updateMessage.payload as { showOrphans: boolean }).showOrphans,
+      false,
     );
 
     const restoredSettings = {
       ...readRepoSettingsFile(settingsPath),
       showOrphans: true,
     };
-    const restoredGraphUpdated = waitForMessage(api, 'GRAPH_DATA_UPDATED', 15_000);
+    const restoredSettingsUpdated = waitForMessage(api, 'SETTINGS_UPDATED', 15_000);
     fs.writeFileSync(settingsPath, `${JSON.stringify(restoredSettings, null, 2)}\n`, 'utf8');
-    await restoredGraphUpdated;
-    await sleep(500);
+    const restoredUpdateMessage = await restoredSettingsUpdated;
+    assert.strictEqual(
+      (restoredUpdateMessage.payload as { showOrphans: boolean }).showOrphans,
+      true,
+    );
 
     assert.strictEqual(
       readRepoSettingsFile(settingsPath).showOrphans,

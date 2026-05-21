@@ -140,7 +140,7 @@ export const e2eScenarios: E2EScenario[] = [
         'scripts/player.gd',
         'scripts/utils/math_helpers.gd',
       ],
-      excludedAtDepthTwo: ['project.godot'],
+      excludedAtDepthTwo: ['scripts/orphan.gd'],
       selectedNodeId: 'scripts/orphan.gd',
       selectedNodeDepthOneNodeIds: ['scripts/orphan.gd'],
       selectedNodeDepthOneEdgeIds: [],

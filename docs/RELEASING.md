@@ -20,7 +20,6 @@ After merging release-ready changes to `main`, run the release from a clean chec
 ```bash
 pnpm install
 pnpm run version-packages
-pnpm run release:check
 pnpm run release:publish all
 ```
 
@@ -33,30 +32,6 @@ Use split publishing only when you want a manual checkpoint between npm and Mark
 ```bash
 pnpm run release:publish npm
 pnpm run release:publish extension
-```
-
-## Local packaging
-
-```bash
-pnpm run release:package npm
-pnpm run release:package vsce
-pnpm run release:package all
-```
-
-`core` is the `@codegraphy/core` npm package target. `extension`, `vsix`, `marketplace`, and `core-extension` target the VS Code Marketplace extension and rebuild `@codegraphy/extension` from source before staging the VSIX. npm packages are packed into `artifacts/npm/`; VS Code extensions are packed into `artifacts/vsix/`.
-
-Individual targets are available for debugging or partial releases:
-
-```bash
-pnpm run release:package core
-pnpm run release:package mcp
-pnpm run release:package plugin-api
-pnpm run release:package plugin-markdown
-pnpm run release:package plugin-typescript
-pnpm run release:package plugin-python
-pnpm run release:package plugin-csharp
-pnpm run release:package plugin-godot
-pnpm run release:package extension
 ```
 
 ## Publish commands
@@ -96,10 +71,9 @@ vsce verify-pat codegraphy
 7. Run `pnpm run version-packages`.
 8. If the VS Code Marketplace extension changed, verify `packages/extension/package.json` and [`packages/extension/CHANGELOG.md`](../packages/extension/CHANGELOG.md) have matching top entries.
 9. Commit the generated version and changelog updates.
-10. Run `pnpm run release:check`.
-11. Publish every release target with `pnpm run release:publish all`.
-12. Or publish npm packages first with `pnpm run release:publish npm`, then publish Marketplace packages with `pnpm run release:publish extension`.
-13. To publish separately, publish npm packages before Marketplace packages:
+10. Publish every release target with `pnpm run release:publish all`.
+11. Or publish npm packages first with `pnpm run release:publish npm`, then publish Marketplace packages with `pnpm run release:publish extension`.
+12. To publish separately, publish npm packages before Marketplace packages:
    - `pnpm run release:publish plugin-api`
    - `pnpm run release:publish plugin-markdown`
    - `pnpm run release:publish plugin-typescript`
@@ -108,18 +82,17 @@ vsce verify-pat codegraphy
    - `pnpm run release:publish plugin-godot`
    - `pnpm run release:publish core`
    - `pnpm run release:publish mcp`
-14. Publish the VS Code extension with `pnpm run release:publish extension`.
-15. Open the Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
-16. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
-17. Open the npm package pages for the public `@codegraphy/*` packages, then verify the README, package metadata, and repository links.
+13. Publish the VS Code extension with `pnpm run release:publish extension`.
+14. Open the Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
+15. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
+16. Open the npm package pages for the public `@codegraphy/*` packages, then verify the README, package metadata, and repository links.
 
 ## GitHub Actions
 
 Use the `Release` workflow with `workflow_dispatch`.
 
-- `mode=package` builds and uploads release artifacts.
 - `target` can be `all`, `npm`, `vsce`, `extension`, `core`, `mcp`, `plugin-api`, `plugin-markdown`, `plugin-typescript`, `plugin-python`, `plugin-csharp`, or `plugin-godot`.
-- `mode=publish` runs the same checks, packages release artifacts, publishes selected Marketplace targets, and publishes selected npm packages.
+- The workflow publishes the selected Marketplace targets and npm packages.
 
 Required secrets:
 

@@ -38,7 +38,6 @@ function repoTarget(): QualityTarget {
 
 function createDependencies(): MutationCliDependencies {
   return {
-    discoverMutationPackageNames: vi.fn(() => ['plugin-godot', 'quality-tools']),
     resolveQualityTarget: vi.fn((_repoRoot: string, input?: string) => (
       input === '.'
         ? repoTarget()
@@ -46,42 +45,68 @@ function createDependencies(): MutationCliDependencies {
         ? fileTarget(input)
         : packageTarget(input ?? 'quality-tools')
     )),
-    runMutation: vi.fn(),
-    runPreflightTypecheck: vi.fn(),
+    runMutation: vi.fn(async () => undefined),
   };
 }
 
 describe('command', () => {
-  it('runs a single explicit target', () => {
+  it('runs a package target directly', async () => {
     const dependencies = createDependencies();
-    runMutationCli(['quality-tools/'], dependencies);
+    await runMutationCli(['quality-tools/'], dependencies);
 
-    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, 'quality-tools/');
     expect(dependencies.runMutation).toHaveBeenCalledTimes(1);
   });
 
-  it('runs all discovered packages when no target is provided', () => {
+  it('runs a single file target', async () => {
     const dependencies = createDependencies();
-    runMutationCli([], dependencies);
+    await runMutationCli(['packages/extension/src/webview/vscodeApi.ts'], dependencies);
 
-    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
-    expect(dependencies.discoverMutationPackageNames).toHaveBeenCalledWith(REPO_ROOT);
-    expect(dependencies.resolveQualityTarget).toHaveBeenNthCalledWith(1, REPO_ROOT, 'plugin-godot');
-    expect(dependencies.resolveQualityTarget).toHaveBeenNthCalledWith(2, REPO_ROOT, 'quality-tools');
-    expect(dependencies.runMutation).toHaveBeenCalledTimes(2);
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
+      REPO_ROOT,
+      'packages/extension/src/webview/vscodeApi.ts',
+    );
+    expect(dependencies.runMutation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'file',
+        relativePath: 'packages/extension/src/webview/vscodeApi.ts',
+      }),
+      { force: false },
+    );
   });
 
-  it('uses --mutate as the effective mutation target', () => {
+  it('passes force reruns through to the mutation runner', async () => {
+    const dependencies = createDependencies();
+    await runMutationCli(['--force', 'packages/extension/src/webview/vscodeApi.ts'], dependencies);
+
+    expect(dependencies.runMutation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'file',
+        relativePath: 'packages/extension/src/webview/vscodeApi.ts',
+      }),
+      { force: true },
+    );
+  });
+
+  it('fails fast when no target is provided', async () => {
     const dependencies = createDependencies();
 
-    runMutationCli([
+    await expect(runMutationCli([], dependencies)).rejects.toThrow(
+      'Mutation requires an explicit package, directory, or file target.',
+    );
+    expect(dependencies.resolveQualityTarget).not.toHaveBeenCalled();
+    expect(dependencies.runMutation).not.toHaveBeenCalled();
+  });
+
+  it('uses --mutate as the effective mutation target', async () => {
+    const dependencies = createDependencies();
+
+    await runMutationCli([
       'extension/',
       '--mutate',
       'packages/extension/src/webview/components/Graph.tsx',
     ], dependencies);
 
-    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
       REPO_ROOT,
       'packages/extension/src/webview/components/Graph.tsx',
@@ -91,16 +116,16 @@ describe('command', () => {
         kind: 'file',
         relativePath: 'packages/extension/src/webview/components/Graph.tsx',
       }),
+      { force: false },
     );
   });
 
-  it('fails fast for repo-wide targets before running preflight typecheck', () => {
+  it('fails fast for repo-wide targets before running mutation', async () => {
     const dependencies = createDependencies();
 
-    expect(() => runMutationCli(['.'], dependencies)).toThrow(
+    await expect(runMutationCli(['.'], dependencies)).rejects.toThrow(
       'Mutation requires a workspace package, directory, or file inside one.',
     );
-    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
     expect(dependencies.runMutation).not.toHaveBeenCalled();
   });
 });

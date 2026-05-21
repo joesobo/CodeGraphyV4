@@ -45,4 +45,5 @@ describe('mutation report artifacts', () => {
     expect(existsSync(reportPath)).toBe(false);
     expect(existsSync(join(directory, 'reports/mutation/quality-tools/nested/mutation.html'))).toBe(false);
   });
+
 });
