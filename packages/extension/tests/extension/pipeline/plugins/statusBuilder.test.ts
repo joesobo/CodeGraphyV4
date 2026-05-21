@@ -16,7 +16,7 @@ function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
 
   return {
     plugin,
-    builtIn: true,
+    builtIn: false,
   };
 }
 
@@ -59,6 +59,51 @@ describe('pipeline/plugins/statusBuilder', () => {
     expect(statuses.find((status) => status.id === 'plugin.alpha')?.status).toBe('active');
     expect(statuses.find((status) => status.id === 'plugin.markdown')?.status).toBe('installed');
     expect(statuses.find((status) => status.id === 'plugin.python')?.status).toBe('inactive');
+  });
+
+  it('hides internal built-in runtime plugins from user-facing plugin statuses', () => {
+    const pluginInfos = [
+      {
+        ...createPluginInfo({
+          id: 'codegraphy.treesitter',
+          name: 'Tree-sitter',
+          supportedExtensions: ['.ts'],
+        }),
+        builtIn: true,
+      },
+      {
+        ...createPluginInfo({
+          id: 'codegraphy.markdown',
+          name: 'Markdown',
+          supportedExtensions: ['.md'],
+        }),
+        sourcePackage: '@codegraphy/plugin-markdown',
+      },
+      {
+        ...createPluginInfo({
+          id: 'legacy.python',
+          name: 'Python',
+          supportedExtensions: ['.py'],
+        }),
+        builtIn: false,
+      },
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [
+        { relativePath: 'src/index.ts' },
+        { relativePath: 'README.md' },
+        { relativePath: 'main.py' },
+      ],
+      fileConnections: new Map(),
+      pluginInfos,
+    });
+
+    expect(statuses.map(status => status.id)).toEqual([
+      'codegraphy.markdown',
+      'legacy.python',
+    ]);
   });
 
   it('counts resolved plugin connections and marks disabled plugins', () => {
