@@ -174,6 +174,8 @@ The CodeGraphy plan is a monorepo package version of the same idea: CI maintains
    - copy the target package seed into the current worktree
 7. Update docs after the workflow proves itself.
 
+Status: implemented on PR #210. The root CodeGraphy wrapper lives in `scripts/mutate.ts` and `scripts/mutation/`, while the generic mutation runner remains under `packages/quality-tools/src/mutation/runner/`.
+
 ### CI
 
 Add a separate GitHub Actions workflow or job for mutation seed refresh.
@@ -185,10 +187,10 @@ Recommended shape:
 - use a workflow-level concurrency group so only the latest seed refresh for `main` keeps running
 - restore the previous CI seed cache before mutation
 - run package mutation seed refreshes in a GitHub Actions matrix
-- each matrix job runs one package-scoped command, such as `pnpm run mutate -- extension/`
+- each matrix job runs one package-scoped command, such as `pnpm run mutate -- --skip-typecheck extension/`
 - each matrix job uploads that package's updated incremental report as a package seed artifact
 - a final assembly job downloads package seed artifacts, writes `reports/mutation/seed-sha.txt`, and uploads the combined Main Mutation Seed artifact
-- keep artifact retention long enough for active branch work, probably `30-90` days
+- keep artifact retention long enough for active branch work; the first implementation uses `14` days to avoid storing stale large seed artifacts indefinitely
 
 This should be separate from the required PR CI checks. Mutation seed refresh is a developer-speed accelerator, not a merge gate.
 
@@ -212,6 +214,13 @@ The CI seed workflow should own all-package orchestration at the GitHub Actions 
 ### CodeGraphy Wrapper
 
 Add seed hydration before invoking the generic quality-tools mutate runner.
+
+Implementation lives in:
+
+- `scripts/mutate.ts`
+- `scripts/mutation/codegraphyMutate.ts`
+- `scripts/mutation/seedCache.ts`
+- `packages/quality-tools/src/cli/listMutationPackages.ts`
 
 Suggested responsibilities:
 
@@ -308,15 +317,4 @@ The generic quality-tools mutate runner should stay seed-policy-free so it can l
 - Accepted: the Local Main Seed Cache is the local main checkout's `reports/mutation/` tree, with `seed-sha.txt` at the root and package incremental reports under package directories.
 - Accepted: no-arg `pnpm run mutate` is invalid; users must run `pnpm run mutate -- <package-or-path>`.
 - Accepted: locating the local main checkout means finding the worktree currently on `main` so the wrapper can read/write `<local-main-checkout>/reports/mutation/seed-sha.txt` and package seed files.
-
-## Recommended Next Decision
-
-Question: how should the CI seed workflow choose the package matrix?
-
-Recommendation: have the quality tool expose or reuse the mutation package discovery as a CI helper command that prints package names, then feed that list into the GitHub Actions matrix.
-
-Why:
-
-- CI should not rely on bare `pnpm run mutate` for all-package behavior.
-- The package list should come from the same mutation eligibility rules as local targeting.
-- The matrix keeps package-level mutation parallel while preserving each package's Stryker config boundary.
+- Accepted: the CI seed workflow chooses its matrix with `pnpm exec tsx packages/quality-tools/src/cli/listMutationPackages.ts --json`, which reuses the same mutation package discovery rules as the local mutation profile.
