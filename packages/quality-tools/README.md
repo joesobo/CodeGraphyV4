@@ -38,7 +38,7 @@ At the CodeGraphy repo root, `pnpm run mutate` is a repo-specific wrapper. It hy
 
 The mutation configs ignore heavyweight local artifacts like package-local `.vscode-test/` folders and `.stryker-tmp/`, so downloaded VS Code test bundles do not get copied into Stryker sandboxes.
 
-For extension mutation loops, the shared Stryker config defaults to two workers and infinite Vitest runner reuse. File-scoped targets skip the preflight typecheck by default and still run through Stryker incremental mode, so focused runs can warm the package-level incremental report used by later package or directory runs. Package and directory targets still run the preflight typecheck. Override `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` if a focused run needs different isolation, or pass `--force` to rerun the mutants in scope.
+For extension mutation loops, the shared Stryker config defaults to two workers and infinite Vitest runner reuse. Mutation targets run directly through Stryker incremental mode without a separate typecheck preflight, so focused runs can warm the package-level incremental report used by later package or directory runs. Override `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` if a focused run needs different isolation, or pass `--force` to rerun the mutants in scope.
 
 While Stryker is running, the mutation wrapper prints a progress heartbeat every 60 seconds so long package-scoped runs do not look stalled.
 

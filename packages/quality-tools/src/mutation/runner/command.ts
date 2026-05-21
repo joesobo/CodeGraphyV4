@@ -2,23 +2,15 @@ import { cleanCliArgs, flagValue, parseBareTargetArg } from '../../shared/cliArg
 import { REPO_ROOT } from '../../shared/resolve/repoRoot';
 import { resolveQualityTarget, type QualityTarget } from '../../shared/resolve/target';
 import { runMutation, type MutationRunOptions } from './run';
-import { execFileSync } from 'child_process';
 
 export interface MutationCliDependencies {
   resolveQualityTarget: typeof resolveQualityTarget;
   runMutation: (target: QualityTarget, options?: MutationRunOptions) => Promise<void>;
-  runPreflightTypecheck: () => void;
 }
 
 const DEFAULT_DEPENDENCIES: MutationCliDependencies = {
   resolveQualityTarget,
   runMutation,
-  runPreflightTypecheck: () => {
-    execFileSync('pnpm', ['run', 'typecheck'], {
-      cwd: REPO_ROOT,
-      stdio: 'inherit',
-    });
-  },
 };
 
 function resolveCliTargets(
@@ -51,14 +43,6 @@ function assertMutationTargetsSupported(targets: readonly QualityTarget[]): void
   }
 }
 
-function shouldRunPreflightTypecheck(args: readonly string[], targets: readonly QualityTarget[]): boolean {
-  if (args.includes('--skip-typecheck') || process.env.CODEGRAPHY_MUTATE_SKIP_TYPECHECK === '1') {
-    return false;
-  }
-
-  return targets.some((target) => target.kind !== 'file');
-}
-
 export async function runMutationCli(
   rawArgs: string[],
   dependencies: MutationCliDependencies = DEFAULT_DEPENDENCIES
@@ -70,9 +54,6 @@ export async function runMutationCli(
     dependencies,
   );
   assertMutationTargetsSupported(targets);
-  if (shouldRunPreflightTypecheck(args, targets)) {
-    dependencies.runPreflightTypecheck();
-  }
   const runOptions = {
     force: args.includes('--force'),
   };

@@ -46,33 +46,22 @@ function createDependencies(): MutationCliDependencies {
         : packageTarget(input ?? 'quality-tools')
     )),
     runMutation: vi.fn(async () => undefined),
-    runPreflightTypecheck: vi.fn(),
   };
 }
 
 describe('command', () => {
-  it('skips the preflight typecheck when explicitly requested', async () => {
-    const dependencies = createDependencies();
-    await runMutationCli(['quality-tools/', '--skip-typecheck'], dependencies);
-
-    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
-    expect(dependencies.runMutation).toHaveBeenCalledTimes(1);
-  });
-
-  it('runs a single explicit target', async () => {
+  it('runs a package target directly', async () => {
     const dependencies = createDependencies();
     await runMutationCli(['quality-tools/'], dependencies);
 
-    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, 'quality-tools/');
     expect(dependencies.runMutation).toHaveBeenCalledTimes(1);
   });
 
-  it('skips the preflight typecheck for a single file target', async () => {
+  it('runs a single file target', async () => {
     const dependencies = createDependencies();
     await runMutationCli(['packages/extension/src/webview/vscodeApi.ts'], dependencies);
 
-    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
       REPO_ROOT,
       'packages/extension/src/webview/vscodeApi.ts',
@@ -106,7 +95,6 @@ describe('command', () => {
       'Mutation requires an explicit package, directory, or file target.',
     );
     expect(dependencies.resolveQualityTarget).not.toHaveBeenCalled();
-    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
     expect(dependencies.runMutation).not.toHaveBeenCalled();
   });
 
@@ -119,7 +107,6 @@ describe('command', () => {
       'packages/extension/src/webview/components/Graph.tsx',
     ], dependencies);
 
-    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
       REPO_ROOT,
       'packages/extension/src/webview/components/Graph.tsx',
@@ -133,13 +120,12 @@ describe('command', () => {
     );
   });
 
-  it('fails fast for repo-wide targets before running preflight typecheck', async () => {
+  it('fails fast for repo-wide targets before running mutation', async () => {
     const dependencies = createDependencies();
 
     await expect(runMutationCli(['.'], dependencies)).rejects.toThrow(
       'Mutation requires a workspace package, directory, or file inside one.',
     );
-    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
     expect(dependencies.runMutation).not.toHaveBeenCalled();
   });
 });

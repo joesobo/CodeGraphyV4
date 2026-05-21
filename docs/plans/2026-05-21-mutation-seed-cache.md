@@ -187,7 +187,7 @@ Recommended shape:
 - use a workflow-level concurrency group so only the latest seed refresh for `main` keeps running
 - restore the previous CI seed cache before mutation
 - run package mutation seed refreshes in a GitHub Actions matrix
-- each matrix job runs one package-scoped command, such as `pnpm run mutate -- --skip-typecheck extension/`
+- each matrix job runs one package-scoped command, such as `pnpm run mutate -- extension/`
 - each matrix job uploads that package's updated incremental report as a package seed artifact
 - a final assembly job downloads package seed artifacts, writes `reports/mutation/seed-sha.txt`, and uploads the combined Main Mutation Seed artifact
 - keep artifact retention long enough for active branch work; the first implementation uses `14` days to avoid storing stale large seed artifacts indefinitely

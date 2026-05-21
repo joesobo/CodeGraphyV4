@@ -82,7 +82,7 @@ jobs:
             ${{ runner.os }}-mutation-seed-${{ matrix.package }}-
 
       - name: Refresh ${{ matrix.package }} mutation seed
-        run: pnpm run mutate -- --skip-typecheck ${{ matrix.package }}/
+        run: pnpm run mutate -- ${{ matrix.package }}/
 
       - name: Verify ${{ matrix.package }} incremental report exists
         run: test -f "reports/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json"
