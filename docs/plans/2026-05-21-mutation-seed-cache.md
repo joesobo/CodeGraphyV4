@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft for grilling.
+Implemented on PR #210.
 
 Decision captured: CodeGraphy is a monorepo of package-level Stryker projects. Mutation seed caching should follow that boundary. The main branch seed is a `reports/mutation/` tree containing package-scoped Stryker incremental reports, not one root monorepo incremental report.
 
@@ -38,8 +38,9 @@ Avoid calling this a custom mutation cache. The speedup should come from Stryker
 
 ## Current Repo Shape
 
-- Root `pnpm run mutate` calls `packages/quality-tools/src/cli/mutate.ts`.
-- With no target argument, the CLI fails fast and asks for an explicit package, directory, or file target.
+- Root `pnpm run mutate` calls the CodeGraphy-specific wrapper at `scripts/mutate.ts`.
+- The wrapper handles package seed hydration, then delegates to the generic quality-tools mutation CLI.
+- With no target argument, the generic CLI fails fast and asks for an explicit package, directory, or file target.
 - A targeted command resolves to one package, directory, or file, then runs Stryker once for that package scope.
 - The mutation runner currently passes package-level `--incrementalFile` paths such as `reports/mutation/extension/stryker-incremental-extension.json`.
 - The shared root Stryker config covers extension and normal workspace packages.
@@ -282,6 +283,32 @@ The generic quality-tools mutate runner should stay seed-policy-free so it can l
 - Remove the worktree extension cache, seed local main with a copied CI-like artifact, rerun the same file target, and verify Stryker reports reused mutants.
 - Run the same file target a second time and verify it uses the worktree-local cache without rehydrating.
 - Run `pnpm run mutate -- --force packages/extension/src/webview/vscodeApi.ts` and verify Stryker reruns the scoped mutants while leaving the hydrated cache in place for later runs.
+
+### Pre-Merge Package Validation
+
+Before merging PR #210, each discovered mutation package was run locally through the root command with a five-minute cap:
+
+```bash
+GITHUB_REF_NAME=main pnpm run mutate -- <package>/
+```
+
+`GITHUB_REF_NAME=main` was used only for this pre-merge validation because the new mutation-seed workflow does not exist on `main` until the PR lands. That forces the wrapper through the same cold-run path the `main` seed workflow will use, without requiring a seed artifact that cannot exist yet.
+
+Results from the repeat validation after fixing the quality-tools dry-run failure:
+
+| Package | Result |
+| --- | --- |
+| `core` | reached 5-minute cap after successful package dry run |
+| `mcp` | completed, reused `492` of `516` mutants |
+| `plugin-csharp` | completed, reused `2` of `2` mutants |
+| `plugin-godot` | reached 5-minute cap after successful package dry run |
+| `plugin-markdown` | completed, reused `109` of `117` mutants |
+| `plugin-python` | completed, reused `2` of `2` mutants |
+| `plugin-typescript` | completed, reused `2` of `2` mutants |
+| `quality-tools` | reached 5-minute cap after successful `1,560` test dry run |
+| `extension` | reached 5-minute cap after successful `5,436` test dry run |
+
+The first validation found a real `quality-tools` issue: seed-cache tests were affected by CI's `GITHUB_REF_NAME=main` environment while they were mocking branch detection. The fix made the seed hydration environment injectable so production still uses `process.env`, while tests can remain deterministic under Stryker.
 
 ### CI Checks
 
