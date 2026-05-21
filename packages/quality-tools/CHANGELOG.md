@@ -1,4 +1,4 @@
-# @codegraphy/quality-tools
+# @codegraphy-dev/quality-tools
 
 ## 0.1.1
 

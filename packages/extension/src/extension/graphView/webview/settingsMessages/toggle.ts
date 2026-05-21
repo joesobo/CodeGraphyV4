@@ -1,4 +1,4 @@
-import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy/core';
+import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy-dev/core';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type {
   GraphViewSettingsMessageHandlers,

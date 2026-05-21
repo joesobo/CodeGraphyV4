@@ -1,4 +1,4 @@
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { FileAnalysisRow } from './contracts';
 import { readOptionalNumber, readRequiredString } from './values';
 

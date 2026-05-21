@@ -1,4 +1,4 @@
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { GraphQueryData } from '../data';
 import type { GraphQuerySymbolReportItem, GraphQuerySymbolsConfig } from '../model';
 import { toSymbolReportBase } from './metadata';

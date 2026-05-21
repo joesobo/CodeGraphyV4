@@ -1,4 +1,4 @@
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { projectProjectedConnectionsFromFileAnalysis } from '../analysis/projection';
 import type { IGraphEdge, IGraphNode } from './contracts';

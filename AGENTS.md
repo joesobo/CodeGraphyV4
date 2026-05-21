@@ -28,8 +28,8 @@ pnpm run typecheck # type-check all packages
 Targeted runs:
 
 ```bash
-pnpm --filter @codegraphy/extension test
-pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/SettingsPanel.test.tsx
+pnpm --filter @codegraphy-dev/extension test
+pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/SettingsPanel.test.tsx
 ```
 
 ## Architecture
@@ -223,7 +223,7 @@ Or create manually in `.changeset/`:
 
 ```md
 ---
-"@codegraphy/extension": minor
+"@codegraphy-dev/extension": minor
 ---
 
 Add node size toggle to the toolbar with four sizing modes

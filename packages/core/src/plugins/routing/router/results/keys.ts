@@ -1,4 +1,4 @@
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 
 function getBaseRelationKeyParts(
   relation: NonNullable<IFileAnalysisResult['relations']>[number],

@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { GodotAnalysisContext } from './types';
 import { detect as detectPreload } from '../sources/preload';
 import { detect as detectLoad } from '../sources/load';

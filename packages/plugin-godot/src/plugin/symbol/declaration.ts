@@ -1,4 +1,4 @@
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { parseGDScriptDocument } from '../../parser';
 import manifest from '../../../codegraphy.json';
 import {

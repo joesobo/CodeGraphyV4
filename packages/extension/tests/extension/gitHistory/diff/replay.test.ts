@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { analyzeDiffCommitGraph } from '../../../../src/extension/gitHistory/diff/analysis';
-import { resolveTreeSitterImportPath } from '@codegraphy/core';
+import { resolveTreeSitterImportPath } from '@codegraphy-dev/core';
 
 describe('gitHistory/diff/replay', () => {
   it('allows files added in the same commit to connect even when the importer is processed first', async () => {

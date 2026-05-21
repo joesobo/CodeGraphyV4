@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy/plugin-python",
+  "name": "@codegraphy-dev/plugin-python",
   "version": "2.0.4",
   "description": "CodeGraphy Python plugin",
   "license": "MIT",
@@ -47,7 +47,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/plugin-api": "workspace:*"
+    "@codegraphy-dev/plugin-api": "workspace:*"
   },
   "codegraphy": {
     "type": "plugin",

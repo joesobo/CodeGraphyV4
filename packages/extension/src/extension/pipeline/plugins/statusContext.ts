@@ -7,7 +7,7 @@ import {
   readCodeGraphyWorkspaceSettings,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyUserStateOptions,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 
 export interface WorkspacePluginStatusContext {
   installedPlugins: readonly CodeGraphyInstalledPluginRecord[];

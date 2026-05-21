@@ -6,7 +6,7 @@ Release-facing metadata is not all in one package:
 
 - Core extension marketplace metadata lives in the repo root [`package.json`](../package.json)
 - Core extension versioning lives in [`packages/extension/package.json`](../packages/extension/package.json)
-- `@codegraphy/core` npm metadata lives in [`packages/core/package.json`](../packages/core/package.json)
+- `@codegraphy-dev/core` npm metadata lives in [`packages/core/package.json`](../packages/core/package.json)
 - Language plugin npm metadata lives in each `packages/plugin-*/package.json`
 - Plugin API npm metadata lives in [`packages/plugin-api/package.json`](../packages/plugin-api/package.json)
 - MCP npm metadata lives in [`packages/mcp/package.json`](../packages/mcp/package.json)
@@ -50,7 +50,7 @@ pnpm run release:publish plugin-csharp
 pnpm run release:publish plugin-godot
 ```
 
-`pnpm run release:publish core` publishes the `@codegraphy/core` npm package. Use `pnpm run release:publish extension` for the VS Code Marketplace extension.
+`pnpm run release:publish core` publishes the `@codegraphy-dev/core` npm package. Use `pnpm run release:publish extension` for the VS Code Marketplace extension.
 
 Before the first local publish from this release setup, verify the authenticated publisher:
 
@@ -85,7 +85,7 @@ vsce verify-pat codegraphy
 13. Publish the VS Code extension with `pnpm run release:publish extension`.
 14. Open the Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
 15. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
-16. Open the npm package pages for the public `@codegraphy/*` packages, then verify the README, package metadata, and repository links.
+16. Open the npm package pages for the public `@codegraphy-dev/*` packages, then verify the README, package metadata, and repository links.
 
 ## GitHub Actions
 
@@ -97,7 +97,7 @@ Use the `Release` workflow with `workflow_dispatch`.
 Required secrets:
 
 - `VSCE_PAT` for Marketplace publishing
-- `NPM_TOKEN` for npm packages under the `@codegraphy` scope
+- `NPM_TOKEN` for npm packages under the `@codegraphy-dev` scope
 
 ## Marketplace migration note
 
@@ -105,7 +105,7 @@ V4 is prepared to publish as `codegraphy.codegraphy`.
 
 The existing Marketplace identifier is `codegraphy.codegraphy`. Marketplace ownership and publisher ID are different things: the owner account can be Joseph Soboleski while the immutable extension identifier still uses the publisher ID `codegraphy`.
 
-That means the V4 VS Code extension release can update the existing Marketplace listing in place. Language plugins publish as npm packages under the `@codegraphy` scope instead of normal VS Code Marketplace companion extensions.
+That means the V4 VS Code extension release can update the existing Marketplace listing in place. Language plugins publish as npm packages under the `@codegraphy-dev` scope instead of normal VS Code Marketplace companion extensions.
 
 After the new npm packages and the main VS Code extension are live and verified, manually unpublish or deprecate the old VS Code Marketplace language-plugin extensions. Keep them available until the replacement install path has been tested from a fresh machine or clean profile.
 
@@ -114,10 +114,10 @@ If you ever move the core to a different publisher later, that would require a n
 ## Current public listings
 
 - Core: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy>
-- Plugin API: <https://www.npmjs.com/package/@codegraphy/plugin-api>
-- TypeScript/JavaScript plugin: <https://www.npmjs.com/package/@codegraphy/plugin-typescript>
-- Python plugin: <https://www.npmjs.com/package/@codegraphy/plugin-python>
-- C# plugin: <https://www.npmjs.com/package/@codegraphy/plugin-csharp>
-- Godot plugin: <https://www.npmjs.com/package/@codegraphy/plugin-godot>
-- Markdown plugin: <https://www.npmjs.com/package/@codegraphy/plugin-markdown>
-- MCP: <https://www.npmjs.com/package/@codegraphy/mcp>
+- Plugin API: <https://www.npmjs.com/package/@codegraphy-dev/plugin-api>
+- TypeScript/JavaScript plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript>
+- Python plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-python>
+- C# plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp>
+- Godot plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-godot>
+- Markdown plugin: <https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown>
+- MCP: <https://www.npmjs.com/package/@codegraphy-dev/mcp>

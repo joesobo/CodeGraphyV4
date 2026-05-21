@@ -5,5 +5,5 @@ export {
   treeSitterReadDirectory,
   treeSitterReadTextFile,
   withTreeSitterPathHost,
-} from '@codegraphy/core';
-export type { TreeSitterPathHost } from '@codegraphy/core';
+} from '@codegraphy-dev/core';
+export type { TreeSitterPathHost } from '@codegraphy-dev/core';

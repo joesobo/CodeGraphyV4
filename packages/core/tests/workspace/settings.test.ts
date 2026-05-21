@@ -74,12 +74,12 @@ describe('CodeGraphy Workspace settings', () => {
         maxFiles: 50,
         plugins: [
           {
-            package: '@codegraphy/plugin-python',
+            package: '@codegraphy-dev/plugin-python',
             disabledFilterPatterns: ['**/__pycache__/**', 42],
             options: { includeTests: true },
           },
           { package: '' },
-          { name: '@codegraphy/plugin-legacy' },
+          { name: '@codegraphy-dev/plugin-legacy' },
         ],
       }),
       'utf-8',
@@ -88,7 +88,7 @@ describe('CodeGraphy Workspace settings', () => {
     expect(readCodeGraphyWorkspaceSettings(workspaceRoot)).toMatchObject({
       maxFiles: 50,
       plugins: [{
-        package: '@codegraphy/plugin-python',
+        package: '@codegraphy-dev/plugin-python',
         disabledFilterPatterns: ['**/__pycache__/**'],
         options: { includeTests: true },
       }],
@@ -102,8 +102,8 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { package: '@codegraphy/plugin-markdown' },
-        { package: '@codegraphy/plugin-python' },
+        { package: '@codegraphy-dev/plugin-markdown' },
+        { package: '@codegraphy-dev/plugin-python' },
       ],
     });
 
@@ -113,8 +113,8 @@ describe('CodeGraphy Workspace settings', () => {
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       ...settings,
       plugins: [
-        { package: '@codegraphy/plugin-python' },
-        { package: '@codegraphy/plugin-markdown' },
+        { package: '@codegraphy-dev/plugin-python' },
+        { package: '@codegraphy-dev/plugin-markdown' },
       ],
     });
 

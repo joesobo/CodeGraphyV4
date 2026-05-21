@@ -1,11 +1,11 @@
-# @codegraphy/mcp
+# @codegraphy-dev/mcp
 
 ## 1.0.4
 
 ### Patch Changes
 
 - Updated dependencies [[`73d0118`](https://github.com/joesobo/CodeGraphyV4/commit/73d0118012efc8709be3604b348628a6260b45c1)]:
-  - @codegraphy/plugin-api@2.0.0
+  - @codegraphy-dev/plugin-api@2.0.0
 
 ## 1.0.3
 
@@ -35,12 +35,12 @@
 
 - [#185](https://github.com/joesobo/CodeGraphyV4/pull/185) [`d64701d`](https://github.com/joesobo/CodeGraphyV4/commit/d64701df5eefa3922651480b54417cf2cc9e5d90) Thanks [@joesobo](https://github.com/joesobo)! - Add the CodeGraphy MCP package and agent workflow for querying the Relationship Graph from Codex and other MCP-capable agents.
 
-  At the time, the extension exposed Graph Query for agent use, including node, edge, relationship, symbol, and path reports. That design asked VS Code to open or focus the repo before indexing/querying; newer releases run MCP and CLI indexing/querying through `@codegraphy/core` without opening or focusing VS Code.
+  At the time, the extension exposed Graph Query for agent use, including node, edge, relationship, symbol, and path reports. That design asked VS Code to open or focus the repo before indexing/querying; newer releases run MCP and CLI indexing/querying through `@codegraphy-dev/core` without opening or focusing VS Code.
 
 ### Patch Changes
 
 - Updated dependencies [[`2f81974`](https://github.com/joesobo/CodeGraphyV4/commit/2f819740837de3f77b6717f4af3894e30e167e1f)]:
-  - @codegraphy/plugin-api@1.2.0
+  - @codegraphy-dev/plugin-api@1.2.0
 
 ## 0.1.0
 

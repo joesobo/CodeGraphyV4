@@ -17,7 +17,7 @@ function createProfile(
 export function extensionCoverageProfile(repoRoot: string): CoverageProfile {
   return createProfile(
     repoRoot,
-    '@codegraphy/extension',
+    '@codegraphy-dev/extension',
     join(repoRoot, 'coverage/coverage-final.json')
   );
 }
@@ -25,7 +25,7 @@ export function extensionCoverageProfile(repoRoot: string): CoverageProfile {
 export function qualityToolsCoverageProfile(repoRoot: string): CoverageProfile {
   return createProfile(
     repoRoot,
-    '@codegraphy/quality-tools',
+    '@codegraphy-dev/quality-tools',
     join(repoRoot, 'coverage/quality-tools/coverage-final.json')
   );
 }
@@ -44,7 +44,7 @@ export function workspacePackageCoverageProfile(
       ]),
       CODEGRAPHY_VITEST_SCOPE: 'workspace'
     },
-    args: ['--filter', '@codegraphy/extension', 'exec', 'vitest', 'run', '--config', 'vitest.config.ts', '--coverage'],
+    args: ['--filter', '@codegraphy-dev/extension', 'exec', 'vitest', 'run', '--config', 'vitest.config.ts', '--coverage'],
     command: 'pnpm'
   };
 }

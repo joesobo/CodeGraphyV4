@@ -10,7 +10,7 @@
   "disabledPlugins": [],
   "plugins": [
     {
-      "package": "@codegraphy/plugin-markdown"
+      "package": "@codegraphy-dev/plugin-markdown"
     }
   ],
   "nodeColors": {

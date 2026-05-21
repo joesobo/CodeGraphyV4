@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { WorkspacePipelineDiscoveryFacade } from '../../../../src/extension/pipeline/service/discoveryFacade';
 import type { Configuration } from '../../../../src/extension/config/reader';
-import type { FileDiscovery } from '@codegraphy/core';
+import type { FileDiscovery } from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
 import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
-import type { IDiscoveredFile } from '@codegraphy/core';
+import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,

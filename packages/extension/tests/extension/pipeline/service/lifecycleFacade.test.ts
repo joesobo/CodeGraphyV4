@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { WorkspacePipelineLifecycleFacade } from '../../../../src/extension/pipeline/service/lifecycleFacade';
 import type { PluginRegistry } from '../../../../src/core/plugins/registry/manager';
 import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
-import type { IDiscoveredFile } from '@codegraphy/core';
+import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import type {
   IFileAnalysisResult,
   IProjectedConnection,
@@ -117,14 +117,14 @@ describe('pipeline/service/lifecycleFacade', () => {
     vi.mocked(readWorkspacePluginStatusContext).mockReturnValue({
       installedPlugins: [
         {
-          package: '@codegraphy/plugin-python',
+          package: '@codegraphy-dev/plugin-python',
           version: '2.0.0',
           apiVersion: '^2.0.0',
           disclosures: [],
-          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+          packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
         },
       ],
-      workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
     });
     vi.mocked(invalidateWorkspacePipelineFiles).mockReturnValue(['src/a.ts']);
     vi.mocked(resolveWorkspacePipelinePluginFilePaths).mockReturnValue(['/workspace/src/a.ts']);
@@ -144,14 +144,14 @@ describe('pipeline/service/lifecycleFacade', () => {
       {
         installedPlugins: [
           {
-            package: '@codegraphy/plugin-python',
+            package: '@codegraphy-dev/plugin-python',
             version: '2.0.0',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
           },
         ],
-        workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+        workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
       },
     );
   });

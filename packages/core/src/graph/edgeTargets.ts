@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { isExternalPackageSpecifier } from './packageSpecifiers/match';
 import { getExternalPackageNodeId } from './packageSpecifiers/nodeId';

@@ -113,8 +113,8 @@ describe('Configuration (configReaders)', () => {
 
   describe('plugins', () => {
     it('returns the configured workspace plugin entries', () => {
-      mockConfig['plugins'] = [{ package: '@codegraphy/plugin-python' }];
-      expect(new Configuration().plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
+      mockConfig['plugins'] = [{ package: '@codegraphy-dev/plugin-python' }];
+      expect(new Configuration().plugins).toEqual([{ package: '@codegraphy-dev/plugin-python' }]);
     });
 
     it('defaults to empty array', () => {
@@ -175,7 +175,7 @@ describe('Configuration (configReaders)', () => {
       mockConfig['showOrphans'] = false;
       mockConfig['bidirectionalEdges'] = 'combined';
       mockConfig['filterPatterns'] = ['dist/**'];
-      mockConfig['plugins'] = [{ package: '@codegraphy/plugin-python' }];
+      mockConfig['plugins'] = [{ package: '@codegraphy-dev/plugin-python' }];
 
       const all = new Configuration().getAll();
 
@@ -185,7 +185,7 @@ describe('Configuration (configReaders)', () => {
       expect(all.showOrphans).toBe(false);
       expect(all.bidirectionalEdges).toBe('combined');
       expect(all.filterPatterns).toEqual(['dist/**']);
-      expect(all.plugins).toEqual([{ package: '@codegraphy/plugin-python' }]);
+      expect(all.plugins).toEqual([{ package: '@codegraphy-dev/plugin-python' }]);
     });
 
     it('uses defaults for unconfigured values', () => {

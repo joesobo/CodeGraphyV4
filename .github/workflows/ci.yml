@@ -96,19 +96,19 @@ jobs:
         include:
           - label: Packages
             turbo-cache: unit-packages
-            command: pnpm exec turbo run test --filter='!@codegraphy/extension'
+            command: pnpm exec turbo run test --filter='!@codegraphy-dev/extension'
           - label: Extension node
             turbo-cache: unit-extension-node
-            command: pnpm exec turbo run test:node --filter=@codegraphy/extension
+            command: pnpm exec turbo run test:node --filter=@codegraphy-dev/extension
           - label: Extension webview graph interaction and rendering
             turbo-cache: unit-extension-webview-graph
-            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=graph pnpm exec turbo run test:webview --filter=@codegraphy/extension
+            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=graph pnpm exec turbo run test:webview --filter=@codegraphy-dev/extension
           - label: Extension webview app shell and plugins
             turbo-cache: unit-extension-webview-app-plugins
-            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=appPlugins pnpm exec turbo run test:webview --filter=@codegraphy/extension
+            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=appPlugins pnpm exec turbo run test:webview --filter=@codegraphy-dev/extension
           - label: Extension webview panels, search, and exports
             turbo-cache: unit-extension-webview-panels-export
-            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=panelsExport pnpm exec turbo run test:webview --filter=@codegraphy/extension
+            command: CODEGRAPHY_VITEST_WEBVIEW_GROUP=panelsExport pnpm exec turbo run test:webview --filter=@codegraphy-dev/extension
 
     steps:
       - name: Checkout
@@ -177,7 +177,7 @@ jobs:
             ${{ runner.os }}-turbo-
 
       - name: Install Playwright browser + system deps
-        run: pnpm --filter @codegraphy/extension exec playwright install --with-deps chromium
+        run: pnpm --filter @codegraphy-dev/extension exec playwright install --with-deps chromium
 
       - name: Playwright tests
         run: pnpm run test:playwright

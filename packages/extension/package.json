@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy/extension",
+  "name": "@codegraphy-dev/extension",
   "version": "5.4.0",
   "private": true,
   "description": "CodeGraphy VS Code extension core",
@@ -11,7 +11,7 @@
     "build": "pnpm run build:extension && pnpm run build:webview",
     "build:extension": "tsx scripts/buildExtension.ts",
     "build:webview": "vite build --config vite.config.ts",
-    "build:vscode": "pnpm -w exec turbo run build --filter=@codegraphy/extension... --filter=@codegraphy/plugin-typescript --filter=@codegraphy/plugin-godot && tsc -p src/e2e/tsconfig.json",
+    "build:vscode": "pnpm -w exec turbo run build --filter=@codegraphy-dev/extension... --filter=@codegraphy-dev/plugin-typescript --filter=@codegraphy-dev/plugin-godot && tsc -p src/e2e/tsconfig.json",
     "watch": "concurrently \"pnpm run watch:extension\" \"pnpm run watch:webview\"",
     "watch:extension": "tsx scripts/buildExtension.ts --watch",
     "watch:webview": "vite build --config vite.config.ts --watch",
@@ -25,7 +25,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tests/playwright/tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/core": "workspace:*",
+    "@codegraphy-dev/core": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
     "@floating-ui/react": "^0.27.19",
     "@ladybugdb/core": "^0.15.3",

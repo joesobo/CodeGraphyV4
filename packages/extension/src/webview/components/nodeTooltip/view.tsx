@@ -50,6 +50,14 @@ interface NodeTooltipProps {
   pluginHost?: WebviewPluginHost;
 }
 
+interface NodeTooltipFloating {
+  refs: {
+    setReference: (node: { getBoundingClientRect: () => unknown }) => void;
+    setFloating: (node: HTMLDivElement | null) => void;
+  };
+  floatingStyles: React.CSSProperties;
+}
+
 export function NodeTooltip({
   path,
   symbol,
@@ -90,7 +98,7 @@ export function NodeTooltip({
       shift({ padding: 8 }),
     ],
     whileElementsMounted: autoUpdate,
-  });
+  }) as NodeTooltipFloating;
 
   // Update the virtual reference whenever node position/size changes
   useEffect(() => {

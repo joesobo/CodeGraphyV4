@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import { createSymbolsByFilePath } from '../../../src/analysis/fileAnalysis/symbols';
 
 function symbol(filePath: string, name: string): IAnalysisSymbol {

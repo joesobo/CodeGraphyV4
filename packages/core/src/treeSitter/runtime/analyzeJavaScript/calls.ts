@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { getImportedBindingByIdentifier, getImportedBindingByPropertyAccess } from '../analyze/imports';
 import { getImportRelationForJavaScriptCallExpression } from './callImports';
 import type { ImportedBinding } from '../analyze/model';

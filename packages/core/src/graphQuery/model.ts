@@ -1,5 +1,5 @@
 import type { GraphEdgeKind, NodeType } from '../graph/contracts';
-import type { IAnalysisRange } from '@codegraphy/plugin-api';
+import type { IAnalysisRange } from '@codegraphy-dev/plugin-api';
 
 export type GraphQueryFilterOperator =
   | 'equals'

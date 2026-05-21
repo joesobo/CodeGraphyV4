@@ -4,7 +4,7 @@
  */
 
 import * as vscode from 'vscode';
-import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy/core';
+import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy-dev/core';
 import type { IGroup } from '../../shared/settings/groups';
 import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import { getCodeGraphyConfiguration, onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';

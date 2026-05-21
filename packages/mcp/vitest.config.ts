@@ -4,9 +4,9 @@ import { resolve } from 'node:path';
 export default defineConfig({
   resolve: {
     alias: {
-      '@codegraphy/core': resolve(__dirname, '../core/src/index.ts'),
-      '@codegraphy/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
-      '@codegraphy/plugin-api': resolve(__dirname, '../plugin-api/src/index.ts'),
+      '@codegraphy-dev/core': resolve(__dirname, '../core/src/index.ts'),
+      '@codegraphy-dev/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
+      '@codegraphy-dev/plugin-api': resolve(__dirname, '../plugin-api/src/index.ts'),
     },
   },
   test: {
