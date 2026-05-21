@@ -116,6 +116,30 @@ describe('WebviewPluginHost', () => {
     expect(handler).toHaveBeenNthCalledWith(2, state);
   });
 
+  it('removes scoped Graph View viewport listeners when a plugin is removed', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const handler = vi.fn();
+    const state = {
+      graphMode: '2d' as const,
+      graphToScreen: (x: number, y: number) => ({ x, y }),
+      nodes: [{ id: 'src/app.ts', x: 10, y: 20 }],
+      reheatSimulation: vi.fn(),
+      resumeAnimation: vi.fn(),
+      screenToGraph: (x: number, y: number) => ({ x, y }),
+      timelineActive: false,
+      updateNode: vi.fn(() => true),
+      zoom: 1,
+    };
+
+    api.onGraphViewViewportState(handler);
+    host.removePlugin('acme.plugin');
+    host.setGraphViewViewportState(state);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith(null);
+  });
+
   it('continues delivering plugin messages when one handler throws', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const host = new WebviewPluginHost();

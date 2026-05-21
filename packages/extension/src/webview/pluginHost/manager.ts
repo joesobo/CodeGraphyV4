@@ -41,6 +41,10 @@ type GraphInteractionMessage = {
 
 type GraphViewContributionListener = () => void;
 type GraphViewViewportStateListener = (state: GraphViewViewportState | null) => void;
+interface GraphViewViewportStateListenerEntry {
+  listener: GraphViewViewportStateListener;
+  pluginId?: string;
+}
 
 function createEmptyWebviewGraphViewContributionSet(): CoreGraphViewContributionSet {
   return {
@@ -64,7 +68,7 @@ export class WebviewPluginHost {
   private readonly _messageHandlers = new Map<string, Set<(msg: { type: string; data: unknown }) => void>>();
   private readonly _graphViewContributions = new Map<string, Set<IGraphViewContributions>>();
   private readonly _graphViewContributionListeners = new Set<GraphViewContributionListener>();
-  private readonly _graphViewViewportStateListeners = new Set<GraphViewViewportStateListener>();
+  private readonly _graphViewViewportStateListeners = new Set<GraphViewViewportStateListenerEntry>();
   private _graphViewContributionSnapshot: CoreGraphViewContributionSet | undefined;
   private _graphViewViewportState: GraphViewViewportState | null = null;
 
@@ -78,7 +82,7 @@ export class WebviewPluginHost {
       (pid, fn) => registerTooltipProvider(pid, fn, this._tooltipProviders),
       (pid, contributions) => this.registerGraphViewContributions(pid, contributions),
       () => this.getGraphViewViewportState(),
-      (handler) => this.subscribeGraphViewViewportState(handler),
+      (handler) => this.subscribeGraphViewViewportState(handler, pluginId),
       this._messageHandlers,
       { drawBadge: (ctx, opts) => WebviewPluginHost.drawBadge(ctx, opts), drawProgressRing: (ctx, opts) => WebviewPluginHost.drawProgressRing(ctx, opts), drawLabel: (ctx, opts) => WebviewPluginHost.drawLabel(ctx, opts) },
     );
@@ -106,16 +110,22 @@ export class WebviewPluginHost {
 
   setGraphViewViewportState(state: GraphViewViewportState | null): void {
     this._graphViewViewportState = state;
-    for (const listener of this._graphViewViewportStateListeners) {
-      listener(state);
+    for (const entry of this._graphViewViewportStateListeners) {
+      entry.listener(state);
     }
   }
 
-  subscribeGraphViewViewportState(listener: GraphViewViewportStateListener): Disposable {
-    this._graphViewViewportStateListeners.add(listener);
+  subscribeGraphViewViewportState(
+    listener: GraphViewViewportStateListener,
+    pluginId?: string,
+  ): Disposable {
+    const entry: GraphViewViewportStateListenerEntry = pluginId
+      ? { listener, pluginId }
+      : { listener };
+    this._graphViewViewportStateListeners.add(entry);
     listener(this._graphViewViewportState);
     return toDisposable(() => {
-      this._graphViewViewportStateListeners.delete(listener);
+      this._graphViewViewportStateListeners.delete(entry);
     });
   }
 
@@ -205,6 +215,11 @@ export class WebviewPluginHost {
     if (this._graphViewContributions.delete(pluginId)) {
       this.invalidateGraphViewContributionSnapshot();
       this.notifyGraphViewContributionListeners();
+    }
+    for (const entry of [...this._graphViewViewportStateListeners]) {
+      if (entry.pluginId === pluginId) {
+        this._graphViewViewportStateListeners.delete(entry);
+      }
     }
   }
 
