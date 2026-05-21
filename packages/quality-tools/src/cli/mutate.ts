@@ -2,4 +2,4 @@
 
 import { runMutationCli } from '../mutation/runner/command';
 
-runMutationCli(process.argv.slice(2));
+await runMutationCli(process.argv.slice(2));

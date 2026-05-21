@@ -46,32 +46,49 @@ function createDependencies(): MutationCliDependencies {
         ? fileTarget(input)
         : packageTarget(input ?? 'quality-tools')
     )),
-    runMutation: vi.fn(),
+    runMutation: vi.fn(async () => undefined),
     runPreflightTypecheck: vi.fn(),
   };
 }
 
 describe('command', () => {
-  it('skips the preflight typecheck when explicitly requested', () => {
+  it('skips the preflight typecheck when explicitly requested', async () => {
     const dependencies = createDependencies();
-    runMutationCli(['quality-tools/', '--skip-typecheck'], dependencies);
+    await runMutationCli(['quality-tools/', '--skip-typecheck'], dependencies);
 
     expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
     expect(dependencies.runMutation).toHaveBeenCalledTimes(1);
   });
 
-  it('runs a single explicit target', () => {
+  it('runs a single explicit target', async () => {
     const dependencies = createDependencies();
-    runMutationCli(['quality-tools/'], dependencies);
+    await runMutationCli(['quality-tools/'], dependencies);
 
     expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, 'quality-tools/');
     expect(dependencies.runMutation).toHaveBeenCalledTimes(1);
   });
 
-  it('runs all discovered packages when no target is provided', () => {
+  it('skips the preflight typecheck for a single file target', async () => {
     const dependencies = createDependencies();
-    runMutationCli([], dependencies);
+    await runMutationCli(['packages/extension/src/webview/vscodeApi.ts'], dependencies);
+
+    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
+      REPO_ROOT,
+      'packages/extension/src/webview/vscodeApi.ts',
+    );
+    expect(dependencies.runMutation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'file',
+        relativePath: 'packages/extension/src/webview/vscodeApi.ts',
+      }),
+    );
+  });
+
+  it('runs all discovered packages when no target is provided', async () => {
+    const dependencies = createDependencies();
+    await runMutationCli([], dependencies);
 
     expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
     expect(dependencies.discoverMutationPackageNames).toHaveBeenCalledWith(REPO_ROOT);
@@ -80,16 +97,16 @@ describe('command', () => {
     expect(dependencies.runMutation).toHaveBeenCalledTimes(2);
   });
 
-  it('uses --mutate as the effective mutation target', () => {
+  it('uses --mutate as the effective mutation target', async () => {
     const dependencies = createDependencies();
 
-    runMutationCli([
+    await runMutationCli([
       'extension/',
       '--mutate',
       'packages/extension/src/webview/components/Graph.tsx',
     ], dependencies);
 
-    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
+    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
       REPO_ROOT,
       'packages/extension/src/webview/components/Graph.tsx',
@@ -102,10 +119,10 @@ describe('command', () => {
     );
   });
 
-  it('fails fast for repo-wide targets before running preflight typecheck', () => {
+  it('fails fast for repo-wide targets before running preflight typecheck', async () => {
     const dependencies = createDependencies();
 
-    expect(() => runMutationCli(['.'], dependencies)).toThrow(
+    await expect(runMutationCli(['.'], dependencies)).rejects.toThrow(
       'Mutation requires a workspace package, directory, or file inside one.',
     );
     expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();

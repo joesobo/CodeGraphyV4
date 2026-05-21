@@ -28,13 +28,15 @@ Mutation target forms:
 ```bash
 pnpm run mutate                    # all supported mutation packages
 pnpm run mutate -- plugin-csharp/  # one package
-pnpm run mutate -- --mutate packages/plugin-csharp/src/parserContent.ts  # one file
-pnpm run mutate -- --skip-typecheck --mutate packages/extension/src/webview/vscodeApi.ts
+pnpm run mutate -- packages/plugin-csharp/src/parserContent.ts  # one file
+pnpm run mutate -- packages/extension/src/webview/vscodeApi.ts
 ```
 
 The mutation configs ignore heavyweight local artifacts like package-local `.vscode-test/` folders and `.stryker-tmp/`, so downloaded VS Code test bundles do not get copied into Stryker sandboxes.
 
-For extension mutation loops, the shared Stryker config defaults to two workers and infinite Vitest runner reuse. Override `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` if a focused run needs different isolation.
+For extension mutation loops, the shared Stryker config defaults to two workers and infinite Vitest runner reuse. File-scoped targets skip the preflight typecheck by default; package and directory targets still run it. Override `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` if a focused run needs different isolation.
+
+While Stryker is running, the mutation wrapper prints a progress heartbeat every 60 seconds so long package-scoped runs do not look stalled.
 
 Documentation lives in the repo docs:
 

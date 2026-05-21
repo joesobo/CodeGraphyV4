@@ -8,7 +8,7 @@ import { execFileSync } from 'child_process';
 export interface MutationCliDependencies {
   discoverMutationPackageNames: typeof discoverMutationPackageNames;
   resolveQualityTarget: typeof resolveQualityTarget;
-  runMutation: typeof runMutation;
+  runMutation: (target: QualityTarget) => Promise<void>;
   runPreflightTypecheck: () => void;
 }
 
@@ -49,19 +49,23 @@ function assertMutationTargetsSupported(targets: readonly QualityTarget[]): void
     }
 
     throw new Error(
-      'Mutation requires a workspace package, directory, or file inside one. Example: `pnpm run mutate -- extension/` or `pnpm run mutate -- --mutate packages/extension/src/foo.ts`.',
+      'Mutation requires a workspace package, directory, or file inside one. Example: `pnpm run mutate -- extension/` or `pnpm run mutate -- packages/extension/src/foo.ts`.',
     );
   }
 }
 
-function shouldRunPreflightTypecheck(args: readonly string[]): boolean {
-  return !args.includes('--skip-typecheck') && process.env.CODEGRAPHY_MUTATE_SKIP_TYPECHECK !== '1';
+function shouldRunPreflightTypecheck(args: readonly string[], targets: readonly QualityTarget[]): boolean {
+  if (args.includes('--skip-typecheck') || process.env.CODEGRAPHY_MUTATE_SKIP_TYPECHECK === '1') {
+    return false;
+  }
+
+  return targets.some((target) => target.kind !== 'file');
 }
 
-export function runMutationCli(
+export async function runMutationCli(
   rawArgs: string[],
   dependencies: MutationCliDependencies = DEFAULT_DEPENDENCIES
-): void {
+): Promise<void> {
   const args = cleanCliArgs(rawArgs);
   const targets = resolveCliTargets(
     parseBareTargetArg(args),
@@ -69,10 +73,10 @@ export function runMutationCli(
     dependencies,
   );
   assertMutationTargetsSupported(targets);
-  if (shouldRunPreflightTypecheck(args)) {
+  if (shouldRunPreflightTypecheck(args, targets)) {
     dependencies.runPreflightTypecheck();
   }
-  targets.forEach((target) => {
-    dependencies.runMutation(target);
-  });
+  for (const target of targets) {
+    await dependencies.runMutation(target);
+  }
 }

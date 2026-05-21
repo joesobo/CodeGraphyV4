@@ -23,6 +23,7 @@ Operational notes:
 - `pnpm run mutate` runs all supported packages and can take hours.
 - The extension package uses a longer Stryker dry-run timeout because its initial instrumented Vitest startup is materially slower than a normal test run.
 - The CI unit-test matrix does not automatically speed up mutation runs. Stryker launches its own Vitest runner, so local mutation speed comes from scoped targets, `reports/mutation/stryker-incremental*.json`, and focused test includes.
+- The mutation runner prints a progress heartbeat every 60 seconds while Stryker is still running.
 - Extension mutation defaults to two Stryker workers and reuses Vitest runners instead of restarting one after every mutant. Override with `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` when debugging runner isolation.
-- Use `--skip-typecheck` only for tight local loops after a clean `pnpm run typecheck`; it skips the preflight typecheck but still lets Stryker run the selected tests.
+- File-scoped mutation targets skip the preflight typecheck by default to keep the local loop short. Package and directory targets still run the preflight typecheck.
 - Prefer package- or file-scoped mutation runs during development.

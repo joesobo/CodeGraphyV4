@@ -1,4 +1,4 @@
-import { execFileSync } from 'child_process';
+import { spawn } from 'child_process';
 import { resolvePackageToolGlobs } from '../../config/quality';
 import { type QualityTarget } from '../../shared/resolve/target';
 import { REPO_ROOT } from '../../shared/resolve/repoRoot';
@@ -8,6 +8,18 @@ import { reportMutationSiteViolations } from '../reporting/check';
 import { resolveMutationProfile } from '../analysis/profile';
 import { sanitizeReportKey } from '../../shared/util/reportKey';
 import { resolveScopedVitestIncludes } from './vitestIncludes';
+
+const MUTATION_PROGRESS_INTERVAL_MS = 60_000;
+
+function formatElapsedDuration(milliseconds: number): string {
+  const totalSeconds = Math.floor(milliseconds / 1_000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return minutes === 0
+    ? `${seconds}s`
+    : `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
+}
 
 function buildArgs(target: QualityTarget): { args: string[]; reportKey: string } {
   const profile = resolveMutationProfile(target);
@@ -21,11 +33,49 @@ function buildArgs(target: QualityTarget): { args: string[]; reportKey: string }
   return { args, reportKey };
 }
 
-export function runMutation(target: QualityTarget): void {
+function runStryker(args: string[], env: NodeJS.ProcessEnv, target: QualityTarget): Promise<void> {
+  const startedAt = Date.now();
+  const child = spawn('stryker', args, { cwd: REPO_ROOT, env, stdio: 'inherit' });
+  const progressTimer = setInterval(() => {
+    console.error(
+      `[mutation] Still running ${target.relativePath} after ${formatElapsedDuration(Date.now() - startedAt)}...`,
+    );
+  }, MUTATION_PROGRESS_INTERVAL_MS);
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+
+    const settle = (callback: () => void): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearInterval(progressTimer);
+      callback();
+    };
+
+    child.once('error', (error) => {
+      settle(() => reject(error));
+    });
+    child.once('exit', (code, signal) => {
+      settle(() => {
+        if (code === 0) {
+          resolve();
+          return;
+        }
+
+        reject(new Error(`Stryker exited with ${signal ? `signal ${signal}` : `code ${code ?? 'unknown'}`}.`));
+      });
+    });
+  });
+}
+
+export async function runMutation(target: QualityTarget): Promise<void> {
   const { args, reportKey } = buildArgs(target);
   const scopedVitestIncludes = resolveScopedVitestIncludes(target);
   const env = {
     ...process.env,
+    CODEGRAPHY_MUTATION_RUN: '1',
     CODEGRAPHY_VITEST_SCOPE: target.packageName === 'extension'
       ? 'extension'
       : process.env.CODEGRAPHY_VITEST_SCOPE ?? 'workspace',
@@ -35,7 +85,7 @@ export function runMutation(target: QualityTarget): void {
         }
       : {}),
   };
-  execFileSync('stryker', args, { cwd: REPO_ROOT, env, stdio: 'inherit' });
+  await runStryker(args, env, target);
   const reportPath = copySharedMutationReports(reportKey, REPO_ROOT);
   reportMutationSiteViolations(reportPath);
 }
