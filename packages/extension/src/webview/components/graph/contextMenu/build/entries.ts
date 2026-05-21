@@ -9,6 +9,7 @@ import { buildEdgeEntries } from '../edge/entries';
 import {
   buildNodeEntries,
   buildSingleFolderNodeEntries,
+  buildSinglePluginNodeEntries,
   buildSingleSymbolNodeEntries,
 } from '../node/entries';
 import { buildGraphViewContextMenuEntries } from '../graphView/entries';
@@ -76,6 +77,8 @@ export function buildGraphContextMenuEntries(
       )
       : decision.kind === 'singleSymbolNode'
           ? buildSingleSymbolNodeEntries(decision.target.id, favorites)
+          : decision.kind === 'singlePluginNode'
+            ? buildSinglePluginNodeEntries()
           : decision.kind === 'edge'
             ? buildEdgeEntries(decision.targets)
             : decision.kind === 'emptyNodeSelection'

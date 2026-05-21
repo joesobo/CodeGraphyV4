@@ -97,8 +97,11 @@ describe('WebviewPluginHost', () => {
       graphMode: '2d' as const,
       graphToScreen: (x: number, y: number) => ({ x: x + 1, y: y + 1 }),
       nodes: [{ id: 'src/app.ts', x: 10, y: 20 }],
+      reheatSimulation: vi.fn(),
+      resumeAnimation: vi.fn(),
       screenToGraph: (x: number, y: number) => ({ x: x - 1, y: y - 1 }),
       timelineActive: false,
+      updateNode: vi.fn(() => true),
       zoom: 1.5,
     };
 

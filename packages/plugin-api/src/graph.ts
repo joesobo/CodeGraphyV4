@@ -126,6 +126,18 @@ export interface IGraphNode {
     width: number;
   };
 
+  /**
+   * Optional 2D collision radius override for physics. This is useful when a plugin renders
+   * a custom shape but owns its own collision or containment behavior.
+   */
+  collisionRadius2D?: number;
+
+  /**
+   * Optional multiplier for the 2D charge force. Use 0 when a plugin owns local physics for
+   * a runtime node or projected member node.
+   */
+  chargeStrengthMultiplier2D?: number;
+
   /** Optional 2D fill opacity override for custom visual nodes. */
   fillOpacity2D?: number;
 
