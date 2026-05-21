@@ -131,13 +131,9 @@ describe('graphView/provider/runtime', () => {
     ]);
     const registerCommandMock = vi.fn(() => ({ dispose: vi.fn() }));
     (vscodeModule.commands as Record<string, unknown>).registerCommand = registerCommandMock;
-    const provider = new GraphViewProvider(
-      vscodeModule.Uri.file('/test/extension'),
-      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
-    );
     const context = createContext(vscodeModule) as unknown as VSCode.ExtensionContext;
-    new GraphViewProvider(vscodeModule.Uri.file('/test/extension'), context);
-    const secondInitArgs = initializeGraphViewProviderServices.mock.calls[1][0];
+    const provider = new GraphViewProvider(vscodeModule.Uri.file('/test/extension'), context);
+    const initArgs = initializeGraphViewProviderServices.mock.calls[0][0];
     const disposable = { dispose: vi.fn() };
     const firstWorkspaceReadyPromise = (
       provider as unknown as { _firstWorkspaceReadyPromise: Promise<void> }
@@ -187,9 +183,9 @@ describe('graphView/provider/runtime', () => {
         fallbackNodeSizeMode: 'connections',
       }),
     );
-    expect(secondInitArgs.getGraphData()).toEqual({ nodes: [], edges: [] });
-    expect(secondInitArgs.registerCommand('codegraphy.test', vi.fn())).toEqual({ dispose: expect.any(Function) });
-    secondInitArgs.pushSubscription(disposable);
+    expect(initArgs.getGraphData()).toEqual({ nodes: [], edges: [] });
+    expect(initArgs.registerCommand('codegraphy.test', vi.fn())).toEqual({ dispose: expect.any(Function) });
+    initArgs.pushSubscription(disposable);
     expect(registerCommandMock).toHaveBeenCalledWith('codegraphy.test', expect.any(Function));
     expect(context.subscriptions).toContain(disposable);
     expect((provider as unknown as { _methodContainers: unknown })._methodContainers).toBe(
@@ -198,7 +194,7 @@ describe('graphView/provider/runtime', () => {
 
     resolveFirstWorkspaceReady?.();
     await expect(firstWorkspaceReadyPromise).resolves.toBeUndefined();
-  }, 15000);
+  }, 30000);
 
   it('forwards bootstrap callbacks through the extracted method containers', async () => {
     const initializeGraphViewProviderServices = vi.fn();

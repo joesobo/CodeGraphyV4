@@ -194,9 +194,11 @@ If a function exceeds 8: add tests to raise coverage or refactor to reduce compl
 Stryker injects small faults and verifies tests catch them. Run one module at a time — kill all survivors before moving on.
 
 ```bash
-pnpm run mutate                    # all packages
 pnpm run mutate -- plugin-godot    # specific package
+pnpm run mutate -- packages/plugin-godot/src/gdscript/resources.ts # specific source file
 ```
+
+Bare `pnpm run mutate` is intentionally invalid. CI owns all-package mutation seed refreshes.
 
 Thresholds: ≥90% required · ≥80% warning · <80% must fix. Report: `reports/mutation/mutation.html`.
 

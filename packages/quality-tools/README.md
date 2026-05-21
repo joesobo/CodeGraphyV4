@@ -26,12 +26,21 @@ pnpm run scrap -- quality-tools/ --policy review
 Mutation target forms:
 
 ```bash
-pnpm run mutate                    # all supported mutation packages
 pnpm run mutate -- plugin-csharp/  # one package
-pnpm run mutate -- --mutate packages/plugin-csharp/src/parserContent.ts  # one file
+pnpm run mutate -- packages/plugin-csharp/src/parserContent.ts  # one file
+pnpm run mutate -- packages/extension/src/webview/vscodeApi.ts
+pnpm run mutate -- extension src/webview/vscodeApi.ts
 ```
 
-The mutation configs ignore heavyweight local artifacts like `.vscode-test/` and `.stryker-tmp/`, so downloaded VS Code test bundles do not get copied into Stryker sandboxes.
+Mutation requires an explicit package, directory, or file target. Do not run bare `pnpm run mutate`; all-package mutation refresh belongs to the CI seed workflow.
+
+At the CodeGraphy repo root, `pnpm run mutate` is a repo-specific wrapper. It hydrates a missing package incremental report from the latest `main` mutation seed, then delegates to the generic `@codegraphy/quality-tools` mutation runner. The generic package-local command remains seed-policy-free for future extraction.
+
+The mutation configs ignore heavyweight local artifacts like package-local `.vscode-test/` folders and `.stryker-tmp/`, so downloaded VS Code test bundles do not get copied into Stryker sandboxes.
+
+For extension mutation loops, the shared Stryker config defaults to two workers and infinite Vitest runner reuse. Mutation targets run directly through Stryker incremental mode without a separate typecheck preflight, so focused runs can warm the package-level incremental report used by later package or directory runs. Override `CODEGRAPHY_STRYKER_CONCURRENCY` or `CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE` if a focused run needs different isolation, or pass `--force` to rerun the mutants in scope.
+
+While Stryker is running, the mutation wrapper prints a progress heartbeat every 60 seconds so long package-scoped runs do not look stalled.
 
 Documentation lives in the repo docs:
 
@@ -46,9 +55,9 @@ Documentation lives in the repo docs:
 Config ownership:
 
 - [quality.config.json](../../quality.config.json) is the source of truth for per-tool include and exclude scope
-- [stryker.config.cjs](../../stryker.config.cjs) holds the shared Stryker runtime for non-extension workspace mutation runs
-- [packages/extension/stryker.config.cjs](../extension/stryker.config.cjs) and [packages/extension/vitest.stryker.config.ts](../extension/vitest.stryker.config.ts) now provide the single extension-owned mutation Vitest config surface
-- [packages/quality-tools/stryker.config.json](./stryker.config.json) exists because `quality-tools` needs its own Vitest/Stryker runner config
+- [stryker.config.cjs](../../stryker.config.cjs) holds the shared Stryker runtime for extension and workspace-package mutation runs
+- [packages/extension/vitest.config.ts](../extension/vitest.config.ts) switches into mutation-compatible mode when Stryker sets `CODEGRAPHY_VITEST_SCOPE` or `CODEGRAPHY_VITEST_INCLUDE_JSON`
+- [packages/quality-tools/stryker.config.json](./stryker.config.json) and [packages/quality-tools/vitest.stryker.config.ts](./vitest.stryker.config.ts) exist because `quality-tools` needs its own Vitest/Stryker runner config
 
 Package layout:
 

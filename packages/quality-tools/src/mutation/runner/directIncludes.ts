@@ -21,12 +21,23 @@ function ancestorFeatureIncludes(root: string, parts: FileIncludeParts): string[
   });
 }
 
-export function directIncludes(root: string, parts: FileIncludeParts): string[] {
+function directoryTreeIncludes(root: string, parts: FileIncludeParts): string[] {
+  const segments = parts.directory.split('/').filter(Boolean);
+  if (segments.length < 2) {
+    return [];
+  }
+
   return [
     `${root}/${parts.relativeTestDirectory}**/*.test.ts`,
     `${root}/${parts.relativeTestDirectory}**/*.test.tsx`,
     `${root}/${parts.relativeTestDirectory}**/*.mutations.test.ts`,
     `${root}/${parts.relativeTestDirectory}**/*.mutations.test.tsx`,
+  ];
+}
+
+export function directIncludes(root: string, parts: FileIncludeParts): string[] {
+  return [
+    ...directoryTreeIncludes(root, parts),
     `${root}/${parts.relativeTestDirectory}${parts.name}.test.ts`,
     `${root}/${parts.relativeTestDirectory}${parts.name}.test.tsx`,
     `${root}/${parts.relativeTestDirectory}${parts.name}.mutations.test.ts`,

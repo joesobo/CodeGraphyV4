@@ -4,7 +4,8 @@
  * Launches a real VS Code instance with the extension loaded and runs the
  * Mocha test suite against it. Tests have access to the full `vscode` API.
  *
- * Run with: pnpm run test:e2e
+ * Run smoke subset with: pnpm run test:vscode
+ * Run full local suite with: CODEGRAPHY_E2E_FULL=1 pnpm run test:vscode
  */
 import * as path from 'path';
 import * as fs from 'fs';
@@ -29,7 +30,31 @@ interface CodeGraphyWorkspacePluginSettings {
 
 interface E2EWorkspaceSettings {
   version: 1;
+  maxFiles: number;
+  include: string[];
+  respectGitignore: boolean;
+  showOrphans: boolean;
+  filterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
   plugins: CodeGraphyWorkspacePluginSettings[];
+}
+
+const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy/plugin-markdown';
+const DEFAULT_MAX_FILES = 1000;
+const DEFAULT_INCLUDE = ['**/*'];
+
+function findRepoRoot(startDir: string): string {
+  let currentDir = startDir;
+
+  while (currentDir !== path.dirname(currentDir)) {
+    if (fs.existsSync(path.join(currentDir, 'pnpm-workspace.yaml'))) {
+      return currentDir;
+    }
+
+    currentDir = path.dirname(currentDir);
+  }
+
+  throw new Error(`Unable to locate repo root from ${startDir}`);
 }
 
 function cleanupScenarioArtifacts(
@@ -89,6 +114,24 @@ function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPlug
   return plugin;
 }
 
+function createInitialWorkspaceSettings(
+  plugins: readonly CodeGraphyInstalledPluginRecord[],
+): E2EWorkspaceSettings {
+  return {
+    version: 1,
+    maxFiles: DEFAULT_MAX_FILES,
+    include: DEFAULT_INCLUDE,
+    respectGitignore: true,
+    showOrphans: true,
+    filterPatterns: [],
+    disabledCustomFilterPatterns: [],
+    plugins: [
+      { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
+      ...plugins.map(createWorkspacePluginSettings),
+    ],
+  };
+}
+
 function writeInstalledPluginCache(
   homeDir: string,
   plugins: CodeGraphyInstalledPluginRecord[],
@@ -104,19 +147,23 @@ function writeInstalledPluginCache(
 function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSettings {
   const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
   if (!fs.existsSync(settingsPath)) {
-    return {
-      version: 1,
-      plugins: [{ package: '@codegraphy/plugin-markdown' }],
-    };
+    return createInitialWorkspaceSettings([]);
   }
 
   const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')) as unknown;
   if (!isRecord(settings) || !Array.isArray(settings.plugins)) {
-    return { version: 1, plugins: [] };
+    return createInitialWorkspaceSettings([]);
   }
 
+  const include = readStringArray(settings.include);
   return {
     version: 1,
+    maxFiles: typeof settings.maxFiles === 'number' ? settings.maxFiles : DEFAULT_MAX_FILES,
+    include: include.length > 0 ? include : DEFAULT_INCLUDE,
+    respectGitignore: typeof settings.respectGitignore === 'boolean' ? settings.respectGitignore : true,
+    showOrphans: typeof settings.showOrphans === 'boolean' ? settings.showOrphans : true,
+    filterPatterns: readStringArray(settings.filterPatterns),
+    disabledCustomFilterPatterns: readStringArray(settings.disabledCustomFilterPatterns),
     plugins: settings.plugins
       .filter(isRecord)
       .map((plugin): CodeGraphyWorkspacePluginSettings | null => {
@@ -181,15 +228,17 @@ function prepareScenarioWorkspacePlugins(
 }
 
 async function main(): Promise<void> {
-  const repoRoot = path.resolve(__dirname, '../../../..');
+  const repoRoot = findRepoRoot(__dirname);
   const requireFromExtension = createRequire(
     path.join(repoRoot, 'packages/extension/package.json'),
   );
   const { runTests } = requireFromExtension('@vscode/test-electron') as {
     runTests: typeof runVSCodeTests;
   };
-  // The compiled Mocha suite entry point
-  const extensionTestsPath = path.resolve(__dirname, './suite/run');
+  const extensionTestsPath = path.resolve(
+    repoRoot,
+    'packages/extension/dist-e2e/extension/src/e2e/suite/run',
+  );
 
   for (const scenario of e2eScenarios) {
     const vscodeProfilePath = fs.mkdtempSync(
@@ -207,9 +256,10 @@ async function main(): Promise<void> {
     const workspacePath = path.resolve(repoRoot, scenario.workspaceRelativePath);
     const hadGitignore = fs.existsSync(path.join(workspacePath, '.gitignore'));
     const originalHome = process.env.HOME;
-    prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, homeDir);
 
     try {
+      cleanupScenarioArtifacts(workspacePath, hadGitignore);
+      prepareScenarioWorkspacePlugins(scenario, repoRoot, workspacePath, homeDir);
       process.env.HOME = homeDir;
       await runTests({
         extensionDevelopmentPath,
@@ -224,6 +274,12 @@ async function main(): Promise<void> {
           userDataPath,
           '--extensions-dir',
           extensionsPath,
+          '--use-inmemory-secretstorage',
+          '--sync',
+          'off',
+          '--disable-telemetry',
+          '--disable-updates',
+          '--disable-workspace-trust',
           // Disable other extensions so they don't interfere
           '--disable-extensions',
           // Don't show the welcome tab

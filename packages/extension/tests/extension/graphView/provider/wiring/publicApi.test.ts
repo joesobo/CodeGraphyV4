@@ -17,6 +17,8 @@ function createTarget() {
   const onWebviewMessage = vi.fn(() => disposable as unknown as vscode.Disposable);
   const refreshMethods = {
     refresh: vi.fn(async () => undefined),
+    refreshIndex: vi.fn(async () => undefined),
+    refreshChangedFiles: vi.fn(async () => undefined),
     refreshGroupSettings: vi.fn(),
     refreshPhysicsSettings: vi.fn(),
     refreshSettings: vi.fn(),
@@ -184,6 +186,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(target.getGraphData()).toBe(previousGraphData);
     target.sendPlaybackSpeed();
     await target.invalidateTimelineCache();
+    await target.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
     target.registerExternalPlugin({ id: 'plugin.test' });
     expect(target.queryGraph(query)).toEqual({
       nodes: [{ path: 'src/app.ts', nodeType: 'file' }],
@@ -198,6 +201,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     expect(getGraphData).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.timeline.sendPlaybackSpeed).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.timeline.invalidateTimelineCache).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.refresh.refreshIndex).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.plugin.registerExternalPlugin).toHaveBeenCalledWith(
       { id: 'plugin.test' },
       undefined,
