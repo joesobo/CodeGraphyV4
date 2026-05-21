@@ -247,7 +247,7 @@ _Avoid_: Refresh Graph
 ### Agent Access
 
 **CodeGraphy MCP**:
-The local MCP server and CLI that let agents inspect a CodeGraphy Workspace, ask `@codegraphy/core` to run Indexing, and request focused Graph Query results without opening or focusing VS Code.
+The local MCP server and CLI that let agents inspect a CodeGraphy Workspace, ask `@codegraphy-dev/core` to run Indexing, and request focused Graph Query results without opening or focusing VS Code.
 _Avoid_: Agent bridge, MCP indexer, MCP graph
 
 **Graph Query**:
@@ -331,11 +331,11 @@ The CodeGraphy VS Code extension that owns visualization, VS Code lifecycle inte
 _Avoid_: Core engine, plugin host only
 
 **Core Package**:
-The `@codegraphy/core` npm package that owns headless Indexing, Graph Cache access, plugin wiring, and Graph Query.
+The `@codegraphy-dev/core` npm package that owns headless Indexing, Graph Cache access, plugin wiring, and Graph Query.
 _Avoid_: VS Code extension when referring to headless engine behavior
 
 **Plugin**:
-A headless CodeGraphy npm package that communicates with `@codegraphy/core` to add or improve analysis, graph types, filters, symbols, and relationship evidence.
+A headless CodeGraphy npm package that communicates with `@codegraphy-dev/core` to add or improve analysis, graph types, filters, symbols, and relationship evidence.
 _Avoid_: VS Code extension when referring to the CodeGraphy capability
 
 **Plugin Package**:
@@ -347,7 +347,7 @@ A plugin developed with CodeGraphy and shipped from the monorepo as part of the 
 _Avoid_: Required plugin
 
 **Markdown Plugin**:
-The headless plugin installed with `@codegraphy/core`, enabled by default for new CodeGraphy Workspaces, and still toggleable like other plugins.
+The headless plugin installed with `@codegraphy-dev/core`, enabled by default for new CodeGraphy Workspaces, and still toggleable like other plugins.
 _Avoid_: External markdown extension
 
 ### Settings And Styling
@@ -664,7 +664,7 @@ _Avoid_: Graph export
 - A **Plugin** can analyze files by reading lines, using AST tooling, or any other analysis approach appropriate to its language or framework.
 - A **Plugin Package** is the packaging route for third-party plugins.
 - **Built-in Plugins** in this monorepo are examples and fast-development plugins, not required dependencies unless explicitly installed or bundled by the Core Package.
-- The **Markdown Plugin** is installed with `@codegraphy/core` and enabled by default for new CodeGraphy Workspaces, but users can still toggle it off.
+- The **Markdown Plugin** is installed with `@codegraphy-dev/core` and enabled by default for new CodeGraphy Workspaces, but users can still toggle it off.
 - A **Settings Control** changes a **Setting**; it is not a separate persisted concept.
 - **Settings** are saved workspace-locally under `.codegraphy/settings.json` so graph preferences survive between sessions.
 - **Graph Scope**, **Filter Setting**, **Display Setting**, **Favorite**, and **Legend Entry Toggle** are settings because they are saved between sessions.
@@ -732,7 +732,7 @@ _Avoid_: Graph export
 > **Domain expert:** "No. A **Timeline Snapshot** changes what nodes and edges render in the **Visible Graph** inside the **Graph View**."
 >
 > **Dev:** "Does someone need to fork CodeGraphy to add a new language relationship?"
-> **Domain expert:** "No. They can build a **Plugin Package** that integrates with `@codegraphy/core` and contributes new graph understanding."
+> **Domain expert:** "No. They can build a **Plugin Package** that integrates with `@codegraphy-dev/core` and contributes new graph understanding."
 >
 > **Dev:** "Are graph controls different from settings?"
 > **Domain expert:** "Usually no. A UI control changes a **Setting**, and the **Setting** is the persisted workspace-local value."

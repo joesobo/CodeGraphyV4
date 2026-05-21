@@ -1,2 +1,2 @@
-export { notifyFilesChanged } from '@codegraphy/core';
-export type { IPluginFilesChangedResult } from '@codegraphy/core';
+export { notifyFilesChanged } from '@codegraphy-dev/core';
+export type { IPluginFilesChangedResult } from '@codegraphy-dev/core';

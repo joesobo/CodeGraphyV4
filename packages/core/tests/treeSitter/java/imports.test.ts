@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding } from '../../../src/treeSitter/runtime/analyze/model';
 
 const javaImportsHarness = vi.hoisted(() => ({

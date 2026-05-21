@@ -1,6 +1,6 @@
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import LegendsPanel from '../../../../src/webview/components/legends/panel/view';
 import { graphStore } from '../../../../src/webview/store/state';
 
@@ -125,7 +125,9 @@ describe('LegendsPanel', () => {
 
     expect(sentMessages).toEqual([]);
 
-    vi.runAllTimers();
+    act(() => {
+      vi.runAllTimers();
+    });
 
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_NODE_COLOR',

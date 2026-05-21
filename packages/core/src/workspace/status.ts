@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
-import type { IPlugin } from '@codegraphy/plugin-api';
-import { createMarkdownPlugin } from '@codegraphy/plugin-markdown';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
+import { createMarkdownPlugin } from '@codegraphy-dev/plugin-markdown';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
 import { createTreeSitterPlugin } from '../treeSitter/plugin';
 import { readCodeGraphyInstalledPluginCache } from '../plugins/installedCache';

@@ -3,7 +3,7 @@
  * @module core/analysis/projectedConnection
  */
 
-import type { GraphEdgeKind, GraphMetadata } from '@codegraphy/plugin-api';
+import type { GraphEdgeKind, GraphMetadata } from '@codegraphy-dev/plugin-api';
 
 /**
  * Represents one file-level edge projected from richer analysis relations.

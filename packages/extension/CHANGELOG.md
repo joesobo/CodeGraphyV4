@@ -1,4 +1,37 @@
-# @codegraphy/extension
+# @codegraphy-dev/extension
+
+## 5.5.0
+
+### Minor Changes
+
+- [#207](https://github.com/joesobo/CodeGraphyV4/pull/207) [`f54754a`](https://github.com/joesobo/CodeGraphyV4/commit/f54754ac6f974a3e3f88c72690674100615f192f) Thanks [@joesobo](https://github.com/joesobo)! - Add collapsible folder nodes with persisted graph layout state, projected summary edges, context menu actions, and 2D collapse indicators.
+
+- [#203](https://github.com/joesobo/CodeGraphyV4/pull/203) [`9b5dc86`](https://github.com/joesobo/CodeGraphyV4/commit/9b5dc861ab119763856a9f759eb30f136ef1eceb) Thanks [@joesobo](https://github.com/joesobo)! - Add editable Graph Sections for organizing 2D graph nodes with nested ownership, section-local physics, toolbar and context-menu creation, drag-and-drop membership, labels, colors, icons, pinning, collapse/expand behavior, and collapsed-section edge projection.
+
+- [#206](https://github.com/joesobo/CodeGraphyV4/pull/206) [`3409540`](https://github.com/joesobo/CodeGraphyV4/commit/34095407986ae8f28ea4b31fd34a5723cbcc452b) Thanks [@joesobo](https://github.com/joesobo)! - Add desktop-style multi-node selection with left-drag marquee selection, Shift selection extension, right-drag viewport panning, and selected group dragging.
+
+- [#205](https://github.com/joesobo/CodeGraphyV4/pull/205) [`e899c44`](https://github.com/joesobo/CodeGraphyV4/commit/e899c44267c04accd2be6184a9f594b17b34c4f0) Thanks [@joesobo](https://github.com/joesobo)! - Add pinnable graph nodes with persisted graph-space positions, context menu pin controls, and a visible pinned-node badge.
+
+- [#204](https://github.com/joesobo/CodeGraphyV4/pull/204) [`d11c9ad`](https://github.com/joesobo/CodeGraphyV4/commit/d11c9ad5fdb93a4c3837c67180f392bb698a66f4) Thanks [@joesobo](https://github.com/joesobo)! - Add Symbol and Variable nodes to the Relationship Graph with Graph Scope controls, `contains` and `overrides` edges, scoped Legend defaults, symbol-aware exports, and richer Graph Query/MCP symbol payloads.
+
+  Default node Legend entries now use singular labels, keep their colors directly editable, and rely on Custom Legend Entries for overrides instead of separate color-enable toggles. Core symbol defaults stay intentionally broad; language-specific symbol kinds fall back to Symbol styling unless a plugin contributes its own defaults. The plugin API now documents symbol endpoint projection for `fromSymbolId` and `toSymbolId`, and the Godot plugin emits `class_name`, function, constant, variable, and enum declarations as symbol nodes. Symbol hover cards now show the symbol name, containing file, symbol type, and graph connection counts directly from the visible graph.
+
+### Patch Changes
+
+- [#201](https://github.com/joesobo/CodeGraphyV4/pull/201) [`93728f7`](https://github.com/joesobo/CodeGraphyV4/commit/93728f7eba0fd47f8f9b4122c17bca684c3e9c89) Thanks [@joesobo](https://github.com/joesobo)! - Improve webview theme integration, group the Graph Tool Rail, move scope/export/display controls into their new panels, and make Search filters expand inline with the active VS Code theme.
+
+- [#208](https://github.com/joesobo/CodeGraphyV4/pull/208) [`f310e22`](https://github.com/joesobo/CodeGraphyV4/commit/f310e2249f53f7de54270e396199d24230b03738) Thanks [@joesobo](https://github.com/joesobo)! - Extract CodeGraphy's shared engine into `@codegraphy-dev/core`. Core now owns headless CodeGraphy Workspace indexing, File Discovery, Tree-sitter analysis, plugin execution, Graph Cache reads/writes, workspace freshness status, and Graph Query without depending on VS Code.
+
+  The VS Code extension now acts as the visualization and editor adapter over core, and the public Plugin API is headless: VS Code-specific webview, command, decoration, and host bridge contracts stay inside the extension package.
+
+- [#208](https://github.com/joesobo/CodeGraphyV4/pull/208) [`f310e22`](https://github.com/joesobo/CodeGraphyV4/commit/f310e2249f53f7de54270e396199d24230b03738) Thanks [@joesobo](https://github.com/joesobo)! - Move CodeGraphy language plugins to headless npm packages under the `@codegraphy-dev/*` scope. Plugins are installed at the user/tool level, discovered through the installed-plugin cache, enabled per CodeGraphy Workspace through the ordered `plugins` array, and configured with workspace-local `options`.
+
+  Markdown is now a real plugin package installed with core and enabled by default for newly indexed CodeGraphy Workspaces. Godot analysis now demonstrates structured plugin analysis by using external GDScript and Godot resource parsers while preserving text fallbacks.
+
+- [#201](https://github.com/joesobo/CodeGraphyV4/pull/201) [`ff74a0c`](https://github.com/joesobo/CodeGraphyV4/commit/ff74a0cab72d6d21b20c3a010087cdd98ab916ac) Thanks [@joesobo](https://github.com/joesobo)! - Improve graph viewport spacing, filter controls, light-theme button contrast, display settings layout, theme-driven direction indicators, and transparent folder icon nodes in 2D and 3D graph views.
+
+- Updated dependencies [[`f310e22`](https://github.com/joesobo/CodeGraphyV4/commit/f310e2249f53f7de54270e396199d24230b03738), [`f310e22`](https://github.com/joesobo/CodeGraphyV4/commit/f310e2249f53f7de54270e396199d24230b03738), [`f310e22`](https://github.com/joesobo/CodeGraphyV4/commit/f310e2249f53f7de54270e396199d24230b03738)]:
+  - @codegraphy-dev/core@0.2.0
 
 ## 5.4.0
 
@@ -28,7 +61,7 @@
 
 - [#185](https://github.com/joesobo/CodeGraphyV4/pull/185) [`d64701d`](https://github.com/joesobo/CodeGraphyV4/commit/d64701df5eefa3922651480b54417cf2cc9e5d90) Thanks [@joesobo](https://github.com/joesobo)! - Add the CodeGraphy MCP package and agent workflow for querying the Relationship Graph from Codex and other MCP-capable agents.
 
-  At the time, the extension exposed Graph Query for agent use, including node, edge, relationship, symbol, and path reports. That design asked VS Code to open or focus the repo before indexing/querying; newer releases run MCP and CLI indexing/querying through `@codegraphy/core` without opening or focusing VS Code.
+  At the time, the extension exposed Graph Query for agent use, including node, edge, relationship, symbol, and path reports. That design asked VS Code to open or focus the repo before indexing/querying; newer releases run MCP and CLI indexing/querying through `@codegraphy-dev/core` without opening or focusing VS Code.
 
 - [#188](https://github.com/joesobo/CodeGraphyV4/pull/188) [`2f81974`](https://github.com/joesobo/CodeGraphyV4/commit/2f819740837de3f77b6717f4af3894e30e167e1f) Thanks [@joesobo](https://github.com/joesobo)! - Apply graph scope, structural projection, filters, search, and orphan visibility through one shared visible graph derivation pipeline.
 

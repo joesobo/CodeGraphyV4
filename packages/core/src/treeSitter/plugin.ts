@@ -2,7 +2,7 @@ import type {
   IAnalysisFile,
   IFileAnalysisResult,
   IPlugin,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import { analyzeFileWithTreeSitter } from './runtime/analyze';
 import { preAnalyzeCSharpTreeSitterFiles } from './runtime/csharpIndex';
 import { TREE_SITTER_SUPPORTED_EXTENSIONS } from './runtime/languages';

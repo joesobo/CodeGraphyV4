@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { resolveGoPackagePath } from '../projectRoots';
 import { resolveTreeSitterImportPath } from '../resolve';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';

@@ -117,7 +117,7 @@ describe('GraphViewProvider settings persistence', () => {
       type: 'TOGGLE_PLUGIN',
       payload: {
         pluginId: 'codegraphy.python',
-        packageName: '@codegraphy/plugin-python',
+        packageName: '@codegraphy-dev/plugin-python',
         enabled: false,
       },
     });

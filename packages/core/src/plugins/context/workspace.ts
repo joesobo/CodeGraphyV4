@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import type {
   IPluginAnalysisContext,
   IPluginAnalysisFileSystem,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 
 function isWithinWorkspace(workspaceRoot: string, filePath: string): boolean {
   const relativePath = path.relative(workspaceRoot, filePath);

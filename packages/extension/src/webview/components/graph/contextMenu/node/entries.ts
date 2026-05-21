@@ -56,7 +56,6 @@ export function buildSingleSymbolNodeEntries(
     builtInItem('node-copy-symbol-id', 'Copy Symbol ID', 'copySymbolId'),
     builtInItem('node-copy-symbol-name', 'Copy Symbol Name', 'copySymbolName'),
     ...buildFavoriteBlock(targets, favorites),
-    builtInItem('node-focus', 'Focus Node', 'focus'),
   ];
 }
 

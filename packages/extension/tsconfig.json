@@ -19,11 +19,11 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@codegraphy/core": ["../core/src/index.ts"],
-      "@codegraphy/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
+      "@codegraphy-dev/core": ["../core/src/index.ts"],
+      "@codegraphy-dev/plugin-markdown": ["../plugin-markdown/src/plugin.ts"],
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "scripts", "vitest.config.ts"],
+  "include": ["src", "scripts", "vitest.config.ts", "vitest.includes.ts"],
   "exclude": ["node_modules", "dist", "src/e2e", "../../packages/plugin-*/tests"]
 }

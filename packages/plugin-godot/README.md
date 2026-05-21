@@ -2,17 +2,17 @@
 
 Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-- Package: [`@codegraphy/plugin-godot`](https://www.npmjs.com/package/@codegraphy/plugin-godot)
-- Plugin API: [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api)
+- Package: [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
+- Plugin API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
 
 ## Install
 
-Install `@codegraphy/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
 
 ```bash
-npm i -g @codegraphy/plugin-godot
+npm i -g @codegraphy-dev/plugin-godot
 codegraphy plugins refresh
-codegraphy plugins enable @codegraphy/plugin-godot
+codegraphy plugins enable @codegraphy-dev/plugin-godot
 codegraphy index
 ```
 

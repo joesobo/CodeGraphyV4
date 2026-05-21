@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { readCodeGraphyWorkspaceStatus } from '@codegraphy/core';
+import { readCodeGraphyWorkspaceStatus } from '@codegraphy-dev/core';
 import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';

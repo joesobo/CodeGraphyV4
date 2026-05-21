@@ -2,7 +2,7 @@ import type Parser from 'tree-sitter';
 import type {
   IAnalysisRelation,
   IAnalysisSymbol,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import type { CSharpWalkState } from './model';
 import type { TreeWalkAction } from '../analyze/model';
 import { getCSharpTypeDeclarationKind, resolveCSharpUsingImport } from './resolution';

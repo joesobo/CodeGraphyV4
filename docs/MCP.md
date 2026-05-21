@@ -1,6 +1,6 @@
 # CodeGraphy MCP Setup
 
-CodeGraphy MCP gives an agent a lightweight command/query adapter over `@codegraphy/core`.
+CodeGraphy MCP gives an agent a lightweight command/query adapter over `@codegraphy-dev/core`.
 
 MCP and CLI commands operate on a CodeGraphy Workspace: the current folder by default, or an explicit `path` when one is provided. The package can run Indexing, report Graph Cache status, and execute Graph Query without opening or focusing VS Code.
 
@@ -8,9 +8,9 @@ MCP and CLI commands operate on a CodeGraphy Workspace: the current folder by de
 
 | Piece | Installed From | Role |
 |---|---|---|
-| `@codegraphy/core` | npm dependency | owns Indexing, Graph Cache reads/writes, plugin wiring, and Graph Query |
+| `@codegraphy-dev/core` | npm dependency | owns Indexing, Graph Cache reads/writes, plugin wiring, and Graph Query |
 | CodeGraphy VS Code extension | VS Code Marketplace | visualizes the Relationship Graph and integrates with VS Code |
-| `@codegraphy/mcp` | npm | installs the `codegraphy` CLI and local stdio MCP server backed by `@codegraphy/core` |
+| `@codegraphy-dev/mcp` | npm | installs the `codegraphy` CLI and local stdio MCP server backed by `@codegraphy-dev/core` |
 | Codex MCP entry | `codegraphy setup` or manual config | lets Codex launch `codegraphy mcp` |
 
 ## Prerequisites
@@ -21,7 +21,7 @@ MCP and CLI commands operate on a CodeGraphy Workspace: the current folder by de
 ## Quick Start
 
 ```bash
-npm install -g @codegraphy/mcp
+npm install -g @codegraphy-dev/mcp
 codegraphy setup
 codegraphy index
 codegraphy status
@@ -46,7 +46,7 @@ codegraphy index
 1. Install the MCP package:
 
 ```bash
-npm install -g @codegraphy/mcp
+npm install -g @codegraphy-dev/mcp
 ```
 
 2. Configure Codex:
@@ -175,7 +175,7 @@ List tools accept the shared query controls where meaningful:
 
 `path` is optional. When omitted, the tool uses the MCP server process working directory.
 
-`@codegraphy/core` applies stages in this order:
+`@codegraphy-dev/core` applies stages in this order:
 
 1. Graph Scope
 2. Filters

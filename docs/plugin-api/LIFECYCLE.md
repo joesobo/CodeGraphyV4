@@ -1,6 +1,6 @@
 # Plugin Lifecycle
 
-CodeGraphy plugins are headless npm packages loaded by `@codegraphy/core` during explicit workspace indexing. They do not activate as VS Code extensions, do not import `vscode`, and do not receive a VS Code or webview API from `@codegraphy/plugin-api`.
+CodeGraphy plugins are headless npm packages loaded by `@codegraphy-dev/core` during explicit workspace indexing. They do not activate as VS Code extensions, do not import `vscode`, and do not receive a VS Code or webview API from `@codegraphy-dev/plugin-api`.
 
 The VS Code extension has its own lifecycle and may bridge extension-only visualization surfaces internally, but that bridge is not part of the public npm Plugin API.
 
@@ -12,7 +12,7 @@ Discovery reads installed package metadata without importing plugin runtime code
 
 ```json
 {
-  "name": "@codegraphy/plugin-python",
+  "name": "@codegraphy-dev/plugin-python",
   "version": "1.2.3",
   "type": "module",
   "exports": {
@@ -39,7 +39,7 @@ Discovery reads installed package metadata without importing plugin runtime code
 When a workspace is indexed, core loads enabled plugin packages from their normal npm `exports` entry and validates the runtime plugin object:
 
 ```typescript
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 
 const plugin: IPlugin = {
   id: 'acme.plugin',
@@ -147,7 +147,7 @@ Called when the plugin is unloaded. Close parser workers, flush plugin-owned cac
 ## Full Lifecycle Example
 
 ```typescript
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 
 export function createMetricsPlugin(): IPlugin {
   return {

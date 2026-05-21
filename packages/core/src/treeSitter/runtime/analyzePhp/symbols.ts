@@ -2,7 +2,7 @@ import type Parser from 'tree-sitter';
 import type {
   IAnalysisRelation,
   IAnalysisSymbol,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { addInheritRelation, createSymbol } from '../analyze/results';
 import { resolvePhpTypePath } from '../projectRoots/php';

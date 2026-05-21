@@ -3,7 +3,7 @@ import {
   projectConnectionMapFromFileAnalysis,
   projectProjectedConnectionsFromFileAnalysis,
 } from '../../src/analysis/projection';
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 
 describe('analysis/projection', () => {
   it('projects file analysis relations into projected connections with normalized defaults', () => {

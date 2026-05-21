@@ -13,4 +13,4 @@ export type {
   IGraphNodeRange,
   IGraphNodeSymbolMetadata,
   NodeType,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';

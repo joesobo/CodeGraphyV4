@@ -9,11 +9,11 @@ describe('settingsMessages/updates/pluginPackageOrder', () => {
         if (key === 'plugins') {
           return [
             {
-              package: '@codegraphy/plugin-markdown',
+              package: '@codegraphy-dev/plugin-markdown',
               options: { includeWikiLinks: true },
             },
             {
-              package: '@codegraphy/plugin-python',
+              package: '@codegraphy-dev/plugin-python',
               options: { includeTests: true },
             },
           ] as T;
@@ -26,7 +26,7 @@ describe('settingsMessages/updates/pluginPackageOrder', () => {
       {
         type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
         payload: {
-          packageNames: ['@codegraphy/plugin-python', '@codegraphy/plugin-markdown'],
+          packageNames: ['@codegraphy-dev/plugin-python', '@codegraphy-dev/plugin-markdown'],
         },
       },
       handlers,
@@ -34,11 +34,11 @@ describe('settingsMessages/updates/pluginPackageOrder', () => {
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
       {
-        package: '@codegraphy/plugin-python',
+        package: '@codegraphy-dev/plugin-python',
         options: { includeTests: true },
       },
       {
-        package: '@codegraphy/plugin-markdown',
+        package: '@codegraphy-dev/plugin-markdown',
         options: { includeWikiLinks: true },
       },
     ]);

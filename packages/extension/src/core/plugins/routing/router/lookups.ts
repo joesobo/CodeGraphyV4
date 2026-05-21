@@ -4,5 +4,5 @@ export {
   getPluginsForFile,
   getSupportedExtensions,
   supportsFile,
-} from '@codegraphy/core';
-export type { IRoutablePluginInfo } from '@codegraphy/core';
+} from '@codegraphy-dev/core';
+export type { IRoutablePluginInfo } from '@codegraphy-dev/core';

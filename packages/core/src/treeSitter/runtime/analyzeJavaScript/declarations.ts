@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import { getVariableAssignedFunctionSymbol } from '../analyze/imports';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { getIdentifierText } from '../analyze/nodes';

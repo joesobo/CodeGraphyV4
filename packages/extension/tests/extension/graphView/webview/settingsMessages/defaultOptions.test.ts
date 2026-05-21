@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { writeCodeGraphyInstalledPluginCache } from '@codegraphy/core';
+import { writeCodeGraphyInstalledPluginCache } from '@codegraphy-dev/core';
 import { readInstalledPluginDefaultOptions } from '../../../../../src/extension/graphView/webview/settingsMessages/defaultOptions';
 
 describe('graph view settings plugin default options', () => {
@@ -22,11 +22,11 @@ describe('graph view settings plugin default options', () => {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy/plugin-godot',
+            package: '@codegraphy-dev/plugin-godot',
             version: '2.1.2',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy/plugin-godot',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-godot',
             defaultOptions: {
               includeSceneResources: true,
               includeAutoloads: true,
@@ -37,7 +37,7 @@ describe('graph view settings plugin default options', () => {
       { homeDir },
     );
 
-    expect(readInstalledPluginDefaultOptions('@codegraphy/plugin-godot', { homeDir })).toEqual({
+    expect(readInstalledPluginDefaultOptions('@codegraphy-dev/plugin-godot', { homeDir })).toEqual({
       includeSceneResources: true,
       includeAutoloads: true,
     });
@@ -49,17 +49,17 @@ describe('graph view settings plugin default options', () => {
         version: 1,
         plugins: [
           {
-            package: '@codegraphy/plugin-python',
+            package: '@codegraphy-dev/plugin-python',
             version: '2.0.4',
             apiVersion: '^2.0.0',
             disclosures: [],
-            packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+            packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
           },
         ],
       },
       { homeDir },
     );
 
-    expect(readInstalledPluginDefaultOptions('@codegraphy/plugin-python', { homeDir })).toBeUndefined();
+    expect(readInstalledPluginDefaultOptions('@codegraphy-dev/plugin-python', { homeDir })).toBeUndefined();
   });
 });

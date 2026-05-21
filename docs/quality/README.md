@@ -43,7 +43,7 @@ Current command expectations:
 - `mutate` can inspect the repo root, a package root, or a specific file or directory
 - `scrap` works best on package roots and test files/directories
 
-Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed.
+Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed. CI's Vitest split does not automatically shard Stryker mutation runs; mutation speed still depends on target scope, Stryker incremental state, and the Vitest tests selected for the mutation target.
 
 CRAP coverage and tool reports live under `reports/quality-tools/`.
 
