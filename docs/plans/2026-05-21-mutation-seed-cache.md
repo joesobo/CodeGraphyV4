@@ -154,6 +154,24 @@ The CodeGraphy plan is a monorepo package version of the same idea: CI maintains
 
 ## Proposed Implementation
 
+### Implementation Slices
+
+1. Keep `quality-tools mutate` generic and seed-policy-free.
+2. Add a CodeGraphy mutation wrapper as the root `mutate` script.
+3. Move CodeGraphy-specific target requirements and seed hydration into that wrapper.
+4. Add a CI helper that lists CodeGraphy's mutation projects for the GitHub Actions matrix.
+5. Add the mutation-seed workflow:
+   - discover mutation projects
+   - run one package seed job per project
+   - upload package seed artifacts
+   - assemble the Main Mutation Seed artifact
+6. Add local hydration:
+   - find the local main checkout
+   - compare `reports/mutation/seed-sha.txt`
+   - refresh the Local Main Seed Cache from CI if stale
+   - copy the target package seed into the current worktree
+7. Update docs after the workflow proves itself.
+
 ### CI
 
 Add a separate GitHub Actions workflow or job for mutation seed refresh.
@@ -200,7 +218,7 @@ The wrapper should never let branch worktrees write mutation results back into t
 ## Edge Cases To Design
 
 - No `gh` auth or offline local run.
-- First-ever seed has not been generated.
+- First-ever seed has not been generated: fail clearly and tell the user to run the mutation seed workflow on `main`.
 - The latest seed is stale because the seed workflow failed on `main`.
 - Two local mutation runs target the same package cache at once.
 - A package is renamed, added, or removed.
@@ -208,6 +226,60 @@ The wrapper should never let branch worktrees write mutation results back into t
 - Large test-file changes cause broad invalidation because Vitest incremental support is file-level, not test-location-level.
 - Seed artifact retention expires.
 - CI full mutation seed refresh is too expensive to run on every push to `main`.
+
+## Validation Plan
+
+### Unit Tests
+
+- Wrapper target parsing:
+  - no-arg CodeGraphy wrapper fails clearly
+  - package target resolves to the expected package seed path
+  - file target resolves to the owning package seed path
+  - `--force` still hydrates first and passes force through to Stryker
+- Local main checkout discovery:
+  - current checkout on `main`
+  - separate worktree on `refs/heads/main`
+  - no main worktree found
+- Seed staleness:
+  - matching `seed-sha.txt` skips download
+  - mismatched `seed-sha.txt` refreshes the Local Main Seed Cache
+  - missing local seed checks CI
+  - missing local and CI seed fails clearly
+- Seed copying:
+  - copies only the target package incremental report into the worktree
+  - never writes branch results back into the Local Main Seed Cache
+
+### Local Integration Checks
+
+- `pnpm run mutate` fails with an explicit target-required message.
+- `pnpm run mutate -- packages/extension/src/webview/vscodeApi.ts` succeeds with a pre-seeded extension cache.
+- Remove the worktree extension cache, seed local main with a copied CI-like artifact, rerun the same file target, and verify Stryker reports reused mutants.
+- Run the same file target a second time and verify it uses the worktree-local cache without rehydrating.
+- Run `pnpm run mutate -- --force packages/extension/src/webview/vscodeApi.ts` and verify Stryker reruns the scoped mutants while leaving the hydrated cache in place for later runs.
+
+### CI Checks
+
+- Run the mutation-seed workflow manually on the PR branch against a small package first if possible.
+- Verify package matrix jobs run in parallel.
+- Verify each package job uploads exactly its package incremental report.
+- Verify the assemble job creates a Main Mutation Seed artifact shaped like:
+
+  ```text
+  reports/mutation/
+    seed-sha.txt
+    <package>/
+      stryker-incremental-<package>.json
+  ```
+
+- Verify a second workflow run restores the previous seed and reuses results instead of cold-running every mutant.
+- Verify normal PR CI is unaffected and does not wait on mutation seed refresh.
+
+### Timing Acceptance
+
+- First full `main` seed may take hours.
+- Warm package seed jobs should trend toward dry-run/setup time plus changed mutants.
+- Warm local file-scoped mutation should stay close to the current single-file warm loop.
+- Warm all-package seed refresh wall time should trend toward the slowest package job, not the sum of all packages.
 
 ## Decisions
 
