@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-typescript",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "description": "CodeGraphy TypeScript and JavaScript plugin",
   "license": "MIT",
   "type": "module",
