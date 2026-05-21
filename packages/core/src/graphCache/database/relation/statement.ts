@@ -1,4 +1,4 @@
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { createRelationDescriptorProperties } from './descriptorProperties';
 import { createRelationEndpointProperties } from './endpointProperties';
 import { createRelationIdentityProperties } from './identityProperties';

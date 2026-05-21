@@ -4,7 +4,7 @@ import {
   loadCodeGraphyWorkspacePluginPackages,
   readCodeGraphyWorkspaceSettings,
   type CodeGraphyWorkspaceSettings,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import * as fs from 'node:fs';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';

@@ -1,4 +1,4 @@
-import type { IPluginAnalysisContext } from '@codegraphy/plugin-api';
+import type { IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import type { ILifecyclePluginInfo } from '../contracts';
 import {
   createWorkspacePluginAnalysisContext,

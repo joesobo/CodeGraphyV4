@@ -1,5 +1,5 @@
 import type { GraphEdgeKind } from '../../graph/contracts';
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { GraphQueryRelationshipSymbol } from '../model';
 import { createSymbolMetadata } from './symbolMetadata';
 

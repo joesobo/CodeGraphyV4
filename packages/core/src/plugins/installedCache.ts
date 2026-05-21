@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { createMarkdownPlugin } from '@codegraphy/plugin-markdown';
+import { createMarkdownPlugin } from '@codegraphy-dev/plugin-markdown';
 import {
   parseCodeGraphyPluginPackageManifest,
   type CodeGraphyPluginDisclosure,
@@ -199,7 +199,7 @@ async function readRequiredPackageManifest(
 }
 
 async function findCodeGraphyPluginPackages(globalPackageRoot: string): Promise<CodeGraphyInstalledPluginRecord[]> {
-  const scopeRoot = path.join(globalPackageRoot, '@codegraphy');
+  const scopeRoot = path.join(globalPackageRoot, '@codegraphy-dev');
   let packageNames: string[];
   try {
     packageNames = await fsPromises.readdir(scopeRoot);
@@ -243,7 +243,7 @@ export async function refreshCodeGraphyInstalledPlugins(
   const recordByPackage = new Map<string, CodeGraphyInstalledPluginRecord>();
 
   for (const record of existingCache.plugins) {
-    if (!record.package.startsWith('@codegraphy/')) {
+    if (!record.package.startsWith('@codegraphy-dev/')) {
       recordByPackage.set(record.package, record);
     }
   }

@@ -10,7 +10,7 @@
   "disabledCustomFilterPatterns": [],
   "plugins": [
     {
-      "package": "@codegraphy/plugin-markdown"
+      "package": "@codegraphy-dev/plugin-markdown"
     },
     {
       "package": "@codegraphy/organize"

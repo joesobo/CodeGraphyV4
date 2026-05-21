@@ -3,7 +3,7 @@
  * @module core/workspaceAnalysisCache
  */
 
-import type { IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 
 export interface ICachedWorkspaceFile {
   mtime: number;

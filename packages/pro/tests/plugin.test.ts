@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CodeGraphyAccessKey } from '@codegraphy/plugin-api';
+import type { CodeGraphyAccessKey } from '@codegraphy-dev/plugin-api';
 import { createProPlugin } from '../src/plugin';
 
 describe('@codegraphy/pro plugin', () => {

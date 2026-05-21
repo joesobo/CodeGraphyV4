@@ -239,7 +239,7 @@ describe('graph view settings router', () => {
         type: 'TOGGLE_PLUGIN',
         payload: {
           pluginId: 'codegraphy.python',
-          packageName: '@codegraphy/plugin-python',
+          packageName: '@codegraphy-dev/plugin-python',
           enabled: true,
         },
       },
@@ -248,7 +248,7 @@ describe('graph view settings router', () => {
     );
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy/plugin-python' },
+      { package: '@codegraphy-dev/plugin-python' },
     ]);
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();

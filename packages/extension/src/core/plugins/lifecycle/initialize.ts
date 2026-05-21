@@ -1,1 +1,1 @@
-export { initializeAll, initializePlugin } from '@codegraphy/core';
+export { initializeAll, initializePlugin } from '@codegraphy-dev/core';

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Graph View contribution contracts for CodeGraphy plugins.
- * @module @codegraphy/plugin-api/graphView
+ * @module @codegraphy-dev/plugin-api/graphView
  */
 
 import type { CodeGraphyAccessKey } from './access';

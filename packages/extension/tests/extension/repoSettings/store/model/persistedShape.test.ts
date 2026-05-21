@@ -23,13 +23,13 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
       pluginOrder: ['codegraphy.python'],
       disabledPlugins: ['codegraphy.markdown'],
       plugins: [
-        { package: '@codegraphy/plugin-markdown' },
-        { package: '@codegraphy/plugin-python' },
+        { package: '@codegraphy-dev/plugin-markdown' },
+        { package: '@codegraphy-dev/plugin-python' },
       ],
     })).toEqual({
       plugins: [
-        { package: '@codegraphy/plugin-markdown' },
-        { package: '@codegraphy/plugin-python' },
+        { package: '@codegraphy-dev/plugin-markdown' },
+        { package: '@codegraphy-dev/plugin-python' },
       ],
     });
   });

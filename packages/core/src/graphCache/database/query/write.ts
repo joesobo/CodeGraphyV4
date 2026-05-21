@@ -1,5 +1,5 @@
 import type * as lb from '@ladybugdb/core';
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
 import { runStatementSync } from '../io/connection';
 import { createRelationStatement } from '../relation/statement';

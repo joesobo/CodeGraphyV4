@@ -22,7 +22,7 @@ import {
   type CoreGraphViewContributionSet,
   type CorePluginAccessCheck,
   type CorePluginAccessContext,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import {
   analyzeFile,
   analyzeFileResult,

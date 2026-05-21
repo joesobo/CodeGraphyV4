@@ -1,8 +1,8 @@
-# `@codegraphy/plugin-markdown`
+# `@codegraphy-dev/plugin-markdown`
 
 Headless CodeGraphy plugin for Markdown and Obsidian-style wikilinks.
 
-This package exposes the Markdown plugin runtime used by `@codegraphy/core`. It detects wikilinks such as `[[Note]]`, `[[folder/Note|Alias]]`, and `![[Embed]]`, then emits Relationship Graph references between workspace files.
+This package exposes the Markdown plugin runtime used by `@codegraphy-dev/core`. It detects wikilinks such as `[[Note]]`, `[[folder/Note|Alias]]`, and `![[Embed]]`, then emits Relationship Graph references between workspace files.
 
 ## CodeGraphy Metadata
 

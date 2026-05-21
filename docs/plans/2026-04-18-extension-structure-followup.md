@@ -74,8 +74,8 @@ Mirror tests:
 | `packages/extension/tests/webview/graph/runtime/use/physics/hook/` | `hook.test.ts`, `hook.controlFlow.test.tsx`, `hook.integration.test.tsx` | Physics hook tests should live with the hook behavior. |
 
 Targeted verification:
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/model tests/webview/graph/messages tests/webview/graph/runtime/use/physics`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/model tests/webview/graph/messages tests/webview/graph/runtime/use/physics`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 
 ### Batch 2: Webview Graph Interaction And Menus
 
@@ -99,8 +99,8 @@ Mirror tests:
 | `packages/extension/tests/webview/graph/rendering/image/` | `imageCache.test.ts`, `imageCache.mutations.test.ts`, `imageCache.deps.test.ts` | Groups image cache tests and removes repeated filename prefix. |
 
 Targeted verification:
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu tests/webview/graph/contextMenuRuntime tests/webview/graph/interaction tests/webview/graph/keyboard tests/webview/graph/rendering`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu tests/webview/graph/contextMenuRuntime tests/webview/graph/interaction tests/webview/graph/keyboard tests/webview/graph/rendering`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 
 ### Batch 3: Webview UI Components
 
@@ -134,8 +134,8 @@ Mirror tests:
 | `packages/extension/tests/webview/nodeTooltip/view/` | `view.test.tsx`, `view.mutations.test.tsx`, `view.css.test.tsx` | Multiple view tests cover one tooltip view behavior. |
 
 Targeted verification:
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/components tests/webview/searchBar tests/webview/nodeTooltip tests/webview/toolbar`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/components tests/webview/searchBar tests/webview/nodeTooltip tests/webview/toolbar`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 
 ### Batch 4: Webview Export, Plugin Host, Store, Theme
 
@@ -160,8 +160,8 @@ Mirror tests:
 | `packages/extension/tests/webview/store/optimistic/` | `optimisticGroups.test.ts`, `optimisticGroupsPending.test.ts`, `optimisticGroupsUser.test.ts` | Mirrors `store/optimistic/groups/`; multiple tests for the same behavior stay grouped. |
 
 Targeted verification:
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/export tests/webview/pluginHost tests/webview/store tests/webview/theme`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/export tests/webview/pluginHost tests/webview/store tests/webview/theme`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 
 ### Batch 5: Extension Host Graph View
 
@@ -200,8 +200,8 @@ Mirror tests:
 | `packages/extension/tests/extension/graphView/webview/providerMessages/plugin/` | `pluginApis.test.ts`, `pluginContext.test.ts`, `pluginState.test.ts` | Mirrors plugin provider-message behavior. |
 
 Targeted verification:
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView tests/extension/graphViewProvider`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/graphView tests/extension/graphViewProvider`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 
 ### Batch 6: Extension Host Pipeline And Tree-sitter
 
@@ -235,8 +235,8 @@ Mirror tests:
 | `packages/extension/tests/extension/pipeline/treesitter/projectRoots/workspace/` | `workspace.ts`, `workspaceBounds.test.ts` | Workspace-bound project-root behavior belongs together. |
 
 Targeted verification:
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 
 ### Batch 7: Core, Shared, Settings, Commands
 
@@ -276,8 +276,8 @@ Mirror tests:
 | `packages/extension/tests/extension/workspaceFiles/watcher/` | `fileSystemListeners.test.ts`, `fileWatcherSetup.test.ts`, `fileWatcherSetupMutants.test.ts` | Use `watcher/`, not `file/`; these test watcher setup/listeners. |
 
 Targeted verification:
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/core tests/extension/config tests/extension/export tests/extension/gitHistory tests/extension/workspaceFiles tests/shared`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/core tests/extension/config tests/extension/export tests/extension/gitHistory tests/extension/workspaceFiles tests/shared`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 
 ## Naming Fixes To Include
 
@@ -327,7 +327,7 @@ These should be done as part of the move batches when touching the relevant file
 
 After each batch:
 - targeted Vitest command listed in the batch
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 - `pnpm run organize`
 
 Before each PR is done:

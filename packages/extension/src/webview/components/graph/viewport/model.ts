@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphViewStoreState } from '../view/store';
 import type {
   GraphContextMenuEntry,

@@ -5,7 +5,7 @@ import {
   mdiPlusBoxOutline,
   mdiShapeSquarePlus,
 } from '@mdi/js';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import {

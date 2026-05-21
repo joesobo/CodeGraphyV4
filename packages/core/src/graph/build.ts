@@ -1,7 +1,7 @@
 import type {
   IFileAnalysisResult,
   IPlugin,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import type { IGraphData } from './contracts';
 import { buildWorkspaceGraphData, buildWorkspaceGraphDataFromAnalysis } from './data';

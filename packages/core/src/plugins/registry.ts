@@ -13,7 +13,7 @@ import type {
   IPluginAnalysisContext,
   IPluginEdgeType,
   IPluginNodeType,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
 import { initializeAll, initializePlugin } from './lifecycle/initialize';
 import { notifyFilesChanged, type IPluginFilesChangedResult } from './lifecycle/notify/filesChanged';

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../analysis/cache';
 import type { CodeGraphyWorkspaceSettings } from './settings';
 import type { CodeGraphyInstalledPluginRecord } from '../plugins/installedCache';

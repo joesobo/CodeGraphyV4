@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { buildGraphData } from '../../../../src/webview/components/graph/model/build';
 

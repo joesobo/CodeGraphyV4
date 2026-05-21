@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../discovery/file/defaults';
 import { getWorkspaceSettingsPath } from './paths';
 
-export const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy/plugin-markdown';
+export const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy-dev/plugin-markdown';
 
 export interface CodeGraphyWorkspacePluginSettings {
   package: string;

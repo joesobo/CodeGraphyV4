@@ -100,8 +100,8 @@ describe('runtime package build support', () => {
     );
     expect(EXTENSION_EXTERNAL_PACKAGE_NAMES).not.toEqual(
       expect.arrayContaining([
-        '@codegraphy/core',
-        '@codegraphy/plugin-markdown',
+        '@codegraphy-dev/core',
+        '@codegraphy-dev/plugin-markdown',
       ]),
     );
   });
@@ -114,7 +114,7 @@ describe('runtime package build support', () => {
       extensionDependencies?: string[];
     };
 
-    expect(manifest.dependencies?.['@codegraphy/core']).toBe('workspace:*');
-    expect(manifest.extensionDependencies ?? []).not.toContain('@codegraphy/core');
+    expect(manifest.dependencies?.['@codegraphy-dev/core']).toBe('workspace:*');
+    expect(manifest.extensionDependencies ?? []).not.toContain('@codegraphy-dev/core');
   });
 });

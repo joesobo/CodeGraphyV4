@@ -1,4 +1,4 @@
-import type { IPluginDataHost } from '@codegraphy/plugin-api';
+import type { IPluginDataHost } from '@codegraphy-dev/plugin-api';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
   writeCodeGraphyWorkspaceSettings,

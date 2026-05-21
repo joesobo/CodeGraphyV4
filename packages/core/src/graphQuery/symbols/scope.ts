@@ -1,4 +1,4 @@
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { GraphQueryData } from '../data';
 import type { GraphQuerySymbolsConfig } from '../model';
 import { deriveScopedGraphQueryData } from '../visible';

@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactElement } from 'react';
 import type { GraphViewViewportNode } from '../../../pluginHost/api/contracts/webview';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';

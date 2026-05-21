@@ -22,7 +22,7 @@ Free CodeGraphy keeps Relationship Graph inspection, Graph Scope, filters/search
 
 ## Execution Slices
 
-1. Expand `@codegraphy/plugin-api` with public contracts for Core plugins, Access, plugin data, graph presentation metadata, Graph View runtime contributions, context menu contributions, UI slots, projections, and additive force adapters.
+1. Expand `@codegraphy-dev/plugin-api` with public contracts for Core plugins, Access, plugin data, graph presentation metadata, Graph View runtime contributions, context menu contributions, UI slots, projections, and additive force adapters.
 2. Add Core-owned plugin runtime and Access checks so Extension, CLI, and MCP can consume the same availability model.
 3. Add plugin data `loadData` / `saveData` persistence scoped by plugin id under Workspace Settings.
 4. Add Graph View contribution hosts for runtime nodes/edges, projection, context menus, named UI slots, and additive force adapters.

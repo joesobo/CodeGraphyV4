@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { findExistingFile } from '../analyze/existingFile';
 import { addImportRelation } from '../analyze/results';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';

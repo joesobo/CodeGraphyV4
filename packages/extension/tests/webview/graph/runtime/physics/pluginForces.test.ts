@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
 import {
   createGraphViewForceAdapterState,

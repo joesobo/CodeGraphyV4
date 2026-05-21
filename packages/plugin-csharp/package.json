@@ -1,6 +1,6 @@
 {
-  "name": "@codegraphy/plugin-csharp",
-  "version": "2.0.4",
+  "name": "@codegraphy-dev/plugin-csharp",
+  "version": "2.1.0",
   "description": "CodeGraphy C# plugin",
   "license": "MIT",
   "type": "module",
@@ -47,7 +47,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/plugin-api": "workspace:*"
+    "@codegraphy-dev/plugin-api": "workspace:*"
   },
   "codegraphy": {
     "type": "plugin",

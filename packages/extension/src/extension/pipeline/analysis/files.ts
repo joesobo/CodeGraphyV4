@@ -1,8 +1,8 @@
 export {
   analyzeWorkspacePipelineFiles,
   analyzeWorkspacePipelineSourceFiles,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 export type {
   WorkspacePipelineFilesDependencies,
   WorkspacePipelineFilesSource,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';

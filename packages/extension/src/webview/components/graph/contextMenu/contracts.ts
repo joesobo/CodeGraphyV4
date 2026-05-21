@@ -1,5 +1,5 @@
 import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextMenu';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 
 export type GraphContextTargetKind = 'background' | 'node' | 'edge';
 export type GraphContextMutationAvailability = 'enabled' | 'disabled' | 'hidden';

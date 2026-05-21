@@ -1,6 +1,6 @@
 import * as fs from 'node:fs/promises';
-import type { IGraphData, IPlugin } from '@codegraphy/plugin-api';
-import { createMarkdownPlugin } from '@codegraphy/plugin-markdown';
+import type { IGraphData, IPlugin } from '@codegraphy-dev/plugin-api';
+import { createMarkdownPlugin } from '@codegraphy-dev/plugin-markdown';
 import { createEmptyWorkspaceAnalysisCache, type IWorkspaceAnalysisCache } from '../analysis/cache';
 import {
   analyzeWorkspacePipelineFiles,

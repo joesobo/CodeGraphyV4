@@ -4,7 +4,7 @@ import type {
   MutableRefObject,
   SetStateAction,
 } from 'react';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import type { GraphContextMenuAction, GraphContextSelection } from '../../../contextMenu/contracts';
 import type { createGraphInteractionHandlers } from '../../../interactionRuntime/handlers';

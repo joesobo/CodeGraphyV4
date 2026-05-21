@@ -31,10 +31,10 @@ Root scripts:
 
 Package scripts:
 
-- Keep `test` for Vitest in every package except `@codegraphy/plugin-api`.
+- Keep `test` for Vitest in every package except `@codegraphy-dev/plugin-api`.
 - Keep `test:playwright` only where browser tests exist.
-- Keep `test:vscode` only in `@codegraphy/extension`.
-- Keep mutation and architecture-analysis tools under `@codegraphy/quality-tools`.
+- Keep `test:vscode` only in `@codegraphy-dev/extension`.
+- Keep mutation and architecture-analysis tools under `@codegraphy-dev/quality-tools`.
 
 ## First Slice
 
@@ -51,15 +51,15 @@ Package scripts:
 - The root release checks and `tests/release` suite are removed. The release workflow publishes artifacts; there is no public package-without-publish workflow.
 - CI runs separate lint, typecheck, unit-test, Playwright, and build lanes so independent work is not serialized behind the slowest suite.
 - Turbo caches package builds and test logs/results through task outputs and GitHub Actions restores `.turbo` between CI runs.
-- `@codegraphy/extension` owns all three test lanes because it has Vitest, browser, and VS Code behavior.
+- `@codegraphy-dev/extension` owns all three test lanes because it has Vitest, browser, and VS Code behavior.
 - Other packages expose only Vitest through `test` unless they grow a real browser or VS Code test surface.
-- Mutation tooling stays in `@codegraphy/quality-tools` and continues to target Vitest, not Playwright or VS Code E2E.
+- Mutation tooling stays in `@codegraphy-dev/quality-tools` and continues to target Vitest, not Playwright or VS Code E2E.
 
 ## Current CI Shape
 
 CI runs build, lint, typecheck, Playwright, and unit tests as independent jobs. Unit tests use a matrix with human-readable check names:
 
-- `Unit tests / Packages` runs all package Vitest suites except `@codegraphy/extension`.
+- `Unit tests / Packages` runs all package Vitest suites except `@codegraphy-dev/extension`.
 - `Unit tests / Extension node` runs the extension Vitest `node` project.
 - `Unit tests / Extension webview graph interaction and rendering` runs graph model, interaction, rendering, controls, and Graph Scope webview tests.
 - `Unit tests / Extension webview app shell and plugins` runs webview app shell, store, plugin host/runtime, plugin panel, theme, VS Code API bridge, and webview-extension integration tests.

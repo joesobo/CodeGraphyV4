@@ -5,7 +5,7 @@ import { DEFAULT_MAX_FILES } from '../../shared/settings/defaults';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   type CodeGraphyWorkspacePluginSettings,
-} from '@codegraphy/core';
+} from '@codegraphy-dev/core';
 import {
   createDefaultEdgeVisibility,
   createDefaultNodeColors,

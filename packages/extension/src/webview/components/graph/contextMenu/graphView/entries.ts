@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import { separator } from '../common/entryFactories';
 import type {
   GraphContextMenuEdge,

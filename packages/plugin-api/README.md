@@ -1,4 +1,4 @@
-# `@codegraphy/plugin-api`
+# `@codegraphy-dev/plugin-api`
 
 Type definitions for building CodeGraphy plugins.
 
@@ -11,13 +11,13 @@ Type definitions for building CodeGraphy plugins.
 ## Install
 
 ```bash
-npm install -D @codegraphy/plugin-api
+npm install -D @codegraphy-dev/plugin-api
 ```
 
 ## Usage
 
 ```ts
-import type { IPlugin, IPluginFactory } from '@codegraphy/plugin-api';
+import type { IPlugin, IPluginFactory } from '@codegraphy-dev/plugin-api';
 ```
 
 This package is type-only. Use `import type` in plugin code.
@@ -30,9 +30,9 @@ Main surfaces in the current API:
 - analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
 - lifecycle hooks for headless analysis: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `analyzeFile`, `onPostAnalyze`, `onGraphRebuild`, and `onUnload`
 
-Recommended plugins are headless npm packages. They communicate with `@codegraphy/core`; the VS Code extension owns VS Code-specific UI, commands, and editor integration.
+Recommended plugins are headless npm packages. They communicate with `@codegraphy-dev/core`; the VS Code extension owns VS Code-specific UI, commands, and editor integration.
 
-The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw force-graph instance intentionally stay inside `@codegraphy/extension`.
+The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw force-graph instance intentionally stay inside `@codegraphy-dev/extension`.
 
 Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged additively in the workspace plugin order. Plugins should add more specific evidence instead of deleting or suppressing core baseline relationships.
 
@@ -105,8 +105,8 @@ export default createPlugin;
 
 The published CodeGraphy plugin packages use the same API surface:
 
-- [`@codegraphy/plugin-typescript`](https://www.npmjs.com/package/@codegraphy/plugin-typescript)
-- [`@codegraphy/plugin-python`](https://www.npmjs.com/package/@codegraphy/plugin-python)
-- [`@codegraphy/plugin-csharp`](https://www.npmjs.com/package/@codegraphy/plugin-csharp)
-- [`@codegraphy/plugin-godot`](https://www.npmjs.com/package/@codegraphy/plugin-godot)
-- [`@codegraphy/plugin-markdown`](https://www.npmjs.com/package/@codegraphy/plugin-markdown)
+- [`@codegraphy-dev/plugin-typescript`](https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript)
+- [`@codegraphy-dev/plugin-python`](https://www.npmjs.com/package/@codegraphy-dev/plugin-python)
+- [`@codegraphy-dev/plugin-csharp`](https://www.npmjs.com/package/@codegraphy-dev/plugin-csharp)
+- [`@codegraphy-dev/plugin-godot`](https://www.npmjs.com/package/@codegraphy-dev/plugin-godot)
+- [`@codegraphy-dev/plugin-markdown`](https://www.npmjs.com/package/@codegraphy-dev/plugin-markdown)

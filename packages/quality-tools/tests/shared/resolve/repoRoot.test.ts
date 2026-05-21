@@ -19,7 +19,7 @@ function createWorkspace(): string {
 
   mkdirSync(join(repoRoot, 'packages', 'quality-tools', 'src', 'shared', 'resolve'), { recursive: true });
   writeFileSync(join(repoRoot, 'pnpm-workspace.yaml'), 'packages:\n  - packages/*\n');
-  writeFileSync(join(repoRoot, 'packages', 'quality-tools', 'package.json'), '{"name":"@codegraphy/quality-tools"}');
+  writeFileSync(join(repoRoot, 'packages', 'quality-tools', 'package.json'), '{"name":"@codegraphy-dev/quality-tools"}');
 
   return repoRoot;
 }

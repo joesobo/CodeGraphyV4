@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import type { IPlugin } from '@codegraphy/plugin-api';
+import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -280,7 +280,7 @@ describe('indexCodeGraphyWorkspace', () => {
       settings: {
         ...readCodeGraphyWorkspaceSettings(workspaceRoot),
         plugins: [{
-          package: '@codegraphy/plugin-text',
+          package: '@codegraphy-dev/plugin-text',
           disabledFilterPatterns: ['**/ignored.txt'],
         }],
       },

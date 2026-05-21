@@ -1,11 +1,11 @@
 # Boundaries
 
-`@codegraphy/extension` is split by runtime boundary, not by feature area.
+`@codegraphy-dev/extension` is split by runtime boundary, not by feature area.
 
 ## Boundaries
 
-- `src/extension/` owns the VS Code host, workspace state, command wiring, file-system actions, and adapters over `@codegraphy/core`.
-- `src/core/` owns extension-local graph view and plugin UI infrastructure. Shared Indexing, Graph Cache, Graph Query, discovery, and analysis behavior lives in `@codegraphy/core`.
+- `src/extension/` owns the VS Code host, workspace state, command wiring, file-system actions, and adapters over `@codegraphy-dev/core`.
+- `src/core/` owns extension-local graph view and plugin UI infrastructure. Shared Indexing, Graph Cache, Graph Query, discovery, and analysis behavior lives in `@codegraphy-dev/core`.
 - `src/webview/` owns the React UI, store, rendering runtime, and browser-side message handling.
 - `src/shared/protocol/` owns extension-to-webview and webview-to-extension message unions.
 - `src/shared/graph/`, `src/shared/files/`, `src/shared/settings/`, `src/shared/plugins/`, `src/shared/view/`, and `src/shared/timeline/` own shared payload types.
@@ -14,16 +14,16 @@
 
 ## Current shape
 
-The extension host is still the VS Code composition root. It wires the graph provider, `@codegraphy/core` adapters, extension-local plugin UI registry, and webview bridge together.
+The extension host is still the VS Code composition root. It wires the graph provider, `@codegraphy-dev/core` adapters, extension-local plugin UI registry, and webview bridge together.
 
 The extension source tree is intentionally feature-first inside each runtime boundary:
 
 - `src/extension/agentBridge/` owns VS Code URI request handling for local agent tooling.
 - `src/extension/graphView/` and `src/extension/graphViewProvider.ts` own VS Code host orchestration for the Graph View.
-- `src/extension/pipeline/` owns extension-facing adapters over `@codegraphy/core` pipeline APIs and extension-only orchestration.
+- `src/extension/pipeline/` owns extension-facing adapters over `@codegraphy-dev/core` pipeline APIs and extension-only orchestration.
 - `src/extension/repoSettings/` owns repo-local settings, freshness decisions, and Graph Cache trust state.
 - `src/extension/workspaceFiles/` owns workspace file watching and refresh scheduling.
-- `@codegraphy/core` owns File Discovery, Tree-sitter Analysis, headless plugin analysis, cache reads/writes, Graph Projection inputs, and agent-readable Graph Query.
+- `@codegraphy-dev/core` owns File Discovery, Tree-sitter Analysis, headless plugin analysis, cache reads/writes, Graph Projection inputs, and agent-readable Graph Query.
 - `src/shared/visibleGraph/` owns the host/webview shared projection that turns scoped, filtered, and searched graph data into the Visible Graph.
 
 The webview is now organized by concern:

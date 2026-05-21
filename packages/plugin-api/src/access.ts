@@ -1,6 +1,6 @@
 /**
  * @fileoverview Host-agnostic Access contracts for CodeGraphy plugins.
- * @module @codegraphy/plugin-api/access
+ * @module @codegraphy-dev/plugin-api/access
  */
 
 export type CodeGraphyAccessKey = string & {};

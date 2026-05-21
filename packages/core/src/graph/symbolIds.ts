@@ -1,4 +1,4 @@
-import type { IAnalysisSymbol, IFileAnalysisResult } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol, IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import { normalizeSymbolKind, toRepoRelativeGraphPath } from './symbolPaths';
 
 function createBaseCanonicalSymbolId(

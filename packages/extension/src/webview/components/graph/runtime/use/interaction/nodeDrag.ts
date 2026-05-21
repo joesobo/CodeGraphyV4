@@ -1,4 +1,4 @@
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { FGNode } from '../../../model/build';
 
 type GraphMode = '2d' | '3d';

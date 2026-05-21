@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisSymbol } from '@codegraphy/plugin-api';
+import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import {
   addCxxTypeSymbol,
   addFunctionSymbol,

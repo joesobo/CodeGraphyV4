@@ -1,1 +1,1 @@
-export { getFileExtension, normalizePluginExtension } from '@codegraphy/core';
+export { getFileExtension, normalizePluginExtension } from '@codegraphy-dev/core';

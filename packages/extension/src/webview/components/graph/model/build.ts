@@ -1,5 +1,5 @@
 import type { LinkObject, NodeObject } from 'react-force-graph-2d';
-import type { CoreGraphViewContributionSet } from '@codegraphy/core';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphMetadata, IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { ThemeKind } from '../../../theme/useTheme';

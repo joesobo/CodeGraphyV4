@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';
 import { resolveTreeSitterImportPath } from '../resolve';
 import { collectImportBindings } from '../analyze/imports';

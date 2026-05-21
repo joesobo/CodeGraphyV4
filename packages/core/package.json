@@ -1,6 +1,6 @@
 {
-  "name": "@codegraphy/core",
-  "version": "0.1.0",
+  "name": "@codegraphy-dev/core",
+  "version": "0.2.0",
   "description": "CodeGraphy core indexing and graph query engine",
   "license": "MIT",
   "type": "module",
@@ -31,8 +31,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/plugin-api": "workspace:*",
-    "@codegraphy/plugin-markdown": "workspace:*",
+    "@codegraphy-dev/plugin-api": "workspace:*",
+    "@codegraphy-dev/plugin-markdown": "workspace:*",
     "@driftlog/tree-sitter-dart": "1.0.4",
     "@ladybugdb/core": "^0.15.3",
     "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",

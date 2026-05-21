@@ -9,7 +9,7 @@ Important: this is a typed payload reference, not a public subscription API. The
 ## Usage
 
 ```typescript
-import type { EventName, EventPayloads } from '@codegraphy/plugin-api';
+import type { EventName, EventPayloads } from '@codegraphy-dev/plugin-api';
 
 function handleEvent<E extends EventName>(
   event: E,
@@ -112,7 +112,7 @@ Note:
 - `EventName`: union of all keys in `EventPayloads`.
 
 ```typescript
-import type { EventName, EventPayloads } from '@codegraphy/plugin-api';
+import type { EventName, EventPayloads } from '@codegraphy-dev/plugin-api';
 
 function on<E extends EventName>(event: E, payload: EventPayloads[E]): void {
   // typed by event name

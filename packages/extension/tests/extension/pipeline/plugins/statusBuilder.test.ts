@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IDiscoveredFile } from '@codegraphy/core';
+import type { IDiscoveredFile } from '@codegraphy-dev/core';
 import type { IProjectedConnection, IPlugin, IPluginInfo } from '../../../../src/core/plugins/types/contracts';
 import { buildWorkspacePluginStatuses } from '../../../../src/extension/pipeline/plugins/statusBuilder';
 
@@ -77,7 +77,7 @@ describe('pipeline/plugins/statusBuilder', () => {
           name: 'Markdown',
           supportedExtensions: ['.md'],
         }),
-        sourcePackage: '@codegraphy/plugin-markdown',
+        sourcePackage: '@codegraphy-dev/plugin-markdown',
       },
       {
         ...createPluginInfo({
@@ -356,11 +356,11 @@ describe('pipeline/plugins/statusBuilder', () => {
       fileConnections: new Map(),
       installedPlugins: [
         {
-          package: '@codegraphy/plugin-python',
+          package: '@codegraphy-dev/plugin-python',
           version: '2.0.0',
           apiVersion: '^2.0.0',
           disclosures: [],
-          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+          packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
         },
       ],
       pluginInfos: [],
@@ -369,9 +369,9 @@ describe('pipeline/plugins/statusBuilder', () => {
 
     expect(statuses).toEqual([
       {
-        id: '@codegraphy/plugin-python',
-        packageName: '@codegraphy/plugin-python',
-        name: '@codegraphy/plugin-python',
+        id: '@codegraphy-dev/plugin-python',
+        packageName: '@codegraphy-dev/plugin-python',
+        name: '@codegraphy-dev/plugin-python',
         version: '2.0.0',
         supportedExtensions: [],
         status: 'installed',
@@ -389,7 +389,7 @@ describe('pipeline/plugins/statusBuilder', () => {
           name: 'Python',
           supportedExtensions: ['.py'],
         }),
-        sourcePackage: '@codegraphy/plugin-python',
+        sourcePackage: '@codegraphy-dev/plugin-python',
       },
     ];
 
@@ -399,21 +399,21 @@ describe('pipeline/plugins/statusBuilder', () => {
       fileConnections: new Map([['main.py', []]]),
       installedPlugins: [
         {
-          package: '@codegraphy/plugin-python',
+          package: '@codegraphy-dev/plugin-python',
           version: '2.0.0',
           apiVersion: '^2.0.0',
           disclosures: [],
-          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+          packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
         },
       ],
       pluginInfos,
-      workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
     });
 
     expect(statuses).toHaveLength(1);
     expect(statuses[0]).toMatchObject({
       id: 'codegraphy.python',
-      packageName: '@codegraphy/plugin-python',
+      packageName: '@codegraphy-dev/plugin-python',
       enabled: true,
     });
   });
@@ -425,21 +425,21 @@ describe('pipeline/plugins/statusBuilder', () => {
       fileConnections: new Map(),
       installedPlugins: [
         {
-          package: '@codegraphy/plugin-python',
+          package: '@codegraphy-dev/plugin-python',
           version: '2.0.0',
           apiVersion: '^2.0.0',
           disclosures: [],
-          packageRoot: '/global/node_modules/@codegraphy/plugin-python',
+          packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
         },
       ],
       pluginInfos: [],
-      workspaceEnabledPackageNames: new Set(['@codegraphy/plugin-python']),
+      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
     });
 
     expect(statuses).toEqual([
       expect.objectContaining({
-        id: '@codegraphy/plugin-python',
-        packageName: '@codegraphy/plugin-python',
+        id: '@codegraphy-dev/plugin-python',
+        packageName: '@codegraphy-dev/plugin-python',
         status: 'unavailable',
         enabled: true,
         supportedExtensions: [],
@@ -455,7 +455,7 @@ describe('pipeline/plugins/statusBuilder', () => {
           name: 'Markdown',
           supportedExtensions: ['.md'],
         }),
-        sourcePackage: '@codegraphy/plugin-markdown',
+        sourcePackage: '@codegraphy-dev/plugin-markdown',
       },
     ];
 
@@ -468,7 +468,7 @@ describe('pipeline/plugins/statusBuilder', () => {
 
     expect(statuses[0]).toMatchObject({
       id: 'codegraphy.markdown',
-      packageName: '@codegraphy/plugin-markdown',
+      packageName: '@codegraphy-dev/plugin-markdown',
       enabled: true,
     });
   });

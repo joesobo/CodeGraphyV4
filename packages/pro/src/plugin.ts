@@ -4,7 +4,7 @@ import type {
   IAccessProvider,
   IAccessResult,
   IPlugin,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import manifest from '../codegraphy.json';
 
 export type ProPlan = 'free' | 'pro' | 'team' | 'unknown';

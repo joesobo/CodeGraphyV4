@@ -6,7 +6,7 @@ import type {
   IPluginDataHost,
   IPluginDataSaveOptions,
   IPluginFactoryOptions,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-dev/plugin-api';
 import {
   type CodeGraphyInstalledPluginRecord,
   readCodeGraphyInstalledPluginCache,
