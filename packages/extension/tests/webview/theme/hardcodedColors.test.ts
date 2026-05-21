@@ -1,8 +1,13 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const WEBVIEW_SOURCE_ROOT = path.join(process.cwd(), 'src', 'webview');
+const EXTENSION_PACKAGE_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../..',
+);
+const WEBVIEW_SOURCE_ROOT = path.join(EXTENSION_PACKAGE_ROOT, 'src', 'webview');
 const SOURCE_EXTENSIONS = new Set(['.css', '.ts', '.tsx']);
 
 const HEX_COLOR_PATTERN = /#[0-9a-fA-F]{3,8}\b/g;
@@ -31,13 +36,13 @@ function listSourceFiles(directory: string): string[] {
   });
 }
 
-function toRepoRelativePath(fullPath: string): string {
-  return path.relative(process.cwd(), fullPath);
+function toPackageRelativePath(fullPath: string): string {
+  return path.relative(EXTENSION_PACKAGE_ROOT, fullPath).split(path.sep).join('/');
 }
 
 function collectPatternMatches(pattern: RegExp, shouldScan: (relativePath: string) => boolean): string[] {
   return listSourceFiles(WEBVIEW_SOURCE_ROOT).flatMap((fullPath) => {
-    const relativePath = toRepoRelativePath(fullPath);
+    const relativePath = toPackageRelativePath(fullPath);
     if (!shouldScan(relativePath)) {
       return [];
     }

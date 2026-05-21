@@ -1,8 +1,13 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-const INDEX_CSS_PATH = path.join(process.cwd(), 'src', 'webview', 'index.css');
+const EXTENSION_PACKAGE_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../..',
+);
+const INDEX_CSS_PATH = path.join(EXTENSION_PACKAGE_ROOT, 'src', 'webview', 'index.css');
 
 describe('graph background theme tokens', () => {
   it('uses the same surface token as the search and filter shell', () => {

@@ -22,7 +22,6 @@
   "scripts": {
     "build": "node ./scripts/build.mjs",
     "test": "vitest run --config vitest.config.ts",
-    "test:watch": "vitest --config vitest.config.ts",
     "lint": "eslint src tests scripts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

@@ -199,10 +199,15 @@ pnpm run typecheck
 Useful focused commands:
 
 ```bash
-pnpm run build:devhost
-pnpm --filter @codegraphy/extension test
+pnpm run test:unit
+pnpm run test:playwright
+pnpm run test:vscode
+pnpm --filter @codegraphy/extension run test:node
+pnpm --filter @codegraphy/extension run test:webview
 pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/SettingsPanel.test.tsx
 ```
+
+CI runs build, lint, typecheck, Playwright, and unit tests as independent lanes. Unit tests are split into package Vitest suites, extension node Vitest, and extension webview groups for graph behavior, app/plugins, and panels/search/export behavior. `pnpm run test:vscode` is a local-only VS Code Electron smoke check for the real extension host.
 
 Plugin authors should start with the [Plugin Guide](./docs/PLUGINS.md), the [plugin lifecycle docs](./docs/plugin-api/LIFECYCLE.md), and [`@codegraphy/plugin-api`](https://www.npmjs.com/package/@codegraphy/plugin-api).
 

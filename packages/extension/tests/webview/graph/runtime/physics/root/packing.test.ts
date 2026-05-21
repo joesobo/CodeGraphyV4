@@ -21,6 +21,8 @@ import {
   type GraphLayoutSettings,
 } from '../testSupport';
 
+const mutationStressTest = process.env.CODEGRAPHY_MUTATION_RUN === '1' ? it.skip : it;
+
 describe('physics/root section packing', () => {
   it('keeps passive root nodes outside expanded Section bounds during hot drag ticks', () => {
     const force = createGraphSectionBoundsForce(GRAPH_LAYOUT, {
@@ -82,7 +84,7 @@ describe('physics/root section packing', () => {
     expect(getLargestNearestSectionGap(nodes)).toBeLessThanOrEqual(1.5);
   });
 
-  it('packs many varied expanded Graph Sections together at the root center when repel is disabled', () => {
+  mutationStressTest('packs many varied expanded Graph Sections together at the root center when repel is disabled', () => {
     const graphLayout = createVariedPackingGraphLayout();
     const nodes = createVariedPackingNodes();
     const settings = {

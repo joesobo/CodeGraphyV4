@@ -25,7 +25,7 @@ describe('buildMutationArgsForTest', () => {
     expect(args.join(' ')).toContain('!packages/quality-tools/src/cli/**/*.ts');
   });
 
-  it('scopes sub-file runs with explicit mutate globs and sanitized report keys', () => {
+  it('scopes sub-file runs with explicit mutate globs and package-level incremental state', () => {
     const args = buildMutationArgsForTest({
       absolutePath: `${REPO_ROOT}/packages/quality-tools/src/mutation/Weird File.TS`,
       kind: 'file',
@@ -37,7 +37,7 @@ describe('buildMutationArgsForTest', () => {
 
     expect(args[0]).toBe('run');
     expect(args[3]).toBe(
-      'reports/mutation/packages-quality-tools-src-mutation-weird-file.ts/stryker-incremental-packages-quality-tools-src-mutation-weird-file.ts.json'
+      'reports/mutation/quality-tools/stryker-incremental-quality-tools.json'
     );
     expect(args).toContain('-m');
     expect(args.join(' ')).toContain('packages/quality-tools/src/mutation/Weird File.TS');

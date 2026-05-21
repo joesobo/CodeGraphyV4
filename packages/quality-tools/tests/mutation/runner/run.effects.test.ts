@@ -1,8 +1,16 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EventEmitter } from 'node:events';
+import type { ChildProcess, SpawnOptions } from 'node:child_process';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { QualityTarget } from '../../../src/shared/resolve/target';
 import { REPO_ROOT } from '../../../src/shared/resolve/repoRoot';
 
-const execFileSync = vi.fn();
+const spawn = vi.fn((_command: string, _args: string[], _options: SpawnOptions): ChildProcess => {
+  const child = new EventEmitter();
+  queueMicrotask(() => {
+    child.emit('exit', 0, null);
+  });
+  return child as ChildProcess;
+});
 const copySharedMutationReports = vi.fn(() => '/repo/reports/mutation.json');
 const reportMutationSiteViolations = vi.fn();
 const resolvePackageToolGlobs = vi.fn(() => ({
@@ -26,9 +34,9 @@ vi.mock('child_process', async (importOriginal) => {
     ...actual,
     default: {
       ...actual,
-      execFileSync,
+      spawn,
     },
-    execFileSync,
+    spawn,
   };
 });
 
@@ -81,7 +89,7 @@ function fileTarget(): QualityTarget {
 
 describe('runMutation', () => {
   beforeEach(() => {
-    execFileSync.mockClear();
+    spawn.mockClear();
     copySharedMutationReports.mockClear();
     reportMutationSiteViolations.mockClear();
     resolvePackageToolGlobs.mockClear();
@@ -89,6 +97,11 @@ describe('runMutation', () => {
     resolveMutationProfile.mockClear();
     resolveScopedVitestIncludes.mockReset();
     resolveScopedVitestIncludes.mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('runs stryker and reports site violations for the copied report', async () => {
@@ -100,14 +113,14 @@ describe('runMutation', () => {
       'packages/quality-tools/tests/**/*.test.tsx',
     ]);
 
-    runMutation(target());
+    await runMutation(target());
 
     expect(resolvePackageToolGlobs).toHaveBeenCalledWith(REPO_ROOT, 'quality-tools', 'mutation');
     expect(buildMutateGlobs).toHaveBeenCalledWith(target(), {
       include: ['packages/quality-tools/src/**/*.ts'],
       exclude: ['packages/quality-tools/src/cli/**/*.ts']
     });
-    expect(execFileSync).toHaveBeenCalledWith(
+    expect(spawn).toHaveBeenCalledWith(
       'stryker',
       [
         'run',
@@ -121,13 +134,14 @@ describe('runMutation', () => {
         cwd: REPO_ROOT,
         env: expect.objectContaining({
           ...process.env,
+          CODEGRAPHY_MUTATION_RUN: '1',
           CODEGRAPHY_VITEST_INCLUDE_JSON: expect.any(String),
         }),
         stdio: 'inherit',
       }),
     );
     expect(
-      JSON.parse((execFileSync.mock.calls[0][2] as { env: Record<string, string> }).env.CODEGRAPHY_VITEST_INCLUDE_JSON)
+      JSON.parse((spawn.mock.calls[0][2] as { env: Record<string, string> }).env.CODEGRAPHY_VITEST_INCLUDE_JSON)
     ).toEqual([
       'packages/quality-tools/tests/**/*.test.ts',
       'packages/quality-tools/tests/**/*.test.tsx',
@@ -145,13 +159,39 @@ describe('runMutation', () => {
       'packages/quality-tools/tests/mutation/runner/run.test.tsx',
     ]);
 
-    runMutation(fileTarget());
+    await runMutation(fileTarget());
 
-    const options = execFileSync.mock.calls[0][2] as { env: Record<string, string> };
+    const options = spawn.mock.calls[0][2] as { env: Record<string, string> };
     const includes = JSON.parse(options.env.CODEGRAPHY_VITEST_INCLUDE_JSON) as string[];
 
     expect(includes).toContain('packages/quality-tools/tests/mutation/runner/run.test.ts');
     expect(includes).toContain('packages/quality-tools/tests/mutation/runner/run.test.tsx');
+  });
+
+  it('keeps an explicit Stryker concurrency override for file targets', async () => {
+    process.env.CODEGRAPHY_STRYKER_CONCURRENCY = '3';
+    const { runMutation } = await import('../../../src/mutation/runner/run');
+
+    try {
+      await runMutation(fileTarget());
+
+      const options = spawn.mock.calls[0][2] as { env: Record<string, string> };
+      expect(options.env.CODEGRAPHY_STRYKER_CONCURRENCY).toBe('3');
+    } finally {
+      delete process.env.CODEGRAPHY_STRYKER_CONCURRENCY;
+    }
+  });
+
+  it('passes force reruns through to Stryker incremental mode', async () => {
+    const { runMutation } = await import('../../../src/mutation/runner/run');
+
+    await runMutation(fileTarget(), { force: true });
+
+    expect(spawn).toHaveBeenCalledWith(
+      'stryker',
+      expect.arrayContaining(['--force']),
+      expect.any(Object),
+    );
   });
 
   it('passes scoped vitest includes for directory targets', async () => {
@@ -161,7 +201,7 @@ describe('runMutation', () => {
       'packages/quality-tools/tests/mutation/**/*.test.tsx',
     ]);
 
-    runMutation({
+    await runMutation({
       absolutePath: `${REPO_ROOT}/packages/quality-tools/src/mutation`,
       kind: 'directory',
       packageName: 'quality-tools',
@@ -170,13 +210,13 @@ describe('runMutation', () => {
       relativePath: 'packages/quality-tools/src/mutation',
     });
 
-    const options = execFileSync.mock.calls[0][2] as { env: Record<string, string> };
+    const options = spawn.mock.calls[0][2] as { env: Record<string, string> };
     const includes = JSON.parse(options.env.CODEGRAPHY_VITEST_INCLUDE_JSON) as string[];
 
     expect(includes).toContain('packages/quality-tools/tests/mutation/**/*.test.ts');
     expect(includes).toContain('packages/quality-tools/tests/mutation/**/*.test.tsx');
 
-    expect(execFileSync).toHaveBeenCalledWith(
+    expect(spawn).toHaveBeenCalledWith(
       'stryker',
       expect.any(Array),
       expect.objectContaining({
@@ -186,6 +226,24 @@ describe('runMutation', () => {
         }),
         stdio: 'inherit',
       }),
+    );
+  });
+
+  it('prints a heartbeat while stryker is still running', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+    const child = new EventEmitter();
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    spawn.mockReturnValueOnce(child as ChildProcess);
+    const { runMutation } = await import('../../../src/mutation/runner/run');
+
+    const run = runMutation(target());
+    await vi.advanceTimersByTimeAsync(60_000);
+    child.emit('exit', 0, null);
+    await run;
+
+    expect(log).toHaveBeenCalledWith(
+      '[mutation] Still running packages/quality-tools after 1m 00s...',
     );
   });
 });
