@@ -1,6 +1,7 @@
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import {
   discoverMutationSeedJobMatrix,
@@ -69,6 +70,19 @@ describe('mutation seed jobs', () => {
       package: 'extension',
       shard: 'webview',
     });
+  });
+});
+
+describe('runSeedJob script', () => {
+  it('loads through tsx before validating required flags', () => {
+    const result = spawnSync('pnpm', ['exec', 'tsx', 'scripts/mutation/runSeedJob.ts'], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+    });
+
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('Missing required --package value.');
+    expect(result.stderr).not.toContain('Transform failed');
   });
 });
 
