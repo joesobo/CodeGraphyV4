@@ -1,5 +1,11 @@
 # @codegraphy-dev/extension
 
+## 5.5.3
+
+### Patch Changes
+
+- [`e2112b7`](https://github.com/joesobo/CodeGraphyV4/commit/e2112b7609c28083bb60bd019ab7879838c072d9) Thanks [@joesobo](https://github.com/joesobo)! - Keep enabled symbol-kind nodes visible when graph visibility settings refresh after startup, and avoid rendering the initial graph until startup theme, settings, and plugin state are ready.
+
 ## 5.5.2
 
 ### Patch Changes
