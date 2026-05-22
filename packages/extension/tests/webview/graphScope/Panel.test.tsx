@@ -59,11 +59,11 @@ describe('GraphScopePanel', () => {
     });
   });
 
-  it('renders the top-level Symbol toggle with a fallback color swatch and hides child rows until enabled', () => {
+  it('renders symbol child rows independently from the top-level Symbol toggle', () => {
     const { container } = render(<GraphScopePanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByText('Symbol')).toBeInTheDocument();
-    expect(screen.queryByText('Function')).not.toBeInTheDocument();
+    expect(screen.getByText('Function')).toBeInTheDocument();
     expect(container.querySelector('[data-scope-swatch="Symbol"]')).toHaveStyle('background-color: #7C3AED');
 
     act(() => {

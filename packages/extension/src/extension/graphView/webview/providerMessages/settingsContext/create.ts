@@ -55,8 +55,16 @@ export function createGraphViewProviderMessageSettingsContext(
     getInstalledPluginDefaultOptions: (packageName: string) =>
       readInstalledPluginDefaultOptions(packageName),
     reloadWorkspacePlugins: async () => {
+      const analyzer = source._analyzer;
+      if (!analyzer?.reloadWorkspacePlugins) {
+        return;
+      }
+
       source._analyzerInitialized = false;
-      await source._analyzer?.reloadWorkspacePlugins?.();
+      source._analyzerInitPromise = undefined;
+      await analyzer.reloadWorkspacePlugins();
+      source._analyzerInitialized = true;
+      source._analyzerInitPromise = undefined;
     },
     sendGraphControls: () => {
       source._sendGraphControls?.();

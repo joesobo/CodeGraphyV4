@@ -114,6 +114,11 @@ describe('graphView/provider/analysis/handlers', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: graphData,
     });
+    expect(handlerHarness.sendGraphControlsUpdated).toHaveBeenCalledWith(
+      graphData,
+      source._analyzer,
+      expect.any(Function),
+    );
     expect(source._sendDepthState).toHaveBeenCalledOnce();
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
@@ -185,6 +190,20 @@ describe('graphView/provider/analysis/handlers', () => {
         nodeVisibility: {},
         edgeVisibility: {},
       },
+    });
+    expect(source._sendMessage).toHaveBeenNthCalledWith(1, {
+      type: 'GRAPH_CONTROLS_UPDATED',
+      payload: {
+        nodeTypes: [],
+        edgeTypes: [],
+        nodeColors: {},
+        nodeVisibility: {},
+        edgeVisibility: {},
+      },
+    });
+    expect(source._sendMessage).toHaveBeenNthCalledWith(2, {
+      type: 'GRAPH_DATA_UPDATED',
+      payload: graphData,
     });
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_INDEX_STATUS_UPDATED',

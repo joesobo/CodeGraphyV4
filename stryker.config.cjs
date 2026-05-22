@@ -24,6 +24,10 @@ module.exports = {
     dir: path.join(__dirname, 'packages/extension'),
     related: false,
   },
+  reporters: [
+    'progress',
+    ...(base.reporters ?? []).filter((reporter) => reporter !== 'progress'),
+  ],
   concurrency: numberFromEnv('CODEGRAPHY_STRYKER_CONCURRENCY', base.concurrency ?? 2),
   maxTestRunnerReuse: numberFromEnv('CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE', base.maxTestRunnerReuse ?? 0),
   dryRunTimeoutMinutes: 30,

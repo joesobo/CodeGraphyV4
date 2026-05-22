@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 const NONCE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 export type CodeGraphyWebviewKind = 'graph' | 'timeline';
+export type CodeGraphyWebviewThemeKind = 'light' | 'dark' | 'high-contrast';
 
 export function createGraphViewNonce(random: () => number = Math.random): string {
   let text = '';
@@ -16,6 +17,7 @@ export function createGraphViewHtml(
   webview: Pick<vscode.Webview, 'asWebviewUri' | 'cspSource'>,
   nonce: string,
   viewKind: CodeGraphyWebviewKind,
+  initialTheme: CodeGraphyWebviewThemeKind = 'dark',
 ): string {
   const scriptUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, 'dist', 'webview', 'index.js')
@@ -33,7 +35,7 @@ export function createGraphViewHtml(
   <link href="${styleUri.toString()}" rel="stylesheet">
   <title>CodeGraphy</title>
 </head>
-<body data-codegraphy-view="${viewKind}">
+<body data-codegraphy-view="${viewKind}" data-codegraphy-theme="${initialTheme}">
   <div id="root"></div>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>

@@ -35,10 +35,14 @@ export function createMessageHandler(
     if (raw.type === 'PLUGIN_WEBVIEW_INJECT') {
       const payload = normalizePluginInjectPayload(raw.payload);
       if (payload) {
+        const store = graphStore.getState();
+        store.beginPluginAssetLoad();
         void injectPluginAssets({
           pluginId: payload.pluginId,
           scripts: payload.scripts,
           styles: payload.styles,
+        }).finally(() => {
+          graphStore.getState().finishPluginAssetLoad();
         });
       }
       return;
@@ -69,6 +73,7 @@ export function setupMessageListener(
   // duplicate ready messages during React development replays such as StrictMode.
   if (!codeGraphyWindow.__codegraphyWebviewReadyPosted) {
     codeGraphyWindow.__codegraphyWebviewReadyPosted = true;
+    graphStore.getState().beginInitialBootstrap();
     postMessage({ type: 'WEBVIEW_READY', payload: null });
   }
 

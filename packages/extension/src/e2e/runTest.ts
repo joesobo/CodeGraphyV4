@@ -43,6 +43,18 @@ function cleanupScenarioArtifacts(
   }
 }
 
+function maybeCleanupScenarioArtifacts(
+  workspacePath: string,
+  hadGitignore: boolean,
+  preserveWorkspaceCodegraphy: boolean,
+): void {
+  if (preserveWorkspaceCodegraphy) {
+    return;
+  }
+
+  cleanupScenarioArtifacts(workspacePath, hadGitignore);
+}
+
 interface CodeGraphyPluginPackageJson {
   name?: unknown;
   version?: unknown;
@@ -168,13 +180,16 @@ function writeScenarioPluginState(
   workspacePath: string,
   homeDir: string,
   packageRelativePaths: readonly string[],
+  writeWorkspaceSettings = true,
 ): void {
   const pluginRecords = packageRelativePaths.map(relativePath =>
     readScenarioPluginRecord(repoRoot, relativePath),
   );
 
   writeScenarioInstalledPluginCache(homeDir, pluginRecords);
-  writeScenarioWorkspaceSettings(workspacePath, pluginRecords);
+  if (writeWorkspaceSettings) {
+    writeScenarioWorkspaceSettings(workspacePath, pluginRecords);
+  }
 }
 
 async function main(): Promise<void> {
@@ -184,7 +199,16 @@ async function main(): Promise<void> {
     'packages/extension/dist-e2e/extension/src/e2e/suite/run',
   );
 
-  for (const scenario of e2eScenarios) {
+  const selectedScenarioName = process.env.CODEGRAPHY_E2E_ONLY_SCENARIO;
+  const selectedScenarios = selectedScenarioName
+    ? e2eScenarios.filter(scenario => scenario.name === selectedScenarioName)
+    : e2eScenarios.filter(scenario => scenario.runByDefault !== false);
+
+  if (selectedScenarioName && selectedScenarios.length === 0) {
+    throw new Error(`Unknown e2e scenario: ${selectedScenarioName}`);
+  }
+
+  for (const scenario of selectedScenarios) {
     const vscodeProfilePath = fs.mkdtempSync(
       path.join(os.tmpdir(), `codegraphy-e2e-${scenario.name.replace(/[^a-z0-9-]/gi, '-')}-`),
     );
@@ -195,12 +219,17 @@ async function main(): Promise<void> {
     const hadGitignore = fs.existsSync(path.join(workspacePath, '.gitignore'));
 
     try {
-      cleanupScenarioArtifacts(workspacePath, hadGitignore);
+      maybeCleanupScenarioArtifacts(
+        workspacePath,
+        hadGitignore,
+        scenario.preserveWorkspaceCodegraphy === true,
+      );
       writeScenarioPluginState(
         repoRoot,
         workspacePath,
         homeDir,
         scenario.pluginDevelopmentRelativePaths,
+        scenario.writeWorkspaceSettings !== false,
       );
       await runTests({
         extensionDevelopmentPath: repoRoot,
@@ -229,7 +258,11 @@ async function main(): Promise<void> {
         ],
       });
     } finally {
-      cleanupScenarioArtifacts(workspacePath, hadGitignore);
+      maybeCleanupScenarioArtifacts(
+        workspacePath,
+        hadGitignore,
+        scenario.preserveWorkspaceCodegraphy === true,
+      );
       fs.rmSync(vscodeProfilePath, { recursive: true, force: true });
     }
   }

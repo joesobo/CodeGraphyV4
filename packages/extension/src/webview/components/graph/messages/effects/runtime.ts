@@ -1,5 +1,5 @@
 import type { ExtensionToWebviewMessage } from '../../../../../shared/protocol/extensionToWebview';
-import type { FGNode } from '../../model/build';
+import type { FGLink, FGNode } from '../../model/build';
 import type { GraphWebviewMessageEffect } from './routing';
 
 type SingleEffectKind =
@@ -76,6 +76,7 @@ export function getNodeBoundsEffects(graphNodes: GraphNodeBounds[]): GraphWebvie
 export function getGraphRuntimeStateEffects(
   graphMode: '2d' | '3d',
   graphNodes: GraphNodeBounds[],
+  graphLinks: readonly FGLink[],
 ): GraphWebviewMessageEffect[] {
   return [{
     kind: 'postMessage',
@@ -84,6 +85,8 @@ export function getGraphRuntimeStateEffects(
       payload: {
         graphMode,
         nodeCount: graphNodes.length,
+        edgeCount: graphLinks.length,
+        edgeIds: graphLinks.map((link) => link.id).filter((id): id is string => typeof id === 'string'),
       },
     },
   }];

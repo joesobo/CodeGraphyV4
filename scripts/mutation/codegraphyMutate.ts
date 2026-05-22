@@ -7,6 +7,13 @@ import { hydrateMutationSeed } from './seedCache';
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_REPO_ROOT = resolve(SCRIPT_DIR, '../..');
 const BROAD_FALLBACK_DISABLED_BASENAMES = new Set(['create', 'runtime', 'state']);
+const VALUE_FLAGS = new Set([
+  '--mutate',
+  '--mutate-glob',
+  '--mutate-globs-json',
+  '--test-include',
+  '--test-includes-json',
+]);
 
 export interface QualityTarget {
   absolutePath: string;
@@ -179,7 +186,7 @@ function bareTargetArgs(args: readonly string[]): string[] {
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
-    if (arg === '--mutate') {
+    if (VALUE_FLAGS.has(arg)) {
       index += 1;
       continue;
     }
@@ -198,7 +205,7 @@ function removeBareTargets(args: readonly string[], count: number): string[] {
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
-    if (arg === '--mutate') {
+    if (VALUE_FLAGS.has(arg)) {
       filtered.push(arg);
       if (index + 1 < args.length) {
         filtered.push(args[index + 1]);

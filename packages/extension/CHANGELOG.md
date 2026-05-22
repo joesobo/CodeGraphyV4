@@ -1,5 +1,23 @@
 # @codegraphy-dev/extension
 
+## 5.5.3
+
+### Patch Changes
+
+- [`e2112b7`](https://github.com/joesobo/CodeGraphyV4/commit/e2112b7609c28083bb60bd019ab7879838c072d9) Thanks [@joesobo](https://github.com/joesobo)! - Keep enabled symbol-kind nodes visible when graph visibility settings refresh after startup, and avoid rendering the initial graph until startup theme, settings, and plugin state are ready.
+
+## 5.5.2
+
+### Patch Changes
+
+- [`5f6c0fb`](https://github.com/joesobo/CodeGraphyV4/commit/5f6c0fb6fc417adf7ff3371ed5f5a3e514bb6374) Thanks [@joesobo](https://github.com/joesobo)! - Keep graph edges rendered after reloading enabled npm plugins from the extension settings panel.
+
+## 5.5.1
+
+### Patch Changes
+
+- [`43f6561`](https://github.com/joesobo/CodeGraphyV4/commit/43f656135eeae08beda9f6f4fc418964fc1d58b3) Thanks [@joesobo](https://github.com/joesobo)! - Rebuild stale Graph Cache data before publishing graph data so newly enabled npm plugins are not overwritten by cached analysis.
+
 ## 5.5.0
 
 ### Minor Changes
