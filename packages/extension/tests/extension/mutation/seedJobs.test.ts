@@ -1,8 +1,10 @@
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
+import { buildQualityToolsMutationArgs } from '../../../../../scripts/mutation/runSeedJob';
 import {
   discoverMutationSeedJobMatrix,
   discoverMutationSeedJobs,
@@ -13,6 +15,8 @@ import {
   writeMutationSeedReports,
 } from '../../../../../scripts/mutation/seedMerge';
 import { REPO_ROOT } from '../../../../../scripts/mutation/paths';
+
+const require = createRequire(import.meta.url);
 
 function createReport(options: {
   fileName: string;
@@ -74,6 +78,21 @@ describe('mutation seed jobs', () => {
 });
 
 describe('runSeedJob script', () => {
+  it('forwards seed job mutate and test include scopes to quality-tools', () => {
+    expect(buildQualityToolsMutationArgs({
+      mutate: ['packages/plugin-typescript/src/**/*.ts'],
+      package: 'plugin-typescript',
+      shard: 'plugin-typescript',
+      testIncludes: ['packages/plugin-typescript/tests/**/*.test.ts'],
+    })).toEqual([
+      'plugin-typescript/',
+      '--mutate-globs-json',
+      JSON.stringify(['packages/plugin-typescript/src/**/*.ts']),
+      '--test-includes-json',
+      JSON.stringify(['packages/plugin-typescript/tests/**/*.test.ts']),
+    ]);
+  });
+
   it('loads through tsx before validating required flags', () => {
     const result = spawnSync('pnpm', ['exec', 'tsx', 'scripts/mutation/runSeedJob.ts'], {
       cwd: REPO_ROOT,
@@ -83,6 +102,26 @@ describe('runSeedJob script', () => {
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('Missing required --package value.');
     expect(result.stderr).not.toContain('Transform failed');
+  });
+});
+
+describe('stryker seed configs', () => {
+  it('keeps the workspace seed config open to non-extension package tests', () => {
+    const config = require('../../../../../stryker.config.cjs') as {
+      vitest?: { configFile?: string; dir?: string };
+    };
+
+    expect(config.vitest?.configFile).toBe('packages/extension/vitest.config.ts');
+    expect(config.vitest?.dir).toBeUndefined();
+  });
+
+  it('keeps the extension package config open to repo-relative test includes', () => {
+    const config = require('../../../../../stryker.extension.config.cjs') as {
+      vitest?: { configFile?: string; dir?: string };
+    };
+
+    expect(config.vitest?.configFile).toBe('packages/extension/vitest.config.ts');
+    expect(config.vitest?.dir).toBeUndefined();
   });
 });
 
