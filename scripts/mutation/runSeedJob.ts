@@ -38,7 +38,7 @@ function runQualityToolsMutation(args: string[], env: NodeJS.ProcessEnv): Promis
   });
 }
 
-try {
+async function main(): Promise<void> {
   const args = process.argv.slice(2).filter((arg) => arg !== '--');
   const packageName = requiredFlag(args, '--package');
   const shard = requiredFlag(args, '--shard');
@@ -58,7 +58,9 @@ try {
       : process.env.CODEGRAPHY_VITEST_SCOPE ?? 'workspace',
     CODEGRAPHY_VITEST_INCLUDE_JSON: JSON.stringify(job.testIncludes),
   });
-} catch (error) {
+}
+
+void main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
-}
+});
