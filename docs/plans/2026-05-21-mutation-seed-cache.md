@@ -219,7 +219,7 @@ Implementation lives in:
 - `scripts/mutate.ts`
 - `scripts/mutation/codegraphyMutate.ts`
 - `scripts/mutation/seedCache.ts`
-- `quality-tools list-mutation-packages`
+- `scripts/mutation/seedJobs.ts`
 
 Suggested responsibilities:
 
@@ -342,4 +342,4 @@ The first validation found a real `quality-tools` issue: seed-cache tests were a
 - Accepted: the Local Main Seed Cache is the local main checkout's `reports/quality-tools/mutation/` tree, with `seed-sha.txt` at the root and package incremental reports under package directories.
 - Accepted: no-arg `pnpm run mutate` is invalid; users must run `pnpm run mutate -- <package-or-path>`.
 - Accepted: locating the local main checkout means finding the worktree currently on `main` so the wrapper can read/write `<local-main-checkout>/reports/quality-tools/mutation/seed-sha.txt` and package seed files.
-- Accepted: the CI seed workflow chooses its matrix with `pnpm exec quality-tools list-mutation-packages --json`, which reuses the same mutation package discovery rules as the local mutation profile.
+- Accepted: the CI seed workflow chooses its matrix with CodeGraphy's host-specific `scripts/mutation/seedJobs.ts` discovery, while the extracted quality-tools package only runs the scoped mutation target it is given.
