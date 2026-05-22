@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createRequire } from 'module';
+import { readFileSync } from 'fs';
 import {
   discoverMutationPackageNames,
   resolveMutationProfile
@@ -11,8 +12,12 @@ const require = createRequire(import.meta.url);
 const rootStrykerConfig = require(`${REPO_ROOT}/stryker.config.cjs`) as {
   dryRunTimeoutMinutes?: number;
   plugins?: string[];
+  reporters?: string[];
   testRunner?: string;
 };
+const qualityToolsStrykerConfig = JSON.parse(
+  readFileSync(`${REPO_ROOT}/packages/quality-tools/stryker.config.json`, 'utf-8'),
+) as { reporters?: string[] };
 
 describe('mutation profiles', () => {
   afterEach(() => {
@@ -48,6 +53,11 @@ describe('mutation profiles', () => {
   it('routes shared mutation through the repo-local vitest runner', () => {
     expect(rootStrykerConfig.testRunner).toBe('codegraphy-vitest');
     expect(rootStrykerConfig.plugins).toContain('./packages/quality-tools/stryker/codegraphy-vitest-runner.mjs');
+  });
+
+  it('enables append-only mutation progress in CI logs', () => {
+    expect(rootStrykerConfig.reporters).toContain('progress');
+    expect(qualityToolsStrykerConfig.reporters).toContain('progress');
   });
 
   it('scopes extension mutation test discovery to extension tests', async () => {

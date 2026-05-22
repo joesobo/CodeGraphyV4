@@ -229,6 +229,31 @@ describe('runMutation', () => {
     );
   });
 
+  it('uses explicit mutate globs and test includes for seed shards', async () => {
+    const { runMutation } = await import('../../../src/mutation/runner/run');
+
+    await runMutation(target(), {
+      mutateGlobs: ['packages/quality-tools/src/mutation/**/*.ts'],
+      testIncludes: ['packages/quality-tools/tests/mutation/**/*.test.ts'],
+    });
+
+    expect(buildMutateGlobs).not.toHaveBeenCalled();
+    expect(spawn).toHaveBeenCalledWith(
+      'stryker',
+      expect.arrayContaining([
+        '-m',
+        'packages/quality-tools/src/mutation/**/*.ts,!packages/quality-tools/src/cli/**/*.ts',
+      ]),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          CODEGRAPHY_VITEST_INCLUDE_JSON: JSON.stringify([
+            'packages/quality-tools/tests/mutation/**/*.test.ts',
+          ]),
+        }),
+      }),
+    );
+  });
+
   it('prints a heartbeat while stryker is still running', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(0);

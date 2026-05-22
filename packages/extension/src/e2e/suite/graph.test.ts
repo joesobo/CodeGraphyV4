@@ -12,6 +12,8 @@ import { getCurrentE2EScenario } from '../scenarios';
 
 // The type exported by the extension's activate() function
 interface CodeGraphyAPI {
+  refresh(): Promise<void>;
+  refreshSettings(): void;
   getGraphData(): import('../../shared/graph/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
@@ -32,6 +34,9 @@ async function getAPI(): Promise<CodeGraphyAPI> {
 const scenario = getCurrentE2EScenario();
 let indexedGraphPromise: Promise<void> | undefined;
 let discoveredGraphPromise: Promise<void> | undefined;
+const CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD = 20_000;
+const CODEGRAPHY_ROOT_RENDERED_EDGE_THRESHOLD = 10_000;
+const CODEGRAPHY_ROOT_RENDERED_NODE_THRESHOLD = 5_000;
 
 function sortedStrings(values: readonly string[]): string[] {
   return [...values].sort();
@@ -89,6 +94,8 @@ function getScenarioPackagePlugin(): { pluginId: string; packageName: string } {
         pluginId: 'codegraphy.gdscript',
         packageName: '@codegraphy-dev/plugin-godot',
       };
+    case 'codegraphy-root':
+      throw new Error('The CodeGraphy root scenario does not have a single package plugin');
   }
 }
 
@@ -228,6 +235,96 @@ suite('Graph: Workspace Analysis', function () {
       `Scenario '${scenario.name}' rendered edges after package plugin reload`,
     );
   });
+
+  test('CodeGraphy monorepo keeps rendered edges through startup refreshes', async function() {
+    if (scenario.name !== 'codegraphy-root') {
+      this.skip();
+      return;
+    }
+
+    this.timeout(600_000);
+
+    const api = await getAPI();
+    const graphUpdates: Array<{ nodes: number; edges: number }> = [];
+    const startupEvents: string[] = [];
+    const subscription = api.onExtensionMessage(message => {
+      const type = (message as { type?: string }).type;
+      if (type === 'APP_BOOTSTRAP_COMPLETE') {
+        startupEvents.push('bootstrap');
+        console.log('[e2e:codegraphy-root] APP_BOOTSTRAP_COMPLETE');
+        return;
+      }
+
+      if (type !== 'GRAPH_DATA_UPDATED') {
+        return;
+      }
+
+      const graphData = (message as { payload: import('../../shared/graph/contracts').IGraphData }).payload;
+      startupEvents.push(`graph:${graphData.nodes.length}:${graphData.edges.length}`);
+      graphUpdates.push({
+        nodes: graphData.nodes.length,
+        edges: graphData.edges.length,
+      });
+      console.log(
+        `[e2e:codegraphy-root] GRAPH_DATA_UPDATED nodes=${graphData.nodes.length} edges=${graphData.edges.length}`,
+      );
+    });
+
+    try {
+      const loadedGraphPromise = waitForExtensionMessageWhere<{
+        type: 'GRAPH_DATA_UPDATED';
+        payload: import('../../shared/graph/contracts').IGraphData;
+      }>(
+        api,
+        'GRAPH_DATA_UPDATED',
+        message => message.payload.edges.length > CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD,
+        180_000,
+      );
+      const bootstrapPromise = waitForExtensionMessage(api, 'APP_BOOTSTRAP_COMPLETE', 180_000);
+      await vscode.commands.executeCommand('codegraphy.open');
+      await api.refresh();
+      const loadedGraphMessage = await loadedGraphPromise;
+      await bootstrapPromise;
+
+      assert.ok(
+        loadedGraphMessage.payload.edges.length > CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD,
+        `Expected the CodeGraphy monorepo provider graph to keep plugin edges, got ${loadedGraphMessage.payload.edges.length}`,
+      );
+      const firstBootstrapIndex = startupEvents.indexOf('bootstrap');
+      const firstLoadedGraphIndex = startupEvents.findIndex(event => {
+        if (!event.startsWith('graph:')) {
+          return false;
+        }
+        const edgeCount = Number(event.split(':')[2] ?? '0');
+        return edgeCount > CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD;
+      });
+      assert.ok(
+        firstLoadedGraphIndex >= 0 && firstBootstrapIndex > firstLoadedGraphIndex,
+        `Expected startup bootstrap to complete after the plugin-rich graph was sent. Events: ${startupEvents.join(', ')}`,
+      );
+
+      api.refreshSettings();
+      await sleep(10_000);
+
+      const afterStartupRefreshGraph = api.getGraphData();
+      const afterStartupRefreshVisibleGraph = await requestVisibleGraphState(api, 60_000);
+      assert.ok(
+        afterStartupRefreshGraph.edges.length > CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD,
+        `Expected provider graph edges to survive startup refreshes, got ${afterStartupRefreshGraph.edges.length}. Updates: ${JSON.stringify(graphUpdates)}`,
+      );
+      assert.ok(
+        afterStartupRefreshVisibleGraph.nodeCount > CODEGRAPHY_ROOT_RENDERED_NODE_THRESHOLD,
+        `Expected visible graph nodes to survive settings refreshes, got ${afterStartupRefreshVisibleGraph.nodeCount}. Updates: ${JSON.stringify(graphUpdates)}`,
+      );
+      assert.ok(
+        afterStartupRefreshVisibleGraph.edgeCount > CODEGRAPHY_ROOT_RENDERED_EDGE_THRESHOLD,
+        `Expected visible graph edges to survive startup refreshes, got ${afterStartupRefreshVisibleGraph.edgeCount}. Updates: ${JSON.stringify(graphUpdates)}`,
+      );
+
+    } finally {
+      subscription.dispose();
+    }
+  });
 });
 
 function waitForExtensionMessage(
@@ -352,6 +449,37 @@ function waitForWebviewMessage(
   });
 }
 
+function requestWebviewMessage(
+  api: CodeGraphyAPI,
+  responseType: string,
+  requestMessage: unknown,
+  timeoutMs: number,
+  retryMs = 1_000,
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+      disposable.dispose();
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error(`Timed out waiting for webview message: ${responseType}`));
+    }, timeoutMs);
+    const interval = setInterval(() => {
+      api.sendToWebview(requestMessage);
+    }, retryMs);
+    const disposable = api.onWebviewMessage((msg: unknown) => {
+      if ((msg as { type: string }).type === responseType) {
+        cleanup();
+        resolve(msg);
+      }
+    });
+
+    api.sendToWebview(requestMessage);
+  });
+}
+
 async function waitForGraphDataUpdate(
   api: CodeGraphyAPI,
   timeoutMs = 15_000,
@@ -375,6 +503,14 @@ interface GraphRuntimeStateResponse {
   };
 }
 
+interface VisibleGraphStateResponse {
+  payload: {
+    edgeCount: number;
+    edgeIds: string[];
+    nodeCount: number;
+  };
+}
+
 async function requestNodeBounds(
   api: CodeGraphyAPI,
   timeoutMs = 5_000,
@@ -392,6 +528,19 @@ async function requestGraphRuntimeState(
   const statePromise = waitForWebviewMessage(api, 'GRAPH_RUNTIME_STATE_RESPONSE', timeoutMs);
   api.sendToWebview({ type: 'GET_GRAPH_RUNTIME_STATE' });
   const stateMessage = await statePromise as GraphRuntimeStateResponse;
+  return stateMessage.payload;
+}
+
+async function requestVisibleGraphState(
+  api: CodeGraphyAPI,
+  timeoutMs = 5_000,
+): Promise<VisibleGraphStateResponse['payload']> {
+  const stateMessage = await requestWebviewMessage(
+    api,
+    'VISIBLE_GRAPH_STATE_RESPONSE',
+    { type: 'GET_VISIBLE_GRAPH_STATE' },
+    timeoutMs,
+  ) as VisibleGraphStateResponse;
   return stateMessage.payload;
 }
 
