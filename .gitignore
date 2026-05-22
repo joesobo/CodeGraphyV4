@@ -21,3 +21,4 @@ reports/
 .pnpm-store/
 .codegraphy/meta.json
 .codegraphy/graph.lbug
+.codegraphy/
