@@ -1,5 +1,14 @@
 # @codegraphy-dev/extension
 
+## 5.5.4
+
+### Patch Changes
+
+- [#212](https://github.com/joesobo/CodeGraphyV4/pull/212) [`3263cc7`](https://github.com/joesobo/CodeGraphyV4/commit/3263cc70685e50d6bf6b30a161a435d88b45f000) Thanks [@joesobo](https://github.com/joesobo)! - Default symbol and variable graph scope node types to hidden for new workspaces.
+
+- Updated dependencies [[`3263cc7`](https://github.com/joesobo/CodeGraphyV4/commit/3263cc70685e50d6bf6b30a161a435d88b45f000)]:
+  - @codegraphy-dev/core@0.2.1
+
 ## 5.5.3
 
 ### Patch Changes
