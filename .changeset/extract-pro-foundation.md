@@ -1,8 +1,8 @@
 ---
-"@codegraphy/plugin-api": minor
-"@codegraphy/core": minor
-"@codegraphy/extension": minor
-"@codegraphy/mcp": minor
+"@codegraphy-dev/plugin-api": minor
+"@codegraphy-dev/core": minor
+"@codegraphy-dev/extension": minor
+"@codegraphy-dev/mcp": minor
 "@codegraphy/pro": minor
 ---
 

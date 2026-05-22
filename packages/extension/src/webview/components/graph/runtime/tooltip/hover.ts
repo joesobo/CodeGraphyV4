@@ -17,6 +17,10 @@ function isPackageNodeId(nodeId: string): boolean {
   return nodeId.startsWith('pkg:');
 }
 
+function isPluginRuntimeNode(node: FGNode): boolean {
+  return typeof node.ownerPluginId === 'string' || typeof node.runtimeNodeType === 'string';
+}
+
 interface TooltipHoverOptions {
 	dataRef: MutableRefObject<IGraphData>;
 	fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
@@ -45,7 +49,7 @@ function clearTooltipHoverState(
 }
 
 function shouldRequestTooltipFileInfo(node: FGNode, nodeId: string): boolean {
-  return node.nodeType !== 'package' && !isPackageNodeId(nodeId);
+  return node.nodeType !== 'package' && !isPackageNodeId(nodeId) && !isPluginRuntimeNode(node);
 }
 
 function scheduleTooltipHover(

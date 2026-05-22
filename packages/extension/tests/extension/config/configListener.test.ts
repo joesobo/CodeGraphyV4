@@ -161,6 +161,26 @@ describe('configListener', () => {
     });
   });
 
+  it('does not refresh the graph for plugin-owned data saves', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({
+      changedKeys: ['pluginData.codegraphy.organize.sections.section-alpha.x'],
+      affectsConfiguration: (key: string) =>
+        key === 'codegraphy'
+        || key === 'codegraphy.pluginData'
+        || key === 'codegraphy.pluginData.codegraphy.organize.sections.section-alpha.x',
+    } as never);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+    expect(provider.refreshSettings).not.toHaveBeenCalled();
+  });
+
   it('invalidates timeline cache when filterPatterns change', () => {
     const context = makeContext();
     const provider = makeProvider();
