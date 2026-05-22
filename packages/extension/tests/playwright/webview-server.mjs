@@ -78,6 +78,7 @@ const smokeHtml = `<!doctype html>
             },
             '*'
           );
+          window.postMessage({ type: 'APP_BOOTSTRAP_COMPLETE' }, '*');
         };
 
         window.addEventListener('load', function () {
@@ -228,6 +229,10 @@ const depthHarnessScript = `
       scheduleBoundsProbe();
     };
 
+    const publishBootstrapComplete = () => {
+      postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    };
+
     const publishAll = () => {
       publishIndexStatus();
       publishDepthMode();
@@ -235,6 +240,7 @@ const depthHarnessScript = `
       publishDepthLimit();
       publishActiveFile();
       publishGraph();
+      publishBootstrapComplete();
     };
 
     const handleWebviewMessage = (message) => {
