@@ -3,6 +3,7 @@ import {
   createGraphViewHtml,
   createGraphViewNonce,
   type CodeGraphyWebviewKind,
+  type CodeGraphyWebviewThemeKind,
 } from '../../webview/html';
 import { openGraphViewInEditor } from '../../editorPanel';
 import {
@@ -31,11 +32,45 @@ export interface GraphViewProviderWebviewMethodDependencies {
   createPanel: typeof vscode.window.createWebviewPanel;
 }
 
+function getActiveGraphViewThemeKind(): CodeGraphyWebviewThemeKind {
+  const themeKind = (
+    vscode.window as typeof vscode.window & {
+      activeColorTheme?: { kind?: vscode.ColorThemeKind };
+    }
+  ).activeColorTheme?.kind;
+  const colorThemeKind = (
+    vscode as typeof vscode & {
+      ColorThemeKind?: typeof vscode.ColorThemeKind & {
+        HighContrastLight?: vscode.ColorThemeKind;
+      };
+    }
+  ).ColorThemeKind;
+
+  if (themeKind === colorThemeKind?.Light) {
+    return 'light';
+  }
+
+  if (
+    themeKind === colorThemeKind?.HighContrast
+    || themeKind === colorThemeKind?.HighContrastLight
+  ) {
+    return 'high-contrast';
+  }
+
+  return 'dark';
+}
+
 export function createDefaultGraphViewProviderWebviewMethodDependencies(): GraphViewProviderWebviewMethodDependencies {
   return {
     viewType: 'codegraphy.graphView',
     createHtml: (extensionUri, webview, viewKind) =>
-      createGraphViewHtml(extensionUri, webview, createGraphViewNonce(), viewKind),
+      createGraphViewHtml(
+        extensionUri,
+        webview,
+        createGraphViewNonce(),
+        viewKind,
+        getActiveGraphViewThemeKind(),
+      ),
     resolveWebviewView: resolveGraphViewWebviewView,
     openInEditor: openGraphViewInEditor,
     sendWebviewMessage: sendGraphViewWebviewMessage,

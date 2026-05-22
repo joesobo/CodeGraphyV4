@@ -12,7 +12,18 @@ import type { ThemeKind } from './detection';
 export function detectTheme(): ThemeKind {
   const bodyBg = getComputedStyle(document.body).getPropertyValue('--vscode-editor-background').trim();
 
-  if (!bodyBg) return 'dark';
+  if (!bodyBg) {
+    const initialTheme = document.body.dataset.codegraphyTheme;
+    if (
+      initialTheme === 'light'
+      || initialTheme === 'dark'
+      || initialTheme === 'high-contrast'
+    ) {
+      return initialTheme;
+    }
+
+    return 'dark';
+  }
 
   const rgb = parseColor(bodyBg);
   if (!rgb) return 'dark';

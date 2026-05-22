@@ -71,31 +71,39 @@ describe('graph scope rows', () => {
     expect(scopeRow(container, 'File')).toHaveClass('opacity-65');
   });
 
-  it('hides the Variable row until Symbol is enabled', () => {
+  it('renders child rows even when parent categories are disabled', () => {
     const nodeTypes = [
       { id: 'symbol', label: 'Symbol', defaultColor: '#111111', defaultVisible: false },
+      {
+        id: 'symbol:function',
+        label: 'Function',
+        defaultColor: '#333333',
+        defaultVisible: true,
+        parentId: 'symbol',
+      },
       { id: 'variable', label: 'Variable', defaultColor: '#222222', defaultVisible: false },
+      {
+        id: 'symbol:constant',
+        label: 'Constant',
+        defaultColor: '#444444',
+        defaultVisible: true,
+        parentId: 'variable',
+      },
     ];
-    const { container, rerender } = render(
+    const { container } = render(
       <NodeTypeRows
         nodeColors={{}}
         nodeTypes={nodeTypes}
-        nodeVisibility={{ symbol: false, variable: true }}
+        nodeVisibility={{ symbol: false, variable: false }}
       />,
     );
 
     expect(scopeRow(container, 'Symbol')).toBeInTheDocument();
-    expect(scopeRow(container, 'Variable')).toBeNull();
-
-    rerender(
-      <NodeTypeRows
-        nodeColors={{}}
-        nodeTypes={nodeTypes}
-        nodeVisibility={{ symbol: true, variable: false }}
-      />,
-    );
-
+    expect(scopeRow(container, 'Function')).toBeInTheDocument();
     expect(scopeRow(container, 'Variable')).toBeInTheDocument();
+    expect(scopeRow(container, 'Constant')).toBeInTheDocument();
+    expect(scopeRow(container, 'Function')).not.toHaveClass('opacity-65');
+    expect(scopeRow(container, 'Constant')).not.toHaveClass('opacity-65');
   });
 
   it('renders edge rows from resolved colors and posts edge visibility changes', () => {

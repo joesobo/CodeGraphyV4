@@ -32,31 +32,40 @@ vi.stubGlobal('removeEventListener', (type: string, listener: (event: MessageEve
   }
 });
 
+function sendMessage(data: unknown) {
+  const event = new MessageEvent('message', { data });
+  messageListeners.forEach((listener) => listener(event));
+}
+
 describe('Webview-Extension Integration', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
     postMessageSpy.mockClear();
   });
 
-  it('should show loading state until GRAPH_DATA_UPDATED is received', async () => {
+  it('should show loading state until startup bootstrap completes', async () => {
     render(<App />);
     
     // Should be in loading state
     expect(screen.getByText('Loading graph...')).toBeInTheDocument();
     
     // Simulate extension responding with graph data
-    const graphDataEvent = new MessageEvent('message', {
-      data: {
+    await act(async () => {
+      sendMessage({
         type: 'GRAPH_DATA_UPDATED',
         payload: {
           nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
           edges: [],
         },
-      },
+      });
     });
     
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+
     await act(async () => {
-      messageListeners.forEach((listener) => listener(graphDataEvent));
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
     
     // Should no longer be loading
@@ -71,8 +80,8 @@ describe('Webview-Extension Integration', () => {
     });
     
     // 2. Simulate extension processing and responding
-    const graphDataEvent = new MessageEvent('message', {
-      data: {
+    await act(async () => {
+      sendMessage({
         type: 'GRAPH_DATA_UPDATED',
         payload: {
           nodes: [
@@ -83,11 +92,8 @@ describe('Webview-Extension Integration', () => {
             { from: 'src/index.ts', to: 'src/utils.ts' },
           ],
         },
-      },
-    });
-    
-    await act(async () => {
-      messageListeners.forEach((listener) => listener(graphDataEvent));
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
     
     // 3. Graph should render (loading gone, graph container present)
@@ -100,18 +106,15 @@ describe('Webview-Extension Integration', () => {
     render(<App />);
     
     // Send empty graph data
-    const emptyDataEvent = new MessageEvent('message', {
-      data: {
+    await act(async () => {
+      sendMessage({
         type: 'GRAPH_DATA_UPDATED',
         payload: {
           nodes: [],
           edges: [],
         },
-      },
-    });
-    
-    await act(async () => {
-      messageListeners.forEach((listener) => listener(emptyDataEvent));
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
     
     // Should show "no files" message

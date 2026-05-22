@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
 import App from '../../../../src/webview/app/view';
 import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
@@ -42,6 +42,9 @@ function resetStore() {
     graphHasIndex: false,
     graphIsIndexing: false,
     graphIndexProgress: null,
+    awaitingInitialBootstrap: false,
+    bootstrapComplete: false,
+    pendingPluginAssetLoads: 0,
     depthMode: false,
     depthLimit: 1,
     maxDepthLimit: 10,
@@ -66,7 +69,7 @@ describe('App', () => {
     delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
       .__codegraphyWebviewReadyPosted;
     resetStore();
-    vi.useFakeTimers();
+    vi.useRealTimers();
   });
 
   afterEach(() => {
@@ -100,7 +103,81 @@ describe('App', () => {
       messageListeners.forEach((listener) => listener(graphDataEvent));
     });
 
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    });
+  });
+
+  it('keeps the graph hidden until startup bootstrap is complete', async () => {
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+    });
+
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+    expect(screen.queryByTitle('Graph Scope')).not.toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
+  });
+
+  it('waits for startup plugin asset injection before showing the first graph', async () => {
+    let resolveInjection: (() => void) | undefined;
+    const pendingImport = new Promise<void>((resolve) => {
+      resolveInjection = resolve;
+    });
+    vi.doMock('/plugin/startup.js', () => pendingImport.then(() => ({
+      activate: vi.fn(),
+    })));
+
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId: 'codegraphy.test',
+          scripts: ['/plugin/startup.js'],
+          styles: [],
+        },
+      });
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveInjection?.();
+      await pendingImport;
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    });
   });
 
   it('should send WEBVIEW_READY only once across initial graph load', async () => {
@@ -120,6 +197,7 @@ describe('App', () => {
           },
         },
       })));
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
     const readyMessages = sentMessages.filter((msg) => msg.type === 'WEBVIEW_READY');
@@ -155,6 +233,7 @@ describe('App', () => {
           },
         },
       })));
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
     expect(screen.getByTitle('Legends')).toBeInTheDocument();
@@ -175,6 +254,7 @@ describe('App', () => {
           },
         },
       })));
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
     expect(screen.getByTitle('Zoom In')).toBeInTheDocument();
@@ -200,6 +280,7 @@ describe('App', () => {
           },
         },
       })));
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
     expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
@@ -232,6 +313,71 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByText('2 of 3')).toBeInTheDocument();
+  });
+
+  it('responds with the current visible graph state after scope settings apply', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sentMessages = (globalThis as any).__vscodeSentMessages as Array<{
+      type?: string;
+      payload?: unknown;
+    }>;
+    sentMessages.length = 0;
+
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'src/app.ts', label: 'app.ts', color: '#3B82F6', nodeType: 'file' },
+          {
+            id: 'src/app.ts#run:function',
+            label: 'run',
+            color: '#8B5CF6',
+            nodeType: 'symbol',
+            symbol: {
+              id: 'src/app.ts#run:function',
+              name: 'run',
+              kind: 'function',
+              filePath: 'src/app.ts',
+            },
+          },
+        ],
+        edges: [
+          {
+            id: 'src/app.ts->src/app.ts#run:function#contains',
+            from: 'src/app.ts',
+            to: 'src/app.ts#run:function',
+            kind: 'contains',
+            sources: [],
+          },
+        ],
+      },
+      graphEdgeTypes: [
+        { id: 'contains', label: 'Contains', defaultColor: '#222222', defaultVisible: true },
+      ],
+      isLoading: false,
+      nodeVisibility: {
+        file: true,
+        symbol: false,
+        'symbol:function': true,
+      },
+      edgeVisibility: {
+        contains: true,
+      },
+      showOrphans: true,
+    });
+
+    render(<App />);
+    await act(async () => {
+      sendMessage({ type: 'GET_VISIBLE_GRAPH_STATE' });
+    });
+
+    expect(sentMessages).toContainEqual({
+      type: 'VISIBLE_GRAPH_STATE_RESPONSE',
+      payload: {
+        nodeCount: 2,
+        edgeCount: 1,
+        edgeIds: ['src/app.ts->src/app.ts#run:function#contains'],
+      },
+    });
   });
 
   it('updates the excluded count immediately when plugin filters are disabled', () => {
@@ -276,6 +422,7 @@ describe('App', () => {
           },
         },
       })));
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
     expect(screen.getByText('Graph Scope')).toBeInTheDocument();
@@ -299,7 +446,7 @@ describe('App: message handlers', () => {
     delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
       .__codegraphyWebviewReadyPosted;
     resetStore();
-    vi.useFakeTimers();
+    vi.useRealTimers();
   });
   afterEach(() => vi.useRealTimers());
 

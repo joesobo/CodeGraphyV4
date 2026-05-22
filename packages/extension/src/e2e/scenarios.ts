@@ -1,4 +1,4 @@
-export type E2EScenarioName = 'typescript' | 'godot';
+export type E2EScenarioName = 'typescript' | 'godot' | 'codegraphy-root';
 
 interface DepthExpectation {
   rootFileRelativePath: string;
@@ -19,6 +19,9 @@ export interface E2EScenario {
   workspaceRelativePath: string;
   pluginDevelopmentRelativePaths: string[];
   workspacePluginPackageRelativePaths: string[];
+  runByDefault?: boolean;
+  preserveWorkspaceCodegraphy?: boolean;
+  writeWorkspaceSettings?: boolean;
   graphNodeExtension: string;
   expectedNodeIds: string[];
   minimumExpectedEdgeIds: string[];
@@ -30,6 +33,37 @@ export interface E2EScenario {
 }
 
 export const e2eScenarios: E2EScenario[] = [
+  {
+    name: 'codegraphy-root',
+    workspaceRelativePath: '.',
+    pluginDevelopmentRelativePaths: [],
+    workspacePluginPackageRelativePaths: [],
+    runByDefault: false,
+    preserveWorkspaceCodegraphy: true,
+    writeWorkspaceSettings: false,
+    graphNodeExtension: '.ts',
+    expectedNodeIds: [
+      'packages/extension/src/e2e/suite/graph.test.ts',
+    ],
+    minimumExpectedEdgeIds: [],
+    primaryFileRelativePath: 'packages/extension/src/e2e/suite/graph.test.ts',
+    tempFileRelativePath: 'packages/extension/src/e2e/suite/__e2e_temp__.ts',
+    tempFileContents: 'export const e2eTemp = true;\n',
+    saveTriggerText: '\n// e2e save trigger',
+    depth: {
+      rootFileRelativePath: 'packages/extension/src/e2e/suite/graph.test.ts',
+      depthOneNodeIds: [],
+      depthOneEdgeIds: [],
+      depthTwoNodeIds: [],
+      excludedAtDepthTwo: [],
+      selectedNodeId: 'packages/extension/src/e2e/suite/graph.test.ts',
+      selectedNodeDepthOneNodeIds: [],
+      selectedNodeDepthOneEdgeIds: [],
+      rerootNodeId: 'packages/extension/src/e2e/suite/graph.test.ts',
+      rerootDepthOneNodeIds: [],
+      rerootDepthOneEdgeIds: [],
+    },
+  },
   {
     name: 'typescript',
     workspaceRelativePath: 'examples/example-typescript',

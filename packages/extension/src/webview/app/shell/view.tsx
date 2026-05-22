@@ -20,6 +20,7 @@ import { deriveVisibleGraph } from '../../../shared/visibleGraph';
 import { getFilterCountState } from '../../components/searchBar/filters/countState';
 import { toFilterGlob } from '../../components/searchBar/filters/model';
 import { buildVisibleGraphConfig } from '../../search/visibleGraphConfig';
+import { postMessage as postWebviewMessage } from '../../vscodeApi';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets, resetPluginAssets } = usePluginManager();
@@ -128,14 +129,39 @@ export default function App(): React.ReactElement {
     return setupMessageListener(injectPluginAssets, pluginHost, resetPluginAssets);
   }, [injectPluginAssets, pluginHost, resetPluginAssets]);
 
+  const displayGraphData = coloredData || graphData;
+  useEffect(() => {
+    const handleVisibleGraphStateRequest = (event: MessageEvent<unknown>) => {
+      const raw = event.data as { type?: unknown };
+      if (!raw || raw.type !== 'GET_VISIBLE_GRAPH_STATE') {
+        return;
+      }
+
+      postWebviewMessage({
+        type: 'VISIBLE_GRAPH_STATE_RESPONSE',
+        payload: {
+          nodeCount: displayGraphData?.nodes.length ?? 0,
+          edgeCount: displayGraphData?.edges.length ?? 0,
+          edgeIds: displayGraphData?.edges.map(edge => edge.id) ?? [],
+        },
+      });
+    };
+
+    window.addEventListener('message', handleVisibleGraphStateRequest);
+    return () => window.removeEventListener('message', handleVisibleGraphStateRequest);
+  }, [displayGraphData]);
+
   if (isLoading) return <LoadingState />;
 
   if (!graphData) {
     return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)} />;
   }
 
-  const displayGraphData = coloredData || graphData;
-  const graphStatsLabel = buildGraphStatsLabel(displayGraphData.nodes.length, displayGraphData.edges.length);
+  const loadedDisplayGraphData = displayGraphData ?? graphData;
+  const graphStatsLabel = buildGraphStatsLabel(
+    loadedDisplayGraphData.nodes.length,
+    loadedDisplayGraphData.edges.length,
+  );
   const closeActivePanel = () => setActivePanel('none');
   const countTotal = countBaseData?.nodes.length ?? graphData.nodes.length;
   const filterVisibleCount = filterVisibleData?.nodes.length ?? countTotal;

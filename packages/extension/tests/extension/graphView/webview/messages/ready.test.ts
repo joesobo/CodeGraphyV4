@@ -94,9 +94,9 @@ describe('graph view ready message', () => {
   it('sends available views before kicking off analysis', async () => {
     const callOrder: string[] = [];
     const handlers = createHandlers();
-    handlers.sendDepthState.mockImplementation(() => {
-      callOrder.push('views');
-    });
+    handlers.sendSettings.mockImplementation(() => callOrder.push('settings'));
+    handlers.sendGraphControls.mockImplementation(() => callOrder.push('controls'));
+    handlers.sendPluginWebviewInjections.mockImplementation(() => callOrder.push('plugin-injections'));
     handlers.loadAndSendData.mockImplementation(() => {
       callOrder.push('analyze');
     });
@@ -115,9 +115,44 @@ describe('graph view ready message', () => {
       handlers
     );
 
-    expect(callOrder.indexOf('views')).toBeGreaterThanOrEqual(0);
+    expect(callOrder.indexOf('settings')).toBeGreaterThanOrEqual(0);
+    expect(callOrder.indexOf('controls')).toBeGreaterThanOrEqual(0);
+    expect(callOrder.indexOf('plugin-injections')).toBeGreaterThanOrEqual(0);
     expect(callOrder.indexOf('analyze')).toBeGreaterThanOrEqual(0);
-    expect(callOrder.indexOf('views')).toBeLessThan(callOrder.indexOf('analyze'));
+    expect(callOrder.indexOf('settings')).toBeLessThan(callOrder.indexOf('analyze'));
+    expect(callOrder.indexOf('controls')).toBeLessThan(callOrder.indexOf('analyze'));
+    expect(callOrder.indexOf('plugin-injections')).toBeLessThan(callOrder.indexOf('analyze'));
+  });
+
+  it('announces bootstrap completion after the initial graph load settles', async () => {
+    const events: string[] = [];
+    const handlers = createHandlers();
+    handlers.loadAndSendData.mockImplementation(async () => {
+      events.push('graph:start');
+      await Promise.resolve();
+      events.push('graph:end');
+    });
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
+        events.push('bootstrap');
+      }
+    });
+
+    await applyWebviewReady(
+      {
+        maxFiles: 500,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(events).toEqual(['graph:start', 'graph:end', 'bootstrap']);
   });
 
   it('waits for workspace readiness during the first workspace-backed analysis', async () => {

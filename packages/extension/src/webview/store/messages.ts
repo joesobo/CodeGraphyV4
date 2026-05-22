@@ -16,6 +16,7 @@ import {
   handleShowLabelsUpdated,
   handleMaxFilesUpdated,
   handleActiveFileUpdated,
+  handleAppBootstrapComplete,
 } from './messageHandlers/graph';
 import {
   handleIndexProgress,
@@ -46,8 +47,13 @@ export const MESSAGE_HANDLERS: Record<
   string,
   (msg: ExtensionToWebviewMessage, ctx: IHandlerContext) => PartialState | void
 > = {
-  GRAPH_DATA_UPDATED: (msg) =>
-    handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>),
+  GRAPH_DATA_UPDATED: (msg, ctx) =>
+    handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>, ctx),
+  APP_BOOTSTRAP_COMPLETE: (msg, ctx) =>
+    handleAppBootstrapComplete(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'APP_BOOTSTRAP_COMPLETE' }>,
+      ctx,
+    ),
   GRAPH_INDEX_STATUS_UPDATED: (msg) =>
     handleGraphIndexStatusUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>

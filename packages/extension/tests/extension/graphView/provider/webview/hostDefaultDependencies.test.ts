@@ -32,8 +32,15 @@ vi.mock('vscode', () => ({
   ViewColumn: {
     Active: 1,
   },
+  ColorThemeKind: {
+    Light: 1,
+    Dark: 2,
+    HighContrast: 3,
+    HighContrastLight: 4,
+  },
   window: {
     createWebviewPanel: mocks.createWebviewPanel,
+    activeColorTheme: { kind: 1 },
   },
 }));
 
@@ -115,6 +122,7 @@ describe('graphView/provider/webview/host default dependencies', () => {
       nextWebview,
       'nonce-123',
       'graph',
+      'light',
     );
     expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(nextWebview, source);
     expect(mocks.executeCommand).toHaveBeenCalledWith(
@@ -165,6 +173,7 @@ describe('graphView/provider/webview/host default dependencies', () => {
       nextWebview,
       'nonce-123',
       'graph',
+      'light',
     );
   });
 });

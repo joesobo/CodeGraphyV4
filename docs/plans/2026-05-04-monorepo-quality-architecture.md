@@ -117,8 +117,10 @@ Retested after cleanup:
 - `pnpm run reachability -- extension/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm run reachability -- codegraphy-mcp/ --strict`: pass, 0 dead surfaces, 0 dead ends
 - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/shared/graphControls tests/shared/visibleGraph tests/webview/search tests/webview/settingsPanel`: pass, 42 files / 221 tests
-- `pnpm --filter @codegraphy-dev/quality-tools exec vitest run --config vitest.config.ts tests/boundaries/selection.test.ts`: pass
 - `pnpm run mutate -- quality-tools/src/boundaries/selection.ts`: pass, 100% mutation score, 0 survivors
+- `pnpm --dir ../quality-tools --filter @poleski/quality-tools exec vitest run --config vitest.config.ts tests/boundaries/selection.test.ts`: pass
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/rules.test.ts`: pass
+- `pnpm run mutate -- extension/src/extension/pipeline/rules.ts`: pass, 100% mutation score, 0 survivors
 - `pnpm run lint`: pass
 - `pnpm run typecheck`: pass
 

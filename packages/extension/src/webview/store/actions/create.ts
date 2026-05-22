@@ -26,6 +26,12 @@ export function createActions(set: SetState, get: GetState) {
     ...userGroups,
     ...currentGroups.filter((group) => group.isPluginDefault),
   ];
+  const canFinishInitialLoading = (
+    state: Pick<GraphState, 'bootstrapComplete' | 'graphData' | 'pendingPluginAssetLoads'>,
+  ): boolean =>
+    state.bootstrapComplete
+    && state.graphData !== null
+    && state.pendingPluginAssetLoads === 0;
 
   return {
     ...createDisplayActions(set),
@@ -40,6 +46,35 @@ export function createActions(set: SetState, get: GetState) {
     setMaxFiles: (max: number) => set({ maxFiles: max }),
     setPlaybackSpeed: (speed: number) => set({ playbackSpeed: speed }),
     setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
+    beginInitialBootstrap: () =>
+      set((state) => {
+        if (state.graphData !== null || !state.isLoading) {
+          return {};
+        }
+
+        return {
+          awaitingInitialBootstrap: true,
+          bootstrapComplete: false,
+          isLoading: true,
+        };
+      }),
+    beginPluginAssetLoad: () =>
+      set((state) => ({
+        pendingPluginAssetLoads: state.pendingPluginAssetLoads + 1,
+      })),
+    finishPluginAssetLoad: () =>
+      set((state) => {
+        const pendingPluginAssetLoads = Math.max(0, state.pendingPluginAssetLoads - 1);
+        const nextState = {
+          ...state,
+          pendingPluginAssetLoads,
+        };
+
+        return {
+          pendingPluginAssetLoads,
+          isLoading: canFinishInitialLoading(nextState) ? false : state.isLoading,
+        };
+      }),
     setOptimisticLegendUpdate: (groupId: string, updates: Partial<GraphState['legends'][number]>) =>
       set((state) => ({
         optimisticLegendUpdates: mergePendingGroupUpdate(

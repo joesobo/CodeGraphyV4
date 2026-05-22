@@ -83,6 +83,7 @@ export interface GraphViewProviderMessageListenerSource {
   _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
   _analyzerInitialized: boolean;
+  _analyzerInitPromise?: Promise<void>;
   _firstAnalysis: boolean;
   _webviewReadyNotified: boolean;
   _webviewMethods: {
