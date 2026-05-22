@@ -8,12 +8,32 @@ import { arePlainValuesEqual } from './equality/compare';
 
 export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,
+  ctx?: Pick<IHandlerContext, 'getState'>,
 ): PartialState {
+  const state = ctx?.getState();
+  const waitingForInitialBootstrap = Boolean(
+    state?.awaitingInitialBootstrap
+    && (!state.bootstrapComplete || state.pendingPluginAssetLoads > 0),
+  );
+
   return {
     graphData: message.payload,
-    isLoading: false,
+    isLoading: waitingForInitialBootstrap,
     graphIsIndexing: false,
     graphIndexProgress: null,
+  };
+}
+
+export function handleAppBootstrapComplete(
+  _message: Extract<ExtensionToWebviewMessage, { type: 'APP_BOOTSTRAP_COMPLETE' }>,
+  ctx: Pick<IHandlerContext, 'getState'>,
+): PartialState {
+  const state = ctx.getState();
+  const graphReady = state.graphData !== null && state.pendingPluginAssetLoads === 0;
+
+  return {
+    bootstrapComplete: true,
+    isLoading: graphReady ? false : state.isLoading,
   };
 }
 

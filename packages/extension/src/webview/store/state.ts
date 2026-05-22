@@ -33,6 +33,9 @@ export interface GraphState {
   graphIsIndexing: boolean;
   graphIndexProgress: { phase: string; current: number; total: number } | null;
   isLoading: boolean;
+  awaitingInitialBootstrap: boolean;
+  bootstrapComplete: boolean;
+  pendingPluginAssetLoads: number;
   searchQuery: string;
   searchOptions: SearchOptions;
   favorites: Set<string>;
@@ -112,6 +115,9 @@ export interface GraphState {
   setMaxFiles: (max: number) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;
+  beginInitialBootstrap: () => void;
+  beginPluginAssetLoad: () => void;
+  finishPluginAssetLoad: () => void;
   handleExtensionMessage: (message: ExtensionToWebviewMessage) => void;
 }
 

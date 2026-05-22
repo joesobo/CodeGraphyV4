@@ -148,6 +148,14 @@ export type WebviewToExtensionMessage =
       };
     }
   | {
+      type: 'VISIBLE_GRAPH_STATE_RESPONSE';
+      payload: {
+        nodeCount: number;
+        edgeCount: number;
+        edgeIds: string[];
+      };
+    }
+  | {
       type: 'GRAPH_3D_UNAVAILABLE';
       payload: { message: string };
     }

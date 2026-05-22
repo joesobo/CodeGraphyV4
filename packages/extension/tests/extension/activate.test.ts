@@ -38,6 +38,19 @@ describe('activate', () => {
     expect(dispatchSpy).toHaveBeenCalledWith(message);
   });
 
+  it('exposes refresh hooks for extension e2e tests', async () => {
+    const api = activate(makeMockContext() as unknown as vscode.ExtensionContext);
+    const provider = getRegisteredProvider();
+    const refreshSpy = vi.spyOn(provider, 'refresh').mockResolvedValue(undefined);
+    const refreshSettingsSpy = vi.spyOn(provider, 'refreshSettings').mockReturnValue(undefined);
+
+    await expect(api.refresh()).resolves.toBeUndefined();
+    api.refreshSettings();
+
+    expect(refreshSpy).toHaveBeenCalledOnce();
+    expect(refreshSettingsSpy).toHaveBeenCalledOnce();
+  });
+
   it('registers extension message listeners through the provider', () => {
     const api = activate(makeMockContext() as unknown as vscode.ExtensionContext);
     const provider = getRegisteredProvider();

@@ -25,6 +25,7 @@ module.exports = {
     related: false,
   },
   reporters: [
+    'progress',
     'clear-text',
     'json',
     'html',

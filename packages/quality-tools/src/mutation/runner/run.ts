@@ -13,6 +13,8 @@ const MUTATION_PROGRESS_INTERVAL_MS = 60_000;
 
 export interface MutationRunOptions {
   force?: boolean;
+  mutateGlobs?: string[];
+  testIncludes?: string[];
 }
 
 function formatElapsedDuration(milliseconds: number): string {
@@ -25,6 +27,10 @@ function formatElapsedDuration(milliseconds: number): string {
     : `${minutes}m ${seconds.toString().padStart(2, '0')}s`;
 }
 
+function configuredExcludeGlobs(patterns: { exclude: string[] }): string[] {
+  return patterns.exclude.map(pattern => `!${pattern}`);
+}
+
 function buildArgs(target: QualityTarget, options: MutationRunOptions = {}): { args: string[]; reportKey: string } {
   const profile = resolveMutationProfile(target);
   const reportKey = target.kind === 'package'
@@ -35,7 +41,10 @@ function buildArgs(target: QualityTarget, options: MutationRunOptions = {}): { a
     args.push('--force');
   }
   const configPatterns = resolvePackageToolGlobs(REPO_ROOT, profile.packageName, 'mutation');
-  args.push('-m', buildMutateGlobs(target, configPatterns).join(','));
+  const mutateGlobs = options.mutateGlobs
+    ? [...options.mutateGlobs, ...configuredExcludeGlobs(configPatterns)]
+    : buildMutateGlobs(target, configPatterns);
+  args.push('-m', mutateGlobs.join(','));
 
   return { args, reportKey };
 }
@@ -83,8 +92,11 @@ function shouldForceMutation(options: MutationRunOptions): boolean {
 
 export async function runMutation(target: QualityTarget, options: MutationRunOptions = {}): Promise<void> {
   const forceMutation = shouldForceMutation(options);
-  const { args, reportKey } = buildArgs(target, { force: forceMutation });
-  const scopedVitestIncludes = resolveScopedVitestIncludes(target);
+  const { args, reportKey } = buildArgs(target, {
+    ...options,
+    force: forceMutation,
+  });
+  const scopedVitestIncludes = options.testIncludes ?? resolveScopedVitestIncludes(target);
   const env = {
     ...process.env,
     CODEGRAPHY_MUTATION_RUN: '1',

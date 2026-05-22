@@ -69,26 +69,9 @@ export function NodeTypeRows({
   nodeTypes,
   nodeVisibility,
 }: NodeTypeRowsProps): React.ReactElement {
-  const symbolDefinition = nodeTypes.find((nodeType) => nodeType.id === 'symbol');
-  const symbolsEnabled = symbolDefinition
-    ? (nodeVisibility.symbol ?? symbolDefinition.defaultVisible)
-    : false;
-  const variableDefinition = nodeTypes.find((nodeType) => nodeType.id === 'variable');
-  const variablesEnabled = variableDefinition
-    ? (nodeVisibility.variable ?? variableDefinition.defaultVisible)
-    : false;
-  const visibleNodeTypes = nodeTypes.filter((nodeType) => (
-    (nodeType.id !== 'variable' || symbolsEnabled)
-    && (!nodeType.parentId || (
-      nodeType.parentId === 'symbol'
-        ? symbolsEnabled
-        : symbolsEnabled && variablesEnabled
-    ))
-  ));
-
   return (
     <>
-      {visibleNodeTypes.map((nodeType) => {
+      {nodeTypes.map((nodeType) => {
         const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
         const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
 

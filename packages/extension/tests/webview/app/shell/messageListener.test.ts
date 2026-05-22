@@ -44,7 +44,11 @@ describe('app message listener', () => {
     const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
     const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
     const handleExtensionMessage = vi.fn();
+    const beginPluginAssetLoad = vi.fn();
+    const finishPluginAssetLoad = vi.fn();
     vi.spyOn(graphStore, 'getState').mockReturnValue({
+      beginPluginAssetLoad,
+      finishPluginAssetLoad,
       handleExtensionMessage,
     } as unknown as ReturnType<typeof graphStore.getState>);
 
@@ -62,12 +66,15 @@ describe('app message listener', () => {
     } as MessageEvent<unknown>);
 
     await Promise.resolve();
+    await Promise.resolve();
 
+    expect(beginPluginAssetLoad).toHaveBeenCalledOnce();
     expect(injectPluginAssets).toHaveBeenCalledWith({
       pluginId: 'codegraphy.typescript',
       scripts: ['one.js', 'two.js'],
       styles: ['one.css', 'two.css'],
     });
+    expect(finishPluginAssetLoad).toHaveBeenCalledOnce();
     expect(pluginHost.deliverMessage).not.toHaveBeenCalled();
     expect(handleExtensionMessage).not.toHaveBeenCalled();
   });
@@ -142,10 +149,12 @@ describe('app message listener', () => {
     const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+    const beginInitialBootstrap = vi.spyOn(graphStore.getState(), 'beginInitialBootstrap');
 
     const cleanup = setupMessageListener(injectPluginAssets, pluginHost);
 
     expect(addEventListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));
+    expect(beginInitialBootstrap).toHaveBeenCalledOnce();
     expect(postMessage).toHaveBeenCalledWith({ type: 'WEBVIEW_READY', payload: null });
 
     const registeredHandler = addEventListenerSpy.mock.calls[0]?.[1];

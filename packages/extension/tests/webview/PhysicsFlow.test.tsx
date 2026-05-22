@@ -22,6 +22,9 @@ function resetStore() {
   graphStore.setState({
     graphData: null,
     isLoading: true,
+    awaitingInitialBootstrap: false,
+    bootstrapComplete: false,
+    pendingPluginAssetLoads: 0,
     searchQuery: '',
     searchOptions: { matchCase: false, wholeWord: false, regex: false },
     favorites: new Set<string>(),
@@ -63,6 +66,8 @@ function sendMessage(data: unknown) {
 describe('Physics flow', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
     resetStore();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ((globalThis as any).__vscodeSentMessages as unknown[]).length = 0;
@@ -103,6 +108,7 @@ describe('Physics flow', () => {
           edges: [],
         },
       });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
     fireEvent.click(screen.getByTitle('Settings'));
