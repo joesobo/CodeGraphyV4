@@ -34,7 +34,7 @@ Package scripts:
 - Keep `test` for Vitest in every package except `@codegraphy/plugin-api`.
 - Keep `test:playwright` only where browser tests exist.
 - Keep `test:vscode` only in `@codegraphy/extension`.
-- Keep mutation and architecture-analysis tools under `@codegraphy/quality-tools`.
+- Keep mutation and architecture-analysis tools behind root scripts backed by `@poleski/quality-tools`.
 
 ## First Slice
 
@@ -53,7 +53,7 @@ Package scripts:
 - Turbo caches package builds and test logs/results through task outputs and GitHub Actions restores `.turbo` between CI runs.
 - `@codegraphy/extension` owns all three test lanes because it has Vitest, browser, and VS Code behavior.
 - Other packages expose only Vitest through `test` unless they grow a real browser or VS Code test surface.
-- Mutation tooling stays in `@codegraphy/quality-tools` and continues to target Vitest, not Playwright or VS Code E2E.
+- Mutation tooling stays in `@poleski/quality-tools` and continues to target Vitest, not Playwright or VS Code E2E.
 
 ## Current CI Shape
 

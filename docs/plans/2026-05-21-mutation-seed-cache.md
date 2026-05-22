@@ -4,7 +4,7 @@
 
 Implemented on PR #210.
 
-Decision captured: CodeGraphy is a monorepo of package-level Stryker projects. Mutation seed caching should follow that boundary. The main branch seed is a `reports/mutation/` tree containing package-scoped Stryker incremental reports, not one root monorepo incremental report.
+Decision captured: CodeGraphy is a monorepo of package-level Stryker projects. Mutation seed caching should follow that boundary. The main branch seed is a `reports/quality-tools/mutation/` tree containing package-scoped Stryker incremental reports, not one root monorepo incremental report.
 
 This plan belongs to the test-suite cleanup work because it changes the local mutation loop, not the normal CI test lanes.
 
@@ -29,9 +29,9 @@ Decision: no-arg `pnpm run mutate` is invalid. Mutation requires an explicit pac
 - **Package Stryker Project**: one workspace package plus the Stryker config, Vitest config, mutate globs, test includes, thresholds, and runner environment needed to mutation-test that package.
 - **Stryker Incremental Report**: the JSON file Stryker reads and writes through `--incrementalFile`. Stryker owns this format and decides which mutant results can be reused.
 - **Package Mutation Seed**: a CI-published Stryker Incremental Report for one Package Stryker Project.
-- **Main Mutation Seed**: the full CI-published `reports/mutation/` seed tree produced from `main`.
-- **Local Main Seed Cache**: the local main checkout's copy of the latest Main Mutation Seed under `reports/mutation/`.
-- **Local Mutation Cache**: the current worktree's package-scoped Stryker Incremental Report under `reports/mutation/<package>/`.
+- **Main Mutation Seed**: the full CI-published `reports/quality-tools/mutation/` seed tree produced from `main`.
+- **Local Main Seed Cache**: the local main checkout's copy of the latest Main Mutation Seed under `reports/quality-tools/mutation/`.
+- **Local Mutation Cache**: the current worktree's package-scoped Stryker Incremental Report under `reports/quality-tools/mutation/<package>/`.
 - **Seed Hydration**: the quality-tool step that copies a Package Mutation Seed into a worktree before Stryker starts.
 
 Avoid calling this a custom mutation cache. The speedup should come from Stryker incremental mode, with CodeGraphy only supplying the first package-level incremental report file.
@@ -42,9 +42,9 @@ Avoid calling this a custom mutation cache. The speedup should come from Stryker
 - The wrapper handles package seed hydration, then delegates to the generic quality-tools mutation CLI.
 - With no target argument, the generic CLI fails fast and asks for an explicit package, directory, or file target.
 - A targeted command resolves to one package, directory, or file, then runs Stryker once for that package scope.
-- The mutation runner currently passes package-level `--incrementalFile` paths such as `reports/mutation/extension/stryker-incremental-extension.json`.
-- The shared root Stryker config covers extension and normal workspace packages.
-- `packages/quality-tools` has its own Stryker and Vitest config.
+- The mutation runner currently passes package-level `--incrementalFile` paths such as `reports/quality-tools/mutation/extension/stryker-incremental-extension.json`.
+- The shared root Stryker config extends the reusable `@poleski/quality-tools` Stryker defaults.
+- CodeGraphy owns only the monorepo wrapper, seed hydration, and project-specific Stryker overrides.
 - Mutation reports are ignored in git under `reports/`.
 - Existing local reports are copied after a run, but new worktrees do not yet hydrate a seed before the first Stryker run.
 
@@ -77,20 +77,18 @@ References:
 4. The job runs the full package mutation seed refresh.
 5. Each package runs through its own Stryker config and package-scoped `--incrementalFile`.
 6. Stryker reruns only what changed inside each package scope and updates that package's incremental report.
-7. CI writes `reports/mutation/seed-sha.txt` with the `main` commit SHA.
-8. CI uploads the seedable `reports/mutation/` tree as the Main Mutation Seed.
+7. CI writes `reports/quality-tools/mutation/seed-sha.txt` with the `main` commit SHA.
+8. CI uploads the seedable `reports/quality-tools/mutation/` tree as the Main Mutation Seed.
 
 Seed artifact shape:
 
 ```text
-reports/mutation/
+reports/quality-tools/mutation/
   seed-sha.txt
   extension/
     stryker-incremental-extension.json
   plugin-godot/
     stryker-incremental-plugin-godot.json
-  quality-tools/
-    stryker-incremental-quality-tools.json
 ```
 
 The first successful seed may take hours. Later `main` seed refreshes should mostly reuse the previous package seeds and rerun changed mutants.
@@ -101,10 +99,10 @@ The first successful seed may take hours. Later `main` seed refreshes should mos
 2. The CodeGraphy wrapper resolves the target to its Package Stryker Project.
 3. If the package Local Mutation Cache already exists in the current worktree, use it.
 4. Otherwise find the local checkout that is currently on the `main` branch.
-5. Read `<local-main-checkout>/reports/mutation/seed-sha.txt` and compare it to the commit SHA attached to the latest CI seed artifact.
-6. If the Local Main Seed Cache is missing or stale, update `<local-main-checkout>/reports/mutation/` from the CI seed artifact.
+5. Read `<local-main-checkout>/reports/quality-tools/mutation/seed-sha.txt` and compare it to the commit SHA attached to the latest CI seed artifact.
+6. If the Local Main Seed Cache is missing or stale, update `<local-main-checkout>/reports/quality-tools/mutation/` from the CI seed artifact.
 7. If hydration is unavailable or the package is missing from the seed, fail clearly and tell the user to run the mutation seed workflow on `main`.
-8. Copy the needed package report from the Local Main Seed Cache into the current worktree's `reports/mutation/<package>/` directory.
+8. Copy the needed package report from the Local Main Seed Cache into the current worktree's `reports/quality-tools/mutation/<package>/` directory.
 9. The wrapper invokes the normal generic mutate runner for that package or file target.
 10. Stryker runs normally with that package's `--incrementalFile`.
 11. Stryker writes back only to the current worktree's package Local Mutation Cache.
@@ -115,7 +113,7 @@ The local worktree never writes directly to the shared Main Mutation Seed or the
 
 Measured local data:
 
-- `reports/mutation/extension/stryker-incremental-extension.json`: `242 KB`
+- `reports/quality-tools/mutation/extension/stryker-incremental-extension.json`: `242 KB`
 - Contents: `208` mutants, `4` mutated files, `10` test files
 - Rough density: about `1.2 KB` per mutant in this small sample
 
@@ -138,7 +136,7 @@ Copy/download expectation:
 
 That is still tiny compared with rerunning thousands of mutants.
 
-Publish package incremental JSON files plus `reports/mutation/seed-sha.txt`, but exclude non-seed artifacts such as HTML reports, videos, `node_modules`, and `.stryker-tmp`.
+Publish package incremental JSON files plus `reports/quality-tools/mutation/seed-sha.txt`, but exclude non-seed artifacts such as HTML reports, videos, `node_modules`, and `.stryker-tmp`.
 
 ## Is This Common?
 
@@ -153,7 +151,7 @@ Prior art found online:
 - A Medium article shows a two-tier GitLab cache strategy: pull-only cache from the development branch plus pull-push branch cache.
 - QASkills describes storing `reports/stryker-incremental.json` as a CI cache artifact for large codebases.
 
-The CodeGraphy plan is a monorepo package version of the same idea: CI maintains the `main` seed tree, local `main` stores a copy under `reports/mutation/`, and feature worktrees hydrate package caches from that local seed before Stryker starts.
+The CodeGraphy plan is a monorepo package version of the same idea: CI maintains the `main` seed tree, local `main` stores a copy under `reports/quality-tools/mutation/`, and feature worktrees hydrate package caches from that local seed before Stryker starts.
 
 ## Proposed Implementation
 
@@ -170,12 +168,12 @@ The CodeGraphy plan is a monorepo package version of the same idea: CI maintains
    - assemble the Main Mutation Seed artifact
 6. Add local hydration:
    - find the local main checkout
-   - compare `reports/mutation/seed-sha.txt`
+   - compare `reports/quality-tools/mutation/seed-sha.txt`
    - refresh the Local Main Seed Cache from CI if stale
    - copy the target package seed into the current worktree
 7. Update docs after the workflow proves itself.
 
-Status: implemented on PR #210. The root CodeGraphy wrapper lives in `scripts/mutate.ts` and `scripts/mutation/`, while the generic mutation runner remains under `packages/quality-tools/src/mutation/runner/`.
+Status: implemented on PR #210 and adapted during the `@poleski/quality-tools` extraction. The root CodeGraphy wrapper lives in `scripts/mutate.ts` and `scripts/mutation/`, while the generic mutation runner lives in the external package.
 
 ### CI
 
@@ -190,7 +188,7 @@ Recommended shape:
 - run package mutation seed refreshes in a GitHub Actions matrix
 - each matrix job runs one package-scoped command, such as `pnpm run mutate -- extension/`
 - each matrix job uploads that package's updated incremental report as a package seed artifact
-- a final assembly job downloads package seed artifacts, writes `reports/mutation/seed-sha.txt`, and uploads the combined Main Mutation Seed artifact
+- a final assembly job downloads package seed artifacts, writes `reports/quality-tools/mutation/seed-sha.txt`, and uploads the combined Main Mutation Seed artifact
 - keep artifact retention long enough for active branch work; the first implementation uses `14` days to avoid storing stale large seed artifacts indefinitely
 
 This should be separate from the required PR CI checks. Mutation seed refresh is a developer-speed accelerator, not a merge gate.
@@ -202,7 +200,7 @@ Stryker does not save CI state by itself. It writes the incremental JSON file in
 
 For this plan:
 
-- Each package job restores that package's previous `reports/mutation/<package>/` cache.
+- Each package job restores that package's previous `reports/quality-tools/mutation/<package>/` cache.
 - Each package job runs Stryker, which updates that package's incremental JSON on disk.
 - Each package job uploads its updated package report.
 - The assemble job combines package reports into one Main Mutation Seed artifact.
@@ -221,7 +219,7 @@ Implementation lives in:
 - `scripts/mutate.ts`
 - `scripts/mutation/codegraphyMutate.ts`
 - `scripts/mutation/seedCache.ts`
-- `packages/quality-tools/src/cli/listMutationPackages.ts`
+- `scripts/mutation/seedJobs.ts`
 
 Suggested responsibilities:
 
@@ -231,7 +229,7 @@ Suggested responsibilities:
 - determine whether the Local Main Seed Cache is current with the latest CI seed artifact
 - download the latest CI seed artifact with `gh` when authenticated and the Local Main Seed Cache is missing or stale
 - update the Local Main Seed Cache from the downloaded artifact
-- copy the target package's incremental report and `seed-sha.txt` from the Local Main Seed Cache into the worktree's `reports/mutation/` tree
+- copy the target package's incremental report and `seed-sha.txt` from the Local Main Seed Cache into the worktree's `reports/quality-tools/mutation/` tree
 - print a concise status line:
   - local package cache hit
   - hydrated package cache from Local Main Seed Cache
@@ -318,7 +316,7 @@ The first validation found a real `quality-tools` issue: seed-cache tests were a
 - Verify the assemble job creates a Main Mutation Seed artifact shaped like:
 
   ```text
-  reports/mutation/
+  reports/quality-tools/mutation/
     seed-sha.txt
     <package>/
       stryker-incremental-<package>.json
@@ -339,9 +337,9 @@ The first validation found a real `quality-tools` issue: seed-cache tests were a
 - Accepted: every push to `main` starts a mutation-seed refresh that restores the previous CI seed, refreshes package-level Stryker incremental reports, and republishes the updated seed tree.
 - Accepted: the CI seed refresh should run package mutation jobs in parallel with a GitHub Actions matrix, then assemble the combined seed artifact.
 - Accepted: local targeted `pnpm run mutate` commands first use the worktree-local package cache, then hydrate a missing package cache from the CI seed before Stryker starts.
-- Accepted: local hydration uses the local main checkout's `reports/mutation/` seed tree first and downloads the CI seed artifact only when that local copy is missing or stale.
+- Accepted: local hydration uses the local main checkout's `reports/quality-tools/mutation/` seed tree first and downloads the CI seed artifact only when that local copy is missing or stale.
 - Accepted: local seed staleness is decided by comparing the Local Main Seed Cache's stored commit SHA to the latest CI seed artifact's commit SHA.
-- Accepted: the Local Main Seed Cache is the local main checkout's `reports/mutation/` tree, with `seed-sha.txt` at the root and package incremental reports under package directories.
+- Accepted: the Local Main Seed Cache is the local main checkout's `reports/quality-tools/mutation/` tree, with `seed-sha.txt` at the root and package incremental reports under package directories.
 - Accepted: no-arg `pnpm run mutate` is invalid; users must run `pnpm run mutate -- <package-or-path>`.
-- Accepted: locating the local main checkout means finding the worktree currently on `main` so the wrapper can read/write `<local-main-checkout>/reports/mutation/seed-sha.txt` and package seed files.
-- Accepted: the CI seed workflow chooses its matrix with `pnpm exec tsx packages/quality-tools/src/cli/listMutationPackages.ts --json`, which reuses the same mutation package discovery rules as the local mutation profile.
+- Accepted: locating the local main checkout means finding the worktree currently on `main` so the wrapper can read/write `<local-main-checkout>/reports/quality-tools/mutation/seed-sha.txt` and package seed files.
+- Accepted: the CI seed workflow chooses its matrix with CodeGraphy's host-specific `scripts/mutation/seedJobs.ts` discovery, while the extracted quality-tools package only runs the scoped mutation target it is given.

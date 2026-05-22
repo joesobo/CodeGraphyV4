@@ -4,7 +4,7 @@ CodeGraphy uses six complementary quality checks:
 
 - `Organize`: directory structure, file naming, and cohesion analysis
 - `Boundaries`: dependency-layer sources and runtime/package boundary enforcement
-- `Reachability`: dead surfaces and dead ends inside a package source graph
+- `Reachability`: dead surfaces and dead ends inside a configured file graph
 - `CRAP`: production-code complexity and coverage risk
 - `Mutation`: test effectiveness against injected faults
 - `SCRAP`: test-structure quality and refactor guidance
@@ -16,6 +16,7 @@ pnpm run organize -- .
 pnpm run boundaries -- . --strict
 pnpm run reachability -- . --strict
 pnpm run crap -- .
+pnpm run mutate -- .
 pnpm run scrap -- .
 
 pnpm run boundaries -- extension/
@@ -28,24 +29,26 @@ pnpm run scrap -- extension/
 
 Targets can be:
 
-- the repo root `.` for a monorepo-wide package-source sweep
-- a package shorthand like `extension/` or `quality-tools/`
+- the repo root `.` for a monorepo-wide configured-source sweep
+- a package shorthand like `extension/` or `extension/src/webview/`
 - a package-relative file or directory under `packages/...`
 - a specific file path
 
 Current command expectations:
 
 - `organize` can inspect the repo root, a package root, or a narrower directory
-- `boundaries` can inspect the repo root, a package root, or a path inside a package `src/` tree
-- `reachability` can inspect the repo root, a package root, or a path inside a package `src/` tree
-- `crap` can inspect the repo root, a package root, or a path inside `src/`
-- `mutate` expects a package root or a path inside `src/`
+- `boundaries` can inspect the repo root, a package root, or a specific file or directory
+- `reachability` can inspect the repo root, a package root, or a specific file or directory
+- `crap` can inspect the repo root, a package root, or a specific file or directory
+- `mutate` can inspect the repo root, a package root, or a specific file or directory
 - `scrap` works best on package roots and test files/directories
 
 Use scoped mutation for changed source modules during normal work. Full mutation is intentionally expensive; prefer a file or feature-folder target that maps to the behavior being changed. CI's Vitest split does not automatically shard Stryker mutation runs; mutation speed still depends on target scope, Stryker incremental state, and the Vitest tests selected for the mutation target.
 
-Implementation now lives in `packages/quality-tools/`.
+CRAP coverage and tool reports live under `reports/quality-tools/`.
+
+Implementation now lives in the external `@poleski/quality-tools` package.
 
 Extension-specific architecture and lifecycle notes live in `packages/extension/docs/`.
 
-These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `22.22.0` LTS. `packages/quality-tools` uses `path.matchesGlob`, so older Node versions are not supported.
+These commands assume the repo-pinned Node runtime from [`.nvmrc`](../../.nvmrc), currently `22.22.0` LTS. `@poleski/quality-tools` uses `path.matchesGlob`, so older Node versions are not supported.

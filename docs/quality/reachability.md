@@ -7,7 +7,7 @@
 ```bash
 pnpm run reachability -- extension/
 pnpm run reachability -- extension/src/webview/
-pnpm run reachability -- quality-tools/ --strict
+pnpm run reachability -- packages/plugin-godot/src/ --strict
 ```
 
 ## What it checks

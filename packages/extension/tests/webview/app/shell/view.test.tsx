@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
 import App from '../../../../src/webview/app/view';
 import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
@@ -69,7 +69,7 @@ describe('App', () => {
     delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
       .__codegraphyWebviewReadyPosted;
     resetStore();
-    vi.useFakeTimers();
+    vi.useRealTimers();
   });
 
   afterEach(() => {
@@ -109,7 +109,9 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
-    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    });
   });
 
   it('keeps the graph hidden until startup bootstrap is complete', async () => {
@@ -173,7 +175,9 @@ describe('App', () => {
       await pendingImport;
     });
 
-    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    });
   });
 
   it('should send WEBVIEW_READY only once across initial graph load', async () => {
@@ -442,7 +446,7 @@ describe('App: message handlers', () => {
     delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
       .__codegraphyWebviewReadyPosted;
     resetStore();
-    vi.useFakeTimers();
+    vi.useRealTimers();
   });
   afterEach(() => vi.useRealTimers());
 
