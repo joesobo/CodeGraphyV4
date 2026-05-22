@@ -74,7 +74,10 @@ export const workspaceMutationIncludes = [
 
 type ScopeEnv = Partial<Pick<
   NodeJS.ProcessEnv,
-  'CODEGRAPHY_VITEST_INCLUDE_JSON' | 'CODEGRAPHY_VITEST_SCOPE' | 'CODEGRAPHY_VITEST_WEBVIEW_GROUP'
+  | 'CODEGRAPHY_VITEST_INCLUDE_JSON'
+  | 'CODEGRAPHY_VITEST_SCOPE'
+  | 'CODEGRAPHY_VITEST_WEBVIEW_GROUP'
+  | 'QUALITY_TOOLS_VITEST_INCLUDE_JSON'
 >>;
 
 function isExtensionWebviewTestGroup(value: string): value is ExtensionWebviewTestGroup {
@@ -95,8 +98,11 @@ export function resolveExtensionWebviewTestIncludes(environment: ScopeEnv = proc
 }
 
 export function resolveMutationVitestIncludes(environment: ScopeEnv = process.env): string[] {
-  if (environment.CODEGRAPHY_VITEST_INCLUDE_JSON) {
-    return JSON.parse(environment.CODEGRAPHY_VITEST_INCLUDE_JSON) as string[];
+  const explicitIncludes = environment.QUALITY_TOOLS_VITEST_INCLUDE_JSON
+    ?? environment.CODEGRAPHY_VITEST_INCLUDE_JSON;
+
+  if (explicitIncludes) {
+    return JSON.parse(explicitIncludes) as string[];
   }
 
   return environment.CODEGRAPHY_VITEST_SCOPE === 'workspace'

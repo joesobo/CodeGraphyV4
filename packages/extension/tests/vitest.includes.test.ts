@@ -16,6 +16,7 @@ describe('vitest includes', () => {
     delete process.env.CODEGRAPHY_VITEST_SCOPE;
     delete process.env.CODEGRAPHY_VITEST_INCLUDE_JSON;
     delete process.env.CODEGRAPHY_VITEST_WEBVIEW_GROUP;
+    delete process.env.QUALITY_TOOLS_VITEST_INCLUDE_JSON;
   });
 
   it('defaults mutation scope to extension tests', () => {
@@ -74,5 +75,11 @@ describe('vitest includes', () => {
     process.env.CODEGRAPHY_VITEST_INCLUDE_JSON = JSON.stringify(['packages/plugin-godot/tests/**/*.test.ts']);
 
     expect(resolveMutationVitestIncludes()).toEqual(['packages/plugin-godot/tests/**/*.test.ts']);
+  });
+
+  it('accepts explicit mutation include overrides from quality-tools', () => {
+    expect(resolveMutationVitestIncludes({
+      QUALITY_TOOLS_VITEST_INCLUDE_JSON: JSON.stringify(['packages/plugin-typescript/tests/**/*.test.ts']),
+    })).toEqual(['packages/plugin-typescript/tests/**/*.test.ts']);
   });
 });
