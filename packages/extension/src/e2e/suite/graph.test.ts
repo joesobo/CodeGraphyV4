@@ -77,6 +77,21 @@ function assertIncludesAllEdges(
   assert.deepStrictEqual(missingIds, [], `${label} missing from ${actualIds.join(', ')}`);
 }
 
+function getScenarioPackagePlugin(): { pluginId: string; packageName: string } {
+  switch (scenario.name) {
+    case 'typescript':
+      return {
+        pluginId: 'codegraphy.typescript',
+        packageName: '@codegraphy-dev/plugin-typescript',
+      };
+    case 'godot':
+      return {
+        pluginId: 'codegraphy.gdscript',
+        packageName: '@codegraphy-dev/plugin-godot',
+      };
+  }
+}
+
 suite('Graph: Workspace Analysis', function () {
   this.timeout(60_000);
 
@@ -153,6 +168,65 @@ suite('Graph: Workspace Analysis', function () {
     );
 
     console.log(`[e2e:${scenario.name}] Edges:`, graphData.edges.map((e) => `${e.from} → ${e.to}`).join(', '));
+  });
+
+  test('rendered graph keeps scenario edges after delayed updates and refresh', async function() {
+    const api = await getAPI();
+    await ensureIndexedGraph(api);
+
+    const initialRuntime = await requestGraphRuntimeState(api);
+    assertIncludesAllEdges(
+      initialRuntime.edgeIds,
+      scenario.minimumExpectedEdgeIds,
+      `Scenario '${scenario.name}' initially rendered edges`,
+    );
+
+    await sleep(5_000);
+
+    const afterDelayRuntime = await requestGraphRuntimeState(api);
+    assertIncludesAllEdges(
+      afterDelayRuntime.edgeIds,
+      scenario.minimumExpectedEdgeIds,
+      `Scenario '${scenario.name}' delayed rendered edges`,
+    );
+
+    const graphUpdated = waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', 30_000);
+    const indexUpdated = waitForGraphIndexStatus(api, true, 30_000);
+    await api.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
+    await Promise.all([graphUpdated, indexUpdated]);
+    await sleep(2_000);
+
+    const afterRefreshRuntime = await requestGraphRuntimeState(api);
+    assertIncludesAllEdges(
+      afterRefreshRuntime.edgeIds,
+      scenario.minimumExpectedEdgeIds,
+      `Scenario '${scenario.name}' refreshed rendered edges`,
+    );
+  });
+
+  test('rendered graph keeps scenario edges after reloading an enabled package plugin', async function() {
+    const api = await getAPI();
+    await ensureIndexedGraph(api);
+
+    const plugin = getScenarioPackagePlugin();
+    const graphUpdated = waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', 30_000);
+    await api.dispatchWebviewMessage({
+      type: 'TOGGLE_PLUGIN',
+      payload: {
+        pluginId: plugin.pluginId,
+        packageName: plugin.packageName,
+        enabled: true,
+      },
+    });
+    await graphUpdated;
+    await sleep(5_000);
+
+    const runtimeState = await requestGraphRuntimeState(api);
+    assertIncludesAllEdges(
+      runtimeState.edgeIds,
+      scenario.minimumExpectedEdgeIds,
+      `Scenario '${scenario.name}' rendered edges after package plugin reload`,
+    );
   });
 });
 
@@ -295,6 +369,8 @@ interface NodeBoundsResponse {
 interface GraphRuntimeStateResponse {
   payload: {
     graphMode: '2d' | '3d';
+    edgeCount: number;
+    edgeIds: string[];
     nodeCount: number;
   };
 }

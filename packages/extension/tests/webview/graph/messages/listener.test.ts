@@ -8,6 +8,7 @@ describe('graph/messageListener', () => {
     const handleMessage = createGraphMessageListener({
       applyEffects,
       graphMode: '2d',
+      getGraphLinks: () => [],
       getGraphNodes: () => graphNodesRef.current,
       tooltipPath: 'a.ts',
     });
@@ -47,6 +48,7 @@ describe('graph/messageListener', () => {
     const handleMessage = createGraphMessageListener({
       applyEffects,
       graphMode: '3d',
+      getGraphLinks: () => [],
       getGraphNodes: () => graphNodesRef.current,
       tooltipPath: null,
     });
@@ -69,13 +71,21 @@ describe('graph/messageListener', () => {
 
   it('reads the latest graph mode when responding to runtime-state requests', () => {
     const applyEffects = vi.fn();
+    const graphLinksRef = {
+      current: [{ id: 'a.ts->b.ts#import', source: 'a.ts', target: 'b.ts' }],
+    };
     const handleMessage = createGraphMessageListener({
       applyEffects,
       graphMode: '3d',
+      getGraphLinks: () => graphLinksRef.current as never,
       getGraphNodes: () => [{ id: 'b.ts', size: 8, x: 5, y: 6 }],
       tooltipPath: null,
     });
 
+    graphLinksRef.current = [
+      { id: 'b.ts->c.ts#import', source: 'b.ts', target: 'c.ts' },
+      { id: 'c.ts->d.ts#import', source: 'c.ts', target: 'd.ts' },
+    ];
     handleMessage({ data: { type: 'GET_GRAPH_RUNTIME_STATE' } } as never);
 
     expect(applyEffects).toHaveBeenCalledWith([
@@ -85,6 +95,8 @@ describe('graph/messageListener', () => {
           type: 'GRAPH_RUNTIME_STATE_RESPONSE',
           payload: {
             graphMode: '3d',
+            edgeCount: 2,
+            edgeIds: ['b.ts->c.ts#import', 'c.ts->d.ts#import'],
             nodeCount: 1,
           },
         },

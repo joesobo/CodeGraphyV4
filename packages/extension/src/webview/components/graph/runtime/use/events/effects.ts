@@ -85,6 +85,7 @@ export function useGraphEventEffects({
       applyEffects: applyWebviewMessageEffects,
       graphMode,
       tooltipPath,
+      getGraphLinks: () => graphDataRef.current.links,
       getGraphNodes: () => graphDataRef.current.nodes,
     });
     window.addEventListener('message', handleMessage);

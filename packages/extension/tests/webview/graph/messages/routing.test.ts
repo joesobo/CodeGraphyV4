@@ -139,6 +139,9 @@ describe('graph/messages/effects/routing', () => {
       message: { type: 'GET_GRAPH_RUNTIME_STATE' },
       graphMode: '3d',
       tooltipPath: null,
+      graphLinks: [
+        { id: 'src/app.ts->src/utils.ts#import', source: 'src/app.ts', target: 'src/utils.ts' },
+      ] as never,
       graphNodes: [
         { id: 'src/app.ts', size: 12, x: 10, y: 20 },
         { id: 'src/utils.ts', size: 8 },
@@ -150,6 +153,8 @@ describe('graph/messages/effects/routing', () => {
           type: 'GRAPH_RUNTIME_STATE_RESPONSE',
           payload: {
             graphMode: '3d',
+            edgeCount: 1,
+            edgeIds: ['src/app.ts->src/utils.ts#import'],
             nodeCount: 2,
           },
         },
