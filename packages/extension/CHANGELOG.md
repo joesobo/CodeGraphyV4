@@ -1,5 +1,11 @@
 # @codegraphy-dev/extension
 
+## 5.5.2
+
+### Patch Changes
+
+- [`5f6c0fb`](https://github.com/joesobo/CodeGraphyV4/commit/5f6c0fb6fc417adf7ff3371ed5f5a3e514bb6374) Thanks [@joesobo](https://github.com/joesobo)! - Keep graph edges rendered after reloading enabled npm plugins from the extension settings panel.
+
 ## 5.5.1
 
 ### Patch Changes
