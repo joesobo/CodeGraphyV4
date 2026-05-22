@@ -71,6 +71,7 @@ const smokeHtml = `<!doctype html>
             { type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } },
             '*'
           );
+          window.postMessage({ type: 'APP_BOOTSTRAP_COMPLETE' }, '*');
           window.postMessage(
             {
               type: 'SETTINGS_UPDATED',
@@ -228,6 +229,10 @@ const depthHarnessScript = `
       scheduleBoundsProbe();
     };
 
+    const publishBootstrapComplete = () => {
+      postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    };
+
     const publishAll = () => {
       publishIndexStatus();
       publishDepthMode();
@@ -235,6 +240,7 @@ const depthHarnessScript = `
       publishDepthLimit();
       publishActiveFile();
       publishGraph();
+      publishBootstrapComplete();
     };
 
     const handleWebviewMessage = (message) => {
