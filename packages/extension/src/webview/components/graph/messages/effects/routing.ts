@@ -1,7 +1,7 @@
 import type { IFileInfo } from '../../../../../shared/files/info';
 import type { ExtensionToWebviewMessage } from '../../../../../shared/protocol/extensionToWebview';
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
-import type { FGNode } from '../../model/build';
+import type { FGLink, FGNode } from '../../model/build';
 import { getFileInfoEffects } from '../fileInfo/effects';
 import {
   EMPTY_EFFECTS,
@@ -29,6 +29,7 @@ export interface GraphWebviewMessageOptions {
   message: ExtensionToWebviewMessage;
   graphMode: '2d' | '3d';
   tooltipPath: string | null;
+  graphLinks?: readonly FGLink[];
   graphNodes: Array<Pick<FGNode, 'id' | 'size' | 'x' | 'y'>>;
 }
 
@@ -56,8 +57,8 @@ const GRAPH_WEBVIEW_MESSAGE_EFFECTS = {
     getFileInfoEffects(tooltipPath, (message as FileInfoMessage).payload),
   GET_NODE_BOUNDS: ({ graphNodes }: GraphWebviewMessageOptions) =>
     getNodeBoundsEffects(graphNodes),
-  GET_GRAPH_RUNTIME_STATE: ({ graphMode, graphNodes }: GraphWebviewMessageOptions) =>
-    getGraphRuntimeStateEffects(graphMode, graphNodes),
+  GET_GRAPH_RUNTIME_STATE: ({ graphLinks = [], graphMode, graphNodes }: GraphWebviewMessageOptions) =>
+    getGraphRuntimeStateEffects(graphMode, graphNodes, graphLinks),
   REQUEST_EXPORT_PNG: ({ message }: GraphWebviewMessageOptions) =>
     getExportEffects((message as ExportMessage).type),
   REQUEST_EXPORT_SVG: ({ message }: GraphWebviewMessageOptions) =>

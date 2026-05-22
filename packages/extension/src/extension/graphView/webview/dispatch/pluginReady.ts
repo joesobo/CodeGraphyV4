@@ -66,7 +66,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       loadDisabledRulesAndPlugins: () => context.loadDisabledRulesAndPlugins(),
       sendDepthState: () => context.sendDepthState(),
       sendGraphControls: () => context.sendGraphControls(),
-      loadAndSendData: () => void context.loadAndSendData(),
+      loadAndSendData: () => context.loadAndSendData(),
       sendFavorites: () => context.sendFavorites(),
       sendSettings: () => context.sendSettings(),
       sendGraphLayout: () => context.sendGraphLayout?.(),

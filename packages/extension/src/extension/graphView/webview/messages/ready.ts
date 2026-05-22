@@ -22,13 +22,13 @@ export interface GraphViewReadyHandlers {
   loadDisabledRulesAndPlugins(): void;
   sendDepthState(): void;
   sendGraphControls(): void;
-  loadAndSendData(): void;
+  loadAndSendData(): void | Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
   sendGraphLayout?(): void;
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
-  sendMessage(message: { type: string; payload: unknown }): void;
+  sendMessage(message: { type: string; payload?: unknown }): void;
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
@@ -48,7 +48,6 @@ export async function applyWebviewReady(
   handlers.loadDisabledRulesAndPlugins();
   handlers.sendDepthState();
   handlers.sendGraphControls();
-  handlers.loadAndSendData();
   handlers.sendFavorites();
   handlers.sendSettings();
   handlers.sendGraphLayout?.();
@@ -91,10 +90,13 @@ export async function applyWebviewReady(
   handlers.sendPluginToolbarActions?.();
   handlers.sendPluginWebviewInjections();
   handlers.sendActiveFile();
+  await handlers.loadAndSendData();
 
   if (state.hasWorkspace && state.firstAnalysis) {
     await handlers.waitForFirstWorkspaceReady();
   }
+
+  handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
 
   if (state.readyNotified) {
     return true;

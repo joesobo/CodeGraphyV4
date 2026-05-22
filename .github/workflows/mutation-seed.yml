@@ -13,11 +13,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  discover-packages:
+  discover-seed-jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      packages: ${{ steps.packages.outputs.packages }}
+      jobs: ${{ steps.jobs.outputs.jobs }}
 
     steps:
       - name: Checkout
@@ -37,23 +37,25 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Discover mutation packages
-        id: packages
+      - name: Discover mutation seed jobs
+        id: jobs
         run: |
-          packages="$(pnpm exec quality-tools list-mutation-packages --json)"
-          echo "packages=${packages}" >> "$GITHUB_OUTPUT"
-          echo "Mutation packages: ${packages}"
+          jobs="$(pnpm exec tsx scripts/mutation/listSeedJobs.ts --json)"
+          echo "jobs=${jobs}" >> "$GITHUB_OUTPUT"
+          echo "Mutation seed jobs: ${jobs}"
 
   seed-package:
-    name: Mutation seed / ${{ matrix.package }}
-    needs: discover-packages
+    name: Mutation seed / ${{ matrix.package }} / ${{ matrix.shard }}
+    needs: discover-seed-jobs
     runs-on: ubuntu-latest
+    # GitHub-hosted runners cap job execution at 6h. Split long mutation
+    # targets or move this job to self-hosted infrastructure before raising it.
     timeout-minutes: 360
-    if: ${{ needs.discover-packages.outputs.packages != '[]' }}
+    if: ${{ needs.discover-seed-jobs.outputs.jobs != '[]' }}
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJson(needs.discover-packages.outputs.packages) }}
+        include: ${{ fromJson(needs.discover-seed-jobs.outputs.jobs) }}
 
     steps:
       - name: Checkout
@@ -77,20 +79,20 @@ jobs:
         uses: actions/cache@v4
         with:
           path: reports/quality-tools/mutation/${{ matrix.package }}
-          key: ${{ runner.os }}-mutation-seed-${{ matrix.package }}-${{ github.sha }}
+          key: ${{ runner.os }}-mutation-seed-${{ matrix.package }}-${{ matrix.shard }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-mutation-seed-${{ matrix.package }}-
+            ${{ runner.os }}-mutation-seed-${{ matrix.package }}-${{ matrix.shard }}-
 
-      - name: Refresh ${{ matrix.package }} mutation seed
-        run: pnpm run mutate -- ${{ matrix.package }}/
+      - name: Refresh ${{ matrix.package }} / ${{ matrix.shard }} mutation seed
+        run: pnpm exec tsx scripts/mutation/runSeedJob.ts --package "${{ matrix.package }}" --shard "${{ matrix.shard }}"
 
       - name: Verify ${{ matrix.package }} incremental report exists
         run: test -f "reports/quality-tools/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json"
 
-      - name: Upload ${{ matrix.package }} mutation seed
+      - name: Upload ${{ matrix.package }} / ${{ matrix.shard }} mutation seed
         uses: actions/upload-artifact@v4
         with:
-          name: mutation-seed-${{ matrix.package }}
+          name: mutation-seed-${{ matrix.package }}-${{ matrix.shard }}
           path: reports/quality-tools/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json
           if-no-files-found: error
           retention-days: 14
@@ -102,6 +104,23 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Download package mutation seeds
         uses: actions/download-artifact@v4
         with:
@@ -110,17 +129,7 @@ jobs:
 
       - name: Assemble main mutation seed artifact
         run: |
-          mkdir -p reports/quality-tools/mutation
-
-          while IFS= read -r file; do
-            name="$(basename "$file")"
-            package="${name#stryker-incremental-}"
-            package="${package%.json}"
-            mkdir -p "reports/quality-tools/mutation/${package}"
-            cp "$file" "reports/quality-tools/mutation/${package}/${name}"
-          done < <(find package-seeds -type f -name 'stryker-incremental-*.json' | sort)
-
-          printf '%s\n' "${GITHUB_SHA}" > reports/quality-tools/mutation/seed-sha.txt
+          pnpm exec tsx scripts/mutation/assembleSeed.ts --input package-seeds --output reports/quality-tools/mutation --sha "${GITHUB_SHA}"
           find reports/quality-tools/mutation -type f | sort
 
       - name: Upload main mutation seed

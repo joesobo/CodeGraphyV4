@@ -36,12 +36,12 @@ export function createGraphViewProviderAnalysisHandlers(
     },
     getGraphData: () => source._graphData,
     sendGraphDataUpdated: graphData => {
-      source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
       sendGraphControlsUpdated(
         graphData,
         source._analyzer,
         message => source._sendMessage(message),
       );
+      source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
     },
     sendDepthState: () => source._sendDepthState(),
     computeMergedGroups: () => source._computeMergedGroups(),

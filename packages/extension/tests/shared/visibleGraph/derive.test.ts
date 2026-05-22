@@ -62,14 +62,42 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     expect(result.regexError).toBeNull();
   });
 
-  it('keeps variable nodes hidden unless symbol nodes are enabled', () => {
+  it('keeps generic symbol groups hidden while showing enabled symbol-kind children', () => {
     const result = deriveVisibleGraph(
       {
         nodes: [
           node('src/app.ts'),
-          node('src/app.ts#VERSION:constant', 'variable'),
+          {
+            ...node('src/app.ts#build:function', 'symbol'),
+            symbol: {
+              id: 'src/app.ts#build:function',
+              name: 'build',
+              kind: 'function',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
+            ...node('src/app.ts#unknown:macro', 'symbol'),
+            symbol: {
+              id: 'src/app.ts#unknown:macro',
+              name: 'unknown',
+              kind: 'macro',
+              filePath: 'src/app.ts',
+            },
+          },
+          {
+            ...node('src/app.ts#VERSION:constant', 'variable'),
+            symbol: {
+              id: 'src/app.ts#VERSION:constant',
+              name: 'VERSION',
+              kind: 'constant',
+              filePath: 'src/app.ts',
+            },
+          },
         ],
         edges: [
+          edge('src/app.ts', 'src/app.ts#build:function', 'contains'),
+          edge('src/app.ts', 'src/app.ts#unknown:macro', 'contains'),
           edge('src/app.ts', 'src/app.ts#VERSION:constant', 'contains'),
         ],
       },
@@ -78,7 +106,8 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
           nodes: [
             { type: 'file', enabled: true },
             { type: 'symbol', enabled: false },
-            { type: 'variable', enabled: true },
+            { type: 'symbol:function', enabled: true },
+            { type: 'variable', enabled: false },
             { type: 'symbol:constant', enabled: true },
           ],
           edges: [{ type: 'contains', enabled: true }],
@@ -87,8 +116,15 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     );
 
     expect(ids(result.graphData)).toEqual({
-      nodes: ['src/app.ts'],
-      edges: [],
+      nodes: [
+        'src/app.ts',
+        'src/app.ts#build:function',
+        'src/app.ts#VERSION:constant',
+      ],
+      edges: [
+        'src/app.ts->src/app.ts#build:function#contains',
+        'src/app.ts->src/app.ts#VERSION:constant#contains',
+      ],
     });
   });
 
@@ -216,7 +252,7 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     });
   });
 
-  it('hides plugin-specific variable children when Variables is disabled', () => {
+  it('shows enabled plugin-specific variable children when Variables is disabled', () => {
     const result = deriveVisibleGraph(
       {
         nodes: [
@@ -252,8 +288,13 @@ describe('shared/visibleGraph/deriveVisibleGraph', () => {
     );
 
     expect(ids(result.graphData)).toEqual({
-      nodes: ['scripts/player.gd'],
-      edges: [],
+      nodes: [
+        'scripts/player.gd',
+        'scripts/player.gd#Player:godot-class-name',
+      ],
+      edges: [
+        'scripts/player.gd->scripts/player.gd#Player:godot-class-name#contains',
+      ],
     });
   });
 
