@@ -13,15 +13,15 @@ describe('shared/graphControls/defaults/maps', () => {
       folder: false,
       package: false,
       symbol: false,
-      'symbol:function': true,
-      'symbol:class': true,
-      'symbol:interface': true,
-      'symbol:type': true,
-      'symbol:struct': true,
-      'symbol:enum': true,
+      'symbol:function': false,
+      'symbol:class': false,
+      'symbol:interface': false,
+      'symbol:type': false,
+      'symbol:struct': false,
+      'symbol:enum': false,
       variable: false,
-      'symbol:constant': true,
-      'plugin:codegraphy.gdscript:symbol:godot-class-name': true,
+      'symbol:constant': false,
+      'plugin:codegraphy.gdscript:symbol:godot-class-name': false,
     });
     expect(createDefaultEdgeVisibility().import).toBe(true);
     expect(createDefaultNodeColors().file).toBeTruthy();
