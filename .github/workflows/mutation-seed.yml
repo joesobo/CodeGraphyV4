@@ -40,7 +40,7 @@ jobs:
       - name: Discover mutation seed jobs
         id: jobs
         run: |
-          jobs="$(pnpm exec tsx packages/quality-tools/src/cli/listMutationSeedJobs.ts --json)"
+          jobs="$(pnpm exec tsx scripts/mutation/listSeedJobs.ts --json)"
           echo "jobs=${jobs}" >> "$GITHUB_OUTPUT"
           echo "Mutation seed jobs: ${jobs}"
 
@@ -78,22 +78,22 @@ jobs:
       - name: Restore package mutation seed cache
         uses: actions/cache@v4
         with:
-          path: reports/mutation/${{ matrix.package }}
+          path: reports/quality-tools/mutation/${{ matrix.package }}
           key: ${{ runner.os }}-mutation-seed-${{ matrix.package }}-${{ matrix.shard }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-mutation-seed-${{ matrix.package }}-${{ matrix.shard }}-
 
       - name: Refresh ${{ matrix.package }} / ${{ matrix.shard }} mutation seed
-        run: pnpm exec tsx packages/quality-tools/src/cli/runMutationSeedJob.ts --package "${{ matrix.package }}" --shard "${{ matrix.shard }}"
+        run: pnpm exec tsx scripts/mutation/runSeedJob.ts --package "${{ matrix.package }}" --shard "${{ matrix.shard }}"
 
       - name: Verify ${{ matrix.package }} incremental report exists
-        run: test -f "reports/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json"
+        run: test -f "reports/quality-tools/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json"
 
       - name: Upload ${{ matrix.package }} / ${{ matrix.shard }} mutation seed
         uses: actions/upload-artifact@v4
         with:
           name: mutation-seed-${{ matrix.package }}-${{ matrix.shard }}
-          path: reports/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json
+          path: reports/quality-tools/mutation/${{ matrix.package }}/stryker-incremental-${{ matrix.package }}.json
           if-no-files-found: error
           retention-days: 14
 
@@ -129,15 +129,15 @@ jobs:
 
       - name: Assemble main mutation seed artifact
         run: |
-          pnpm exec tsx packages/quality-tools/src/cli/assembleMutationSeed.ts --input package-seeds --output reports/mutation --sha "${GITHUB_SHA}"
-          find reports/mutation -type f | sort
+          pnpm exec tsx scripts/mutation/assembleSeed.ts --input package-seeds --output reports/quality-tools/mutation --sha "${GITHUB_SHA}"
+          find reports/quality-tools/mutation -type f | sort
 
       - name: Upload main mutation seed
         uses: actions/upload-artifact@v4
         with:
           name: main-mutation-seed
           path: |
-            reports/mutation/seed-sha.txt
-            reports/mutation/*/stryker-incremental-*.json
+            reports/quality-tools/mutation/seed-sha.txt
+            reports/quality-tools/mutation/*/stryker-incremental-*.json
           if-no-files-found: error
           retention-days: 14

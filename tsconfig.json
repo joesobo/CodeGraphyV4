@@ -2,8 +2,7 @@
   "references": [
     { "path": "packages/core" },
     { "path": "packages/extension" },
-    { "path": "packages/plugin-api" },
-    { "path": "packages/quality-tools" }
+    { "path": "packages/plugin-api" }
   ],
   "files": []
 }

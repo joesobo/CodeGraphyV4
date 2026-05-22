@@ -6,7 +6,7 @@
 
 ```bash
 pnpm run organize -- extension/
-pnpm run organize -- packages/quality-tools/src/organize/
+pnpm run organize -- packages/extension/src/webview/
 pnpm run organize -- some/arbitrary/dir/
 ```
 
@@ -53,7 +53,7 @@ Clusters files in the same directory by shared prefix and import relationships. 
 | (positional) | Target directory |
 | --verbose | Show STABLE directories |
 | --json | Output raw JSON |
-| --write-baseline | Save to reports/organize/ |
+| --write-baseline | Save to reports/quality-tools/organize/ |
 | --compare PATH | Compare against baseline |
 
 ## Configuration

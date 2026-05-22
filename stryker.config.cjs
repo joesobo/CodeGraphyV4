@@ -1,3 +1,6 @@
+const path = require('node:path');
+const base = require('@poleski/quality-tools/stryker.config.cjs');
+
 process.env.CODEGRAPHY_VITEST_SCOPE = process.env.CODEGRAPHY_VITEST_SCOPE ?? 'workspace';
 
 function numberFromEnv(name, fallback) {
@@ -13,51 +16,28 @@ function numberFromEnv(name, fallback) {
 }
 
 module.exports = {
-  $schema: 'https://raw.githubusercontent.com/stryker-mutator/stryker-js/master/packages/core/schema/stryker-core.schema.json',
+  ...base,
   packageManager: 'pnpm',
-  testRunner: 'codegraphy-vitest',
-  plugins: [
-    './packages/quality-tools/stryker/codegraphy-vitest-runner.mjs',
-    '@stryker-mutator/vitest-runner',
-  ],
   vitest: {
-    configFile: 'packages/extension/vitest.config.ts',
+    ...base.vitest,
+    configFile: path.join(__dirname, 'packages/extension/vitest.config.ts'),
+    dir: path.join(__dirname, 'packages/extension'),
     related: false,
   },
   reporters: [
     'progress',
-    'clear-text',
-    'json',
-    'html',
+    ...(base.reporters ?? []).filter((reporter) => reporter !== 'progress'),
   ],
-  jsonReporter: {
-    fileName: 'reports/mutation/mutation.json',
-  },
-  htmlReporter: {
-    fileName: 'reports/mutation/mutation.html',
-  },
-  concurrency: numberFromEnv('CODEGRAPHY_STRYKER_CONCURRENCY', 2),
-  coverageAnalysis: 'perTest',
-  maxTestRunnerReuse: numberFromEnv('CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE', 0),
-  testRunnerNodeArgs: [
-    '--max-old-space-size=8192',
-  ],
+  concurrency: numberFromEnv('CODEGRAPHY_STRYKER_CONCURRENCY', base.concurrency ?? 2),
+  maxTestRunnerReuse: numberFromEnv('CODEGRAPHY_STRYKER_MAX_TEST_RUNNER_REUSE', base.maxTestRunnerReuse ?? 0),
   dryRunTimeoutMinutes: 30,
-  incremental: true,
-  incrementalFile: 'reports/mutation/stryker-incremental.json',
   ignorePatterns: [
-    '/coverage',
-    '/.vscode-test',
-    '/.vscode-test/**',
-    '**/.vscode-test',
-    '**/.vscode-test/**',
-    '/.stryker-tmp',
-    '/.stryker-tmp/**',
+    ...new Set([
+      ...(base.ignorePatterns ?? []),
+      '/.vscode-test',
+      '/.vscode-test/**',
+      '**/.vscode-test',
+      '**/.vscode-test/**',
+    ]),
   ],
-  ignoreStatic: true,
-  thresholds: {
-    high: 90,
-    low: 80,
-    break: null,
-  },
 };

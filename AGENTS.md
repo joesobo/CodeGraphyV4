@@ -200,7 +200,7 @@ pnpm run mutate -- packages/plugin-godot/src/gdscript/resources.ts # specific so
 
 Bare `pnpm run mutate` is intentionally invalid. CI owns all-package mutation seed refreshes.
 
-Thresholds: ≥90% required · ≥80% warning · <80% must fix. Report: `reports/mutation/mutation.html`.
+Thresholds: ≥90% required · ≥80% warning · <80% must fix. Report: `reports/quality-tools/mutation/mutation.html`.
 
 ### 5. Lint + Typecheck
 

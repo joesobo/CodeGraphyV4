@@ -15,7 +15,7 @@ export const MUTATION_SEED_ARTIFACT_NAME = 'main-mutation-seed';
 export const MUTATION_SEED_WORKFLOW = 'mutation-seed.yml';
 export const MUTATION_SEED_SHA_FILE = 'seed-sha.txt';
 
-const REPORTS_ROOT = 'reports/mutation';
+const REPORTS_ROOT = 'reports/quality-tools/mutation';
 
 export interface MutationSeedRun {
   id: number;
@@ -139,10 +139,9 @@ function latestSeedRun(repoRoot: string, execFileSync: typeof defaultExecFileSyn
       '--json',
       'databaseId,headSha',
     ], repoRoot);
-  } catch (error) {
+  } catch {
     throw new Error(
       `Unable to find the latest mutation seed workflow run. Make sure gh is authenticated and the ${MUTATION_SEED_WORKFLOW} workflow has run successfully on main.`,
-      { cause: error },
     );
   }
 
@@ -213,10 +212,9 @@ function downloadMainSeedArtifact(
       cwd: repoRoot,
       stdio: 'inherit',
     });
-  } catch (error) {
+  } catch {
     throw new Error(
       `Unable to download the ${MUTATION_SEED_ARTIFACT_NAME} artifact from mutation seed run ${latestSeed.id}.`,
-      { cause: error },
     );
   }
 

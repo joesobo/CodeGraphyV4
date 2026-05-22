@@ -7,7 +7,7 @@
 ```bash
 pnpm run boundaries -- extension/
 pnpm run boundaries -- extension/src/webview/
-pnpm run boundaries -- quality-tools/
+pnpm run boundaries -- packages/plugin-godot/src/
 ```
 
 ## What it checks

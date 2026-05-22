@@ -79,6 +79,7 @@ const smokeHtml = `<!doctype html>
             },
             '*'
           );
+          window.postMessage({ type: 'APP_BOOTSTRAP_COMPLETE' }, '*');
         };
 
         window.addEventListener('load', function () {
