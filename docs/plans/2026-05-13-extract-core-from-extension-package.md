@@ -1264,7 +1264,7 @@ Goal:
 
 Changes:
 
-- package TypeScript, Python, C#, and Godot under `@codegraphy/plugin-*`
+- package TypeScript, Python, C#, and Godot under `@codegraphy-dev/plugin-*`
 - keep Markdown on the bootstrap plugin path from Step 6
 - remove first-party language plugins from the normal VSIX release path
 - add `codegraphy` package metadata with `type`, `apiVersion`, optional disclosures, and inline `defaultOptions`
@@ -1369,8 +1369,8 @@ Validation:
 - `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin/symbol/extract.ts`
 - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/packageIcons.test.ts tests/integration/pluginActivationEvents.test.ts tests/extension/pipeline/adapters.test.ts tests/extension/pipeline/analysis/delegates.test.ts`
 - `pnpm --filter @codegraphy-dev/extension typecheck`
-- `pnpm --filter @codegraphy-dev/quality-tools exec vitest run tests/crap/coverage/profileFactories.test.ts tests/crap/coverage/profiles.test.ts tests/crap/command.test.ts`
-- `pnpm --filter @codegraphy-dev/quality-tools typecheck`
+- `pnpm --dir ../quality-tools --filter @poleski/quality-tools exec vitest run tests/crap/coverage/profileFactories.test.ts tests/crap/coverage/profiles.test.ts tests/crap/command.test.ts`
+- `pnpm --dir ../quality-tools --filter @poleski/quality-tools typecheck`
 - `pnpm run lint`
 - `pnpm run typecheck`
 - `pnpm run test`

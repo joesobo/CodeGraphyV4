@@ -40,6 +40,7 @@ export interface IGraphViewContributionStatus {
 
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
+  | { type: 'APP_BOOTSTRAP_COMPLETE' }
   | {
       type: 'GRAPH_INDEX_STATUS_UPDATED';
       payload: {
@@ -102,6 +103,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'PLAYBACK_ENDED' }
   | { type: 'GET_NODE_BOUNDS' }
   | { type: 'GET_GRAPH_RUNTIME_STATE' }
+  | { type: 'GET_VISIBLE_GRAPH_STATE' }
   | {
       type: 'DECORATIONS_UPDATED';
       payload: {

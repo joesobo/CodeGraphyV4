@@ -27,6 +27,7 @@ describe('graphView/webview/html', () => {
       webview as unknown as vscode.Webview,
       'nonce-value',
       'graph',
+      'light',
     );
 
     expect(html).toContain("script-src 'nonce-nonce-value'");
@@ -34,6 +35,7 @@ describe('graphView/webview/html', () => {
     expect(html).toContain('webview:/test/extension/dist/webview/index.js');
     expect(html).toContain('webview:/test/extension/dist/webview/index.css');
     expect(html).toContain('data-codegraphy-view="graph"');
+    expect(html).toContain('data-codegraphy-theme="light"');
     expect(html).toContain('<div id="root"></div>');
   });
 

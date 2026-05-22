@@ -11,7 +11,10 @@ const workspaceRoot = resolve(__dirname, '../..');
 const extensionNodeModules = resolve(__dirname, 'node_modules');
 const vitestScope = process.env.CODEGRAPHY_VITEST_SCOPE ?? 'extension';
 const useMutationCompatibleConfig =
-  Boolean(process.env.CODEGRAPHY_VITEST_INCLUDE_JSON) || vitestScope === 'workspace';
+  Boolean(process.env.CODEGRAPHY_VITEST_INCLUDE_JSON)
+    || Boolean(process.env.QUALITY_TOOLS_VITEST_INCLUDE_JSON)
+    || vitestScope === 'workspace';
+const coverageReportKey = vitestScope === 'workspace' ? 'workspace' : 'extension';
 const coverageInclude = vitestScope === 'workspace'
   ? ['packages/*/src/**/*.{ts,tsx}']
   : ['packages/extension/src/**/*.{ts,tsx}'];
@@ -31,7 +34,7 @@ export default defineConfig({
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
-      reportsDirectory: resolve(workspaceRoot, 'coverage'),
+      reportsDirectory: resolve(workspaceRoot, 'reports/quality-tools/crap', coverageReportKey),
       include: coverageInclude,
       exclude: coverageExclude,
     },

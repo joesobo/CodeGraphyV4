@@ -12,6 +12,10 @@ import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExte
 
 /** Public API returned by activate() — usable from e2e tests. */
 export interface CodeGraphyAPI {
+  /** Refresh graph data without clearing the persisted Graph Cache. */
+  refresh(): Promise<void>;
+  /** Re-send settings and graph controls to the webview. */
+  refreshSettings(): void;
   /** Current graph data (nodes + edges) after the last analysis. */
   getGraphData(): IGraphData;
   /** Send a raw message to the webview panel (mirrors extension→webview channel). */
@@ -61,6 +65,8 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   registerCommands(context, provider);
 
   return {
+    refresh: () => provider.refresh(),
+    refreshSettings: () => provider.refreshSettings(),
     getGraphData: () => provider.getGraphData(),
     sendToWebview: (message) => provider.sendToWebview(message),
     onWebviewMessage: (handler) => provider.onWebviewMessage(handler),

@@ -17,5 +17,6 @@ Examples:
 ```bash
 pnpm run crap -- extension/
 pnpm run crap -- extension/src/webview/
-pnpm run crap -- quality-tools/
 ```
+
+Coverage for CRAP runs is written under `reports/quality-tools/crap/<target>/`.

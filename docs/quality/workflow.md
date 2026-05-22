@@ -15,5 +15,5 @@ Suggested order for a change:
 
 Dogfood rule:
 
-- `packages/quality-tools` must meet the same standards it enforces for the rest of the repo
-- Run all six tools (organize, boundaries, reachability, CRAP, mutation, and SCRAP) on quality-tools before shipping changes
+- CodeGraphy should continue to dogfood the external `@poleski/quality-tools` package through the root scripts.
+- Run the focused tool set on any CodeGraphy wrapper changes before shipping changes.

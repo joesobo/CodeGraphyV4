@@ -54,13 +54,17 @@ describe('graph/messages/effects/runtime', () => {
     expect(getGraphRuntimeStateEffects('3d', [
       { id: 'src/app.ts', size: 12, x: 10, y: 20 },
       { id: 'src/utils.ts', size: 8 },
-    ])).toEqual([
+    ], [
+      { id: 'src/app.ts->src/utils.ts#import', source: 'src/app.ts', target: 'src/utils.ts' },
+    ] as never)).toEqual([
       {
         kind: 'postMessage',
         message: {
           type: 'GRAPH_RUNTIME_STATE_RESPONSE',
           payload: {
             graphMode: '3d',
+            edgeCount: 1,
+            edgeIds: ['src/app.ts->src/utils.ts#import'],
             nodeCount: 2,
           },
         },

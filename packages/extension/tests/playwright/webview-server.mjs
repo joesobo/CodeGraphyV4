@@ -71,6 +71,7 @@ const smokeHtml = `<!doctype html>
             { type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } },
             '*'
           );
+          window.postMessage({ type: 'APP_BOOTSTRAP_COMPLETE' }, '*');
           window.postMessage(
             {
               type: 'SETTINGS_UPDATED',
@@ -78,6 +79,7 @@ const smokeHtml = `<!doctype html>
             },
             '*'
           );
+          window.postMessage({ type: 'APP_BOOTSTRAP_COMPLETE' }, '*');
         };
 
         window.addEventListener('load', function () {
@@ -228,6 +230,10 @@ const depthHarnessScript = `
       scheduleBoundsProbe();
     };
 
+    const publishBootstrapComplete = () => {
+      postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    };
+
     const publishAll = () => {
       publishIndexStatus();
       publishDepthMode();
@@ -235,6 +241,7 @@ const depthHarnessScript = `
       publishDepthLimit();
       publishActiveFile();
       publishGraph();
+      publishBootstrapComplete();
     };
 
     const handleWebviewMessage = (message) => {
@@ -496,9 +503,14 @@ const packageGraphViewPluginHarnessScript = `
       renderHarnessState();
     };
 
+    const publishBootstrapComplete = () => {
+      postToWebview({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    };
+
     const publishAll = () => {
       publishBaseGraphState();
       publishPluginState();
+      publishBootstrapComplete();
       window.setTimeout(() => postToWebview({ type: 'FIT_VIEW' }), 300);
     };
 

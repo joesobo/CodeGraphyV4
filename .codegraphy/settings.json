@@ -1,27 +1,51 @@
 {
   "version": 1,
-  "maxFiles": 1000,
+  "maxFiles": 3000,
   "include": [
     "**/*"
   ],
   "respectGitignore": true,
   "showOrphans": true,
-  "pluginOrder": [],
-  "disabledPlugins": [],
+  "plugins": [
+    {
+      "package": "@codegraphy-dev/plugin-markdown"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-typescript"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-godot"
+    }
+  ],
   "nodeColors": {
     "file": "#A1A1AA",
     "folder": "#A1A1AA",
-    "package": "#F59E0B"
-  },
-  "nodeColorEnabled": {
-    "file": true,
-    "folder": true,
-    "package": true
+    "package": "#F59E0B",
+    "symbol": "#7C3AED",
+    "symbol:function": "#8B5CF6",
+    "symbol:class": "#3B82F6",
+    "symbol:interface": "#06B6D4",
+    "symbol:type": "#EC4899",
+    "symbol:struct": "#0EA5E9",
+    "symbol:enum": "#F59E0B",
+    "variable": "#14B8A6",
+    "symbol:constant": "#22C55E",
+    "plugin:codegraphy.gdscript:symbol:godot-class-name": "#478CBF"
   },
   "nodeVisibility": {
     "file": true,
     "folder": false,
-    "package": false
+    "package": false,
+    "symbol": false,
+    "symbol:function": false,
+    "symbol:class": false,
+    "symbol:interface": false,
+    "symbol:type": false,
+    "symbol:struct": false,
+    "symbol:enum": false,
+    "variable": false,
+    "symbol:constant": false,
+    "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
     "nests": true,
@@ -32,14 +56,219 @@
     "inherit": true,
     "reference": true,
     "test": true,
-    "load": true
+    "load": true,
+    "contains": true,
+    "overrides": true
   },
   "favorites": [],
   "bidirectionalEdges": "separate",
-  "legend": [],
+  "legend": [
+    {
+      "pattern": "packages/core/src/treeSitter/**",
+      "displayLabel": "Core / Tree-sitter Runtime",
+      "color": "#86EFAC",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/core/src/graph*/**",
+      "displayLabel": "Core / Graph Model + Query",
+      "color": "#5EEAD4",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/core/src/visibleGraph/**",
+      "displayLabel": "Core / Visible Graph",
+      "color": "#99F6E4",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/core/**",
+      "displayLabel": "Core / Indexing + Plugins",
+      "color": "#BBF7D0",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/extension/src/webview/**",
+      "displayLabel": "Extension / Webview UI",
+      "color": "#93C5FD",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/extension/src/extension/**",
+      "displayLabel": "Extension / VS Code Host",
+      "color": "#7DD3FC",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/extension/src/shared/**",
+      "displayLabel": "Extension / Shared Protocol",
+      "color": "#A5B4FC",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/extension/**",
+      "displayLabel": "Extension / Tests + Fixtures",
+      "color": "#BFDBFE",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/mcp/**",
+      "displayLabel": "MCP / CLI + Query Server",
+      "color": "#C4B5FD",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/plugin-api/**",
+      "displayLabel": "Plugin API / Contracts",
+      "color": "#DDD6FE",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/plugin-typescript/**",
+      "displayLabel": "Plugin / TypeScript + JavaScript",
+      "color": "#A7C7E7",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/plugin-markdown/**",
+      "displayLabel": "Plugin / Markdown",
+      "color": "#CBD5E1",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/plugin-godot/**",
+      "displayLabel": "Plugin / Godot",
+      "color": "#9CC9E2",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/plugin-python/**",
+      "displayLabel": "Plugin / Python",
+      "color": "#FDE68A",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/plugin-csharp/**",
+      "displayLabel": "Plugin / C#",
+      "color": "#D8B4FE",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/quality-tools/src/*rap/**",
+      "displayLabel": "Quality Tools / CRAP + SCRAP",
+      "color": "#F9A8D4",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/quality-tools/src/mutation/**",
+      "displayLabel": "Quality Tools / Mutation",
+      "color": "#FDBA74",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/quality-tools/src/organize/**",
+      "displayLabel": "Quality Tools / Architecture Reports",
+      "color": "#FDA4AF",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "packages/quality-tools/**",
+      "displayLabel": "Quality Tools / CLI + Shared",
+      "color": "#FECACA",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "docs/**",
+      "displayLabel": "Docs / Product + Plans",
+      "color": "#C7D2FE",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "examples/**",
+      "displayLabel": "Examples / Language Fixtures",
+      "color": "#D9F99D",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "scripts/**",
+      "displayLabel": "Workspace / Scripts",
+      "color": "#E5E7EB",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": ".github/**",
+      "displayLabel": "Workspace / CI",
+      "color": "#D1D5DB",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": ".changeset/**",
+      "displayLabel": "Workspace / Releases",
+      "color": "#FDE68A",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    },
+    {
+      "pattern": "skills/**",
+      "displayLabel": "Workspace / Agent Skills",
+      "color": "#E9D5FF",
+      "target": "node",
+      "shape2D": "circle",
+      "shape3D": "sphere"
+    }
+  ],
   "legendVisibility": {},
   "legendOrder": [],
-  "filterPatterns": [],
+  "filterPatterns": [
+    "**/tests/**"
+  ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
   "showLabels": true,
@@ -52,15 +281,21 @@
   "dagMode": null,
   "nodeSizeMode": "connections",
   "physics": {
-    "repelForce": 10,
+    "repelForce": 12,
     "linkDistance": 80,
-    "linkForce": 0.15,
+    "linkForce": 1,
     "damping": 0.7,
-    "centerForce": 0.1,
+    "centerForce": 0.15,
     "chargeRange": 200
   },
   "timeline": {
     "maxCommits": 500,
     "playbackSpeed": 1
+  },
+  "graphLayout": {
+    "collapsedNodes": {},
+    "pinnedNodes": {},
+    "sections": {},
+    "ownership": {}
   }
 }

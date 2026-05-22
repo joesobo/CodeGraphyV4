@@ -50,9 +50,6 @@ export function publishAnalyzedGraph(
   handlers.applyViewTransform();
   handlers.computeMergedGroups();
   handlers.sendGroupsUpdated();
-
-  const graphData = handlers.getGraphData();
-  handlers.sendGraphDataUpdated(graphData);
   handlers.sendDepthState();
   handlers.sendPluginStatuses();
   handlers.sendDecorations();
@@ -61,6 +58,9 @@ export function publishAnalyzedGraph(
   handlers.sendPluginToolbarActions?.();
   handlers.sendGraphViewContributionStatuses?.();
   handlers.sendPluginWebviewInjections?.();
+
+  const graphData = handlers.getGraphData();
+  handlers.sendGraphDataUpdated(graphData);
   state.analyzer?.registry.notifyPostAnalyze(graphData);
   handlers.markWorkspaceReady(graphData);
 }

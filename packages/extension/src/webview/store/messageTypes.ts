@@ -32,6 +32,9 @@ export interface IStoreFields {
   graphIsIndexing: boolean;
   graphIndexProgress: { phase: string; current: number; total: number } | null;
   isLoading: boolean;
+  awaitingInitialBootstrap: boolean;
+  bootstrapComplete: boolean;
+  pendingPluginAssetLoads: number;
   searchQuery: string;
   searchOptions: SearchOptions;
   favorites: Set<string>;
