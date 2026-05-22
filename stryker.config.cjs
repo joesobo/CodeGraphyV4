@@ -1,4 +1,3 @@
-const path = require('node:path');
 const base = require('@poleski/quality-tools/stryker.config.cjs');
 
 process.env.CODEGRAPHY_VITEST_SCOPE = process.env.CODEGRAPHY_VITEST_SCOPE ?? 'workspace';
@@ -20,8 +19,7 @@ module.exports = {
   packageManager: 'pnpm',
   vitest: {
     ...base.vitest,
-    configFile: path.join(__dirname, 'packages/extension/vitest.config.ts'),
-    dir: path.join(__dirname, 'packages/extension'),
+    configFile: 'packages/extension/vitest.config.ts',
     related: false,
   },
   reporters: [
