@@ -5,11 +5,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   getInstalledPluginsCachePath,
   readCodeGraphyInstalledPluginCache,
+  readCodeGraphyWorkspaceSettings,
   refreshCodeGraphyInstalledPlugins,
   registerCodeGraphyInstalledPlugin,
+  writeCodeGraphyWorkspaceSettings,
 } from '../../src';
 
 async function createPackage(
@@ -154,5 +157,34 @@ describe('CodeGraphy installed plugin cache', () => {
         options: { includeTests: true },
       },
     ]);
+  });
+
+  it('merges default options into existing workspace plugin entries and disables by package', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        package: '@codegraphy-dev/plugin-python',
+        options: { includeTests: false },
+      }],
+    });
+
+    enableCodeGraphyWorkspacePlugin(workspaceRoot, {
+      package: '@codegraphy-dev/plugin-python',
+      version: '1.2.3',
+      apiVersion: '^2.0.0',
+      defaultOptions: { includeTests: true, pythonVersion: '3.12' },
+      disclosures: [],
+      packageRoot: '/global/@codegraphy-dev/plugin-python',
+    });
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
+      package: '@codegraphy-dev/plugin-python',
+      options: { includeTests: false, pythonVersion: '3.12' },
+    }]);
+
+    disableCodeGraphyWorkspacePlugin(workspaceRoot, '@codegraphy-dev/plugin-python');
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([]);
   });
 });

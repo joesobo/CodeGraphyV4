@@ -30,8 +30,10 @@ describe('plugins/context workspace bounds and file access', () => {
     await expect(fileSystem.exists(outsideFile)).resolves.toBe(false);
     await expect(fileSystem.isDirectory(sourceDirectory)).resolves.toBe(true);
     await expect(fileSystem.isDirectory(sourceFile)).resolves.toBe(false);
+    await expect(fileSystem.isDirectory(outsideRoot)).resolves.toBe(false);
     await expect(fileSystem.isFile(sourceFile)).resolves.toBe(true);
     await expect(fileSystem.isFile(sourceDirectory)).resolves.toBe(false);
+    await expect(fileSystem.isFile(outsideFile)).resolves.toBe(false);
     await expect(fileSystem.listDirectory(sourceDirectory)).resolves.toEqual(['index.ts']);
     await expect(fileSystem.readTextFile(sourceFile)).resolves.toBe('export const value = 1;');
   });
@@ -46,5 +48,10 @@ describe('plugins/context workspace bounds and file access', () => {
     await expect(readTextFileWithinWorkspace(workspaceRoot, outsideFile)).resolves.toBeNull();
     await expect(listDirectoryWithinWorkspace(workspaceRoot, join(workspaceRoot, 'missing'))).resolves.toBeNull();
     await expect(readTextFileWithinWorkspace(workspaceRoot, join(workspaceRoot, 'missing.ts'))).resolves.toBeNull();
+
+    const fileSystem = createWorkspaceAnalysisFileSystem(workspaceRoot);
+    await expect(fileSystem.exists(join(workspaceRoot, 'missing.ts'))).resolves.toBe(false);
+    await expect(fileSystem.isDirectory(join(workspaceRoot, 'missing'))).resolves.toBe(false);
+    await expect(fileSystem.isFile(join(workspaceRoot, 'missing.ts'))).resolves.toBe(false);
   });
 });
