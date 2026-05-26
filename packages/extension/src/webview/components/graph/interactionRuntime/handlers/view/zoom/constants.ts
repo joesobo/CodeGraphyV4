@@ -1,0 +1,3 @@
+export const ZOOM_DURATION_MS = 150;
+export const MIN_3D_DISTANCE_RADIUS_FACTOR = 0.25;
+export const MAX_3D_DISTANCE_RADIUS_FACTOR = 8;
