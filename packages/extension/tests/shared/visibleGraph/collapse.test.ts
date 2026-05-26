@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../src/shared/graph/contracts';
 import { STRUCTURAL_NESTS_EDGE_KIND, deriveVisibleGraph } from '../../../src/shared/visibleGraph';
+import { applyCollapseProjection } from '../../../src/shared/visibleGraph/collapse';
 
 function node(id: string, nodeType = 'file'): IGraphNode {
   return {
@@ -32,6 +33,25 @@ function folderScope() {
 }
 
 describe('shared/visibleGraph/collapse', () => {
+  it('annotates collapsible folders when no folders are collapsed', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src', 'folder'),
+        node('src/app.ts'),
+        node('outside.ts'),
+      ],
+      edges: [edge('src/app.ts', 'outside.ts')],
+    };
+
+    const result = applyCollapseProjection(graphData);
+
+    expect(result.nodes.find((item) => item.id === 'src')).toMatchObject({
+      isCollapsible: true,
+      isCollapsed: false,
+    });
+    expect(result.edges).toBe(graphData.edges);
+  });
+
   it('keeps a collapsed folder visible and recursively hides its current descendants', () => {
     const graphData: IGraphData = {
       nodes: [
