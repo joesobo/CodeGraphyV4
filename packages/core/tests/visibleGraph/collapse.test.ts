@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
 import { applyCollapseProjection } from '../../src/visibleGraph/collapse';
+import { projectCollapsedEdges } from '../../src/visibleGraph/collapseEdges';
+import {
+  findVisibleCollapsedAncestor,
+  isDescendantOf,
+} from '../../src/visibleGraph/collapsePaths';
 import { applyFilterPatterns } from '../../src/visibleGraph/filter';
 import { symbolMatchesScopedDefinition } from '../../src/visibleGraph/scopeSymbolMatch';
 
@@ -20,6 +25,22 @@ function edge(from: string, to: string, kind: IGraphEdge['kind'], sources: IGrap
     to,
     kind,
     sources,
+  };
+}
+
+function projectedEdge(
+  from: string,
+  to: string,
+  sources: IGraphEdge['sources'] = [],
+  color?: string,
+): IGraphEdge {
+  return {
+    id: `${from}->${to}#import`,
+    from,
+    to,
+    kind: 'import',
+    sources,
+    ...(color ? { color } : {}),
   };
 }
 
@@ -185,5 +206,76 @@ describe('visibleGraph collapse and filtering', () => {
       },
       node('src/app.ts'),
     ]);
+  });
+
+  it('drops projected edges with missing or self endpoints', () => {
+    expect(projectCollapsedEdges(
+      [
+        projectedEdge('hidden/a.ts', 'hidden/b.ts'),
+        projectedEdge('missing.ts', 'outside.ts'),
+      ],
+      [node('src'), node('outside.ts')],
+      new Map([
+        ['hidden/a.ts', 'src'],
+        ['hidden/b.ts', 'src'],
+      ]),
+    )).toEqual([]);
+  });
+
+  it('merges duplicate projected edges without duplicating sources and preserves fallback color', () => {
+    expect(projectCollapsedEdges(
+      [
+        projectedEdge('hidden/a.ts', 'outside.ts', [
+          { id: 'source:a', pluginId: 'plugin', sourceId: 'a', label: 'A' },
+        ]),
+        projectedEdge('hidden/b.ts', 'outside.ts', [
+          { id: 'source:a', pluginId: 'plugin', sourceId: 'a', label: 'A' },
+          { id: 'source:b', pluginId: 'plugin', sourceId: 'b', label: 'B' },
+        ], '#ff0000'),
+      ],
+      [node('src'), node('outside.ts')],
+      new Map([
+        ['hidden/a.ts', 'src'],
+        ['hidden/b.ts', 'src'],
+      ]),
+    )).toEqual([
+      {
+        id: 'src->outside.ts#import',
+        from: 'src',
+        to: 'outside.ts',
+        kind: 'import',
+        color: '#ff0000',
+        sources: [
+          { id: 'source:a', pluginId: 'plugin', sourceId: 'a', label: 'A' },
+          { id: 'source:b', pluginId: 'plugin', sourceId: 'b', label: 'B' },
+        ],
+      },
+    ]);
+  });
+
+  it('identifies descendants under regular folders and root', () => {
+    expect(isDescendantOf('src', 'src/app.ts')).toBe(true);
+    expect(isDescendantOf('src', 'src')).toBe(false);
+    expect(isDescendantOf('(root)', 'src/app.ts')).toBe(true);
+    expect(isDescendantOf('(root)', '(root)')).toBe(false);
+  });
+
+  it('chooses the shallowest visible collapsed ancestor', () => {
+    expect(findVisibleCollapsedAncestor(
+      'src/domain/model.ts',
+      new Set(['src/domain', 'src']),
+    )).toBe('src');
+    expect(findVisibleCollapsedAncestor(
+      'src',
+      new Set(['src']),
+    )).toBe('src');
+    expect(findVisibleCollapsedAncestor(
+      'src/domain/model.ts',
+      new Set(['src/domain', '(root)', 'src']),
+    )).toBe('(root)');
+    expect(findVisibleCollapsedAncestor(
+      'src/domain/model.ts',
+      new Set(['test']),
+    )).toBeUndefined();
   });
 });
