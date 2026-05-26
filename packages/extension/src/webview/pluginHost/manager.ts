@@ -3,10 +3,10 @@
  * @module webview/pluginHost/manager
  */
 
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type {
   GraphPluginSlot,
   GraphViewViewportState,
-  IGraphViewContributions,
   NodeRenderFn,
   OverlayRenderFn,
   TooltipProviderFn,
@@ -17,7 +17,6 @@ import type {
   LabelOpts,
   CodeGraphyWebviewAPI,
 } from './api/contracts/webview';
-import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import { toDisposable, type Disposable } from '../../core/plugins/disposable';
 import { drawBadge, drawProgressRing, drawLabel } from './api/drawing';
 import { createPluginWebviewApi } from './api';
@@ -33,43 +32,40 @@ import {
   registerOverlay,
   registerTooltipProvider,
 } from './api/registration';
+import {
+  GraphViewContributionRegistry,
+  type GraphViewContributionListener,
+} from './manager/contributionRegistry';
+import {
+  getLatestNodeRenderer,
+  getOverlayEntries,
+  getRendererFnsForType,
+  type NodeRendererRegistry,
+  type OverlayRegistry,
+} from './manager/registries';
+import {
+  createGraphViewViewportStateListenerEntry,
+  notifyGraphViewViewportStateListeners,
+  removeGraphViewViewportStateListenersForPlugin,
+  type GraphViewViewportStateListener,
+  type GraphViewViewportStateListenerEntry,
+} from './manager/viewportState';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';
   payload: { event: string; data: unknown };
 };
 
-type GraphViewContributionListener = () => void;
-type GraphViewViewportStateListener = (state: GraphViewViewportState | null) => void;
-interface GraphViewViewportStateListenerEntry {
-  listener: GraphViewViewportStateListener;
-  pluginId?: string;
-}
-
-function createEmptyWebviewGraphViewContributionSet(): CoreGraphViewContributionSet {
-  return {
-    runtimeNodes: [],
-    runtimeEdges: [],
-    projections: [],
-    forces: [],
-    nodeDragEnd: [],
-    contextMenu: [],
-    ui: [],
-  };
-}
-
 export class WebviewPluginHost {
-  private readonly _nodeRenderers = new Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>();
-  private readonly _overlays = new Map<string, { pluginId: string; fn: OverlayRenderFn }>();
+  private readonly _nodeRenderers: NodeRendererRegistry = new Map();
+  private readonly _overlays: OverlayRegistry = new Map();
   private readonly _tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }> = [];
   private readonly _containers = new Map<string, HTMLDivElement>();
   private readonly _slotContainers = new Map<string, Map<GraphPluginSlot, HTMLDivElement>>();
   private readonly _slotHosts = new Map<GraphPluginSlot, HTMLDivElement>();
   private readonly _messageHandlers = new Map<string, Set<(msg: { type: string; data: unknown }) => void>>();
-  private readonly _graphViewContributions = new Map<string, Set<IGraphViewContributions>>();
-  private readonly _graphViewContributionListeners = new Set<GraphViewContributionListener>();
+  private readonly _graphViewContributions = new GraphViewContributionRegistry();
   private readonly _graphViewViewportStateListeners = new Set<GraphViewViewportStateListenerEntry>();
-  private _graphViewContributionSnapshot: CoreGraphViewContributionSet | undefined;
   private _graphViewViewportState: GraphViewViewportState | null = null;
 
   createAPI(pluginId: string, postMessage: (msg: GraphInteractionMessage) => void): CodeGraphyWebviewAPI {
@@ -80,7 +76,7 @@ export class WebviewPluginHost {
       (pid, type, fn) => registerNodeRenderer(pid, type, fn, this._nodeRenderers),
       (pid, id, fn) => registerOverlay(pid, id, fn, this._overlays),
       (pid, fn) => registerTooltipProvider(pid, fn, this._tooltipProviders),
-      (pid, contributions) => this.registerGraphViewContributions(pid, contributions),
+      (pid, contributions) => this._graphViewContributions.register(pid, contributions),
       () => this.getGraphViewViewportState(),
       (handler) => this.subscribeGraphViewViewportState(handler, pluginId),
       this._messageHandlers,
@@ -93,15 +89,17 @@ export class WebviewPluginHost {
   }
 
   getNodeRenderer(type: string): NodeRenderFn | undefined {
-    return this._nodeRenderers.get(type)?.at(-1)?.fn;
+    return getLatestNodeRenderer(this._nodeRenderers, type);
   }
 
   getNodeRenderers(type: string): NodeRenderFn[] {
-    const typeRenderers = this._nodeRenderers.get(type) ?? [];
-    const wildcardRenderers = type === '*' ? [] : (this._nodeRenderers.get('*') ?? []);
-    return [...typeRenderers, ...wildcardRenderers].map(entry => entry.fn);
+    return getRendererFnsForType(this._nodeRenderers, type);
   }
-  getOverlays(): Array<{ id: string; fn: OverlayRenderFn }> { return Array.from(this._overlays.entries()).map(([id, entry]) => ({ id, fn: entry.fn })); }
+
+  getOverlays(): Array<{ id: string; fn: OverlayRenderFn }> {
+    return getOverlayEntries(this._overlays);
+  }
+
   getTooltipContent(context: TooltipContext): TooltipContent | null { return aggregateTooltipContent(context, this._tooltipProviders); }
 
   getGraphViewViewportState(): GraphViewViewportState | null {
@@ -110,18 +108,14 @@ export class WebviewPluginHost {
 
   setGraphViewViewportState(state: GraphViewViewportState | null): void {
     this._graphViewViewportState = state;
-    for (const entry of this._graphViewViewportStateListeners) {
-      entry.listener(state);
-    }
+    notifyGraphViewViewportStateListeners(this._graphViewViewportStateListeners, state);
   }
 
   subscribeGraphViewViewportState(
     listener: GraphViewViewportStateListener,
     pluginId?: string,
   ): Disposable {
-    const entry: GraphViewViewportStateListenerEntry = pluginId
-      ? { listener, pluginId }
-      : { listener };
+    const entry = createGraphViewViewportStateListenerEntry(listener, pluginId);
     this._graphViewViewportStateListeners.add(entry);
     listener(this._graphViewViewportState);
     return toDisposable(() => {
@@ -130,67 +124,11 @@ export class WebviewPluginHost {
   }
 
   getGraphViewContributions(): CoreGraphViewContributionSet {
-    if (this._graphViewContributionSnapshot) {
-      return this._graphViewContributionSnapshot;
-    }
-
-    const merged = createEmptyWebviewGraphViewContributionSet();
-    for (const [pluginId, contributionSets] of this._graphViewContributions) {
-      for (const contributions of contributionSets) {
-        merged.runtimeNodes.push(...(contributions.runtimeNodes ?? []).map(contribution => ({ pluginId, contribution })));
-        merged.runtimeEdges.push(...(contributions.runtimeEdges ?? []).map(contribution => ({ pluginId, contribution })));
-        merged.projections.push(...(contributions.projections ?? []).map(contribution => ({ pluginId, contribution })));
-        merged.forces.push(...(contributions.forces ?? []).map(contribution => ({ pluginId, contribution })));
-        merged.nodeDragEnd.push(...(contributions.nodeDragEnd ?? []).map(contribution => ({ pluginId, contribution })));
-        merged.contextMenu.push(...(contributions.contextMenu ?? []).map(contribution => ({ pluginId, contribution })));
-        merged.ui.push(...(contributions.ui ?? []).map(contribution => ({ pluginId, contribution })));
-      }
-    }
-
-    this._graphViewContributionSnapshot = merged;
-    return merged;
+    return this._graphViewContributions.get();
   }
 
   subscribeGraphViewContributions(listener: GraphViewContributionListener): Disposable {
-    this._graphViewContributionListeners.add(listener);
-    return toDisposable(() => {
-      this._graphViewContributionListeners.delete(listener);
-    });
-  }
-
-  private registerGraphViewContributions(
-    pluginId: string,
-    contributions: IGraphViewContributions,
-  ): Disposable {
-    let pluginContributions = this._graphViewContributions.get(pluginId);
-    if (!pluginContributions) {
-      pluginContributions = new Set();
-      this._graphViewContributions.set(pluginId, pluginContributions);
-    }
-
-    pluginContributions.add(contributions);
-    this.invalidateGraphViewContributionSnapshot();
-    this.notifyGraphViewContributionListeners();
-
-    return toDisposable(() => {
-      const currentContributions = this._graphViewContributions.get(pluginId);
-      currentContributions?.delete(contributions);
-      if (currentContributions?.size === 0) {
-        this._graphViewContributions.delete(pluginId);
-      }
-      this.invalidateGraphViewContributionSnapshot();
-      this.notifyGraphViewContributionListeners();
-    });
-  }
-
-  private invalidateGraphViewContributionSnapshot(): void {
-    this._graphViewContributionSnapshot = undefined;
-  }
-
-  private notifyGraphViewContributionListeners(): void {
-    for (const listener of this._graphViewContributionListeners) {
-      listener();
-    }
+    return this._graphViewContributions.subscribe(listener);
   }
 
   attachSlotHost(slot: GraphPluginSlot, host: HTMLDivElement): void {
@@ -212,15 +150,8 @@ export class WebviewPluginHost {
       this._slotContainers,
       this._slotHosts,
     );
-    if (this._graphViewContributions.delete(pluginId)) {
-      this.invalidateGraphViewContributionSnapshot();
-      this.notifyGraphViewContributionListeners();
-    }
-    for (const entry of [...this._graphViewViewportStateListeners]) {
-      if (entry.pluginId === pluginId) {
-        this._graphViewViewportStateListeners.delete(entry);
-      }
-    }
+    this._graphViewContributions.removePlugin(pluginId);
+    removeGraphViewViewportStateListenersForPlugin(this._graphViewViewportStateListeners, pluginId);
   }
 
   static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void { drawBadge(ctx, opts); }
