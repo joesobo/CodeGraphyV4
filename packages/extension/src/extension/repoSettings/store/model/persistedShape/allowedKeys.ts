@@ -1,0 +1,45 @@
+export const TOP_LEVEL_SETTINGS_KEYS = new Set([
+  'version',
+  'maxFiles',
+  'include',
+  'respectGitignore',
+  'showOrphans',
+  'plugins',
+  'pluginData',
+  'nodeColors',
+  'nodeVisibility',
+  'edgeVisibility',
+  'favorites',
+  'bidirectionalEdges',
+  'legend',
+  'legendVisibility',
+  'legendOrder',
+  'filterPatterns',
+  'disabledCustomFilterPatterns',
+  'disabledPluginFilterPatterns',
+  'showLabels',
+  'directionMode',
+  'directionColor',
+  'particleSpeed',
+  'particleSize',
+  'depthMode',
+  'depthLimit',
+  'dagMode',
+  'nodeSizeMode',
+  'physics',
+  'timeline',
+]);
+
+export const PHYSICS_SETTINGS_KEYS = new Set([
+  'repelForce',
+  'linkDistance',
+  'linkForce',
+  'damping',
+  'centerForce',
+  'chargeRange',
+]);
+
+export const TIMELINE_SETTINGS_KEYS = new Set([
+  'maxCommits',
+  'playbackSpeed',
+]);
