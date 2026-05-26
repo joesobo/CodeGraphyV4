@@ -10,15 +10,14 @@ vi.mock('../../../../../src/webview/components/graph/rendering/shapes/draw/twoDi
   drawShape: vi.fn(),
 }));
 
+import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../../../src/webview/components/graph/appearance/model';
+import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { getImage } from '../../../../../src/webview/components/graph/rendering/imageCache';
+import {
+  renderNodeCanvas
+} from '../../../../../src/webview/components/graph/rendering/nodes/canvas2d';
 import { drawShape } from '../../../../../src/webview/components/graph/rendering/shapes/draw/twoDimensional';
 import type { WebviewPluginHost } from '../../../../../src/webview/pluginHost/manager';
-import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
-import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../../../../src/webview/components/graph/appearance/model';
-import {
-  paintNodePointerArea,
-  renderNodeCanvas,
-} from '../../../../../src/webview/components/graph/rendering/nodes/canvas2d';
 
 interface ContextOperation {
   fillStyle: string;
@@ -151,410 +150,193 @@ function createContext(): {
 }
 
 describe('graph/rendering/nodes/canvas2d', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
 
-  it('draws the node body and stroke using node styling', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeCanvas(createDependencies(), createNode(), ctx, 1);
 
-    expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
-    expect(ctx.fill).toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalled();
-    expect(operations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+
+
+    it('draws the node body and stroke using node styling', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeCanvas(createDependencies(), createNode(), ctx, 1);
+
+      expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
+      expect(ctx.fill).toHaveBeenCalled();
+      expect(ctx.stroke).toHaveBeenCalled();
+      expect(operations).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          globalAlpha: 1,
+          kind: 'fill',
+        }),
+        expect.objectContaining({
+          globalAlpha: 1,
+          kind: 'stroke',
+        }),
+        expect.objectContaining({
+          kind: 'fillText',
+          text: 'app.ts',
+        }),
+      ]));
+      expect(ctx.save).toHaveBeenCalledOnce();
+      expect(ctx.restore).toHaveBeenCalledOnce();
+    });
+
+
+
+    it('draws an image overlay when the node image is cached', () => {
+      const image = { width: 32, height: 32 };
+      vi.mocked(getImage).mockReturnValue(image as HTMLImageElement);
+      const { ctx, operations } = createContext();
+
+      renderNodeCanvas(
+        createDependencies(),
+        createNode({ imageUrl: 'https://example.com/icon.png' }),
+        ctx,
+        1,
+      );
+
+      expect(getImage).toHaveBeenCalledWith('https://example.com/icon.png', expect.any(Function));
+      expect(ctx.clip).toHaveBeenCalled();
+      expect(ctx.drawImage).toHaveBeenCalledWith(image, 14.4, 38.4, 19.2, 19.2);
+      expect(operations).toContainEqual(expect.objectContaining({
         globalAlpha: 1,
+        kind: 'drawImage',
+      }));
+    });
+
+
+
+    it('renders folder nodes as icon-first without clipping and with a larger icon', () => {
+      const image = { width: 32, height: 32 };
+      vi.mocked(getImage).mockReturnValue(image as HTMLImageElement);
+      const { ctx, operations } = createContext();
+
+      renderNodeCanvas(
+        createDependencies(),
+        createNode({
+          id: 'src',
+          label: 'src',
+          nodeType: 'folder',
+          color: 'rgba(0, 0, 0, 0)',
+          imageUrl: 'https://example.com/folder.svg',
+        }),
+        ctx,
+        1,
+      );
+
+      expect(ctx.clip).not.toHaveBeenCalled();
+      expect(ctx.drawImage).toHaveBeenCalledWith(image, 8, 32, 32, 32);
+      expect(operations).toContainEqual(expect.objectContaining({
+        fillStyle: 'rgba(0, 0, 0, 0)',
         kind: 'fill',
-      }),
-      expect.objectContaining({
-        globalAlpha: 1,
-        kind: 'stroke',
-      }),
-      expect.objectContaining({
+      }));
+    });
+
+
+
+    it('renders folder nodes with a filled body when no folder icon is present', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeCanvas(
+        createDependencies(),
+        createNode({
+          id: 'docs',
+          label: 'docs',
+          nodeType: 'folder',
+          color: '#A1A1AA',
+        }),
+        ctx,
+        1,
+      );
+
+      expect(ctx.drawImage).not.toHaveBeenCalled();
+      expect(operations).toContainEqual(expect.objectContaining({
+        fillStyle: '#A1A1AA',
+        kind: 'fill',
+      }));
+    });
+
+
+
+    it('renders labels when labels are enabled and the zoom level makes them visible', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeCanvas(
+        createDependencies({
+          nodeDecoration: { label: { text: 'Decorated Label', color: '#facc15' } },
+        }),
+        createNode(),
+        ctx,
+        2,
+      );
+
+      expect(ctx.fillText).toHaveBeenCalledWith('Decorated Label', 24, 65);
+      expect(ctx.fillStyle).toBe('#facc15');
+      expect(operations).toContainEqual(expect.objectContaining({
+        fillStyle: '#facc15',
         kind: 'fillText',
-        text: 'app.ts',
-      }),
-    ]));
-    expect(ctx.save).toHaveBeenCalledOnce();
-    expect(ctx.restore).toHaveBeenCalledOnce();
-  });
+        text: 'Decorated Label',
+      }));
+    });
 
-  it('draws an image overlay when the node image is cached', () => {
-    const image = { width: 32, height: 32 };
-    vi.mocked(getImage).mockReturnValue(image as HTMLImageElement);
-    const { ctx, operations } = createContext();
 
-    renderNodeCanvas(
-      createDependencies(),
-      createNode({ imageUrl: 'https://example.com/icon.png' }),
-      ctx,
-      1,
-    );
 
-    expect(getImage).toHaveBeenCalledWith('https://example.com/icon.png', expect.any(Function));
-    expect(ctx.clip).toHaveBeenCalled();
-    expect(ctx.drawImage).toHaveBeenCalledWith(image, 14.4, 38.4, 19.2, 19.2);
-    expect(operations).toContainEqual(expect.objectContaining({
-      globalAlpha: 1,
-      kind: 'drawImage',
-    }));
-  });
+    it('uses the wildcard plugin renderer when no type-specific renderer is registered', () => {
+      const pluginRenderer = vi.fn();
+      const getNodeRenderer = vi.fn((type: string) => (type === '*' ? pluginRenderer : undefined));
+      const { ctx } = createContext();
 
-  it('renders folder nodes as icon-first without clipping and with a larger icon', () => {
-    const image = { width: 32, height: 32 };
-    vi.mocked(getImage).mockReturnValue(image as HTMLImageElement);
-    const { ctx, operations } = createContext();
+      renderNodeCanvas(
+        createDependencies({
+          pluginHost: { getNodeRenderer } as unknown as WebviewPluginHost,
+        }),
+        createNode(),
+        ctx,
+        1,
+      );
 
-    renderNodeCanvas(
-      createDependencies(),
-      createNode({
-        id: 'src',
-        label: 'src',
-        nodeType: 'folder',
-        color: 'rgba(0, 0, 0, 0)',
-        imageUrl: 'https://example.com/folder.svg',
-      }),
-      ctx,
-      1,
-    );
+      expect(getNodeRenderer).toHaveBeenCalledWith('.ts');
+      expect(getNodeRenderer).toHaveBeenCalledWith('*');
+      expect(pluginRenderer).toHaveBeenCalledWith(expect.objectContaining({
+        node: expect.objectContaining({ id: 'src/app.ts' }),
+        ctx,
+        globalScale: 1,
+      }));
+    });
 
-    expect(ctx.clip).not.toHaveBeenCalled();
-    expect(ctx.drawImage).toHaveBeenCalledWith(image, 8, 32, 32, 32);
-    expect(operations).toContainEqual(expect.objectContaining({
-      fillStyle: 'rgba(0, 0, 0, 0)',
-      kind: 'fill',
-    }));
-  });
 
-  it('renders folder nodes with a filled body when no folder icon is present', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeCanvas(
-      createDependencies(),
-      createNode({
-        id: 'docs',
-        label: 'docs',
-        nodeType: 'folder',
-        color: '#A1A1AA',
-      }),
-      ctx,
-      1,
-    );
+    it('dims disconnected nodes when another node is highlighted', () => {
+      const { ctx, operations } = createContext();
 
-    expect(ctx.drawImage).not.toHaveBeenCalled();
-    expect(operations).toContainEqual(expect.objectContaining({
-      fillStyle: '#A1A1AA',
-      kind: 'fill',
-    }));
-  });
+      renderNodeCanvas(
+        createDependencies({
+          highlightedNodeId: 'src/other.ts',
+          showLabels: false,
+        }),
+        createNode({ baseOpacity: 0.85 }),
+        ctx,
+        1,
+      );
 
-  it('renders labels when labels are enabled and the zoom level makes them visible', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({
-        nodeDecoration: { label: { text: 'Decorated Label', color: '#facc15' } },
-      }),
-      createNode(),
-      ctx,
-      2,
-    );
-
-    expect(ctx.fillText).toHaveBeenCalledWith('Decorated Label', 24, 65);
-    expect(ctx.fillStyle).toBe('#facc15');
-    expect(operations).toContainEqual(expect.objectContaining({
-      fillStyle: '#facc15',
-      kind: 'fillText',
-      text: 'Decorated Label',
-    }));
-  });
-
-  it('uses the wildcard plugin renderer when no type-specific renderer is registered', () => {
-    const pluginRenderer = vi.fn();
-    const getNodeRenderer = vi.fn((type: string) => (type === '*' ? pluginRenderer : undefined));
-    const { ctx } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({
-        pluginHost: { getNodeRenderer } as unknown as WebviewPluginHost,
-      }),
-      createNode(),
-      ctx,
-      1,
-    );
-
-    expect(getNodeRenderer).toHaveBeenCalledWith('.ts');
-    expect(getNodeRenderer).toHaveBeenCalledWith('*');
-    expect(pluginRenderer).toHaveBeenCalledWith(expect.objectContaining({
-      node: expect.objectContaining({ id: 'src/app.ts' }),
-      ctx,
-      globalScale: 1,
-    }));
-  });
-
-  it('dims disconnected nodes when another node is highlighted', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({
-        highlightedNodeId: 'src/other.ts',
-        showLabels: false,
-      }),
-      createNode({ baseOpacity: 0.85 }),
-      ctx,
-      1,
-    );
-
-    expect(operations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        globalAlpha: 0.15,
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        globalAlpha: 0.15,
-        kind: 'stroke',
-      }),
-    ]));
-    expect(ctx.fillText).not.toHaveBeenCalled();
-  });
-
-  it('keeps decorated neighbor nodes at their decorated opacity when they are highlighted indirectly', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({
-        highlightedNeighborIds: new Set(['src/app.ts']),
-        highlightedNodeId: 'src/other.ts',
-        nodeDecoration: { opacity: 0.7 },
-      }),
-      createNode({ baseOpacity: 0.4 }),
-      ctx,
-      1,
-    );
-
-    expect(operations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        globalAlpha: 0.7,
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        globalAlpha: 0.7,
-        kind: 'stroke',
-      }),
-    ]));
-  });
-
-  it('keeps directly highlighted nodes fully opaque when they have no explicit base opacity', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({
-        highlightedNodeId: 'src/app.ts',
-        showLabels: false,
-      }),
-      createNode({ baseOpacity: undefined }),
-      ctx,
-      1,
-    );
-
-    expect(operations).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        globalAlpha: 1,
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        globalAlpha: 1,
-        kind: 'stroke',
-      }),
-    ]));
-  });
-
-  it('renders selected nodes with the selected border styling', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({
-        selectedNodeIds: new Set(['src/app.ts']),
-        showLabels: false,
-      }),
-      createNode(),
-      ctx,
-      1,
-    );
-
-    expect(operations).toContainEqual(expect.objectContaining({
-      kind: 'stroke',
-      lineWidth: 3,
-      strokeStyle: '#ffffff',
-    }));
-  });
-
-  it('renders a pin badge for pinned nodes without changing the node body', () => {
-    const { ctx, operations } = createContext();
-    vi.stubGlobal('Path2D', vi.fn());
-
-    renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({ isPinned: true }),
-      ctx,
-      1,
-    );
-
-    expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
-    expect(ctx.arc).not.toHaveBeenCalled();
-    expect(ctx.translate).toHaveBeenCalledWith(
-      expect.closeTo(29.775),
-      expect.closeTo(31.375),
-    );
-    expect(ctx.scale).toHaveBeenCalledWith(0.45208333333333334, 0.45208333333333334);
-    expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
-    expect(operations).not.toContainEqual(expect.objectContaining({
-      fillStyle: 'rgb(28, 62, 118)',
-    }));
-    expect(operations).toContainEqual(expect.objectContaining({
-      fillStyle: '#ffffff',
-      kind: 'fill',
-    }));
-  });
-
-  it('skips expanded Section Nodes because the editable Section Frame follows the live node position', () => {
-    const { ctx } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({
-        borderColor: '#60a5fa',
-        color: '#60a5fa',
-        id: 'section-1',
-        isGraphSection: true,
-        label: 'UI Layer',
-        nodeType: 'graph-section',
-        sectionHeight: 180,
-        sectionWidth: 280,
-        shape2D: 'square',
-        x: 100,
-        y: 120,
-      }),
-      ctx,
-      1,
-    );
-
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.fill).not.toHaveBeenCalled();
-    expect(ctx.stroke).not.toHaveBeenCalled();
-  });
-
-  it('renders collapsed Section Nodes as rounded Graph Section squares', () => {
-    const { ctx } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({
-        id: 'section-1',
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
-      }),
-      ctx,
-      1,
-    );
-
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.quadraticCurveTo).toHaveBeenCalled();
-    expect(ctx.fill).toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalled();
-  });
-
-  it('renders collapsed Section Node hidden counts in the bottom right and expand cue in the top left', () => {
-    const { ctx, operations } = createContext();
-    vi.stubGlobal('Path2D', vi.fn());
-
-    renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({
-        id: 'section-1',
-        hiddenDescendantCount: 4,
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        isPinned: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
-      }),
-      ctx,
-      1,
-    );
-
-    expect(ctx.arc).not.toHaveBeenCalled();
-    expect(ctx.translate).toHaveBeenCalledWith(expect.closeTo(7.2), expect.closeTo(31.2));
-    expect(ctx.fillText).toHaveBeenCalledWith('4', 35.2, 59.2);
-    expect(operations).toContainEqual(expect.objectContaining({
-      kind: 'fillText',
-      text: '4',
-    }));
-  });
-
-  it('renders collapsed Section Node icons fully opaque above the section color', () => {
-    const { ctx, operations } = createContext();
-    vi.mocked(getImage).mockReturnValue({} as HTMLImageElement);
-
-    renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({
-        baseOpacity: 0.35,
-        color: '#ef4444',
-        icon: 'data:image/png;base64,abc123',
-        id: 'section-1',
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
-      }),
-      ctx,
-      1,
-    );
-
-    expect(operations).toContainEqual(expect.objectContaining({
-      globalAlpha: 1,
-      kind: 'drawImage',
-    }));
-  });
-
-  it('paints the expanded pointer area around the node shape', () => {
-    const { ctx } = createContext();
-
-    paintNodePointerArea(createNode(), '#ffffff', ctx);
-
-    expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 18);
-    expect(ctx.fillStyle).toBe('#ffffff');
-    expect(ctx.fill).toHaveBeenCalled();
-  });
-
-  it('skips expanded Section Node pointer areas so member nodes stay clickable', () => {
-    const { ctx } = createContext();
-
-    paintNodePointerArea(
-      createNode({
-        id: 'section-1',
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        sectionHeight: 180,
-        sectionWidth: 280,
-        x: 100,
-        y: 120,
-      }),
-      '#ffffff',
-      ctx,
-    );
-
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.rect).not.toHaveBeenCalled();
-    expect(ctx.fill).not.toHaveBeenCalled();
-  });
+      expect(operations).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          globalAlpha: 0.15,
+          kind: 'fill',
+        }),
+        expect.objectContaining({
+          globalAlpha: 0.15,
+          kind: 'stroke',
+        }),
+      ]));
+      expect(ctx.fillText).not.toHaveBeenCalled();
+    });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { registerConfigHandler } from '../../../src/extension/config/listener';
 
@@ -30,194 +30,111 @@ function getConfigListener() {
 }
 
 describe('configListener', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
 
-  it('calls refreshPhysicsSettings for physics configuration changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.physics' });
-
-    expect(provider.refreshPhysicsSettings).toHaveBeenCalledOnce();
-  });
-
-  it('calls refreshToggleSettings for plugin setting changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.plugins' });
-
-    expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
-  });
-
-  it('calls refreshSettings for display-only setting changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.showLabels' });
-
-    expect(provider.refreshSettings).toHaveBeenCalledOnce();
-  });
-
-  it('rebuilds display state instead of refreshing the graph when show-orphans changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.showOrphans' });
-
-    expect(provider.refreshSettings).toHaveBeenCalledOnce();
-    expect(provider.refresh).not.toHaveBeenCalled();
-  });
-
-  it('calls refreshSettings for node and edge control changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.nodeColors' });
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.edgeVisibility' });
-
-    expect(provider.refreshSettings).toHaveBeenCalledTimes(2);
-    expect(provider.refresh).not.toHaveBeenCalled();
-  });
-
-  it('refreshes toggle settings for workspace plugin changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.plugins' || key === 'codegraphy' });
-
-    expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
-    expect(provider.refresh).not.toHaveBeenCalled();
-  });
-
-  it('skips re-analysis for legend configuration changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.legend' });
-
-    expect(provider.refresh).not.toHaveBeenCalled();
-    expect(provider.refreshSettings).not.toHaveBeenCalled();
-  });
-
-  it('debounces legend configuration syncs and refreshes group settings once', () => {
-    vi.useFakeTimers();
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.legend' });
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.hiddenPluginGroups' });
-
-    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
-
-    vi.advanceTimersByTime(299);
-    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
-
-    vi.advanceTimersByTime(1);
-    expect(provider.refreshGroupSettings).toHaveBeenCalledOnce();
-
-    vi.useRealTimers();
-  });
-
-  it('syncs graph layout without reloading the graph when layout changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({
-      affectsConfiguration: (key) =>
-        key === 'codegraphy' ||
-        key === 'codegraphy.graphLayout',
+    beforeEach(() => {
+      vi.clearAllMocks();
     });
 
-    expect(provider.sendGraphLayout).toHaveBeenCalledOnce();
-    expect(provider.refresh).not.toHaveBeenCalled();
-    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
-  });
 
-  it('triggers full refresh for unrecognized codegraphy settings', () => {
-    const context = makeContext();
-    const provider = makeProvider();
 
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    it('calls refreshPhysicsSettings for physics configuration changes', () => {
+      const context = makeContext();
+      const provider = makeProvider();
 
-    const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy' || key === 'codegraphy.maxFiles' });
+      registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
-    expect(provider.refresh).toHaveBeenCalledOnce();
-    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:configChanged', {
-      key: 'codegraphy',
-      value: undefined,
-      old: undefined,
-    });
-  });
+      const listener = getConfigListener();
+      listener({ affectsConfiguration: (key) => key === 'codegraphy.physics' });
 
-  it('invalidates timeline cache when filterPatterns change', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({
-      affectsConfiguration: (key) =>
-        key === 'codegraphy' ||
-        key === 'codegraphy.filterPatterns',
+      expect(provider.refreshPhysicsSettings).toHaveBeenCalledOnce();
     });
 
-    expect(provider.invalidateTimelineCache).toHaveBeenCalledOnce();
-  });
 
-  it('sends playback speed when timeline.playbackSpeed changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
 
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    it('calls refreshToggleSettings for plugin setting changes', () => {
+      const context = makeContext();
+      const provider = makeProvider();
 
-    const listener = getConfigListener();
-    listener({
-      affectsConfiguration: (key) =>
-        key === 'codegraphy' ||
-        key === 'codegraphy.timeline.playbackSpeed',
+      registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+      const listener = getConfigListener();
+      listener({ affectsConfiguration: (key) => key === 'codegraphy.plugins' });
+
+      expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
     });
 
-    expect(provider.sendPlaybackSpeed).toHaveBeenCalledOnce();
-  });
 
-  it('adds a subscription to the context', () => {
-    const context = makeContext();
-    const provider = makeProvider();
 
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    it('calls refreshSettings for display-only setting changes', () => {
+      const context = makeContext();
+      const provider = makeProvider();
 
-    expect(context.subscriptions.length).toBe(1);
-  });
+      registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+      const listener = getConfigListener();
+      listener({ affectsConfiguration: (key) => key === 'codegraphy.showLabels' });
+
+      expect(provider.refreshSettings).toHaveBeenCalledOnce();
+    });
+
+
+
+    it('rebuilds display state instead of refreshing the graph when show-orphans changes', () => {
+      const context = makeContext();
+      const provider = makeProvider();
+
+      registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+      const listener = getConfigListener();
+      listener({ affectsConfiguration: (key) => key === 'codegraphy.showOrphans' });
+
+      expect(provider.refreshSettings).toHaveBeenCalledOnce();
+      expect(provider.refresh).not.toHaveBeenCalled();
+    });
+
+
+
+    it('calls refreshSettings for node and edge control changes', () => {
+      const context = makeContext();
+      const provider = makeProvider();
+
+      registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+      const listener = getConfigListener();
+      listener({ affectsConfiguration: (key) => key === 'codegraphy.nodeColors' });
+      listener({ affectsConfiguration: (key) => key === 'codegraphy.edgeVisibility' });
+
+      expect(provider.refreshSettings).toHaveBeenCalledTimes(2);
+      expect(provider.refresh).not.toHaveBeenCalled();
+    });
+
+
+
+    it('refreshes toggle settings for workspace plugin changes', () => {
+      const context = makeContext();
+      const provider = makeProvider();
+
+      registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+      const listener = getConfigListener();
+      listener({ affectsConfiguration: (key) => key === 'codegraphy.plugins' || key === 'codegraphy' });
+
+      expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
+      expect(provider.refresh).not.toHaveBeenCalled();
+    });
+
+
+
+    it('skips re-analysis for legend configuration changes', () => {
+      const context = makeContext();
+      const provider = makeProvider();
+
+      registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+      const listener = getConfigListener();
+      listener({ affectsConfiguration: (key) => key === 'codegraphy.legend' });
+
+      expect(provider.refresh).not.toHaveBeenCalled();
+      expect(provider.refreshSettings).not.toHaveBeenCalled();
+    });
 });

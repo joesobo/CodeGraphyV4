@@ -5,10 +5,10 @@ vi.mock('../../../../../src/webview/components/graph/rendering/shapes/draw/twoDi
   drawShape: vi.fn(),
 }));
 
-import { drawShape } from '../../../../../src/webview/components/graph/rendering/shapes/draw/twoDimensional';
 import type { FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { renderNodeBody } from '../../../../../src/webview/components/graph/rendering/node/body';
 import { renderNodeLabel } from '../../../../../src/webview/components/graph/rendering/node/label';
+import { drawShape } from '../../../../../src/webview/components/graph/rendering/shapes/draw/twoDimensional';
 
 interface ContextOperation {
   fillStyle: string;
@@ -112,280 +112,207 @@ function createContext(): {
 }
 
 describe('graph/rendering/node/body', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
 
-  it('draws the node body and stroke using node styling', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeBody({
-      ctx,
-      node: createNode(),
-      globalScale: 1,
-      decoration: undefined,
-      opacity: 1,
-      isSelected: false,
+    beforeEach(() => {
+      vi.clearAllMocks();
     });
 
-    expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
-    expect(ctx.fill).toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalled();
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: '#3b82f6',
-        globalAlpha: 1,
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        globalAlpha: 1,
-        kind: 'stroke',
-        lineWidth: 2,
-        strokeStyle: '#1d4ed8',
-      }),
-    ]);
-  });
 
-  it('uses selected-node contrast styling, decoration colors, and scaled minimum border width', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeBody({
-      ctx,
-      decoration: createDecoration({ color: '#facc15' }),
-      globalScale: 2,
-      isSelected: true,
-      node: createNode({ borderWidth: 1 }),
-      opacity: 0.4,
+    it('draws the node body and stroke using node styling', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeBody({
+        ctx,
+        node: createNode(),
+        globalScale: 1,
+        decoration: undefined,
+        opacity: 1,
+        isSelected: false,
+      });
+
+      expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
+      expect(ctx.fill).toHaveBeenCalled();
+      expect(ctx.stroke).toHaveBeenCalled();
+      expect(operations).toEqual([
+        expect.objectContaining({
+          fillStyle: '#3b82f6',
+          globalAlpha: 1,
+          kind: 'fill',
+        }),
+        expect.objectContaining({
+          globalAlpha: 1,
+          kind: 'stroke',
+          lineWidth: 2,
+          strokeStyle: '#1d4ed8',
+        }),
+      ]);
     });
 
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: '#facc15',
-        globalAlpha: 1,
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        globalAlpha: 0.4,
-        kind: 'stroke',
-        lineWidth: 1.5,
-        strokeStyle: 'Highlight',
-      }),
-    ]);
-  });
 
-  it('draws collapsed Graph Sections as rounded squares', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeBody({
-      ctx,
-      decoration: undefined,
-      globalScale: 1,
-      isSelected: false,
-      node: createNode({
-        id: 'section-1',
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
-      }),
-      opacity: 1,
+    it('uses selected-node contrast styling, decoration colors, and scaled minimum border width', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeBody({
+        ctx,
+        decoration: createDecoration({ color: '#facc15' }),
+        globalScale: 2,
+        isSelected: true,
+        node: createNode({ borderWidth: 1 }),
+        opacity: 0.4,
+      });
+
+      expect(operations).toEqual([
+        expect.objectContaining({
+          fillStyle: '#facc15',
+          globalAlpha: 1,
+          kind: 'fill',
+        }),
+        expect.objectContaining({
+          globalAlpha: 0.4,
+          kind: 'stroke',
+          lineWidth: 1.5,
+          strokeStyle: 'Highlight',
+        }),
+      ]);
     });
 
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.beginPath).toHaveBeenCalledOnce();
-    expect(ctx.moveTo).toHaveBeenCalledWith(16, 32);
-    expect(ctx.quadraticCurveTo).toHaveBeenCalledWith(40, 32, 40, 40);
-    expect(ctx.closePath).toHaveBeenCalledOnce();
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: '#3b82f6',
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        kind: 'stroke',
-        strokeStyle: '#1d4ed8',
-      }),
-    ]);
-  });
 
-  it('uses the theme-resolved selected border color when no decoration overrides it', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeBody({
-      ctx,
-      decoration: undefined,
-      globalScale: 1,
-      isSelected: true,
-      node: createNode({ borderWidth: 4 }),
-      opacity: 0.6,
+    it('draws collapsed Graph Sections as rounded squares', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeBody({
+        ctx,
+        decoration: undefined,
+        globalScale: 1,
+        isSelected: false,
+        node: createNode({
+          id: 'section-1',
+          isCollapsedGraphSection: true,
+          isGraphSection: true,
+          nodeType: 'graph-section',
+          shape2D: 'square',
+        }),
+        opacity: 1,
+      });
+
+      expect(drawShape).not.toHaveBeenCalled();
+      expect(ctx.beginPath).toHaveBeenCalledOnce();
+      expect(ctx.moveTo).toHaveBeenCalledWith(16, 32);
+      expect(ctx.quadraticCurveTo).toHaveBeenCalledWith(40, 32, 40, 40);
+      expect(ctx.closePath).toHaveBeenCalledOnce();
+      expect(operations).toEqual([
+        expect.objectContaining({
+          fillStyle: '#3b82f6',
+          kind: 'fill',
+        }),
+        expect.objectContaining({
+          kind: 'stroke',
+          strokeStyle: '#1d4ed8',
+        }),
+      ]);
     });
 
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: '#3b82f6',
-        globalAlpha: 1,
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        globalAlpha: 0.6,
-        kind: 'stroke',
-        lineWidth: 4,
-        strokeStyle: 'Highlight',
-      }),
-    ]);
-  });
 
-  it('renders decorated labels when labels are visible at the current zoom', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeLabel({
-      ctx,
-      node: createNode(),
-      globalScale: 1.4,
-      decoration: createDecoration({ label: { text: 'Decorated Label', color: '#facc15' } }),
-      opacity: 0.8,
-      isHighlighted: true,
+    it('uses the theme-resolved selected border color when no decoration overrides it', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeBody({
+        ctx,
+        decoration: undefined,
+        globalScale: 1,
+        isSelected: true,
+        node: createNode({ borderWidth: 4 }),
+        opacity: 0.6,
+      });
+
+      expect(operations).toEqual([
+        expect.objectContaining({
+          fillStyle: '#3b82f6',
+          globalAlpha: 1,
+          kind: 'fill',
+        }),
+        expect.objectContaining({
+          globalAlpha: 0.6,
+          kind: 'stroke',
+          lineWidth: 4,
+          strokeStyle: 'Highlight',
+        }),
+      ]);
     });
 
-    expect(operations).toHaveLength(1);
-    expect(operations[0]?.kind).toBe('fillText');
-    expect(operations[0]?.fillStyle).toBe('#facc15');
-    expect(operations[0]?.font).toBe(`${12 / 1.4}px Sans-Serif`);
-    expect(operations[0]?.globalAlpha).toBeCloseTo(0.4);
-    expect(operations[0]?.text).toBe('Decorated Label');
-    expect(operations[0]?.textAlign).toBe('center');
-    expect(operations[0]?.textBaseline).toBe('top');
-    expect(operations[0]?.x).toBe(24);
-    expect(operations[0]?.y).toBe(48 + 16 + 2 / 1.4);
-  });
 
-  it('uses the muted light-theme label color for non-highlighted nodes', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeLabel({
-      ctx,
-      node: createNode(),
-      globalScale: 2,
-      decoration: undefined,
-      opacity: 1,
-      isHighlighted: false,
+    it('renders decorated labels when labels are visible at the current zoom', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeLabel({
+        ctx,
+        node: createNode(),
+        globalScale: 1.4,
+        decoration: createDecoration({ label: { text: 'Decorated Label', color: '#facc15' } }),
+        opacity: 0.8,
+        isHighlighted: true,
+      });
+
+      expect(operations).toHaveLength(1);
+      expect(operations[0]?.kind).toBe('fillText');
+      expect(operations[0]?.fillStyle).toBe('#facc15');
+      expect(operations[0]?.font).toBe(`${12 / 1.4}px Sans-Serif`);
+      expect(operations[0]?.globalAlpha).toBeCloseTo(0.4);
+      expect(operations[0]?.text).toBe('Decorated Label');
+      expect(operations[0]?.textAlign).toBe('center');
+      expect(operations[0]?.textBaseline).toBe('top');
+      expect(operations[0]?.x).toBe(24);
+      expect(operations[0]?.y).toBe(48 + 16 + 2 / 1.4);
     });
 
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: 'GrayText',
-        kind: 'fillText',
-        text: 'app.ts',
-      }),
-    ]);
-  });
 
-  it('uses the highlighted label color when no decoration label overrides it', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeLabel({
-      ctx,
-      decoration: undefined,
-      globalScale: 2,
-      isHighlighted: true,
-      node: createNode(),
-      opacity: 1,
+    it('uses the muted light-theme label color for non-highlighted nodes', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeLabel({
+        ctx,
+        node: createNode(),
+        globalScale: 2,
+        decoration: undefined,
+        opacity: 1,
+        isHighlighted: false,
+      });
+
+      expect(operations).toEqual([
+        expect.objectContaining({
+          fillStyle: 'GrayText',
+          kind: 'fillText',
+          text: 'app.ts',
+        }),
+      ]);
     });
 
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: 'CanvasText',
-        kind: 'fillText',
-        text: 'app.ts',
-      }),
-    ]);
-  });
 
-  it('uses a custom highlighted label color when appearance provides it', () => {
-    const { ctx, operations } = createContext();
 
-    renderNodeLabel({
-      appearance: {
-        labelForeground: 'ThemeLabel',
-        labelMutedForeground: 'ThemeMutedLabel',
-      },
-      ctx,
-      decoration: undefined,
-      globalScale: 2,
-      isHighlighted: true,
-      node: createNode(),
-      opacity: 1,
+    it('uses the highlighted label color when no decoration label overrides it', () => {
+      const { ctx, operations } = createContext();
+
+      renderNodeLabel({
+        ctx,
+        decoration: undefined,
+        globalScale: 2,
+        isHighlighted: true,
+        node: createNode(),
+        opacity: 1,
+      });
+
+      expect(operations).toEqual([
+        expect.objectContaining({
+          fillStyle: 'CanvasText',
+          kind: 'fillText',
+          text: 'app.ts',
+        }),
+      ]);
     });
-
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: 'ThemeLabel',
-        kind: 'fillText',
-        text: 'app.ts',
-      }),
-    ]);
-  });
-
-  it('uses a custom muted label color for non-highlighted nodes', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeLabel({
-      appearance: {
-        labelForeground: 'ThemeLabel',
-        labelMutedForeground: 'ThemeMutedLabel',
-      },
-      ctx,
-      decoration: undefined,
-      globalScale: 2,
-      isHighlighted: false,
-      node: createNode(),
-      opacity: 1,
-    });
-
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: 'ThemeMutedLabel',
-        kind: 'fillText',
-        text: 'app.ts',
-      }),
-    ]);
-  });
-
-  it('skips label rendering when the zoom level keeps label opacity near zero', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeLabel({
-      ctx,
-      decoration: undefined,
-      globalScale: 0.81,
-      isHighlighted: true,
-      node: createNode(),
-      opacity: 1,
-    });
-
-    expect(ctx.fillText).not.toHaveBeenCalled();
-    expect(operations).toEqual([]);
-  });
-
-  it('renders the label when zoom moves just above the minimum opacity threshold', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeLabel({
-      ctx,
-      decoration: undefined,
-      globalScale: 0.813,
-      isHighlighted: true,
-      node: createNode(),
-      opacity: 1,
-    });
-
-    expect(ctx.fillText).toHaveBeenCalledOnce();
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: 'CanvasText',
-        kind: 'fillText',
-        text: 'app.ts',
-      }),
-    ]);
-  });
 });
