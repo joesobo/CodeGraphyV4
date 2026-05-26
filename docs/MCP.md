@@ -4,7 +4,7 @@ CodeGraphy MCP is the agent interface into `@codegraphy-dev/core`.
 
 The Core Package is the central engine. The VS Code extension is the user interface, MCP is the agent interface, and `@codegraphy-dev/plugin-api` is the programmer interface for plugin authors. The terminal `codegraphy` command belongs to the Core Package npm package, so MCP stays optional and exposes Graph Query tools to agents without owning normal CLI workflows.
 
-`@codegraphy-dev/mcp` depends on `@codegraphy-dev/core` for runtime behavior and owns the agent-agnostic `codegraphy-mcp` stdio server command. Core does not know about MCP clients. `codegraphy setup` is a Core CLI command for preparing CodeGraphy's own user state, not for configuring Codex, Claude, Cursor, or any other agent.
+Every `codegraphy ...` terminal subcommand lives in `@codegraphy-dev/core`. `@codegraphy-dev/mcp` depends on `@codegraphy-dev/core` for runtime behavior and owns only the agent-agnostic `codegraphy-mcp` stdio server command. Core does not know about MCP clients. `codegraphy setup` is a Core CLI command for preparing CodeGraphy's own user state, not for configuring Codex, Claude, Cursor, or any other agent.
 
 ## Package Roles
 

@@ -137,11 +137,14 @@ See [MCP Setup](./docs/MCP.md) for agent configuration, JSON examples, and verif
 
 ## CLI Commands
 
+All `codegraphy ...` terminal commands are published by `@codegraphy-dev/core`. The MCP package publishes only the separate `codegraphy-mcp` server command for agent clients.
+
 | Command | What It Does |
 |---|---|
 | `codegraphy status [workspace]` | Reports fresh, stale, missing, or unusable Graph Cache state for the current folder or explicit CodeGraphy Workspace. |
 | `codegraphy index [workspace]` | Runs Indexing for the current folder or explicit CodeGraphy Workspace through `@codegraphy-dev/core`. |
 | `codegraphy plugins register <package>` | Registers a globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata. |
+| `codegraphy plugins list [workspace]` | Lists registered plugins and which ones are enabled for one CodeGraphy Workspace. |
 | `codegraphy plugins enable <package> [workspace]` | Enables a registered plugin for one CodeGraphy Workspace. |
 | `codegraphy plugins disable <package> [workspace]` | Disables a registered plugin for one CodeGraphy Workspace. |
 

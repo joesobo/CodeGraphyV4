@@ -6,7 +6,7 @@ This package is the headless core used by the VS Code extension, MCP server, and
 
 The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as setup, Indexing, status, plugin discovery, or workspace plugin enablement.
 
-The core CLI does not own MCP client configuration or MCP server startup. `codegraphy setup` prepares CodeGraphy's own user state, while `@codegraphy-dev/mcp` owns the optional agent-agnostic MCP server.
+All `codegraphy ...` terminal subcommands live in this package. The core CLI does not own MCP client configuration or MCP server startup. `codegraphy setup` prepares CodeGraphy's own user state, while `@codegraphy-dev/mcp` owns the optional agent-agnostic `codegraphy-mcp` server command.
 
 ## Current Entry Points
 
