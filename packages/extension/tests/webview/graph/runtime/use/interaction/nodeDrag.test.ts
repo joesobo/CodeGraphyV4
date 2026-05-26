@@ -28,7 +28,11 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
 
     expect(session?.draggedNodeIds).toEqual(new Set(['primary', 'sibling']));
-    expect(primary.isDragging).toBe(true);
+    expect(primary).toMatchObject({
+      isDragging: true,
+      x: 15,
+      y: 12,
+    });
     expect(sibling).toMatchObject({
       fx: 35,
       fy: 37,
@@ -39,6 +43,21 @@ describe('graph/runtime/use/interaction node drag', () => {
       y: 37,
     });
     expect(outside).toMatchObject({ x: 90, y: 90 });
+  });
+
+  it('ignores missing nodes in a reused drag group session', () => {
+    const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
+    const sibling = { id: 'sibling', x: 30, y: 40 } as FGNode;
+
+    expect(() => applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary, sibling] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(['primary', 'sibling']),
+    }, {
+      draggedNodeIds: new Set(['primary', 'missing', 'sibling']),
+      primaryNodeId: 'primary',
+    })).not.toThrow();
+    expect(sibling).toMatchObject({ x: 35, y: 37 });
   });
 
   it('ignores non-finite drag deltas after starting the drag', () => {
