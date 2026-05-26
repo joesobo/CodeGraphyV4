@@ -65,12 +65,14 @@
     {
       "type": "cluster",
       "path": "packages/core/src/cli",
-      "suggestedFolder": "command",
-      "confidence": "imports-only",
+      "suggestedFolder": "parse",
+      "confidence": "prefix+imports",
       "members": [
-        "command.ts",
-        "main.ts",
-        "parse.ts"
+        "parse.ts",
+        "parseHelp.ts",
+        "parsePlugins.ts",
+        "parseTypes.ts",
+        "parseWorkspace.ts"
       ]
     },
     {
