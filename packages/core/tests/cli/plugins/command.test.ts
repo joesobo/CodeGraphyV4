@@ -7,10 +7,10 @@ import {
   readCodeGraphyWorkspaceSettings,
   writeCodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginRecord,
-} from '@codegraphy-dev/core';
+} from '../../../src';
 import { describe, expect, it } from 'vitest';
 
-import { runPluginsCommand } from '../../src/plugins/command';
+import { runPluginsCommand } from '../../../src/cli/plugins/command';
 
 async function createPackage(
   root: string,
@@ -41,42 +41,10 @@ function createPluginRecord(
 }
 
 describe('plugins/command', () => {
-  it('refreshes global CodeGraphy plugin packages without enabling a workspace plugin', async () => {
+  it('registers an explicitly named globally installed plugin package without enabling it', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-'));
-    await createPackage(globalRoot, '@codegraphy-dev/plugin-python', {
-      version: '1.2.3',
-      codegraphy: {
-        type: 'plugin',
-        apiVersion: '^2.0.0',
-      },
-    });
-
-    const result = await runPluginsCommand({
-      name: 'plugins',
-      action: 'refresh',
-    }, {
-      cwd: () => workspaceRoot,
-      homeDir,
-      resolveGlobalPackageRoots: () => [globalRoot],
-    });
-
-    expect(result).toEqual({
-      exitCode: 0,
-      output: 'Refreshed 1 CodeGraphy plugin in ~/.codegraphy/plugins.json.',
-    });
-    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins.map(plugin => plugin.package)).toEqual([
-      '@codegraphy-dev/plugin-python',
-    ]);
-    await expect(fs.stat(path.join(workspaceRoot, '.codegraphy', 'settings.json'))).rejects.toMatchObject({
-      code: 'ENOENT',
-    });
-  });
-
-  it('adds an explicitly named globally installed plugin package', async () => {
-    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
-    const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
     await createPackage(globalRoot, 'private-plugin', {
       version: '4.5.6',
       codegraphy: {
@@ -87,20 +55,24 @@ describe('plugins/command', () => {
 
     const result = await runPluginsCommand({
       name: 'plugins',
-      action: 'add',
+      action: 'register',
       packageName: 'private-plugin',
     }, {
+      cwd: () => workspaceRoot,
       homeDir,
       resolveGlobalPackageRoots: () => [globalRoot],
     });
 
     expect(result).toEqual({
       exitCode: 0,
-      output: 'Added private-plugin to ~/.codegraphy/plugins.json.',
+      output: 'Registered private-plugin in ~/.codegraphy/plugins.json.',
     });
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins.map(plugin => plugin.package)).toEqual([
       'private-plugin',
     ]);
+    await expect(fs.stat(path.join(workspaceRoot, '.codegraphy', 'settings.json'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
   });
 
   it('enables and disables a cached plugin for one workspace', async () => {

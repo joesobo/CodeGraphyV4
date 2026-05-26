@@ -5,11 +5,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-  addCodeGraphyInstalledPlugin,
   enableCodeGraphyWorkspacePlugin,
   getInstalledPluginsCachePath,
   readCodeGraphyInstalledPluginCache,
   refreshCodeGraphyInstalledPlugins,
+  registerCodeGraphyInstalledPlugin,
 } from '../../src';
 
 async function createPackage(
@@ -102,7 +102,7 @@ describe('CodeGraphy installed plugin cache', () => {
     ]);
   });
 
-  it('adds an explicitly named globally installed plugin package to the user-level cache', async () => {
+  it('registers an explicitly named globally installed plugin package to the user-level cache', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
     await createPackage(globalRoot, 'private-plugin', {
@@ -114,7 +114,7 @@ describe('CodeGraphy installed plugin cache', () => {
       },
     });
 
-    const record = await addCodeGraphyInstalledPlugin({
+    const record = await registerCodeGraphyInstalledPlugin({
       homeDir,
       packageName: 'private-plugin',
       globalPackageRoots: [globalRoot],

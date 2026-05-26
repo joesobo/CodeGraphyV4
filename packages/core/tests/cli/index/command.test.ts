@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { runIndexCommand } from '../../src/index/command';
+import { runIndexCommand } from '../../../src/cli/index/command';
 
 describe('index/command', () => {
   it('indexes the current workspace by default and prints wait feedback', async () => {

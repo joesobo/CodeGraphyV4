@@ -1,4 +1,12 @@
 export { CODEGRAPHY_CORE_PACKAGE_NAME } from './packageIdentity';
+export type { CommandExecutionResult } from './cli/command';
+export { runCliCommand } from './cli/command';
+export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parse';
+export { parseCliCommand } from './cli/parse';
+export { runIndexCommand } from './cli/index/command';
+export { runPluginsCommand } from './cli/plugins/command';
+export { runSetupCommand } from './cli/setup/command';
+export { runStatusCommand } from './cli/status/command';
 export type {
   ICachedWorkspaceFile,
   IWorkspaceAnalysisCache,
@@ -183,14 +191,13 @@ export type {
 } from './plugins/packageManifest';
 export { parseCodeGraphyPluginPackageManifest } from './plugins/packageManifest';
 export type {
-  AddCodeGraphyInstalledPluginOptions,
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
   CodeGraphyUserStateOptions,
   RefreshCodeGraphyInstalledPluginsOptions,
+  RegisterCodeGraphyInstalledPluginOptions,
 } from './plugins/installedCache';
 export {
-  addCodeGraphyInstalledPlugin,
   createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
@@ -199,6 +206,7 @@ export {
   getInstalledPluginsCachePath,
   readCodeGraphyInstalledPluginCache,
   refreshCodeGraphyInstalledPlugins,
+  registerCodeGraphyInstalledPlugin,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';
@@ -280,6 +288,17 @@ export {
   createCodeGraphyWorkspacePackageAwarePluginSignature,
   createCodeGraphyWorkspaceSettingsSignature,
 } from './workspace/signatures';
+export type {
+  GraphQueryReport as WorkspaceGraphQueryReport,
+  IndexWorkspaceResult,
+  WorkspaceGraphQueryInput,
+  WorkspaceGraphQueryResult,
+  WorkspacePathInput,
+  WorkspaceStatusResult,
+} from './workspace/requestTypes';
+export { requestCodeGraphyIndexWorkspace } from './workspace/requestIndexing';
+export { requestWorkspaceGraphQuery } from './workspace/requestQuery';
+export { readCodeGraphyWorkspaceStatusForCli } from './workspace/requestStatus';
 export type {
   CodeGraphyWorkspaceStaleReason,
   CodeGraphyWorkspaceStatus,

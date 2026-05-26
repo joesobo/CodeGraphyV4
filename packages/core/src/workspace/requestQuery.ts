@@ -1,16 +1,17 @@
 import * as path from 'node:path';
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import { loadWorkspaceAnalysisDatabaseCache, readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
+import { buildWorkspaceGraphDataFromAnalysis } from '../graph/data';
 import {
-  buildWorkspaceGraphDataFromAnalysis,
   executeGraphQuery,
   type GraphQueryRequest,
-  loadWorkspaceAnalysisDatabaseCache,
+} from '../graphQuery';
+import {
   readCodeGraphyWorkspaceSettings,
-  readCodeGraphyWorkspaceStatus,
-  readWorkspaceAnalysisDatabaseSnapshot,
-} from '@codegraphy-dev/core';
-import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import type { WorkspaceGraphQueryInput, WorkspaceGraphQueryResult } from './model';
-import { resolveCodeGraphyWorkspacePath } from './paths';
+} from './settings';
+import { resolveCodeGraphyWorkspacePath } from './requestPaths';
+import type { WorkspaceGraphQueryInput, WorkspaceGraphQueryResult } from './requestTypes';
+import { readCodeGraphyWorkspaceStatus } from './status';
 
 export interface WorkspaceGraphQueryDependencies {
   cwd(): string;
