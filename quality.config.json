@@ -82,6 +82,17 @@
           "cwd": "{packageRoot}",
           "coveragePath": "{repoRoot}/{reportsDir}/crap/{reportKey}/coverage-final.json"
         }
+      },
+      "boundaries": {
+        "entrypoints": [
+          "src/analysis/workspaceState.ts",
+          "src/cli/main.ts",
+          "src/graphCache/status.ts",
+          "src/graphQuery/execute.ts",
+          "src/packageIdentity.ts",
+          "src/visibleGraph/derive.ts",
+          "src/workspace/requestQuery.ts"
+        ]
       }
     },
     "extension": {
