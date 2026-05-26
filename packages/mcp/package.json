@@ -1,7 +1,7 @@
 {
   "name": "@codegraphy-dev/mcp",
   "version": "1.1.1",
-  "description": "CodeGraphy MCP CLI and local query server",
+  "description": "CodeGraphy MCP stdio server",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -11,9 +11,10 @@
     "access": "public"
   },
   "bin": {
-    "codegraphy": "./dist/main.js"
+    "codegraphy-mcp": "./bin/codegraphy-mcp.js"
   },
   "files": [
+    "bin",
     "dist",
     "README.md",
     "CHANGELOG.md",
@@ -22,33 +23,12 @@
   "scripts": {
     "build": "node ./scripts/build.mjs",
     "test": "vitest run --config vitest.config.ts",
-    "lint": "eslint src tests scripts",
+    "lint": "eslint src tests scripts bin",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@codegraphy-dev/core": "workspace:*",
-    "@codegraphy-dev/plugin-api": "workspace:*",
-    "@driftlog/tree-sitter-dart": "1.0.4",
-    "@ladybugdb/core": "^0.15.3",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "@tree-sitter-grammars/tree-sitter-kotlin": "1.1.0",
-    "@tree-sitter-grammars/tree-sitter-lua": "0.4.1",
-    "ignore": "^7.0.5",
-    "minimatch": "^10.1.1",
-    "tree-sitter": "^0.25.0",
-    "tree-sitter-c": "0.24.1",
-    "tree-sitter-c-sharp": "0.23.1",
-    "tree-sitter-cpp": "0.23.4",
-    "tree-sitter-go": "0.25.0",
-    "tree-sitter-haskell": "0.23.1",
-    "tree-sitter-java": "0.23.5",
-    "tree-sitter-javascript": "^0.25.0",
-    "tree-sitter-php": "0.24.2",
-    "tree-sitter-python": "0.25.0",
-    "tree-sitter-ruby": "0.23.1",
-    "tree-sitter-rust": "0.24.0",
-    "tree-sitter-swift": "0.7.1",
-    "tree-sitter-typescript": "^0.23.2",
     "zod": "^4.1.12"
   }
 }

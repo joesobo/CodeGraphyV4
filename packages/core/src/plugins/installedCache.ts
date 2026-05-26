@@ -31,7 +31,7 @@ export interface RefreshCodeGraphyInstalledPluginsOptions extends CodeGraphyUser
   globalPackageRoots: string[];
 }
 
-export interface AddCodeGraphyInstalledPluginOptions extends CodeGraphyUserStateOptions {
+export interface RegisterCodeGraphyInstalledPluginOptions extends CodeGraphyUserStateOptions {
   packageName: string;
   globalPackageRoots: string[];
 }
@@ -258,8 +258,8 @@ export async function refreshCodeGraphyInstalledPlugins(
   );
 }
 
-export async function addCodeGraphyInstalledPlugin(
-  options: AddCodeGraphyInstalledPluginOptions,
+export async function registerCodeGraphyInstalledPlugin(
+  options: RegisterCodeGraphyInstalledPluginOptions,
 ): Promise<CodeGraphyInstalledPluginRecord> {
   let lastError: Error | undefined;
 

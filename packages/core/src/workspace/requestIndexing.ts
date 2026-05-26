@@ -1,7 +1,7 @@
 import * as path from 'node:path';
-import { indexCodeGraphyWorkspace } from '@codegraphy-dev/core';
-import type { IndexWorkspaceResult, WorkspacePathInput } from './model';
-import { resolveCodeGraphyWorkspacePath } from './paths';
+import { indexCodeGraphyWorkspace } from '../indexing/workspace';
+import { resolveCodeGraphyWorkspacePath } from './requestPaths';
+import type { IndexWorkspaceResult, WorkspacePathInput } from './requestTypes';
 
 export interface WorkspaceIndexDependencies {
   cwd(): string;

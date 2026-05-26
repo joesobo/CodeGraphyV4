@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { runStatusCommand } from '../../src/status/command';
+import { runStatusCommand } from '../../../src/cli/status/command';
 
 describe('status/command', () => {
   it('reports status for the current workspace by default', () => {

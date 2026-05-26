@@ -1,7 +1,7 @@
-import type { CommandExecutionResult } from '../run/command';
-import type { WorkspacePathInput, WorkspaceStatusResult } from '../workspace/model';
-import { readCodeGraphyWorkspaceStatusForCli } from '../workspace/status';
-import { resolveCodeGraphyWorkspacePath } from '../workspace/paths';
+import type { CommandExecutionResult } from '../command';
+import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
+import { readCodeGraphyWorkspaceStatusForCli } from '../../workspace/requestStatus';
+import type { WorkspacePathInput, WorkspaceStatusResult } from '../../workspace/requestTypes';
 
 interface StatusCommandDependencies {
   cwd(): string;

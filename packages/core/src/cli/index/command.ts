@@ -1,7 +1,7 @@
-import type { IndexWorkspaceResult, WorkspacePathInput } from '../workspace/model';
-import { requestCodeGraphyIndexWorkspace } from '../workspace/indexing';
-import { resolveCodeGraphyWorkspacePath } from '../workspace/paths';
-import type { CommandExecutionResult } from '../run/command';
+import { requestCodeGraphyIndexWorkspace } from '../../workspace/requestIndexing';
+import { resolveCodeGraphyWorkspacePath } from '../../workspace/requestPaths';
+import type { IndexWorkspaceResult, WorkspacePathInput } from '../../workspace/requestTypes';
+import type { CommandExecutionResult } from '../command';
 
 interface IndexCommandDependencies {
   cwd(): string;

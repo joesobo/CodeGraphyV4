@@ -1,10 +1,10 @@
 import * as path from 'node:path';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
-  readCodeGraphyWorkspaceStatus,
-} from '@codegraphy-dev/core';
-import type { WorkspacePathInput, WorkspaceStatusResult } from './model';
-import { resolveCodeGraphyWorkspacePath } from './paths';
+} from './settings';
+import { readCodeGraphyWorkspaceStatus } from './status';
+import { resolveCodeGraphyWorkspacePath } from './requestPaths';
+import type { WorkspacePathInput, WorkspaceStatusResult } from './requestTypes';
 
 export interface WorkspaceStatusDependencies {
   cwd(): string;

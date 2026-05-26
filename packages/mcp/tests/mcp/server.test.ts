@@ -51,8 +51,7 @@ describe('mcp/server', () => {
     expect(names).toEqual([
       'codegraphy_status',
       'codegraphy_index',
-      'codegraphy_plugins_refresh',
-      'codegraphy_plugins_add',
+      'codegraphy_plugins_register',
       'codegraphy_plugins_list',
       'codegraphy_plugins_enable',
       'codegraphy_plugins_disable',
@@ -80,9 +79,8 @@ describe('mcp/server', () => {
       },
     });
 
-    await client.callTool({ name: 'codegraphy_plugins_refresh', arguments: {} });
     await client.callTool({
-      name: 'codegraphy_plugins_add',
+      name: 'codegraphy_plugins_register',
       arguments: { packageName: '@codegraphy-dev/plugin-python' },
     });
     await client.callTool({
@@ -103,8 +101,7 @@ describe('mcp/server', () => {
       output: 'ran enable',
     });
     expect(calls).toEqual([
-      { name: 'plugins', action: 'refresh' },
-      { name: 'plugins', action: 'add', packageName: '@codegraphy-dev/plugin-python' },
+      { name: 'plugins', action: 'register', packageName: '@codegraphy-dev/plugin-python' },
       { name: 'plugins', action: 'list', workspacePath: '/workspace/project' },
       {
         name: 'plugins',

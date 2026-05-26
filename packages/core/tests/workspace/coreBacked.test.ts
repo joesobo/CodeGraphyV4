@@ -3,9 +3,9 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { requestCodeGraphyIndexWorkspace } from '../../src/workspace/indexing';
-import { requestWorkspaceGraphQuery } from '../../src/workspace/query';
-import { readCodeGraphyWorkspaceStatusForCli } from '../../src/workspace/status';
+import { requestCodeGraphyIndexWorkspace } from '../../src/workspace/requestIndexing';
+import { requestWorkspaceGraphQuery } from '../../src/workspace/requestQuery';
+import { readCodeGraphyWorkspaceStatusForCli } from '../../src/workspace/requestStatus';
 
 describe('core-backed CodeGraphy Workspace commands', () => {
   it('indexes, reports fresh status, and queries a workspace without VS Code', async () => {

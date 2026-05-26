@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseCliCommand } from '../../src/run/parse';
+import { parseCliCommand } from '../../src/cli/parse';
 
-describe('run/parse', () => {
+describe('cli/parse', () => {
   it('parses setup commands', () => {
     expect(parseCliCommand(['setup'])).toEqual({ name: 'setup' });
   });
@@ -23,13 +23,9 @@ describe('run/parse', () => {
   });
 
   it('parses plugin cache and workspace commands', () => {
-    expect(parseCliCommand(['plugins', 'refresh'])).toEqual({
+    expect(parseCliCommand(['plugins', 'register', 'private-plugin'])).toEqual({
       name: 'plugins',
-      action: 'refresh',
-    });
-    expect(parseCliCommand(['plugins', 'add', 'private-plugin'])).toEqual({
-      name: 'plugins',
-      action: 'add',
+      action: 'register',
       packageName: 'private-plugin',
     });
     expect(parseCliCommand(['plugins', 'enable', '@codegraphy-dev/plugin-python', '/workspace/project'])).toEqual({
@@ -54,6 +50,7 @@ describe('run/parse', () => {
     expect(parseCliCommand(['list'])).toEqual({ name: 'help' });
     expect(parseCliCommand(['open', '/repo'])).toEqual({ name: 'help' });
     expect(parseCliCommand(['reindex', '/repo'])).toEqual({ name: 'help' });
+    expect(parseCliCommand(['mcp'])).toEqual({ name: 'help' });
   });
 
   it('falls back to help for unknown commands', () => {

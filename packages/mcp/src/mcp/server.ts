@@ -1,20 +1,21 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import {
+  readCodeGraphyWorkspaceStatusForCli,
+  requestCodeGraphyIndexWorkspace,
+  requestWorkspaceGraphQuery,
+  runPluginsCommand,
+  type CliCommand,
+  type CommandExecutionResult,
+  type IndexWorkspaceResult,
+  type PluginsCommandAction,
+  type WorkspaceGraphQueryInput,
+  type WorkspaceGraphQueryResult,
+  type WorkspacePathInput,
+  type WorkspaceStatusResult,
+  type WorkspaceGraphQueryReport,
+} from '@codegraphy-dev/core';
 import * as z from 'zod/v4';
-import { runPluginsCommand } from '../plugins/command';
-import type { CommandExecutionResult } from '../run/command';
-import type { CliCommand, PluginsCommandAction } from '../run/parse';
-import { requestCodeGraphyIndexWorkspace } from '../workspace/indexing';
-import type {
-  IndexWorkspaceResult,
-  GraphQueryReport,
-  WorkspaceGraphQueryInput,
-  WorkspaceGraphQueryResult,
-  WorkspacePathInput,
-  WorkspaceStatusResult,
-} from '../workspace/model';
-import { requestWorkspaceGraphQuery } from '../workspace/query';
-import { readCodeGraphyWorkspaceStatusForCli } from '../workspace/status';
 
 interface CodeGraphyMcpServerDependencies {
   cwd(): string;
@@ -110,7 +111,7 @@ function resolveInputWorkspacePath(
 function registerGraphQueryTool(
   server: McpServer,
   dependencies: CodeGraphyMcpServerDependencies,
-  report: GraphQueryReport,
+  report: WorkspaceGraphQueryReport,
   name: string,
   description: string,
   inputSchema: z.ZodRawShape,
@@ -163,26 +164,14 @@ export function createCodeGraphyMcpServer(
   );
 
   server.registerTool(
-    'codegraphy_plugins_refresh',
+    'codegraphy_plugins_register',
     {
-      description: 'Refresh ~/.codegraphy/plugins.json from globally installed CodeGraphy plugin packages.',
-      inputSchema: z.object({}),
-    },
-    async () => createPluginCommandResult(await executePluginsCommand({
-      name: 'plugins',
-      action: 'refresh',
-    }, dependencies)),
-  );
-
-  server.registerTool(
-    'codegraphy_plugins_add',
-    {
-      description: 'Add an explicitly named globally installed CodeGraphy plugin package to ~/.codegraphy/plugins.json.',
+      description: 'Register an explicitly named globally installed CodeGraphy plugin package in ~/.codegraphy/plugins.json.',
       inputSchema: z.object({ packageName: packagePluginSchema.packageName }),
     },
     async ({ packageName }) => createPluginCommandResult(await executePluginsCommand({
       name: 'plugins',
-      action: 'add',
+      action: 'register',
       packageName,
     }, dependencies)),
   );

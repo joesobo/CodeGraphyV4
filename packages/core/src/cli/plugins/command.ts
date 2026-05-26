@@ -1,41 +1,39 @@
 import * as path from 'node:path';
 import {
-  addCodeGraphyInstalledPlugin,
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   readCodeGraphyInstalledPluginCache,
-  readCodeGraphyWorkspaceSettingsOrInitial,
-  refreshCodeGraphyInstalledPlugins,
-  type AddCodeGraphyInstalledPluginOptions,
   type CodeGraphyInstalledPluginCache,
   type CodeGraphyInstalledPluginRecord,
   type CodeGraphyUserStateOptions,
-  type RefreshCodeGraphyInstalledPluginsOptions,
-} from '@codegraphy-dev/core';
-import type { CommandExecutionResult } from '../run/command';
-import type { CliCommand } from '../run/parse';
+  registerCodeGraphyInstalledPlugin,
+  type RegisterCodeGraphyInstalledPluginOptions,
+} from '../../plugins/installedCache';
+import {
+  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  readCodeGraphyWorkspaceSettingsOrInitial,
+} from '../../workspace/settings';
+import type { CommandExecutionResult } from '../command';
+import type { CliCommand } from '../parse';
 import { resolveNpmGlobalPackageRoots } from './globalPackages';
 
 type PluginsCommandDependencies = {
-  addInstalledPlugin(options: AddCodeGraphyInstalledPluginOptions): Promise<CodeGraphyInstalledPluginRecord>;
   cwd(): string;
   disableWorkspacePlugin(workspaceRoot: string, packageName: string): void;
   enableWorkspacePlugin(workspaceRoot: string, plugin: CodeGraphyInstalledPluginRecord): void;
   homeDir?: string;
   readInstalledPluginCache(options?: CodeGraphyUserStateOptions): CodeGraphyInstalledPluginCache;
-  refreshInstalledPlugins(options: RefreshCodeGraphyInstalledPluginsOptions): Promise<CodeGraphyInstalledPluginCache>;
+  registerInstalledPlugin(options: RegisterCodeGraphyInstalledPluginOptions): Promise<CodeGraphyInstalledPluginRecord>;
   resolveGlobalPackageRoots(): string[];
 };
 
 const DEFAULT_DEPENDENCIES: PluginsCommandDependencies = {
-  addInstalledPlugin: addCodeGraphyInstalledPlugin,
   cwd: () => process.cwd(),
   disableWorkspacePlugin: disableCodeGraphyWorkspacePlugin,
   enableWorkspacePlugin: enableCodeGraphyWorkspacePlugin,
   readInstalledPluginCache: readCodeGraphyInstalledPluginCache,
-  refreshInstalledPlugins: refreshCodeGraphyInstalledPlugins,
+  registerInstalledPlugin: registerCodeGraphyInstalledPlugin,
   resolveGlobalPackageRoots: resolveNpmGlobalPackageRoots,
 };
 
@@ -46,8 +44,7 @@ function createHelpResult(): CommandExecutionResult {
       'CodeGraphy plugin commands',
       '',
       'Commands:',
-      '  codegraphy plugins refresh',
-      '  codegraphy plugins add <package>',
+      '  codegraphy plugins register <package>',
       '  codegraphy plugins list [workspace]',
       '  codegraphy plugins enable <package> [workspace]',
       '  codegraphy plugins disable <package> [workspace]',
@@ -60,10 +57,6 @@ function resolveWorkspaceRoot(
   dependencies: Pick<PluginsCommandDependencies, 'cwd'>,
 ): string {
   return path.resolve(dependencies.cwd(), workspacePath ?? '.');
-}
-
-function formatPluginCount(count: number): string {
-  return `${count} CodeGraphy ${count === 1 ? 'plugin' : 'plugins'}`;
 }
 
 function findCachedPlugin(
@@ -90,40 +83,20 @@ function listInstalledPluginsWithBundledMarkdown(
   ];
 }
 
-function createMissingPackageResult(action: 'add' | 'disable' | 'enable'): CommandExecutionResult {
+function createMissingPackageResult(action: 'disable' | 'enable' | 'register'): CommandExecutionResult {
+  const workspaceSuffix = action === 'register' ? '' : ' [workspace]';
   return {
     exitCode: 1,
-    output: `Usage: codegraphy plugins ${action} <package> [workspace]`,
+    output: `Usage: codegraphy plugins ${action} <package>${workspaceSuffix}`,
   };
 }
 
-async function runRefreshCommand(
-  dependencies: PluginsCommandDependencies,
-): Promise<CommandExecutionResult> {
-  const globalPackageRoots = dependencies.resolveGlobalPackageRoots();
-  if (globalPackageRoots.length === 0) {
-    return {
-      exitCode: 1,
-      output: 'Could not find the global npm package root. Confirm npm is installed, then retry.',
-    };
-  }
-
-  const cache = await dependencies.refreshInstalledPlugins({
-    homeDir: dependencies.homeDir,
-    globalPackageRoots,
-  });
-  return {
-    exitCode: 0,
-    output: `Refreshed ${formatPluginCount(cache.plugins.length)} in ~/.codegraphy/plugins.json.`,
-  };
-}
-
-async function runAddCommand(
+async function runRegisterCommand(
   command: CliCommand,
   dependencies: PluginsCommandDependencies,
 ): Promise<CommandExecutionResult> {
   if (!command.packageName) {
-    return createMissingPackageResult('add');
+    return createMissingPackageResult('register');
   }
 
   const globalPackageRoots = dependencies.resolveGlobalPackageRoots();
@@ -134,7 +107,7 @@ async function runAddCommand(
     };
   }
 
-  const record = await dependencies.addInstalledPlugin({
+  const record = await dependencies.registerInstalledPlugin({
     homeDir: dependencies.homeDir,
     packageName: command.packageName,
     globalPackageRoots,
@@ -142,7 +115,7 @@ async function runAddCommand(
 
   return {
     exitCode: 0,
-    output: `Added ${record.package} to ~/.codegraphy/plugins.json.`,
+    output: `Registered ${record.package} in ~/.codegraphy/plugins.json.`,
   };
 }
 
@@ -163,7 +136,7 @@ function runEnableCommand(
       exitCode: 1,
       output: [
         `Plugin '${command.packageName}' is not in ~/.codegraphy/plugins.json.`,
-        `Run \`codegraphy plugins refresh\` or \`codegraphy plugins add ${command.packageName}\`, then retry.`,
+        `Run \`codegraphy plugins register ${command.packageName}\`, then retry.`,
       ].join(' '),
     };
   }
@@ -241,10 +214,8 @@ export async function runPluginsCommand(
 
   try {
     switch (command.action) {
-      case 'refresh':
-        return runRefreshCommand(mergedDependencies);
-      case 'add':
-        return runAddCommand(command, mergedDependencies);
+      case 'register':
+        return runRegisterCommand(command, mergedDependencies);
       case 'enable':
         return runEnableCommand(command, mergedDependencies);
       case 'disable':
