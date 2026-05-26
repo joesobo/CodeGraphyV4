@@ -74,112 +74,174 @@ export class UpdateGraphLayoutAction implements IUndoableAction {
   }
 }
 
-export async function applyGraphLayoutMessage(
+async function updateGraphLayoutPin(
+  message: Extract<WebviewToExtensionMessage, { type: 'UPDATE_GRAPH_LAYOUT_PIN' }>,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<void> {
+  const nextLayout = setGraphLayoutNodePin(readCurrentGraphLayout(handlers), message.payload);
+  await persistAndSendGraphLayout(handlers, nextLayout);
+}
+
+async function clearGraphLayoutPin(
+  message: Extract<WebviewToExtensionMessage, { type: 'CLEAR_GRAPH_LAYOUT_PIN' }>,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<void> {
+  const nextLayout = clearGraphLayoutNodePin(
+    readCurrentGraphLayout(handlers),
+    message.payload.nodeId,
+    message.payload.graphMode,
+  );
+
+  await persistAndSendGraphLayout(handlers, nextLayout);
+}
+
+async function updateGraphLayoutCollapse(
+  message: Extract<WebviewToExtensionMessage, { type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE' }>,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<void> {
+  const nextLayout = setGraphLayoutNodeCollapsed(
+    readCurrentGraphLayout(handlers),
+    message.payload.nodeId,
+    message.payload.collapsed,
+  );
+
+  await persistAndSendGraphLayout(handlers, nextLayout);
+}
+
+async function createGraphLayoutSectionFromMessage(
+  message: Extract<WebviewToExtensionMessage, { type: 'CREATE_GRAPH_LAYOUT_SECTION' }>,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<void> {
+  const nextLayout = createGraphLayoutSection(readCurrentGraphLayout(handlers), {
+    ...message.payload,
+    updatedAt: new Date().toISOString(),
+  });
+
+  await persistAndSendGraphLayout(handlers, nextLayout);
+}
+
+function createGraphSectionIconUrlMap(
+  iconImports: Extract<WebviewToExtensionMessage, { type: 'UPDATE_GRAPH_LAYOUT_SECTION' }>['payload']['iconImports'],
+): Map<string, string> {
+  return new Map(
+    (iconImports ?? []).map(iconImport => [
+      iconImport.imagePath,
+      `data:image/${iconImport.imagePath.endsWith('.svg') ? 'svg+xml' : 'png'};base64,${iconImport.contentsBase64}`,
+    ]),
+  );
+}
+
+async function updateGraphLayoutSectionFromMessage(
+  message: Extract<WebviewToExtensionMessage, { type: 'UPDATE_GRAPH_LAYOUT_SECTION' }>,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<void> {
+  const { iconImports, ...patch } = message.payload;
+  await writeIconImports(iconImports, handlers);
+  const nextLayout = updateGraphLayoutSection(readCurrentGraphLayout(handlers), {
+    ...patch,
+    updatedAt: new Date().toISOString(),
+  });
+
+  await persistAndSendGraphLayout(handlers, nextLayout, {
+    iconUrls: createGraphSectionIconUrlMap(iconImports),
+  });
+}
+
+async function applyPersistedGraphLayoutMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphLayoutMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
-    case 'UPDATE_GRAPH_LAYOUT_PIN': {
-      const nextLayout = setGraphLayoutNodePin(readCurrentGraphLayout(handlers), message.payload);
-
-      await persistAndSendGraphLayout(handlers, nextLayout);
+    case 'UPDATE_GRAPH_LAYOUT_PIN':
+      await updateGraphLayoutPin(message, handlers);
       return true;
-    }
-
-    case 'CLEAR_GRAPH_LAYOUT_PIN': {
-      const nextLayout = clearGraphLayoutNodePin(
-        readCurrentGraphLayout(handlers),
-        message.payload.nodeId,
-        message.payload.graphMode,
-      );
-
-      await persistAndSendGraphLayout(handlers, nextLayout);
+    case 'CLEAR_GRAPH_LAYOUT_PIN':
+      await clearGraphLayoutPin(message, handlers);
       return true;
-    }
-
-    case 'UPDATE_GRAPH_LAYOUT_COLLAPSE': {
-      const nextLayout = setGraphLayoutNodeCollapsed(
-        readCurrentGraphLayout(handlers),
-        message.payload.nodeId,
-        message.payload.collapsed,
-      );
-
-      await persistAndSendGraphLayout(handlers, nextLayout);
+    case 'UPDATE_GRAPH_LAYOUT_COLLAPSE':
+      await updateGraphLayoutCollapse(message, handlers);
       return true;
-    }
-
-    case 'CREATE_GRAPH_LAYOUT_SECTION': {
-      const nextLayout = createGraphLayoutSection(readCurrentGraphLayout(handlers), {
-        ...message.payload,
-        updatedAt: new Date().toISOString(),
-      });
-
-      await persistAndSendGraphLayout(handlers, nextLayout);
+    case 'CREATE_GRAPH_LAYOUT_SECTION':
+      await createGraphLayoutSectionFromMessage(message, handlers);
       return true;
-    }
-
-    case 'UPDATE_GRAPH_LAYOUT_SECTION': {
-      const { iconImports: _iconImports, ...patch } = message.payload;
-      await writeIconImports(_iconImports, handlers);
-      const iconUrls = new Map(
-        (_iconImports ?? []).map(iconImport => [
-          iconImport.imagePath,
-          `data:image/${iconImport.imagePath.endsWith('.svg') ? 'svg+xml' : 'png'};base64,${iconImport.contentsBase64}`,
-        ]),
-      );
-      const nextLayout = updateGraphLayoutSection(readCurrentGraphLayout(handlers), {
-        ...patch,
-        updatedAt: new Date().toISOString(),
-      });
-
-      await persistAndSendGraphLayout(handlers, nextLayout, { iconUrls });
+    case 'UPDATE_GRAPH_LAYOUT_SECTION':
+      await updateGraphLayoutSectionFromMessage(message, handlers);
       return true;
-    }
-
-    case 'UPDATE_GRAPH_LAYOUT_OWNER': {
-      const currentLayout = readCurrentGraphLayout(handlers);
-      const nextLayout = assignGraphLayoutOwner(currentLayout, {
-        ...message.payload,
-        updatedAt: new Date().toISOString(),
-      });
-
-      await getUndoManager().execute(new UpdateGraphLayoutAction(
-        'Move Graph Item',
-        handlers,
-        currentLayout,
-        nextLayout,
-      ));
-      return true;
-    }
-
-    case 'DELETE_GRAPH_LAYOUT_SECTION': {
-      const currentLayout = readCurrentGraphLayout(handlers);
-      const section = currentLayout.sections[message.payload.sectionId];
-      const label = section?.label || message.payload.sectionId;
-      const confirm = await handlers.showWarningMessage?.(
-        `Are you sure you want to delete Graph Section "${label}"?`,
-        { modal: true },
-        'Delete',
-      );
-      if (confirm !== 'Delete') {
-        return true;
-      }
-
-      const nextLayout = deleteGraphLayoutSection(currentLayout, {
-        ...message.payload,
-        updatedAt: new Date().toISOString(),
-      });
-
-      await getUndoManager().execute(new UpdateGraphLayoutAction(
-        'Delete Graph Section',
-        handlers,
-        currentLayout,
-        nextLayout,
-      ));
-      return true;
-    }
-
     default:
       return false;
   }
+}
+
+async function applyUndoableGraphLayoutMessage(
+  message: WebviewToExtensionMessage,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<boolean> {
+  switch (message.type) {
+    case 'UPDATE_GRAPH_LAYOUT_OWNER':
+      await moveGraphLayoutItem(message, handlers);
+      return true;
+    case 'DELETE_GRAPH_LAYOUT_SECTION':
+      await deleteGraphLayoutSectionWithConfirmation(message, handlers);
+      return true;
+    default:
+      return false;
+  }
+}
+
+async function moveGraphLayoutItem(
+  message: Extract<WebviewToExtensionMessage, { type: 'UPDATE_GRAPH_LAYOUT_OWNER' }>,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<void> {
+  const currentLayout = readCurrentGraphLayout(handlers);
+  const nextLayout = assignGraphLayoutOwner(currentLayout, {
+    ...message.payload,
+    updatedAt: new Date().toISOString(),
+  });
+
+  await getUndoManager().execute(new UpdateGraphLayoutAction(
+    'Move Graph Item',
+    handlers,
+    currentLayout,
+    nextLayout,
+  ));
+}
+
+async function deleteGraphLayoutSectionWithConfirmation(
+  message: Extract<WebviewToExtensionMessage, { type: 'DELETE_GRAPH_LAYOUT_SECTION' }>,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<void> {
+  const currentLayout = readCurrentGraphLayout(handlers);
+  const section = currentLayout.sections[message.payload.sectionId];
+  const label = section?.label || message.payload.sectionId;
+  const confirm = await handlers.showWarningMessage?.(
+    `Are you sure you want to delete Graph Section "${label}"?`,
+    { modal: true },
+    'Delete',
+  );
+  if (confirm !== 'Delete') {
+    return;
+  }
+
+  const nextLayout = deleteGraphLayoutSection(currentLayout, {
+    ...message.payload,
+    updatedAt: new Date().toISOString(),
+  });
+
+  await getUndoManager().execute(new UpdateGraphLayoutAction(
+    'Delete Graph Section',
+    handlers,
+    currentLayout,
+    nextLayout,
+  ));
+}
+
+export async function applyGraphLayoutMessage(
+  message: WebviewToExtensionMessage,
+  handlers: GraphLayoutMessageHandlers,
+): Promise<boolean> {
+  if (await applyPersistedGraphLayoutMessage(message, handlers)) {
+    return true;
+  }
+
+  return applyUndoableGraphLayoutMessage(message, handlers);
 }

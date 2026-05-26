@@ -104,6 +104,55 @@ describe('core/graph/data', () => {
     ]);
   });
 
+  it('creates containing file nodes for symbol-only analysis outside the discovered cache', () => {
+    const graph = buildWorkspaceGraphDataFromAnalysis({
+      cacheFiles: {},
+      disabledPlugins: new Set(),
+      fileAnalysis: new Map([
+        ['generated/virtual.ts', {
+          filePath: '/workspace/generated/virtual.ts',
+          symbols: [{
+            id: 'virtual-symbol',
+            filePath: '/workspace/generated/virtual.ts',
+            kind: 'function',
+            name: 'virtual',
+          }],
+          relations: [],
+        }],
+      ]),
+      showOrphans: false,
+      churnCounts: {
+        'generated/virtual.ts': 7,
+      },
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('codegraphy.typescript'),
+    });
+
+    expect(graph.nodes).toEqual([
+      {
+        id: 'generated/virtual.ts',
+        label: 'virtual.ts',
+        color: DEFAULT_NODE_COLOR,
+        fileSize: undefined,
+        churn: 7,
+      },
+      {
+        id: 'generated/virtual.ts#virtual:function',
+        label: 'virtual',
+        color: '#8B5CF6',
+        fileSize: undefined,
+        churn: 7,
+        nodeType: 'symbol',
+        symbol: {
+          id: 'generated/virtual.ts#virtual:function',
+          name: 'virtual',
+          kind: 'function',
+          filePath: 'generated/virtual.ts',
+        },
+      },
+    ]);
+  });
+
   it('projects resolved symbol relations as symbol-to-symbol edges', () => {
     const graph = buildWorkspaceGraphDataFromAnalysis({
       cacheFiles: {

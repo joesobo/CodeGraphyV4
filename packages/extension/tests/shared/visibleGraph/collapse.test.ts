@@ -11,13 +11,18 @@ function node(id: string, nodeType = 'file'): IGraphNode {
   };
 }
 
-function edge(from: string, to: string, kind: IGraphEdge['kind'] = 'import'): IGraphEdge {
+function edge(
+  from: string,
+  to: string,
+  kind: IGraphEdge['kind'] = 'import',
+  sources: IGraphEdge['sources'] = [],
+): IGraphEdge {
   return {
     id: `${from}->${to}#${kind}`,
     from,
     to,
     kind,
-    sources: [],
+    sources,
   };
 }
 
@@ -78,6 +83,42 @@ describe('shared/visibleGraph/collapse', () => {
     expect(result.edges.map((item) => `${item.from}->${item.to}#${item.kind}`)).toEqual([
       'src->lib/util.ts#reference',
       'lib/util.ts->src#import',
+    ]);
+  });
+
+  it('merges projected edge sources when multiple hidden descendants connect to the same visible target', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src', 'folder'),
+        node('src/app.ts'),
+        node('src/button.ts'),
+        node('lib/util.ts'),
+      ],
+      edges: [
+        edge('src/app.ts', 'lib/util.ts', 'import', [
+          { id: 'plugin:app', pluginId: 'plugin', sourceId: 'app', label: 'App import' },
+        ]),
+        edge('src/button.ts', 'lib/util.ts', 'import', [
+          { id: 'plugin:button', pluginId: 'plugin', sourceId: 'button', label: 'Button import' },
+          { id: 'plugin:app', pluginId: 'plugin', sourceId: 'app', label: 'App import' },
+        ]),
+      ],
+    };
+
+    const result = deriveVisibleGraph(graphData, {
+      collapse: { collapsedNodeIds: ['src'] },
+    }).graphData;
+
+    expect(result.edges).toEqual([
+      expect.objectContaining({
+        id: 'src->lib/util.ts#import',
+        from: 'src',
+        to: 'lib/util.ts',
+        sources: [
+          { id: 'plugin:app', pluginId: 'plugin', sourceId: 'app', label: 'App import' },
+          { id: 'plugin:button', pluginId: 'plugin', sourceId: 'button', label: 'Button import' },
+        ],
+      }),
     ]);
   });
 

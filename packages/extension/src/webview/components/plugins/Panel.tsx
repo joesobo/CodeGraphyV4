@@ -11,10 +11,138 @@ import {
   getPluginStatusLabel,
   reorderPluginStatuses,
 } from './model';
+import type { IPluginStatus } from '../../../shared/plugins/status';
 
 interface PluginsPanelProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+function setPluginEnabled(pluginId: string, enabled: boolean): void {
+  graphStore.setState((state) => ({
+    pluginStatuses: state.pluginStatuses.map((plugin) =>
+      plugin.id === pluginId ? { ...plugin, enabled } : plugin
+    ),
+  }));
+}
+
+function postPluginToggle(pluginId: string, packageName: string, enabled: boolean): void {
+  postMessage({
+    type: 'TOGGLE_PLUGIN',
+    payload: {
+      pluginId,
+      packageName,
+      enabled,
+    },
+  });
+}
+
+function getEnabledPluginPackageNames(plugins: readonly IPluginStatus[]): string[] {
+  return plugins
+    .filter(plugin => plugin.enabled && plugin.packageName)
+    .map(plugin => plugin.packageName as string);
+}
+
+interface PluginRowProps {
+  dragIndex: number | null;
+  dragOverIndex: number | null;
+  index: number;
+  plugin: IPluginStatus;
+  onDragEnd(this: void): void;
+  onDragOver(this: void, index: number): void;
+  onDragStart(this: void, index: number): void;
+  onDrop(this: void, event: React.DragEvent<HTMLDivElement>, index: number): void;
+  onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
+}
+
+function PluginRow({
+  dragIndex,
+  dragOverIndex,
+  index,
+  plugin,
+  onDragEnd,
+  onDragOver,
+  onDragStart,
+  onDrop,
+  onTogglePlugin,
+}: PluginRowProps): React.ReactElement {
+  const statusLabel = getPluginStatusLabel(plugin);
+
+  return (
+    <div
+      draggable={Boolean(plugin.packageName && plugin.enabled)}
+      onDragStart={() => onDragStart(index)}
+      onDragOver={(event) => {
+        event.preventDefault();
+        onDragOver(index);
+      }}
+      onDrop={(event) => onDrop(event, index)}
+      onDragEnd={onDragEnd}
+      className={getPluginsPanelItemClassName(
+        plugin.enabled,
+        index,
+        dragIndex,
+        dragOverIndex,
+      )}
+    >
+      <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]">
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-xs font-medium">{plugin.name}</span>
+          {statusLabel && (
+            <span className="block truncate text-[10px] text-muted-foreground">
+              {statusLabel}
+            </span>
+          )}
+        </div>
+        <Switch
+          checked={plugin.enabled}
+          disabled={!plugin.packageName}
+          onCheckedChange={(val) => onTogglePlugin(plugin.id, plugin.packageName, val)}
+        />
+      </div>
+    </div>
+  );
+}
+
+interface PluginListProps {
+  dragIndex: number | null;
+  dragOverIndex: number | null;
+  plugins: readonly IPluginStatus[];
+  onDragEnd(this: void): void;
+  onDragOver(this: void, index: number): void;
+  onDragStart(this: void, index: number): void;
+  onDrop(this: void, event: React.DragEvent<HTMLDivElement>, index: number): void;
+  onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
+}
+
+function PluginList({
+  dragIndex,
+  dragOverIndex,
+  plugins,
+  onDragEnd,
+  onDragOver,
+  onDragStart,
+  onDrop,
+  onTogglePlugin,
+}: PluginListProps): React.ReactElement {
+  return (
+    <div className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]">
+      {plugins.map((plugin, index) => (
+        <PluginRow
+          key={plugin.id}
+          dragIndex={dragIndex}
+          dragOverIndex={dragOverIndex}
+          index={index}
+          plugin={plugin}
+          onDragEnd={onDragEnd}
+          onDragOver={onDragOver}
+          onDragStart={onDragStart}
+          onDrop={onDrop}
+          onTogglePlugin={onTogglePlugin}
+        />
+      ))}
+    </div>
+  );
 }
 
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
@@ -29,19 +157,8 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
       return;
     }
 
-    graphStore.setState((state) => ({
-      pluginStatuses: state.pluginStatuses.map((plugin) =>
-        plugin.id === pluginId ? { ...plugin, enabled } : plugin
-      ),
-    }));
-    postMessage({
-      type: 'TOGGLE_PLUGIN',
-      payload: {
-        pluginId,
-        packageName,
-        enabled,
-      },
-    });
+    setPluginEnabled(pluginId, enabled);
+    postPluginToggle(pluginId, packageName, enabled);
   };
 
   const handleDropPlugin = (event: React.DragEvent, targetIndex: number) => {
@@ -52,9 +169,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
     }
 
     const reordered = reorderPluginStatuses(plugins, dragIndex, targetIndex);
-    const packageNames = reordered
-      .filter(plugin => plugin.enabled && plugin.packageName)
-      .map(plugin => plugin.packageName as string);
+    const packageNames = getEnabledPluginPackageNames(reordered);
     postMessage({
       type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
       payload: { packageNames },
@@ -89,46 +204,16 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
           {plugins.length === 0 ? (
             <p className="text-xs text-muted-foreground py-3 text-center">No plugins registered.</p>
           ) : (
-            <div className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]">
-              {plugins.map((plugin, index) => {
-                const statusLabel = getPluginStatusLabel(plugin);
-                return (
-                  <div
-                    key={plugin.id}
-                    draggable={Boolean(plugin.packageName && plugin.enabled)}
-                    onDragStart={() => setDragIndex(index)}
-                    onDragOver={(event) => {
-                      event.preventDefault();
-                      setDragOverIndex(index);
-                    }}
-                    onDrop={(event) => handleDropPlugin(event, index)}
-                    onDragEnd={handleDragEnd}
-                    className={getPluginsPanelItemClassName(
-                      plugin.enabled,
-                      index,
-                      dragIndex,
-                      dragOverIndex,
-                    )}
-                  >
-                    <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]">
-                      <div className="min-w-0 flex-1">
-                        <span className="block truncate text-xs font-medium">{plugin.name}</span>
-                        {statusLabel && (
-                          <span className="block truncate text-[10px] text-muted-foreground">
-                            {statusLabel}
-                          </span>
-                        )}
-                      </div>
-                      <Switch
-                        checked={plugin.enabled}
-                        disabled={!plugin.packageName}
-                        onCheckedChange={(val) => handleTogglePlugin(plugin.id, plugin.packageName, val)}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <PluginList
+              dragIndex={dragIndex}
+              dragOverIndex={dragOverIndex}
+              plugins={plugins}
+              onDragEnd={handleDragEnd}
+              onDragOver={setDragOverIndex}
+              onDragStart={setDragIndex}
+              onDrop={handleDropPlugin}
+              onTogglePlugin={handleTogglePlugin}
+            />
           )}
         </div>
       </ScrollArea>

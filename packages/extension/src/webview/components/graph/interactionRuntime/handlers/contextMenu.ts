@@ -85,80 +85,115 @@ function openContextMenuFromGraphCallback(
   container.dispatchEvent(syntheticContextMenu);
 }
 
+function markGraphContextEvent(dependencies: GraphInteractionHandlersDependencies): void {
+  dependencies.lastGraphContextEventRef.current = Date.now();
+}
+
+function openNodeContextMenuAtPosition(
+  dependencies: GraphInteractionHandlersDependencies,
+  selectionHandlers: ContextMenuSelectionHandlers,
+  nodeId: string,
+  event: MouseEvent,
+  graphPosition?: { x: number; y: number },
+  scopedToNode = false,
+): void {
+  const selection = getNodeContextMenuSelection(
+    nodeId,
+    scopedToNode ? new Set() : dependencies.selectedNodesSetRef.current,
+  );
+
+  flushSync(() => {
+    selectionHandlers.setHighlight(nodeId);
+    if (selection.shouldUpdateSelection) {
+      selectionHandlers.setSelection(selection.nodeIds);
+    }
+
+    dependencies.setContextSelection(
+      makeNodeContextSelection(nodeId, new Set(selection.nodeIds), graphPosition),
+    );
+  });
+  markGraphContextEvent(dependencies);
+  openContextMenuFromGraphCallback(dependencies, event);
+}
+
+function resolveContextMenuEdgeEndpointIds(link: FGLink): { sourceId: string; targetId: string } | undefined {
+  const sourceId =
+    resolveLinkEndpointId(link.from)
+    ?? resolveLinkEndpointId((link as { source?: unknown }).source);
+  const targetId =
+    resolveLinkEndpointId(link.to)
+    ?? resolveLinkEndpointId((link as { target?: unknown }).target);
+
+  return sourceId && targetId ? { sourceId, targetId } : undefined;
+}
+
+function openEdgeContextMenuAtPosition(
+  dependencies: GraphInteractionHandlersDependencies,
+  link: FGLink,
+  event: MouseEvent,
+): void {
+  const endpoints = resolveContextMenuEdgeEndpointIds(link);
+  if (!endpoints) return;
+
+  const edgeId = resolveEdgeActionTargetId(
+    link.id,
+    endpoints.sourceId,
+    endpoints.targetId,
+    dependencies.dataRef.current.edges,
+  );
+
+  flushSync(() => {
+    dependencies.setContextSelection(
+      makeEdgeContextSelection(edgeId, endpoints.sourceId, endpoints.targetId),
+    );
+  });
+  markGraphContextEvent(dependencies);
+  openContextMenuFromGraphCallback(dependencies, event);
+}
+
+function findBackgroundSectionId(
+  dependencies: GraphInteractionHandlersDependencies,
+  graphPosition: { x: number; y: number } | undefined,
+): string | null {
+  return dependencies.graphMode === '2d' && dependencies.graphLayout && graphPosition
+    ? findDeepestGraphLayoutSectionAtWorldPoint(dependencies.graphLayout, graphPosition)
+    : null;
+}
+
+function openPlainBackgroundContextMenu(
+  dependencies: GraphInteractionHandlersDependencies,
+  event: MouseEvent,
+  graphPosition: { x: number; y: number } | undefined,
+): void {
+  flushSync(() => {
+    dependencies.setContextSelection(makeBackgroundContextSelection(graphPosition));
+  });
+  markGraphContextEvent(dependencies);
+  openContextMenuFromGraphCallback(dependencies, event);
+}
+
 export function createContextMenuHandlers(
   dependencies: GraphInteractionHandlersDependencies,
   selectionHandlers: ContextMenuSelectionHandlers,
 ): ContextMenuHandlers {
-  const openNodeContextMenuAtPosition = (
-    nodeId: string,
-    event: MouseEvent,
-    graphPosition?: { x: number; y: number },
-    scopedToNode = false,
-  ): void => {
-    const selection = getNodeContextMenuSelection(
-      nodeId,
-      scopedToNode ? new Set() : dependencies.selectedNodesSetRef.current,
-    );
-
-    flushSync(() => {
-      selectionHandlers.setHighlight(nodeId);
-      if (selection.shouldUpdateSelection) {
-        selectionHandlers.setSelection(selection.nodeIds);
-      }
-
-      dependencies.setContextSelection(
-        makeNodeContextSelection(nodeId, new Set(selection.nodeIds), graphPosition),
-      );
-    });
-    dependencies.lastGraphContextEventRef.current = Date.now();
-    openContextMenuFromGraphCallback(dependencies, event);
-  };
-
   const openNodeContextMenu = (nodeId: string, event: MouseEvent): void => {
-    openNodeContextMenuAtPosition(nodeId, event);
+    openNodeContextMenuAtPosition(dependencies, selectionHandlers, nodeId, event);
   };
 
   const openEdgeContextMenu = (link: FGLink, event: MouseEvent): void => {
-    const sourceId =
-      resolveLinkEndpointId(link.from)
-      ?? resolveLinkEndpointId((link as { source?: unknown }).source);
-    const targetId =
-      resolveLinkEndpointId(link.to)
-      ?? resolveLinkEndpointId((link as { target?: unknown }).target);
-    if (!sourceId || !targetId) return;
-
-    const edgeId = resolveEdgeActionTargetId(
-      link.id,
-      sourceId,
-      targetId,
-      dependencies.dataRef.current.edges,
-    );
-
-    flushSync(() => {
-      dependencies.setContextSelection(
-        makeEdgeContextSelection(edgeId, sourceId, targetId),
-      );
-    });
-    dependencies.lastGraphContextEventRef.current = Date.now();
-    openContextMenuFromGraphCallback(dependencies, event);
+    openEdgeContextMenuAtPosition(dependencies, link, event);
   };
 
   const openBackgroundContextMenu = (event: MouseEvent): void => {
     const graphPosition = getBackgroundGraphPosition(dependencies, event);
-    const sectionId = dependencies.graphMode === '2d' && dependencies.graphLayout && graphPosition
-      ? findDeepestGraphLayoutSectionAtWorldPoint(dependencies.graphLayout, graphPosition)
-      : null;
+    const sectionId = findBackgroundSectionId(dependencies, graphPosition);
 
     if (sectionId) {
-      openNodeContextMenuAtPosition(sectionId, event, graphPosition, true);
+      openNodeContextMenuAtPosition(dependencies, selectionHandlers, sectionId, event, graphPosition, true);
       return;
     }
 
-    flushSync(() => {
-      dependencies.setContextSelection(makeBackgroundContextSelection(graphPosition));
-    });
-    dependencies.lastGraphContextEventRef.current = Date.now();
-    openContextMenuFromGraphCallback(dependencies, event);
+    openPlainBackgroundContextMenu(dependencies, event, graphPosition);
   };
 
   return {
