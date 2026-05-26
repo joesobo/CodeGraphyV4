@@ -4,7 +4,7 @@
 
 It is the agent interface over `@codegraphy-dev/core`. The terminal `codegraphy` command belongs to the Core Package npm package; MCP depends on Core and reuses core behavior so agents can run Indexing, read workspace status, and execute Graph Query without opening or focusing VS Code.
 
-The MCP package owns the agent-agnostic `codegraphy-mcp` server command. Configure Codex, Claude, Cursor, or another MCP-capable agent to launch that command. Core does not know about MCP clients.
+The MCP package owns only the agent-agnostic `codegraphy-mcp` server command. Configure Codex, Claude, Cursor, or another MCP-capable agent to launch that command. Every `codegraphy ...` terminal subcommand lives in `@codegraphy-dev/core`; Core does not know about MCP clients.
 
 ## Prerequisites
 
