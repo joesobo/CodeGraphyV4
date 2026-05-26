@@ -10,43 +10,33 @@ export interface FitBounds2d {
   minY: number;
 }
 
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function getExpandedGraphSectionSize(node: FGNode): { height: number; width: number } | undefined {
+  const sectionHeight = readFiniteNumber(node.sectionHeight);
+  const sectionWidth = readFiniteNumber(node.sectionWidth);
+  return node.isGraphSection && !node.isCollapsedGraphSection && sectionHeight !== undefined && sectionWidth !== undefined
+    ? { height: sectionHeight, width: sectionWidth }
+    : undefined;
+}
+
 function getNodeRadius(node: FGNode): number {
-  const sectionHeight = node.sectionHeight;
-  const sectionWidth = node.sectionWidth;
-  if (
-    node.isGraphSection
-    && !node.isCollapsedGraphSection
-    && typeof sectionHeight === 'number'
-    && Number.isFinite(sectionHeight)
-    && typeof sectionWidth === 'number'
-    && Number.isFinite(sectionWidth)
-  ) {
-    return Math.max(sectionWidth / 2, sectionHeight / 2);
-  }
+  const sectionSize = getExpandedGraphSectionSize(node);
+  const size = readFiniteNumber(node.size);
 
-  const size = node.size ?? Number.NaN;
-
-  if (Number.isFinite(size)) {
-    return size;
-  }
-
-  return 16;
+  return sectionSize
+    ? Math.max(sectionSize.width / 2, sectionSize.height / 2)
+    : size ?? 16;
 }
 
 function getNodeFitExtents(node: FGNode): { x: number; y: number } {
-  const sectionHeight = node.sectionHeight;
-  const sectionWidth = node.sectionWidth;
-  if (
-    node.isGraphSection
-    && !node.isCollapsedGraphSection
-    && typeof sectionHeight === 'number'
-    && Number.isFinite(sectionHeight)
-    && typeof sectionWidth === 'number'
-    && Number.isFinite(sectionWidth)
-  ) {
+  const sectionSize = getExpandedGraphSectionSize(node);
+  if (sectionSize) {
     return {
-      x: sectionWidth / 2,
-      y: sectionHeight / 2,
+      x: sectionSize.width / 2,
+      y: sectionSize.height / 2,
     };
   }
 
@@ -61,9 +51,9 @@ export function get2dFitBounds(nodes: FGNode[]): FitBounds2d | null {
   let maxY = Number.NEGATIVE_INFINITY;
 
   for (const node of nodes) {
-    const x = node.x ?? Number.NaN;
-    const y = node.y ?? Number.NaN;
-    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    const x = readFiniteNumber(node.x);
+    const y = readFiniteNumber(node.y);
+    if (x === undefined || y === undefined) {
       continue;
     }
 

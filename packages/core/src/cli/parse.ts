@@ -24,21 +24,28 @@ function parsePluginsCommand(argv: string[]): CliCommand {
   }
 }
 
+function isHelpCommandName(name: string | undefined): boolean {
+  return name === undefined || name === 'help' || name === '--help' || name === '-h';
+}
+
+function parseWorkspaceCommand(name: 'index' | 'status', argv: string[]): CliCommand {
+  const [workspacePath] = argv;
+  return workspacePath ? { name, workspacePath } : { name };
+}
+
 export function parseCliCommand(argv: string[]): CliCommand {
   const [name, ...rest] = argv;
 
+  if (isHelpCommandName(name)) {
+    return { name: 'help' };
+  }
+
   switch (name) {
-    case undefined:
-    case 'help':
-    case '--help':
-    case '-h':
-      return { name: 'help' };
     case 'setup':
       return { name: 'setup' };
     case 'index':
-      return rest[0] ? { name: 'index', workspacePath: rest[0] } : { name: 'index' };
     case 'status':
-      return rest[0] ? { name: 'status', workspacePath: rest[0] } : { name: 'status' };
+      return parseWorkspaceCommand(name, rest);
     case 'plugins':
       return parsePluginsCommand(rest);
     default:

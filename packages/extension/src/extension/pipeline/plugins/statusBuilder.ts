@@ -66,11 +66,56 @@ function getPluginWorkspaceStatus(
   return totalConnections > 0 ? 'active' : 'installed';
 }
 
+function isRegisteredPackagePlugin(
+  plugin: CodeGraphyInstalledPluginRecord,
+  registeredPackageNames: ReadonlySet<string>,
+): boolean {
+  return registeredPackageNames.has(plugin.package);
+}
+
+function buildRegisteredPluginStatus(
+  pluginInfo: IPluginInfo,
+  options: Pick<IWorkspacePluginStatusOptions, 'disabledPlugins' | 'discoveredFiles' | 'fileConnections' | 'workspaceEnabledPackageNames'>,
+): IPluginStatus {
+  const matchingFiles = getPluginMatchingFiles(pluginInfo, options.discoveredFiles);
+  const totalConnections = countPluginConnections(pluginInfo, options.fileConnections);
+  const status = getPluginWorkspaceStatus(matchingFiles.length, totalConnections);
+  const enabled = pluginInfo.sourcePackage && options.workspaceEnabledPackageNames
+    ? options.workspaceEnabledPackageNames.has(pluginInfo.sourcePackage)
+    : !options.disabledPlugins.has(pluginInfo.plugin.id);
+
+  return {
+    id: pluginInfo.plugin.id,
+    ...(pluginInfo.sourcePackage ? { packageName: pluginInfo.sourcePackage } : {}),
+    name: pluginInfo.plugin.name,
+    version: pluginInfo.plugin.version,
+    supportedExtensions: pluginInfo.plugin.supportedExtensions,
+    status,
+    enabled,
+    connectionCount: totalConnections,
+  };
+}
+
+function buildInstalledPackagePluginStatus(
+  plugin: CodeGraphyInstalledPluginRecord,
+  workspaceEnabledPackageNames: ReadonlySet<string> | undefined,
+): IPluginStatus {
+  const enabled = workspaceEnabledPackageNames?.has(plugin.package) ?? false;
+
+  return {
+    id: plugin.package,
+    packageName: plugin.package,
+    name: plugin.package,
+    version: plugin.version,
+    supportedExtensions: [],
+    status: enabled ? 'unavailable' : 'installed',
+    enabled,
+    connectionCount: 0,
+  };
+}
+
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
   const {
-    disabledPlugins,
-    discoveredFiles,
-    fileConnections,
     installedPlugins = [],
     pluginInfos,
     workspaceEnabledPackageNames,
@@ -80,45 +125,19 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
   const registeredPackageNames = new Set<string>();
 
   for (const pluginInfo of pluginInfos) {
-    const plugin = pluginInfo.plugin;
-    const matchingFiles = getPluginMatchingFiles(pluginInfo, discoveredFiles);
-    const totalConnections = countPluginConnections(pluginInfo, fileConnections);
-    const status = getPluginWorkspaceStatus(matchingFiles.length, totalConnections);
     if (pluginInfo.sourcePackage) {
       registeredPackageNames.add(pluginInfo.sourcePackage);
     }
 
-    statuses.push({
-      id: plugin.id,
-      ...(pluginInfo.sourcePackage ? { packageName: pluginInfo.sourcePackage } : {}),
-      name: plugin.name,
-      version: plugin.version,
-      supportedExtensions: plugin.supportedExtensions,
-      status,
-      enabled: pluginInfo.sourcePackage && workspaceEnabledPackageNames
-        ? workspaceEnabledPackageNames.has(pluginInfo.sourcePackage)
-        : !disabledPlugins.has(plugin.id),
-      connectionCount: totalConnections,
-    });
+    statuses.push(buildRegisteredPluginStatus(pluginInfo, options));
   }
 
   for (const plugin of installedPlugins) {
-    if (registeredPackageNames.has(plugin.package)) {
+    if (isRegisteredPackagePlugin(plugin, registeredPackageNames)) {
       continue;
     }
 
-    const enabled = workspaceEnabledPackageNames?.has(plugin.package) ?? false;
-
-    statuses.push({
-      id: plugin.package,
-      packageName: plugin.package,
-      name: plugin.package,
-      version: plugin.version,
-      supportedExtensions: [],
-      status: enabled ? 'unavailable' : 'installed',
-      enabled,
-      connectionCount: 0,
-    });
+    statuses.push(buildInstalledPackagePluginStatus(plugin, workspaceEnabledPackageNames));
   }
 
   return statuses;

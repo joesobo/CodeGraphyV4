@@ -133,6 +133,31 @@ function normalizePersistedFilterPatterns(normalized: Record<string, unknown>): 
   normalized.filterPatterns = Array.from(new Set(filterPatterns));
 }
 
+function readPersistedPluginPackageName(plugin: Record<string, unknown>): string | undefined {
+  const packageName = typeof plugin.package === 'string' ? plugin.package.trim() : '';
+  return packageName.length > 0 ? packageName : undefined;
+}
+
+function readPersistedPluginDisabledFilterPatterns(plugin: Record<string, unknown>): string[] {
+  return Array.isArray(plugin.disabledFilterPatterns)
+    ? Array.from(new Set(readStringArray(plugin.disabledFilterPatterns)))
+    : [];
+}
+
+function normalizePersistedPlugin(plugin: Record<string, unknown>): Record<string, unknown> | null {
+  const packageName = readPersistedPluginPackageName(plugin);
+  if (!packageName) {
+    return null;
+  }
+
+  const disabledFilterPatterns = readPersistedPluginDisabledFilterPatterns(plugin);
+  return {
+    package: packageName,
+    ...(disabledFilterPatterns.length > 0 ? { disabledFilterPatterns } : {}),
+    ...(isPlainObject(plugin.options) ? { options: { ...plugin.options } } : {}),
+  };
+}
+
 function normalizePersistedPlugins(normalized: Record<string, unknown>): void {
   if (!('plugins' in normalized)) {
     return;
@@ -150,26 +175,7 @@ function normalizePersistedPlugins(normalized: Record<string, unknown>): void {
 
   const plugins = normalized.plugins
     .filter(isPlainObject)
-    .map((plugin) => {
-      const packageName = typeof plugin.package === 'string' ? plugin.package.trim() : '';
-      if (packageName.length === 0) {
-        return null;
-      }
-
-      const normalizedPlugin: Record<string, unknown> = {
-        package: packageName,
-      };
-      if (Array.isArray(plugin.disabledFilterPatterns)) {
-        const disabledFilterPatterns = readStringArray(plugin.disabledFilterPatterns);
-        if (disabledFilterPatterns.length > 0) {
-          normalizedPlugin.disabledFilterPatterns = Array.from(new Set(disabledFilterPatterns));
-        }
-      }
-      if (isPlainObject(plugin.options)) {
-        normalizedPlugin.options = { ...plugin.options };
-      }
-      return normalizedPlugin;
-    })
+    .map(normalizePersistedPlugin)
     .filter((plugin): plugin is Record<string, unknown> => plugin !== null);
 
   if (plugins.length === 0) {

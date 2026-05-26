@@ -351,6 +351,90 @@ function normalizeCompactOwnershipRecord(
   };
 }
 
+interface StructuredOwnershipIdentity {
+  itemKind: GraphLayoutOwnership['itemKind'];
+  matchingIdentity: MatchingRecordIdentity;
+}
+
+function readStructuredOwnershipIdentity(
+  key: string,
+  value: Record<string, unknown>,
+  sections: Record<string, GraphLayoutSection>,
+): StructuredOwnershipIdentity | undefined {
+  const matchingIdentity = readMatchingRecordIdentity(value, key, 'itemId');
+  const itemKind = readOwnershipItemKind(value.itemKind);
+  if (!matchingIdentity || !itemKind || !ownsKnownSection(matchingIdentity.id, itemKind, sections)) {
+    return undefined;
+  }
+
+  return {
+    itemKind,
+    matchingIdentity,
+  };
+}
+
+function createStructuredOwnershipRecord(
+  identity: StructuredOwnershipIdentity,
+  ownerSectionIdValue: unknown,
+  sections: Record<string, GraphLayoutSection>,
+): GraphLayoutOwnership | undefined {
+  const ownerSectionId = normalizeOwnerSectionId(
+    identity.matchingIdentity.id,
+    identity.itemKind,
+    ownerSectionIdValue,
+    sections,
+  );
+  if (ownerSectionId === undefined || ownerSectionId === null) {
+    return undefined;
+  }
+
+  return {
+    itemId: identity.matchingIdentity.id,
+    itemKind: identity.itemKind,
+    ownerSectionId,
+    updatedAt: identity.matchingIdentity.updatedAt,
+  };
+}
+
+function normalizeStructuredOwnershipRecord(
+  key: string,
+  value: Record<string, unknown>,
+  sections: Record<string, GraphLayoutSection>,
+): GraphLayoutOwnership | undefined {
+  const identity = readStructuredOwnershipIdentity(key, value, sections);
+  return identity
+    ? createStructuredOwnershipRecord(identity, value.ownerSectionId, sections)
+    : undefined;
+}
+
+function shouldIncludeGroupedOwnershipItem(itemId: unknown, seenItemIds: Set<string>): itemId is string {
+  return typeof itemId === 'string' && itemId.length > 0 && !seenItemIds.has(itemId);
+}
+
+function createGroupedOwnershipRecord(
+  itemId: string,
+  ownerSectionId: string,
+  sections: Record<string, GraphLayoutSection>,
+): GraphLayoutOwnership | undefined {
+  const itemKind = inferOwnershipItemKind(itemId, sections);
+  const normalizedOwnerSectionId = normalizeOwnerSectionId(
+    itemId,
+    itemKind,
+    ownerSectionId,
+    sections,
+  );
+  if (normalizedOwnerSectionId === undefined || normalizedOwnerSectionId === null) {
+    return undefined;
+  }
+
+  return {
+    itemId,
+    itemKind,
+    ownerSectionId: normalizedOwnerSectionId,
+    updatedAt: sections[normalizedOwnerSectionId].updatedAt,
+  };
+}
+
 function normalizeGroupedOwnershipRecords(
   ownerSectionId: string,
   value: unknown,
@@ -363,28 +447,13 @@ function normalizeGroupedOwnershipRecords(
   const records: GraphLayoutOwnership[] = [];
   const seenItemIds = new Set<string>();
   for (const itemId of value) {
-    if (typeof itemId !== 'string' || itemId.length === 0 || seenItemIds.has(itemId)) {
+    if (!shouldIncludeGroupedOwnershipItem(itemId, seenItemIds)) {
       continue;
     }
 
     seenItemIds.add(itemId);
-    const itemKind = inferOwnershipItemKind(itemId, sections);
-    const normalizedOwnerSectionId = normalizeOwnerSectionId(
-      itemId,
-      itemKind,
-      ownerSectionId,
-      sections,
-    );
-    if (normalizedOwnerSectionId === undefined || normalizedOwnerSectionId === null) {
-      continue;
-    }
-
-    records.push({
-      itemId,
-      itemKind,
-      ownerSectionId: normalizedOwnerSectionId,
-      updatedAt: sections[normalizedOwnerSectionId].updatedAt,
-    });
+    const record = createGroupedOwnershipRecord(itemId, ownerSectionId, sections);
+    if (record) records.push(record);
   }
 
   return records;
@@ -403,28 +472,7 @@ function normalizeOwnershipRecord(
     return undefined;
   }
 
-  const identity = readMatchingRecordIdentity(value, key, 'itemId');
-  const itemKind = readOwnershipItemKind(value.itemKind);
-  if (!identity || !itemKind || !ownsKnownSection(identity.id, itemKind, sections)) {
-    return undefined;
-  }
-
-  const ownerSectionId = normalizeOwnerSectionId(
-    identity.id,
-    itemKind,
-    value.ownerSectionId,
-    sections,
-  );
-  if (ownerSectionId === undefined || ownerSectionId === null) {
-    return undefined;
-  }
-
-  return {
-    itemId: identity.id,
-    itemKind,
-    ownerSectionId,
-    updatedAt: identity.updatedAt,
-  };
+  return normalizeStructuredOwnershipRecord(key, value, sections);
 }
 
 function normalizeOwnershipRecords(
@@ -672,15 +720,13 @@ function assertGraphLayoutOwnerExists(
   return ownerSectionId;
 }
 
-export function createGraphLayoutSection(
-  layout: GraphLayoutSettings,
+function createGraphLayoutSectionRecord(
+  sectionId: string,
+  sectionNumber: number,
   create: GraphLayoutSectionCreateUpdate,
-): GraphLayoutSettings {
-  const sectionNumber = getNextGraphLayoutSectionNumber(layout.sections);
-  const sectionId = `section-${sectionNumber}`;
-  const ownerSectionId = assertGraphLayoutOwnerExists(layout.sections, create.ownerSectionId);
+): GraphLayoutSection {
   const icon = readOptionalSectionString(create.icon);
-  const section: GraphLayoutSection = {
+  return {
     id: sectionId,
     label: readOptionalSectionString(create.label) ?? `Section ${sectionNumber}`,
     ...(icon ? { icon } : {}),
@@ -692,16 +738,34 @@ export function createGraphLayoutSection(
     collapsed: false,
     updatedAt: create.updatedAt,
   };
-  const sectionOwnership: Record<string, GraphLayoutOwnership> = ownerSectionId === null
+}
+
+function createSectionOwnershipRecords(
+  sectionId: string,
+  ownerSectionId: string | null,
+  updatedAt: string,
+): Record<string, GraphLayoutOwnership> {
+  return ownerSectionId === null
     ? {}
     : {
         [sectionId]: {
           itemId: sectionId,
           itemKind: 'section',
           ownerSectionId,
-          updatedAt: create.updatedAt,
+          updatedAt,
         },
       };
+}
+
+export function createGraphLayoutSection(
+  layout: GraphLayoutSettings,
+  create: GraphLayoutSectionCreateUpdate,
+): GraphLayoutSettings {
+  const sectionNumber = getNextGraphLayoutSectionNumber(layout.sections);
+  const sectionId = `section-${sectionNumber}`;
+  const ownerSectionId = assertGraphLayoutOwnerExists(layout.sections, create.ownerSectionId);
+  const section = createGraphLayoutSectionRecord(sectionId, sectionNumber, create);
+  const sectionOwnership = createSectionOwnershipRecords(sectionId, ownerSectionId, create.updatedAt);
   const ownership: Record<string, GraphLayoutOwnership> = {
     ...layout.ownership,
     ...sectionOwnership,

@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { parseCliCommand } from '../../src/cli/parse';
 
 describe('cli/parse', () => {
+  it('parses empty and explicit help commands', () => {
+    expect(parseCliCommand([])).toEqual({ name: 'help' });
+    expect(parseCliCommand(['help'])).toEqual({ name: 'help' });
+    expect(parseCliCommand(['--help'])).toEqual({ name: 'help' });
+    expect(parseCliCommand(['-h'])).toEqual({ name: 'help' });
+  });
+
   it('parses setup commands', () => {
     expect(parseCliCommand(['setup'])).toEqual({ name: 'setup' });
   });
@@ -43,6 +50,10 @@ describe('cli/parse', () => {
       name: 'plugins',
       action: 'list',
       workspacePath: '/workspace/project',
+    });
+    expect(parseCliCommand(['plugins', 'unknown'])).toEqual({
+      name: 'plugins',
+      action: 'help',
     });
   });
 

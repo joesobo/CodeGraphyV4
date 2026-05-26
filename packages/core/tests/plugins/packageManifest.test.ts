@@ -59,4 +59,40 @@ describe('CodeGraphy plugin package manifest', () => {
       },
     })).toThrow("Plugin '@codegraphy-dev/plugin-future' targets unsupported CodeGraphy Plugin API '^3.0.0'.");
   });
+
+  it('rejects plugin metadata with missing required manifest values', () => {
+    expect(parseCodeGraphyPluginPackageManifest(null)).toBeNull();
+    expect(parseCodeGraphyPluginPackageManifest({
+      name: '',
+      version: '1.0.0',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    })).toBeNull();
+    expect(parseCodeGraphyPluginPackageManifest({
+      name: '@codegraphy-dev/plugin-python',
+      version: '',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    })).toBeNull();
+    expect(parseCodeGraphyPluginPackageManifest({
+      name: '@codegraphy-dev/plugin-python',
+      version: '1.0.0',
+      codegraphy: {
+        type: 'theme',
+        apiVersion: '^2.0.0',
+      },
+    })).toBeNull();
+    expect(parseCodeGraphyPluginPackageManifest({
+      name: '@codegraphy-dev/plugin-python',
+      version: '1.0.0',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '',
+      },
+    })).toBeNull();
+  });
 });

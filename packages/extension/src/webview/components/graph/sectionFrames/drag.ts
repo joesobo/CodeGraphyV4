@@ -19,6 +19,98 @@ export type SectionFrameDragEndHandler = (
   sectionId: string,
 ) => void;
 
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function setLiveNodeCenter(
+  drag: SectionFrameDragState,
+  x: number,
+  y: number,
+): void {
+  const nodePosition = drag.nodePosition;
+  if (!nodePosition) {
+    return;
+  }
+
+  nodePosition.x = x;
+  nodePosition.y = y;
+  nodePosition.fx = x;
+  nodePosition.fy = y;
+  nodePosition.vx = 0;
+  nodePosition.vy = 0;
+}
+
+function applyLiveMoveNodePosition(
+  drag: SectionFrameDragState,
+  update: SectionFrameDragUpdate,
+): void {
+  const { x, y } = update.updates;
+  const width = drag.nodePosition?.sectionWidth ?? drag.section.width;
+  const height = drag.nodePosition?.sectionHeight ?? drag.section.height;
+  const centerX = readFiniteNumber(x);
+  const centerY = readFiniteNumber(y);
+
+  if (centerX !== undefined) {
+    drag.nodePosition!.x = centerX + (width / 2);
+    drag.nodePosition!.fx = drag.nodePosition!.x;
+    drag.nodePosition!.vx = 0;
+  }
+  if (centerY !== undefined) {
+    drag.nodePosition!.y = centerY + (height / 2);
+    drag.nodePosition!.fy = drag.nodePosition!.y;
+    drag.nodePosition!.vy = 0;
+  }
+}
+
+function getLiveResizeDimension(
+  currentValue: unknown,
+  updateValue: unknown,
+  fallback: number,
+): number {
+  return readFiniteNumber(updateValue) ?? readFiniteNumber(currentValue) ?? fallback;
+}
+
+function applyLiveResizeDimensions(
+  drag: SectionFrameDragState,
+  update: SectionFrameDragUpdate,
+): { height: number; width: number } {
+  const nextHeight = getLiveResizeDimension(
+    drag.nodePosition?.sectionHeight,
+    update.updates.height,
+    drag.section.height,
+  );
+  const nextWidth = getLiveResizeDimension(
+    drag.nodePosition?.sectionWidth,
+    update.updates.width,
+    drag.section.width,
+  );
+
+  if (readFiniteNumber(update.updates.height) !== undefined) {
+    drag.nodePosition!.sectionHeight = nextHeight;
+  }
+  if (readFiniteNumber(update.updates.width) !== undefined) {
+    drag.nodePosition!.sectionWidth = nextWidth;
+  }
+
+  return { height: nextHeight, width: nextWidth };
+}
+
+function applyLiveResizeNodePosition(
+  drag: SectionFrameDragState,
+  update: SectionFrameDragUpdate,
+): void {
+  const nextSize = applyLiveResizeDimensions(drag, update);
+  const nextX = readFiniteNumber(update.updates.x) ?? drag.section.x;
+  const nextY = readFiniteNumber(update.updates.y) ?? drag.section.y;
+
+  setLiveNodeCenter(
+    drag,
+    nextX + (nextSize.width / 2),
+    nextY + (nextSize.height / 2),
+  );
+}
+
 function applyLiveNodePosition(
   drag: SectionFrameDragState,
   update: SectionFrameDragUpdate,
@@ -28,51 +120,11 @@ function applyLiveNodePosition(
   }
 
   if (drag.type === 'move') {
-    const { x, y } = update.updates;
-    const width = drag.nodePosition.sectionWidth ?? drag.section.width;
-    const height = drag.nodePosition.sectionHeight ?? drag.section.height;
-    if (typeof x === 'number' && Number.isFinite(x)) {
-      const centerX = x + (width / 2);
-      drag.nodePosition.x = centerX;
-      drag.nodePosition.fx = centerX;
-      drag.nodePosition.vx = 0;
-    }
-    if (typeof y === 'number' && Number.isFinite(y)) {
-      const centerY = y + (height / 2);
-      drag.nodePosition.y = centerY;
-      drag.nodePosition.fy = centerY;
-      drag.nodePosition.vy = 0;
-    }
+    applyLiveMoveNodePosition(drag, update);
     return;
   }
 
-  const { height, width } = update.updates;
-  const nextHeight = typeof height === 'number' && Number.isFinite(height)
-    ? height
-    : drag.nodePosition.sectionHeight ?? drag.section.height;
-  const nextWidth = typeof width === 'number' && Number.isFinite(width)
-    ? width
-    : drag.nodePosition.sectionWidth ?? drag.section.width;
-  if (typeof height === 'number' && Number.isFinite(height)) {
-    drag.nodePosition.sectionHeight = nextHeight;
-  }
-  if (typeof width === 'number' && Number.isFinite(width)) {
-    drag.nodePosition.sectionWidth = nextWidth;
-  }
-  const nextX = typeof update.updates.x === 'number' && Number.isFinite(update.updates.x)
-    ? update.updates.x
-    : drag.section.x;
-  const nextY = typeof update.updates.y === 'number' && Number.isFinite(update.updates.y)
-    ? update.updates.y
-    : drag.section.y;
-  const centerX = nextX + (nextWidth / 2);
-  const centerY = nextY + (nextHeight / 2);
-  drag.nodePosition.x = centerX;
-  drag.nodePosition.y = centerY;
-  drag.nodePosition.fx = centerX;
-  drag.nodePosition.fy = centerY;
-  drag.nodePosition.vx = 0;
-  drag.nodePosition.vy = 0;
+  applyLiveResizeNodePosition(drag, update);
 }
 
 function releaseLiveNodePosition(drag: SectionFrameDragState): void {

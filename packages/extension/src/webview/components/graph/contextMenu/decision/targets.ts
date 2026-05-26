@@ -30,32 +30,60 @@ export function isPackageNodeId(nodeId: string): boolean {
   return nodeId.startsWith('pkg:');
 }
 
+function normalizeGraphContextNodeSource(
+  nodeId: string,
+  source: GraphContextNodeSource | string | undefined,
+  symbol: GraphContextNodeSource['symbol'] | undefined,
+  isCollapsed: boolean | undefined,
+): GraphContextNodeSource | undefined {
+  return typeof source === 'string'
+    ? { id: nodeId, isCollapsed, nodeType: source, symbol }
+    : source;
+}
+
+function resolveGraphContextNodeType(
+  nodeId: string,
+  source: GraphContextNodeSource | undefined,
+): string {
+  return isPackageNodeId(nodeId) ? 'package' : source?.nodeType ?? 'file';
+}
+
+function resolveGraphContextNodeKind(
+  nodeType: string,
+  source: GraphContextNodeSource | undefined,
+): GraphContextNodeKind {
+  if (source?.isGraphSection || nodeType === 'graph-section') {
+    return 'graph-section';
+  }
+
+  return source?.symbol || nodeType === 'symbol' || nodeType === 'variable'
+    ? 'symbol'
+    : resolveNodeKind(nodeType);
+}
+
+function resolveCollapsedGraphSection(
+  nodeKind: GraphContextNodeKind,
+  source: GraphContextNodeSource | undefined,
+): boolean | undefined {
+  return nodeKind === 'graph-section' ? !!source?.isCollapsedGraphSection : undefined;
+}
+
 export function classifyGraphContextNodeTarget(
   nodeId: string,
   source: GraphContextNodeSource | string | undefined,
   symbol?: GraphContextNodeSource['symbol'],
   isCollapsed?: boolean,
 ): GraphContextNodeTarget {
-  const nodeSource = typeof source === 'string'
-    ? { id: nodeId, isCollapsed, nodeType: source, symbol }
-    : source;
-  const resolvedNodeType = isPackageNodeId(nodeId)
-    ? 'package'
-    : nodeSource?.nodeType ?? 'file';
+  const nodeSource = normalizeGraphContextNodeSource(nodeId, source, symbol, isCollapsed);
+  const resolvedNodeType = resolveGraphContextNodeType(nodeId, nodeSource);
   const resolvedSymbol = nodeSource?.symbol;
-  const isGraphSection = nodeSource?.isGraphSection || resolvedNodeType === 'graph-section';
+  const nodeKind = resolveGraphContextNodeKind(resolvedNodeType, nodeSource);
 
   return {
     id: nodeId,
     isCollapsed: nodeSource?.isCollapsed,
-    isCollapsedGraphSection: isGraphSection
-      ? !!nodeSource?.isCollapsedGraphSection
-      : undefined,
-    nodeKind: isGraphSection
-      ? 'graph-section'
-      : resolvedSymbol || resolvedNodeType === 'symbol' || resolvedNodeType === 'variable'
-        ? 'symbol'
-        : resolveNodeKind(resolvedNodeType),
+    isCollapsedGraphSection: resolveCollapsedGraphSection(nodeKind, nodeSource),
+    nodeKind,
     nodeType: resolvedNodeType,
     ...(resolvedSymbol ? { symbol: resolvedSymbol } : {}),
   };

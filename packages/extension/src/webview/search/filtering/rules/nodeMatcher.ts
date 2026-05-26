@@ -34,23 +34,35 @@ function rulePatternMatchesNode(
   return candidates.some((candidate) => globMatchCaseInsensitive(candidate, rule.pattern));
 }
 
-export function ruleMatchesNode(
+function optionalFieldMatches(expected: string | undefined, actual: string | undefined): boolean {
+  return !expected || expected === actual;
+}
+
+function optionalSymbolKindsMatch(expected: readonly string[] | undefined, actual: string | undefined): boolean {
+  return !expected || (actual !== undefined && expected.includes(actual));
+}
+
+function optionalSymbolFilePathMatches(expected: string | undefined, actual: string | undefined): boolean {
+  return !expected || (actual !== undefined && globMatch(actual, expected));
+}
+
+function ruleScopedFieldsMatch(
   node: IGraphData['nodes'][number],
   rule: IGroup,
 ): boolean {
   const symbol = node.symbol;
-  const exactMatches = [
-    [rule.matchNodeType, node.nodeType],
-    [rule.matchSymbolKind, symbol?.kind],
-    [rule.matchSymbolPluginKind, symbol?.pluginKind],
-    [rule.matchSymbolSource, symbol?.source],
-    [rule.matchSymbolLanguage, symbol?.language],
-  ];
-  const exactFieldsMatch = exactMatches.every(([expected, actual]) => !expected || expected === actual);
-  const symbolKindsMatch = !rule.matchSymbolKinds
-    || Boolean(symbol?.kind && rule.matchSymbolKinds.includes(symbol.kind));
-  const symbolPathMatches = !rule.matchSymbolFilePath
-    || Boolean(symbol?.filePath && globMatch(symbol.filePath, rule.matchSymbolFilePath));
+  return optionalFieldMatches(rule.matchNodeType, node.nodeType)
+    && optionalFieldMatches(rule.matchSymbolKind, symbol?.kind)
+    && optionalFieldMatches(rule.matchSymbolPluginKind, symbol?.pluginKind)
+    && optionalFieldMatches(rule.matchSymbolSource, symbol?.source)
+    && optionalFieldMatches(rule.matchSymbolLanguage, symbol?.language)
+    && optionalSymbolKindsMatch(rule.matchSymbolKinds, symbol?.kind)
+    && optionalSymbolFilePathMatches(rule.matchSymbolFilePath, symbol?.filePath);
+}
 
-  return exactFieldsMatch && symbolKindsMatch && symbolPathMatches && rulePatternMatchesNode(node, rule);
+export function ruleMatchesNode(
+  node: IGraphData['nodes'][number],
+  rule: IGroup,
+): boolean {
+  return ruleScopedFieldsMatch(node, rule) && rulePatternMatchesNode(node, rule);
 }

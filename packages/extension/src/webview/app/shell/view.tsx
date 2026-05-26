@@ -22,87 +22,64 @@ import { toFilterGlob } from '../../components/searchBar/filters/model';
 import { buildVisibleGraphConfig } from '../../search/visibleGraphConfig';
 import { postMessage as postWebviewMessage } from '../../vscodeApi';
 
-export default function App(): React.ReactElement {
-  const { pluginHost, injectPluginAssets } = usePluginManager();
+type AppShellState = ReturnType<typeof useAppState>;
+type AppShellActions = ReturnType<typeof useAppActions>;
+type LoadedGraphData = NonNullable<AppShellState['graphData']>;
+type PluginRuntime = ReturnType<typeof usePluginManager>;
+type ThemeState = ReturnType<typeof useTheme>;
+
+const EMPTY_FILTER_PATTERNS: string[] = [];
+
+function useScopedVisibleGraphData(
+  graphData: LoadedGraphData,
+  state: AppShellState,
+  filterPatterns: string[],
+): LoadedGraphData | null {
   const {
-    graphData,
-    isLoading,
-    searchQuery,
-    searchOptions,
-    legends,
-    filterPatterns,
-    pluginFilterPatterns,
-    pluginFilterGroups,
-    disabledCustomFilterPatterns,
-    disabledPluginFilterPatterns,
-    showOrphans,
-    timelineActive,
-    activePanel,
-    depthMode,
-    graphLayout,
-    nodeColors,
-    nodeVisibility,
     edgeVisibility,
     graphEdgeTypes,
-    nodeDecorations,
-    edgeDecorations,
-    activeFilePath,
-    graphIsIndexing,
-    graphIndexProgress,
-  } = useAppState();
-  const {
-    setSearchQuery,
-    setSearchOptions,
-    setActivePanel,
-    setFilterPatterns,
-    setDisabledCustomFilterPatterns,
-    setDisabledPluginFilterPatterns,
-  } = useAppActions();
-  const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
-  const [rulePrompt, setRulePrompt] = useState<RulePromptState | null>(null);
-  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
-  const [pendingFilterPatterns, setPendingFilterPatterns] = useState<string[]>([]);
+    graphLayout,
+    nodeVisibility,
+    searchOptions,
+    showOrphans,
+  } = state;
 
-  const theme = useTheme();
-  const { activeFilterPatterns, userLegendRules } = useFilterLegendInputs(
-    filterPatterns,
-    pluginFilterPatterns,
-    disabledCustomFilterPatterns,
-    disabledPluginFilterPatterns,
-    legends,
-  );
-  const countBaseData = useMemo(
+  return useMemo(
     () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
       edgeTypes: graphEdgeTypes,
       edgeVisibility,
-      filterPatterns: [],
+      filterPatterns,
       graphLayout,
       nodeVisibility,
       searchOptions,
       searchQuery: '',
       showOrphans,
     })).graphData,
-    [edgeVisibility, graphData, graphEdgeTypes, graphLayout, nodeVisibility, searchOptions, showOrphans],
+    [edgeVisibility, filterPatterns, graphData, graphEdgeTypes, graphLayout, nodeVisibility, searchOptions, showOrphans],
   );
-  const filterVisibleData = useMemo(
-    () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
-      edgeTypes: graphEdgeTypes,
-      edgeVisibility,
-      filterPatterns: activeFilterPatterns,
-      graphLayout,
-      nodeVisibility,
-      searchOptions,
-      searchQuery: '',
-      showOrphans,
-    })).graphData,
-    [activeFilterPatterns, edgeVisibility, graphData, graphEdgeTypes, graphLayout, nodeVisibility, searchOptions, showOrphans],
-  );
+}
+
+function useLoadedGraphData(
+  graphData: LoadedGraphData,
+  state: AppShellState,
+  activeFilterPatterns: string[],
+) {
+  const countBaseData = useScopedVisibleGraphData(graphData, state, EMPTY_FILTER_PATTERNS);
+  const filterVisibleData = useScopedVisibleGraphData(graphData, state, activeFilterPatterns);
+
   const {
-    filteredData,
-    coloredData,
-    edgeDecorations: graphEdgeDecorations,
-    regexError,
-  } = useFilteredGraph(
+    edgeDecorations,
+    edgeVisibility,
+    graphEdgeTypes,
+    graphLayout,
+    legends,
+    nodeColors,
+    nodeVisibility,
+    searchOptions,
+    searchQuery,
+    showOrphans,
+  } = state;
+  const filteredGraph = useFilteredGraph(
     graphData,
     searchQuery,
     searchOptions,
@@ -117,23 +94,71 @@ export default function App(): React.ReactElement {
     graphLayout,
   );
 
-  const {
-    closeRulePrompt,
-    openLegendPrompt,
-    handleRulePromptSubmit,
-  } = useRulePromptHandlers({
-    filterPatterns,
-    userLegendRules,
-    setFilterPatterns,
-    setOptimisticUserLegends,
-    setRulePrompt,
-  });
+  return {
+    countBaseData,
+    filterVisibleData,
+    ...filteredGraph,
+  };
+}
 
-  useEffect(() => {
-    return setupMessageListener(injectPluginAssets, pluginHost);
-  }, [injectPluginAssets, pluginHost]);
+function getLoadedGraphCountState({
+  countBaseData,
+  filterVisibleData,
+  filteredData,
+  graphData,
+  regexError,
+  searchQuery,
+}: {
+  countBaseData: LoadedGraphData | null;
+  filterVisibleData: LoadedGraphData | null;
+  filteredData: LoadedGraphData | null;
+  graphData: LoadedGraphData;
+  regexError: string | null;
+  searchQuery: string;
+}) {
+  const countTotal = countBaseData?.nodes.length ?? graphData.nodes.length;
+  const filterVisibleCount = filterVisibleData?.nodes.length ?? countTotal;
+  const excludedCount = Math.max(0, countTotal - filterVisibleCount);
 
-  const displayGraphData = coloredData || graphData;
+  return {
+    countState: getFilterCountState({
+      excludedCount,
+      filterVisibleCount,
+      regexError,
+      resultCount: filteredData?.nodes.length,
+      searchActive: searchQuery.length > 0,
+      totalCount: countTotal,
+    }),
+    countTotal,
+    excludedCount,
+  };
+}
+
+function useFilterPopoverControls() {
+  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
+  const [pendingFilterPatterns, setPendingFilterPatterns] = useState<string[]>([]);
+
+  const openFilterPopoverWithPatterns = (patterns: string[]) => {
+    setPendingFilterPatterns(patterns.map(toFilterGlob).filter(Boolean));
+    setFilterPopoverOpen(true);
+  };
+
+  const handleFilterPopoverOpenChange = (open: boolean) => {
+    setFilterPopoverOpen(open);
+    if (!open) {
+      setPendingFilterPatterns([]);
+    }
+  };
+
+  return {
+    filterPopoverOpen,
+    handleFilterPopoverOpenChange,
+    openFilterPopoverWithPatterns,
+    pendingFilterPatterns,
+  };
+}
+
+function useVisibleGraphStateResponder(displayGraphData: LoadedGraphData | null): void {
   useEffect(() => {
     const handleVisibleGraphStateRequest = (event: MessageEvent<unknown>) => {
       const raw = event.data as { type?: unknown };
@@ -154,34 +179,99 @@ export default function App(): React.ReactElement {
     window.addEventListener('message', handleVisibleGraphStateRequest);
     return () => window.removeEventListener('message', handleVisibleGraphStateRequest);
   }, [displayGraphData]);
+}
 
-  if (isLoading) return <LoadingState />;
+interface LoadedAppProps {
+  actions: AppShellActions;
+  graphData: LoadedGraphData;
+  pluginRuntime: PluginRuntime;
+  state: AppShellState;
+  theme: ThemeState;
+}
 
-  if (!graphData) {
-    return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode, timelineActive)} />;
-  }
-
-  const loadedDisplayGraphData = displayGraphData ?? graphData;
-  const graphStatsLabel = buildGraphStatsLabel(
-    loadedDisplayGraphData.nodes.length,
-    loadedDisplayGraphData.edges.length,
+function LoadedApp({
+  actions,
+  graphData,
+  pluginRuntime,
+  state,
+  theme,
+}: LoadedAppProps): React.ReactElement {
+  const {
+    activeFilePath,
+    activePanel,
+    depthMode,
+    disabledCustomFilterPatterns,
+    disabledPluginFilterPatterns,
+    filterPatterns,
+    graphIndexProgress,
+    graphIsIndexing,
+    legends,
+    nodeDecorations,
+    pluginFilterGroups,
+    pluginFilterPatterns,
+    searchOptions,
+    searchQuery,
+    showOrphans,
+    timelineActive,
+  } = state;
+  const {
+    setActivePanel,
+    setDisabledCustomFilterPatterns,
+    setDisabledPluginFilterPatterns,
+    setFilterPatterns,
+    setSearchOptions,
+    setSearchQuery,
+  } = actions;
+  const { pluginHost } = pluginRuntime;
+  const setOptimisticUserLegends = useGraphStore((store) => store.setOptimisticUserLegends);
+  const [rulePrompt, setRulePrompt] = useState<RulePromptState | null>(null);
+  const {
+    filterPopoverOpen,
+    handleFilterPopoverOpenChange,
+    openFilterPopoverWithPatterns,
+    pendingFilterPatterns,
+  } = useFilterPopoverControls();
+  const { activeFilterPatterns, userLegendRules } = useFilterLegendInputs(
+    filterPatterns,
+    pluginFilterPatterns,
+    disabledCustomFilterPatterns,
+    disabledPluginFilterPatterns,
+    legends,
   );
-  const closeActivePanel = () => setActivePanel('none');
-  const countTotal = countBaseData?.nodes.length ?? graphData.nodes.length;
-  const filterVisibleCount = filterVisibleData?.nodes.length ?? countTotal;
-  const excludedCount = Math.max(0, countTotal - filterVisibleCount);
-  const countState = getFilterCountState({
-    excludedCount,
-    filterVisibleCount,
-    regexError,
-    resultCount: filteredData?.nodes.length,
-    searchActive: searchQuery.length > 0,
-    totalCount: countTotal,
+  const {
+    closeRulePrompt,
+    openLegendPrompt,
+    handleRulePromptSubmit,
+  } = useRulePromptHandlers({
+    filterPatterns,
+    userLegendRules,
+    setFilterPatterns,
+    setOptimisticUserLegends,
+    setRulePrompt,
   });
-  const openFilterPopoverWithPatterns = (patterns: string[]) => {
-    setPendingFilterPatterns(patterns.map(toFilterGlob).filter(Boolean));
-    setFilterPopoverOpen(true);
-  };
+  const {
+    coloredData,
+    countBaseData,
+    edgeDecorations: graphEdgeDecorations,
+    filteredData,
+    filterVisibleData,
+    regexError,
+  } = useLoadedGraphData(graphData, state, activeFilterPatterns);
+  const displayGraphData = coloredData || graphData;
+  const graphStatsLabel = buildGraphStatsLabel(
+    displayGraphData.nodes.length,
+    displayGraphData.edges.length,
+  );
+  const { countState, countTotal, excludedCount } = getLoadedGraphCountState({
+    countBaseData,
+    filterVisibleData,
+    filteredData,
+    graphData,
+    regexError,
+    searchQuery,
+  });
+
+  useVisibleGraphStateResponder(displayGraphData);
 
   return (
     <div className="relative w-full h-screen flex flex-col">
@@ -199,12 +289,7 @@ export default function App(): React.ReactElement {
           excludedCount,
           onDisabledCustomPatternsChange: setDisabledCustomFilterPatterns,
           onDisabledPluginPatternsChange: setDisabledPluginFilterPatterns,
-          onOpenChange: (open) => {
-            setFilterPopoverOpen(open);
-            if (!open) {
-              setPendingFilterPatterns([]);
-            }
-          },
+          onOpenChange: handleFilterPopoverOpenChange,
           onPatternsChange: setFilterPatterns,
           open: filterPopoverOpen,
           pendingPatterns: pendingFilterPatterns,
@@ -235,7 +320,7 @@ export default function App(): React.ReactElement {
           activePanel={activePanel}
           hasGraphNodes={Boolean(graphData.nodes.length)}
           pluginHost={pluginHost}
-          onClosePanel={closeActivePanel}
+          onClosePanel={() => setActivePanel('none')}
         />
         <GraphIndexStatus isIndexing={graphIsIndexing} progress={graphIndexProgress} />
         <RulePrompt
@@ -245,5 +330,37 @@ export default function App(): React.ReactElement {
         />
       </div>
     </div>
+  );
+}
+
+export default function App(): React.ReactElement {
+  const pluginRuntime = usePluginManager();
+  const appState = useAppState();
+  const appActions = useAppActions();
+  const theme = useTheme();
+
+  useEffect(() => {
+    return setupMessageListener(pluginRuntime.injectPluginAssets, pluginRuntime.pluginHost);
+  }, [pluginRuntime.injectPluginAssets, pluginRuntime.pluginHost]);
+
+  if (appState.isLoading) return <LoadingState />;
+
+  if (!appState.graphData) {
+    return <EmptyState hint={getNoDataHint(
+      appState.graphData,
+      appState.showOrphans,
+      appState.depthMode,
+      appState.timelineActive,
+    )} />;
+  }
+
+  return (
+    <LoadedApp
+      actions={appActions}
+      graphData={appState.graphData}
+      pluginRuntime={pluginRuntime}
+      state={appState}
+      theme={theme}
+    />
   );
 }

@@ -50,6 +50,18 @@ function getScopedSymbolDefinitions(scope: VisibleGraphScopeConfig): ScopedSymbo
     .sort((left, right) => right.specificity - left.specificity);
 }
 
+function matchesOptionalString(expected: string | undefined, actual: string | undefined): boolean {
+  return !expected || expected === actual;
+}
+
+function matchesOptionalSymbolKinds(expected: readonly string[] | undefined, actual: string | undefined): boolean {
+  return !expected || (actual !== undefined && expected.includes(actual));
+}
+
+function matchesOptionalGlob(expected: string | undefined, actual: string | undefined): boolean {
+  return !expected || (actual !== undefined && globMatch(actual, expected));
+}
+
 function symbolMatchesScopedDefinition(
   node: IGraphData['nodes'][number],
   definition: IGraphNodeTypeDefinition,
@@ -60,13 +72,11 @@ function symbolMatchesScopedDefinition(
   }
 
   const definitionSymbolKinds = getDefinitionSymbolKinds(definition);
-  const symbolKindMatches = !definitionSymbolKinds || definitionSymbolKinds.includes(symbol.kind);
-  const pluginKindMatches = !definition.matchSymbolPluginKind || definition.matchSymbolPluginKind === symbol.pluginKind;
-  const sourceMatches = !definition.matchSymbolSource || definition.matchSymbolSource === symbol.source;
-  const languageMatches = !definition.matchSymbolLanguage || definition.matchSymbolLanguage === symbol.language;
-  const filePathMatches = !definition.matchSymbolFilePath || globMatch(symbol.filePath, definition.matchSymbolFilePath);
-
-  return symbolKindMatches && pluginKindMatches && sourceMatches && languageMatches && filePathMatches;
+  return matchesOptionalSymbolKinds(definitionSymbolKinds, symbol.kind)
+    && matchesOptionalString(definition.matchSymbolPluginKind, symbol.pluginKind)
+    && matchesOptionalString(definition.matchSymbolSource, symbol.source)
+    && matchesOptionalString(definition.matchSymbolLanguage, symbol.language)
+    && matchesOptionalGlob(definition.matchSymbolFilePath, symbol.filePath);
 }
 
 function getScopedSymbolVisibility(

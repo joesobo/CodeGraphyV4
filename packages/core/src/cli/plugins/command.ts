@@ -19,13 +19,13 @@ export async function runPluginsCommand(
   try {
     switch (command.action) {
       case 'register':
-        return runRegisterCommand(command, mergedDependencies);
+        return await Promise.resolve(runRegisterCommand(command, mergedDependencies));
       case 'enable':
-        return runEnableCommand(command, mergedDependencies);
+        return await Promise.resolve(runEnableCommand(command, mergedDependencies));
       case 'disable':
-        return runDisableCommand(command, mergedDependencies);
+        return await Promise.resolve(runDisableCommand(command, mergedDependencies));
       case 'list':
-        return runListCommand(command, mergedDependencies);
+        return await Promise.resolve(runListCommand(command, mergedDependencies));
       case 'help':
       default:
         return createHelpResult();
