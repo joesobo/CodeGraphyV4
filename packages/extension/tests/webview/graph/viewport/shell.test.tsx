@@ -7,9 +7,11 @@ import type { GraphViewStoreState } from '../../../../src/webview/components/gra
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/state';
 import { GraphViewportShell } from '../../../../src/webview/components/graph/viewport/shell';
+import { graphStore } from '../../../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
 	postMessage: vi.fn(),
+	useGraphEventEffects: vi.fn(),
 	useGraphRenderingRuntime: vi.fn(),
 	useGraphViewportModel: vi.fn(),
 	viewport: vi.fn((_props: Record<string, unknown>) => <div data-testid="graph-viewport" />),
@@ -21,6 +23,10 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
 
 vi.mock('../../../../src/webview/components/graph/runtime/use/rendering', () => ({
 	useGraphRenderingRuntime: harness.useGraphRenderingRuntime,
+}));
+
+vi.mock('../../../../src/webview/components/graph/runtime/use/events/effects', () => ({
+	useGraphEventEffects: harness.useGraphEventEffects,
 }));
 
 vi.mock('../../../../src/webview/components/graph/viewport/model', () => ({
@@ -222,9 +228,11 @@ function createViewState(): Pick<
 describe('graph/viewport/shell', () => {
 	beforeEach(() => {
 		harness.postMessage.mockReset();
+		harness.useGraphEventEffects.mockReset();
 		harness.useGraphRenderingRuntime.mockReset();
 		harness.useGraphViewportModel.mockReset();
 		harness.viewport.mockReset();
+		graphStore.getState().setGraphViewportScale(null);
 		harness.useGraphRenderingRuntime.mockReturnValue({
 			containerSize: { height: 320, width: 480 },
 			renderPluginOverlays: vi.fn(),
@@ -327,6 +335,21 @@ describe('graph/viewport/shell', () => {
 			interactions,
 			viewState,
 			viewportRuntime: expect.objectContaining({ containerSize: { height: 320, width: 480 } }),
+		}));
+		expect(harness.useGraphEventEffects).toHaveBeenCalledWith(expect.objectContaining({
+			containerRef: graphState.containerRef,
+			dataRef: graphState.dataRef,
+			directionColorRef: graphState.directionColorRef,
+			directionModeRef: graphState.directionModeRef,
+			graphDataRef: graphState.graphDataRef,
+			graphMode: '3d',
+			interactionHandlers: interactions.interactionHandlers,
+			fileInfoCacheRef: graphState.fileInfoCacheRef,
+			selectedNodes: graphState.selectedNodes,
+			setTooltipData: interactions.setTooltipData,
+			showLabelsRef: graphState.showLabelsRef,
+			themeRef: graphState.themeRef,
+			tooltipPath: '',
 		}));
 		expect(harness.viewport).toHaveBeenCalledWith(expect.objectContaining({
 			canvasBackgroundColor: 'transparent',
@@ -453,6 +476,132 @@ describe('graph/viewport/shell', () => {
 		viewportState.reheatSimulation();
 		expect(resumeAnimation).toHaveBeenCalledOnce();
 		expect(reheatSimulation).toHaveBeenCalledOnce();
+	});
+
+	it('publishes 2d graph viewport scale changes from render frames', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const interactions = createInteractions();
+		const callbacks = createCallbacks();
+		const viewState = { ...createViewState(), graphMode: '2d' as const };
+
+		render(
+			<GraphViewportShell
+				callbacks={callbacks}
+				graphDataLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={interactions}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			surface2dProps: {
+				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
+			};
+		};
+		viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2);
+		expect(graphStore.getState().graphViewportScale).toBe(2);
+
+		viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 2.005);
+		expect(graphStore.getState().graphViewportScale).toBe(2);
+	});
+
+	it('skips plugin viewport state publication when no plugin host is mounted', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const renderPluginOverlays = vi.fn();
+		harness.useGraphRenderingRuntime.mockReturnValue({
+			containerSize: { height: 320, width: 480 },
+			renderPluginOverlays,
+		});
+
+		render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphDataLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				theme="light"
+				viewState={createViewState()}
+			/>,
+		);
+
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			surface2dProps: {
+				onRenderFramePost(ctx: CanvasRenderingContext2D, globalScale: number): void;
+			};
+		};
+		expect(() => viewportProps.surface2dProps.onRenderFramePost({} as CanvasRenderingContext2D, 1)).not.toThrow();
+		expect(renderPluginOverlays).toHaveBeenCalledWith(expect.anything(), 1);
+	});
+
+	it('clears plugin viewport state for the current plugin host on host changes and unmount', () => {
+		const graphData = createGraphData();
+		const graphState = createGraphState(graphData);
+		const interactions = createInteractions();
+		const callbacks = createCallbacks();
+		const viewState = createViewState();
+		const firstPluginHost = {
+			getOverlays: vi.fn(),
+			setGraphViewViewportState: vi.fn(),
+		};
+		const secondPluginHost = {
+			getOverlays: vi.fn(),
+			setGraphViewViewportState: vi.fn(),
+		};
+
+		const { rerender, unmount } = render(
+			<GraphViewportShell
+				callbacks={callbacks}
+				graphDataLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={interactions}
+				pluginHost={firstPluginHost as never}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+
+		rerender(
+			<GraphViewportShell
+				callbacks={callbacks}
+				graphDataLayoutKey="connections::"
+				graphState={graphState}
+				handleEngineStop={vi.fn()}
+				interactions={interactions}
+				pluginHost={secondPluginHost as never}
+				theme="light"
+				viewState={viewState}
+			/>,
+		);
+		expect(firstPluginHost.setGraphViewViewportState).toHaveBeenCalledWith(null);
+		expect(secondPluginHost.setGraphViewViewportState).not.toHaveBeenCalledWith(null);
+
+		unmount();
+		expect(secondPluginHost.setGraphViewViewportState).toHaveBeenCalledWith(null);
+	});
+
+	it('unmounts without plugin viewport cleanup when no plugin host is mounted', () => {
+		const graphData = createGraphData();
+
+		const { unmount } = render(
+			<GraphViewportShell
+				callbacks={createCallbacks()}
+				graphDataLayoutKey="connections::"
+				graphState={createGraphState(graphData)}
+				handleEngineStop={vi.fn()}
+				interactions={createInteractions()}
+				theme="light"
+				viewState={createViewState()}
+			/>,
+		);
+
+		expect(() => unmount()).not.toThrow();
 	});
 
 });
