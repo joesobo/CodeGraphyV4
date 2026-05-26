@@ -54,14 +54,14 @@ describe('graph view settings update message', () => {
       }),
     });
 
-    await applySettingsUpdateMessage(
+    await expect(applySettingsUpdateMessage(
       {
         type: 'UPDATE_FILTER_PATTERN_STATE',
         payload: { source: 'custom', pattern: 'dist/**', enabled: true },
       },
       state,
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', []);
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
@@ -71,14 +71,14 @@ describe('graph view settings update message', () => {
     const state = createState({ filterPatterns: ['dist/**', 'coverage/**'] });
     const handlers = createHandlers();
 
-    await applySettingsUpdateMessage(
+    await expect(applySettingsUpdateMessage(
       {
         type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
         payload: { source: 'custom', enabled: false },
       },
       state,
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', [
       'dist/**',
