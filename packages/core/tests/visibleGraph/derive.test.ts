@@ -1,0 +1,180 @@
+import { describe, expect, it } from 'vitest';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
+import { deriveVisibleGraph } from '../../src/visibleGraph/derive';
+
+function node(id: string, nodeType?: IGraphNode['nodeType']): IGraphNode {
+  return {
+    id,
+    label: id,
+    color: '#111111',
+    ...(nodeType ? { nodeType } : {}),
+  };
+}
+
+function edge(from: string, to: string, kind: IGraphEdge['kind']): IGraphEdge {
+  return {
+    id: `${from}->${to}#${kind}`,
+    from,
+    to,
+    kind,
+    sources: [],
+  };
+}
+
+describe('visibleGraph/derive', () => {
+  it('returns an empty result when no graph data is available', () => {
+    expect(deriveVisibleGraph(null)).toEqual({
+      graphData: null,
+      regexError: null,
+    });
+  });
+
+  it('returns the original graph when no optional projections are configured', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src', 'folder'),
+        node('src/app.ts'),
+      ],
+      edges: [],
+    };
+
+    expect(deriveVisibleGraph(graphData)).toEqual({
+      graphData,
+      regexError: null,
+    });
+  });
+
+  it('applies scope projection when configured', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/app.ts'),
+        node('src/consumer.ts'),
+      ],
+      edges: [
+        edge('src/app.ts', 'src/consumer.ts', 'import'),
+      ],
+    };
+
+    expect(deriveVisibleGraph(graphData, {
+      scope: {
+        nodes: [],
+        edges: [
+          { type: 'import', enabled: false },
+        ],
+      },
+    })).toEqual({
+      graphData: {
+        nodes: [
+          node('src/app.ts'),
+          node('src/consumer.ts'),
+        ],
+        edges: [],
+      },
+      regexError: null,
+    });
+  });
+
+  it('applies filter projection when configured', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/app.ts'),
+        node('src/generated.ts'),
+      ],
+      edges: [
+        edge('src/app.ts', 'src/generated.ts', 'import'),
+      ],
+    };
+
+    expect(deriveVisibleGraph(graphData, {
+      filter: { patterns: ['src/generated.ts'] },
+    })).toEqual({
+      graphData: {
+        nodes: [
+          node('src/app.ts'),
+        ],
+        edges: [],
+      },
+      regexError: null,
+    });
+  });
+
+  it('applies search projection and returns regex errors when configured', () => {
+    const graphData: IGraphData = {
+      nodes: [node('src/app.ts')],
+      edges: [],
+    };
+
+    const result = deriveVisibleGraph(graphData, {
+      search: {
+        query: '[',
+        options: { regex: true },
+      },
+    });
+
+    expect(result.graphData).toEqual({ nodes: [], edges: [] });
+    expect(result.regexError).toContain('Invalid regular expression');
+  });
+
+  it('applies explicit orphan visibility when configured', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/app.ts'),
+        node('src/orphan.ts'),
+      ],
+      edges: [],
+    };
+
+    expect(deriveVisibleGraph(graphData, {
+      showOrphans: false,
+    })).toEqual({
+      graphData: {
+        nodes: [],
+        edges: [],
+      },
+      regexError: null,
+    });
+  });
+
+  it('applies scope, filter, search, orphan, and collapse projections in order', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src', 'folder'),
+        node('src/app.ts'),
+        node('src/keep.ts'),
+        node('src/generated.ts'),
+        node('src/orphan.ts'),
+      ],
+      edges: [
+        edge('src/app.ts', 'src/keep.ts', 'reference'),
+        edge('src/app.ts', 'src/generated.ts', 'import'),
+      ],
+    };
+
+    expect(deriveVisibleGraph(graphData, {
+      scope: {
+        nodes: [
+          { type: 'folder', enabled: true },
+        ],
+        edges: [
+          { type: 'import', enabled: false },
+        ],
+      },
+      filter: { patterns: ['src/generated.ts'] },
+      search: { query: 'src' },
+      showOrphans: false,
+      collapse: { collapsedNodeIds: ['src'] },
+    })).toMatchObject({
+      graphData: {
+        nodes: [
+          {
+            id: 'src',
+            isCollapsed: true,
+            collapsedDescendantCount: 3,
+          },
+        ],
+        edges: [],
+      },
+      regexError: null,
+    });
+  });
+});
