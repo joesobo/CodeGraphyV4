@@ -7,7 +7,17 @@ import {
   toProjectedConnectionsFromFileAnalysis,
   withPluginProvenance,
 } from '../../src';
-import type { IRoutablePluginInfo } from '../../src/plugins/routing/router/lookups';
+import {
+  getPluginForFile,
+  getPluginInfosForFile,
+  getPluginsForFile,
+  getSupportedExtensions,
+  supportsFile,
+  type IRoutablePluginInfo,
+} from '../../src/plugins/routing/router/lookups';
+import { getRelationKey } from '../../src/plugins/routing/router/results/keys';
+
+type Relation = NonNullable<IFileAnalysisResult['relations']>[number];
 
 function plugin(id: string, extensions: string[], analyzeFile?: IPlugin['analyzeFile']): IPlugin {
   return {
@@ -17,6 +27,15 @@ function plugin(id: string, extensions: string[], analyzeFile?: IPlugin['analyze
     apiVersion: '2',
     supportedExtensions: extensions,
     analyzeFile,
+  };
+}
+
+function relation(overrides: Partial<Relation>): Relation {
+  return {
+    kind: 'import',
+    sourceId: 'source',
+    fromFilePath: 'src/source.ts',
+    ...overrides,
   };
 }
 
@@ -235,5 +254,92 @@ describe('plugins/routing', () => {
 
     expect(registry.supportsFile('src/app.anything')).toBe(true);
     expect(registry.getPluginsForExtension('.anything').map((candidate) => candidate.id)).toEqual(['wildcard']);
+  });
+
+  it('returns the first available plugin for a file, falling back to wildcard plugins', () => {
+    const wildcard = plugin('wildcard', ['*']);
+    const plugins = new Map<string, IRoutablePluginInfo>([
+      ['wildcard', { plugin: wildcard }],
+    ]);
+    const extensionMap = new Map([
+      ['.ts', ['missing-typescript']],
+      ['*', ['wildcard']],
+    ]);
+
+    expect(getPluginForFile('src/app.ts', plugins, extensionMap)).toBe(wildcard);
+    expect(getPluginForFile('src/app.rb', new Map(), new Map())).toBeUndefined();
+  });
+
+  it('returns plugin and plugin-info lists for matching file extensions', () => {
+    const typescript = plugin('typescript', ['.ts']);
+    const wildcard = plugin('wildcard', ['*']);
+    const plugins = new Map<string, IRoutablePluginInfo>([
+      ['typescript', { plugin: typescript, options: { strict: true } }],
+      ['wildcard', { plugin: wildcard }],
+    ]);
+    const extensionMap = new Map([
+      ['.ts', ['typescript', 'missing']],
+      ['*', ['wildcard']],
+    ]);
+
+    expect(getPluginsForFile('src/app.TS', plugins, extensionMap)).toEqual([typescript, wildcard]);
+    expect(getPluginInfosForFile('src/app.ts', plugins, extensionMap)).toEqual([
+      { plugin: typescript, options: { strict: true } },
+      { plugin: wildcard },
+    ]);
+  });
+
+  it('reports support and supported extension keys from the extension map', () => {
+    const extensionMap = new Map([
+      ['.ts', ['typescript']],
+      ['*', ['wildcard']],
+    ]);
+
+    expect(supportsFile('src/app.ts', extensionMap)).toBe(true);
+    expect(supportsFile('src/app.rb', new Map([['.ts', ['typescript']]]))).toBe(false);
+    expect(supportsFile('src/app.rb', extensionMap)).toBe(true);
+    expect(getSupportedExtensions(extensionMap)).toEqual(['.ts', '*']);
+  });
+
+  it('builds stable relation keys from base relation identity fields', () => {
+    expect(getRelationKey(relation({
+      kind: 'import',
+      sourceId: 'import-source',
+      fromFilePath: 'src/a.ts',
+      fromNodeId: 'node:a',
+      fromSymbolId: 'symbol:a',
+      specifier: './b',
+      type: 'static',
+      variant: 'value',
+      toFilePath: 'src/b.ts',
+    }))).toBe('import|import-source|src/a.ts|node:a|symbol:a|./b|static|value');
+  });
+
+  it('adds node and symbol destinations for non-resolved relation kinds', () => {
+    expect(getRelationKey(relation({
+      kind: 'import',
+      toFilePath: 'src/b.ts',
+      toNodeId: 'node:b',
+      toSymbolId: 'symbol:b',
+      resolvedPath: 'src/resolved.ts',
+    }))).toBe('import|source|src/source.ts||||||node:b|symbol:b');
+  });
+
+  it('adds file, node, symbol, and resolved destinations for call and reference relations', () => {
+    expect(getRelationKey(relation({
+      kind: 'call',
+      sourceId: 'call-run',
+      specifier: 'run',
+      toFilePath: 'src/run.ts',
+      toNodeId: 'node:run',
+      toSymbolId: 'symbol:run',
+      resolvedPath: 'src/run.ts',
+    }))).toBe('call|call-run|src/source.ts|||run|||src/run.ts|node:run|symbol:run|src/run.ts');
+
+    expect(getRelationKey(relation({
+      kind: 'reference',
+      sourceId: 'reference-user',
+      toFilePath: 'src/user.ts',
+    }))).toBe('reference|reference-user|src/source.ts||||||src/user.ts|||');
   });
 });
