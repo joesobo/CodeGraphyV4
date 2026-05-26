@@ -7,11 +7,11 @@ Adds TypeScript and JavaScript ecosystem metadata to [CodeGraphy](https://market
 
 ## Install
 
-Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/core` first if the `codegraphy` CLI is not already available.
 
 ```bash
 npm i -g @codegraphy-dev/plugin-typescript
-codegraphy plugins refresh
+codegraphy plugins register @codegraphy-dev/plugin-typescript
 codegraphy plugins enable @codegraphy-dev/plugin-typescript
 codegraphy index
 ```
