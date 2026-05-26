@@ -1,10 +1,13 @@
 import type Parser from 'tree-sitter';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
-import { getVariableAssignedFunctionSymbol } from '../analyze/imports';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
-import { getIdentifierText } from '../analyze/nodes';
 import { createSymbol } from '../analyze/results';
 import { walkSymbolBody } from '../analyze/walk';
+import {
+  getJavaScriptDeclarationName,
+  getJavaScriptTypeDeclarationKind,
+} from './declarationNames';
+export { handleJavaScriptVariableDeclarator } from './variableSymbols';
 
 export function handleJavaScriptFunctionDeclaration(
   node: Parser.SyntaxNode,
@@ -12,7 +15,7 @@ export function handleJavaScriptFunctionDeclaration(
   symbols: IAnalysisSymbol[],
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
 ): TreeWalkAction<SymbolWalkState> | void {
-  const name = getIdentifierText(node.childForFieldName('name') ?? node.namedChildren[0]);
+  const name = getJavaScriptDeclarationName(node);
   if (!name) {
     return;
   }
@@ -27,7 +30,7 @@ export function handleJavaScriptClassDeclaration(
   filePath: string,
   symbols: IAnalysisSymbol[],
 ): void {
-  const name = getIdentifierText(node.childForFieldName('name') ?? node.namedChildren[0]);
+  const name = getJavaScriptDeclarationName(node);
   if (name) {
     symbols.push(createSymbol(filePath, 'class', name, node));
   }
@@ -38,7 +41,7 @@ export function handleJavaScriptTypeDeclaration(
   filePath: string,
   symbols: IAnalysisSymbol[],
 ): void {
-  const name = getIdentifierText(node.childForFieldName('name') ?? node.namedChildren[0]);
+  const name = getJavaScriptDeclarationName(node);
   if (!name) {
     return;
   }
@@ -53,7 +56,7 @@ export function handleJavaScriptMethodDefinition(
   symbols: IAnalysisSymbol[],
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
 ): TreeWalkAction<SymbolWalkState> | void {
-  const name = getIdentifierText(node.childForFieldName('name') ?? node.namedChildren[0]);
+  const name = getJavaScriptDeclarationName(node);
   if (!name) {
     return;
   }
@@ -61,43 +64,4 @@ export function handleJavaScriptMethodDefinition(
   const symbol = createSymbol(filePath, 'method', name, node);
   symbols.push(symbol);
   return walkSymbolBody(node, symbol.id, walk);
-}
-
-export function handleJavaScriptVariableDeclarator(
-  node: Parser.SyntaxNode,
-  filePath: string,
-  symbols: IAnalysisSymbol[],
-  walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
-): TreeWalkAction<SymbolWalkState> | void {
-  const symbol = getVariableAssignedFunctionSymbol(node, filePath);
-  if (symbol) {
-    symbols.push(symbol);
-    const valueNode = node.childForFieldName('value') ?? node.namedChildren.at(-1);
-    const body = valueNode?.childForFieldName('body') ?? valueNode?.namedChildren.at(-1);
-    if (body) {
-      walk(body, { currentSymbolId: symbol.id });
-    }
-
-    return { skipChildren: true };
-  }
-
-  const name = getIdentifierText(node.childForFieldName('name') ?? node.namedChildren[0]);
-  if (!name) {
-    return;
-  }
-
-  symbols.push(createSymbol(filePath, 'constant', name, node));
-}
-
-function getJavaScriptTypeDeclarationKind(
-  node: Parser.SyntaxNode,
-): 'type' | 'interface' | 'enum' {
-  switch (node.type) {
-    case 'interface_declaration':
-      return 'interface';
-    case 'enum_declaration':
-      return 'enum';
-    default:
-      return 'type';
-  }
 }

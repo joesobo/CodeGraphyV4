@@ -1,7 +1,36 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { describe, expect, it } from 'vitest';
-import { createCodeGraphyMcpServer } from '../../src/mcp/server';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { describe, expect, it, vi } from 'vitest';
+import { createCodeGraphyMcpServer, runMcpServer } from '../../src/mcp/server';
+import { splitWorkspacePath } from '../../src/mcp/workspacePath';
+
+type MockedStdioTransport = {
+  start: () => Promise<void>;
+  send: () => Promise<void>;
+  close: () => Promise<void>;
+};
+
+const stdioTransportState = vi.hoisted(() => ({
+  transports: [] as MockedStdioTransport[],
+}));
+
+vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => ({
+  StdioServerTransport: class {
+    onclose?: () => void;
+    onerror?: (error: Error) => void;
+    onmessage?: (message: unknown) => void;
+    start = vi.fn(async () => {});
+    send = vi.fn(async () => {});
+    close = vi.fn(async () => {});
+
+    constructor() {
+      stdioTransportState.transports.push(this);
+    }
+  },
+}));
 
 async function connectServer(
   dependencies: Parameters<typeof createCodeGraphyMcpServer>[0],
@@ -16,12 +45,14 @@ async function connectServer(
   return client;
 }
 
-function createDependencies(): NonNullable<Parameters<typeof createCodeGraphyMcpServer>[0]> {
+function createDependencies(
+  workspaceRoot = '/workspace/project',
+): NonNullable<Parameters<typeof createCodeGraphyMcpServer>[0]> {
   return {
-    cwd: () => '/workspace/project',
+    cwd: () => workspaceRoot,
     statusWorkspace: async ({ workspacePath }: { workspacePath?: string }) => ({
-      workspaceRoot: workspacePath ?? '/workspace/project',
-      graphCache: '/workspace/project/.codegraphy/graph.lbug',
+      workspaceRoot: workspacePath ?? workspaceRoot,
+      graphCache: `${workspacePath ?? workspaceRoot}/.codegraphy/graph.lbug`,
       state: 'fresh',
       hasGraphCache: true,
       staleReasons: [],
@@ -29,21 +60,48 @@ function createDependencies(): NonNullable<Parameters<typeof createCodeGraphyMcp
       message: 'CodeGraphy Workspace Graph Cache is fresh.',
     }),
     indexWorkspace: async ({ workspacePath }: { workspacePath?: string }) => ({
-      workspaceRoot: workspacePath ?? '/workspace/project',
+      workspaceRoot: workspacePath ?? workspaceRoot,
       graphCache: '.codegraphy/graph.lbug',
       message: 'CodeGraphy indexing completed. Query tools can now read the Graph Cache.',
     }),
     runGraphQuery: async (input: { workspacePath?: string; report: string; arguments: Record<string, unknown> }) => ({
       report: input.report,
-      workspaceRoot: input.workspacePath ?? '/workspace/project',
+      workspaceRoot: input.workspacePath ?? workspaceRoot,
       arguments: input.arguments,
     }),
   };
 }
 
+type ListedTools = Awaited<ReturnType<Client['listTools']>>;
+type ListedTool = ListedTools['tools'][number];
+
+function findTool(tools: ListedTools, name: string): ListedTool {
+  const tool = tools.tools.find((candidate) => candidate.name === name);
+  expect(tool).toBeDefined();
+  return tool as ListedTool;
+}
+
+function propertiesFor(tool: ListedTool): Record<string, Record<string, unknown>> {
+  return (tool.inputSchema.properties ?? {}) as Record<string, Record<string, unknown>>;
+}
+
 describe('mcp/server', () => {
+  it('connects the stdio runtime transport for the package entrypoint', async () => {
+    stdioTransportState.transports = [];
+
+    await runMcpServer();
+
+    expect(stdioTransportState.transports).toHaveLength(1);
+    expect(stdioTransportState.transports[0]?.start).toHaveBeenCalledTimes(1);
+  });
+
   it('registers the path-first workspace tools', async () => {
     const client = await connectServer(createDependencies());
+
+    expect(client.getServerVersion()).toEqual({
+      name: 'codegraphy',
+      version: '0.1.0',
+    });
 
     const tools = await client.listTools();
     const names = tools.tools.map((tool) => tool.name);
@@ -61,8 +119,11 @@ describe('mcp/server', () => {
       'codegraphy_list_symbols',
       'codegraphy_find_paths',
     ]);
-    expect(tools.tools.find((tool) => tool.name === 'codegraphy_index')?.description).toContain(
-      'CodeGraphy Workspace',
+    expect(findTool(tools, 'codegraphy_status').description).toBe(
+      'Report CodeGraphy Workspace status for the current folder or an explicit path.',
+    );
+    expect(findTool(tools, 'codegraphy_index').description).toBe(
+      'Run Indexing for the current or explicit CodeGraphy Workspace path without focusing VS Code.',
     );
   });
 
@@ -100,6 +161,13 @@ describe('mcp/server', () => {
       exitCode: 0,
       output: 'ran enable',
     });
+    expect(enableResult.content).toEqual([{
+      type: 'text',
+      text: JSON.stringify({
+        exitCode: 0,
+        output: 'ran enable',
+      }, null, 2),
+    }]);
     expect(calls).toEqual([
       { name: 'plugins', action: 'register', packageName: '@codegraphy-dev/plugin-python' },
       { name: 'plugins', action: 'list', workspacePath: '/workspace/project' },
@@ -116,6 +184,57 @@ describe('mcp/server', () => {
         workspacePath: '/workspace/project',
       },
     ]);
+  });
+
+  it('describes plugin tool scope and package inputs explicitly', async () => {
+    const client = await connectServer(createDependencies());
+    const tools = await client.listTools();
+
+    const registerTool = findTool(tools, 'codegraphy_plugins_register');
+    const listTool = findTool(tools, 'codegraphy_plugins_list');
+    const enableTool = findTool(tools, 'codegraphy_plugins_enable');
+    const disableTool = findTool(tools, 'codegraphy_plugins_disable');
+
+    expect(registerTool.description).toBe(
+      'Register an explicitly named globally installed CodeGraphy plugin package in ~/.codegraphy/plugins.json.',
+    );
+    expect(listTool.description).toBe(
+      'List installed plugins and which ones are enabled for the current or explicit CodeGraphy Workspace.',
+    );
+    expect(enableTool.description).toBe(
+      'Enable a cached plugin package for the current or explicit CodeGraphy Workspace.',
+    );
+    expect(disableTool.description).toBe(
+      'Disable a cached plugin package for the current or explicit CodeGraphy Workspace.',
+    );
+    expect(registerTool.inputSchema.required).toEqual(['packageName']);
+    expect(propertiesFor(registerTool).packageName).toMatchObject({
+      type: 'string',
+      minLength: 1,
+    });
+    expect(enableTool.inputSchema.required).toEqual(['packageName']);
+    expect(disableTool.inputSchema.required).toEqual(['packageName']);
+    expect(propertiesFor(enableTool).packageName).toMatchObject({
+      type: 'string',
+      minLength: 1,
+    });
+  });
+
+  it('falls back to the core plugin command runner with the dependency cwd', async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-mcp-plugin-list-'));
+    const client = await connectServer(createDependencies(workspaceRoot));
+
+    const result = await client.callTool({
+      name: 'codegraphy_plugins_list',
+      arguments: {},
+    });
+
+    expect(result.structuredContent).toMatchObject({
+      exitCode: 0,
+    });
+    expect(String((result.structuredContent as { output?: unknown }).output)).toContain(
+      `CodeGraphy plugins for ${workspaceRoot}`,
+    );
   });
 
   it('indexes and queries the current workspace without an open call', async () => {
@@ -157,6 +276,120 @@ describe('mcp/server', () => {
       'index:/workspace/project',
       'query:/workspace/project:nodes',
     ]);
+  });
+
+  it('describes graph query tools with their report-specific filters', async () => {
+    const client = await connectServer(createDependencies());
+    const tools = await client.listTools();
+
+    expect(findTool(tools, 'codegraphy_list_nodes').description).toBe(
+      'List indexed Relationship Graph nodes for a CodeGraphy Workspace. Defaults to File Nodes; folders and packages are included through Graph Scope.',
+    );
+    expect(propertiesFor(findTool(tools, 'codegraphy_list_nodes')).showOrphans).toMatchObject({
+      type: 'boolean',
+    });
+    expect(findTool(tools, 'codegraphy_list_edges').description).toBe(
+      'List high-level node connections with grouped Edge Types. Broad calls are paginated.',
+    );
+    expect(propertiesFor(findTool(tools, 'codegraphy_list_edges'))).toMatchObject({
+      from: { type: 'string' },
+      to: { type: 'string' },
+      edgeType: { type: 'string' },
+    });
+    expect(findTool(tools, 'codegraphy_list_relationships').description).toBe(
+      'List detailed Relationships grouped by node pair and Edge Type. Broad calls can be large and are paginated.',
+    );
+    expect(propertiesFor(findTool(tools, 'codegraphy_list_relationships'))).toMatchObject({
+      from: { type: 'string' },
+      to: { type: 'string' },
+      edgeType: { type: 'string' },
+    });
+    expect(findTool(tools, 'codegraphy_list_symbols').description).toBe(
+      'List symbol declarations or Relationship-backed symbol evidence. Broad calls can be large and are paginated.',
+    );
+    expect(propertiesFor(findTool(tools, 'codegraphy_list_symbols'))).toMatchObject({
+      filePath: { type: 'string' },
+      relatedFrom: { type: 'string' },
+      relatedTo: { type: 'string' },
+      edgeType: { type: 'string' },
+    });
+    const pathsTool = findTool(tools, 'codegraphy_find_paths');
+    expect(pathsTool.description).toBe(
+      'Return bounded directed node paths from one exact node path to another. Paths contain nodes only.',
+    );
+    expect(pathsTool.inputSchema.required).toEqual(['from', 'to']);
+    expect(propertiesFor(pathsTool)).toMatchObject({
+      from: { type: 'string' },
+      to: { type: 'string' },
+      maxDepth: { type: 'integer', exclusiveMinimum: 0 },
+      maxPaths: { type: 'integer', exclusiveMinimum: 0 },
+    });
+  });
+
+  it('passes the graph query report id for each report-specific tool', async () => {
+    const calls: Array<{ report: string; arguments: Record<string, unknown> }> = [];
+    const client = await connectServer({
+      ...createDependencies(),
+      runGraphQuery: async ({ report, arguments: args }) => {
+        calls.push({ report, arguments: args });
+        return { report, arguments: args };
+      },
+    });
+
+    await client.callTool({
+      name: 'codegraphy_list_edges',
+      arguments: { from: 'src/a.ts', to: 'src/b.ts', edgeType: 'Imports' },
+    });
+    await client.callTool({
+      name: 'codegraphy_list_symbols',
+      arguments: {
+        filePath: 'src/a.ts',
+        relatedFrom: 'src/a.ts',
+        relatedTo: 'src/b.ts',
+        edgeType: 'Calls',
+      },
+    });
+    await client.callTool({
+      name: 'codegraphy_find_paths',
+      arguments: { from: 'src/a.ts', to: 'src/b.ts', maxDepth: 2, maxPaths: 3 },
+    });
+
+    expect(calls).toEqual([
+      {
+        report: 'edges',
+        arguments: { from: 'src/a.ts', to: 'src/b.ts', edgeType: 'Imports' },
+      },
+      {
+        report: 'symbols',
+        arguments: {
+          filePath: 'src/a.ts',
+          relatedFrom: 'src/a.ts',
+          relatedTo: 'src/b.ts',
+          edgeType: 'Calls',
+        },
+      },
+      {
+        report: 'paths',
+        arguments: { from: 'src/a.ts', to: 'src/b.ts', maxDepth: 2, maxPaths: 3 },
+      },
+    ]);
+  });
+
+  it('splits non-string path values out of graph query arguments without using them as a workspace', () => {
+    expect(splitWorkspacePath({
+      path: 42,
+      search: 'GraphQuery',
+    })).toEqual({
+      workspacePath: undefined,
+      arguments: { search: 'GraphQuery' },
+    });
+    expect(splitWorkspacePath({
+      path: '/workspace/other',
+      search: 'GraphQuery',
+    })).toEqual({
+      workspacePath: '/workspace/other',
+      arguments: { search: 'GraphQuery' },
+    });
   });
 
   it('passes explicit workspace paths through status, index, and query tools', async () => {
