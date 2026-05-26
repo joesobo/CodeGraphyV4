@@ -32,7 +32,7 @@ Discovery reads installed package metadata without importing plugin runtime code
 }
 ```
 
-`codegraphy plugins refresh` records discovered plugin packages in the user plugin cache. A plugin becomes active only when it is present in the workspace-local `plugins` array.
+`codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry. A plugin becomes active only when it is present in the workspace-local `plugins` array.
 
 ### 2. Runtime Load
 

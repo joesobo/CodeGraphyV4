@@ -7,11 +7,11 @@ Adds Python ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.
 
 ## Install
 
-Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/core` first if the `codegraphy` CLI is not already available.
 
 ```bash
 npm i -g @codegraphy-dev/plugin-python
-codegraphy plugins refresh
+codegraphy plugins register @codegraphy-dev/plugin-python
 codegraphy plugins enable @codegraphy-dev/plugin-python
 codegraphy index
 ```
