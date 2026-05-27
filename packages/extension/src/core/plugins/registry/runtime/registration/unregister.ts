@@ -33,6 +33,12 @@ export function removeFromRegistry(
   plugins.delete(pluginId);
   initializedPlugins.delete(pluginId);
   eventBus?.emit('plugin:unregistered', { pluginId });
-  console.log(`[CodeGraphy] Unregistered plugin: ${pluginId}`);
+  if (shouldLogPluginLifecycle(info)) {
+    console.log(`[CodeGraphy] Unregistered plugin: ${pluginId}`);
+  }
   return true;
+}
+
+function shouldLogPluginLifecycle(info: IPluginInfoV2): boolean {
+  return !info.builtIn || !!info.sourceExtension || !!info.sourcePackage;
 }

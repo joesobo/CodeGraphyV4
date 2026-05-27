@@ -29,6 +29,8 @@ export function usePluginManager(): IPluginManager {
   const pluginApisRef = useRef<Map<string, CodeGraphyWebviewAPI>>(new Map());
   const loadedStylesRef = useRef<Set<string>>(new Set());
   const activatedScriptKeysRef = useRef<Set<string>>(new Set());
+  const activatingScriptPromisesRef = useRef<Map<string, Promise<void>>>(new Map());
+  const pluginAssetVersionsRef = useRef<Map<string, number>>(new Map());
 
   return useMemo(() => {
     function getPluginApi(pluginId: string): CodeGraphyWebviewAPI {
@@ -43,16 +45,38 @@ export function usePluginManager(): IPluginManager {
       const activationKey = `${pluginId}::${script}`;
       if (activatedScriptKeysRef.current.has(activationKey)) return;
 
-      const mod = (await import(/* @vite-ignore */ script)) as unknown;
-      const activate = resolvePluginModuleActivator(mod as PluginWebviewModule);
-
-      if (typeof activate !== 'function') {
-        console.warn(`[CodeGraphy] Webview plugin script "${script}" has no activate(api) export`);
+      const pendingActivation = activatingScriptPromisesRef.current.get(activationKey);
+      if (pendingActivation) {
+        await pendingActivation;
         return;
       }
 
-      await activate(getPluginApi(pluginId));
-      activatedScriptKeysRef.current.add(activationKey);
+      const activationVersion = pluginAssetVersionsRef.current.get(pluginId) ?? 0;
+      const activationPromise = (async (): Promise<void> => {
+        const mod = (await import(/* @vite-ignore */ script)) as unknown;
+        const activate = resolvePluginModuleActivator(mod as PluginWebviewModule);
+
+        if (typeof activate !== 'function') {
+          console.warn(`[CodeGraphy] Webview plugin script "${script}" has no activate(api) export`);
+          return;
+        }
+
+        if ((pluginAssetVersionsRef.current.get(pluginId) ?? 0) !== activationVersion) {
+          return;
+        }
+
+        await activate(getPluginApi(pluginId));
+        if ((pluginAssetVersionsRef.current.get(pluginId) ?? 0) === activationVersion) {
+          activatedScriptKeysRef.current.add(activationKey);
+        }
+      })();
+
+      activatingScriptPromisesRef.current.set(activationKey, activationPromise);
+      try {
+        await activationPromise;
+      } finally {
+        activatingScriptPromisesRef.current.delete(activationKey);
+      }
     }
 
     async function injectPluginAssets(payload: PluginInjectPayload): Promise<void> {
@@ -76,10 +100,19 @@ export function usePluginManager(): IPluginManager {
 
     function resetPluginAssets(pluginId: string): void {
       pluginApisRef.current.delete(pluginId);
+      pluginAssetVersionsRef.current.set(
+        pluginId,
+        (pluginAssetVersionsRef.current.get(pluginId) ?? 0) + 1,
+      );
       const activationPrefix = `${pluginId}::`;
       for (const key of Array.from(activatedScriptKeysRef.current)) {
         if (key.startsWith(activationPrefix)) {
           activatedScriptKeysRef.current.delete(key);
+        }
+      }
+      for (const key of Array.from(activatingScriptPromisesRef.current.keys())) {
+        if (key.startsWith(activationPrefix)) {
+          activatingScriptPromisesRef.current.delete(key);
         }
       }
     }

@@ -90,5 +90,11 @@ export function addToRegistry(
   plugins.set(info.plugin.id, info);
   addPluginToExtensionMap(info.plugin, extensionMap);
   eventBus?.emit('plugin:registered', { pluginId: info.plugin.id });
-  console.log(`[CodeGraphy] Registered plugin: ${info.plugin.name} (${info.plugin.id})`);
+  if (shouldLogPluginLifecycle(info)) {
+    console.log(`[CodeGraphy] Registered plugin: ${info.plugin.name} (${info.plugin.id})`);
+  }
+}
+
+function shouldLogPluginLifecycle(info: IPluginInfoV2): boolean {
+  return !info.builtIn || !!info.sourceExtension || !!info.sourcePackage;
 }
