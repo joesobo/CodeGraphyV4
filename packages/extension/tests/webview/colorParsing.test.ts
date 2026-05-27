@@ -101,4 +101,9 @@ describe('parseColor edge cases', () => {
   it('returns null for a hex string with 8 characters', () => {
     expect(parseColor('#12345678')).toBeNull();
   });
+
+  it('returns null for colors with surrounding text', () => {
+    expect(parseColor('prefix #102030')).toBeNull();
+    expect(parseColor('rgb(10, 20, 30) suffix')).toBeNull();
+  });
 });
