@@ -77,6 +77,15 @@ describe('CodeGraphy Plugin Registry', () => {
       }, null, 2)}\n`,
       'utf-8',
     );
+    await fs.writeFile(
+      path.join(packageRoot, 'codegraphy.json'),
+      `${JSON.stringify({
+        id: 'acme.private',
+        name: 'Acme Private',
+        supportedExtensions: ['.acme'],
+      }, null, 2)}\n`,
+      'utf-8',
+    );
 
     const record = await linkCodeGraphyInstalledPluginPackage({
       homeDir,
@@ -87,6 +96,9 @@ describe('CodeGraphy Plugin Registry', () => {
       package: '@acme/codegraphy-private-plugin',
       version: '0.1.0',
       apiVersion: '^2.0.0',
+      pluginId: 'acme.private',
+      pluginName: 'Acme Private',
+      supportedExtensions: ['.acme'],
       disclosures: ['workspaceWrites'],
       packageRoot,
     });

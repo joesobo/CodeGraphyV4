@@ -11,7 +11,6 @@ import { getPluginMatchingFiles } from './extensions';
 import {
   buildRegisteredPluginStatus,
   buildUnregisteredInstalledPluginStatus,
-  getRegisteredPackageNames,
   isUserFacingPlugin,
 } from './statusRecords';
 
@@ -34,28 +33,49 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
     workspaceEnabledPackageNames,
   } = options;
 
-  const statuses: IPluginStatus[] = [];
-  const registeredPackageNames = getRegisteredPackageNames(pluginInfos);
+  const registeredPackageStatuses = new Map<string, IPluginStatus>();
+  const registeredStatusesInPluginOrder: IPluginStatus[] = [];
 
   for (const pluginInfo of pluginInfos.filter(isUserFacingPlugin)) {
     const matchingFiles = getPluginMatchingFiles(pluginInfo, discoveredFiles);
     const totalConnections = countPluginConnections(pluginInfo, fileConnections);
 
-    statuses.push(buildRegisteredPluginStatus({
+    const status = buildRegisteredPluginStatus({
       connectionCount: totalConnections,
       disabledPlugins,
       matchingFileCount: matchingFiles.length,
       pluginInfo,
       workspaceEnabledPackageNames,
-    }));
+    });
+    registeredStatusesInPluginOrder.push(status);
+
+    if (pluginInfo.sourcePackage) {
+      registeredPackageStatuses.set(pluginInfo.sourcePackage, status);
+    }
   }
 
-  for (const plugin of installedPlugins) {
-    if (registeredPackageNames.has(plugin.package)) {
+  if (installedPlugins.length === 0) {
+    return registeredStatusesInPluginOrder;
+  }
+
+  const statuses: IPluginStatus[] = [];
+  const installedPackageNames = new Set(installedPlugins.map(plugin => plugin.package));
+
+  for (const installedPlugin of installedPlugins) {
+    const registeredStatus = registeredPackageStatuses.get(installedPlugin.package);
+    if (registeredStatus) {
+      statuses.push(registeredStatus);
       continue;
     }
 
-    statuses.push(buildUnregisteredInstalledPluginStatus(plugin, workspaceEnabledPackageNames));
+    statuses.push(buildUnregisteredInstalledPluginStatus(installedPlugin, workspaceEnabledPackageNames));
+  }
+
+  for (const status of registeredStatusesInPluginOrder) {
+    if (status.packageName && installedPackageNames.has(status.packageName)) {
+      continue;
+    }
+    statuses.push(status);
   }
 
   return statuses;

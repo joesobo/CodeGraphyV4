@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { postMessage } from '../../vscodeApi';
 import { graphStore, useGraphStore } from '../../store/state';
 import { mdiClose } from '@mdi/js';
@@ -9,7 +9,6 @@ import { Button } from '../ui/button';
 import {
   getPluginsPanelItemClassName,
   getPluginStatusLabel,
-  reorderPluginStatuses,
 } from './model';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 
@@ -37,53 +36,21 @@ function postPluginToggle(pluginId: string, packageName: string, enabled: boolea
   });
 }
 
-function getEnabledPluginPackageNames(plugins: readonly IPluginStatus[]): string[] {
-  return plugins
-    .filter(plugin => plugin.enabled && plugin.packageName)
-    .map(plugin => plugin.packageName as string);
-}
-
 interface PluginRowProps {
-  dragIndex: number | null;
-  dragOverIndex: number | null;
-  index: number;
   plugin: IPluginStatus;
-  onDragEnd(this: void): void;
-  onDragOver(this: void, index: number): void;
-  onDragStart(this: void, index: number): void;
-  onDrop(this: void, event: React.DragEvent<HTMLDivElement>, index: number): void;
   onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
 }
 
 function PluginRow({
-  dragIndex,
-  dragOverIndex,
-  index,
   plugin,
-  onDragEnd,
-  onDragOver,
-  onDragStart,
-  onDrop,
   onTogglePlugin,
 }: PluginRowProps): React.ReactElement {
   const statusLabel = getPluginStatusLabel(plugin);
 
   return (
     <div
-      draggable={Boolean(plugin.packageName && plugin.enabled)}
-      onDragStart={() => onDragStart(index)}
-      onDragOver={(event) => {
-        event.preventDefault();
-        onDragOver(index);
-      }}
-      onDrop={(event) => onDrop(event, index)}
-      onDragEnd={onDragEnd}
-      className={getPluginsPanelItemClassName(
-        plugin.enabled,
-        index,
-        dragIndex,
-        dragOverIndex,
-      )}
+      className={getPluginsPanelItemClassName(plugin.enabled)}
+      data-testid="plugin-row"
     >
       <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]">
         <div className="min-w-0 flex-1">
@@ -105,39 +72,20 @@ function PluginRow({
 }
 
 interface PluginListProps {
-  dragIndex: number | null;
-  dragOverIndex: number | null;
   plugins: readonly IPluginStatus[];
-  onDragEnd(this: void): void;
-  onDragOver(this: void, index: number): void;
-  onDragStart(this: void, index: number): void;
-  onDrop(this: void, event: React.DragEvent<HTMLDivElement>, index: number): void;
   onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
 }
 
 function PluginList({
-  dragIndex,
-  dragOverIndex,
   plugins,
-  onDragEnd,
-  onDragOver,
-  onDragStart,
-  onDrop,
   onTogglePlugin,
 }: PluginListProps): React.ReactElement {
   return (
     <div className="overflow-hidden rounded-md border border-[var(--cg-border-subtle)] bg-[var(--cg-surface-subtle)] divide-y divide-[var(--cg-divider-subtle)]">
-      {plugins.map((plugin, index) => (
+      {plugins.map((plugin) => (
         <PluginRow
           key={plugin.id}
-          dragIndex={dragIndex}
-          dragOverIndex={dragOverIndex}
-          index={index}
           plugin={plugin}
-          onDragEnd={onDragEnd}
-          onDragOver={onDragOver}
-          onDragStart={onDragStart}
-          onDrop={onDrop}
           onTogglePlugin={onTogglePlugin}
         />
       ))}
@@ -151,8 +99,6 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
     () => pluginStatuses.filter(plugin => plugin.packageName),
     [pluginStatuses],
   );
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   if (!isOpen) return null;
 
@@ -165,37 +111,12 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
     postPluginToggle(pluginId, packageName, enabled);
   };
 
-  const handleDropPlugin = (event: React.DragEvent, targetIndex: number) => {
-    event.preventDefault();
-    if (dragIndex === null) {
-      setDragOverIndex(null);
-      return;
-    }
-
-    const reordered = reorderPluginStatuses(plugins, dragIndex, targetIndex);
-    const packageNames = getEnabledPluginPackageNames(reordered);
-    postMessage({
-      type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
-      payload: { packageNames },
-    });
-    setDragIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleDragEnd = () => {
-    setDragIndex(null);
-    setDragOverIndex(null);
-  };
-
   return (
     <div className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <div className="min-w-0">
           <div className="text-sm font-medium">Plugins</div>
-          <div className="text-[10px] text-muted-foreground">
-            Bottom runs first. Top wins.
-          </div>
         </div>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
           <MdiIcon path={mdiClose} size={16} />
@@ -209,13 +130,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
             <p className="text-xs text-muted-foreground py-3 text-center">No plugins registered.</p>
           ) : (
             <PluginList
-              dragIndex={dragIndex}
-              dragOverIndex={dragOverIndex}
               plugins={plugins}
-              onDragEnd={handleDragEnd}
-              onDragOver={setDragOverIndex}
-              onDragStart={setDragIndex}
-              onDrop={handleDropPlugin}
               onTogglePlugin={handleTogglePlugin}
             />
           )}

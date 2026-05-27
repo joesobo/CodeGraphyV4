@@ -49,6 +49,19 @@ export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstal
   if (isRecord(value.defaultOptions)) {
     record.defaultOptions = { ...value.defaultOptions };
   }
+  if (typeof value.pluginId === 'string' && value.pluginId.length > 0) {
+    record.pluginId = value.pluginId;
+  }
+  if (typeof value.pluginName === 'string' && value.pluginName.length > 0) {
+    record.pluginName = value.pluginName;
+  }
+  if (Array.isArray(value.supportedExtensions)) {
+    const supportedExtensions = value.supportedExtensions
+      .filter((extension): extension is string => typeof extension === 'string' && extension.length > 0);
+    if (supportedExtensions.length > 0) {
+      record.supportedExtensions = supportedExtensions;
+    }
+  }
 
   return record;
 }

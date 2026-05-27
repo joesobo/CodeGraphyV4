@@ -143,40 +143,6 @@ describe('graph view settings update message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('maxFiles', 250);
   });
 
-  it('persists workspace plugin package order through the plugins array', async () => {
-    const state = createState();
-    const handlers = createHandlers({
-      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
-        if (key === 'plugins') {
-          return [
-            { package: '@codegraphy-dev/plugin-markdown' },
-            { package: '@codegraphy-dev/plugin-python' },
-          ] as T;
-        }
-        return defaultValue;
-      }),
-    });
-
-    await expect(
-      applySettingsUpdateMessage(
-        {
-          type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
-          payload: {
-            packageNames: ['@codegraphy-dev/plugin-python', '@codegraphy-dev/plugin-markdown'],
-          },
-        },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy-dev/plugin-python' },
-      { package: '@codegraphy-dev/plugin-markdown' },
-    ]);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
-  });
-
   it('updates label visibility and publishes it immediately', async () => {
     const state = createState();
     const handlers = createHandlers();

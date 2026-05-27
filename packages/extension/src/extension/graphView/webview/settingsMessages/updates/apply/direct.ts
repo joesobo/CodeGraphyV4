@@ -6,7 +6,6 @@ import type {
 import { applyGraphControlMessage } from '../controls';
 import { applyFilterPatternsUpdate } from '../filterPatterns';
 import { applyShowLabelsUpdate } from '../labels';
-import { applyPluginPackageOrderUpdate } from '../pluginPackageOrder';
 import { applySimpleSettingsUpdate } from '../simple';
 import { applyParticleSettingMessage } from './particle';
 
@@ -20,8 +19,6 @@ export async function applyDirectSettingsUpdateMessage(
       return applyFilterPatternsUpdate(message, state, handlers);
     case 'UPDATE_SHOW_LABELS':
       return applyShowLabelsUpdate(message, handlers);
-    case 'UPDATE_PLUGIN_PACKAGE_ORDER':
-      return applyPluginPackageOrderUpdate(message, handlers);
     default:
       return applyStatelessSettingsUpdateMessage(message, handlers);
   }
