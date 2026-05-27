@@ -45,6 +45,36 @@ describe('runtime package build support', () => {
     );
   });
 
+  it('normalizes copied package entrypoints that point at extensionless directories', () => {
+    const tempDirectoryPath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-runtime-main-'));
+    const outputFilePath = path.join(tempDirectoryPath, 'dist', 'extension.js');
+    const sourcePackageRootPath = path.join(tempDirectoryPath, 'vendor', '@tree-sitter-grammars', 'tree-sitter-lua');
+
+    fs.mkdirSync(path.join(sourcePackageRootPath, 'bindings/node'), { recursive: true });
+    fs.writeFileSync(
+      path.join(sourcePackageRootPath, 'bindings/node/index.js'),
+      'module.exports = {};\n',
+    );
+    fs.writeFileSync(
+      path.join(sourcePackageRootPath, 'package.json'),
+      JSON.stringify({
+        name: '@tree-sitter-grammars/tree-sitter-lua',
+        main: 'bindings/node',
+      }),
+    );
+
+    const copiedPackageRootPath = copyRuntimePackage(
+      outputFilePath,
+      '@tree-sitter-grammars/tree-sitter-lua',
+      () => sourcePackageRootPath,
+    );
+    const copiedPackageJson = JSON.parse(
+      fs.readFileSync(path.join(copiedPackageRootPath, 'package.json'), 'utf8'),
+    ) as { main?: string };
+
+    expect(copiedPackageJson.main).toBe('bindings/node/index.js');
+  });
+
   it('syncs every requested runtime package', () => {
     const tempDirectoryPath = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-runtime-sync-'));
     const outputFilePath = path.join(tempDirectoryPath, 'dist', 'extension.js');
