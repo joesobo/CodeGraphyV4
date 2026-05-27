@@ -2,7 +2,7 @@ import { readCodeGraphyWorkspaceSettingsOrInitial } from '../../workspace/settin
 import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
-import { listInstalledPluginsWithBundledMarkdown } from './installed';
+import { listRegisteredPluginsWithBundledMarkdown } from './installed';
 import { resolveWorkspaceRoot } from './workspace';
 
 export function runListCommand(
@@ -10,14 +10,14 @@ export function runListCommand(
   dependencies: PluginsCommandDependencies,
 ): CommandExecutionResult {
   const workspaceRoot = resolveWorkspaceRoot(command.workspacePath, dependencies);
-  const installedPlugins = listInstalledPluginsWithBundledMarkdown(
+  const registeredPlugins = listRegisteredPluginsWithBundledMarkdown(
     dependencies.readInstalledPluginCache({
       homeDir: dependencies.homeDir,
     }),
   );
   const enabledPlugins = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot).plugins;
   const enabledPackages = new Set(enabledPlugins.map(plugin => plugin.package));
-  const disabledPlugins = installedPlugins.filter(plugin => !enabledPackages.has(plugin.package));
+  const disabledPlugins = registeredPlugins.filter(plugin => !enabledPackages.has(plugin.package));
 
   const lines = [
     `CodeGraphy plugins for ${workspaceRoot}`,
@@ -29,7 +29,7 @@ export function runListCommand(
         : ['none']
     ),
     '',
-    'Installed but disabled:',
+    'Registered but disabled:',
     ...(
       disabledPlugins.length > 0
         ? disabledPlugins.map(plugin => `- ${plugin.package}`)

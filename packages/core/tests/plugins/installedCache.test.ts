@@ -7,10 +7,8 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
-  getInstalledPluginsCachePath,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettings,
-  refreshCodeGraphyInstalledPlugins,
   registerCodeGraphyInstalledPlugin,
   writeCodeGraphyWorkspaceSettings,
 } from '../../src';
@@ -33,83 +31,8 @@ async function createPackage(
   );
 }
 
-describe('CodeGraphy installed plugin cache', () => {
-  it('refreshes only @codegraphy-dev packages with plugin metadata into user-level cache', async () => {
-    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
-    const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
-    await createPackage(globalRoot, '@codegraphy-dev/plugin-python', {
-      version: '1.2.3',
-      codegraphy: {
-        type: 'plugin',
-        apiVersion: '^2.0.0',
-        defaultOptions: { includeTests: true },
-      },
-    });
-    await createPackage(globalRoot, '@codegraphy-dev/not-a-plugin', {
-      version: '1.0.0',
-    });
-    await createPackage(globalRoot, 'private-plugin', {
-      version: '1.0.0',
-      codegraphy: {
-        type: 'plugin',
-        apiVersion: '^2.0.0',
-      },
-    });
-
-    const cache = await refreshCodeGraphyInstalledPlugins({
-      homeDir,
-      globalPackageRoots: [globalRoot],
-    });
-
-    expect(cache.plugins).toEqual([{
-      package: '@codegraphy-dev/plugin-python',
-      version: '1.2.3',
-      apiVersion: '^2.0.0',
-      defaultOptions: { includeTests: true },
-      disclosures: [],
-      packageRoot: path.join(globalRoot, '@codegraphy-dev', 'plugin-python'),
-    }]);
-    expect(await fs.readFile(getInstalledPluginsCachePath(homeDir), 'utf-8')).toContain('@codegraphy-dev/plugin-python');
-    expect(readCodeGraphyInstalledPluginCache({ homeDir })).toEqual(cache);
-  });
-
-  it('preserves explicitly added non-CodeGraphy scoped plugins during refresh', async () => {
-    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
-    const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
-    const manualRecord = {
-      package: 'private-plugin',
-      version: '4.5.6',
-      apiVersion: '^2.0.0',
-      disclosures: [],
-      packageRoot: path.join(globalRoot, 'private-plugin'),
-    };
-    await createPackage(globalRoot, '@codegraphy-dev/plugin-python', {
-      version: '1.2.3',
-      codegraphy: {
-        type: 'plugin',
-        apiVersion: '^2.0.0',
-      },
-    });
-
-    await fs.mkdir(path.dirname(getInstalledPluginsCachePath(homeDir)), { recursive: true });
-    await fs.writeFile(
-      getInstalledPluginsCachePath(homeDir),
-      `${JSON.stringify({ version: 1, plugins: [manualRecord] }, null, 2)}\n`,
-      'utf-8',
-    );
-
-    const cache = await refreshCodeGraphyInstalledPlugins({
-      homeDir,
-      globalPackageRoots: [globalRoot],
-    });
-
-    expect(cache.plugins.map(plugin => plugin.package)).toEqual([
-      '@codegraphy-dev/plugin-python',
-      'private-plugin',
-    ]);
-  });
-
-  it('registers an explicitly named globally installed plugin package to the user-level cache', async () => {
+describe('CodeGraphy Plugin Registry', () => {
+  it('registers an explicitly named globally installed plugin package to the user-level registry', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
     await createPackage(globalRoot, 'private-plugin', {
@@ -137,7 +60,7 @@ describe('CodeGraphy installed plugin cache', () => {
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
   });
 
-  it('enables a cached plugin for one workspace without installing or importing it', async () => {
+  it('enables a registered plugin for one workspace without installing or importing it', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
 
     enableCodeGraphyWorkspacePlugin(workspaceRoot, {

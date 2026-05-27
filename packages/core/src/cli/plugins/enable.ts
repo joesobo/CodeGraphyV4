@@ -2,7 +2,7 @@ import type { CommandExecutionResult } from '../command';
 import type { CliCommand } from '../parse';
 import type { PluginsCommandDependencies } from './dependencies';
 import { createMissingPackageResult } from './help';
-import { findCachedPlugin } from './installed';
+import { findRegisteredPlugin } from './installed';
 import { resolveWorkspaceRoot } from './workspace';
 
 export function runEnableCommand(
@@ -13,7 +13,7 @@ export function runEnableCommand(
     return createMissingPackageResult('enable');
   }
 
-  const plugin = findCachedPlugin(
+  const plugin = findRegisteredPlugin(
     dependencies.readInstalledPluginCache({ homeDir: dependencies.homeDir }),
     command.packageName,
   );

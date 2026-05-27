@@ -29,7 +29,7 @@ function registerPluginToggleTool(
   server.registerTool(
     `codegraphy_plugins_${action}`,
     {
-      description: `${action === 'enable' ? 'Enable' : 'Disable'} a cached plugin package for the current or explicit CodeGraphy Workspace.`,
+      description: `${action === 'enable' ? 'Enable' : 'Disable'} a registered plugin package for the current or explicit CodeGraphy Workspace.`,
       inputSchema: z.object(packagePluginSchema),
     },
     async ({ packageName, path }) => createPluginCommandResult(await executePluginsCommand({
@@ -61,7 +61,7 @@ export function registerPluginTools(
   server.registerTool(
     'codegraphy_plugins_list',
     {
-      description: 'List installed plugins and which ones are enabled for the current or explicit CodeGraphy Workspace.',
+      description: 'List registered plugins and which ones are enabled for the current or explicit CodeGraphy Workspace.',
       inputSchema: z.object(workspacePathSchema),
     },
     async ({ path }) => createPluginCommandResult(await executePluginsCommand({

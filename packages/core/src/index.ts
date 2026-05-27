@@ -194,7 +194,6 @@ export type {
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
   CodeGraphyUserStateOptions,
-  RefreshCodeGraphyInstalledPluginsOptions,
   RegisterCodeGraphyInstalledPluginOptions,
 } from './plugins/installedCache';
 export {
@@ -205,7 +204,6 @@ export {
   getCodeGraphyUserSettingsPath,
   getInstalledPluginsCachePath,
   readCodeGraphyInstalledPluginCache,
-  refreshCodeGraphyInstalledPlugins,
   registerCodeGraphyInstalledPlugin,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';

@@ -199,13 +199,13 @@ describe('mcp/server', () => {
       'Register an explicitly named globally installed CodeGraphy plugin package in ~/.codegraphy/plugins.json.',
     );
     expect(listTool.description).toBe(
-      'List installed plugins and which ones are enabled for the current or explicit CodeGraphy Workspace.',
+      'List registered plugins and which ones are enabled for the current or explicit CodeGraphy Workspace.',
     );
     expect(enableTool.description).toBe(
-      'Enable a cached plugin package for the current or explicit CodeGraphy Workspace.',
+      'Enable a registered plugin package for the current or explicit CodeGraphy Workspace.',
     );
     expect(disableTool.description).toBe(
-      'Disable a cached plugin package for the current or explicit CodeGraphy Workspace.',
+      'Disable a registered plugin package for the current or explicit CodeGraphy Workspace.',
     );
     expect(registerTool.inputSchema.required).toEqual(['packageName']);
     expect(propertiesFor(registerTool).packageName).toMatchObject({
