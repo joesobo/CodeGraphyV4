@@ -37,15 +37,17 @@ function postPluginToggle(pluginId: string, packageName: string, enabled: boolea
 }
 
 interface PluginRowProps {
+  isRefreshing: boolean;
   plugin: IPluginStatus;
   onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
 }
 
 function PluginRow({
+  isRefreshing,
   plugin,
   onTogglePlugin,
 }: PluginRowProps): React.ReactElement {
-  const statusLabel = getPluginStatusLabel(plugin);
+  const statusLabel = getPluginStatusLabel(plugin, { suppressUnavailable: isRefreshing });
 
   return (
     <div
@@ -72,11 +74,13 @@ function PluginRow({
 }
 
 interface PluginListProps {
+  isRefreshing: boolean;
   plugins: readonly IPluginStatus[];
   onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
 }
 
 function PluginList({
+  isRefreshing,
   plugins,
   onTogglePlugin,
 }: PluginListProps): React.ReactElement {
@@ -85,6 +89,7 @@ function PluginList({
       {plugins.map((plugin) => (
         <PluginRow
           key={plugin.id}
+          isRefreshing={isRefreshing}
           plugin={plugin}
           onTogglePlugin={onTogglePlugin}
         />
@@ -94,6 +99,7 @@ function PluginList({
 }
 
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
+  const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const pluginStatuses = useGraphStore(s => s.pluginStatuses);
   const plugins = useMemo(
     () => pluginStatuses.filter(plugin => plugin.packageName),
@@ -130,6 +136,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
             <p className="text-xs text-muted-foreground py-3 text-center">No plugins registered.</p>
           ) : (
             <PluginList
+              isRefreshing={graphIsIndexing}
               plugins={plugins}
               onTogglePlugin={handleTogglePlugin}
             />
