@@ -1,0 +1,55 @@
+import type { IGraphNodeTypeDefinition } from '../../contracts';
+
+export function createSymbolGraphNodeTypes(): IGraphNodeTypeDefinition[] {
+  return [
+    {
+      id: 'symbol',
+      label: 'Symbol',
+      defaultColor: '#7C3AED',
+      defaultVisible: false,
+    },
+    {
+      id: 'symbol:function',
+      label: 'Function',
+      defaultColor: '#8B5CF6',
+      defaultVisible: false,
+      parentId: 'symbol',
+      matchSymbolKinds: ['function', 'method'],
+    },
+    {
+      id: 'symbol:class',
+      label: 'Class',
+      defaultColor: '#3B82F6',
+      defaultVisible: false,
+      parentId: 'symbol',
+    },
+    {
+      id: 'symbol:interface',
+      label: 'Interface',
+      defaultColor: '#06B6D4',
+      defaultVisible: false,
+      parentId: 'symbol',
+    },
+    {
+      id: 'symbol:type',
+      label: 'Type',
+      defaultColor: '#EC4899',
+      defaultVisible: false,
+      parentId: 'symbol',
+    },
+    {
+      id: 'symbol:struct',
+      label: 'Struct',
+      defaultColor: '#0EA5E9',
+      defaultVisible: false,
+      parentId: 'symbol',
+    },
+    {
+      id: 'symbol:enum',
+      label: 'Enum',
+      defaultColor: '#F59E0B',
+      defaultVisible: false,
+      parentId: 'symbol',
+    },
+  ];
+}
