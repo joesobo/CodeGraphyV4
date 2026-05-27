@@ -29,7 +29,15 @@ export function applyNodeDrag(
   markNodeDragging(primaryNode);
 
   const nextSession = session ?? createDragGroupSession(primaryNode, options);
-  if (!nextSession || !isFiniteTranslate(translate)) {
+  if (!isFiniteTranslate(translate)) {
+    return nextSession;
+  }
+
+  if (options.graphMode === '2d' && primaryNode.isPinned === true) {
+    moveNodeByTranslate(primaryNode, translate);
+  }
+
+  if (!nextSession) {
     return nextSession;
   }
 

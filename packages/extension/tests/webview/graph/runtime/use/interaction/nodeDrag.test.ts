@@ -45,6 +45,36 @@ describe('graph/runtime/use/interaction node drag', () => {
     expect(outside).toMatchObject({ x: 90, y: 90 });
   });
 
+  it('moves a pinned primary node by the live drag delta in 2d', () => {
+    const primary = {
+      fx: 15,
+      fy: 12,
+      id: 'primary',
+      isPinned: true,
+      vx: 2,
+      vy: 4,
+      x: 15,
+      y: 12,
+    } as FGNode;
+
+    const session = applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(),
+    });
+
+    expect(session).toBeNull();
+    expect(primary).toMatchObject({
+      fx: 20,
+      fy: 9,
+      isDragging: true,
+      vx: 0,
+      vy: 0,
+      x: 20,
+      y: 9,
+    });
+  });
+
   it('ignores missing nodes in a reused drag group session', () => {
     const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
     const sibling = { id: 'sibling', x: 30, y: 40 } as FGNode;
