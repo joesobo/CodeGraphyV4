@@ -5,7 +5,7 @@ import { findNearestProjectRoot } from '../projectRoots/search';
 function resolveDartPackageImport(workspaceRoot: string, specifier: string): string | null {
   const packagePath = specifier.slice('package:'.length);
   const firstPathSeparatorIndex = packagePath.indexOf('/');
-  if (firstPathSeparatorIndex === -1) {
+  if (firstPathSeparatorIndex <= 0 || firstPathSeparatorIndex === packagePath.length - 1) {
     return null;
   }
 
@@ -24,10 +24,6 @@ export function resolveDartImportPath(
   workspaceRoot: string,
   specifier: string,
 ): string | null {
-  if (specifier.startsWith('dart:')) {
-    return null;
-  }
-
   if (specifier.startsWith('package:')) {
     const projectRoot = findNearestProjectRoot(filePath, ['pubspec.yaml'], workspaceRoot)
       ?? workspaceRoot;

@@ -4,7 +4,7 @@ Use the tools together, not in isolation.
 
 Suggested order for a change:
 
-0. run organize on the affected area before starting work
+0. run raw organize on the affected area before starting work
 1. run boundaries on the affected package or subtree
 2. run reachability on the affected package or subtree
 3. write or update tests
@@ -17,3 +17,4 @@ Dogfood rule:
 
 - CodeGraphy should continue to dogfood the external `@poleski/quality-tools` package through the root scripts.
 - Run the focused tool set on any CodeGraphy wrapper changes before shipping changes.
+- Root `pnpm run organize -- .` is a baseline-regression gate; use `pnpm run organize -- --raw <target>` for the full advisory report during local cleanup.

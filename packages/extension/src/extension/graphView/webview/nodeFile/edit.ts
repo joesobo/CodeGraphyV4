@@ -6,7 +6,7 @@ import {
   normalizeGraphLayoutSettings,
 } from '../../../repoSettings/graphLayout/model';
 import { getUndoManager } from '../../../undoManager';
-import { UpdateGraphLayoutAction } from '../messages/graphLayout';
+import { type GraphLayoutMessageHandlers, UpdateGraphLayoutAction } from '../messages/graphLayout';
 
 export interface GraphViewNodeFileEditHandlers {
   timelineActive: boolean;
@@ -73,12 +73,30 @@ async function createGraphItemInContext(
   return true;
 }
 
+function canAssignCreatedGraphItemOwner(
+  handlers: GraphViewNodeFileEditHandlers,
+): handlers is GraphViewNodeFileEditHandlers & Required<Pick<GraphViewNodeFileEditHandlers, 'getConfig' | 'sendMessage' | 'updateConfig'>> {
+  return !!handlers.getConfig && !!handlers.sendMessage && !!handlers.updateConfig;
+}
+
+function createGraphLayoutActionHandlers(
+  handlers: GraphViewNodeFileEditHandlers & Required<Pick<GraphViewNodeFileEditHandlers, 'getConfig' | 'sendMessage' | 'updateConfig'>>,
+): Pick<GraphLayoutMessageHandlers, 'asWebviewUri' | 'getConfig' | 'sendMessage' | 'updateConfig' | 'workspaceFolder'> {
+  return {
+    asWebviewUri: handlers.asWebviewUri ? uri => handlers.asWebviewUri?.(uri) ?? uri : undefined,
+    getConfig: <T>(key: string, defaultValue: T) => handlers.getConfig(key, defaultValue),
+    sendMessage: (message: ExtensionToWebviewMessage) => handlers.sendMessage(message),
+    updateConfig: (key: string, value: unknown) => handlers.updateConfig(key, value),
+    workspaceFolder: handlers.workspaceFolder,
+  };
+}
+
 async function assignCreatedGraphItemOwner(
   itemId: string,
   ownerSectionId: string,
   handlers: GraphViewNodeFileEditHandlers,
 ): Promise<void> {
-  if (!handlers.getConfig || !handlers.sendMessage || !handlers.updateConfig) {
+  if (!canAssignCreatedGraphItemOwner(handlers)) {
     return;
   }
 
@@ -94,13 +112,7 @@ async function assignCreatedGraphItemOwner(
 
   await getUndoManager().execute(new UpdateGraphLayoutAction(
     'Place Graph Item',
-    {
-      asWebviewUri: handlers.asWebviewUri ? uri => handlers.asWebviewUri?.(uri) ?? uri : undefined,
-      getConfig: (key, defaultValue) => handlers.getConfig?.(key, defaultValue) ?? defaultValue,
-      sendMessage: message => handlers.sendMessage?.(message),
-      updateConfig: (key, value) => handlers.updateConfig?.(key, value) ?? Promise.resolve(),
-      workspaceFolder: handlers.workspaceFolder,
-    },
+    createGraphLayoutActionHandlers(handlers),
     currentLayout,
     nextLayout,
   ));

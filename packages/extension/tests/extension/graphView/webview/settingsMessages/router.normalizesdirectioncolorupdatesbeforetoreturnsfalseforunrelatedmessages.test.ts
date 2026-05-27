@@ -1,0 +1,189 @@
+import type { DirectionMode } from '@/shared/settings/modes';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  applySettingsMessage,
+  type GraphViewSettingsMessageHandlers,
+  type GraphViewSettingsMessageState,
+} from '../../../../../src/extension/graphView/webview/settingsMessages/router';
+
+function createState(
+  overrides: Partial<GraphViewSettingsMessageState> = {},
+): GraphViewSettingsMessageState {
+  return {
+    filterPatterns: [],
+    ...overrides,
+  };
+}
+
+function createHandlers(
+  initialConfig: Record<string, unknown> = {},
+  overrides: Partial<GraphViewSettingsMessageHandlers> = {},
+): GraphViewSettingsMessageHandlers {
+  const config = new Map<string, unknown>([
+    ['directionMode', 'arrows'],
+    ['particleSpeed', 0.005],
+    ['particleSize', 4],
+    ['directionColor', '#475569'],
+    ...Object.entries(initialConfig),
+  ]);
+
+  const handlers = {
+    getConfig: vi.fn(<T>(key: string, defaultValue: T): T =>
+      config.has(key) ? (config.get(key) as T) : defaultValue,
+    ),
+    updateConfig: vi.fn((key: string, value: unknown) => {
+      config.set(key, value);
+      return Promise.resolve();
+    }),
+    recomputeGroups: vi.fn(),
+    sendGroupsUpdated: vi.fn(),
+    smartRebuild: vi.fn(),
+    getPluginFilterPatterns: vi.fn(() => []),
+    getPluginFilterGroups: vi.fn(() => []),
+    sendGraphControls: vi.fn(),
+    analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
+    reprocessPluginFiles: vi.fn(() => Promise.resolve()),
+    sendMessage: vi.fn(),
+    resetAllSettings: vi.fn(() => Promise.resolve()),
+    ...overrides,
+  };
+
+  handlers.sendGraphControls ??= vi.fn();
+
+  return handlers as GraphViewSettingsMessageHandlers;
+}
+
+describe('graph view settings router', () => {
+
+
+    it('normalizes direction color updates before persisting them', async () => {
+      const state = createState();
+      const handlers = createHandlers({
+        directionMode: 'none' satisfies DirectionMode,
+        particleSpeed: 0.2,
+        particleSize: 6,
+      });
+
+      await applySettingsMessage(
+        { type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: '  #aa00cc ' } },
+        state,
+        handlers,
+      );
+
+      expect(handlers.updateConfig).toHaveBeenCalledWith('directionColor', '#AA00CC');
+      expect(handlers.sendMessage).toHaveBeenCalledWith({
+        type: 'DIRECTION_SETTINGS_UPDATED',
+        payload: {
+          directionMode: 'none',
+          particleSpeed: 0.2,
+          particleSize: 6,
+          directionColor: '#AA00CC',
+        },
+      });
+    });
+
+
+
+    it('updates label visibility and publishes it immediately', async () => {
+      const state = createState();
+      const handlers = createHandlers();
+
+      await applySettingsMessage(
+        { type: 'UPDATE_SHOW_LABELS', payload: { showLabels: false } },
+        state,
+        handlers,
+      );
+
+      expect(handlers.updateConfig).toHaveBeenCalledWith('showLabels', false);
+      expect(handlers.sendMessage).toHaveBeenCalledWith({
+        type: 'SHOW_LABELS_UPDATED',
+        payload: { showLabels: false },
+      });
+    });
+
+
+
+    it('persists collapsed graph layout state and publishes it immediately', async () => {
+      const state = createState();
+      const handlers = createHandlers({
+        graphLayout: { collapsedNodes: { src: true }, pinnedNodes: {} },
+      });
+
+      await expect(
+        applySettingsMessage(
+          { type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE', payload: { nodeId: 'tests', collapsed: true } },
+          state,
+          handlers,
+        ),
+      ).resolves.toBe(true);
+
+      expect(handlers.updateConfig).toHaveBeenCalledWith('graphLayout', {
+        collapsedNodes: { src: true, tests: true },
+        pinnedNodes: {},
+      });
+      expect(handlers.sendMessage).toHaveBeenCalledWith({
+        type: 'GRAPH_LAYOUT_UPDATED',
+        payload: { collapsedNodes: { src: true, tests: true }, pinnedNodes: {} },
+      });
+      expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    });
+
+
+
+    it('updates edge visibility and refreshes graph controls', async () => {
+      const state = createState();
+      const handlers = createHandlers();
+
+      await applySettingsMessage(
+        {
+          type: 'UPDATE_EDGE_VISIBILITY',
+          payload: { edgeKind: 'IMPORTS', visible: false },
+        },
+        state,
+        handlers,
+      );
+
+      expect(handlers.updateConfig).toHaveBeenCalledWith('edgeVisibility', { IMPORTS: false });
+      expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
+    });
+
+
+
+    it('enables package-backed plugins and reloads workspace plugins before analysis', async () => {
+      const state = createState();
+      const handlers = createHandlers();
+
+      await applySettingsMessage(
+        {
+          type: 'TOGGLE_PLUGIN',
+          payload: {
+            pluginId: 'codegraphy.python',
+            packageName: '@codegraphy-dev/plugin-python',
+            enabled: true,
+          },
+        },
+        state,
+        handlers,
+      );
+
+      expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
+        { package: '@codegraphy-dev/plugin-python' },
+      ]);
+      expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+      expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+      expect(handlers.smartRebuild).not.toHaveBeenCalled();
+      expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
+    });
+
+
+
+    it('returns false for unrelated messages', async () => {
+      const state = createState();
+      const handlers = createHandlers();
+
+      await expect(applySettingsMessage({ type: 'GET_PHYSICS_SETTINGS' }, state, handlers)).resolves.toBe(
+        false,
+      );
+    });
+});

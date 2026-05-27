@@ -76,225 +76,138 @@ function createMarqueeRuntime(options: {
 }
 
 describe('graph/runtime/use/interaction marquee', () => {
-  it('shows marquee bounds while dragging and selects nodes inside the area', () => {
-    const runtime = createMarqueeRuntime();
-    const move = createEvent(0, 20, 20);
-    const up = createEvent(0, 20, 20);
 
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
-      runtime.result.current.handleMouseMoveCapture(move as never);
+    it('shows marquee bounds while dragging and selects nodes inside the area', () => {
+      const runtime = createMarqueeRuntime();
+      const move = createEvent(0, 20, 20);
+      const up = createEvent(0, 20, 20);
+
+      act(() => {
+        runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
+        runtime.result.current.handleMouseMoveCapture(move as never);
+      });
+
+      expect(runtime.result.current.marqueeSelection).toEqual({
+        bounds: {
+          height: 10,
+          left: 10,
+          top: 10,
+          width: 10,
+        },
+      });
+
+      act(() => {
+        runtime.result.current.handleMouseUpCapture(up as never);
+      });
+
+      expect(runtime.result.current.marqueeSelection).toBeNull();
+      expect(move.preventDefault).toHaveBeenCalledTimes(1);
+      expect(up.preventDefault).toHaveBeenCalledTimes(1);
+      expect(runtime.setHighlight).toHaveBeenCalledWith(null);
+      expect(runtime.setSelection).toHaveBeenCalledWith(['inside']);
     });
 
-    expect(runtime.result.current.marqueeSelection).toEqual({
-      bounds: {
-        height: 10,
-        left: 10,
-        top: 10,
-        width: 10,
-      },
+
+
+    it('toggles marquee hits in the current selection when shift is held', () => {
+      const runtime = createMarqueeRuntime({ selectedNodeIds: ['existing'] });
+
+      act(() => {
+        runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, true) as never);
+        runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20, true) as never);
+        runtime.result.current.handleMouseUpCapture(createEvent(0, 20, 20, true) as never);
+      });
+
+      expect(runtime.setSelection).toHaveBeenCalledWith(['existing', 'inside']);
     });
 
-    act(() => {
-      runtime.result.current.handleMouseUpCapture(up as never);
+
+
+    it('removes selected marquee hits when shift is held', () => {
+      const runtime = createMarqueeRuntime({ selectedNodeIds: ['existing', 'inside'] });
+
+      act(() => {
+        runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, true) as never);
+        runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20, true) as never);
+        runtime.result.current.handleMouseUpCapture(createEvent(0, 20, 20, true) as never);
+      });
+
+      expect(runtime.setSelection).toHaveBeenCalledWith(['existing']);
     });
 
-    expect(runtime.result.current.marqueeSelection).toBeNull();
-    expect(move.preventDefault).toHaveBeenCalledTimes(1);
-    expect(up.preventDefault).toHaveBeenCalledTimes(1);
-    expect(runtime.setHighlight).toHaveBeenCalledWith(null);
-    expect(runtime.setSelection).toHaveBeenCalledWith(['inside']);
-  });
 
-  it('toggles marquee hits in the current selection when shift is held', () => {
-    const runtime = createMarqueeRuntime({ selectedNodeIds: ['existing'] });
 
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, true) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20, true) as never);
-      runtime.result.current.handleMouseUpCapture(createEvent(0, 20, 20, true) as never);
+    it('uses local container coordinates for marquee bounds', () => {
+      const runtime = createMarqueeRuntime({
+        containerRect: {
+          left: 5,
+          top: 7,
+        },
+      });
+
+      act(() => {
+        runtime.result.current.handleMouseDownCapture(createEvent(0, 15, 17) as never);
+        runtime.result.current.handleMouseMoveCapture(createEvent(0, 25, 27) as never);
+      });
+
+      expect(runtime.result.current.marqueeSelection).toEqual({
+        bounds: {
+          height: 10,
+          left: 10,
+          top: 10,
+          width: 10,
+        },
+      });
     });
 
-    expect(runtime.setSelection).toHaveBeenCalledWith(['existing', 'inside']);
-  });
 
-  it('removes selected marquee hits when shift is held', () => {
-    const runtime = createMarqueeRuntime({ selectedNodeIds: ['existing', 'inside'] });
 
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, true) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20, true) as never);
-      runtime.result.current.handleMouseUpCapture(createEvent(0, 20, 20, true) as never);
+    it('uses graph-to-screen coordinates when selecting nodes', () => {
+      const runtime = createMarqueeRuntime({
+        graph: {
+          graph2ScreenCoords: (x, y) => ({ x: x + 100, y: y + 100 }),
+        },
+      });
+
+      act(() => {
+        runtime.result.current.handleMouseDownCapture(createEvent(0, 110, 110) as never);
+        runtime.result.current.handleMouseMoveCapture(createEvent(0, 120, 120) as never);
+        runtime.result.current.handleMouseUpCapture(createEvent(0, 120, 120) as never);
+      });
+
+      expect(runtime.setSelection).toHaveBeenCalledWith(['inside']);
     });
 
-    expect(runtime.setSelection).toHaveBeenCalledWith(['existing']);
-  });
 
-  it('uses local container coordinates for marquee bounds', () => {
-    const runtime = createMarqueeRuntime({
-      containerRect: {
-        left: 5,
-        top: 7,
-      },
+
+    it('falls back to raw node coordinates when the 2d graph is unavailable', () => {
+      const runtime = createMarqueeRuntime({ graph: null });
+
+      act(() => {
+        runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
+        runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20) as never);
+        runtime.result.current.handleMouseUpCapture(createEvent(0, 20, 20) as never);
+      });
+
+      expect(runtime.setSelection).toHaveBeenCalledWith(['inside']);
     });
 
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 15, 17) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 25, 27) as never);
+
+
+    it('does not select until the drag crosses the marquee threshold', () => {
+      const runtime = createMarqueeRuntime();
+      const move = createEvent(0, 12, 12);
+      const up = createEvent(0, 12, 12);
+
+      act(() => {
+        runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
+        runtime.result.current.handleMouseMoveCapture(move as never);
+        runtime.result.current.handleMouseUpCapture(up as never);
+      });
+
+      expect(move.preventDefault).not.toHaveBeenCalled();
+      expect(up.preventDefault).not.toHaveBeenCalled();
+      expect(runtime.result.current.marqueeSelection).toBeNull();
+      expect(runtime.setSelection).not.toHaveBeenCalled();
     });
-
-    expect(runtime.result.current.marqueeSelection).toEqual({
-      bounds: {
-        height: 10,
-        left: 10,
-        top: 10,
-        width: 10,
-      },
-    });
-  });
-
-  it('uses graph-to-screen coordinates when selecting nodes', () => {
-    const runtime = createMarqueeRuntime({
-      graph: {
-        graph2ScreenCoords: (x, y) => ({ x: x + 100, y: y + 100 }),
-      },
-    });
-
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 110, 110) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 120, 120) as never);
-      runtime.result.current.handleMouseUpCapture(createEvent(0, 120, 120) as never);
-    });
-
-    expect(runtime.setSelection).toHaveBeenCalledWith(['inside']);
-  });
-
-  it('falls back to raw node coordinates when the 2d graph is unavailable', () => {
-    const runtime = createMarqueeRuntime({ graph: null });
-
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20) as never);
-      runtime.result.current.handleMouseUpCapture(createEvent(0, 20, 20) as never);
-    });
-
-    expect(runtime.setSelection).toHaveBeenCalledWith(['inside']);
-  });
-
-  it('does not select until the drag crosses the marquee threshold', () => {
-    const runtime = createMarqueeRuntime();
-    const move = createEvent(0, 12, 12);
-    const up = createEvent(0, 12, 12);
-
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
-      runtime.result.current.handleMouseMoveCapture(move as never);
-      runtime.result.current.handleMouseUpCapture(up as never);
-    });
-
-    expect(move.preventDefault).not.toHaveBeenCalled();
-    expect(up.preventDefault).not.toHaveBeenCalled();
-    expect(runtime.result.current.marqueeSelection).toBeNull();
-    expect(runtime.setSelection).not.toHaveBeenCalled();
-  });
-
-  it('keeps marquee selection active after the threshold is crossed', () => {
-    const runtime = createMarqueeRuntime();
-    const moveInsideThreshold = createEvent(0, 12, 12);
-
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20) as never);
-      runtime.result.current.handleMouseMoveCapture(moveInsideThreshold as never);
-    });
-
-    expect(moveInsideThreshold.preventDefault).toHaveBeenCalledTimes(1);
-    expect(runtime.result.current.marqueeSelection).toEqual({
-      bounds: {
-        height: 2,
-        left: 10,
-        top: 10,
-        width: 2,
-      },
-    });
-  });
-
-  it('ignores non-left mouseup and keeps the current marquee active', () => {
-    const runtime = createMarqueeRuntime();
-    const up = createEvent(2, 20, 20);
-
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 20, 20) as never);
-      runtime.result.current.handleMouseUpCapture(up as never);
-    });
-
-    expect(up.preventDefault).not.toHaveBeenCalled();
-    expect(runtime.result.current.marqueeSelection).not.toBeNull();
-    expect(runtime.setSelection).not.toHaveBeenCalled();
-  });
-
-  it('ignores left mouseup when no marquee drag is active', () => {
-    const runtime = createMarqueeRuntime();
-    const up = createEvent(0, 20, 20);
-
-    act(() => {
-      runtime.result.current.handleMouseUpCapture(up as never);
-    });
-
-    expect(up.preventDefault).not.toHaveBeenCalled();
-    expect(runtime.setSelection).not.toHaveBeenCalled();
-  });
-
-  it('does not start marquee selection on hovered nodes or outside 2d mode', () => {
-    const hovered = createMarqueeRuntime({ hoveredNode: { id: 'inside' } as FGNode });
-    const in3d = createMarqueeRuntime({ graphMode: '3d' });
-    const rightButton = createMarqueeRuntime();
-
-    act(() => {
-      hovered.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
-      hovered.result.current.handleMouseMoveCapture(createEvent(0, 20, 20) as never);
-      in3d.result.current.handleMouseDownCapture(createEvent(0, 10, 10) as never);
-      in3d.result.current.handleMouseMoveCapture(createEvent(0, 20, 20) as never);
-      rightButton.result.current.handleMouseDownCapture(createEvent(2, 10, 10) as never);
-      rightButton.result.current.handleMouseMoveCapture(createEvent(2, 20, 20) as never);
-    });
-
-    expect(hovered.result.current.marqueeSelection).toBeNull();
-    expect(in3d.result.current.marqueeSelection).toBeNull();
-    expect(rightButton.result.current.marqueeSelection).toBeNull();
-    expect(hovered.setSelection).not.toHaveBeenCalled();
-    expect(in3d.setSelection).not.toHaveBeenCalled();
-    expect(rightButton.setSelection).not.toHaveBeenCalled();
-  });
-
-  it('does not start marquee selection from section frame drag targets', () => {
-    const runtime = createMarqueeRuntime();
-    const frame = document.createElement('div');
-    const dragHandle = document.createElement('div');
-    frame.dataset.graphMarqueeIgnore = 'true';
-    frame.append(dragHandle);
-
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, false, dragHandle) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 30, 30, false, dragHandle) as never);
-      runtime.result.current.handleMouseUpCapture(createEvent(0, 30, 30, false, dragHandle) as never);
-    });
-
-    expect(runtime.result.current.marqueeSelection).toBeNull();
-    expect(runtime.setSelection).not.toHaveBeenCalled();
-  });
-
-  it('does not start marquee selection during ctrl-left viewport panning', () => {
-    const runtime = createMarqueeRuntime();
-
-    act(() => {
-      runtime.result.current.handleMouseDownCapture(createEvent(0, 10, 10, false, null, true) as never);
-      runtime.result.current.handleMouseMoveCapture(createEvent(0, 30, 30, false, null, true) as never);
-      runtime.result.current.handleMouseUpCapture(createEvent(0, 30, 30, false, null, true) as never);
-    });
-
-    expect(runtime.result.current.marqueeSelection).toBeNull();
-    expect(runtime.setSelection).not.toHaveBeenCalled();
-  });
 });

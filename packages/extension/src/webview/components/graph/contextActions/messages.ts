@@ -236,6 +236,12 @@ function getSelectedGraphNodeIds(context: GraphContextActionContext): string[] {
   return context.targetIds.filter(targetId => !sectionIds.has(targetId));
 }
 
+function shouldWrapSelectedNodesInGraphSection(context: GraphContextActionContext): boolean {
+  return context.selectionKind === 'node'
+    && context.targetIds.length > 0
+    && !isSingleGraphSectionContext(context);
+}
+
 function getSelectionSectionBounds(context: GraphContextActionContext): SectionBounds | undefined {
   const positions = context.targetIds
     .map(nodeId => context.nodePositions.get(nodeId))
@@ -261,34 +267,52 @@ function getSelectionSectionBounds(context: GraphContextActionContext): SectionB
   };
 }
 
+function getGraphSectionCreationBounds(
+  context: GraphContextActionContext,
+  wrapSelectedNodes: boolean,
+): SectionBounds {
+  return wrapSelectedNodes
+    ? getSelectionSectionBounds(context) ?? getDefaultSectionBounds(context)
+    : getDefaultSectionBounds(context);
+}
+
+function getGraphSectionCreationOwnerId(
+  context: GraphContextActionContext,
+  wrapSelectedNodes: boolean,
+): string | undefined {
+  return wrapSelectedNodes ? context.wrapOwnerSectionId : context.ownerSectionId;
+}
+
+function createGraphSectionCreationPayload(
+  context: GraphContextActionContext,
+  wrapSelectedNodes: boolean,
+): Extract<WebviewToExtensionMessage, { type: 'CREATE_GRAPH_LAYOUT_SECTION' }>['payload'] {
+  const ownerSectionId = getGraphSectionCreationOwnerId(context, wrapSelectedNodes);
+  const bounds = getGraphSectionCreationBounds(context, wrapSelectedNodes);
+  const localBounds = convertSectionBoundsToOwnerLocal(context, bounds, ownerSectionId);
+  const memberSectionIds = wrapSelectedNodes ? getSelectedGraphSectionIds(context) : [];
+
+  return {
+    color: DEFAULT_GRAPH_SECTION_COLOR,
+    height: localBounds.height,
+    memberNodeIds: wrapSelectedNodes ? getSelectedGraphNodeIds(context) : [],
+    ...(memberSectionIds.length > 0 ? { memberSectionIds } : {}),
+    ...(ownerSectionId ? { ownerSectionId } : {}),
+    width: localBounds.width,
+    x: localBounds.x,
+    y: localBounds.y,
+  };
+}
+
 export function createGraphSectionEffects(context: GraphContextActionContext): GraphContextEffect[] {
   if (context.graphMode !== '2d') {
     return [];
   }
 
-  const shouldWrapSelectedNodes = context.selectionKind === 'node'
-    && context.targetIds.length > 0
-    && !isSingleGraphSectionContext(context);
-  const ownerSectionId = shouldWrapSelectedNodes
-    ? context.wrapOwnerSectionId
-    : context.ownerSectionId;
-  const bounds = shouldWrapSelectedNodes
-    ? getSelectionSectionBounds(context) ?? getDefaultSectionBounds(context)
-    : getDefaultSectionBounds(context);
-  const localBounds = convertSectionBoundsToOwnerLocal(context, bounds, ownerSectionId);
-  const memberSectionIds = shouldWrapSelectedNodes ? getSelectedGraphSectionIds(context) : [];
+  const wrapSelectedNodes = shouldWrapSelectedNodesInGraphSection(context);
 
   return [createPostMessageEffect({
     type: 'CREATE_GRAPH_LAYOUT_SECTION',
-    payload: {
-      color: DEFAULT_GRAPH_SECTION_COLOR,
-      height: localBounds.height,
-      memberNodeIds: shouldWrapSelectedNodes ? getSelectedGraphNodeIds(context) : [],
-      ...(memberSectionIds.length > 0 ? { memberSectionIds } : {}),
-      ...(ownerSectionId ? { ownerSectionId } : {}),
-      width: localBounds.width,
-      x: localBounds.x,
-      y: localBounds.y,
-    },
+    payload: createGraphSectionCreationPayload(context, wrapSelectedNodes),
   })];
 }

@@ -1,0 +1,66 @@
+import { describe, expect, it, vi } from 'vitest';
+import { runEnableCommand } from '../../../src/cli/plugins/enable';
+import type { PluginsCommandDependencies } from '../../../src/cli/plugins/dependencies';
+
+function dependencies(overrides: Partial<PluginsCommandDependencies> = {}): PluginsCommandDependencies {
+  return {
+    cwd: () => '/workspace/current',
+    disableWorkspacePlugin: vi.fn(),
+    enableWorkspacePlugin: vi.fn(),
+    readInstalledPluginCache: () => ({ version: 1, plugins: [] }),
+    registerInstalledPlugin: vi.fn(),
+    resolveGlobalPackageRoots: () => [],
+    ...overrides,
+  };
+}
+
+describe('cli/plugins/enable', () => {
+  it('requires a package name before looking at the registry', () => {
+    const deps = dependencies({
+      readInstalledPluginCache: vi.fn(),
+    });
+
+    expect(runEnableCommand({ name: 'plugins', action: 'enable' }, deps)).toEqual({
+      exitCode: 1,
+      output: 'Usage: codegraphy plugins enable <package> [workspace]',
+    });
+    expect(deps.readInstalledPluginCache).not.toHaveBeenCalled();
+  });
+
+  it('reports packages that have not been registered globally', () => {
+    expect(runEnableCommand({
+      name: 'plugins',
+      action: 'enable',
+      packageName: '@codegraphy-dev/plugin-python',
+    }, dependencies())).toEqual({
+      exitCode: 1,
+      output: "Plugin '@codegraphy-dev/plugin-python' is not in ~/.codegraphy/plugins.json. Run `codegraphy plugins register @codegraphy-dev/plugin-python`, then retry.",
+    });
+  });
+
+  it('enables a registered package in the resolved workspace', () => {
+    const enableWorkspacePlugin = vi.fn();
+    const plugin = {
+      package: '@codegraphy-dev/plugin-python',
+      version: '1.0.0',
+      apiVersion: '^2.0.0',
+      disclosures: [],
+      packageRoot: '/global/plugin-python',
+    };
+
+    expect(runEnableCommand({
+      name: 'plugins',
+      action: 'enable',
+      packageName: '@codegraphy-dev/plugin-python',
+      workspacePath: '../repo',
+    }, dependencies({
+      cwd: () => '/workspace/current',
+      enableWorkspacePlugin,
+      readInstalledPluginCache: () => ({ version: 1, plugins: [plugin] }),
+    }))).toEqual({
+      exitCode: 0,
+      output: 'Enabled @codegraphy-dev/plugin-python for /workspace/repo. Run `codegraphy index /workspace/repo` to refresh the Graph Cache.',
+    });
+    expect(enableWorkspacePlugin).toHaveBeenCalledWith('/workspace/repo', plugin);
+  });
+});

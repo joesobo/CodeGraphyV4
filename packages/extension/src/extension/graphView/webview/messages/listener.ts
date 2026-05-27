@@ -21,43 +21,79 @@ export interface GraphViewMessageListenerContext
 
 const webviewMessageListenerDisposables = new WeakMap<vscode.Webview, vscode.Disposable>();
 
-export function setGraphViewWebviewMessageListener(
-  webview: vscode.Webview,
+type GraphViewPrimaryMessageResult = Awaited<ReturnType<typeof dispatchGraphViewPrimaryMessage>>;
+type GraphViewPluginMessageResult = Awaited<ReturnType<typeof dispatchGraphViewPluginMessage>>;
+
+function applyGraphViewPrimaryMessageResult(
+  primaryResult: GraphViewPrimaryMessageResult,
+  context: GraphViewMessageListenerContext,
+): boolean {
+  if (!primaryResult.handled) {
+    return false;
+  }
+
+  if (primaryResult.userGroups !== undefined) {
+    context.setUserGroups(primaryResult.userGroups);
+    context.recomputeGroups();
+    context.sendGroupsUpdated();
+  }
+  if (primaryResult.filterPatterns !== undefined) {
+    context.setFilterPatterns(primaryResult.filterPatterns);
+  }
+
+  return true;
+}
+
+function applyGraphViewPluginMessageResult(
+  pluginResult: GraphViewPluginMessageResult,
   context: GraphViewMessageListenerContext,
 ): void {
-  webviewMessageListenerDisposables.get(webview)?.dispose();
+  if (pluginResult.handled && pluginResult.readyNotified !== undefined) {
+    context.setWebviewReadyNotified(pluginResult.readyNotified);
+  }
+}
 
+function shouldSkipDuplicateWebviewReady(
+  message: WebviewToExtensionMessage,
+  webviewReadyHandled: boolean,
+): boolean {
+  return message.type === 'WEBVIEW_READY' && webviewReadyHandled;
+}
+
+function createGraphViewWebviewMessageHandler(
+  webview: vscode.Webview,
+  context: GraphViewMessageListenerContext,
+): (message: WebviewToExtensionMessage) => Promise<void> {
   let webviewReadyHandled = false;
 
-  const listenerDisposable = webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
-    if (message.type === 'WEBVIEW_READY') {
-      if (webviewReadyHandled) {
-        return;
-      }
-      webviewReadyHandled = true;
+  return async function handleGraphViewWebviewMessage(message: WebviewToExtensionMessage): Promise<void> {
+    if (shouldSkipDuplicateWebviewReady(message, webviewReadyHandled)) {
+      return;
     }
+    webviewReadyHandled ||= message.type === 'WEBVIEW_READY';
 
     const primaryResult = await dispatchGraphViewPrimaryMessage(message, {
       ...context,
       asWebviewUri: uri => webview.asWebviewUri(uri),
     });
-    if (primaryResult.handled) {
-      if (primaryResult.userGroups !== undefined) {
-        context.setUserGroups(primaryResult.userGroups);
-        context.recomputeGroups();
-        context.sendGroupsUpdated();
-      }
-      if (primaryResult.filterPatterns !== undefined) {
-        context.setFilterPatterns(primaryResult.filterPatterns);
-      }
+    if (applyGraphViewPrimaryMessageResult(primaryResult, context)) {
       return;
     }
 
-    const pluginResult = await dispatchGraphViewPluginMessage(message, context);
-    if (pluginResult.handled && pluginResult.readyNotified !== undefined) {
-      context.setWebviewReadyNotified(pluginResult.readyNotified);
-    }
-  });
+    applyGraphViewPluginMessageResult(
+      await dispatchGraphViewPluginMessage(message, context),
+      context,
+    );
+  };
+}
 
+export function setGraphViewWebviewMessageListener(
+  webview: vscode.Webview,
+  context: GraphViewMessageListenerContext,
+): void {
+  webviewMessageListenerDisposables.get(webview)?.dispose();
+  const listenerDisposable = webview.onDidReceiveMessage(
+    createGraphViewWebviewMessageHandler(webview, context),
+  );
   webviewMessageListenerDisposables.set(webview, listenerDisposable);
 }

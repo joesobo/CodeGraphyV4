@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type MutableRefObject,
   type MouseEvent as ReactMouseEvent,
   type ReactElement,
 } from 'react';
@@ -225,6 +226,205 @@ function applySectionFrameElementRect(
   header.classList.toggle('pointer-events-none', !visible);
 }
 
+function updateSectionFrameElementRects(
+  frameElements: ReadonlyMap<string, HTMLDivElement>,
+  graph: SectionFrameGraph | undefined,
+  sectionNodePositions: ReadonlyMap<string, SectionFrameNodePosition>,
+  visibleSections: readonly GraphLayoutSection[],
+): void {
+  for (const section of visibleSections) {
+    const element = frameElements.get(section.id);
+    if (!element) {
+      continue;
+    }
+
+    applySectionFrameElementRect(
+      element,
+      graph,
+      getSectionFrameDisplaySection(section, sectionNodePositions.get(section.id)),
+    );
+  }
+}
+
+function useSectionFrameRectSync(
+  frameElementsRef: MutableRefObject<Map<string, HTMLDivElement>>,
+  graph: SectionFrameGraph | undefined,
+  sectionNodePositions: ReadonlyMap<string, SectionFrameNodePosition>,
+  visibleSections: readonly GraphLayoutSection[],
+): void {
+  useEffect(() => {
+    if (visibleSections.length === 0 || sectionNodePositions.size === 0) {
+      return undefined;
+    }
+
+    let frame = 0;
+    const updateFrameRects = (): void => {
+      updateSectionFrameElementRects(
+        frameElementsRef.current,
+        graph,
+        sectionNodePositions,
+        visibleSections,
+      );
+      frame = requestAnimationFrame(updateFrameRects);
+    };
+
+    updateFrameRects();
+
+    return () => cancelAnimationFrame(frame);
+  }, [frameElementsRef, graph, sectionNodePositions, visibleSections]);
+}
+
+function canBeginSectionFrameDrag(
+  event: ReactMouseEvent<HTMLDivElement>,
+  type: SectionFrameDragType,
+): boolean {
+  return event.button === 0 && (type !== 'move' || !isSectionFrameControl(event.target));
+}
+
+type SectionFrameBeginDrag = (
+  event: ReactMouseEvent<HTMLDivElement>,
+  section: GraphLayoutSection,
+  type: SectionFrameDragType,
+) => void;
+
+interface SectionFrameItemProps {
+  graph: SectionFrameGraph | undefined;
+  isPinned: boolean;
+  section: GraphLayoutSection;
+  sectionNodePosition: SectionFrameNodePosition | undefined;
+  onBeginDrag: SectionFrameBeginDrag;
+  onOpenSectionContextMenu?: (this: void, sectionId: string, event: ReactMouseEvent<HTMLDivElement>) => void;
+  onRegisterFrameElement(this: void, sectionId: string, element: HTMLDivElement | null): void;
+  onUpdateSection: SectionFrameUpdateHandler;
+}
+
+function getResizeHandleTestId(sectionId: string, corner: SectionFrameResizeCorner): string {
+  return corner === 'southeast'
+    ? `graph-section-resize-${sectionId}`
+    : `graph-section-resize-${sectionId}-${corner}`;
+}
+
+function SectionFramePinnedBadge(): ReactElement {
+  return (
+    <span
+      aria-label="Pinned Graph Section"
+      className="absolute right-9 top-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
+      data-graph-section-control="true"
+      role="img"
+    >
+      <MdiIcon path={mdiPin} size={12} />
+    </span>
+  );
+}
+
+function SectionFrameItem({
+  graph,
+  isPinned,
+  section,
+  sectionNodePosition,
+  onBeginDrag,
+  onOpenSectionContextMenu,
+  onRegisterFrameElement,
+  onUpdateSection,
+}: SectionFrameItemProps): ReactElement {
+  const readDisplaySection = (): GraphLayoutSection => getSectionFrameDisplaySection(section, sectionNodePosition);
+  const displaySection = readDisplaySection();
+  const rect = getSectionFrameRect(graph, displaySection);
+  const topbarOpacity = getTopbarOpacity(rect);
+  const showTopbar = isTopbarVisible(topbarOpacity);
+
+  function handleHeaderContextMenu(event: ReactMouseEvent<HTMLDivElement>): void {
+    event.preventDefault();
+    event.stopPropagation();
+    onOpenSectionContextMenu?.(section.id, event);
+  }
+
+  return (
+    <div
+      ref={(element) => onRegisterFrameElement(section.id, element)}
+      data-graph-marquee-ignore="true"
+      data-testid={`graph-section-frame-${section.id}`}
+      className="pointer-events-none absolute overflow-hidden rounded-md border bg-[rgba(59,130,246,0.08)] shadow-sm"
+      onMouseDown={(event) => onBeginDrag(event, readDisplaySection(), 'move')}
+      style={{
+        borderColor: section.color,
+        height: rect.height,
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+      }}
+    >
+      <div
+        aria-hidden={!showTopbar}
+        data-graph-section-header="true"
+        data-testid={`graph-section-drag-handle-${section.id}`}
+        data-section-frame-header={showTopbar ? 'visible' : 'hidden'}
+        className={[
+          'relative flex h-7 cursor-grab items-center gap-1 border-b px-1 pr-16 active:cursor-grabbing',
+          showTopbar ? 'pointer-events-auto' : 'pointer-events-none',
+        ].join(' ')}
+        onContextMenu={handleHeaderContextMenu}
+        style={{
+          backgroundColor: `${section.color}22`,
+          borderColor: section.color,
+          opacity: topbarOpacity,
+        }}
+      >
+        <button
+          aria-label="Collapse Graph Section"
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--cg-foreground)] hover:bg-[var(--cg-accent)]"
+          data-graph-section-control="true"
+          onClick={(event) => {
+            event.stopPropagation();
+            onUpdateSection(section.id, { collapsed: true });
+          }}
+          tabIndex={showTopbar ? 0 : -1}
+          type="button"
+        >
+          <MdiIcon path={mdiChevronUp} size={14} />
+        </button>
+        <SectionFrameIconInput
+          icon={section.icon}
+          iconUrl={section.iconUrl}
+          sectionId={section.id}
+          showTopbar={showTopbar}
+          onUpdateSection={onUpdateSection}
+        />
+        <SectionFrameLabelInput
+          label={section.label}
+          sectionId={section.id}
+          showTopbar={showTopbar}
+          onUpdateSection={onUpdateSection}
+        />
+        <input
+          aria-label="Graph Section color"
+          className="absolute right-1 top-1 h-5 w-6 cursor-pointer bg-transparent p-0"
+          data-graph-section-control="true"
+          onChange={(event) => onUpdateSection(section.id, { color: event.target.value })}
+          tabIndex={showTopbar ? 0 : -1}
+          type="color"
+          value={section.color}
+        />
+        {isPinned ? <SectionFramePinnedBadge /> : null}
+      </div>
+      {RESIZE_HANDLES.map(handle => (
+        <div
+          key={handle.corner}
+          data-graph-section-control="true"
+          data-testid={getResizeHandleTestId(section.id, handle.corner)}
+          className={[
+            'pointer-events-auto absolute h-3 w-3',
+            handle.cursor,
+            handle.className,
+          ].join(' ')}
+          onMouseDown={(event) => onBeginDrag(event, readDisplaySection(), `resize:${handle.corner}`)}
+          style={{ borderColor: section.color }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function SectionFrames({
   graph,
   ownership = {},
@@ -241,32 +441,7 @@ export function SectionFrames({
     ownership,
   );
 
-  useEffect(() => {
-    if (visibleSections.length === 0 || sectionNodePositions.size === 0) {
-      return undefined;
-    }
-
-    let frame = 0;
-    const updateFrameRects = (): void => {
-      for (const section of visibleSections) {
-        const element = frameElementsRef.current.get(section.id);
-        if (!element) {
-          continue;
-        }
-
-        applySectionFrameElementRect(
-          element,
-          graph,
-          getSectionFrameDisplaySection(section, sectionNodePositions.get(section.id)),
-        );
-      }
-      frame = requestAnimationFrame(updateFrameRects);
-    };
-
-    updateFrameRects();
-
-    return () => cancelAnimationFrame(frame);
-  }, [graph, sectionNodePositions, visibleSections]);
+  useSectionFrameRectSync(frameElementsRef, graph, sectionNodePositions, visibleSections);
 
   if (visibleSections.length === 0) {
     return null;
@@ -277,7 +452,7 @@ export function SectionFrames({
     section: GraphLayoutSection,
     type: SectionFrameDragType,
   ): void {
-    if (event.button !== 0 || (type === 'move' && isSectionFrameControl(event.target))) {
+    if (!canBeginSectionFrameDrag(event, type)) {
       return;
     }
 
@@ -300,125 +475,21 @@ export function SectionFrames({
     frameElementsRef.current.delete(sectionId);
   }
 
-  function getDisplaySection(section: GraphLayoutSection): GraphLayoutSection {
-    return getSectionFrameDisplaySection(section, sectionNodePositions.get(section.id));
-  }
-
-  function handleHeaderContextMenu(
-    event: ReactMouseEvent<HTMLDivElement>,
-    sectionId: string,
-  ): void {
-    event.preventDefault();
-    event.stopPropagation();
-    onOpenSectionContextMenu?.(sectionId, event);
-  }
-
   return (
     <div className="pointer-events-none absolute inset-0 z-10" data-testid="graph-section-frames">
-      {visibleSections.map(section => {
-        const displaySection = getDisplaySection(section);
-        const rect = getSectionFrameRect(graph, displaySection);
-        const topbarOpacity = getTopbarOpacity(rect);
-        const showTopbar = isTopbarVisible(topbarOpacity);
-        return (
-          <div
-            key={section.id}
-            ref={(element) => registerFrameElement(section.id, element)}
-            data-graph-marquee-ignore="true"
-            data-testid={`graph-section-frame-${section.id}`}
-            className="pointer-events-none absolute overflow-hidden rounded-md border bg-[rgba(59,130,246,0.08)] shadow-sm"
-            onMouseDown={(event) => beginDrag(event, getDisplaySection(section), 'move')}
-            style={{
-              borderColor: section.color,
-              height: rect.height,
-              left: rect.left,
-              top: rect.top,
-              width: rect.width,
-            }}
-          >
-            <div
-              aria-hidden={!showTopbar}
-              data-graph-section-header="true"
-              data-testid={`graph-section-drag-handle-${section.id}`}
-              data-section-frame-header={showTopbar ? 'visible' : 'hidden'}
-              className={[
-                'relative flex h-7 cursor-grab items-center gap-1 border-b px-1 pr-16 active:cursor-grabbing',
-                showTopbar ? 'pointer-events-auto' : 'pointer-events-none',
-              ].join(' ')}
-              onContextMenu={(event) => handleHeaderContextMenu(event, section.id)}
-              style={{
-                backgroundColor: `${section.color}22`,
-                borderColor: section.color,
-                opacity: topbarOpacity,
-              }}
-            >
-              <button
-                aria-label="Collapse Graph Section"
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-[var(--cg-foreground)] hover:bg-[var(--cg-accent)]"
-                data-graph-section-control="true"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onUpdateSection(section.id, { collapsed: true });
-                }}
-                tabIndex={showTopbar ? 0 : -1}
-                type="button"
-              >
-                <MdiIcon path={mdiChevronUp} size={14} />
-              </button>
-              <SectionFrameIconInput
-                icon={section.icon}
-                iconUrl={section.iconUrl}
-                sectionId={section.id}
-                showTopbar={showTopbar}
-                onUpdateSection={onUpdateSection}
-              />
-              <SectionFrameLabelInput
-                label={section.label}
-                sectionId={section.id}
-                showTopbar={showTopbar}
-                  onUpdateSection={onUpdateSection}
-                />
-              <input
-                aria-label="Graph Section color"
-                className="absolute right-1 top-1 h-5 w-6 cursor-pointer bg-transparent p-0"
-                data-graph-section-control="true"
-                onChange={(event) => onUpdateSection(section.id, { color: event.target.value })}
-                tabIndex={showTopbar ? 0 : -1}
-                type="color"
-                value={section.color}
-              />
-              {pinnedSectionIds.has(section.id) ? (
-                <span
-                  aria-label="Pinned Graph Section"
-                  className="absolute right-9 top-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--cg-foreground)]"
-                  data-graph-section-control="true"
-                  role="img"
-                >
-                  <MdiIcon path={mdiPin} size={12} />
-                </span>
-              ) : null}
-            </div>
-            {RESIZE_HANDLES.map(handle => (
-              <div
-                key={handle.corner}
-                data-graph-section-control="true"
-                data-testid={
-                  handle.corner === 'southeast'
-                    ? `graph-section-resize-${section.id}`
-                    : `graph-section-resize-${section.id}-${handle.corner}`
-                }
-                className={[
-                  'pointer-events-auto absolute h-3 w-3',
-                  handle.cursor,
-                  handle.className,
-                ].join(' ')}
-                onMouseDown={(event) => beginDrag(event, getDisplaySection(section), `resize:${handle.corner}`)}
-                style={{ borderColor: section.color }}
-              />
-            ))}
-          </div>
-        );
-      })}
+      {visibleSections.map(section => (
+        <SectionFrameItem
+          key={section.id}
+          graph={graph}
+          isPinned={pinnedSectionIds.has(section.id)}
+          section={section}
+          sectionNodePosition={sectionNodePositions.get(section.id)}
+          onBeginDrag={beginDrag}
+          onOpenSectionContextMenu={onOpenSectionContextMenu}
+          onRegisterFrameElement={registerFrameElement}
+          onUpdateSection={onUpdateSection}
+        />
+      ))}
     </div>
   );
 }

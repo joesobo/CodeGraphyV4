@@ -6,7 +6,10 @@ import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import type { GraphViewStoreState } from '../../../../src/webview/components/graph/view/store';
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/state';
-import { GraphViewportShell } from '../../../../src/webview/components/graph/viewport/shell';
+import {
+	GraphViewportShell,
+	publishGraphViewportScale,
+} from '../../../../src/webview/components/graph/viewport/shell';
 
 const harness = vi.hoisted(() => ({
 	postMessage: vi.fn(),
@@ -257,6 +260,49 @@ describe('graph/viewport/shell', () => {
 				width: 480,
 			},
 		});
+	});
+
+	it('publishes meaningful 2D viewport scale changes only', () => {
+		const setPreviousScale = vi.fn();
+		const setGraphViewportScale = vi.fn();
+
+		publishGraphViewportScale(1, {
+			graphMode: '2d',
+			previousScale: null,
+			setPreviousScale,
+			setGraphViewportScale,
+		});
+		publishGraphViewportScale(1.005, {
+			graphMode: '2d',
+			previousScale: 1,
+			setPreviousScale,
+			setGraphViewportScale,
+		});
+		publishGraphViewportScale(Number.NaN, {
+			graphMode: '2d',
+			previousScale: 1,
+			setPreviousScale,
+			setGraphViewportScale,
+		});
+		publishGraphViewportScale(2, {
+			graphMode: '3d',
+			previousScale: 1,
+			setPreviousScale,
+			setGraphViewportScale,
+		});
+		publishGraphViewportScale(1.02, {
+			graphMode: '2d',
+			previousScale: 1,
+			setPreviousScale,
+			setGraphViewportScale,
+		});
+
+		expect(setPreviousScale).toHaveBeenCalledTimes(2);
+		expect(setPreviousScale).toHaveBeenNthCalledWith(1, 1);
+		expect(setPreviousScale).toHaveBeenNthCalledWith(2, 1.02);
+		expect(setGraphViewportScale).toHaveBeenCalledTimes(2);
+		expect(setGraphViewportScale).toHaveBeenNthCalledWith(1, 1);
+		expect(setGraphViewportScale).toHaveBeenNthCalledWith(2, 1.02);
 	});
 
 	it('wires rendering runtime, viewport model, and the Viewport component', () => {

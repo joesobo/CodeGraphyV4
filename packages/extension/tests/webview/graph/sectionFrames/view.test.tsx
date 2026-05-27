@@ -234,6 +234,30 @@ describe('graph/sectionFrames/view', () => {
     expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: 'UI Work' });
   });
 
+  it('commits label updates when Enter blurs the label field', () => {
+    const { onUpdateSection } = renderSectionFrames();
+    const labelInput = screen.getByLabelText('Graph Section label');
+
+    fireEvent.focus(labelInput);
+    fireEvent.change(labelInput, { target: { value: 'Keyboard Work' } });
+    fireEvent.keyDown(labelInput, { key: 'Enter' });
+    fireEvent.blur(labelInput);
+
+    expect(onUpdateSection).toHaveBeenCalledWith('section-1', { label: 'Keyboard Work' });
+  });
+
+  it('restores the previous label when Escape cancels the edit', () => {
+    const { onUpdateSection } = renderSectionFrames();
+    const labelInput = screen.getByLabelText('Graph Section label');
+
+    fireEvent.focus(labelInput);
+    fireEvent.change(labelInput, { target: { value: 'Discard Me' } });
+    fireEvent.keyDown(labelInput, { key: 'Escape' });
+
+    expect(labelInput).toHaveValue('Section 1');
+    expect(onUpdateSection).not.toHaveBeenCalledWith('section-1', { label: 'Discard Me' });
+  });
+
   it('shows a Material Design Section Frame icon beside the label when one is already selected', () => {
     const { onUpdateSection } = renderSectionFrames({ icon: 'mdi:folder' });
 

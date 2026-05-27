@@ -142,6 +142,29 @@ function shouldPublishGraphViewportScale(
   return previous === null || Math.abs(previous - next) >= 0.01;
 }
 
+export interface GraphViewportScalePublisher {
+  graphMode: GraphViewStoreState['graphMode'];
+  previousScale: number | null;
+  setPreviousScale(scale: number): void;
+  setGraphViewportScale(scale: number): void;
+}
+
+export function publishGraphViewportScale(
+  globalScale: number,
+  publisher: GraphViewportScalePublisher,
+): void {
+  if (publisher.graphMode !== '2d' || !Number.isFinite(globalScale) || globalScale <= 0) {
+    return;
+  }
+
+  if (!shouldPublishGraphViewportScale(publisher.previousScale, globalScale)) {
+    return;
+  }
+
+  publisher.setPreviousScale(globalScale);
+  publisher.setGraphViewportScale(globalScale);
+}
+
 export function GraphViewportShell({
   appearance,
   callbacks,
@@ -222,18 +245,14 @@ export function GraphViewportShell({
     : [];
   const pinnedSectionIds = getPinnedSectionIds(sectionFrames, viewState.graphLayout.pinnedNodes);
   const sectionFrameNodePositions = getSectionFrameNodePositions(graphState.graphData.nodes);
-  const publishGraphViewportScale = (globalScale: number): void => {
-    if (viewState.graphMode !== '2d' || !Number.isFinite(globalScale) || globalScale <= 0) {
-      return;
-    }
-
-    if (!shouldPublishGraphViewportScale(lastPublishedViewportScaleRef.current, globalScale)) {
-      return;
-    }
-
-    lastPublishedViewportScaleRef.current = globalScale;
-    graphStore.getState().setGraphViewportScale(globalScale);
-  };
+  const publishCurrentGraphViewportScale = (globalScale: number): void => publishGraphViewportScale(globalScale, {
+    graphMode: viewState.graphMode,
+    previousScale: lastPublishedViewportScaleRef.current,
+    setPreviousScale: scale => {
+      lastPublishedViewportScaleRef.current = scale;
+    },
+    setGraphViewportScale: scale => graphStore.getState().setGraphViewportScale(scale),
+  });
 
   return (
     <Viewport
@@ -273,7 +292,7 @@ export function GraphViewportShell({
         nodeCanvasObject: callbacks.nodeCanvasObject,
         nodePointerAreaPaint: callbacks.nodePointerAreaPaint,
         onRenderFramePost: (ctx, globalScale) => {
-          publishGraphViewportScale(globalScale);
+          publishCurrentGraphViewportScale(globalScale);
           viewportRuntime.renderPluginOverlays(ctx, globalScale);
         },
         particleSize: viewState.particleSize,
