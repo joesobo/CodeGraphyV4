@@ -1,12 +1,5 @@
-/**
- * @fileoverview Display-related store action setters.
- * @module webview/storeActionsDisplay
- */
-
-import type { StoreApi } from 'zustand/vanilla';
 import type { GraphState } from '../state';
-
-type SetState = StoreApi<GraphState>['setState'];
+import type { SetState } from './types';
 
 export function createDisplayActions(set: SetState) {
   return {
