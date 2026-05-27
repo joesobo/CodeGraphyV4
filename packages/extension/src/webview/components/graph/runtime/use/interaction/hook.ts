@@ -9,14 +9,10 @@ import { resolveGraphContextActionContext } from '../../../contextActions/contex
 import { createGraphContextMenuOpeningRuntime } from '../../../contextMenuOpening/runtime';
 import { createGraphInteractionHandlers } from '../../../interactionRuntime/handlers';
 import { applyCursorToGraphSurface } from '../../../support/dom';
-import {
-  useGraphTooltip,
-  type GraphTooltipInteractionDependencies,
-} from '../tooltip/hook';
+import { useGraphTooltip } from '../tooltip/hook';
 import type { FGNode } from '../../../model/build';
 import { postMessage } from '../../../../../vscodeApi';
 import type {
-  GraphInteractionHandlersRuntime,
   UseGraphInteractionRuntimeOptions,
   UseGraphInteractionRuntimeResult,
 } from './contracts';
@@ -32,37 +28,9 @@ import {
   type NodeDragTranslate,
 } from './nodeDrag';
 import { useGraphViewportPanRuntime } from './viewportPan/hook';
-
-function buildTooltipInteractionHandlers(
-  interactionHandlers: GraphInteractionHandlersRuntime,
-): GraphTooltipInteractionDependencies {
-  return {
-    sendGraphInteraction: interactionHandlers.sendGraphInteraction,
-    setGraphCursor: interactionHandlers.setGraphCursor,
-  };
-}
-
-function handleGraphEngineStop(): void {
-  postMessage({ type: 'PHYSICS_STABILIZED' });
-}
-
-interface GraphViewportScaleReader {
-  zoom(): number;
-}
-
-function readGraphViewportScale(
-  graphMode: '2d' | '3d',
-  graph: unknown,
-): number | null {
-  if (graphMode !== '2d') {
-    return null;
-  }
-
-  const scale = (graph as GraphViewportScaleReader | undefined)?.zoom?.();
-  return typeof scale === 'number' && Number.isFinite(scale) && scale > 0
-    ? scale
-    : null;
-}
+import { postPhysicsStabilized } from './engineStop';
+import { buildTooltipInteractionHandlers } from './tooltipAdapter';
+import { readGraphViewportScale } from './viewportScale';
 
 export function useGraphInteractionRuntime({
   dataRef,
@@ -289,7 +257,7 @@ export function useGraphInteractionRuntime({
     ...contextMenuOpeningRuntime,
     handleBackgroundRightClick: suppressedContextMenuHandlers.handleBackgroundRightClick,
     handleContextMenu: suppressedContextMenuHandlers.handleContextMenu,
-    handleEngineStop: handleGraphEngineStop,
+    handleEngineStop: () => postPhysicsStabilized(postMessage),
     handleLinkRightClick: suppressedContextMenuHandlers.handleLinkRightClick,
     handleMouseLeave: handleGraphMouseLeave,
     handleNodeHover,
