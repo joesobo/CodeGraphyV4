@@ -1,7 +1,7 @@
 import type { IPluginDataHost } from '@codegraphy-dev/plugin-api';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
-  writeCodeGraphyWorkspaceSettings,
+  writeCodeGraphyWorkspacePluginData,
 } from '../../workspace/settings';
 
 export function createWorkspacePluginDataHost(
@@ -15,14 +15,7 @@ export function createWorkspacePluginDataHost(
       return data === undefined ? fallback : data as T;
     },
     async saveData<T>(data: T): Promise<void> {
-      const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
-      writeCodeGraphyWorkspaceSettings(workspaceRoot, {
-        ...settings,
-        pluginData: {
-          ...(settings.pluginData ?? {}),
-          [pluginId]: data,
-        },
-      });
+      writeCodeGraphyWorkspacePluginData(workspaceRoot, pluginId, data);
     },
   };
 }

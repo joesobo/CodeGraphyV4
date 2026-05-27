@@ -10,7 +10,14 @@ export function getPluginsPanelItemClassName(
   return getPluginsPanelWrapperClassName(enabled);
 }
 
-export function getPluginStatusLabel(plugin: IPluginStatus): string | undefined {
+export function getPluginStatusLabel(
+  plugin: IPluginStatus,
+  options: { suppressUnavailable?: boolean } = {},
+): string | undefined {
+  if (options.suppressUnavailable) {
+    return undefined;
+  }
+
   if (plugin.status === 'unavailable') {
     return 'Runtime unavailable';
   }

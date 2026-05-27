@@ -34,22 +34,45 @@ export function getGraphViewWebviewResourceRoots(
   );
 }
 
+function getResourceRootKey(uri: vscode.Uri): string {
+  return uri.toString();
+}
+
+function areLocalResourceRootsEqual(
+  current: readonly vscode.Uri[] | undefined,
+  next: readonly vscode.Uri[],
+): boolean {
+  return Boolean(
+    current
+    && current.length === next.length
+    && current.every((uri, index) => getResourceRootKey(uri) === getResourceRootKey(next[index])),
+  );
+}
+
+function refreshWebviewResourceRoots(
+  webview: vscode.Webview,
+  localResourceRoots: readonly vscode.Uri[],
+): void {
+  if (areLocalResourceRootsEqual(webview.options.localResourceRoots, localResourceRoots)) {
+    return;
+  }
+
+  webview.options = {
+    ...webview.options,
+    localResourceRoots,
+  };
+}
+
 export function refreshGraphViewResourceRoots(
   view: vscode.WebviewView | undefined,
   panels: readonly vscode.WebviewPanel[],
   localResourceRoots: readonly vscode.Uri[],
 ): void {
   if (view) {
-    view.webview.options = {
-      ...view.webview.options,
-      localResourceRoots,
-    };
+    refreshWebviewResourceRoots(view.webview, localResourceRoots);
   }
 
   for (const panel of panels) {
-    panel.webview.options = {
-      ...panel.webview.options,
-      localResourceRoots,
-    };
+    refreshWebviewResourceRoots(panel.webview, localResourceRoots);
   }
 }

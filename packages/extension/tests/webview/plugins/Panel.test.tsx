@@ -25,6 +25,7 @@ function renderPanel(pluginStatuses: IPluginStatus[], isOpen = true) {
 describe('PluginsPanel', () => {
   beforeEach(() => {
     sentMessages.length = 0;
+    graphStore.setState({ graphIsIndexing: false });
     setPluginStatuses([]);
   });
 
@@ -170,6 +171,25 @@ describe('PluginsPanel', () => {
     ]);
 
     expect(screen.getByText('Runtime unavailable')).toBeInTheDocument();
+  });
+
+  it('suppresses transient unavailable labels while the graph is refreshing', () => {
+    graphStore.setState({ graphIsIndexing: true });
+
+    renderPanel([
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript/JavaScript',
+        version: '2.1.0',
+        packageName: '@codegraphy-dev/plugin-typescript',
+        supportedExtensions: ['.ts'],
+        status: 'unavailable',
+        enabled: true,
+        connectionCount: 0,
+      },
+    ]);
+
+    expect(screen.queryByText('Runtime unavailable')).not.toBeInTheDocument();
   });
 
   it('does not expose plugin rows as draggable reorder targets', () => {
