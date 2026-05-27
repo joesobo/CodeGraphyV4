@@ -1,4 +1,6 @@
 node_modules/
+.next/
+*.tsbuildinfo
 dist/
 *.vsix
 .vscode-test/
@@ -13,6 +15,7 @@ dist-e2e/
 .playwright-cli/
 playwright-report/
 test-results/
+/output/
 blob-report/
 .superpowers/
 .turbo/

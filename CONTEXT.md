@@ -350,6 +350,28 @@ _Avoid_: Required plugin
 The headless plugin installed with `@codegraphy-dev/core`, enabled by default for new CodeGraphy Workspaces, and still toggleable like other plugins.
 _Avoid_: External markdown extension
 
+### Commercial Layer
+
+**CodeGraphy Account**:
+A signed-in website account that starts free and can later hold paid Pro package entitlements.
+_Avoid_: Pro Account when the account has no paid package
+
+**Free Account**:
+A CodeGraphy Account without an active paid Pro package entitlement.
+_Avoid_: Free CodeGraphy use when the user has not signed up
+
+**CodeGraphy Pro**:
+The paid commercial tier for CodeGraphy Accounts. A user becomes Pro by paying for at least one Pro Package.
+_Avoid_: CodeGraphy Account, Free Account
+
+**Pro Package**:
+A paid package attached to a CodeGraphy Account as a Pro entitlement.
+_Avoid_: Workspace Package, Plugin Package
+
+**Organize**:
+The first planned Pro Package for keeping, switching, arranging, and presenting useful CodeGraphy graph setups.
+_Avoid_: CodeGraphy Pro when referring only to this package
+
 ### Settings And Styling
 
 **Setting**:
@@ -665,6 +687,10 @@ _Avoid_: Graph export
 - A **Plugin Package** is the packaging route for third-party plugins.
 - **Built-in Plugins** in this monorepo are examples and fast-development plugins, not required dependencies unless explicitly installed or bundled by the Core Package.
 - The **Markdown Plugin** is installed with `@codegraphy-dev/core` and enabled by default for new CodeGraphy Workspaces, but users can still toggle it off.
+- Free CodeGraphy use starts from the **VS Code Extension** and does not require a **CodeGraphy Account**.
+- A user can create a **Free Account** on the website before buying any **Pro Package**.
+- A **CodeGraphy Account** becomes **CodeGraphy Pro** when it has at least one active paid **Pro Package** entitlement.
+- **Organize** is a **Pro Package** inside **CodeGraphy Pro**, not a synonym for all signed-in account behavior.
 - A **Settings Control** changes a **Setting**; it is not a separate persisted concept.
 - **Settings** are saved workspace-locally under `.codegraphy/settings.json` so graph preferences survive between sessions.
 - **Graph Scope**, **Filter Setting**, **Display Setting**, **Favorite**, and **Legend Entry Toggle** are settings because they are saved between sessions.
@@ -739,6 +765,12 @@ _Avoid_: Graph export
 >
 > **Dev:** "If I turn off the Godot `*.gd` Legend Entry, do GDScript files disappear?"
 > **Domain expert:** "No. The **Legend Entry Toggle** only disables that styling, so matching nodes fall back to lower-priority styling."
+>
+> **Dev:** "Does installing CodeGraphy require a Pro account?"
+> **Domain expert:** "No. Free CodeGraphy starts from the **VS Code Extension** and does not require a **CodeGraphy Account**. The website can still let someone create a **Free Account**."
+>
+> **Dev:** "Is Organize the same thing as Pro?"
+> **Domain expert:** "No. **CodeGraphy Pro** is the paid tier. **Organize** is the first **Pro Package** inside that tier."
 
 ## Flagged ambiguities
 
@@ -754,6 +786,7 @@ _Avoid_: Graph export
 - "collapse dependents" was ambiguous; resolved: **Collapse** absorbs downstream relationship nodes, not upstream nodes.
 - Shared downstream relationship targets stay visible when they are still related to by visible nodes outside the collapsed subgraph.
 - When a shared relationship target stays visible, the downstream path to it stays visible as a **Boundary Path**.
+- "Bookmark" conflicts with **Favorite** if it only means marking a node; unresolved: website and Organize language still need a canonical term for reusable saved graph setups.
 - Collapse behavior is not renderer-owned; resolved: CodeGraphy owns **Collapse Projection**, it runs after the **Visible Graph** exists, and the force graph renderer displays the resulting graph.
 - Do not introduce "Collapsed Graph" as a separate pipeline term for now; resolved: the user still sees the **Visible Graph**, updated by **Collapse Projection**.
 - "filter" and "collapse" both reduce **Visible Graph** detail but are not synonyms; resolved: **Filter** means persistent include/exclude criteria, while **Collapse** means summarize relevant hidden detail.

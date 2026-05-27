@@ -3,10 +3,12 @@
 	"version": "1.0.0",
 	"packageManager": "pnpm@10.32.0",
 	"workspaces": [
-		"packages/*"
+		"packages/*",
+		"apps/*"
 	],
 	"scripts": {
 		"build": "turbo run build",
+		"web:dev": "pnpm --filter @codegraphy-dev/web dev",
 		"watch": "pnpm --filter @codegraphy-dev/extension run watch",
 		"dev": "pnpm --filter @codegraphy-dev/extension run dev",
 		"test": "pnpm run test:unit && pnpm run test:playwright",
