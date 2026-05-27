@@ -156,7 +156,7 @@ describe('PluginsPanel', () => {
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
-  it('labels enabled plugin packages whose runtime is unavailable', () => {
+  it('does not render runtime availability subtext for plugin rows', () => {
     renderPanel([
       {
         id: '@codegraphy-dev/plugin-python',
@@ -170,26 +170,8 @@ describe('PluginsPanel', () => {
       },
     ]);
 
-    expect(screen.getByText('Runtime unavailable')).toBeInTheDocument();
-  });
-
-  it('suppresses transient unavailable labels while the graph is refreshing', () => {
-    graphStore.setState({ graphIsIndexing: true });
-
-    renderPanel([
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript/JavaScript',
-        version: '2.1.0',
-        packageName: '@codegraphy-dev/plugin-typescript',
-        supportedExtensions: ['.ts'],
-        status: 'unavailable',
-        enabled: true,
-        connectionCount: 0,
-      },
-    ]);
-
-    expect(screen.queryByText('Runtime unavailable')).not.toBeInTheDocument();
+    expect(screen.getByTestId('plugin-row')).toHaveTextContent('@codegraphy-dev/plugin-python');
+    expect(screen.getByTestId('plugin-row').querySelector('.text-\\[10px\\]')).toBeNull();
   });
 
   it('does not expose plugin rows as draggable reorder targets', () => {
