@@ -96,18 +96,44 @@ export const workflowSteps = [
   },
 ];
 
+export const heroHighlights = [
+  {
+    icon: BrainCircuit,
+    label: 'Index',
+    text: 'Tree-sitter and plugins build the first map.',
+  },
+  {
+    icon: Network,
+    label: 'Reveal',
+    text: 'Files, symbols, packages, and edges settle into shape.',
+  },
+  {
+    icon: Search,
+    label: 'Focus',
+    text: 'Scope, filters, and search keep the graph workable.',
+  },
+  {
+    icon: Bot,
+    label: 'Ask',
+    text: 'CLI and MCP give agents the same local graph.',
+  },
+];
+
 export const socialProofItems = [
   {
+    icon: Network,
     image: '/product-media/relationship-graph-2d.png',
     text: 'The CodeGraphy repo gets the first top-down view so the tool can prove itself on its own package structure.',
     title: 'CodeGraphy itself',
   },
   {
+    icon: Palette,
     image: '/product-media/symbol-nodes-graph.png',
     text: 'A planned set of curated popular repos will show how different languages, themes, and settings change the graph.',
     title: 'Popular repo studies',
   },
   {
+    icon: MapPinned,
     image: '/product-media/graph-sections.png',
     text: 'Each example is meant to show the broad shape first, then let people inspect the details when a cluster looks interesting.',
     title: 'Top-down structure',
@@ -116,31 +142,37 @@ export const socialProofItems = [
 
 export const galleryItems = [
   {
+    icon: Network,
     image: '/product-media/relationship-graph-2d.png',
     text: 'Folder and package context stays visible without forcing every question back into a file tree.',
     title: 'Folder view',
   },
   {
+    icon: Monitor,
     image: '/product-media/relationship-graph-3d.png',
     text: 'Switch into depth when the physical shape of the workspace is the thing you need to understand.',
     title: '3D view',
   },
   {
+    icon: Search,
     image: '/product-media/search-filter-panel.png',
     text: 'Search temporarily, then save filters when generated files, tests, or docs are not part of the question.',
     title: 'Search and filters',
   },
   {
+    icon: Plug,
     image: '/product-media/plugins-panel.png',
     text: 'Enable ecosystem plugins to add symbols, framework defaults, and richer relationships to the same graph.',
     title: 'Plugin system',
   },
   {
+    icon: Workflow,
     image: '/product-media/large-repo-graph.png',
     text: 'Force-based physics lets related code form natural groups instead of pretending folders are the only structure.',
     title: 'Natural clusters',
   },
   {
+    icon: Database,
     image: '/product-media/codegraphy-architecture.png',
     text: 'The internal examples folder gives CodeGraphy small, controlled workspaces across TypeScript, Python, Godot, Markdown, and more.',
     title: 'Examples folder',

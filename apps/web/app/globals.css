@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --background: 39 38% 94%;
+  --background: 39 42% 94%;
   --foreground: 214 29% 13%;
-  --card: 0 0% 100%;
+  --card: 42 52% 97%;
   --card-foreground: 214 29% 13%;
   --primary: 214 29% 13%;
   --primary-foreground: 0 0% 100%;
@@ -17,6 +17,8 @@
   --accent-foreground: 211 72% 30%;
   --brand-blue: 210 72% 42%;
   --brand-orange: 28 86% 46%;
+  --brand-green: 102 31% 42%;
+  --brand-purple: 264 38% 54%;
   --border: 214 20% 83%;
   --input: 214 20% 83%;
   --ring: 210 72% 42%;
@@ -58,6 +60,17 @@ img {
   max-width: 100%;
 }
 
+.site-heading {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.font-note {
+  font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+  letter-spacing: 0;
+}
+
 .home-hero-overlay {
   background:
     linear-gradient(
@@ -67,6 +80,65 @@ img {
       hsl(var(--background) / 0.42) 100%
     ),
     linear-gradient(0deg, hsl(var(--background)) 0%, hsl(var(--background) / 0) 42%);
+}
+
+.hero-studio-panel {
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card) / 0.88);
+  box-shadow: 0 18px 42px hsl(var(--foreground) / 0.11);
+  backdrop-filter: blur(14px);
+}
+
+.hero-tool-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  border: 1px solid hsl(var(--border) / 0.78);
+  border-radius: calc(var(--radius) - 2px);
+  background: hsl(var(--background) / 0.64);
+  padding: 0.85rem;
+}
+
+.icon-badge {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--brand-orange) / 0.28);
+  border-radius: 0.65rem;
+  background: hsl(var(--brand-orange) / 0.11);
+  color: hsl(var(--brand-orange));
+}
+
+.graph-note {
+  border: 1px solid hsl(46 61% 78% / 0.8);
+  background:
+    linear-gradient(0deg, hsl(48 84% 88% / 0.72), hsl(48 84% 88% / 0.72)),
+    hsl(var(--card));
+  box-shadow: 0 10px 22px hsl(var(--foreground) / 0.08);
+}
+
+.notebook-card {
+  background: hsl(var(--card) / 0.9);
+  box-shadow: 0 12px 30px hsl(var(--foreground) / 0.07);
+}
+
+.notebook-card > :not(img) {
+  position: relative;
+}
+
+.notebook-card > :not(img):first-child::before {
+  position: absolute;
+  top: 0;
+  right: 1.25rem;
+  left: 1.25rem;
+  height: 1px;
+  border-top: 1px dashed hsl(var(--border));
+  content: "";
 }
 
 .graph-preview-grid {

@@ -8,6 +8,7 @@ import {
   faqItems,
   galleryItems,
   githubHref,
+  heroHighlights,
   installHref,
   optionalPackages,
   socialProofItems,
@@ -125,9 +126,12 @@ export function HomeView(): React.ReactElement {
             src="/product-media/hero-relationship-graph.png"
           />
           <div className="home-hero-overlay absolute inset-0" />
-          <div className="relative mx-auto flex min-h-[680px] max-w-7xl items-end px-5 pb-24 pt-28 md:px-8">
+          <div className="relative mx-auto grid min-h-[720px] max-w-7xl items-end gap-10 px-5 pb-20 pt-28 md:grid-cols-[0.9fr_0.7fr] md:px-8">
             <div className="max-w-3xl">
-              <h1 className="text-5xl font-black leading-[0.95] tracking-tight text-foreground sm:text-7xl lg:text-8xl">
+              <p className="font-note mb-3 text-lg text-[hsl(var(--brand-purple))]">
+                Follow the natural shape.
+              </p>
+              <h1 className="site-heading text-5xl leading-[0.95] text-foreground sm:text-7xl lg:text-8xl">
                 See how everything connects.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
@@ -148,6 +152,34 @@ export function HomeView(): React.ReactElement {
                 </Button>
               </div>
             </div>
+            <aside className="hero-studio-panel">
+              <div className="flex items-center justify-between gap-4 border-b border-dashed border-border px-5 py-4">
+                <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Graph studio</p>
+                <span className="rounded-full bg-[hsl(var(--brand-green)/0.12)] px-3 py-1 text-xs font-bold text-[hsl(var(--brand-green))]">
+                  Local first
+                </span>
+              </div>
+              <div className="grid gap-3 p-5">
+                {heroHighlights.map(item => {
+                  const Icon = item.icon;
+
+                  return (
+                    <div className="hero-tool-row" key={item.label}>
+                      <span className="icon-badge">
+                        <Icon size={18} />
+                      </span>
+                      <div>
+                        <p className="font-bold text-foreground">{item.label}</p>
+                        <p className="text-sm leading-6 text-muted-foreground">{item.text}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="graph-note font-note mx-5 mb-5 rounded-md px-4 py-3 text-[15px] leading-7 text-foreground">
+                Tip: nearby nodes usually mean nearby decisions.
+              </p>
+            </aside>
           </div>
         </section>
 
@@ -155,7 +187,7 @@ export function HomeView(): React.ReactElement {
             <div className="grid gap-8 md:grid-cols-[0.8fr_1fr] md:items-end">
               <div>
                 <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Social proof</p>
-                <h2 className="text-4xl font-black tracking-tight sm:text-5xl">
+                <h2 className="site-heading text-4xl sm:text-5xl">
                   Popular repos, mapped from the top down.
                 </h2>
               </div>
@@ -164,15 +196,24 @@ export function HomeView(): React.ReactElement {
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {socialProofItems.map(item => (
-                <Card className="overflow-hidden" key={item.title}>
-                  <img alt="" className="aspect-[16/10] w-full object-cover" src={item.image} />
-                  <div className="p-5">
-                    <h3 className="text-xl font-bold">{item.title}</h3>
-                    <p className="mt-2 leading-7 text-muted-foreground">{item.text}</p>
-                  </div>
-                </Card>
-              ))}
+              {socialProofItems.map(item => {
+                const Icon = item.icon;
+
+                return (
+                  <Card className="notebook-card overflow-hidden" key={item.title}>
+                    <img alt="" className="aspect-[16/10] w-full object-cover" src={item.image} />
+                    <div className="p-5">
+                      <div className="mb-3 flex items-center gap-3">
+                        <span className="icon-badge">
+                          <Icon size={18} />
+                        </span>
+                        <h3 className="text-xl font-bold">{item.title}</h3>
+                      </div>
+                      <p className="leading-7 text-muted-foreground">{item.text}</p>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
         </section>
 
@@ -180,7 +221,7 @@ export function HomeView(): React.ReactElement {
           <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.8fr_1fr] md:px-8">
             <div>
               <p className="section-kicker-orange mb-3 text-xs font-black uppercase tracking-[0.08em]">Problem</p>
-              <h2 className="text-4xl font-black tracking-tight sm:text-5xl">
+              <h2 className="site-heading text-4xl sm:text-5xl">
                 Organization is hard because folders are only one opinion.
               </h2>
             </div>
@@ -199,7 +240,7 @@ export function HomeView(): React.ReactElement {
             <div className="grid gap-8 md:grid-cols-[0.8fr_1fr] md:items-end">
               <div>
                 <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">How it works</p>
-                <h2 className="text-4xl font-black tracking-tight sm:text-5xl">
+                <h2 className="site-heading text-4xl sm:text-5xl">
                   Code wants to form its own map.
                 </h2>
               </div>
@@ -212,10 +253,12 @@ export function HomeView(): React.ReactElement {
                 const Icon = step.icon;
 
                 return (
-                  <Card className="mt-8 overflow-hidden" key={step.title}>
+                  <Card className="notebook-card mt-8 overflow-hidden" key={step.title}>
                     <img alt="" className="aspect-[16/10] w-full object-cover" src={step.image} />
                     <div className="p-6">
-                      <Icon className="feature-icon mb-5" size={26} />
+                      <span className="icon-badge mb-5">
+                        <Icon size={20} />
+                      </span>
                       <h3 className="text-xl font-bold">{step.title}</h3>
                       <p className="mt-2 leading-7 text-muted-foreground">{step.description}</p>
                     </div>
@@ -228,29 +271,38 @@ export function HomeView(): React.ReactElement {
         <section className="section-plain border-y border-border/70" id="gallery">
           <div className="mx-auto max-w-7xl px-5 py-20 md:px-8">
             <p className="section-kicker-orange mb-3 text-xs font-black uppercase tracking-[0.08em]">Gallery</p>
-            <h2 className="max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
+            <h2 className="site-heading max-w-3xl text-4xl sm:text-5xl">
               Useful maps should also be beautiful.
             </h2>
             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {galleryItems.map(item => (
-                <Card className="overflow-hidden" key={item.title}>
-                  <img alt="" className="aspect-[16/10] w-full object-cover" src={item.image} />
-                  <div className="p-5">
-                    <h3 className="text-xl font-bold">{item.title}</h3>
-                    <p className="mt-2 leading-7 text-muted-foreground">{item.text}</p>
-                  </div>
-                </Card>
-              ))}
+              {galleryItems.map(item => {
+                const Icon = item.icon;
+
+                return (
+                  <Card className="notebook-card overflow-hidden" key={item.title}>
+                    <img alt="" className="aspect-[16/10] w-full object-cover" src={item.image} />
+                    <div className="p-5">
+                      <div className="mb-3 flex items-center gap-3">
+                        <span className="icon-badge">
+                          <Icon size={18} />
+                        </span>
+                        <h3 className="text-xl font-bold">{item.title}</h3>
+                      </div>
+                      <p className="leading-7 text-muted-foreground">{item.text}</p>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
             <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Pricing</p>
-            <h2 className="max-w-4xl text-4xl font-black tracking-tight sm:text-5xl">
+            <h2 className="site-heading max-w-4xl text-4xl sm:text-5xl">
               One open core. Pro Packages when you need more.
             </h2>
-            <Card className="mt-8 grid gap-8 p-6 md:grid-cols-[0.72fr_1fr] md:p-8">
+            <Card className="notebook-card mt-8 grid gap-8 p-6 md:grid-cols-[0.72fr_1fr] md:p-8">
               <div>
                 <p className="section-kicker-orange text-xs font-black uppercase tracking-[0.08em]">Core</p>
                 <h3 className="mt-3 text-3xl font-black">Open-source graph tools</h3>
@@ -289,7 +341,7 @@ export function HomeView(): React.ReactElement {
             </div>
             <div className="mt-5 grid gap-4">
               {optionalPackages.map(plan => (
-                <Card className="grid gap-5 p-5 md:grid-cols-[0.28fr_1fr] md:items-start" key={plan.name}>
+                <Card className="notebook-card grid gap-5 p-5 md:grid-cols-[0.28fr_1fr] md:items-start" key={plan.name}>
                   <div>
                     <h3 className="mt-1 text-3xl font-black">{plan.name}</h3>
                     <Button className="mt-4" disabled variant="secondary">
@@ -330,13 +382,13 @@ export function HomeView(): React.ReactElement {
         <section className="section-plain border-y border-border/70" id="faq">
           <div className="mx-auto max-w-7xl px-5 py-20 md:px-8">
             <p className="section-kicker-orange mb-3 text-xs font-black uppercase tracking-[0.08em]">FAQ</p>
-            <h2 className="max-w-4xl text-4xl font-black tracking-tight sm:text-5xl">
+            <h2 className="site-heading max-w-4xl text-4xl sm:text-5xl">
               Questions worth answering.
             </h2>
             <div className="mt-8 grid gap-4">
               {faqItems.map(item => (
                 <details
-                  className="group rounded-md border border-border bg-card p-5 text-card-foreground shadow-sm"
+                  className="notebook-card group rounded-md border border-border bg-card p-5 text-card-foreground shadow-sm"
                   key={item.question}
                   open={item.defaultOpen}
                 >
@@ -357,7 +409,7 @@ export function HomeView(): React.ReactElement {
           <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.9fr_1fr] md:items-center md:px-8">
             <div>
               <p className="section-kicker-orange mb-3 text-xs font-black uppercase tracking-[0.08em]">Start mapping</p>
-              <h2 className="max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
+              <h2 className="site-heading max-w-3xl text-4xl sm:text-5xl">
                 Let the graph show you where the code already wants to go.
               </h2>
               <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
