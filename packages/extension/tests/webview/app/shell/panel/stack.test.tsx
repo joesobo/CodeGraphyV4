@@ -54,6 +54,22 @@ describe('app/PanelStack', () => {
     }));
   });
 
+  it('layers open panels above graph refresh status chrome', () => {
+    render(
+      <PanelStack
+        activePanel="plugins"
+        hasGraphNodes
+        pluginHost={undefined as never}
+        onClosePanel={() => {}}
+      />,
+    );
+
+    const shell = screen.getByTestId('plugins-panel').parentElement as HTMLElement | null;
+
+    expect(shell).toBeTruthy();
+    expect(shell?.className).toContain('z-30');
+  });
+
   it('hosts Graph View panel slot contributions under graph.panelSlot', () => {
     const pluginHost = { kind: 'host' };
     render(
