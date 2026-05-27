@@ -11,6 +11,7 @@ import {
   getWorkspacePipelineStatusList,
 } from './runtime/plugins';
 import { readWorkspacePluginStatusContext } from '../plugins/statusContext';
+import { removeInvalidatedDiscoveredDirectories } from './directoryInvalidation';
 
 export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFacade {
   getPluginStatuses(disabledPlugins: Set<string>): IPluginStatus[] {
@@ -101,35 +102,3 @@ export class WorkspacePipelineLifecycleFacade extends WorkspacePipelineRefreshFa
 }
 
 export { WorkspacePipelineLifecycleFacade as WorkspacePipeline };
-
-function normalizeWorkspaceRelativePath(filePath: string): string {
-  return filePath.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
-}
-
-function isDirectoryAtOrBelowPath(directoryPath: string, targetPath: string): boolean {
-  return directoryPath === targetPath || directoryPath.startsWith(`${targetPath}/`);
-}
-
-function removeInvalidatedDiscoveredDirectories(
-  directories: readonly string[],
-  filePaths: readonly string[],
-  workspaceRoot: string,
-  toWorkspaceRelativePath: (workspaceRoot: string, filePath: string) => string | undefined,
-): string[] {
-  const invalidatedPaths = filePaths
-    .map(filePath => toWorkspaceRelativePath(workspaceRoot, filePath))
-    .filter((filePath): filePath is string => Boolean(filePath))
-    .map(normalizeWorkspaceRelativePath)
-    .filter(Boolean);
-
-  if (invalidatedPaths.length === 0) {
-    return [...directories];
-  }
-
-  return directories.filter((directoryPath) => {
-    const normalizedDirectory = normalizeWorkspaceRelativePath(directoryPath);
-    return !invalidatedPaths.some(invalidatedPath =>
-      isDirectoryAtOrBelowPath(normalizedDirectory, invalidatedPath),
-    );
-  });
-}
