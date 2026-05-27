@@ -128,7 +128,7 @@ export function HomeView(): React.ReactElement {
           <div className="home-hero-overlay absolute inset-0" />
           <div className="relative mx-auto grid min-h-[720px] max-w-7xl items-end gap-10 px-5 pb-20 pt-28 md:grid-cols-[0.9fr_0.7fr] md:px-8">
             <div className="max-w-3xl">
-              <p className="font-note mb-3 text-lg text-[hsl(var(--brand-purple))]">
+              <p className="font-note section-kicker-blue mb-3 text-lg">
                 Follow the natural shape.
               </p>
               <h1 className="site-heading text-5xl leading-[0.95] text-foreground sm:text-7xl lg:text-8xl">
@@ -153,7 +153,7 @@ export function HomeView(): React.ReactElement {
               </div>
             </div>
             <aside className="hero-studio-panel">
-              <div className="flex items-center justify-between gap-4 border-b border-dashed border-border px-5 py-4">
+              <div className="flex items-center justify-between gap-4 border-b border-border/70 px-5 py-4">
                 <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Graph studio</p>
                 <span className="rounded-full bg-[hsl(var(--brand-green)/0.12)] px-3 py-1 text-xs font-bold text-[hsl(var(--brand-green))]">
                   Local first
