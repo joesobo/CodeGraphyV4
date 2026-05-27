@@ -50,7 +50,7 @@ Installation and enablement are separate:
 - Enabling and disabling plugins do not run Indexing automatically. Users can enable several plugins first, then run `codegraphy index [workspace]` once to refresh the Graph Cache.
 - `@codegraphy-dev/core` depends on `@codegraphy-dev/plugin-markdown` and materializes it as the first enabled plugin when a new CodeGraphy Workspace is indexed for the first time.
 
-Plugin packages declare CodeGraphy metadata in `package.json` so discovery can validate compatibility without importing arbitrary runtime code:
+Plugin packages declare CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:
 
 ```json
 {
