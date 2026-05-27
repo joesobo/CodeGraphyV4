@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { usePluginManager } from '../../../src/webview/pluginRuntime/useManager';
 
 function toDataUrlModule(source: string): string {
@@ -18,6 +18,7 @@ describe('usePluginManager', () => {
     delete (globalThis as Record<string, unknown>).__useManagerActivationCount;
     delete (globalThis as Record<string, unknown>).__useManagerWarnings;
     delete (globalThis as Record<string, unknown>).__useManagerContainers;
+    delete (globalThis as Record<string, unknown>).__useManagerResolveModule;
   });
 
   it('returns a stable pluginHost reference across re-renders', () => {
@@ -219,6 +220,42 @@ describe('usePluginManager', () => {
         scripts: [scriptUrl],
         styles: [],
       });
+    });
+
+    expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(1);
+  });
+
+  it('coalesces concurrent activation of the same script for the same plugin', async () => {
+    const { result } = renderHook(() => usePluginManager());
+    const scriptUrl = toDataUrlModule(`
+      await new Promise((resolve) => {
+        globalThis.__useManagerResolveModule = resolve;
+      });
+      export function activate() {
+        globalThis.__useManagerActivationCount = (globalThis.__useManagerActivationCount || 0) + 1;
+      }
+    `);
+
+    const first = result.current.injectPluginAssets({
+      pluginId: 'dedup-plugin',
+      scripts: [scriptUrl],
+      styles: [],
+    });
+    const second = result.current.injectPluginAssets({
+      pluginId: 'dedup-plugin',
+      scripts: [scriptUrl],
+      styles: [],
+    });
+
+    await waitFor(() => {
+      expect((globalThis as Record<string, unknown>).__useManagerResolveModule)
+        .toEqual(expect.any(Function));
+    });
+
+    await act(async () => {
+      const globals = globalThis as unknown as Record<string, (() => void) | undefined>;
+      globals.__useManagerResolveModule?.();
+      await Promise.all([first, second]);
     });
 
     expect((globalThis as Record<string, unknown>).__useManagerActivationCount).toBe(1);

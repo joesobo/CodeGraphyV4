@@ -51,7 +51,6 @@ export async function applySettingsToggleMessage(
         handlers.sendContextMenuItems?.();
         handlers.sendPluginToolbarActions?.();
         handlers.sendGraphViewContributionStatuses?.();
-        handlers.sendPluginWebviewInjections?.();
         await handlers.analyzeAndSendData();
         return true;
       }

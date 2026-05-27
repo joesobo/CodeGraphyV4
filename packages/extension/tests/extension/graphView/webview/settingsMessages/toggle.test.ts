@@ -351,12 +351,43 @@ describe('graph view settings toggle message', () => {
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginToolbarActions).toHaveBeenCalledOnce();
     expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
-    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
+    expect(sendPluginWebviewInjections).not.toHaveBeenCalled();
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
       .toBeGreaterThan(reloadWorkspacePlugins.mock.invocationCallOrder[0]);
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
       .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
-    expect(sendPluginWebviewInjections.mock.invocationCallOrder[0])
-      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+  });
+
+  it('lets graph analysis publish webview injections after package toggles', async () => {
+    const state = createState();
+    const sendPluginWebviewInjections = vi.fn();
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'plugins') {
+          return [] as T;
+        }
+        return defaultValue;
+      }),
+      sendPluginWebviewInjections,
+      analyzeAndSendData,
+    });
+
+    const handled = await applySettingsToggleMessage(
+      {
+        type: 'TOGGLE_PLUGIN',
+        payload: {
+          pluginId: 'codegraphy.organize',
+          packageName: '@codegraphy/organization',
+          enabled: true,
+        },
+      },
+      state,
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(sendPluginWebviewInjections).not.toHaveBeenCalled();
   });
 });
