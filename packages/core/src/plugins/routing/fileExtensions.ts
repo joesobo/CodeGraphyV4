@@ -1,5 +1,5 @@
 export function normalizePluginExtension(extension: string): string {
-  return extension.startsWith('.') ? extension : `.${extension}`;
+  return (extension.startsWith('.') ? extension : `.${extension}`).toLowerCase();
 }
 
 export function getFileExtension(filePath: string): string {

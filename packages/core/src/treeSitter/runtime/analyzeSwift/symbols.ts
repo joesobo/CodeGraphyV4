@@ -5,49 +5,7 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { addInheritRelation, createSymbol } from '../analyze/results';
-
-function getSwiftTypeKind(node: Parser.SyntaxNode): 'actor' | 'class' | 'enum' | 'struct' {
-  const declaration = node.text.trimStart();
-  if (declaration.startsWith('struct ')) {
-    return 'struct';
-  }
-
-  if (declaration.startsWith('enum ')) {
-    return 'enum';
-  }
-
-  if (declaration.startsWith('actor ')) {
-    return 'actor';
-  }
-
-  return 'class';
-}
-
-function isInsideSwiftType(node: Parser.SyntaxNode): boolean {
-  let current = node.parent;
-
-  while (current) {
-    if (
-      current.type === 'class_declaration'
-      || current.type === 'protocol_declaration'
-      || current.type === 'extension_declaration'
-    ) {
-      return true;
-    }
-
-    current = current.parent;
-  }
-
-  return false;
-}
-
-function getSwiftDeclarationName(node: Parser.SyntaxNode): string | null {
-  return node.childForFieldName('name')?.text
-    ?? node.namedChildren.find((child) =>
-      child.type === 'simple_identifier' || child.type === 'type_identifier',
-    )?.text
-    ?? null;
-}
+import { getSwiftDeclarationName, getSwiftTypeKind, isInsideSwiftType } from './declarations';
 
 export function handleSwiftTypeDeclaration(
   node: Parser.SyntaxNode,

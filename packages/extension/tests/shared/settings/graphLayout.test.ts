@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type {
+  GraphLayoutSettings,
   GraphLayoutOwnership,
   GraphLayoutSection,
 } from '../../../src/shared/settings/graphLayout';
 import {
+  findDeepestGraphLayoutSectionAtPoint,
   getDefaultGraphSectionSize,
   getGraphLayoutSectionDepth,
+  isGraphLayoutItemOwnedBySection,
   isGraphLayoutSectionDescendant,
   isGraphLayoutSectionVisible,
 } from '../../../src/shared/settings/graphLayout';
@@ -79,6 +82,29 @@ describe('shared/settings/graphLayout', () => {
     expect(getGraphLayoutSectionDepth(OWNERSHIP, 'grandchild')).toBe(2);
   });
 
+  it('checks whether items are owned by a Section directly or through a descendant Section', () => {
+    const ownership: Record<string, GraphLayoutOwnership> = {
+      ...OWNERSHIP,
+      'src/app.ts': {
+        itemId: 'src/app.ts',
+        itemKind: 'node',
+        ownerSectionId: 'grandchild',
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+      'src/root.ts': {
+        itemId: 'src/root.ts',
+        itemKind: 'node',
+        ownerSectionId: null,
+        updatedAt: '2026-05-07T09:00:00.000Z',
+      },
+    };
+
+    expect(isGraphLayoutItemOwnedBySection(ownership, 'src/app.ts', 'grandchild')).toBe(true);
+    expect(isGraphLayoutItemOwnedBySection(ownership, 'src/app.ts', 'parent')).toBe(true);
+    expect(isGraphLayoutItemOwnedBySection(ownership, 'src/root.ts', 'parent')).toBe(false);
+    expect(isGraphLayoutItemOwnedBySection(ownership, 'missing.ts', 'parent')).toBe(false);
+  });
+
   it('shows sections only when the section and its ancestors are expanded', () => {
     expect(isGraphLayoutSectionVisible(SECTIONS, OWNERSHIP, 'grandchild')).toBe(true);
     expect(isGraphLayoutSectionVisible({
@@ -101,5 +127,54 @@ describe('shared/settings/graphLayout', () => {
 
     expect(isGraphLayoutSectionVisible(SECTIONS, cycleOwnership, 'grandchild')).toBe(false);
     expect(getGraphLayoutSectionDepth(cycleOwnership, 'grandchild')).toBe(2);
+  });
+
+  it('finds the deepest visible Section at a graph-space point and breaks depth ties by area', () => {
+    const layout: Pick<GraphLayoutSettings, 'ownership' | 'sections'> = {
+      sections: {
+        ...SECTIONS,
+        sibling: {
+          id: 'sibling',
+          label: 'Sibling',
+          color: '#f43f5e',
+          x: 60,
+          y: 60,
+          width: 40,
+          height: 40,
+          collapsed: false,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        hidden: {
+          id: 'hidden',
+          label: 'Hidden',
+          color: '#64748b',
+          x: 65,
+          y: 65,
+          width: 20,
+          height: 20,
+          collapsed: true,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+      ownership: {
+        ...OWNERSHIP,
+        sibling: {
+          itemId: 'sibling',
+          itemKind: 'section',
+          ownerSectionId: 'child',
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+        hidden: {
+          itemId: 'hidden',
+          itemKind: 'section',
+          ownerSectionId: null,
+          updatedAt: '2026-05-07T09:00:00.000Z',
+        },
+      },
+    };
+
+    expect(findDeepestGraphLayoutSectionAtPoint(layout, { x: 70, y: 70 })).toBe('sibling');
+    expect(findDeepestGraphLayoutSectionAtPoint(layout, { x: 20, y: 20 })).toBe('parent');
+    expect(findDeepestGraphLayoutSectionAtPoint(layout, { x: 320, y: 240 })).toBeNull();
   });
 });

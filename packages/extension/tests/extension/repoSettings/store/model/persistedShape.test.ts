@@ -34,6 +34,43 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
     });
   });
 
+  it('normalizes persisted plugin package names, options, and disabled filter patterns', () => {
+    expect(normalizePersistedSettingsShape({
+      plugins: [
+        {
+          package: '  @codegraphy-dev/plugin-python  ',
+          disabledFilterPatterns: ['.venv/**', 42, '.venv/**', '**/__pycache__/**'],
+          options: {
+            pythonPath: '/usr/bin/python3',
+          },
+        },
+        { package: '   ' },
+        { package: '@codegraphy-dev/plugin-markdown', disabledFilterPatterns: [] },
+        'legacy-plugin-id',
+      ],
+    })).toEqual({
+      plugins: [
+        {
+          package: '@codegraphy-dev/plugin-python',
+          disabledFilterPatterns: ['.venv/**', '**/__pycache__/**'],
+          options: {
+            pythonPath: '/usr/bin/python3',
+          },
+        },
+        { package: '@codegraphy-dev/plugin-markdown' },
+      ],
+    });
+  });
+
+  it('drops the plugins key when no persisted plugin record is usable', () => {
+    expect(normalizePersistedSettingsShape({
+      plugins: [
+        { package: '' },
+        { options: { mode: 'strict' } },
+      ],
+    })).toEqual({});
+  });
+
   it('keeps explicit legend and node color settings only', () => {
     expect(normalizePersistedSettingsShape({
       legend: [{ id: 'legend-1', pattern: 'tests/**', color: '#abcdef' }],

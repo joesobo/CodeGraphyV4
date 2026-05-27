@@ -1,6 +1,7 @@
 import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
 import {
   findDeepestGraphLayoutSectionAtWorldPoint,
+  getGraphLayoutSectionWorldTopLeft,
   isGraphLayoutSectionDescendant,
   type GraphLayoutMode,
   type GraphLayoutOwnershipUpdate,
@@ -61,30 +62,35 @@ function readLiveSectionDimension(
   return isFiniteNumber(value) ? value : fallback;
 }
 
-function getSectionWorldTopLeft(
+function getGraphLayoutItemKind(node: FGNode): GraphLayoutOwnershipUpdate['itemKind'] {
+  return node.isGraphSection ? 'section' : 'node';
+}
+
+function getLiveGraphSectionNode(node: FGNode): FGNode | undefined {
+  return node.isGraphSection && !node.isCollapsedGraphSection ? node : undefined;
+}
+
+function createLiveGraphLayoutSection(
   graphLayout: GraphLayoutSettings,
-  sectionId: string,
-  visited = new Set<string>(),
-): { x: number; y: number } | undefined {
-  const section = graphLayout.sections[sectionId];
-  if (!section) {
+  node: FGNode,
+): GraphLayoutSettings['sections'][string] | undefined {
+  const section = graphLayout.sections[node.id];
+  const liveNode = getLiveGraphSectionNode(node);
+  if (!section || !liveNode) {
     return undefined;
   }
 
-  if (visited.has(sectionId)) {
-    return { x: section.x, y: section.y };
-  }
-
-  const ownerSectionId = graphLayout.ownership[sectionId]?.ownerSectionId ?? null;
-  if (!ownerSectionId) {
-    return { x: section.x, y: section.y };
-  }
-
-  visited.add(sectionId);
-  const ownerTopLeft = getSectionWorldTopLeft(graphLayout, ownerSectionId, visited);
-  return ownerTopLeft
-    ? { x: ownerTopLeft.x + section.x, y: ownerTopLeft.y + section.y }
-    : { x: section.x, y: section.y };
+  const height = readLiveSectionDimension(liveNode.sectionHeight, section.height);
+  const width = readLiveSectionDimension(liveNode.sectionWidth, section.width);
+  const centerX = isFiniteNumber(liveNode.x) ? liveNode.x : undefined;
+  const centerY = isFiniteNumber(liveNode.y) ? liveNode.y : undefined;
+  return {
+    ...section,
+    height,
+    width,
+    x: centerX === undefined ? section.x : centerX - (width / 2),
+    y: centerY === undefined ? section.y : centerY - (height / 2),
+  };
 }
 
 function createLiveGraphLayout(
@@ -97,33 +103,13 @@ function createLiveGraphLayout(
 
   const sections = { ...graphLayout.sections };
   for (const node of graphNodes) {
-    if (!node.isGraphSection || node.isCollapsedGraphSection) {
-      continue;
+    const liveSection = createLiveGraphLayoutSection(graphLayout, node);
+    if (liveSection) {
+      sections[node.id] = liveSection;
     }
-
-    const section = sections[node.id];
-    if (!section) {
-      continue;
-    }
-
-    const height = readLiveSectionDimension(node.sectionHeight, section.height);
-    const width = readLiveSectionDimension(node.sectionWidth, section.width);
-    const centerX = isFiniteNumber(node.x) ? node.x : undefined;
-    const centerY = isFiniteNumber(node.y) ? node.y : undefined;
-    sections[node.id] = {
-      ...section,
-      height,
-      width,
-      x: centerX === undefined ? section.x : centerX - (width / 2),
-      y: centerY === undefined ? section.y : centerY - (height / 2),
-    };
   }
 
   return { ...graphLayout, sections };
-}
-
-function getGraphLayoutItemKind(node: FGNode): GraphLayoutOwnershipUpdate['itemKind'] {
-  return node.isGraphSection ? 'section' : 'node';
 }
 
 function createOwnershipCandidateGraphLayout(
@@ -147,6 +133,29 @@ function createOwnershipCandidateGraphLayout(
   return { ...graphLayout, sections };
 }
 
+function getPinnedNodeOwnerSectionId(
+  node: FGNode,
+  graphLayout: GraphLayoutSettings | undefined,
+): string | null {
+  return graphLayout
+    ? (node.ownerSectionId ?? graphLayout.ownership[node.id]?.ownerSectionId ?? null)
+    : null;
+}
+
+function getPinnedNodePersistedPosition(
+  position: { x: number; y: number },
+  graphMode: GraphLayoutMode,
+  graphLayout: GraphLayoutSettings | undefined,
+  ownerSectionId: string | null,
+): { x: number; y: number } {
+  const ownerTopLeft = graphMode === '2d' && graphLayout && ownerSectionId
+    ? getGraphLayoutSectionWorldTopLeft(graphLayout, ownerSectionId)
+    : undefined;
+  return ownerTopLeft
+    ? { x: position.x - ownerTopLeft.x, y: position.y - ownerTopLeft.y }
+    : position;
+}
+
 function createPinnedNodeDragMessage(
   node: FGNode,
   graphMode: GraphLayoutMode,
@@ -163,15 +172,8 @@ function createPinnedNodeDragMessage(
   }
 
   const liveGraphLayout = graphLayout ? createLiveGraphLayout(graphLayout, graphNodes) : undefined;
-  const ownerSectionId = liveGraphLayout
-    ? (node.ownerSectionId ?? liveGraphLayout.ownership[node.id]?.ownerSectionId ?? null)
-    : null;
-  const ownerTopLeft = graphMode === '2d' && liveGraphLayout && ownerSectionId
-    ? getSectionWorldTopLeft(liveGraphLayout, ownerSectionId)
-    : undefined;
-  const persistedPosition = ownerTopLeft
-    ? { x: position.x - ownerTopLeft.x, y: position.y - ownerTopLeft.y }
-    : position;
+  const ownerSectionId = getPinnedNodeOwnerSectionId(node, liveGraphLayout);
+  const persistedPosition = getPinnedNodePersistedPosition(position, graphMode, liveGraphLayout, ownerSectionId);
 
   return {
     type: 'UPDATE_GRAPH_LAYOUT_PIN',

@@ -4,9 +4,10 @@
  */
 
 import type { IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
-import type { Disposable } from '../../../../core/plugins/disposable';
 
-export type WebviewDisposable = Disposable;
+export interface WebviewDisposable {
+  dispose(): void;
+}
 
 export type GraphPluginSlot =
   | 'toolbar'
@@ -83,14 +84,14 @@ export interface LabelOpts {
 export interface CodeGraphyWebviewAPI {
   getContainer(): HTMLDivElement;
   getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
-  registerNodeRenderer(type: string, fn: NodeRenderFn): Disposable;
-  registerOverlay(id: string, fn: OverlayRenderFn): Disposable;
-  registerTooltipProvider(fn: TooltipProviderFn): Disposable;
+  registerNodeRenderer(type: string, fn: NodeRenderFn): WebviewDisposable;
+  registerOverlay(id: string, fn: OverlayRenderFn): WebviewDisposable;
+  registerTooltipProvider(fn: TooltipProviderFn): WebviewDisposable;
   helpers: {
     drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void;
     drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void;
     drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void;
   };
   sendMessage(msg: { type: string; data: unknown }): void;
-  onMessage(handler: (msg: { type: string; data: unknown }) => void): Disposable;
+  onMessage(handler: (msg: { type: string; data: unknown }) => void): WebviewDisposable;
 }

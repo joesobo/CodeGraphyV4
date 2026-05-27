@@ -7,11 +7,11 @@ Adds C# ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/
 
 ## Install
 
-Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/core` first if the `codegraphy` CLI is not already available.
 
 ```bash
 npm i -g @codegraphy-dev/plugin-csharp
-codegraphy plugins refresh
+codegraphy plugins register @codegraphy-dev/plugin-csharp
 codegraphy plugins enable @codegraphy-dev/plugin-csharp
 codegraphy index
 ```
@@ -22,7 +22,7 @@ The built-in Tree-sitter plugin now owns C# analysis inside `@codegraphy-dev/cor
 This plugin is intentionally lightweight and only adds:
 
 - C# ecosystem ignore filters
-- plugin install / enable / disable state for C#-specific defaults
+- workspace enablement for C#-specific defaults
 
 Core CodeGraphy now owns the default C# icons and colors through Material Icon Theme.
 This plugin no longer ships general file theming.

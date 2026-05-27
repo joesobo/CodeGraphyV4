@@ -5,48 +5,8 @@ import type {
 } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { addInheritRelation, createSymbol } from '../analyze/results';
-import { resolvePhpTypePath } from '../projectRoots/php';
-
-function getPhpTypeKind(node: Parser.SyntaxNode): 'class' | 'enum' | 'interface' | 'trait' {
-  switch (node.type) {
-    case 'interface_declaration':
-      return 'interface';
-    case 'trait_declaration':
-      return 'trait';
-    case 'enum_declaration':
-      return 'enum';
-    default:
-      return 'class';
-  }
-}
-
-function resolvePhpReferencePath(
-  sourceRoot: string | null,
-  namespaceName: string | null,
-  importedBindings: ReadonlyMap<string, ImportedBinding>,
-  typeName: string,
-): string | null {
-  const importedBinding = importedBindings.get(typeName);
-  if (importedBinding?.resolvedPath) {
-    return importedBinding.resolvedPath;
-  }
-
-  if (typeName.includes('\\')) {
-    return resolvePhpTypePath(sourceRoot, typeName);
-  }
-
-  return namespaceName
-    ? resolvePhpTypePath(sourceRoot, `${namespaceName}\\${typeName}`)
-    : null;
-}
-
-function getClauseTypeNames(node: Parser.SyntaxNode, clauseType: string): string[] {
-  return node.namedChildren
-    .filter((child) => child.type === clauseType)
-    .flatMap((clause) => clause.namedChildren)
-    .filter((child) => child.type === 'name' || child.type === 'qualified_name')
-    .map((child) => child.text);
-}
+import { resolvePhpReferencePath } from './references';
+import { getClauseTypeNames, getPhpTypeKind } from './typeDeclarations';
 
 export function handlePhpTypeDeclaration(
   node: Parser.SyntaxNode,

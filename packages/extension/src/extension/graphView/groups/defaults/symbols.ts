@@ -66,31 +66,27 @@ function symbolGroupMatchesNode(
     return false;
   }
 
-  if (group.matchNodeType && group.matchNodeType !== node.nodeType) {
-    return false;
-  }
-  if (group.matchSymbolKind && group.matchSymbolKind !== symbol.kind) {
-    return false;
-  }
-  if (group.matchSymbolKinds && !group.matchSymbolKinds.includes(symbol.kind)) {
-    return false;
-  }
-  if (group.matchSymbolPluginKind && group.matchSymbolPluginKind !== symbol.pluginKind) {
-    return false;
-  }
-  if (group.matchSymbolSource && group.matchSymbolSource !== symbol.source) {
-    return false;
-  }
-  if (group.matchSymbolLanguage && group.matchSymbolLanguage !== symbol.language) {
-    return false;
-  }
-  if (group.matchSymbolFilePath && !globMatch(symbol.filePath, group.matchSymbolFilePath)) {
-    return false;
-  }
-
-  return true;
+  return matchesOptionalString(group.matchNodeType, node.nodeType)
+    && matchesOptionalString(group.matchSymbolKind, symbol.kind)
+    && matchesOptionalSymbolKinds(group.matchSymbolKinds, symbol.kind)
+    && matchesOptionalString(group.matchSymbolPluginKind, symbol.pluginKind)
+    && matchesOptionalString(group.matchSymbolSource, symbol.source)
+    && matchesOptionalString(group.matchSymbolLanguage, symbol.language)
+    && matchesOptionalGlob(group.matchSymbolFilePath, symbol.filePath);
 }
 
 function createMaterialSymbolIconDataUrl(pathData: string): string {
   return toSvgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#FFFFFF" d="${pathData}"/></svg>`);
+}
+
+function matchesOptionalString(expected: string | undefined, actual: string | undefined): boolean {
+  return !expected || expected === actual;
+}
+
+function matchesOptionalSymbolKinds(expected: readonly string[] | undefined, actual: string | undefined): boolean {
+  return !expected || (actual !== undefined && expected.includes(actual));
+}
+
+function matchesOptionalGlob(expected: string | undefined, actual: string | undefined): boolean {
+  return !expected || (actual !== undefined && globMatch(actual, expected));
 }
