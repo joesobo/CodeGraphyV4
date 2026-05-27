@@ -89,6 +89,8 @@ codegraphy index /path/to/indexed-folder
 
 When testing through F5, launch only the public CodeGraphy VS Code extension. Do not add headless plugin package folders to VS Code's `extensionDevelopmentPath`; the extension host loads linked packages from `~/.codegraphy/plugins.json` and the opened workspace's `.codegraphy/settings.json`.
 
+The `Run Extension` launch config runs `pnpm run build:devhost` before opening the Extension Development Host. That command builds the public extension, builds the local public language plugin packages, links those packages into `~/.codegraphy/plugins.json`, and best-effort links a local `@codegraphy/organize` package when `CODEGRAPHY_ORGANIZE_PLUGIN_ROOT`, `CODEGRAPHY_PRO_PLUGINS_REPO`, or the standard sibling/private checkout path is present. It only upserts plugin registry entries; package enablement still belongs to the opened workspace and the Plugins panel.
+
 The Plugins panel is a package toggle surface. It shows package-backed plugins that can be enabled, disabled, and reordered for the current CodeGraphy Workspace. Core runtime internals such as Tree-sitter, and legacy VS Code extension plugin entries without a package backing, are not shown as plugin toggle rows.
 
 Disabling a package removes it from the workspace `plugins` array and reloads Graph View contributions. Package-owned persisted data may remain on disk, but its Graph View nodes, forces, context menu entries, toolbar create entries, webview injections, and UI slots only render while that package is enabled and loaded. The Graph View host broadcasts the refreshed plugin status and contribution state immediately after a package toggle, before the follow-up graph analysis finishes.
