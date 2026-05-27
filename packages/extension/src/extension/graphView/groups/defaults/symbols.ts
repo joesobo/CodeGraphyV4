@@ -1,5 +1,5 @@
-import type { IGroup } from '../../../../shared/settings/groups';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import type { IGroup } from '../../../../shared/settings/groups';
 import { CORE_SYMBOL_GROUPS } from './symbols/core';
 import { symbolGroupMatchesNode } from './symbols/matching';
 import { PLUGIN_SYMBOL_GROUPS } from './symbols/plugins';

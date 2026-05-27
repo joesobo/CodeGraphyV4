@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import type { ExecFileOptions } from 'child_process';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
-import type { IGraphData } from '../../../src/shared/graph/contracts';
 
 // Mock vscode module
 vi.mock('vscode', () => ({
@@ -43,9 +42,8 @@ vi.mock('fs', async () => {
   };
 });
 
-import * as fs from 'fs';
-import { GitHistoryAnalyzer } from '../../../src/extension/gitHistory/analyzer';
 import type { PluginRegistry } from '../../../src/core/plugins/registry/manager';
+import { GitHistoryAnalyzer } from '../../../src/extension/gitHistory/analyzer';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -103,16 +101,6 @@ function createMockRegistry() {
   };
 }
 
-function createAnalysisResult(
-  filePath: string,
-  relations: IFileAnalysisResult['relations'] = [],
-): IFileAnalysisResult {
-  return {
-    filePath,
-    relations,
-  };
-}
-
 /**
  * Sets up execFile mock to handle multiple git commands by dispatching
  * on the args.
@@ -148,846 +136,148 @@ function liveAbortSignal(): AbortSignal {
   return new AbortController().signal;
 }
 
-function getWrittenGraph(index: number): IGraphData {
-  const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[index];
-  return JSON.parse(writeCallArgs[1] as string) as IGraphData;
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 describe('GitHistoryAnalyzer', () => {
-  let context: ReturnType<typeof createMockContext>;
-  let registry: ReturnType<typeof createMockRegistry>;
-  let analyzer: GitHistoryAnalyzer;
-  const workspaceRoot = '/workspace';
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    context = createMockContext();
-    registry = createMockRegistry();
-    analyzer = new GitHistoryAnalyzer(
-      context as never,
-      registry,
-      workspaceRoot
-    );
-  });
+    let context: ReturnType<typeof createMockContext>;
 
-  // =========================================================================
-  // getCommitList
-  // =========================================================================
+
+    let registry: ReturnType<typeof createMockRegistry>;
+
+
+    let analyzer: GitHistoryAnalyzer;
+
+
+    const workspaceRoot = '/workspace';
+
+
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      context = createMockContext();
+      registry = createMockRegistry();
+      analyzer = new GitHistoryAnalyzer(
+        context as never,
+        registry,
+        workspaceRoot
+      );
+    });
 
   describe('getCommitList', () => {
-    it('should parse git log output and return commits oldest-first', async () => {
-      mockGitCommands([
-        { match: 'rev-parse --abbrev-ref HEAD', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: [
-            'abc123|1700000003|third commit|Alice|def456',
-            'def456|1700000002|second commit|Bob|ghi789',
-            'ghi789|1700000001|first commit|Alice|',
-          ].join('\n'),
-        },
-      ]);
 
-      const commits = await analyzer.getCommitList(100, liveAbortSignal());
+        it('should parse git log output and return commits oldest-first', async () => {
+          mockGitCommands([
+            { match: 'rev-parse --abbrev-ref HEAD', stdout: 'main\n' },
+            {
+              match: 'log',
+              stdout: [
+                'abc123|1700000003|third commit|Alice|def456',
+                'def456|1700000002|second commit|Bob|ghi789',
+                'ghi789|1700000001|first commit|Alice|',
+              ].join('\n'),
+            },
+          ]);
 
-      expect(commits).toHaveLength(3);
-      // Should be oldest-first (reversed from git log)
-      expect(commits[0].sha).toBe('ghi789');
-      expect(commits[0].timestamp).toBe(1700000001);
-      expect(commits[0].message).toBe('first commit');
-      expect(commits[0].author).toBe('Alice');
-      expect(commits[0].parents).toEqual([]);
+          const commits = await analyzer.getCommitList(100, liveAbortSignal());
 
-      expect(commits[1].sha).toBe('def456');
-      expect(commits[1].parents).toEqual(['ghi789']);
+          expect(commits).toHaveLength(3);
+          // Should be oldest-first (reversed from git log)
+          expect(commits[0].sha).toBe('ghi789');
+          expect(commits[0].timestamp).toBe(1700000001);
+          expect(commits[0].message).toBe('first commit');
+          expect(commits[0].author).toBe('Alice');
+          expect(commits[0].parents).toEqual([]);
 
-      expect(commits[2].sha).toBe('abc123');
-      expect(commits[2].parents).toEqual(['def456']);
-    });
+          expect(commits[1].sha).toBe('def456');
+          expect(commits[1].parents).toEqual(['ghi789']);
 
-    it('should handle commit messages that contain pipe characters', async () => {
-      mockGitCommands([
-        { match: 'rev-parse --abbrev-ref HEAD', stdout: 'develop\n' },
-        {
-          match: 'log',
-          stdout: 'sha1|1700000001|fix: handle a|b case|Dev|parent1\n',
-        },
-      ]);
+          expect(commits[2].sha).toBe('abc123');
+          expect(commits[2].parents).toEqual(['def456']);
+        });
 
-      const commits = await analyzer.getCommitList(10, liveAbortSignal());
 
-      expect(commits).toHaveLength(1);
-      // With split limit 5, the message gets the third part
-      expect(commits[0].sha).toBe('sha1');
-      expect(commits[0].message).toBe('fix: handle a');
-    });
 
-    it('should detect the current branch dynamically', async () => {
-      const mockedExecFile = mockExecFile;
-      const calls: string[][] = [];
+        it('should handle commit messages that contain pipe characters', async () => {
+          mockGitCommands([
+            { match: 'rev-parse --abbrev-ref HEAD', stdout: 'develop\n' },
+            {
+              match: 'log',
+              stdout: 'sha1|1700000001|fix: handle a|b case|Dev|parent1\n',
+            },
+          ]);
 
-      mockedExecFile.mockImplementation(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((_cmd: string, args: readonly string[], _opts: unknown, cb?: (...cbArgs: any[]) => void) => {
-          calls.push(args as string[]);
-          const joined = (args as string[]).join(' ');
-          if (joined.includes('rev-parse')) {
-            cb?.(null, 'feature-branch\n', '');
-          } else {
-            cb?.(null, '', '');
-          }
-          return undefined as never;
-        }) as never
-      );
+          const commits = await analyzer.getCommitList(10, liveAbortSignal());
 
-      await analyzer.getCommitList(10, liveAbortSignal());
+          expect(commits).toHaveLength(1);
+          // With split limit 5, the message gets the third part
+          expect(commits[0].sha).toBe('sha1');
+          expect(commits[0].message).toBe('fix: handle a');
+        });
 
-      // The log command should use the detected branch name
-      const logCall = calls.find((call) => call.includes('log'));
-      expect(logCall).toBeDefined();
-      expect(logCall).toContain('feature-branch');
-    });
 
-    it('should return empty array for empty git log', async () => {
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        { match: 'log', stdout: '\n' },
-      ]);
 
-      const commits = await analyzer.getCommitList(10, liveAbortSignal());
-      expect(commits).toEqual([]);
-    });
+        it('should detect the current branch dynamically', async () => {
+          const mockedExecFile = mockExecFile;
+          const calls: string[][] = [];
 
-    it('passes the workspace root and git execution buffer options into child process calls', async () => {
-      const capturedOptions: Array<{ cwd?: string; maxBuffer?: number }> = [];
-      mockExecFile.mockImplementation(((
-        _cmd: string,
-        args: readonly string[],
-        opts: ExecFileOptions,
-        cb?: (error: Error | null, stdout: string, stderr: string) => void,
-      ) => {
-        capturedOptions.push(opts as { cwd?: string; maxBuffer?: number });
-        const joined = [...args].join(' ');
-        if (joined.includes('rev-parse')) {
-          cb?.(null, 'main\n', '');
-        } else if (joined.includes('log')) {
-          cb?.(null, '', '');
-        }
-        return undefined as never;
-      }) as never);
-      await analyzer.getCommitList(10, liveAbortSignal());
+          mockedExecFile.mockImplementation(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ((_cmd: string, args: readonly string[], _opts: unknown, cb?: (...cbArgs: any[]) => void) => {
+              calls.push(args as string[]);
+              const joined = (args as string[]).join(' ');
+              if (joined.includes('rev-parse')) {
+                cb?.(null, 'feature-branch\n', '');
+              } else {
+                cb?.(null, '', '');
+              }
+              return undefined as never;
+            }) as never
+          );
 
-      expect(capturedOptions).toEqual([
-        expect.objectContaining({ cwd: workspaceRoot, maxBuffer: 10 * 1024 * 1024 }),
-        expect.objectContaining({ cwd: workspaceRoot, maxBuffer: 10 * 1024 * 1024 }),
-      ]);
-    });
-  });
+          await analyzer.getCommitList(10, liveAbortSignal());
 
-  // =========================================================================
-  // getGraphDataForCommit — cache hit / miss
-  // =========================================================================
+          // The log command should use the detected branch name
+          const logCall = calls.find((call) => call.includes('log'));
+          expect(logCall).toBeDefined();
+          expect(logCall).toContain('feature-branch');
+        });
 
-  describe('getGraphDataForCommit', () => {
-    it('should return cached graph data on cache hit', async () => {
-      const cachedData: IGraphData = {
-        nodes: [{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }],
-        edges: [],
-      };
 
-      vi.mocked(fs.promises.access).mockResolvedValue(undefined);
-      vi.mocked(fs.promises.readFile).mockResolvedValue(JSON.stringify(cachedData));
 
-      const result = await analyzer.getGraphDataForCommit('abc123');
+        it('should return empty array for empty git log', async () => {
+          mockGitCommands([
+            { match: 'rev-parse', stdout: 'main\n' },
+            { match: 'log', stdout: '\n' },
+          ]);
 
-      expect(result).toEqual(cachedData);
-      expect(fs.promises.readFile).toHaveBeenCalledWith(
-        expect.stringContaining('abc123.json'),
-        'utf-8'
-      );
-    });
+          const commits = await analyzer.getCommitList(10, liveAbortSignal());
+          expect(commits).toEqual([]);
+        });
 
-    it('should return empty graph data on cache miss', async () => {
-      vi.mocked(fs.promises.access).mockRejectedValue(new Error('ENOENT'));
 
-      const result = await analyzer.getGraphDataForCommit('nonexistent');
 
-      expect(result).toEqual({ nodes: [], edges: [] });
-    });
-
-    it('should return empty graph data when storageUri is undefined', async () => {
-      const ctxNoStorage = createMockContext();
-      ctxNoStorage.storageUri = undefined as never;
-      const analyzerNoStorage = new GitHistoryAnalyzer(ctxNoStorage as never, registry, workspaceRoot);
-
-      const result = await analyzerNoStorage.getGraphDataForCommit('abc123');
-      expect(result).toEqual({ nodes: [], edges: [] });
-    });
-  });
-
-  // =========================================================================
-  // indexHistory — diff parsing
-  // =========================================================================
-
-  describe('indexHistory', () => {
-    it('should fully analyze the first commit and diff-analyze subsequent commits', async () => {
-      // Two commits: first and second
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: [
-            'sha2|1700000002|second|Alice|sha1',
-            'sha1|1700000001|first|Bob|',
-          ].join('\n'),
-        },
-        // First commit: ls-tree
-        {
-          match: 'ls-tree',
-          stdout: 'src/a.ts\nsrc/b.ts\n',
-        },
-        // git show for first commit files
-        {
-          match: /show sha1:src\/a\.ts/,
-          stdout: 'import { b } from "./b";',
-        },
-        {
-          match: /show sha1:src\/b\.ts/,
-          stdout: 'export const b = 1;',
-        },
-        // Diff for second commit
-        {
-          match: /diff --name-status/,
-          stdout: 'A\tsrc/c.ts\nM\tsrc/a.ts\n',
-        },
-        // git show for second commit files
-        {
-          match: /show sha2:src\/c\.ts/,
-          stdout: 'export const c = 2;',
-        },
-        {
-          match: /show sha2:src\/a\.ts/,
-          stdout: 'import { b } from "./b";\nimport { c } from "./c";',
-        },
-      ]);
-
-      // Configure registry to return connections
-      registry.analyzeFileResult.mockImplementation(
-        async (filePath: string, content: string, _root: string) => {
-          if (filePath.endsWith('a.ts') && content.includes('./b')) {
-            const relations = [
-              {
-                specifier: './b',
-                resolvedPath: '/workspace/src/b.ts',
-                type: 'static' as const,
-                kind: 'import' as const,
-                sourceId: 'import',
-                fromFilePath: filePath,
-              },
-            ];
-            if (content.includes('./c')) {
-              relations.push({
-                specifier: './c',
-                resolvedPath: '/workspace/src/c.ts',
-                type: 'static' as const,
-                kind: 'import' as const,
-                sourceId: 'import',
-                fromFilePath: filePath,
-              });
+        it('passes the workspace root and git execution buffer options into child process calls', async () => {
+          const capturedOptions: Array<{ cwd?: string; maxBuffer?: number }> = [];
+          mockExecFile.mockImplementation(((
+            _cmd: string,
+            args: readonly string[],
+            opts: ExecFileOptions,
+            cb?: (error: Error | null, stdout: string, stderr: string) => void,
+          ) => {
+            capturedOptions.push(opts as { cwd?: string; maxBuffer?: number });
+            const joined = [...args].join(' ');
+            if (joined.includes('rev-parse')) {
+              cb?.(null, 'main\n', '');
+            } else if (joined.includes('log')) {
+              cb?.(null, '', '');
             }
-            return createAnalysisResult(filePath, relations);
-          }
-          return createAnalysisResult(filePath);
-        }
-      );
-
-      const progress = vi.fn();
-      const commits = await analyzer.indexHistory(progress, liveAbortSignal());
-
-      expect(commits).toHaveLength(2);
-      expect(commits[0].sha).toBe('sha1');
-      expect(commits[1].sha).toBe('sha2');
-
-      // Progress should be called for each commit
-      expect(progress).toHaveBeenCalledWith('Indexing commits', 1, 2);
-      expect(progress).toHaveBeenCalledWith('Indexing commits', 2, 2);
-
-      // Cache should be written
-      expect(fs.promises.writeFile).toHaveBeenCalledTimes(2);
-
-      // Commit list should be stored in workspaceState
-      expect(context.workspaceState.update).toHaveBeenCalledWith(
-        'codegraphy.timelineCommits',
-        commits
-      );
-    });
-
-    it('writes cumulative churn into each cached graph revision', async () => {
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
-        },
-        { match: /ls-tree -r --name-only sha1/, stdout: 'src/a.ts\nsrc/b.ts\n' },
-        { match: /ls-tree -r --name-only sha2/, stdout: 'src/a.ts\nsrc/b.ts\nsrc/c.ts\n' },
-        { match: /show sha1:/, stdout: '' },
-        {
-          match: /diff --name-status/,
-          stdout: 'M\tsrc/a.ts\nA\tsrc/c.ts\n',
-        },
-        { match: /show sha2:/, stdout: '' },
-      ]);
-
-      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
-
-      const firstGraph = getWrittenGraph(0);
-      expect(firstGraph.nodes).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: 'src/a.ts', churn: 1 }),
-          expect.objectContaining({ id: 'src/b.ts', churn: 1 }),
-        ]),
-      );
-
-      const secondGraph = getWrittenGraph(1);
-      expect(secondGraph.nodes).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: 'src/a.ts', churn: 2 }),
-          expect.objectContaining({ id: 'src/b.ts', churn: 1 }),
-          expect.objectContaining({ id: 'src/c.ts', churn: 1 }),
-        ]),
-      );
-      expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineChurnCounts', {
-        'src/a.ts': 2,
-        'src/b.ts': 1,
-        'src/c.ts': 1,
-      });
-    });
-
-    it('should handle Added files in diff', async () => {
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
-        },
-        { match: /ls-tree -r --name-only sha1/, stdout: 'src/a.ts\n' },
-        { match: /ls-tree -r --name-only sha2/, stdout: 'src/a.ts\nsrc/new.ts\n' },
-        { match: /show sha1:/, stdout: '' },
-        {
-          match: /diff --name-status/,
-          stdout: 'A\tsrc/new.ts\n',
-        },
-        { match: /show sha2:/, stdout: 'const x = 1;' },
-      ]);
-
-      const progress = vi.fn();
-      const commits = await analyzer.indexHistory(progress, liveAbortSignal());
-
-      expect(commits).toHaveLength(2);
-
-      // Verify writeFile was called for both commits
-      expect(fs.promises.writeFile).toHaveBeenCalledTimes(2);
-
-      // Parse the second commit's cached graph to verify the added node
-      const secondGraph = getWrittenGraph(1);
-      const nodeIds = secondGraph.nodes.map((n) => n.id);
-      expect(nodeIds).toContain('src/new.ts');
-    });
-
-    it('should handle Deleted files in diff', async () => {
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
-        },
-        { match: 'ls-tree', stdout: 'src/a.ts\nsrc/b.ts\n' },
-        { match: /show sha1:/, stdout: '' },
-        {
-          match: /diff --name-status/,
-          stdout: 'D\tsrc/b.ts\n',
-        },
-      ]);
-
-      const progress = vi.fn();
-      await analyzer.indexHistory(progress, liveAbortSignal());
-
-      // Parse the second commit's cached graph
-      const secondGraph = getWrittenGraph(1);
-      const nodeIds = secondGraph.nodes.map((n) => n.id);
-      expect(nodeIds).not.toContain('src/b.ts');
-      expect(nodeIds).toContain('src/a.ts');
-    });
-
-    it('should handle Modified files in diff by re-analyzing', async () => {
-      // Setup: a.ts imports b.ts at sha1, then at sha2 it also imports c.ts
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
-        },
-        { match: 'ls-tree', stdout: 'src/a.ts\nsrc/b.ts\nsrc/c.ts\n' },
-        { match: /show sha1:src\/a\.ts/, stdout: 'import "./b";' },
-        { match: /show sha1:src\/b\.ts/, stdout: '' },
-        { match: /show sha1:src\/c\.ts/, stdout: '' },
-        {
-          match: /diff --name-status/,
-          stdout: 'M\tsrc/a.ts\n',
-        },
-        {
-          match: /show sha2:src\/a\.ts/,
-          stdout: 'import "./b"; import "./c";',
-        },
-      ]);
-
-      let callCount = 0;
-      registry.analyzeFileResult.mockImplementation(
-        async (filePath: string, _content: string) => {
-          callCount++;
-          if (filePath.endsWith('a.ts')) {
-            if (callCount <= 3) {
-              // First commit: only b
-              return createAnalysisResult(filePath, [
-                {
-                  specifier: './b',
-                  resolvedPath: '/workspace/src/b.ts',
-                  type: 'static' as const,
-                  kind: 'import',
-                  sourceId: 'import',
-                  fromFilePath: filePath,
-                },
-              ]);
-            }
-            // Second commit: b and c
-            return createAnalysisResult(filePath, [
-              {
-                specifier: './b',
-                resolvedPath: '/workspace/src/b.ts',
-                type: 'static' as const,
-                kind: 'import',
-                sourceId: 'import',
-                fromFilePath: filePath,
-              },
-              {
-                specifier: './c',
-                resolvedPath: '/workspace/src/c.ts',
-                type: 'static' as const,
-                kind: 'import',
-                sourceId: 'import',
-                fromFilePath: filePath,
-              },
-            ]);
-          }
-          return createAnalysisResult(filePath);
-        }
-      );
-
-      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
-
-      // Parse the second commit's graph
-      const secondGraph = getWrittenGraph(1);
-      const edgeTargets = secondGraph.edges.filter((e) => e.from === 'src/a.ts').map((e) => e.to);
-      expect(edgeTargets).toContain('src/b.ts');
-      expect(edgeTargets).toContain('src/c.ts');
-    });
-
-    it('should handle Renamed files by updating node id and repointing edges', async () => {
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
-        },
-        { match: /ls-tree -r --name-only sha1/, stdout: 'src/old.ts\nsrc/main.ts\n' },
-        { match: /ls-tree -r --name-only sha2/, stdout: 'src/new.ts\nsrc/main.ts\n' },
-        { match: /show sha1:src\/old\.ts/, stdout: '' },
-        { match: /show sha1:src\/main\.ts/, stdout: 'import "./old";' },
-        {
-          match: /diff --name-status/,
-          stdout: 'R100\tsrc/old.ts\tsrc/new.ts\n',
-        },
-        { match: /show sha2:src\/new\.ts/, stdout: '' },
-      ]);
-
-      // main.ts imports old.ts at sha1
-      registry.analyzeFileResult.mockImplementation(
-        async (filePath: string) => {
-          if (filePath.endsWith('main.ts')) {
-            return createAnalysisResult(filePath, [
-              {
-                specifier: './old',
-                resolvedPath: '/workspace/src/old.ts',
-                type: 'static' as const,
-                kind: 'import',
-                sourceId: 'import',
-                fromFilePath: filePath,
-              },
-            ]);
-          }
-          return createAnalysisResult(filePath);
-        }
-      );
-
-      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
-
-      // First commit should have old.ts
-      const firstGraph = getWrittenGraph(0);
-      expect(firstGraph.nodes.map((n) => n.id)).toContain('src/old.ts');
-
-      // Second commit should have src/new.ts instead of src/old.ts
-      const secondGraph = getWrittenGraph(1);
-      const nodeIds = secondGraph.nodes.map((n) => n.id);
-      expect(nodeIds).toContain('src/new.ts');
-      expect(nodeIds).not.toContain('src/old.ts');
-
-      // Edge from main.ts should now point to new.ts
-      const mainEdge = secondGraph.edges.find((e) => e.from === 'src/main.ts');
-      expect(mainEdge?.to).toBe('src/new.ts');
-    });
-
-    it('carries churn forward when git reports a rename', async () => {
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: 'sha3|3|third|A|sha2\nsha2|2|second|A|sha1\nsha1|1|first|B|\n',
-        },
-        { match: /ls-tree -r --name-only sha1/, stdout: 'src/old.ts\n' },
-        { match: /ls-tree -r --name-only sha2/, stdout: 'src/old.ts\n' },
-        { match: /ls-tree -r --name-only sha3/, stdout: 'src/new.ts\n' },
-        { match: /show sha1:/, stdout: '' },
-        { match: /show sha2:/, stdout: '' },
-        { match: /show sha3:/, stdout: '' },
-        {
-          match: /diff --name-status .*sha1 sha2/,
-          stdout: 'M\tsrc/old.ts\n',
-        },
-        {
-          match: /diff --name-status .*sha2 sha3/,
-          stdout: 'R100\tsrc/old.ts\tsrc/new.ts\n',
-        },
-      ]);
-
-      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
-
-      const renamedGraph = getWrittenGraph(2);
-      expect(renamedGraph.nodes).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: 'src/new.ts', churn: 3 }),
-        ]),
-      );
-      expect(renamedGraph.nodes).not.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: 'src/old.ts' }),
-        ]),
-      );
-    });
-  });
-
-  // =========================================================================
-  // Exclude patterns
-  // =========================================================================
-
-  describe('exclude patterns', () => {
-    it('does not exclude files when the default exclude pattern list is used', async () => {
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        { match: 'log', stdout: 'sha1|1|first|A|\n' },
-        {
-          match: 'ls-tree',
-          stdout: 'src/Stryker was here.ts\n',
-        },
-        { match: /show sha1:/, stdout: '' },
-      ]);
-
-      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
-
-      const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
-      const graph = JSON.parse(writeCallArgs[1] as string) as IGraphData;
-
-      expect(graph.nodes.map((node) => node.id)).toContain('src/Stryker was here.ts');
-    });
-
-    it('should filter out excluded files during full commit analysis', async () => {
-      const analyzerWithExcludes = new GitHistoryAnalyzer(
-        context as never,
-        registry,
-        workspaceRoot,
-        ['assets/**', '**/node_modules/**']
-      );
-
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: 'sha1|1|first|A|\n',
-        },
-        {
-          match: 'ls-tree',
-          stdout: 'src/index.ts\nsrc/utils.ts\nassets/logo.ts\nnode_modules/lib/index.ts\n',
-        },
-        { match: /show sha1:/, stdout: '' },
-      ]);
-
-      await analyzerWithExcludes.indexHistory(vi.fn(), liveAbortSignal());
-
-      // Only non-excluded files should be analyzed
-      const analyzeCalls = registry.analyzeFileResult.mock.calls;
-      const analyzedPaths = analyzeCalls.map((call) => call[0] as string);
-      for (const analyzedPath of analyzedPaths) {
-        expect(analyzedPath).not.toMatch(/assets\//);
-        expect(analyzedPath).not.toMatch(/node_modules\//);
-      }
-
-      // Check cached graph doesn't contain excluded nodes
-      const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
-      const graph = JSON.parse(writeCallArgs[1] as string) as IGraphData;
-      const nodeIds = graph.nodes.map((n) => n.id);
-      expect(nodeIds).toContain('src/index.ts');
-      expect(nodeIds).toContain('src/utils.ts');
-      expect(nodeIds).not.toContain('assets/logo.ts');
-      expect(nodeIds).not.toContain('node_modules/lib/index.ts');
-    });
-
-    it('should skip excluded files when handling Added in diff', async () => {
-      const analyzerWithExcludes = new GitHistoryAnalyzer(
-        context as never,
-        registry,
-        workspaceRoot,
-        ['assets/**']
-      );
-
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
-        },
-        { match: /ls-tree -r --name-only sha1/, stdout: 'src/a.ts\n' },
-        { match: /ls-tree -r --name-only sha2/, stdout: 'src/a.ts\nsrc/b.ts\nassets/sprite.ts\n' },
-        { match: /show sha1:/, stdout: '' },
-        {
-          match: /diff --name-status/,
-          stdout: 'A\tassets/sprite.ts\nA\tsrc/b.ts\n',
-        },
-        { match: /show sha2:/, stdout: '' },
-      ]);
-
-      await analyzerWithExcludes.indexHistory(vi.fn(), liveAbortSignal());
-
-      // Check that assets/sprite.ts is not in the second commit's graph
-      const secondCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[1];
-      const graph = JSON.parse(secondCallArgs[1] as string) as IGraphData;
-      const nodeIds = graph.nodes.map((n) => n.id);
-      expect(nodeIds).toContain('src/a.ts');
-      expect(nodeIds).toContain('src/b.ts');
-      expect(nodeIds).not.toContain('assets/sprite.ts');
-    });
-
-    it('should work with matchBase option for simple glob patterns', async () => {
-      const analyzerWithExcludes = new GitHistoryAnalyzer(
-        context as never,
-        registry,
-        workspaceRoot,
-        ['*.test.ts']
-      );
-
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        { match: 'log', stdout: 'sha1|1|first|A|\n' },
-        {
-          match: 'ls-tree',
-          stdout: 'src/index.ts\nsrc/index.test.ts\ntests/utils.test.ts\n',
-        },
-        { match: /show sha1:/, stdout: '' },
-      ]);
-
-      await analyzerWithExcludes.indexHistory(vi.fn(), liveAbortSignal());
-
-      const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
-      const graph = JSON.parse(writeCallArgs[1] as string) as IGraphData;
-      const nodeIds = graph.nodes.map((n) => n.id);
-      expect(nodeIds).toContain('src/index.ts');
-      expect(nodeIds).not.toContain('src/index.test.ts');
-      expect(nodeIds).not.toContain('tests/utils.test.ts');
-    });
-  });
-
-  // =========================================================================
-  // Abort signal
-  // =========================================================================
-
-  describe('abort signal', () => {
-    it('should stop indexing when abort signal fires', async () => {
-      const controller = new AbortController();
-
-      mockGitCommands([
-        { match: 'rev-parse', stdout: 'main\n' },
-        {
-          match: 'log',
-          stdout: [
-            'sha3|3|third|A|sha2',
-            'sha2|2|second|A|sha1',
-            'sha1|1|first|B|',
-          ].join('\n'),
-        },
-        { match: 'ls-tree', stdout: 'src/a.ts\n' },
-        { match: /show sha1:/, stdout: '' },
-        { match: /diff --name-status/, stdout: '' },
-        { match: /show sha2:/, stdout: '' },
-      ]);
-
-      const progress = vi.fn();
-
-      // Abort after the second commit finishes caching (progress reports after each commit is cached)
-      progress.mockImplementation((_phase: string, current: number) => {
-        if (current === 2) {
-          controller.abort();
-        }
-      });
-
-      await expect(
-        analyzer.indexHistory(progress, controller.signal)
-      ).rejects.toThrow('Indexing aborted');
-
-      // The first two commits should have been cached before the abort is observed
-      expect(fs.promises.writeFile).toHaveBeenCalledTimes(2);
-      // Progress should have been called for commit 1 and commit 2 (where abort happened)
-      expect(progress).toHaveBeenCalledWith('Indexing commits', 1, 3);
-      expect(progress).toHaveBeenCalledWith('Indexing commits', 2, 3);
-      // But NOT for commit 3
-      expect(progress).not.toHaveBeenCalledWith('Indexing commits', 3, 3);
-    });
-  });
-
-  // =========================================================================
-  // invalidateCache
-  // =========================================================================
-
-  describe('invalidateCache', () => {
-    it('should remove cache directory and clear workspace state', async () => {
-      vi.mocked(fs.promises.rm).mockResolvedValue(undefined);
-
-      await analyzer.invalidateCache();
-
-      expect(fs.promises.rm).toHaveBeenCalledWith(
-        expect.stringContaining('git-cache'),
-        { recursive: true, force: true }
-      );
-      expect(context.workspaceState.update).toHaveBeenCalledWith(
-        'codegraphy.timelineCommits',
-        undefined
-      );
-      expect(context.workspaceState.update).toHaveBeenCalledWith(
-        'codegraphy.timelineCacheVersion',
-        undefined
-      );
-    });
-  });
-
-  // =========================================================================
-  // hasCachedTimeline / getCachedCommitList
-  // =========================================================================
-
-  describe('hasCachedTimeline', () => {
-    it('should return false when no cache version is stored', () => {
-      expect(analyzer.hasCachedTimeline()).toBe(false);
-    });
-
-    it('should return true when correct cache version and plugin signature are stored', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
-      context._stateStore.set(
-        'codegraphy.timelinePluginSignature',
-        'test.plugin@1.0.0',
-      );
-      expect(analyzer.hasCachedTimeline()).toBe(true);
-    });
-
-    it('should sort plugin signatures before comparing them to cached timeline metadata', () => {
-      registry.list.mockReturnValue([
-        { plugin: { id: 'z.plugin', version: '2.0.0' } },
-        { plugin: { id: 'a.plugin', version: '1.0.0' } },
-      ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
-      context._stateStore.set(
-        'codegraphy.timelinePluginSignature',
-        'a.plugin@1.0.0|z.plugin@2.0.0',
-      );
-
-      expect(analyzer.hasCachedTimeline()).toBe(true);
-    });
-
-    it('should return false when cache version does not match', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '0.9.0');
-      expect(analyzer.hasCachedTimeline()).toBe(false);
-    });
-
-    it('should return false when plugin signature does not match the current registry', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
-      context._stateStore.set(
-        'codegraphy.timelinePluginSignature',
-        'stale.plugin@1.0.0',
-      );
-
-      expect(analyzer.hasCachedTimeline()).toBe(false);
-    });
-  });
-
-  describe('getCachedCommitList', () => {
-    it('should return null when no cache exists', () => {
-      expect(analyzer.getCachedCommitList()).toBeNull();
-    });
-
-    it('should return cached commits when cache version and plugin signature match', () => {
-      const commits = [
-        { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
-      ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
-      context._stateStore.set(
-        'codegraphy.timelinePluginSignature',
-        'test.plugin@1.0.0',
-      );
-      context._stateStore.set('codegraphy.timelineCommits', commits);
-
-      expect(analyzer.getCachedCommitList()).toEqual(commits);
-    });
-
-    it('should read cached commits when multiple plugin signatures are joined with pipes in sorted order', () => {
-      const commits = [
-        { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
-      ];
-      registry.list.mockReturnValue([
-        { plugin: { id: 'z.plugin', version: '2.0.0' } },
-        { plugin: { id: 'a.plugin', version: '1.0.0' } },
-      ]);
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
-      context._stateStore.set(
-        'codegraphy.timelinePluginSignature',
-        'a.plugin@1.0.0|z.plugin@2.0.0',
-      );
-      context._stateStore.set('codegraphy.timelineCommits', commits);
-
-      expect(analyzer.getCachedCommitList()).toEqual(commits);
-    });
-
-    it('should return null when the cached plugin signature does not match', () => {
-      const commits = [
-        { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
-      ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.4.0');
-      context._stateStore.set(
-        'codegraphy.timelinePluginSignature',
-        'stale.plugin@1.0.0',
-      );
-      context._stateStore.set('codegraphy.timelineCommits', commits);
-
-      expect(analyzer.getCachedCommitList()).toBeNull();
-    });
+            return undefined as never;
+          }) as never);
+          await analyzer.getCommitList(10, liveAbortSignal());
+
+          expect(capturedOptions).toEqual([
+            expect.objectContaining({ cwd: workspaceRoot, maxBuffer: 10 * 1024 * 1024 }),
+            expect.objectContaining({ cwd: workspaceRoot, maxBuffer: 10 * 1024 * 1024 }),
+          ]);
+        });
   });
 });

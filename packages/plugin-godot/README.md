@@ -7,11 +7,11 @@ Adds Godot GDScript relationship analysis to [CodeGraphy](https://marketplace.vi
 
 ## Install
 
-Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/core` first if the `codegraphy` CLI is not already available.
 
 ```bash
 npm i -g @codegraphy-dev/plugin-godot
-codegraphy plugins refresh
+codegraphy plugins register @codegraphy-dev/plugin-godot
 codegraphy plugins enable @codegraphy-dev/plugin-godot
 codegraphy index
 ```

@@ -10,6 +10,7 @@ function setEditorBackground(value: string): void {
 describe('detectTheme', () => {
   beforeEach(() => {
     editorBackground = '';
+    delete document.body.dataset.codegraphyTheme;
     vi.spyOn(window, 'getComputedStyle').mockImplementation(() => ({
       getPropertyValue: (prop: string) => {
         if (prop === '--vscode-editor-background') return editorBackground;
@@ -19,12 +20,19 @@ describe('detectTheme', () => {
   });
 
   afterEach(() => {
+    delete document.body.dataset.codegraphyTheme;
     vi.restoreAllMocks();
   });
 
   it('returns dark when the editor background is empty', () => {
     setEditorBackground('');
     expect(detectTheme()).toBe('dark');
+  });
+
+  it('uses the bootstrapped body theme when the editor background is not ready yet', () => {
+    document.body.dataset.codegraphyTheme = 'light';
+
+    expect(detectTheme()).toBe('light');
   });
 
   it('returns dark when the editor background is only whitespace', () => {
