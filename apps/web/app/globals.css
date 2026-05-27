@@ -17,7 +17,6 @@
   --accent-foreground: 211 72% 30%;
   --brand-blue: 210 72% 42%;
   --brand-orange: 28 86% 46%;
-  --brand-green: 102 31% 42%;
   --border: 214 20% 83%;
   --input: 214 20% 83%;
   --ring: 210 72% 42%;
@@ -62,11 +61,6 @@ img {
 .site-heading {
   font-family: Georgia, Cambria, "Times New Roman", Times, serif;
   font-weight: 600;
-  letter-spacing: 0;
-}
-
-.font-note {
-  font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
   letter-spacing: 0;
 }
 
@@ -124,6 +118,13 @@ img {
 .notebook-card {
   background: hsl(var(--card) / 0.9);
   box-shadow: 0 12px 30px hsl(var(--foreground) / 0.07);
+}
+
+.workflow-studio {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--card) / 0.72);
+  box-shadow: 0 14px 34px hsl(var(--foreground) / 0.06);
 }
 
 .graph-preview-grid {

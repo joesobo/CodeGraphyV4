@@ -128,14 +128,14 @@ export function HomeView(): React.ReactElement {
           <div className="home-hero-overlay absolute inset-0" />
           <div className="relative mx-auto grid min-h-[720px] max-w-7xl items-end gap-10 px-5 pb-20 pt-28 md:grid-cols-[0.9fr_0.7fr] md:px-8">
             <div className="max-w-3xl">
-              <p className="font-note section-kicker-blue mb-3 text-lg">
+              <p className="section-kicker-blue mb-3 text-sm font-black uppercase tracking-[0.08em]">
                 Follow the natural shape.
               </p>
               <h1 className="site-heading text-5xl leading-[0.95] text-foreground sm:text-7xl lg:text-8xl">
                 See how everything connects.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-                CodeGraphy maps the real structure of your code so files, symbols, plugins, and agents can work from the same relationships.
+                CodeGraphy turns a codebase into a visual map, so you can see what changes together before you reorganize, rename, or ask an agent for help.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg">
@@ -155,7 +155,7 @@ export function HomeView(): React.ReactElement {
             <aside className="hero-studio-panel">
               <div className="flex items-center justify-between gap-4 border-b border-border/70 px-5 py-4">
                 <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Graph studio</p>
-                <span className="rounded-full bg-[hsl(var(--brand-green)/0.12)] px-3 py-1 text-xs font-bold text-[hsl(var(--brand-green))]">
+                <span className="rounded-full bg-[hsl(var(--brand-blue)/0.12)] px-3 py-1 text-xs font-bold text-[hsl(var(--brand-blue))]">
                   Local first
                 </span>
               </div>
@@ -176,7 +176,7 @@ export function HomeView(): React.ReactElement {
                   );
                 })}
               </div>
-              <p className="graph-note font-note mx-5 mb-5 rounded-md px-4 py-3 text-[15px] leading-7 text-foreground">
+              <p className="graph-note mx-5 mb-5 rounded-md px-4 py-3 text-sm font-semibold leading-7 text-foreground">
                 Tip: nearby nodes usually mean nearby decisions.
               </p>
             </aside>
@@ -186,13 +186,13 @@ export function HomeView(): React.ReactElement {
         <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
             <div className="grid gap-8 md:grid-cols-[0.8fr_1fr] md:items-end">
               <div>
-                <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Social proof</p>
+                <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Example maps</p>
                 <h2 className="site-heading text-4xl sm:text-5xl">
-                  Popular repos, mapped from the top down.
+                  Open repos, mapped from the top down.
                 </h2>
               </div>
               <p className="text-lg leading-8 text-muted-foreground">
-                This section will become a demonstration gallery for curated popular repositories, each with tuned themes and settings so people can see what high-level graph views look like. CodeGraphy itself can be one of the examples.
+                This section will become a demonstration gallery for real public repositories, each with tuned themes and settings so people can compare how different codebases form different shapes.
               </p>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -248,23 +248,33 @@ export function HomeView(): React.ReactElement {
                 Instead of boxing code into arbitrary human categories, CodeGraphy leans into spatial awareness. Nearby nodes are naturally more relevant to what you are working on, and distant groups show where the system is pulling apart.
               </p>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {workflowSteps.map(step => {
-                const Icon = step.icon;
+            <div className="workflow-studio mt-8 grid gap-4 p-4 lg:grid-cols-[1fr_0.82fr]">
+              <div className="overflow-hidden rounded-md border border-border bg-background">
+                <img alt="" className="aspect-[16/10] w-full object-cover" src="/product-media/codegraphy-architecture.png" />
+                <div className="border-t border-border p-5">
+                  <p className="section-kicker-blue mb-2 text-xs font-black uppercase tracking-[0.08em]">Local relationship map</p>
+                  <p className="leading-7 text-muted-foreground">
+                    CodeGraphy starts from the real project, not a hand-drawn diagram. The map becomes the shared surface for editor workflows, private plugins, and agent context.
+                  </p>
+                </div>
+              </div>
+              <div className="grid content-start gap-3">
+                {workflowSteps.map(step => {
+                  const Icon = step.icon;
 
-                return (
-                  <Card className="notebook-card mt-8 overflow-hidden" key={step.title}>
-                    <img alt="" className="aspect-[16/10] w-full object-cover" src={step.image} />
-                    <div className="p-6">
-                      <span className="icon-badge mb-5">
-                        <Icon size={20} />
+                  return (
+                    <div className="hero-tool-row bg-card" key={step.title}>
+                      <span className="icon-badge">
+                        <Icon size={18} />
                       </span>
-                      <h3 className="text-xl font-bold">{step.title}</h3>
-                      <p className="mt-2 leading-7 text-muted-foreground">{step.description}</p>
+                      <div>
+                        <h3 className="font-bold text-foreground">{step.title}</h3>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{step.description}</p>
+                      </div>
                     </div>
-                  </Card>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
         </section>
 
@@ -300,7 +310,7 @@ export function HomeView(): React.ReactElement {
         <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
             <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Pricing</p>
             <h2 className="site-heading max-w-4xl text-4xl sm:text-5xl">
-              One open core. Pro Packages when you need more.
+              Open core. Private plugins when you need more.
             </h2>
             <Card className="notebook-card mt-8 grid gap-8 p-6 md:grid-cols-[0.72fr_1fr] md:p-8">
               <div>
@@ -319,7 +329,7 @@ export function HomeView(): React.ReactElement {
                   <Button asChild variant="outline">
                     <a href={githubHref}>
                       <GitHubIcon />
-                      GitHub repo
+                      GitHub
                     </a>
                   </Button>
                 </div>
@@ -335,20 +345,22 @@ export function HomeView(): React.ReactElement {
             </Card>
             <div className="mt-12 grid gap-3 md:grid-cols-[0.3fr_1fr] md:items-end">
               <div>
-                <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Pro Packages</p>
-                <h3 className="mt-2 text-3xl font-black">Private plugins</h3>
+                <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Private plugins</p>
+                <h3 className="mt-2 text-3xl font-black">Paid add-ons for focused workflows.</h3>
               </div>
+              <p className="max-w-3xl leading-7 text-muted-foreground">
+                Private plugins are optional monthly add-ons layered on top of the open core. Organize is the first planned plugin for saving, arranging, and presenting graph setups.
+              </p>
             </div>
             <div className="mt-5 grid gap-4">
               {optionalPackages.map(plan => (
                 <Card className="notebook-card grid gap-5 p-5 md:grid-cols-[0.28fr_1fr] md:items-start" key={plan.name}>
                   <div>
                     <h3 className="mt-1 text-3xl font-black">{plan.name}</h3>
+                    <p className="mt-4 leading-7 text-muted-foreground">{plan.description}</p>
                     <Button className="mt-4" disabled variant="secondary">
                       Coming soon
                     </Button>
-                    <p className="mt-4 leading-7 text-muted-foreground">{plan.description}</p>
-                    <p className="mt-3 text-sm font-semibold text-muted-foreground">{plan.price}</p>
                   </div>
                   <div>
                     <ul className="grid gap-2 text-sm text-muted-foreground">
@@ -390,7 +402,6 @@ export function HomeView(): React.ReactElement {
                 <details
                   className="notebook-card group rounded-md border border-border bg-card p-5 text-card-foreground shadow-sm"
                   key={item.question}
-                  open={item.defaultOpen}
                 >
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-bold">
                     {item.question}

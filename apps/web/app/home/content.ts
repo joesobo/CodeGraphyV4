@@ -24,6 +24,7 @@ export const pluginTypesHref = `${githubHref}/blob/main/docs/plugin-api/TYPES.md
 export const mcpDocsHref = `${githubHref}/blob/main/docs/MCP.md`;
 export const coreReadmeHref = `${githubHref}/blob/main/packages/core/README.md`;
 export const rootReadmeHref = `${githubHref}/blob/main/README.md`;
+export const githubIssuesHref = `${githubHref}/issues`;
 
 export type FaqTextPart =
   | string
@@ -68,54 +69,53 @@ export type FaqAnswerBlock =
 
 export type FaqItem = {
   answer: FaqAnswerBlock[];
-  defaultOpen?: boolean;
   question: string;
 };
 
 export const workflowSteps = [
   {
     description:
-      'Core analyzes a workspace with Tree-sitter, path discovery, Git history, settings, and enabled plugins.',
+      'CodeGraphy scans the project and builds a local relationship map from the code that is already there.',
     icon: BrainCircuit,
     image: '/product-media/codegraphy-architecture.png',
-    title: 'Core builds the graph',
+    title: 'Map the workspace',
   },
   {
     description:
-      'Plugins add language and framework meaning: symbols, calls, references, scenes, docs, tests, and custom Edge Types.',
+      'Private and open-source plugins can add language, framework, or team-specific meaning to the same map.',
     icon: Plug,
     image: '/product-media/plugins-panel.png',
-    title: 'Plugins enrich it',
+    title: 'Add meaning',
   },
   {
     description:
-      'Use the same nodes and edges through the CLI, the local MCP server for agents, or the interactive graph extension.',
+      'Use the graph in the editor first, then bring the same local understanding into terminal and agent workflows.',
     icon: Workflow,
     image: '/product-media/relationship-graph-2d.png',
-    title: 'Every surface reads it',
+    title: 'Work from the map',
   },
 ];
 
 export const heroHighlights = [
   {
     icon: BrainCircuit,
-    label: 'Index',
-    text: 'Tree-sitter and plugins build the first map.',
+    label: 'Scan',
+    text: 'Build a map from the workspace you already have.',
   },
   {
     icon: Network,
     label: 'Reveal',
-    text: 'Files, symbols, packages, and edges settle into shape.',
+    text: 'See which pieces naturally belong near each other.',
   },
   {
     icon: Search,
     label: 'Focus',
-    text: 'Scope, filters, and search keep the graph workable.',
+    text: 'Narrow the map when the whole codebase is too much.',
   },
   {
     icon: Bot,
-    label: 'Ask',
-    text: 'CLI and MCP give agents the same local graph.',
+    label: 'Share',
+    text: 'Use the same map from editor, terminal, and agent workflows.',
   },
 ];
 
@@ -123,20 +123,20 @@ export const socialProofItems = [
   {
     icon: Network,
     image: '/product-media/relationship-graph-2d.png',
-    text: 'The CodeGraphy repo gets the first top-down view so the tool can prove itself on its own package structure.',
-    title: 'CodeGraphy itself',
+    text: 'The first example map should prove the tool against its own workspace, packages, docs, and plugin surfaces.',
+    title: 'CodeGraphy',
   },
   {
     icon: Palette,
     image: '/product-media/symbol-nodes-graph.png',
-    text: 'A planned set of curated popular repos will show how different languages, themes, and settings change the graph.',
-    title: 'Popular repo studies',
+    text: 'A Godot map can show how engine-scale code forms different neighborhoods than a TypeScript monorepo.',
+    title: 'Godot',
   },
   {
     icon: MapPinned,
     image: '/product-media/graph-sections.png',
-    text: 'Each example is meant to show the broad shape first, then let people inspect the details when a cluster looks interesting.',
-    title: 'Top-down structure',
+    text: 'An open-source AI project can show how model, agent, eval, and tooling code pull into different clusters.',
+    title: 'Open-source AI',
   },
 ];
 
@@ -233,7 +233,6 @@ export const optionalPackages = [
     ],
     href: null,
     name: 'Organize',
-    price: '$5/mo',
     screenshots: [
       {
         image: '/product-media/graph-sections.png',
@@ -307,8 +306,36 @@ export const faqItems: FaqItem[] = [
         type: 'links',
       },
     ],
-    defaultOpen: true,
-    question: 'How do I use CodeGraphy?',
+    question: 'Quickstart',
+  },
+  {
+    answer: [
+      {
+        parts: [
+          'Yes. The core extension, CLI, local MCP package, Plugin API, and first-party plugin packages are open source in the CodeGraphy repo.',
+        ],
+        type: 'paragraph',
+      },
+      {
+        items: [
+          ['Use the VS Code extension and core graph without creating an account.'],
+          ['Inspect the source, docs, package readmes, and plugin examples on GitHub.'],
+          ['Private paid plugins are separate add-ons layered on top of the open core.'],
+        ],
+        type: 'list',
+      },
+      {
+        label: 'Open-source links',
+        links: [
+          { href: githubHref, text: 'GitHub' },
+          { href: rootReadmeHref, text: 'README' },
+          { href: coreReadmeHref, text: 'Core package' },
+          { href: pluginApiPackageHref, text: 'Plugin API' },
+        ],
+        type: 'links',
+      },
+    ],
+    question: 'Is CodeGraphy open source?',
   },
   {
     answer: [
@@ -441,5 +468,44 @@ export const faqItems: FaqItem[] = [
       },
     ],
     question: 'How do I make plugins?',
+  },
+  {
+    answer: [
+      {
+        parts: [
+          'Core CodeGraphy does not need an account. Sign in is only needed for private paid plugins, trials, billing, and account-level entitlement checks.',
+        ],
+        type: 'paragraph',
+      },
+      {
+        items: [
+          ['Install and use the open core without signing in.'],
+          ['Create a free account when you want website account management.'],
+          ['Sign in before using private plugins so CodeGraphy can verify which add-ons belong to you.'],
+        ],
+        type: 'list',
+      },
+    ],
+    question: 'Do private plugins need sign in?',
+  },
+  {
+    answer: [
+      {
+        parts: [
+          'Open a GitHub issue for bugs, rough edges, docs gaps, or repo examples you want mapped. Contributions can start with docs, plugin examples, or focused fixes.',
+        ],
+        type: 'paragraph',
+      },
+      {
+        label: 'Contribute',
+        links: [
+          { href: githubHref, text: 'GitHub' },
+          { href: githubIssuesHref, text: 'Issues' },
+          { href: pluginDocsHref, text: 'Plugin Guide' },
+        ],
+        type: 'links',
+      },
+    ],
+    question: 'Where do I report bugs or contribute?',
   },
 ];

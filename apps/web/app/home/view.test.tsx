@@ -18,13 +18,15 @@ describe('CodeGraphy website home page', () => {
       'href',
       'https://github.com/joesobo/CodeGraphyV4',
     );
-    expect(screen.getByRole('link', { name: 'MCP package' })).toHaveAttribute(
-      'href',
-      'https://www.npmjs.com/package/@codegraphy-dev/mcp',
-    );
-    expect(screen.getByText('Relationship Graph with file, folder, package, symbol, and plugin nodes')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /CodeGraphy architecture diagram/i })).toBeInTheDocument();
+    expect(screen.getByText('Example maps')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Open core. Private plugins when you need more.' })).toBeInTheDocument();
+    expect(screen.getByText('Quickstart')).toBeInTheDocument();
+    expect(screen.getByText('Is CodeGraphy open source?')).toBeInTheDocument();
+    expect(screen.getByText('Do private plugins need sign in?')).toBeInTheDocument();
+    expect(screen.queryByText('GitHub repo')).not.toBeInTheDocument();
+    expect(screen.queryByText('$5/mo')).not.toBeInTheDocument();
     expect(screen.queryByText('Do I need an account?')).not.toBeInTheDocument();
+    expect(screen.queryByText('How do I use CodeGraphy?')).not.toBeInTheDocument();
     expect(screen.queryByText('PROTOTYPE')).not.toBeInTheDocument();
   });
 });
