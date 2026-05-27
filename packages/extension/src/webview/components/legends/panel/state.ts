@@ -6,13 +6,16 @@ import {
   resolveDisplayRules,
   shouldRenderRuleInSection,
 } from './section/displayRules';
-import type { LegendBuiltInEntry } from './section/contracts';
 import {
   createEdgeTypeIdSet,
   isEdgeTypeColorRule,
   resolveEdgeTypeColors,
-  ruleTargetsEdges,
 } from '../../../graphControls/edgeTypeColors';
+import { createBuiltInEntries } from './state/builtInEntries';
+export {
+  replaceCustomEdgeRules,
+  upsertEdgeTypeColorRule,
+} from './state/edgeRules';
 
 interface PanelStateInput {
   edgeTypes: Array<{ id: string; label: string; defaultColor: string }>;
@@ -20,58 +23,6 @@ interface PanelStateInput {
   nodeColors: Record<string, string>;
   nodeTypes: Array<{ id: string; label: string; defaultColor: string }>;
   optimisticLegendUpdates?: PendingGroupUpdates;
-}
-
-function createBuiltInEntries(
-  types: Array<{ id: string; label: string; defaultColor: string }>,
-  colors: Record<string, string>,
-): LegendBuiltInEntry[] {
-  return types
-    .map((entry) => ({
-      id: entry.id,
-      label: entry.label,
-      color: colors[entry.id] ?? entry.defaultColor,
-      defaultColor: entry.defaultColor,
-    }));
-}
-
-export function upsertEdgeTypeColorRule(
-  rules: IGroup[],
-  edgeKind: string,
-  color: string,
-): IGroup[] {
-  const nextRules = [...rules];
-  const index = nextRules.findIndex(
-    (rule) => ruleTargetsEdges(rule) && rule.pattern === edgeKind,
-  );
-  const currentRule = index >= 0 ? nextRules[index] : undefined;
-  const nextRule: IGroup = {
-    id: currentRule?.id ?? `legend:edge:${edgeKind}`,
-    pattern: edgeKind,
-    target: 'edge',
-    color,
-  };
-
-  if (index >= 0) {
-    nextRules[index] = {
-      ...currentRule,
-      ...nextRule,
-    };
-    return nextRules;
-  }
-
-  return [...nextRules, nextRule];
-}
-
-export function replaceCustomEdgeRules(
-  rules: IGroup[],
-  edgeTypeIds: ReadonlySet<string>,
-  nextSectionRules: IGroup[],
-): IGroup[] {
-  const remainingRules = rules.filter((rule) =>
-    !shouldRenderRuleInSection(rule, 'edge') || isEdgeTypeColorRule(rule, edgeTypeIds),
-  );
-  return [...remainingRules, ...nextSectionRules];
 }
 
 export function useLegendPanelState({
@@ -97,6 +48,10 @@ export function useLegendPanelState({
     () => userLegendRules.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
     [edgeTypeIds, userLegendRules],
   );
+  const displayLegendRules = useMemo(
+    () => resolvedLegends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
+    [edgeTypeIds, resolvedLegends],
+  );
   const nodeLegendRules = useMemo(
     () => userDisplayLegendRules.filter((rule) => shouldRenderRuleInSection(rule, 'node')),
     [userDisplayLegendRules],
@@ -106,18 +61,12 @@ export function useLegendPanelState({
     [userDisplayLegendRules],
   );
   const displayedNodeLegendRules = useMemo(
-    () => resolveDisplayRules(
-      resolvedLegends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
-      'node',
-    ),
-    [edgeTypeIds, resolvedLegends],
+    () => resolveDisplayRules(displayLegendRules, 'node'),
+    [displayLegendRules],
   );
   const displayedEdgeLegendRules = useMemo(
-    () => resolveDisplayRules(
-      resolvedLegends.filter((rule) => !isEdgeTypeColorRule(rule, edgeTypeIds)),
-      'edge',
-    ),
-    [edgeTypeIds, resolvedLegends],
+    () => resolveDisplayRules(displayLegendRules, 'edge'),
+    [displayLegendRules],
   );
   const nodeEntries = useMemo(
     () => createBuiltInEntries(nodeTypes, nodeColors),
