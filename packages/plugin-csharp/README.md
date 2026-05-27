@@ -22,7 +22,7 @@ The built-in Tree-sitter plugin now owns C# analysis inside `@codegraphy-dev/cor
 This plugin is intentionally lightweight and only adds:
 
 - C# ecosystem ignore filters
-- plugin install / enable / disable state for C#-specific defaults
+- workspace enablement for C#-specific defaults
 
 Core CodeGraphy now owns the default C# icons and colors through Material Icon Theme.
 This plugin no longer ships general file theming.
