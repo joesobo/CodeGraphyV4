@@ -8,7 +8,6 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Button } from '../ui/button';
 import {
   getPluginsPanelItemClassName,
-  getPluginStatusLabel,
 } from './model';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 
@@ -37,18 +36,14 @@ function postPluginToggle(pluginId: string, packageName: string, enabled: boolea
 }
 
 interface PluginRowProps {
-  isRefreshing: boolean;
   plugin: IPluginStatus;
   onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
 }
 
 function PluginRow({
-  isRefreshing,
   plugin,
   onTogglePlugin,
 }: PluginRowProps): React.ReactElement {
-  const statusLabel = getPluginStatusLabel(plugin, { suppressUnavailable: isRefreshing });
-
   return (
     <div
       className={getPluginsPanelItemClassName(plugin.enabled)}
@@ -57,11 +52,6 @@ function PluginRow({
       <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-[var(--cg-accent-subtle)]">
         <div className="min-w-0 flex-1">
           <span className="block truncate text-xs font-medium">{plugin.name}</span>
-          {statusLabel && (
-            <span className="block truncate text-[10px] text-muted-foreground">
-              {statusLabel}
-            </span>
-          )}
         </div>
         <Switch
           checked={plugin.enabled}
@@ -74,13 +64,11 @@ function PluginRow({
 }
 
 interface PluginListProps {
-  isRefreshing: boolean;
   plugins: readonly IPluginStatus[];
   onTogglePlugin(this: void, pluginId: string, packageName: string | undefined, enabled: boolean): void;
 }
 
 function PluginList({
-  isRefreshing,
   plugins,
   onTogglePlugin,
 }: PluginListProps): React.ReactElement {
@@ -89,7 +77,6 @@ function PluginList({
       {plugins.map((plugin) => (
         <PluginRow
           key={plugin.id}
-          isRefreshing={isRefreshing}
           plugin={plugin}
           onTogglePlugin={onTogglePlugin}
         />
@@ -99,7 +86,6 @@ function PluginList({
 }
 
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
-  const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const pluginStatuses = useGraphStore(s => s.pluginStatuses);
   const plugins = useMemo(
     () => pluginStatuses.filter(plugin => plugin.packageName),
@@ -136,7 +122,6 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
             <p className="text-xs text-muted-foreground py-3 text-center">No plugins registered.</p>
           ) : (
             <PluginList
-              isRefreshing={graphIsIndexing}
               plugins={plugins}
               onTogglePlugin={handleTogglePlugin}
             />
