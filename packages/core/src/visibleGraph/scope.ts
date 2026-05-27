@@ -1,85 +1,12 @@
 import type { IGraphData } from '../graph/contracts';
-import type { IGraphNodeTypeDefinition } from '../graphControls/contracts';
-import type { VisibleGraphScopeConfig, VisibleGraphScopeItem } from './contracts';
-import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
-import { globMatch } from '../globMatch';
-import { filterEdgesToNodes, getDisabledTypes, getNodeType } from './model';
-
-function findScopeItem(
-  items: readonly VisibleGraphScopeItem[],
-  type: string,
-): VisibleGraphScopeItem | undefined {
-  return items.find((item) => item.type === type);
-}
-
-function getDisabledNodeTypes(scope: VisibleGraphScopeConfig): Set<string> {
-  const disabledNodeTypes = getDisabledTypes(scope.nodes);
-  if (findScopeItem(scope.nodes, 'symbol')?.enabled === false) {
-    disabledNodeTypes.add('variable');
-  }
-
-  return disabledNodeTypes;
-}
-
-function getDisabledSymbolKinds(scope: VisibleGraphScopeConfig): Set<string> {
-  return new Set(
-    scope.nodes
-      .filter((item) => item.type.startsWith('symbol:') && !item.enabled)
-      .flatMap((item) => (
-        CORE_GRAPH_NODE_TYPES.find((definition) => definition.id === item.type)?.matchSymbolKinds
-        ?? [item.type.slice('symbol:'.length)]
-      )),
-  );
-}
-
-function getDisabledScopedSymbolDefinitions(scope: VisibleGraphScopeConfig) {
-  const disabledNodeTypes = getDisabledTypes(scope.nodes);
-  return scope.nodes
-    .filter((item) => !item.enabled && !item.type.startsWith('symbol:'))
-    .flatMap((item) => CORE_GRAPH_NODE_TYPES.filter((definition) => (
-      definition.id === item.type
-      || (definition.parentId === item.type && disabledNodeTypes.has(item.type))
-    )))
-    .filter((definition): definition is IGraphNodeTypeDefinition => Boolean(
-      definition?.matchSymbolPluginKind
-      || definition?.matchSymbolSource
-      || definition?.matchSymbolLanguage
-      || definition?.matchSymbolFilePath,
-    ));
-}
-
-function symbolMatchesScopedDefinition(
-  node: IGraphData['nodes'][number],
-  definition: NonNullable<ReturnType<typeof getDisabledScopedSymbolDefinitions>[number]>,
-): boolean {
-  const symbol = node.symbol;
-  if (!symbol) {
-    return false;
-  }
-
-  const symbolKindMatches = !definition.matchSymbolKinds || definition.matchSymbolKinds.includes(symbol.kind);
-  const pluginKindMatches = !definition.matchSymbolPluginKind || definition.matchSymbolPluginKind === symbol.pluginKind;
-  const sourceMatches = !definition.matchSymbolSource || definition.matchSymbolSource === symbol.source;
-  const languageMatches = !definition.matchSymbolLanguage || definition.matchSymbolLanguage === symbol.language;
-  const filePathMatches = !definition.matchSymbolFilePath || globMatch(symbol.filePath, definition.matchSymbolFilePath);
-
-  return symbolKindMatches && pluginKindMatches && sourceMatches && languageMatches && filePathMatches;
-}
-
-function nodeMatchesScope(
-  node: IGraphData['nodes'][number],
-  disabledNodeTypes: ReadonlySet<string>,
-  disabledSymbolKinds: ReadonlySet<string>,
-  disabledScopedSymbolDefinitions: ReturnType<typeof getDisabledScopedSymbolDefinitions>,
-): boolean {
-  if (disabledNodeTypes.has(getNodeType(node))) {
-    return false;
-  }
-
-  const symbolKind = node.symbol?.kind;
-  return (!symbolKind || !disabledSymbolKinds.has(symbolKind))
-    && disabledScopedSymbolDefinitions.every((definition) => !symbolMatchesScopedDefinition(node, definition));
-}
+import type { VisibleGraphScopeConfig } from './contracts';
+import { filterEdgesToNodes, getDisabledTypes } from './model';
+import {
+  getDisabledNodeTypes,
+  getDisabledScopedSymbolDefinitions,
+  getDisabledSymbolKinds,
+} from './scopeDisabled';
+import { nodeMatchesScope } from './scopeMatch';
 
 export function applyGraphScope(
   graphData: IGraphData,

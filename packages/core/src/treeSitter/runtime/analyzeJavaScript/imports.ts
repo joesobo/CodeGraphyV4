@@ -2,14 +2,14 @@ import type Parser from 'tree-sitter';
 import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';
 import { resolveTreeSitterImportPath } from '../resolve';
-import { collectImportBindings } from '../analyze/imports';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { getStringSpecifier } from '../analyze/nodes';
-import { addImportRelation, addRelation, addTypeImportRelation } from '../analyze/results';
-import { collectTypeImportBindings } from './typeImports/collect';
+import { addRelation } from '../analyze/results';
+import { hasValueImport } from './importKinds';
+import { addTypeImportRelations, addValueImportRelations } from './importRelations';
 import { hasDirectTypeKeyword, hasTypeSpecifierImport } from './typeImports/markers';
 
-type ImportStatementContext = {
+export type ImportStatementContext = {
   filePath: string;
   importedBindings: Map<string, ImportedBinding>;
   node: Parser.SyntaxNode;
@@ -17,78 +17,6 @@ type ImportStatementContext = {
   resolvedPath: string | null;
   specifier: string;
 };
-
-function getImportClause(node: Parser.SyntaxNode): Parser.SyntaxNode | undefined {
-  return (node.namedChildren ?? []).find((child) => child.type === 'import_clause');
-}
-
-function isValueImportSpecifier(node: Parser.SyntaxNode): boolean {
-  return node.type === 'import_specifier'
-    && !(node.children ?? []).some((child) => child.type === 'type');
-}
-
-function isValueImportClauseChild(node: Parser.SyntaxNode): boolean {
-  if (node.type === 'identifier' || node.type === 'namespace_import') {
-    return true;
-  }
-
-  if (node.type !== 'named_imports') {
-    return false;
-  }
-
-  return (node.namedChildren ?? []).some(isValueImportSpecifier);
-}
-
-function hasValueImport(node: Parser.SyntaxNode): boolean {
-  if (hasDirectTypeKeyword(node)) {
-    return false;
-  }
-
-  const importClause = getImportClause(node);
-  if (!importClause) {
-    return true;
-  }
-
-  return (importClause.namedChildren ?? []).some(isValueImportClauseChild);
-}
-
-function addValueImportRelations(context: ImportStatementContext): void {
-  const statementBindings = collectImportBindings(
-    context.node,
-    context.specifier,
-    context.resolvedPath,
-    context.importedBindings,
-  );
-
-  if (statementBindings.length === 0) {
-    addImportRelation(context.relations, context.filePath, context.specifier, context.resolvedPath);
-    return;
-  }
-
-  for (const binding of statementBindings) {
-    addImportRelation(
-      context.relations,
-      context.filePath,
-      context.specifier,
-      context.resolvedPath,
-      undefined,
-      undefined,
-      binding,
-    );
-  }
-}
-
-function addTypeImportRelations(context: ImportStatementContext): void {
-  const typeBindings = collectTypeImportBindings(context.node, context.specifier, context.resolvedPath);
-  if (typeBindings.length === 0) {
-    addTypeImportRelation(context.relations, context.filePath, context.specifier, context.resolvedPath);
-    return;
-  }
-
-  for (const binding of typeBindings) {
-    addTypeImportRelation(context.relations, context.filePath, context.specifier, context.resolvedPath, binding);
-  }
-}
 
 export function handleJavaScriptImportStatement(
   node: Parser.SyntaxNode,

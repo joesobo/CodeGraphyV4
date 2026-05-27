@@ -15,6 +15,9 @@ The intended product split is:
 - The VS Code extension visualizes and integrates with VS Code.
 - MCP/CLI operates on CodeGraphy Workspaces, runs explicit commands, and returns Graph Query results to agents.
 - MCP/CLI commands operate on the current folder or an explicit path instead of requiring prior selection.
+- The Core Package npm install provides the terminal `codegraphy` command for normal CLI workflows.
+- MCP is the optional agent interface into core.
+- `@codegraphy-dev/plugin-api` is the programmer interface for plugin authors to create plugins that work with core.
 
 ## Current Problem
 
@@ -69,7 +72,54 @@ The VS Code extension owns:
 
 The extension should not be the place where general CodeGraphy engine behavior lives.
 
-### 3. MCP/CLI Can Explicitly Invoke Indexing
+### 3. Core Is The Central Engine With Multiple Interfaces
+
+The Core Package is the central CodeGraphy engine. Other packages are interfaces into that engine:
+
+- the VS Code extension is the user interface for visualization and editor integration
+- the `codegraphy` CLI is the terminal interface for users and scripts
+- MCP is the agent interface for Graph Query and indexing requests
+- `@codegraphy/plugin-api` is the programmer interface for creating plugins that interact with core
+
+These interfaces should not own independent engine behavior or duplicate core responsibilities.
+
+### 4. The Core Package Owns The CodeGraphy CLI
+
+The terminal `codegraphy` command should come from the Core Package npm package.
+
+The VS Code extension depends on the Core Package to run CodeGraphy behavior, but the extension remains the VS Code Marketplace install surface. Users who want terminal commands install the Core Package npm package; users who do not care about MCP should not have to install the MCP package just to run Indexing, status, plugin discovery, or plugin enablement commands.
+
+The base install flow is: install the VS Code extension, use its bundled Core Package for the graph experience, and install the Core Package globally only when the user wants terminal workflows such as plugin management. From there, plugin installation follows the global npm package model.
+
+Core-owned CLI commands include:
+
+- `codegraphy setup`
+- `codegraphy status [workspace]`
+- `codegraphy index [workspace]`
+- `codegraphy plugins register <package>`
+- `codegraphy plugins list [workspace]`
+- `codegraphy plugins enable <package> [workspace]`
+- `codegraphy plugins disable <package> [workspace]`
+
+The MCP package should be optional and should not be the owner of non-MCP CLI workflows. The Core Package should not know about MCP clients or MCP server startup.
+
+`codegraphy setup` decision:
+
+- `codegraphy setup` belongs to the Core Package
+- it prepares CodeGraphy's own user state, such as the root CodeGraphy directory and user-level settings/registry files
+- it should not configure Codex, Claude, Cursor, or any other MCP client
+- agent-specific MCP client configuration belongs in MCP docs and examples, not in Core setup
+
+Package install decision:
+
+- installing only the Core Package should expose `codegraphy`
+- installing the MCP package should expose the agent-agnostic `codegraphy-mcp` MCP server command owned by `@codegraphy-dev/mcp`
+- installing `@codegraphy-dev/mcp` should install `@codegraphy-dev/core` as a runtime dependency so the MCP server has the same core engine
+- the MCP server command should work with Codex, Claude, Cursor, or any other MCP-capable agent
+- do not expose `codegraphy mcp`; extending the Core-owned `codegraphy` binary after install would require Core to know about MCP or the MCP package to publish a competing `codegraphy` binary
+- do not make Core dispatch `codegraphy mcp`
+
+### 5. MCP/CLI Can Explicitly Invoke Indexing
 
 MCP/CLI should be able to tell `@codegraphy-dev/core` to run Indexing and Graph Query operations for the current folder or an explicit CodeGraphy Workspace path.
 
@@ -80,10 +130,12 @@ Expected command/tool shape:
 - index a CodeGraphy Workspace
 - query Relationship Graph data
 - report Graph Cache missing, stale, or unusable states clearly
+- MCP tools should mirror CLI command semantics and call Core APIs directly instead of shelling out to `codegraphy`
+- MCP should be agent-agnostic; no MCP tool or server startup path should assume Codex specifically
 
 Query tools should fail clearly when the Graph Cache is missing and point to the explicit indexing command.
 
-### 4. Use One Workspace-Local Graph Cache
+### 6. Use One Workspace-Local Graph Cache
 
 VS Code, MCP, and CLI should all read and write the same Graph Cache:
 
@@ -95,7 +147,7 @@ Do not create a separate MCP cache or snapshot. A separate cache would recreate 
 
 The same workspace-local behavior must work with only `@codegraphy-dev/core` and the VS Code extension installed. MCP is optional.
 
-### 5. Use CodeGraphy Workspace As The Core Term
+### 7. Use CodeGraphy Workspace As The Core Term
 
 Use **CodeGraphy Workspace** as the canonical product/core/MCP term for a folder CodeGraphy can analyze, before or after Indexing has run.
 
@@ -112,7 +164,7 @@ Use **Workspace Folder** only when specifically discussing VS Code APIs or VS Co
 
 Git-aware behavior such as timeline/history can still talk about repos when the feature actually depends on Git.
 
-### 6. Bundle Core Into The VSIX
+### 8. Bundle Core Into The VSIX
 
 The VS Code extension should get `@codegraphy-dev/core` as a normal npm dependency at build/package time and ship it inside the published VSIX.
 
@@ -139,7 +191,7 @@ Relevant VS Code docs:
 - https://code.visualstudio.com/api/working-with-extensions/bundling-extension
 - https://code.visualstudio.com/api/references/extension-manifest
 
-### 7. First-Party Language Plugins Become Npm Packages
+### 9. First-Party Language Plugins Become Npm Packages
 
 Move first-party language plugins off the VS Code Extension Marketplace and republish them as npm packages.
 
@@ -154,7 +206,7 @@ Target model:
 
 This is especially important because plugins are headless analysis packages. VS Code-specific UI, commands, menus, and webviews belong in `@codegraphy-dev/extension`, not in plugin packages.
 
-### 8. Standardize Package Names Under `@codegraphy/*`
+### 10. Standardize Package Names Under `@codegraphy/*`
 
 Use the npm scope `@codegraphy/*` for product packages.
 
@@ -175,7 +227,7 @@ Keep the Marketplace extension id as `codegraphy.codegraphy`.
 
 Avoid `@codegraphy-vscode/*` for packages that are no longer VS Code-specific.
 
-### 9. Plugins Are Enabled Per CodeGraphy Workspace
+### 11. Plugins Are Enabled Per CodeGraphy Workspace
 
 Do not create a "default plugins" bundle or have `@codegraphy-dev/core` auto-load first-party language plugins by magic.
 
@@ -201,7 +253,7 @@ CodeGraphy should adapt that pattern to CodeGraphy Workspaces and npm packages i
 
 Suggested CodeGraphy model:
 
-- user-level installed plugin cache: which plugin packages are available to CodeGraphy on the machine
+- user-level Plugin Registry: which globally installed plugin packages are available to CodeGraphy on the machine
 - workspace-local enabled plugin set: which installed plugins are active for that CodeGraphy Workspace
 - workspace-local plugin configuration: plugin-specific settings for that CodeGraphy Workspace
 - core plugin runtime: `@codegraphy-dev/core` defines how plugins integrate with analysis, events, signals, and Graph Query behavior through `@codegraphy-dev/plugin-api`
@@ -216,7 +268,7 @@ Research references:
 - https://obsidian.md/help/configuration-folder
 - https://obsidian.md/help/plugin-security
 
-### 10. Commands Operate On A Path, Not A Prior Selection
+### 12. Commands Operate On A Path, Not A Prior Selection
 
 Do not require users or agents to select/open a CodeGraphy Workspace before running Indexing or Graph Query commands.
 
@@ -224,7 +276,10 @@ CLI command model:
 
 - `codegraphy index` indexes `process.cwd()`
 - `codegraphy index <path>` indexes the given folder
-- query commands should follow the same rule: no path means current folder; path argument means that CodeGraphy Workspace
+- query commands should follow the same rule: no path means current folder; the optional trailing path argument means that CodeGraphy Workspace
+- `codegraphy plugins enable <package>` and `codegraphy plugins disable <package>` target `process.cwd()` when no workspace path is provided
+- `codegraphy plugins enable <package> <path>` and `codegraphy plugins disable <package> <path>` use the trailing positional path as the CodeGraphy Workspace, not a `--workspace` flag
+- repo-local CLI commands should not walk upward to find a parent repo or existing `.codegraphy` folder
 
 MCP tool model:
 
@@ -237,7 +292,7 @@ A user-level workspace history can still exist, but it should not be required fo
 
 This replaces the current MCP/CLI shape where `codegraphy index` depends on an active repo from the registry and MCP tools require `codegraphy_open_repo` before querying.
 
-### 11. Consolidate Workspace Plugin Settings Under `plugins`
+### 13. Consolidate Workspace Plugin Settings Under `plugins`
 
 Per-workspace plugin state should live under one `plugins` section in `<workspace-root>/.codegraphy/settings.json`.
 
@@ -287,32 +342,29 @@ Install behavior:
 
 This mirrors the important part of the Obsidian feel: install first, then choose where to enable and configure the plugin.
 
-### 12. Installed Plugin Cache And Settings Levels
+### 14. Plugin Registry And Settings Levels
 
 Do not rely on npm `postinstall` scripts or plugin packages self-registering during installation.
 
-Installing a plugin package is passive. CodeGraphy records available plugin packages in a user-level installed-plugin cache under `~/.codegraphy/`.
+Installing a plugin package is passive. CodeGraphy records available plugin packages in the user-level Plugin Registry at `~/.codegraphy/plugins.json`.
 
 `@codegraphy-dev/core` owns plugin integration. It should work with the VS Code extension even when MCP is not installed. MCP and CLI are consumers of core plugin behavior, not the owners of it.
 
 CLI command model:
 
-- `codegraphy plugins install <package>` can be a convenience wrapper around npm install plus cache update
 - plain npm global install should also be supported:
   - `npm i -g @codegraphy-dev/core`
   - `npm i -g @codegraphy-dev/plugin-python`
-- after a plain npm global install, CodeGraphy should be able to record or refresh the installed plugin cache without requiring a path-based manual registration command
-- `codegraphy plugins add <package>` resolves a named globally installed plugin package, reads its plugin metadata, and writes it to `~/.codegraphy/plugins.json`
-- `codegraphy plugins refresh` scans known global package roots for `@codegraphy/*` packages, keeps the packages that expose CodeGraphy plugin metadata, and updates `~/.codegraphy/plugins.json`
-- `plugins refresh` should only scan `@codegraphy/*` packages
-- third-party, private, or non-scoped plugin packages should use explicit `codegraphy plugins add <package>`
-- `codegraphy plugins list` lists cached plugin packages and workspace-local enablement state
-- `codegraphy plugins enable <plugin> [path]` enables a cached plugin for the current or explicit CodeGraphy Workspace
+- `codegraphy plugins register <package>` resolves one named globally installed plugin package, validates its CodeGraphy plugin metadata, and writes it to the user-level Plugin Registry at `~/.codegraphy/plugins.json`
+- `codegraphy plugins link <package-root>` records a local package checkout directly in the Plugin Registry, which is the preferred local-development path for private plugins
+- all plugin packages use the same `plugins register` validation path; CodeGraphy plugin metadata is the boundary
+- `codegraphy plugins list` lists registered plugin packages and workspace-local enablement state
+- `codegraphy plugins enable <plugin> [path]` enables a registered plugin for the current or explicit CodeGraphy Workspace
 - `codegraphy plugins disable <plugin> [path]` disables it for the current or explicit CodeGraphy Workspace
 
 VS Code extension behavior:
 
-- the Plugins popup reads the user-level installed-plugin cache
+- the Plugins popup reads the user-level Plugin Registry
 - the Plugins popup writes workspace-local enablement/configuration to the current CodeGraphy Workspace
 - the Plugins popup should distinguish installed/available plugins from enabled plugins for the current CodeGraphy Workspace
 
@@ -320,7 +372,7 @@ This keeps plugin installation safe and passive while preserving the expected "I
 
 User-level CodeGraphy state:
 
-- `~/.codegraphy/plugins.json`: installed plugin cache, including package names, versions, and resolved package locations
+- `~/.codegraphy/plugins.json`: Plugin Registry, including package names, versions, and resolved package locations
 - `~/.codegraphy/settings.json`: user-level CodeGraphy defaults
 
 Workspace-specific CodeGraphy state:
@@ -330,41 +382,22 @@ Workspace-specific CodeGraphy state:
 
 This mirrors the useful VS Code split between user settings and workspace settings without making CodeGraphy packages part of the user's application dependencies.
 
-Primary install path:
+Primary plugin install path:
 
 ```bash
 npm i -g @codegraphy-dev/core
 npm i -g @codegraphy-dev/plugin-python
+codegraphy plugins register @codegraphy-dev/plugin-python
+codegraphy plugins enable @codegraphy-dev/plugin-python
 ```
 
-Optional convenience path:
+Do not add a first-pass `codegraphy plugins install <package>` wrapper. Keeping npm install visible makes the package model honest and avoids making CodeGraphy responsible for package-manager behavior.
 
-```bash
-codegraphy plugins install @codegraphy-dev/plugin-python
-```
-
-The convenience path can wrap npm install and cache update, but plain npm global install should stay valid.
-
-Manual npm path:
-
-```bash
-npm i -g @codegraphy-dev/plugin-python
-codegraphy plugins add @codegraphy-dev/plugin-python
-```
-
-Bulk cache refresh path:
-
-```bash
-npm i -g @codegraphy-dev/plugin-python
-npm i -g @codegraphy-dev/plugin-markdown
-codegraphy plugins refresh
-```
-
-`plugins refresh` should follow the same safety rule as `plugins add`: discover candidate packages, prove they are CodeGraphy plugins through package metadata or the plugin API shape, then update the installed-plugin cache. It should not enable plugins in any CodeGraphy Workspace.
+There is no first-pass broad `codegraphy plugins refresh` command. Users register installed plugin packages by name so the global Plugin Registry stays simple, explicit, and metadata-driven. `plugins register` should not enable plugins in any CodeGraphy Workspace.
 
 A plugin gallery or install browser similar to Obsidian's community plugin browser is useful future product work, but out of scope for the core extraction decision.
 
-### 13. Plugin Packages Declare A CodeGraphy Manifest
+### 15. Plugin Packages Declare A CodeGraphy Manifest
 
 An npm package should prove it is a CodeGraphy plugin with explicit package metadata, not by requiring CodeGraphy to import arbitrary packages and inspect their runtime shape.
 
@@ -396,7 +429,7 @@ The manifest should tell CodeGraphy:
 - which `@codegraphy-dev/plugin-api` version the plugin was built for
 - what default plugin `options` the plugin starts with
 
-This enables proper plugin versioning, compatibility checks, default option materialization, and safer plugin discovery. `plugins refresh` can filter candidates by metadata before importing anything.
+This enables proper plugin versioning, compatibility checks, default option materialization, and safer plugin registration. `plugins register` can validate metadata before importing any runtime code.
 
 Resolved package-manifest decisions:
 
@@ -415,7 +448,7 @@ Plugin options metadata decision:
 - this makes workspace behavior explicit and protects the workspace from silent behavior changes when plugin defaults change in a later package version
 - options schema support can be added later when concrete plugin options prove it is worth the extra metadata
 
-### 14. Obsidian Plugin Ecosystem Lessons
+### 16. Obsidian Plugin Ecosystem Lessons
 
 Sources checked:
 
@@ -448,12 +481,12 @@ CodeGraphy should bring over:
 - installation and enablement as separate operations
 - disabled-by-default plugins
 - workspace-local enablement/configuration
-- a user-level installed-plugin cache
+- a user-level Plugin Registry
 - a no-plugin recovery path, such as `codegraphy --no-plugins`, `CODEGRAPHY_DISABLE_PLUGINS=1`, or an equivalent safe-mode command
 - explicit plugin compatibility metadata, at least `apiVersion`; possibly also `coreVersion` or `coreRange`
 - optional user-visible disclosures for plugins that use network access, external processes, writes outside the CodeGraphy Workspace, or secrets
 - declarative options metadata, even though Obsidian does not use a settings schema, because CodeGraphy plugin options must work outside the VS Code UI
-- a future plugin directory/gallery that reads the same metadata used by `plugins refresh`
+- a future plugin directory/gallery that reads the same metadata used by `plugins register`
 - a manual update posture for plugin packages; CodeGraphy should not silently upgrade globally installed plugin packages
 - centralized secret references if future plugins need tokens or API keys
 
@@ -470,7 +503,7 @@ Recommended next design direction:
 - use npm for distribution, CodeGraphy metadata for discovery/compatibility, workspace settings for enablement, and a future registry/gallery for richer review and browse experiences
 - design settings as headless-first metadata so the VS Code extension can render a UI, the CLI can validate config, and MCP can explain or modify config safely
 
-### 15. Plugin Capability Disclosures
+### 17. Plugin Capability Disclosures
 
 Capability disclosures are not plugin settings. They are static package metadata that tells CodeGraphy and the user what kinds of side effects or sensitive access a plugin may need.
 
@@ -515,7 +548,7 @@ Recommended first slice:
 - show non-baseline disclosures when enabling a plugin in a CodeGraphy Workspace
 - do not block npm-installed plugins based on disclosures in the first implementation
 
-### 16. Analysis Capability Paths
+### 18. Analysis Capability Paths
 
 The plugin model should make it easy for analyzers to use the right relationship-evidence source for each job. This is related to disclosures, but it is not the same thing. Disclosures describe side effects and sensitive access. Analysis capability paths describe how relationship evidence is produced.
 
@@ -584,7 +617,7 @@ How disclosures apply to these paths:
 - Plugin Text Analysis reading only indexed workspace files: no extra disclosure
 - Any analysis path that calls cloud services, reads outside the CodeGraphy Workspace, writes files, runs external processes, or needs secrets should declare the matching disclosure
 
-### 17. Plugin Lifecycle Shape
+### 19. Plugin Lifecycle Shape
 
 Current plugin API inventory:
 
@@ -644,7 +677,7 @@ Decision:
 - preserve visualization customization as extension-owned behavior, not plugin-owned behavior, unless a future separate extension API is deliberately designed
 - make non-baseline plugin capabilities visible through disclosures, especially `workspaceWrites`, `outsideWorkspaceWrites`, `externalProcesses`, `network`, `secrets`, and `extraFileReads`
 
-### 18. Core Tree-sitter Output Is Normalized Before Graph Projection
+### 20. Core Tree-sitter Output Is Normalized Before Graph Projection
 
 Decision:
 
@@ -677,9 +710,9 @@ Plugin ordering decision:
 
 Plugin order storage decision:
 
-- installed plugin cache is user-level
+- Plugin Registry is user-level
 - plugin enablement, plugin configuration, and enabled-plugin array order are workspace-level
-- `~/.codegraphy/plugins.json` should know which plugin packages are installed and where they resolve from
+- `~/.codegraphy/plugins.json` should know which plugin packages are registered and where they resolve from
 - `<workspace-root>/.codegraphy/settings.json` should contain an ordered `plugins` array for plugins enabled in that CodeGraphy Workspace
 - user-level plugin order should not silently affect graph output across unrelated CodeGraphy Workspaces
 - this preserves the Obsidian-style split: installed globally for the user/tool, enabled and configured per workspace
@@ -736,6 +769,7 @@ Plugin toggle behavior decision:
 - enabling, disabling, reordering, or reconfiguring a plugin should mark the Graph Cache stale
 - plugin toggles should not automatically run Indexing
 - toggling remains a cheap workspace settings edit
+- users can enable several plugins before one explicit Indexing run
 - the UI should make the explicit next action obvious, such as a yellow stale indicator on the index button
 
 Plugin enablement validation decision:
@@ -747,14 +781,14 @@ Plugin enablement validation decision:
 - runtime import/load failures should be reported during explicit Indexing
 - this keeps plugin enablement metadata-safe and avoids executing arbitrary plugin code from a settings toggle
 - `plugins enable` should not scan global npm installs
-- if a globally installed plugin is not in CodeGraphy's installed-plugin cache, `plugins enable` should fail with a helpful message telling the user to run `codegraphy plugins refresh` or `codegraphy plugins add <package>`
+- if a globally installed plugin is not in CodeGraphy's Plugin Registry, `plugins enable` should fail with a helpful message telling the user to run `codegraphy plugins register <package>`
 - this keeps plugin discovery and workspace settings mutation as separate command responsibilities
 
 Plugin install behavior decision:
 
-- `codegraphy plugins install <package>` should install the package and update the installed-plugin cache
-- `plugins install` should not enable the plugin for the current CodeGraphy Workspace
-- install output should tell the user how to enable the plugin explicitly
+- `codegraphy plugins install <package>` is intentionally not part of the first command model
+- plugin packages are installed through npm, then recorded in the user-level Plugin Registry through `codegraphy plugins register <package>`
+- enablement stays explicit through `codegraphy plugins enable <package> [workspace]`
 - this preserves the Obsidian-style distinction between available plugins and workspace-enabled plugins
 
 Plugin list behavior decision:
@@ -764,7 +798,7 @@ Plugin list behavior decision:
 - enabled plugins should display in workspace array order
 - output should make the distinction between user-level installed state and workspace-level enablement hard to miss
 - useful future flags:
-  - `--installed`: show user-level installed-plugin cache only
+  - `--registered`: show the user-level Plugin Registry only
   - `--workspace`: show current workspace plugin enablement/config only
   - `--json`: structured output for MCP and automation
 
@@ -809,6 +843,8 @@ Workspace root decision:
 - that workspace's settings and Graph Cache live under `packages/foo/.codegraphy/`
 - CodeGraphy should not walk upward to a git root or infer a repository root for workspace identity
 - `codegraphy index` with no path uses the current working directory as the CodeGraphy Workspace Root
+- `codegraphy plugins enable <package>` with no path uses the current working directory as the CodeGraphy Workspace Root
+- `codegraphy plugins enable <package> <path>` uses `<path>` as the CodeGraphy Workspace Root
 
 Default plugin enablement decision:
 
@@ -1009,12 +1045,12 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
   - Added workspace metadata, plugin/settings fingerprints, analysis-version fingerprints, and `readCodeGraphyWorkspaceStatus(...)` for fresh/stale/missing Graph Cache state.
   - Updated `indexCodeGraphyWorkspace(...)` to materialize Workspace Settings, use them for Indexing, and persist matching metadata after writing the Graph Cache.
   - Validation: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/workspace/settings.test.ts tests/workspace/status.test.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core lint`, and `pnpm --filter @codegraphy-dev/core build`.
-- 2026-05-14: Step 5 first slice completed: installed plugin metadata cache and CLI plugin commands added.
+- 2026-05-14: Step 5 first slice completed: Plugin Registry metadata cache and CLI plugin commands added.
   - Added core-owned parsing for `package.json#codegraphy` plugin metadata, including Plugin API compatibility, default options, and capability disclosures without importing runtime code.
-  - Added user-level installed plugin cache helpers for `~/.codegraphy/plugins.json` plus the user settings path at `~/.codegraphy/settings.json`.
-  - Added metadata-only plugin cache operations for `plugins refresh` over global `@codegraphy/*` packages and `plugins add <package>` for explicitly named global packages.
+  - Added user-level Plugin Registry helpers for `~/.codegraphy/plugins.json` plus the user settings path at `~/.codegraphy/settings.json`.
+  - Added metadata-only Plugin Registry operations for `plugins register <package>` over explicitly named global packages with CodeGraphy plugin metadata.
   - Added workspace-local plugin enable/disable helpers that mutate only `<workspace-root>/.codegraphy/settings.json` and preserve plugin order as array order.
-  - Added CLI commands for `codegraphy plugins refresh`, `add`, `list`, `enable`, and `disable`; enable fails from the installed-plugin cache instead of scanning global npm roots.
+  - Added CLI commands for `codegraphy plugins register`, `link`, `list`, `enable`, and `disable`; enable fails from the Plugin Registry instead of scanning global npm roots.
   - Validation: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/plugins/packageManifest.test.ts tests/plugins/installedCache.test.ts tests/workspace/settings.test.ts`, `pnpm --filter @codegraphy-dev/core test`, `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core lint`, `pnpm --filter @codegraphy-dev/core build`, `pnpm --filter @codegraphy-dev/mcp exec vitest run --config vitest.config.ts tests/run/parse.test.ts tests/plugins/command.test.ts`, `pnpm --filter @codegraphy-dev/mcp test`, `pnpm --filter @codegraphy-dev/mcp typecheck`, `pnpm --filter @codegraphy-dev/mcp lint`, `pnpm --filter @codegraphy-dev/mcp build`, `pnpm --filter @codegraphy-dev/extension typecheck`, `pnpm run test:release`, and `git diff --check`.
 - 2026-05-14: Step 6 completed: Markdown bootstrap added as an explicit plugin package and default workspace setting.
   - Made `@codegraphy-dev/plugin-markdown` a public npm workspace package with package exports, build output, publish metadata, and `package.json#codegraphy` metadata.
@@ -1117,9 +1153,9 @@ Goal:
 
 Changes:
 
-- add user-level installed-plugin cache at `~/.codegraphy/plugins.json`
+- add user-level Plugin Registry at `~/.codegraphy/plugins.json`
 - add user-level defaults at `~/.codegraphy/settings.json`
-- implement `plugins add`, `plugins refresh`, `plugins list`, `plugins enable`, and `plugins disable`
+- implement `plugins register`, `plugins list`, `plugins enable`, and `plugins disable`
 - keep install/discovery separate from enablement
 - keep `plugins enable` from scanning global npm installs
 - load plugin runtime only during explicit Indexing
@@ -1175,6 +1211,7 @@ Changes:
 - update MCP tools to accept `path?`
 - replace selected-repo workflow with path-first CodeGraphy Workspace tools
 - add MCP status/index/query tools backed by core
+- make MCP plugin tools mirror `codegraphy plugins register/list/enable/disable`
 - make MCP query tools report stale/missing cache instead of silently indexing
 - remove normal VS Code focus/open behavior from MCP query and indexing paths
 
@@ -1183,6 +1220,7 @@ Done when:
 - `codegraphy index` indexes the current folder
 - `codegraphy index /path/to/folder` indexes the explicit folder
 - MCP can status/index/query a workspace path without prior select/open
+- MCP can perform plugin registration and workspace enablement through tool calls that match the CLI command behavior
 - MCP calls do not focus VS Code
 
 Implementation progress:
@@ -1273,7 +1311,7 @@ Changes:
 Done when:
 
 - first-party plugin packages install through npm
-- `plugins refresh`/`plugins add` discovers them
+- `plugins register` discovers them
 - workspace enablement controls them
 - existing graph output is preserved for enabled plugins
 
@@ -1284,7 +1322,7 @@ Implementation progress:
 - Removed the language-plugin VS Code activation entrypoints, VSCE publish/package scripts, and `extensionDependencies`.
 - Kept plugin runtime behavior in the existing `src/plugin.ts` entrypoints and preserved plugin unit coverage, including Godot relationship/symbol analysis tests.
 - Updated release discovery/tests so first-party language plugins publish as npm packages before the VS Code extension instead of as normal VSIX release targets.
-- Updated plugin docs, release docs, package READMEs, and package changesets to describe global npm installation, installed-plugin cache refresh, workspace enablement, and path-first Indexing.
+- Updated plugin docs, release docs, package READMEs, and package changesets to describe global npm installation, Plugin Registry registration, workspace enablement, and path-first Indexing.
 
 Validation:
 

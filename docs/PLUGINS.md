@@ -40,16 +40,18 @@ Language plugins ship as headless npm packages that are consumed by `@codegraphy
 
 Installation and enablement are separate:
 
+- The VS Code extension bundles `@codegraphy-dev/core` for extension runtime behavior, but terminal plugin management starts by installing the Core Package globally.
+- `npm i -g @codegraphy-dev/core` installs the terminal `codegraphy` command.
 - `npm i -g @codegraphy-dev/plugin-python` installs a plugin package for the developer's toolchain.
-- `codegraphy plugins refresh` records installed `@codegraphy-dev/*` plugin packages in `~/.codegraphy/plugins.json`.
-- `codegraphy plugins add <package>` records an explicitly named globally installed plugin package, including private or non-`@codegraphy` packages.
+- `codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata.
 - `codegraphy plugins link <package-root>` records a local package checkout directly in `~/.codegraphy/plugins.json`, which is the preferred local-development path for private plugins.
-- `codegraphy plugins enable <package> [workspace]` writes that plugin into the workspace-local `plugins` array.
+- `codegraphy plugins enable <package> [workspace]` writes a registered plugin into the workspace-local `plugins` array.
 - `codegraphy plugins disable <package> [workspace]` removes that plugin from the workspace-local enabled set.
-- Enabling and disabling plugins do not run Indexing automatically; run `codegraphy index [workspace]` to refresh the Graph Cache.
+- `[workspace]` is an optional trailing positional argument. When it is omitted, plugin enablement commands target the process current working directory exactly. CodeGraphy does not walk upward to find a parent repo or existing `.codegraphy` folder.
+- Enabling and disabling plugins do not run Indexing automatically. Users can enable several plugins first, then run `codegraphy index [workspace]` once to refresh the Graph Cache.
 - `@codegraphy-dev/core` depends on `@codegraphy-dev/plugin-markdown` and materializes it as the first enabled plugin when a new CodeGraphy Workspace is indexed for the first time.
 
-Plugin packages declare CodeGraphy metadata in `package.json` so discovery can validate compatibility without importing arbitrary runtime code:
+Plugin packages declare CodeGraphy metadata in `package.json` so registration can validate compatibility without importing arbitrary runtime code:
 
 ```json
 {
@@ -75,7 +77,7 @@ Plugin packages declare CodeGraphy metadata in `package.json` so discovery can v
 }
 ```
 
-The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, refresh, list, enable, disable, or link commands.
+The npm package's normal `exports` field owns runtime import behavior. The `codegraphy` block is for identity, Plugin API compatibility, optional default options, and optional capability disclosures. Plugin runtime loading happens during explicit Indexing, not during install, register, link, list, enable, or disable commands.
 
 For local private plugin development, keep the private source outside this public monorepo and link its package root:
 

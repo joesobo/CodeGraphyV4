@@ -6,9 +6,9 @@ The VS Code extension has its own lifecycle and may bridge extension-only visual
 
 ## One-Time Phases
 
-### 1. Discovery
+### 1. Registration
 
-Discovery reads installed package metadata without importing plugin runtime code. A CodeGraphy plugin package declares itself in `package.json`:
+Registration reads global package metadata without importing plugin runtime code. A CodeGraphy plugin package declares itself in `package.json`:
 
 ```json
 {
@@ -32,7 +32,7 @@ Discovery reads installed package metadata without importing plugin runtime code
 }
 ```
 
-`codegraphy plugins refresh` records discovered plugin packages in the user plugin cache. A plugin becomes active only when it is present in the workspace-local `plugins` array.
+`codegraphy plugins register <package>` records one globally installed plugin package in the user-level Plugin Registry after validating that metadata. A plugin becomes active only when it is present in the workspace-local `plugins` array.
 
 ### 2. Runtime Load
 

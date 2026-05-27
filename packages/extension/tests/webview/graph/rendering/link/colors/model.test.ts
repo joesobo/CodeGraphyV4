@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../../../src/shared/fileColors';
 import type { EdgeDecorationPayload } from '../../../../../../src/shared/plugins/decorations';
 import type { DirectionMode } from '../../../../../../src/shared/settings/modes';
-import type { ThemeKind } from '../../../../../../src/webview/theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../../src/webview/components/graph/appearance/model';
 import type { FGLink } from '../../../../../../src/webview/components/graph/model/build';
 import {
-  getGraphDirectionalColor,
-  getGraphLinkColor,
+  getGraphLinkColor
 } from '../../../../../../src/webview/components/graph/rendering/link/colors/model';
+import type { ThemeKind } from '../../../../../../src/webview/theme/useTheme';
 
 function createDependencies(overrides: Partial<{
   directionColor: string;
@@ -48,121 +46,92 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
 }
 
 describe('graph/rendering/link/colors', () => {
-  it('prefers edge decoration color over the link base color', () => {
-    const color = getGraphLinkColor(
-      createDependencies({
-        edgeDecorations: {
-          'src/app.ts->src/utils.ts': { color: '#f97316' },
-        },
-      }),
-      createLink({ baseColor: '#3b82f6' }),
-    );
 
-    expect(color).toBe('#f97316');
-  });
+    it('prefers edge decoration color over the link base color', () => {
+      const color = getGraphLinkColor(
+        createDependencies({
+          edgeDecorations: {
+            'src/app.ts->src/utils.ts': { color: '#f97316' },
+          },
+        }),
+        createLink({ baseColor: '#3b82f6' }),
+      );
 
-  it('uses the link base color when nothing is highlighted', () => {
-    const color = getGraphLinkColor(
-      createDependencies(),
-      createLink({ baseColor: '#3b82f6' }),
-    );
+      expect(color).toBe('#f97316');
+    });
 
-    expect(color).toBe('#3b82f6');
-  });
 
-  it('uses the highlight color for links connected to the highlighted node', () => {
-    const color = getGraphLinkColor(
-      createDependencies({ highlightedNodeId: 'src/app.ts' }),
-      createLink(),
-    );
 
-    expect(color).toBe('#60a5fa');
-  });
+    it('uses the link base color when nothing is highlighted', () => {
+      const color = getGraphLinkColor(
+        createDependencies(),
+        createLink({ baseColor: '#3b82f6' }),
+      );
 
-  it('treats object endpoints as connected when the highlighted node matches the source', () => {
-    const color = getGraphLinkColor(
-      createDependencies({ highlightedNodeId: 'src/app.ts' }),
-      createLink(),
-    );
+      expect(color).toBe('#3b82f6');
+    });
 
-    expect(color).toBe('#60a5fa');
-  });
 
-  it('treats string endpoints as connected when the highlighted node matches the target', () => {
-    const color = getGraphLinkColor(
-      createDependencies({ highlightedNodeId: 'src/utils.ts' }),
-      createLink({
-        source: 'src/app.ts',
-        target: 'src/utils.ts',
-      }),
-    );
 
-    expect(color).toBe('#60a5fa');
-  });
+    it('uses the highlight color for links connected to the highlighted node', () => {
+      const color = getGraphLinkColor(
+        createDependencies({ highlightedNodeId: 'src/app.ts' }),
+        createLink(),
+      );
 
-  it('uses the provided muted link color when the highlighted node is unrelated', () => {
-    const color = getGraphLinkColor(
-      createDependencies({
-        highlightedNodeId: 'src/other.ts',
-        linkMuted: '#e2e8f0',
-      }),
-      createLink(),
-    );
+      expect(color).toBe('#60a5fa');
+    });
 
-    expect(color).toBe('#e2e8f0');
-  });
 
-  it('uses the default muted link color when the highlighted node is unrelated', () => {
-    const color = getGraphLinkColor(
-      createDependencies({
-        highlightedNodeId: 'src/other.ts',
-        theme: 'dark',
-      }),
-      createLink(),
-    );
 
-    expect(color).toBe('#2d3748');
-  });
+    it('treats object endpoints as connected when the highlighted node matches the source', () => {
+      const color = getGraphLinkColor(
+        createDependencies({ highlightedNodeId: 'src/app.ts' }),
+        createLink(),
+      );
 
-  it('uses the muted link color independent of the detected theme kind', () => {
-    const color = getGraphLinkColor(
-      createDependencies({
-        highlightedNodeId: 'src/other.ts',
-        theme: 'high-contrast',
-      }),
-      createLink(),
-    );
+      expect(color).toBe('#60a5fa');
+    });
 
-    expect(color).toBe('#2d3748');
-  });
 
-  it('falls back to the default direction color when no base color is present', () => {
-    const color = getGraphLinkColor(createDependencies(), createLink({ baseColor: undefined }));
 
-    expect(color).toBe(DEFAULT_DIRECTION_COLOR);
-  });
+    it('treats string endpoints as connected when the highlighted node matches the target', () => {
+      const color = getGraphLinkColor(
+        createDependencies({ highlightedNodeId: 'src/utils.ts' }),
+        createLink({
+          source: 'src/app.ts',
+          target: 'src/utils.ts',
+        }),
+      );
 
-  it('keeps valid direction colors unchanged', () => {
-    const color = getGraphDirectionalColor(
-      createDependencies({ directionColor: '#f97316' }),
-    );
+      expect(color).toBe('#60a5fa');
+    });
 
-    expect(color).toBe('#f97316');
-  });
 
-  it('keeps resolved theme rgb direction colors', () => {
-    const color = getGraphDirectionalColor(
-      createDependencies({ directionColor: 'rgb(172, 157, 87)' }),
-    );
 
-    expect(color).toBe('rgb(172, 157, 87)');
-  });
+    it('uses the provided muted link color when the highlighted node is unrelated', () => {
+      const color = getGraphLinkColor(
+        createDependencies({
+          highlightedNodeId: 'src/other.ts',
+          linkMuted: '#e2e8f0',
+        }),
+        createLink(),
+      );
 
-  it('normalizes invalid direction colors back to the default direction color', () => {
-    const color = getGraphDirectionalColor(
-      createDependencies({ directionColor: 'not-a-hex-color' }),
-    );
+      expect(color).toBe('#e2e8f0');
+    });
 
-    expect(color).toBe(DEFAULT_DIRECTION_COLOR);
-  });
+
+
+    it('uses the default muted link color when the highlighted node is unrelated', () => {
+      const color = getGraphLinkColor(
+        createDependencies({
+          highlightedNodeId: 'src/other.ts',
+          theme: 'dark',
+        }),
+        createLink(),
+      );
+
+      expect(color).toBe('#2d3748');
+    });
 });

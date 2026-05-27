@@ -1,0 +1,17 @@
+export interface CodeGraphyWorkspacePluginSettings {
+  package: string;
+  disabledFilterPatterns?: string[];
+  options?: Record<string, unknown>;
+}
+
+export interface CodeGraphyWorkspaceSettings {
+  version: 1;
+  maxFiles: number;
+  include: string[];
+  respectGitignore: boolean;
+  showOrphans: boolean;
+  filterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  plugins: CodeGraphyWorkspacePluginSettings[];
+  pluginData?: Record<string, unknown>;
+}

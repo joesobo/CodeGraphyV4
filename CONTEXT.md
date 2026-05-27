@@ -224,8 +224,12 @@ _Avoid_: Refresh Graph
 
 ### Agent Access
 
+**CodeGraphy CLI**:
+The terminal `codegraphy` command installed by the **Core Package** npm package for path-first CodeGraphy Workspace commands such as setup, Indexing, status, plugin discovery, and workspace plugin enablement. Repo-local CLI commands take an optional trailing workspace path argument. When that path is omitted, they use the process current working directory exactly; they do not walk upward to find a parent repo or existing `.codegraphy` folder.
+_Avoid_: MCP CLI when the command does not require an MCP server
+
 **CodeGraphy MCP**:
-The local MCP server and CLI that let agents inspect a CodeGraphy Workspace, ask `@codegraphy-dev/core` to run Indexing, and request focused Graph Query results without opening or focusing VS Code.
+The optional local MCP server and agent adapter that lets agents inspect a CodeGraphy Workspace through **Graph Query** and ask the **Core Package** to run Indexing without opening or focusing VS Code. The MCP package depends on the **Core Package**, owns the agent-agnostic `codegraphy-mcp` server command, and exposes MCP tools that mirror **CodeGraphy CLI** semantics without owning normal CLI workflows.
 _Avoid_: Agent bridge, MCP indexer, MCP graph
 
 **Graph Query**:
@@ -309,8 +313,12 @@ The CodeGraphy VS Code extension that owns visualization, VS Code lifecycle inte
 _Avoid_: Core engine, plugin host only
 
 **Core Package**:
-The `@codegraphy-dev/core` npm package that owns headless Indexing, Graph Cache access, plugin wiring, and Graph Query.
+The `@codegraphy-dev/core` npm package that owns the central CodeGraphy engine: headless Indexing, Graph Cache access, plugin wiring, Graph Query, and the terminal `codegraphy` command.
 _Avoid_: VS Code extension when referring to headless engine behavior
+
+**CodeGraphy Interface**:
+A user, agent, or programmer-facing way to interact with the **Core Package** without owning the engine. The **VS Code Extension** is the user interface, **CodeGraphy MCP** is the agent interface, and **Plugin API** is the programmer interface for plugin authors.
+_Avoid_: Engine, core owner, implementation package
 
 **Plugin**:
 A headless CodeGraphy npm package that communicates with `@codegraphy-dev/core` to add or improve analysis, graph types, filters, symbols, and relationship evidence.
@@ -319,6 +327,10 @@ _Avoid_: VS Code extension when referring to the CodeGraphy capability
 **Plugin Package**:
 An npm package that declares `package.json#codegraphy` metadata and exports a CodeGraphy plugin runtime through normal package exports.
 _Avoid_: VS Code extension package
+
+**Plugin Registry**:
+The user-level list of globally installed plugin packages CodeGraphy has explicitly registered at `~/.codegraphy/plugins.json`. A registered plugin is available to enable in a CodeGraphy Workspace, but registration does not enable it anywhere.
+_Avoid_: Workspace Settings, enabled plugins
 
 **Built-in Plugin**:
 A plugin developed with CodeGraphy and shipped from the monorepo as part of the current product experience or examples.

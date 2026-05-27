@@ -1,0 +1,179 @@
+import { describe, expect, it, vi } from 'vitest';
+import { createGraphViewProviderRefreshMethods } from '../../../../src/extension/graphView/provider/refresh';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
+import type { IPluginStatus } from '../../../../src/shared/plugins/status';
+
+function createSource(
+  overrides: Partial<Record<string, unknown>> = {},
+): {
+  _analyzer: {
+    hasIndex: ReturnType<typeof vi.fn>;
+    rebuildGraph: ReturnType<typeof vi.fn>;
+    getPluginStatuses: ReturnType<typeof vi.fn>;
+    registry: { notifyGraphRebuild: ReturnType<typeof vi.fn> };
+    clearCache: ReturnType<typeof vi.fn>;
+  };
+  _disabledPlugins: Set<string>;
+  _rawGraphData: IGraphData;
+  _graphData: IGraphData;
+  _loadDisabledRulesAndPlugins: ReturnType<typeof vi.fn>;
+  _loadGroupsAndFilterPatterns: ReturnType<typeof vi.fn>;
+  _loadAndSendData?: ReturnType<typeof vi.fn>;
+  _refreshAndSendData?: ReturnType<typeof vi.fn>;
+  _incrementalAnalyzeAndSendData?: ReturnType<typeof vi.fn>;
+  _analyzeAndSendData: ReturnType<typeof vi.fn>;
+  _sendAllSettings: ReturnType<typeof vi.fn>;
+  _sendFavorites: ReturnType<typeof vi.fn>;
+  _computeMergedGroups: ReturnType<typeof vi.fn>;
+  _sendGroupsUpdated: ReturnType<typeof vi.fn>;
+  _sendGraphControls: ReturnType<typeof vi.fn>;
+  _sendSettings: ReturnType<typeof vi.fn>;
+  _sendPhysicsSettings: ReturnType<typeof vi.fn>;
+  _updateViewContext: ReturnType<typeof vi.fn>;
+  _applyViewTransform: ReturnType<typeof vi.fn>;
+  _sendDepthState: ReturnType<typeof vi.fn>;
+  _sendPluginStatuses: ReturnType<typeof vi.fn>;
+  _sendDecorations: ReturnType<typeof vi.fn>;
+  _sendMessage: ReturnType<typeof vi.fn>;
+  _rebuildAndSend?: (() => void) | ReturnType<typeof vi.fn> | undefined;
+} {
+  return {
+    _analyzer: {
+      hasIndex: vi.fn(() => true),
+      rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
+      getPluginStatuses: vi.fn(() => [] satisfies IPluginStatus[]),
+      registry: { notifyGraphRebuild: vi.fn() },
+      clearCache: vi.fn(),
+    },
+    _disabledPlugins: new Set<string>(),
+    _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _loadDisabledRulesAndPlugins: vi.fn(() => true),
+    _loadGroupsAndFilterPatterns: vi.fn(),
+    _loadAndSendData: vi.fn(async () => undefined),
+    _incrementalAnalyzeAndSendData: vi.fn(async () => undefined),
+    _analyzeAndSendData: vi.fn(async () => undefined),
+    _sendAllSettings: vi.fn(),
+    _sendFavorites: vi.fn(),
+    _computeMergedGroups: vi.fn(),
+    _sendGroupsUpdated: vi.fn(),
+    _sendGraphControls: vi.fn(),
+    _sendSettings: vi.fn(),
+    _sendPhysicsSettings: vi.fn(),
+    _updateViewContext: vi.fn(),
+    _applyViewTransform: vi.fn(),
+    _sendDepthState: vi.fn(),
+    _sendPluginStatuses: vi.fn(),
+    _sendDecorations: vi.fn(),
+    _sendMessage: vi.fn(),
+    ...overrides,
+  };
+}
+
+describe('graphView/provider/refresh', () => {
+
+
+    it('smart rebuild falls back to the local rebuild helper when the source callback is cleared', () => {
+      const rebuildGraphData = vi.fn();
+      const smartRebuildGraphData = vi.fn((_nextSource, _id, handlers: {
+        rebuildAndSend(): void;
+      }) => {
+        handlers.rebuildAndSend();
+      });
+      const source = createSource();
+      const methods = createGraphViewProviderRefreshMethods(source as never, {
+        getShowOrphans: vi.fn(() => false),
+        rebuildGraphData,
+        smartRebuildGraphData,
+      });
+
+      source._rebuildAndSend = undefined;
+
+      methods._smartRebuild('plugin.test');
+
+      expect(smartRebuildGraphData).toHaveBeenCalledOnce();
+      expect(rebuildGraphData).toHaveBeenCalledOnce();
+    });
+
+
+
+    it('smart rebuild ignores a self-installed rebuild implementation', () => {
+      const rebuildGraphData = vi.fn();
+      const smartRebuildGraphData = vi.fn((_nextSource, _id, handlers: {
+        rebuildAndSend(): void;
+      }) => {
+        handlers.rebuildAndSend();
+      });
+      const source = createSource();
+      const methods = createGraphViewProviderRefreshMethods(source as never, {
+        getShowOrphans: vi.fn(() => false),
+        rebuildGraphData,
+        smartRebuildGraphData,
+      });
+
+      source._rebuildAndSend = methods._rebuildAndSend;
+
+      methods._smartRebuild('plugin.test');
+
+      expect(smartRebuildGraphData).toHaveBeenCalledOnce();
+      expect(rebuildGraphData).toHaveBeenCalledOnce();
+    });
+
+
+
+    it('clearCacheAndRefresh clears analyzer cache before re-analysis', async () => {
+      const clearCache = vi.fn();
+      const source = createSource({
+        _analyzer: { clearCache },
+      });
+      const methods = createGraphViewProviderRefreshMethods(source as never, {
+        getShowOrphans: vi.fn(() => true),
+        rebuildGraphData: vi.fn(),
+        smartRebuildGraphData: vi.fn(),
+      });
+
+      await methods.clearCacheAndRefresh();
+      methods.refreshPhysicsSettings();
+      methods.refreshSettings();
+
+      expect(clearCache).toHaveBeenCalledOnce();
+      expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+      expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
+      expect(source._sendSettings).toHaveBeenCalledOnce();
+    });
+
+
+
+    it('uses the default show-orphans configuration when rebuilding with default dependencies', async () => {
+      vi.resetModules();
+
+      const get = vi.fn((_key: string, fallback: boolean) => fallback);
+      const getConfiguration = vi.fn(() => ({ get }));
+      const rebuildGraphData = vi.fn((_source: unknown, handlers: { getShowOrphans(): boolean }) => {
+        expect(handlers.getShowOrphans()).toBe(true);
+      });
+
+      vi.doMock('vscode', () => ({
+        workspace: {
+          getConfiguration,
+        },
+      }));
+      vi.doMock('../../../../src/extension/graphView/view/rebuild', () => ({
+        rebuildGraphViewData: rebuildGraphData,
+        smartRebuildGraphView: vi.fn(),
+      }));
+
+      const { createGraphViewProviderRefreshMethods: createMethods } = await import(
+        '../../../../src/extension/graphView/provider/refresh'
+      );
+
+      createMethods(createSource() as never)._rebuildAndSend();
+
+      expect(getConfiguration).toHaveBeenCalledWith('codegraphy');
+      expect(get).toHaveBeenCalledWith('showOrphans', true);
+
+      vi.doUnmock('vscode');
+      vi.doUnmock('../../../../src/extension/graphView/view/rebuild');
+      vi.resetModules();
+    });
+});

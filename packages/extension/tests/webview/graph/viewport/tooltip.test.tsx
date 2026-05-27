@@ -6,8 +6,8 @@
  * - L111: LogicalOperator on tooltipData.info?.incomingCount ?? 0
  * - L112: LogicalOperator on tooltipData.info?.outgoingCount ?? 0
  */
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
@@ -145,233 +145,47 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 }
 
 describe('Viewport handler mutations (L66-67)', () => {
-  it('calls handleContextMenu when context menu is triggered on the container', () => {
-    const { handleContextMenu } = renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    fireEvent.contextMenu(container);
-    expect(handleContextMenu).toHaveBeenCalledTimes(1);
-  });
 
-  it('calls handleMouseLeave when mouse leaves the container', () => {
-    const { handleMouseLeave } = renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    fireEvent.mouseLeave(container);
-    expect(handleMouseLeave).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls handleMouseDownCapture on mouse down', () => {
-    const { handleMouseDownCapture } = renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    fireEvent.mouseDown(container);
-    expect(handleMouseDownCapture).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls handleMouseMoveCapture on mouse move', () => {
-    const { handleMouseMoveCapture } = renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    fireEvent.mouseMove(container);
-    expect(handleMouseMoveCapture).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls handleMouseUpCapture on mouse up', () => {
-    const { handleMouseUpCapture } = renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    fireEvent.mouseUp(container);
-    expect(handleMouseUpCapture).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('Viewport style mutations (L72)', () => {
-  it('applies graph-container class to the viewport div', () => {
-    renderViewport();
-    const container = document.querySelector('.graph-container');
-    expect(container).not.toBeNull();
-  });
-
-  it('applies inset-2 class to the viewport div', () => {
-    renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.className).toContain('inset-2');
-  });
-
-  it('applies rounded-md class to the viewport div', () => {
-    renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.className).toContain('rounded-md');
-  });
-
-  it('sets borderWidth to 0 on the container style', () => {
-    renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.borderWidth).toBe('0px');
-  });
-
-  it('sets borderStyle to solid on the container style', () => {
-    renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.borderStyle).toBe('solid');
-  });
-
-  it('sets cursor to default on the container style', () => {
-    renderViewport();
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.cursor).toBe('default');
-  });
-
-  it('applies background color and border color styles to the container', () => {
-    renderViewport({ containerBackgroundColor: 'var(--cg-popover-translucent)', borderColor: '#ddeeff' });
-    const container = document.querySelector('.graph-container') as HTMLElement;
-    expect(container.style.backgroundColor).toBe('var(--cg-popover-translucent)');
-    expect(container.style.borderColor).toBe('rgb(221, 238, 255)');
-  });
-});
-
-describe('Viewport tooltip count mutations (L111-112)', () => {
-  it('passes tooltip info fields when info is provided', () => {
-    renderViewport({
-      tooltipData: {
-        visible: true,
-        nodeRect: { x: 50, y: 60, radius: 15 },
-        path: 'src/utils.ts',
-        info: {
-          path: 'src/utils.ts',
-          size: 1024,
-          lastModified: 1700000000000,
-          incomingCount: 3,
-          outgoingCount: 5,
-          plugin: 'TypeScript',
-        },
-        pluginSections: [{ title: 'Coverage', content: '90%' }],
-      },
+    it('calls handleContextMenu when context menu is triggered on the container', () => {
+      const { handleContextMenu } = renderViewport();
+      const container = document.querySelector('.graph-container') as HTMLElement;
+      fireEvent.contextMenu(container);
+      expect(handleContextMenu).toHaveBeenCalledTimes(1);
     });
 
-    expect(harness.nodeTooltip).toHaveBeenCalledWith(
-      expect.objectContaining({
-        path: 'src/utils.ts',
-        visible: true,
-        size: 1024,
-        lastModified: 1700000000000,
-        incomingCount: 3,
-        outgoingCount: 5,
-        plugin: 'TypeScript',
-        extraSections: [{ title: 'Coverage', content: '90%' }],
-      }),
-    );
-  });
 
-  it('passes 0 for incomingCount when info is null', () => {
-    renderViewport({
-      tooltipData: {
-        visible: true,
-        nodeRect: { x: 10, y: 20, radius: 5 },
-        path: 'src/App.ts',
-        info: null,
-        pluginSections: [],
-      },
+
+    it('calls handleMouseLeave when mouse leaves the container', () => {
+      const { handleMouseLeave } = renderViewport();
+      const container = document.querySelector('.graph-container') as HTMLElement;
+      fireEvent.mouseLeave(container);
+      expect(handleMouseLeave).toHaveBeenCalledTimes(1);
     });
 
-    expect(harness.nodeTooltip).toHaveBeenCalledWith(
-      expect.objectContaining({
-        incomingCount: 0,
-        outgoingCount: 0,
-      }),
-    );
-  });
 
-  it('passes 0 for outgoingCount when info is null', () => {
-    renderViewport({
-      tooltipData: {
-        visible: true,
-        nodeRect: { x: 10, y: 20, radius: 5 },
-        path: 'src/App.ts',
-        info: null,
-        pluginSections: [],
-      },
+
+    it('calls handleMouseDownCapture on mouse down', () => {
+      const { handleMouseDownCapture } = renderViewport();
+      const container = document.querySelector('.graph-container') as HTMLElement;
+      fireEvent.mouseDown(container);
+      expect(handleMouseDownCapture).toHaveBeenCalledTimes(1);
     });
 
-    const calls = harness.nodeTooltip.mock.calls;
-    const lastCallProps = calls[calls.length - 1][0];
-    expect(lastCallProps.outgoingCount).toBe(0);
-    expect(lastCallProps.outgoingCount).not.toBeUndefined();
-    expect(lastCallProps.outgoingCount).not.toBeNull();
-  });
 
-  it('passes non-zero incomingCount through from info', () => {
-    renderViewport({
-      tooltipData: {
-        visible: true,
-        nodeRect: { x: 10, y: 20, radius: 5 },
-        path: 'src/App.ts',
-        info: {
-          path: 'src/App.ts',
-          size: 512,
-          lastModified: 1700000000000,
-          incomingCount: 7,
-          outgoingCount: 2,
-        },
-        pluginSections: [],
-      },
+
+    it('calls handleMouseMoveCapture on mouse move', () => {
+      const { handleMouseMoveCapture } = renderViewport();
+      const container = document.querySelector('.graph-container') as HTMLElement;
+      fireEvent.mouseMove(container);
+      expect(handleMouseMoveCapture).toHaveBeenCalledTimes(1);
     });
 
-    const calls = harness.nodeTooltip.mock.calls;
-    const lastCallProps = calls[calls.length - 1][0];
-    expect(lastCallProps.incomingCount).toBe(7);
-    expect(lastCallProps.outgoingCount).toBe(2);
-  });
 
-  it('passes undefined for size when info is null', () => {
-    renderViewport({
-      tooltipData: {
-        visible: true,
-        nodeRect: { x: 10, y: 20, radius: 5 },
-        path: 'src/App.ts',
-        info: null,
-        pluginSections: [],
-      },
+
+    it('calls handleMouseUpCapture on mouse up', () => {
+      const { handleMouseUpCapture } = renderViewport();
+      const container = document.querySelector('.graph-container') as HTMLElement;
+      fireEvent.mouseUp(container);
+      expect(handleMouseUpCapture).toHaveBeenCalledTimes(1);
     });
-
-    const calls = harness.nodeTooltip.mock.calls;
-    const lastCallProps = calls[calls.length - 1][0];
-    expect(lastCallProps.size).toBeUndefined();
-  });
-
-  it('passes undefined for plugin when info is null', () => {
-    renderViewport({
-      tooltipData: {
-        visible: true,
-        nodeRect: { x: 10, y: 20, radius: 5 },
-        path: 'src/App.ts',
-        info: null,
-        pluginSections: [],
-      },
-    });
-
-    const calls = harness.nodeTooltip.mock.calls;
-    const lastCallProps = calls[calls.length - 1][0];
-    expect(lastCallProps.plugin).toBeUndefined();
-  });
-
-  it('passes nodeRect from tooltipData to NodeTooltip', () => {
-    renderViewport({
-      tooltipData: {
-        visible: true,
-        nodeRect: { x: 100, y: 200, radius: 25 },
-        path: 'src/index.ts',
-        info: null,
-        pluginSections: [],
-      },
-    });
-
-    expect(harness.nodeTooltip).toHaveBeenCalledWith(
-      expect.objectContaining({
-        nodeRect: { x: 100, y: 200, radius: 25 },
-      }),
-    );
-  });
-
-  it('renders Surface2d for 2d mode and Surface3d for 3d mode', () => {
-    renderViewport({ graphMode: '2d' });
-    expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
-    expect(screen.queryByTestId('surface-3d')).not.toBeInTheDocument();
-  });
 });

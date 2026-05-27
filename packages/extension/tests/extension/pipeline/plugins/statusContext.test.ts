@@ -1,13 +1,13 @@
-import * as fs from 'node:fs';
-import * as os from 'node:os';
-import * as path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   getWorkspaceSettingsPath,
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readWorkspacePluginStatusContext } from '../../../../src/extension/pipeline/plugins/statusContext';
 
 describe('pipeline/plugins/statusContext', () => {
@@ -60,15 +60,15 @@ describe('pipeline/plugins/statusContext', () => {
       plugins: [{ package: '@codegraphy-dev/plugin-python' }],
     });
 
-    const context = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
 
-    expect(context.installedPlugins.map(plugin => plugin.package)).toEqual([
+    expect(statusContext.installedPlugins.map(plugin => plugin.package)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       '@codegraphy-dev/plugin-python',
       '@codegraphy-dev/plugin-godot',
     ]);
-    expect(context.workspaceEnabledPackageNames?.has('@codegraphy-dev/plugin-python')).toBe(true);
-    expect(context.workspaceEnabledPackageNames?.has('@codegraphy-dev/plugin-godot')).toBe(false);
+    expect(statusContext.workspaceEnabledPackageNames?.has('@codegraphy-dev/plugin-python')).toBe(true);
+    expect(statusContext.workspaceEnabledPackageNames?.has('@codegraphy-dev/plugin-godot')).toBe(false);
   });
 
   it('does not materialize workspace settings when the workspace has no settings file yet', () => {
@@ -88,13 +88,13 @@ describe('pipeline/plugins/statusContext', () => {
       { homeDir },
     );
 
-    const context = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
 
-    expect(context.installedPlugins.map(plugin => plugin.package)).toEqual([
+    expect(statusContext.installedPlugins.map(plugin => plugin.package)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       '@codegraphy-dev/plugin-python',
     ]);
-    expect(context.workspaceEnabledPackageNames).toBeUndefined();
+    expect(statusContext.workspaceEnabledPackageNames).toBeUndefined();
     expect(fs.existsSync(getWorkspaceSettingsPath(workspaceRoot))).toBe(false);
   });
 
@@ -110,11 +110,11 @@ describe('pipeline/plugins/statusContext', () => {
       plugins: [],
     });
 
-    const context = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
 
-    expect(context.installedPlugins.map(plugin => plugin.package)).toContain(
+    expect(statusContext.installedPlugins.map(plugin => plugin.package)).toContain(
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     );
-    expect(context.workspaceEnabledPackageNames?.has(CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)).toBe(false);
+    expect(statusContext.workspaceEnabledPackageNames?.has(CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)).toBe(false);
   });
 });
