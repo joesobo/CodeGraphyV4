@@ -75,7 +75,6 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   | { type: 'PHYSICS_STABILIZED' }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; packageName?: string; enabled: boolean } }
-  | { type: 'UPDATE_PLUGIN_PACKAGE_ORDER'; payload: { packageNames: string[] } }
   | { type: 'UPDATE_NODE_COLOR'; payload: { nodeType: string; color: string } }
   | { type: 'UPDATE_NODE_VISIBILITY'; payload: { nodeType: string; visible: boolean } }
   | { type: 'UPDATE_EDGE_VISIBILITY'; payload: { edgeKind: string; visible: boolean } }

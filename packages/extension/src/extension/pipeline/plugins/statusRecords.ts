@@ -68,11 +68,11 @@ export function buildUnregisteredInstalledPluginStatus(
   const enabled = workspaceEnabledPackageNames?.has(plugin.package) ?? false;
 
   return {
-    id: plugin.package,
+    id: plugin.pluginId ?? plugin.package,
     packageName: plugin.package,
-    name: plugin.package,
+    name: plugin.pluginName ?? plugin.package,
     version: plugin.version,
-    supportedExtensions: [],
+    supportedExtensions: plugin.supportedExtensions ?? [],
     status: enabled ? 'unavailable' : 'installed',
     enabled,
     connectionCount: 0,

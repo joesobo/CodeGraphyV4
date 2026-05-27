@@ -40,7 +40,7 @@ describe('PluginsPanel', () => {
     expect(screen.getByText('No plugins registered.')).toBeInTheDocument();
   });
 
-  it('renders the plugin priority hint and plugin rows without connection counts', () => {
+  it('renders plugin rows without connection counts or ordering hints', () => {
     renderPanel([
       {
         id: 'codegraphy.typescript',
@@ -54,7 +54,7 @@ describe('PluginsPanel', () => {
       },
     ]);
 
-    expect(screen.getByText('Bottom runs first. Top wins.')).toBeInTheDocument();
+    expect(screen.queryByText('Bottom runs first. Top wins.')).not.toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
     expect(screen.queryByText('12')).not.toBeInTheDocument();
   });
@@ -172,7 +172,7 @@ describe('PluginsPanel', () => {
     expect(screen.getByText('Runtime unavailable')).toBeInTheDocument();
   });
 
-  it('posts a workspace plugin package order message when enabled package rows are dragged into a new order', () => {
+  it('does not expose plugin rows as draggable reorder targets', () => {
     const { container } = renderPanel([
       {
         id: 'codegraphy.typescript',
@@ -196,90 +196,15 @@ describe('PluginsPanel', () => {
       },
     ]);
 
-    const draggableRows = container.querySelectorAll('[draggable="true"]');
-    fireEvent.dragStart(draggableRows[1]);
-    fireEvent.dragOver(draggableRows[0]);
-    fireEvent.drop(draggableRows[0]);
+    const pluginRows = container.querySelectorAll('[data-testid="plugin-row"]');
+    expect(pluginRows).toHaveLength(2);
+    expect(container.querySelectorAll('[draggable="true"]')).toHaveLength(0);
 
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
-      payload: {
-        packageNames: ['@codegraphy-dev/plugin-markdown', '@codegraphy-dev/plugin-typescript'],
-      },
-    });
-  });
+    fireEvent.dragStart(pluginRows[1]);
+    fireEvent.dragOver(pluginRows[0]);
+    fireEvent.drop(pluginRows[0]);
 
-  it('clears drag highlight state without sending a reorder when a row is dropped before dragging starts', () => {
-    const { container } = renderPanel([
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript',
-        version: '1.0.0',
-        packageName: '@codegraphy-dev/plugin-typescript',
-        supportedExtensions: ['.ts'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 12,
-      },
-      {
-        id: 'codegraphy.markdown',
-        name: 'Markdown',
-        version: '1.0.0',
-        packageName: '@codegraphy-dev/plugin-markdown',
-        supportedExtensions: ['.md'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 1,
-      },
-    ]);
-
-    const draggableRows = container.querySelectorAll('[draggable="true"]');
-    fireEvent.dragOver(draggableRows[0]);
-    expect(draggableRows[0]?.className).toContain('ring-[var(--cg-primary-ring)]');
-
-    fireEvent.drop(draggableRows[0]);
-
-    expect(sentMessages).not.toContainEqual(
-      expect.objectContaining({ type: 'UPDATE_PLUGIN_PACKAGE_ORDER' }),
-    );
-    expect(draggableRows[0]?.className).not.toContain('ring-[var(--cg-primary-ring)]');
-  });
-
-  it('clears drag state when dragging ends without dropping', () => {
-    const { container } = renderPanel([
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript',
-        version: '1.0.0',
-        packageName: '@codegraphy-dev/plugin-typescript',
-        supportedExtensions: ['.ts'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 12,
-      },
-      {
-        id: 'codegraphy.markdown',
-        name: 'Markdown',
-        version: '1.0.0',
-        packageName: '@codegraphy-dev/plugin-markdown',
-        supportedExtensions: ['.md'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 1,
-      },
-    ]);
-
-    const draggableRows = container.querySelectorAll('[draggable="true"]');
-    fireEvent.dragStart(draggableRows[0]);
-    fireEvent.dragOver(draggableRows[1]);
-
-    expect(draggableRows[0]?.className).toContain('opacity-60');
-    expect(draggableRows[1]?.className).toContain('ring-[var(--cg-primary-ring)]');
-
-    fireEvent.dragEnd(draggableRows[0]);
-
-    expect(draggableRows[0]?.className).toBe('');
-    expect(draggableRows[1]?.className).toBe('');
+    expect(sentMessages).toEqual([]);
   });
 
   it('renders plugin rows inside the shared divided list style', () => {

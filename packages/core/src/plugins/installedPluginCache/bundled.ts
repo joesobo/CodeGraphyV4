@@ -8,6 +8,9 @@ export function createBundledMarkdownInstalledPluginRecord(): CodeGraphyInstalle
     package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     version: plugin.version,
     apiVersion: plugin.apiVersion,
+    pluginId: plugin.id,
+    pluginName: plugin.name,
+    supportedExtensions: plugin.supportedExtensions,
     disclosures: [],
     packageRoot: '',
   };
