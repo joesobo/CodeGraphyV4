@@ -5,7 +5,7 @@ import {
 } from '../../plugins/installedCache';
 import { CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME } from '../../workspace/settings';
 
-export function findCachedPlugin(
+export function findRegisteredPlugin(
   cache: CodeGraphyInstalledPluginCache,
   packageName: string,
 ): CodeGraphyInstalledPluginRecord | undefined {
@@ -16,7 +16,7 @@ export function findCachedPlugin(
   return cache.plugins.find(plugin => plugin.package === packageName);
 }
 
-export function listInstalledPluginsWithBundledMarkdown(
+export function listRegisteredPluginsWithBundledMarkdown(
   cache: CodeGraphyInstalledPluginCache,
 ): CodeGraphyInstalledPluginRecord[] {
   if (cache.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)) {

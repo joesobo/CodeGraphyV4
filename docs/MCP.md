@@ -94,7 +94,7 @@ These are core-owned CLI commands that MCP tools can ask users or agents to run 
 | `codegraphy status [workspace]` | Reports Graph Cache state, stale reasons, and enabled plugins for the current or explicit CodeGraphy Workspace | decide whether to index before querying |
 | `codegraphy index [workspace]` | Runs Indexing for the current or explicit CodeGraphy Workspace | create or overwrite the Graph Cache |
 | `codegraphy plugins register <package>` | Registers one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata | make a global package available to workspaces |
-| `codegraphy plugins list [workspace]` | Shows installed plugins and workspace enablement | inspect available and enabled plugins |
+| `codegraphy plugins list [workspace]` | Shows registered plugins and workspace enablement | inspect available and enabled plugins |
 | `codegraphy plugins enable <package> [workspace]` | Enables a registered plugin package for the current or explicit CodeGraphy Workspace | opt a workspace into plugin analysis |
 | `codegraphy plugins disable <package> [workspace]` | Removes a plugin from the workspace-local enabled plugin array | turn off plugin analysis without uninstalling the package |
 

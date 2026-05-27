@@ -31,7 +31,7 @@ codegraphy index /absolute/path/to/folder
 | `codegraphy status [workspace]` | Reports Graph Cache state, stale reasons, and enabled plugins for the current or explicit CodeGraphy Workspace |
 | `codegraphy index [workspace]` | Runs Indexing for the current or explicit CodeGraphy Workspace |
 | `codegraphy plugins register <package>` | Registers one globally installed plugin package in the user-level Plugin Registry after validating its CodeGraphy metadata |
-| `codegraphy plugins list [workspace]` | Shows installed plugins and which ones are enabled for a CodeGraphy Workspace |
+| `codegraphy plugins list [workspace]` | Shows registered plugins and which ones are enabled for a CodeGraphy Workspace |
 | `codegraphy plugins enable <package> [workspace]` | Enables a registered plugin package for the current or explicit CodeGraphy Workspace |
 | `codegraphy plugins disable <package> [workspace]` | Removes a plugin package from the workspace-local enabled plugin array |
 | `codegraphy-mcp` | Starts the local stdio MCP server for agent clients |

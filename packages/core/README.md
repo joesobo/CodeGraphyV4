@@ -4,7 +4,7 @@ Shared CodeGraphy engine package for workspace indexing, Graph Cache access, plu
 
 This package is the headless core used by the VS Code extension, MCP server, and CLI.
 
-The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as setup, Indexing, status, plugin discovery, or workspace plugin enablement.
+The VS Code extension bundles this package for extension runtime behavior. Users install `@codegraphy-dev/core` globally only when they want terminal workflows such as setup, Indexing, status, plugin registration, or workspace plugin enablement.
 
 All `codegraphy ...` terminal subcommands live in this package. The core CLI does not own MCP client configuration or MCP server startup. `codegraphy setup` prepares CodeGraphy's own user state, while `@codegraphy-dev/mcp` owns the optional agent-agnostic `codegraphy-mcp` server command.
 
@@ -30,11 +30,11 @@ The core package now exposes `indexCodeGraphyWorkspace` for explicit path-based 
 
 ## Plugin State Model
 
-Plugin installation and workspace enablement are separate:
+Plugin installation, global registration, and workspace enablement are separate:
 
 - Installing the VS Code extension is enough for the base graph experience.
 - Terminal plugin management starts with `npm install -g @codegraphy-dev/core`.
-- Installed plugins live in the user-level cache at `~/.codegraphy/plugins.json`.
+- Registered plugins live in the user-level Plugin Registry at `~/.codegraphy/plugins.json`.
 - Enabled plugins live in a CodeGraphy Workspace settings file at `<workspace-root>/.codegraphy/settings.json`.
 - New workspaces materialize `@codegraphy-dev/plugin-markdown` as the first enabled plugin during first Indexing.
 - The enabled plugin order is the order of the workspace `plugins` array.

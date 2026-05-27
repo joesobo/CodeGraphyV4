@@ -75,7 +75,7 @@ describe('plugins/command', () => {
     });
   });
 
-  it('enables and disables a cached plugin for one workspace', async () => {
+  it('enables and disables a registered plugin for one workspace', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
     const record = createPluginRecord('@codegraphy-dev/plugin-python', '/global/@codegraphy-dev/plugin-python');
@@ -166,11 +166,11 @@ describe('plugins/command', () => {
     }, { homeDir });
 
     expect(result.output).toContain('Enabled in workspace:\nnone');
-    expect(result.output).toContain('Installed but disabled:');
+    expect(result.output).toContain('Registered but disabled:');
     expect(result.output).toContain(`- ${CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME}`);
   });
 
-  it('lists enabled workspace plugins separately from installed disabled plugins', async () => {
+  it('lists enabled workspace plugins separately from registered disabled plugins', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
     writeCodeGraphyInstalledPluginCache({
@@ -197,7 +197,7 @@ describe('plugins/command', () => {
     expect(result.output).toContain('Enabled in workspace:');
     expect(result.output).toContain('1. @codegraphy-dev/plugin-markdown');
     expect(result.output).toContain('2. @codegraphy-dev/plugin-python');
-    expect(result.output).toContain('Installed but disabled:');
+    expect(result.output).toContain('Registered but disabled:');
     expect(result.output).not.toContain('- @codegraphy-dev/plugin-markdown');
   });
 

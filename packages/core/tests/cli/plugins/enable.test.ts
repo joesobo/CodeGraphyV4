@@ -15,7 +15,7 @@ function dependencies(overrides: Partial<PluginsCommandDependencies> = {}): Plug
 }
 
 describe('cli/plugins/enable', () => {
-  it('requires a package name before looking at the cache', () => {
+  it('requires a package name before looking at the registry', () => {
     const deps = dependencies({
       readInstalledPluginCache: vi.fn(),
     });
@@ -38,7 +38,7 @@ describe('cli/plugins/enable', () => {
     });
   });
 
-  it('enables a cached package in the resolved workspace', () => {
+  it('enables a registered package in the resolved workspace', () => {
     const enableWorkspacePlugin = vi.fn();
     const plugin = {
       package: '@codegraphy-dev/plugin-python',
