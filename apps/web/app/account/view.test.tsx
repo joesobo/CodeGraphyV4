@@ -7,8 +7,9 @@ describe('CodeGraphy website account page', () => {
     render(<AccountView />);
 
     expect(screen.getByText('Account: maya@codegraphy.dev')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Pro packages' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Private plugins' })).toBeInTheDocument();
     expect(screen.getByText('Organize: Active')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Stripe customer portal coming later' })).toBeDisabled();
+    expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument();
   });
 });
