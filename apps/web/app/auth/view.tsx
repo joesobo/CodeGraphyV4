@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '../_ui/button';
 import { Card } from '../_ui/card';
+import { GitHubIcon, GoogleIcon } from '../_ui/icons';
 import { Brand } from '../_site/brand';
 
 export function AuthView({
@@ -16,9 +17,6 @@ export function AuthView({
     <main className="flex min-h-screen flex-col items-center px-5 py-12">
       <Brand />
       <Card className="mt-7 w-full max-w-md p-6">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.08em] text-amber-700">
-          CodeGraphy Account
-        </p>
         <h1 className="text-3xl font-black tracking-tight">
           {isLogin ? 'Sign in' : 'Create a free account'}
         </h1>
@@ -69,20 +67,13 @@ export function AuthView({
         <div className="grid gap-3">
           <Button asChild variant="outline">
             <Link href="/account">
-              <span aria-hidden="true" className="font-black text-blue-500">
-                G
-              </span>
+              <GoogleIcon className="h-[18px] w-[18px]" />
               Continue with Google
             </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href="/account">
-              <span
-                aria-hidden="true"
-                className="rounded-full bg-foreground px-1.5 py-1 text-[10px] font-black leading-none text-background"
-              >
-                GH
-              </span>
+              <GitHubIcon className="h-[18px] w-[18px]" />
               Continue with GitHub
             </Link>
           </Button>

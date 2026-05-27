@@ -7,6 +7,8 @@ describe('CodeGraphy website auth pages', () => {
     render(<AuthView mode="login" />);
 
     expect(screen.getByRole('heading', { name: 'Sign in' })).toBeInTheDocument();
+    expect(screen.getAllByText('CodeGraphy')).toHaveLength(1);
+    expect(screen.queryByText('CodeGraphy Account')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Email address')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Continue with Google' })).toBeInTheDocument();
