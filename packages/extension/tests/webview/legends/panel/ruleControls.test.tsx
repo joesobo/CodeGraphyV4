@@ -101,6 +101,20 @@ describe('webview/components/legends/ruleControls', () => {
     expect(screen.queryByTitle('*.json shape: circle')).toBeInTheDocument();
   });
 
+  it('renders edge rule visuals as non-editable previews', () => {
+    render(
+      <RuleVisualControls
+        rule={{ id: 'legend:edge', pattern: 'calls', color: '#123456', target: 'edge' }}
+        index={0}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByTitle('Upload legend icon')).toBeNull();
+    expect(screen.queryByTitle('Choose legend shape')).toBeNull();
+    expect(screen.getByTitle('calls shape: circle')).toBeInTheDocument();
+  });
+
   it('commits custom rule colors through the color input', () => {
     const onChange = vi.fn();
     render(
