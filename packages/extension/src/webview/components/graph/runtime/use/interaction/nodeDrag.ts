@@ -1,8 +1,8 @@
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { FGNode } from '../../../model/build';
-import { createDragGroupSession, getDragEndNodes } from './nodeDrag/group';
+import { createNodeDragSession, getDragEndNodes } from './nodeDrag/group';
 import { releaseNodeDrag } from './nodeDrag/policy';
-import { isFiniteTranslate, moveNodeByTranslate } from './nodeDrag/position';
+import { isFiniteTranslate, moveNodeFromOriginByTranslate } from './nodeDrag/position';
 import type {
   ApplyNodeDragOptions,
   GraphMode,
@@ -28,13 +28,16 @@ export function applyNodeDrag(
 ): NodeDragGroupSession | null {
   markNodeDragging(primaryNode);
 
-  const nextSession = session ?? createDragGroupSession(primaryNode, options);
+  const nextSession = session ?? createNodeDragSession(primaryNode, options);
   if (!isFiniteTranslate(translate)) {
     return nextSession;
   }
 
   if (options.graphMode === '2d' && primaryNode.isPinned === true) {
-    moveNodeByTranslate(primaryNode, translate);
+    const origin = nextSession?.nodeOrigins.get(primaryNode.id);
+    if (origin) {
+      moveNodeFromOriginByTranslate(primaryNode, origin, translate);
+    }
   }
 
   if (!nextSession) {
@@ -50,7 +53,10 @@ export function applyNodeDrag(
 
     markNodeDragging(node);
     if (node.id !== primaryNode.id) {
-      moveNodeByTranslate(node, translate);
+      const origin = nextSession.nodeOrigins.get(node.id);
+      if (origin) {
+        moveNodeFromOriginByTranslate(node, origin, translate);
+      }
     }
   }
 
