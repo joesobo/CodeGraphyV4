@@ -6,7 +6,7 @@ describe('CodeGraphy website home page', () => {
   it('starts from the selected light website direction without design-lab chrome', () => {
     render(<HomeView />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'See how everything connects.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'See your code connect.' })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /Install CodeGraphy/i })).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -18,11 +18,13 @@ describe('CodeGraphy website home page', () => {
       'href',
       'https://github.com/joesobo/CodeGraphyV4',
     );
-    expect(screen.getByText('Example maps')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Open core. Private plugins when you need more.' })).toBeInTheDocument();
+    expect(screen.getByText('Example graphs')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Features.' })).toBeInTheDocument();
     expect(screen.getByText('Quickstart')).toBeInTheDocument();
+    expect(screen.getByText('Starting path')).toBeInTheDocument();
+    expect(screen.getByText('@codegraphy-dev/plugin-typescript')).toBeInTheDocument();
     expect(screen.getByText('Is CodeGraphy open source?')).toBeInTheDocument();
-    expect(screen.getByText('Do private plugins need sign in?')).toBeInTheDocument();
+    expect(screen.getByText('Where do I report bugs or contribute?')).toBeInTheDocument();
     expect(screen.queryByText('GitHub repo')).not.toBeInTheDocument();
     expect(screen.queryByText('$5/mo')).not.toBeInTheDocument();
     expect(screen.queryByText('Do I need an account?')).not.toBeInTheDocument();

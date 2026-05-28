@@ -11,16 +11,18 @@ import {
   Palette,
   Plug,
   Search,
-  Workflow,
 } from 'lucide-react';
 
 export const installHref = 'https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy';
 export const githubHref = 'https://github.com/joesobo/CodeGraphyV4';
+export const cliPackageHref = 'https://www.npmjs.com/package/@codegraphy-dev/cli';
 export const mcpPackageHref = 'https://www.npmjs.com/package/@codegraphy-dev/mcp';
+export const typescriptPluginHref = 'https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript';
 export const pluginApiPackageHref = 'https://www.npmjs.com/package/@codegraphy-dev/plugin-api';
 export const pluginDocsHref = `${githubHref}/blob/main/docs/PLUGINS.md`;
 export const pluginLifecycleHref = `${githubHref}/blob/main/docs/plugin-api/LIFECYCLE.md`;
 export const pluginTypesHref = `${githubHref}/blob/main/docs/plugin-api/TYPES.md`;
+export const cliDocsHref = `${githubHref}/blob/main/docs/COMMANDS.md`;
 export const mcpDocsHref = `${githubHref}/blob/main/docs/MCP.md`;
 export const coreReadmeHref = `${githubHref}/blob/main/packages/core/README.md`;
 export const rootReadmeHref = `${githubHref}/blob/main/README.md`;
@@ -74,25 +76,22 @@ export type FaqItem = {
 
 export const workflowSteps = [
   {
-    description:
-      'CodeGraphy scans the project and builds a local relationship map from the code that is already there.',
-    icon: BrainCircuit,
+    description: 'Start with a file, folder, symbol, or phrase and let the graph narrow around the work in front of you.',
+    icon: Search,
     image: '/product-media/codegraphy-architecture.png',
-    title: 'Map the workspace',
+    title: 'Search',
   },
   {
-    description:
-      'Private and open-source plugins can add language, framework, or team-specific meaning to the same map.',
-    icon: Plug,
+    description: 'Hide noise, focus Graph Scope, and keep the visible map small enough to reason about.',
+    icon: Network,
     image: '/product-media/plugins-panel.png',
-    title: 'Add meaning',
+    title: 'Filter',
   },
   {
-    description:
-      'Use the graph in the editor first, then bring the same local understanding into terminal and agent workflows.',
-    icon: Workflow,
+    description: 'Use colors, shapes, and icons to customize the appearance of the graph.',
+    icon: Palette,
     image: '/product-media/relationship-graph-2d.png',
-    title: 'Work from the map',
+    title: 'Theme',
   },
 ];
 
@@ -100,82 +99,82 @@ export const heroHighlights = [
   {
     icon: BrainCircuit,
     label: 'Scan',
-    text: 'Build a map from the workspace you already have.',
+    text: 'Scan your codebase to create a local map of relationships.',
   },
   {
     icon: Network,
-    label: 'Reveal',
-    text: 'See which pieces naturally belong near each other.',
+    label: 'Forces',
+    text: 'Adjust physics forces to see natural code formations.',
   },
   {
     icon: Search,
     label: 'Focus',
-    text: 'Narrow the map when the whole codebase is too much.',
+    text: 'Narrow the graph when the whole codebase is too much.',
   },
   {
     icon: Bot,
     label: 'Share',
-    text: 'Use the same map from editor, terminal, and agent workflows.',
+    text: 'Access the same local map with the extension, CLI, or agents MCP.',
   },
 ];
 
 export const socialProofItems = [
   {
-    icon: Network,
-    image: '/product-media/relationship-graph-2d.png',
-    text: 'The first example map should prove the tool against its own workspace, packages, docs, and plugin surfaces.',
-    title: 'CodeGraphy',
-  },
-  {
+    href: 'https://github.com/godotengine/godot',
     icon: Palette,
     image: '/product-media/symbol-nodes-graph.png',
-    text: 'A Godot map can show how engine-scale code forms different neighborhoods than a TypeScript monorepo.',
     title: 'Godot',
   },
   {
+    href: 'https://github.com/shadcn-ui/ui',
     icon: MapPinned,
     image: '/product-media/graph-sections.png',
-    text: 'A shadcn/ui map can show how components, docs, registry code, templates, apps, and styling systems connect inside a design-system repo.',
     title: 'shadcn/ui',
+  },
+  {
+    href: githubHref,
+    icon: Network,
+    image: '/product-media/relationship-graph-2d.png',
+    title: 'CodeGraphy',
   },
 ];
 
 export const galleryItems = [
   {
+    icon: BrainCircuit,
+    image: '/product-media/large-repo-graph.png',
+    text: 'Core ships with Tree-sitter analysis and Material Icons. Most languages start with useful connections, themes, and file icons out of the box.',
+    title: 'Analysis and Themes',
+  },
+	{
     icon: Network,
     image: '/product-media/relationship-graph-2d.png',
-    text: 'Folder and package context stays visible without forcing every question back into a file tree.',
+    text: 'Folder context stays visible so you can return to a familiar view.',
     title: 'Folder view',
   },
   {
     icon: Monitor,
     image: '/product-media/relationship-graph-3d.png',
-    text: 'Switch into depth when the physical shape of the workspace is the thing you need to understand.',
+    text: 'View the graph in 2D or 3D.',
     title: '3D view',
   },
   {
     icon: Search,
     image: '/product-media/search-filter-panel.png',
-    text: 'Search temporarily, then save filters when generated files, tests, or docs are not part of the question.',
+    text: 'Search and filter out any of the noise from the graph to focus on what you care about.',
     title: 'Search and filters',
   },
   {
     icon: Plug,
     image: '/product-media/plugins-panel.png',
-    text: 'Enable ecosystem plugins to add symbols, framework defaults, and richer relationships to the same graph.',
+    text: 'Plugin ecosystem to modify and extend the CodeGraphy to support your specific needs.',
     title: 'Plugin system',
-  },
-  {
-    icon: Workflow,
-    image: '/product-media/large-repo-graph.png',
-    text: 'Force-based physics lets related code form natural groups instead of pretending folders are the only structure.',
-    title: 'Natural clusters',
   },
   {
     icon: Database,
     image: '/product-media/codegraphy-architecture.png',
-    text: 'The internal examples folder gives CodeGraphy small, controlled workspaces across TypeScript, Python, Godot, Markdown, and more.',
-    title: 'Examples folder',
+    text: 'Internal examples folder showing off CodeGraphy working on numerous example projects in various languages at once. (insert link)',
+    title: 'Examples',
   },
 ];
 
@@ -212,7 +211,7 @@ export const coreFeatures = [
 
 export const optionalPackages = [
   {
-    description: 'Pins, sections, saved setups, and polished graph organization tools.',
+    description: 'Pins, sections, bookmarks, and polished export tools.',
     features: [
       {
         icon: MapPinned,
@@ -220,7 +219,7 @@ export const optionalPackages = [
       },
       {
         icon: Pin,
-        text: 'Pin nodes to keep important code in place',
+        text: 'Pin nodes so you remember where they are',
       },
       {
         icon: Bookmark,
@@ -228,7 +227,7 @@ export const optionalPackages = [
       },
       {
         icon: FileImage,
-        text: 'Advanced exports for polished graph images and shareable map artifacts',
+        text: 'Advanced exports for polished graph internals and shareable map artifacts',
       },
     ],
     href: null,
@@ -240,11 +239,11 @@ export const optionalPackages = [
       },
       {
         image: '/product-media/search-filter-panel.png',
-        title: 'Saved setup controls',
+        title: 'Bookmarks',
       },
       {
         image: '/product-media/relationship-graph-2d.png',
-        title: 'Polished graph maps',
+        title: 'Pins',
       },
     ],
   },
@@ -255,53 +254,55 @@ export const faqItems: FaqItem[] = [
     answer: [
       {
         parts: [
-          'CodeGraphy has three entry points that all read the same local graph: the ',
+          'CodeGraphy has three surfaces that can read the same local map: the ',
           { href: installHref, kind: 'link', text: 'VS Code extension' },
           ', the ',
-          { href: mcpPackageHref, kind: 'link', text: 'codegraphy CLI and MCP package' },
-          ', and the open-source repo docs for deeper setup.',
+          { href: cliPackageHref, kind: 'link', text: 'CodeGraphy CLI' },
+          ', and the ',
+          { href: mcpPackageHref, kind: 'link', text: 'CodeGraphy MCP package' },
+          '.',
         ],
         type: 'paragraph',
       },
       {
         items: [
           [
-            'Install the VS Code extension when you want the interactive graph beside your editor, then open the CodeGraphy view and index the workspace.',
+            'Install the VS Code extension.',
+          ],
+          [
+            'Index the repo from the CodeGraphy view or with the CLI.',
           ],
           [
             'Install ',
-            { kind: 'code', text: '@codegraphy-dev/mcp' },
-            ' when you want the CLI or local agent access without opening VS Code.',
+            { kind: 'code', text: '@codegraphy-dev/plugin-typescript' },
+            ' for TypeScript and JavaScript relationships.',
           ],
           [
-            'Run ',
-            { kind: 'code', text: 'codegraphy index' },
-            ' from a project folder to build the workspace-local Graph Cache.',
-          ],
-          [
-            'Ask an agent questions through MCP, or use the extension graph to inspect the same files, symbols, folders, packages, and plugin relationships visually.',
+            'Turn the TypeScript plugin on from the extension UI or with the CLI, then re-index.',
           ],
         ],
-        label: 'Good starting paths',
+        label: 'Starting path',
         type: 'list',
       },
       {
-        code: 'npm install -g @codegraphy-dev/mcp\ncodegraphy setup\ncodegraphy index',
+        code: 'npm install -g @codegraphy-dev/plugin-typescript\ncodegraphy index\ncodegraphy plugins enable @codegraphy-dev/plugin-typescript\ncodegraphy index',
         type: 'code',
       },
       {
         alt: 'CodeGraphy architecture diagram showing core, plugins, the extension, CLI, and MCP reading the same graph data',
-        caption: 'Core indexes the workspace, plugins enrich the graph, then the extension, CLI, and MCP read the same relationships.',
+        caption: 'Core indexes the workspace, plugins enrich the graph, then the extension, CLI, and MCP can read the same relationships.',
         src: '/product-media/codegraphy-architecture.png',
         type: 'image',
       },
       {
-        label: 'Get started',
+        label: 'Setup links',
         links: [
           { href: installHref, text: 'VS Code extension' },
+          { href: cliPackageHref, text: 'CLI package' },
+          { href: cliDocsHref, text: 'CLI docs' },
+          { href: typescriptPluginHref, text: 'TypeScript plugin' },
           { href: mcpPackageHref, text: 'MCP package' },
           { href: mcpDocsHref, text: 'MCP setup docs' },
-          { href: rootReadmeHref, text: 'GitHub README' },
         ],
         type: 'links',
       },
@@ -312,15 +313,14 @@ export const faqItems: FaqItem[] = [
     answer: [
       {
         parts: [
-          'Yes. The core extension, CLI, local MCP package, Plugin API, and first-party plugin packages are open source in the CodeGraphy repo.',
+          'Yes. The core, extension, CLI, MCP, Plugin API, and several example plugin packages are open source in the CodeGraphy monorepo.',
         ],
         type: 'paragraph',
       },
       {
         items: [
-          ['Use the VS Code extension and core graph without creating an account.'],
           ['Inspect the source, docs, package readmes, and plugin examples on GitHub.'],
-          ['Private paid plugins are separate add-ons layered on top of the open core.'],
+          ['Private paid plugins are separate plugins integrated on top of the core that require login.'],
         ],
         type: 'list',
       },
@@ -328,8 +328,9 @@ export const faqItems: FaqItem[] = [
         label: 'Open-source links',
         links: [
           { href: githubHref, text: 'GitHub' },
-          { href: rootReadmeHref, text: 'README' },
           { href: coreReadmeHref, text: 'Core package' },
+          { href: cliPackageHref, text: 'CLI package' },
+          { href: mcpPackageHref, text: 'MCP package' },
           { href: pluginApiPackageHref, text: 'Plugin API' },
         ],
         type: 'links',
@@ -340,62 +341,33 @@ export const faqItems: FaqItem[] = [
   {
     answer: [
       {
-        items: [
-          ['Relationship Graph with file, folder, package, symbol, and plugin nodes'],
-          ['Workspace-local Graph Cache under ', { kind: 'code', text: '.codegraphy/' }],
-          ['Graph Scope, search, filters, and context actions'],
-          ['Integrated VS Code theming and Legend styling'],
-          ['2D and 3D graph views'],
-          ['Timeline-aware indexing support'],
-          ['CLI and local MCP access for agents'],
-          ['Plugin API support for language and framework enrichment'],
-        ],
-        type: 'list',
-      },
-    ],
-    question: 'What features are in core CodeGraphy?',
-  },
-  {
-    answer: [
-      {
         parts: [
-          'Connections are made during local indexing. CodeGraphy discovers files, reads folder and package structure, runs Tree-sitter analysis, applies enabled plugins, then writes the result into a workspace-local Graph Cache.',
+          'Connections are made during local indexing. CodeGraphy discovers files, reads folder and package structure, runs Tree-sitter analysis, applies enabled plugins, then writes the result into a workspace local Graph Cache.',
         ],
         type: 'paragraph',
-      },
-      {
-        items: [
-          ['Your source is analyzed on your machine.'],
-          ['The extension, CLI, and MCP server read the local Graph Cache instead of uploading source code.'],
-          ['Plugins can add more relationship evidence, but they still participate in the same local indexing flow.'],
-        ],
-        label: 'Privacy model',
-        type: 'list',
       },
       {
         label: 'Read the local graph docs',
         links: [
           { href: coreReadmeHref, text: 'Core package README' },
-          { href: mcpDocsHref, text: 'MCP docs' },
         ],
         type: 'links',
       },
     ],
-    question: 'How are code connections made?',
+    question: 'How are connections made?',
   },
   {
     answer: [
       {
         parts: [
-          'Plugins teach CodeGraphy more about a language, framework, file format, or private codebase convention. Core builds the baseline graph; plugins add meaning on top of it.',
+          'Plugins extend CodeGraphy to support a language, framework, file format, or private codebase convention.',
         ],
         type: 'paragraph',
       },
       {
         items: [
-          ['Add symbols, references, calls, imports, loads, scenes, resources, docs links, or test relationships'],
-          ['Contribute Node Types and Edge Types for concepts Core does not know by default'],
-          ['Set ecosystem defaults such as filters, colors, and Legend styling'],
+          ['Add new kinds of nodes or relationships'],
+          ['Set ecosystem defaults such as filters, icons, and color themes'],
           ['Represent private architecture rules or internal framework conventions'],
         ],
         label: 'Plugins can be used to',
@@ -416,7 +388,7 @@ export const faqItems: FaqItem[] = [
   {
     answer: [
       {
-        parts: ['Install the plugin, refresh CodeGraphy\'s plugin cache, enable it for the current workspace, then re-index. Python is a good example:'],
+        parts: ['Install the plugin, refresh CodeGraphy\'s plugin cache, enable it for the current workspace, then re-index.'],
         type: 'paragraph',
       },
       {
@@ -448,18 +420,9 @@ export const faqItems: FaqItem[] = [
         type: 'paragraph',
       },
       {
-        items: [
-          ['Install the Plugin API as a dev dependency.'],
-          ['Implement the plugin hooks that add relationship evidence for your files.'],
-          ['Declare CodeGraphy metadata in ', { kind: 'code', text: 'package.json' }, ' so the CLI can discover and validate the package.'],
-          ['Index a small fixture workspace and inspect the graph before trying the plugin on a large repo.'],
-        ],
-        type: 'list',
-      },
-      {
         label: 'Build your own plugin',
         links: [
-          { href: pluginApiPackageHref, text: 'Plugin API on npm' },
+          { href: pluginApiPackageHref, text: 'Plugin API npm package' },
           { href: `${githubHref}/blob/main/packages/plugin-api/README.md`, text: 'Plugin API README' },
           { href: pluginDocsHref, text: 'Plugin Guide' },
           { href: pluginLifecycleHref, text: 'Lifecycle docs' },
@@ -473,26 +436,7 @@ export const faqItems: FaqItem[] = [
     answer: [
       {
         parts: [
-          'Core CodeGraphy does not need an account. Sign in is only needed for private paid plugins, trials, billing, and account-level entitlement checks.',
-        ],
-        type: 'paragraph',
-      },
-      {
-        items: [
-          ['Install and use the open core without signing in.'],
-          ['Create a free account when you want website account management.'],
-          ['Sign in before using private plugins so CodeGraphy can verify which add-ons belong to you.'],
-        ],
-        type: 'list',
-      },
-    ],
-    question: 'Do private plugins need sign in?',
-  },
-  {
-    answer: [
-      {
-        parts: [
-          'Open a GitHub issue for bugs, rough edges, docs gaps, or repo examples you want mapped. Contributions can start with docs, plugin examples, or focused fixes.',
+          'Open a GitHub issue for bugs, feature requests, or ideas you want discussed. Contributions are always welcome.',
         ],
         type: 'paragraph',
       },
@@ -501,7 +445,6 @@ export const faqItems: FaqItem[] = [
         links: [
           { href: githubHref, text: 'GitHub' },
           { href: githubIssuesHref, text: 'Issues' },
-          { href: pluginDocsHref, text: 'Plugin Guide' },
         ],
         type: 'links',
       },
