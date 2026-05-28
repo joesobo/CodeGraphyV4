@@ -2,4 +2,4 @@
 "@codegraphy-dev/extension": patch
 ---
 
-Allow pinned graph nodes to move live during 2D drags so plugins can persist the updated pin on drag end.
+Move pinned graph nodes smoothly during 2D drags and persist the updated pin only after drag end.
