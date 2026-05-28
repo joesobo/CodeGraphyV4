@@ -268,6 +268,30 @@ Gallery audition loop:
 9. Review whether the graph is both beautiful and useful.
 10. Iterate until the workspace earns a gallery slot or gets rejected.
 
+### Website Media Shot List
+
+Status: wait until the Pro extraction work lands before capturing final website screenshots/GIFs.
+
+Example map targets:
+
+- **CodeGraphy**: dogfood map for the CodeGraphy repo itself. Use this to show the product understands its own core, extension, CLI/MCP, Plugin API, built-in plugins, docs, and examples.
+- **Godot**: public Godot map for an engine-scale codebase with a very different shape than a TypeScript monorepo.
+- **OpenHands**: exact AI repo target for the open-source AI example map: `OpenHands/OpenHands` (`https://github.com/OpenHands/OpenHands`). Use this instead of a vague "Open-source AI" placeholder because it is a recognizable AI coding-agent platform with Python agent/SDK code, TypeScript UI, CLI, tests, containers, and product boundaries that should form useful visual neighborhoods.
+
+Gallery media:
+
+- **Folder view**: still image showing folder/package context visible in the graph without making folders the only organizing principle.
+- **3D view**: still image showing the graph in depth, framed clearly enough to read clusters.
+- **Search and filters**: still image showing search/filter controls narrowing the graph to a useful subset.
+- **Plugin system**: GIF of turning on multiple plugins and watching the graph/legend become richer.
+- **Examples and natural clusters**: combine the old "Natural clusters" and "Examples folder" slots into one image. Use the examples folder because small multi-language examples naturally show CodeGraphy physics forming readable groups.
+
+Pricing and Organize media:
+
+- **Sections**: image with many section nodes or sectioned graph areas, making the grouping behavior obvious at a glance.
+- **Pinned nodes**: image with several nodes pinned in an intentionally obvious layout so the viewer can see that important code can stay in place.
+- **Bookmarks**: image standing in for saved graph setups/bookmarks. Until Bookmarks exist, use a filters/settings screenshot that implies a reusable saved view.
+
 ## Feature Claims
 
 Lead with outcomes and avoid overclaiming implementation.
