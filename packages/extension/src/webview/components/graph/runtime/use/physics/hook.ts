@@ -111,9 +111,9 @@ export function usePhysicsRuntime({
       forceAdapterStateRef.current,
       graphViewContributions,
       graphDataRef?.current ?? { nodes: [], links: [] },
-      { graphMode, timelineActive },
+      { graphMode, physicsSettings, timelineActive },
     );
-  }, [fg2dRef, fg3dRef, graphDataRef, graphMode, graphViewContributions, layoutKey, physicsInitialisedRef, timelineActive]);
+  }, [fg2dRef, fg3dRef, graphDataRef, graphMode, graphViewContributions, layoutKey, physicsInitialisedRef, physicsSettings, timelineActive]);
 
   useEffect(() => {
     const fg2d = fg2dRef.current;
