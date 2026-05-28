@@ -95,29 +95,6 @@ export const workflowSteps = [
   },
 ];
 
-export const heroHighlights = [
-  {
-    icon: BrainCircuit,
-    label: 'Scan',
-    text: 'Scan your codebase to create a local map of relationships.',
-  },
-  {
-    icon: Network,
-    label: 'Forces',
-    text: 'Adjust physics forces to see natural code formations.',
-  },
-  {
-    icon: Search,
-    label: 'Focus',
-    text: 'Narrow the graph when the whole codebase is too much.',
-  },
-  {
-    icon: Bot,
-    label: 'Share',
-    text: 'Access the same local map with the extension, CLI, or agents MCP.',
-  },
-];
-
 export const socialProofItems = [
   {
     href: 'https://github.com/godotengine/godot',

@@ -7,12 +7,14 @@ import {
   faqItems,
   galleryItems,
   githubHref,
-  heroHighlights,
   installHref,
   optionalPackages,
   socialProofItems,
   workflowSteps,
 } from './content';
+import { ForceNodeControls } from './forceNodeField/controls';
+import { ForceNodeSettingsProvider } from './forceNodeField/settings';
+import { ForceNodeField } from './forceNodeField/view';
 import type { FaqAnswerBlock, FaqTextPart } from './content';
 
 function renderFaqText(parts: FaqTextPart[], keyPrefix: string): React.ReactNode {
@@ -117,15 +119,13 @@ export function HomeView(): React.ReactElement {
   return (
     <>
       <SiteHeader />
-      <main>
-        <section className="relative overflow-hidden">
-          <img
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-35"
-            src="/product-media/hero-relationship-graph.png"
-          />
-          <div className="home-hero-overlay absolute inset-0" />
-          <div className="relative mx-auto grid min-h-[720px] max-w-7xl items-end gap-10 px-5 pb-20 pt-28 md:grid-cols-[0.9fr_0.7fr] md:px-8">
+      <div className="force-field-page">
+        <ForceNodeSettingsProvider>
+        <ForceNodeField />
+        <main>
+        <section className="relative overflow-hidden" data-force-field-section="true">
+          <div className="force-field-background home-hero-overlay absolute inset-0" />
+          <div className="force-field-content mx-auto grid min-h-[720px] max-w-7xl items-end gap-10 px-5 pb-20 pt-28 md:grid-cols-[0.9fr_0.7fr] md:px-8">
             <div className="max-w-3xl">
               <h1 className="site-heading text-5xl leading-[0.95] text-foreground sm:text-7xl lg:text-8xl">
                 See your code connect.
@@ -148,29 +148,12 @@ export function HomeView(): React.ReactElement {
                 </Button>
               </div>
             </div>
-            <aside className="hero-studio-panel">
-              <div className="grid gap-3 p-5">
-                {heroHighlights.map(item => {
-                  const Icon = item.icon;
-
-                  return (
-                    <div className="hero-tool-row" key={item.label}>
-                      <span className="icon-badge">
-                        <Icon size={18} />
-                      </span>
-                      <div>
-                        <p className="font-bold text-foreground">{item.label}</p>
-                        <p className="text-sm leading-6 text-muted-foreground">{item.text}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </aside>
+            <ForceNodeControls />
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
+        <section data-force-field-section="true">
+          <div className="force-field-content mx-auto max-w-7xl px-5 py-20 md:px-8">
             <div className="grid gap-8 md:grid-cols-[0.8fr_1fr] md:items-end">
               <div>
                 <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Example graphs</p>
@@ -210,6 +193,7 @@ export function HomeView(): React.ReactElement {
                 );
               })}
             </div>
+          </div>
         </section>
 
         <section className="section-plain border-y border-border/70">
@@ -231,7 +215,8 @@ export function HomeView(): React.ReactElement {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-5 py-16 md:px-8">
+        <section data-force-field-section="true">
+          <div className="force-field-content mx-auto max-w-7xl px-5 py-16 md:px-8">
             <div className="grid gap-8 md:grid-cols-[0.8fr_1fr] md:items-end">
               <div>
                 <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">How it works</p>
@@ -271,6 +256,7 @@ export function HomeView(): React.ReactElement {
                 })}
               </div>
             </div>
+          </div>
         </section>
 
         <section className="section-plain border-y border-border/70" id="gallery">
@@ -327,7 +313,8 @@ export function HomeView(): React.ReactElement {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
+        <section data-force-field-section="true">
+          <div className="force-field-content mx-auto max-w-7xl px-5 py-20 md:px-8">
             <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Private plugins</p>
             <h2 className="site-heading max-w-4xl text-4xl sm:text-5xl">
               Paid plugins for focused workflows.
@@ -372,6 +359,7 @@ export function HomeView(): React.ReactElement {
                 </Card>
               ))}
             </div>
+          </div>
         </section>
 
         <section className="section-plain border-y border-border/70" id="faq">
@@ -399,9 +387,10 @@ export function HomeView(): React.ReactElement {
           </div>
         </section>
 
-        <section className="section-cta">
-          <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.9fr_1fr] md:items-center md:px-8">
-            <div>
+        <section className="section-cta relative overflow-hidden" data-force-field-section="true">
+          <div className="force-field-background home-hero-overlay section-cta-overlay absolute inset-0" />
+          <div className="force-field-content mx-auto grid max-w-7xl gap-10 px-5 py-24 md:grid-cols-[0.9fr_1fr] md:items-center md:px-8">
+            <div className="max-w-3xl">
               <p className="section-kicker-orange mb-3 text-xs font-black uppercase tracking-[0.08em]">Start graphing</p>
               <h2 className="site-heading max-w-3xl text-4xl sm:text-5xl">
                 Let the graph show you where the code already wants to go.
@@ -424,15 +413,19 @@ export function HomeView(): React.ReactElement {
                 </Button>
               </div>
             </div>
-            <img
-              alt=""
-              className="aspect-[16/10] w-full rounded-md border border-border object-cover shadow-sm"
-              src="/product-media/large-repo-graph.png"
-            />
+            <div className="section-cta-graph-window">
+              <img
+                alt=""
+                className="h-full w-full object-cover"
+                src="/product-media/large-repo-graph.png"
+              />
+            </div>
           </div>
         </section>
-      </main>
-      <SiteFooter />
+          </main>
+          <SiteFooter />
+        </ForceNodeSettingsProvider>
+      </div>
     </>
   );
 }

@@ -7,6 +7,12 @@ describe('CodeGraphy website home page', () => {
     render(<HomeView />);
 
     expect(screen.getByRole('heading', { level: 1, name: 'See your code connect.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Play with the graph.' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Center' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Repel' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Distance' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Link force' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Node size' })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /Install CodeGraphy/i })).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -26,6 +32,8 @@ describe('CodeGraphy website home page', () => {
     expect(screen.getByText('Is CodeGraphy open source?')).toBeInTheDocument();
     expect(screen.getByText('Where do I report bugs or contribute?')).toBeInTheDocument();
     expect(screen.queryByText('GitHub repo')).not.toBeInTheDocument();
+    expect(screen.queryByText('Nearby nodes naturally become the places you are already working.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Scan your codebase to create a local map of relationships.')).not.toBeInTheDocument();
     expect(screen.queryByText('$5/mo')).not.toBeInTheDocument();
     expect(screen.queryByText('Do I need an account?')).not.toBeInTheDocument();
     expect(screen.queryByText('How do I use CodeGraphy?')).not.toBeInTheDocument();
