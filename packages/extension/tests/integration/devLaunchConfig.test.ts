@@ -83,7 +83,7 @@ describe('dev launch config', () => {
     fs.writeFileSync(
       path.join(privatePackageRoot, 'package.json'),
       JSON.stringify({
-        name: '@codegraphy/organize',
+        name: '@codegraphy-pro/organize',
         version: '0.1.0',
         codegraphy: { type: 'plugin', apiVersion: '^2.0.0' },
       }),
