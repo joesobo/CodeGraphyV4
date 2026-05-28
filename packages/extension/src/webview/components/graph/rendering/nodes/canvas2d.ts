@@ -65,6 +65,7 @@ export function renderNodeCanvas(
     node,
     opacity,
   });
+  ctx.globalAlpha = opacity;
   renderNodePluginOverlay(dependencies.pluginHost, node, ctx, globalScale, decoration);
 
   ctx.restore();

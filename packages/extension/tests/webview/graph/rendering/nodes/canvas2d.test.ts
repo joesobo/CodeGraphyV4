@@ -413,6 +413,30 @@ describe('graph/rendering/nodes/canvas2d', () => {
     }));
   });
 
+  it('renders plugin node overlays with node opacity instead of leftover label opacity', () => {
+    const { ctx } = createContext();
+    const renderer = vi.fn();
+
+    renderNodeCanvas(
+      createDependencies({
+        pluginHost: {
+          getNodeRenderers: vi.fn(() => [renderer]),
+        } as unknown as WebviewPluginHost,
+        showLabels: true,
+      }),
+      createNode(),
+      ctx,
+      0.9,
+    );
+
+    expect(renderer).toHaveBeenCalledWith(expect.objectContaining({
+      ctx: expect.objectContaining({
+        globalAlpha: 1,
+      }),
+      globalScale: 0.9,
+    }));
+  });
+
   it('paints the expanded pointer area around the node shape', () => {
     const { ctx } = createContext();
 
