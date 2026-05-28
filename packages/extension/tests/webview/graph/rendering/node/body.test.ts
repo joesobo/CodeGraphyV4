@@ -170,6 +170,31 @@ describe('graph/rendering/node/body', () => {
     });
   });
 
+  it('passes plugin rectangle corner radius through to the shape renderer', () => {
+    const { ctx } = createContext();
+
+    renderNodeBody({
+      ctx,
+      node: createNode({
+        cornerRadius2D: 5,
+        shape2D: 'rectangle',
+        shapeSize2D: {
+          height: 48,
+          width: 48,
+        },
+      }),
+      globalScale: 1,
+      decoration: undefined,
+      opacity: 1,
+      isSelected: false,
+    });
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'rectangle', 24, 48, 16, {
+      height: 48,
+      width: 48,
+    }, 5);
+  });
+
   it('uses plugin fill opacity for the node body without fading the border', () => {
     const { ctx, operations } = createContext();
 
