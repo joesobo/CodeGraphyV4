@@ -79,7 +79,7 @@ The Core Package is the central CodeGraphy engine. Other packages are interfaces
 - the VS Code extension is the user interface for visualization and editor integration
 - the `codegraphy` CLI is the terminal interface for users and scripts
 - MCP is the agent interface for Graph Query and indexing requests
-- `@codegraphy/plugin-api` is the programmer interface for creating plugins that interact with core
+- `@codegraphy-dev/plugin-api` is the programmer interface for creating plugins that interact with core
 
 These interfaces should not own independent engine behavior or duplicate core responsibilities.
 

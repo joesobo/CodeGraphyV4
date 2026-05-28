@@ -113,7 +113,7 @@ describe('extension/repoSettings/store', () => {
         ...createSettingsWithOverrides({}),
         plugins: [
           { package: '@codegraphy-dev/plugin-markdown' },
-          { package: '@codegraphy/organize' },
+          { package: '@codegraphy-pro/organize' },
         ],
         pluginData: {
           'codegraphy.organize': {
