@@ -31,10 +31,6 @@ describe('graph/runtime/use/interaction/nodeDrag/group', () => {
       selectedNodeIds: new Set(['primary', 'sibling', 'missing']),
     })).toEqual({
       draggedNodeIds: new Set(['primary', 'sibling']),
-      nodeOrigins: new Map([
-        ['primary', { x: 0, y: 0 }],
-        ['sibling', { x: 0, y: 0 }],
-      ]),
       primaryNodeId: 'primary',
     });
   });
@@ -78,7 +74,6 @@ describe('graph/runtime/use/interaction/nodeDrag/group', () => {
 
     expect(getDragEndNodes(primary, {
       draggedNodeIds: new Set(['primary', 'missing', 'sibling']),
-      nodeOrigins: new Map(),
       primaryNodeId: 'primary',
     }, {
       nodes: [sibling],

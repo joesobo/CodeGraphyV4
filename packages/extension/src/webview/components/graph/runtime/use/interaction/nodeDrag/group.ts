@@ -1,11 +1,5 @@
 import type { FGNode } from '../../../../model/build';
-import type {
-  ApplyNodeDragOptions,
-  NodeDragGraphData,
-  NodeDragGroupSession,
-  NodeDragPositionOrigin,
-} from './types';
-import { readNodePositionOrigin } from './position';
+import type { ApplyNodeDragOptions, NodeDragGraphData, NodeDragGroupSession } from './types';
 
 export function createNodeMap(nodes: readonly FGNode[]): Map<string, FGNode> {
   return new Map(nodes.map(node => [node.id, node]));
@@ -31,40 +25,9 @@ export function createDragGroupSession(
     }
   }
 
-  const nodeOrigins = new Map<string, NodeDragPositionOrigin>();
-  for (const nodeId of draggedNodeIds) {
-    const node = nodesById.get(nodeId);
-    if (node) {
-      nodeOrigins.set(nodeId, readNodePositionOrigin(node));
-    }
-  }
-
   return draggedNodeIds.size > 1
-    ? { draggedNodeIds, nodeOrigins, primaryNodeId: primaryNode.id }
+    ? { draggedNodeIds, primaryNodeId: primaryNode.id }
     : null;
-}
-
-export function createPinnedNodeDragSession(
-  primaryNode: FGNode,
-  options: ApplyNodeDragOptions,
-): NodeDragGroupSession | null {
-  if (options.graphMode !== '2d' || primaryNode.isPinned !== true) {
-    return null;
-  }
-
-  return {
-    draggedNodeIds: new Set([primaryNode.id]),
-    nodeOrigins: new Map([[primaryNode.id, readNodePositionOrigin(primaryNode)]]),
-    primaryNodeId: primaryNode.id,
-  };
-}
-
-export function createNodeDragSession(
-  primaryNode: FGNode,
-  options: ApplyNodeDragOptions,
-): NodeDragGroupSession | null {
-  return createDragGroupSession(primaryNode, options)
-    ?? createPinnedNodeDragSession(primaryNode, options);
 }
 
 export function getDragEndNodes(
