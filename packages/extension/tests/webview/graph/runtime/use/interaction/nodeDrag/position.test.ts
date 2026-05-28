@@ -3,6 +3,7 @@ import type { FGNode } from '../../../../../../../src/webview/components/graph/m
 import {
   isFiniteTranslate,
   moveNodeByTranslate,
+  stopNodeMotion,
 } from '../../../../../../../src/webview/components/graph/runtime/use/interaction/nodeDrag/position';
 
 describe('graph/runtime/use/interaction/nodeDrag/position', () => {
@@ -46,5 +47,18 @@ describe('graph/runtime/use/interaction/nodeDrag/position', () => {
     moveNodeByTranslate(node, { x: 3, y: Number.NaN });
 
     expect(node).toEqual({ id: 'node', x: 10, y: 20 });
+  });
+
+  it('stops live node motion without changing position', () => {
+    const node = { id: 'node', vx: 4, vy: -6, x: 10, y: 20 } as FGNode;
+
+    stopNodeMotion(node);
+
+    expect(node).toMatchObject({
+      vx: 0,
+      vy: 0,
+      x: 10,
+      y: 20,
+    });
   });
 });

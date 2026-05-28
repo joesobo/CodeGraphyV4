@@ -45,7 +45,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     expect(outside).toMatchObject({ x: 90, y: 90 });
   });
 
-  it('moves selected group followers from their drag origins on repeated drag frames', () => {
+  it('moves selected group followers by each force graph drag delta', () => {
     const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
     const sibling = { id: 'sibling', vx: 1, vy: 2, x: 30, y: 40 } as FGNode;
 
@@ -54,7 +54,7 @@ describe('graph/runtime/use/interaction node drag', () => {
       graphMode: '2d',
       selectedNodeIds: new Set(['primary', 'sibling']),
     });
-    applyNodeDrag(primary, { x: 10, y: -6 }, {
+    applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary, sibling] },
       graphMode: '2d',
       selectedNodeIds: new Set(['primary', 'sibling']),
@@ -71,16 +71,16 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
-  it('moves a pinned primary node by the live drag delta in 2d', () => {
+  it('keeps a pinned primary node at the force graph live drag position in 2d', () => {
     const primary = {
-      fx: 15,
-      fy: 12,
+      fx: 20,
+      fy: 9,
       id: 'primary',
       isPinned: true,
       vx: 2,
       vy: 4,
-      x: 15,
-      y: 12,
+      x: 20,
+      y: 9,
     } as FGNode;
 
     const session = applyNodeDrag(primary, { x: 5, y: -3 }, {
@@ -89,11 +89,7 @@ describe('graph/runtime/use/interaction node drag', () => {
       selectedNodeIds: new Set(),
     });
 
-    expect(session).toMatchObject({
-      draggedNodeIds: new Set(['primary']),
-      nodeOrigins: new Map([['primary', { x: 15, y: 12 }]]),
-      primaryNodeId: 'primary',
-    });
+    expect(session).toBeNull();
     expect(primary).toMatchObject({
       fx: 20,
       fy: 9,
@@ -105,16 +101,16 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
-  it('moves a pinned primary node from its drag origin on repeated drag frames', () => {
+  it('does not move a pinned primary node beyond force graph live drag positions', () => {
     const primary = {
-      fx: 15,
-      fy: 12,
+      fx: 20,
+      fy: 9,
       id: 'primary',
       isPinned: true,
       vx: 2,
       vy: 4,
-      x: 15,
-      y: 12,
+      x: 20,
+      y: 9,
     } as FGNode;
 
     const firstSession = applyNodeDrag(primary, { x: 5, y: -3 }, {
@@ -122,7 +118,11 @@ describe('graph/runtime/use/interaction node drag', () => {
       graphMode: '2d',
       selectedNodeIds: new Set(),
     });
-    applyNodeDrag(primary, { x: 10, y: -6 }, {
+    primary.x = 25;
+    primary.y = 6;
+    primary.fx = 25;
+    primary.fy = 6;
+    applyNodeDrag(primary, { x: 5, y: -3 }, {
       graphData: { nodes: [primary] },
       graphMode: '2d',
       selectedNodeIds: new Set(),
@@ -149,10 +149,6 @@ describe('graph/runtime/use/interaction node drag', () => {
       selectedNodeIds: new Set(['primary', 'sibling']),
     }, {
       draggedNodeIds: new Set(['primary', 'missing', 'sibling']),
-      nodeOrigins: new Map([
-        ['primary', { x: 15, y: 12 }],
-        ['sibling', { x: 30, y: 40 }],
-      ]),
       primaryNodeId: 'primary',
     })).not.toThrow();
     expect(sibling).toMatchObject({ x: 35, y: 37 });
@@ -305,10 +301,6 @@ describe('graph/runtime/use/interaction node drag', () => {
       primary,
       {
         draggedNodeIds: new Set(['primary', 'sibling']),
-        nodeOrigins: new Map([
-          ['primary', { x: 1, y: 2 }],
-          ['sibling', { x: 3, y: 4 }],
-        ]),
         primaryNodeId: 'primary',
       },
       {

@@ -8,14 +8,8 @@ export interface NodeDragTranslate {
   y: number;
 }
 
-export interface NodeDragPositionOrigin {
-  x: number;
-  y: number;
-}
-
 export interface NodeDragGroupSession {
   draggedNodeIds: Set<string>;
-  nodeOrigins: Map<string, NodeDragPositionOrigin>;
   primaryNodeId: string;
 }
 
