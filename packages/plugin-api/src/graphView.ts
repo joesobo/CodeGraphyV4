@@ -53,6 +53,14 @@ export interface IGraphViewRuntimeEdge extends IGraphEdge {
   runtimeEdgeType?: string;
 }
 
+export interface IGraphViewPhysicsSettings {
+  repelForce: number;
+  linkDistance: number;
+  linkForce: number;
+  damping: number;
+  centerForce: number;
+}
+
 export interface IGraphViewRuntimeNodeContribution extends IGraphViewContributionBase {
   createNodes(context: IGraphViewContributionContext): readonly IGraphViewRuntimeNode[];
 }
@@ -68,6 +76,7 @@ export interface IGraphViewProjectionContribution extends IGraphViewContribution
 export interface IGraphViewForceAdapterContext extends IGraphViewContributionContext {
   nodes: readonly IGraphViewRuntimeNode[];
   edges: readonly IGraphViewRuntimeEdge[];
+  physicsSettings?: IGraphViewPhysicsSettings;
 }
 
 export interface IGraphViewForceAdapter {
