@@ -276,7 +276,7 @@ Example map targets:
 
 - **CodeGraphy**: dogfood map for the CodeGraphy repo itself. Use this to show the product understands its own core, extension, CLI/MCP, Plugin API, built-in plugins, docs, and examples.
 - **Godot**: public Godot map for an engine-scale codebase with a very different shape than a TypeScript monorepo.
-- **Vite DevTools**: exact third example map target: `vitejs/devtools` (`https://github.com/vitejs/devtools`). Use this instead of the earlier OpenHands idea because it is closer to CodeGraphy's developer-tool audience and should show clean product neighborhoods across Vue UI, TypeScript packages, examples, docs, e2e tests, and package boundaries.
+- **shadcn/ui**: exact third example map target: `shadcn-ui/ui` (`https://github.com/shadcn-ui/ui`). Use this instead of the earlier OpenHands and Vite DevTools ideas because it is highly recognizable, TypeScript-heavy, and close to CodeGraphy's developer-tool audience. The map should show useful neighborhoods across components, docs, registry code, templates, apps, styling, and package boundaries.
 
 Gallery media:
 

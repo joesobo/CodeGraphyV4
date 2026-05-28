@@ -135,8 +135,8 @@ export const socialProofItems = [
   {
     icon: MapPinned,
     image: '/product-media/graph-sections.png',
-    text: 'A Vite DevTools map can show how Vue UI, TypeScript packages, examples, docs, and e2e tests pull into practical product neighborhoods.',
-    title: 'Vite DevTools',
+    text: 'A shadcn/ui map can show how components, docs, registry code, templates, apps, and styling systems connect inside a design-system repo.',
+    title: 'shadcn/ui',
   },
 ];
 
