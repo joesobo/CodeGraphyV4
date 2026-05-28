@@ -31,6 +31,7 @@ export type FGNode = NodeObject & Record<string, unknown> & {
   ownerPluginId?: string;
   runtimeNodeType?: string;
   fillOpacity2D?: number;
+  cornerRadius2D?: number;
   shapeSize2D?: {
     height: number;
     width: number;

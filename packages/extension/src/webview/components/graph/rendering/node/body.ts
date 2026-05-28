@@ -34,6 +34,11 @@ export function renderNodeBody({
 }
 
 function drawNodeBodyPath(ctx: CanvasRenderingContext2D, node: FGNode): void {
+  if (node.cornerRadius2D !== undefined) {
+    drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size, node.shapeSize2D, node.cornerRadius2D);
+    return;
+  }
+
   if (node.shapeSize2D) {
     drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size, node.shapeSize2D);
     return;

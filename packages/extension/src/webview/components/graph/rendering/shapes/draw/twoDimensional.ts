@@ -19,6 +19,7 @@ export function drawShape(
   y: number,
   size: number,
   shapeSize?: RectangularNodeArea2D,
+  cornerRadius = 0,
 ): void {
   switch (shape) {
     case 'circle':
@@ -28,7 +29,7 @@ export function drawShape(
       drawSquare(ctx, x, y, size);
       break;
     case 'rectangle':
-      drawRectangle(ctx, x, y, size, shapeSize);
+      drawRectangle(ctx, x, y, size, shapeSize, cornerRadius);
       break;
     case 'diamond':
       drawDiamond(ctx, x, y, size);
@@ -72,11 +73,32 @@ function drawRectangle(
   y: number,
   size: number,
   shapeSize: RectangularNodeArea2D | undefined,
+  cornerRadius: number,
 ): void {
   const width = shapeSize?.width ?? size * 2;
   const height = shapeSize?.height ?? size * 2;
+  const radius = Math.max(0, Math.min(cornerRadius, width / 2, height / 2));
+  const left = x - (width / 2);
+  const top = y - (height / 2);
+  const right = left + width;
+  const bottom = top + height;
+
   ctx.beginPath();
-  ctx.rect(x - (width / 2), y - (height / 2), width, height);
+  if (radius === 0) {
+    ctx.rect(left, top, width, height);
+    ctx.closePath();
+    return;
+  }
+
+  ctx.moveTo(left + radius, top);
+  ctx.lineTo(right - radius, top);
+  ctx.quadraticCurveTo(right, top, right, top + radius);
+  ctx.lineTo(right, bottom - radius);
+  ctx.quadraticCurveTo(right, bottom, right - radius, bottom);
+  ctx.lineTo(left + radius, bottom);
+  ctx.quadraticCurveTo(left, bottom, left, bottom - radius);
+  ctx.lineTo(left, top + radius);
+  ctx.quadraticCurveTo(left, top, left + radius, top);
   ctx.closePath();
 }
 

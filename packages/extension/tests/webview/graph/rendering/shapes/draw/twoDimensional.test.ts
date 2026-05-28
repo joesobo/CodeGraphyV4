@@ -8,6 +8,7 @@ function createMockContext() {
     rect: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),
+    quadraticCurveTo: vi.fn(),
     closePath: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
@@ -72,6 +73,19 @@ describe('shapes2D', () => {
       drawShape(ctx, 'rectangle', 10, 20, 5);
 
       expect(mock.rect).toHaveBeenCalledWith(5, 15, 10, 10);
+    });
+
+    it('draws rounded rectangles when a corner radius is provided', () => {
+      drawShape(ctx, 'rectangle', 10, 20, 5, {
+        height: 12,
+        width: 30,
+      }, 3);
+
+      expect(mock.rect).not.toHaveBeenCalled();
+      expect(mock.moveTo).toHaveBeenCalledWith(-2, 14);
+      expect(mock.lineTo).toHaveBeenCalledWith(22, 14);
+      expect(mock.quadraticCurveTo).toHaveBeenCalledTimes(4);
+      expect(mock.closePath).toHaveBeenCalledOnce();
     });
   });
 
