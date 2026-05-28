@@ -135,8 +135,8 @@ export const socialProofItems = [
   {
     icon: MapPinned,
     image: '/product-media/graph-sections.png',
-    text: 'An open-source AI project can show how model, agent, eval, and tooling code pull into different clusters.',
-    title: 'Open-source AI',
+    text: 'A Vite DevTools map can show how Vue UI, TypeScript packages, examples, docs, and e2e tests pull into practical product neighborhoods.',
+    title: 'Vite DevTools',
   },
 ];
 

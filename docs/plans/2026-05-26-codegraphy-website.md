@@ -276,7 +276,7 @@ Example map targets:
 
 - **CodeGraphy**: dogfood map for the CodeGraphy repo itself. Use this to show the product understands its own core, extension, CLI/MCP, Plugin API, built-in plugins, docs, and examples.
 - **Godot**: public Godot map for an engine-scale codebase with a very different shape than a TypeScript monorepo.
-- **OpenHands**: exact AI repo target for the open-source AI example map: `OpenHands/OpenHands` (`https://github.com/OpenHands/OpenHands`). Use this instead of a vague "Open-source AI" placeholder because it is a recognizable AI coding-agent platform with Python agent/SDK code, TypeScript UI, CLI, tests, containers, and product boundaries that should form useful visual neighborhoods.
+- **Vite DevTools**: exact third example map target: `vitejs/devtools` (`https://github.com/vitejs/devtools`). Use this instead of the earlier OpenHands idea because it is closer to CodeGraphy's developer-tool audience and should show clean product neighborhoods across Vue UI, TypeScript packages, examples, docs, e2e tests, and package boundaries.
 
 Gallery media:
 
