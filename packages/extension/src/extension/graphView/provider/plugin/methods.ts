@@ -65,6 +65,8 @@ export interface GraphViewProviderPluginMethodsSource {
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _invalidateTimelineCache(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
+  invalidatePluginFiles(pluginIds: readonly string[]): string[];
+  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
 }
 
 export interface GraphViewProviderPluginMethods {

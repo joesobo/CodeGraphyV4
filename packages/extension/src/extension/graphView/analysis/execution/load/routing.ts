@@ -2,7 +2,7 @@ import type { CodeGraphyIndexFreshness } from '../../../../repoSettings/freshnes
 import type { GraphViewAnalysisExecutionState } from '../../execution';
 import { shouldDiscoverGraph, shouldRefreshGraphIndex } from './policy';
 
-export type GraphViewRawDataLoadRoute = 'discover' | 'refresh' | 'incremental' | 'analyze';
+export type GraphViewRawDataLoadRoute = 'discover' | 'cached' | 'refresh' | 'incremental' | 'analyze';
 
 export interface GraphViewRawDataLoadDecision {
   route: GraphViewRawDataLoadRoute;
@@ -12,10 +12,15 @@ export interface GraphViewRawDataLoadDecision {
 export function selectGraphViewRawDataLoadDecision(
   mode: GraphViewAnalysisExecutionState['mode'],
   freshness: CodeGraphyIndexFreshness,
+  canLoadCachedGraph = false,
 ): GraphViewRawDataLoadDecision {
   const shouldDiscover = shouldDiscoverGraph(mode, freshness);
   if (shouldDiscover) {
     return { route: 'discover', shouldDiscover };
+  }
+
+  if (mode === 'load' && freshness === 'stale' && canLoadCachedGraph) {
+    return { route: 'cached', shouldDiscover };
   }
 
   if (shouldRefreshGraphIndex(mode, freshness)) {

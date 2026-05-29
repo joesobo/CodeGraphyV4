@@ -57,7 +57,7 @@ describe('graphView/provider/plugin/externalRegistration', () => {
         sendGraphViewContributionStatuses: expect.any(Function),
         sendPluginWebviewInjections: expect.any(Function),
         invalidateTimelineCache: expect.any(Function),
-        analyzeAndSendData: expect.any(Function),
+        reprocessPluginFiles: expect.any(Function),
       }),
     );
 
@@ -70,6 +70,33 @@ describe('graphView/provider/plugin/externalRegistration', () => {
     expect(initialState.readyNotified).toBe(true);
     expect(initialState.analyzerInitialized).toBe(false);
     expect(initialState.analyzerInitPromise).toBeInstanceOf(Promise);
+  });
+
+  it('reprocesses files owned by the newly registered plugin without clearing the graph cache', async () => {
+    const registerExternalPlugin = vi.fn();
+    const source = createPluginSource({
+      invalidatePluginFiles: vi.fn(() => ['/workspace/src/index.ts']),
+      refreshChangedFiles: vi.fn(async () => undefined),
+    });
+    const register = createGraphViewProviderExternalPluginRegistration(
+      source,
+      {
+        registerExternalPlugin,
+        getWorkspaceFolders: vi.fn(() => [{ uri: vscode.Uri.file('/workspace') }] as never),
+      },
+      createBroadcasts(),
+    );
+
+    register({ id: 'plugin.test' });
+
+    const handlers = registerExternalPlugin.mock.calls[0]?.[3] as {
+      reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
+    };
+    await handlers.reprocessPluginFiles(['plugin.test']);
+
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['plugin.test']);
+    expect(source.refreshChangedFiles).toHaveBeenCalledWith(['/workspace/src/index.ts']);
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('reads the workspace root lazily from the current folders', () => {

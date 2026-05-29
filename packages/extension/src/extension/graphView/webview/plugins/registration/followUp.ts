@@ -35,6 +35,6 @@ export async function runExternalPluginRegistrationFollowUp(
   state.analyzer?.registry.replayReadinessForPlugin(pluginId);
   await handlers.invalidateTimelineCache?.();
   if (state.analyzerInitialized) {
-    await handlers.analyzeAndSendData();
+    await handlers.reprocessPluginFiles([pluginId]);
   }
 }

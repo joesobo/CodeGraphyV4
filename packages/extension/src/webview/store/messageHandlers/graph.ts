@@ -15,9 +15,15 @@ export function handleGraphDataUpdated(
     state?.awaitingInitialBootstrap
     && (!state.bootstrapComplete || state.pendingPluginAssetLoads > 0),
   );
+  const initialBootstrapFinished = Boolean(
+    state?.awaitingInitialBootstrap
+    && state.bootstrapComplete
+    && state.pendingPluginAssetLoads === 0,
+  );
 
   return {
     graphData: message.payload,
+    ...(initialBootstrapFinished ? { awaitingInitialBootstrap: false } : {}),
     isLoading: waitingForInitialBootstrap,
     graphIsIndexing: false,
     graphIndexProgress: null,
@@ -33,6 +39,7 @@ export function handleAppBootstrapComplete(
 
   return {
     bootstrapComplete: true,
+    awaitingInitialBootstrap: graphReady ? false : state.awaitingInitialBootstrap,
     isLoading: graphReady ? false : state.isLoading,
   };
 }

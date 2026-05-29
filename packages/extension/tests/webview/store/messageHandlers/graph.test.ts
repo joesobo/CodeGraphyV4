@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   handleActiveFileUpdated,
+  handleAppBootstrapComplete,
   handleDepthLimitRangeUpdated,
   handleDepthLimitUpdated,
   handleDepthModeUpdated,
@@ -96,6 +97,44 @@ describe('webview/store/messageHandlers/graph', () => {
       isLoading: false,
       graphIsIndexing: false,
       graphIndexProgress: null,
+    });
+  });
+
+  it('settles initial bootstrap when graph data arrives after bootstrap and plugin assets are ready', () => {
+    const payload = { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] };
+    const state = createState({
+      awaitingInitialBootstrap: true,
+      bootstrapComplete: true,
+      pendingPluginAssetLoads: 0,
+    });
+
+    expect(handleGraphDataUpdated(
+      { type: 'GRAPH_DATA_UPDATED', payload },
+      { getState: () => state },
+    )).toEqual({
+      graphData: payload,
+      awaitingInitialBootstrap: false,
+      isLoading: false,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    });
+  });
+
+  it('settles initial bootstrap when app bootstrap completes after graph data and plugin assets are ready', () => {
+    const state = createState({
+      graphData: { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] },
+      awaitingInitialBootstrap: true,
+      pendingPluginAssetLoads: 0,
+      isLoading: true,
+    });
+
+    expect(handleAppBootstrapComplete(
+      { type: 'APP_BOOTSTRAP_COMPLETE' },
+      { getState: () => state },
+    )).toEqual({
+      bootstrapComplete: true,
+      awaitingInitialBootstrap: false,
+      isLoading: false,
     });
   });
 
