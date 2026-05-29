@@ -170,9 +170,11 @@ export type {
 } from './graphCache/status';
 export { readGraphCacheStatus } from './graphCache/status';
 export {
+  createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
 } from './indexing/workspace';
 export type {
+  CodeGraphyWorkspaceEngine,
   IndexCodeGraphyWorkspaceOptions,
   IndexCodeGraphyWorkspaceResult,
 } from './indexing/workspace';
