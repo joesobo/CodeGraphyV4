@@ -24,6 +24,10 @@ import {
   getWorkspacePipelineRoot,
 } from './io';
 
+export interface WorkspacePipelineGraphScopeOptions {
+  nodeVisibility?: Readonly<Record<string, boolean>>;
+}
+
 export async function preAnalyzeWorkspacePipelinePlugins(
   files: IDiscoveredFile[],
   workspaceRoot: string,
@@ -147,6 +151,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   showOrphans: boolean,
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
+  graphScope: WorkspacePipelineGraphScopeOptions = {},
 ): IGraphData {
   const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
   const visibleFileAnalysis = filterWorkspacePipelineAnalysisByActivePlugins(
@@ -171,6 +176,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
     disabledPlugins,
     fileAnalysis: visibleFileAnalysis,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),
+    nodeVisibility: graphScope.nodeVisibility,
     showOrphans,
     workspaceRoot,
   });

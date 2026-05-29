@@ -48,6 +48,20 @@ describe('GraphIndexStatus', () => {
     expect(screen.getByTestId('graph-index-status').className).toContain('pointer-events-none');
   });
 
+  it('reserves the bottom-right graph control lane so the percent stays readable', () => {
+    render(
+      <GraphIndexStatus
+        isIndexing={true}
+        progress={{ phase: 'Discovering Files', current: 1, total: 1 }}
+      />,
+    );
+
+    const statusClass = screen.getByTestId('graph-index-status').className;
+    expect(statusClass).toContain('left-0');
+    expect(statusClass).toContain('right-14');
+    expect(statusClass).not.toContain('inset-x-0');
+  });
+
   it('shows zero progress when the total is zero', () => {
     render(
       <GraphIndexStatus

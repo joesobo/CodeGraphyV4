@@ -6,6 +6,7 @@ import type { IWorkspaceAnalysisCache } from '../../cache';
 import {
   buildWorkspacePipelineGraphData,
   buildWorkspacePipelineGraphDataFromAnalysis,
+  type WorkspacePipelineGraphScopeOptions,
 } from '../../serviceAdapters';
 
 export function buildWorkspacePipelineGraph(
@@ -39,6 +40,7 @@ export function buildWorkspacePipelineGraphFromAnalysis(
   showOrphans: boolean,
   disabledPlugins: Set<string>,
   directoryPaths: readonly string[] = [],
+  graphScope: WorkspacePipelineGraphScopeOptions = {},
 ): IGraphData {
   return buildWorkspacePipelineGraphDataFromAnalysis(
     cache,
@@ -49,5 +51,6 @@ export function buildWorkspacePipelineGraphFromAnalysis(
     showOrphans,
     disabledPlugins,
     directoryPaths,
+    graphScope,
   );
 }

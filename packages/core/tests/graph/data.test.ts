@@ -104,6 +104,37 @@ describe('core/graph/data', () => {
     });
 
 
+    it('does not project symbol nodes when the symbol graph scope is disabled', () => {
+      const graph = buildWorkspaceGraphDataFromAnalysis({
+        cacheFiles: {},
+        disabledPlugins: new Set(),
+        fileAnalysis: new Map([
+          ['generated/virtual.ts', {
+            filePath: '/workspace/generated/virtual.ts',
+            symbols: [{
+              id: 'virtual-symbol',
+              filePath: '/workspace/generated/virtual.ts',
+              kind: 'function',
+              name: 'virtual',
+            }],
+            relations: [],
+          }],
+        ]),
+        nodeVisibility: {
+          file: true,
+          symbol: false,
+        },
+        showOrphans: false,
+        churnCounts: {},
+        workspaceRoot: '/workspace',
+        getPluginForFile: () => createPlugin('codegraphy.typescript'),
+      });
+
+      expect(graph.nodes).toEqual([]);
+      expect(graph.edges).toEqual([]);
+    });
+
+
 
     it('creates containing file nodes for symbol-only analysis outside the discovered cache', () => {
       const graph = buildWorkspaceGraphDataFromAnalysis({

@@ -99,8 +99,8 @@ describe('graph view settings toggle message', () => {
     ]);
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('disabledPlugins', expect.anything());
     expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -238,11 +238,12 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(true);
     expect(reloadWorkspacePlugins).toHaveBeenCalledOnce();
     expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('acme.graph-tools');
     expect(reloadWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphViewContributionStatuses.mock.invocationCallOrder[0]);
     expect(sendGraphViewContributionStatuses.mock.invocationCallOrder[0])
-      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
   it('sends graph controls after package toggles reload plugin contributions', async () => {
@@ -280,7 +281,7 @@ describe('graph view settings toggle message', () => {
     expect(reloadWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphControls.mock.invocationCallOrder[0]);
     expect(sendGraphControls.mock.invocationCallOrder[0])
-      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
   it('broadcasts package plugin cleanup before re-analysis when a package is toggled off', async () => {
@@ -333,7 +334,8 @@ describe('graph view settings toggle message', () => {
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
       .toBeGreaterThan(reloadWorkspacePlugins.mock.invocationCallOrder[0]);
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
-      .toBeLessThan(analyzeAndSendData.mock.invocationCallOrder[0]);
+      .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('lets plugin file reprocessing publish webview injections after package toggles', async () => {
