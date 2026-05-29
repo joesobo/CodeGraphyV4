@@ -1,5 +1,19 @@
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { createTypeScriptPlugin } from '../src/plugin';
+
+function createWorkspaceRoot(): string {
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-plugin-typescript-'));
+}
+
+function writeWorkspaceFile(workspaceRoot: string, relativePath: string, contents: string): string {
+  const absolutePath = path.join(workspaceRoot, relativePath);
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+  fs.writeFileSync(absolutePath, contents, 'utf8');
+  return absolutePath;
+}
 
 describe('createTypeScriptPlugin', () => {
   it('exposes manifest metadata', () => {
@@ -34,13 +48,61 @@ describe('createTypeScriptPlugin', () => {
     ]);
   });
 
-  it('does not provide supplemental analysis once Tree-sitter owns the base JS/TS parsing', () => {
+  it('keeps plugin analysis focused on TypeScript alias imports', () => {
     const plugin = createTypeScriptPlugin();
 
     expect(plugin.sources).toBeUndefined();
-    expect(plugin.analyzeFile).toBeUndefined();
+    expect(plugin.analyzeFile).toEqual(expect.any(Function));
     expect(plugin.initialize).toBeUndefined();
     expect(plugin.onLoad).toBeUndefined();
     expect(plugin.onUnload).toBeUndefined();
+  });
+
+  it('emits TypeScript Alias Import relationships from root tsconfig paths', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@/*': ['src/*'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { cn } from '@/registry/bases/radix/lib/utils';\n",
+      );
+      const targetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/registry/bases/radix/lib/utils.ts',
+        'export function cn(): string { return String(); }\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { cn } from '@/registry/bases/radix/lib/utils';\n",
+        workspaceRoot,
+      );
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'codegraphy.typescript:alias-import',
+          sourceId: 'compiler-options-paths',
+          fromFilePath: sourcePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: '@/registry/bases/radix/lib/utils',
+        },
+      ]);
+    } finally {
+      fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
   });
 });
