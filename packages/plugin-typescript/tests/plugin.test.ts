@@ -215,4 +215,85 @@ describe('createTypeScriptPlugin', () => {
       fs.rmSync(workspaceRoot, { recursive: true, force: true });
     }
   });
+
+  it('supports exact aliases and fallback targets in TypeScript paths', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@theme': ['missing/theme.ts', 'src/theme.ts'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { theme } from '@theme';\n",
+      );
+      const targetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/theme.ts',
+        'export const theme = String();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { theme } from '@theme';\n",
+        workspaceRoot,
+      );
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'codegraphy.typescript:alias-import',
+          sourceId: 'compiler-options-paths',
+          fromFilePath: sourcePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: '@theme',
+        },
+      ]);
+    } finally {
+      fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('does not emit relationships for unresolved TypeScript alias imports', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            paths: {
+              '@missing/*': ['src/missing/*'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { missing } from '@missing/module';\n",
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { missing } from '@missing/module';\n",
+        workspaceRoot,
+      );
+
+      expect(result?.relations).toEqual([]);
+    } finally {
+      fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
 });
