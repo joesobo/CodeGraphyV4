@@ -1,6 +1,6 @@
 import type { BuildSharedGraphPropsOptions } from '../rendering/surface/sharedProps';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 import type { DagMode } from '../../../../shared/settings/modes';
 
 export function buildGraphSharedPropsOptions({
@@ -15,7 +15,7 @@ export function buildGraphSharedPropsOptions({
   containerSize: { width: number; height: number };
   dagMode: DagMode;
   damping: number;
-  graphData: UseGraphStateResult['graphData'];
+  graphData: GraphRuntime['graphData'];
   handleEngineStop(this: void): void;
   interactions: UseGraphInteractionRuntimeResult;
   timelineActive: boolean;

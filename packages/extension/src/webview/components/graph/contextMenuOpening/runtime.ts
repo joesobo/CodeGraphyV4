@@ -15,7 +15,7 @@ import {
 } from '../contextMenuRuntime/controller';
 import type { createGraphInteractionHandlers } from '../interactionRuntime/handlers';
 import type { FGLink, FGNode } from '../model/build';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 import { postMessage } from '../../../vscodeApi';
 
 type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
@@ -35,16 +35,16 @@ export interface GraphContextMenuOpeningRuntime {
 }
 
 export interface GraphContextMenuOpeningOptions {
-  fileInfoCacheRef: UseGraphStateResult['fileInfoCacheRef'];
+  fileInfoCacheRef: GraphRuntime['fileInfoCacheRef'];
   getActionContext(): GraphContextActionContext;
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
-  lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
-  lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
+  lastContainerContextMenuEventRef: GraphRuntime['lastContainerContextMenuEventRef'];
+  lastGraphContextEventRef: GraphRuntime['lastGraphContextEventRef'];
   openFilterPatternPrompt?: (patterns: string[]) => void;
   openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   refs: Pick<
-    UseGraphStateResult,
+    GraphRuntime,
     | 'rightClickFallbackTimerRef'
     | 'rightMouseDownRef'
   >;

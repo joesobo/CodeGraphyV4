@@ -8,7 +8,7 @@ import {
   type GraphMarqueeSelectionState,
   type MarqueePoint,
 } from '../../../../marqueeSelection/model';
-import type { UseGraphStateResult } from '../../state';
+import type { GraphRuntime } from '../../state';
 import type { GraphInteractionHandlersRuntime } from '../contracts';
 
 const MARQUEE_DRAG_THRESHOLD_PX = 6;
@@ -22,13 +22,13 @@ export interface MarqueeDragState {
 }
 
 export interface GraphMarqueeSelectionRuntimeOptions {
-  containerRef: UseGraphStateResult['containerRef'];
-  fg2dRef: UseGraphStateResult['fg2dRef'];
-  graphDataRef: UseGraphStateResult['graphDataRef'];
+  containerRef: GraphRuntime['containerRef'];
+  fg2dRef: GraphRuntime['fg2dRef'];
+  graphDataRef: GraphRuntime['graphDataRef'];
   graphMode: '2d' | '3d';
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
-  selectedNodesSetRef: UseGraphStateResult['selectedNodesSetRef'];
+  selectedNodesSetRef: GraphRuntime['selectedNodesSetRef'];
 }
 
 export interface GraphMarqueeSelectionRuntime {

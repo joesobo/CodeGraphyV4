@@ -1,8 +1,8 @@
 import type { NodeSizeMode } from '../../../../shared/settings/modes';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 
 export function buildGraphDataLayoutKey(
-  graphData: UseGraphStateResult['graphData'],
+  graphData: GraphRuntime['graphData'],
   nodeSizeMode: NodeSizeMode,
 ): string {
   const nodeIds = graphData.nodes.map(node => node.id).join('|');

@@ -4,10 +4,12 @@ import { buildGraphDebugOptions } from '../../../../src/webview/components/graph
 describe('graph/debugOptions', () => {
   it('builds debug hook options from graph state and interactions', () => {
     const graphState = {
-      containerRef: { current: null },
-      fg2dRef: { current: undefined },
-      fg3dRef: { current: undefined },
-      graphDataRef: { current: { nodes: [] } },
+      renderer: {
+        containerRef: { current: null },
+        fg2dRef: { current: undefined },
+        fg3dRef: { current: undefined },
+        graphDataRef: { current: { nodes: [] } },
+      },
     };
     const fitView = vi.fn();
     const openNodeContextMenu = vi.fn();
@@ -27,11 +29,11 @@ describe('graph/debugOptions', () => {
         win,
       }),
     ).toEqual({
-      containerRef: graphState.containerRef,
+      containerRef: graphState.renderer.containerRef,
       fitView,
-      fg2dRef: graphState.fg2dRef,
-      fg3dRef: graphState.fg3dRef,
-      graphDataRef: graphState.graphDataRef,
+      fg2dRef: graphState.renderer.fg2dRef,
+      fg3dRef: graphState.renderer.fg3dRef,
+      graphDataRef: graphState.renderer.graphDataRef,
       graphMode: '3d',
       openNodeContextMenu,
       win,

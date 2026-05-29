@@ -2,7 +2,7 @@ import type {
 	GraphViewViewportNode,
 	GraphViewViewportState,
 } from '../../../../pluginHost/api/contracts/webview';
-import type { UseGraphStateResult } from '../../runtime/use/state';
+import type { GraphRuntime } from '../../runtime/use/state';
 
 export interface GraphViewport2dControls {
 	d3ReheatSimulation?(): void;
@@ -16,7 +16,7 @@ export interface CreateGraphViewViewportStateOptions {
 	globalScale: number;
 	graph: GraphViewport2dControls | undefined;
 	graphMode: '2d' | '3d';
-	nodes: UseGraphStateResult['graphData']['nodes'];
+	nodes: GraphRuntime['graphData']['nodes'];
 	timelineActive: boolean;
 }
 
@@ -29,7 +29,7 @@ function readViewportNumber(value: unknown): number | undefined {
 }
 
 export function toGraphViewViewportNodes(
-	nodes: UseGraphStateResult['graphData']['nodes'],
+	nodes: GraphRuntime['graphData']['nodes'],
 ): GraphViewViewportNode[] {
 	return nodes.map(node => {
 		const viewportNode = node as GraphViewViewportNode;
@@ -54,7 +54,7 @@ export function toGraphViewViewportNodes(
 }
 
 export function updateGraphViewViewportNode(
-	nodes: UseGraphStateResult['graphData']['nodes'],
+	nodes: GraphRuntime['graphData']['nodes'],
 	nodeId: string,
 	updates: Record<string, unknown>,
 ): boolean {

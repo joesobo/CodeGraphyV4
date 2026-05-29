@@ -14,22 +14,22 @@ import { exportAsSvg } from '../../../../../export/svg/export';
 import { postMessage } from '../../../../../vscodeApi';
 import { graphStore } from '../../../../../store/state';
 import type { FGLink, FGNode } from '../../../model/build';
-import type { UseGraphStateResult } from '../state';
+import type { GraphRuntime } from '../state';
 import type { UseGraphInteractionRuntimeResult } from '../interaction';
 
 export interface UseGraphEventEffectsOptions {
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
-  directionColorRef: UseGraphStateResult['directionColorRef'];
-  directionModeRef: UseGraphStateResult['directionModeRef'];
+  directionColorRef: GraphRuntime['directionColorRef'];
+  directionModeRef: GraphRuntime['directionModeRef'];
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
   graphMode: '2d' | '3d';
   interactionHandlers: UseGraphInteractionRuntimeResult['interactionHandlers'];
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   selectedNodes: string[];
   setTooltipData: UseGraphInteractionRuntimeResult['setTooltipData'];
-  showLabelsRef: UseGraphStateResult['showLabelsRef'];
-  themeRef: UseGraphStateResult['themeRef'];
+  showLabelsRef: GraphRuntime['showLabelsRef'];
+  themeRef: GraphRuntime['themeRef'];
   tooltipPath: string;
 }
 
