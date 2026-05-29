@@ -2,7 +2,7 @@ import * as path from 'path';
 
 type WorkspaceIndexPluginInfo = {
   plugin: {
-    supportedExtensions: string[];
+    supportedExtensions: readonly string[];
   };
 };
 

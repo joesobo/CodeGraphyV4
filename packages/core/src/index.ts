@@ -45,11 +45,13 @@ export {
   analyzeWorkspaceFiles,
   BASELINE_ANALYSIS_CACHE_TIER,
   SYMBOLS_ANALYSIS_CACHE_TIER,
+  createWorkspaceIndexAnalysisCacheTiers,
   createPluginAnalysisCacheTier,
   hasRequiredAnalysisCacheTiers,
   markAnalysisCacheTiers,
   projectAnalysisForCacheTiers,
   readAnalysisCacheTiers,
+  requiresSymbolAnalysisCacheTier,
 } from './analysis/fileAnalysis';
 export {
   analyzeWorkspacePipelineFiles,
@@ -190,7 +192,9 @@ export { readGraphCacheStatus } from './graphCache/status';
 export {
   createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
+  refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
+  refreshWorkspaceIndexPluginFiles,
 } from './indexing/workspace';
 export type {
   CodeGraphyWorkspaceEngine,
@@ -198,6 +202,8 @@ export type {
   IndexCodeGraphyWorkspacePlugin,
   IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
+  WorkspaceIndexAnalysisScopeRefreshDependencies,
+  WorkspaceIndexPluginRefreshDependencies,
   WorkspaceIndexRefreshDependencies,
   WorkspaceIndexRefreshSource,
 } from './indexing/workspace';
