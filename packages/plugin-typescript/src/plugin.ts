@@ -1,6 +1,13 @@
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import manifest from '../codegraphy.json';
 
+export const TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE = {
+  id: 'codegraphy.typescript:alias-import',
+  label: 'TypeScript Alias Import',
+  defaultColor: '#38BDF8',
+  defaultVisible: true,
+} as const;
+
 /**
  * TypeScript/JavaScript metadata plugin.
  *
@@ -16,6 +23,7 @@ export function createTypeScriptPlugin(): IPlugin {
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
     fileColors: manifest.fileColors,
+    contributeEdgeTypes: () => [TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE],
   };
 }
 
