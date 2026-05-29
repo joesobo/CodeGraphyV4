@@ -52,7 +52,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
       visit = callback;
     });
 
-    analyzeJavaFile('/workspace/src/App.java', { rootNode: {} } as never);
+    analyzeJavaFile('/workspace/src/App.java', { rootNode: {} } as never, '/workspace');
 
     const walk = vi.fn();
     const state = { currentSymbolId: 'symbol-id' };
@@ -94,7 +94,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
       expect(callback({ type: 'comment' }, {}, vi.fn())).toBeUndefined();
     });
 
-    const result = analyzeJavaFile('/workspace/src/App.java', { rootNode: {} } as never);
+    const result = analyzeJavaFile('/workspace/src/App.java', { rootNode: {} } as never, '/workspace');
 
     expect(handleJavaImportDeclaration).not.toHaveBeenCalled();
     expect(handleJavaMethodDeclaration).not.toHaveBeenCalled();

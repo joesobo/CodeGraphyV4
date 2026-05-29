@@ -13,11 +13,18 @@ export interface IWorkspaceFileProcessedPayload {
   filePath: string;
 }
 
+export interface WorkspaceFileAnalysisRequest {
+  features: {
+    symbols: boolean;
+  };
+}
+
 export interface IWorkspaceFileAnalysisOptions {
   analyzeFile: (
     absolutePath: string,
     content: string,
-    workspaceRoot: string
+    workspaceRoot: string,
+    request: WorkspaceFileAnalysisRequest,
   ) => Promise<IFileAnalysisResult>;
   cache: {
     files: Record<string, {

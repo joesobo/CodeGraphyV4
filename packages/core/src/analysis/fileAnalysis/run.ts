@@ -18,6 +18,7 @@ import type {
   IWorkspaceFileAnalysisOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileAnalysisState,
+  WorkspaceFileAnalysisRequest,
   WorkspaceFileStat,
 } from './types';
 
@@ -36,6 +37,17 @@ function prepareAnalysisForActiveCacheTiers(
   analysis: IFileAnalysisResult,
 ): IFileAnalysisResult {
   return projectAnalysisForCacheTiers(analysis, options.cacheTiers?.active);
+}
+
+function createWorkspaceFileAnalysisRequest(
+  options: IWorkspaceFileAnalysisOptions,
+): WorkspaceFileAnalysisRequest {
+  return {
+    features: {
+      symbols: options.cacheTiers?.active === undefined
+        || options.cacheTiers.active.includes(SYMBOLS_ANALYSIS_CACHE_TIER),
+    },
+  };
 }
 
 function mergeReusableAnalysisForCacheStorage(
@@ -151,7 +163,12 @@ async function analyzeCacheMiss(
   throwIfWorkspaceAnalysisAborted(options.signal);
   const analysis = prepareAnalysisForCacheStorage(
     options,
-    await options.analyzeFile(file.absolutePath, content, options.workspaceRoot),
+    await options.analyzeFile(
+      file.absolutePath,
+      content,
+      options.workspaceRoot,
+      createWorkspaceFileAnalysisRequest(options),
+    ),
     reusableAnalysis,
   );
   const connections = recordWorkspaceFileAnalysis(state, file, analysis);

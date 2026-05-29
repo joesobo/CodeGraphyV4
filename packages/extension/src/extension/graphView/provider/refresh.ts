@@ -5,6 +5,8 @@ import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 import { createRebuildSenders } from './refresh/rebuild';
 import { runChangedFileRefresh, runIndexRefresh, runPrimaryRefresh, sendRefreshState } from './refresh/run';
 
+type GraphViewScopedRefreshProgress = { phase: string; current: number; total: number };
+
 interface GraphViewProviderRefreshAnalyzerLike {
   hasIndex(): boolean;
   rebuildGraph(
@@ -18,16 +20,22 @@ interface GraphViewProviderRefreshAnalyzerLike {
   refreshAnalysisScope?(
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewScopedRefreshProgress) => void,
   ): Promise<IGraphData>;
   refreshPluginFiles?(
     pluginIds: readonly string[],
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewScopedRefreshProgress) => void,
   ): Promise<IGraphData>;
 }
 
 export interface GraphViewProviderRefreshMethodsSource {
   _analyzer: GraphViewProviderRefreshAnalyzerLike | undefined;
+  _analysisController?: AbortController;
+  _analysisRequestId: number;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
@@ -80,6 +88,51 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderRefreshMethodDependencies = 
   rebuildGraphData: rebuildGraphViewData,
   smartRebuildGraphData: smartRebuildGraphView,
 };
+
+function isScopedRefreshStale(
+  source: GraphViewProviderRefreshMethodsSource,
+  signal: AbortSignal,
+  requestId: number,
+): boolean {
+  return signal.aborted || source._analysisRequestId !== requestId;
+}
+
+async function runScopedRefreshRequest(
+  source: GraphViewProviderRefreshMethodsSource,
+  runRefresh: (
+    signal: AbortSignal,
+    onProgress: (progress: GraphViewScopedRefreshProgress) => void,
+  ) => Promise<IGraphData>,
+): Promise<IGraphData | undefined> {
+  source._analysisController?.abort();
+  const controller = new AbortController();
+  source._analysisController = controller;
+  const requestId = ++source._analysisRequestId;
+
+  const forwardProgress = (progress: GraphViewScopedRefreshProgress): void => {
+    if (isScopedRefreshStale(source, controller.signal, requestId)) {
+      return;
+    }
+    source._sendMessage({ type: 'GRAPH_INDEX_PROGRESS', payload: progress });
+  };
+
+  try {
+    const graphData = await runRefresh(controller.signal, forwardProgress);
+    if (isScopedRefreshStale(source, controller.signal, requestId)) {
+      return undefined;
+    }
+    return graphData;
+  } catch (error) {
+    if (isScopedRefreshStale(source, controller.signal, requestId)) {
+      return undefined;
+    }
+    throw error;
+  } finally {
+    if (source._analysisController === controller) {
+      source._analysisController = undefined;
+    }
+  }
+}
 
 export function createGraphViewProviderRefreshMethods(
   source: GraphViewProviderRefreshMethodsSource,
@@ -143,7 +196,18 @@ export function createGraphViewProviderRefreshMethods(
       return;
     }
 
-    await source._analyzer.refreshAnalysisScope([], source._disabledPlugins);
+    const graphData = await runScopedRefreshRequest(
+      source,
+      (signal, onProgress) => source._analyzer!.refreshAnalysisScope!(
+        [],
+        source._disabledPlugins,
+        signal,
+        onProgress,
+      ),
+    );
+    if (!graphData) {
+      return;
+    }
     rebuildSenders.rebuildAndSend();
     sendRefreshState(source);
   };
@@ -160,7 +224,19 @@ export function createGraphViewProviderRefreshMethods(
       return;
     }
 
-    await source._analyzer.refreshPluginFiles(pluginIds, [], source._disabledPlugins);
+    const graphData = await runScopedRefreshRequest(
+      source,
+      (signal, onProgress) => source._analyzer!.refreshPluginFiles!(
+        pluginIds,
+        [],
+        source._disabledPlugins,
+        signal,
+        onProgress,
+      ),
+    );
+    if (!graphData) {
+      return;
+    }
     rebuildSenders.rebuildAndSend();
     sendRefreshState(source);
   };

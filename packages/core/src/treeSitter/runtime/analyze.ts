@@ -18,11 +18,13 @@ import { analyzeSwiftFile } from './analyzeSwift/file';
 import {
   createTreeSitterRuntime,
 } from './languages/parser';
+import type { TreeSitterAnalysisOptions } from './options';
 
 type TreeSitterFileAnalyzer = (
   filePath: string,
   tree: Parser.Tree,
   workspaceRoot: string,
+  options: TreeSitterAnalysisOptions,
 ) => IFileAnalysisResult | null;
 
 const TREE_SITTER_FILE_ANALYZERS: Record<string, TreeSitterFileAnalyzer> = {
@@ -49,6 +51,7 @@ export async function analyzeFileWithTreeSitter(
   filePath: string,
   content: string,
   workspaceRoot: string,
+  options: TreeSitterAnalysisOptions = {},
 ): Promise<IFileAnalysisResult | null> {
   const runtime = await createTreeSitterRuntime(filePath);
   if (!runtime) {
@@ -56,7 +59,7 @@ export async function analyzeFileWithTreeSitter(
   }
 
   const tree = runtime.parser.parse(content);
-  return analyzeTreeSitterTree(filePath, tree, workspaceRoot, runtime.languageKind);
+  return analyzeTreeSitterTree(filePath, tree, workspaceRoot, runtime.languageKind, options);
 }
 
 export function analyzeTreeSitterTree(
@@ -64,11 +67,12 @@ export function analyzeTreeSitterTree(
   tree: Parser.Tree,
   workspaceRoot: string,
   languageKind: string,
+  options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult | null {
   const analyzeLanguage = TREE_SITTER_FILE_ANALYZERS[languageKind];
   if (!analyzeLanguage) {
     return null;
   }
 
-  return analyzeLanguage(filePath, tree, workspaceRoot);
+  return analyzeLanguage(filePath, tree, workspaceRoot, options);
 }

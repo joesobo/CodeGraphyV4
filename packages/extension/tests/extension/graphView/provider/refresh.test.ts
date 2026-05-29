@@ -9,11 +9,14 @@ function createSource(
   _analyzer: {
     hasIndex: ReturnType<typeof vi.fn>;
     rebuildGraph: ReturnType<typeof vi.fn>;
+    refreshAnalysisScope: ReturnType<typeof vi.fn>;
     refreshPluginFiles: ReturnType<typeof vi.fn>;
     getPluginStatuses: ReturnType<typeof vi.fn>;
     registry: { notifyGraphRebuild: ReturnType<typeof vi.fn> };
     clearCache: ReturnType<typeof vi.fn>;
   };
+  _analysisController: AbortController | undefined;
+  _analysisRequestId: number;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
@@ -42,11 +45,14 @@ function createSource(
     _analyzer: {
       hasIndex: vi.fn(() => true),
       rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
+      refreshAnalysisScope: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       refreshPluginFiles: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       getPluginStatuses: vi.fn(() => [] satisfies IPluginStatus[]),
       registry: { notifyGraphRebuild: vi.fn() },
       clearCache: vi.fn(),
     },
+    _analysisController: undefined,
+    _analysisRequestId: 0,
     _disabledPlugins: new Set<string>(),
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -252,10 +258,89 @@ describe('graphView/provider/refresh', () => {
         ['codegraphy.typescript'],
         [],
         source._disabledPlugins,
+        expect.any(AbortSignal),
+        expect.any(Function),
       );
       expect(source._loadAndSendData).not.toHaveBeenCalled();
       expect(rebuildGraphData).toHaveBeenCalledOnce();
       expect(source._sendAllSettings).toHaveBeenCalledOnce();
       expect(source._sendFavorites).toHaveBeenCalledOnce();
+    });
+
+    it('refreshAnalysisScope forwards progress from the scoped refresh request', async () => {
+      const source = createSource();
+      source._analyzer.refreshAnalysisScope.mockImplementationOnce(async (
+        _filterPatterns,
+        _disabledPlugins,
+        signal: AbortSignal,
+        onProgress: (progress: { phase: string; current: number; total: number }) => void,
+      ) => {
+        onProgress({ phase: 'Applying Scope', current: 1, total: 3 });
+        expect(signal.aborted).toBe(false);
+        return { nodes: [], edges: [] } satisfies IGraphData;
+      });
+      const methods = createGraphViewProviderRefreshMethods(source as never, {
+        getShowOrphans: vi.fn(() => true),
+        rebuildGraphData: vi.fn(),
+        smartRebuildGraphData: vi.fn(),
+      });
+
+      await methods.refreshAnalysisScope();
+
+      expect(source._sendMessage).toHaveBeenCalledWith({
+        type: 'GRAPH_INDEX_PROGRESS',
+        payload: { phase: 'Applying Scope', current: 1, total: 3 },
+      });
+      expect(source._analysisController).toBeUndefined();
+    });
+
+    it('refreshPluginFiles aborts superseded scoped requests and ignores stale results', async () => {
+      const source = createSource();
+      let finishFirstRefresh: (() => void) | undefined;
+      let firstSignal: AbortSignal | undefined;
+      source._analyzer.refreshPluginFiles
+        .mockImplementationOnce(async (
+          _pluginIds,
+          _filterPatterns,
+          _disabledPlugins,
+          signal: AbortSignal,
+          onProgress: (progress: { phase: string; current: number; total: number }) => void,
+        ) => {
+          firstSignal = signal;
+          onProgress({ phase: 'Applying Plugin', current: 1, total: 2 });
+          await new Promise<void>(resolve => {
+            finishFirstRefresh = resolve;
+          });
+          return {
+            nodes: [{ id: 'stale', label: 'stale', color: '#ffffff' }],
+            edges: [],
+          } satisfies IGraphData;
+        })
+        .mockImplementationOnce(async () => ({
+          nodes: [{ id: 'fresh', label: 'fresh', color: '#ffffff' }],
+          edges: [],
+        } satisfies IGraphData));
+      const rebuildGraphData = vi.fn();
+      const methods = createGraphViewProviderRefreshMethods(source as never, {
+        getShowOrphans: vi.fn(() => true),
+        rebuildGraphData,
+        smartRebuildGraphData: vi.fn(),
+      });
+
+      const firstRefresh = methods.refreshPluginFiles(['codegraphy.first']);
+      await Promise.resolve();
+      const secondRefresh = methods.refreshPluginFiles(['codegraphy.second']);
+      await secondRefresh;
+
+      expect(firstSignal?.aborted).toBe(true);
+      finishFirstRefresh?.();
+      await firstRefresh;
+
+      expect(source._sendMessage).toHaveBeenCalledWith({
+        type: 'GRAPH_INDEX_PROGRESS',
+        payload: { phase: 'Applying Plugin', current: 1, total: 2 },
+      });
+      expect(rebuildGraphData).toHaveBeenCalledOnce();
+      expect(source._analysisController).toBeUndefined();
     });
 });

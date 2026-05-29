@@ -5,6 +5,9 @@ import {
   analyzeWorkspacePipelineFiles,
   analyzeWorkspacePipelineSourceFiles,
 } from '../../src/analysis/workspaceFiles';
+import {
+  BASELINE_ANALYSIS_CACHE_TIER,
+} from '../../src/analysis/fileAnalysis/cacheTiers';
 import * as workspaceFileAnalysisModule from '../../src/analysis/fileAnalysis';
 
 function createDiscoveredFile(relativePath: string): IDiscoveredFile {
@@ -97,11 +100,17 @@ describe('pipeline/analysis/files', () => {
     );
 
     const options = analyzeWorkspaceFilesSpy.mock.calls[0][0];
-    await options.analyzeFile('/workspace/src/index.ts', "import './utils'", '/workspace');
+    await options.analyzeFile(
+      '/workspace/src/index.ts',
+      "import './utils'",
+      '/workspace',
+      { features: { symbols: true } },
+    );
     expect(source._registry.analyzeFileResult).toHaveBeenCalledWith(
       '/workspace/src/index.ts',
       "import './utils'",
       '/workspace',
+      expect.objectContaining({ features: { symbols: true } }),
     );
     await options.readContent({
       absolutePath: '/workspace/src/index.ts',
@@ -154,11 +163,69 @@ describe('pipeline/analysis/files', () => {
 
     const options = analyzeWorkspaceFilesSpy.mock.calls[0][0];
     await expect(
-      options.analyzeFile('/workspace/src/index.ts', "import './utils'", '/workspace'),
+      options.analyzeFile(
+        '/workspace/src/index.ts',
+        "import './utils'",
+        '/workspace',
+        { features: { symbols: true } },
+      ),
     ).resolves.toEqual({
       filePath: '/workspace/src/index.ts',
       relations: [],
     });
     expect(options.emitFileProcessed).toBeUndefined();
+  });
+
+  it('passes baseline-only analysis requests to the plugin registry without symbols', async () => {
+    const source = {
+      _cache: { files: {}, version: '1' },
+      _discovery: {
+        readContent: vi.fn(async () => 'export const app = true;'),
+      },
+      _getFileStat: vi.fn(async () => ({ mtime: 10, size: 5 })),
+      _registry: {
+        analyzeFileResult: vi.fn(async (): Promise<IFileAnalysisResult> => ({
+          filePath: '/workspace/src/index.ts',
+          relations: [],
+        })),
+      },
+    };
+    const analyzeWorkspaceFilesSpy = vi
+      .spyOn(workspaceFileAnalysisModule, 'analyzeWorkspaceFiles')
+      .mockResolvedValue({
+        cacheHits: 0,
+        cacheMisses: 1,
+        fileAnalysis: new Map(),
+        fileConnections: new Map(),
+      });
+
+    await analyzeWorkspacePipelineSourceFiles(
+      source as never,
+      [createDiscoveredFile('src/index.ts')],
+      '/workspace',
+      vi.fn(),
+      undefined,
+      undefined,
+      {
+        active: [BASELINE_ANALYSIS_CACHE_TIER],
+        completed: [BASELINE_ANALYSIS_CACHE_TIER],
+        required: [BASELINE_ANALYSIS_CACHE_TIER],
+      },
+    );
+
+    const options = analyzeWorkspaceFilesSpy.mock.calls[0][0];
+    await options.analyzeFile(
+      '/workspace/src/index.ts',
+      'export const app = true;',
+      '/workspace',
+      { features: { symbols: false } },
+    );
+
+    expect(source._registry.analyzeFileResult).toHaveBeenCalledWith(
+      '/workspace/src/index.ts',
+      'export const app = true;',
+      '/workspace',
+      expect.objectContaining({ features: { symbols: false } }),
+    );
   });
 });

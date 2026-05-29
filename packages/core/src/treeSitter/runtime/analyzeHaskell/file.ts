@@ -13,6 +13,10 @@ import {
   handleHaskellDeclaration,
   handleHaskellHeader,
 } from './symbols';
+import {
+  shouldIncludeTreeSitterSymbols,
+  type TreeSitterAnalysisOptions,
+} from '../options';
 
 function visitHaskellNode(
   node: Parser.SyntaxNode,
@@ -20,8 +24,12 @@ function visitHaskellNode(
   sourceRoot: string | null,
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
+  symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'header') {
+    if (!symbolsEnabled) {
+      return;
+    }
     handleHaskellHeader(node, filePath, symbols);
     return;
   }
@@ -31,18 +39,25 @@ function visitHaskellNode(
     return { skipChildren: true };
   }
 
+  if (!symbolsEnabled) {
+    return;
+  }
+
   return handleHaskellDeclaration(node, filePath, symbols);
 }
 
 export function analyzeHaskellFile(
   filePath: string,
   tree: Parser.Tree,
+  _workspaceRoot: string,
+  options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult {
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   const { sourceRoot } = resolveHaskellSourceInfo(filePath, tree);
   walkTree(tree.rootNode, {}, (node) =>
-    visitHaskellNode(node, filePath, sourceRoot, relations, symbols),
+    visitHaskellNode(node, filePath, sourceRoot, relations, symbols, symbolsEnabled),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);
 }

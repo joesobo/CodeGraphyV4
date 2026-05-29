@@ -305,9 +305,10 @@ describe('pipeline/fileAnalysis', () => {
 
   it('stores baseline cache entries without symbol facts', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
+    const analyzeFile = vi.fn(async () => createSymbolAnalysis());
 
     const result = await analyzeWorkspaceFiles({
-      analyzeFile: vi.fn(async () => createSymbolAnalysis()),
+      analyzeFile,
       cache,
       cacheTiers: {
         active: [BASELINE_ANALYSIS_CACHE_TIER],
@@ -323,6 +324,12 @@ describe('pipeline/fileAnalysis', () => {
     const cachedAnalysis = cache.files['src/index.ts'].analysis;
     const resultAnalysis = result.fileAnalysis.get('src/index.ts');
 
+    expect(analyzeFile).toHaveBeenCalledWith(
+      '/workspace/src/index.ts',
+      'function run() {}',
+      '/workspace',
+      { features: { symbols: false } },
+    );
     expect(readCacheTiers(cachedAnalysis)).toEqual([BASELINE_ANALYSIS_CACHE_TIER]);
     expect(cachedAnalysis.symbols).toEqual([]);
     expect(cachedAnalysis.relations?.[0]).not.toHaveProperty('fromSymbolId');
