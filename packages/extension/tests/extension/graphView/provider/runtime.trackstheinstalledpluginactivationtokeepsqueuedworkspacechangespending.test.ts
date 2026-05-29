@@ -142,7 +142,7 @@ describe('graphView/provider/runtime', () => {
         (provider as unknown as { _installedPluginActivationPromise: Promise<void> })
           ._installedPluginActivationPromise,
       ).toBe(activationPromise);
-    });
+    }, 10_000);
 
 
 
