@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { MaterialThemeCacheEntry, MaterialIconManifest } from './model';
+import { createMaterialPathRuleMatcher } from './pathMatch';
 
 const materialThemeCache = new Map<string, MaterialThemeCacheEntry | null>();
 const materialIconThemePackageName = 'material-icon-theme';
@@ -43,6 +44,17 @@ export function loadMaterialTheme(extensionUri: vscode.Uri): MaterialThemeCacheE
     iconDataByName: new Map(),
     manifest,
     manifestPath,
+    pathMatchers: {
+      fileNames: manifest.fileNames
+        ? createMaterialPathRuleMatcher(manifest.fileNames)
+        : undefined,
+      folderNames: manifest.folderNames
+        ? createMaterialPathRuleMatcher(manifest.folderNames)
+        : undefined,
+      folderNamesExpanded: manifest.folderNamesExpanded
+        ? createMaterialPathRuleMatcher(manifest.folderNamesExpanded)
+        : undefined,
+    },
   } satisfies MaterialThemeCacheEntry;
 
   materialThemeCache.set(cacheKey, theme);

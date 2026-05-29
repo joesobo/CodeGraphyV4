@@ -100,6 +100,7 @@ export {
   loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCacheAsync,
 } from './graphCache/database/storage';
 export type {
   CoreEdgeKind,

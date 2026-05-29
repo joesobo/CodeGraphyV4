@@ -17,8 +17,8 @@ describe('pipeline/analysis/run', () => {
       .mockResolvedValue({ nodes: [], edges: [] });
     const showWarningMessageSpy = vi.fn();
     const saveWorkspaceAnalysisDatabaseCacheSpy = vi
-      .spyOn(databaseCacheModule, 'saveWorkspaceAnalysisDatabaseCache')
-      .mockImplementation(() => undefined);
+      .spyOn(databaseCacheModule, 'saveWorkspaceAnalysisDatabaseCacheAsync')
+      .mockResolvedValue(undefined);
     (vscode.window as Record<string, unknown>).showWarningMessage = showWarningMessageSpy;
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const source = {
@@ -86,8 +86,10 @@ describe('pipeline/analysis/run', () => {
     expect(logSpy).toHaveBeenCalledWith('hello');
     dependencies.showWarningMessage('warning');
     expect(showWarningMessageSpy).toHaveBeenCalledWith('warning');
-    dependencies.saveCache();
-    expect(saveWorkspaceAnalysisDatabaseCacheSpy).toHaveBeenCalledWith('/workspace', cache);
+    await dependencies.saveCache();
+    expect(saveWorkspaceAnalysisDatabaseCacheSpy).toHaveBeenCalledWith('/workspace', cache, {
+      onProgress: undefined,
+    });
   });
 
   it('passes empty user filters and disabled sets when they are omitted', async () => {
@@ -134,8 +136,8 @@ describe('pipeline/analysis/run', () => {
       .spyOn(analyzeModule, 'analyzeWorkspaceWithAnalyzer')
       .mockResolvedValue({ nodes: [], edges: [] });
     const saveWorkspaceAnalysisDatabaseCacheSpy = vi
-      .spyOn(databaseCacheModule, 'saveWorkspaceAnalysisDatabaseCache')
-      .mockImplementation(() => undefined);
+      .spyOn(databaseCacheModule, 'saveWorkspaceAnalysisDatabaseCacheAsync')
+      .mockResolvedValue(undefined);
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     await runWorkspacePipelineAnalysis(
@@ -168,7 +170,7 @@ describe('pipeline/analysis/run', () => {
       () => undefined,
     );
 
-    analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][1].saveCache();
+    await analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][1].saveCache();
     expect(saveWorkspaceAnalysisDatabaseCacheSpy).not.toHaveBeenCalled();
     expect(warnSpy).not.toHaveBeenCalled();
   });
@@ -178,7 +180,7 @@ describe('pipeline/analysis/run', () => {
       .spyOn(analyzeModule, 'analyzeWorkspaceWithAnalyzer')
       .mockResolvedValue({ nodes: [], edges: [] });
     const failure = new Error('db unavailable');
-    vi.spyOn(databaseCacheModule, 'saveWorkspaceAnalysisDatabaseCache').mockImplementation(() => {
+    vi.spyOn(databaseCacheModule, 'saveWorkspaceAnalysisDatabaseCacheAsync').mockImplementation(async () => {
       throw failure;
     });
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -213,7 +215,7 @@ describe('pipeline/analysis/run', () => {
       () => '/workspace',
     );
 
-    analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][1].saveCache();
+    await analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][1].saveCache();
     expect(warnSpy).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to persist repo-local analysis cache.',
       failure,

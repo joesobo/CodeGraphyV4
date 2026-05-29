@@ -6,11 +6,27 @@ import {
 import { createExecutionHandlers } from './fixtures';
 
 describe('graph view analysis execution progress', () => {
-  it('forwards progress updates with the phase label for the current mode', () => {
+  it('preserves analyzer progress phase labels', () => {
     const { handlers } = createExecutionHandlers();
 
     createGraphViewAnalysisProgressForwarder('refresh', handlers)({
-      phase: 'ignored',
+      phase: 'Saving Graph Cache',
+      current: 2,
+      total: 5,
+    });
+
+    expect(handlers.sendIndexProgress).toHaveBeenCalledWith({
+      phase: 'Saving Graph Cache',
+      current: 2,
+      total: 5,
+    });
+  });
+
+  it('falls back to the mode label when a progress update does not name its phase', () => {
+    const { handlers } = createExecutionHandlers();
+
+    createGraphViewAnalysisProgressForwarder('refresh', handlers)({
+      phase: '',
       current: 2,
       total: 5,
     });

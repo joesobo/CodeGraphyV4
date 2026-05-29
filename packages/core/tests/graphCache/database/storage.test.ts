@@ -13,6 +13,7 @@ import {
   loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCacheAsync,
 } from '../../../src/graphCache/database/storage';
 
 const tempRoots = new Set<string>();
@@ -116,6 +117,44 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
         },
       ],
     });
+  });
+
+  it('persists asynchronously and reports cache write progress', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const cache: IWorkspaceAnalysisCache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/first.ts': {
+          mtime: 1,
+          size: 10,
+          analysis: {
+            filePath: '/workspace/src/first.ts',
+            relations: [],
+          },
+        },
+        'src/second.ts': {
+          mtime: 2,
+          size: 20,
+          analysis: {
+            filePath: '/workspace/src/second.ts',
+            relations: [],
+          },
+        },
+      },
+    };
+    const progressUpdates: Array<{ current: number; total: number }> = [];
+
+    await saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, {
+      onProgress: progress => progressUpdates.push(progress),
+      yieldEvery: 1,
+    });
+
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
+    expect(progressUpdates).toEqual([
+      { current: 0, total: 2 },
+      { current: 1, total: 2 },
+      { current: 2, total: 2 },
+    ]);
   });
 
   it('skips persistence when the workspace root no longer exists', () => {

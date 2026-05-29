@@ -23,7 +23,10 @@ function getFolderMatch(
   folderPath: string,
   theme: MaterialThemeCacheEntry,
 ): MaterialMatch | undefined {
-  const matched = findMaterialMatch(folderPath, theme.manifest, { nodeType: 'folder' });
+  const matched = findMaterialMatch(folderPath, theme.manifest, {
+    nodeType: 'folder',
+    pathMatchers: theme.pathMatchers,
+  });
   if (matched) {
     return matched;
   }
