@@ -1,5 +1,12 @@
 # @codegraphy-dev/mcp
 
+## 2.1.1
+
+### Patch Changes
+
+- Updated dependencies [[`f531820`](https://github.com/joesobo/CodeGraphyV4/commit/f5318208b380a04b5e0f6ddcf3ebab7cd3641769)]:
+  - @codegraphy-dev/core@1.1.1
+
 ## 2.1.0
 
 ### Minor Changes
