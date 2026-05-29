@@ -70,3 +70,15 @@ Rebuilding graph data from the current indexed state is a Core Package operation
 Core should own rebuilding the Relationship Graph payload from indexing state, Graph Scope, workspace/plugin settings, graph-data filters, and options that affect the graph payload such as orphan handling.
 
 The VS Code extension should own view-layer work after Core returns graph data, such as applying current webview transforms, sending Graph View messages, updating progress UI, and rendering.
+
+## Open Alignment Questions
+
+### Show Orphans Ownership
+
+`CONTEXT.md` currently says **Show Orphans** is a final view setting but also says the Core Package **Graph Query** module can expose `showOrphans`.
+
+The current alignment direction is that **Show Orphans** may belong on the VS Code extension side because it is a graph presentation choice rather than necessary Core engine behavior. This needs one explicit decision before implementation.
+
+### Graph Query Pagination Terms
+
+`offset` means pagination offset: skip the first N sorted query results before returning a page. It matters for MCP/CLI/list-style Graph Query results, but probably not for full Graph View rendering.
