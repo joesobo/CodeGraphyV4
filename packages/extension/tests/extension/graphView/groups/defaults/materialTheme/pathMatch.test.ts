@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { findLongestPathMatch } from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/pathMatch';
+import {
+  createMaterialPathRuleMatcher,
+  findLongestPathMatch,
+  findLongestPathMatchWithMatcher,
+} from '../../../../../../src/extension/graphView/groups/defaults/materialTheme/pathMatch';
 
 describe('graphView/materialTheme/pathMatch', () => {
   it('matches basename rules case-insensitively', () => {
@@ -16,6 +20,19 @@ describe('graphView/materialTheme/pathMatch', () => {
     }, 'fileName')).toEqual({
       iconName: 'vite',
       key: 'web/vite.config.ts',
+      kind: 'fileName',
+    });
+  });
+
+  it('prefers scoped path rules over basename rules when using a precompiled matcher', () => {
+    const matcher = createMaterialPathRuleMatcher({
+      'vite.config.ts': 'generic-vite',
+      'apps/web/vite.config.ts': 'web-vite',
+    });
+
+    expect(findLongestPathMatchWithMatcher('apps/web/vite.config.ts', matcher, 'fileName')).toEqual({
+      iconName: 'web-vite',
+      key: 'apps/web/vite.config.ts',
       kind: 'fileName',
     });
   });

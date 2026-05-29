@@ -166,16 +166,46 @@ describe('pipeline/analysis/analyze', () => {
     expect(source._lastFileAnalysis).toBe(fileAnalysis);
     expect(source._lastFileConnections).toBe(fileConnections);
     expect(source._lastWorkspaceRoot).toBe('/workspace');
-    expect(dependencies.saveCache).toHaveBeenCalledOnce();
+    expect(dependencies.saveCache).toHaveBeenCalledWith(expect.any(Function));
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Discovered 1 files in 4ms');
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Graph built: 1 nodes, 1 edges');
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(1, {
-      phase: 'Analyzing Files',
+      phase: 'Discovering Files',
       current: 0,
       total: 1,
     });
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(2, {
+      phase: 'Discovering Files',
+      current: 1,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(3, {
       phase: 'Analyzing Files',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(4, {
+      phase: 'Analyzing Files',
+      current: 1,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(5, {
+      phase: 'Building Graph',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(6, {
+      phase: 'Building Graph',
+      current: 1,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(7, {
+      phase: 'Saving Graph Cache',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(8, {
+      phase: 'Saving Graph Cache',
       current: 1,
       total: 1,
     });

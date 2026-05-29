@@ -5,4 +5,5 @@ export {
   loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCacheAsync,
 } from '@codegraphy-dev/core';

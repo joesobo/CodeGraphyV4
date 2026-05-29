@@ -83,7 +83,7 @@ export async function refreshWorkspacePipelineChangedFiles(
       progress => {
         dependencies.onProgress?.({
           ...progress,
-          phase: 'Applying Changes',
+          phase: progress.phase || 'Applying Changes',
         });
       },
     );
@@ -103,7 +103,7 @@ export async function refreshWorkspacePipelineChangedFiles(
       progress => {
         dependencies.onProgress?.({
           ...progress,
-          phase: 'Applying Changes',
+          phase: progress.phase || 'Applying Changes',
         });
       },
     );
