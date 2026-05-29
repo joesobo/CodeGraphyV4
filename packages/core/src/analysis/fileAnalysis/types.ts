@@ -1,6 +1,7 @@
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IDiscoveredFile } from '../../discovery/contracts';
 import type { IProjectedConnection } from '../projectedConnection';
+import type { AnalysisCacheTierOptions } from './cacheTiers';
 
 interface IWorkspaceFileProcessedConnection {
   resolvedPath: string | null;
@@ -25,6 +26,7 @@ export interface IWorkspaceFileAnalysisOptions {
       size?: number;
     }>;
   };
+  cacheTiers?: AnalysisCacheTierOptions;
   emitFileProcessed?: (payload: IWorkspaceFileProcessedPayload) => void;
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void;
   files: IDiscoveredFile[];
@@ -46,6 +48,7 @@ export type WorkspaceFileStat = Awaited<ReturnType<IWorkspaceFileAnalysisOptions
 export interface IWorkspaceFileAnalysisState {
   cacheHits: number;
   cacheMisses: number;
+  cacheMissFilePaths: Set<string>;
   fileAnalysis: Map<string, IFileAnalysisResult>;
   fileConnections: Map<string, IProjectedConnection[]>;
 }

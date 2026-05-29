@@ -31,8 +31,18 @@ export type {
   IWorkspaceFileAnalysisOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileProcessedPayload,
+  AnalysisCacheTier,
+  AnalysisCacheTierOptions,
 } from './analysis/fileAnalysis';
-export { analyzeWorkspaceFiles } from './analysis/fileAnalysis';
+export {
+  analyzeWorkspaceFiles,
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+  createPluginAnalysisCacheTier,
+  hasRequiredAnalysisCacheTiers,
+  markAnalysisCacheTiers,
+  projectAnalysisForCacheTiers,
+} from './analysis/fileAnalysis';
 export {
   analyzeWorkspacePipelineFiles,
   analyzeWorkspacePipelineSourceFiles,
