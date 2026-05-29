@@ -122,3 +122,19 @@ The implementation should preserve current graph smoothness and leave a clear ho
 ### Graph Query Pagination Terms
 
 `offset` means pagination offset: skip the first N sorted query results before returning a page. It matters for MCP/CLI/list-style Graph Query results, but probably not for full Graph View rendering.
+
+## Implementation Checkpoints
+
+### 2026-05-29
+
+- Added `createCodeGraphyWorkspaceEngine` in `@codegraphy-dev/core` so Core retains discovered files, file analysis, graph data, and workspace root across changed-file indexing calls.
+- Added Core support for configured plugin entries so callers can pass plugin options and package metadata into Core-owned indexing registration.
+- Moved changed-file refresh selection, invalidation, plugin `notifyFilesChanged` fallback handling, incremental reanalysis, cache persistence, and index metadata persistence into `@codegraphy-dev/core`.
+- Replaced the extension changed-file refresh runtime with a compatibility export to the Core implementation.
+- Moved plugin status and plugin-name query semantics into `@codegraphy-dev/core`, with extension compatibility shims delegating to Core.
+
+Remaining deeper-boundary work:
+
+- Route the extension's long-lived `WorkspacePipeline` state directly through the Core workspace engine instead of adapter facades around extension-owned fields.
+- Move plugin enable/disable/configuration commands behind Core-owned workspace plugin operations.
+- Decide whether Core should return graph patches or whether the extension should diff Core's current graph against the rendered Graph View state for the first live-update UI improvement.
