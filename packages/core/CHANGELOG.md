@@ -1,5 +1,15 @@
 # @codegraphy-dev/core
 
+## 1.1.2
+
+### Patch Changes
+
+- [#220](https://github.com/joesobo/CodeGraphyV4/pull/220) [`f67a8b0`](https://github.com/joesobo/CodeGraphyV4/commit/f67a8b0bf4ce20ba9e69699610ad05042caae7a5) Thanks [@joesobo](https://github.com/joesobo)! - Allow current Node 20 releases without workspace engine warnings.
+
+- Updated dependencies [[`f67a8b0`](https://github.com/joesobo/CodeGraphyV4/commit/f67a8b0bf4ce20ba9e69699610ad05042caae7a5)]:
+  - @codegraphy-dev/plugin-api@3.1.1
+  - @codegraphy-dev/plugin-markdown@1.1.2
+
 ## 1.1.1
 
 ### Patch Changes

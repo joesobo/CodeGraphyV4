@@ -1,5 +1,16 @@
 # @codegraphy-dev/extension
 
+## 5.6.3
+
+### Patch Changes
+
+- [#220](https://github.com/joesobo/CodeGraphyV4/pull/220) [`f67a8b0`](https://github.com/joesobo/CodeGraphyV4/commit/f67a8b0bf4ce20ba9e69699610ad05042caae7a5) Thanks [@joesobo](https://github.com/joesobo)! - Allow current Node 20 releases without workspace engine warnings.
+
+- [#221](https://github.com/joesobo/CodeGraphyV4/pull/221) [`e8ba411`](https://github.com/joesobo/CodeGraphyV4/commit/e8ba411a45c5ec881a920f1787022d8e4b70ea52) Thanks [@joesobo](https://github.com/joesobo)! - Keep the cached graph visible during startup and plugin changes while Graph Cache sync runs in the background.
+
+- Updated dependencies [[`f67a8b0`](https://github.com/joesobo/CodeGraphyV4/commit/f67a8b0bf4ce20ba9e69699610ad05042caae7a5)]:
+  - @codegraphy-dev/core@1.1.2
+
 ## 5.6.2
 
 ### Patch Changes
