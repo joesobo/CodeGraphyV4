@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import type { GraphViewStoreState } from '../../../../src/webview/components/graph/view/store';
-import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/state';
+import type { GraphRuntime } from '../../../../src/webview/components/graph/runtime/use/state';
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
 import { useGraphViewportModel } from '../../../../src/webview/components/graph/viewport/model';
 
@@ -43,7 +43,7 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
 	postMessage: harness.postMessage,
 }));
 
-function createGraphData(): UseGraphStateResult['graphData'] {
+function createGraphData(): GraphRuntime['renderer']['graphData'] {
 	return {
 		nodes: [{
 			baseOpacity: 1,
@@ -257,7 +257,7 @@ describe('graph/viewport/model', () => {
 				{ id: 'src/next.ts', label: 'next.ts', color: '#f59e0b' } as never,
 			],
 			links: [],
-		} as UseGraphStateResult['graphData'];
+		} as GraphRuntime['renderer']['graphData'];
 
 		rerender({
 			nextGraphData,

@@ -6,14 +6,14 @@ import type { UseGraphCallbacksResult } from '../../rendering/useGraphCallbacks'
 import type {
 	UseGraphRenderingRuntimeOptions,
 } from '../../runtime/use/rendering';
-import type { UseGraphStateResult } from '../../runtime/use/state';
+import type { GraphRuntime } from '../../runtime/use/state';
 import type { GraphViewStoreState } from '../../view/store';
 
 export interface BuildRenderingRuntimeOptionsInput {
 	appearance?: GraphAppearance;
 	callbacks: UseGraphCallbacksResult;
 	graphDataLayoutKey: string;
-	graphState: UseGraphStateResult;
+	graphState: GraphRuntime;
 	graphViewContributions?: CoreGraphViewContributionSet;
 	pluginHost?: WebviewPluginHost;
 	theme: ThemeKind;
@@ -32,31 +32,31 @@ export function buildRenderingRuntimeOptions({
 }: BuildRenderingRuntimeOptionsInput): UseGraphRenderingRuntimeOptions {
 	return {
 		appearance,
-		containerRef: graphState.containerRef,
+		containerRef: graphState.renderer.containerRef,
 		dataRef: graphState.dataRef,
-		fg2dRef: graphState.fg2dRef,
-		fg3dRef: graphState.fg3dRef,
+		fg2dRef: graphState.renderer.fg2dRef,
+		fg3dRef: graphState.renderer.fg3dRef,
 		getArrowColor: callbacks.getArrowColor,
 		getArrowRelPos: callbacks.getArrowRelPos,
 		getLinkParticles: callbacks.getLinkParticles,
 		getParticleColor: callbacks.getParticleColor,
-		graphDataRef: graphState.graphDataRef,
+		graphDataRef: graphState.renderer.graphDataRef,
 		graphViewContributions,
 		graphDataLayoutKey,
 		graphMode: viewState.graphMode,
 		highlightVersion: graphState.highlightVersion,
 		highlightedNeighborsRef: graphState.highlightedNeighborsRef,
 		highlightedNodeRef: graphState.highlightedNodeRef,
-		meshesRef: graphState.meshesRef,
+		meshesRef: graphState.renderCaches.meshesRef,
 		nodeSizeMode: viewState.nodeSizeMode,
 		particleSize: viewState.particleSize,
 		particleSpeed: viewState.particleSpeed,
 		physicsPaused: viewState.physicsPaused,
 		physicsSettings: viewState.physicsSettings,
 		pluginHost,
-		selectedNodesSetRef: graphState.selectedNodesSetRef,
+		selectedNodesSetRef: graphState.selection.selectedNodeIdsRef,
 		showLabels: viewState.showLabels,
-		spritesRef: graphState.spritesRef,
+		spritesRef: graphState.renderCaches.spritesRef,
 		theme,
 		timelineActive: viewState.timelineActive,
 		favorites: viewState.favorites,
