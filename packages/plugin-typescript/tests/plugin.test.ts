@@ -160,4 +160,59 @@ describe('createTypeScriptPlugin', () => {
       fs.rmSync(workspaceRoot, { recursive: true, force: true });
     }
   });
+
+  it('follows package-based tsconfig extends when resolving TypeScript alias imports', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          extends: '@org/tsconfig/base',
+        }),
+      );
+      writeWorkspaceFile(
+        workspaceRoot,
+        'node_modules/@org/tsconfig/base.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '../../..',
+            paths: {
+              '#shared/*': ['src/shared/*'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { token } from '#shared/token';\n",
+      );
+      const targetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/shared/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '#shared/token';\n",
+        workspaceRoot,
+      );
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'codegraphy.typescript:alias-import',
+          sourceId: 'compiler-options-paths',
+          fromFilePath: sourcePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: '#shared/token',
+        },
+      ]);
+    } finally {
+      fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
 });
