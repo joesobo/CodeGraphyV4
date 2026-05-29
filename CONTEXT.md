@@ -194,6 +194,10 @@ _Avoid_: Tree-sitter support when only the parser runtime or grammar package is 
 The indexing stage where plugins add or adjust **Nodes**, **Relationships**, and **Edge Types** after the built-in baseline analysis.
 _Avoid_: Tree-sitter analysis
 
+**Project-Aware Analysis Semantics**:
+Language- or ecosystem-specific relationship evidence that requires reading project configuration, package layout, or framework conventions beyond a single file's syntax.
+_Avoid_: Core Tree-sitter Language Coverage when the behavior needs project-specific configuration
+
 **Graph Projection**:
 The indexing stage that turns discovered files and analysis results into graph nodes and edges.
 _Avoid_: Rendering
@@ -460,6 +464,7 @@ _Avoid_: Graph export
 - **Core Tree-sitter Language Coverage** should be depth-first: a smaller set of languages with meaningful baseline relationships is better than a broad set of parser-only languages.
 - **Core Tree-sitter Language Coverage** should reuse shared Tree-sitter analysis code where languages follow the same parser-backed patterns, keeping language-specific code small.
 - When a language or ecosystem needs complex project-aware semantics, shallow **Core Tree-sitter Language Coverage** can provide baseline relationships while deeper support belongs in **Plugin Analysis**.
+- TypeScript `compilerOptions.paths` is **Project-Aware Analysis Semantics** and belongs in the TypeScript/JavaScript plugin path, not the always-on Core Tree-sitter JS/TS resolver.
 - Structured data and styling formats such as JSON and CSS are outside **Core Tree-sitter Language Coverage** unless a separate relationship model is defined for them.
 - C and C++ **Core Tree-sitter Language Coverage** should include local include relationships, useful code symbols, examples, and docs; full compiler include-path semantics, macros, templates, and conditional compilation are deeper project-aware work.
 - **Graph Projection** produces the **Relationship Graph** data that later flows through **Graph Scope**, **Filter**, **Search**, and view settings.
