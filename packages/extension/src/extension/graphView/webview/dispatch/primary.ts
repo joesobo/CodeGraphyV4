@@ -43,6 +43,7 @@ export interface GraphViewPrimaryMessageContext {
   indexAndSendData(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
+  refreshAnalysisScope(): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
@@ -92,6 +93,7 @@ export interface GraphViewPrimaryMessageContext {
   sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendGraphControls(): void;
+  reprocessGraphScope(): Promise<void>;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];

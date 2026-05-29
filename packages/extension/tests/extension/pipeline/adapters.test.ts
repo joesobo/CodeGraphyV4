@@ -3,6 +3,10 @@ import path from 'path';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult, IPlugin } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
+import {
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+} from '../../../src/extension/pipeline/fileAnalysis';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -51,6 +55,27 @@ function createEmptyAnalysisResult(
     filePath,
     relations: [],
   };
+}
+
+function createSymbolAnalysisResult(
+  filePath: string,
+): IFileAnalysisResult {
+  return {
+    filePath,
+    relations: [],
+    symbols: [
+      {
+        filePath,
+        id: `${filePath}:function:run`,
+        kind: 'function',
+        name: 'run',
+      },
+    ],
+  };
+}
+
+function readCacheTiers(analysis: IFileAnalysisResult): string[] {
+  return (analysis as IFileAnalysisResult & { cache?: { tiers?: string[] } }).cache?.tiers ?? [];
 }
 
 describe('WorkspacePipeline adapters', () => {
@@ -142,6 +167,9 @@ describe('WorkspacePipeline adapters', () => {
         workspaceRoot: string
       ) => Promise<IFileAnalysisResult | null>;
       };
+      _config: {
+        get<T>(key: string, defaultValue: T): T;
+      };
       _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
     };
     const eventBus = { emit: vi.fn() };
@@ -159,7 +187,13 @@ describe('WorkspacePipeline adapters', () => {
       cacheHits: 0,
       cacheMisses: 1,
       fileAnalysis: new Map([
-        ['src/index.ts', createEmptyAnalysisResult(file.absolutePath)],
+        ['src/index.ts', {
+          ...createEmptyAnalysisResult(file.absolutePath),
+          cache: {
+            tiers: [BASELINE_ANALYSIS_CACHE_TIER],
+          },
+          symbols: [],
+        }],
       ]),
       fileConnections: new Map([['src/index.ts', []]]),
     });
@@ -171,5 +205,45 @@ describe('WorkspacePipeline adapters', () => {
       connections: [],
     });
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis: 0 cache hits, 1 misses');
+  });
+
+  it('requests symbol cache enrichment when Symbols are visible', async () => {
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const analyzerPrivate = analyzer as unknown as {
+      _cache: { files: Record<string, { analysis: IFileAnalysisResult }>; version: string };
+      _config: {
+        get<T>(key: string, defaultValue: T): T;
+      };
+      _discovery: { readContent: (file: { relativePath: string }) => Promise<string> };
+      _getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
+      _registry: {
+        analyzeFileResult: (
+          absolutePath: string,
+          content: string,
+          workspaceRoot: string
+        ) => Promise<IFileAnalysisResult | null>;
+      };
+      _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
+    };
+    const file = createDiscoveredFile('src/index.ts');
+    vi.spyOn(analyzerPrivate._config, 'get').mockImplementation(<T>(key: string, defaultValue: T): T => (
+      key === 'nodeVisibility'
+        ? { symbol: true } as T
+        : defaultValue
+    ));
+    vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });
+    vi.spyOn(analyzerPrivate._discovery, 'readContent').mockResolvedValue('function run() {}');
+    vi.spyOn(analyzerPrivate._registry, 'analyzeFileResult')
+      .mockResolvedValue(createSymbolAnalysisResult(file.absolutePath));
+
+    const result = await analyzerPrivate._analyzeFiles([file], '/test/workspace');
+
+    expect(readCacheTiers(analyzerPrivate._cache.files['src/index.ts'].analysis)).toEqual([
+      BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+    ]);
+    expect(result.fileAnalysis.get('src/index.ts')?.symbols).toHaveLength(1);
   });
 });

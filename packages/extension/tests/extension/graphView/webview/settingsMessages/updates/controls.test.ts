@@ -128,6 +128,7 @@ describe('settingsMessages/updates/controls', () => {
 
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'nodeVisibility', { symbol: true });
     expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'edgeVisibility', { contains: true });
+    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
@@ -152,6 +153,8 @@ describe('settingsMessages/updates/controls', () => {
       variable: true,
       'symbol:function': true,
     });
+    expect(handlers.reprocessGraphScope).not.toHaveBeenCalled();
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('symbol');
   });
 
   it('returns false for unrelated messages without updating settings', async () => {

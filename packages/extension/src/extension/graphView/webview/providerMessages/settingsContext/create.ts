@@ -24,6 +24,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'sendPluginWebviewInjections'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
+  | 'reprocessGraphScope'
   | 'reprocessPluginFiles'
   | 'resetAllSettings'
   | 'getMaxFiles'
@@ -98,6 +99,7 @@ export function createGraphViewProviderMessageSettingsContext(
       source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    reprocessGraphScope: () => source.refreshAnalysisScope(),
     reprocessPluginFiles: async (pluginIds) => reprocessPluginFiles(source, pluginIds),
     resetAllSettings: async () => {
       const snapshot = dependencies.captureSettingsSnapshot(
