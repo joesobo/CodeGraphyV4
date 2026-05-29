@@ -111,6 +111,12 @@ The important contract is:
 
 Change detection can be implemented by Core producing a patch, by the extension comparing its current nodes and edges with Core's current graph data, or by another simple mechanism discovered during implementation. The architecture should not require picking the final diffing mechanism before the first slice.
 
+### 9. Move Ownership Before Perfecting Graph Patches
+
+The first implementation slice should prioritize moving ownership boundaries into Core without trying to perfect patch-style Graph View updates.
+
+The implementation should preserve current graph smoothness and leave a clear hook for patch-style updates. After Core owns indexing, live-update, plugin, and cache semantics, the Graph View update mechanism can be improved if the existing full-graph reconcile path is not smooth enough.
+
 ## Notes
 
 ### Graph Query Pagination Terms
