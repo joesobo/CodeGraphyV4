@@ -67,17 +67,17 @@ Core should update Workspace Settings, report or mark Graph Cache freshness effe
 
 Rebuilding graph data from the current indexed state is a Core Package operation.
 
-Core should own rebuilding the Relationship Graph payload from indexing state, Graph Scope, workspace/plugin settings, graph-data filters, and options that affect the graph payload such as orphan handling.
+Core should own rebuilding the Relationship Graph payload from indexing state, Graph Scope, workspace/plugin settings, and graph-data filters.
 
 The VS Code extension should own view-layer work after Core returns graph data, such as applying current webview transforms, sending Graph View messages, updating progress UI, and rendering.
 
-## Open Alignment Questions
+### 6. Show Orphans Stays In The Graph View Adapter
 
-### Show Orphans Ownership
+**Show Orphans** is a Graph View presentation setting, not part of Core Indexing or the Core Graph Query request shape for this task.
 
-`CONTEXT.md` currently says **Show Orphans** is a final view setting but also says the Core Package **Graph Query** module can expose `showOrphans`.
+Core can keep lower-level helper functions if they are already useful, but the deeper Core indexing module should not take `showOrphans` as an indexing or rebuild concern. The VS Code extension decides whether to render Orphan Nodes after Core returns graph data.
 
-The current alignment direction is that **Show Orphans** may belong on the VS Code extension side because it is a graph presentation choice rather than necessary Core engine behavior. This needs one explicit decision before implementation.
+## Notes
 
 ### Graph Query Pagination Terms
 
