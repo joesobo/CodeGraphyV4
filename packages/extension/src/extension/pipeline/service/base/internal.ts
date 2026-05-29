@@ -91,6 +91,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
+    const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
     return buildWorkspacePipelineGraphFromAnalysis(
       this._cache,
       this._context,
@@ -100,6 +101,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       showOrphans,
       disabledPlugins,
       this._lastDiscoveredDirectories,
+      { nodeVisibility },
     );
   }
 

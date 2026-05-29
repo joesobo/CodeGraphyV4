@@ -195,6 +195,52 @@ describe('pipeline/serviceAdapters', () => {
     ]));
   });
 
+  it('keeps cached symbols out of the Graph View payload when symbols are scoped off', () => {
+    const cache = {
+      files: {
+        'src/player.gd': { size: 20 },
+      },
+    };
+    const workspaceState = {
+      get: vi.fn(() => undefined),
+      update: vi.fn(),
+    };
+    const registry = {
+      getPluginForFile: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+    };
+
+    const graphData = buildWorkspacePipelineGraphDataFromAnalysis(
+      cache as never,
+      { workspaceState } as never,
+      registry as never,
+      new Map([
+        ['src/player.gd', {
+          filePath: '/workspace/src/player.gd',
+          symbols: [{
+            id: '/workspace/src/player.gd:method:_ready',
+            filePath: '/workspace/src/player.gd',
+            kind: 'method',
+            name: '_ready',
+          }],
+          relations: [],
+        }],
+      ]),
+      '/workspace',
+      true,
+      new Set(),
+      [],
+      { nodeVisibility: { symbol: false } },
+    );
+
+    expect(graphData.nodes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'src/player.gd#_ready:method' }),
+    ]));
+    expect(graphData.edges).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'contains' }),
+    ]));
+  });
+
   it('hides cached relations owned by plugins that are no longer registered', () => {
     const cache = {
       files: {

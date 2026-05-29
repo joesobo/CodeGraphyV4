@@ -463,6 +463,7 @@ _Avoid_: Graph export
 - Structured data and styling formats such as JSON and CSS are outside **Core Tree-sitter Language Coverage** unless a separate relationship model is defined for them.
 - C and C++ **Core Tree-sitter Language Coverage** should include local include relationships, useful code symbols, examples, and docs; full compiler include-path semantics, macros, templates, and conditional compilation are deeper project-aware work.
 - **Graph Projection** produces the **Relationship Graph** data that later flows through **Graph Scope**, **Filter**, **Search**, and view settings.
+- The **Graph Cache** keeps indexed analysis facts unscoped. A Graph View projection may skip building disabled high-cardinality **Node Types**, such as Symbol Nodes when **Symbol** is off in **Graph Scope**, while leaving the cached facts available for **Graph Query** and for turning that scope back on.
 - **Graph Cache** stores indexed graph data so reopening the CodeGraphy Workspace does not require full **Indexing**.
 - **Live Updates** keep the **Graph Cache** and graph data current as files change.
 - **Graph Cache Sync** keeps a readable but out-of-date **Graph Cache** useful by rendering cached graph data first, then updating it in the background.

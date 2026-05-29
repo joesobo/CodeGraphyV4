@@ -91,6 +91,11 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
   }
 
   _config = {
+    get: vi.fn(<T>(key: string, defaultValue: T): T => (
+      key === 'nodeVisibility'
+        ? { file: true, symbol: false } as T
+        : defaultValue
+    )),
     getAll: vi.fn(() => ({
       version: 1,
       showOrphans: true,
@@ -338,6 +343,7 @@ describe('extension/pipeline/service/internalBase', () => {
       false,
       disabledPlugins,
       discoveredDirectories,
+      { nodeVisibility: { file: true, symbol: false } },
     );
   });
 

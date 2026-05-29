@@ -57,7 +57,7 @@ export async function applySettingsToggleMessage(
           return true;
         }
 
-        await handlers.analyzeAndSendData();
+        handlers.smartRebuild(message.payload.pluginId);
         return true;
       }
 
