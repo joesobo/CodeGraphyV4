@@ -176,6 +176,8 @@ export {
 export type {
   CodeGraphyWorkspaceEngine,
   IndexCodeGraphyWorkspaceOptions,
+  IndexCodeGraphyWorkspacePlugin,
+  IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
 } from './indexing/workspace';
 export {
