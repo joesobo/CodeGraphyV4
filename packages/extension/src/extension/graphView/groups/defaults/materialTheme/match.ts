@@ -1,4 +1,4 @@
-import type { MaterialIconManifest, MaterialMatch } from './model';
+import type { MaterialIconManifest, MaterialMatch, MaterialThemePathMatchers } from './model';
 import { matchMaterialFileExtension } from './fileExtension';
 import { matchMaterialFileName } from './fileName';
 import { matchMaterialFolderName } from './folderName';
@@ -8,32 +8,39 @@ import { getMaterialBaseName } from './paths';
 export function findMaterialMatch(
   nodeId: string,
   manifest: MaterialIconManifest,
-  options?: { nodeType?: 'file' | 'folder' },
+  options?: { nodeType?: 'file' | 'folder'; pathMatchers?: MaterialThemePathMatchers },
 ): MaterialMatch | undefined {
   return options?.nodeType === 'folder'
-    ? findFolderMaterialMatch(nodeId, manifest)
-    : findFileMaterialMatch(nodeId, manifest);
+    ? findFolderMaterialMatch(nodeId, manifest, options.pathMatchers)
+    : findFileMaterialMatch(nodeId, manifest, options?.pathMatchers);
 }
 
 function findFolderMaterialMatch(
   nodeId: string,
   manifest: MaterialIconManifest,
+  pathMatchers: MaterialThemePathMatchers | undefined,
 ): MaterialMatch | undefined {
   return manifest.folderNames
-    ? matchMaterialFolderName(nodeId, manifest.folderNames, manifest.folderNamesExpanded)
+    ? matchMaterialFolderName(
+      nodeId,
+      manifest.folderNames,
+      manifest.folderNamesExpanded,
+      pathMatchers,
+    )
     : undefined;
 }
 
 function findFileMaterialMatch(
   nodeId: string,
   manifest: MaterialIconManifest,
+  pathMatchers: MaterialThemePathMatchers | undefined,
 ): MaterialMatch | undefined {
   const baseName = getMaterialBaseName(nodeId);
   if (!baseName) {
     return undefined;
   }
 
-  return findFileNameMaterialMatch(nodeId, manifest)
+  return findFileNameMaterialMatch(nodeId, manifest, pathMatchers)
     ?? findFileExtensionMaterialMatch(baseName, manifest)
     ?? findLanguageMaterialMatch(baseName, manifest);
 }
@@ -41,9 +48,10 @@ function findFileMaterialMatch(
 function findFileNameMaterialMatch(
   nodeId: string,
   manifest: MaterialIconManifest,
+  pathMatchers: MaterialThemePathMatchers | undefined,
 ): MaterialMatch | undefined {
   return manifest.fileNames
-    ? matchMaterialFileName(nodeId, manifest.fileNames)
+    ? matchMaterialFileName(nodeId, manifest.fileNames, pathMatchers?.fileNames)
     : undefined;
 }
 

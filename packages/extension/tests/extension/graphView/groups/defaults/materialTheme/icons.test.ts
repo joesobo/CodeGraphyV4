@@ -23,6 +23,7 @@ function createTheme(): MaterialThemeCacheEntry {
     iconDataByName: new Map(),
     manifest: {},
     manifestPath,
+    pathMatchers: {},
   };
 }
 

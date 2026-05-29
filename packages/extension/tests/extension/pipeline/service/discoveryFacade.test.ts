@@ -324,8 +324,15 @@ describe('pipeline/service/discoveryFacade', () => {
     }) => void;
     forwardedProgress({ phase: 'Analyzing', current: 2, total: 5 });
     expect(onProgress).toHaveBeenCalledWith({
-      phase: 'Refreshing Index',
+      phase: 'Analyzing',
       current: 2,
+      total: 5,
+    });
+
+    forwardedProgress({ phase: '', current: 3, total: 5 });
+    expect(onProgress).toHaveBeenCalledWith({
+      phase: 'Refreshing Index',
+      current: 3,
       total: 5,
     });
   });

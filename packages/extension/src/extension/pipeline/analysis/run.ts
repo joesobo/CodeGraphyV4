@@ -3,7 +3,7 @@ import type { FileDiscovery } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { Configuration } from '../../config/reader';
 import type { IWorkspaceAnalysisCache } from '../cache';
-import { saveWorkspaceAnalysisDatabaseCache } from '../database/cache/storage';
+import { saveWorkspaceAnalysisDatabaseCacheAsync } from '../database/cache/storage';
 import {
   analyzeWorkspaceWithAnalyzer,
   type WorkspacePipelineAnalysisSource,
@@ -38,11 +38,13 @@ export function runWorkspacePipelineAnalysis(
       logInfo: message => {
         console.log(message);
       },
-      saveCache: () => {
+      saveCache: async onProgress => {
         const workspaceRoot = getWorkspaceRoot();
         if (workspaceRoot) {
           try {
-            saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
+            await saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache, {
+              onProgress,
+            });
           } catch (error) {
             console.warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
           }

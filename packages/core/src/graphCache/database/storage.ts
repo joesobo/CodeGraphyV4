@@ -7,6 +7,8 @@ import {
 import {
   clearWorkspaceAnalysisDatabaseCache as clearWorkspaceAnalysisDatabaseCacheImpl,
   saveWorkspaceAnalysisDatabaseCache as saveWorkspaceAnalysisDatabaseCacheImpl,
+  saveWorkspaceAnalysisDatabaseCacheAsync as saveWorkspaceAnalysisDatabaseCacheAsyncImpl,
+  type WorkspaceAnalysisDatabaseSaveOptions,
 } from './io/save';
 
 export type WorkspaceAnalysisDatabaseSnapshot = WorkspaceAnalysisDatabaseSnapshotImpl;
@@ -40,4 +42,12 @@ export function saveWorkspaceAnalysisDatabaseCache(
   cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
 ): void {
   saveWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot, cache);
+}
+
+export function saveWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+  cache: Parameters<typeof saveWorkspaceAnalysisDatabaseCacheImpl>[1],
+  options?: WorkspaceAnalysisDatabaseSaveOptions,
+): Promise<void> {
+  return saveWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot, cache, options);
 }

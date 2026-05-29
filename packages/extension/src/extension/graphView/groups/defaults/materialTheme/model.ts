@@ -18,6 +18,13 @@ export interface MaterialThemeCacheEntry {
   iconDataByName: Map<string, MaterialIconData>;
   manifest: MaterialIconManifest;
   manifestPath: string;
+  pathMatchers: MaterialThemePathMatchers;
+}
+
+export interface MaterialThemePathMatchers {
+  fileNames?: MaterialPathRuleMatcher;
+  folderNames?: MaterialPathRuleMatcher;
+  folderNamesExpanded?: MaterialPathRuleMatcher;
 }
 
 export interface MaterialMatch {
@@ -27,3 +34,4 @@ export interface MaterialMatch {
 }
 
 export const DEFAULT_MATERIAL_COLOR = '#90A4AE';
+import type { MaterialPathRuleMatcher } from './pathMatch';

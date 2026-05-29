@@ -66,3 +66,20 @@ export function withConnection<T>(
     database.closeSync();
   }
 }
+
+export async function withConnectionAsync<T>(
+  databasePath: string,
+  callback: (connection: lb.Connection) => Promise<T>,
+): Promise<T> {
+  const database = new Database(databasePath);
+  const connection = new Connection(database);
+
+  try {
+    connection.initSync();
+    ensureSchema(connection);
+    return await callback(connection);
+  } finally {
+    connection.closeSync();
+    database.closeSync();
+  }
+}

@@ -16,7 +16,7 @@ const mockState = vi.hoisted(() => ({
     getWorkspaceAnalysisDatabasePath: vi.fn((workspaceRoot: string) => `${workspaceRoot}/.codegraphy/graph.lbug`),
     loadWorkspaceAnalysisDatabaseCache: vi.fn(() => ({ files: {}, version: '2.0.0' })),
     readWorkspaceAnalysisDatabaseSnapshot: vi.fn(() => ({ files: [], symbols: [], relations: [] })),
-    saveWorkspaceAnalysisDatabaseCache: vi.fn(),
+    saveWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
   },
 }));
 
@@ -44,7 +44,7 @@ vi.mock('../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
   getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
-  saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCacheAsync: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync,
 }));
 
 function createContext() {
@@ -155,6 +155,6 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
       workspaceFixture!.workspacePath,
     );
-    expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
+    expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalled();
   }, 15000);
 });
