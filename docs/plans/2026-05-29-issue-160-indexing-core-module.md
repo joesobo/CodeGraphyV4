@@ -56,3 +56,9 @@ The VS Code extension may keep UI and editor session state such as active webvie
 The Core Package owns plugin processing during Indexing and the status semantics derived from plugin runtime state, workspace settings, installed plugin records, discovered files, and indexed connection data.
 
 The VS Code extension may expose UI for toggling and configuring plugins, then ask Core for the updated plugin status and graph data. The extension should render the plugin information and graph payload Core returns, not assemble plugin status from engine internals.
+
+### 4. Plugin Toggle UI Calls Core Commands
+
+When the VS Code extension plugin UI enables, disables, orders, or configures a plugin, the extension should send that intent to a Core-owned workspace plugin operation.
+
+Core should update Workspace Settings, report or mark Graph Cache freshness effects, and decide what indexing or graph rebuild work is needed. The extension should not directly edit the `plugins` setting or decide whether plugin files require incremental reprocessing versus full analysis.
