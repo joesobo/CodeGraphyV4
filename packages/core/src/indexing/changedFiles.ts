@@ -9,21 +9,31 @@ export interface WorkspaceIndexFileChangeSelection {
 export function mapDiscoveredWorkspaceIndexFilesByRelativePath(
   files: readonly IDiscoveredFile[],
 ): Map<string, IDiscoveredFile> {
-  return new Map(files.map((file) => [file.relativePath, file] as const));
+  return new Map(files.map((file) => [normalizeWorkspaceRelativePath(file.relativePath), file] as const));
 }
 
 function toWorkspaceRelativePath(workspaceRoot: string, filePath: string): string | undefined {
-  const relativePath = path.relative(workspaceRoot, filePath);
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.join(workspaceRoot, filePath);
+  const relativePath = path.relative(workspaceRoot, absolutePath);
   if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
     return undefined;
   }
 
-  return relativePath;
+  return normalizeWorkspaceRelativePath(relativePath);
+}
+
+function normalizeWorkspaceRelativePath(filePath: string): string {
+  return filePath.split('\\').join('/');
 }
 
 function isDescendantPath(parentPath: string, childPath: string): boolean {
-  const relativePath = path.relative(parentPath, childPath);
-  return Boolean(relativePath) && !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
+  const relativePath = path.posix.relative(
+    normalizeWorkspaceRelativePath(parentPath),
+    normalizeWorkspaceRelativePath(childPath),
+  );
+  return Boolean(relativePath) && !relativePath.startsWith('..') && !path.posix.isAbsolute(relativePath);
 }
 
 export function selectDiscoveredWorkspaceIndexFileChanges(
@@ -42,7 +52,7 @@ export function selectDiscoveredWorkspaceIndexFileChanges(
 
     const exactFile = discoveredByRelativePath.get(relativePath);
     if (exactFile) {
-      selected.set(exactFile.relativePath, exactFile);
+      selected.set(normalizeWorkspaceRelativePath(exactFile.relativePath), exactFile);
       continue;
     }
 
@@ -55,7 +65,7 @@ export function selectDiscoveredWorkspaceIndexFileChanges(
     }
 
     for (const file of descendantFiles) {
-      selected.set(file.relativePath, file);
+      selected.set(normalizeWorkspaceRelativePath(file.relativePath), file);
     }
   }
 
@@ -71,10 +81,10 @@ export function mergeDiscoveredWorkspaceIndexFiles(
   discoveredByRelativePath: ReadonlyMap<string, IDiscoveredFile>,
 ): IDiscoveredFile[] {
   const additionalFiles = additionalFilePaths
-    .map((filePath) => discoveredByRelativePath.get(filePath))
+    .map((filePath) => discoveredByRelativePath.get(normalizeWorkspaceRelativePath(filePath)))
     .filter((file): file is IDiscoveredFile => Boolean(file));
 
   return [...new Map(
-    [...changedFiles, ...additionalFiles].map((file) => [file.relativePath, file] as const),
+    [...changedFiles, ...additionalFiles].map((file) => [normalizeWorkspaceRelativePath(file.relativePath), file] as const),
   ).values()];
 }

@@ -255,6 +255,7 @@ export function createCodeGraphyWorkspaceEngine(
     }
 
     const graph = buildGraph(disabledPlugins);
+    state.registry.notifyPostAnalyze(graph);
     persist();
 
     return createIndexResult({
