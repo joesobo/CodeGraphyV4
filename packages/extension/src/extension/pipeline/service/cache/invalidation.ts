@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../../../core/plugins/types/contracts';
+import { invalidateWorkspaceIndexEngineFiles } from '@codegraphy-dev/core';
 import type { IWorkspaceAnalysisCache } from '../../cache';
 
 interface WorkspacePipelineInvalidationState {
@@ -14,21 +15,20 @@ export function invalidateWorkspacePipelineFiles(
   filePaths: readonly string[],
   toWorkspaceRelativePath: (workspaceRoot: string, filePath: string) => string | undefined,
 ): string[] {
-  const invalidated = new Set<string>();
-
-  for (const filePath of filePaths) {
-    const relativePath = toWorkspaceRelativePath(workspaceRoot, filePath);
-    if (!relativePath) {
-      continue;
-    }
-
-    delete state.cache.files[relativePath];
-    state.lastFileAnalysis.delete(relativePath);
-    state.lastFileConnections.delete(relativePath);
-    invalidated.add(relativePath);
-  }
-
-  return [...invalidated];
+  return invalidateWorkspaceIndexEngineFiles(
+    {
+      cache: state.cache,
+      discoveredDirectories: [],
+      discoveredFiles: [],
+      fileAnalysis: state.lastFileAnalysis,
+      fileConnections: state.lastFileConnections,
+      graph: { nodes: [], edges: [] },
+      workspaceRoot,
+    },
+    workspaceRoot,
+    filePaths,
+    toWorkspaceRelativePath,
+  );
 }
 
 export function resolveWorkspacePipelinePluginFilePaths(
