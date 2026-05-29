@@ -5,7 +5,10 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
-import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
+import {
+  getWorkspaceAnalysisDatabasePath,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '../../../src/extension/pipeline/database/cache/storage';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
@@ -45,6 +48,15 @@ async function createWorkspace(files: Record<string, string>): Promise<string> {
   }
 
   return workspaceRoot;
+}
+
+async function pathExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 afterAll(async () => {
@@ -215,6 +227,35 @@ describe('WorkspacePipeline analysis', () => {
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBe(
       snapshotBefore.relations.length,
     );
+  });
+
+  it('recreates a deleted Graph Cache when indexing the workspace', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const initialGraph = await analyzer.analyze();
+    expect(initialGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    expect(await pathExists(databasePath)).toBe(true);
+
+    await fs.unlink(databasePath);
+    expect(analyzer.hasIndex()).toBe(false);
+
+    const indexedGraph = await analyzer.refreshIndex();
+
+    expect(indexedGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    expect(await pathExists(databasePath)).toBe(true);
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBeGreaterThan(0);
   });
 
   it('returns an empty graph when no workspace folder is open', async () => {

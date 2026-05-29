@@ -43,9 +43,10 @@ export function publishAnalyzedGraph(
   rawGraphData: IGraphData,
   hasIndex: boolean,
 ): void {
-  const status = resolveGraphIndexStatus(state, hasIndex);
+  const actualHasIndex = state.analyzer?.hasIndex() ?? hasIndex;
+  const status = resolveGraphIndexStatus(state, actualHasIndex);
   handlers.setRawGraphData(rawGraphData);
-  handlers.sendGraphIndexStatusUpdated(hasIndex, status.freshness, status.detail);
+  handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   handlers.updateViewContext();
   handlers.applyViewTransform();
   handlers.computeMergedGroups();

@@ -77,6 +77,31 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
   });
 
+  it('publishes the actual missing index state when indexing does not create a Graph Cache', () => {
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const state = createExecutionState({
+      analyzer: createExecutionAnalyzer({
+        hasIndex: vi.fn(() => false),
+        getIndexStatus: vi.fn(() => ({
+          freshness: 'missing' as const,
+          detail: 'CodeGraphy index is missing. Index the workspace to build the graph.',
+        })),
+      }),
+    });
+    const { handlers } = createExecutionHandlers();
+
+    publishAnalyzedGraph(state, handlers, rawGraphData, true);
+
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(
+      false,
+      'missing',
+      'CodeGraphy index is missing. Index the workspace to build the graph.',
+    );
+  });
+
   it('recomputes and publishes legends after the transformed graph is available', () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'package.json', label: 'package.json', color: '#ffffff' }],
