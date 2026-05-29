@@ -20,24 +20,24 @@ describe('Core plugin Access checks', () => {
     const registry = new CorePluginRegistry();
 
     registry.register(createPlugin({
-      id: 'codegraphy.pro',
+      id: 'acme.account',
       accessProvider: {
-        id: 'codegraphy.pro.access',
+        id: 'acme.account.access',
         provides: [paidFeatureAccess],
         async getAccess() {
           return {
             access: paidFeatureAccess,
             state: 'missing',
-            reason: 'Sign in to CodeGraphy Pro.',
+            reason: 'Sign in through the account portal.',
           };
         },
       },
       graphView: {
         ui: [{
-          id: 'codegraphy.pro.account',
+          id: 'acme.account.toolbar',
           label: 'Account',
           slot: 'graph.toolbar',
-          view: { kind: 'command', command: 'codegraphy.pro.account' },
+          view: { kind: 'command', command: 'acme.account.toggle' },
         }],
       },
     }));
@@ -56,8 +56,8 @@ describe('Core plugin Access checks', () => {
       },
     }));
 
-    await expect(registry.getPluginAvailability('codegraphy.pro')).resolves.toMatchObject({
-      pluginId: 'codegraphy.pro',
+    await expect(registry.getPluginAvailability('acme.account')).resolves.toMatchObject({
+      pluginId: 'acme.account',
       available: true,
       access: [],
     });
@@ -71,8 +71,8 @@ describe('Core plugin Access checks', () => {
     });
     await expect(registry.listAvailableGraphViewContributions()).resolves.toMatchObject({
       ui: [{
-        pluginId: 'codegraphy.pro',
-        contribution: { id: 'codegraphy.pro.account' },
+        pluginId: 'acme.account',
+        contribution: { id: 'acme.account.toolbar' },
       }],
       forces: [],
     });
@@ -83,9 +83,9 @@ describe('Core plugin Access checks', () => {
     const registry = new CorePluginRegistry();
 
     registry.register(createPlugin({
-      id: 'codegraphy.pro',
+      id: 'acme.account',
       accessProvider: {
-        id: 'codegraphy.pro.access',
+        id: 'acme.account.access',
         provides: [paidFeatureAccess],
         async getAccess() {
           return {

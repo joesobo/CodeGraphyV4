@@ -22,13 +22,13 @@ describe('plugin API contracts', () => {
     const premiumAccess = 'premiumFeature' as CodeGraphyAccessKey;
 
     const plugin = {
-      id: 'codegraphy.pro',
-      name: 'CodeGraphy Pro',
+      id: 'acme.account',
+      name: 'Acme Account',
       version: '0.1.0',
       apiVersion: '^2.0.0',
       supportedExtensions: [],
       accessProvider: {
-        id: 'codegraphy.pro.access',
+        id: 'acme.account.access',
         provides: [premiumAccess],
         async getAccess() {
           return {
@@ -39,10 +39,10 @@ describe('plugin API contracts', () => {
       } satisfies IAccessProvider,
       graphView: {
         ui: [{
-          id: 'codegraphy.pro.account',
+          id: 'acme.account.toolbar',
           slot: 'graph.toolbar',
           label: 'Account',
-          view: { kind: 'command', command: 'codegraphy.pro.account' },
+          view: { kind: 'command', command: 'acme.account.toggle' },
         } satisfies IGraphViewUiSlotContribution],
       },
     } satisfies IPlugin;

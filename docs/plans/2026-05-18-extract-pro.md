@@ -17,7 +17,7 @@ Free CodeGraphy keeps Relationship Graph inspection, Graph Scope, filters/search
 - Use **Access**, not entitlement.
 - Use **CodeGraphy Workspace** for any folder CodeGraphy can analyze.
 - Use **Graph Cache** for `<workspace-root>/.codegraphy/graph.lbug`.
-- Treat Pro as the optional account/access plugin.
+- Treat account, login, billing, and subscription state as web-app-owned product work.
 - Treat paid feature behavior as private package-owned behavior that integrates through the public plugin API.
 
 ## Execution Slices
@@ -26,7 +26,7 @@ Free CodeGraphy keeps Relationship Graph inspection, Graph Scope, filters/search
 2. Add Core-owned plugin runtime and Access checks so Extension, CLI, and MCP can consume the same availability model.
 3. Add plugin data `loadData` / `saveData` persistence scoped by plugin id under Workspace Settings.
 4. Add Graph View contribution hosts for runtime nodes/edges, projection, context menus, named UI slots, and additive force adapters.
-5. Create the optional public `@codegraphy/pro` package for account/status UI contribution and Access Provider registration.
+5. Keep login/account UI out of the public monorepo; the web app owns account, billing, and subscription state.
 6. Extract paid feature behavior behind plugin contributions and remove free/base extension ownership without legacy feature-specific migration.
 7. Add focused red-green tests for each public behavior, then run the repo quality gates.
 8. Update product docs, package docs, changesets, Trello checklist state, and the PR description after implementation is green.
