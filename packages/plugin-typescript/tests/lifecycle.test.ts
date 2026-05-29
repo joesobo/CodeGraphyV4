@@ -20,10 +20,13 @@ describe('TypeScript plugin lifecycle', () => {
         workspaceRoot,
       );
 
-      await expect(plugin.onFilesChanged?.(
+      const changedFiles = await plugin.onFilesChanged?.(
         [{ absolutePath: tsconfigPath, relativePath: 'tsconfig.json', content: '{}\n' }],
         workspaceRoot,
-      )).resolves.toEqual(['src/app.ts']);
+      );
+
+      expect(changedFiles).toHaveLength(1);
+      expect(changedFiles).toEqual(['src/app.ts']);
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
