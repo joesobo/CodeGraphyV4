@@ -161,7 +161,7 @@ async function analyzeCacheMiss(
   throwIfWorkspaceAnalysisAborted(options.signal);
   const content = await options.readContent(file);
   throwIfWorkspaceAnalysisAborted(options.signal);
-  const analysis = prepareAnalysisForCacheStorage(
+  const cacheAnalysis = prepareAnalysisForCacheStorage(
     options,
     await options.analyzeFile(
       file.absolutePath,
@@ -171,7 +171,8 @@ async function analyzeCacheMiss(
     ),
     reusableAnalysis,
   );
-  const connections = recordWorkspaceFileAnalysis(state, file, analysis);
+  const activeAnalysis = prepareAnalysisForActiveCacheTiers(options, cacheAnalysis);
+  const connections = recordWorkspaceFileAnalysis(state, file, activeAnalysis);
 
   options.emitFileProcessed?.({
     filePath: file.relativePath,
@@ -184,7 +185,7 @@ async function analyzeCacheMiss(
 
   options.cache.files[file.relativePath] = {
     mtime: stat?.mtime ?? 0,
-    analysis,
+    analysis: cacheAnalysis,
     size: stat?.size,
   };
 }
@@ -214,14 +215,13 @@ async function analyzeWorkspaceFile(
 
 function updateCachedEnrichedAnalysis(
   options: IWorkspaceFileAnalysisOptions,
-  state: IWorkspaceFileAnalysisState,
   enrichedFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
 ): void {
   const symbolTierIsInactive = options.cacheTiers?.active !== undefined
     && !options.cacheTiers.active.includes(SYMBOLS_ANALYSIS_CACHE_TIER);
 
   for (const [relativePath, analysis] of enrichedFileAnalysis.entries()) {
-    if (!state.cacheMissFilePaths.has(relativePath) && symbolTierIsInactive) {
+    if (symbolTierIsInactive) {
       continue;
     }
     options.cache.files[relativePath].analysis = analysis;
@@ -240,7 +240,7 @@ export async function analyzeWorkspaceFiles(
   }
 
   const enrichedFileAnalysis = enrichWorkspaceFileAnalysis(state.fileAnalysis);
-  updateCachedEnrichedAnalysis(options, state, enrichedFileAnalysis);
+  updateCachedEnrichedAnalysis(options, enrichedFileAnalysis);
 
   return {
     cacheHits: state.cacheHits,
