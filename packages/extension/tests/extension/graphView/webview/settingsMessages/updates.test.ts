@@ -54,14 +54,14 @@ describe('graph view settings update message', () => {
       }),
     });
 
-    await applySettingsUpdateMessage(
+    await expect(applySettingsUpdateMessage(
       {
         type: 'UPDATE_FILTER_PATTERN_STATE',
         payload: { source: 'custom', pattern: 'dist/**', enabled: true },
       },
       state,
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', []);
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
@@ -71,14 +71,14 @@ describe('graph view settings update message', () => {
     const state = createState({ filterPatterns: ['dist/**', 'coverage/**'] });
     const handlers = createHandlers();
 
-    await applySettingsUpdateMessage(
+    await expect(applySettingsUpdateMessage(
       {
         type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
         payload: { source: 'custom', enabled: false },
       },
       state,
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledCustomFilterPatterns', [
       'dist/**',
@@ -141,40 +141,6 @@ describe('graph view settings update message', () => {
     ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('maxFiles', 250);
-  });
-
-  it('persists workspace plugin package order through the plugins array', async () => {
-    const state = createState();
-    const handlers = createHandlers({
-      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
-        if (key === 'plugins') {
-          return [
-            { package: '@codegraphy-dev/plugin-markdown' },
-            { package: '@codegraphy-dev/plugin-python' },
-          ] as T;
-        }
-        return defaultValue;
-      }),
-    });
-
-    await expect(
-      applySettingsUpdateMessage(
-        {
-          type: 'UPDATE_PLUGIN_PACKAGE_ORDER',
-          payload: {
-            packageNames: ['@codegraphy-dev/plugin-python', '@codegraphy-dev/plugin-markdown'],
-          },
-        },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(handlers.updateConfig).toHaveBeenCalledWith('plugins', [
-      { package: '@codegraphy-dev/plugin-python' },
-      { package: '@codegraphy-dev/plugin-markdown' },
-    ]);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
   it('updates label visibility and publishes it immediately', async () => {

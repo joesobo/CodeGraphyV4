@@ -102,6 +102,43 @@ describe('extension/repoSettings/store', () => {
     expect(changes).toEqual([]);
   });
 
+  it('preserves plugin-owned data when silently toggling workspace plugins', async () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(
+      settingsPath,
+      JSON.stringify({
+        ...createSettingsWithOverrides({}),
+        plugins: [
+          { package: '@codegraphy-dev/plugin-markdown' },
+          { package: '@codegraphy-pro/organize' },
+        ],
+        pluginData: {
+          'codegraphy.organize': {
+            sections: {
+              'section-ui': { id: 'section-ui', label: 'UI' },
+            },
+          },
+        },
+      }, null, 2),
+      'utf8',
+    );
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+
+    await store.updateSilently('plugins', [{ package: '@codegraphy-dev/plugin-markdown' }]);
+
+    const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+    expect(persisted.pluginData).toEqual({
+      'codegraphy.organize': {
+        sections: {
+          'section-ui': { id: 'section-ui', label: 'UI' },
+        },
+      },
+    });
+  });
+
   it('reloads manual file edits and emits a change event', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);

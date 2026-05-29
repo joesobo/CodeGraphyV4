@@ -7,7 +7,6 @@ import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/p
 import { dispatchGraphViewProviderMessage } from '../../webview/providerMessages/dispatch';
 import type { GraphViewProviderMethodContainers } from './methodContainers';
 import type { GraphViewProviderMessageListenerSource } from '../../webview/providerMessages/listener';
-import { createGraphLayoutUpdatedMessage } from '../../graphLayout/message';
 import {
   createGraphViewProviderMethodSource,
   type GraphViewProviderMethodSourceOwner,
@@ -66,7 +65,6 @@ export interface GraphViewProviderPublicMethods {
   updateGraphData: (data: IGraphData) => void;
   getGraphData: () => IGraphData;
   sendPlaybackSpeed: () => void;
-  sendGraphLayout: () => void;
   invalidateTimelineCache: () => Promise<void>;
   registerExternalPlugin: (
     plugin: unknown,
@@ -118,8 +116,6 @@ export function assignGraphViewProviderPublicMethods(
   target.updateGraphData = data => target._methodContainers.viewContext.updateGraphData(data);
   target.getGraphData = () => target._methodContainers.viewContext.getGraphData();
   target.sendPlaybackSpeed = () => target._methodContainers.timeline.sendPlaybackSpeed();
-  target.sendGraphLayout = () =>
-    target._methodContainers.webview.sendToWebview(createGraphLayoutUpdatedMessage());
   target.invalidateTimelineCache = () => target._methodContainers.timeline.invalidateTimelineCache();
   target.registerExternalPlugin = (plugin, options) =>
     target._methodContainers.plugin.registerExternalPlugin(plugin, options);

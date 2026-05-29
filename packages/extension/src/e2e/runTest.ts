@@ -10,8 +10,34 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { runTests } from '@vscode/test-electron';
-import { e2eScenarios } from './scenarios';
+import { createRequire } from 'module';
+import { e2eScenarios, type E2EScenario } from './scenarios';
+import type { runTests as runVSCodeTests } from '@vscode/test-electron';
+
+interface CodeGraphyInstalledPluginRecord {
+  package: string;
+  version: string;
+  apiVersion: string;
+  packageRoot: string;
+  defaultOptions?: Record<string, unknown>;
+  disclosures: string[];
+}
+
+interface CodeGraphyWorkspacePluginSettings {
+  package: string;
+  options?: Record<string, unknown>;
+}
+
+interface E2EWorkspaceSettings {
+  version: 1;
+  maxFiles: number;
+  include: string[];
+  respectGitignore: boolean;
+  showOrphans: boolean;
+  filterPatterns: string[];
+  disabledCustomFilterPatterns: string[];
+  plugins: CodeGraphyWorkspacePluginSettings[];
+}
 
 const CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME = '@codegraphy-dev/plugin-markdown';
 const DEFAULT_MAX_FILES = 1000;
@@ -55,54 +81,54 @@ function maybeCleanupScenarioArtifacts(
   cleanupScenarioArtifacts(workspacePath, hadGitignore);
 }
 
-interface CodeGraphyPluginPackageJson {
-  name?: unknown;
-  version?: unknown;
-  codegraphy?: {
-    apiVersion?: unknown;
-    disclosures?: unknown;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === 'string')
+    : [];
+}
+
+function readScenarioPackageRecord(packageRoot: string): CodeGraphyInstalledPluginRecord {
+  const packageJsonPath = path.join(packageRoot, 'package.json');
+  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as unknown;
+  if (!isRecord(packageJson) || !isRecord(packageJson.codegraphy)) {
+    throw new Error(`E2E scenario package is not a CodeGraphy plugin: ${packageRoot}`);
+  }
+
+  const packageName = typeof packageJson.name === 'string' ? packageJson.name : '';
+  const version = typeof packageJson.version === 'string' ? packageJson.version : '';
+  const apiVersion = typeof packageJson.codegraphy.apiVersion === 'string'
+    ? packageJson.codegraphy.apiVersion
+    : '';
+  if (
+    packageName.length === 0
+    || version.length === 0
+    || packageJson.codegraphy.type !== 'plugin'
+    || apiVersion.length === 0
+  ) {
+    throw new Error(`E2E scenario package is not a CodeGraphy plugin: ${packageRoot}`);
+  }
+
+  const plugin: CodeGraphyInstalledPluginRecord = {
+    package: packageName,
+    version,
+    apiVersion,
+    packageRoot,
+    disclosures: readStringArray(packageJson.codegraphy.disclosures),
   };
-}
+  if (isRecord(packageJson.codegraphy.defaultOptions)) {
+    plugin.defaultOptions = { ...packageJson.codegraphy.defaultOptions };
+  }
 
-type CodeGraphyPluginDisclosure =
-  | 'network'
-  | 'secrets'
-  | 'externalProcesses'
-  | 'workspaceWrites'
-  | 'outsideWorkspaceWrites'
-  | 'extraFileReads';
-
-interface CodeGraphyInstalledPluginRecord {
-  package: string;
-  version: string;
-  apiVersion: string;
-  disclosures: CodeGraphyPluginDisclosure[];
-  packageRoot: string;
-}
-
-interface CodeGraphyWorkspacePluginSettings {
-  package: string;
-}
-
-interface CodeGraphyWorkspaceSettings {
-  version: 1;
-  maxFiles: number;
-  include: string[];
-  respectGitignore: boolean;
-  showOrphans: boolean;
-  filterPatterns: string[];
-  disabledCustomFilterPatterns: string[];
-  plugins: CodeGraphyWorkspacePluginSettings[];
-}
-
-function writeJsonFile(filePath: string, value: unknown): void {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
+  return plugin;
 }
 
 function createInitialWorkspaceSettings(
-  pluginRecords: readonly CodeGraphyInstalledPluginRecord[],
-): CodeGraphyWorkspaceSettings {
+  plugins: readonly CodeGraphyInstalledPluginRecord[],
+): E2EWorkspaceSettings {
   return {
     version: 1,
     maxFiles: DEFAULT_MAX_FILES,
@@ -113,87 +139,115 @@ function createInitialWorkspaceSettings(
     disabledCustomFilterPatterns: [],
     plugins: [
       { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
-      ...pluginRecords.map(plugin => ({ package: plugin.package })),
+      ...plugins.map(createWorkspacePluginSettings),
     ],
   };
 }
 
-function writeScenarioInstalledPluginCache(
+function writeInstalledPluginCache(
   homeDir: string,
-  pluginRecords: readonly CodeGraphyInstalledPluginRecord[],
+  plugins: CodeGraphyInstalledPluginRecord[],
 ): void {
-  writeJsonFile(path.join(homeDir, '.codegraphy', 'plugins.json'), {
-    version: 1,
-    plugins: pluginRecords,
-  });
-}
-
-function writeScenarioWorkspaceSettings(
-  workspacePath: string,
-  pluginRecords: readonly CodeGraphyInstalledPluginRecord[],
-): void {
-  writeJsonFile(
-    path.join(workspacePath, '.codegraphy', 'settings.json'),
-    createInitialWorkspaceSettings(pluginRecords),
+  const userDirectoryPath = path.join(homeDir, '.codegraphy');
+  fs.mkdirSync(userDirectoryPath, { recursive: true });
+  fs.writeFileSync(
+    path.join(userDirectoryPath, 'plugins.json'),
+    `${JSON.stringify({ version: 1, plugins }, null, 2)}\n`,
   );
 }
 
-function readScenarioPluginRecord(
-  repoRoot: string,
-  packageRelativePath: string,
-): CodeGraphyInstalledPluginRecord {
-  const packageRoot = path.resolve(repoRoot, packageRelativePath);
-  const packageJson = JSON.parse(
-    fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8'),
-  ) as CodeGraphyPluginPackageJson;
-  const packageName = typeof packageJson.name === 'string' ? packageJson.name : '';
-  const version = typeof packageJson.version === 'string' ? packageJson.version : '';
-  const apiVersion = typeof packageJson.codegraphy?.apiVersion === 'string'
-    ? packageJson.codegraphy.apiVersion
-    : '';
-  const disclosures = Array.isArray(packageJson.codegraphy?.disclosures)
-    ? packageJson.codegraphy.disclosures.filter((entry): entry is CodeGraphyInstalledPluginRecord['disclosures'][number] =>
-      entry === 'network'
-      || entry === 'secrets'
-      || entry === 'externalProcesses'
-      || entry === 'workspaceWrites'
-      || entry === 'outsideWorkspaceWrites'
-      || entry === 'extraFileReads',
-    )
-    : [];
-
-  if (!packageName || !version || !apiVersion) {
-    throw new Error(`Invalid CodeGraphy plugin package fixture at ${packageRoot}`);
+function readWorkspaceSettingsOrInitial(workspacePath: string): E2EWorkspaceSettings {
+  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+  if (!fs.existsSync(settingsPath)) {
+    return createInitialWorkspaceSettings([]);
   }
 
+  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8')) as unknown;
+  if (!isRecord(settings) || !Array.isArray(settings.plugins)) {
+    return createInitialWorkspaceSettings([]);
+  }
+
+  const include = readStringArray(settings.include);
   return {
-    package: packageName,
-    version,
-    apiVersion,
-    disclosures,
-    packageRoot,
+    version: 1,
+    maxFiles: typeof settings.maxFiles === 'number' ? settings.maxFiles : DEFAULT_MAX_FILES,
+    include: include.length > 0 ? include : DEFAULT_INCLUDE,
+    respectGitignore: typeof settings.respectGitignore === 'boolean' ? settings.respectGitignore : true,
+    showOrphans: typeof settings.showOrphans === 'boolean' ? settings.showOrphans : true,
+    filterPatterns: readStringArray(settings.filterPatterns),
+    disabledCustomFilterPatterns: readStringArray(settings.disabledCustomFilterPatterns),
+    plugins: settings.plugins
+      .filter(isRecord)
+      .map((plugin): CodeGraphyWorkspacePluginSettings | null => {
+        const packageName = typeof plugin.package === 'string' ? plugin.package.trim() : '';
+        if (packageName.length === 0) {
+          return null;
+        }
+
+        const normalized: CodeGraphyWorkspacePluginSettings = { package: packageName };
+        if (isRecord(plugin.options)) {
+          normalized.options = { ...plugin.options };
+        }
+        return normalized;
+      })
+      .filter((plugin): plugin is CodeGraphyWorkspacePluginSettings => plugin !== null),
   };
 }
 
-function writeScenarioPluginState(
+function writeWorkspaceSettings(workspacePath: string, settings: E2EWorkspaceSettings): void {
+  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+  fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+  fs.writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+}
+
+function createWorkspacePluginSettings(
+  plugin: CodeGraphyInstalledPluginRecord,
+): CodeGraphyWorkspacePluginSettings {
+  const settings: CodeGraphyWorkspacePluginSettings = { package: plugin.package };
+  if (plugin.defaultOptions && Object.keys(plugin.defaultOptions).length > 0) {
+    settings.options = { ...plugin.defaultOptions };
+  }
+
+  return settings;
+}
+
+function prepareScenarioWorkspacePlugins(
+  scenario: E2EScenario,
   repoRoot: string,
   workspacePath: string,
   homeDir: string,
-  packageRelativePaths: readonly string[],
-  writeWorkspaceSettings = true,
+  shouldWriteWorkspaceSettings = true,
 ): void {
-  const pluginRecords = packageRelativePaths.map(relativePath =>
-    readScenarioPluginRecord(repoRoot, relativePath),
-  );
+  const plugins = scenario.workspacePluginPackageRelativePaths
+    .map(relativePath => readScenarioPackageRecord(path.resolve(repoRoot, relativePath)));
 
-  writeScenarioInstalledPluginCache(homeDir, pluginRecords);
-  if (writeWorkspaceSettings) {
-    writeScenarioWorkspaceSettings(workspacePath, pluginRecords);
+  writeInstalledPluginCache(homeDir, plugins);
+
+  if (!shouldWriteWorkspaceSettings || plugins.length === 0) {
+    return;
   }
+
+  const settings = readWorkspaceSettingsOrInitial(workspacePath);
+  const enabledPackages = new Set(settings.plugins.map(plugin => plugin.package));
+  writeWorkspaceSettings(workspacePath, {
+    ...settings,
+    plugins: [
+      ...settings.plugins,
+      ...plugins
+        .filter(plugin => !enabledPackages.has(plugin.package))
+        .map(createWorkspacePluginSettings),
+    ],
+  });
 }
 
 async function main(): Promise<void> {
   const repoRoot = findRepoRoot(__dirname);
+  const requireFromExtension = createRequire(
+    path.join(repoRoot, 'packages/extension/package.json'),
+  );
+  const { runTests } = requireFromExtension('@vscode/test-electron') as {
+    runTests: typeof runVSCodeTests;
+  };
   const extensionTestsPath = path.resolve(
     repoRoot,
     'packages/extension/dist-e2e/extension/src/e2e/suite/run',
@@ -212,11 +266,18 @@ async function main(): Promise<void> {
     const vscodeProfilePath = fs.mkdtempSync(
       path.join(os.tmpdir(), `codegraphy-e2e-${scenario.name.replace(/[^a-z0-9-]/gi, '-')}-`),
     );
-    const homeDir = path.join(vscodeProfilePath, 'home');
     const userDataPath = path.join(vscodeProfilePath, 'u');
     const extensionsPath = path.join(vscodeProfilePath, 'e');
+    const homeDir = path.join(vscodeProfilePath, 'home');
+    const extensionDevelopmentPath = [
+      repoRoot,
+      ...scenario.pluginDevelopmentRelativePaths.map((relativePath) =>
+        path.resolve(repoRoot, relativePath),
+      ),
+    ];
     const workspacePath = path.resolve(repoRoot, scenario.workspaceRelativePath);
     const hadGitignore = fs.existsSync(path.join(workspacePath, '.gitignore'));
+    const originalHome = process.env.HOME;
 
     try {
       maybeCleanupScenarioArtifacts(
@@ -224,15 +285,16 @@ async function main(): Promise<void> {
         hadGitignore,
         scenario.preserveWorkspaceCodegraphy === true,
       );
-      writeScenarioPluginState(
+      prepareScenarioWorkspacePlugins(
+        scenario,
         repoRoot,
         workspacePath,
         homeDir,
-        scenario.pluginDevelopmentRelativePaths,
         scenario.writeWorkspaceSettings !== false,
       );
+      process.env.HOME = homeDir;
       await runTests({
-        extensionDevelopmentPath: repoRoot,
+        extensionDevelopmentPath,
         extensionTestsPath,
         extensionTestsEnv: {
           CODEGRAPHY_E2E_SCENARIO: scenario.name,
@@ -258,6 +320,11 @@ async function main(): Promise<void> {
         ],
       });
     } finally {
+      if (originalHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = originalHome;
+      }
       maybeCleanupScenarioArtifacts(
         workspacePath,
         hadGitignore,

@@ -8,7 +8,8 @@
 	],
 	"scripts": {
 		"build": "turbo run build",
-		"web:dev": "pnpm --filter @codegraphy-dev/web dev",
+		"web:dev": "pnpm --filter @codegraphy/web dev",
+		"build:devhost": "node scripts/build-devhost.mjs",
 		"watch": "pnpm --filter @codegraphy-dev/extension run watch",
 		"dev": "pnpm --filter @codegraphy-dev/extension run dev",
 		"test": "pnpm run test:unit && pnpm run test:playwright",
@@ -21,7 +22,7 @@
 		"reachability": "quality-tools reachability",
 		"mutate": "tsx scripts/mutate.ts",
 		"scrap": "quality-tools scrap",
-		"organize": "quality-tools organize",
+		"organize": "node scripts/run-organize.mjs",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
 		"publish:vsce": "node scripts/release-core.mjs publish",

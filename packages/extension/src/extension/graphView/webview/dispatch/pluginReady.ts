@@ -26,7 +26,6 @@ export interface GraphViewPluginReadyContext {
   loadAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
-  sendGraphLayout?(): void;
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: unknown): void;
@@ -35,6 +34,7 @@ export interface GraphViewPluginReadyContext {
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
+  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
@@ -69,7 +69,6 @@ export async function dispatchGraphViewPluginReadyMessage(
       loadAndSendData: () => context.loadAndSendData(),
       sendFavorites: () => context.sendFavorites(),
       sendSettings: () => context.sendSettings(),
-      sendGraphLayout: () => context.sendGraphLayout?.(),
       sendPhysicsSettings: () => context.sendPhysicsSettings(),
       sendGroupsUpdated: () => context.sendGroupsUpdated(),
       sendMessage: message => context.sendMessage(message),
@@ -78,6 +77,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       sendContextMenuItems: () => context.sendContextMenuItems(),
       sendPluginExporters: () => context.sendPluginExporters?.(),
       sendPluginToolbarActions: () => context.sendPluginToolbarActions?.(),
+      sendGraphViewContributionStatuses: () => context.sendGraphViewContributionStatuses?.(),
       sendPluginWebviewInjections: () => context.sendPluginWebviewInjections(),
       sendActiveFile: () => context.sendActiveFile(),
       waitForFirstWorkspaceReady: () => context.waitForFirstWorkspaceReady(),

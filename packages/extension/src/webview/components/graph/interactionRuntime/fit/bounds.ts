@@ -11,19 +11,6 @@ export interface FitBounds2d {
 }
 
 function getNodeRadius(node: FGNode): number {
-  const sectionHeight = node.sectionHeight;
-  const sectionWidth = node.sectionWidth;
-  if (
-    node.isGraphSection
-    && !node.isCollapsedGraphSection
-    && typeof sectionHeight === 'number'
-    && Number.isFinite(sectionHeight)
-    && typeof sectionWidth === 'number'
-    && Number.isFinite(sectionWidth)
-  ) {
-    return Math.max(sectionWidth / 2, sectionHeight / 2);
-  }
-
   const size = node.size ?? Number.NaN;
 
   if (Number.isFinite(size)) {
@@ -34,22 +21,6 @@ function getNodeRadius(node: FGNode): number {
 }
 
 function getNodeFitExtents(node: FGNode): { x: number; y: number } {
-  const sectionHeight = node.sectionHeight;
-  const sectionWidth = node.sectionWidth;
-  if (
-    node.isGraphSection
-    && !node.isCollapsedGraphSection
-    && typeof sectionHeight === 'number'
-    && Number.isFinite(sectionHeight)
-    && typeof sectionWidth === 'number'
-    && Number.isFinite(sectionWidth)
-  ) {
-    return {
-      x: sectionWidth / 2,
-      y: sectionHeight / 2,
-    };
-  }
-
   const radius = getNodeRadius(node);
   return { x: radius, y: radius };
 }

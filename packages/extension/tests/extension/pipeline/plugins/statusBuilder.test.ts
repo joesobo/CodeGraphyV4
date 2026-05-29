@@ -16,7 +16,7 @@ function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
 
   return {
     plugin,
-    builtIn: true,
+    builtIn: false,
   };
 }
 
@@ -59,6 +59,51 @@ describe('pipeline/plugins/statusBuilder', () => {
     expect(statuses.find((status) => status.id === 'plugin.alpha')?.status).toBe('active');
     expect(statuses.find((status) => status.id === 'plugin.markdown')?.status).toBe('installed');
     expect(statuses.find((status) => status.id === 'plugin.python')?.status).toBe('inactive');
+  });
+
+  it('hides internal built-in runtime plugins from user-facing plugin statuses', () => {
+    const pluginInfos = [
+      {
+        ...createPluginInfo({
+          id: 'codegraphy.treesitter',
+          name: 'Tree-sitter',
+          supportedExtensions: ['.ts'],
+        }),
+        builtIn: true,
+      },
+      {
+        ...createPluginInfo({
+          id: 'codegraphy.markdown',
+          name: 'Markdown',
+          supportedExtensions: ['.md'],
+        }),
+        sourcePackage: '@codegraphy-dev/plugin-markdown',
+      },
+      {
+        ...createPluginInfo({
+          id: 'legacy.python',
+          name: 'Python',
+          supportedExtensions: ['.py'],
+        }),
+        builtIn: false,
+      },
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [
+        { relativePath: 'src/index.ts' },
+        { relativePath: 'README.md' },
+        { relativePath: 'main.py' },
+      ],
+      fileConnections: new Map(),
+      pluginInfos,
+    });
+
+    expect(statuses.map(status => status.id)).toEqual([
+      'codegraphy.markdown',
+      'legacy.python',
+    ]);
   });
 
   it('counts resolved plugin connections and marks disabled plugins', () => {
@@ -370,6 +415,90 @@ describe('pipeline/plugins/statusBuilder', () => {
       id: 'codegraphy.python',
       packageName: '@codegraphy-dev/plugin-python',
       enabled: true,
+    });
+  });
+
+  it('keeps package plugins in installed order and preserves plugin names when toggled off', () => {
+    const installedPlugins = [
+      {
+        package: '@codegraphy-dev/plugin-typescript',
+        pluginId: 'codegraphy.typescript',
+        pluginName: 'TypeScript/JavaScript',
+        version: '2.1.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        disclosures: [],
+        packageRoot: '/global/node_modules/@codegraphy-dev/plugin-typescript',
+      },
+      {
+        package: '@codegraphy-dev/plugin-python',
+        pluginId: 'codegraphy.python',
+        pluginName: 'Python',
+        version: '2.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.py'],
+        disclosures: [],
+        packageRoot: '/global/node_modules/@codegraphy-dev/plugin-python',
+      },
+    ];
+    const enabledStatuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [{ relativePath: 'src/index.ts' }, { relativePath: 'main.py' }],
+      fileConnections: new Map([['src/index.ts', []], ['main.py', []]]),
+      installedPlugins,
+      pluginInfos: [
+        {
+          ...createPluginInfo({
+            id: 'codegraphy.python',
+            name: 'Python',
+            supportedExtensions: ['.py'],
+          }),
+          sourcePackage: '@codegraphy-dev/plugin-python',
+        },
+        {
+          ...createPluginInfo({
+            id: 'codegraphy.typescript',
+            name: 'TypeScript/JavaScript',
+            supportedExtensions: ['.ts'],
+          }),
+          sourcePackage: '@codegraphy-dev/plugin-typescript',
+        },
+      ],
+      workspaceEnabledPackageNames: new Set([
+        '@codegraphy-dev/plugin-typescript',
+        '@codegraphy-dev/plugin-python',
+      ]),
+    });
+    const disabledTypeScriptStatuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [{ relativePath: 'main.py' }],
+      fileConnections: new Map([['main.py', []]]),
+      installedPlugins,
+      pluginInfos: [
+        {
+          ...createPluginInfo({
+            id: 'codegraphy.python',
+            name: 'Python',
+            supportedExtensions: ['.py'],
+          }),
+          sourcePackage: '@codegraphy-dev/plugin-python',
+        },
+      ],
+      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-python']),
+    });
+
+    expect(enabledStatuses.map(status => status.name)).toEqual([
+      'TypeScript/JavaScript',
+      'Python',
+    ]);
+    expect(disabledTypeScriptStatuses.map(status => status.name)).toEqual([
+      'TypeScript/JavaScript',
+      'Python',
+    ]);
+    expect(disabledTypeScriptStatuses[0]).toMatchObject({
+      id: 'codegraphy.typescript',
+      packageName: '@codegraphy-dev/plugin-typescript',
+      enabled: false,
     });
   });
 

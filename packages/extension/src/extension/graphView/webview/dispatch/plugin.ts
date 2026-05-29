@@ -31,7 +31,6 @@ export interface GraphViewPluginMessageContext {
   analyzeAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
-  sendGraphLayout?(): void;
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: unknown): void;
@@ -40,6 +39,7 @@ export interface GraphViewPluginMessageContext {
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
+  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;

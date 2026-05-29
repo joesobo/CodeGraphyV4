@@ -5,7 +5,6 @@ import {
   handleGraphIndexStatusUpdated,
   handleGraphControlsUpdated,
   handleFavoritesUpdated,
-  handleGraphLayoutUpdated,
   handleSettingsUpdated,
   handleLegendsUpdated,
   handleFilterPatternsUpdated,
@@ -33,6 +32,7 @@ import {
   handleContextMenuItems,
   handlePluginExportersUpdated,
   handlePluginToolbarActionsUpdated,
+  handleGraphViewContributionsUpdated,
   handleDagModeUpdated,
   handleNodeSizeModeUpdated,
 } from './messageHandlers/plugin';
@@ -65,10 +65,6 @@ export const MESSAGE_HANDLERS: Record<
   GRAPH_CONTROLS_UPDATED: (msg) =>
     handleGraphControlsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>
-    ),
-  GRAPH_LAYOUT_UPDATED: (msg) =>
-    handleGraphLayoutUpdated(
-      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_LAYOUT_UPDATED' }>
     ),
   FAVORITES_UPDATED: (msg) =>
     handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>),
@@ -124,6 +120,8 @@ export const MESSAGE_HANDLERS: Record<
     handlePluginExportersUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_EXPORTERS_UPDATED' }>),
   PLUGIN_TOOLBAR_ACTIONS_UPDATED: (msg) =>
     handlePluginToolbarActionsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED' }>),
+  GRAPH_VIEW_CONTRIBUTIONS_UPDATED: (msg) =>
+    handleGraphViewContributionsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED' }>),
   PLUGIN_WEBVIEW_INJECT: () => undefined,
   DAG_MODE_UPDATED: (msg) =>
     handleDagModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>),

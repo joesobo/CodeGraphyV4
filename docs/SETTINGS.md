@@ -113,7 +113,7 @@ First Indexing of a new CodeGraphy Workspace materializes Markdown explicitly:
 }
 ```
 
-Removing that entry disables Markdown for the workspace. Other installed plugins stay disabled until they are added to the `plugins` array through the VS Code UI, CLI, or MCP.
+Removing that entry disables Markdown for the workspace. Other registered plugins stay disabled until they are added to the `plugins` array through the VS Code UI, CLI, or MCP.
 
 Plugin `options` are also workspace-local. During Indexing, CodeGraphy merges package-level defaults with the workspace entry and passes the result to plugin hooks as `context.options`.
 
@@ -134,7 +134,7 @@ When a plugin package declares `codegraphy.defaultOptions`, enabling that plugin
 }
 ```
 
-CLI, MCP, and the VS Code plugin popup should all produce the same workspace shape when they enable the same installed plugin.
+CLI, MCP, and the VS Code plugin popup should all produce the same workspace shape when they enable the same registered plugin.
 
 ## Settings Panel
 
@@ -385,7 +385,7 @@ CodeGraphy’s workspace behavior lives under `<workspace-root>/.codegraphy/`.
 
 - `.codegraphy/settings.json` is workspace-local configuration. Teams can commit it when they want shared CodeGraphy behavior.
 - `.codegraphy/graph.lbug` is generated Graph Cache output and should stay local by default.
-- `~/.codegraphy/plugins.json` is user-level installed-plugin cache state and is not part of any source workspace.
+- `~/.codegraphy/plugins.json` is user-level Plugin Registry state and is not part of any source workspace.
 - `~/.codegraphy/settings.json` is user-level CodeGraphy default state.
 
 Recommended `.gitignore` entries:

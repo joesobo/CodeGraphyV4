@@ -92,6 +92,7 @@ describe('Graph context menu (node)', () => {
       graphMode: '2d',
       timelineActive: false,
       pluginContextMenuItems: [],
+      graphViewContributionStatuses: [],
     });
   });
 
@@ -104,6 +105,7 @@ describe('Graph context menu (node)', () => {
         graphMode: '2d',
         timelineActive: false,
         pluginContextMenuItems: [],
+        graphViewContributionStatuses: [],
       });
     });
   });
@@ -191,9 +193,7 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
     expect(screen.getByText('Focus Node')).toBeInTheDocument();
-    expect(screen.getByText('Pin Node')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
-    expect(screen.getByText('Wrap Selected in Graph Section')).toBeInTheDocument();
     expect(screen.getByText('Rename...')).toBeInTheDocument();
     expect(screen.getByText('Delete File')).toBeInTheDocument();
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
@@ -459,7 +459,6 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Symbol ID')).toBeInTheDocument();
     expect(screen.getByText('Copy Symbol Name')).toBeInTheDocument();
     expect(screen.getByText('Add to Favorites')).toBeInTheDocument();
-    expect(screen.getAllByText('Focus Node')).toHaveLength(1);
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
     expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
     expect(screen.queryByText('Delete File')).not.toBeInTheDocument();
@@ -678,35 +677,10 @@ describe('Graph context menu (node)', () => {
     });
     expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
-    expect(screen.getByText('Pin Nodes')).toBeInTheDocument();
     expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
-    expect(screen.getByText('Wrap Selected in Graph Section')).toBeInTheDocument();
     expect(screen.getByText('Delete 2 Files')).toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
     expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
-  });
-
-  it('sends UPDATE_GRAPH_LAYOUT_PIN for the selected nodes when clicking Pin Nodes', async () => {
-    const { container } = render(<Graph data={selectionData} />);
-    const graphContainer = getGraphContainer(container);
-
-    await selectTwoNodesForMultiMenu(graphContainer);
-
-    await waitFor(() => {
-      expect(screen.getByText('Pin Nodes')).toBeInTheDocument();
-    });
-
-    clearSentMessages();
-    await act(async () => {
-      fireEvent.click(screen.getByText('Pin Nodes'));
-    });
-
-    const pinMessages = getSentMessages().filter(msg => msg.type === 'UPDATE_GRAPH_LAYOUT_PIN');
-    expect(pinMessages).toHaveLength(2);
-    expect(pinMessages.map(msg => msg.payload)).toEqual([
-      { graphMode: '2d', nodeId: 'nodeA.ts', position: { x: 10, y: 20 } },
-      { graphMode: '2d', nodeId: 'nodeB.ts', position: { x: 40, y: 60 } },
-    ]);
   });
 
   it('sends OPEN_FILE for each selected node when clicking Open N Files', async () => {

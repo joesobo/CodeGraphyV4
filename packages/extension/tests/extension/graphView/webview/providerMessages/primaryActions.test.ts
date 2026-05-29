@@ -226,23 +226,28 @@ describe('graph view provider listener primary actions', () => {
     const actions = createActions(source);
     const originalFs = (vscode.workspace as { fs?: unknown }).fs;
     const createDirectory = vi.fn(() => Promise.resolve());
+    const writeFile = vi.fn(() => Promise.resolve());
     const copy = vi.fn(() => Promise.resolve());
     const directoryUri = vscode.Uri.file('/workspace/assets');
     const sourceUri = vscode.Uri.file('/workspace/src/app.ts');
     const destinationUri = vscode.Uri.file('/workspace/src/app-copy.ts');
+    const content = new Uint8Array([1, 2, 3]);
 
     Object.defineProperty(vscode.workspace, 'fs', {
       configurable: true,
       value: {
         createDirectory,
+        writeFile,
         copy,
       },
     });
 
     await actions.createDirectory(directoryUri);
+    await actions.writeFile(destinationUri, content);
     await actions.copyFile(sourceUri, destinationUri, { overwrite: true });
 
     expect(createDirectory).toHaveBeenCalledWith(directoryUri);
+    expect(writeFile).toHaveBeenCalledWith(destinationUri, content);
     expect(copy).toHaveBeenCalledWith(sourceUri, destinationUri, { overwrite: true });
 
     Object.defineProperty(vscode.workspace, 'fs', {
@@ -303,6 +308,114 @@ describe('graph view provider listener primary actions', () => {
     expect(actions.canOpenPath('src')).toBe(false);
     expect(actions.canOpenPath('docs')).toBe(true);
   });
+
+  it('resolves symbol-backed graph nodes before opening file actions', async () => {
+    const source = createSource({
+      _graphData: {
+        nodes: [
+          { id: 'symbol:wrong', nodeType: 'symbol', symbol: { filePath: 'wrong.ts' } },
+          { id: 'symbol:App', nodeType: 'symbol', symbol: { filePath: 'src/app.ts' } },
+        ],
+        edges: [],
+      },
+    });
+    const actions = createActions(source);
+
+    await actions.openSelectedNode('symbol:App');
+    await actions.activateNode('symbol:App');
+    await actions.openFile('symbol:App');
+    await actions.revealInExplorer('symbol:App');
+    await actions.getFileInfo('symbol:App');
+
+    expect(source._openSelectedNode).toHaveBeenCalledWith('src/app.ts');
+    expect(source._activateNode).toHaveBeenCalledWith('src/app.ts');
+    expect(source._openFile).toHaveBeenCalledWith('src/app.ts');
+    expect(source._revealInExplorer).toHaveBeenCalledWith('src/app.ts');
+    expect(source._getFileInfo).toHaveBeenCalledWith('src/app.ts');
+  });
+
+  it('uses symbol-backed file paths when deciding if a graph node can open', () => {
+    const source = createSource({
+      _graphData: {
+        nodes: [
+          { id: 'symbol:Package', nodeType: 'symbol', symbol: { filePath: 'pkg:react' } },
+          { id: 'symbol:File', nodeType: 'symbol', symbol: { filePath: 'src/app.ts' } },
+        ],
+        edges: [],
+      },
+    });
+    const actions = createActions(source);
+
+    expect(actions.canOpenPath('symbol:Package')).toBe(false);
+    expect(actions.canOpenPath('symbol:File')).toBe(true);
+  });
+
+  it('blocks synthetic package paths even when no package node exists', () => {
+    const actions = createActions(createSource());
+
+    expect(actions.canOpenPath('pkg:missing')).toBe(false);
+  });
+
+  it('does not infer folders from folder, package, or package-reference nodes', () => {
+    const source = createSource({
+      _graphData: {
+        nodes: [
+          { id: 'src', nodeType: 'folder' },
+          { id: 'workspace', nodeType: 'package' },
+          { id: 'pkg:react', nodeType: 'file' },
+          { id: 'src/nested-package', nodeType: 'package' },
+          { id: 'src/nested-folder', nodeType: 'folder' },
+        ],
+        edges: [],
+      },
+    });
+    const actions = createActions(source);
+
+    expect(actions.canOpenPath('(root)')).toBe(true);
+    expect(actions.canOpenPath('src')).toBe(false);
+    expect(actions.canOpenPath('workspace')).toBe(false);
+  });
+
+  it('does not infer the synthetic root folder from nested files alone', () => {
+    const source = createSource({
+      _graphData: {
+        nodes: [
+          { id: 'src/app.ts', nodeType: 'file' },
+        ],
+        edges: [],
+      },
+    });
+    const actions = createActions(source);
+
+    expect(actions.canOpenPath('(root)')).toBe(true);
+  });
+
+  it('falls back to vscode warning messages when dependencies do not provide one', async () => {
+    const source = createSource();
+    const dependencies = createDependencies();
+    const originalShowWarningMessage = vscode.window.showWarningMessage;
+    const fallback = vi.fn(() => Promise.resolve('Delete'));
+
+    delete (dependencies.window as { showWarningMessage?: unknown }).showWarningMessage;
+    Object.defineProperty(vscode.window, 'showWarningMessage', {
+      configurable: true,
+      value: fallback,
+    });
+
+    const result = await createActions(source, dependencies).showWarningMessage(
+      'Delete file?',
+      { modal: true },
+      'Delete',
+    );
+
+    expect(result).toBe('Delete');
+    expect(fallback).toHaveBeenCalledWith('Delete file?', { modal: true }, 'Delete');
+
+    Object.defineProperty(vscode.window, 'showWarningMessage', {
+      configurable: true,
+      value: originalShowWarningMessage,
+    });
+  });
 });
 
 function createSource(overrides: Record<string, unknown> = {}) {
@@ -359,6 +472,7 @@ function createDependencies() {
     },
     window: {
       showInformationMessage: vi.fn(),
+      showWarningMessage: vi.fn(() => Promise.resolve(undefined)),
       showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
     },
     getConfigTarget: vi.fn(),

@@ -12,7 +12,6 @@ function makeProvider() {
     emitEvent: vi.fn(),
     invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
     sendPlaybackSpeed: vi.fn(),
-    sendGraphLayout: vi.fn(),
   };
 }
 
@@ -145,24 +144,6 @@ describe('configListener', () => {
     vi.useRealTimers();
   });
 
-  it('syncs graph layout without reloading the graph when layout changes', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-
-    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
-
-    const listener = getConfigListener();
-    listener({
-      affectsConfiguration: (key) =>
-        key === 'codegraphy' ||
-        key === 'codegraphy.graphLayout',
-    });
-
-    expect(provider.sendGraphLayout).toHaveBeenCalledOnce();
-    expect(provider.refresh).not.toHaveBeenCalled();
-    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
-  });
-
   it('triggers full refresh for unrecognized codegraphy settings', () => {
     const context = makeContext();
     const provider = makeProvider();
@@ -178,6 +159,26 @@ describe('configListener', () => {
       value: undefined,
       old: undefined,
     });
+  });
+
+  it('does not refresh the graph for plugin-owned data saves', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({
+      changedKeys: ['pluginData.codegraphy.organize.sections.section-alpha.x'],
+      affectsConfiguration: (key: string) =>
+        key === 'codegraphy'
+        || key === 'codegraphy.pluginData'
+        || key === 'codegraphy.pluginData.codegraphy.organize.sections.section-alpha.x',
+    } as never);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+    expect(provider.refreshSettings).not.toHaveBeenCalled();
   });
 
   it('invalidates timeline cache when filterPatterns change', () => {

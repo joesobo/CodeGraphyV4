@@ -59,9 +59,9 @@ Status:
 - Background, File Node, Folder Node, and multi-node mutation entries consistently stay visible when disabled by a historical Timeline Snapshot.
 - `timelineActive` still drives timeline-specific non-mutation behavior such as hiding `Reveal in Explorer`.
 - Verified with:
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/model.test.ts`
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu`
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/viewport/model.test.tsx`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/model.test.ts`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/viewport/model.test.tsx`
 
 ## Slice 1: Context Selection Classification
 
@@ -83,9 +83,9 @@ Status:
 - Package id detection is centralized in the decision target facts and re-exported for existing node menu helpers.
 - Plugin menu eligibility now uses the same decision model in the real Graph Context Menu build path.
 - Verified with:
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/decision/model.test.ts`
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/decision/model.test.ts tests/webview/graph/contextMenu/targetClassification.test.ts tests/webview/graph/contextMenu/pluginEntries.test.ts tests/webview/graph/contextMenu/model.test.ts`
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/decision/model.test.ts`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/decision/model.test.ts tests/webview/graph/contextMenu/targetClassification.test.ts tests/webview/graph/contextMenu/pluginEntries.test.ts tests/webview/graph/contextMenu/model.test.ts`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu`
 
 ## Slice 3: Built-In Action Context
 
@@ -107,10 +107,10 @@ Status:
 - The interaction runtime resolves the current `Context Selection` into action context before dispatching a Graph Context Menu action.
 - CI hardening follow-up: the 3D Graph surface now remounts when the viewport transitions from unmeasured to measured dimensions, fixing a Playwright failure where temporary zero-size layouts could leave WebGL blank in CI without changing existing 3D menu test assumptions.
 - Verified with:
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextActions/effects.test.ts tests/webview/graph/contextActions/builders.test.ts tests/webview/graph/contextMenuRuntime/effects.test.ts tests/webview/graph/contextMenuRuntime/controller.test.ts tests/webview/graph/runtime/use/interaction.test.tsx`
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextActions tests/webview/graph/contextMenuRuntime tests/webview/graph/contextMenu tests/webview/graph/runtime/use/interaction.test.tsx`
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/viewport/view.test.tsx tests/webview/graph/runtime/containerSize.test.tsx`
-  - `pnpm --filter @codegraphy/extension exec playwright test --config playwright.config.ts tests/playwright/depth-view.spec.ts:258 --project=chromium`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextActions/effects.test.ts tests/webview/graph/contextActions/builders.test.ts tests/webview/graph/contextMenuRuntime/effects.test.ts tests/webview/graph/contextMenuRuntime/controller.test.ts tests/webview/graph/runtime/use/interaction.test.tsx`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextActions tests/webview/graph/contextMenuRuntime tests/webview/graph/contextMenu tests/webview/graph/runtime/use/interaction.test.tsx`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/viewport/view.test.tsx tests/webview/graph/runtime/containerSize.test.tsx`
+  - `pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.config.ts tests/playwright/depth-view.spec.ts:258 --project=chromium`
 
 ## Slice 4: Opening Mechanics
 
@@ -130,7 +130,7 @@ Status:
 - Added `contextMenuOpening/runtime.ts` as the module that owns Graph Context Menu opening handlers, pointer-event translation, graph right-click adapters, runtime dependency wiring, and action-context dispatch.
 - `useGraphInteractionRuntime` now composes that module instead of keeping Graph Context Menu opening mechanics inline with tooltip and cursor effects.
 - Verified with:
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenuOpening/runtime.test.ts tests/webview/graph/runtime/use/interaction.test.tsx tests/webview/graph/contextMenuRuntime/controller.test.ts tests/webview/graph/contextMenuRuntime/effects.test.ts`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenuOpening/runtime.test.ts tests/webview/graph/runtime/use/interaction.test.tsx tests/webview/graph/contextMenuRuntime/controller.test.ts tests/webview/graph/contextMenuRuntime/effects.test.ts`
 
 ## Slice 5: Product Scenario Tests
 
@@ -149,7 +149,7 @@ Status:
 - Done in this branch.
 - Added `contextMenu/scenarios.test.ts` with product scenarios for live background actions, historical Timeline Snapshot mutability, historical File Node inspection, current Graph Revision Folder Node mutation, Edge source/target effects, and mixed selection bulk safety.
 - Verified with:
-  - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/scenarios.test.ts tests/webview/graph/contextMenu/model.test.ts tests/webview/graph/contextActions/effects.test.ts`
+  - `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/contextMenu/scenarios.test.ts tests/webview/graph/contextMenu/model.test.ts tests/webview/graph/contextActions/effects.test.ts`
 
 ## Quality Gates
 

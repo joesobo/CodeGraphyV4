@@ -146,6 +146,79 @@ describe('graph/rendering/node/body', () => {
     ]);
   });
 
+  it('draws sized rectangle node bodies from plugin presentation data', () => {
+    const { ctx } = createContext();
+
+    renderNodeBody({
+      ctx,
+      node: createNode({
+        shape2D: 'rectangle',
+        shapeSize2D: {
+          height: 80,
+          width: 120,
+        },
+      }),
+      globalScale: 1,
+      decoration: undefined,
+      opacity: 1,
+      isSelected: false,
+    });
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'rectangle', 24, 48, 16, {
+      height: 80,
+      width: 120,
+    });
+  });
+
+  it('passes plugin rectangle corner radius through to the shape renderer', () => {
+    const { ctx } = createContext();
+
+    renderNodeBody({
+      ctx,
+      node: createNode({
+        cornerRadius2D: 5,
+        shape2D: 'rectangle',
+        shapeSize2D: {
+          height: 48,
+          width: 48,
+        },
+      }),
+      globalScale: 1,
+      decoration: undefined,
+      opacity: 1,
+      isSelected: false,
+    });
+
+    expect(drawShape).toHaveBeenCalledWith(ctx, 'rectangle', 24, 48, 16, {
+      height: 48,
+      width: 48,
+    }, 5);
+  });
+
+  it('uses plugin fill opacity for the node body without fading the border', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeBody({
+      ctx,
+      node: createNode({ fillOpacity2D: 0.15 }),
+      globalScale: 1,
+      decoration: undefined,
+      opacity: 0.8,
+      isSelected: false,
+    });
+
+    expect(operations).toEqual([
+      expect.objectContaining({
+        globalAlpha: 0.12,
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        globalAlpha: 0.8,
+        kind: 'stroke',
+      }),
+    ]);
+  });
+
   it('uses selected-node contrast styling, decoration colors, and scaled minimum border width', () => {
     const { ctx, operations } = createContext();
 
@@ -161,7 +234,7 @@ describe('graph/rendering/node/body', () => {
     expect(operations).toEqual([
       expect.objectContaining({
         fillStyle: '#facc15',
-        globalAlpha: 1,
+        globalAlpha: 0.4,
         kind: 'fill',
       }),
       expect.objectContaining({
@@ -169,41 +242,6 @@ describe('graph/rendering/node/body', () => {
         kind: 'stroke',
         lineWidth: 1.5,
         strokeStyle: 'Highlight',
-      }),
-    ]);
-  });
-
-  it('draws collapsed Graph Sections as rounded squares', () => {
-    const { ctx, operations } = createContext();
-
-    renderNodeBody({
-      ctx,
-      decoration: undefined,
-      globalScale: 1,
-      isSelected: false,
-      node: createNode({
-        id: 'section-1',
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
-      }),
-      opacity: 1,
-    });
-
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.beginPath).toHaveBeenCalledOnce();
-    expect(ctx.moveTo).toHaveBeenCalledWith(16, 32);
-    expect(ctx.quadraticCurveTo).toHaveBeenCalledWith(40, 32, 40, 40);
-    expect(ctx.closePath).toHaveBeenCalledOnce();
-    expect(operations).toEqual([
-      expect.objectContaining({
-        fillStyle: '#3b82f6',
-        kind: 'fill',
-      }),
-      expect.objectContaining({
-        kind: 'stroke',
-        strokeStyle: '#1d4ed8',
       }),
     ]);
   });
@@ -223,7 +261,7 @@ describe('graph/rendering/node/body', () => {
     expect(operations).toEqual([
       expect.objectContaining({
         fillStyle: '#3b82f6',
-        globalAlpha: 1,
+        globalAlpha: 0.6,
         kind: 'fill',
       }),
       expect.objectContaining({

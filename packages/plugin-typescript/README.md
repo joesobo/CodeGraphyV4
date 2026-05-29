@@ -7,11 +7,11 @@ Adds TypeScript and JavaScript ecosystem metadata to [CodeGraphy](https://market
 
 ## Install
 
-Install `@codegraphy-dev/mcp` first if the `codegraphy` CLI is not already available.
+Install `@codegraphy-dev/core` first if the `codegraphy` CLI is not already available.
 
 ```bash
 npm i -g @codegraphy-dev/plugin-typescript
-codegraphy plugins refresh
+codegraphy plugins register @codegraphy-dev/plugin-typescript
 codegraphy plugins enable @codegraphy-dev/plugin-typescript
 codegraphy index
 ```
@@ -22,7 +22,7 @@ The built-in Tree-sitter plugin now handles JS/TS analysis inside `@codegraphy-d
 This plugin keeps the TypeScript/JavaScript ecosystem defaults that are still useful on top:
 
 - default ignore filters for common build output and package folders
-- plugin install / enable / disable state for TypeScript/JavaScript-specific defaults
+- workspace enablement for TypeScript/JavaScript-specific defaults
 
 Core CodeGraphy now owns the default JS/TS icons and colors through Material Icon Theme.
 This plugin no longer ships general file theming.

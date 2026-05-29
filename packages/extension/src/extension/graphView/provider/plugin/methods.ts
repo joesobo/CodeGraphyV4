@@ -8,6 +8,7 @@ import {
   type GraphViewExternalPluginRegistrationOptions,
 } from '../../webview/plugins/registration/register';
 import {
+  sendGraphViewContributionStatuses,
   sendGraphViewContextMenuItems,
 } from '../../webview/plugins/contributionDispatch';
 import {
@@ -31,6 +32,7 @@ type GraphViewPluginAnalyzerLike =
     Parameters<typeof import('../../webview/plugins/registration/register').registerGraphViewExternalPlugin>[2]['analyzer']
   >
   & NonNullable<Parameters<typeof sendGraphViewContextMenuItems>[0]>
+  & NonNullable<Parameters<typeof sendGraphViewContributionStatuses>[0]>
   & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>;
 
 type GraphViewDecorationManagerLike =
@@ -73,6 +75,8 @@ export interface GraphViewProviderPluginMethods {
   _sendContextMenuItems: GraphViewProviderPluginBroadcastMethods['_sendContextMenuItems'];
   _sendPluginExporters: GraphViewProviderPluginBroadcastMethods['_sendPluginExporters'];
   _sendPluginToolbarActions: GraphViewProviderPluginBroadcastMethods['_sendPluginToolbarActions'];
+  _sendGraphViewContributionStatuses:
+    GraphViewProviderPluginBroadcastMethods['_sendGraphViewContributionStatuses'];
   _sendPluginWebviewInjections: GraphViewProviderPluginBroadcastMethods['_sendPluginWebviewInjections'];
   _sendGroupsUpdated: GraphViewProviderPluginBroadcastMethods['_sendGroupsUpdated'];
   registerExternalPlugin(

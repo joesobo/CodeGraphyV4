@@ -69,12 +69,31 @@ import {
 
 const iconButtonTitles = ['Index Workspace', 'Layout', 'Node Size', 'New...', 'Graph Scope', 'Legends', 'Plugins', 'Settings'] as const;
 
-function renderWithProviders() {
+function renderWithProviders(props: Partial<React.ComponentProps<typeof ToolbarActions>> = {}) {
   return render(
     <TooltipProvider>
-      <ToolbarActions />
+      <ToolbarActions {...props} />
     </TooltipProvider>,
   );
+}
+
+function enableRuntimeGraphViewContributions() {
+  graphStore.setState({
+    graphViewContributionStatuses: [
+      {
+        kind: 'runtimeNodes',
+        pluginId: 'acme.graph-tools',
+        contributionId: 'acme.graph-tools.runtime-nodes',
+        label: 'Runtime Nodes',
+      },
+      {
+        kind: 'projections',
+        pluginId: 'acme.graph-tools',
+        contributionId: 'acme.graph-tools.projection',
+        label: 'Runtime Projection',
+      },
+    ],
+  });
 }
 
 function clickAction(title: string) {
@@ -100,6 +119,7 @@ describe('ToolbarActions', () => {
       timelineActive: false,
       timelineCommits: [],
       graphViewportScale: null,
+      graphViewContributionStatuses: [],
     });
   });
 
@@ -107,7 +127,8 @@ describe('ToolbarActions', () => {
     vi.useRealTimers();
   });
 
-  it('renders lifecycle, graph tools, and system groups', () => {
+  it('renders lifecycle, graph tools, and system groups without feature-specific public actions', () => {
+    enableRuntimeGraphViewContributions();
     renderWithProviders();
 
     expect(screen.getByTestId('toolbar-lifecycle-group')).toBeInTheDocument();
@@ -119,9 +140,15 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('New...')).toBeInTheDocument();
     expect(screen.getByText('New File...')).toBeInTheDocument();
     expect(screen.getByText('New Folder...')).toBeInTheDocument();
-    expect(screen.getByText('New Graph Section')).toBeInTheDocument();
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
     expect(screen.queryByTitle('Export')).not.toBeInTheDocument();
+  });
+
+  it('keeps the public create menu limited to filesystem actions', () => {
+    renderWithProviders();
+
+    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New Folder...')).toBeInTheDocument();
   });
 
   it('sends INDEX_GRAPH message when the initial index button is clicked', () => {
@@ -207,7 +234,8 @@ describe('ToolbarActions', () => {
     ]);
   });
 
-  it('orders the graph tool rail create menu as file, folder, Graph Section without a separator', () => {
+  it('orders the graph tool rail create menu as file and folder without a separator', () => {
+    enableRuntimeGraphViewContributions();
     renderWithProviders();
 
     const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
@@ -217,11 +245,56 @@ describe('ToolbarActions', () => {
       within(createMenu as HTMLElement)
         .getAllByRole('button')
         .map(button => button.textContent?.trim()),
-    ).toEqual(['New File...', 'New Folder...', 'New Graph Section']);
+    ).toEqual(['New File...', 'New Folder...']);
     expect(within(createMenu as HTMLElement).queryByTestId('dropdown-separator')).not.toBeInTheDocument();
   });
 
+  it('renders graph-view create contributions beside file and folder actions', () => {
+    const run = vi.fn();
+    const pluginHost = {
+      getGraphViewContributions: vi.fn(() => ({
+        runtimeNodes: [],
+        runtimeEdges: [],
+        projections: [],
+        forces: [],
+        nodeDragEnd: [],
+        contextMenu: [{
+          pluginId: 'acme.graph-tools',
+          contribution: {
+            id: 'acme.new-plugin-node',
+            label: 'New Plugin Node...',
+            placement: { menu: 'create' },
+            targets: [{ kind: 'background' }],
+            run,
+          },
+        }],
+        ui: [],
+      })),
+      subscribeGraphViewContributions: vi.fn(() => ({ dispose: vi.fn() })),
+    };
+
+    renderWithProviders({ pluginHost: pluginHost as never });
+
+    const createMenu = screen.getByText('New File...').closest('[data-testid="dropdown-content"]');
+    expect(
+      within(createMenu as HTMLElement)
+        .getAllByRole('button')
+        .map(button => button.textContent?.trim()),
+    ).toEqual(['New File...', 'New Folder...', 'New Plugin Node...']);
+
+    fireEvent.click(screen.getByText('New Plugin Node...'));
+
+    expect(run).toHaveBeenCalledWith({
+      graphMode: '2d',
+      target: { kind: 'background' },
+      selectedNodeIds: [],
+      selectedEdgeIds: [],
+      timelineActive: false,
+    });
+  });
+
   it('posts root creation messages from the graph tool rail create menu', () => {
+    enableRuntimeGraphViewContributions();
     renderWithProviders();
     expect(screen.getByText('New File...').closest('button')).toHaveClass('gap-2');
 
@@ -239,41 +312,10 @@ describe('ToolbarActions', () => {
       payload: { directory: '.' },
     });
 
-    fireEvent.click(screen.getByText('New Graph Section'));
-
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'CREATE_GRAPH_LAYOUT_SECTION',
-      payload: {
-        color: '#60a5fa',
-        height: 180,
-        memberNodeIds: [],
-        width: 280,
-        x: -140,
-        y: -90,
-      },
-    });
   });
 
-  it('posts a root Graph Section with stable graph-space size when the graph is zoomed out', () => {
-    graphStore.setState({ graphViewportScale: 0.2 });
-    renderWithProviders();
-
-    fireEvent.click(screen.getByText('New Graph Section'));
-
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'CREATE_GRAPH_LAYOUT_SECTION',
-      payload: {
-        color: '#60a5fa',
-        height: 180,
-        memberNodeIds: [],
-        width: 280,
-        x: -140,
-        y: -90,
-      },
-    });
-  });
-
-  it('keeps section creation available at the mutable timeline head and disables it for immutable snapshots', () => {
+  it('keeps public creation actions visible at immutable timeline snapshots', () => {
+    enableRuntimeGraphViewContributions();
     act(() => {
       graphStore.setState({
         currentCommitSha: 'head-sha',
@@ -288,7 +330,6 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('New...')).toBeInTheDocument();
     expect(screen.getByText('New File...')).toBeInTheDocument();
     expect(screen.getByText('New Folder...')).toBeInTheDocument();
-    expect(screen.getByText('New Graph Section').closest('button')).toBeEnabled();
 
     act(() => {
       graphStore.setState({ currentCommitSha: 'old-sha' });
@@ -298,7 +339,8 @@ describe('ToolbarActions', () => {
         <ToolbarActions />
       </TooltipProvider>,
     );
-    expect(screen.getByText('New Graph Section').closest('button')).toBeDisabled();
+    expect(screen.getByText('New File...').closest('button')).toBeEnabled();
+    expect(screen.getByText('New Folder...').closest('button')).toBeEnabled();
 
     act(() => {
       graphStore.setState({ graphMode: '3d', timelineActive: false });
@@ -311,7 +353,6 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('New...')).toBeInTheDocument();
     expect(screen.getByText('New File...')).toBeInTheDocument();
     expect(screen.getByText('New Folder...')).toBeInTheDocument();
-    expect(screen.queryByText('New Graph Section')).not.toBeInTheDocument();
   });
 
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {

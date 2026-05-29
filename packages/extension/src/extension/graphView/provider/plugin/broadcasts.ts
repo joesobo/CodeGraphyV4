@@ -3,6 +3,7 @@ import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/exte
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { sendGraphControlsUpdated } from '../../controls/send';
 import {
+  sendGraphViewContributionStatuses,
   sendGraphViewContextMenuItems,
   sendGraphViewPluginToolbarActions,
   sendGraphViewPluginWebviewInjections,
@@ -23,6 +24,7 @@ export interface GraphViewProviderPluginBroadcastMethods {
   _sendContextMenuItems(): void;
   _sendPluginExporters(): void;
   _sendPluginToolbarActions(): void;
+  _sendGraphViewContributionStatuses(): void;
   _sendPluginWebviewInjections(): void;
   _sendGroupsUpdated(): void;
 }
@@ -34,6 +36,7 @@ export interface GraphViewProviderPluginBroadcastDependencies {
   sendContextMenuItems?: typeof sendGraphViewContextMenuItems;
   sendPluginExporters?: typeof sendGraphViewPluginExporters;
   sendPluginToolbarActions?: typeof sendGraphViewPluginToolbarActions;
+  sendGraphViewContributionStatuses?: typeof sendGraphViewContributionStatuses;
   sendPluginWebviewInjections?: typeof sendGraphViewPluginWebviewInjections;
   sendGroupsUpdated?: typeof sendGraphViewLegendsUpdated;
   getWorkspaceFolders?(): readonly vscode.WorkspaceFolder[] | undefined;
@@ -47,6 +50,7 @@ export const DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES:
   sendContextMenuItems: sendGraphViewContextMenuItems,
   sendPluginExporters: sendGraphViewPluginExporters,
   sendPluginToolbarActions: sendGraphViewPluginToolbarActions,
+  sendGraphViewContributionStatuses,
   sendPluginWebviewInjections: sendGraphViewPluginWebviewInjections,
   sendGroupsUpdated: sendGraphViewLegendsUpdated,
   getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
@@ -104,7 +108,18 @@ export function createGraphViewProviderPluginBroadcastMethods(
     _sendPluginToolbarActions: () => {
       resolved.sendPluginToolbarActions(source._analyzer, send);
     },
+    _sendGraphViewContributionStatuses: () => {
+      void resolved.sendGraphViewContributionStatuses(
+        source._analyzer,
+        {
+          workspaceRoot: resolved.getWorkspaceFolders()?.[0]?.uri.fsPath,
+        },
+        send,
+      );
+    },
     _sendPluginWebviewInjections: () => {
+      source._registerBuiltInPluginRoots();
+      source._refreshWebviewResourceRoots();
       resolved.sendPluginWebviewInjections(
         source._analyzer,
         (assetPath, pluginId) => source._resolveWebviewAssetPath(assetPath, pluginId),

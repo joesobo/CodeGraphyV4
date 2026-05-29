@@ -5,10 +5,17 @@
 ## Quick start
 
 ```bash
-pnpm run organize -- extension/
-pnpm run organize -- packages/extension/src/webview/
-pnpm run organize -- some/arbitrary/dir/
+pnpm run organize -- .
+pnpm run organize -- --raw extension/
+pnpm run organize -- --raw packages/extension/src/webview/
+pnpm run organize -- --raw some/arbitrary/dir/
 ```
+
+The root command is a baseline-regression gate. It dogfoods the external
+`@poleski/quality-tools` analyzer, extracts the current repo-wide findings, and
+compares them to `quality-baselines/organize/repo.json`. A clean root run means
+the branch has not introduced new organize findings. Use `--raw` when you want
+the full advisory report for a package, directory, or repo.
 
 ## What it measures
 
@@ -51,6 +58,8 @@ Clusters files in the same directory by shared prefix and import relationships. 
 | Flag | Behavior |
 |------|----------|
 | (positional) | Target directory |
+| --raw | Print the full advisory report from `@poleski/quality-tools` |
+| --update-baseline | Refresh the tracked repo-wide baseline after intentional cleanup |
 | --verbose | Show STABLE directories |
 | --json | Output raw JSON |
 | --write-baseline | Save to reports/quality-tools/organize/ |
@@ -62,8 +71,9 @@ All thresholds are configurable in quality.config.json under the organize key.
 
 ## The analyze-fix-rerun cycle
 
-1. Run `pnpm run organize -- target/`
+1. Run `pnpm run organize -- --raw target/`
 2. Read the report — focus on SPLIT and WARNING directories
 3. Restructure: create subfolders for cohesion clusters, rename redundant files, remove barrel files
-4. Run again to verify improvements
-5. Optionally write a baseline with --write-baseline and track over time with --compare
+4. Run the same raw target again to verify improvements
+5. Run `pnpm run organize -- .` to make sure the branch did not add repo-wide findings
+6. After intentional cleanup removes existing findings, refresh the tracked gate with `pnpm run organize -- --update-baseline`

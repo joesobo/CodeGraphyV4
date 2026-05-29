@@ -1,5 +1,5 @@
 export function isFiniteNumber(value: unknown): value is number {
-	return typeof value === 'number' && Number.isFinite(value);
+	return Number.isFinite(value);
 }
 
 export function clamp(value: number, minimum: number, maximum: number): number {

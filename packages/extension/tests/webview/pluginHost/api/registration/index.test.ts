@@ -12,7 +12,7 @@ import {
 import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../../src/webview/pluginHost/api/contracts/webview';
 
 describe('registerNodeRenderer', () => {
-  let nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>;
+  let nodeRenderers: Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>;
 
   beforeEach(() => {
     nodeRenderers = new Map();
@@ -22,7 +22,7 @@ describe('registerNodeRenderer', () => {
     const fn = (() => {}) as unknown as NodeRenderFn;
     registerNodeRenderer('plugin-a', '.ts', fn, nodeRenderers);
 
-    expect(nodeRenderers.get('.ts')).toEqual({ pluginId: 'plugin-a', fn });
+    expect(nodeRenderers.get('.ts')).toEqual([{ pluginId: 'plugin-a', fn }]);
   });
 
   it('returns a disposable that removes the renderer', () => {
@@ -43,17 +43,20 @@ describe('registerNodeRenderer', () => {
 
     disposableA.dispose();
 
-    expect(nodeRenderers.get('.ts')).toEqual({ pluginId: 'plugin-b', fn: fnB });
+    expect(nodeRenderers.get('.ts')).toEqual([{ pluginId: 'plugin-b', fn: fnB }]);
   });
 
-  it('overwrites an existing renderer for the same type', () => {
+  it('keeps node renderers additive for the same type', () => {
     const fnA = (() => {}) as unknown as NodeRenderFn;
     const fnB = (() => {}) as unknown as NodeRenderFn;
 
     registerNodeRenderer('plugin-a', '.ts', fnA, nodeRenderers);
     registerNodeRenderer('plugin-b', '.ts', fnB, nodeRenderers);
 
-    expect(nodeRenderers.get('.ts')?.pluginId).toBe('plugin-b');
+    expect(nodeRenderers.get('.ts')).toEqual([
+      { pluginId: 'plugin-a', fn: fnA },
+      { pluginId: 'plugin-b', fn: fnB },
+    ]);
   });
 });
 

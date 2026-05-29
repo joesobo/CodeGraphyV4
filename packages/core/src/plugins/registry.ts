@@ -1,139 +1,56 @@
 import type {
   IFileAnalysisResult,
   IGraphData,
+  IGraphViewContextMenuContribution,
+  IGraphViewForceAdapterContribution,
+  IGraphViewNodeDragEndContribution,
+  IGraphViewProjectionContribution,
+  IGraphViewRuntimeEdgeContribution,
+  IGraphViewRuntimeNodeContribution,
+  IGraphViewUiSlotContribution,
+  IAccessProvider,
   IPlugin,
   IPluginAnalysisContext,
   IPluginEdgeType,
   IPluginNodeType,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
+import { CORE_PLUGIN_API_VERSION } from './api';
 import { initializeAll, initializePlugin } from './lifecycle/initialize';
 import { notifyFilesChanged, type IPluginFilesChangedResult } from './lifecycle/notify/filesChanged';
 import { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from './lifecycle/notify/analysis';
-import { normalizePluginExtension } from './routing/fileExtensions';
+import {
+  createEmptyGraphViewContributionSet,
+  resolvePluginAccess,
+  type CoreGraphViewContributionEntry,
+  type CoreGraphViewContributionSet,
+  type CorePluginAccessCheck,
+  type CorePluginAccessContext,
+} from './access/checks';
+import { assertPluginApiCompatibility } from './compatibility';
+import { listPluginContributions } from './contributions';
+import { addPluginToExtensionMap } from './extensionMap';
 import { analyzeFile, analyzeFileResult, type CoreFileAnalysisResultProvider } from './routing/router/analyze';
+import {
+  createCorePluginInfo,
+  getPluginFilterPatterns,
+  type RegisterPluginOptions,
+} from './registration';
 import {
   getPluginForFile,
   getPluginsForExtension,
   getSupportedExtensions,
   supportsFile,
 } from './routing/router/lookups';
+import { notifyWorkspaceReady } from './workspaceReady';
 
-export const CORE_PLUGIN_API_VERSION = '2.0.0';
+export { CORE_PLUGIN_API_VERSION };
 
 export interface CorePluginInfo {
   plugin: IPlugin;
   builtIn: boolean;
   sourcePackage?: string;
   options?: Record<string, unknown>;
-}
-
-interface RegisterPluginOptions {
-  builtIn?: boolean;
-  sourcePackage?: string;
-  options?: Record<string, unknown>;
-}
-
-function parseSemver(version: string): { major: number; minor: number; patch: number } | undefined {
-  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version.trim());
-  if (!match) {
-    return undefined;
-  }
-
-  return {
-    major: Number(match[1]),
-    minor: Number(match[2]),
-    patch: Number(match[3]),
-  };
-}
-
-function compareSemver(
-  left: { major: number; minor: number; patch: number },
-  right: { major: number; minor: number; patch: number },
-): number {
-  if (left.major !== right.major) return left.major - right.major;
-  if (left.minor !== right.minor) return left.minor - right.minor;
-  return left.patch - right.patch;
-}
-
-function satisfiesSemverRange(version: string, range: string): boolean {
-  const target = parseSemver(version);
-  if (!target) return false;
-
-  const normalized = range.trim();
-  if (/^\d+$/.test(normalized)) {
-    return target.major === Number(normalized);
-  }
-
-  if (normalized.startsWith('^')) {
-    const minimum = parseSemver(normalized.slice(1));
-    if (!minimum) return false;
-    const maximum = { major: minimum.major + 1, minor: 0, patch: 0 };
-    return compareSemver(target, minimum) >= 0 && compareSemver(target, maximum) < 0;
-  }
-
-  const exact = parseSemver(normalized);
-  return exact ? compareSemver(target, exact) === 0 : false;
-}
-
-function assertPluginApiCompatibility(plugin: IPlugin): void {
-  if (typeof plugin.apiVersion !== 'string') {
-    throw new Error(
-      `Plugin '${plugin.id}' must declare a string apiVersion (for example '^${CORE_PLUGIN_API_VERSION}').`,
-    );
-  }
-
-  if (!satisfiesSemverRange(CORE_PLUGIN_API_VERSION, plugin.apiVersion)) {
-    throw new Error(
-      `Plugin '${plugin.id}' targets unsupported CodeGraphy Plugin API '${plugin.apiVersion}'. ` +
-      `Host provides '${CORE_PLUGIN_API_VERSION}'.`,
-    );
-  }
-}
-
-function addPluginToExtensionMap(
-  plugin: IPlugin,
-  extensionMap: Map<string, string[]>,
-): void {
-  for (const extension of plugin.supportedExtensions) {
-    const normalizedExtension = extension === '*' ? extension : normalizePluginExtension(extension);
-    const pluginIds = extensionMap.get(normalizedExtension) ?? [];
-    if (!pluginIds.includes(plugin.id)) {
-      pluginIds.push(plugin.id);
-    }
-    extensionMap.set(normalizedExtension, pluginIds);
-  }
-}
-
-function listPluginContributions<TDefinition>(
-  plugins: Map<string, CorePluginInfo>,
-  getDefinitions: (plugin: IPlugin) => TDefinition[],
-  getId: (definition: TDefinition) => string,
-): TDefinition[] {
-  const definitions = new Map<string, TDefinition>();
-  for (const info of plugins.values()) {
-    for (const definition of getDefinitions(info.plugin)) {
-      definitions.set(getId(definition), definition);
-    }
-  }
-  return [...definitions.values()];
-}
-
-function notifyWorkspaceReady(
-  plugins: Map<string, CorePluginInfo>,
-  graph: IGraphData,
-): void {
-  for (const info of plugins.values()) {
-    if (!info.plugin.onWorkspaceReady) {
-      continue;
-    }
-
-    try {
-      info.plugin.onWorkspaceReady(graph);
-    } catch (error) {
-      console.error(`[CodeGraphy] Error in onWorkspaceReady for ${info.plugin.id}:`, error);
-    }
-  }
 }
 
 type AnalyzeFile = {
@@ -154,14 +71,7 @@ export class CorePluginRegistry {
     }
 
     assertPluginApiCompatibility(plugin);
-    const info: CorePluginInfo = {
-      plugin,
-      builtIn: options.builtIn ?? false,
-      ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
-      ...(options.options ? { options: { ...options.options } } : {}),
-    };
-
-    this.plugins.set(plugin.id, info);
+    this.plugins.set(plugin.id, createCorePluginInfo(plugin, options));
     addPluginToExtensionMap(plugin, this.extensionMap);
   }
 
@@ -219,16 +129,105 @@ export class CorePluginRegistry {
   }
 
   getPluginFilterPatterns(disabledPlugins: ReadonlySet<string> = new Set()): string[] {
-    const patterns: string[] = [];
+    return getPluginFilterPatterns(this.plugins.values(), disabledPlugins);
+  }
+
+  private listAccessProviders(): IAccessProvider[] {
+    return this.list()
+      .map(info => info.plugin.accessProvider)
+      .filter((provider): provider is IAccessProvider => provider !== undefined);
+  }
+
+  async getPluginAvailability(
+    pluginId: string,
+    context: CorePluginAccessContext = {},
+  ): Promise<CorePluginAccessCheck | undefined> {
+    const info = this.plugins.get(pluginId);
+    if (!info) {
+      return undefined;
+    }
+
+    return resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
+  }
+
+  private async pushAvailableGraphViewContributions<TContribution extends { requiresAccess?: unknown }>(
+    plugin: IPlugin,
+    contributions: readonly TContribution[] | undefined,
+    target: CoreGraphViewContributionEntry<TContribution>[],
+    context: CorePluginAccessContext,
+  ): Promise<void> {
+    for (const contribution of contributions ?? []) {
+      const contributionAccess = await resolvePluginAccess(
+        plugin,
+        this.listAccessProviders(),
+        context,
+        contribution.requiresAccess as never,
+      );
+      if (contributionAccess.available) {
+        target.push({
+          pluginId: plugin.id,
+          contribution,
+        });
+      }
+    }
+  }
+
+  async listAvailableGraphViewContributions(
+    context: CorePluginAccessContext = {},
+  ): Promise<CoreGraphViewContributionSet> {
+    const contributions = createEmptyGraphViewContributionSet();
+
     for (const info of this.plugins.values()) {
-      if (disabledPlugins.has(info.plugin.id)) {
+      const pluginAccess = await resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
+      if (!pluginAccess.available) {
         continue;
       }
 
-      patterns.push(...info.plugin.defaultFilters ?? []);
+      await this.pushAvailableGraphViewContributions<IGraphViewRuntimeNodeContribution>(
+        info.plugin,
+        info.plugin.graphView?.runtimeNodes,
+        contributions.runtimeNodes,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewRuntimeEdgeContribution>(
+        info.plugin,
+        info.plugin.graphView?.runtimeEdges,
+        contributions.runtimeEdges,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewProjectionContribution>(
+        info.plugin,
+        info.plugin.graphView?.projections,
+        contributions.projections,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewForceAdapterContribution>(
+        info.plugin,
+        info.plugin.graphView?.forces,
+        contributions.forces,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewNodeDragEndContribution>(
+        info.plugin,
+        info.plugin.graphView?.nodeDragEnd,
+        contributions.nodeDragEnd,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewContextMenuContribution>(
+        info.plugin,
+        info.plugin.graphView?.contextMenu,
+        contributions.contextMenu,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewUiSlotContribution>(
+        info.plugin,
+        info.plugin.graphView?.ui,
+        contributions.ui,
+        context,
+      );
     }
 
-    return [...new Set(patterns)];
+    return contributions;
   }
 
   async analyzeFile(

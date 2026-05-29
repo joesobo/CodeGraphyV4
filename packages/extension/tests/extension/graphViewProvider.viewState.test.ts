@@ -293,11 +293,17 @@ describe('GraphViewProvider view state and internal helpers', () => {
     (provider as unknown as {
       _analyzer: {
         rebuildGraph: typeof rebuildGraph;
-        registry: { notifyGraphRebuild: typeof notifyGraphRebuild };
+        registry: {
+          list(): [];
+          notifyGraphRebuild: typeof notifyGraphRebuild;
+        };
       };
     })._analyzer = {
       rebuildGraph,
-      registry: { notifyGraphRebuild },
+      registry: {
+        list: () => [],
+        notifyGraphRebuild,
+      },
     };
     const updateViewContextSpy = vi.spyOn(
       internals._viewContextMethods,

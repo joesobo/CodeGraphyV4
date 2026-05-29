@@ -160,6 +160,14 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(vscode.workspace.fs.writeFile).not.toHaveBeenCalled();
     });
 
+    it('undo without prior execute restores no directories', async () => {
+      const action = new DeleteFilesAction(['file.ts'], mockWorkspaceFolder, mockRefreshGraph);
+
+      await action.undo();
+
+      expect(vscode.workspace.fs.createDirectory).not.toHaveBeenCalled();
+    });
+
     it('undo without prior execute uses empty favoritesBefore', async () => {
       const action = new DeleteFilesAction(['file.ts'], mockWorkspaceFolder, mockRefreshGraph);
 
@@ -185,6 +193,21 @@ describe('DeleteFilesAction (mutant coverage)', () => {
         [],
         undefined,
       );
+    });
+
+    it('execute resets directories stored by an earlier deletion', async () => {
+      vi.mocked(vscode.workspace.fs.stat)
+        .mockResolvedValueOnce({ type: vscode.FileType.Directory } as vscode.FileStat)
+        .mockResolvedValueOnce({ type: vscode.FileType.File } as vscode.FileStat);
+      vi.mocked(vscode.workspace.fs.readDirectory).mockResolvedValue([]);
+
+      const action = new DeleteFilesAction(['folder'], mockWorkspaceFolder, mockRefreshGraph);
+
+      await action.execute();
+      await action.execute();
+      await action.undo();
+
+      expect(vscode.workspace.fs.createDirectory).not.toHaveBeenCalled();
     });
   });
 

@@ -3,10 +3,18 @@ import type { BidirectionalEdgeMode } from '../../../../../shared/settings/modes
 import { computeLinkCurvature } from './curvature';
 import type { FGLink } from '../build';
 import { processEdges } from '../edgeProcessing';
-import type { ProjectedGraphEdge } from '../sectionProjection';
+
+interface ProjectedGraphEdge extends IGraphEdge {
+  projectedEdgeCount?: number;
+  projectedEdgeIds?: string[];
+}
 
 export function buildGraphLinks(edges: Array<IGraphEdge | ProjectedGraphEdge>, mode: BidirectionalEdgeMode): FGLink[] {
   const links: FGLink[] = processEdges(edges, mode).map(edge => {
+    const runtimeEdge = edge as IGraphEdge & {
+      ownerPluginId?: string;
+      runtimeEdgeType?: string;
+    };
     const link: FGLink = {
       id: edge.id,
       from: edge.from,
@@ -16,10 +24,13 @@ export function buildGraphLinks(edges: Array<IGraphEdge | ProjectedGraphEdge>, m
       bidirectional: edge.bidirectional ?? false,
       baseColor: edge.color ?? (edge.bidirectional ? '#60a5fa' : undefined),
       curvatureGroupId: edge.kind,
+      kind: edge.kind,
+      metadata: edge.metadata,
+      ownerPluginId: runtimeEdge.ownerPluginId,
+      runtimeEdgeType: runtimeEdge.runtimeEdgeType,
     };
 
     if (edge.projectedEdgeCount !== undefined || edge.projectedEdgeIds !== undefined) {
-      link.kind = edge.kind;
       link.projectedEdgeCount = edge.projectedEdgeCount;
       link.projectedEdgeIds = edge.projectedEdgeIds;
     }

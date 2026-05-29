@@ -33,6 +33,33 @@ export interface IWorkspaceGraphAnalysisDataOptions extends Omit<IWorkspaceGraph
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
 }
 
+function createContainingFileNode(
+  filePath: string,
+  options: Pick<IWorkspaceGraphAnalysisDataOptions, 'cacheFiles' | 'churnCounts'>,
+): IGraphData['nodes'][number] {
+  return {
+    id: filePath,
+    label: filePath.split('/').pop() ?? filePath,
+    color: DEFAULT_NODE_COLOR,
+    fileSize: options.cacheFiles[filePath]?.size,
+    churn: options.churnCounts[filePath] ?? 0,
+  };
+}
+
+function collectConnectedAnalysisFileIds(
+  fileAnalysis: IWorkspaceGraphAnalysisDataOptions['fileAnalysis'],
+  workspaceRoot: string,
+  containingFileIds: Iterable<string>,
+): Set<string> {
+  const connectedAnalysisFileIds = new Set(containingFileIds);
+  for (const [filePath, analysis] of fileAnalysis) {
+    if ((analysis.relations?.length ?? 0) > 0 || (analysis.symbols?.length ?? 0) > 0) {
+      connectedAnalysisFileIds.add(toRepoRelativeGraphPath(filePath, workspaceRoot));
+    }
+  }
+  return connectedAnalysisFileIds;
+}
+
 export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IGraphData {
   const {
     cacheFiles,
@@ -75,21 +102,14 @@ export function buildWorkspaceGraphDataFromAnalysis(
     churnCounts: options.churnCounts,
   });
   const existingNodeIds = new Set(graphData.nodes.map(node => node.id));
-  const connectedAnalysisFileIds = new Set(symbolGraph.containingFileIds);
-  for (const [filePath, analysis] of options.fileAnalysis) {
-    if ((analysis.relations?.length ?? 0) > 0 || (analysis.symbols?.length ?? 0) > 0) {
-      connectedAnalysisFileIds.add(toRepoRelativeGraphPath(filePath, options.workspaceRoot));
-    }
-  }
+  const connectedAnalysisFileIds = collectConnectedAnalysisFileIds(
+    options.fileAnalysis,
+    options.workspaceRoot,
+    symbolGraph.containingFileIds,
+  );
   const containingFileNodes = Array.from(connectedAnalysisFileIds)
     .filter(filePath => !existingNodeIds.has(filePath))
-    .map(filePath => ({
-      id: filePath,
-      label: filePath.split('/').pop() ?? filePath,
-      color: DEFAULT_NODE_COLOR,
-      fileSize: options.cacheFiles[filePath]?.size,
-      churn: options.churnCounts[filePath] ?? 0,
-    }));
+    .map(filePath => createContainingFileNode(filePath, options));
 
   return {
     nodes: [...graphData.nodes, ...containingFileNodes, ...symbolGraph.nodes],

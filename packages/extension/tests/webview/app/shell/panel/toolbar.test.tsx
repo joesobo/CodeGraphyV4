@@ -16,5 +16,6 @@ describe('app/ToolbarRail', () => {
     expect(toolbarShell?.className).toContain('absolute');
     expect(toolbarShell?.className).toContain('left-4');
     expect(toolbarShell?.className).toContain('inset-y-4');
+    expect(toolbarShell?.className).toContain('z-30');
   });
 });

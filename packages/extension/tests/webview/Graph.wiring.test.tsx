@@ -240,7 +240,7 @@ describe('Graph wiring', () => {
 				getLinkColor: expect.any(Function),
 				nodeThreeObject: expect.any(Function),
 			}),
-			graphLayoutKey: expect.any(String),
+			graphDataLayoutKey: expect.any(String),
 			graphState: expect.objectContaining({
 				graphData: expect.objectContaining({ nodes: expect.any(Array), links: expect.any(Array) }),
 			}),
@@ -266,6 +266,42 @@ describe('Graph wiring', () => {
 
 		expect(harness.graphViewportShell.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
 			theme: 'dark',
+		}));
+	});
+
+	it('uses graph-view contributions registered by the webview plugin host', () => {
+		const graphViewContributions = {
+			runtimeNodes: [
+				{
+					pluginId: 'acme.plugin',
+					contribution: {
+						id: 'acme.plugin.runtime-node',
+						label: 'Runtime Node',
+						createNodes: () => [],
+					},
+				},
+			],
+			runtimeEdges: [],
+			projections: [],
+			forces: [],
+			nodeDragEnd: [],
+			contextMenu: [],
+			ui: [],
+		};
+		const disposable = { dispose: vi.fn() };
+		const pluginHost = {
+			getGraphViewContributions: vi.fn(() => graphViewContributions),
+			subscribeGraphViewContributions: vi.fn(() => disposable),
+		};
+
+		render(<Graph data={baseData} pluginHost={pluginHost as never} />);
+
+		expect(pluginHost.subscribeGraphViewContributions).toHaveBeenCalledWith(expect.any(Function));
+		expect(harness.useGraphState).toHaveBeenCalledWith(expect.objectContaining({
+			graphViewContributions,
+		}));
+		expect(harness.graphViewportShell.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
+			graphViewContributions,
 		}));
 	});
 

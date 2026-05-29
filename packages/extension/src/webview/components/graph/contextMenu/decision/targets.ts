@@ -1,11 +1,12 @@
-export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin' | 'symbol' | 'graph-section';
+export type GraphContextNodeKind = 'file' | 'folder' | 'package' | 'plugin' | 'symbol';
 
 export interface GraphContextNodeTarget {
   id: string;
   isCollapsed?: boolean;
-  isCollapsedGraphSection?: boolean;
   nodeKind: GraphContextNodeKind;
   nodeType: string;
+  ownerPluginId?: string;
+  runtimeNodeType?: string;
   symbol?: {
     id: string;
     name: string;
@@ -16,9 +17,9 @@ export interface GraphContextNodeTarget {
 export interface GraphContextNodeSource {
   id: string;
   isCollapsed?: boolean;
-  isCollapsedGraphSection?: boolean;
-  isGraphSection?: boolean;
   nodeType?: string;
+  ownerPluginId?: string;
+  runtimeNodeType?: string;
   symbol?: {
     id: string;
     name: string;
@@ -43,20 +44,15 @@ export function classifyGraphContextNodeTarget(
     ? 'package'
     : nodeSource?.nodeType ?? 'file';
   const resolvedSymbol = nodeSource?.symbol;
-  const isGraphSection = nodeSource?.isGraphSection || resolvedNodeType === 'graph-section';
-
   return {
     id: nodeId,
     isCollapsed: nodeSource?.isCollapsed,
-    isCollapsedGraphSection: isGraphSection
-      ? !!nodeSource?.isCollapsedGraphSection
-      : undefined,
-    nodeKind: isGraphSection
-      ? 'graph-section'
-      : resolvedSymbol || resolvedNodeType === 'symbol' || resolvedNodeType === 'variable'
+    nodeKind: resolvedSymbol || resolvedNodeType === 'symbol' || resolvedNodeType === 'variable'
         ? 'symbol'
         : resolveNodeKind(resolvedNodeType),
     nodeType: resolvedNodeType,
+    ...(nodeSource?.ownerPluginId ? { ownerPluginId: nodeSource.ownerPluginId } : {}),
+    ...(nodeSource?.runtimeNodeType ? { runtimeNodeType: nodeSource.runtimeNodeType } : {}),
     ...(resolvedSymbol ? { symbol: resolvedSymbol } : {}),
   };
 }

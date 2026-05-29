@@ -13,7 +13,6 @@ function createHandlers() {
     loadAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
-    sendGraphLayout: vi.fn(),
     sendPhysicsSettings: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     sendMessage: vi.fn(),
@@ -22,6 +21,7 @@ function createHandlers() {
     sendContextMenuItems: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendPluginToolbarActions: vi.fn(),
+    sendGraphViewContributionStatuses: vi.fn(),
     sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
     notifyWebviewReady: vi.fn(),
@@ -53,12 +53,12 @@ describe('graph view ready message', () => {
     expect(handlers.loadAndSendData).toHaveBeenCalledOnce();
     expect(handlers.sendFavorites).toHaveBeenCalledOnce();
     expect(handlers.sendSettings).toHaveBeenCalledOnce();
-    expect(handlers.sendGraphLayout).toHaveBeenCalledOnce();
     expect(handlers.sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(handlers.sendCachedTimeline).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(handlers.sendActiveFile).toHaveBeenCalledOnce();
     expect(handlers.sendMessage).toHaveBeenCalledWith({

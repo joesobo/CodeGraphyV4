@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphViewStoreState } from '../view/store';
 import type {
   GraphContextMenuEntry,
@@ -15,7 +16,6 @@ import { getGraphSurfaceColors } from '../rendering/surface/colors';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
 import { postMessage } from '../../../vscodeApi';
-import { getGraphLayoutPinCoordinate } from '../../../../shared/settings/graphLayout';
 
 export interface GraphViewportModel {
   canvasBackgroundColor: string;
@@ -28,6 +28,7 @@ export interface GraphViewportModel {
 
 export interface GraphViewportModelOptions {
   graphState: Pick<UseGraphStateResult, 'contextSelection' | 'graphData'>;
+  graphViewContributions?: CoreGraphViewContributionSet;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;
   appearance?: GraphAppearance;
@@ -38,7 +39,6 @@ export interface GraphViewportModelOptions {
     | 'currentCommitSha'
     | 'dagMode'
     | 'favorites'
-    | 'graphLayout'
     | 'graphMode'
     | 'physicsSettings'
     | 'pluginContextMenuItems'
@@ -48,22 +48,9 @@ export interface GraphViewportModelOptions {
   >;
 }
 
-function getActivePinnedNodeIds(
-  viewState: Pick<GraphViewStoreState, 'graphLayout' | 'graphMode'>,
-): Set<string> {
-  const pinnedNodeIds = new Set<string>();
-
-  for (const [nodeId, pinnedNode] of Object.entries(viewState.graphLayout.pinnedNodes)) {
-    if (getGraphLayoutPinCoordinate(pinnedNode, viewState.graphMode)) {
-      pinnedNodeIds.add(nodeId);
-    }
-  }
-
-  return pinnedNodeIds;
-}
-
 export function useGraphViewportModel({
   graphState,
+  graphViewContributions,
   interactions,
   handleEngineStop,
   appearance,
@@ -93,12 +80,14 @@ export function useGraphViewportModel({
 
   const menuEntries = buildGraphContextMenuEntries({
     selection: graphState.contextSelection,
+    graphMode: viewState.graphMode,
     timelineActive: viewState.timelineActive,
     mutationAvailability: getGraphContextMutationAvailability(viewState),
     favorites: viewState.favorites,
-    pinnedNodeIds: getActivePinnedNodeIds(viewState),
     pluginItems: viewState.pluginContextMenuItems,
+    graphViewContributions,
     nodes: graphState.graphData.nodes,
+    edges: graphState.graphData.links,
   });
 
   const { canvasBackgroundColor, containerBackgroundColor, borderColor } = getGraphSurfaceColors(appearance);

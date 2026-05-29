@@ -24,6 +24,7 @@ export function renderNodeBody({
 }: RenderNodeBodyOptions): void {
   drawNodeBodyPath(ctx, node);
   ctx.fillStyle = getNodeFillColor(node, decoration);
+  ctx.globalAlpha = opacity * getNodeFillOpacity(node);
   ctx.fill();
 
   ctx.strokeStyle = getNodeBorderColor(node, isSelected, appearance);
@@ -33,37 +34,17 @@ export function renderNodeBody({
 }
 
 function drawNodeBodyPath(ctx: CanvasRenderingContext2D, node: FGNode): void {
-  if (node.isCollapsedGraphSection) {
-    drawRoundedSectionSquare(ctx, node.x!, node.y!, node.size);
+  if (node.cornerRadius2D !== undefined) {
+    drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size, node.shapeSize2D, node.cornerRadius2D);
+    return;
+  }
+
+  if (node.shapeSize2D) {
+    drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size, node.shapeSize2D);
     return;
   }
 
   drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size);
-}
-
-function drawRoundedSectionSquare(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  size: number,
-): void {
-  const left = x - size;
-  const top = y - size;
-  const right = x + size;
-  const bottom = y + size;
-  const radius = Math.min(size * 0.5, 8);
-
-  ctx.beginPath();
-  ctx.moveTo(left + radius, top);
-  ctx.lineTo(right - radius, top);
-  ctx.quadraticCurveTo(right, top, right, top + radius);
-  ctx.lineTo(right, bottom - radius);
-  ctx.quadraticCurveTo(right, bottom, right - radius, bottom);
-  ctx.lineTo(left + radius, bottom);
-  ctx.quadraticCurveTo(left, bottom, left, bottom - radius);
-  ctx.lineTo(left, top + radius);
-  ctx.quadraticCurveTo(left, top, left + radius, top);
-  ctx.closePath();
 }
 
 function getNodeFillColor(
@@ -73,6 +54,12 @@ function getNodeFillColor(
   return node.nodeType === 'folder'
     ? node.color
     : (decoration?.color ?? node.color);
+}
+
+function getNodeFillOpacity(node: FGNode): number {
+  return typeof node.fillOpacity2D === 'number' && Number.isFinite(node.fillOpacity2D)
+    ? Math.min(1, Math.max(0, node.fillOpacity2D))
+    : 1;
 }
 
 function getNodeBorderColor(

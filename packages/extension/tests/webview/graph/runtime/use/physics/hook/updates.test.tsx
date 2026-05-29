@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../../../../src/shared/settings/physics';
 
 const physicsHarness = vi.hoisted(() => ({
-  applyGraphSectionBoundsForce: vi.fn(),
   applyPhysicsSettings: vi.fn(),
   havePhysicsSettingsChanged: vi.fn(),
   selectActivePhysicsGraph: vi.fn(),
@@ -11,7 +10,6 @@ const physicsHarness = vi.hoisted(() => ({
 }));
 
 vi.mock('../../../../../../../src/webview/components/graph/runtime/physics', () => ({
-  applyGraphSectionBoundsForce: physicsHarness.applyGraphSectionBoundsForce,
   applyPhysicsSettings: physicsHarness.applyPhysicsSettings,
   havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
 }));
@@ -36,7 +34,6 @@ const SETTINGS: IPhysicsSettings = {
 
 describe('webview/graph/runtime/use/physics/updates', () => {
   beforeEach(() => {
-    physicsHarness.applyGraphSectionBoundsForce.mockReset();
     physicsHarness.applyPhysicsSettings.mockReset();
     physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.selectActivePhysicsGraph.mockReset();
@@ -112,43 +109,4 @@ describe('webview/graph/runtime/use/physics/updates', () => {
     expect(previousPhysicsRef.current).toEqual(nextSettings);
   });
 
-  it('refreshes Section Member physics with latest links when settings change', () => {
-    const graph = {} as never;
-    const link = { id: 'a-to-b', source: 'a.ts', target: 'b.ts' };
-    const graphLayout = {
-      collapsedNodes: {},
-      pinnedNodes: {},
-      sections: {},
-      ownership: {},
-    };
-    const nextSettings: IPhysicsSettings = {
-      ...SETTINGS,
-      linkDistance: 220,
-    };
-
-    physicsHarness.selectActivePhysicsGraph.mockReturnValue(graph);
-    physicsHarness.shouldApplyPhysicsUpdate.mockReturnValue(true);
-
-    renderHook(() => usePhysicsRuntimeUpdates({
-      fg2dRef: { current: graph },
-      fg3dRef: { current: undefined },
-      graphDataRef: { current: { nodes: [], links: [link as never] } },
-      graphLayout,
-      graphMode: '2d',
-      physicsInitialisedRef: { current: true },
-      physicsSettings: nextSettings,
-      previousPhysicsRef: { current: SETTINGS },
-    }));
-
-    expect(physicsHarness.applyGraphSectionBoundsForce).toHaveBeenCalledWith(graph, {
-      graphLayout,
-      graphMode: '2d',
-      links: [link],
-      settings: nextSettings,
-    });
-    expect(physicsHarness.applyPhysicsSettings).toHaveBeenCalledWith(graph, nextSettings, {
-      graphLayout,
-      graphMode: '2d',
-    });
-  });
 });

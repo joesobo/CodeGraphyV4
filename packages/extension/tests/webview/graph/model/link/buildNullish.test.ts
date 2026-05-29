@@ -39,6 +39,10 @@ describe('graph/model/link/build nullish coverage', () => {
         bidirectional: false,
         baseColor: undefined,
         curvatureGroupId: 'import',
+        kind: 'import',
+        metadata: undefined,
+        ownerPluginId: undefined,
+        runtimeEdgeType: undefined,
       },
     ]);
     expect(mocks.computeLinkCurvature).toHaveBeenCalledWith(links);

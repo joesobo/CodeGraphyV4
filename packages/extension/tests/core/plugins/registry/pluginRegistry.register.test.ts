@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createConfiguredRegistry, createMockPlugin } from './pluginRegistry.testSupport';
 
 describe('PluginRegistry register', () => {
@@ -6,6 +6,10 @@ describe('PluginRegistry register', () => {
 
   beforeEach(() => {
     registry = createConfiguredRegistry();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('registers a plugin', () => {
@@ -23,6 +27,20 @@ describe('PluginRegistry register', () => {
     registry.register(plugin, { builtIn: true });
 
     expect(registry.get(plugin.id)?.builtIn).toBe(true);
+  });
+
+  it('does not log core-only built-ins as user-facing plugin registrations', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const plugin = createMockPlugin({
+      id: 'codegraphy.treesitter',
+      name: 'Tree-sitter',
+    });
+
+    registry.register(plugin, { builtIn: true });
+
+    expect(logSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('Registered plugin: Tree-sitter'),
+    );
   });
 
   it('defaults builtIn to false when omitted', () => {

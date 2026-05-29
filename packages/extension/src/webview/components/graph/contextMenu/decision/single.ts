@@ -7,8 +7,6 @@ export function classifySingleNodeDecision(target: GraphContextNodeTarget): Grap
       return { kind: 'singleFileNode', target };
     case 'folder':
       return { kind: 'singleFolderNode', target };
-    case 'graph-section':
-      return { kind: 'singleGraphSectionNode', target };
     case 'package':
       return { kind: 'singlePackageNode', target };
     case 'symbol':

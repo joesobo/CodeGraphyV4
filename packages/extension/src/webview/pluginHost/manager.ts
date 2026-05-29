@@ -3,8 +3,10 @@
  * @module webview/pluginHost/manager
  */
 
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type {
   GraphPluginSlot,
+  GraphViewViewportState,
   NodeRenderFn,
   OverlayRenderFn,
   TooltipProviderFn,
@@ -15,6 +17,7 @@ import type {
   LabelOpts,
   CodeGraphyWebviewAPI,
 } from './api/contracts/webview';
+import { toDisposable, type Disposable } from '../../core/plugins/disposable';
 import { drawBadge, drawProgressRing, drawLabel } from './api/drawing';
 import { createPluginWebviewApi } from './api';
 import { removePluginRegistrations } from './api/registration/cleanup/remove';
@@ -29,6 +32,24 @@ import {
   registerOverlay,
   registerTooltipProvider,
 } from './api/registration';
+import {
+  GraphViewContributionRegistry,
+  type GraphViewContributionListener,
+} from './manager/contributionRegistry';
+import {
+  getLatestNodeRenderer,
+  getOverlayEntries,
+  getRendererFnsForType,
+  type NodeRendererRegistry,
+  type OverlayRegistry,
+} from './manager/registries';
+import {
+  createGraphViewViewportStateListenerEntry,
+  notifyGraphViewViewportStateListeners,
+  removeGraphViewViewportStateListenersForPlugin,
+  type GraphViewViewportStateListener,
+  type GraphViewViewportStateListenerEntry,
+} from './manager/viewportState';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';
@@ -36,13 +57,16 @@ type GraphInteractionMessage = {
 };
 
 export class WebviewPluginHost {
-  private readonly _nodeRenderers = new Map<string, { pluginId: string; fn: NodeRenderFn }>();
-  private readonly _overlays = new Map<string, { pluginId: string; fn: OverlayRenderFn }>();
+  private readonly _nodeRenderers: NodeRendererRegistry = new Map();
+  private readonly _overlays: OverlayRegistry = new Map();
   private readonly _tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }> = [];
   private readonly _containers = new Map<string, HTMLDivElement>();
   private readonly _slotContainers = new Map<string, Map<GraphPluginSlot, HTMLDivElement>>();
   private readonly _slotHosts = new Map<GraphPluginSlot, HTMLDivElement>();
   private readonly _messageHandlers = new Map<string, Set<(msg: { type: string; data: unknown }) => void>>();
+  private readonly _graphViewContributions = new GraphViewContributionRegistry();
+  private readonly _graphViewViewportStateListeners = new Set<GraphViewViewportStateListenerEntry>();
+  private _graphViewViewportState: GraphViewViewportState | null = null;
 
   createAPI(pluginId: string, postMessage: (msg: GraphInteractionMessage) => void): CodeGraphyWebviewAPI {
     return createPluginWebviewApi(
@@ -52,6 +76,9 @@ export class WebviewPluginHost {
       (pid, type, fn) => registerNodeRenderer(pid, type, fn, this._nodeRenderers),
       (pid, id, fn) => registerOverlay(pid, id, fn, this._overlays),
       (pid, fn) => registerTooltipProvider(pid, fn, this._tooltipProviders),
+      (pid, contributions) => this._graphViewContributions.register(pid, contributions),
+      () => this.getGraphViewViewportState(),
+      (handler) => this.subscribeGraphViewViewportState(handler, pluginId),
       this._messageHandlers,
       { drawBadge: (ctx, opts) => WebviewPluginHost.drawBadge(ctx, opts), drawProgressRing: (ctx, opts) => WebviewPluginHost.drawProgressRing(ctx, opts), drawLabel: (ctx, opts) => WebviewPluginHost.drawLabel(ctx, opts) },
     );
@@ -61,9 +88,48 @@ export class WebviewPluginHost {
     deliverPluginMessage(pluginId, msg, this._messageHandlers);
   }
 
-  getNodeRenderer(type: string): NodeRenderFn | undefined { return this._nodeRenderers.get(type)?.fn; }
-  getOverlays(): Array<{ id: string; fn: OverlayRenderFn }> { return Array.from(this._overlays.entries()).map(([id, entry]) => ({ id, fn: entry.fn })); }
+  getNodeRenderer(type: string): NodeRenderFn | undefined {
+    return getLatestNodeRenderer(this._nodeRenderers, type);
+  }
+
+  getNodeRenderers(type: string): NodeRenderFn[] {
+    return getRendererFnsForType(this._nodeRenderers, type);
+  }
+
+  getOverlays(): Array<{ id: string; fn: OverlayRenderFn }> {
+    return getOverlayEntries(this._overlays);
+  }
+
   getTooltipContent(context: TooltipContext): TooltipContent | null { return aggregateTooltipContent(context, this._tooltipProviders); }
+
+  getGraphViewViewportState(): GraphViewViewportState | null {
+    return this._graphViewViewportState;
+  }
+
+  setGraphViewViewportState(state: GraphViewViewportState | null): void {
+    this._graphViewViewportState = state;
+    notifyGraphViewViewportStateListeners(this._graphViewViewportStateListeners, state);
+  }
+
+  subscribeGraphViewViewportState(
+    listener: GraphViewViewportStateListener,
+    pluginId?: string,
+  ): Disposable {
+    const entry = createGraphViewViewportStateListenerEntry(listener, pluginId);
+    this._graphViewViewportStateListeners.add(entry);
+    listener(this._graphViewViewportState);
+    return toDisposable(() => {
+      this._graphViewViewportStateListeners.delete(entry);
+    });
+  }
+
+  getGraphViewContributions(): CoreGraphViewContributionSet {
+    return this._graphViewContributions.get();
+  }
+
+  subscribeGraphViewContributions(listener: GraphViewContributionListener): Disposable {
+    return this._graphViewContributions.subscribe(listener);
+  }
 
   attachSlotHost(slot: GraphPluginSlot, host: HTMLDivElement): void {
     attachSlotHost(slot, host, this._slotContainers, this._slotHosts);
@@ -84,6 +150,8 @@ export class WebviewPluginHost {
       this._slotContainers,
       this._slotHosts,
     );
+    this._graphViewContributions.removePlugin(pluginId);
+    removeGraphViewViewportStateListenersForPlugin(this._graphViewViewportStateListeners, pluginId);
   }
 
   static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void { drawBadge(ctx, opts); }

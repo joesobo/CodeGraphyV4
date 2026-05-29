@@ -31,6 +31,56 @@ describe('graphView/webview/plugins/resources', () => {
     });
   });
 
+  it('does not rewrite webview options when local resource roots are unchanged', () => {
+    const roots = [
+      vscode.Uri.file('/test/extension'),
+      vscode.Uri.file('/test/workspace'),
+    ];
+    const viewOptions = {
+      enableScripts: true,
+      localResourceRoots: [...roots],
+    };
+    const panelOptions = {
+      enableScripts: true,
+      localResourceRoots: [...roots],
+    };
+    const view = { webview: { options: viewOptions } };
+    const panel = { webview: { options: panelOptions } };
+
+    refreshGraphViewResourceRoots(
+      view as unknown as vscode.WebviewView,
+      [panel as unknown as vscode.WebviewPanel],
+      roots,
+    );
+
+    expect(view.webview.options).toBe(viewOptions);
+    expect(panel.webview.options).toBe(panelOptions);
+  });
+
+  it('rewrites webview options when local resource roots change', () => {
+    const viewOptions = {
+      enableScripts: true,
+      localResourceRoots: [vscode.Uri.file('/test/extension')],
+    };
+    const view = { webview: { options: viewOptions } };
+    const nextRoots = [
+      vscode.Uri.file('/test/extension'),
+      vscode.Uri.file('/test/plugin'),
+    ];
+
+    refreshGraphViewResourceRoots(
+      view as unknown as vscode.WebviewView,
+      [],
+      nextRoots,
+    );
+
+    expect(view.webview.options).not.toBe(viewOptions);
+    expect(view.webview.options).toEqual({
+      enableScripts: true,
+      localResourceRoots: nextRoots,
+    });
+  });
+
   it('resolves plugin assets against the current webview and known extension roots', () => {
     const webview = {
       asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),

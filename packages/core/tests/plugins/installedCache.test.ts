@@ -5,12 +5,18 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-  addCodeGraphyInstalledPlugin,
+  disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
-  getInstalledPluginsCachePath,
+  linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
-  refreshCodeGraphyInstalledPlugins,
+  readCodeGraphyWorkspaceSettings,
+  registerCodeGraphyInstalledPlugin,
+  writeCodeGraphyWorkspaceSettings,
 } from '../../src';
+import {
+  readPackageManifest,
+  readRequiredPackageManifest,
+} from '../../src/plugins/installedPluginCache/packageReader';
 
 async function createPackage(
   root: string,
@@ -26,83 +32,8 @@ async function createPackage(
   );
 }
 
-describe('CodeGraphy installed plugin cache', () => {
-  it('refreshes only @codegraphy-dev packages with plugin metadata into user-level cache', async () => {
-    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
-    const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
-    await createPackage(globalRoot, '@codegraphy-dev/plugin-python', {
-      version: '1.2.3',
-      codegraphy: {
-        type: 'plugin',
-        apiVersion: '^2.0.0',
-        defaultOptions: { includeTests: true },
-      },
-    });
-    await createPackage(globalRoot, '@codegraphy-dev/not-a-plugin', {
-      version: '1.0.0',
-    });
-    await createPackage(globalRoot, 'private-plugin', {
-      version: '1.0.0',
-      codegraphy: {
-        type: 'plugin',
-        apiVersion: '^2.0.0',
-      },
-    });
-
-    const cache = await refreshCodeGraphyInstalledPlugins({
-      homeDir,
-      globalPackageRoots: [globalRoot],
-    });
-
-    expect(cache.plugins).toEqual([{
-      package: '@codegraphy-dev/plugin-python',
-      version: '1.2.3',
-      apiVersion: '^2.0.0',
-      defaultOptions: { includeTests: true },
-      disclosures: [],
-      packageRoot: path.join(globalRoot, '@codegraphy-dev', 'plugin-python'),
-    }]);
-    expect(await fs.readFile(getInstalledPluginsCachePath(homeDir), 'utf-8')).toContain('@codegraphy-dev/plugin-python');
-    expect(readCodeGraphyInstalledPluginCache({ homeDir })).toEqual(cache);
-  });
-
-  it('preserves explicitly added non-CodeGraphy scoped plugins during refresh', async () => {
-    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
-    const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
-    const manualRecord = {
-      package: 'private-plugin',
-      version: '4.5.6',
-      apiVersion: '^2.0.0',
-      disclosures: [],
-      packageRoot: path.join(globalRoot, 'private-plugin'),
-    };
-    await createPackage(globalRoot, '@codegraphy-dev/plugin-python', {
-      version: '1.2.3',
-      codegraphy: {
-        type: 'plugin',
-        apiVersion: '^2.0.0',
-      },
-    });
-
-    await fs.mkdir(path.dirname(getInstalledPluginsCachePath(homeDir)), { recursive: true });
-    await fs.writeFile(
-      getInstalledPluginsCachePath(homeDir),
-      `${JSON.stringify({ version: 1, plugins: [manualRecord] }, null, 2)}\n`,
-      'utf-8',
-    );
-
-    const cache = await refreshCodeGraphyInstalledPlugins({
-      homeDir,
-      globalPackageRoots: [globalRoot],
-    });
-
-    expect(cache.plugins.map(plugin => plugin.package)).toEqual([
-      '@codegraphy-dev/plugin-python',
-      'private-plugin',
-    ]);
-  });
-
-  it('adds an explicitly named globally installed plugin package to the user-level cache', async () => {
+describe('CodeGraphy Plugin Registry', () => {
+  it('registers an explicitly named globally installed plugin package to the user-level registry', async () => {
     const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
     const globalRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-global-root-'));
     await createPackage(globalRoot, 'private-plugin', {
@@ -114,7 +45,7 @@ describe('CodeGraphy installed plugin cache', () => {
       },
     });
 
-    const record = await addCodeGraphyInstalledPlugin({
+    const record = await registerCodeGraphyInstalledPlugin({
       homeDir,
       packageName: 'private-plugin',
       globalPackageRoots: [globalRoot],
@@ -126,6 +57,50 @@ describe('CodeGraphy installed plugin cache', () => {
       apiVersion: '^2.0.0',
       disclosures: ['externalProcesses'],
       packageRoot: path.join(globalRoot, 'private-plugin'),
+    });
+    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
+  });
+
+  it('links a private local plugin package root into the user-level cache', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-private-package-'));
+    await fs.writeFile(
+      path.join(packageRoot, 'package.json'),
+      `${JSON.stringify({
+        name: '@acme/codegraphy-private-plugin',
+        version: '0.1.0',
+        codegraphy: {
+          type: 'plugin',
+          apiVersion: '^2.0.0',
+          disclosures: ['workspaceWrites'],
+        },
+      }, null, 2)}\n`,
+      'utf-8',
+    );
+    await fs.writeFile(
+      path.join(packageRoot, 'codegraphy.json'),
+      `${JSON.stringify({
+        id: 'acme.private',
+        name: 'Acme Private',
+        supportedExtensions: ['.acme'],
+      }, null, 2)}\n`,
+      'utf-8',
+    );
+
+    const record = await linkCodeGraphyInstalledPluginPackage({
+      homeDir,
+      packageRoot,
+    });
+
+    expect(record).toEqual({
+      package: '@acme/codegraphy-private-plugin',
+      version: '0.1.0',
+      apiVersion: '^2.0.0',
+      pluginId: 'acme.private',
+      pluginName: 'Acme Private',
+      supportedExtensions: ['.acme'],
+      disclosures: ['workspaceWrites'],
+      packageRoot,
     });
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
   });
@@ -153,6 +128,159 @@ describe('CodeGraphy installed plugin cache', () => {
         package: '@codegraphy-dev/plugin-python',
         options: { includeTests: true },
       },
+    ]);
+  });
+
+  it('merges default options into existing workspace plugin entries and disables by package', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{
+        package: '@codegraphy-dev/plugin-python',
+        options: { includeTests: false },
+      }],
+    });
+
+    enableCodeGraphyWorkspacePlugin(workspaceRoot, {
+      package: '@codegraphy-dev/plugin-python',
+      version: '1.2.3',
+      apiVersion: '^2.0.0',
+      defaultOptions: { includeTests: true, pythonVersion: '3.12' },
+      disclosures: [],
+      packageRoot: '/global/@codegraphy-dev/plugin-python',
+    });
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
+      package: '@codegraphy-dev/plugin-python',
+      options: { includeTests: false, pythonVersion: '3.12' },
+    }]);
+
+    disableCodeGraphyWorkspacePlugin(workspaceRoot, '@codegraphy-dev/plugin-python');
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([]);
+  });
+
+  it('reads optional package manifests and returns null for missing or non-plugin packages', async () => {
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-reader-'));
+    await createPackage(packageRoot, '@codegraphy-dev/plugin-python', {
+      version: '1.2.3',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    });
+    await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
+      version: '1.0.0',
+    });
+    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-python');
+    const nonPluginRoot = path.join(packageRoot, '@codegraphy-dev', 'not-a-plugin');
+
+    await expect(readPackageManifest(pluginRoot)).resolves.toEqual({
+      package: '@codegraphy-dev/plugin-python',
+      version: '1.2.3',
+      apiVersion: '^2.0.0',
+      disclosures: [],
+      packageRoot: pluginRoot,
+    });
+    await expect(readPackageManifest(nonPluginRoot)).resolves.toBeNull();
+    await expect(readPackageManifest(path.join(pluginRoot, 'missing'))).resolves.toBeNull();
+  });
+
+  it('requires a matching CodeGraphy plugin package manifest', async () => {
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-package-reader-'));
+    await createPackage(packageRoot, '@codegraphy-dev/plugin-python', {
+      version: '1.2.3',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+        disclosures: ['network'],
+      },
+    });
+    await createPackage(packageRoot, '@codegraphy-dev/not-a-plugin', {
+      version: '1.0.0',
+    });
+    await createPackage(packageRoot, '@codegraphy-dev/plugin-ruby', {
+      version: '1.2.3',
+      codegraphy: {
+        type: 'plugin',
+        apiVersion: '^2.0.0',
+      },
+    });
+    const pluginRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-python');
+    const nonPluginRoot = path.join(packageRoot, '@codegraphy-dev', 'not-a-plugin');
+    const mismatchedRoot = path.join(packageRoot, '@codegraphy-dev', 'plugin-ruby');
+
+    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-python', pluginRoot)).resolves.toEqual({
+      package: '@codegraphy-dev/plugin-python',
+      version: '1.2.3',
+      apiVersion: '^2.0.0',
+      disclosures: ['network'],
+      packageRoot: pluginRoot,
+    });
+    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-python', path.join(pluginRoot, 'missing')))
+      .rejects.toThrow("Run `npm i -g @codegraphy-dev/plugin-python` first.");
+    await expect(readRequiredPackageManifest('@codegraphy-dev/not-a-plugin', nonPluginRoot))
+      .rejects.toThrow("Package '@codegraphy-dev/not-a-plugin' is not a CodeGraphy plugin.");
+    await expect(readRequiredPackageManifest('@codegraphy-dev/plugin-python', mismatchedRoot))
+      .rejects.toThrow("Package '@codegraphy-dev/plugin-python' resolved to CodeGraphy plugin '@codegraphy-dev/plugin-ruby'.");
+  });
+
+  it('omits empty option objects and removes disabled packages', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
+
+    enableCodeGraphyWorkspacePlugin(workspaceRoot, {
+      package: '@codegraphy-dev/plugin-ruby',
+      version: '1.2.3',
+      apiVersion: '^2.0.0',
+      disclosures: [],
+      packageRoot: '/global/@codegraphy-dev/plugin-ruby',
+    });
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toContainEqual({
+      package: '@codegraphy-dev/plugin-ruby',
+    });
+
+    disableCodeGraphyWorkspacePlugin(workspaceRoot, '@codegraphy-dev/plugin-ruby');
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).not.toContainEqual({
+      package: '@codegraphy-dev/plugin-ruby',
+    });
+  });
+
+  it('does not add empty options when re-enabling a plugin without defaults', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [{ package: '@codegraphy-dev/plugin-ruby' }],
+    });
+
+    enableCodeGraphyWorkspacePlugin(workspaceRoot, {
+      package: '@codegraphy-dev/plugin-ruby',
+      version: '1.2.3',
+      apiVersion: '^2.0.0',
+      disclosures: [],
+      packageRoot: '/global/@codegraphy-dev/plugin-ruby',
+    });
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([{
+      package: '@codegraphy-dev/plugin-ruby',
+    }]);
+  });
+
+  it('keeps unrelated workspace plugins when disabling one package', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      plugins: [
+        { package: '@codegraphy-dev/plugin-python' },
+        { package: '@codegraphy-dev/plugin-ruby' },
+      ],
+    });
+
+    disableCodeGraphyWorkspacePlugin(workspaceRoot, '@codegraphy-dev/plugin-python');
+
+    expect(readCodeGraphyWorkspaceSettings(workspaceRoot).plugins).toEqual([
+      { package: '@codegraphy-dev/plugin-ruby' },
     ]);
   });
 });

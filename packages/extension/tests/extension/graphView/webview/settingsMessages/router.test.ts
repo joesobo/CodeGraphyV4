@@ -213,31 +213,6 @@ describe('graph view settings router', () => {
     });
   });
 
-  it('persists collapsed graph layout state and publishes it immediately', async () => {
-    const state = createState();
-    const handlers = createHandlers({
-      graphLayout: { collapsedNodes: { src: true }, pinnedNodes: {} },
-    });
-
-    await expect(
-      applySettingsMessage(
-        { type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE', payload: { nodeId: 'tests', collapsed: true } },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(handlers.updateConfig).toHaveBeenCalledWith('graphLayout', {
-      collapsedNodes: { src: true, tests: true },
-      pinnedNodes: {},
-    });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'GRAPH_LAYOUT_UPDATED',
-      payload: { collapsedNodes: { src: true, tests: true }, pinnedNodes: {} },
-    });
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
-  });
-
   it('updates edge visibility and refreshes graph controls', async () => {
     const state = createState();
     const handlers = createHandlers();

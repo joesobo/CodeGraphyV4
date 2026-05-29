@@ -5,15 +5,9 @@ import {
   createClipboardEffects,
   createCreateFileEffects,
   createCreateFolderEffects,
-  createGraphLayoutCollapseEffects,
-  createGraphSectionEffects,
-  createGraphSectionCollapseEffects,
-  createGraphSectionDeleteEffects,
-  createClearPinNodeEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
-  createPinNodeEffects,
   createRefreshEffects,
 } from '../messages';
 import {
@@ -48,8 +42,6 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
     createClipboardEffects(context.targetIds.join('\n')),
   toggleFavorite: (context: GraphContextActionContext) =>
     createPathListMessageEffects('TOGGLE_FAVORITE', context.targetIds),
-  pinNode: (context: GraphContextActionContext) => createPinNodeEffects(context),
-  unpinNode: (context: GraphContextActionContext) => createClearPinNodeEffects(context),
   focus: (context: GraphContextActionContext) => createFocusEffects(context.primaryTargetId),
   addToFilter: (context: GraphContextActionContext) =>
     createPatternPromptEffects(context.targetIds),
@@ -62,21 +54,9 @@ const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
   refresh: () => createRefreshEffects(),
   fitView: () => createFitViewEffects(),
   createFile: (context: GraphContextActionContext) =>
-    createCreateFileEffects(context.mutationDirectory, context.ownerSectionId),
+    createCreateFileEffects(context.mutationDirectory),
   createFolder: (context: GraphContextActionContext) =>
-    createCreateFolderEffects(context.mutationDirectory, context.ownerSectionId),
-  collapseNode: (context: GraphContextActionContext) =>
-    createGraphLayoutCollapseEffects(context.primaryTargetId, true),
-  expandNode: (context: GraphContextActionContext) =>
-    createGraphLayoutCollapseEffects(context.primaryTargetId, false),
-  createGraphSection: (context: GraphContextActionContext) =>
-    createGraphSectionEffects(context),
-  expandGraphSection: (context: GraphContextActionContext) =>
-    createGraphSectionCollapseEffects(context, false),
-  collapseGraphSection: (context: GraphContextActionContext) =>
-    createGraphSectionCollapseEffects(context, true),
-  deleteGraphSection: (context: GraphContextActionContext) =>
-    createGraphSectionDeleteEffects(context),
+    createCreateFolderEffects(context.mutationDirectory),
 } satisfies Record<BuiltInContextMenuAction, (context: GraphContextActionContext) => GraphContextEffect[]>;
 
 export function getBuiltInContextActionEffectsImpl(

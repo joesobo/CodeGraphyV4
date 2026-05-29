@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '../../theme/useTheme';
 import { usePluginManager } from '../../pluginRuntime/useManager';
 import { useFilteredGraph } from '../../search/useFilteredGraph';
@@ -16,14 +16,13 @@ import { SearchHeader } from './panel/search';
 import { ToolbarRail } from './panel/toolbar';
 import { useFilterLegendInputs } from './derivedState';
 import { useRulePromptHandlers } from '../rulePrompt/handlers';
-import { deriveVisibleGraph } from '../../../shared/visibleGraph';
-import { getFilterCountState } from '../../components/searchBar/filters/countState';
-import { toFilterGlob } from '../../components/searchBar/filters/model';
-import { buildVisibleGraphConfig } from '../../search/visibleGraphConfig';
-import { postMessage as postWebviewMessage } from '../../vscodeApi';
+import { getShellGraphCountState } from './counts';
+import { useFilterPopoverState } from './filterPopover';
+import { useVisibleGraphStateResponse } from './visibleGraphResponse';
+import { useShellVisibleGraphs } from './visibleGraphs';
 
 export default function App(): React.ReactElement {
-  const { pluginHost, injectPluginAssets } = usePluginManager();
+  const { pluginHost, injectPluginAssets, resetPluginAssets } = usePluginManager();
   const {
     graphData,
     isLoading,
@@ -39,7 +38,6 @@ export default function App(): React.ReactElement {
     timelineActive,
     activePanel,
     depthMode,
-    graphLayout,
     nodeColors,
     nodeVisibility,
     edgeVisibility,
@@ -60,8 +58,12 @@ export default function App(): React.ReactElement {
   } = useAppActions();
   const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
   const [rulePrompt, setRulePrompt] = useState<RulePromptState | null>(null);
-  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
-  const [pendingFilterPatterns, setPendingFilterPatterns] = useState<string[]>([]);
+  const {
+    filterPopoverOpen,
+    handleFilterPopoverOpenChange,
+    openFilterPopoverWithPatterns,
+    pendingFilterPatterns,
+  } = useFilterPopoverState();
 
   const theme = useTheme();
   const { activeFilterPatterns, userLegendRules } = useFilterLegendInputs(
@@ -71,32 +73,15 @@ export default function App(): React.ReactElement {
     disabledPluginFilterPatterns,
     legends,
   );
-  const countBaseData = useMemo(
-    () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
-      edgeTypes: graphEdgeTypes,
-      edgeVisibility,
-      filterPatterns: [],
-      graphLayout,
-      nodeVisibility,
-      searchOptions,
-      searchQuery: '',
-      showOrphans,
-    })).graphData,
-    [edgeVisibility, graphData, graphEdgeTypes, graphLayout, nodeVisibility, searchOptions, showOrphans],
-  );
-  const filterVisibleData = useMemo(
-    () => deriveVisibleGraph(graphData, buildVisibleGraphConfig({
-      edgeTypes: graphEdgeTypes,
-      edgeVisibility,
-      filterPatterns: activeFilterPatterns,
-      graphLayout,
-      nodeVisibility,
-      searchOptions,
-      searchQuery: '',
-      showOrphans,
-    })).graphData,
-    [activeFilterPatterns, edgeVisibility, graphData, graphEdgeTypes, graphLayout, nodeVisibility, searchOptions, showOrphans],
-  );
+  const { countBaseData, filterVisibleData } = useShellVisibleGraphs({
+    activeFilterPatterns,
+    edgeVisibility,
+    graphData,
+    graphEdgeTypes,
+    nodeVisibility,
+    searchOptions,
+    showOrphans,
+  });
   const {
     filteredData,
     coloredData,
@@ -114,7 +99,6 @@ export default function App(): React.ReactElement {
     edgeDecorations,
     activeFilterPatterns,
     showOrphans,
-    graphLayout,
   );
 
   const {
@@ -130,30 +114,11 @@ export default function App(): React.ReactElement {
   });
 
   useEffect(() => {
-    return setupMessageListener(injectPluginAssets, pluginHost);
-  }, [injectPluginAssets, pluginHost]);
+    return setupMessageListener(injectPluginAssets, pluginHost, resetPluginAssets);
+  }, [injectPluginAssets, pluginHost, resetPluginAssets]);
 
   const displayGraphData = coloredData || graphData;
-  useEffect(() => {
-    const handleVisibleGraphStateRequest = (event: MessageEvent<unknown>) => {
-      const raw = event.data as { type?: unknown };
-      if (!raw || raw.type !== 'GET_VISIBLE_GRAPH_STATE') {
-        return;
-      }
-
-      postWebviewMessage({
-        type: 'VISIBLE_GRAPH_STATE_RESPONSE',
-        payload: {
-          nodeCount: displayGraphData?.nodes.length ?? 0,
-          edgeCount: displayGraphData?.edges.length ?? 0,
-          edgeIds: displayGraphData?.edges.map(edge => edge.id) ?? [],
-        },
-      });
-    };
-
-    window.addEventListener('message', handleVisibleGraphStateRequest);
-    return () => window.removeEventListener('message', handleVisibleGraphStateRequest);
-  }, [displayGraphData]);
+  useVisibleGraphStateResponse(displayGraphData);
 
   if (isLoading) return <LoadingState />;
 
@@ -167,21 +132,14 @@ export default function App(): React.ReactElement {
     loadedDisplayGraphData.edges.length,
   );
   const closeActivePanel = () => setActivePanel('none');
-  const countTotal = countBaseData?.nodes.length ?? graphData.nodes.length;
-  const filterVisibleCount = filterVisibleData?.nodes.length ?? countTotal;
-  const excludedCount = Math.max(0, countTotal - filterVisibleCount);
-  const countState = getFilterCountState({
-    excludedCount,
-    filterVisibleCount,
+  const { countState, countTotal, excludedCount } = getShellGraphCountState({
+    countBaseData,
+    filterVisibleData,
+    filteredData,
+    graphData,
     regexError,
-    resultCount: filteredData?.nodes.length,
-    searchActive: searchQuery.length > 0,
-    totalCount: countTotal,
+    searchQuery,
   });
-  const openFilterPopoverWithPatterns = (patterns: string[]) => {
-    setPendingFilterPatterns(patterns.map(toFilterGlob).filter(Boolean));
-    setFilterPopoverOpen(true);
-  };
 
   return (
     <div className="relative w-full h-screen flex flex-col">
@@ -199,12 +157,7 @@ export default function App(): React.ReactElement {
           excludedCount,
           onDisabledCustomPatternsChange: setDisabledCustomFilterPatterns,
           onDisabledPluginPatternsChange: setDisabledPluginFilterPatterns,
-          onOpenChange: (open) => {
-            setFilterPopoverOpen(open);
-            if (!open) {
-              setPendingFilterPatterns([]);
-            }
-          },
+          onOpenChange: handleFilterPopoverOpenChange,
           onPatternsChange: setFilterPatterns,
           open: filterPopoverOpen,
           pendingPatterns: pendingFilterPatterns,

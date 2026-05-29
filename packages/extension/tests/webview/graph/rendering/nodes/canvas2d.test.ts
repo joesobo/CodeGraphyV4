@@ -395,9 +395,8 @@ describe('graph/rendering/nodes/canvas2d', () => {
     }));
   });
 
-  it('renders a pin badge for pinned nodes without changing the node body', () => {
+  it('does not render a built-in pin badge for pinned nodes', () => {
     const { ctx, operations } = createContext();
-    vi.stubGlobal('Path2D', vi.fn());
 
     renderNodeCanvas(
       createDependencies({ showLabels: false }),
@@ -407,122 +406,34 @@ describe('graph/rendering/nodes/canvas2d', () => {
     );
 
     expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
-    expect(ctx.arc).not.toHaveBeenCalled();
-    expect(ctx.translate).toHaveBeenCalledWith(
-      expect.closeTo(29.775),
-      expect.closeTo(31.375),
-    );
-    expect(ctx.scale).toHaveBeenCalledWith(0.45208333333333334, 0.45208333333333334);
-    expect(ctx.fill).toHaveBeenCalledWith(expect.anything());
+    expect(ctx.translate).not.toHaveBeenCalled();
+    expect(ctx.scale).not.toHaveBeenCalled();
     expect(operations).not.toContainEqual(expect.objectContaining({
       fillStyle: 'rgb(28, 62, 118)',
     }));
-    expect(operations).toContainEqual(expect.objectContaining({
-      fillStyle: '#ffffff',
-      kind: 'fill',
-    }));
   });
 
-  it('skips expanded Section Nodes because the editable Section Frame follows the live node position', () => {
+  it('renders plugin node overlays with node opacity instead of leftover label opacity', () => {
     const { ctx } = createContext();
+    const renderer = vi.fn();
 
     renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({
-        borderColor: '#60a5fa',
-        color: '#60a5fa',
-        id: 'section-1',
-        isGraphSection: true,
-        label: 'UI Layer',
-        nodeType: 'graph-section',
-        sectionHeight: 180,
-        sectionWidth: 280,
-        shape2D: 'square',
-        x: 100,
-        y: 120,
+      createDependencies({
+        pluginHost: {
+          getNodeRenderers: vi.fn(() => [renderer]),
+        } as unknown as WebviewPluginHost,
+        showLabels: true,
       }),
+      createNode(),
       ctx,
-      1,
+      0.9,
     );
 
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.fill).not.toHaveBeenCalled();
-    expect(ctx.stroke).not.toHaveBeenCalled();
-  });
-
-  it('renders collapsed Section Nodes as rounded Graph Section squares', () => {
-    const { ctx } = createContext();
-
-    renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({
-        id: 'section-1',
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
+    expect(renderer).toHaveBeenCalledWith(expect.objectContaining({
+      ctx: expect.objectContaining({
+        globalAlpha: 1,
       }),
-      ctx,
-      1,
-    );
-
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.quadraticCurveTo).toHaveBeenCalled();
-    expect(ctx.fill).toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalled();
-  });
-
-  it('renders collapsed Section Node hidden counts in the bottom right and expand cue in the top left', () => {
-    const { ctx, operations } = createContext();
-    vi.stubGlobal('Path2D', vi.fn());
-
-    renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({
-        id: 'section-1',
-        hiddenDescendantCount: 4,
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        isPinned: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
-      }),
-      ctx,
-      1,
-    );
-
-    expect(ctx.arc).not.toHaveBeenCalled();
-    expect(ctx.translate).toHaveBeenCalledWith(expect.closeTo(7.2), expect.closeTo(31.2));
-    expect(ctx.fillText).toHaveBeenCalledWith('4', 35.2, 59.2);
-    expect(operations).toContainEqual(expect.objectContaining({
-      kind: 'fillText',
-      text: '4',
-    }));
-  });
-
-  it('renders collapsed Section Node icons fully opaque above the section color', () => {
-    const { ctx, operations } = createContext();
-    vi.mocked(getImage).mockReturnValue({} as HTMLImageElement);
-
-    renderNodeCanvas(
-      createDependencies({ showLabels: false }),
-      createNode({
-        baseOpacity: 0.35,
-        color: '#ef4444',
-        icon: 'data:image/png;base64,abc123',
-        id: 'section-1',
-        isCollapsedGraphSection: true,
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        shape2D: 'square',
-      }),
-      ctx,
-      1,
-    );
-
-    expect(operations).toContainEqual(expect.objectContaining({
-      globalAlpha: 1,
-      kind: 'drawImage',
+      globalScale: 0.9,
     }));
   });
 
@@ -536,25 +447,4 @@ describe('graph/rendering/nodes/canvas2d', () => {
     expect(ctx.fill).toHaveBeenCalled();
   });
 
-  it('skips expanded Section Node pointer areas so member nodes stay clickable', () => {
-    const { ctx } = createContext();
-
-    paintNodePointerArea(
-      createNode({
-        id: 'section-1',
-        isGraphSection: true,
-        nodeType: 'graph-section',
-        sectionHeight: 180,
-        sectionWidth: 280,
-        x: 100,
-        y: 120,
-      }),
-      '#ffffff',
-      ctx,
-    );
-
-    expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.rect).not.toHaveBeenCalled();
-    expect(ctx.fill).not.toHaveBeenCalled();
-  });
 });

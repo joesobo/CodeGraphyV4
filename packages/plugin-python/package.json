@@ -1,6 +1,6 @@
 {
   "name": "@codegraphy-dev/plugin-python",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "CodeGraphy Python plugin",
   "license": "MIT",
   "type": "module",

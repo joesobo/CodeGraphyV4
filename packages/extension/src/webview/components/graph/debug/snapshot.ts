@@ -3,6 +3,10 @@ import type { GraphDebugControls, GraphDebugSnapshot } from './contracts/protoco
 
 export interface DebugNode {
   id: string;
+  shapeSize2D?: {
+    height: number;
+    width: number;
+  };
   size: number;
   x?: number;
   y?: number;
@@ -33,6 +37,7 @@ function buildDebugNodeSnapshot(
   return {
     id: node.id,
     screenX: screen.x,
+    ...(node.shapeSize2D ? { shapeSize2D: node.shapeSize2D } : {}),
     screenY: screen.y,
     size: node.size,
     x,

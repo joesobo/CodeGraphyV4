@@ -1,97 +1,10 @@
 import type { IGraphNodeTypeDefinition } from '../contracts';
+import { CORE_FILE_NODE_TYPES } from './fileNodeTypes';
+import { CORE_SYMBOL_NODE_TYPES } from './symbolNodeTypes';
+import { CORE_VARIABLE_NODE_TYPES } from './variableNodeTypes';
 
 export const CORE_GRAPH_NODE_TYPES: IGraphNodeTypeDefinition[] = [
-  {
-    id: 'file',
-    label: 'File',
-    defaultColor: '#67E8F9',
-    defaultVisible: true,
-  },
-  {
-    id: 'folder',
-    label: 'Folder',
-    defaultColor: '#94A3B8',
-    defaultVisible: false,
-  },
-  {
-    id: 'package',
-    label: 'Package',
-    defaultColor: '#A78BFA',
-    defaultVisible: false,
-  },
-  {
-    id: 'symbol',
-    label: 'Symbol',
-    defaultColor: '#7C3AED',
-    defaultVisible: false,
-  },
-  {
-    id: 'symbol:function',
-    label: 'Function',
-    defaultColor: '#8B5CF6',
-    defaultVisible: false,
-    parentId: 'symbol',
-    matchSymbolKinds: ['function', 'method'],
-  },
-  {
-    id: 'symbol:class',
-    label: 'Class',
-    defaultColor: '#3B82F6',
-    defaultVisible: false,
-    parentId: 'symbol',
-  },
-  {
-    id: 'symbol:interface',
-    label: 'Interface',
-    defaultColor: '#06B6D4',
-    defaultVisible: false,
-    parentId: 'symbol',
-  },
-  {
-    id: 'symbol:type',
-    label: 'Type',
-    defaultColor: '#EC4899',
-    defaultVisible: false,
-    parentId: 'symbol',
-  },
-  {
-    id: 'symbol:struct',
-    label: 'Struct',
-    defaultColor: '#0EA5E9',
-    defaultVisible: false,
-    parentId: 'symbol',
-  },
-  {
-    id: 'symbol:enum',
-    label: 'Enum',
-    defaultColor: '#F59E0B',
-    defaultVisible: false,
-    parentId: 'symbol',
-  },
-  {
-    id: 'variable',
-    label: 'Variable',
-    defaultColor: '#14B8A6',
-    defaultVisible: false,
-  },
-  {
-    id: 'symbol:constant',
-    label: 'Constant',
-    defaultColor: '#22C55E',
-    defaultVisible: false,
-    parentId: 'variable',
-  },
-  {
-    id: 'plugin:codegraphy.gdscript:symbol:godot-class-name',
-    label: 'Godot class_name',
-    defaultColor: '#478CBF',
-    defaultVisible: false,
-    parentId: 'variable',
-    pluginName: 'Godot',
-    matchSymbolKinds: ['class'],
-    matchSymbolPluginKind: 'godot-class-name',
-    matchSymbolSource: 'codegraphy.gdscript',
-    matchSymbolLanguage: 'gdscript',
-    matchSymbolFilePath: '**/*.gd',
-  },
+  ...CORE_FILE_NODE_TYPES,
+  ...CORE_SYMBOL_NODE_TYPES,
+  ...CORE_VARIABLE_NODE_TYPES,
 ];

@@ -1,8 +1,24 @@
 import { drawShape } from '../shapes/draw/twoDimensional';
 import type { FGNode } from '../../model/build';
+import { getRectangularNodeArea2D } from '../../model/node/rectangularArea';
 
-function isExpandedGraphSectionNode(node: FGNode): boolean {
-  return !!node.isGraphSection && !node.isCollapsedGraphSection;
+function paintRectangularPointerArea(
+  node: FGNode,
+  ctx: CanvasRenderingContext2D,
+): boolean {
+  const area = getRectangularNodeArea2D(node.pointerArea2D)
+    ?? getRectangularNodeArea2D(node.shapeSize2D);
+  if (!area) {
+    return false;
+  }
+
+  ctx.fillRect(
+    node.x! - (area.width / 2),
+    node.y! - (area.height / 2),
+    area.width,
+    area.height,
+  );
+  return true;
 }
 
 export function paintNodePointerArea(
@@ -10,11 +26,11 @@ export function paintNodePointerArea(
   color: string,
   ctx: CanvasRenderingContext2D,
 ): void {
-  if (isExpandedGraphSectionNode(node)) {
+  ctx.fillStyle = color;
+  if (paintRectangularPointerArea(node, ctx)) {
     return;
   }
 
-  ctx.fillStyle = color;
   drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size + 2);
   ctx.fill();
 }

@@ -4,7 +4,6 @@ import {
   makeEdgeContextSelection,
   makeNodeContextSelection,
 } from '../../contextMenu/selection';
-import { findDeepestGraphLayoutSectionAtWorldPoint } from '../../../../../shared/settings/graphLayout';
 import { getNodeContextMenuSelection } from '../../interaction/model';
 import type { FGLink } from '../../model/build';
 import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../../support/linkTargets';
@@ -145,14 +144,6 @@ export function createContextMenuHandlers(
 
   const openBackgroundContextMenu = (event: MouseEvent): void => {
     const graphPosition = getBackgroundGraphPosition(dependencies, event);
-    const sectionId = dependencies.graphMode === '2d' && dependencies.graphLayout && graphPosition
-      ? findDeepestGraphLayoutSectionAtWorldPoint(dependencies.graphLayout, graphPosition)
-      : null;
-
-    if (sectionId) {
-      openNodeContextMenuAtPosition(sectionId, event, graphPosition, true);
-      return;
-    }
 
     flushSync(() => {
       dependencies.setContextSelection(makeBackgroundContextSelection(graphPosition));

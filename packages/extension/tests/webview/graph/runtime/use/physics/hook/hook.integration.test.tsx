@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IPhysicsSettings } from '../../../../../../../src/shared/settings/physics';
 import {
   usePhysicsRuntime,
@@ -40,6 +41,42 @@ function create3DGraph(): Graph3DCurrent {
     d3Force: vi.fn().mockReturnValue({}),
     getGraphBbox: vi.fn().mockReturnValue({ x: [0, 1], y: [0, 1], z: [0, 1] }),
   } as Graph3DCurrent;
+}
+
+function createForceGraph(): Graph2DCurrent & {
+  d3Force: ReturnType<typeof vi.fn>;
+  d3ReheatSimulation: ReturnType<typeof vi.fn>;
+} {
+  const forces = new Map<string, unknown>();
+  return {
+    d3Force: vi.fn((name: string, force?: unknown) => {
+      if (arguments.length === 1) {
+        return forces.get(name);
+      }
+      if (force === null) {
+        forces.delete(name);
+        return undefined;
+      }
+      forces.set(name, force);
+      return force;
+    }),
+    d3ReheatSimulation: vi.fn(),
+  } as Graph2DCurrent & {
+    d3Force: ReturnType<typeof vi.fn>;
+    d3ReheatSimulation: ReturnType<typeof vi.fn>;
+  };
+}
+
+function createEmptyGraphViewContributions(): CoreGraphViewContributionSet {
+  return {
+    runtimeNodes: [],
+    runtimeEdges: [],
+    projections: [],
+    forces: [],
+    nodeDragEnd: [],
+    contextMenu: [],
+    ui: [],
+  };
 }
 
 function havePhysicsChanged(
@@ -327,6 +364,37 @@ describe('usePhysicsRuntime', () => {
 
     expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledOnce();
     expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledWith(graph, true);
+  });
+
+  it('passes current physics settings to plugin force adapters', () => {
+    const graph = createForceGraph();
+    const forcePhysicsSettings: Array<IPhysicsSettings | undefined> = [];
+    const graphViewContributions: CoreGraphViewContributionSet = {
+      ...createEmptyGraphViewContributions(),
+      forces: [{
+        pluginId: 'codegraphy.organize',
+        contribution: {
+          id: 'codegraphy.organize.section-bounds-force',
+          label: 'Graph Section Bounds Force',
+          create(context) {
+            forcePhysicsSettings.push((context as { physicsSettings?: IPhysicsSettings }).physicsSettings);
+            return { dispose() {} };
+          },
+        },
+      }],
+    };
+
+    renderHook(() => usePhysicsRuntime({
+      fg2dRef: { current: graph },
+      fg3dRef: { current: undefined },
+      graphDataRef: { current: { nodes: [], links: [] } },
+      graphMode: '2d',
+      graphViewContributions,
+      layoutKey: 'layout:a',
+      physicsSettings: SETTINGS,
+    }));
+
+    expect(forcePhysicsSettings).toEqual([SETTINGS]);
   });
 
   it('syncs the active graph immediately when initialization completes in a paused state', () => {

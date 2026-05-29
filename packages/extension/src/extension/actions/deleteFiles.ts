@@ -6,14 +6,9 @@
 import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
 import { getCodeGraphyConfiguration } from '../repoSettings/current';
-
-/**
- * Stored file data for restoration on undo.
- */
-interface StoredFile {
-  path: string;
-  content: Uint8Array;
-}
+import { storePathForDeletion, type StoredFile } from './deleteFiles/backup';
+import { filterFavoritesForDeletedPaths } from './deleteFiles/paths';
+import { restoreDirectories, restoreFiles } from './deleteFiles/restore';
 
 /**
  * Action for deleting files with undo support.
@@ -29,8 +24,6 @@ export class DeleteFilesAction implements IUndoableAction {
   private _storedDirectories: string[] = [];
   /** Full favorites state BEFORE this action was executed */
   private _favoritesBefore: string[] = [];
-  /** Full favorites state AFTER this action was executed */
-  private _favoritesAfter: string[] = [];
 
   /**
    * Creates a new DeleteFilesAction.
@@ -57,25 +50,18 @@ export class DeleteFilesAction implements IUndoableAction {
     // Store favorites state before deletion
     const config = getCodeGraphyConfiguration();
     this._favoritesBefore = [...config.get<string[]>('favorites', [])];
-    
+
     // Calculate new favorites (remove deleted files)
-    this._favoritesAfter = this._favoritesBefore.filter(fav =>
-      !this._paths.some(deletedPath => isPathWithinDeletedPath(fav, deletedPath))
-    );
+    const favoritesAfter = filterFavoritesForDeletedPaths(this._favoritesBefore, this._paths);
 
     for (const filePath of this._paths) {
-      const fileUri = vscode.Uri.joinPath(this._workspaceFolder, filePath);
       try {
-        const stat = await vscode.workspace.fs.stat(fileUri);
-        if (isDirectoryStat(stat)) {
-          await this._storeDirectory(filePath, fileUri);
-          await vscode.workspace.fs.delete(fileUri, { recursive: true, useTrash: true });
-        } else {
-          const content = await vscode.workspace.fs.readFile(fileUri);
-          this._storedFiles.push({ path: filePath, content });
-          // Delete to trash for extra safety
-          await vscode.workspace.fs.delete(fileUri, { useTrash: true });
-        }
+        await storePathForDeletion(
+          this._workspaceFolder,
+          filePath,
+          this._storedDirectories,
+          this._storedFiles,
+        );
       } catch (error) {
         console.error(`[CodeGraphy] Failed to delete ${filePath}:`, error);
         // Continue with other files
@@ -83,33 +69,17 @@ export class DeleteFilesAction implements IUndoableAction {
     }
 
     // Update favorites (remove deleted files from favorites)
-    await config.update('favorites', this._favoritesAfter);
+    await config.update('favorites', favoritesAfter);
 
     await this._refreshGraph();
   }
 
   async undo(): Promise<void> {
     // Restore directories first so nested files have parents.
-    for (const directoryPath of [...this._storedDirectories].sort(comparePathDepth)) {
-      const directoryUri = vscode.Uri.joinPath(this._workspaceFolder, directoryPath);
-      try {
-        await vscode.workspace.fs.createDirectory(directoryUri);
-      } catch (error) {
-        console.error(`[CodeGraphy] Failed to restore ${directoryPath}:`, error);
-        vscode.window.showErrorMessage(`Failed to restore ${directoryPath}`);
-      }
-    }
+    await restoreDirectories(this._workspaceFolder, this._storedDirectories);
 
     // Restore all stored files
-    for (const storedFile of this._storedFiles) {
-      const fileUri = vscode.Uri.joinPath(this._workspaceFolder, storedFile.path);
-      try {
-        await vscode.workspace.fs.writeFile(fileUri, storedFile.content);
-      } catch (error) {
-        console.error(`[CodeGraphy] Failed to restore ${storedFile.path}:`, error);
-        vscode.window.showErrorMessage(`Failed to restore ${storedFile.path}`);
-      }
-    }
+    await restoreFiles(this._workspaceFolder, this._storedFiles);
 
     // Restore favorites state (full replacement)
     const config = getCodeGraphyConfiguration();
@@ -117,34 +87,4 @@ export class DeleteFilesAction implements IUndoableAction {
 
     await this._refreshGraph();
   }
-
-  private async _storeDirectory(directoryPath: string, directoryUri: vscode.Uri): Promise<void> {
-    this._storedDirectories.push(directoryPath);
-
-    const entries = await vscode.workspace.fs.readDirectory(directoryUri);
-    for (const [entryName, entryType] of entries) {
-      const entryPath = `${directoryPath}/${entryName}`;
-      const entryUri = vscode.Uri.joinPath(directoryUri, entryName);
-
-      if ((entryType & vscode.FileType.Directory) !== 0) {
-        await this._storeDirectory(entryPath, entryUri);
-        continue;
-      }
-
-      const content = await vscode.workspace.fs.readFile(entryUri);
-      this._storedFiles.push({ path: entryPath, content });
-    }
-  }
-}
-
-function isDirectoryStat(stat: vscode.FileStat): boolean {
-  return (stat.type & vscode.FileType.Directory) !== 0;
-}
-
-function isPathWithinDeletedPath(path: string, deletedPath: string): boolean {
-  return path === deletedPath || path.startsWith(`${deletedPath}/`);
-}
-
-function comparePathDepth(left: string, right: string): number {
-  return left.split('/').length - right.split('/').length;
 }

@@ -1,8 +1,17 @@
 import React from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { LegendSection } from '../../../../src/webview/components/legends/panel/section/view';
+import { getPluginRuleGroupStorageKey } from '../../../../src/webview/components/legends/panel/section/pluginSubsection';
+import {
+  getCustomSectionStorageKey,
+  getDefaultSectionStorageKey,
+} from '../../../../src/webview/components/legends/panel/section/rulesLayout';
+import {
+  getLegendSubsectionCollapseTitle,
+  stopSubsectionTogglePropagation,
+} from '../../../../src/webview/components/legends/panel/section/subsection';
 
 const { postLegendOrderUpdate } = vi.hoisted(() => ({
   postLegendOrderUpdate: vi.fn(),
@@ -34,21 +43,40 @@ vi.mock('../../../../src/webview/components/legends/panel/section/createRow', ()
     onAdd,
   }: {
     target: 'node' | 'edge';
-    onAdd: (rule: IGroup) => void;
+    onAdd: (rule: IGroup, iconImports?: Array<{ path: string; content: string; format: 'svg' }>) => void;
   }) => (
-    <button
-      type="button"
-      onClick={() =>
-        onAdd({
-          id: `legend:${target}:new`,
-          pattern: `${target}/**`,
-          color: '#00ff00',
-          target,
-        })
-      }
-    >
-      add:{target}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() =>
+          onAdd({
+            id: `legend:${target}:new`,
+            pattern: `${target}/**`,
+            color: '#00ff00',
+            target,
+          })
+        }
+      >
+        add:{target}
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onAdd(
+            {
+              id: `legend:${target}:icon`,
+              pattern: `${target}/icon/**`,
+              color: '#00ff00',
+              target,
+              imagePath: `.codegraphy/icons/${target}.svg`,
+            },
+            [{ path: `.codegraphy/icons/${target}.svg`, content: '<svg />', format: 'svg' }],
+          )
+        }
+      >
+        add-icon:{target}
+      </button>
+    </>
   ),
 }));
 
@@ -146,6 +174,10 @@ describe('webview/legends/section', () => {
     onToggleDefaultVisibility: vi.fn(),
     onToggleDefaultVisibilityBatch: vi.fn(),
   };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('renders rows and collapses the section body', () => {
     const onCollapsedChange = vi.fn();
@@ -316,6 +348,29 @@ describe('webview/legends/section', () => {
     ]);
   });
 
+  it('toggles only rendered custom rules when target user rules include extra node rules', () => {
+    render(
+      <LegendSection
+        {...baseProps}
+        displayRules={[
+          { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node', disabled: true },
+        ]}
+        userRules={[
+          { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node', disabled: true },
+          { id: 'node:hidden', pattern: 'hidden/**', color: '#999999', target: 'node' },
+          { id: 'edge:user', pattern: 'call', color: '#654321', target: 'edge' },
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Toggle Custom legend entries'));
+
+    expect(baseProps.onRulesChange).toHaveBeenCalledWith([
+      { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node', disabled: false },
+      { id: 'node:hidden', pattern: 'hidden/**', color: '#999999', target: 'node' },
+    ]);
+  });
+
   it('forwards built-in color changes, added rules, and rule updates to the section callbacks', () => {
     render(<LegendSection {...baseProps} />);
 
@@ -335,6 +390,180 @@ describe('webview/legends/section', () => {
       { id: 'node:user', pattern: 'src/**:updated', color: '#123456', target: 'node' },
       { id: 'node:second', pattern: 'tests/**', color: '#456789', target: 'node' },
     ]);
+  });
+
+  it('forwards pending icon imports when creating a legend rule with an icon', () => {
+    render(<LegendSection {...baseProps} />);
+
+    fireEvent.click(screen.getByText('add-icon:node'));
+
+    expect(baseProps.onRulesChange).toHaveBeenCalledWith(
+      [
+        { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
+        { id: 'node:second', pattern: 'tests/**', color: '#456789', target: 'node' },
+        { id: 'edge:user', pattern: 'call', color: '#654321', target: 'edge' },
+        {
+          id: 'legend:node:icon',
+          pattern: 'node/icon/**',
+          color: '#00ff00',
+          target: 'node',
+          imagePath: '.codegraphy/icons/node.svg',
+        },
+      ],
+      [{ path: '.codegraphy/icons/node.svg', content: '<svg />', format: 'svg' }],
+    );
+  });
+
+  it('omits empty plugin and built-in subsections', () => {
+    render(
+      <LegendSection
+        {...baseProps}
+        builtInEntries={[]}
+        displayRules={[
+          { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByText('Plugins')).not.toBeInTheDocument();
+    expect(screen.queryByText('Material Icon Theme')).not.toBeInTheDocument();
+    expect(screen.queryByText('Defaults')).not.toBeInTheDocument();
+  });
+
+  it('toggles all material theme rules in a single batch', () => {
+    render(
+      <LegendSection
+        {...baseProps}
+        displayRules={[
+          {
+            id: 'default:*.json',
+            pattern: '*.json',
+            color: '#f9c74f',
+            target: 'node',
+            isPluginDefault: true,
+            pluginName: 'Material Icon Theme',
+          },
+          {
+            id: 'default:*.md',
+            pattern: '*.md',
+            color: '#519aba',
+            target: 'node',
+            isPluginDefault: true,
+            pluginName: 'Material Icon Theme',
+            disabled: true,
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Toggle Material Icon Theme legend entries'));
+
+    expect(baseProps.onToggleDefaultVisibilityBatch).toHaveBeenCalledWith(
+      ['default:*.json', 'default:*.md'],
+      true,
+    );
+  });
+
+  it('honors stored collapse state for custom, plugin, material, and default subsections', () => {
+    render(
+      <LegendSection
+        {...baseProps}
+        collapsedEntries={{
+          'node:custom': true,
+          'plugin-defaults': true,
+          'plugin:codegraphy.typescript': true,
+          'material-icon-theme': true,
+          'node:defaults': true,
+        }}
+        builtInEntries={[
+          { id: 'file', label: 'Files', color: '#111111', defaultColor: '#111111' },
+        ]}
+        displayRules={[
+          { id: 'node:user', pattern: 'src/**', color: '#123456', target: 'node' },
+          {
+            id: 'default:*.json',
+            pattern: '*.json',
+            color: '#f9c74f',
+            target: 'node',
+            isPluginDefault: true,
+            pluginName: 'Material Icon Theme',
+          },
+          {
+            id: 'plugin:codegraphy.typescript:*.ts',
+            pattern: '*.ts',
+            color: '#3178c6',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.typescript',
+            pluginName: 'TypeScript',
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByText('src/**')).not.toBeInTheDocument();
+    expect(screen.queryByText('*.ts')).not.toBeInTheDocument();
+    expect(screen.queryByText('*.json')).not.toBeInTheDocument();
+    expect(screen.queryByText('built-in:Files')).not.toBeInTheDocument();
+  });
+
+  it('honors stored collapse state for an individual plugin subsection', () => {
+    render(
+      <LegendSection
+        {...baseProps}
+        collapsedEntries={{ 'plugin:codegraphy.typescript': true }}
+        displayRules={[
+          {
+            id: 'plugin:codegraphy.typescript:*.ts',
+            pattern: '*.ts',
+            color: '#3178c6',
+            target: 'node',
+            isPluginDefault: true,
+            pluginId: 'codegraphy.typescript',
+            pluginName: 'TypeScript',
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('TypeScript')).toBeInTheDocument();
+    expect(screen.queryByText('*.ts')).not.toBeInTheDocument();
+  });
+
+  it('formats plugin subsection storage keys', () => {
+    expect(getPluginRuleGroupStorageKey('codegraphy.typescript')).toBe('plugin:codegraphy.typescript');
+  });
+
+  it('formats legend subsection storage keys and collapse titles', () => {
+    expect(getCustomSectionStorageKey('node')).toBe('node:custom');
+    expect(getDefaultSectionStorageKey('edge')).toBe('edge:defaults');
+    expect(getLegendSubsectionCollapseTitle(true, 'Custom')).toBe('Collapse Custom legend entries');
+    expect(getLegendSubsectionCollapseTitle(false, 'Custom')).toBe('Expand Custom legend entries');
+  });
+
+  it('stops subsection toggle clicks from reaching the collapse trigger', () => {
+    const stopPropagation = vi.fn();
+
+    stopSubsectionTogglePropagation({ stopPropagation });
+
+    expect(stopPropagation).toHaveBeenCalledOnce();
+  });
+
+  it('keeps local collapse state when no collapsed change callback is provided', () => {
+    render(
+      <LegendSection
+        {...baseProps}
+        onCollapsedChange={undefined}
+      />,
+    );
+
+    expect(screen.getByText('src/**')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTitle('Toggle Nodes legend section'));
+    expect(screen.queryByText('src/**')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTitle('Toggle Nodes legend section'));
+    expect(screen.getByText('src/**')).toBeInTheDocument();
   });
 
   it('removes rules and forwards plugin-default visibility toggles', () => {

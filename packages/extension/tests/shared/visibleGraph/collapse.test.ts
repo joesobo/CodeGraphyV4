@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../src/shared/graph/contracts';
 import { STRUCTURAL_NESTS_EDGE_KIND, deriveVisibleGraph } from '../../../src/shared/visibleGraph';
+import { applyCollapseProjection } from '../../../src/shared/visibleGraph/collapse';
 
 function node(id: string, nodeType = 'file'): IGraphNode {
   return {
@@ -11,13 +12,18 @@ function node(id: string, nodeType = 'file'): IGraphNode {
   };
 }
 
-function edge(from: string, to: string, kind: IGraphEdge['kind'] = 'import'): IGraphEdge {
+function edge(
+  from: string,
+  to: string,
+  kind: IGraphEdge['kind'] = 'import',
+  sources: IGraphEdge['sources'] = [],
+): IGraphEdge {
   return {
     id: `${from}->${to}#${kind}`,
     from,
     to,
     kind,
-    sources: [],
+    sources,
   };
 }
 
@@ -32,6 +38,25 @@ function folderScope() {
 }
 
 describe('shared/visibleGraph/collapse', () => {
+  it('annotates collapsible folders when no folders are collapsed', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src', 'folder'),
+        node('src/app.ts'),
+        node('outside.ts'),
+      ],
+      edges: [edge('src/app.ts', 'outside.ts')],
+    };
+
+    const result = applyCollapseProjection(graphData);
+
+    expect(result.nodes.find((item) => item.id === 'src')).toMatchObject({
+      isCollapsible: true,
+      isCollapsed: false,
+    });
+    expect(result.edges).toBe(graphData.edges);
+  });
+
   it('keeps a collapsed folder visible and recursively hides its current descendants', () => {
     const graphData: IGraphData = {
       nodes: [
@@ -78,6 +103,42 @@ describe('shared/visibleGraph/collapse', () => {
     expect(result.edges.map((item) => `${item.from}->${item.to}#${item.kind}`)).toEqual([
       'src->lib/util.ts#reference',
       'lib/util.ts->src#import',
+    ]);
+  });
+
+  it('merges projected edge sources when multiple hidden descendants connect to the same visible target', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src', 'folder'),
+        node('src/app.ts'),
+        node('src/button.ts'),
+        node('lib/util.ts'),
+      ],
+      edges: [
+        edge('src/app.ts', 'lib/util.ts', 'import', [
+          { id: 'plugin:app', pluginId: 'plugin', sourceId: 'app', label: 'App import' },
+        ]),
+        edge('src/button.ts', 'lib/util.ts', 'import', [
+          { id: 'plugin:button', pluginId: 'plugin', sourceId: 'button', label: 'Button import' },
+          { id: 'plugin:app', pluginId: 'plugin', sourceId: 'app', label: 'App import' },
+        ]),
+      ],
+    };
+
+    const result = deriveVisibleGraph(graphData, {
+      collapse: { collapsedNodeIds: ['src'] },
+    }).graphData;
+
+    expect(result.edges).toEqual([
+      expect.objectContaining({
+        id: 'src->lib/util.ts#import',
+        from: 'src',
+        to: 'lib/util.ts',
+        sources: [
+          { id: 'plugin:app', pluginId: 'plugin', sourceId: 'app', label: 'App import' },
+          { id: 'plugin:button', pluginId: 'plugin', sourceId: 'button', label: 'Button import' },
+        ],
+      }),
     ]);
   });
 

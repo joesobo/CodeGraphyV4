@@ -40,6 +40,7 @@ export const extensionWebviewPanelsAndExportTestIncludes = [
   'packages/extension/tests/webview/Timeline.test.tsx',
   'packages/extension/tests/webview/Toolbar.test.tsx',
   'packages/extension/tests/webview/colorParsing.test.ts',
+  'packages/extension/tests/webview/colorParsing/**/*.test.ts',
   'packages/extension/tests/webview/globMatch.test.ts',
   'packages/extension/tests/webview/searchFilter.test.ts',
   'packages/extension/tests/webview/useTheme.test.tsx',

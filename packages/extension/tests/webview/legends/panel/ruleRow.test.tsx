@@ -199,6 +199,7 @@ describe('webview/components/legends/ruleRow', () => {
     );
 
     fireEvent.click(screen.getByTitle('Upload legend icon'));
+    expect(screen.queryByTitle('Clear legend icon')).toBeNull();
     fireEvent.change(screen.getByLabelText('Legend icon 1'), {
       target: { files: [file] },
     });
@@ -220,6 +221,28 @@ describe('webview/components/legends/ruleRow', () => {
     });
   });
 
+  it('ignores missing icon files from the upload input', () => {
+    const handlers = baseHandlers();
+
+    render(
+      <LegendRuleRow
+        rule={{ id: 'legend:custom', pattern: 'src/**', color: '#123456', target: 'node' }}
+        index={0}
+        isDragging={false}
+        isDragOver={false}
+        {...handlers}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Upload legend icon'));
+    const input = screen.getByLabelText('Legend icon 1') as HTMLInputElement;
+    Object.defineProperty(input, 'files', { value: undefined, configurable: true });
+
+    expect(() => fireEvent.change(input)).not.toThrow();
+    expect(() => fireEvent.change(input, { target: { files: [] } })).not.toThrow();
+    expect(handlers.onChange).not.toHaveBeenCalled();
+  });
+
   it('clears custom rule icon metadata from the icon popup', () => {
     const handlers = baseHandlers();
 
@@ -232,6 +255,36 @@ describe('webview/components/legends/ruleRow', () => {
           target: 'node',
           imagePath: '.codegraphy/icons/custom.svg',
           imageUrl: 'webview://custom.svg',
+        }}
+        index={0}
+        isDragging={false}
+        isDragOver={false}
+        {...handlers}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle('Upload legend icon'));
+    fireEvent.click(screen.getByTitle('Clear legend icon'));
+
+    expect(handlers.onChange).toHaveBeenCalledWith({
+      id: 'legend:custom',
+      pattern: 'src/**',
+      color: '#123456',
+      target: 'node',
+    });
+  });
+
+  it('clears persisted icon metadata even when only the image path is present', () => {
+    const handlers = baseHandlers();
+
+    render(
+      <LegendRuleRow
+        rule={{
+          id: 'legend:custom',
+          pattern: 'src/**',
+          color: '#123456',
+          target: 'node',
+          imagePath: '.codegraphy/icons/custom.svg',
         }}
         index={0}
         isDragging={false}

@@ -1,158 +1,16 @@
-import * as fs from 'node:fs/promises';
-import type { IGraphData, IPlugin } from '@codegraphy-dev/plugin-api';
-import { createMarkdownPlugin } from '@codegraphy-dev/plugin-markdown';
-import { createEmptyWorkspaceAnalysisCache, type IWorkspaceAnalysisCache } from '../analysis/cache';
-import {
-  analyzeWorkspacePipelineFiles,
-} from '../analysis/workspaceFiles';
-import {
-  preAnalyzeWorkspacePipelineFiles,
-} from '../analysis/workspacePreAnalyze';
-import { DEFAULT_INCLUDE, DEFAULT_MAX_FILES } from '../discovery/file/defaults';
+import { createEmptyWorkspaceAnalysisCache } from '../analysis/cache';
 import { FileDiscovery } from '../discovery/file/service';
-import type { IDiscoveredFile } from '../discovery/contracts';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
 import { saveWorkspaceAnalysisDatabaseCache } from '../graphCache/database/storage';
 import { getGraphCachePath, resolveWorkspaceRoot } from '../workspace/paths';
-import { persistCodeGraphyWorkspaceIndexMetadata } from '../workspace/meta';
-import {
-  CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-  ensureCodeGraphyWorkspaceSettings,
-  type CodeGraphyWorkspaceSettings,
-} from '../workspace/settings';
-import {
-  createCodeGraphyWorkspacePluginSignature,
-  createCodeGraphyWorkspacePackageAwarePluginSignature,
-  createCodeGraphyWorkspaceSettingsSignature,
-} from '../workspace/signatures';
-import { createTreeSitterPlugin } from '../treeSitter/plugin';
-import { CorePluginRegistry } from '../plugins/registry';
-import {
-  loadCodeGraphyWorkspacePluginPackages,
-  type LoadedCodeGraphyWorkspacePluginPackage,
-} from '../plugins/packageRuntime';
+import { analyzeWorkspaceIndexFiles } from './analysis';
+import type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult } from './contracts';
+import { discoverWorkspaceIndexFiles } from './discovery';
+import { persistWorkspaceIndexMetadata } from './metadata';
+import { createWorkspaceIndexRegistry } from './registry';
+import { createEffectiveIndexSettings } from './settings';
 
-export interface IndexCodeGraphyWorkspaceOptions {
-  workspaceRoot: string;
-  plugins?: IPlugin[];
-  settings?: CodeGraphyWorkspaceSettings;
-  includeCorePlugins?: boolean;
-  include?: string[];
-  filterPatterns?: string[];
-  disabledPlugins?: Iterable<string>;
-  maxFiles?: number;
-  respectGitignore?: boolean;
-  showOrphans?: boolean;
-  signal?: AbortSignal;
-  onProgress?: (progress: { phase: string; current: number; total: number }) => void;
-  logInfo?: (message: string) => void;
-  warn?: (message: string) => void;
-  userHomeDir?: string;
-}
-
-export interface IndexCodeGraphyWorkspaceResult {
-  workspaceRoot: string;
-  graphCachePath: string;
-  graph: IGraphData;
-  cache: IWorkspaceAnalysisCache;
-  files: IDiscoveredFile[];
-  directories: string[];
-  limitReached: boolean;
-  totalFound: number;
-}
-
-async function getFileStat(filePath: string): Promise<{ mtime: number; size: number } | null> {
-  try {
-    const stat = await fs.stat(filePath);
-    return {
-      mtime: stat.mtimeMs,
-      size: stat.size,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function shouldRegisterDefaultMarkdownPlugin(
-  options: IndexCodeGraphyWorkspaceOptions,
-  settings: CodeGraphyWorkspaceSettings,
-): boolean {
-  if (options.includeCorePlugins === false) {
-    return false;
-  }
-
-  const providedPluginIds = new Set((options.plugins ?? []).map(plugin => plugin.id));
-  return settings.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)
-    && !providedPluginIds.has('codegraphy.markdown');
-}
-
-function getDefaultMarkdownPluginOptions(
-  settings: CodeGraphyWorkspaceSettings,
-): Record<string, unknown> | undefined {
-  return settings.plugins.find(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)?.options;
-}
-
-async function createRegistry(
-  options: IndexCodeGraphyWorkspaceOptions,
-  settings: CodeGraphyWorkspaceSettings,
-): Promise<{
-  registry: CorePluginRegistry;
-  loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
-}> {
-  const registry = new CorePluginRegistry();
-  const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
-    settings,
-    ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
-    ...(options.warn ? { warn: options.warn } : {}),
-  });
-
-  if (options.includeCorePlugins !== false) {
-    registry.register(createTreeSitterPlugin(), { builtIn: true });
-  }
-
-  if (shouldRegisterDefaultMarkdownPlugin(options, settings)) {
-    const markdownOptions = getDefaultMarkdownPluginOptions(settings);
-    registry.register(createMarkdownPlugin(), {
-      builtIn: true,
-      sourcePackage: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
-      ...(markdownOptions ? { options: markdownOptions } : {}),
-    });
-  }
-
-  for (const loadedPlugin of loadedPackagePlugins) {
-    registry.register(loadedPlugin.plugin, {
-      sourcePackage: loadedPlugin.packageName,
-      ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
-    });
-  }
-
-  for (const plugin of options.plugins ?? []) {
-    registry.register(plugin);
-  }
-
-  return { registry, loadedPackagePlugins };
-}
-
-function createEffectiveIndexSettings(
-  workspaceRoot: string,
-  options: IndexCodeGraphyWorkspaceOptions,
-): CodeGraphyWorkspaceSettings {
-  const workspaceSettings = options.settings ?? ensureCodeGraphyWorkspaceSettings(workspaceRoot);
-  return {
-    ...workspaceSettings,
-    maxFiles: options.maxFiles ?? workspaceSettings.maxFiles,
-    include: options.include ?? workspaceSettings.include,
-    respectGitignore: options.respectGitignore ?? workspaceSettings.respectGitignore,
-    showOrphans: options.showOrphans ?? workspaceSettings.showOrphans,
-    filterPatterns: options.filterPatterns ?? workspaceSettings.filterPatterns,
-  };
-}
-
-function getDisabledPluginFilterPatterns(settings: CodeGraphyWorkspaceSettings): Set<string> {
-  return new Set(
-    settings.plugins.flatMap(plugin => plugin.disabledFilterPatterns ?? []),
-  );
-}
+export type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult };
 
 export async function indexCodeGraphyWorkspace(
   options: IndexCodeGraphyWorkspaceOptions,
@@ -161,67 +19,25 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const cache = createEmptyWorkspaceAnalysisCache();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
-  const { registry, loadedPackagePlugins } = await createRegistry(options, settings);
+  const { registry, loadedPackagePlugins } = await createWorkspaceIndexRegistry(options, settings, workspaceRoot);
   const disabledPlugins = new Set(options.disabledPlugins ?? []);
-  const disabledPluginPatterns = getDisabledPluginFilterPatterns(settings);
-  const logInfo = options.logInfo ?? (() => undefined);
-  const warn = options.warn ?? (() => undefined);
 
   await registry.initializeAll(workspaceRoot);
 
-  const pluginFilterPatterns = registry
-    .getPluginFilterPatterns(disabledPlugins)
-    .filter(pattern => !disabledPluginPatterns.has(pattern));
-  const discoveryResult = await discovery.discover({
-    rootPath: workspaceRoot,
-    include: settings.include.length > 0 ? settings.include : DEFAULT_INCLUDE,
-    exclude: [
-      ...new Set([
-        ...pluginFilterPatterns,
-        ...settings.filterPatterns,
-      ]),
-    ],
-    maxFiles: settings.maxFiles ?? DEFAULT_MAX_FILES,
-    respectGitignore: settings.respectGitignore,
-    signal: options.signal,
-  });
-
-  if (discoveryResult.limitReached) {
-    warn(
-      `CodeGraphy: Found ${discoveryResult.totalFound}+ files, showing first ${settings.maxFiles}. ` +
-      'Increase maxFiles in .codegraphy/settings.json to see more.',
-    );
-  }
-
-  logInfo(`[CodeGraphy] Discovered ${discoveryResult.files.length} files in ${discoveryResult.durationMs}ms`);
-
-  await preAnalyzeWorkspacePipelineFiles(
-    discoveryResult.files,
+  const discoveryResult = await discoverWorkspaceIndexFiles({
+    disabledPlugins,
+    discovery,
+    options,
+    registry,
+    settings,
     workspaceRoot,
-    {
-      notifyPreAnalyze: (files, rootPath) => registry.notifyPreAnalyze(files, rootPath),
-      readContent: file => discovery.readContent(file),
-    },
-    options.signal,
-  );
-
-  const analysisResult = await analyzeWorkspacePipelineFiles({
-    analyzeFile: async (absolutePath, content, rootPath) =>
-      registry.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
-        filePath: absolutePath,
-        relations: [],
-      })),
+  });
+  const analysisResult = await analyzeWorkspaceIndexFiles({
     cache,
-    files: discoveryResult.files,
-    getFileStat,
-    logInfo,
-    onProgress: progress => options.onProgress?.({
-      phase: 'Analyzing Files',
-      current: progress.current,
-      total: progress.total,
-    }),
-    readContent: file => discovery.readContent(file),
-    signal: options.signal,
+    discovery,
+    discoveryResult,
+    options,
+    registry,
     workspaceRoot,
   });
 
@@ -239,19 +55,13 @@ export async function indexCodeGraphyWorkspace(
   registry.notifyPostAnalyze(graph);
   registry.notifyWorkspaceReady(graph);
   saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
-  persistCodeGraphyWorkspaceIndexMetadata(workspaceRoot, {
-    pluginSignature: createCodeGraphyWorkspacePackageAwarePluginSignature({
-      runtimePlugins: registry
-        .list()
-        .filter(info => info.builtIn || !info.sourcePackage)
-        .map(info => info.plugin),
-      packagePlugins: loadedPackagePlugins.map(loadedPlugin => loadedPlugin.record),
-    }) ?? createCodeGraphyWorkspacePluginSignature(
-      registry.list().map(info => info.plugin),
-    ),
-    settingsSignature: createCodeGraphyWorkspaceSettingsSignature(settings),
+  persistWorkspaceIndexMetadata({
+    loadedPackagePlugins,
+    registry,
+    settings,
+    workspaceRoot,
   });
-  logInfo(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
+  options.logInfo?.(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
 
   return {
     workspaceRoot,

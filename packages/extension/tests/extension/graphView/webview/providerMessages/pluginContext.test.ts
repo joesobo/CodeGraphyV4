@@ -115,6 +115,7 @@ describe('graph view provider listener plugin context', () => {
       _sendContextMenuItems: vi.fn(),
       _sendPluginExporters: vi.fn(),
       _sendPluginToolbarActions: vi.fn(),
+      _sendGraphViewContributionStatuses: vi.fn(),
       _sendPluginWebviewInjections: vi.fn(),
       _sendDepthState: vi.fn(),
       _sendGraphControls: vi.fn(),
@@ -150,7 +151,6 @@ describe('graph view provider listener plugin context', () => {
     context.sendGraphControls?.();
     context.sendFavorites();
     context.sendSettings();
-    context.sendGraphLayout?.();
     context.sendCachedTimeline();
     context.sendDecorations();
     context.sendContextMenuItems();
@@ -158,6 +158,8 @@ describe('graph view provider listener plugin context', () => {
     context.sendPluginExporters?.();
     expect(context.sendPluginToolbarActions).toBeTypeOf('function');
     context.sendPluginToolbarActions?.();
+    expect(context.sendGraphViewContributionStatuses).toBeTypeOf('function');
+    context.sendGraphViewContributionStatuses?.();
     context.sendPluginWebviewInjections();
     context.sendActiveFile();
     await expect(context.waitForFirstWorkspaceReady()).resolves.toBe('ready');
@@ -168,20 +170,12 @@ describe('graph view provider listener plugin context', () => {
     expect(source._sendGraphControls).toHaveBeenCalledOnce();
     expect(source._sendFavorites).toHaveBeenCalledOnce();
     expect(source._sendSettings).toHaveBeenCalledOnce();
-    expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'GRAPH_LAYOUT_UPDATED',
-      payload: {
-        collapsedNodes: {},
-        ownership: {},
-        pinnedNodes: {},
-        sections: {},
-      },
-    });
     expect(source._sendCachedTimeline).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
     expect(source._sendPluginExporters).toHaveBeenCalledOnce();
     expect(source._sendPluginToolbarActions).toHaveBeenCalledOnce();
+    expect(source._sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(source._sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'ACTIVE_FILE_UPDATED',
@@ -201,6 +195,7 @@ describe('graph view provider listener plugin context', () => {
       _sendContextMenuItems: vi.fn(),
       _sendPluginExporters: undefined,
       _sendPluginToolbarActions: undefined,
+      _sendGraphViewContributionStatuses: undefined,
       _sendPluginWebviewInjections: vi.fn(),
       _sendDepthState: vi.fn(),
       _sendGraphControls: undefined,
@@ -232,6 +227,7 @@ describe('graph view provider listener plugin context', () => {
       context.sendGraphControls?.();
       context.sendPluginExporters?.();
       context.sendPluginToolbarActions?.();
+      context.sendGraphViewContributionStatuses?.();
       context.sendActiveFile();
     }).not.toThrow();
 

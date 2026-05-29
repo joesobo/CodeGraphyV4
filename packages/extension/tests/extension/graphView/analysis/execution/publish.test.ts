@@ -55,10 +55,12 @@ describe('graph view analysis execution publish', () => {
         analyze: vi.fn(() => Promise.resolve(rawGraphData)),
       }),
     });
+    const sendPluginWebviewInjections = vi.fn();
     const { handlers, getGraphData } = createExecutionHandlers({
       applyViewTransform: vi.fn(() => {
         handlers.setGraphData(transformedGraphData);
       }),
+      sendPluginWebviewInjections,
     });
 
     publishAnalyzedGraph(state, handlers, rawGraphData, true);
@@ -69,6 +71,8 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
+    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(getGraphData());
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
   });
@@ -130,9 +134,11 @@ describe('graph view analysis execution publish', () => {
   });
 
   it('publishes an empty graph fallback with plugin state updates after failures', () => {
+    const sendPluginWebviewInjections = vi.fn();
     const { handlers } = createExecutionHandlers({
       sendPluginExporters: vi.fn(),
       sendPluginToolbarActions: vi.fn(),
+      sendPluginWebviewInjections,
     });
 
     publishAnalysisFailure(handlers);
@@ -141,6 +147,8 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendPluginExporters).toHaveBeenCalledOnce();
     expect(handlers.sendPluginToolbarActions).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
+    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith({ nodes: [], edges: [] });
   });
 
