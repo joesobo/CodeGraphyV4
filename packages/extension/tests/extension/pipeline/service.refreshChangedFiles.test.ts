@@ -110,6 +110,7 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       '/workspace',
       expect.any(Function),
       undefined,
+      undefined,
     );
   });
 
@@ -187,6 +188,7 @@ describe('WorkspacePipeline refreshChangedFiles', () => {
       [{ absolutePath: '/workspace/src/new/index.ts', relativePath: 'src/new/index.ts' }],
       '/workspace',
       expect.any(Function),
+      undefined,
       undefined,
     );
   });
