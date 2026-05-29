@@ -1,6 +1,6 @@
 # CodeGraphy TypeScript/JavaScript
 
-Adds TypeScript and JavaScript ecosystem metadata to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+Adds TypeScript project-aware alias import relationships and TypeScript/JavaScript ecosystem metadata to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Package: [`@codegraphy-dev/plugin-typescript`](https://www.npmjs.com/package/@codegraphy-dev/plugin-typescript)
 - Plugin API: [`@codegraphy-dev/plugin-api`](https://www.npmjs.com/package/@codegraphy-dev/plugin-api)
@@ -19,26 +19,23 @@ codegraphy index
 ## What It Provides
 
 The built-in Tree-sitter plugin now handles JS/TS analysis inside `@codegraphy-dev/core`.
-This plugin keeps the TypeScript/JavaScript ecosystem defaults that are still useful on top:
+This plugin contributes TypeScript project-aware analysis and TypeScript/JavaScript
+ecosystem defaults on top:
 
 - default ignore filters for common build output and package folders
 - workspace enablement for TypeScript/JavaScript-specific defaults
+- **TypeScript Alias Import** relationships from TypeScript `compilerOptions.paths`
 
-When CodeGraphy adds project-aware TypeScript semantics, such as `compilerOptions.paths`
-import resolution, this package is the intended home for emitting that additional
-relationship data through Core's plugin pipeline. Alias-derived relationships should
-use a TypeScript-plugin-owned edge type labeled **TypeScript Alias Import** so Graph
-Scope can toggle them separately from baseline import edges. That edge type should
-default on, and the plugin should process aliases whenever the TypeScript plugin is
-enabled so Graph Query, MCP, and exports can use the same relationship data even
-when Graph Scope hides it.
+**TypeScript Alias Import** is a plugin-owned edge type that Graph Scope can toggle
+separately from baseline import edges. The edge type defaults on, and the plugin
+processes aliases whenever the TypeScript plugin is enabled so Graph Query, MCP, and
+exports can use the same relationship data even when Graph Scope hides it.
 
-Initial alias import support should start from the CodeGraphy Workspace root
-`tsconfig.json`, follow local relative and package-based `extends` chains, honor
-`compilerOptions.baseUrl`, read `compilerOptions.paths`, support exact and wildcard
-mappings, honor fallback target arrays in order, and emit no relationship when an alias
-cannot resolve to a workspace file. Changes to `tsconfig*.json` should re-analyze
-affected TypeScript files.
+Alias import support starts from the CodeGraphy Workspace root `tsconfig.json`,
+follows local relative and package-based `extends` chains, honors `compilerOptions.baseUrl`,
+reads `compilerOptions.paths`, supports exact and wildcard mappings, honors fallback
+target arrays in order, and emits no relationship when an alias cannot resolve to a
+workspace file. Changes to `tsconfig*.json` re-analyze affected TypeScript files.
 
 Core CodeGraphy now owns the default JS/TS icons and colors through Material Icon Theme.
 This plugin no longer ships general file theming.
