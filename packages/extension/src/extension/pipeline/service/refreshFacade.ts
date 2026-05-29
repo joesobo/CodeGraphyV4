@@ -6,6 +6,7 @@ import {
   discoverWorkspacePipelineFilesWithWarnings,
 } from './runtime/discovery';
 import { refreshWorkspacePipelineChangedFiles } from './runtime/refresh';
+import { resolveWorkspacePipelinePluginFilePaths } from './cache/invalidation';
 
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
   async refreshAnalysisScope(
@@ -63,6 +64,97 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     this._persistCache();
     const graphData = this._buildGraphDataFromAnalysis(
       analysisResult.fileAnalysis,
+      workspaceRoot,
+      config.showOrphans,
+      disabledPlugins,
+    );
+    await this._persistIndexMetadata();
+
+    return graphData;
+  }
+
+  async refreshPluginFiles(
+    pluginIds: readonly string[],
+    filterPatterns: string[] = [],
+    disabledPlugins: Set<string> = new Set(),
+    signal?: AbortSignal,
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+  ): Promise<IGraphData> {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot || pluginIds.length === 0) {
+      return { nodes: [], edges: [] };
+    }
+
+    const selectedPluginIds = new Set(pluginIds);
+    const pluginInfos = this._registry
+      .list()
+      .filter(({ plugin }) => selectedPluginIds.has(plugin.id));
+    if (pluginInfos.length === 0) {
+      return this._buildGraphDataFromAnalysis(
+        this._lastFileAnalysis,
+        workspaceRoot,
+        this._config.getAll().showOrphans,
+        disabledPlugins,
+      );
+    }
+
+    const config = this._config.getAll();
+    const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns);
+    const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns);
+    const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
+      createWorkspacePipelineDiscoveryDependencies(this._discovery),
+      workspaceRoot,
+      config,
+      filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
+      this.getPluginFilterPatterns(disabledPlugins)
+        .filter(pattern => !disabledPluginPatterns.has(pattern)),
+      signal,
+      message => {
+        vscode.window.showWarningMessage(message);
+      },
+    );
+    const pluginFilePathSet = new Set(resolveWorkspacePipelinePluginFilePaths(
+      workspaceRoot,
+      discoveryResult.files,
+      pluginInfos,
+    ));
+    const pluginFiles = discoveryResult.files.filter(file => pluginFilePathSet.has(file.absolutePath));
+
+    this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
+    this._lastDiscoveredFiles = discoveryResult.files;
+    this._lastWorkspaceRoot = workspaceRoot;
+
+    if (pluginFiles.length > 0) {
+      onProgress?.({
+        phase: 'Applying Plugin',
+        current: 0,
+        total: pluginFiles.length,
+      });
+      const analysisResult = await this._analyzeFiles(
+        pluginFiles,
+        workspaceRoot,
+        progress => {
+          onProgress?.({
+            phase: 'Applying Plugin',
+            current: progress.current,
+            total: progress.total,
+          });
+        },
+        signal,
+        pluginIds,
+      );
+
+      for (const [filePath, analysis] of analysisResult.fileAnalysis) {
+        this._lastFileAnalysis.set(filePath, analysis);
+      }
+      for (const [filePath, connections] of analysisResult.fileConnections) {
+        this._lastFileConnections.set(filePath, connections);
+      }
+      this._persistCache();
+    }
+
+    const graphData = this._buildGraphDataFromAnalysis(
+      this._lastFileAnalysis,
       workspaceRoot,
       config.showOrphans,
       disabledPlugins,

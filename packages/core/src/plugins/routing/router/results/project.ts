@@ -1,6 +1,20 @@
 import type { IFileAnalysisResult, IPlugin } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../../../../analysis/projectedConnection';
 
+function withSymbolPluginProvenance(
+  symbol: NonNullable<IFileAnalysisResult['symbols']>[number],
+  plugin: IPlugin,
+): NonNullable<IFileAnalysisResult['symbols']>[number] {
+  return {
+    ...symbol,
+    metadata: {
+      ...symbol.metadata,
+      pluginId: symbol.metadata?.pluginId ?? plugin.id,
+      source: symbol.metadata?.source ?? plugin.id,
+    },
+  };
+}
+
 export function withPluginProvenance(
   plugin: IPlugin,
   result: IFileAnalysisResult,
@@ -11,6 +25,7 @@ export function withPluginProvenance(
       ...relation,
       pluginId: relation.pluginId ?? plugin.id,
     })),
+    symbols: result.symbols?.map(symbol => withSymbolPluginProvenance(symbol, plugin)),
   };
 }
 

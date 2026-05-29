@@ -60,6 +60,11 @@ export function createGraphViewProviderExternalPluginRegistration(
         sendPluginWebviewInjections: () => broadcasts._sendPluginWebviewInjections(),
         invalidateTimelineCache: () => source._invalidateTimelineCache(),
         reprocessPluginFiles: async (pluginIds) => {
+          if (source.refreshPluginFiles) {
+            await source.refreshPluginFiles(pluginIds);
+            return;
+          }
+
           const invalidatedFilePaths = source.invalidatePluginFiles(pluginIds);
           if (invalidatedFilePaths.length === 0) {
             return;

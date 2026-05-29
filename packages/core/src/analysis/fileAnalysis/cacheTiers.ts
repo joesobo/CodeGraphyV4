@@ -29,6 +29,10 @@ function readExplicitCacheTiers(analysis: IFileAnalysisResult): readonly string[
   return Array.isArray(tiers) ? tiers : undefined;
 }
 
+export function readAnalysisCacheTiers(analysis: IFileAnalysisResult): readonly string[] {
+  return readExplicitCacheTiers(analysis) ?? [];
+}
+
 function hasSymbolFacts(analysis: IFileAnalysisResult): boolean {
   return Boolean(
     analysis.symbols?.length
@@ -150,7 +154,10 @@ export function markAnalysisCacheTiers(
     ...(analysis as TieredFileAnalysisResult),
     cache: {
       ...(analysis as TieredFileAnalysisResult).cache,
-      tiers: sortCacheTiers(completedTiers),
+      tiers: sortCacheTiers([
+        ...(readAnalysisCacheTiers(analysis) as AnalysisCacheTier[]),
+        ...completedTiers,
+      ]),
     },
   };
   return tieredAnalysis;

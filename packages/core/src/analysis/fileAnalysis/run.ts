@@ -6,6 +6,7 @@ import {
   projectConnectionMapFromFileAnalysis,
   projectProjectedConnectionsFromFileAnalysis,
 } from '../projection';
+import { mergeFileAnalysisResults } from '../../plugins/routing/router/results/merge';
 import {
   hasRequiredAnalysisCacheTiers,
   markAnalysisCacheTiers,
@@ -37,12 +38,29 @@ function prepareAnalysisForActiveCacheTiers(
   return projectAnalysisForCacheTiers(analysis, options.cacheTiers?.active);
 }
 
+function mergeReusableAnalysisForCacheStorage(
+  reusableAnalysis: IFileAnalysisResult,
+  projectedAnalysis: IFileAnalysisResult,
+): IFileAnalysisResult {
+  const mergedAnalysis = mergeFileAnalysisResults(reusableAnalysis, projectedAnalysis) as IFileAnalysisResult & {
+    cache?: unknown;
+  };
+  mergedAnalysis.cache = (reusableAnalysis as { cache?: unknown }).cache;
+  return mergedAnalysis;
+}
+
 function prepareAnalysisForCacheStorage(
   options: IWorkspaceFileAnalysisOptions,
   analysis: IFileAnalysisResult,
+  reusableAnalysis?: IFileAnalysisResult,
 ): IFileAnalysisResult {
+  const projectedAnalysis = prepareAnalysisForActiveCacheTiers(options, analysis);
+  const storageAnalysis = reusableAnalysis && options.cacheTiers?.active !== undefined
+    ? mergeReusableAnalysisForCacheStorage(reusableAnalysis, projectedAnalysis)
+    : projectedAnalysis;
+
   return markAnalysisCacheTiers(
-    prepareAnalysisForActiveCacheTiers(options, analysis),
+    storageAnalysis,
     options.cacheTiers?.completed,
   );
 }
@@ -95,6 +113,19 @@ function readCacheHitAnalysis(
   return prepareAnalysisForActiveCacheTiers(options, cached.analysis);
 }
 
+function readReusableCacheAnalysis(
+  options: IWorkspaceFileAnalysisOptions,
+  file: IDiscoveredFile,
+  stat: WorkspaceFileStat,
+): IFileAnalysisResult | undefined {
+  const cached = options.cache.files[file.relativePath];
+  if (!cached || cached.mtime !== stat?.mtime) {
+    return undefined;
+  }
+
+  return cached.analysis;
+}
+
 function recordCacheHit(
   options: IWorkspaceFileAnalysisOptions,
   state: IWorkspaceFileAnalysisState,
@@ -111,6 +142,7 @@ async function analyzeCacheMiss(
   state: IWorkspaceFileAnalysisState,
   file: IDiscoveredFile,
   stat: WorkspaceFileStat,
+  reusableAnalysis?: IFileAnalysisResult,
 ): Promise<void> {
   state.cacheMisses += 1;
   state.cacheMissFilePaths.add(file.relativePath);
@@ -120,6 +152,7 @@ async function analyzeCacheMiss(
   const analysis = prepareAnalysisForCacheStorage(
     options,
     await options.analyzeFile(file.absolutePath, content, options.workspaceRoot),
+    reusableAnalysis,
   );
   const connections = recordWorkspaceFileAnalysis(state, file, analysis);
 
@@ -153,7 +186,13 @@ async function analyzeWorkspaceFile(
     return;
   }
 
-  await analyzeCacheMiss(options, state, file, stat);
+  await analyzeCacheMiss(
+    options,
+    state,
+    file,
+    stat,
+    readReusableCacheAnalysis(options, file, stat),
+  );
 }
 
 function updateCachedEnrichedAnalysis(

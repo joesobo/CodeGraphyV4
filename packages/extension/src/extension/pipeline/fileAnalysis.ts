@@ -6,6 +6,7 @@ export {
   hasRequiredAnalysisCacheTiers,
   markAnalysisCacheTiers,
   projectAnalysisForCacheTiers,
+  readAnalysisCacheTiers,
 } from '@codegraphy-dev/core';
 export type {
   AnalysisCacheTier,
