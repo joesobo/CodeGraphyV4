@@ -279,4 +279,51 @@ describe('pipeline/serviceAdapters', () => {
 
     expect(graphData.edges).toEqual([]);
   });
+
+  it('hides cached symbols owned by plugins that are no longer registered', () => {
+    const cache = {
+      files: {
+        'src/app.ts': { size: 12 },
+      },
+    };
+    const workspaceState = {
+      get: vi.fn(() => undefined),
+      update: vi.fn(),
+    };
+    const registry = {
+      getPluginForFile: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+    };
+
+    const graphData = buildWorkspacePipelineGraphDataFromAnalysis(
+      cache as never,
+      { workspaceState } as never,
+      registry as never,
+      new Map([
+        ['src/app.ts', {
+          filePath: '/workspace/src/app.ts',
+          symbols: [{
+            id: '/workspace/src/app.ts:function:run',
+            filePath: '/workspace/src/app.ts',
+            kind: 'function',
+            name: 'run',
+            metadata: {
+              pluginId: 'codegraphy.organize',
+              source: 'codegraphy.organize',
+            },
+          }],
+          relations: [],
+        }],
+      ]),
+      '/workspace',
+      true,
+      new Set(),
+      [],
+      { nodeVisibility: { symbol: true } },
+    );
+
+    expect(graphData.nodes).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'src/app.ts#run:function' }),
+    ]));
+  });
 });

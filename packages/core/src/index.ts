@@ -42,6 +42,7 @@ export {
   hasRequiredAnalysisCacheTiers,
   markAnalysisCacheTiers,
   projectAnalysisForCacheTiers,
+  readAnalysisCacheTiers,
 } from './analysis/fileAnalysis';
 export {
   analyzeWorkspacePipelineFiles,

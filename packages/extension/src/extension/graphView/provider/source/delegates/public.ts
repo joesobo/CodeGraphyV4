@@ -14,6 +14,7 @@ export function createGraphViewProviderPublicMethodDelegates(
   | 'redo'
   | 'refreshIndex'
   | 'refreshAnalysisScope'
+  | 'refreshPluginFiles'
   | 'refreshChangedFiles'
   | 'clearCacheAndRefresh'
   | 'invalidatePluginFiles'
@@ -27,6 +28,7 @@ export function createGraphViewProviderPublicMethodDelegates(
     redo: () => owner._methodContainers.command.redo(),
     refreshIndex: () => owner._methodContainers.refresh.refreshIndex(),
     refreshAnalysisScope: () => owner._methodContainers.refresh.refreshAnalysisScope(),
+    refreshPluginFiles: pluginIds => owner._methodContainers.refresh.refreshPluginFiles(pluginIds),
     refreshChangedFiles: filePaths => owner._methodContainers.refresh.refreshChangedFiles(filePaths),
     clearCacheAndRefresh: () => owner._methodContainers.refresh.clearCacheAndRefresh(),
     invalidatePluginFiles: pluginIds => owner.invalidatePluginFiles(pluginIds),

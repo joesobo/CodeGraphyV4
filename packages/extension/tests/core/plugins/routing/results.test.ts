@@ -60,7 +60,16 @@ describe('routing/results', () => {
     ]);
     expect(merged.nodes).toEqual([{ id: 'src/app.ts', nodeType: 'file', label: 'app.ts' }]);
     expect(merged.symbols).toEqual([
-      { id: 'src/app.ts:function:run', name: 'run', kind: 'function', filePath: 'src/app.ts' },
+      {
+        id: 'src/app.ts:function:run',
+        name: 'run',
+        kind: 'function',
+        filePath: 'src/app.ts',
+        metadata: {
+          pluginId: 'plugin',
+          source: 'plugin',
+        },
+      },
     ]);
     expect(projected).toEqual([{
       kind: 'import',

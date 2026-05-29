@@ -19,6 +19,11 @@ interface GraphViewProviderRefreshAnalyzerLike {
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,
   ): Promise<IGraphData>;
+  refreshPluginFiles?(
+    pluginIds: readonly string[],
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+  ): Promise<IGraphData>;
 }
 
 export interface GraphViewProviderRefreshMethodsSource {
@@ -52,6 +57,7 @@ export interface GraphViewProviderRefreshMethods {
   refresh(): Promise<void>;
   refreshIndex(): Promise<void>;
   refreshAnalysisScope(): Promise<void>;
+  refreshPluginFiles(pluginIds: readonly string[]): Promise<void>;
   refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
   refreshGroupSettings(): void;
   refreshPhysicsSettings(): void;
@@ -142,6 +148,23 @@ export function createGraphViewProviderRefreshMethods(
     sendRefreshState(source);
   };
 
+  const refreshPluginFiles = async (pluginIds: readonly string[]): Promise<void> => {
+    if (indexRefreshPromise) {
+      await indexRefreshPromise;
+    }
+
+    source._loadDisabledRulesAndPlugins();
+    source._loadGroupsAndFilterPatterns();
+    if (!source._analyzer?.hasIndex() || !source._analyzer.refreshPluginFiles) {
+      await refresh();
+      return;
+    }
+
+    await source._analyzer.refreshPluginFiles(pluginIds, [], source._disabledPlugins);
+    rebuildSenders.rebuildAndSend();
+    sendRefreshState(source);
+  };
+
   const refreshPhysicsSettings = (): void => {
     source._sendPhysicsSettings();
   };
@@ -187,6 +210,7 @@ export function createGraphViewProviderRefreshMethods(
     refresh,
     refreshIndex,
     refreshAnalysisScope,
+    refreshPluginFiles,
     refreshChangedFiles,
     refreshGroupSettings,
     refreshPhysicsSettings,

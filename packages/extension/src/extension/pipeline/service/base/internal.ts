@@ -54,6 +54,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
+    pluginCacheTierIds: readonly string[] = [],
   ): Promise<IWorkspaceFileAnalysisResult> {
     return analyzeWorkspacePipelineDiscoveredFiles(
       this._cache,
@@ -67,6 +68,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       signal,
       createWorkspacePipelineAnalysisCacheTiers(
         this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
+        pluginCacheTierIds,
       ),
     );
   }

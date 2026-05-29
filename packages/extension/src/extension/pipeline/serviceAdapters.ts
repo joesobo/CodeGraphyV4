@@ -119,6 +119,17 @@ export function buildWorkspacePipelineGraphData(
   );
 }
 
+function readWorkspacePipelineMetadataString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function readWorkspacePipelineSymbolPluginId(
+  symbol: NonNullable<IFileAnalysisResult['symbols']>[number],
+): string | undefined {
+  return readWorkspacePipelineMetadataString(symbol.metadata?.pluginId)
+    ?? readWorkspacePipelineMetadataString(symbol.metadata?.source);
+}
+
 function filterWorkspacePipelineAnalysisByActivePlugins(
   fileAnalysis: Map<string, IFileAnalysisResult>,
   activePluginIds: ReadonlySet<string>,
@@ -132,12 +143,19 @@ function filterWorkspacePipelineAnalysisByActivePlugins(
       !relation.pluginId
       || (activePluginIds.has(relation.pluginId) && !disabledPlugins.has(relation.pluginId)),
     );
+    const symbols = analysis.symbols ?? [];
+    const activeSymbols = symbols.filter((symbol) => {
+      const pluginId = readWorkspacePipelineSymbolPluginId(symbol);
+      return !pluginId || (activePluginIds.has(pluginId) && !disabledPlugins.has(pluginId));
+    });
+    const unchanged = activeRelations.length === relations.length
+      && activeSymbols.length === symbols.length;
 
     filtered.set(
       filePath,
-      activeRelations.length === relations.length
+      unchanged
         ? analysis
-        : { ...analysis, relations: activeRelations },
+        : { ...analysis, relations: activeRelations, symbols: activeSymbols },
     );
   }
 

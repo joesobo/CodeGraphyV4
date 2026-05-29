@@ -6,6 +6,7 @@ export {
   hasRequiredAnalysisCacheTiers,
   markAnalysisCacheTiers,
   projectAnalysisForCacheTiers,
+  readAnalysisCacheTiers,
 } from './fileAnalysis/cacheTiers';
 export type {
   AnalysisCacheTier,

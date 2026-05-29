@@ -6,6 +6,7 @@ import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifec
 import {
   BASELINE_ANALYSIS_CACHE_TIER,
   SYMBOLS_ANALYSIS_CACHE_TIER,
+  createPluginAnalysisCacheTier,
 } from '../../../src/extension/pipeline/fileAnalysis';
 
 let workspaceFoldersValue:
@@ -245,5 +246,42 @@ describe('WorkspacePipeline adapters', () => {
       SYMBOLS_ANALYSIS_CACHE_TIER,
     ]);
     expect(result.fileAnalysis.get('src/index.ts')?.symbols).toHaveLength(1);
+  });
+
+  it('requests plugin cache enrichment for scoped plugin refreshes', async () => {
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const analyzerPrivate = analyzer as unknown as {
+      _cache: { files: Record<string, { analysis: IFileAnalysisResult }>; version: string };
+      _discovery: { readContent: (file: { relativePath: string }) => Promise<string> };
+      _getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
+      _registry: {
+        analyzeFileResult: (
+          absolutePath: string,
+          content: string,
+          workspaceRoot: string
+        ) => Promise<IFileAnalysisResult | null>;
+      };
+      _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
+    };
+    const file = createDiscoveredFile('src/index.py');
+    vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });
+    vi.spyOn(analyzerPrivate._discovery, 'readContent').mockResolvedValue('print("hi")');
+    vi.spyOn(analyzerPrivate._registry, 'analyzeFileResult')
+      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
+
+    await analyzerPrivate._analyzeFiles(
+      [file],
+      '/test/workspace',
+      undefined,
+      undefined,
+      ['codegraphy.python'],
+    );
+
+    expect(readCacheTiers(analyzerPrivate._cache.files['src/index.py'].analysis)).toEqual([
+      BASELINE_ANALYSIS_CACHE_TIER,
+      createPluginAnalysisCacheTier('codegraphy.python'),
+    ]);
   });
 });
