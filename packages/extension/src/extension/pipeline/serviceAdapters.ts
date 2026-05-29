@@ -58,6 +58,7 @@ export function analyzeWorkspacePipelineFiles(
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
   cacheTiers?: AnalysisCacheTierOptions,
+  pluginIds?: readonly string[],
 ): Promise<IWorkspaceFileAnalysisResult> {
   const source: WorkspacePipelineFilesSource = {
     _cache: cache,
@@ -77,6 +78,7 @@ export function analyzeWorkspacePipelineFiles(
     onProgress,
     signal,
     cacheTiers,
+    pluginIds,
   );
 }
 

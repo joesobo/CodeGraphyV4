@@ -241,7 +241,10 @@ export { notifyFilesChanged } from './plugins/lifecycle/notify/filesChanged';
 export type { IPluginFilesChangedResult } from './plugins/lifecycle/notify/filesChanged';
 export { getFileExtension, normalizePluginExtension } from './plugins/routing/fileExtensions';
 export { analyzeFile, analyzeFileResult } from './plugins/routing/router/analyze';
-export type { CoreFileAnalysisResultProvider } from './plugins/routing/router/analyze';
+export type {
+  AnalyzeFileResultOptions,
+  CoreFileAnalysisResultProvider,
+} from './plugins/routing/router/analyze';
 export {
   getPluginForFile,
   getPluginsForExtension,

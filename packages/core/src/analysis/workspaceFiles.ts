@@ -40,7 +40,32 @@ export interface WorkspacePipelineFilesSource {
       content: string,
       workspaceRoot: string,
     ): Promise<IFileAnalysisResult | null>;
+    analyzeFileResultForPlugins?(
+      absolutePath: string,
+      content: string,
+      workspaceRoot: string,
+      pluginIds: readonly string[],
+    ): Promise<IFileAnalysisResult | null>;
   };
+}
+
+function analyzeWorkspacePipelineFileWithRegistry(
+  source: WorkspacePipelineFilesSource,
+  absolutePath: string,
+  content: string,
+  workspaceRoot: string,
+  pluginIds: readonly string[] | undefined,
+): Promise<IFileAnalysisResult | null> {
+  if (pluginIds && pluginIds.length > 0 && source._registry.analyzeFileResultForPlugins) {
+    return source._registry.analyzeFileResultForPlugins(
+      absolutePath,
+      content,
+      workspaceRoot,
+      pluginIds,
+    );
+  }
+
+  return source._registry.analyzeFileResult(absolutePath, content, workspaceRoot);
 }
 
 export async function analyzeWorkspacePipelineFiles(
@@ -73,12 +98,19 @@ export async function analyzeWorkspacePipelineSourceFiles(
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
   cacheTiers?: AnalysisCacheTierOptions,
+  pluginIds?: readonly string[],
 ): Promise<IWorkspaceFileAnalysisResult> {
   const eventBus = source._eventBus;
 
   return analyzeWorkspacePipelineFiles({
     analyzeFile: (absolutePath, content, rootPath) =>
-      source._registry.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
+      analyzeWorkspacePipelineFileWithRegistry(
+        source,
+        absolutePath,
+        content,
+        rootPath,
+        pluginIds,
+      ).then(result => result ?? ({
         filePath: absolutePath,
         relations: [],
       })),

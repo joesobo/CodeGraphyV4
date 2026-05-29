@@ -256,32 +256,47 @@ describe('WorkspacePipeline adapters', () => {
       _cache: { files: Record<string, { analysis: IFileAnalysisResult }>; version: string };
       _discovery: { readContent: (file: { relativePath: string }) => Promise<string> };
       _getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
-      _registry: {
-        analyzeFileResult: (
-          absolutePath: string,
-          content: string,
-          workspaceRoot: string
-        ) => Promise<IFileAnalysisResult | null>;
-      };
-      _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
-    };
-    const file = createDiscoveredFile('src/index.py');
-    vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });
-    vi.spyOn(analyzerPrivate._discovery, 'readContent').mockResolvedValue('print("hi")');
-    vi.spyOn(analyzerPrivate._registry, 'analyzeFileResult')
-      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
+	      _registry: {
+	        analyzeFileResult: (
+	          absolutePath: string,
+	          content: string,
+	          workspaceRoot: string
+	        ) => Promise<IFileAnalysisResult | null>;
+	        analyzeFileResultForPlugins: (
+	          absolutePath: string,
+	          content: string,
+	          workspaceRoot: string,
+	          pluginIds: readonly string[]
+	        ) => Promise<IFileAnalysisResult | null>;
+	      };
+	      _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
+	    };
+	    const file = createDiscoveredFile('src/index.py');
+	    vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });
+	    vi.spyOn(analyzerPrivate._discovery, 'readContent').mockResolvedValue('print("hi")');
+	    const analyzeFileSpy = vi.spyOn(analyzerPrivate._registry, 'analyzeFileResult')
+	      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
+	    const analyzePluginFileSpy = vi.spyOn(analyzerPrivate._registry, 'analyzeFileResultForPlugins')
+	      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
 
-    await analyzerPrivate._analyzeFiles(
-      [file],
+	    await analyzerPrivate._analyzeFiles(
+	      [file],
       '/test/workspace',
       undefined,
       undefined,
       ['codegraphy.python'],
     );
 
-    expect(readCacheTiers(analyzerPrivate._cache.files['src/index.py'].analysis)).toEqual([
-      BASELINE_ANALYSIS_CACHE_TIER,
-      createPluginAnalysisCacheTier('codegraphy.python'),
-    ]);
-  });
-});
+	    expect(readCacheTiers(analyzerPrivate._cache.files['src/index.py'].analysis)).toEqual([
+	      BASELINE_ANALYSIS_CACHE_TIER,
+	      createPluginAnalysisCacheTier('codegraphy.python'),
+	    ]);
+	    expect(analyzePluginFileSpy).toHaveBeenCalledWith(
+	      file.absolutePath,
+	      'print("hi")',
+	      '/test/workspace',
+	      ['codegraphy.python'],
+	    );
+	    expect(analyzeFileSpy).not.toHaveBeenCalled();
+	  });
+	});

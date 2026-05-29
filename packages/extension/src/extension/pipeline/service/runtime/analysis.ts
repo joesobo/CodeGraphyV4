@@ -33,6 +33,7 @@ export async function analyzeWorkspacePipelineDiscoveredFiles(
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
   cacheTiers?: AnalysisCacheTierOptions,
+  pluginIds?: readonly string[],
 ): Promise<IWorkspaceFileAnalysisResult> {
   return analyzeWorkspacePipelineFiles(
     cache,
@@ -45,5 +46,6 @@ export async function analyzeWorkspacePipelineDiscoveredFiles(
     onProgress,
     signal,
     cacheTiers,
+    pluginIds,
   );
 }

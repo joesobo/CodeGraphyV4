@@ -33,6 +33,21 @@ async function applyGraphControlsUpdate(
   return true;
 }
 
+function isSymbolDependentNodeType(nodeType: string): boolean {
+  return nodeType === 'variable'
+    || nodeType.startsWith('symbol:')
+    || (nodeType.startsWith('plugin:') && nodeType.includes(':symbol:'));
+}
+
+async function enableSymbolContainsEdges(
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<void> {
+  await handlers.updateConfig('edgeVisibility', {
+    ...handlers.getConfig<Record<string, boolean>>('edgeVisibility', {}),
+    contains: true,
+  });
+}
+
 async function applySymbolVisibilityUpdate(
   visible: boolean,
   handlers: GraphViewSettingsMessageHandlers,
@@ -48,10 +63,7 @@ async function applySymbolVisibilityUpdate(
   await handlers.updateConfig('nodeVisibility', nodeVisibility);
 
   if (visible) {
-    await handlers.updateConfig('edgeVisibility', {
-      ...handlers.getConfig<Record<string, boolean>>('edgeVisibility', {}),
-      contains: true,
-    });
+    await enableSymbolContainsEdges(handlers);
   }
 
   handlers.recomputeGroups();
@@ -66,6 +78,34 @@ async function applySymbolVisibilityUpdate(
   return true;
 }
 
+async function applySymbolDependentVisibilityUpdate(
+  nodeType: string,
+  visible: boolean,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  if (!visible) {
+    return applyGraphControlsUpdate('nodeVisibility', nodeType, false, handlers);
+  }
+
+  const nodeVisibility: Record<string, boolean> = {
+    ...pruneGraphControlConfigMap(
+      'nodeVisibility',
+      handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+    ),
+    symbol: true,
+    [nodeType]: true,
+  };
+
+  await handlers.updateConfig('nodeVisibility', nodeVisibility);
+  await enableSymbolContainsEdges(handlers);
+
+  handlers.recomputeGroups();
+  handlers.sendGroupsUpdated();
+  handlers.sendGraphControls();
+  await handlers.reprocessGraphScope();
+  return true;
+}
+
 export async function applyGraphControlMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewSettingsMessageHandlers,
@@ -73,6 +113,14 @@ export async function applyGraphControlMessage(
   if (message.type === 'UPDATE_NODE_VISIBILITY') {
     if (message.payload.nodeType === 'symbol') {
       return applySymbolVisibilityUpdate(message.payload.visible, handlers);
+    }
+
+    if (isSymbolDependentNodeType(message.payload.nodeType)) {
+      return applySymbolDependentVisibilityUpdate(
+        message.payload.nodeType,
+        message.payload.visible,
+        handlers,
+      );
     }
 
     return applyGraphControlsUpdate(

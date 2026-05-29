@@ -89,6 +89,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     const pluginInfos = this._registry
       .list()
       .filter(({ plugin }) => selectedPluginIds.has(plugin.id));
+    const registeredPluginIds = pluginInfos.map(({ plugin }) => plugin.id);
     if (pluginInfos.length === 0) {
       return this._buildGraphDataFromAnalysis(
         this._lastFileAnalysis,
@@ -141,7 +142,7 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
           });
         },
         signal,
-        pluginIds,
+        registeredPluginIds,
       );
 
       for (const [filePath, analysis] of analysisResult.fileAnalysis) {

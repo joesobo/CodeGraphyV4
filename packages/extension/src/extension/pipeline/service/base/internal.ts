@@ -70,6 +70,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
         this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
         pluginCacheTierIds,
       ),
+      pluginCacheTierIds,
     );
   }
 
