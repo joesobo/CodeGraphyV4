@@ -40,7 +40,7 @@ vi.mock('../../../../src/webview/components/graph/viewport/view', () => ({
 	},
 }));
 
-function createGraphData(): GraphRuntime['graphData'] {
+function createGraphData(): GraphRuntime['renderer']['graphData'] {
 	return {
 		nodes: [
 			{
@@ -83,7 +83,7 @@ function createGraphData(): GraphRuntime['graphData'] {
 	};
 }
 
-function createGraphState(graphData: GraphRuntime['graphData']): GraphRuntime {
+function createGraphState(graphData: GraphRuntime['renderer']['graphData']): GraphRuntime {
 	const dataRefCurrent: IGraphData = {
 		nodes: graphData.nodes.map(node => ({ id: node.id, label: node.label, color: node.color })),
 		edges: graphData.links.map(link => ({
@@ -313,7 +313,7 @@ describe('graph/viewport/shell', () => {
 	it('wires rendering runtime, viewport model, and the Viewport component', () => {
 		const graphData = createGraphData();
 		const graphState = createGraphState(graphData);
-		graphState.fg2dRef.current = {
+		graphState.renderer.fg2dRef.current = {
 			graph2ScreenCoords: (x: number, y: number) => ({ x: x + 10, y: y + 20 }),
 			screen2GraphCoords: (x: number, y: number) => ({ x: x - 10, y: y - 20 }),
 			zoom: () => 1.75,
@@ -341,28 +341,28 @@ describe('graph/viewport/shell', () => {
 		);
 
 		expect(harness.useGraphRenderingRuntime).toHaveBeenCalledWith(expect.objectContaining({
-			containerRef: graphState.containerRef,
+			containerRef: graphState.renderer.containerRef,
 			dataRef: graphState.dataRef,
-			fg2dRef: graphState.fg2dRef,
-			fg3dRef: graphState.fg3dRef,
+			fg2dRef: graphState.renderer.fg2dRef,
+			fg3dRef: graphState.renderer.fg3dRef,
 			getArrowColor: callbacks.getArrowColor,
 			getArrowRelPos: callbacks.getArrowRelPos,
 			getLinkParticles: callbacks.getLinkParticles,
 			getParticleColor: callbacks.getParticleColor,
-			graphDataRef: graphState.graphDataRef,
+			graphDataRef: graphState.renderer.graphDataRef,
 			graphDataLayoutKey: 'connections::',
 			graphViewContributions: undefined,
 			graphMode: '3d',
-			meshesRef: graphState.meshesRef,
+			meshesRef: graphState.renderCaches.meshesRef,
 			nodeSizeMode: 'connections',
 			particleSize: 3,
 			particleSpeed: 0.2,
 			physicsPaused: false,
 			physicsSettings: viewState.physicsSettings,
 			pluginHost,
-			selectedNodesSetRef: graphState.selectedNodesSetRef,
+			selectedNodesSetRef: graphState.selection.selectedNodeIdsRef,
 			showLabels: true,
-			spritesRef: graphState.spritesRef,
+			spritesRef: graphState.renderCaches.spritesRef,
 			theme: 'light',
 			favorites: viewState.favorites,
 			timelineActive: true,
@@ -370,7 +370,7 @@ describe('graph/viewport/shell', () => {
 		}));
 		expect(harness.useGraphViewportModel).toHaveBeenCalledWith(expect.objectContaining({
 			graphState: {
-				contextSelection: graphState.contextSelection,
+				contextSelection: graphState.context.selection,
 				graphData,
 			},
 			handleEngineStop,
@@ -379,15 +379,15 @@ describe('graph/viewport/shell', () => {
 			viewportRuntime: expect.objectContaining({ containerSize: { height: 320, width: 480 } }),
 		}));
 		expect(harness.useGraphEventEffects).toHaveBeenCalledWith(expect.objectContaining({
-			containerRef: graphState.containerRef,
+			containerRef: graphState.renderer.containerRef,
 			dataRef: graphState.dataRef,
 			directionColorRef: graphState.directionColorRef,
 			directionModeRef: graphState.directionModeRef,
-			graphDataRef: graphState.graphDataRef,
+			graphDataRef: graphState.renderer.graphDataRef,
 			graphMode: '3d',
 			interactionHandlers: interactions.interactionHandlers,
-			fileInfoCacheRef: graphState.fileInfoCacheRef,
-			selectedNodes: graphState.selectedNodes,
+			fileInfoCacheRef: graphState.renderCaches.fileInfoCacheRef,
+			selectedNodes: graphState.selection.selectedNodeIds,
 			setTooltipData: interactions.setTooltipData,
 			showLabelsRef: graphState.showLabelsRef,
 			themeRef: graphState.themeRef,
@@ -397,7 +397,7 @@ describe('graph/viewport/shell', () => {
 			canvasBackgroundColor: 'transparent',
 			containerBackgroundColor: 'var(--cg-popover-translucent)',
 			borderColor: 'rgb(63, 63, 70)',
-			containerRef: graphState.containerRef,
+			containerRef: graphState.renderer.containerRef,
 			directionMode: 'arrows',
 			graphMode: '3d',
 			handleContextMenu: interactions.handleContextMenu,
@@ -410,7 +410,7 @@ describe('graph/viewport/shell', () => {
 			onSurface3dError: expect.any(Function),
 			pluginHost,
 			surface2dProps: expect.objectContaining({
-				fg2dRef: graphState.fg2dRef,
+				fg2dRef: graphState.renderer.fg2dRef,
 				getArrowColor: callbacks.getArrowColor,
 				getLinkColor: callbacks.getLinkColor,
 				getParticleColor: callbacks.getParticleColor,
@@ -420,7 +420,7 @@ describe('graph/viewport/shell', () => {
 				sharedProps: expect.objectContaining({ dagMode: 'td' }),
 			}),
 			surface3dProps: expect.objectContaining({
-				fg3dRef: graphState.fg3dRef,
+				fg3dRef: graphState.renderer.fg3dRef,
 				getArrowColor: callbacks.getArrowColor,
 				getLinkColor: callbacks.getLinkColor,
 				getParticleColor: callbacks.getParticleColor,
@@ -456,7 +456,7 @@ describe('graph/viewport/shell', () => {
 		const graphState = createGraphState(graphData);
 		const reheatSimulation = vi.fn();
 		const resumeAnimation = vi.fn();
-		graphState.fg2dRef.current = {
+		graphState.renderer.fg2dRef.current = {
 			d3ReheatSimulation: reheatSimulation,
 			graph2ScreenCoords: (x: number, y: number) => ({ x, y }),
 			resumeAnimation,
@@ -504,7 +504,7 @@ describe('graph/viewport/shell', () => {
 			x: 42,
 			y: 24,
 		})).toBe(true);
-		expect(graphState.graphDataRef.current.nodes[0]).toMatchObject({
+		expect(graphState.renderer.graphDataRef.current.nodes[0]).toMatchObject({
 			fx: 42,
 			fy: 24,
 			sectionHeight: 144,

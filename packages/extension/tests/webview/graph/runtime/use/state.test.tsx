@@ -142,27 +142,16 @@ describe('graph/runtime/useGraphRuntime', () => {
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledWith(expect.objectContaining({
       previousNodes: [],
     }));
-    expect(result.current.containerRef.current).toBeNull();
-    expect(result.current.fg2dRef.current).toBeUndefined();
-    expect(result.current.fg3dRef.current).toBeUndefined();
-    expect(result.current.renderer.containerRef).toBe(result.current.containerRef);
-    expect(result.current.renderer.fg2dRef).toBe(result.current.fg2dRef);
-    expect(result.current.renderer.fg3dRef).toBe(result.current.fg3dRef);
-    expect(result.current.renderer.graphDataRef).toBe(result.current.graphDataRef);
-    expect(result.current.renderer.graphData).toBe(result.current.graphData);
+    expect(result.current.renderer.containerRef.current).toBeNull();
+    expect(result.current.renderer.fg2dRef.current).toBeUndefined();
+    expect(result.current.renderer.fg3dRef.current).toBeUndefined();
     expect(result.current.graphCursorRef.current).toBe('default');
-    expect(result.current.graphDataRef.current).toBe(result.current.graphData);
-    expect(result.current.imageCacheVersion).toBe(0);
+    expect(result.current.renderer.graphDataRef.current).toBe(result.current.renderer.graphData);
+    expect(result.current.renderCaches.imageCacheVersion).toBe(0);
     expect(result.current.highlightedNeighborsRef.current).toEqual(new Set());
-    expect(result.current.selectedNodes).toEqual([]);
-    expect(result.current.selectedNodesSetRef.current).toEqual(new Set());
-    expect(result.current.contextSelection).toEqual({ kind: 'background', targets: [] });
+    expect(result.current.selection.selectedNodeIds).toEqual([]);
+    expect(result.current.selection.selectedNodeIdsRef.current).toEqual(new Set());
     expect(result.current.context.selection).toEqual({ kind: 'background', targets: [] });
-    expect(result.current.context.setSelection).toBe(result.current.setContextSelection);
-    expect(result.current.renderCaches.fileInfoCacheRef).toBe(result.current.fileInfoCacheRef);
-    expect(result.current.renderCaches.meshesRef).toBe(result.current.meshesRef);
-    expect(result.current.renderCaches.spritesRef).toBe(result.current.spritesRef);
-    expect(result.current.renderCaches.invalidateImages).toBe(result.current.triggerImageRerender);
   });
 
   it('updates mutable refs across rerender without rebuilding graph data for non-memo inputs', () => {
@@ -178,7 +167,7 @@ describe('graph/runtime/useGraphRuntime', () => {
       (options: GraphRuntimeOptions) => useGraphRuntime(options),
       { initialProps: initialOptions },
     );
-    const firstGraphData = result.current.graphData;
+    const firstGraphData = result.current.renderer.graphData;
 
     rerender(createOptions({
       data: initialOptions.data,
@@ -194,7 +183,7 @@ describe('graph/runtime/useGraphRuntime', () => {
     }));
 
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
-    expect(result.current.graphData).toBe(firstGraphData);
+    expect(result.current.renderer.graphData).toBe(firstGraphData);
     expect(result.current.themeRef.current).toBe('light');
     expect(result.current.directionModeRef.current).toBe('particles');
     expect(result.current.directionColorRef.current).toBe('#f59e0b');
@@ -235,8 +224,8 @@ describe('graph/runtime/useGraphRuntime', () => {
       data: secondData,
       previousNodes: firstGraph.nodes,
     }));
-    expect(result.current.graphData).toBe(secondGraph);
-    expect(result.current.graphDataRef.current).toBe(secondGraph);
+    expect(result.current.renderer.graphData).toBe(secondGraph);
+    expect(result.current.renderer.graphDataRef.current).toBe(secondGraph);
   });
 
   it('clears selected nodes that are no longer visible after graph data changes', () => {
@@ -325,22 +314,22 @@ describe('graph/runtime/useGraphRuntime', () => {
   it('triggerImageRerender causes a rerender without rebuilding graph data', () => {
     const options = createOptions();
     const { result } = renderHook(() => useGraphRuntime(options));
-    const firstGraphData = result.current.graphData;
+    const firstGraphData = result.current.renderer.graphData;
 
     act(() => {
       result.current.renderCaches.invalidateImages();
     });
 
-    expect(result.current.imageCacheVersion).toBe(1);
+    expect(result.current.renderCaches.imageCacheVersion).toBe(1);
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
-    expect(result.current.graphData).toBe(firstGraphData);
+    expect(result.current.renderer.graphData).toBe(firstGraphData);
 
     act(() => {
       result.current.renderCaches.invalidateImages();
     });
 
-    expect(result.current.imageCacheVersion).toBe(2);
+    expect(result.current.renderCaches.imageCacheVersion).toBe(2);
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
-    expect(result.current.graphData).toBe(firstGraphData);
+    expect(result.current.renderer.graphData).toBe(firstGraphData);
   });
 });

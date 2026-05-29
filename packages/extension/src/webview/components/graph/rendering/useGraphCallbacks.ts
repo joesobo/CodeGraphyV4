@@ -32,13 +32,14 @@ export interface UseGraphCallbacksOptions {
     | 'graphAppearanceRef'
     | 'highlightedNeighborsRef'
     | 'highlightedNodeRef'
-    | 'meshesRef'
     | 'nodeDecorationsRef'
-    | 'selectedNodesSetRef'
     | 'showLabelsRef'
-    | 'spritesRef'
     | 'themeRef'
-  >;
+  > & {
+    meshesRef: GraphRuntime['renderCaches']['meshesRef'];
+    selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];
+    spritesRef: GraphRuntime['renderCaches']['spritesRef'];
+  };
   triggerImageRerender(this: void): void;
 }
 

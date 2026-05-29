@@ -24,10 +24,10 @@ export interface ViewportPanDragState {
 }
 
 export interface GraphViewportPanRuntimeOptions {
-  containerRef: GraphRuntime['containerRef'];
-  fg2dRef: GraphRuntime['fg2dRef'];
+  containerRef: GraphRuntime['renderer']['containerRef'];
+  fg2dRef: GraphRuntime['renderer']['fg2dRef'];
   graphMode: '2d' | '3d';
-  rightMouseDownRef: GraphRuntime['rightMouseDownRef'];
+  rightMouseDownRef: GraphRuntime['context']['rightMouseDownRef'];
   suppressContextMenu(this: void): void;
 }
 
@@ -45,7 +45,7 @@ function isViewportPanButton(event: ReactMouseEvent<HTMLDivElement>): boolean {
 
 export function createViewportPanDragState(
   event: ReactMouseEvent<HTMLDivElement>,
-  graph: GraphRuntime['fg2dRef']['current'],
+  graph: GraphRuntime['renderer']['fg2dRef']['current'],
   container: HTMLDivElement | null,
 ): ViewportPanDragState {
   return {

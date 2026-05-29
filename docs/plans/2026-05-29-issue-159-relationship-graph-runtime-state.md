@@ -47,6 +47,7 @@ Move toward a runtime module that exposes behavior-oriented surfaces, such as:
 - Return one named Graph View runtime object made of explicit facets, such as `selection`, `renderer`, `contextSelection`, and `renderCaches`. Avoid a flat `UseGraphStateResult` bag of refs, but also avoid one vague runtime object with unrelated behavior mixed together.
 - Keep raw `react-force-graph` refs at the adapter edge only. Rendering surfaces and renderer lifecycle code may receive raw `fg2dRef`, `fg3dRef`, and container refs when they call the force-graph imperative API directly. Interaction, debug, viewport model, callbacks, and Graph View composition should receive behavior-oriented runtime facets unless they have a concrete renderer integration reason to use refs.
 - Treat the exported boundary as a Graph View runtime model, not a React hook result type. A hook such as `useGraphRuntime` can construct the model, but callers should depend on domain-shaped types such as `GraphRuntime` and explicit runtime facets rather than `UseGraphStateResult`.
+- No ADR is needed for this slice. The change is local to the Graph View runtime boundary, is reversible through ordinary refactoring, and does not introduce a hard-to-reverse product or package contract decision.
 
 ## First Slice Candidate
 
@@ -57,3 +58,14 @@ Start with tests around the behavior that currently leaks through `UseGraphState
 - image cache invalidation is triggered through a named behavior rather than exposed setter details
 
 Then narrow the interface exposed from `useGraphState` enough that `Graph` no longer passes every individual state ref by hand.
+
+## Implemented Shape
+
+The runtime hook is now `useGraphRuntime`, returning a `GraphRuntime` model with explicit facets:
+
+- `renderer` owns force-graph refs and runtime graph data.
+- `selection` owns selected node ids, the selected-node ref, and selection updates.
+- `context` owns context selection and right-click/context-menu lifecycle refs.
+- `renderCaches` owns file info, sprite, mesh, and image invalidation cache behavior.
+
+Graph View composition now consumes these facets when wiring interaction, auto-fit, debug, callbacks, and viewport rendering. The focused TDD slice covers selection pruning through `runtime.selection` and render-cache image invalidation through `runtime.renderCaches`.

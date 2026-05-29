@@ -43,7 +43,7 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
 	postMessage: harness.postMessage,
 }));
 
-function createGraphData(): GraphRuntime['graphData'] {
+function createGraphData(): GraphRuntime['renderer']['graphData'] {
 	return {
 		nodes: [{
 			baseOpacity: 1,
@@ -257,7 +257,7 @@ describe('graph/viewport/model', () => {
 				{ id: 'src/next.ts', label: 'next.ts', color: '#f59e0b' } as never,
 			],
 			links: [],
-		} as GraphRuntime['graphData'];
+		} as GraphRuntime['renderer']['graphData'];
 
 		rerender({
 			nextGraphData,

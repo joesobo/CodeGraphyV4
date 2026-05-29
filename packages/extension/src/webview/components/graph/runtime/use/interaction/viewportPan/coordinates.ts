@@ -4,7 +4,7 @@ import { isFiniteNumber } from '../positions';
 import type { ViewportPanDragState } from './state';
 
 export function readViewportPanCenter(
-  graph: GraphRuntime['fg2dRef']['current'],
+  graph: GraphRuntime['renderer']['fg2dRef']['current'],
   container: HTMLDivElement | null,
 ): { x: number; y: number } {
   const rect = container?.getBoundingClientRect();
@@ -17,7 +17,7 @@ export function readViewportPanCenter(
 }
 
 export function readViewportPanZoom(
-  graph: GraphRuntime['fg2dRef']['current'],
+  graph: GraphRuntime['renderer']['fg2dRef']['current'],
 ): number {
   const zoom = graph?.zoom?.();
   return isFiniteNumber(zoom) && zoom !== 0 ? zoom : 1;
@@ -26,7 +26,7 @@ export function readViewportPanZoom(
 export function applyViewportPanDrag(
   drag: ViewportPanDragState,
   current: MarqueePoint,
-  graph: GraphRuntime['fg2dRef']['current'],
+  graph: GraphRuntime['renderer']['fg2dRef']['current'],
 ): void {
   graph?.centerAt?.(
     drag.center.x - ((current.x - drag.start.x) / drag.zoom),

@@ -35,16 +35,16 @@ export interface GraphContextMenuOpeningRuntime {
 }
 
 export interface GraphContextMenuOpeningOptions {
-  fileInfoCacheRef: GraphRuntime['fileInfoCacheRef'];
+  fileInfoCacheRef: GraphRuntime['renderCaches']['fileInfoCacheRef'];
   getActionContext(): GraphContextActionContext;
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
-  lastContainerContextMenuEventRef: GraphRuntime['lastContainerContextMenuEventRef'];
-  lastGraphContextEventRef: GraphRuntime['lastGraphContextEventRef'];
+  lastContainerContextMenuEventRef: GraphRuntime['context']['lastContainerContextMenuEventRef'];
+  lastGraphContextEventRef: GraphRuntime['context']['lastGraphContextEventRef'];
   openFilterPatternPrompt?: (patterns: string[]) => void;
   openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   refs: Pick<
-    GraphRuntime,
+    GraphRuntime['context'],
     | 'rightClickFallbackTimerRef'
     | 'rightMouseDownRef'
   >;
