@@ -15,6 +15,7 @@ export function createGraphViewProviderPublicMethodDelegates(
     | 'refreshIndex'
     | 'refreshChangedFiles'
     | 'clearCacheAndRefresh'
+    | 'invalidatePluginFiles'
     | '_notifyExtensionMessage'
   > {
   return {
@@ -26,6 +27,7 @@ export function createGraphViewProviderPublicMethodDelegates(
     refreshIndex: () => owner._methodContainers.refresh.refreshIndex(),
     refreshChangedFiles: filePaths => owner._methodContainers.refresh.refreshChangedFiles(filePaths),
     clearCacheAndRefresh: () => owner._methodContainers.refresh.clearCacheAndRefresh(),
+    invalidatePluginFiles: pluginIds => owner.invalidatePluginFiles(pluginIds),
     _notifyExtensionMessage: message => owner._notifyExtensionMessage(message),
   };
 }

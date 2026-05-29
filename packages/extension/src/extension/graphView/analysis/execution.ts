@@ -19,6 +19,11 @@ interface GraphViewAnalyzerLike {
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
   ): Promise<IGraphData>;
+  loadCachedGraph?(
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+  ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],
     disabledPlugins?: Set<string>,

@@ -59,7 +59,14 @@ export function createGraphViewProviderExternalPluginRegistration(
         sendGraphViewContributionStatuses: () => broadcasts._sendGraphViewContributionStatuses(),
         sendPluginWebviewInjections: () => broadcasts._sendPluginWebviewInjections(),
         invalidateTimelineCache: () => source._invalidateTimelineCache(),
-        analyzeAndSendData: () => source._analyzeAndSendData(),
+        reprocessPluginFiles: async (pluginIds) => {
+          const invalidatedFilePaths = source.invalidatePluginFiles(pluginIds);
+          if (invalidatedFilePaths.length === 0) {
+            return;
+          }
+
+          await source.refreshChangedFiles(invalidatedFilePaths);
+        },
       },
     );
   };

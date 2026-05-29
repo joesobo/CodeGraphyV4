@@ -84,6 +84,15 @@ export function buildWorkspacePipelineGraphData(
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
 ): IGraphData {
+  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
+  const effectiveDisabledPlugins = new Set(disabledPlugins);
+  for (const connections of fileConnections.values()) {
+    for (const connection of connections) {
+      if (connection.pluginId && !activePluginIds.has(connection.pluginId)) {
+        effectiveDisabledPlugins.add(connection.pluginId);
+      }
+    }
+  }
   const source: WorkspacePipelineGraphSource = {
     _cache: cache,
     _lastDiscoveredDirectories: directoryPaths,
@@ -99,9 +108,34 @@ export function buildWorkspacePipelineGraphData(
     fileConnections,
     workspaceRoot,
     showOrphans,
-    disabledPlugins,
+    effectiveDisabledPlugins,
     churnCounts,
   );
+}
+
+function filterWorkspacePipelineAnalysisByActivePlugins(
+  fileAnalysis: Map<string, IFileAnalysisResult>,
+  activePluginIds: ReadonlySet<string>,
+  disabledPlugins: ReadonlySet<string>,
+): Map<string, IFileAnalysisResult> {
+  const filtered = new Map<string, IFileAnalysisResult>();
+
+  for (const [filePath, analysis] of fileAnalysis.entries()) {
+    const relations = analysis.relations ?? [];
+    const activeRelations = relations.filter(relation =>
+      !relation.pluginId
+      || (activePluginIds.has(relation.pluginId) && !disabledPlugins.has(relation.pluginId)),
+    );
+
+    filtered.set(
+      filePath,
+      activeRelations.length === relations.length
+        ? analysis
+        : { ...analysis, relations: activeRelations },
+    );
+  }
+
+  return filtered;
 }
 
 export function buildWorkspacePipelineGraphDataFromAnalysis(
@@ -114,6 +148,12 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
 ): IGraphData {
+  const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
+  const visibleFileAnalysis = filterWorkspacePipelineAnalysisByActivePlugins(
+    fileAnalysis,
+    activePluginIds,
+    disabledPlugins,
+  );
   const source: WorkspacePipelineGraphSource = {
     _cache: cache,
     _lastDiscoveredDirectories: directoryPaths,
@@ -129,7 +169,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
     churnCounts,
     directoryPaths: source._lastDiscoveredDirectories ?? [],
     disabledPlugins,
-    fileAnalysis,
+    fileAnalysis: visibleFileAnalysis,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),
     showOrphans,
     workspaceRoot,

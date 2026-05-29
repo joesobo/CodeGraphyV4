@@ -203,8 +203,12 @@ The workspace-local LadybugDB graph data at `<workspace-root>/.codegraphy/graph.
 _Avoid_: Saved index, saved DB, CodeGraphy database when speaking in domain terms
 
 **Live Update**:
-An incremental graph update from repo changes after indexing has already produced a cache.
+An incremental graph update from CodeGraphy Workspace changes after indexing has already produced a cache.
 _Avoid_: Re-index, refresh
+
+**Graph Cache Sync**:
+A background catch-up pass that runs after cached graph data has already been rendered. Graph Cache Sync compares the workspace-local Graph Cache with current runtime inputs such as enabled plugins, plugin signatures, settings signatures, schema metadata, and pending changed files, then updates graph data without replacing the whole Graph View with a loading state.
+_Avoid_: Re-index when a readable cache is already being shown, reconciliation
 
 **Refresh**:
 A user-triggered graph rerender that re-runs the force graph simulation without reprocessing graph data.
@@ -459,9 +463,11 @@ _Avoid_: Graph export
 - Structured data and styling formats such as JSON and CSS are outside **Core Tree-sitter Language Coverage** unless a separate relationship model is defined for them.
 - C and C++ **Core Tree-sitter Language Coverage** should include local include relationships, useful code symbols, examples, and docs; full compiler include-path semantics, macros, templates, and conditional compilation are deeper project-aware work.
 - **Graph Projection** produces the **Relationship Graph** data that later flows through **Graph Scope**, **Filter**, **Search**, and view settings.
-- **Graph Cache** stores indexed graph data so reopening the repo does not require full **Indexing**.
+- **Graph Cache** stores indexed graph data so reopening the CodeGraphy Workspace does not require full **Indexing**.
 - **Live Updates** keep the **Graph Cache** and graph data current as files change.
+- **Graph Cache Sync** keeps a readable but out-of-date **Graph Cache** useful by rendering cached graph data first, then updating it in the background.
 - Any graph-changing update from added files, renamed files, changed code, or settings that affect graph data should be saved to **Graph Cache**.
+- A stale status is a reporting signal that **Graph Cache Sync** is needed; it does not mean the **Graph Cache** should be cleared or hidden.
 - **CodeGraphy MCP** is a lightweight command and query adapter; the **Core Package** owns **Graph Cache** access, **Indexing**, plugin wiring, and Graph Query execution.
 - **CodeGraphy MCP** runs against the current or explicit **CodeGraphy Workspace** path and should not require a prior repo selection or VS Code focus for normal Indexing and Graph Query.
 - **CodeGraphy MCP** should not be limited to the **Visible Graph**; it should ask the **Core Package** for **Relationship Graph** data and allow agent queries to apply **Graph Scope**, **Filter**, and **Search** to reduce noise.
@@ -470,6 +476,7 @@ _Avoid_: Graph export
 - **Refresh Graph** and **Re-index Workspace** should be distinct UI actions.
 - **Refresh** only reruns the force graph simulation and does not process source data.
 - **Re-index** reruns **Indexing**, updates graph data, persists it to **Graph Cache**, and then **Refreshes** the graph.
+- The Graph View can show `Loading graph...` before the first graph render for a webview page. After the first render, later **Graph Cache Sync**, **Live Update**, or **Re-index** work should keep the current **Visible Graph** rendered and use graph-local progress.
 - CodeGraphy has two **Views**: the **Graph View** and the **Timeline View**.
 - The **Graph View** contains the **Visible Graph**, search, filters, popups, settings UI, and overlay controls.
 - The **Visible Graph** is graph data shown inside the **Graph View**, not the whole view.

@@ -14,5 +14,5 @@ export function shouldRefreshGraphIndex(
 ): boolean {
   return mode === 'index'
     || mode === 'refresh'
-    || (freshness === 'stale' && (mode === 'load' || mode === 'analyze'));
+    || (freshness === 'stale' && mode === 'load');
 }

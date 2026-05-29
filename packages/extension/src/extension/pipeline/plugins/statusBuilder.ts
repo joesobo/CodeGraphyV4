@@ -23,6 +23,42 @@ export interface IWorkspacePluginStatusOptions {
   workspaceEnabledPackageNames?: ReadonlySet<string>;
 }
 
+function shouldReplaceDuplicatePluginStatus(
+  existing: IPluginStatus,
+  next: IPluginStatus,
+): boolean {
+  if (existing.enabled !== next.enabled) {
+    return next.enabled;
+  }
+
+  if (existing.status === 'unavailable' && next.status !== 'unavailable') {
+    return true;
+  }
+
+  return false;
+}
+
+function dedupePluginStatuses(statuses: readonly IPluginStatus[]): IPluginStatus[] {
+  const deduped: IPluginStatus[] = [];
+  const indexById = new Map<string, number>();
+
+  for (const status of statuses) {
+    const existingIndex = indexById.get(status.id);
+    if (existingIndex === undefined) {
+      indexById.set(status.id, deduped.length);
+      deduped.push(status);
+      continue;
+    }
+
+    const existing = deduped[existingIndex];
+    if (shouldReplaceDuplicatePluginStatus(existing, status)) {
+      deduped[existingIndex] = status;
+    }
+  }
+
+  return deduped;
+}
+
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
   const {
     disabledPlugins,
@@ -55,7 +91,7 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
   }
 
   if (installedPlugins.length === 0) {
-    return registeredStatusesInPluginOrder;
+    return dedupePluginStatuses(registeredStatusesInPluginOrder);
   }
 
   const statuses: IPluginStatus[] = [];
@@ -78,5 +114,5 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
     statuses.push(status);
   }
 
-  return statuses;
+  return dedupePluginStatuses(statuses);
 }

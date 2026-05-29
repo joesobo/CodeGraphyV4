@@ -13,6 +13,7 @@ describe('source/delegates/public', () => {
     await delegates.setDepthLimit(4);
     expect(await delegates.undo()).toBe('undo');
     expect(await delegates.redo()).toBe('redo');
+    expect(delegates.invalidatePluginFiles(['plugin.test'])).toEqual(['src/app.ts']);
     delegates._notifyExtensionMessage({ type: 'EXTENSION_MESSAGE' });
 
     expect(owner._viewSelectionMethods.setDepthMode).toHaveBeenCalledWith(true);
@@ -20,6 +21,7 @@ describe('source/delegates/public', () => {
     expect(owner._viewSelectionMethods.setDepthLimit).toHaveBeenCalledWith(4);
     expect(owner._commandMethods.undo).toHaveBeenCalledTimes(1);
     expect(owner._commandMethods.redo).toHaveBeenCalledTimes(1);
+    expect(owner.invalidatePluginFiles).toHaveBeenCalledWith(['plugin.test']);
     expect(owner._notifyExtensionMessage).toHaveBeenCalledWith({
       type: 'EXTENSION_MESSAGE',
     });

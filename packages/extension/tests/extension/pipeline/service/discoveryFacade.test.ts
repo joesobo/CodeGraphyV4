@@ -336,4 +336,57 @@ describe('pipeline/service/discoveryFacade', () => {
       total: 5,
     });
   });
+
+  it('loads cached graph data without clearing or reanalyzing the Graph Cache', async () => {
+    const facade = new TestDiscoveryFacade();
+    const disabledPlugins = new Set(['plugin.disabled']);
+    const cachedAnalysis = {
+      filePath: '/workspace/src/cached.ts',
+      relations: [],
+    };
+    facade._cache = {
+      version: 'test',
+      files: {
+        'src/cached.ts': {
+          mtime: 1,
+          analysis: cachedAnalysis,
+        },
+      },
+    } as never;
+    const buildGraphDataFromAnalysis = vi
+      .spyOn(
+        facade as unknown as {
+          _buildGraphDataFromAnalysis: (...args: unknown[]) => unknown;
+        },
+        '_buildGraphDataFromAnalysis',
+      )
+      .mockReturnValue({
+        nodes: [{ id: 'src/cached.ts', label: 'cached.ts', color: '#333333' }],
+        edges: [],
+      });
+
+    await expect(
+      facade.loadCachedGraph(['dist/**'], disabledPlugins, new AbortController().signal),
+    ).resolves.toEqual({
+      nodes: [{ id: 'src/cached.ts', label: 'cached.ts', color: '#333333' }],
+      edges: [],
+    });
+
+    expect(facade.clearCache).not.toHaveBeenCalled();
+    expect(analyzeWorkspacePipeline).not.toHaveBeenCalled();
+    expect(buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      new Map([['src/cached.ts', cachedAnalysis]]),
+      '/workspace',
+      true,
+      disabledPlugins,
+    );
+    expect(discoveryState(facade)._lastDiscoveredFiles).toEqual([
+      {
+        absolutePath: '/workspace/src/cached.ts',
+        extension: '.ts',
+        name: 'cached.ts',
+        relativePath: 'src/cached.ts',
+      },
+    ]);
+  });
 });

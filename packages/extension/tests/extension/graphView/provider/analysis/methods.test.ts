@@ -322,6 +322,53 @@ describe('graphView/provider/analysis/methods', () => {
     expect(runAnalysisRequest).toHaveBeenCalledOnce();
   });
 
+  it('starts stale cache sync in the background after cached load returns', async () => {
+    const source = createSource({
+      _analyzer: {
+        getIndexStatus: vi.fn(() => ({
+          freshness: 'stale',
+          detail: 'CodeGraphy Workspace Graph Cache is stale: enabled plugins changed.',
+        })),
+        loadCachedGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
+        analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+        refreshIndex: vi.fn(async () => ({ nodes: [], edges: [] })),
+        registry: {
+          notifyWorkspaceReady: vi.fn(),
+        },
+      },
+    });
+    const events: string[] = [];
+    let finishCacheSync: (() => void) | undefined;
+    const runAnalysisRequest = vi.fn(async state => {
+      events.push(`${state.mode}:start`);
+      if (state.mode === 'analyze') {
+        await new Promise<void>(resolve => {
+          finishCacheSync = resolve;
+        });
+      }
+      events.push(`${state.mode}:end`);
+    });
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis: vi.fn(async () => undefined),
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+
+    await methods._loadAndSendData();
+    await Promise.resolve();
+
+    expect(events).toEqual(['load:start', 'load:end', 'analyze:start']);
+
+    finishCacheSync?.();
+    await Promise.resolve();
+
+    expect(events).toEqual(['load:start', 'load:end', 'analyze:start', 'analyze:end']);
+  });
+
   it('falls back to the delegate wrappers when source-owned analysis methods are unavailable', async () => {
     const source = createSource({
       _analyzer: undefined,
