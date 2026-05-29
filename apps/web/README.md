@@ -11,4 +11,4 @@ This first Extract Pro slice establishes the workspace package and route contrac
 - `/billing`
 - `/access/:accessKey`
 
-The access route is the host callback surface for returning paid capability state to CodeGraphy hosts and paid plugins. Full UI, auth, and billing implementation belongs to the dedicated website and Pro account follow-up work.
+The access route is the host callback surface for returning paid capability state to CodeGraphy hosts and paid plugins. Full UI, auth, and billing implementation belongs directly in this web app.

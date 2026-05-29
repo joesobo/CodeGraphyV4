@@ -192,7 +192,7 @@ If you see projected file-to-file edges inside the extension codebase, those are
 - `CodeGraphyAccessKey`
 - `CodeGraphyAccessState`
 
-Use Access Provider plugins, such as `@codegraphy/pro`, to report whether paid capabilities are available. Paid plugins declare `requiresAccess` on the plugin or on individual Graph View contributions.
+Hosts and account integrations can report whether paid capabilities are available. Paid plugins declare `requiresAccess` on the plugin or on individual Graph View contributions.
 
 ### Plugin Data (`data.ts`)
 
