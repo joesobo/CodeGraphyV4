@@ -42,6 +42,10 @@ Move toward a runtime module that exposes behavior-oriented surfaces, such as:
 4. What behavior is in scope for the first TDD slice: selection pruning, timeline alpha application, image cache invalidation, or interaction/runtime setup?
 5. Does this refactor need an ADR, or is the trade-off local and reversible enough to live only in this plan and tests?
 
+## Decisions
+
+- Return one named Graph View runtime object made of explicit facets, such as `selection`, `renderer`, `contextSelection`, and `renderCaches`. Avoid a flat `UseGraphStateResult` bag of refs, but also avoid one vague runtime object with unrelated behavior mixed together.
+
 ## First Slice Candidate
 
 Start with tests around the behavior that currently leaks through `UseGraphStateResult`:
