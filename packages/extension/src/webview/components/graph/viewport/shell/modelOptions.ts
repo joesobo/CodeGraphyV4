@@ -2,13 +2,13 @@ import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphAppearance } from '../../appearance/model';
 import type { UseGraphInteractionRuntimeResult } from '../../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../../runtime/use/rendering';
-import type { UseGraphStateResult } from '../../runtime/use/state';
+import type { GraphRuntime } from '../../runtime/use/state';
 import type { GraphViewStoreState } from '../../view/store';
 import { useGraphViewportModel } from '../model';
 
 export interface UseGraphViewportModelOptionsInput {
 	appearance?: GraphAppearance;
-	graphState: UseGraphStateResult;
+	graphState: GraphRuntime;
 	graphViewContributions?: CoreGraphViewContributionSet;
 	interactions: UseGraphInteractionRuntimeResult;
 	handleEngineStop(this: void): void;
@@ -27,8 +27,8 @@ export function useGraphViewportModelOptions({
 }: UseGraphViewportModelOptionsInput) {
 	return useGraphViewportModel({
 		graphState: {
-			contextSelection: graphState.contextSelection,
-			graphData: graphState.graphData,
+			contextSelection: graphState.context.selection,
+			graphData: graphState.renderer.graphData,
 		},
 		graphViewContributions,
 		handleEngineStop,
