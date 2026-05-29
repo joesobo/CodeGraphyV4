@@ -24,6 +24,14 @@ type TypeScriptAliasConfig = {
   paths: TypeScriptPathMapping[];
 };
 
+function isTypeScriptSourceFile(filePath: string): boolean {
+  return TYPESCRIPT_SOURCE_EXTENSIONS.has(path.extname(filePath));
+}
+
+function isTypeScriptConfigFile(filePath: string): boolean {
+  return /^tsconfig(?:\..*)?\.json$/.test(path.basename(filePath));
+}
+
 type TsConfigFile = {
   extends?: string;
   compilerOptions?: {
@@ -168,7 +176,7 @@ async function analyzeTypeScriptAliasImports(
   content: string,
   workspaceRoot: string,
 ): Promise<IFileAnalysisResult> {
-  if (!TYPESCRIPT_SOURCE_EXTENSIONS.has(path.extname(filePath))) {
+  if (!isTypeScriptSourceFile(filePath)) {
     return { filePath, relations: [] };
   }
 
@@ -203,6 +211,8 @@ async function analyzeTypeScriptAliasImports(
  * only contributes ecosystem metadata such as file colors and default filters.
  */
 export function createTypeScriptPlugin(): IPlugin {
+  let typeScriptFiles: string[] = [];
+
   return {
     id: manifest.id,
     name: manifest.name,
@@ -213,6 +223,16 @@ export function createTypeScriptPlugin(): IPlugin {
     fileColors: manifest.fileColors,
     contributeEdgeTypes: () => [TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE],
     analyzeFile: analyzeTypeScriptAliasImports,
+    async onPreAnalyze(files) {
+      typeScriptFiles = files
+        .filter(file => isTypeScriptSourceFile(file.relativePath))
+        .map(file => file.relativePath);
+    },
+    async onFilesChanged(files) {
+      return files.some(file => isTypeScriptConfigFile(file.relativePath))
+        ? typeScriptFiles
+        : undefined;
+    },
   };
 }
 
