@@ -42,3 +42,11 @@ When repo plans conflict, the later dated plan is authoritative unless a newer d
 For this task, `docs/plans/2026-05-13-extract-core-from-extension-package.md` supersedes the older April indexing placement decision. Indexing belongs in the Core Package because Core is CodeGraphy's main engine.
 
 The VS Code extension should render and integrate with VS Code. It should not own Indexing behavior.
+
+### 2. Core Owns Indexing Runtime State
+
+Long-lived indexing state is engine state and belongs in the Core Package.
+
+Core should own the state currently represented by extension facade fields such as `_lastDiscoveredFiles`, `_lastDiscoveredDirectories`, `_lastFileAnalysis`, `_lastFileConnections`, and `_lastWorkspaceRoot`, plus the cache invalidation and graph rebuild state derived from them.
+
+The VS Code extension may keep UI and editor session state such as active webview panels, pending progress notifications, active editor context, and Graph View message subscriptions.
