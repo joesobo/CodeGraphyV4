@@ -1,5 +1,14 @@
 # @codegraphy-dev/extension
 
+## 5.6.2
+
+### Patch Changes
+
+- [#219](https://github.com/joesobo/CodeGraphyV4/pull/219) [`f531820`](https://github.com/joesobo/CodeGraphyV4/commit/f5318208b380a04b5e0f6ddcf3ebab7cd3641769) Thanks [@joesobo](https://github.com/joesobo)! - Keep workspace indexing responsive while rebuilding the Graph Cache from a missing or stale cache.
+
+- Updated dependencies [[`f531820`](https://github.com/joesobo/CodeGraphyV4/commit/f5318208b380a04b5e0f6ddcf3ebab7cd3641769)]:
+  - @codegraphy-dev/core@1.1.1
+
 ## 5.6.1
 
 ### Patch Changes
