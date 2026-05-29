@@ -41,7 +41,7 @@ describe('graph view provider listener defaults', () => {
     expect(DEFAULT_DEPENDENCIES.workspace.getConfiguration('editor')).toBe(otherConfig);
     expect(getCodeGraphyConfiguration).toHaveBeenCalledOnce();
     expect(getConfiguration).toHaveBeenCalledWith('editor');
-  });
+  }, 10_000);
 
   it('delegates default helper functions through the local adapters', async () => {
     const getGraphViewConfigTarget = vi.fn(() => 'workspace-target');

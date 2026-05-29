@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import path from 'path';
 import * as vscode from 'vscode';
-import type { IFileAnalysisResult, IPlugin } from '../../../src/core/plugins/types/contracts';
+import type { IFileAnalysisResult, IPlugin, IPluginAnalysisContext } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import {
   BASELINE_ANALYSIS_CACHE_TIER,
@@ -77,6 +77,20 @@ function createSymbolAnalysisResult(
 
 function readCacheTiers(analysis: IFileAnalysisResult): string[] {
   return (analysis as IFileAnalysisResult & { cache?: { tiers?: string[] } }).cache?.tiers ?? [];
+}
+
+function expectWorkspaceAnalysisContext(symbols: boolean): IPluginAnalysisContext {
+  return expect.objectContaining({
+    mode: 'workspace',
+    features: { symbols },
+    fileSystem: expect.objectContaining({
+      exists: expect.any(Function),
+      isDirectory: expect.any(Function),
+      isFile: expect.any(Function),
+      listDirectory: expect.any(Function),
+      readTextFile: expect.any(Function),
+    }),
+  }) as IPluginAnalysisContext;
 }
 
 describe('WorkspacePipeline adapters', () => {
@@ -165,7 +179,8 @@ describe('WorkspacePipeline adapters', () => {
         analyzeFileResult: (
           absolutePath: string,
           content: string,
-        workspaceRoot: string
+          workspaceRoot: string,
+          analysisContext: IPluginAnalysisContext,
       ) => Promise<IFileAnalysisResult | null>;
       };
       _config: {
@@ -200,7 +215,12 @@ describe('WorkspacePipeline adapters', () => {
     });
     expect(getFileStatSpy).toHaveBeenCalledWith(file.absolutePath);
     expect(readContentSpy).toHaveBeenCalledWith(file);
-    expect(analyzeFileSpy).toHaveBeenCalledWith(file.absolutePath, "import './utils'", '/test/workspace');
+    expect(analyzeFileSpy).toHaveBeenCalledWith(
+      file.absolutePath,
+      "import './utils'",
+      '/test/workspace',
+      expectWorkspaceAnalysisContext(false),
+    );
     expect(eventBus.emit).toHaveBeenCalledWith('analysis:fileProcessed', {
       filePath: file.relativePath,
       connections: [],
@@ -223,7 +243,8 @@ describe('WorkspacePipeline adapters', () => {
         analyzeFileResult: (
           absolutePath: string,
           content: string,
-          workspaceRoot: string
+          workspaceRoot: string,
+          analysisContext: IPluginAnalysisContext,
         ) => Promise<IFileAnalysisResult | null>;
       };
       _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
@@ -256,47 +277,50 @@ describe('WorkspacePipeline adapters', () => {
       _cache: { files: Record<string, { analysis: IFileAnalysisResult }>; version: string };
       _discovery: { readContent: (file: { relativePath: string }) => Promise<string> };
       _getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
-	      _registry: {
-	        analyzeFileResult: (
-	          absolutePath: string,
-	          content: string,
-	          workspaceRoot: string
-	        ) => Promise<IFileAnalysisResult | null>;
-	        analyzeFileResultForPlugins: (
-	          absolutePath: string,
-	          content: string,
-	          workspaceRoot: string,
-	          pluginIds: readonly string[]
-	        ) => Promise<IFileAnalysisResult | null>;
-	      };
-	      _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
-	    };
-	    const file = createDiscoveredFile('src/index.py');
-	    vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });
-	    vi.spyOn(analyzerPrivate._discovery, 'readContent').mockResolvedValue('print("hi")');
-	    const analyzeFileSpy = vi.spyOn(analyzerPrivate._registry, 'analyzeFileResult')
-	      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
-	    const analyzePluginFileSpy = vi.spyOn(analyzerPrivate._registry, 'analyzeFileResultForPlugins')
-	      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
+      _registry: {
+        analyzeFileResult: (
+          absolutePath: string,
+          content: string,
+          workspaceRoot: string,
+          analysisContext: IPluginAnalysisContext,
+        ) => Promise<IFileAnalysisResult | null>;
+        analyzeFileResultForPlugins: (
+          absolutePath: string,
+          content: string,
+          workspaceRoot: string,
+          pluginIds: readonly string[],
+          analysisContext: IPluginAnalysisContext,
+        ) => Promise<IFileAnalysisResult | null>;
+      };
+      _analyzeFiles: WorkspacePipeline['_analyzeFiles'];
+    };
+    const file = createDiscoveredFile('src/index.py');
+    vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });
+    vi.spyOn(analyzerPrivate._discovery, 'readContent').mockResolvedValue('print("hi")');
+    const analyzeFileSpy = vi.spyOn(analyzerPrivate._registry, 'analyzeFileResult')
+      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
+    const analyzePluginFileSpy = vi.spyOn(analyzerPrivate._registry, 'analyzeFileResultForPlugins')
+      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
 
-	    await analyzerPrivate._analyzeFiles(
-	      [file],
+    await analyzerPrivate._analyzeFiles(
+      [file],
       '/test/workspace',
       undefined,
       undefined,
       ['codegraphy.python'],
     );
 
-	    expect(readCacheTiers(analyzerPrivate._cache.files['src/index.py'].analysis)).toEqual([
-	      BASELINE_ANALYSIS_CACHE_TIER,
-	      createPluginAnalysisCacheTier('codegraphy.python'),
-	    ]);
-	    expect(analyzePluginFileSpy).toHaveBeenCalledWith(
-	      file.absolutePath,
-	      'print("hi")',
-	      '/test/workspace',
-	      ['codegraphy.python'],
-	    );
-	    expect(analyzeFileSpy).not.toHaveBeenCalled();
-	  });
-	});
+    expect(readCacheTiers(analyzerPrivate._cache.files['src/index.py'].analysis)).toEqual([
+      BASELINE_ANALYSIS_CACHE_TIER,
+      createPluginAnalysisCacheTier('codegraphy.python'),
+    ]);
+    expect(analyzePluginFileSpy).toHaveBeenCalledWith(
+      file.absolutePath,
+      'print("hi")',
+      '/test/workspace',
+      ['codegraphy.python'],
+      expectWorkspaceAnalysisContext(false),
+    );
+    expect(analyzeFileSpy).not.toHaveBeenCalled();
+  });
+});
