@@ -183,4 +183,70 @@ describe('TypeScript Alias Import compiler options support', () => {
       removeWorkspaceRoot(workspaceRoot);
     }
   });
+
+  it('emits no relationships when root tsconfig has no paths', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { token } from '@/token';\n",
+      );
+      writeWorkspaceFile(
+        workspaceRoot,
+        'src/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.relations).toEqual([]);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
+  it('emits no relationships when root tsconfig cannot be parsed', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(workspaceRoot, 'tsconfig.json', '{ invalid json');
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { token } from '@/token';\n",
+      );
+      writeWorkspaceFile(
+        workspaceRoot,
+        'src/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.relations).toEqual([]);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
 });

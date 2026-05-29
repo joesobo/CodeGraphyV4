@@ -51,37 +51,53 @@ function readTypeScriptAliasConfig(workspaceRoot: string): TypeScriptAliasConfig
     return null;
   }
 
+  const parsed = readCompilerOptions(tsconfigPath);
+  if (!parsed?.options.paths) {
+    return null;
+  }
+
+  return {
+    paths: createPathMappings(parsed.options.paths, parsed.options, tsconfigPath, workspaceRoot),
+  };
+}
+
+function readCompilerOptions(tsconfigPath: string): ts.ParsedCommandLine | null {
   const readResult = ts.readConfigFile(tsconfigPath, fileName => ts.sys.readFile(fileName));
   if (readResult.error) {
     return null;
   }
 
-  const parsed = ts.parseJsonConfigFileContent(
+  return ts.parseJsonConfigFileContent(
     readResult.config,
     ts.sys,
     path.dirname(tsconfigPath),
     undefined,
     tsconfigPath,
   );
-  const paths = parsed.options.paths;
-  if (!paths) {
-    return null;
-  }
+}
 
-  const parsedBaseUrl = typeof parsed.options.baseUrl === 'string' ? parsed.options.baseUrl : undefined;
-  const parsedPathsBasePath = typeof parsed.options.pathsBasePath === 'string'
-    ? parsed.options.pathsBasePath
-    : undefined;
+function createPathMappings(
+  paths: ts.MapLike<string[]>,
+  options: ts.CompilerOptions,
+  tsconfigPath: string,
+  workspaceRoot: string,
+): TypeScriptPathMapping[] {
+  const parsedBaseUrl = asString(options.baseUrl);
+  const parsedPathsBasePath = asString(options.pathsBasePath);
   const baseUrl = toWorkspacePath(parsedBaseUrl ?? parsedPathsBasePath ?? path.dirname(tsconfigPath), workspaceRoot);
-  return {
-    paths: Object.entries(paths)
-      .map(([key, targets]) => ({
-        baseUrl,
-        key,
-        targets,
-      }))
-      .sort(comparePathMappingSpecificity),
-  };
+  return Object.entries(paths)
+    .map(([key, targets]) => ({
+      baseUrl,
+      key,
+      targets,
+    }))
+    .sort(comparePathMappingSpecificity);
+}
+
+function asString(value: unknown): string | undefined {
+  return typeof value === 'string'
+    ? value
+    : undefined;
 }
 
 function pathMappingSpecificity(mapping: TypeScriptPathMapping): [number, number] {
@@ -101,28 +117,13 @@ function comparePathMappingSpecificity(
 }
 
 function extractModuleSpecifiers(filePath: string, content: string): string[] {
-  const sourceFile = ts.createSourceFile(
-    filePath,
-    content,
-    ts.ScriptTarget.Latest,
-    true,
-    filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-  );
+  const sourceFile = createSourceFile(filePath, content);
   const specifiers: string[] = [];
 
-  function addModuleSpecifier(moduleSpecifier: ts.Expression | undefined): void {
-    if (moduleSpecifier && ts.isStringLiteralLike(moduleSpecifier)) {
-      specifiers.push(moduleSpecifier.text);
-    }
-  }
-
   function visit(node: ts.Node): void {
-    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
-      addModuleSpecifier(node.moduleSpecifier);
-    } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
-      addModuleSpecifier(node.moduleReference.expression);
-    } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
-      addModuleSpecifier(node.arguments[0]);
+    const specifier = readModuleSpecifier(node);
+    if (specifier) {
+      specifiers.push(specifier);
     }
 
     ts.forEachChild(node, visit);
@@ -130,6 +131,52 @@ function extractModuleSpecifiers(filePath: string, content: string): string[] {
 
   visit(sourceFile);
   return specifiers;
+}
+
+function createSourceFile(filePath: string, content: string): ts.SourceFile {
+  return ts.createSourceFile(
+    filePath,
+    content,
+    ts.ScriptTarget.Latest,
+    true,
+    filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+}
+
+function readModuleSpecifier(node: ts.Node): string | null {
+  return readStaticModuleSpecifier(node)
+    ?? readImportEqualsSpecifier(node)
+    ?? readDynamicImportSpecifier(node);
+}
+
+function readStaticModuleSpecifier(node: ts.Node): string | null {
+  if (!ts.isImportDeclaration(node) && !ts.isExportDeclaration(node)) {
+    return null;
+  }
+
+  return readStringLiteralText(node.moduleSpecifier);
+}
+
+function readImportEqualsSpecifier(node: ts.Node): string | null {
+  if (!ts.isImportEqualsDeclaration(node) || !ts.isExternalModuleReference(node.moduleReference)) {
+    return null;
+  }
+
+  return readStringLiteralText(node.moduleReference.expression);
+}
+
+function readDynamicImportSpecifier(node: ts.Node): string | null {
+  if (!ts.isCallExpression(node) || node.expression.kind !== ts.SyntaxKind.ImportKeyword) {
+    return null;
+  }
+
+  return readStringLiteralText(node.arguments[0]);
+}
+
+function readStringLiteralText(moduleSpecifier: ts.Expression | undefined): string | null {
+  return moduleSpecifier && ts.isStringLiteralLike(moduleSpecifier)
+    ? moduleSpecifier.text
+    : null;
 }
 
 function createExistingFileCandidates(basePath: string): string[] {
