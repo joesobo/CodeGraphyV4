@@ -132,7 +132,7 @@ describe('extension/pluginIntegration/typescript', () => {
       ]),
     );
 
-    api.registerPlugin(createTypeScriptPlugin(), {
+    await api.registerPlugin(createTypeScriptPlugin(), {
       extensionUri: vscode.Uri.file('/plugins/typescript'),
     });
 

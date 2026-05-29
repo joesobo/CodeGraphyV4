@@ -85,7 +85,7 @@ export interface GraphViewProviderPluginMethods {
   registerExternalPlugin(
     plugin: unknown,
     options?: GraphViewExternalPluginRegistrationOptions,
-  ): void;
+  ): Promise<void>;
 }
 export type GraphViewProviderPluginMethodDependencies =
   import('./broadcasts').GraphViewProviderPluginBroadcastDependencies

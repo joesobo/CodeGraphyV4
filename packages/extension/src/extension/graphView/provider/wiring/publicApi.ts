@@ -71,7 +71,7 @@ export interface GraphViewProviderPublicMethods {
   registerExternalPlugin: (
     plugin: unknown,
     options?: GraphViewExternalPluginRegistrationOptions,
-  ) => void;
+  ) => Promise<void>;
   queryGraph: (request: GraphQueryRequest) => GraphQueryResult;
   setDepthMode: (depthMode: boolean) => Promise<void>;
   setFocusedFile: (filePath: string | undefined) => void;
