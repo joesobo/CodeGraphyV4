@@ -263,6 +263,8 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 - **Plugins**: enable/disable plugins and reorder them
 - **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
 
+Graph Cache enrichment follows Graph Scope. CodeGraphy caches baseline file nodes and file-level edges first; enabling Symbols or a plugin computes the missing tier and keeps it cached when that scope is turned off again.
+
 ## File discovery settings
 
 ### `maxFiles`
