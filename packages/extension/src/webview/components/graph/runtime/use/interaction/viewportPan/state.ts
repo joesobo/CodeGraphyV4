@@ -6,7 +6,7 @@ import {
   isMarqueePastThreshold,
   type MarqueePoint,
 } from '../../../../marqueeSelection/model';
-import type { UseGraphStateResult } from '../../state';
+import type { GraphRuntime } from '../../state';
 import {
   readViewportPanCenter,
   readViewportPanZoom,
@@ -24,10 +24,10 @@ export interface ViewportPanDragState {
 }
 
 export interface GraphViewportPanRuntimeOptions {
-  containerRef: UseGraphStateResult['containerRef'];
-  fg2dRef: UseGraphStateResult['fg2dRef'];
+  containerRef: GraphRuntime['containerRef'];
+  fg2dRef: GraphRuntime['fg2dRef'];
   graphMode: '2d' | '3d';
-  rightMouseDownRef: UseGraphStateResult['rightMouseDownRef'];
+  rightMouseDownRef: GraphRuntime['rightMouseDownRef'];
   suppressContextMenu(this: void): void;
 }
 
@@ -45,7 +45,7 @@ function isViewportPanButton(event: ReactMouseEvent<HTMLDivElement>): boolean {
 
 export function createViewportPanDragState(
   event: ReactMouseEvent<HTMLDivElement>,
-  graph: UseGraphStateResult['fg2dRef']['current'],
+  graph: GraphRuntime['fg2dRef']['current'],
   container: HTMLDivElement | null,
 ): ViewportPanDragState {
   return {

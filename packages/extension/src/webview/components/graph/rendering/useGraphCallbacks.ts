@@ -18,14 +18,14 @@ import {
   paintNodePointerArea,
   renderNodeCanvas,
 } from './nodes/canvas2d';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 import type { FGLink, FGNode } from '../model/build';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 
 export interface UseGraphCallbacksOptions {
   pluginHost?: WebviewPluginHost;
   refs: Pick<
-    UseGraphStateResult,
+    GraphRuntime,
     | 'directionColorRef'
     | 'directionModeRef'
     | 'edgeDecorationsRef'

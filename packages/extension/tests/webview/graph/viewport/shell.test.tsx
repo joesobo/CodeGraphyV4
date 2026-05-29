@@ -5,7 +5,7 @@ import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import type { GraphViewStoreState } from '../../../../src/webview/components/graph/view/store';
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/interaction';
-import type { UseGraphStateResult } from '../../../../src/webview/components/graph/runtime/use/state';
+import type { GraphRuntime } from '../../../../src/webview/components/graph/runtime/use/state';
 import { GraphViewportShell } from '../../../../src/webview/components/graph/viewport/shell';
 import { graphStore } from '../../../../src/webview/store/state';
 
@@ -40,7 +40,7 @@ vi.mock('../../../../src/webview/components/graph/viewport/view', () => ({
 	},
 }));
 
-function createGraphData(): UseGraphStateResult['graphData'] {
+function createGraphData(): GraphRuntime['graphData'] {
 	return {
 		nodes: [
 			{
@@ -83,7 +83,7 @@ function createGraphData(): UseGraphStateResult['graphData'] {
 	};
 }
 
-function createGraphState(graphData: UseGraphStateResult['graphData']): UseGraphStateResult {
+function createGraphState(graphData: GraphRuntime['graphData']): GraphRuntime {
 	const dataRefCurrent: IGraphData = {
 		nodes: graphData.nodes.map(node => ({ id: node.id, label: node.label, color: node.color })),
 		edges: graphData.links.map(link => ({
@@ -94,45 +94,87 @@ function createGraphState(graphData: UseGraphStateResult['graphData']): UseGraph
 			to: link.to,
 		})),
 	};
+	const containerRef = { current: null };
+	const fg2dRef = { current: undefined };
+	const fg3dRef = { current: undefined };
+	const graphDataRef = { current: { links: graphData.links.map(link => ({ ...link })), nodes: graphData.nodes.map(node => ({ ...node })) } };
+	const fileInfoCacheRef = { current: new Map() };
+	const lastContainerContextMenuEventRef = { current: 0 };
+	const lastGraphContextEventRef = { current: 0 };
+	const meshesRef = { current: new Map() };
+	const rightClickFallbackTimerRef = { current: null };
+	const rightMouseDownRef = { current: null };
+	const selectedNodesSetRef = { current: new Set() };
+	const setContextSelection = vi.fn();
+	const setSelectedNodes = vi.fn();
+	const spritesRef = { current: new Map() };
+	const triggerImageRerender = vi.fn();
 
 	return {
-		containerRef: { current: null },
+		containerRef,
+		context: {
+			selection: { kind: 'background', targets: [] },
+			setSelection: setContextSelection,
+			lastContainerContextMenuEventRef,
+			lastGraphContextEventRef,
+			rightClickFallbackTimerRef,
+			rightMouseDownRef,
+		},
 		contextSelection: { kind: 'background', targets: [] },
 		dataRef: { current: dataRefCurrent },
 		directionColorRef: { current: '#22c55e' },
 		directionModeRef: { current: 'arrows' },
-		fileInfoCacheRef: { current: new Map() },
-		fg2dRef: { current: undefined },
-		fg3dRef: { current: undefined },
+		fileInfoCacheRef,
+		fg2dRef,
+		fg3dRef,
 		graphData,
-		graphDataRef: { current: { links: graphData.links.map(link => ({ ...link })), nodes: graphData.nodes.map(node => ({ ...node })) } },
+		graphDataRef,
 		graphCursorRef: { current: 'default' },
 		highlightVersion: 0,
 		highlightedNeighborsRef: { current: new Set() },
 		highlightedNodeRef: { current: null },
 		lastClickRef: { current: null },
-		lastContainerContextMenuEventRef: { current: 0 },
-		lastGraphContextEventRef: { current: 0 },
-		meshesRef: { current: new Map() },
-		rightClickFallbackTimerRef: { current: null },
-		rightMouseDownRef: { current: null },
+		lastContainerContextMenuEventRef,
+		lastGraphContextEventRef,
+		meshesRef,
+		renderer: {
+			containerRef,
+			fg2dRef,
+			fg3dRef,
+			graphData,
+			graphDataRef,
+		},
+		renderCaches: {
+			fileInfoCacheRef,
+			imageCacheVersion: 0,
+			invalidateImages: triggerImageRerender,
+			meshesRef,
+			spritesRef,
+		},
+		rightClickFallbackTimerRef,
+		rightMouseDownRef,
+		selection: {
+			selectedNodeIds: [],
+			selectedNodeIdsRef: selectedNodesSetRef,
+			setSelectedNodeIds: setSelectedNodes,
+		},
 		selectedNodes: [],
-		selectedNodesSetRef: { current: new Set() },
+		selectedNodesSetRef,
 		edgeDecorationsRef: { current: {} },
 		favoritesRef: { current: new Set() },
 		graphContextSelection: { kind: 'background', targets: [] },
 		imageCacheVersion: 0,
 		nodeDecorationsRef: { current: {} },
 		nodeSizeModeRef: { current: 'connections' },
-		setContextSelection: vi.fn(),
+		setContextSelection,
 		setHighlightVersion: vi.fn(),
-		setSelectedNodes: vi.fn(),
+		setSelectedNodes,
 		timelineActiveRef: { current: true },
 		showLabelsRef: { current: true },
-		spritesRef: { current: new Map() },
+		spritesRef,
 		themeRef: { current: 'dark' },
-		triggerImageRerender: vi.fn(),
-	} as unknown as UseGraphStateResult;
+		triggerImageRerender,
+	} as unknown as GraphRuntime;
 }
 
 function createInteractions(): UseGraphInteractionRuntimeResult {

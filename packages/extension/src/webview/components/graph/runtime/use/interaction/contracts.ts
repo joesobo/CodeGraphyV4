@@ -12,30 +12,30 @@ import type { FGNode } from '../../../model/build';
 import type { GraphCursorStyle } from '../../../support/dom';
 import type { WebviewPluginHost } from '../../../../../pluginHost/manager';
 import type { useGraphTooltip } from '../tooltip/hook';
-import type { UseGraphStateResult } from '../state';
+import type { GraphRuntime } from '../state';
 
 export type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
 
 export interface UseGraphInteractionRuntimeOptions {
   dataRef: MutableRefObject<IGraphData>;
   depthMode: boolean;
-  fileInfoCacheRef: UseGraphStateResult['fileInfoCacheRef'];
+  fileInfoCacheRef: GraphRuntime['fileInfoCacheRef'];
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
-  graphDataRef: UseGraphStateResult['graphDataRef'];
+  graphDataRef: GraphRuntime['graphDataRef'];
   graphViewContributions?: CoreGraphViewContributionSet;
   graphMode: '2d' | '3d';
-  highlightedNeighborsRef: UseGraphStateResult['highlightedNeighborsRef'];
-  highlightedNodeRef: UseGraphStateResult['highlightedNodeRef'];
+  highlightedNeighborsRef: GraphRuntime['highlightedNeighborsRef'];
+  highlightedNodeRef: GraphRuntime['highlightedNodeRef'];
   isMacPlatform: boolean;
-  lastClickRef: UseGraphStateResult['lastClickRef'];
-  lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
-  lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
+  lastClickRef: GraphRuntime['lastClickRef'];
+  lastContainerContextMenuEventRef: GraphRuntime['lastContainerContextMenuEventRef'];
+  lastGraphContextEventRef: GraphRuntime['lastGraphContextEventRef'];
   openFilterPatternPrompt?: (patterns: string[]) => void;
   openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
   refs: Pick<
-    UseGraphStateResult,
+    GraphRuntime,
     | 'containerRef'
     | 'fg2dRef'
     | 'fg3dRef'
