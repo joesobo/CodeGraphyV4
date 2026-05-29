@@ -12,3 +12,16 @@ TypeScript `compilerOptions.paths` and related project configuration are **Proje
 The TypeScript plugin may need to resume supplemental analysis for project-aware import resolution. It should create plugin-owned relationships from TypeScript project data, such as alias-mapped imports, and Core should merge and project that additional data without needing TypeScript-specific resolution logic itself. Alias-derived relationships should use a TypeScript-plugin-owned Edge Type labeled **TypeScript Alias Import** so Graph Scope can toggle them independently from baseline import edges.
 
 That Edge Type should default on in Graph Scope so alias-derived relationships are visible when the TypeScript plugin is enabled. The plugin should process `compilerOptions.paths` whenever the plugin is enabled so the Relationship Graph, Graph Query, MCP, and export paths have the same relationship data available. Graph Scope should hide or show those relationships in visual and scoped graph views without controlling whether the plugin collects the data. If the existing plugin contract is not sufficient for plugin-owned edge-type contribution, extend the plugin contract deliberately instead of moving TypeScript project semantics into Core by default.
+
+**Implementation Alignment**
+
+- Support root `tsconfig.json` plus local relative and package-based `extends` chains so shared configs such as `tsconfig.base.json` or `@org/tsconfig/base` can provide `compilerOptions.paths`.
+- Support `compilerOptions.baseUrl` because TypeScript resolves `paths` targets relative to the config's base URL when present.
+- Support any TypeScript `compilerOptions.paths` mapping, not only `@/...` prefixes.
+- Support exact aliases and wildcard aliases.
+- Support fallback target arrays by trying targets in TypeScript order and using the first workspace file that exists.
+- Do not create a relationship for unresolved alias imports because there is no graph target.
+- Limit this slice to TypeScript configuration. Do not read `jsconfig.json` until CodeGraphy has a JavaScript-specific plugin or a deliberate JavaScript project-analysis story.
+- Keep alias-derived relationships separate from baseline import relationships by using the **TypeScript Alias Import** Edge Type even when both edges resolve to the same target file.
+- Re-analyze affected TypeScript files when `tsconfig*.json` changes, not only the changed config file node.
+- For the first slice, start from the CodeGraphy Workspace root `tsconfig.json`. Monorepo nearest-config resolution can be added later when the product has a more precise package-level configuration model.
