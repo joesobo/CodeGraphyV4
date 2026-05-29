@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
   readGraphCacheStatus,
   readCodeGraphyWorkspaceStatus,
@@ -184,6 +185,65 @@ describe('indexCodeGraphyWorkspace', () => {
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath)).toEqual(
       expect.arrayContaining(['source.txt', 'target.txt']),
     );
+  });
+
+  it('keeps indexing state in core so changed files update the graph without full indexing', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.writeFile(path.join(workspaceRoot, 'target-2.txt'), 'done\n', 'utf-8');
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+      onFilesChanged: vi.fn<(files: Array<{ relativePath: string }>) => Promise<string[]>>(async () => []),
+    };
+    const plugin = {
+      ...createTextPlugin(calls),
+      async onFilesChanged(files: Array<{ relativePath: string }>) {
+        calls.onFilesChanged(files);
+        return [];
+      },
+    };
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    });
+
+    const initial = await engine.index();
+    await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target-2.txt\n', 'utf-8');
+    const refreshed = await engine.applyChangedFiles([
+      path.join(workspaceRoot, 'source.txt'),
+    ]);
+
+    expect(initial.graph.edges).toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target.txt',
+      }),
+    );
+    expect(refreshed.graph.edges).toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target-2.txt',
+      }),
+    );
+    expect(refreshed.graph.edges).not.toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target.txt',
+      }),
+    );
+    expect(calls.onFilesChanged).toHaveBeenCalledWith([
+      expect.objectContaining({ relativePath: 'source.txt' }),
+    ]);
+    expect(calls.analyzeFile).toHaveBeenCalledTimes(4);
+    expect(calls.analyzeFile).toHaveBeenLastCalledWith(
+      path.join(workspaceRoot, 'source.txt'),
+      'target-2.txt\n',
+      path.resolve(workspaceRoot),
+    );
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] }).state).toBe('fresh');
   });
 
   it('enables and runs the Markdown plugin by default for a new workspace', async () => {

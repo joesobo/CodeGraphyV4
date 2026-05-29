@@ -9,6 +9,10 @@ import { discoverWorkspaceIndexFiles } from './discovery';
 import { persistWorkspaceIndexMetadata } from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
+export {
+  createCodeGraphyWorkspaceEngine,
+  type CodeGraphyWorkspaceEngine,
+} from './engine';
 
 export type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult };
 
