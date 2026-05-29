@@ -155,7 +155,7 @@ export function createGraphViewProviderRefreshMethods(
 
     source._loadDisabledRulesAndPlugins();
     source._loadGroupsAndFilterPatterns();
-    if (!source._analyzer?.hasIndex() || !source._analyzer.refreshPluginFiles) {
+    if (!source._analyzer?.refreshPluginFiles) {
       await refresh();
       return;
     }

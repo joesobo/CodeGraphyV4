@@ -9,6 +9,7 @@ function createSource(
   _analyzer: {
     hasIndex: ReturnType<typeof vi.fn>;
     rebuildGraph: ReturnType<typeof vi.fn>;
+    refreshPluginFiles: ReturnType<typeof vi.fn>;
     getPluginStatuses: ReturnType<typeof vi.fn>;
     registry: { notifyGraphRebuild: ReturnType<typeof vi.fn> };
     clearCache: ReturnType<typeof vi.fn>;
@@ -41,6 +42,7 @@ function createSource(
     _analyzer: {
       hasIndex: vi.fn(() => true),
       rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
+      refreshPluginFiles: vi.fn(async () => ({ nodes: [], edges: [] } satisfies IGraphData)),
       getPluginStatuses: vi.fn(() => [] satisfies IPluginStatus[]),
       registry: { notifyGraphRebuild: vi.fn() },
       clearCache: vi.fn(),
@@ -228,6 +230,31 @@ describe('graphView/provider/refresh', () => {
       expect(source._loadAndSendData).toHaveBeenCalledOnce();
       expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
       expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+      expect(source._sendAllSettings).toHaveBeenCalledOnce();
+      expect(source._sendFavorites).toHaveBeenCalledOnce();
+    });
+
+    it('refreshPluginFiles applies the targeted plugin refresh when only the persisted index is missing', async () => {
+      const source = createSource();
+      source._analyzer.hasIndex.mockReturnValue(false);
+      const rebuildGraphData = vi.fn();
+      const methods = createGraphViewProviderRefreshMethods(source as never, {
+        getShowOrphans: vi.fn(() => true),
+        rebuildGraphData,
+        smartRebuildGraphData: vi.fn(),
+      });
+
+      await methods.refreshPluginFiles(['codegraphy.typescript']);
+
+      expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+      expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
+      expect(source._analyzer.refreshPluginFiles).toHaveBeenCalledWith(
+        ['codegraphy.typescript'],
+        [],
+        source._disabledPlugins,
+      );
+      expect(source._loadAndSendData).not.toHaveBeenCalled();
+      expect(rebuildGraphData).toHaveBeenCalledOnce();
       expect(source._sendAllSettings).toHaveBeenCalledOnce();
       expect(source._sendFavorites).toHaveBeenCalledOnce();
     });
