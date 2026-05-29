@@ -25,6 +25,8 @@ export function createHandlers(
     getPluginFilterGroups: vi.fn(() => []),
     sendGraphControls: vi.fn(),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    smartRebuild: vi.fn(),
+    reprocessGraphScope: vi.fn(() => Promise.resolve()),
     reprocessPluginFiles: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),

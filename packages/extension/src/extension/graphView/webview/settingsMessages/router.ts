@@ -23,6 +23,7 @@ export interface GraphViewSettingsMessageHandlers {
   sendGroupsUpdated(): void;
   smartRebuild(id: string): void;
   sendGraphControls(): void;
+  reprocessGraphScope(): Promise<void>;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];

@@ -2,6 +2,7 @@ import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IDiscoveredFile } from '../discovery/contracts';
 import { analyzeWorkspaceFiles } from './fileAnalysis';
 import type {
+  AnalysisCacheTierOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileProcessedPayload,
 } from './fileAnalysis';
@@ -15,6 +16,7 @@ export interface WorkspacePipelineFilesDependencies {
     workspaceRoot: string,
   ) => Promise<IFileAnalysisResult>;
   cache: IWorkspaceAnalysisCache;
+  cacheTiers?: AnalysisCacheTierOptions;
   emitFileProcessed?: (payload: IWorkspaceFileProcessedPayload) => void;
   files: IDiscoveredFile[];
   getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
@@ -47,6 +49,7 @@ export async function analyzeWorkspacePipelineFiles(
   const result = await analyzeWorkspaceFiles({
     analyzeFile: dependencies.analyzeFile,
     cache: dependencies.cache,
+    cacheTiers: dependencies.cacheTiers,
     emitFileProcessed: dependencies.emitFileProcessed,
     files: dependencies.files,
     getFileStat: dependencies.getFileStat,
@@ -69,6 +72,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
   logInfo: (message: string) => void,
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
+  cacheTiers?: AnalysisCacheTierOptions,
 ): Promise<IWorkspaceFileAnalysisResult> {
   const eventBus = source._eventBus;
 
@@ -79,6 +83,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
         relations: [],
       })),
     cache: source._cache,
+    cacheTiers,
     emitFileProcessed: eventBus
       ? payload => eventBus.emit('analysis:fileProcessed', payload)
       : undefined,

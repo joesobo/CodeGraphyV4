@@ -8,7 +8,7 @@ import type { IGraphData } from '../../shared/graph/contracts';
 import { getCachedGitHistoryChurnCounts } from '../gitHistory/cache/state';
 import { createGitHistoryPluginSignature } from '../gitHistory/pluginSignature';
 import type { IWorkspaceAnalysisCache } from './cache';
-import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
+import type { AnalysisCacheTierOptions, IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import {
   analyzeWorkspacePipelineSourceFiles,
   type WorkspacePipelineFilesSource,
@@ -57,6 +57,7 @@ export function analyzeWorkspacePipelineFiles(
   workspaceRoot: string,
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
+  cacheTiers?: AnalysisCacheTierOptions,
 ): Promise<IWorkspaceFileAnalysisResult> {
   const source: WorkspacePipelineFilesSource = {
     _cache: cache,
@@ -75,6 +76,7 @@ export function analyzeWorkspacePipelineFiles(
     },
     onProgress,
     signal,
+    cacheTiers,
   );
 }
 

@@ -9,14 +9,15 @@ export function createGraphViewProviderPublicMethodDelegates(
   GraphViewProviderMethodSource,
   | 'setDepthMode'
   | 'setFocusedFile'
-    | 'setDepthLimit'
-    | 'undo'
-    | 'redo'
-    | 'refreshIndex'
-    | 'refreshChangedFiles'
-    | 'clearCacheAndRefresh'
-    | 'invalidatePluginFiles'
-    | '_notifyExtensionMessage'
+  | 'setDepthLimit'
+  | 'undo'
+  | 'redo'
+  | 'refreshIndex'
+  | 'refreshAnalysisScope'
+  | 'refreshChangedFiles'
+  | 'clearCacheAndRefresh'
+  | 'invalidatePluginFiles'
+  | '_notifyExtensionMessage'
   > {
   return {
     setDepthMode: depthMode => owner._methodContainers.viewSelection.setDepthMode(depthMode),
@@ -25,6 +26,7 @@ export function createGraphViewProviderPublicMethodDelegates(
     undo: () => owner._methodContainers.command.undo(),
     redo: () => owner._methodContainers.command.redo(),
     refreshIndex: () => owner._methodContainers.refresh.refreshIndex(),
+    refreshAnalysisScope: () => owner._methodContainers.refresh.refreshAnalysisScope(),
     refreshChangedFiles: filePaths => owner._methodContainers.refresh.refreshChangedFiles(filePaths),
     clearCacheAndRefresh: () => owner._methodContainers.refresh.clearCacheAndRefresh(),
     invalidatePluginFiles: pluginIds => owner.invalidatePluginFiles(pluginIds),

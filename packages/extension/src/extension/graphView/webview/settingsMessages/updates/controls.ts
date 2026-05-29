@@ -57,6 +57,12 @@ async function applySymbolVisibilityUpdate(
   handlers.recomputeGroups();
   handlers.sendGroupsUpdated();
   handlers.sendGraphControls();
+  if (visible) {
+    await handlers.reprocessGraphScope();
+    return true;
+  }
+
+  handlers.smartRebuild('symbol');
   return true;
 }
 

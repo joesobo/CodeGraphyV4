@@ -16,6 +16,7 @@ import {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
 } from '../cache/paths';
+import { createWorkspacePipelineAnalysisCacheTiers } from '../cache/tiers';
 import {
   createWorkspacePipelinePluginSignature,
   createWorkspacePipelineSettingsSignature,
@@ -64,6 +65,9 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       workspaceRoot,
       onProgress,
       signal,
+      createWorkspacePipelineAnalysisCacheTiers(
+        this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
+      ),
     );
   }
 

@@ -8,6 +8,70 @@ import {
 import { refreshWorkspacePipelineChangedFiles } from './runtime/refresh';
 
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
+  async refreshAnalysisScope(
+    filterPatterns: string[] = [],
+    disabledPlugins: Set<string> = new Set(),
+    signal?: AbortSignal,
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+  ): Promise<IGraphData> {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return { nodes: [], edges: [] };
+    }
+
+    const config = this._config.getAll();
+    const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns);
+    const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns);
+    const discoveryResult = await discoverWorkspacePipelineFilesWithWarnings(
+      createWorkspacePipelineDiscoveryDependencies(this._discovery),
+      workspaceRoot,
+      config,
+      filterPatterns.filter(pattern => !disabledCustomPatterns.has(pattern)),
+      this.getPluginFilterPatterns(disabledPlugins)
+        .filter(pattern => !disabledPluginPatterns.has(pattern)),
+      signal,
+      message => {
+        vscode.window.showWarningMessage(message);
+      },
+    );
+
+    this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
+    this._lastDiscoveredFiles = discoveryResult.files;
+    this._lastWorkspaceRoot = workspaceRoot;
+
+    onProgress?.({
+      phase: 'Applying Scope',
+      current: 0,
+      total: discoveryResult.files.length,
+    });
+
+    const analysisResult = await this._analyzeFiles(
+      discoveryResult.files,
+      workspaceRoot,
+      progress => {
+        onProgress?.({
+          phase: 'Applying Scope',
+          current: progress.current,
+          total: progress.total,
+        });
+      },
+      signal,
+    );
+
+    this._lastFileAnalysis = analysisResult.fileAnalysis;
+    this._lastFileConnections = analysisResult.fileConnections;
+    this._persistCache();
+    const graphData = this._buildGraphDataFromAnalysis(
+      analysisResult.fileAnalysis,
+      workspaceRoot,
+      config.showOrphans,
+      disabledPlugins,
+    );
+    await this._persistIndexMetadata();
+
+    return graphData;
+  }
+
   async refreshChangedFiles(
     filePaths: readonly string[],
     filterPatterns: string[] = [],
