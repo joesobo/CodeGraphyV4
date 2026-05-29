@@ -5,6 +5,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
+import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
@@ -155,6 +156,64 @@ describe('WorkspacePipeline analysis', () => {
           toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
         }),
       ]),
+    );
+  });
+
+  it('keeps Tree-sitter relations after workspace plugin reload and index refresh', async () => {
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const initialGraph = await analyzer.analyze();
+    expect(initialGraph.edges.map(edge => edge.id)).toEqual(
+      expect.arrayContaining([
+        'src/index.ts->src/utils.ts#import',
+      ]),
+    );
+
+    await analyzer.reloadWorkspacePlugins();
+    const refreshedGraph = await analyzer.refreshIndex();
+
+    expect(analyzer.registry.get('codegraphy.treesitter')).toBeDefined();
+    expect(refreshedGraph.edges.map(edge => edge.id)).toEqual(
+      expect.arrayContaining([
+        'src/index.ts->src/utils.ts#import',
+      ]),
+    );
+  });
+
+  it('preserves the previous Tree-sitter index when a full refresh is aborted', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const graph = await analyzer.analyze();
+    expect(graph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    const snapshotBefore = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    expect(snapshotBefore.relations.length).toBeGreaterThan(0);
+
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      analyzer.refreshIndex([], new Set<string>(), controller.signal),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBe(
+      snapshotBefore.relations.length,
     );
   });
 

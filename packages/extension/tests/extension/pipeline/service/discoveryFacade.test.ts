@@ -290,6 +290,7 @@ describe('pipeline/service/discoveryFacade', () => {
       nodes: [{ id: 'refresh', label: 'Refresh', color: '#444444' }],
       edges: [],
     });
+    const cacheBeforeRefresh = facade._cache;
     await expect(
       facade.refreshIndex(undefined, disabledPlugins, signal),
     ).resolves.toEqual({
@@ -297,7 +298,9 @@ describe('pipeline/service/discoveryFacade', () => {
       edges: [],
     });
 
-    expect(facade.clearCache).toHaveBeenCalledOnce();
+    expect(facade.clearCache).not.toHaveBeenCalled();
+    expect(facade._cache).not.toBe(cacheBeforeRefresh);
+    expect(facade._cache.files).toEqual({});
     expect(analyzeSpy).toHaveBeenCalledWith([], disabledPlugins, signal, expect.any(Function));
 
     const refreshWithoutProgress = analyzeSpy.mock.calls[1][3] as (progress: {
