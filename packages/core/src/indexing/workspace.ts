@@ -14,9 +14,13 @@ export {
   type CodeGraphyWorkspaceEngine,
 } from './engine';
 export {
+  refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
+  refreshWorkspaceIndexPluginFiles,
   type WorkspaceIndexRefreshDependencies,
   type WorkspaceIndexRefreshSource,
+  type WorkspaceIndexAnalysisScopeRefreshDependencies,
+  type WorkspaceIndexPluginRefreshDependencies,
 } from './refresh';
 
 export type {

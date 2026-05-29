@@ -5,7 +5,9 @@ import { refreshWorkspacePipelineChangedFiles } from '../../../../../src/extensi
 function createSource() {
   return {
     _analyzeFiles: vi.fn(),
+    _buildGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
     _buildGraphDataFromAnalysis: vi.fn(() => ({ nodes: [{ id: 'node' }], edges: [] })),
+    _lastDiscoveredDirectories: [] as string[],
     _lastDiscoveredFiles: [] as Array<{ absolutePath: string; relativePath: string }>,
     _lastFileAnalysis: new Map<string, IFileAnalysisResult>(),
     _lastFileConnections: new Map<string, unknown[]>(),
@@ -161,6 +163,11 @@ describe('pipeline/service/refresh', () => {
     expect(dependencies.persistIndexMetadata).toHaveBeenCalledOnce();
     expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
       source._lastFileAnalysis,
+      '/workspace',
+      dependencies.disabledPlugins,
+    );
+    expect(source._buildGraphData).toHaveBeenCalledWith(
+      source._lastFileConnections,
       '/workspace',
       dependencies.disabledPlugins,
     );

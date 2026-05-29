@@ -5,10 +5,69 @@ import {
   createWorkspacePipelineDiscoveryDependencies,
   discoverWorkspacePipelineFilesWithWarnings,
 } from './runtime/discovery';
-import { refreshWorkspacePipelineChangedFiles } from './runtime/refresh';
-import { resolveWorkspacePipelinePluginFilePaths } from './cache/invalidation';
+import {
+  refreshWorkspacePipelineAnalysisScope,
+  refreshWorkspacePipelineChangedFiles,
+  refreshWorkspacePipelinePluginFiles,
+  type WorkspacePipelineRefreshSource,
+} from './runtime/refresh';
 
 export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDiscoveryFacade {
+  private _createWorkspaceIndexRefreshSource(): WorkspacePipelineRefreshSource {
+    const source = {
+      _analyzeFiles: (
+        files,
+        root,
+        progress,
+        abortSignal,
+        pluginIds,
+      ) => this._analyzeFiles(files, root, progress, abortSignal, pluginIds),
+      _buildGraphData: (fileConnections, root, selectedPlugins) =>
+        this._buildGraphData(fileConnections, root, true, selectedPlugins),
+      _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
+        this._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
+      _readAnalysisFiles: files => this._readAnalysisFiles(files),
+      analyze: (patterns, selectedPlugins, abortSignal, progress) =>
+        this.analyze(patterns, selectedPlugins, abortSignal, progress),
+      invalidateWorkspaceFiles: paths => this.invalidateWorkspaceFiles(paths),
+    } as WorkspacePipelineRefreshSource;
+
+    Object.defineProperties(source, {
+      _lastDiscoveredDirectories: {
+        get: () => this._lastDiscoveredDirectories,
+        set: (directories: WorkspacePipelineRefreshSource['_lastDiscoveredDirectories']) => {
+          this._lastDiscoveredDirectories = directories;
+        },
+      },
+      _lastDiscoveredFiles: {
+        get: () => this._lastDiscoveredFiles,
+        set: (files: WorkspacePipelineRefreshSource['_lastDiscoveredFiles']) => {
+          this._lastDiscoveredFiles = files;
+        },
+      },
+      _lastFileAnalysis: {
+        get: () => this._lastFileAnalysis,
+        set: (fileAnalysis: WorkspacePipelineRefreshSource['_lastFileAnalysis']) => {
+          this._lastFileAnalysis = fileAnalysis;
+        },
+      },
+      _lastFileConnections: {
+        get: () => this._lastFileConnections,
+        set: (fileConnections: WorkspacePipelineRefreshSource['_lastFileConnections']) => {
+          this._lastFileConnections = fileConnections;
+        },
+      },
+      _lastWorkspaceRoot: {
+        get: () => this._lastWorkspaceRoot,
+        set: (root: WorkspacePipelineRefreshSource['_lastWorkspaceRoot']) => {
+          this._lastWorkspaceRoot = root;
+        },
+      },
+    });
+
+    return source;
+  }
+
   async refreshAnalysisScope(
     filterPatterns: string[] = [],
     disabledPlugins: Set<string> = new Set(),
@@ -36,41 +95,20 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
       },
     );
 
-    this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
-    this._lastDiscoveredFiles = discoveryResult.files;
-    this._lastWorkspaceRoot = workspaceRoot;
-
-    onProgress?.({
-      phase: 'Applying Scope',
-      current: 0,
-      total: discoveryResult.files.length,
-    });
-
-    const analysisResult = await this._analyzeFiles(
-      discoveryResult.files,
-      workspaceRoot,
-      progress => {
-        onProgress?.({
-          phase: 'Applying Scope',
-          current: progress.current,
-          total: progress.total,
-        });
+    return refreshWorkspacePipelineAnalysisScope(this._createWorkspaceIndexRefreshSource(), {
+      disabledPlugins,
+      discoveredDirectories: discoveryResult.directories ?? [],
+      discoveredFiles: discoveryResult.files,
+      onProgress,
+      persistCache: () => {
+        this._persistCache();
+      },
+      persistIndexMetadata: async () => {
+        await this._persistIndexMetadata();
       },
       signal,
-    );
-
-    this._lastFileAnalysis = analysisResult.fileAnalysis;
-    this._lastFileConnections = analysisResult.fileConnections;
-    this._persistCache();
-    const graphData = this._buildGraphDataFromAnalysis(
-      analysisResult.fileAnalysis,
       workspaceRoot,
-      config.showOrphans,
-      disabledPlugins,
-    );
-    await this._persistIndexMetadata();
-
-    return graphData;
+    });
   }
 
   async refreshPluginFiles(
@@ -83,20 +121,6 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot || pluginIds.length === 0) {
       return { nodes: [], edges: [] };
-    }
-
-    const selectedPluginIds = new Set(pluginIds);
-    const pluginInfos = this._registry
-      .list()
-      .filter(({ plugin }) => selectedPluginIds.has(plugin.id));
-    const registeredPluginIds = pluginInfos.map(({ plugin }) => plugin.id);
-    if (pluginInfos.length === 0) {
-      return this._buildGraphDataFromAnalysis(
-        this._lastFileAnalysis,
-        workspaceRoot,
-        this._config.getAll().showOrphans,
-        disabledPlugins,
-      );
     }
 
     const config = this._config.getAll();
@@ -114,55 +138,22 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         vscode.window.showWarningMessage(message);
       },
     );
-    const pluginFilePathSet = new Set(resolveWorkspacePipelinePluginFilePaths(
-      workspaceRoot,
-      discoveryResult.files,
-      pluginInfos,
-    ));
-    const pluginFiles = discoveryResult.files.filter(file => pluginFilePathSet.has(file.absolutePath));
-
-    this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
-    this._lastDiscoveredFiles = discoveryResult.files;
-    this._lastWorkspaceRoot = workspaceRoot;
-
-    if (pluginFiles.length > 0) {
-      onProgress?.({
-        phase: 'Applying Plugin',
-        current: 0,
-        total: pluginFiles.length,
-      });
-      const analysisResult = await this._analyzeFiles(
-        pluginFiles,
-        workspaceRoot,
-        progress => {
-          onProgress?.({
-            phase: 'Applying Plugin',
-            current: progress.current,
-            total: progress.total,
-          });
-        },
-        signal,
-        registeredPluginIds,
-      );
-
-      for (const [filePath, analysis] of analysisResult.fileAnalysis) {
-        this._lastFileAnalysis.set(filePath, analysis);
-      }
-      for (const [filePath, connections] of analysisResult.fileConnections) {
-        this._lastFileConnections.set(filePath, connections);
-      }
-      this._persistCache();
-    }
-
-    const graphData = this._buildGraphDataFromAnalysis(
-      this._lastFileAnalysis,
-      workspaceRoot,
-      config.showOrphans,
+    return refreshWorkspacePipelinePluginFiles(this._createWorkspaceIndexRefreshSource(), {
       disabledPlugins,
-    );
-    await this._persistIndexMetadata();
-
-    return graphData;
+      discoveredDirectories: discoveryResult.directories ?? [],
+      discoveredFiles: discoveryResult.files,
+      onProgress,
+      persistCache: () => {
+        this._persistCache();
+      },
+      persistIndexMetadata: async () => {
+        await this._persistIndexMetadata();
+      },
+      pluginIds,
+      pluginInfos: this._registry.list(),
+      signal,
+      workspaceRoot,
+    });
   }
 
   async refreshChangedFiles(
@@ -194,41 +185,9 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     );
     this._lastDiscoveredDirectories = discoveryResult.directories ?? [];
 
-    return refreshWorkspacePipelineChangedFiles(((current) => ({
-      _analyzeFiles: (files, root, progress, abortSignal) =>
-        current._analyzeFiles(files, root, progress, abortSignal),
-      _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
-        current._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
-      get _lastDiscoveredFiles() {
-        return current._lastDiscoveredFiles;
-      },
-      set _lastDiscoveredFiles(files) {
-        current._lastDiscoveredFiles = files;
-      },
-      get _lastFileAnalysis() {
-        return current._lastFileAnalysis;
-      },
-      set _lastFileAnalysis(fileAnalysis) {
-        current._lastFileAnalysis = fileAnalysis;
-      },
-      get _lastFileConnections() {
-        return current._lastFileConnections;
-      },
-      set _lastFileConnections(fileConnections) {
-        current._lastFileConnections = fileConnections;
-      },
-      get _lastWorkspaceRoot() {
-        return current._lastWorkspaceRoot;
-      },
-      set _lastWorkspaceRoot(root) {
-        current._lastWorkspaceRoot = root;
-      },
-      _readAnalysisFiles: files => current._readAnalysisFiles(files),
-      analyze: (patterns, selectedPlugins, abortSignal, progress) =>
-        current.analyze(patterns, selectedPlugins, abortSignal, progress),
-      invalidateWorkspaceFiles: paths => current.invalidateWorkspaceFiles(paths),
-    }))(this), {
+    return refreshWorkspacePipelineChangedFiles(this._createWorkspaceIndexRefreshSource(), {
       disabledPlugins,
+      discoveredDirectories: discoveryResult.directories ?? [],
       discoveredFiles: discoveryResult.files,
       filePaths,
       filterPatterns,
