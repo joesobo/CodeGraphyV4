@@ -19,6 +19,7 @@ import {
   analyzeWorkspacePipeline,
   rebuildWorkspacePipelineGraph,
 } from './runtime/run';
+import { createEmptyWorkspaceAnalysisCache } from '../cache';
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
@@ -163,13 +164,18 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     );
   }
 
+  protected resetCacheForIndexRefresh(): void {
+    this._cache = createEmptyWorkspaceAnalysisCache();
+    console.log('[CodeGraphy] Cache cleared');
+  }
+
   async refreshIndex(
     filterPatterns: string[] = [],
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    this.clearCache();
+    this.resetCacheForIndexRefresh();
     return this.analyze(filterPatterns, disabledPlugins, signal, progress => {
       onProgress?.({
         ...progress,
