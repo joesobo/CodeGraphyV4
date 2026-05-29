@@ -50,3 +50,9 @@ Long-lived indexing state is engine state and belongs in the Core Package.
 Core should own the state currently represented by extension facade fields such as `_lastDiscoveredFiles`, `_lastDiscoveredDirectories`, `_lastFileAnalysis`, `_lastFileConnections`, and `_lastWorkspaceRoot`, plus the cache invalidation and graph rebuild state derived from them.
 
 The VS Code extension may keep UI and editor session state such as active webview panels, pending progress notifications, active editor context, and Graph View message subscriptions.
+
+### 3. Core Owns Plugin Processing And Plugin Status Semantics
+
+The Core Package owns plugin processing during Indexing and the status semantics derived from plugin runtime state, workspace settings, installed plugin records, discovered files, and indexed connection data.
+
+The VS Code extension may expose UI for toggling and configuring plugins, then ask Core for the updated plugin status and graph data. The extension should render the plugin information and graph payload Core returns, not assemble plugin status from engine internals.
