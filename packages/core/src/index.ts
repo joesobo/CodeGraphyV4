@@ -7,6 +7,13 @@ export { runIndexCommand } from './cli/index/command';
 export { runPluginsCommand } from './cli/plugins/command';
 export { runSetupCommand } from './cli/setup/command';
 export { runStatusCommand } from './cli/status/command';
+export {
+  createWorkspaceIndexEngineState,
+  getWorkspaceIndexEngineRelativePath,
+  invalidateWorkspaceIndexEngineFiles,
+  removeInvalidatedWorkspaceIndexDirectories,
+} from './indexing/state';
+export type { WorkspaceIndexEngineState } from './indexing/state';
 export type {
   ICachedWorkspaceFile,
   IWorkspaceAnalysisCache,

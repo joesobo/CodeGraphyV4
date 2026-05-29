@@ -96,4 +96,34 @@ describe('extension/pipeline/service/stateBase', () => {
 
     expect(state._discovery).toBeInstanceOf(FileDiscovery);
   });
+
+  it('stores retained indexing fields in the core engine state', () => {
+    const state = new TestWorkspacePipelineState(createContext()) as TestWorkspacePipelineState & {
+      _cache: { files: Record<string, unknown> };
+      _engineState: {
+        cache: unknown;
+        fileAnalysis: unknown;
+        workspaceRoot: string;
+      };
+      _lastFileAnalysis: Map<string, unknown>;
+      _lastWorkspaceRoot: string;
+    };
+    const fileAnalysis = new Map([['src/a.ts', { filePath: '/workspace/src/a.ts' }]]);
+
+    state._cache = {
+      version: 'test',
+      files: {
+        'src/a.ts': {
+          mtime: 1,
+          analysis: { filePath: '/workspace/src/a.ts', relations: [] },
+        },
+      },
+    };
+    state._lastFileAnalysis = fileAnalysis;
+    state._lastWorkspaceRoot = '/workspace';
+
+    expect(state._engineState.cache).toBe(state._cache);
+    expect(state._engineState.fileAnalysis).toBe(fileAnalysis);
+    expect(state._engineState.workspaceRoot).toBe('/workspace');
+  });
 });

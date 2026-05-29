@@ -1,8 +1,6 @@
 import { createEmptyWorkspaceAnalysisCache, type IWorkspaceAnalysisCache } from '../analysis/cache';
 import type { IWorkspaceFileAnalysisResult } from '../analysis/fileAnalysis';
 import { analyzeWorkspacePipelineFiles } from '../analysis/workspaceFiles';
-import type { IProjectedConnection } from '../analysis/projectedConnection';
-import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IDiscoveredFile, IDiscoveryResult } from '../discovery/contracts';
 import { FileDiscovery } from '../discovery/file/service';
 import { buildWorkspacePipelineGraphFromAnalysis } from '../graph/build';
@@ -24,14 +22,14 @@ import { createEffectiveIndexSettings } from './settings';
 import type { CorePluginRegistry } from '../plugins/registry';
 import type { LoadedCodeGraphyWorkspacePluginPackage } from '../plugins/packageRuntime';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
+import {
+  createWorkspaceIndexEngineState,
+  invalidateWorkspaceIndexEngineFiles,
+  type WorkspaceIndexEngineState,
+} from './state';
 
-interface WorkspaceEngineState {
-  cache: IWorkspaceAnalysisCache;
-  directories: string[];
+interface WorkspaceEngineState extends WorkspaceIndexEngineState {
   discoveryResult?: IDiscoveryResult;
-  fileAnalysis: Map<string, IFileAnalysisResult>;
-  fileConnections: Map<string, IProjectedConnection[]>;
-  graph: IGraphData;
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
   registry?: CorePluginRegistry;
   settings?: CodeGraphyWorkspaceSettings;
@@ -46,11 +44,7 @@ export interface CodeGraphyWorkspaceEngine {
 
 function createInitialState(): WorkspaceEngineState {
   return {
-    cache: createEmptyWorkspaceAnalysisCache(),
-    directories: [],
-    fileAnalysis: new Map(),
-    fileConnections: new Map(),
-    graph: { nodes: [], edges: [] },
+    ...createWorkspaceIndexEngineState(),
     loadedPackagePlugins: [],
   };
 }
@@ -82,25 +76,6 @@ function updateStateFromAnalysis(
   state.fileConnections = analysisResult.fileConnections;
 }
 
-function invalidateWorkspaceIndexFiles(
-  state: WorkspaceEngineState,
-  workspaceRoot: string,
-  filePaths: readonly string[],
-): void {
-  for (const filePath of filePaths) {
-    const relativePath = filePath.startsWith(`${workspaceRoot}/`)
-      ? filePath.slice(workspaceRoot.length + 1)
-      : undefined;
-    if (!relativePath) {
-      continue;
-    }
-
-    delete state.cache.files[relativePath];
-    state.fileAnalysis.delete(relativePath);
-    state.fileConnections.delete(relativePath);
-  }
-}
-
 async function readAnalysisFiles(
   discovery: FileDiscovery,
   files: readonly IDiscoveredFile[],
@@ -129,7 +104,7 @@ export function createCodeGraphyWorkspaceEngine(
     state.graph = buildWorkspacePipelineGraphFromAnalysis({
       cacheFiles: state.cache.files,
       churnCounts: {},
-      directoryPaths: state.directories,
+      directoryPaths: state.discoveredDirectories,
       disabledPlugins,
       fileAnalysis: state.fileAnalysis,
       getPluginForFile: absolutePath => state.registry?.getPluginForFile(absolutePath),
@@ -159,6 +134,7 @@ export function createCodeGraphyWorkspaceEngine(
     const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot);
     state.registry = registryResult.registry;
     state.loadedPackagePlugins = registryResult.loadedPackagePlugins;
+    state.workspaceRoot = workspaceRoot;
 
     await state.registry.initializeAll(workspaceRoot);
     const disabledPlugins = new Set(options.disabledPlugins ?? []);
@@ -170,7 +146,8 @@ export function createCodeGraphyWorkspaceEngine(
       settings: state.settings,
       workspaceRoot,
     });
-    state.directories = state.discoveryResult.directories ?? [];
+    state.discoveredDirectories = state.discoveryResult.directories ?? [];
+    state.discoveredFiles = state.discoveryResult.files;
 
     const analysisResult = await analyzeWorkspaceIndexFiles({
       cache: state.cache,
@@ -189,7 +166,7 @@ export function createCodeGraphyWorkspaceEngine(
 
     return createIndexResult({
       cache: state.cache,
-      directories: state.directories,
+      directories: state.discoveredDirectories,
       discoveryResult: state.discoveryResult,
       graph,
       workspaceRoot,
@@ -212,7 +189,8 @@ export function createCodeGraphyWorkspaceEngine(
       settings: state.settings,
       workspaceRoot,
     });
-    state.directories = state.discoveryResult.directories ?? [];
+    state.discoveredDirectories = state.discoveryResult.directories ?? [];
+    state.discoveredFiles = state.discoveryResult.files;
 
     const discoveredByRelativePath = mapDiscoveredWorkspaceIndexFilesByRelativePath(
       state.discoveryResult.files,
@@ -224,7 +202,7 @@ export function createCodeGraphyWorkspaceEngine(
     );
 
     if (changeSelection.unmatchedFilePaths.length > 0) {
-      invalidateWorkspaceIndexFiles(state, workspaceRoot, changeSelection.unmatchedFilePaths);
+      invalidateWorkspaceIndexEngineFiles(state, workspaceRoot, changeSelection.unmatchedFilePaths);
       return index();
     }
 
@@ -243,7 +221,7 @@ export function createCodeGraphyWorkspaceEngine(
       pluginChanges.additionalFilePaths,
       discoveredByRelativePath,
     );
-    invalidateWorkspaceIndexFiles(
+    invalidateWorkspaceIndexEngineFiles(
       state,
       workspaceRoot,
       filesToAnalyze.map(file => file.absolutePath),
@@ -281,7 +259,7 @@ export function createCodeGraphyWorkspaceEngine(
 
     return createIndexResult({
       cache: state.cache,
-      directories: state.directories,
+      directories: state.discoveredDirectories,
       discoveryResult: state.discoveryResult,
       graph,
       workspaceRoot,
