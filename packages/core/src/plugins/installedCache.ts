@@ -5,6 +5,7 @@ export type {
   LinkCodeGraphyInstalledPluginPackageOptions,
   RegisterCodeGraphyInstalledPluginOptions,
 } from './installedPluginCache/contracts';
+export type { UpdateCodeGraphyWorkspacePluginSelectionOptions } from './installedPluginCache/workspaceSelection';
 export { createBundledMarkdownInstalledPluginRecord } from './installedPluginCache/bundled';
 export {
   getCodeGraphyUserDirectoryPath,
@@ -22,4 +23,5 @@ export {
 export {
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
+  updateCodeGraphyWorkspacePluginSelection,
 } from './installedPluginCache/workspaceSelection';
