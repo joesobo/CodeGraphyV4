@@ -15,9 +15,14 @@ import {
 import {
   analyzeGraphViewRawData,
   discoverGraphViewRawData,
+  loadCachedGraphViewRawData,
 } from './load/analyzerData';
 import { getGraphIndexFreshness } from './load/freshness';
 import { selectGraphViewRawDataLoadDecision } from './load/routing';
+
+function hasReplayableGraphData(graphData: IGraphData): boolean {
+  return graphData.nodes.length > 0 || graphData.edges.length > 0;
+}
 
 export async function loadGraphViewRawData(
   signal: AbortSignal,
@@ -30,7 +35,11 @@ export async function loadGraphViewRawData(
   }
 
   const indexFreshness = getGraphIndexFreshness(analyzer);
-  const decision = selectGraphViewRawDataLoadDecision(state.mode, indexFreshness);
+  const decision = selectGraphViewRawDataLoadDecision(
+    state.mode,
+    indexFreshness,
+    typeof analyzer.loadCachedGraph === 'function',
+  );
   const forwardProgress = createGraphViewAnalysisProgressForwarder(state.mode, handlers);
 
   if (!decision.shouldDiscover) {
@@ -40,6 +49,21 @@ export async function loadGraphViewRawData(
   if (decision.route === 'discover') {
     return {
       rawGraphData: await discoverGraphViewRawData(signal, state, analyzer),
+      shouldDiscover: decision.shouldDiscover,
+    };
+  }
+
+  if (decision.route === 'cached') {
+    const cachedGraphData = await loadCachedGraphViewRawData(signal, state, analyzer);
+    if (hasReplayableGraphData(cachedGraphData)) {
+      return {
+        rawGraphData: cachedGraphData,
+        shouldDiscover: decision.shouldDiscover,
+      };
+    }
+
+    return {
+      rawGraphData: await refreshGraphViewRawData(signal, state, forwardProgress),
       shouldDiscover: decision.shouldDiscover,
     };
   }

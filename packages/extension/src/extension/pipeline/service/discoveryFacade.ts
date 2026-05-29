@@ -1,5 +1,11 @@
+import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { readCodeGraphyWorkspaceStatus } from '@codegraphy-dev/core';
+import {
+  type IDiscoveredFile,
+  projectFileAnalysisConnections,
+  readCodeGraphyWorkspaceStatus,
+  throwIfWorkspaceAnalysisAborted,
+} from '@codegraphy-dev/core';
 import type { IProjectedConnection } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IPluginFilterPatternGroup } from '../../../shared/protocol/extensionToWebview';
@@ -20,6 +26,32 @@ import {
   rebuildWorkspacePipelineGraph,
 } from './runtime/run';
 import { createEmptyWorkspaceAnalysisCache } from '../cache';
+
+function createCachedDiscoveredFiles(
+  workspaceRoot: string,
+  filePaths: readonly string[],
+): IDiscoveredFile[] {
+  return filePaths.map(relativePath => ({
+    absolutePath: path.join(workspaceRoot, relativePath),
+    extension: path.extname(relativePath),
+    name: path.basename(relativePath),
+    relativePath,
+  }));
+}
+
+function collectCachedDirectoryPaths(filePaths: readonly string[]): string[] {
+  const directories = new Set<string>();
+
+  for (const filePath of filePaths) {
+    let directory = path.posix.dirname(filePath.replace(/\\/g, '/'));
+    while (directory && directory !== '.') {
+      directories.add(directory);
+      directory = path.posix.dirname(directory);
+    }
+  }
+
+  return [...directories].sort();
+}
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
   private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
@@ -153,6 +185,42 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
       onProgress,
       signal,
       async () => this._persistIndexMetadata(),
+    );
+  }
+
+  async loadCachedGraph(
+    _filterPatterns: string[] = [],
+    disabledPlugins: Set<string> = new Set(),
+    signal?: AbortSignal,
+  ): Promise<IGraphData> {
+    throwIfWorkspaceAnalysisAborted(signal);
+
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return { nodes: [], edges: [] };
+    }
+
+    const fileAnalysis = new Map(
+      Object.entries(this._cache.files).map(([filePath, entry]) => [
+        filePath,
+        entry.analysis,
+      ]),
+    );
+    const cachedFilePaths = Object.keys(this._cache.files);
+
+    this._lastDiscoveredFiles = createCachedDiscoveredFiles(workspaceRoot, cachedFilePaths);
+    this._lastDiscoveredDirectories = collectCachedDirectoryPaths(cachedFilePaths);
+    this._lastFileAnalysis = fileAnalysis;
+    this._lastFileConnections = projectFileAnalysisConnections(fileAnalysis, workspaceRoot);
+    this._lastWorkspaceRoot = workspaceRoot;
+
+    throwIfWorkspaceAnalysisAborted(signal);
+
+    return this._buildGraphDataFromAnalysis(
+      fileAnalysis,
+      workspaceRoot,
+      this._config.getAll().showOrphans,
+      disabledPlugins,
     );
   }
 

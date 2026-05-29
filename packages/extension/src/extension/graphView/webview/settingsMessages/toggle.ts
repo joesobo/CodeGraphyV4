@@ -51,6 +51,12 @@ export async function applySettingsToggleMessage(
         handlers.sendContextMenuItems?.();
         handlers.sendPluginToolbarActions?.();
         handlers.sendGraphViewContributionStatuses?.();
+        handlers.sendGraphControls();
+        if (message.payload.enabled) {
+          await handlers.reprocessPluginFiles([message.payload.pluginId]);
+          return true;
+        }
+
         await handlers.analyzeAndSendData();
         return true;
       }

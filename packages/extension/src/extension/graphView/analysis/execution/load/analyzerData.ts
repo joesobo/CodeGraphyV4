@@ -32,3 +32,15 @@ export async function analyzeGraphViewRawData(
     forwardProgress,
   )) ?? EMPTY_GRAPH_DATA;
 }
+
+export async function loadCachedGraphViewRawData(
+  signal: AbortSignal,
+  state: GraphViewAnalysisExecutionState,
+  analyzer: GraphViewAnalyzer,
+): Promise<IGraphData> {
+  return (await analyzer.loadCachedGraph?.(
+    state.filterPatterns,
+    state.disabledPlugins,
+    signal,
+  )) ?? EMPTY_GRAPH_DATA;
+}

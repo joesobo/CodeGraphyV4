@@ -418,6 +418,54 @@ describe('pipeline/plugins/statusBuilder', () => {
     });
   });
 
+  it('deduplicates installed package aliases that advertise the same plugin id', () => {
+    const pluginInfos = [
+      {
+        ...createPluginInfo({
+          id: 'codegraphy.organize',
+          name: 'CodeGraphy Organize',
+          supportedExtensions: ['*'],
+        }),
+        sourcePackage: '@codegraphy-pro/organize',
+      },
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [{ relativePath: 'src/index.ts' }],
+      fileConnections: new Map([['src/index.ts', []]]),
+      installedPlugins: [
+        {
+          package: '@codegraphy/organize',
+          pluginId: 'codegraphy.organize',
+          pluginName: 'CodeGraphy Organize',
+          version: '1.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: '/global/node_modules/@codegraphy/organize',
+        },
+        {
+          package: '@codegraphy-pro/organize',
+          pluginId: 'codegraphy.organize',
+          pluginName: 'CodeGraphy Organize',
+          version: '1.0.0',
+          apiVersion: '^2.0.0',
+          disclosures: [],
+          packageRoot: '/global/node_modules/@codegraphy-pro/organize',
+        },
+      ],
+      pluginInfos,
+      workspaceEnabledPackageNames: new Set(['@codegraphy-pro/organize']),
+    });
+
+    expect(statuses).toHaveLength(1);
+    expect(statuses[0]).toMatchObject({
+      id: 'codegraphy.organize',
+      packageName: '@codegraphy-pro/organize',
+      enabled: true,
+    });
+  });
+
   it('keeps package plugins in installed order and preserves plugin names when toggled off', () => {
     const installedPlugins = [
       {

@@ -194,4 +194,43 @@ describe('pipeline/serviceAdapters', () => {
       }),
     ]));
   });
+
+  it('hides cached relations owned by plugins that are no longer registered', () => {
+    const cache = {
+      files: {
+        'src/app.ts': { size: 12 },
+        'src/organize.ts': { size: 8 },
+      },
+    };
+    const workspaceState = {
+      get: vi.fn(() => undefined),
+      update: vi.fn(),
+    };
+    const registry = {
+      getPluginForFile: vi.fn(() => undefined),
+      list: vi.fn(() => []),
+    };
+
+    const graphData = buildWorkspacePipelineGraphData(
+      cache as never,
+      { workspaceState } as never,
+      registry as never,
+      new Map([
+        ['src/app.ts', [
+          {
+            kind: 'import',
+            pluginId: 'codegraphy.organize',
+            sourceId: 'organize-edge',
+            specifier: './organize',
+            resolvedPath: '/workspace/src/organize.ts',
+          },
+        ]],
+        ['src/organize.ts', []],
+      ]),
+      '/workspace',
+      true,
+    );
+
+    expect(graphData.edges).toEqual([]);
+  });
 });

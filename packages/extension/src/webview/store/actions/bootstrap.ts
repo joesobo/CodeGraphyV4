@@ -37,10 +37,12 @@ export function createBootstrapActions(set: SetState) {
           ...state,
           pendingPluginAssetLoads,
         };
+        const initialLoadingFinished = canFinishInitialLoading(nextState);
 
         return {
           pendingPluginAssetLoads,
-          isLoading: canFinishInitialLoading(nextState) ? false : state.isLoading,
+          awaitingInitialBootstrap: initialLoadingFinished ? false : state.awaitingInitialBootstrap,
+          isLoading: initialLoadingFinished ? false : state.isLoading,
         };
       }),
   };
