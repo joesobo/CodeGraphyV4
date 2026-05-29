@@ -24,6 +24,15 @@ This plugin keeps the TypeScript/JavaScript ecosystem defaults that are still us
 - default ignore filters for common build output and package folders
 - workspace enablement for TypeScript/JavaScript-specific defaults
 
+When CodeGraphy adds project-aware TypeScript semantics, such as `compilerOptions.paths`
+import resolution, this package is the intended home for emitting that additional
+relationship data through Core's plugin pipeline. Alias-derived relationships should
+use a TypeScript-plugin-owned edge type labeled **TypeScript Alias Import** so Graph
+Scope can toggle them separately from baseline import edges. That edge type should
+default on, and the plugin should process aliases whenever the TypeScript plugin is
+enabled so Graph Query, MCP, and exports can use the same relationship data even
+when Graph Scope hides it.
+
 Core CodeGraphy now owns the default JS/TS icons and colors through Material Icon Theme.
 This plugin no longer ships general file theming.
 
