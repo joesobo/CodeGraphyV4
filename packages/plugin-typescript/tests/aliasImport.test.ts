@@ -550,6 +550,54 @@ describe('TypeScript Alias Import analysis', () => {
     }
   });
 
+  it('resolves JavaScript extension imports to TypeScript source files', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@/*': ['src/*'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "import { token } from '@/token.js';\n",
+      );
+      const targetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '@/token.js';\n",
+        workspaceRoot,
+      );
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'codegraphy.typescript:alias-import',
+          sourceId: 'compiler-options-paths',
+          fromFilePath: sourcePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: '@/token.js',
+        },
+      ]);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
   it('parses tsconfig JSON with comments and trailing commas', async () => {
     const workspaceRoot = createWorkspaceRoot();
     try {
@@ -661,6 +709,45 @@ describe('TypeScript Alias Import analysis', () => {
       const result = await plugin.analyzeFile?.(
         sourcePath,
         "import { token } from '@/token';\n",
+        workspaceRoot,
+      );
+
+      expect(result?.relations).toEqual([]);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
+  it('does not emit relationships from commented-out imports', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@/*': ['src/*'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/app.ts',
+        "// import { token } from '@/token';\n",
+      );
+      writeWorkspaceFile(
+        workspaceRoot,
+        'src/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "// import { token } from '@/token';\n",
         workspaceRoot,
       );
 

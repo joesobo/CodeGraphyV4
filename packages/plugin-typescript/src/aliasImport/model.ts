@@ -11,8 +11,14 @@ export const TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE = {
 } as const;
 
 const COMPILER_OPTIONS_PATHS_SOURCE_ID = 'compiler-options-paths';
-const IMPORT_RESOLUTION_EXTENSIONS = ['', '.ts', '.tsx', '.d.ts', '.mts', '.cts'] as const;
+const EXTENSIONLESS_IMPORT_CANDIDATE_EXTENSIONS = ['.ts', '.tsx', '.d.ts', '.mts', '.d.mts', '.cts', '.d.cts'] as const;
 const TYPESCRIPT_SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts']);
+const IMPORT_EXTENSION_SUBSTITUTIONS: Record<string, string[]> = {
+  '.js': ['.ts', '.tsx', '.d.ts', '.js'],
+  '.jsx': ['.tsx', '.d.ts', '.jsx'],
+  '.mjs': ['.mts', '.d.mts', '.mjs'],
+  '.cjs': ['.cts', '.d.cts', '.cjs'],
+};
 
 type TypeScriptPathMapping = {
   baseUrl: string;
@@ -94,18 +100,57 @@ function comparePathMappingSpecificity(
   return rightPrefixLength - leftPrefixLength || rightSuffixLength - leftSuffixLength;
 }
 
-function extractModuleSpecifiers(content: string): string[] {
-  return [...content.matchAll(/\b(?:import|export)\b[^'"]*['"]([^'"]+)['"]/g)]
-    .map(match => match[1])
-    .filter((specifier): specifier is string => Boolean(specifier));
+function extractModuleSpecifiers(filePath: string, content: string): string[] {
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    content,
+    ts.ScriptTarget.Latest,
+    true,
+    filePath.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+  const specifiers: string[] = [];
+
+  function addModuleSpecifier(moduleSpecifier: ts.Expression | undefined): void {
+    if (moduleSpecifier && ts.isStringLiteralLike(moduleSpecifier)) {
+      specifiers.push(moduleSpecifier.text);
+    }
+  }
+
+  function visit(node: ts.Node): void {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+      addModuleSpecifier(node.moduleSpecifier);
+    } else if (ts.isImportEqualsDeclaration(node) && ts.isExternalModuleReference(node.moduleReference)) {
+      addModuleSpecifier(node.moduleReference.expression);
+    } else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+      addModuleSpecifier(node.arguments[0]);
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return specifiers;
+}
+
+function createExistingFileCandidates(basePath: string): string[] {
+  const extension = path.extname(basePath);
+  if (extension) {
+    const extensionSubstitutions = IMPORT_EXTENSION_SUBSTITUTIONS[extension] ?? [extension];
+    const pathWithoutExtension = basePath.slice(0, -extension.length);
+    return extensionSubstitutions.map(candidateExtension => `${pathWithoutExtension}${candidateExtension}`);
+  }
+
+  return [
+    basePath,
+    ...EXTENSIONLESS_IMPORT_CANDIDATE_EXTENSIONS.map(candidateExtension => `${basePath}${candidateExtension}`),
+    ...EXTENSIONLESS_IMPORT_CANDIDATE_EXTENSIONS.map(candidateExtension => (
+      path.join(basePath, `index${candidateExtension}`)
+    )),
+  ];
 }
 
 function resolveExistingFile(basePath: string): string | null {
-  const candidates = [
-    ...IMPORT_RESOLUTION_EXTENSIONS.map(extension => `${basePath}${extension}`),
-    ...IMPORT_RESOLUTION_EXTENSIONS.slice(1).map(extension => path.join(basePath, `index${extension}`)),
-  ];
-
+  const candidates = createExistingFileCandidates(basePath);
   return candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) ?? null;
 }
 
@@ -159,7 +204,7 @@ export async function analyzeTypeScriptAliasImports(
 
   return {
     filePath,
-    relations: extractModuleSpecifiers(content)
+    relations: extractModuleSpecifiers(filePath, content)
       .map(specifier => ({
         specifier,
         resolvedPath: resolveAliasImport(specifier, config),
