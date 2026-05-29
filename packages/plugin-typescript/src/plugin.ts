@@ -51,6 +51,30 @@ function resolveLocalExtendsPath(tsconfigPath: string, extendedConfig: string): 
   return path.extname(resolved) ? resolved : `${resolved}.json`;
 }
 
+function resolvePackageExtendsPath(tsconfigPath: string, extendedConfig: string): string | null {
+  let currentDir = path.dirname(tsconfigPath);
+  const rootDir = path.parse(currentDir).root;
+
+  while (true) {
+    const resolved = path.join(currentDir, 'node_modules', extendedConfig);
+    const candidate = path.extname(resolved) ? resolved : `${resolved}.json`;
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+
+    if (currentDir === rootDir) {
+      return null;
+    }
+
+    currentDir = path.dirname(currentDir);
+  }
+}
+
+function resolveExtendsPath(tsconfigPath: string, extendedConfig: string): string | null {
+  return resolveLocalExtendsPath(tsconfigPath, extendedConfig)
+    ?? resolvePackageExtendsPath(tsconfigPath, extendedConfig);
+}
+
 function readTypeScriptAliasConfigFile(
   tsconfigPath: string,
   visited = new Set<string>(),
@@ -62,7 +86,7 @@ function readTypeScriptAliasConfigFile(
   visited.add(tsconfigPath);
   const parsed = readTsConfigFile(tsconfigPath);
   const extendedConfigPath = parsed.extends
-    ? resolveLocalExtendsPath(tsconfigPath, parsed.extends)
+    ? resolveExtendsPath(tsconfigPath, parsed.extends)
     : null;
   const inheritedPaths = extendedConfigPath
     ? readTypeScriptAliasConfigFile(extendedConfigPath, visited)?.paths ?? []
