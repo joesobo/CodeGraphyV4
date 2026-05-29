@@ -115,8 +115,8 @@ A node with no edges after **Graph Scope**, **Filter**, **Search**, and structur
 _Avoid_: Isolated file if the node is not a file
 
 **Show Orphans**:
-A final view setting that keeps or removes Orphan Nodes after orphan status is calculated.
-_Avoid_: Filter Setting, Graph Scope
+A final **Graph View** presentation setting that keeps or removes Orphan Nodes after orphan status is calculated. It is not an **Indexing** input or a Core Package **Graph Query** configuration field.
+_Avoid_: Filter Setting, Graph Scope, Indexing option, Graph Query option
 
 ### Collapse And Focus
 
@@ -579,13 +579,13 @@ _Avoid_: Graph export
 - **Continuous Zoom** should use the same zoom step as repeated single zoom actions.
 - **3D Zoom** should clamp camera distance relative to the current graph context so holding zoom out does not make the graph effectively disappear.
 - **Graph Query** behavior should live in a Core Package **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
-- The **Graph Query** **Module** should return the graph data callers ask for while exposing opt-in query stages such as **Graph Scope** Node Type and Edge Type enablement, **Filter** conditions, **Search**, sorting, pagination, and **Show Orphans** where applicable.
+- The **Graph Query** **Module** should return the graph data callers ask for while exposing opt-in query stages such as **Graph Scope** Node Type and Edge Type enablement, **Filter** conditions, **Search**, sorting, and pagination.
 - **Graph Scope** query behavior is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.
 - Core **Edge Types** should use canonical core ids such as `nests`; namespaced ids are appropriate for plugin-owned **Edge Types**.
-- A **Graph Query** configuration should keep stage inputs together: `scope.nodes`, `scope.edges`, `filters`, `search`, `sort`, `limit`, `offset`, and `showOrphans` where applicable.
-- **Show Orphans** remains a boolean view setting in **Graph Query** configuration.
+- A **Graph Query** configuration should keep stage inputs together: `scope.nodes`, `scope.edges`, `filters`, `search`, `sort`, `limit`, and `offset`.
+- **Show Orphans** remains a boolean **Graph View** presentation setting, not a **Graph Query** configuration field.
 - Structural **Folder Node** and **Workspace Package** projection belongs inside the **Graph Query** **Module**, so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same structural graph behavior.
-- When callers opt in to multiple query stages, the **Graph Query** **Module** must apply them in canonical order so stages compound correctly: **Graph Scope** before **Filter**, **Filter** before **Search**, **Show Orphans** last where applicable, then sorting and pagination.
+- When callers opt in to multiple query stages, the **Graph Query** **Module** must apply them in canonical order so stages compound correctly: **Graph Scope** before **Filter**, **Filter** before **Search**, then sorting and pagination.
 - The **Timeline View** lets users jump through commits in git history.
 - Selecting a **Timeline Snapshot** changes the nodes and edges rendered in the **Visible Graph** inside the **Graph View**.
 - **Timeline Snapshots** still flow through the same **Graph Scope**, **Filter**, **Search**, and view setting stages as the current workspace **Relationship Graph**.
@@ -692,4 +692,4 @@ _Avoid_: Graph export
 - Do not introduce "Collapsed Graph" as a separate pipeline term for now; resolved: the user still sees the **Visible Graph**, updated by **Collapse Projection**.
 - "filter" and "collapse" both reduce **Visible Graph** detail but are not synonyms; resolved: **Filter** means persistent include/exclude criteria, while **Collapse** means summarize relevant hidden detail.
 - Graph Scope before Filter is load-bearing: disabled **Node Types** and **Edge Types** must be removed before filter criteria are evaluated.
-- **Show Orphans** is a final view setting because orphan status can only be known after **Graph Scope**, **Filter**, **Search**, and structural view settings have run.
+- **Show Orphans** is a final **Graph View** presentation setting because orphan status can only be known after graph data is narrowed for rendering; it is not part of **Indexing** or Core **Graph Query** configuration.

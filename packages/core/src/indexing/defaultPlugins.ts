@@ -1,4 +1,3 @@
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import { createMarkdownPlugin } from '@codegraphy-dev/plugin-markdown';
 import type { CorePluginRegistry } from '../plugins/registry';
 import { createTreeSitterPlugin } from '../treeSitter/plugin';
@@ -6,7 +5,11 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   type CodeGraphyWorkspaceSettings,
 } from '../workspace/settings';
-import type { IndexCodeGraphyWorkspaceOptions } from './contracts';
+import type {
+  IndexCodeGraphyWorkspaceOptions,
+  IndexCodeGraphyWorkspacePlugin,
+  IndexCodeGraphyWorkspacePluginEntry,
+} from './contracts';
 
 function shouldRegisterDefaultMarkdownPlugin(
   options: IndexCodeGraphyWorkspaceOptions,
@@ -16,7 +19,7 @@ function shouldRegisterDefaultMarkdownPlugin(
     return false;
   }
 
-  const providedPluginIds = new Set((options.plugins ?? []).map(plugin => plugin.id));
+  const providedPluginIds = new Set((options.plugins ?? []).map(plugin => readPluginEntry(plugin).plugin.id));
   return settings.plugins.some(plugin => plugin.package === CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)
     && !providedPluginIds.has('codegraphy.markdown');
 }
@@ -46,8 +49,24 @@ export function registerDefaultIndexPlugins(
   }
 }
 
-export function registerProvidedPlugins(registry: CorePluginRegistry, plugins: readonly IPlugin[] | undefined): void {
-  for (const plugin of plugins ?? []) {
-    registry.register(plugin);
+function isPluginEntry(plugin: IndexCodeGraphyWorkspacePlugin): plugin is IndexCodeGraphyWorkspacePluginEntry {
+  return 'plugin' in plugin;
+}
+
+function readPluginEntry(plugin: IndexCodeGraphyWorkspacePlugin): IndexCodeGraphyWorkspacePluginEntry {
+  return isPluginEntry(plugin) ? plugin : { plugin };
+}
+
+export function registerProvidedPlugins(
+  registry: CorePluginRegistry,
+  plugins: readonly IndexCodeGraphyWorkspacePlugin[] | undefined,
+): void {
+  for (const pluginInput of plugins ?? []) {
+    const entry = readPluginEntry(pluginInput);
+    registry.register(entry.plugin, {
+      ...(entry.builtIn !== undefined ? { builtIn: entry.builtIn } : {}),
+      ...(entry.sourcePackage ? { sourcePackage: entry.sourcePackage } : {}),
+      ...(entry.options ? { options: entry.options } : {}),
+    });
   }
 }

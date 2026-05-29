@@ -42,6 +42,10 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
         update: vi.fn(),
       },
     } as never);
+    this._lastDiscoveredFiles = [] as never;
+    this._lastFileAnalysis = new Map() as never;
+    this._lastFileConnections = new Map() as never;
+    this._lastWorkspaceRoot = '';
   }
 
   _config = {
@@ -53,10 +57,37 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
     notifyFilesChanged: vi.fn(async () => ({ additionalFilePaths: [], requiresFullRefresh: false })),
   } as never;
 
-  _lastDiscoveredFiles = [] as never;
-  _lastFileAnalysis = new Map() as never;
-  _lastFileConnections = new Map() as never;
-  _lastWorkspaceRoot = '';
+  public override get _lastDiscoveredFiles(): never {
+    return super._lastDiscoveredFiles as never;
+  }
+
+  public override set _lastDiscoveredFiles(files: never) {
+    super._lastDiscoveredFiles = files;
+  }
+
+  public override get _lastFileAnalysis(): never {
+    return super._lastFileAnalysis as never;
+  }
+
+  public override set _lastFileAnalysis(fileAnalysis: never) {
+    super._lastFileAnalysis = fileAnalysis;
+  }
+
+  public override get _lastFileConnections(): never {
+    return super._lastFileConnections as never;
+  }
+
+  public override set _lastFileConnections(fileConnections: never) {
+    super._lastFileConnections = fileConnections;
+  }
+
+  public override get _lastWorkspaceRoot(): string {
+    return super._lastWorkspaceRoot;
+  }
+
+  public override set _lastWorkspaceRoot(workspaceRoot: string) {
+    super._lastWorkspaceRoot = workspaceRoot;
+  }
 
   _getWorkspaceRoot = vi.fn(() => '/workspace');
   getPluginFilterPatterns = vi.fn(() => ['plugin-filter']);
@@ -134,7 +165,7 @@ describe('pipeline/service/refreshFacade', () => {
 
     const [refreshSource, refreshDependencies] = vi.mocked(refreshWorkspacePipelineChangedFiles).mock.calls[0];
 
-    expect(refreshDependencies.config).toEqual({ showOrphans: true, respectGitignore: true });
+    expect('config' in refreshDependencies).toBe(false);
     expect(refreshDependencies.disabledPlugins).toBe(disabledPlugins);
     expect(refreshDependencies.discoveredFiles).toEqual([
       { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
@@ -159,13 +190,10 @@ describe('pipeline/service/refreshFacade', () => {
     await refreshDependencies.persistIndexMetadata();
     expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
 
-    expect(refreshDependencies.toWorkspaceRelativePath('/workspace', '/workspace/src/a.ts')).toBe('src/a.ts');
-    expect(facade._toWorkspaceRelativePath).toHaveBeenCalledWith('/workspace', '/workspace/src/a.ts');
-
     await refreshSource._analyzeFiles([], '/workspace', undefined, signal);
     expect(facade._analyzeFiles).toHaveBeenCalledWith([], '/workspace', undefined, signal);
 
-    refreshSource._buildGraphDataFromAnalysis(new Map(), '/workspace', true, disabledPlugins);
+    refreshSource._buildGraphDataFromAnalysis(new Map(), '/workspace', disabledPlugins);
     expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(new Map(), '/workspace', true, disabledPlugins);
 
     expect(refreshSource._lastDiscoveredFiles).toEqual([]);
