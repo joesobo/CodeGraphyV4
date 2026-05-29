@@ -21,6 +21,19 @@ describe('createTypeScriptPlugin', () => {
     expect(plugin.fileColors).toEqual({});
   });
 
+  it('contributes a default-visible TypeScript Alias Import edge type', () => {
+    const plugin = createTypeScriptPlugin();
+
+    expect(plugin.contributeEdgeTypes?.()).toEqual([
+      {
+        id: 'codegraphy.typescript:alias-import',
+        label: 'TypeScript Alias Import',
+        defaultColor: '#38BDF8',
+        defaultVisible: true,
+      },
+    ]);
+  });
+
   it('does not provide supplemental analysis once Tree-sitter owns the base JS/TS parsing', () => {
     const plugin = createTypeScriptPlugin();
 
