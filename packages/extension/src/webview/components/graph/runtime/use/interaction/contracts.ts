@@ -12,37 +12,36 @@ import type { FGNode } from '../../../model/build';
 import type { GraphCursorStyle } from '../../../support/dom';
 import type { WebviewPluginHost } from '../../../../../pluginHost/manager';
 import type { useGraphTooltip } from '../tooltip/hook';
-import type { UseGraphStateResult } from '../state';
+import type { GraphRuntime } from '../state';
 
 export type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
 
 export interface UseGraphInteractionRuntimeOptions {
   dataRef: MutableRefObject<IGraphData>;
   depthMode: boolean;
-  fileInfoCacheRef: UseGraphStateResult['fileInfoCacheRef'];
+  fileInfoCacheRef: GraphRuntime['renderCaches']['fileInfoCacheRef'];
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
-  graphDataRef: UseGraphStateResult['graphDataRef'];
+  graphDataRef: GraphRuntime['renderer']['graphDataRef'];
   graphViewContributions?: CoreGraphViewContributionSet;
   graphMode: '2d' | '3d';
-  highlightedNeighborsRef: UseGraphStateResult['highlightedNeighborsRef'];
-  highlightedNodeRef: UseGraphStateResult['highlightedNodeRef'];
+  highlightedNeighborsRef: GraphRuntime['highlightedNeighborsRef'];
+  highlightedNodeRef: GraphRuntime['highlightedNodeRef'];
   isMacPlatform: boolean;
-  lastClickRef: UseGraphStateResult['lastClickRef'];
-  lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
-  lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
+  lastClickRef: GraphRuntime['lastClickRef'];
+  lastContainerContextMenuEventRef: GraphRuntime['context']['lastContainerContextMenuEventRef'];
+  lastGraphContextEventRef: GraphRuntime['context']['lastGraphContextEventRef'];
   openFilterPatternPrompt?: (patterns: string[]) => void;
   openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
-  refs: Pick<
-    UseGraphStateResult,
-    | 'containerRef'
-    | 'fg2dRef'
-    | 'fg3dRef'
-    | 'rightClickFallbackTimerRef'
-    | 'rightMouseDownRef'
-    | 'selectedNodesSetRef'
-  >;
+  refs: {
+    containerRef: GraphRuntime['renderer']['containerRef'];
+    fg2dRef: GraphRuntime['renderer']['fg2dRef'];
+    fg3dRef: GraphRuntime['renderer']['fg3dRef'];
+    rightClickFallbackTimerRef: GraphRuntime['context']['rightClickFallbackTimerRef'];
+    rightMouseDownRef: GraphRuntime['context']['rightMouseDownRef'];
+    selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];
+  };
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
   setHighlightVersion: Dispatch<SetStateAction<number>>;
   setSelectedNodes: Dispatch<SetStateAction<string[]>>;
