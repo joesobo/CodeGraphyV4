@@ -241,7 +241,7 @@ describe('indexCodeGraphyWorkspace', () => {
     const initial = await engine.index();
     await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target-2.txt\n', 'utf-8');
     const refreshed = await engine.applyChangedFiles([
-      path.join(workspaceRoot, 'source.txt'),
+      'source.txt',
     ]);
 
     expect(initial.graph.edges).toContainEqual(
@@ -265,6 +265,9 @@ describe('indexCodeGraphyWorkspace', () => {
     expect(calls.onFilesChanged).toHaveBeenCalledWith([
       expect.objectContaining({ relativePath: 'source.txt' }),
     ]);
+    expect(calls.onPostAnalyze).toHaveBeenCalledTimes(2);
+    expect(calls.onPostAnalyze).toHaveBeenLastCalledWith(refreshed.graph);
+    expect(calls.onWorkspaceReady).toHaveBeenCalledTimes(1);
     expect(calls.analyzeFile).toHaveBeenCalledTimes(4);
     expect(calls.analyzeFile).toHaveBeenLastCalledWith(
       path.join(workspaceRoot, 'source.txt'),
