@@ -99,6 +99,18 @@ Target flow:
 
 The preferred Graph View path is to fetch and apply changes since the extension already has most nodes and edges loaded. A full graph fetch remains a fallback for cases where Core decides the change requires full Indexing or the extension cannot safely apply a patch.
 
+Do not introduce a heavyweight "session" abstraction just to support this flow unless implementation evidence shows it is needed.
+
+The important contract is:
+
+- the extension reports changed files to Core
+- Core updates internal graph/cache state
+- Core emits a graph-changed signal
+- the extension fetches updated graph information from Core
+- the extension applies the smallest safe Graph View update it can
+
+Change detection can be implemented by Core producing a patch, by the extension comparing its current nodes and edges with Core's current graph data, or by another simple mechanism discovered during implementation. The architecture should not require picking the final diffing mechanism before the first slice.
+
 ## Notes
 
 ### Graph Query Pagination Terms
