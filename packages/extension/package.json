@@ -5,7 +5,7 @@
   "description": "CodeGraphy VS Code extension core",
   "license": "MIT",
   "engines": {
-    "node": ">=22.22.0 <23"
+    "node": ">=20.20.0 <23"
   },
   "scripts": {
     "build": "pnpm run build:extension && pnpm run build:webview",
