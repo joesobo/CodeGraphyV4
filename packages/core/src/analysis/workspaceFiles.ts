@@ -1,19 +1,22 @@
-import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import type { IFileAnalysisResult, IPluginAnalysisContext } from '@codegraphy-dev/plugin-api';
 import type { IDiscoveredFile } from '../discovery/contracts';
 import { analyzeWorkspaceFiles } from './fileAnalysis';
 import type {
   AnalysisCacheTierOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileProcessedPayload,
+  WorkspaceFileAnalysisRequest,
 } from './fileAnalysis';
 import type { IWorkspaceAnalysisCache } from './cache';
 import type { WorkspacePipelineEventBus } from './workspaceAnalyze';
+import { createWorkspacePluginAnalysisContext } from '../plugins/context/workspace';
 
 export interface WorkspacePipelineFilesDependencies {
   analyzeFile: (
     absolutePath: string,
     content: string,
     workspaceRoot: string,
+    request: WorkspaceFileAnalysisRequest,
   ) => Promise<IFileAnalysisResult>;
   cache: IWorkspaceAnalysisCache;
   cacheTiers?: AnalysisCacheTierOptions;
@@ -39,14 +42,25 @@ export interface WorkspacePipelineFilesSource {
       absolutePath: string,
       content: string,
       workspaceRoot: string,
+      analysisContext?: IPluginAnalysisContext,
     ): Promise<IFileAnalysisResult | null>;
     analyzeFileResultForPlugins?(
       absolutePath: string,
       content: string,
       workspaceRoot: string,
       pluginIds: readonly string[],
+      analysisContext?: IPluginAnalysisContext,
     ): Promise<IFileAnalysisResult | null>;
   };
+}
+
+function createWorkspacePipelinePluginAnalysisContext(
+  workspaceRoot: string,
+  request: WorkspaceFileAnalysisRequest,
+): IPluginAnalysisContext {
+  return createWorkspacePluginAnalysisContext(workspaceRoot, {
+    features: request.features,
+  });
 }
 
 function analyzeWorkspacePipelineFileWithRegistry(
@@ -55,17 +69,21 @@ function analyzeWorkspacePipelineFileWithRegistry(
   content: string,
   workspaceRoot: string,
   pluginIds: readonly string[] | undefined,
+  request: WorkspaceFileAnalysisRequest,
 ): Promise<IFileAnalysisResult | null> {
+  const analysisContext = createWorkspacePipelinePluginAnalysisContext(workspaceRoot, request);
+
   if (pluginIds && pluginIds.length > 0 && source._registry.analyzeFileResultForPlugins) {
     return source._registry.analyzeFileResultForPlugins(
       absolutePath,
       content,
       workspaceRoot,
       pluginIds,
+      analysisContext,
     );
   }
 
-  return source._registry.analyzeFileResult(absolutePath, content, workspaceRoot);
+  return source._registry.analyzeFileResult(absolutePath, content, workspaceRoot, analysisContext);
 }
 
 export async function analyzeWorkspacePipelineFiles(
@@ -103,13 +121,14 @@ export async function analyzeWorkspacePipelineSourceFiles(
   const eventBus = source._eventBus;
 
   return analyzeWorkspacePipelineFiles({
-    analyzeFile: (absolutePath, content, rootPath) =>
+    analyzeFile: (absolutePath, content, rootPath, request) =>
       analyzeWorkspacePipelineFileWithRegistry(
         source,
         absolutePath,
         content,
         rootPath,
         pluginIds,
+        request,
       ).then(result => result ?? ({
         filePath: absolutePath,
         relations: [],

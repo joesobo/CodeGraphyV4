@@ -18,4 +18,5 @@ export type {
   IWorkspaceFileAnalysisOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileProcessedPayload,
+  WorkspaceFileAnalysisRequest,
 } from './fileAnalysis/types';

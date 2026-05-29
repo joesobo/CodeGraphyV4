@@ -26,6 +26,8 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         this._buildGraphData(fileConnections, root, true, selectedPlugins),
       _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
         this._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
+      _preAnalyzePlugins: (files, root, abortSignal) =>
+        this._preAnalyzePlugins(files, root, abortSignal),
       _readAnalysisFiles: files => this._readAnalysisFiles(files),
       analyze: (patterns, selectedPlugins, abortSignal, progress) =>
         this.analyze(patterns, selectedPlugins, abortSignal, progress),

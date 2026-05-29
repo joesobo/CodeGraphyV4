@@ -40,6 +40,11 @@ export interface WorkspaceIndexRefreshSource {
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastWorkspaceRoot: string;
+  _preAnalyzePlugins(
+    files: IDiscoveredFile[],
+    workspaceRoot: string,
+    signal?: AbortSignal,
+  ): Promise<void>;
   _readAnalysisFiles(
     files: IDiscoveredFile[],
   ): Promise<Array<{ absolutePath: string; relativePath: string; content: string }>>;
@@ -187,6 +192,11 @@ export async function refreshWorkspaceIndexAnalysisScope(
     total: dependencies.discoveredFiles.length,
   });
 
+  await source._preAnalyzePlugins(
+    [...dependencies.discoveredFiles],
+    dependencies.workspaceRoot,
+    dependencies.signal,
+  );
   const analysisResult = await source._analyzeFiles(
     [...dependencies.discoveredFiles],
     dependencies.workspaceRoot,
@@ -243,6 +253,11 @@ export async function refreshWorkspaceIndexPluginFiles(
       current: 0,
       total: pluginFiles.length,
     });
+    await source._preAnalyzePlugins(
+      pluginFiles,
+      dependencies.workspaceRoot,
+      dependencies.signal,
+    );
     const analysisResult = await source._analyzeFiles(
       pluginFiles,
       dependencies.workspaceRoot,

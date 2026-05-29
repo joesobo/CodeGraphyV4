@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import {
+  refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexPluginFiles,
 } from '../../src/indexing/refresh';
 
@@ -29,6 +30,7 @@ function createSource() {
         ['src/plugin.ts', []],
       ]),
     })),
+    _preAnalyzePlugins: vi.fn(async () => undefined),
     _buildGraphData: vi.fn((fileConnections: Map<string, unknown[]>) => ({
       nodes: [...fileConnections.keys()].map(id => ({ id })),
       edges: [],
@@ -57,6 +59,42 @@ function createSource() {
 }
 
 describe('indexing/refresh', () => {
+  it('pre-analyzes plugins before refreshing the analysis scope', async () => {
+    const source = createSource();
+    const sequence: string[] = [];
+    source._preAnalyzePlugins.mockImplementation(async () => {
+      sequence.push('pre-analyze');
+    });
+    source._analyzeFiles.mockImplementation(async () => {
+      sequence.push('analyze');
+      return {
+        cacheHits: 0,
+        cacheMisses: 1,
+        fileAnalysis: new Map<string, IFileAnalysisResult>(),
+        fileConnections: new Map(),
+      };
+    });
+    const discoveredFiles = [createDiscoveredFile('src/plugin.ts')];
+
+    await refreshWorkspaceIndexAnalysisScope(source as never, {
+      disabledPlugins: new Set(),
+      discoveredDirectories: ['src'],
+      discoveredFiles,
+      onProgress: vi.fn(),
+      persistCache: vi.fn(),
+      persistIndexMetadata: vi.fn(async () => undefined),
+      signal: undefined,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(source._preAnalyzePlugins).toHaveBeenCalledWith(
+      discoveredFiles,
+      '/workspace',
+      undefined,
+    );
+    expect(sequence).toEqual(['pre-analyze', 'analyze']);
+  });
+
   it('keeps discovered file nodes when refreshing plugin data from a discover-only graph', async () => {
     const source = createSource();
     const discoveredFiles = [
@@ -95,5 +133,51 @@ describe('indexing/refresh', () => {
       'README.md',
       'src/plain.txt',
     ]);
+  });
+
+  it('pre-analyzes plugins before refreshing plugin files', async () => {
+    const source = createSource();
+    const sequence: string[] = [];
+    source._preAnalyzePlugins.mockImplementation(async () => {
+      sequence.push('pre-analyze');
+    });
+    source._analyzeFiles.mockImplementation(async () => {
+      sequence.push('analyze');
+      return {
+        cacheHits: 0,
+        cacheMisses: 1,
+        fileAnalysis: new Map<string, IFileAnalysisResult>(),
+        fileConnections: new Map(),
+      };
+    });
+    const discoveredFiles = [
+      createDiscoveredFile('README.md'),
+      createDiscoveredFile('src/plugin.ts'),
+    ];
+
+    await refreshWorkspaceIndexPluginFiles(source as never, {
+      disabledPlugins: new Set(),
+      discoveredDirectories: ['src'],
+      discoveredFiles,
+      onProgress: vi.fn(),
+      persistCache: vi.fn(),
+      persistIndexMetadata: vi.fn(async () => undefined),
+      pluginIds: ['codegraphy.typescript'],
+      pluginInfos: [{
+        plugin: {
+          id: 'codegraphy.typescript',
+          supportedExtensions: ['.ts'],
+        },
+      }],
+      signal: undefined,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(source._preAnalyzePlugins).toHaveBeenCalledWith(
+      [createDiscoveredFile('src/plugin.ts')],
+      '/workspace',
+      undefined,
+    );
+    expect(sequence).toEqual(['pre-analyze', 'analyze']);
   });
 });
