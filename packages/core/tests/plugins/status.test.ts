@@ -1,0 +1,101 @@
+import { describe, expect, it, vi } from 'vitest';
+import {
+  getWorkspaceIndexPluginNameForFile,
+  getWorkspaceIndexPluginStatuses,
+  resolveWorkspaceIndexPluginNameForFile,
+} from '../../src';
+
+describe('plugins/status', () => {
+  it('builds plugin statuses from core indexing state', () => {
+    const list = vi.fn(() => [
+      {
+        builtIn: false,
+        plugin: {
+          id: 'plugin.typescript',
+          name: 'TypeScript',
+          version: '1.0.0',
+          apiVersion: '^2.0.0',
+          supportedExtensions: ['.ts'],
+          sources: [],
+        },
+      },
+    ]);
+
+    expect(
+      getWorkspaceIndexPluginStatuses({
+        disabledPlugins: new Set<string>(),
+        discoveredFiles: [{ relativePath: 'src/index.ts' }] as never,
+        fileConnections: new Map([['src/index.ts', []]]),
+        registry: {
+          getPluginForFile: vi.fn(() => ({ name: 'TypeScript' })),
+          list,
+        } as never,
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        id: 'plugin.typescript',
+        status: 'installed',
+      }),
+    ]);
+    expect(list).toHaveBeenCalledOnce();
+  });
+
+  it('returns undefined for plugin names when no workspace root is available', () => {
+    const getPluginForFile = vi.fn();
+
+    expect(
+      resolveWorkspaceIndexPluginNameForFile(
+        'src/index.ts',
+        '',
+        () => undefined,
+        { getPluginForFile } as never,
+      ),
+    ).toBeUndefined();
+    expect(getPluginForFile).not.toHaveBeenCalled();
+  });
+
+  it('resolves plugin names from the current workspace root when no cached root exists', () => {
+    const getWorkspaceRoot = vi.fn(() => '/workspace');
+    const getPluginForFile = vi.fn(() => ({ name: 'TypeScript' }));
+
+    expect(
+      resolveWorkspaceIndexPluginNameForFile(
+        'src/index.ts',
+        '',
+        getWorkspaceRoot,
+        { getPluginForFile } as never,
+      ),
+    ).toBe('TypeScript');
+    expect(getWorkspaceRoot).toHaveBeenCalledOnce();
+    expect(getPluginForFile).toHaveBeenCalledWith('/workspace/src/index.ts');
+  });
+
+  it('prefers the cached workspace root when resolving plugin names', () => {
+    const getWorkspaceRoot = vi.fn(() => '/other');
+    const getPluginForFile = vi.fn(() => ({ name: 'TypeScript' }));
+
+    expect(
+      resolveWorkspaceIndexPluginNameForFile(
+        'src/index.ts',
+        '/workspace',
+        getWorkspaceRoot,
+        { getPluginForFile } as never,
+      ),
+    ).toBe('TypeScript');
+    expect(getWorkspaceRoot).not.toHaveBeenCalled();
+    expect(getPluginForFile).toHaveBeenCalledWith('/workspace/src/index.ts');
+  });
+
+  it('returns undefined when the resolved plugin lookup has no match', () => {
+    const getPluginForFile = vi.fn(() => undefined);
+
+    expect(
+      getWorkspaceIndexPluginNameForFile(
+        'src/index.ts',
+        '/workspace',
+        { getPluginForFile } as never,
+      ),
+    ).toBeUndefined();
+    expect(getPluginForFile).toHaveBeenCalledWith('/workspace/src/index.ts');
+  });
+});

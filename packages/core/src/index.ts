@@ -188,6 +188,24 @@ export {
   CorePluginRegistry,
 } from './plugins/registry';
 export type { CorePluginInfo } from './plugins/registry';
+export {
+  buildWorkspaceIndexPluginStatuses,
+  countWorkspaceIndexPluginConnections,
+  buildRegisteredWorkspaceIndexPluginStatus,
+  buildUnregisteredInstalledWorkspaceIndexPluginStatus,
+  getRegisteredWorkspaceIndexPluginPackageNames,
+  getWorkspaceIndexPluginMatchingFiles,
+  getWorkspaceIndexPluginNameForFile,
+  getWorkspaceIndexPluginStatuses,
+  isUserFacingWorkspaceIndexPlugin,
+  resolveWorkspaceIndexPluginNameForFile,
+  supportsWorkspaceIndexPluginExtension,
+} from './plugins/status';
+export type {
+  WorkspaceIndexPluginStatus,
+  WorkspaceIndexPluginStatusDependencies,
+  WorkspaceIndexPluginStatusOptions,
+} from './plugins/status';
 export type {
   CoreGraphViewContributionEntry,
   CoreGraphViewContributionSet,
