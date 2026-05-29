@@ -77,6 +77,14 @@ The VS Code extension should own view-layer work after Core returns graph data, 
 
 Core can keep lower-level helper functions if they are already useful, but the deeper Core indexing module should not take `showOrphans` as an indexing or rebuild concern. The VS Code extension decides whether to render Orphan Nodes after Core returns graph data.
 
+### 7. Core Owns Live Update Semantics
+
+For **Live Update**, the VS Code extension should detect VS Code file events and report changed paths to Core.
+
+Core should own pending-changed-file state, invalidation, incremental analysis, full-indexing fallback, Graph Cache writes, and fresh/stale status updates.
+
+The Core result should let the Graph View preserve the smoothest possible rendered experience. When Core can produce an incremental graph update, the extension should apply node and edge updates to the D3 graph instead of resetting the whole graph or replacing the Graph View loading state.
+
 ## Notes
 
 ### Graph Query Pagination Terms
