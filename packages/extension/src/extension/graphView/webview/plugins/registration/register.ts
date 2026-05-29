@@ -53,17 +53,17 @@ export function registerGraphViewExternalPlugin(
   options: GraphViewExternalPluginRegistrationOptions | undefined,
   state: GraphViewExternalPluginRegistrationState,
   handlers: GraphViewExternalPluginRegistrationHandlers,
-): void {
+): Promise<void> {
   const pluginId = getExternalPluginId(plugin);
   if (!state.analyzer || !pluginId) {
-    return;
+    return Promise.resolve();
   }
 
   storeExternalPluginExtensionUri(pluginId, options, state, handlers);
   const shouldDeferReadinessReplay = shouldDeferExternalPluginReadinessReplay(state);
   registerExternalPlugin(plugin as IPlugin, shouldDeferReadinessReplay, state);
   sendExternalPluginRegistrationUpdates(handlers);
-  void (async () => {
+  return (async () => {
     try {
       await runExternalPluginRegistrationFollowUp(
         pluginId,

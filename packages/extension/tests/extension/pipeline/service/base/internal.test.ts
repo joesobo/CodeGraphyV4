@@ -291,6 +291,11 @@ describe('extension/pipeline/service/internalBase', () => {
       '/workspace',
       progress,
       undefined,
+      {
+        active: ['baseline'],
+        completed: ['baseline'],
+        required: ['baseline'],
+      },
     );
     await expect(
       vi.mocked(analyzeWorkspacePipelineDiscoveredFiles).mock.calls[0][4]('/workspace/src/a.ts'),

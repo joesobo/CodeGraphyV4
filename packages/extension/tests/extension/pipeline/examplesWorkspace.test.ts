@@ -1,12 +1,17 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
+import {
+  getCodeGraphyConfiguration,
+  initializeCurrentCodeGraphyConfiguration,
+  resetCurrentCodeGraphyConfigurationForTest,
+} from '../../../src/extension/repoSettings/current';
 
 const sourceExamplesRoot = path.resolve(__dirname, '../../../../../examples');
 const tempWorkspaceRoots: string[] = [];
@@ -50,6 +55,11 @@ afterAll(async () => {
 describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    resetCurrentCodeGraphyConfigurationForTest();
+  });
+
+  afterEach(() => {
+    resetCurrentCodeGraphyConfigurationForTest();
   });
 
   it('connects nested example projects when the repo-root examples folder is opened', async () => {
@@ -57,9 +67,16 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceRoot), name: 'examples', index: 0 },
     ];
+    const context = createContext();
+    initializeCurrentCodeGraphyConfiguration(context as unknown as vscode.ExtensionContext);
+    await getCodeGraphyConfiguration().update('nodeVisibility', {
+      symbol: true,
+      variable: true,
+      'symbol:constant': true,
+    });
 
     const analyzer = new WorkspacePipeline(
-      createContext() as unknown as vscode.ExtensionContext,
+      context as unknown as vscode.ExtensionContext,
     );
 
     await analyzer.initialize();
