@@ -1,5 +1,56 @@
 # @codegraphy-dev/extension
 
+## 5.6.0
+
+### Minor Changes
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`b9ffd7d`](https://github.com/joesobo/CodeGraphyV4/commit/b9ffd7d57f844071473049ba3bfa1a6ac5af667b) Thanks [@joesobo](https://github.com/joesobo)! - Add the Extract Pro foundation: Access Provider contracts, plugin-owned data persistence delivered to package plugin factories, Graph View runtime/projection/context-menu/UI/force-adapter contribution contracts and hosts, and local plugin linking for private paid plugins.
+
+  Graph View contribution callbacks receive live host context such as the current graph mode and timeline state.
+
+### Patch Changes
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`582c514`](https://github.com/joesobo/CodeGraphyV4/commit/582c5140a3ffee19df917ce6f0796fd0f80d53e0) Thanks [@joesobo](https://github.com/joesobo)! - Add sized 2D rectangle node presentation so plugin nodes can render, pick, and collide at their expanded visual bounds.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`2b15c9c`](https://github.com/joesobo/CodeGraphyV4/commit/2b15c9c61c4d954554a4b979540b89a8ef595061) Thanks [@joesobo](https://github.com/joesobo)! - Expose graph mode and timeline state to Graph View context menu contributions so plugins can hide mode-specific actions.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`8b559dd`](https://github.com/joesobo/CodeGraphyV4/commit/8b559dd3204b87808dd1834fd2c00277d7f06d62) Thanks [@joesobo](https://github.com/joesobo)! - Expose live Graph View viewport node updates and per-node physics overrides so plugins can resize runtime nodes without restarting graph physics.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`e3c276d`](https://github.com/joesobo/CodeGraphyV4/commit/e3c276ddc5c520740fd2dabcaa79cccc787eafa8) Thanks [@joesobo](https://github.com/joesobo)! - Move pinned graph nodes smoothly during 2D drags and persist the updated pin only after drag end.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`310268c`](https://github.com/joesobo/CodeGraphyV4/commit/310268cb1bd3971fe715e3da6baff5da0788c30c) Thanks [@joesobo](https://github.com/joesobo)! - Re-send linked package plugin webview assets after workspace plugin loading so enabled plugins can activate their graph UI contributions.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`699e1a8`](https://github.com/joesobo/CodeGraphyV4/commit/699e1a8fe00d2fd6e91386a8ebb45c1704e3817c) Thanks [@joesobo](https://github.com/joesobo)! - Preserve plugin-owned workspace data when package plugins are toggled off.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`29b3b56`](https://github.com/joesobo/CodeGraphyV4/commit/29b3b56997ada2d30b1f252eeef104767c112e8b) Thanks [@joesobo](https://github.com/joesobo)! - Keep feature-specific Graph View nodes, context menu actions, and physics package-owned so disabling or removing a plugin removes those contributions from the graph.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`7781808`](https://github.com/joesobo/CodeGraphyV4/commit/77818086638d1b21c58e0eed9b9f3bc1faebfa1e) Thanks [@joesobo](https://github.com/joesobo)! - Hide internal built-in runtime plugins from the Plugins panel.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`c7a6ffc`](https://github.com/joesobo/CodeGraphyV4/commit/c7a6ffc1d271f1342139e0d7b79e6accb20cec7e) Thanks [@joesobo](https://github.com/joesobo)! - Allow graph plugins to request rounded corners for 2D rectangle nodes.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`e1210d6`](https://github.com/joesobo/CodeGraphyV4/commit/e1210d686254e7edddf5a0e489bd9a8e60a70abc) Thanks [@joesobo](https://github.com/joesobo)! - Clean up plugin-scoped Graph View viewport listeners when a plugin is removed or toggled off.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`c602e36`](https://github.com/joesobo/CodeGraphyV4/commit/c602e36a27e134530708d402dc1f904eda5c6cd1) Thanks [@joesobo](https://github.com/joesobo)! - Respect plugin runtime node fixed coordinates when building graph physics state.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`4fa5bce`](https://github.com/joesobo/CodeGraphyV4/commit/4fa5bcefedb5701e9db73d0e657fad015607479a) Thanks [@joesobo](https://github.com/joesobo)! - Keep package plugin toggles from re-running eager webview asset injection before the graph reload finishes and stop core-only Tree-sitter runtime lifecycle events from being logged as user-facing plugins.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`5d3ca1b`](https://github.com/joesobo/CodeGraphyV4/commit/5d3ca1bd02b201debb520a90fdc7214d8667701c) Thanks [@joesobo](https://github.com/joesobo)! - Keep plugin-owned layout saves from rebuilding the whole graph, and avoid file-info lookups for plugin runtime nodes.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`0be940f`](https://github.com/joesobo/CodeGraphyV4/commit/0be940fd52e17594f94fff436cc2d3b84c2b4c3a) Thanks [@joesobo](https://github.com/joesobo)! - Keep plugin node overlays from inheriting label fade opacity while zooming.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`c276081`](https://github.com/joesobo/CodeGraphyV4/commit/c276081a78ad290210ac667a0698d8ce87485edb) Thanks [@joesobo](https://github.com/joesobo)! - Keep package plugin rows stable across toggles, preserve plugin display names while disabled, remove obsolete plugin reordering controls, remove noisy runtime-availability subtext, and keep plugin-owned data saves from dropping graph settings.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`07ff638`](https://github.com/joesobo/CodeGraphyV4/commit/07ff638cdc127a455f5606c6205e78b2ac0d3761) Thanks [@joesobo](https://github.com/joesobo)! - Pass current graph physics settings to Graph View force adapters so feature plugins can match CodeGraphy's configured force behavior.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`a5f6df8`](https://github.com/joesobo/CodeGraphyV4/commit/a5f6df8b8ad5e89fddb43aaa77e0fc80e732f521) Thanks [@joesobo](https://github.com/joesobo)! - Fix package plugin toggles so Graph View contributions are added and removed immediately, add create-menu placement for plugin context menu actions, and keep plugin contribution snapshots stable while rendering the graph.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`0b4f0a8`](https://github.com/joesobo/CodeGraphyV4/commit/0b4f0a845f2e8e6fe1b26c97a7a3183a1d3b95eb) Thanks [@joesobo](https://github.com/joesobo)! - Keep plugin toggles from overlapping package reloads and keep refresh progress behind interactive graph popups.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`265728a`](https://github.com/joesobo/CodeGraphyV4/commit/265728adb88828772fc9e8b8745aefc36bc55a08) Thanks [@joesobo](https://github.com/joesobo)! - Add plugin runtime node pointer areas so custom-shaped nodes can use graph-owned pointer picking.
+
+- Updated dependencies [[`b9ffd7d`](https://github.com/joesobo/CodeGraphyV4/commit/b9ffd7d57f844071473049ba3bfa1a6ac5af667b), [`005e4f5`](https://github.com/joesobo/CodeGraphyV4/commit/005e4f522b6295f6fbf068c79571f9182e963172), [`c276081`](https://github.com/joesobo/CodeGraphyV4/commit/c276081a78ad290210ac667a0698d8ce87485edb)]:
+  - @codegraphy-dev/core@1.1.0
+
 ## 5.5.5
 
 ### Patch Changes
