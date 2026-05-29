@@ -46,6 +46,7 @@ Move toward a runtime module that exposes behavior-oriented surfaces, such as:
 
 - Return one named Graph View runtime object made of explicit facets, such as `selection`, `renderer`, `contextSelection`, and `renderCaches`. Avoid a flat `UseGraphStateResult` bag of refs, but also avoid one vague runtime object with unrelated behavior mixed together.
 - Keep raw `react-force-graph` refs at the adapter edge only. Rendering surfaces and renderer lifecycle code may receive raw `fg2dRef`, `fg3dRef`, and container refs when they call the force-graph imperative API directly. Interaction, debug, viewport model, callbacks, and Graph View composition should receive behavior-oriented runtime facets unless they have a concrete renderer integration reason to use refs.
+- Treat the exported boundary as a Graph View runtime model, not a React hook result type. A hook such as `useGraphRuntime` can construct the model, but callers should depend on domain-shaped types such as `GraphRuntime` and explicit runtime facets rather than `UseGraphStateResult`.
 
 ## First Slice Candidate
 
