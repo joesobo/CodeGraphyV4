@@ -241,14 +241,14 @@ describe('graph/runtime/useGraphState', () => {
     );
 
     act(() => {
-      result.current.selectedNodesSetRef.current = new Set(['src/alpha.ts']);
-      result.current.setSelectedNodes(['src/alpha.ts']);
+      result.current.selection.selectedNodeIdsRef.current = new Set(['src/alpha.ts']);
+      result.current.selection.setSelectedNodeIds(['src/alpha.ts']);
     });
 
     rerender(createOptions({ data: createData('beta') }));
 
-    expect(result.current.selectedNodes).toEqual([]);
-    expect(result.current.selectedNodesSetRef.current).toEqual(new Set());
+    expect(result.current.selection.selectedNodeIds).toEqual([]);
+    expect(result.current.selection.selectedNodeIdsRef.current).toEqual(new Set());
   });
 
   it('does not schedule a timeline alpha bump when the timeline is inactive', () => {
