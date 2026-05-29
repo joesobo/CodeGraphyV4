@@ -9,8 +9,22 @@ import { discoverWorkspaceIndexFiles } from './discovery';
 import { persistWorkspaceIndexMetadata } from './metadata';
 import { createWorkspaceIndexRegistry } from './registry';
 import { createEffectiveIndexSettings } from './settings';
+export {
+  createCodeGraphyWorkspaceEngine,
+  type CodeGraphyWorkspaceEngine,
+} from './engine';
+export {
+  refreshWorkspaceIndexChangedFiles,
+  type WorkspaceIndexRefreshDependencies,
+  type WorkspaceIndexRefreshSource,
+} from './refresh';
 
-export type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult };
+export type {
+  IndexCodeGraphyWorkspaceOptions,
+  IndexCodeGraphyWorkspacePlugin,
+  IndexCodeGraphyWorkspacePluginEntry,
+  IndexCodeGraphyWorkspaceResult,
+} from './contracts';
 
 export async function indexCodeGraphyWorkspace(
   options: IndexCodeGraphyWorkspaceOptions,
@@ -48,7 +62,7 @@ export async function indexCodeGraphyWorkspace(
     disabledPlugins,
     fileAnalysis: analysisResult.fileAnalysis,
     getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
-    showOrphans: settings.showOrphans,
+    showOrphans: true,
     workspaceRoot,
   });
 

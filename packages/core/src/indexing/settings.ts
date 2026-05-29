@@ -14,7 +14,6 @@ export function createEffectiveIndexSettings(
     maxFiles: options.maxFiles ?? workspaceSettings.maxFiles,
     include: options.include ?? workspaceSettings.include,
     respectGitignore: options.respectGitignore ?? workspaceSettings.respectGitignore,
-    showOrphans: options.showOrphans ?? workspaceSettings.showOrphans,
     filterPatterns: options.filterPatterns ?? workspaceSettings.filterPatterns,
   };
 }

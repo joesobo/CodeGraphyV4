@@ -83,6 +83,7 @@ class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
         update: vi.fn(),
       },
     } as never);
+    this._cache = { files: {} } as unknown as IWorkspaceAnalysisCache;
   }
 
   _config = {
@@ -95,7 +96,14 @@ class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
     list: vi.fn(() => []),
     disposeAll: vi.fn(),
   } as unknown as PluginRegistry;
-  _cache = { files: {} } as unknown as IWorkspaceAnalysisCache;
+
+  public override get _cache(): IWorkspaceAnalysisCache {
+    return super._cache;
+  }
+
+  public override set _cache(cache: IWorkspaceAnalysisCache) {
+    super._cache = cache;
+  }
 
   protected override _getWorkspaceRoot(): string | undefined {
     return this.getWorkspaceRoot();

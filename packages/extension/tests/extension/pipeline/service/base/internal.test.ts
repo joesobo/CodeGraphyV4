@@ -88,6 +88,7 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
         update: vi.fn(),
       },
     } as never);
+    this._cache = { files: { 'src/a.ts': { cached: true } } } as unknown as IWorkspaceAnalysisCache;
   }
 
   _config = {
@@ -113,7 +114,13 @@ class TestInternalBase extends WorkspacePipelineInternalBase {
     readContent: vi.fn(async file => `contents:${file.absolutePath}`),
   } as unknown as FileDiscovery;
 
-  _cache = { files: { 'src/a.ts': { cached: true } } } as unknown as IWorkspaceAnalysisCache;
+  public override get _cache(): IWorkspaceAnalysisCache {
+    return super._cache;
+  }
+
+  public override set _cache(cache: IWorkspaceAnalysisCache) {
+    super._cache = cache;
+  }
 
   public preAnalyzePlugins(
     files: Array<{ absolutePath: string; relativePath: string }>,
