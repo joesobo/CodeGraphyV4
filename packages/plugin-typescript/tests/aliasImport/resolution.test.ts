@@ -36,8 +36,9 @@ describe('TypeScript Alias Import target resolution', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -45,7 +46,7 @@ describe('TypeScript Alias Import target resolution', () => {
           resolvedPath: targetPath,
           specifier: '@theme',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -84,8 +85,9 @@ describe('TypeScript Alias Import target resolution', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -93,7 +95,7 @@ describe('TypeScript Alias Import target resolution', () => {
           resolvedPath: targetPath,
           specifier: 'theme',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -138,8 +140,9 @@ describe('TypeScript Alias Import target resolution', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -147,7 +150,7 @@ describe('TypeScript Alias Import target resolution', () => {
           resolvedPath: targetPath,
           specifier: '@app/token',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -186,8 +189,9 @@ describe('TypeScript Alias Import target resolution', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -195,7 +199,7 @@ describe('TypeScript Alias Import target resolution', () => {
           resolvedPath: targetPath,
           specifier: '#types/theme',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -234,8 +238,9 @@ describe('TypeScript Alias Import target resolution', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -243,7 +248,7 @@ describe('TypeScript Alias Import target resolution', () => {
           resolvedPath: targetPath,
           specifier: '@/token.js',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }

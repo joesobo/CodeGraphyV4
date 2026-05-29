@@ -43,8 +43,9 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -52,7 +53,7 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
           resolvedPath: targetPath,
           specifier: '~/format',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -98,8 +99,9 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -107,7 +109,7 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
           resolvedPath: targetPath,
           specifier: '#shared/token',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -160,8 +162,9 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -169,7 +172,7 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
           resolvedPath: targetPath,
           specifier: '#shared/token',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }

@@ -36,8 +36,9 @@ describe('TypeScript Alias Import analysis', () => {
         workspaceRoot,
       );
 
-      expect(result?.relations).toEqual([
-        {
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
           kind: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
           fromFilePath: sourcePath,
@@ -45,7 +46,7 @@ describe('TypeScript Alias Import analysis', () => {
           resolvedPath: targetPath,
           specifier: '@/registry/bases/radix/lib/utils',
         },
-      ]);
+      );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -78,6 +79,7 @@ describe('TypeScript Alias Import analysis', () => {
         workspaceRoot,
       );
 
+      expect(result).toBeDefined();
       expect(result?.relations).toEqual([]);
     } finally {
       removeWorkspaceRoot(workspaceRoot);
@@ -116,6 +118,7 @@ describe('TypeScript Alias Import analysis', () => {
         workspaceRoot,
       );
 
+      expect(result).toBeDefined();
       expect(result?.relations).toEqual([]);
     } finally {
       removeWorkspaceRoot(workspaceRoot);
@@ -155,6 +158,7 @@ describe('TypeScript Alias Import analysis', () => {
         workspaceRoot,
       );
 
+      expect(result).toBeDefined();
       expect(result?.relations).toEqual([]);
     } finally {
       removeWorkspaceRoot(workspaceRoot);
