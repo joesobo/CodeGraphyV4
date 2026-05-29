@@ -1,12 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../src/shared/graph/contracts';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from './graphViewProvider/internals';
+import {
+  getWorkspaceAnalysisDatabasePath,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '../../src/extension/pipeline/database/cache/storage';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
   | undefined;
+const tempWorkspaceRoots: string[] = [];
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
@@ -24,12 +32,42 @@ function createContext() {
   };
 }
 
+async function createWorkspace(files: Record<string, string>): Promise<string> {
+  const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-provider-'));
+  tempWorkspaceRoots.push(workspaceRoot);
+
+  for (const [relativePath, content] of Object.entries(files)) {
+    const absolutePath = path.join(workspaceRoot, relativePath);
+    await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+    await fs.writeFile(absolutePath, content, 'utf8');
+  }
+
+  return workspaceRoot;
+}
+
+async function pathExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 describe('GraphViewProvider lifecycle', () => {
   beforeEach(() => {
     workspaceFoldersValue = [
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
     ];
     vi.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    await Promise.all(
+      tempWorkspaceRoots.splice(0).map((workspaceRoot) =>
+        fs.rm(workspaceRoot, { recursive: true, force: true }),
+      ),
+    );
   });
 
   it('forwards decoration manager change notifications to _sendDecorations', () => {
@@ -108,6 +146,36 @@ describe('GraphViewProvider lifecycle', () => {
 
     expect(clearCache).toHaveBeenCalledTimes(1);
     expect(refreshSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('recreates the Graph Cache and Tree-sitter edges after a deleted cache is refreshed then indexed', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+
+    await provider.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
+    expect(provider.getGraphData().edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    expect(await pathExists(databasePath)).toBe(true);
+
+    await fs.unlink(databasePath);
+    await provider.dispatchWebviewMessage({ type: 'WEBVIEW_READY', payload: null });
+    expect(provider.getGraphData().edges).toEqual([]);
+    expect(await pathExists(databasePath)).toBe(false);
+
+    await provider.dispatchWebviewMessage({ type: 'INDEX_GRAPH' });
+
+    expect(provider.getGraphData().edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    expect(await pathExists(databasePath)).toBe(true);
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBeGreaterThan(0);
   });
 
   it('sends empty graph data when _doAnalyzeAndSendData runs without an analyzer', async () => {

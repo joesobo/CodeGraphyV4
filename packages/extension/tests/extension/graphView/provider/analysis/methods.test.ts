@@ -287,6 +287,41 @@ describe('graphView/provider/analysis/methods', () => {
     expect(runAnalysisRequest).toHaveBeenCalledOnce();
   });
 
+  it('keeps webview-ready loading from interrupting an active first index', async () => {
+    const source = createSource();
+    let finishIndex: (() => void) | undefined;
+    const runAnalysisRequest = vi.fn(async state => {
+      if (state.mode !== 'index') {
+        return;
+      }
+
+      await new Promise<void>(resolve => {
+        finishIndex = resolve;
+      });
+    });
+    const methods = createGraphViewProviderAnalysisMethods(source as never, {
+      runAnalysisRequest,
+      executeAnalysis: vi.fn(async () => undefined),
+      markWorkspaceReady: vi.fn(),
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => false),
+      hasWorkspace: vi.fn(() => true),
+      logError: vi.fn(),
+    });
+
+    const index = methods._indexAndSendData();
+    await Promise.resolve();
+    const load = methods._loadAndSendData();
+
+    expect(runAnalysisRequest).toHaveBeenCalledOnce();
+
+    finishIndex?.();
+    await index;
+    await load;
+
+    expect(runAnalysisRequest).toHaveBeenCalledOnce();
+  });
+
   it('falls back to the delegate wrappers when source-owned analysis methods are unavailable', async () => {
     const source = createSource({
       _analyzer: undefined,

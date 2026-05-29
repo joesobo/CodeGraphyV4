@@ -5,6 +5,10 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
+import {
+  getWorkspaceAnalysisDatabasePath,
+  readWorkspaceAnalysisDatabaseSnapshot,
+} from '../../../src/extension/pipeline/database/cache/storage';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 
@@ -44,6 +48,15 @@ async function createWorkspace(files: Record<string, string>): Promise<string> {
   }
 
   return workspaceRoot;
+}
+
+async function pathExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 afterAll(async () => {
@@ -156,6 +169,93 @@ describe('WorkspacePipeline analysis', () => {
         }),
       ]),
     );
+  });
+
+  it('keeps Tree-sitter relations after workspace plugin reload and index refresh', async () => {
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const initialGraph = await analyzer.analyze();
+    expect(initialGraph.edges.map(edge => edge.id)).toEqual(
+      expect.arrayContaining([
+        'src/index.ts->src/utils.ts#import',
+      ]),
+    );
+
+    await analyzer.reloadWorkspacePlugins();
+    const refreshedGraph = await analyzer.refreshIndex();
+
+    expect(analyzer.registry.get('codegraphy.treesitter')).toBeDefined();
+    expect(refreshedGraph.edges.map(edge => edge.id)).toEqual(
+      expect.arrayContaining([
+        'src/index.ts->src/utils.ts#import',
+      ]),
+    );
+  });
+
+  it('preserves the previous Tree-sitter index when a full refresh is aborted', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const graph = await analyzer.analyze();
+    expect(graph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    const snapshotBefore = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    expect(snapshotBefore.relations.length).toBeGreaterThan(0);
+
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      analyzer.refreshIndex([], new Set<string>(), controller.signal),
+    ).rejects.toMatchObject({ name: 'AbortError' });
+
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBe(
+      snapshotBefore.relations.length,
+    );
+  });
+
+  it('recreates a deleted Graph Cache when indexing the workspace', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await analyzer.initialize();
+
+    const initialGraph = await analyzer.analyze();
+    expect(initialGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+    expect(await pathExists(databasePath)).toBe(true);
+
+    await fs.unlink(databasePath);
+    expect(analyzer.hasIndex()).toBe(false);
+
+    const indexedGraph = await analyzer.refreshIndex();
+
+    expect(indexedGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+    expect(await pathExists(databasePath)).toBe(true);
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBeGreaterThan(0);
   });
 
   it('returns an empty graph when no workspace folder is open', async () => {
