@@ -12,6 +12,7 @@ export const TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE = {
 
 const COMPILER_OPTIONS_PATHS_SOURCE_ID = 'compiler-options-paths';
 const IMPORT_RESOLUTION_EXTENSIONS = ['', '.ts', '.tsx', '.mts', '.cts'] as const;
+const TYPESCRIPT_SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts']);
 
 type TypeScriptPathMapping = {
   baseUrl: string;
@@ -167,6 +168,10 @@ async function analyzeTypeScriptAliasImports(
   content: string,
   workspaceRoot: string,
 ): Promise<IFileAnalysisResult> {
+  if (!TYPESCRIPT_SOURCE_EXTENSIONS.has(path.extname(filePath))) {
+    return { filePath, relations: [] };
+  }
+
   const config = readTypeScriptAliasConfig(workspaceRoot);
   if (!config) {
     return { filePath, relations: [] };
