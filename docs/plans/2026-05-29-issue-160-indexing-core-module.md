@@ -85,6 +85,20 @@ Core should own pending-changed-file state, invalidation, incremental analysis, 
 
 The Core result should let the Graph View preserve the smoothest possible rendered experience. When Core can produce an incremental graph update, the extension should apply node and edge updates to the D3 graph instead of resetting the whole graph or replacing the Graph View loading state.
 
+### 8. Live Update Uses Core Signals And Fetchable Changes
+
+The VS Code extension should translate VS Code workspace events into Core input, not directly compute graph changes.
+
+Target flow:
+
+1. The user creates, edits, deletes, or renames files in VS Code.
+2. The extension reports the changed paths to Core.
+3. Core analyzes the changed files, updates its internal Relationship Graph state, updates Graph Cache state, and emits a signal that graph data changed.
+4. The extension reacts to the signal and fetches graph changes from Core.
+5. The Graph View applies those changes to the already-rendered D3 graph when possible.
+
+The preferred Graph View path is to fetch and apply changes since the extension already has most nodes and edges loaded. A full graph fetch remains a fallback for cases where Core decides the change requires full Indexing or the extension cannot safely apply a patch.
+
 ## Notes
 
 ### Graph Query Pagination Terms
