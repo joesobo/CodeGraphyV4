@@ -1,5 +1,11 @@
 # @codegraphy-dev/extension
 
+## 5.6.1
+
+### Patch Changes
+
+- [#218](https://github.com/joesobo/CodeGraphyV4/pull/218) [`9879f62`](https://github.com/joesobo/CodeGraphyV4/commit/9879f62e3bdef2f4dc18545d33acad72efdc9f61) Thanks [@joesobo](https://github.com/joesobo)! - Preserve the last good Graph Cache when a full index refresh is aborted and report the actual Graph Cache status after indexing so graph edges do not disappear after interrupted refreshes.
+
 ## 5.6.0
 
 ### Minor Changes
