@@ -3,9 +3,20 @@ import type { IWorkspaceAnalysisCache } from '../analysis/cache';
 import type { IDiscoveredFile } from '../discovery/contracts';
 import type { CodeGraphyWorkspaceSettings } from '../workspace/settings';
 
+export interface IndexCodeGraphyWorkspacePluginEntry {
+  plugin: IPlugin;
+  builtIn?: boolean;
+  sourcePackage?: string;
+  options?: Record<string, unknown>;
+}
+
+export type IndexCodeGraphyWorkspacePlugin =
+  | IPlugin
+  | IndexCodeGraphyWorkspacePluginEntry;
+
 export interface IndexCodeGraphyWorkspaceOptions {
   workspaceRoot: string;
-  plugins?: IPlugin[];
+  plugins?: IndexCodeGraphyWorkspacePlugin[];
   settings?: CodeGraphyWorkspaceSettings;
   includeCorePlugins?: boolean;
   include?: string[];
@@ -13,7 +24,6 @@ export interface IndexCodeGraphyWorkspaceOptions {
   disabledPlugins?: Iterable<string>;
   maxFiles?: number;
   respectGitignore?: boolean;
-  showOrphans?: boolean;
   signal?: AbortSignal;
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
   logInfo?: (message: string) => void;

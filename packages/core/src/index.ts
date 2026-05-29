@@ -7,6 +7,13 @@ export { runIndexCommand } from './cli/index/command';
 export { runPluginsCommand } from './cli/plugins/command';
 export { runSetupCommand } from './cli/setup/command';
 export { runStatusCommand } from './cli/status/command';
+export {
+  createWorkspaceIndexEngineState,
+  getWorkspaceIndexEngineRelativePath,
+  invalidateWorkspaceIndexEngineFiles,
+  removeInvalidatedWorkspaceIndexDirectories,
+} from './indexing/state';
+export type { WorkspaceIndexEngineState } from './indexing/state';
 export type {
   ICachedWorkspaceFile,
   IWorkspaceAnalysisCache,
@@ -170,17 +177,42 @@ export type {
 } from './graphCache/status';
 export { readGraphCacheStatus } from './graphCache/status';
 export {
+  createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
+  refreshWorkspaceIndexChangedFiles,
 } from './indexing/workspace';
 export type {
+  CodeGraphyWorkspaceEngine,
   IndexCodeGraphyWorkspaceOptions,
+  IndexCodeGraphyWorkspacePlugin,
+  IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
+  WorkspaceIndexRefreshDependencies,
+  WorkspaceIndexRefreshSource,
 } from './indexing/workspace';
 export {
   CORE_PLUGIN_API_VERSION,
   CorePluginRegistry,
 } from './plugins/registry';
 export type { CorePluginInfo } from './plugins/registry';
+export {
+  buildWorkspaceIndexPluginStatuses,
+  countWorkspaceIndexPluginConnections,
+  buildRegisteredWorkspaceIndexPluginStatus,
+  buildUnregisteredInstalledWorkspaceIndexPluginStatus,
+  getRegisteredWorkspaceIndexPluginPackageNames,
+  getWorkspaceIndexPluginMatchingFiles,
+  getWorkspaceIndexPluginNameForFile,
+  getWorkspaceIndexPluginStatuses,
+  isUserFacingWorkspaceIndexPlugin,
+  resolveWorkspaceIndexPluginNameForFile,
+  supportsWorkspaceIndexPluginExtension,
+} from './plugins/status';
+export type {
+  WorkspaceIndexPluginStatus,
+  WorkspaceIndexPluginStatusDependencies,
+  WorkspaceIndexPluginStatusOptions,
+} from './plugins/status';
 export type {
   CoreGraphViewContributionEntry,
   CoreGraphViewContributionSet,
@@ -203,6 +235,9 @@ export type {
 } from './plugins/packageManifest';
 export { parseCodeGraphyPluginPackageManifest } from './plugins/packageManifest';
 export type {
+  CodeGraphyWorkspacePluginIndexingPlan,
+  CodeGraphyWorkspacePluginToggleOptions,
+  CodeGraphyWorkspacePluginTogglePlan,
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
   CodeGraphyUserStateOptions,
@@ -210,6 +245,7 @@ export type {
   RegisterCodeGraphyInstalledPluginOptions,
 } from './plugins/installedCache';
 export {
+  createCodeGraphyWorkspacePluginTogglePlan,
   createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
@@ -219,6 +255,7 @@ export {
   linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   registerCodeGraphyInstalledPlugin,
+  updateCodeGraphyWorkspacePluginSelection,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';

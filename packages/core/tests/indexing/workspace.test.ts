@@ -1,11 +1,16 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
+import type {
+  IFileAnalysisResult,
+  IPlugin,
+  IPluginAnalysisContext,
+} from '@codegraphy-dev/plugin-api';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+  createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
   readGraphCacheStatus,
   readCodeGraphyWorkspaceStatus,
@@ -156,7 +161,6 @@ describe('indexCodeGraphyWorkspace', () => {
       workspaceRoot,
       plugins: [createTextPlugin(calls)],
       includeCorePlugins: false,
-      showOrphans: true,
     });
 
     expect(result.workspaceRoot).toBe(path.resolve(workspaceRoot));
@@ -183,6 +187,163 @@ describe('indexCodeGraphyWorkspace', () => {
     expect(readGraphCacheStatus(workspaceRoot).state).toBe('available');
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath)).toEqual(
       expect.arrayContaining(['source.txt', 'target.txt']),
+    );
+  });
+
+  it('keeps orphan files in the core index regardless of graph view settings', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.writeFile(path.join(workspaceRoot, 'orphan.txt'), 'unlinked\n', 'utf-8');
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      showOrphans: false,
+    });
+
+    const result = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+    });
+
+    expect(result.graph.nodes.map(node => node.id)).toEqual(
+      expect.arrayContaining(['source.txt', 'target.txt', 'orphan.txt']),
+    );
+    expect(result.graph.nodes.map(node => node.id)).not.toContain('.codegraphy');
+  });
+
+  it('keeps indexing state in core so changed files update the graph without full indexing', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.writeFile(path.join(workspaceRoot, 'target-2.txt'), 'done\n', 'utf-8');
+    const calls = {
+      onPreAnalyze: vi.fn(),
+      onPostAnalyze: vi.fn(),
+      onWorkspaceReady: vi.fn(),
+      analyzeFile: vi.fn(),
+      onFilesChanged: vi.fn<(files: Array<{ relativePath: string }>) => Promise<string[]>>(async () => []),
+    };
+    const plugin = {
+      ...createTextPlugin(calls),
+      async onFilesChanged(files: Array<{ relativePath: string }>) {
+        calls.onFilesChanged(files);
+        return [];
+      },
+    };
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      plugins: [plugin],
+      includeCorePlugins: false,
+    });
+
+    const initial = await engine.index();
+    await fs.writeFile(path.join(workspaceRoot, 'source.txt'), 'target-2.txt\n', 'utf-8');
+    const refreshed = await engine.applyChangedFiles([
+      'source.txt',
+    ]);
+
+    expect(initial.graph.edges).toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target.txt',
+      }),
+    );
+    expect(refreshed.graph.edges).toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target-2.txt',
+      }),
+    );
+    expect(refreshed.graph.edges).not.toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target.txt',
+      }),
+    );
+    expect(calls.onFilesChanged).toHaveBeenCalledWith([
+      expect.objectContaining({ relativePath: 'source.txt' }),
+    ]);
+    expect(calls.onPostAnalyze).toHaveBeenCalledTimes(2);
+    expect(calls.onPostAnalyze).toHaveBeenLastCalledWith(refreshed.graph);
+    expect(calls.onWorkspaceReady).toHaveBeenCalledTimes(1);
+    expect(calls.analyzeFile).toHaveBeenCalledTimes(4);
+    expect(calls.analyzeFile).toHaveBeenLastCalledWith(
+      path.join(workspaceRoot, 'source.txt'),
+      'target-2.txt\n',
+      path.resolve(workspaceRoot),
+    );
+    expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] }).state).toBe('fresh');
+  });
+
+  it('passes provided plugin entry options through the core workspace engine', async () => {
+    const workspaceRoot = await createWorkspace();
+    const analyzeFile = vi.fn(async (
+      filePath: string,
+      _content: string,
+      rootPath: string,
+      context?: IPluginAnalysisContext,
+    ): Promise<IFileAnalysisResult> => {
+      if (!filePath.endsWith('source.txt')) {
+        return { filePath, relations: [] };
+      }
+
+      const targetFile = String(context?.options?.targetFile ?? '');
+      const targetPath = path.join(rootPath, targetFile);
+      return {
+        filePath,
+        relations: [{
+          kind: 'reference',
+          sourceId: 'configured-target',
+          fromFilePath: filePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: targetFile,
+        }],
+      };
+    });
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [{
+        plugin: {
+          id: 'acme.configured',
+          name: 'Configured Plugin',
+          version: '1.0.0',
+          apiVersion: '^2.0.0',
+          supportedExtensions: ['.txt'],
+          sources: [{
+            id: 'configured-target',
+            name: 'Configured Target',
+            description: 'References the configured target file.',
+          }],
+          analyzeFile,
+        },
+        options: {
+          targetFile: 'target.txt',
+        },
+      }],
+    });
+
+    const result = await engine.index();
+
+    expect(result.graph.edges).toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target.txt',
+        kind: 'reference',
+      }),
+    );
+    expect(analyzeFile).toHaveBeenCalledWith(
+      path.join(workspaceRoot, 'source.txt'),
+      'target.txt\n',
+      path.resolve(workspaceRoot),
+      expect.objectContaining({
+        options: {
+          targetFile: 'target.txt',
+        },
+      }),
     );
   });
 
@@ -284,7 +445,6 @@ describe('indexCodeGraphyWorkspace', () => {
           disabledFilterPatterns: ['**/ignored.txt'],
         }],
       },
-      showOrphans: true,
     });
 
     expect(result.files.map(file => file.relativePath)).toContain('ignored.txt');
