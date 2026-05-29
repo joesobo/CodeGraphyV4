@@ -10,6 +10,7 @@ export function useGraphDebugApi({
   fg3dRef,
   graphDataRef,
   graphMode,
+  openNodeContextMenu,
   win,
 }: {
   containerRef: RefObject<HTMLElement | null>;
@@ -18,6 +19,7 @@ export function useGraphDebugApi({
   fg3dRef: MutableRefObject<GraphDebugControls | undefined>;
   graphDataRef: MutableRefObject<{ nodes: DebugNode[] }>;
   graphMode: '2d' | '3d';
+  openNodeContextMenu?(this: void, nodeId: string, event: MouseEvent): void;
   win?: Window;
 }): void {
   useEffect(() => {
@@ -32,7 +34,8 @@ export function useGraphDebugApi({
       fg3dRef,
       graphDataRef,
       graphMode,
+      openNodeContextMenu,
       win,
     });
-  }, [containerRef, fg2dRef, fg3dRef, fitView, graphDataRef, graphMode, win]);
+  }, [containerRef, fg2dRef, fg3dRef, fitView, graphDataRef, graphMode, openNodeContextMenu, win]);
 }

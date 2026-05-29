@@ -1,6 +1,4 @@
 import type { IPhysicsSettings } from '../../../../../../../shared/settings/physics';
-import type { GraphLayoutSettings } from '../../../../../../../shared/settings/graphLayout';
-import type { FGNode } from '../../../../model/build';
 import { hasStrength } from '../../../../support/guards';
 import type { GraphPhysicsControls } from '../../model';
 import { getRootGraphCenterStrength } from '../collision';
@@ -8,9 +6,8 @@ import { getRootGraphCenterStrength } from '../collision';
 export function applyCenterSettings(
 	graph: GraphPhysicsControls,
 	settings: IPhysicsSettings,
-	graphLayout: GraphLayoutSettings | undefined,
 ): void {
-	const strength = (node: FGNode): number => getRootGraphCenterStrength(node, settings.centerForce, graphLayout);
+	const strength = (): number => getRootGraphCenterStrength(settings.centerForce);
 	const forceXInstance = graph.d3Force('forceX');
 	if (hasStrength(forceXInstance)) forceXInstance.strength(strength);
 

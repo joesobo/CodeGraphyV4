@@ -10,6 +10,7 @@ import { registerDefaultIndexPlugins, registerProvidedPlugins } from './defaultP
 export async function createWorkspaceIndexRegistry(
   options: IndexCodeGraphyWorkspaceOptions,
   settings: CodeGraphyWorkspaceSettings,
+  workspaceRoot: string,
 ): Promise<{
   registry: CorePluginRegistry;
   loadedPackagePlugins: LoadedCodeGraphyWorkspacePluginPackage[];
@@ -17,6 +18,7 @@ export async function createWorkspaceIndexRegistry(
   const registry = new CorePluginRegistry();
   const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
     settings,
+    workspaceRoot,
     ...(options.userHomeDir ? { homeDir: options.userHomeDir } : {}),
     ...(options.warn ? { warn: options.warn } : {}),
   });

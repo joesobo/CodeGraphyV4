@@ -128,9 +128,22 @@ interface IAnalysisFile {
 }
 ```
 
-## Extension-Owned Surfaces
+## Graph View and Host Surfaces
 
-The public npm Plugin API does not expose `CodeGraphyAPI`, webview contracts, decorations, commands, context menus, exporters, toolbar actions, or plugin-defined graph views. Those contracts are extension-owned and remain inside `packages/extension` because they are visualization and VS Code integration surfaces.
+The public npm Plugin API exposes host-agnostic Graph View contribution contracts for paid and third-party plugins:
+
+- Access Provider checks through `IAccessProvider`
+- plugin-owned data through `loadData` / `saveData`
+- package factory host services through `IPluginFactoryOptions`
+- plugin host access to the current graph snapshot through `IPluginHostApi.getGraph()`, so host actions such as exporters can read the rendered Relationship Graph when they run
+- runtime Graph View nodes and edges
+- graph projections that run after the free Visible Graph exists
+- additive D3 force adapters
+- node drag-end policies for plugin-owned fixed-position behavior
+- context-menu target selectors for background, node, edge, multi-selection, runtime node type, and runtime edge type
+- named UI slots: `graph.toolbar`, `graph.panelSlot`, `graph.stage.worldOverlay`, and `graph.stage.viewportOverlay`
+
+The public API still does not expose VS Code-specific `CodeGraphyAPI`, decorations, or the raw force-graph instance. Webview-facing contracts are host-agnostic and scoped to plugin-owned assets, messages, slots, and Graph View contributions.
 
 Headless plugins should express analysis through `IPlugin` hooks and `IFileAnalysisResult`. The CLI and MCP consume the same core analysis path without installing VS Code or webview dependencies.
 
@@ -171,6 +184,44 @@ If you see projected file-to-file edges inside the extension codebase, those are
 - `GraphEdgeKind` = reserved core kinds plus namespaced custom kinds (`pluginId:kind`)
 - External Package nodes let plugins and host views include unresolved external imports like `fs` or `react` without pretending they are workspace files.
 
+### Access (`access.ts`)
+
+- `IAccessProvider`
+- `IAccessRequest`
+- `IAccessResult`
+- `CodeGraphyAccessKey`
+- `CodeGraphyAccessState`
+
+Use Access Provider plugins, such as `@codegraphy/pro`, to report whether paid capabilities are available. Paid plugins declare `requiresAccess` on the plugin or on individual Graph View contributions.
+
+### Plugin Data (`data.ts`)
+
+- `IPluginDataHost`
+- `loadData<T>(fallback: T): T`
+- `saveData<T>(data: T, options?: { undoLabel?: string }): Promise<void>`
+
+Plugin id implies storage ownership. Hosts persist plugin data under the plugin id instead of asking plugins to register separate namespaces.
+
+### Graph View (`graphView.ts`)
+
+- `IGraphViewRuntimeNodeContribution`
+- `IGraphViewRuntimeEdgeContribution`
+- `IGraphViewProjectionContribution`
+- `IGraphViewForceAdapterContribution`
+- `IGraphViewNodeDragEndContribution`
+- `IGraphViewContextMenuContribution`
+- `IGraphViewUiSlotContribution`
+
+Graph View runtime nodes and edges are display artifacts. They do not become Graph Cache facts and are not exposed as Graph Query relationships unless a plugin also contributes analysis data through Core.
+
+Graph View contributions run from a live host context. `visibleGraph` is the current rendered graph, `graphMode` reports the current `2d` or `3d` view, `timelineActive` reports whether the user is inspecting a historical timeline snapshot, and `workspaceRoot` is supplied when the host can resolve the current Indexed Folder. Contributions should use these context values at execution time rather than capturing creation-time defaults.
+
+Runtime node contributions may supply D3 coordinate state (`x`/`y`/`z`), fixed coordinate state (`fx`/`fy`/`fz`), and velocity state (`vx`/`vy`/`vz`) when a plugin owns its node layout. Core treats those fields like normal graph node physics state, so plugins can keep a runtime node fixed, release it, or hand it back to the force simulation without inventing a separate layout channel.
+
+Node drag-end contributions let a plugin decide whether a dragged node should keep its fixed `fx`/`fy`/`fz` coordinates after release. Core still owns the graph node coordinate fields; feature-specific behavior such as pinned-node release semantics should live in the plugin that owns that feature.
+
+Context menu contributions render in the normal graph context menu by default. Contributions that set `placement: { menu: 'create' }` join the graph background create actions instead, so the same action appears beside `New File...` and `New Folder...` in the background context menu and in the toolbar `New...` popup while the plugin is enabled.
+
 ## Theme-Style Plugins
 
 The current public API already supports a file-theme style plugin through `fileColors`:
@@ -188,7 +239,11 @@ Current limitation: folder icon theming is still core-only. The API does not yet
 
 `@codegraphy-dev/plugin-api` is currently a type-definition package with `types` exports for:
 - `@codegraphy-dev/plugin-api`
+- `@codegraphy-dev/plugin-api/access`
+- `@codegraphy-dev/plugin-api/data`
 - `@codegraphy-dev/plugin-api/events`
+- `@codegraphy-dev/plugin-api/graph-view`
 - `@codegraphy-dev/plugin-api/plugin`
+- `@codegraphy-dev/plugin-api/webview`
 
 Use `import type` for these symbols in plugin code.

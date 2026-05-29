@@ -19,7 +19,7 @@ function createHelpResult(): CommandExecutionResult {
       '  codegraphy setup',
       '  codegraphy status [workspace]',
       '  codegraphy index [workspace]',
-      '  codegraphy plugins <register|list|enable|disable>',
+      '  codegraphy plugins <register|link|list|enable|disable>',
     ].join('\n'),
   };
 }

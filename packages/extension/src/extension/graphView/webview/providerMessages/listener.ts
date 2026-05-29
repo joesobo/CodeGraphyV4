@@ -158,8 +158,10 @@ export interface GraphViewProviderMessageListenerSource {
   _sendCachedTimeline(): Promise<void>;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
+  _sendPluginStatuses(): void;
   _sendPluginExporters?(): void;
   _sendPluginToolbarActions?(): void;
+  _sendGraphViewContributionStatuses?(): void;
   _sendPluginWebviewInjections(): void;
   _sendGraphControls?(): void;
   invalidatePluginFiles(pluginIds: readonly string[]): string[];

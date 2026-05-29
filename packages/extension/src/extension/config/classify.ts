@@ -3,16 +3,27 @@ export type ConfigCategory =
   | 'toggles'
   | 'display'
   | 'legend'
-  | 'layout'
   | 'general';
 
 interface CodeGraphyConfigurationChangeLike {
+  changedKeys?: readonly string[];
   affectsConfiguration(section: string): boolean;
+}
+
+function isPluginDataOnlyChange(event: CodeGraphyConfigurationChangeLike): boolean {
+  const changedKeys = event.changedKeys;
+  return changedKeys !== undefined
+    && changedKeys.length > 0
+    && changedKeys.every(key => key === 'pluginData' || key.startsWith('pluginData.'));
 }
 
 /** Determines which category a configuration change falls into. */
 export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): ConfigCategory | null {
   const affectsAny = (...keys: string[]) => keys.some(key => event.affectsConfiguration(key));
+
+  if (isPluginDataOnlyChange(event)) {
+    return null;
+  }
 
   if (event.affectsConfiguration('codegraphy.physics')) {
     return 'physics';
@@ -39,10 +50,6 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
 
   if (affectsAny('codegraphy.legend')) {
     return 'legend';
-  }
-
-  if (affectsAny('codegraphy.graphLayout')) {
-    return 'layout';
   }
 
   if (event.affectsConfiguration('codegraphy')) {

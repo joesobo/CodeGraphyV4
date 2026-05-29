@@ -43,6 +43,44 @@ describe('searchBar/filters/popover', () => {
     expect(screen.getByText('4 excluded from graph')).toBeInTheDocument();
     expect(screen.getByText('Custom')).toBeInTheDocument();
     expect(screen.getByText('Plugin defaults')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filters, 2 enabled' }).className).toContain('bg-secondary');
+  });
+
+  it('opens and closes from its own trigger when uncontrolled', () => {
+    const props = renderPopover({ onOpenChange: vi.fn(), open: undefined });
+
+    expect(screen.queryByText('Filters')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 2 enabled' }));
+    expect(screen.getByText('Filters')).toBeInTheDocument();
+    expect(props.onOpenChange).toHaveBeenCalledWith(true);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filters, 2 enabled' }));
+    expect(screen.queryByText('Filters')).not.toBeInTheDocument();
+    expect(props.onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('opens uncontrolled without an open-change callback', () => {
+    renderPopover({ onOpenChange: undefined, open: undefined });
+
+    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Filters, 2 enabled' }))).not.toThrow();
+    expect(screen.getByText('Filters')).toBeInTheDocument();
+  });
+
+  it('uses the inactive button style and keeps add disabled when no filter is pending', () => {
+    renderPopover({
+      customPatterns: [],
+      disabledCustomPatterns: [],
+      disabledPluginPatterns: [],
+      pendingPatterns: undefined,
+      pluginGroups: [],
+      pluginPatterns: [],
+    });
+
+    const trigger = screen.getByRole('button', { name: 'Filters, 0 enabled' });
+    expect(trigger.className).toContain('border');
+    expect(trigger.className).not.toContain('bg-secondary');
+    expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled();
   });
 
   it('adds pending filter globs without closing the popover', () => {
@@ -101,6 +139,33 @@ describe('searchBar/filters/popover', () => {
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
       payload: { source: 'plugin', enabled: false },
+    });
+  });
+
+  it('bulk re-enables custom and plugin sections', () => {
+    const props = renderPopover({
+      customPatterns: ['one/**', 'two/**'],
+      disabledCustomPatterns: ['one/**', 'two/**'],
+      disabledPluginPatterns: ['plugin-one/**', 'plugin-two/**'],
+      pluginGroups: [
+        { pluginId: 'plugin.one', pluginName: 'Plugin One', patterns: ['plugin-one/**'] },
+        { pluginId: 'plugin.two', pluginName: 'Plugin Two', patterns: ['plugin-two/**'] },
+      ],
+      pluginPatterns: ['plugin-one/**', 'plugin-two/**'],
+    });
+
+    fireEvent.click(screen.getByLabelText('Enable all custom filters'));
+    fireEvent.click(screen.getByLabelText('Enable all plugin filters'));
+
+    expect(props.onDisabledCustomPatternsChange).toHaveBeenCalledWith([]);
+    expect(props.onDisabledPluginPatternsChange).toHaveBeenCalledWith([]);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+      payload: { source: 'custom', enabled: true },
+    });
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERN_GROUP_STATE',
+      payload: { source: 'plugin', enabled: true },
     });
   });
 

@@ -26,6 +26,7 @@ describe('graphView/provider/plugin/resources', () => {
       registerBuiltInPluginRoots: vi.fn((extensionUri, roots) => {
         roots.set('plugin.test', extensionUri);
       }),
+      registerPackagePluginRoots: vi.fn(),
       getPluginDefaultGroups: vi.fn(() => pluginGroups),
       getBuiltInDefaultGroups: vi.fn(() => builtInGroups),
       buildMergedGroups,
@@ -71,6 +72,7 @@ describe('graphView/provider/plugin/resources', () => {
     };
     const methods = createGraphViewProviderPluginResourceMethods(source as never, {
       registerBuiltInPluginRoots: vi.fn(),
+      registerPackagePluginRoots: vi.fn(),
       getPluginDefaultGroups: vi.fn(() => []),
       getBuiltInDefaultGroups: vi.fn(() => []),
       buildMergedGroups: vi.fn(() => []),
@@ -122,6 +124,7 @@ describe('graphView/provider/plugin/resources', () => {
       _panels: [],
     } as never, {
       registerBuiltInPluginRoots: vi.fn(),
+      registerPackagePluginRoots: vi.fn(),
       getPluginDefaultGroups: vi.fn(() => pluginGroups),
       getBuiltInDefaultGroups: vi.fn(() => builtInGroups),
       buildMergedGroups: vi.fn(() => []),
@@ -151,6 +154,7 @@ describe('graphView/provider/plugin/resources', () => {
       _panels: [],
     } as never, {
       registerBuiltInPluginRoots: vi.fn(),
+      registerPackagePluginRoots: vi.fn(),
       getPluginDefaultGroups: vi.fn(() => []),
       getBuiltInDefaultGroups: vi.fn(() => []),
       buildMergedGroups: vi.fn(() => []),
@@ -182,6 +186,7 @@ describe('graphView/provider/plugin/resources', () => {
     };
     const methods = createGraphViewProviderPluginResourceMethods(source as never, {
       registerBuiltInPluginRoots: vi.fn(),
+      registerPackagePluginRoots: vi.fn(),
       getPluginDefaultGroups: vi.fn(() => []),
       getBuiltInDefaultGroups: vi.fn(() => []),
       buildMergedGroups: vi.fn(() => []),
@@ -221,6 +226,7 @@ describe('graphView/provider/plugin/resources', () => {
       _panels: [],
     } as never, {
       registerBuiltInPluginRoots: vi.fn(),
+      registerPackagePluginRoots: vi.fn(),
       getPluginDefaultGroups: vi.fn(() => []),
       getBuiltInDefaultGroups: vi.fn(() => []),
       buildMergedGroups: vi.fn(() => []),

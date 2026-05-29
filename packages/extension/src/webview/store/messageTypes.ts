@@ -5,8 +5,11 @@ import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/
 import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
-import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
-import type { IPluginFilterPatternGroup } from '../../shared/protocol/extensionToWebview';
+import type {
+  ExtensionToWebviewMessage,
+  IGraphViewContributionStatus,
+  IPluginFilterPatternGroup,
+} from '../../shared/protocol/extensionToWebview';
 import type {
   IGraphEdgeTypeDefinition,
   IGraphNodeTypeDefinition,
@@ -14,7 +17,6 @@ import type {
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
-import type { GraphLayoutSettings } from '../../shared/settings/graphLayout';
 import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
   PendingGroupUpdates,
@@ -46,7 +48,6 @@ export interface IStoreFields {
   showLabels: boolean;
   graphMode: '2d' | '3d';
   graphViewportScale: number | null;
-  graphLayout: GraphLayoutSettings;
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
   depthMode: boolean;
@@ -72,6 +73,7 @@ export interface IStoreFields {
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
   pluginToolbarActions: IPluginToolbarAction[];
+  graphViewContributionStatuses: IGraphViewContributionStatus[];
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
   activeFilePath: string | null;

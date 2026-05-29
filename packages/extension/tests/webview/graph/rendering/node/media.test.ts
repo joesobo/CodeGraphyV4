@@ -128,6 +128,33 @@ describe('graph/rendering/node/media', () => {
     }));
   });
 
+  it('runs type-specific and wildcard plugin renderers when both are registered', () => {
+    const typeRenderer = vi.fn();
+    const wildcardRenderer = vi.fn();
+    const getNodeRenderers = vi.fn(() => [typeRenderer, wildcardRenderer]);
+    const ctx = createContext();
+
+    renderNodePluginOverlay(
+      { getNodeRenderers } as unknown as WebviewPluginHost,
+      createNode(),
+      ctx,
+      1,
+      undefined,
+    );
+
+    expect(getNodeRenderers).toHaveBeenCalledWith('.ts');
+    expect(typeRenderer).toHaveBeenCalledWith(expect.objectContaining({
+      node: expect.objectContaining({ id: 'src/app.ts' }),
+      ctx,
+      globalScale: 1,
+    }));
+    expect(wildcardRenderer).toHaveBeenCalledWith(expect.objectContaining({
+      node: expect.objectContaining({ id: 'src/app.ts' }),
+      ctx,
+      globalScale: 1,
+    }));
+  });
+
   it('swallows plugin renderer errors after logging them', () => {
     const error = new Error('boom');
     const pluginRenderer = vi.fn(() => {

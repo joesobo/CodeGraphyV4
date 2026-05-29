@@ -36,7 +36,7 @@ export async function loadCodeGraphyWorkspacePluginPackages(
     }
 
     try {
-      loaded.push(await loadCodeGraphyWorkspacePluginPackage(pluginSettings, record));
+      loaded.push(await loadCodeGraphyWorkspacePluginPackage(pluginSettings, record, options.workspaceRoot));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       warn(`CodeGraphy plugin package '${pluginSettings.package}' could not be loaded: ${message}`);

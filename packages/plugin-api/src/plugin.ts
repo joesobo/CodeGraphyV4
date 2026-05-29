@@ -12,8 +12,64 @@ import type {
   IPluginEdgeType,
   IPluginNodeType,
 } from './analysis';
+import type { CodeGraphyAccessKey, IAccessProvider } from './access';
 import type { IConnectionSource } from './connection';
+import type { IPluginDataHost } from './data';
+import type { Disposable } from './disposable';
 import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
+import type { IGraphViewContributions } from './graphView';
+
+export interface IPluginWebviewContributions {
+  scripts?: string[];
+  styles?: string[];
+}
+
+export interface IPluginWebviewMessage {
+  type: string;
+  data: unknown;
+}
+
+export interface IPluginExportRequest {
+  filename: string;
+  content: string | Uint8Array;
+  filters?: Record<string, string[]>;
+  title?: string;
+  successMessage?: string;
+}
+
+export interface IPluginExporter {
+  id: string;
+  label: string;
+  description?: string;
+  group?: string;
+  run(this: void): void | Promise<void>;
+}
+
+export interface IPluginToolbarActionItem {
+  id: string;
+  label: string;
+  description?: string;
+  run(this: void): void | Promise<void>;
+}
+
+export interface IPluginToolbarAction {
+  id: string;
+  label: string;
+  icon?: string;
+  description?: string;
+  items: IPluginToolbarActionItem[];
+}
+
+export interface IPluginHostApi {
+  getGraph(): IGraphData;
+  sendToWebview(message: IPluginWebviewMessage): void;
+  onWebviewMessage(handler: (message: IPluginWebviewMessage) => void): Disposable;
+  registerExporter(exporter: IPluginExporter): Disposable;
+  registerToolbarAction(action: IPluginToolbarAction): Disposable;
+  saveExport(request: IPluginExportRequest): Promise<void>;
+  getWorkspaceRoot(): string;
+  log(level: 'info' | 'warn' | 'error', ...args: unknown[]): void;
+}
 
 /**
  * File metadata passed to bulk analysis hooks.
@@ -49,6 +105,15 @@ export interface IPluginFileColorDefinition {
   /** Relative path from the plugin root to an image asset. */
   imagePath?: string;
 }
+
+export interface IPluginFactoryOptions {
+  /** Workspace-scoped persistence owned by the plugin id returned from the factory. */
+  dataHost?: IPluginDataHost;
+  /** Merged package default options and CodeGraphy Workspace plugin options. */
+  options?: Record<string, unknown>;
+}
+
+export type IPluginFactory = (options?: IPluginFactoryOptions) => IPlugin | Promise<IPlugin>;
 
 /**
  * The main plugin interface for CodeGraphy.
@@ -87,6 +152,12 @@ export interface IPlugin {
   /** File extensions this plugin can handle (e.g., `['.ts', '.tsx']`, or `['*']` for all files). */
   supportedExtensions: string[];
 
+  /** Access required before this plugin's gated contributions can run. */
+  requiresAccess?: CodeGraphyAccessKey | readonly CodeGraphyAccessKey[];
+
+  /** Optional Access Provider registered by account/status plugins such as Pro. */
+  accessProvider?: IAccessProvider;
+
   /**
    * Connection sources this plugin supports.
    * Each source describes a category of relations the plugin can emit.
@@ -111,6 +182,15 @@ export interface IPlugin {
    * files matching these patterns are excluded from analysis.
    */
   defaultFilters?: string[];
+
+  /** Optional Graph View runtime, UI, menu, projection, and force contributions. */
+  graphView?: IGraphViewContributions;
+
+  /** Optional webview API range this plugin's injected webview assets target. */
+  webviewApiVersion?: string;
+
+  /** Optional webview scripts and styles loaded into CodeGraphy Graph View. */
+  webviewContributions?: IPluginWebviewContributions;
 
   // ---------------------------------------------------------------------------
   // Core analysis contract
@@ -147,6 +227,19 @@ export interface IPlugin {
    * Use to set up state or resources.
    */
   initialize?(workspaceRoot: string, context?: IPluginAnalysisContext): Promise<void>;
+
+  /**
+   * Called when the host creates this plugin's scoped runtime API.
+   * Use this to bridge package-owned state and commands to injected webview assets.
+   */
+  onLoad?(api: IPluginHostApi): void;
+
+  /**
+   * Called when the Graph View webview has finished its initial ready handshake.
+   * Use this to send plugin-owned state to injected webview assets after the host
+   * is ready to deliver messages.
+   */
+  onWebviewReady?(): void;
 
   // ---------------------------------------------------------------------------
   // Lifecycle hooks

@@ -9,6 +9,9 @@
   "plugins": [
     {
       "package": "@codegraphy-dev/plugin-markdown"
+    },
+    {
+      "package": "@codegraphy-pro/organize"
     }
   ],
   "nodeColors": {

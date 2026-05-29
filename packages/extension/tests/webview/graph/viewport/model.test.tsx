@@ -116,7 +116,6 @@ function createViewState(): Pick<
 	| 'currentCommitSha'
 	| 'dagMode'
 	| 'favorites'
-	| 'graphLayout'
 	| 'graphMode'
 	| 'physicsSettings'
 	| 'pluginContextMenuItems'
@@ -135,7 +134,6 @@ function createViewState(): Pick<
 	return {
 		dagMode: 'td',
 		favorites: new Set(['src/app.ts']),
-		graphLayout: { collapsedNodes: {}, pinnedNodes: {}, sections: {}, ownership: {} },
 		graphMode: '2d',
 		physicsSettings,
 		pluginContextMenuItems: [],
@@ -196,10 +194,12 @@ describe('graph/viewport/model', () => {
 			timelineActive: true,
 		}));
 		expect(harness.buildGraphContextMenuEntries).toHaveBeenCalledWith({
+			edges: graphData.links,
 			favorites: viewState.favorites,
+			graphMode: '2d',
+			graphViewContributions: undefined,
 			mutationAvailability: 'enabled',
 			nodes: graphData.nodes,
-			pinnedNodeIds: new Set(),
 			pluginItems: [],
 			selection: { kind: 'background', targets: [] },
 			timelineActive: true,

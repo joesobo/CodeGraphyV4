@@ -42,25 +42,42 @@ describe('graph/rendering/node/pointer', () => {
     expect(ctx.fill).toHaveBeenCalled();
   });
 
-  it('skips expanded Graph Section pointer areas so member nodes stay clickable', () => {
+  it('paints a rectangular plugin pointer area without changing the node shape', () => {
     const ctx = {
-      beginPath: vi.fn(),
       fill: vi.fn(),
+      fillRect: vi.fn(),
       fillStyle: '',
-      rect: vi.fn(),
     } as unknown as CanvasRenderingContext2D;
 
     paintNodePointerArea(createNode({
-      id: 'section-1',
-      isGraphSection: true,
-      isCollapsedGraphSection: false,
-      nodeType: 'graph-section',
-      sectionHeight: 180,
-      sectionWidth: 280,
+      pointerArea2D: {
+        height: 80,
+        width: 120,
+      },
     }), '#ffffff', ctx);
 
     expect(drawShape).not.toHaveBeenCalled();
-    expect(ctx.rect).not.toHaveBeenCalled();
+    expect(ctx.fillStyle).toBe('#ffffff');
+    expect(ctx.fillRect).toHaveBeenCalledWith(-36, 8, 120, 80);
     expect(ctx.fill).not.toHaveBeenCalled();
+  });
+
+  it('uses sized rectangle node bodies as the pointer area by default', () => {
+    const ctx = {
+      fill: vi.fn(),
+      fillRect: vi.fn(),
+      fillStyle: '',
+    } as unknown as CanvasRenderingContext2D;
+
+    paintNodePointerArea(createNode({
+      shape2D: 'rectangle',
+      shapeSize2D: {
+        height: 80,
+        width: 120,
+      },
+    }), '#ffffff', ctx);
+
+    expect(drawShape).not.toHaveBeenCalled();
+    expect(ctx.fillRect).toHaveBeenCalledWith(-36, 8, 120, 80);
   });
 });

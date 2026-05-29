@@ -1,7 +1,7 @@
 import type { NodeSizeMode } from '../../../../shared/settings/modes';
 import type { UseGraphStateResult } from '../runtime/use/state';
 
-export function buildGraphLayoutKey(
+export function buildGraphDataLayoutKey(
   graphData: UseGraphStateResult['graphData'],
   nodeSizeMode: NodeSizeMode,
 ): string {

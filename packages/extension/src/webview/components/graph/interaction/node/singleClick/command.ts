@@ -6,7 +6,6 @@ export interface GraphNodeSingleClickOptions {
   clientX: number;
   clientY: number;
   ctrlKey: boolean;
-  isCollapsedGraphSection?: boolean;
   label: string;
   metaKey: boolean;
   nodeId: string;
@@ -18,16 +17,6 @@ export interface GraphNodeSingleClickOptions {
 export function getNodeSingleClickCommand(
   options: GraphNodeSingleClickOptions,
 ): GraphNodeClickCommand {
-  if (options.isCollapsedGraphSection && !options.ctrlKey && !options.shiftKey && !options.metaKey) {
-    return {
-      nextLastClick: null,
-      effects: [
-        { kind: 'setGraphSectionCollapsed', sectionId: options.nodeId, collapsed: false },
-        buildNodeSingleClickInteractionEffect(options),
-      ],
-    };
-  }
-
   const { effects, nextLastClick } = buildNodeSingleClickSelectionResult(options);
   effects.push(buildNodeSingleClickInteractionEffect(options));
 

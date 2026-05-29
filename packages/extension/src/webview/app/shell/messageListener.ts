@@ -4,14 +4,12 @@
  */
 
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import { postMessage } from '../../vscodeApi';
 import { graphStore } from '../../store/state';
-import { normalizePluginInjectPayload, parsePluginScopedMessage } from './messages';
+import { parsePluginScopedMessage } from './messages';
 import type { WebviewPluginHost } from '../../pluginHost/manager';
-
-type WindowWithCodeGraphyReadyFlag = Window & {
-  __codegraphyWebviewReadyPosted?: boolean;
-};
+import { handlePluginInjectMessage } from './messageListener/pluginInjection';
+import { removeDisabledPluginRegistrations } from './messageListener/pluginRegistrations';
+import { postWebviewReadyOnce } from './messageListener/ready';
 
 export interface InjectAssetsParams {
   pluginId: string;
@@ -19,32 +17,25 @@ export interface InjectAssetsParams {
   styles: string[];
 }
 
+export type ResetPluginAssets = (pluginId: string) => void;
+
 /**
  * Create the message event handler for the App's window listener.
  */
 export function createMessageHandler(
   injectPluginAssets: (params: InjectAssetsParams) => Promise<void>,
   pluginHost: WebviewPluginHost,
+  resetPluginAssets?: ResetPluginAssets,
 ): (event: MessageEvent<unknown>) => void {
+  const packagePluginIdsByPackageName = new Map<string, string>();
+
   return (event: MessageEvent<unknown>) => {
     const raw = event.data as { type?: unknown; payload?: unknown; data?: unknown };
     if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') {
       return;
     }
 
-    if (raw.type === 'PLUGIN_WEBVIEW_INJECT') {
-      const payload = normalizePluginInjectPayload(raw.payload);
-      if (payload) {
-        const store = graphStore.getState();
-        store.beginPluginAssetLoad();
-        void injectPluginAssets({
-          pluginId: payload.pluginId,
-          scripts: payload.scripts,
-          styles: payload.styles,
-        }).finally(() => {
-          graphStore.getState().finishPluginAssetLoad();
-        });
-      }
+    if (handlePluginInjectMessage(raw, injectPluginAssets)) {
       return;
     }
 
@@ -54,6 +45,7 @@ export function createMessageHandler(
       return;
     }
 
+    removeDisabledPluginRegistrations(raw, pluginHost, packagePluginIdsByPackageName, resetPluginAssets);
     graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
   };
 }
@@ -65,17 +57,11 @@ export function createMessageHandler(
 export function setupMessageListener(
   injectPluginAssets: (params: InjectAssetsParams) => Promise<void>,
   pluginHost: WebviewPluginHost,
+  resetPluginAssets?: ResetPluginAssets,
 ): () => void {
-  const handleMessage = createMessageHandler(injectPluginAssets, pluginHost);
+  const handleMessage = createMessageHandler(injectPluginAssets, pluginHost, resetPluginAssets);
   window.addEventListener('message', handleMessage);
-  const codeGraphyWindow = window as WindowWithCodeGraphyReadyFlag;
-  // Keep the ready handshake single-shot for one webview page load. This avoids
-  // duplicate ready messages during React development replays such as StrictMode.
-  if (!codeGraphyWindow.__codegraphyWebviewReadyPosted) {
-    codeGraphyWindow.__codegraphyWebviewReadyPosted = true;
-    graphStore.getState().beginInitialBootstrap();
-    postMessage({ type: 'WEBVIEW_READY', payload: null });
-  }
+  postWebviewReadyOnce(window);
 
   return () => {
     window.removeEventListener('message', handleMessage);

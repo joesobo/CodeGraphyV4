@@ -6,23 +6,14 @@ import type {
   NodeSizeMode,
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
-import type {
-  GraphLayoutCoordinate2D,
-  GraphLayoutCoordinate3D,
-  GraphLayoutMode,
-  GraphLayoutOwnershipUpdate,
-  GraphLayoutSectionCreate,
-  GraphLayoutSectionUpdate,
-} from '../settings/graphLayout';
+
+export interface GraphItemCreatePayload {
+  directory: string;
+}
 
 export interface LegendIconImport {
   imagePath: string;
   contentsBase64: string;
-}
-
-export interface GraphItemCreatePayload {
-  directory: string;
-  ownerSectionId?: string;
 }
 
 export type WebviewToExtensionMessage =
@@ -39,47 +30,6 @@ export type WebviewToExtensionMessage =
   | { type: 'CREATE_FILE'; payload: GraphItemCreatePayload }
   | { type: 'CREATE_FOLDER'; payload: GraphItemCreatePayload }
   | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
-  | {
-      type: 'UPDATE_GRAPH_LAYOUT_PIN';
-      payload: {
-        graphMode: GraphLayoutMode;
-        nodeId: string;
-        position: GraphLayoutCoordinate2D | GraphLayoutCoordinate3D;
-      };
-    }
-  | {
-      type: 'CLEAR_GRAPH_LAYOUT_PIN';
-      payload: {
-        graphMode: GraphLayoutMode;
-        nodeId: string;
-      };
-    }
-  | {
-      type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE';
-      payload: { nodeId: string; collapsed: boolean };
-    }
-  | {
-      type: 'CREATE_GRAPH_LAYOUT_SECTION';
-      payload: GraphLayoutSectionCreate;
-    }
-  | {
-      type: 'UPDATE_GRAPH_LAYOUT_SECTION';
-      payload: {
-        iconImports?: LegendIconImport[];
-        sectionId: string;
-        updates: GraphLayoutSectionUpdate;
-      };
-    }
-  | {
-      type: 'UPDATE_GRAPH_LAYOUT_OWNER';
-      payload: GraphLayoutOwnershipUpdate;
-    }
-  | {
-      type: 'DELETE_GRAPH_LAYOUT_SECTION';
-      payload: {
-        sectionId: string;
-      };
-    }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
   | { type: 'REFRESH_GRAPH' }
   | { type: 'INDEX_GRAPH' }
@@ -125,7 +75,6 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   | { type: 'PHYSICS_STABILIZED' }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; packageName?: string; enabled: boolean } }
-  | { type: 'UPDATE_PLUGIN_PACKAGE_ORDER'; payload: { packageNames: string[] } }
   | { type: 'UPDATE_NODE_COLOR'; payload: { nodeType: string; color: string } }
   | { type: 'UPDATE_NODE_VISIBILITY'; payload: { nodeType: string; visible: boolean } }
   | { type: 'UPDATE_EDGE_VISIBILITY'; payload: { edgeKind: string; visible: boolean } }

@@ -3,12 +3,9 @@ import {
   mdiFilePlusOutline,
   mdiFolderPlusOutline,
   mdiPlusBoxOutline,
-  mdiVectorSquarePlus,
+  mdiShapeSquarePlus,
 } from '@mdi/js';
-import {
-  DEFAULT_GRAPH_SECTION_COLOR,
-  getDefaultGraphSectionSize,
-} from '../../../../shared/settings/graphLayout';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import {
@@ -19,27 +16,10 @@ import {
 } from '../../ui/menus/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/overlay/tooltip';
 import { postMessage } from '../../../vscodeApi';
-import type { GraphContextMutationAvailability } from '../../graph/contextMenu/contracts';
 
-interface CreateToolbarActionProps {
-  graphMode: '2d' | '3d';
-  mutationAvailability: GraphContextMutationAvailability;
-}
-
-function postRootGraphSectionCreation(): void {
-  const size = getDefaultGraphSectionSize();
-  postMessage({
-    type: 'CREATE_GRAPH_LAYOUT_SECTION',
-    payload: {
-      color: DEFAULT_GRAPH_SECTION_COLOR,
-      height: size.height,
-      memberNodeIds: [],
-      width: size.width,
-      x: -(size.width / 2),
-      y: -(size.height / 2),
-    },
-  });
-}
+type GraphViewCreateContribution = CoreGraphViewContributionSet['contextMenu'][number];
+type GraphViewCreateContext = Parameters<GraphViewCreateContribution['contribution']['run']>[0];
+type GraphMode = '2d' | '3d';
 
 function postRootFileCreation(): void {
   postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
@@ -49,13 +29,73 @@ function postRootFolderCreation(): void {
   postMessage({ type: 'CREATE_FOLDER', payload: { directory: '.' } });
 }
 
+export interface ResolvedGraphViewCreateContribution {
+  context: GraphViewCreateContext;
+  entry: GraphViewCreateContribution;
+  label: string;
+}
+
+function isGraphViewCreateContribution(
+  entry: GraphViewCreateContribution,
+  context: GraphViewCreateContext,
+): boolean {
+  return entry.contribution.placement?.menu === 'create'
+    && entry.contribution.targets.some(target => target.kind === 'background')
+    && (entry.contribution.isVisible?.(context) ?? true);
+}
+
+function createGraphViewCreateContext(
+  graphMode: GraphMode,
+  timelineActive: boolean,
+): GraphViewCreateContext {
+  return {
+    target: { kind: 'background' },
+    graphMode,
+    timelineActive,
+    selectedNodeIds: [],
+    selectedEdgeIds: [],
+  };
+}
+
+export function resolveGraphViewCreateContributions({
+  graphMode,
+  graphViewContributions,
+  timelineActive,
+}: {
+  graphMode: GraphMode;
+  graphViewContributions?: CoreGraphViewContributionSet;
+  timelineActive: boolean;
+}): ResolvedGraphViewCreateContribution[] {
+  const context = createGraphViewCreateContext(graphMode, timelineActive);
+  return graphViewContributions?.contextMenu
+    .filter(entry => isGraphViewCreateContribution(entry, context))
+    .map(entry => ({
+      context,
+      entry,
+      label: entry.contribution.getLabel?.(context) ?? entry.contribution.label,
+    })) ?? [];
+}
+
+function runGraphViewCreateContribution(
+  contribution: ResolvedGraphViewCreateContribution,
+): void {
+  void contribution.entry.contribution.run(contribution.context);
+}
+
 export function CreateToolbarAction({
   graphMode,
-  mutationAvailability,
-}: CreateToolbarActionProps): React.ReactElement {
-  const sectionCreationAvailable = graphMode === '2d'
-    && mutationAvailability !== 'hidden';
-  const sectionCreationDisabled = mutationAvailability === 'disabled';
+  graphViewContributions,
+  timelineActive,
+}: {
+  graphMode: GraphMode;
+  graphViewContributions?: CoreGraphViewContributionSet;
+  timelineActive: boolean;
+}): React.ReactElement {
+  const graphViewCreateContributions = resolveGraphViewCreateContributions({
+    graphMode,
+    graphViewContributions,
+    timelineActive,
+  });
 
   return (
     <DropdownMenu>
@@ -84,16 +124,16 @@ export function CreateToolbarAction({
           <MdiIcon path={mdiFolderPlusOutline} size={15} className="shrink-0" />
           <span>New Folder...</span>
         </DropdownMenuItem>
-        {sectionCreationAvailable ? (
+        {graphViewCreateContributions.map(contribution => (
           <DropdownMenuItem
+            key={`${contribution.entry.pluginId}:${contribution.entry.contribution.id}`}
             className="gap-2"
-            disabled={sectionCreationDisabled}
-            onSelect={postRootGraphSectionCreation}
+            onSelect={() => runGraphViewCreateContribution(contribution)}
           >
-            <MdiIcon path={mdiVectorSquarePlus} size={15} className="shrink-0" />
-            <span>New Graph Section</span>
+            <MdiIcon path={mdiShapeSquarePlus} size={15} className="shrink-0" />
+            <span>{contribution.label}</span>
           </DropdownMenuItem>
-        ) : null}
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -90,39 +90,13 @@ describe('graph/keyboard/effects', () => {
     });
   });
 
-  it('deletes selected Graph Sections with Delete', () => {
-    expect(getGraphKeyboardCommand({
-      key: 'Delete',
-      isMod: false,
-      shiftKey: false,
-      graphMode: '2d',
-      selectedNodeIds: ['section-1', 'src/app.ts'],
-      selectedGraphSectionIds: ['section-1'],
-      allNodeIds: ['section-1', 'src/app.ts'],
-      targetIsEditable: false,
-    })).toEqual({
-      preventDefault: true,
-      stopPropagation: false,
-      effects: [
-        {
-          kind: 'postMessage',
-          message: {
-            type: 'DELETE_GRAPH_LAYOUT_SECTION',
-            payload: { sectionId: 'section-1' },
-          },
-        },
-      ],
-    });
-  });
-
-  it('ignores Delete when no Graph Sections are selected', () => {
+  it('ignores Delete when no public keyboard deletion command applies', () => {
     expect(getGraphKeyboardCommand({
       key: 'Delete',
       isMod: false,
       shiftKey: false,
       graphMode: '2d',
       selectedNodeIds: ['src/app.ts'],
-      selectedGraphSectionIds: [],
       allNodeIds: ['src/app.ts'],
       targetIsEditable: false,
     })).toBeNull();

@@ -137,6 +137,7 @@ describe('graphView/provider/analysis/handlers', () => {
       _analyzer: { id: 'analyzer' } as never,
       _sendPluginExporters: vi.fn(),
       _sendPluginToolbarActions: vi.fn(),
+      _sendGraphViewContributionStatuses: vi.fn(),
     });
     const dependencies = createDependencies({ hasWorkspace: vi.fn(() => false) });
     const callbacks = {
@@ -174,6 +175,9 @@ describe('graphView/provider/analysis/handlers', () => {
     }
     if (handlers.sendPluginToolbarActions) {
       handlers.sendPluginToolbarActions();
+    }
+    if (handlers.sendGraphViewContributionStatuses) {
+      handlers.sendGraphViewContributionStatuses();
     }
 
     expect(handlerHarness.sendGraphControlsUpdated).toHaveBeenCalledWith(
@@ -219,12 +223,14 @@ describe('graphView/provider/analysis/handlers', () => {
     });
     expect(source._sendPluginExporters).toHaveBeenCalledOnce();
     expect(source._sendPluginToolbarActions).toHaveBeenCalledOnce();
+    expect(source._sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
   });
 
   it('tolerates missing optional plugin broadcast delegates', () => {
     const source = createSource({
       _sendPluginExporters: undefined,
       _sendPluginToolbarActions: undefined,
+      _sendGraphViewContributionStatuses: undefined,
     });
     const handlers = createGraphViewProviderAnalysisHandlers(source, createDependencies(), {
       isAnalysisStale: vi.fn(() => false),
@@ -234,6 +240,7 @@ describe('graphView/provider/analysis/handlers', () => {
 
     expect(() => handlers.sendPluginExporters?.()).not.toThrow();
     expect(() => handlers.sendPluginToolbarActions?.()).not.toThrow();
+    expect(() => handlers.sendGraphViewContributionStatuses?.()).not.toThrow();
   });
 
   it('builds request handlers that update live request state', async () => {

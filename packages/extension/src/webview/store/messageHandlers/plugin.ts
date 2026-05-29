@@ -47,6 +47,12 @@ export function handlePluginToolbarActionsUpdated(
   return { pluginToolbarActions: message.payload.items };
 }
 
+export function handleGraphViewContributionsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED' }>,
+): PartialState {
+  return { graphViewContributionStatuses: message.payload.contributions };
+}
+
 export function handleDagModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>,
 ): PartialState {

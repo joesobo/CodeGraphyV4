@@ -13,6 +13,7 @@ describe('cli/plugins/help', () => {
         '',
         'Commands:',
         '  codegraphy plugins register <package>',
+        '  codegraphy plugins link <package-root>',
         '  codegraphy plugins list [workspace]',
         '  codegraphy plugins enable <package> [workspace]',
         '  codegraphy plugins disable <package> [workspace]',

@@ -14,9 +14,7 @@ describe('graph/contextActions/context', () => {
       primaryTargetId: 'from.ts',
       edgeSourceId: undefined,
       edgeTargetId: undefined,
-      graphMode: '2d',
       mutationDirectory: 'from.ts',
-      nodePositions: new Map(),
     });
   });
 

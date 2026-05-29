@@ -96,12 +96,14 @@ describe('pipeline/service/lifecycleFacade', () => {
   const lifecycleState = (
     facade: TestLifecycleFacade,
   ): {
+    _lastDiscoveredDirectories: string[];
     _lastDiscoveredFiles: IDiscoveredFile[];
     _registry: {
       list: ReturnType<typeof vi.fn>;
       disposeAll: ReturnType<typeof vi.fn>;
     };
   } => facade as unknown as {
+    _lastDiscoveredDirectories: string[];
     _lastDiscoveredFiles: IDiscoveredFile[];
     _registry: {
       list: ReturnType<typeof vi.fn>;
@@ -201,6 +203,7 @@ describe('pipeline/service/lifecycleFacade', () => {
 
   it('invalidates workspace files and persists only when files were removed from the cache', () => {
     const facade = new TestLifecycleFacade();
+    lifecycleState(facade)._lastDiscoveredDirectories = ['src', 'src/a.ts', 'src/a.ts/deep'];
     const toWorkspaceRelativePath = vi
       .spyOn(
         facade as unknown as {
@@ -224,6 +227,7 @@ describe('pipeline/service/lifecycleFacade', () => {
     const relativePathResolver = vi.mocked(invalidateWorkspacePipelineFiles).mock.calls[0][3];
     expect(relativePathResolver('/workspace', '/workspace/src/a.ts')).toBe('src/a.ts');
     expect(toWorkspaceRelativePath).toHaveBeenCalledWith('/workspace', '/workspace/src/a.ts');
+    expect(lifecycleState(facade)._lastDiscoveredDirectories).toEqual(['src']);
     expect(facade.persistCache).toHaveBeenCalledOnce();
 
     vi.mocked(invalidateWorkspacePipelineFiles).mockReturnValueOnce([]);

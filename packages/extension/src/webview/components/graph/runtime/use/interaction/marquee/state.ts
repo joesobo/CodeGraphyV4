@@ -2,7 +2,6 @@ import type {
   MouseEvent as ReactMouseEvent,
   MutableRefObject,
 } from 'react';
-import type { GraphLayoutMode } from '../../../../../../../shared/settings/graphLayout';
 import type { FGNode } from '../../../../model/build';
 import {
   isMarqueePastThreshold,
@@ -26,7 +25,7 @@ export interface GraphMarqueeSelectionRuntimeOptions {
   containerRef: UseGraphStateResult['containerRef'];
   fg2dRef: UseGraphStateResult['fg2dRef'];
   graphDataRef: UseGraphStateResult['graphDataRef'];
-  graphMode: GraphLayoutMode;
+  graphMode: '2d' | '3d';
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
   selectedNodesSetRef: UseGraphStateResult['selectedNodesSetRef'];
@@ -42,7 +41,7 @@ export interface GraphMarqueeSelectionRuntime {
 
 export function canStartMarqueeSelection(
   event: ReactMouseEvent<HTMLDivElement>,
-  graphMode: GraphLayoutMode,
+  graphMode: '2d' | '3d',
   hoveredNode: FGNode | null,
 ): boolean {
   return event.button === 0

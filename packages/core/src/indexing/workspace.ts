@@ -19,7 +19,7 @@ export async function indexCodeGraphyWorkspace(
   const discovery = new FileDiscovery();
   const cache = createEmptyWorkspaceAnalysisCache();
   const settings = createEffectiveIndexSettings(workspaceRoot, options);
-  const { registry, loadedPackagePlugins } = await createWorkspaceIndexRegistry(options, settings);
+  const { registry, loadedPackagePlugins } = await createWorkspaceIndexRegistry(options, settings, workspaceRoot);
   const disabledPlugins = new Set(options.disabledPlugins ?? []);
 
   await registry.initializeAll(workspaceRoot);

@@ -10,7 +10,9 @@ describe('graph/debugOptions', () => {
       graphDataRef: { current: { nodes: [] } },
     };
     const fitView = vi.fn();
+    const openNodeContextMenu = vi.fn();
     const interactions = {
+      handleNodeContextMenuById: openNodeContextMenu,
       interactionHandlers: {
         fitView,
       },
@@ -31,6 +33,7 @@ describe('graph/debugOptions', () => {
       fg3dRef: graphState.fg3dRef,
       graphDataRef: graphState.graphDataRef,
       graphMode: '3d',
+      openNodeContextMenu,
       win,
     });
   });

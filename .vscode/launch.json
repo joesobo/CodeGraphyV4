@@ -6,11 +6,7 @@
       "type": "extensionHost",
       "request": "launch",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-typescript",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-python",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-csharp",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-godot"
+        "--extensionDevelopmentPath=${workspaceFolder}"
       ],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "preLaunchTask": "npm: build:devhost"

@@ -9,7 +9,7 @@ describe('pipeline/plugins/queries', () => {
   it('builds plugin statuses from analyzer state', () => {
     const list = vi.fn(() => [
       {
-        builtIn: true,
+        builtIn: false,
         plugin: {
           id: 'plugin.typescript',
           name: 'TypeScript',

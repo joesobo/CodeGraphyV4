@@ -12,4 +12,10 @@ describe('extension e2e scenarios', () => {
       expect(fs.existsSync(workspacePath)).toBe(true);
     }
   });
+
+  it('does not load headless plugin packages as VS Code extension development paths', () => {
+    for (const scenario of e2eScenarios) {
+      expect(scenario.pluginDevelopmentRelativePaths).toEqual([]);
+    }
+  });
 });

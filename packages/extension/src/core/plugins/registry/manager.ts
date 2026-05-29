@@ -24,6 +24,7 @@ export class PluginRegistry extends PluginRegistryLifecycle {
       builtIn?: boolean;
       sourceExtension?: string;
       sourcePackage?: string;
+      sourcePackageRoot?: string;
       options?: Record<string, unknown>;
       deferReadinessReplay?: boolean;
     } = {},

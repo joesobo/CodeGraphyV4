@@ -11,12 +11,13 @@ Move CodeGraphy's engine out of the VS Code extension package and into shared np
 
 The intended product split is:
 
-- `@codegraphy/core` processes folders and owns the engine.
-- The VS Code extension is the user interface into core for graph visualization and VS Code integration.
+- `@codegraphy-dev/core` processes folders and owns the engine.
+- The VS Code extension visualizes and integrates with VS Code.
+- MCP/CLI operates on CodeGraphy Workspaces, runs explicit commands, and returns Graph Query results to agents.
+- MCP/CLI commands operate on the current folder or an explicit path instead of requiring prior selection.
 - The Core Package npm install provides the terminal `codegraphy` command for normal CLI workflows.
 - MCP is the optional agent interface into core.
-- `@codegraphy/plugin-api` is the programmer interface for plugin authors to create plugins that work with core.
-- CLI and MCP commands operate on the current folder or an explicit path instead of requiring prior selection.
+- `@codegraphy-dev/plugin-api` is the programmer interface for plugin authors to create plugins that work with core.
 
 ## Current Problem
 
@@ -28,7 +29,7 @@ CodeGraphy now has more than one access path:
 
 The current architecture still treats the VS Code extension as the owner of the core engine. `docs/MCP.md` currently says MCP asks the Core Extension to run Indexing and Graph Query. That makes MCP depend on VS Code even when the agent only needs local graph data.
 
-This also causes user-facing friction: MCP can focus or open a VS Code window just to make the extension do engine work. The core extraction should remove that focus-jank by letting MCP talk directly to `@codegraphy/core`.
+This also causes user-facing friction: MCP can focus or open a VS Code window just to make the extension do engine work. The core extraction should remove that focus-jank by letting MCP talk directly to `@codegraphy-dev/core`.
 
 ## Existing Evidence
 
@@ -45,9 +46,9 @@ This also causes user-facing friction: MCP can focus or open a VS Code window ju
 
 ### 1. Core Owns The Full Indexing Pipeline
 
-`@codegraphy/core` should own the full Indexing pipeline, not only Graph Query over an existing Graph Cache.
+`@codegraphy-dev/core` should own the full Indexing pipeline, not only Graph Query over an existing Graph Cache.
 
-`@codegraphy/core` owns:
+`@codegraphy-dev/core` owns:
 
 - File Discovery contracts that are not tied to VS Code APIs
 - Tree-sitter Analysis
@@ -78,7 +79,7 @@ The Core Package is the central CodeGraphy engine. Other packages are interfaces
 - the VS Code extension is the user interface for visualization and editor integration
 - the `codegraphy` CLI is the terminal interface for users and scripts
 - MCP is the agent interface for Graph Query and indexing requests
-- `@codegraphy/plugin-api` is the programmer interface for creating plugins that interact with core
+- `@codegraphy-dev/plugin-api` is the programmer interface for creating plugins that interact with core
 
 These interfaces should not own independent engine behavior or duplicate core responsibilities.
 
@@ -120,7 +121,7 @@ Package install decision:
 
 ### 5. MCP/CLI Can Explicitly Invoke Indexing
 
-MCP/CLI should be able to tell `@codegraphy/core` to run Indexing and Graph Query operations for the current folder or an explicit CodeGraphy Workspace path.
+MCP/CLI should be able to tell `@codegraphy-dev/core` to run Indexing and Graph Query operations for the current folder or an explicit CodeGraphy Workspace path.
 
 Indexing must be explicit, not hidden inside every query.
 
@@ -144,7 +145,7 @@ VS Code, MCP, and CLI should all read and write the same Graph Cache:
 
 Do not create a separate MCP cache or snapshot. A separate cache would recreate split-brain behavior between VS Code and MCP.
 
-The same workspace-local behavior must work with only `@codegraphy/core` and the VS Code extension installed. MCP is optional.
+The same workspace-local behavior must work with only `@codegraphy-dev/core` and the VS Code extension installed. MCP is optional.
 
 ### 7. Use CodeGraphy Workspace As The Core Term
 
@@ -165,9 +166,9 @@ Git-aware behavior such as timeline/history can still talk about repos when the 
 
 ### 8. Bundle Core Into The VSIX
 
-The VS Code extension should get `@codegraphy/core` as a normal npm dependency at build/package time and ship it inside the published VSIX.
+The VS Code extension should get `@codegraphy-dev/core` as a normal npm dependency at build/package time and ship it inside the published VSIX.
 
-Do not use VS Code `extensionDependencies` for `@codegraphy/core`. That manifest field is for other VS Code extensions, not npm packages.
+Do not use VS Code `extensionDependencies` for `@codegraphy-dev/core`. That manifest field is for other VS Code extensions, not npm packages.
 
 Do not run `npm install` during extension activation. A Marketplace install should not depend on:
 
@@ -179,7 +180,7 @@ Do not run `npm install` during extension activation. A Marketplace install shou
 
 Implementation direction:
 
-- add `@codegraphy/core` as a workspace dependency of the extension package
+- add `@codegraphy-dev/core` as a workspace dependency of the extension package
 - bundle/import the core entrypoints the extension needs
 - keep explicit vendoring/copy behavior only for native/runtime packages that cannot be bundled cleanly
 - verify the final VSIX works from a clean install without package-manager commands
@@ -198,12 +199,12 @@ Scope: language plugins only.
 
 Target model:
 
-- language plugin implementations ship as npm packages consumed by `@codegraphy/core`
+- language plugin implementations ship as npm packages consumed by `@codegraphy-dev/core`
 - MCP/CLI can load the same language plugins without launching VS Code
 - the VS Code extension gets language plugin behavior through bundled/default npm dependencies
 - separate first-party language extensions leave the normal Marketplace install story
 
-This is especially important because plugins are headless analysis packages. VS Code-specific UI, commands, menus, and webviews belong in `@codegraphy/extension`, not in plugin packages.
+This is especially important because plugins are headless analysis packages. VS Code-specific UI, commands, menus, and webviews belong in `@codegraphy-dev/extension`, not in plugin packages.
 
 ### 10. Standardize Package Names Under `@codegraphy/*`
 
@@ -211,24 +212,24 @@ Use the npm scope `@codegraphy/*` for product packages.
 
 Target names:
 
-- `@codegraphy/core`
-- `@codegraphy/mcp`
-- `@codegraphy/plugin-api`
-- `@codegraphy/plugin-typescript`
-- `@codegraphy/plugin-python`
-- `@codegraphy/plugin-godot`
-- `@codegraphy/plugin-csharp`
-- `@codegraphy/plugin-markdown`
+- `@codegraphy-dev/core`
+- `@codegraphy-dev/mcp`
+- `@codegraphy-dev/plugin-api`
+- `@codegraphy-dev/plugin-typescript`
+- `@codegraphy-dev/plugin-python`
+- `@codegraphy-dev/plugin-godot`
+- `@codegraphy-dev/plugin-csharp`
+- `@codegraphy-dev/plugin-markdown`
 
 Keep the Marketplace extension id as `codegraphy.codegraphy`.
 
-`@codegraphy/extension` can remain the private workspace package used to build the VS Code extension. It should stay private unless there is a concrete npm-consumer use case. The public install surface for that package is the VS Code Marketplace, not npm.
+`@codegraphy-dev/extension` can remain the private workspace package used to build the VS Code extension. It should stay private unless there is a concrete npm-consumer use case. The public install surface for that package is the VS Code Marketplace, not npm.
 
 Avoid `@codegraphy-vscode/*` for packages that are no longer VS Code-specific.
 
 ### 11. Plugins Are Enabled Per CodeGraphy Workspace
 
-Do not create a "default plugins" bundle or have `@codegraphy/core` auto-load first-party language plugins by magic.
+Do not create a "default plugins" bundle or have `@codegraphy-dev/core` auto-load first-party language plugins by magic.
 
 Instead, treat plugin installation and plugin enablement as separate states:
 
@@ -255,8 +256,8 @@ Suggested CodeGraphy model:
 - user-level Plugin Registry: which globally installed plugin packages are available to CodeGraphy on the machine
 - workspace-local enabled plugin set: which installed plugins are active for that CodeGraphy Workspace
 - workspace-local plugin configuration: plugin-specific settings for that CodeGraphy Workspace
-- core plugin runtime: `@codegraphy/core` defines how plugins integrate with analysis, events, signals, and Graph Query behavior through `@codegraphy/plugin-api`
-- core load plan: `@codegraphy/core` reads the enabled plugin set for the CodeGraphy Workspace, resolves installed plugin packages, loads them, and runs Indexing
+- core plugin runtime: `@codegraphy-dev/core` defines how plugins integrate with analysis, events, signals, and Graph Query behavior through `@codegraphy-dev/plugin-api`
+- core load plan: `@codegraphy-dev/core` reads the enabled plugin set for the CodeGraphy Workspace, resolves installed plugin packages, loads them, and runs Indexing
 - CodeGraphy packages and plugins should not be installed into the user's source project by default
 - the user's project code should not depend on CodeGraphy packages
 
@@ -309,10 +310,10 @@ Target shape:
 {
   "plugins": [
     {
-      "package": "@codegraphy/plugin-markdown"
+      "package": "@codegraphy-dev/plugin-markdown"
     },
     {
-      "package": "@codegraphy/plugin-python",
+      "package": "@codegraphy-dev/plugin-python",
       "disabledFilterPatterns": [],
       "options": {}
     }
@@ -347,15 +348,15 @@ Do not rely on npm `postinstall` scripts or plugin packages self-registering dur
 
 Installing a plugin package is passive. CodeGraphy records available plugin packages in the user-level Plugin Registry at `~/.codegraphy/plugins.json`.
 
-`@codegraphy/core` owns plugin integration. It should work with the VS Code extension even when MCP is not installed. MCP and CLI are consumers of core plugin behavior, not the owners of it. MCP tools should mirror the CLI plugin command semantics so agents and users have the same mental model.
+`@codegraphy-dev/core` owns plugin integration. It should work with the VS Code extension even when MCP is not installed. MCP and CLI are consumers of core plugin behavior, not the owners of it.
 
 CLI command model:
 
-- plugin package installation should stay as normal npm global installation:
-  - `npm i -g @codegraphy/core`
-  - `npm i -g @codegraphy/plugin-python`
-- after a plain npm global install, CodeGraphy should be able to record the installed plugin package with an explicit register command
+- plain npm global install should also be supported:
+  - `npm i -g @codegraphy-dev/core`
+  - `npm i -g @codegraphy-dev/plugin-python`
 - `codegraphy plugins register <package>` resolves one named globally installed plugin package, validates its CodeGraphy plugin metadata, and writes it to the user-level Plugin Registry at `~/.codegraphy/plugins.json`
+- `codegraphy plugins link <package-root>` records a local package checkout directly in the Plugin Registry, which is the preferred local-development path for private plugins
 - all plugin packages use the same `plugins register` validation path; CodeGraphy plugin metadata is the boundary
 - `codegraphy plugins list` lists registered plugin packages and workspace-local enablement state
 - `codegraphy plugins enable <plugin> [path]` enables a registered plugin for the current or explicit CodeGraphy Workspace
@@ -384,10 +385,10 @@ This mirrors the useful VS Code split between user settings and workspace settin
 Primary plugin install path:
 
 ```bash
-npm i -g @codegraphy/core
-npm i -g @codegraphy/plugin-python
-codegraphy plugins register @codegraphy/plugin-python
-codegraphy plugins enable @codegraphy/plugin-python
+npm i -g @codegraphy-dev/core
+npm i -g @codegraphy-dev/plugin-python
+codegraphy plugins register @codegraphy-dev/plugin-python
+codegraphy plugins enable @codegraphy-dev/plugin-python
 ```
 
 Do not add a first-pass `codegraphy plugins install <package>` wrapper. Keeping npm install visible makes the package model honest and avoids making CodeGraphy responsible for package-manager behavior.
@@ -404,7 +405,7 @@ Add a `codegraphy` field to plugin `package.json` files. The npm package's norma
 
 ```json
 {
-  "name": "@codegraphy/plugin-python",
+  "name": "@codegraphy-dev/plugin-python",
   "version": "1.0.0",
   "type": "module",
   "exports": {
@@ -425,7 +426,7 @@ Add a `codegraphy` field to plugin `package.json` files. The npm package's norma
 The manifest should tell CodeGraphy:
 
 - this package is a CodeGraphy plugin
-- which `@codegraphy/plugin-api` version the plugin was built for
+- which `@codegraphy-dev/plugin-api` version the plugin was built for
 - what default plugin `options` the plugin starts with
 
 This enables proper plugin versioning, compatibility checks, default option materialization, and safer plugin registration. `plugins register` can validate metadata before importing any runtime code.
@@ -554,7 +555,7 @@ The plugin model should make it easy for analyzers to use the right relationship
 Recommended paths:
 
 1. Core Structured Analysis
-   - owned by `@codegraphy/core`
+   - owned by `@codegraphy-dev/core`
    - implemented as the core-owned built-in `codegraphy.treesitter` plugin
    - uses bundled Tree-sitter grammars and CodeGraphy-owned extractors
    - produces baseline relationships for broadly useful languages
@@ -585,7 +586,7 @@ Do not add an `analysisTier` field to the plugin manifest. The manifest should d
 
 Godot is the best current showcase:
 
-- current `@codegraphy/plugin-godot` behavior is mostly Plugin Text Analysis
+- current `@codegraphy-dev/plugin-godot` behavior is mostly Plugin Text Analysis
 - it line-scans GDScript for `preload`, `load`, `extends`, `class_name`, type usage, and static access
 - it line-scans Godot text resources such as `.tscn`, `.tres`, and `project.godot`
 - it maintains in-memory maps for class names, resource UIDs, and project roots
@@ -593,20 +594,20 @@ Godot is the best current showcase:
 
 Potential Godot upgrade paths:
 
-- `@codegraphy/plugin-godot` could become a Plugin Structured Analysis package by using a GDScript parser and a Godot resource parser
+- `@codegraphy-dev/plugin-godot` could become a Plugin Structured Analysis package by using a GDScript parser and a Godot resource parser
 - `@gdquest/lezer-gdscript` exists as a JavaScript GDScript parser option
 - `@fernforestgames/godot-resource-parser` exists as a JavaScript parser for Godot 4 `.tscn` and `.tres` files
 - Godot exposes a GDScript language server; using it would be a deeper semantic path, but it would likely require `externalProcesses` and possibly local `network` disclosures because the plugin would connect to or start Godot's language-server process
 
 Recommended Godot showcase plugin:
 
-- keep `@codegraphy/plugin-godot` as the first showcase for Plugin Structured Analysis
+- keep `@codegraphy-dev/plugin-godot` as the first showcase for Plugin Structured Analysis
 - first move most GDScript relationship sources to parser-backed Plugin Structured Analysis
 - keep Plugin Text Analysis fallbacks for anything the structured parser path cannot support yet
 - then move `.tscn`, `.tres`, and `project.godot` relationship sources to parser-backed resource extraction where practical
 - keep relationship outputs identical first, then add deeper Godot-specific relationships once the parser-backed path is stable
 - avoid Godot LSP in the first structured rewrite because it changes runtime requirements and forces external-process/local-network UX immediately
-- consider a later optional `@codegraphy/plugin-godot-lsp` or `@codegraphy/plugin-godot-semantic` package if compiler-accurate relationships become worth the extra dependency
+- consider a later optional `@codegraphy-dev/plugin-godot-lsp` or `@codegraphy-dev/plugin-godot-semantic` package if compiler-accurate relationships become worth the extra dependency
 
 How disclosures apply to these paths:
 
@@ -649,7 +650,7 @@ Current lifecycle order in practice:
 
 Lifecycle constraints from the core extraction:
 
-- analysis hooks must work in `@codegraphy/core` without VS Code, MCP, or a webview
+- analysis hooks must work in `@codegraphy-dev/core` without VS Code, MCP, or a webview
 - VS Code UI hooks must not be required for CLI or MCP indexing/querying
 - MCP should be able to call core directly without selecting or focusing a VS Code window
 - plugins may combine core structured results, plugin structured analysis, and plugin text analysis inside one package
@@ -665,13 +666,13 @@ Decision:
 - no; that still gives plugins a VS Code-aware surface they do not need
 - keep plugins headless
 - keep one npm plugin package and one plugin manifest
-- `@codegraphy/core` owns its own lifecycle and plugin runtime
-- `@codegraphy/extension` hooks into the core lifecycle while also participating in the VS Code extension lifecycle
+- `@codegraphy-dev/core` owns its own lifecycle and plugin runtime
+- `@codegraphy-dev/extension` hooks into the core lifecycle while also participating in the VS Code extension lifecycle
 - plugin packages communicate with core only
 - plugin packages do not communicate with VS Code and should not know whether the caller is the VS Code extension, CLI, or MCP
 - the VS Code extension communicates with both VS Code and core
 - MCP and CLI communicate with core only
-- define a core plugin lifecycle that always works in `@codegraphy/core`: settings, discovery metadata, `initialize`, `onPreAnalyze`, `analyzeFile`, `onFilesChanged`, `onPostAnalyze`, graph/source/type contributions, and unload
+- define a core plugin lifecycle that always works in `@codegraphy-dev/core`: settings, discovery metadata, `initialize`, `onPreAnalyze`, `analyzeFile`, `onFilesChanged`, `onPostAnalyze`, graph/source/type contributions, and unload
 - move VS Code-specific toolbar actions, context menu items, decorations, webview contributions, and webview readiness out of the core plugin API
 - preserve visualization customization as extension-owned behavior, not plugin-owned behavior, unless a future separate extension API is deliberately designed
 - make non-baseline plugin capabilities visible through disclosures, especially `workspaceWrites`, `outsideWorkspaceWrites`, `externalProcesses`, `network`, `secrets`, and `extraFileReads`
@@ -743,7 +744,7 @@ Graph Cache staleness decision:
 - Graph Cache should store or be paired with an analysis fingerprint
 - stale status should be based on the analysis inputs that affect graph output
 - fingerprint inputs should include:
-  - `@codegraphy/core` package version
+  - `@codegraphy-dev/core` package version
   - Graph Cache schema version
   - enabled plugin package names and versions
   - enabled plugin array order
@@ -812,7 +813,7 @@ Workspace status decision:
   - stale reason when available
   - enabled plugin count and names
   - enabled plugin compatibility problems when present
-  - `@codegraphy/core` version
+  - `@codegraphy-dev/core` version
   - Graph Cache schema version
   - last indexed time
   - file count and relationship count when cache exists
@@ -856,14 +857,14 @@ Default plugin enablement decision:
 Markdown bootstrap exception:
 
 - Markdown should still be its own npm plugin package
-- `@codegraphy/core` installation should include/install `@codegraphy/plugin-markdown`
+- `@codegraphy-dev/core` installation should include/install `@codegraphy-dev/plugin-markdown`
 - CodeGraphy should enable the Markdown plugin by default for new CodeGraphy Workspaces
 - this gives a new CodeGraphy user one useful plugin-backed relationship source immediately
 - other plugin packages remain disabled by default until explicitly enabled for a workspace
 - Markdown can still be enabled or disabled like any other plugin; it is just installed and enabled by default
 - if a workspace explicitly disables Markdown by removing it from the workspace `plugins` array, that workspace setting should win
 - Markdown's default enablement should be represented as a core-provided default workspace setting, not as implicit absence behavior
-- on first Indexing of a workspace with no settings file, core should materialize effective settings that enable `@codegraphy/plugin-markdown`
+- on first Indexing of a workspace with no settings file, core should materialize effective settings that enable `@codegraphy-dev/plugin-markdown`
 - absent entries still mean disabled for normal plugins
 - plugin order should be represented by the `plugins` array order, not by a numeric `order` field
 - avoid a top-level `disabledPlugins` model; disabled plugin state is represented by absence from the `plugins` array
@@ -874,7 +875,7 @@ Markdown bootstrap exception:
 {
   "plugins": [
     {
-      "package": "@codegraphy/plugin-markdown"
+      "package": "@codegraphy-dev/plugin-markdown"
     }
   ]
 }
@@ -921,10 +922,10 @@ Diagram:
               codegraphy.codegraphy VSIX
                          |
                          v
-       packages/extension imports @codegraphy/core
+       packages/extension imports @codegraphy-dev/core
                          |
                          v
-                 @codegraphy/core
+                 @codegraphy-dev/core
           /             |              \
          v              v               v
  File Discovery   Plugin Analysis   Graph Query
@@ -935,7 +936,7 @@ Diagram:
            <workspace>/.codegraphy/graph.lbug
                          ^
                          |
-              @codegraphy/mcp and CLI
+              @codegraphy-dev/mcp and CLI
 ```
 
 ## Naming Corrections Needed
@@ -944,11 +945,11 @@ Replace or narrow these phrases where they are inaccurate:
 
 - repo-local Graph Cache -> workspace-local Graph Cache
 - repo -> CodeGraphy Workspace, unless Git behavior is required
-- Core Extension owns Indexing -> `@codegraphy/core` owns Indexing
-- Core Extension owns Graph Query -> `@codegraphy/core` owns Graph Query
+- Core Extension owns Indexing -> `@codegraphy-dev/core` owns Indexing
+- Core Extension owns Graph Query -> `@codegraphy-dev/core` owns Graph Query
 - top-level `pluginOrder`, `disabledPlugins`, and `disabledPluginFilterPatterns` -> workspace-local `plugins` entries
-- `@codegraphy-vscode/mcp` -> `@codegraphy/mcp`
-- `@codegraphy-vscode/plugin-api` -> `@codegraphy/plugin-api`
+- `@codegraphy-vscode/mcp` -> `@codegraphy-dev/mcp`
+- `@codegraphy-vscode/plugin-api` -> `@codegraphy-dev/plugin-api`
 
 Keep these terms:
 
@@ -967,7 +968,7 @@ Keep these terms:
   - change Graph Cache definition from repo-local to workspace-local
   - replace Core Extension ownership language with core package ownership language
 - `docs/MCP.md`
-  - rewrite package roles around `@codegraphy/core` and `@codegraphy/mcp`
+  - rewrite package roles around `@codegraphy-dev/core` and `@codegraphy-dev/mcp`
   - remove VS Code focus/open requirement from normal query/indexing flow
   - make explicit indexing tools call core directly
   - rename repo-centric tool language where appropriate
@@ -975,7 +976,7 @@ Keep these terms:
 - `docs/PLUGINS.md`
   - describe language plugin npm packages
   - describe plugins as headless core analysis packages
-  - make clear plugins communicate with `@codegraphy/core`, not VS Code
+  - make clear plugins communicate with `@codegraphy-dev/core`, not VS Code
   - update first-party plugin publishing story
 - `docs/SETTINGS.md`
   - replace top-level plugin settings with the consolidated `plugins` section
@@ -994,69 +995,69 @@ Run the goal as a sequence of small PRs. Each step should leave the repo in a sh
 
 - 2026-05-14: Draft PR opened from `codex/core-package-extraction` with this runbook as the tracking artifact.
 - 2026-05-14: Step 1 package identity groundwork completed.
-  - Added public `@codegraphy/core` workspace package with build, lint, typecheck, test, package exports, README, and LICENSE.
-  - Renamed public package metadata from `@codegraphy-vscode/plugin-api` to `@codegraphy/plugin-api`.
-  - Renamed public package metadata from `@codegraphy-vscode/mcp` to `@codegraphy/mcp`.
-  - Repointed workspace package dependencies and imports to `@codegraphy/plugin-api`.
-  - Updated release target discovery so `core` resolves to the npm `@codegraphy/core` package and `extension` / `vsix` / `marketplace` resolves to the VSIX release.
-  - Validation: `node --test tests/release/releaseScript.test.mjs`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core build`, `pnpm run typecheck:plugins`, `pnpm --filter @codegraphy/mcp test`, and targeted extension import-analysis tests.
+  - Added public `@codegraphy-dev/core` workspace package with build, lint, typecheck, test, package exports, README, and LICENSE.
+  - Renamed public package metadata from `@codegraphy-vscode/plugin-api` to `@codegraphy-dev/plugin-api`.
+  - Renamed public package metadata from `@codegraphy-vscode/mcp` to `@codegraphy-dev/mcp`.
+  - Repointed workspace package dependencies and imports to `@codegraphy-dev/plugin-api`.
+  - Updated release target discovery so `core` resolves to the npm `@codegraphy-dev/core` package and `extension` / `vsix` / `marketplace` resolves to the VSIX release.
+  - Validation: `node --test tests/release/releaseScript.test.mjs`, `pnpm --filter @codegraphy-dev/core lint`, `pnpm --filter @codegraphy-dev/core test`, `pnpm --filter @codegraphy-dev/core build`, `pnpm run typecheck:plugins`, `pnpm --filter @codegraphy-dev/mcp test`, and targeted extension import-analysis tests.
 - 2026-05-14: Step 2 core Graph Cache and Graph Query API completed.
-  - Moved Graph Query execution into `@codegraphy/core` and removed the duplicate extension-local Graph Query implementation.
-  - Moved workspace Graph Cache path/status/storage contracts into `@codegraphy/core`.
+  - Moved Graph Query execution into `@codegraphy-dev/core` and removed the duplicate extension-local Graph Query implementation.
+  - Moved workspace Graph Cache path/status/storage contracts into `@codegraphy-dev/core`.
   - Moved LadybugDB Graph Cache unit coverage from the extension package to the core package.
-  - Kept the VS Code extension as an adapter over `@codegraphy/core` for Graph Query and Graph Cache storage.
-  - Validation: `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, targeted extension Graph Query/agent bridge/public API tests, and targeted extension pipeline cache/lifecycle tests.
-- 2026-05-14: Step 3 first slice completed: File Discovery moved into `@codegraphy/core`.
+  - Kept the VS Code extension as an adapter over `@codegraphy-dev/core` for Graph Query and Graph Cache storage.
+  - Validation: `pnpm --filter @codegraphy-dev/core test`, `pnpm --filter @codegraphy-dev/core lint`, `pnpm --filter @codegraphy-dev/core build`, `pnpm --filter @codegraphy-dev/extension typecheck`, targeted extension Graph Query/agent bridge/public API tests, and targeted extension pipeline cache/lifecycle tests.
+- 2026-05-14: Step 3 first slice completed: File Discovery moved into `@codegraphy-dev/core`.
   - Moved discovery contracts, path matching, gitignore loading, directory walking, and `FileDiscovery` into the core package.
   - Moved discovery unit coverage from the extension package to the core package.
-  - Repointed VS Code pipeline and workspace watcher imports to `@codegraphy/core`.
-  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/discovery`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, `pnpm --filter @codegraphy/extension lint`, targeted extension workspace-file and pipeline tests, and `pnpm run test:release`.
-- 2026-05-14: Step 3 second slice completed: cache-aware File Analysis moved into `@codegraphy/core`.
+  - Repointed VS Code pipeline and workspace watcher imports to `@codegraphy-dev/core`.
+  - Validation: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/discovery`, `pnpm --filter @codegraphy-dev/core test`, `pnpm --filter @codegraphy-dev/core lint`, `pnpm --filter @codegraphy-dev/core build`, `pnpm --filter @codegraphy-dev/extension typecheck`, `pnpm --filter @codegraphy-dev/extension lint`, targeted extension workspace-file and pipeline tests, and `pnpm run test:release`.
+- 2026-05-14: Step 3 second slice completed: cache-aware File Analysis moved into `@codegraphy-dev/core`.
   - Moved workspace analysis abort handling, per-file analysis orchestration, symbol enrichment, target symbol resolution, and relationship projection helpers into the core package.
   - Moved File Analysis unit coverage from the extension package to the core package.
-  - Kept the VS Code extension import surface as adapter exports over `@codegraphy/core` so the remaining extension pipeline can migrate incrementally.
-  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/analysis`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension pipeline tests.
-- 2026-05-14: Step 3 third slice completed: Graph Projection moved into `@codegraphy/core`.
+  - Kept the VS Code extension import surface as adapter exports over `@codegraphy-dev/core` so the remaining extension pipeline can migrate incrementally.
+  - Validation: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/analysis`, `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core build`, `pnpm --filter @codegraphy-dev/extension typecheck`, and targeted extension pipeline tests.
+- 2026-05-14: Step 3 third slice completed: Graph Projection moved into `@codegraphy-dev/core`.
   - Moved file/package/folder/symbol graph node and edge builders into the core package.
   - Moved graph projection unit coverage from the extension package to the core package.
   - Added core graph color and edge identity helpers so Relationship Graph construction no longer depends on extension shared modules.
-  - Kept the VS Code extension graph import surface as adapter exports over `@codegraphy/core`.
-  - Validation: `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/graph`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension pipeline adapter/service tests.
-- 2026-05-14: Step 3 fourth slice completed: workspace analysis orchestration moved into `@codegraphy/core`.
+  - Kept the VS Code extension graph import surface as adapter exports over `@codegraphy-dev/core`.
+  - Validation: `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/graph`, `pnpm --filter @codegraphy-dev/core build`, `pnpm --filter @codegraphy-dev/extension typecheck`, and targeted extension pipeline adapter/service tests.
+- 2026-05-14: Step 3 fourth slice completed: workspace analysis orchestration moved into `@codegraphy-dev/core`.
   - Moved discovery filter merging, workspace analysis orchestration, plugin pre-analysis, file-analysis delegation, rebuild state, and analysis cache helpers into the core package.
   - Moved orchestration unit coverage from the extension package to the core package.
   - Kept VS Code-specific warning UI, workspace root lookup, and persistence wiring in extension adapters.
-  - Validation: `pnpm --filter @codegraphy/core typecheck`, targeted core workspace analysis tests, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, and targeted extension analysis/service tests.
-- 2026-05-14: Step 3 fifth slice completed: Tree-sitter Analysis moved into `@codegraphy/core`.
+  - Validation: `pnpm --filter @codegraphy-dev/core typecheck`, targeted core workspace analysis tests, `pnpm --filter @codegraphy-dev/core build`, `pnpm --filter @codegraphy-dev/extension typecheck`, and targeted extension analysis/service tests.
+- 2026-05-14: Step 3 fifth slice completed: Tree-sitter Analysis moved into `@codegraphy-dev/core`.
   - Moved the Tree-sitter plugin wrapper, parser runtime, language catalog, C# pre-analysis index, path host, and per-language analyzers into the core package.
   - Moved Tree-sitter runtime unit coverage from the extension package to the core package.
-  - Added Tree-sitter parser packages to `@codegraphy/core` dependencies while keeping VSIX vendoring in the extension build scripts.
-  - Kept the VS Code extension Tree-sitter plugin and Git history path-host imports as adapter exports over `@codegraphy/core`.
-  - Validation: `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/treeSitter`, `pnpm --filter @codegraphy/core build`, and `pnpm --filter @codegraphy/extension typecheck`.
-- 2026-05-14: Step 3 sixth slice completed: headless plugin runtime and explicit workspace Indexing added to `@codegraphy/core`.
+  - Added Tree-sitter parser packages to `@codegraphy-dev/core` dependencies while keeping VSIX vendoring in the extension build scripts.
+  - Kept the VS Code extension Tree-sitter plugin and Git history path-host imports as adapter exports over `@codegraphy-dev/core`.
+  - Validation: `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/treeSitter`, `pnpm --filter @codegraphy-dev/core build`, and `pnpm --filter @codegraphy-dev/extension typecheck`.
+- 2026-05-14: Step 3 sixth slice completed: headless plugin runtime and explicit workspace Indexing added to `@codegraphy-dev/core`.
   - Moved plugin routing, workspace analysis context, pre-analysis lifecycle hooks, file-change hooks, and file-analysis result merging into the core package.
   - Added a core-owned `CorePluginRegistry` for headless analysis plugins without VS Code/webview dependencies.
   - Added `indexCodeGraphyWorkspace(...)` so core can index exactly the requested CodeGraphy Workspace path and write `<workspace-root>/.codegraphy/graph.lbug`.
-  - Kept the VS Code extension import surface as adapter exports over `@codegraphy/core` for the moved headless plugin modules.
-  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, and `pnpm --filter @codegraphy/extension typecheck`.
+  - Kept the VS Code extension import surface as adapter exports over `@codegraphy-dev/core` for the moved headless plugin modules.
+  - Validation: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core lint`, `pnpm --filter @codegraphy-dev/core build`, and `pnpm --filter @codegraphy-dev/extension typecheck`.
 - 2026-05-14: Step 4 first slice completed: core Workspace Settings and freshness status added.
   - Added core-owned Workspace Settings read/write/normalization for `<workspace-root>/.codegraphy/settings.json`, including ordered `plugins` entries with `package`, `disabledFilterPatterns`, and `options`.
   - Added workspace metadata, plugin/settings fingerprints, analysis-version fingerprints, and `readCodeGraphyWorkspaceStatus(...)` for fresh/stale/missing Graph Cache state.
   - Updated `indexCodeGraphyWorkspace(...)` to materialize Workspace Settings, use them for Indexing, and persist matching metadata after writing the Graph Cache.
-  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/workspace/settings.test.ts tests/workspace/status.test.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, and `pnpm --filter @codegraphy/core build`.
+  - Validation: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/workspace/settings.test.ts tests/workspace/status.test.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core lint`, and `pnpm --filter @codegraphy-dev/core build`.
 - 2026-05-14: Step 5 first slice completed: Plugin Registry metadata cache and CLI plugin commands added.
   - Added core-owned parsing for `package.json#codegraphy` plugin metadata, including Plugin API compatibility, default options, and capability disclosures without importing runtime code.
   - Added user-level Plugin Registry helpers for `~/.codegraphy/plugins.json` plus the user settings path at `~/.codegraphy/settings.json`.
   - Added metadata-only Plugin Registry operations for `plugins register <package>` over explicitly named global packages with CodeGraphy plugin metadata.
   - Added workspace-local plugin enable/disable helpers that mutate only `<workspace-root>/.codegraphy/settings.json` and preserve plugin order as array order.
-  - Added CLI commands for `codegraphy plugins register`, `list`, `enable`, and `disable`; enable fails from the Plugin Registry instead of scanning global npm roots.
-  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/plugins/packageManifest.test.ts tests/plugins/installedCache.test.ts tests/workspace/settings.test.ts`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/mcp exec vitest run --config vitest.config.ts tests/run/parse.test.ts tests/plugins/command.test.ts`, `pnpm --filter @codegraphy/mcp test`, `pnpm --filter @codegraphy/mcp typecheck`, `pnpm --filter @codegraphy/mcp lint`, `pnpm --filter @codegraphy/mcp build`, `pnpm --filter @codegraphy/extension typecheck`, `pnpm run test:release`, and `git diff --check`.
+  - Added CLI commands for `codegraphy plugins register`, `link`, `list`, `enable`, and `disable`; enable fails from the Plugin Registry instead of scanning global npm roots.
+  - Validation: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/plugins/packageManifest.test.ts tests/plugins/installedCache.test.ts tests/workspace/settings.test.ts`, `pnpm --filter @codegraphy-dev/core test`, `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core lint`, `pnpm --filter @codegraphy-dev/core build`, `pnpm --filter @codegraphy-dev/mcp exec vitest run --config vitest.config.ts tests/run/parse.test.ts tests/plugins/command.test.ts`, `pnpm --filter @codegraphy-dev/mcp test`, `pnpm --filter @codegraphy-dev/mcp typecheck`, `pnpm --filter @codegraphy-dev/mcp lint`, `pnpm --filter @codegraphy-dev/mcp build`, `pnpm --filter @codegraphy-dev/extension typecheck`, `pnpm run test:release`, and `git diff --check`.
 - 2026-05-14: Step 6 completed: Markdown bootstrap added as an explicit plugin package and default workspace setting.
-  - Made `@codegraphy/plugin-markdown` a public npm workspace package with package exports, build output, publish metadata, and `package.json#codegraphy` metadata.
-  - Added `@codegraphy/plugin-markdown` as a dependency of `@codegraphy/core` so core installs Markdown transitively.
-  - Added first-workspace settings materialization so the first Indexing of a workspace with no settings file writes `plugins: [{ package: "@codegraphy/plugin-markdown" }]`.
+  - Made `@codegraphy-dev/plugin-markdown` a public npm workspace package with package exports, build output, publish metadata, and `package.json#codegraphy` metadata.
+  - Added `@codegraphy-dev/plugin-markdown` as a dependency of `@codegraphy-dev/core` so core installs Markdown transitively.
+  - Added first-workspace settings materialization so the first Indexing of a workspace with no settings file writes `plugins: [{ package: "@codegraphy-dev/plugin-markdown" }]`.
   - Registered the Markdown plugin from core only when the workspace settings include the Markdown package, so removing the entry disables Markdown for that workspace.
-  - Validation: `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/workspace/settings.test.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy/core test`, `pnpm --filter @codegraphy/plugin-markdown build`, `pnpm --filter @codegraphy/plugin-markdown typecheck`, `pnpm --filter @codegraphy/plugin-markdown lint`, `pnpm --filter @codegraphy/plugin-markdown test`, `pnpm --filter @codegraphy/core typecheck`, `pnpm --filter @codegraphy/core lint`, `pnpm --filter @codegraphy/core build`, `pnpm --filter @codegraphy/extension typecheck`, `pnpm run test:release`, and `git diff --check`.
+  - Validation: `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/workspace/settings.test.ts tests/indexing/workspace.test.ts`, `pnpm --filter @codegraphy-dev/core test`, `pnpm --filter @codegraphy-dev/plugin-markdown build`, `pnpm --filter @codegraphy-dev/plugin-markdown typecheck`, `pnpm --filter @codegraphy-dev/plugin-markdown lint`, `pnpm --filter @codegraphy-dev/plugin-markdown test`, `pnpm --filter @codegraphy-dev/core typecheck`, `pnpm --filter @codegraphy-dev/core lint`, `pnpm --filter @codegraphy-dev/core build`, `pnpm --filter @codegraphy-dev/extension typecheck`, `pnpm run test:release`, and `git diff --check`.
 
 ### Step 1: Package Identity Groundwork
 
@@ -1067,10 +1068,10 @@ Goal:
 Changes:
 
 - add `packages/core`
-- name it `@codegraphy/core`
-- rename MCP package metadata to `@codegraphy/mcp`
-- rename Plugin API package metadata to `@codegraphy/plugin-api`
-- keep `@codegraphy/extension` private as the workspace package for the VS Code extension
+- name it `@codegraphy-dev/core`
+- rename MCP package metadata to `@codegraphy-dev/mcp`
+- rename Plugin API package metadata to `@codegraphy-dev/plugin-api`
+- keep `@codegraphy-dev/extension` private as the workspace package for the VS Code extension
 - keep the Marketplace extension id as `codegraphy.codegraphy`
 - establish package exports, build scripts, typecheck scripts, and release discovery
 
@@ -1084,7 +1085,7 @@ Done when:
 
 Goal:
 
-- make `@codegraphy/core` the owner of Graph Cache read/write contracts and Graph Query execution
+- make `@codegraphy-dev/core` the owner of Graph Cache read/write contracts and Graph Query execution
 
 Changes:
 
@@ -1103,7 +1104,7 @@ Done when:
 
 Goal:
 
-- make `@codegraphy/core` own the full Indexing pipeline
+- make `@codegraphy-dev/core` own the full Indexing pipeline
 
 Changes:
 
@@ -1117,7 +1118,7 @@ Changes:
 
 Done when:
 
-- `@codegraphy/core` can index a plain folder without VS Code
+- `@codegraphy-dev/core` can index a plain folder without VS Code
 - Graph Cache is written to `<workspace-root>/.codegraphy/graph.lbug`
 - existing VS Code graph behavior still works through the extension adapter
 
@@ -1176,15 +1177,15 @@ Goal:
 
 Changes:
 
-- publish/package Markdown as `@codegraphy/plugin-markdown`
-- make `@codegraphy/core` install/include Markdown by default
+- publish/package Markdown as `@codegraphy-dev/plugin-markdown`
+- make `@codegraphy-dev/core` install/include Markdown by default
 - materialize first workspace settings with Markdown enabled:
 
 ```json
 {
   "plugins": [
     {
-      "package": "@codegraphy/plugin-markdown"
+      "package": "@codegraphy-dev/plugin-markdown"
     }
   ]
 }
@@ -1224,8 +1225,8 @@ Done when:
 
 Implementation progress:
 
-- Added core-backed path resolution, status, indexing, and Graph Query helpers under `@codegraphy/mcp`.
-- Changed `codegraphy index [workspace]` to index the current folder or explicit CodeGraphy Workspace path through `@codegraphy/core`.
+- Added core-backed path resolution, status, indexing, and Graph Query helpers under `@codegraphy-dev/mcp`.
+- Changed `codegraphy index [workspace]` to index the current folder or explicit CodeGraphy Workspace path through `@codegraphy-dev/core`.
 - Added `codegraphy status [workspace]` with JSON workspace status, stale reasons, and enabled plugin package names.
 - Replaced normal MCP open/index-repo tools with path-first `codegraphy_status`, `codegraphy_index`, and query tools that accept optional `path`.
 - Confirmed MCP query tools can report a missing Graph Cache without opening or focusing VS Code.
@@ -1233,18 +1234,18 @@ Implementation progress:
 
 Validation:
 
-- `pnpm --filter @codegraphy/mcp exec vitest run --config vitest.config.ts tests/run/parse.test.ts tests/index/command.test.ts tests/status/command.test.ts tests/mcp/server.test.ts`
-- `pnpm --filter @codegraphy/mcp exec vitest run --config vitest.config.ts tests/workspace/coreBacked.test.ts`
-- `pnpm --filter @codegraphy/mcp test`
-- `pnpm --filter @codegraphy/mcp typecheck`
-- `pnpm --filter @codegraphy/mcp lint`
-- `pnpm --filter @codegraphy/mcp build`
-- `pnpm --filter @codegraphy/plugin-markdown build`
-- `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/workspace/status.test.ts tests/indexing/workspace.test.ts`
-- `pnpm --filter @codegraphy/core typecheck`
-- `pnpm --filter @codegraphy/core lint`
-- `pnpm --filter @codegraphy/core build`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/mcp exec vitest run --config vitest.config.ts tests/run/parse.test.ts tests/index/command.test.ts tests/status/command.test.ts tests/mcp/server.test.ts`
+- `pnpm --filter @codegraphy-dev/mcp exec vitest run --config vitest.config.ts tests/workspace/coreBacked.test.ts`
+- `pnpm --filter @codegraphy-dev/mcp test`
+- `pnpm --filter @codegraphy-dev/mcp typecheck`
+- `pnpm --filter @codegraphy-dev/mcp lint`
+- `pnpm --filter @codegraphy-dev/mcp build`
+- `pnpm --filter @codegraphy-dev/plugin-markdown build`
+- `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/workspace/status.test.ts tests/indexing/workspace.test.ts`
+- `pnpm --filter @codegraphy-dev/core typecheck`
+- `pnpm --filter @codegraphy-dev/core lint`
+- `pnpm --filter @codegraphy-dev/core build`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 - `pnpm run test:release`
 - `git diff --check`
 
@@ -1256,7 +1257,7 @@ Goal:
 
 Changes:
 
-- make the extension import/use `@codegraphy/core`
+- make the extension import/use `@codegraphy-dev/core`
 - keep VS Code lifecycle, commands, webviews, context menus, and editor integration inside the extension
 - remove plugin-to-VS-Code communication from the plugin API
 - render plugin toggles/options from core workspace state
@@ -1271,8 +1272,8 @@ Done when:
 
 Implementation progress:
 
-- Kept `@codegraphy/core` as an npm dependency of `@codegraphy/extension`, not a VS Code `extensionDependencies` entry.
-- Split the extension build external list into an explicit package contract so `@codegraphy/core` and the Markdown plugin bundle into `dist/extension.js`, while native/runtime packages remain external and vendored into `dist/node_modules`.
+- Kept `@codegraphy-dev/core` as an npm dependency of `@codegraphy-dev/extension`, not a VS Code `extensionDependencies` entry.
+- Split the extension build external list into an explicit package contract so `@codegraphy-dev/core` and the Markdown plugin bundle into `dist/extension.js`, while native/runtime packages remain external and vendored into `dist/node_modules`.
 - Routed the VS Code extension's index-status adapter through `readCodeGraphyWorkspaceStatus(...)` so the extension and MCP report fresh/stale/missing Graph Cache state from the same core status model.
 - Persisted extension indexing metadata through core workspace metadata persistence so analysis-version and pending-change state stay compatible with MCP/CLI status.
 - Preserved VS Code lifecycle, webview, editor commands, graph rendering, and stale-dot presentation in the extension adapter.
@@ -1280,15 +1281,15 @@ Implementation progress:
 
 Validation:
 
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/build/runtimePackages.test.ts`
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/service/cache/index.test.ts tests/extension/pipeline/lifecycle.test.ts tests/extension/pipeline/service/base/internal.test.ts tests/extension/build/runtimePackages.test.ts`
-- `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/workspace/status.test.ts`
-- `pnpm --filter @codegraphy/core build`
-- `pnpm --filter @codegraphy/core typecheck`
-- `pnpm --filter @codegraphy/extension typecheck`
-- `pnpm --filter @codegraphy/core lint`
-- `pnpm --filter @codegraphy/extension lint`
-- `pnpm --filter @codegraphy/extension build:extension`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/build/runtimePackages.test.ts`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pipeline/service/cache/index.test.ts tests/extension/pipeline/lifecycle.test.ts tests/extension/pipeline/service/base/internal.test.ts tests/extension/build/runtimePackages.test.ts`
+- `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/workspace/status.test.ts`
+- `pnpm --filter @codegraphy-dev/core build`
+- `pnpm --filter @codegraphy-dev/core typecheck`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
+- `pnpm --filter @codegraphy-dev/core lint`
+- `pnpm --filter @codegraphy-dev/extension lint`
+- `pnpm --filter @codegraphy-dev/extension build:extension`
 - `pnpm run test:release`
 - `pnpm run package:vsix`
 - `git diff --check`
@@ -1301,7 +1302,7 @@ Goal:
 
 Changes:
 
-- package TypeScript, Python, C#, and Godot under `@codegraphy/plugin-*`
+- package TypeScript, Python, C#, and Godot under `@codegraphy-dev/plugin-*`
 - keep Markdown on the bootstrap plugin path from Step 6
 - remove first-party language plugins from the normal VSIX release path
 - add `codegraphy` package metadata with `type`, `apiVersion`, optional disclosures, and inline `defaultOptions`
@@ -1316,7 +1317,7 @@ Done when:
 
 Implementation progress:
 
-- Renamed the TypeScript, Python, C#, and Godot package manifests to `@codegraphy/plugin-typescript`, `@codegraphy/plugin-python`, `@codegraphy/plugin-csharp`, and `@codegraphy/plugin-godot`.
+- Renamed the TypeScript, Python, C#, and Godot package manifests to `@codegraphy-dev/plugin-typescript`, `@codegraphy-dev/plugin-python`, `@codegraphy-dev/plugin-csharp`, and `@codegraphy-dev/plugin-godot`.
 - Converted those language plugins from VS Code companion extensions to headless npm plugin packages with `type: "module"`, `dist/plugin.js` exports, declaration output, public publish metadata, and `package.json#codegraphy` metadata.
 - Removed the language-plugin VS Code activation entrypoints, VSCE publish/package scripts, and `extensionDependencies`.
 - Kept plugin runtime behavior in the existing `src/plugin.ts` entrypoints and preserved plugin unit coverage, including Godot relationship/symbol analysis tests.
@@ -1325,23 +1326,23 @@ Implementation progress:
 
 Validation:
 
-- `pnpm --filter @codegraphy/plugin-typescript test`
-- `pnpm --filter @codegraphy/plugin-python test`
-- `pnpm --filter @codegraphy/plugin-csharp test`
-- `pnpm --filter @codegraphy/plugin-godot test`
+- `pnpm --filter @codegraphy-dev/plugin-typescript test`
+- `pnpm --filter @codegraphy-dev/plugin-python test`
+- `pnpm --filter @codegraphy-dev/plugin-csharp test`
+- `pnpm --filter @codegraphy-dev/plugin-godot test`
 - `pnpm run typecheck:plugins`
-- `pnpm --filter @codegraphy/plugin-typescript lint`
-- `pnpm --filter @codegraphy/plugin-python lint`
-- `pnpm --filter @codegraphy/plugin-csharp lint`
-- `pnpm --filter @codegraphy/plugin-godot lint`
-- `pnpm --filter @codegraphy/plugin-typescript build`
-- `pnpm --filter @codegraphy/plugin-python build`
-- `pnpm --filter @codegraphy/plugin-csharp build`
-- `pnpm --filter @codegraphy/plugin-godot build`
-- `pnpm --filter @codegraphy/core exec vitest run --config vitest.config.ts tests/plugins/packageManifest.test.ts tests/plugins/installedCache.test.ts tests/workspace/settings.test.ts`
-- `pnpm --filter @codegraphy/mcp exec vitest run --config vitest.config.ts tests/plugins/command.test.ts tests/run/parse.test.ts`
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/pluginIntegration/installed/activation.test.ts tests/extension/pluginIntegration/installed/statuses.test.ts tests/extension/pluginActivation/installed.test.ts`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/plugin-typescript lint`
+- `pnpm --filter @codegraphy-dev/plugin-python lint`
+- `pnpm --filter @codegraphy-dev/plugin-csharp lint`
+- `pnpm --filter @codegraphy-dev/plugin-godot lint`
+- `pnpm --filter @codegraphy-dev/plugin-typescript build`
+- `pnpm --filter @codegraphy-dev/plugin-python build`
+- `pnpm --filter @codegraphy-dev/plugin-csharp build`
+- `pnpm --filter @codegraphy-dev/plugin-godot build`
+- `pnpm --filter @codegraphy-dev/core exec vitest run --config vitest.config.ts tests/plugins/packageManifest.test.ts tests/plugins/installedCache.test.ts tests/workspace/settings.test.ts`
+- `pnpm --filter @codegraphy-dev/mcp exec vitest run --config vitest.config.ts tests/plugins/command.test.ts tests/run/parse.test.ts`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/pluginIntegration/installed/activation.test.ts tests/extension/pluginIntegration/installed/statuses.test.ts tests/extension/pluginActivation/installed.test.ts`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 - `pnpm run test:release`
 - `pnpm run release:package plugin-typescript`
 - `pnpm run release:package plugin-python`
@@ -1357,7 +1358,7 @@ Goal:
 
 Changes:
 
-- keep `@codegraphy/plugin-godot` as one package
+- keep `@codegraphy-dev/plugin-godot` as one package
 - replace most GDScript line scanning with parser-backed extraction
 - keep Plugin Text Analysis fallbacks where parser support is incomplete
 - move `.tscn`, `.tres`, and `project.godot` parsing toward structured resource parsing where practical
@@ -1384,10 +1385,10 @@ Implementation progress:
 
 Validation:
 
-- `pnpm --filter @codegraphy/plugin-godot test`
-- `pnpm --filter @codegraphy/plugin-godot typecheck`
-- `pnpm --filter @codegraphy/plugin-godot lint`
-- `pnpm --filter @codegraphy/plugin-godot build`
+- `pnpm --filter @codegraphy-dev/plugin-godot test`
+- `pnpm --filter @codegraphy-dev/plugin-godot typecheck`
+- `pnpm --filter @codegraphy-dev/plugin-godot lint`
+- `pnpm --filter @codegraphy-dev/plugin-godot build`
 - `pnpm run boundaries -- plugin-godot --strict`
 - `pnpm run crap -- plugin-godot`
 - `pnpm run mutate -- --mutate packages/plugin-godot/src/gdscript/className.ts`
@@ -1404,8 +1405,8 @@ Validation:
 - `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin/metadata.ts`
 - `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin/symbol/className.ts`
 - `pnpm run mutate -- --mutate packages/plugin-godot/src/plugin/symbol/extract.ts`
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/packageIcons.test.ts tests/integration/pluginActivationEvents.test.ts tests/extension/pipeline/adapters.test.ts tests/extension/pipeline/analysis/delegates.test.ts`
-- `pnpm --filter @codegraphy/extension typecheck`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/extension/packageIcons.test.ts tests/integration/pluginActivationEvents.test.ts tests/extension/pipeline/adapters.test.ts tests/extension/pipeline/analysis/delegates.test.ts`
+- `pnpm --filter @codegraphy-dev/extension typecheck`
 - `pnpm --dir ../quality-tools --filter @poleski/quality-tools exec vitest run tests/crap/coverage/profileFactories.test.ts tests/crap/coverage/profiles.test.ts tests/crap/command.test.ts`
 - `pnpm --dir ../quality-tools --filter @poleski/quality-tools typecheck`
 - `pnpm run lint`
@@ -1435,8 +1436,8 @@ Done when:
 
 Implementation progress:
 
-- Updated `CONTEXT.md`, `README.md`, `docs/MCP.md`, `docs/PLUGINS.md`, `docs/SETTINGS.md`, `docs/RELEASING.md`, `docs/INTERACTIONS.md`, and `docs/TIMELINE.md` to use CodeGraphy Workspace, workspace-local Graph Cache, `@codegraphy/core`, and path-first MCP/CLI language.
-- Added a package-name migration note for `@codegraphy-vscode/plugin-api` -> `@codegraphy/plugin-api` and `@codegraphy-vscode/mcp` -> `@codegraphy/mcp`.
+- Updated `CONTEXT.md`, `README.md`, `docs/MCP.md`, `docs/PLUGINS.md`, `docs/SETTINGS.md`, `docs/RELEASING.md`, `docs/INTERACTIONS.md`, and `docs/TIMELINE.md` to use CodeGraphy Workspace, workspace-local Graph Cache, `@codegraphy-dev/core`, and path-first MCP/CLI language.
+- Added a package-name migration note for `@codegraphy-vscode/plugin-api` -> `@codegraphy-dev/plugin-api` and `@codegraphy-vscode/mcp` -> `@codegraphy-dev/mcp`.
 - Documented recommended `.gitignore` entries for generated Graph Cache output while leaving workspace settings commit-friendly.
 - Updated VS Code toolbar and index-status copy from repo-centric labels to workspace-centric labels.
 - Confirmed changesets cover the public package split, Markdown bootstrap, path-first MCP, extension/core packaging, first-party plugin npm packages, and Godot structured parsing.
@@ -1445,11 +1446,11 @@ Validation:
 
 - `rg "core extension|Core Extension|Plugin Extension|repo-local|repo-locally|@codegraphy-vscode|extensionDependencies|pluginOrder|disabledPlugins|disabledPluginFilterPatterns|Index Repo|Re-index Repo|Reindex Repo|Indexing Repo|Index the repo|Reindex the repo|repository into" README.md CONTEXT.md docs/MCP.md docs/PLUGINS.md docs/SETTINGS.md docs/RELEASING.md docs/INTERACTIONS.md docs/TIMELINE.md packages/*/README.md -n`
 - `rg "Index Repo|Re-index Repo|Reindex Repo|Indexing Repo|Index the repo|Reindex the repo|repo now has a commit" packages/extension/src packages/extension/tests -n`
-- `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/toolbar/actions/refresh.test.ts tests/webview/toolbar/actions/indexAction.test.tsx tests/webview/toolbar/actions/view.test.tsx tests/webview/Toolbar.test.tsx tests/webview/graphIndexStatus/view.test.tsx tests/extension/graphView/analysis/execution/progress.test.ts tests/extension/graphView/analysis/execution/publish.test.ts tests/extension/repoSettings/freshness/details.test.ts tests/extension/repoSettings/freshness/index.test.ts tests/extension/pipeline/service/discoveryFacade.test.ts`
+- `pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/toolbar/actions/refresh.test.ts tests/webview/toolbar/actions/indexAction.test.tsx tests/webview/toolbar/actions/view.test.tsx tests/webview/Toolbar.test.tsx tests/webview/graphIndexStatus/view.test.tsx tests/extension/graphView/analysis/execution/progress.test.ts tests/extension/graphView/analysis/execution/publish.test.ts tests/extension/repoSettings/freshness/details.test.ts tests/extension/repoSettings/freshness/index.test.ts tests/extension/pipeline/service/discoveryFacade.test.ts`
 
 ## Validation Ideas
 
-- Index a folder that is not a Git repo through `@codegraphy/core`.
+- Index a folder that is not a Git repo through `@codegraphy-dev/core`.
 - Index the same CodeGraphy Workspace through VS Code and through MCP, then confirm both produce/read the same Graph Cache path.
 - Run `codegraphy index` from a plain folder and confirm it indexes `process.cwd()`.
 - Run `codegraphy index /tmp/example-folder` and confirm it indexes the explicit path.

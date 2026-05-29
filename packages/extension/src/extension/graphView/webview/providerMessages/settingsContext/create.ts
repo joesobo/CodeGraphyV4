@@ -17,6 +17,11 @@ type GraphViewProviderSettingsContext = Pick<
   | 'updateConfig'
   | 'getInstalledPluginDefaultOptions'
   | 'reloadWorkspacePlugins'
+  | 'sendPluginStatuses'
+  | 'sendContextMenuItems'
+  | 'sendPluginToolbarActions'
+  | 'sendGraphViewContributionStatuses'
+  | 'sendPluginWebviewInjections'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
   | 'reprocessPluginFiles'
@@ -54,17 +59,40 @@ export function createGraphViewProviderMessageSettingsContext(
     updateConfig: async (key, value) => persistConfig(key, value),
     getInstalledPluginDefaultOptions: (packageName: string) =>
       readInstalledPluginDefaultOptions(packageName),
-    reloadWorkspacePlugins: async () => {
+    reloadWorkspacePlugins: () => {
       const analyzer = source._analyzer;
       if (!analyzer?.reloadWorkspacePlugins) {
-        return;
+        return Promise.resolve();
       }
 
       source._analyzerInitialized = false;
-      source._analyzerInitPromise = undefined;
-      await analyzer.reloadWorkspacePlugins();
-      source._analyzerInitialized = true;
-      source._analyzerInitPromise = undefined;
+      const reloadPromise = Promise.resolve()
+        .then(() => analyzer.reloadWorkspacePlugins!())
+        .then(() => {
+          source._analyzerInitialized = true;
+        })
+        .finally(() => {
+          if (source._analyzerInitPromise === reloadPromise) {
+            source._analyzerInitPromise = undefined;
+          }
+        });
+      source._analyzerInitPromise = reloadPromise;
+      return reloadPromise;
+    },
+    sendPluginStatuses: () => {
+      source._sendPluginStatuses();
+    },
+    sendContextMenuItems: () => {
+      source._sendContextMenuItems();
+    },
+    sendPluginToolbarActions: () => {
+      source._sendPluginToolbarActions?.();
+    },
+    sendGraphViewContributionStatuses: () => {
+      source._sendGraphViewContributionStatuses?.();
+    },
+    sendPluginWebviewInjections: () => {
+      source._sendPluginWebviewInjections();
     },
     sendGraphControls: () => {
       source._sendGraphControls?.();

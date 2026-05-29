@@ -7,6 +7,7 @@ import {
   CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
+  linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   readCodeGraphyWorkspaceSettings,
   registerCodeGraphyInstalledPlugin,
@@ -60,7 +61,51 @@ describe('CodeGraphy Plugin Registry', () => {
     expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
   });
 
-  it('enables a registered plugin for one workspace without installing or importing it', async () => {
+  it('links a private local plugin package root into the user-level cache', async () => {
+    const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-user-home-'));
+    const packageRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-private-package-'));
+    await fs.writeFile(
+      path.join(packageRoot, 'package.json'),
+      `${JSON.stringify({
+        name: '@acme/codegraphy-private-plugin',
+        version: '0.1.0',
+        codegraphy: {
+          type: 'plugin',
+          apiVersion: '^2.0.0',
+          disclosures: ['workspaceWrites'],
+        },
+      }, null, 2)}\n`,
+      'utf-8',
+    );
+    await fs.writeFile(
+      path.join(packageRoot, 'codegraphy.json'),
+      `${JSON.stringify({
+        id: 'acme.private',
+        name: 'Acme Private',
+        supportedExtensions: ['.acme'],
+      }, null, 2)}\n`,
+      'utf-8',
+    );
+
+    const record = await linkCodeGraphyInstalledPluginPackage({
+      homeDir,
+      packageRoot,
+    });
+
+    expect(record).toEqual({
+      package: '@acme/codegraphy-private-plugin',
+      version: '0.1.0',
+      apiVersion: '^2.0.0',
+      pluginId: 'acme.private',
+      pluginName: 'Acme Private',
+      supportedExtensions: ['.acme'],
+      disclosures: ['workspaceWrites'],
+      packageRoot,
+    });
+    expect(readCodeGraphyInstalledPluginCache({ homeDir }).plugins).toEqual([record]);
+  });
+
+  it('enables a cached plugin for one workspace without installing or importing it', async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-workspace-plugin-'));
 
     enableCodeGraphyWorkspacePlugin(workspaceRoot, {

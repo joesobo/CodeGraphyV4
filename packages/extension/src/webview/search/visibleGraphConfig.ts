@@ -7,8 +7,6 @@ import type {
   VisibleGraphScopeConfig,
   VisibleGraphSearchConfig,
 } from '../../shared/visibleGraph';
-import type { GraphLayoutSettings } from '../../shared/settings/graphLayout';
-import { getCollapsedGraphNodeIds } from '../../shared/settings/graphLayout';
 
 const LEGACY_NESTS_EDGE_TYPE = 'codegraphy:nests';
 const SHARED_NESTS_EDGE_TYPE = 'nests';
@@ -72,22 +70,14 @@ export function buildVisibleGraphSearchConfig(
     : undefined;
 }
 
-export function buildVisibleGraphCollapseConfig(
-  graphLayout?: GraphLayoutSettings,
-): VisibleGraphCollapseConfig | undefined {
-  if (!graphLayout) {
-    return undefined;
-  }
-
-  const collapsedNodeIds = getCollapsedGraphNodeIds(graphLayout);
-  return { collapsedNodeIds };
+export function buildVisibleGraphCollapseConfig(): VisibleGraphCollapseConfig | undefined {
+  return undefined;
 }
 
 export function buildVisibleGraphConfig({
   edgeTypes,
   edgeVisibility,
   filterPatterns,
-  graphLayout,
   nodeVisibility,
   searchOptions,
   searchQuery,
@@ -96,7 +86,6 @@ export function buildVisibleGraphConfig({
   edgeTypes?: IGraphEdgeTypeDefinition[];
   edgeVisibility?: Record<string, boolean>;
   filterPatterns?: readonly string[];
-  graphLayout?: GraphLayoutSettings;
   nodeVisibility?: Record<string, boolean>;
   searchOptions: SearchOptions;
   searchQuery: string;
@@ -106,7 +95,7 @@ export function buildVisibleGraphConfig({
     scope: buildVisibleGraphScopeConfig(nodeVisibility, edgeVisibility, edgeTypes),
     filter: buildVisibleGraphFilterConfig(filterPatterns),
     search: buildVisibleGraphSearchConfig(searchQuery, searchOptions),
-    collapse: buildVisibleGraphCollapseConfig(graphLayout),
+    collapse: buildVisibleGraphCollapseConfig(),
     showOrphans,
   };
 }

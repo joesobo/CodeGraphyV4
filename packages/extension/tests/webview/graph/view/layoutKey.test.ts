@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraphLayoutKey } from '../../../../src/webview/components/graph/view/layoutKey';
+import { buildGraphDataLayoutKey } from '../../../../src/webview/components/graph/view/layoutKey';
 
 describe('graph/layoutKey', () => {
   it('builds a stable key from node size mode, node ids, and link ids', () => {
     expect(
-      buildGraphLayoutKey(
+      buildGraphDataLayoutKey(
         {
           nodes: [
             { id: 'src/a.ts' },
@@ -19,7 +19,7 @@ describe('graph/layoutKey', () => {
 
   it('handles empty graph data', () => {
     expect(
-      buildGraphLayoutKey(
+      buildGraphDataLayoutKey(
         {
           nodes: [] as never,
           links: [] as never,
@@ -31,7 +31,7 @@ describe('graph/layoutKey', () => {
 
   it('joins multiple link identifiers with the pipe separator', () => {
     expect(
-      buildGraphLayoutKey(
+      buildGraphDataLayoutKey(
         {
           nodes: [{ id: 'src/a.ts' }] as never,
           links: [{ id: 'edge-1' }, { id: 'edge-2' }] as never,

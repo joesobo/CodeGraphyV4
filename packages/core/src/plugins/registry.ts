@@ -1,6 +1,14 @@
 import type {
   IFileAnalysisResult,
   IGraphData,
+  IGraphViewContextMenuContribution,
+  IGraphViewForceAdapterContribution,
+  IGraphViewNodeDragEndContribution,
+  IGraphViewProjectionContribution,
+  IGraphViewRuntimeEdgeContribution,
+  IGraphViewRuntimeNodeContribution,
+  IGraphViewUiSlotContribution,
+  IAccessProvider,
   IPlugin,
   IPluginAnalysisContext,
   IPluginEdgeType,
@@ -11,6 +19,14 @@ import { CORE_PLUGIN_API_VERSION } from './api';
 import { initializeAll, initializePlugin } from './lifecycle/initialize';
 import { notifyFilesChanged, type IPluginFilesChangedResult } from './lifecycle/notify/filesChanged';
 import { notifyGraphRebuild, notifyPostAnalyze, notifyPreAnalyze } from './lifecycle/notify/analysis';
+import {
+  createEmptyGraphViewContributionSet,
+  resolvePluginAccess,
+  type CoreGraphViewContributionEntry,
+  type CoreGraphViewContributionSet,
+  type CorePluginAccessCheck,
+  type CorePluginAccessContext,
+} from './access/checks';
 import { assertPluginApiCompatibility } from './compatibility';
 import { listPluginContributions } from './contributions';
 import { addPluginToExtensionMap } from './extensionMap';
@@ -114,6 +130,104 @@ export class CorePluginRegistry {
 
   getPluginFilterPatterns(disabledPlugins: ReadonlySet<string> = new Set()): string[] {
     return getPluginFilterPatterns(this.plugins.values(), disabledPlugins);
+  }
+
+  private listAccessProviders(): IAccessProvider[] {
+    return this.list()
+      .map(info => info.plugin.accessProvider)
+      .filter((provider): provider is IAccessProvider => provider !== undefined);
+  }
+
+  async getPluginAvailability(
+    pluginId: string,
+    context: CorePluginAccessContext = {},
+  ): Promise<CorePluginAccessCheck | undefined> {
+    const info = this.plugins.get(pluginId);
+    if (!info) {
+      return undefined;
+    }
+
+    return resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
+  }
+
+  private async pushAvailableGraphViewContributions<TContribution extends { requiresAccess?: unknown }>(
+    plugin: IPlugin,
+    contributions: readonly TContribution[] | undefined,
+    target: CoreGraphViewContributionEntry<TContribution>[],
+    context: CorePluginAccessContext,
+  ): Promise<void> {
+    for (const contribution of contributions ?? []) {
+      const contributionAccess = await resolvePluginAccess(
+        plugin,
+        this.listAccessProviders(),
+        context,
+        contribution.requiresAccess as never,
+      );
+      if (contributionAccess.available) {
+        target.push({
+          pluginId: plugin.id,
+          contribution,
+        });
+      }
+    }
+  }
+
+  async listAvailableGraphViewContributions(
+    context: CorePluginAccessContext = {},
+  ): Promise<CoreGraphViewContributionSet> {
+    const contributions = createEmptyGraphViewContributionSet();
+
+    for (const info of this.plugins.values()) {
+      const pluginAccess = await resolvePluginAccess(info.plugin, this.listAccessProviders(), context);
+      if (!pluginAccess.available) {
+        continue;
+      }
+
+      await this.pushAvailableGraphViewContributions<IGraphViewRuntimeNodeContribution>(
+        info.plugin,
+        info.plugin.graphView?.runtimeNodes,
+        contributions.runtimeNodes,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewRuntimeEdgeContribution>(
+        info.plugin,
+        info.plugin.graphView?.runtimeEdges,
+        contributions.runtimeEdges,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewProjectionContribution>(
+        info.plugin,
+        info.plugin.graphView?.projections,
+        contributions.projections,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewForceAdapterContribution>(
+        info.plugin,
+        info.plugin.graphView?.forces,
+        contributions.forces,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewNodeDragEndContribution>(
+        info.plugin,
+        info.plugin.graphView?.nodeDragEnd,
+        contributions.nodeDragEnd,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewContextMenuContribution>(
+        info.plugin,
+        info.plugin.graphView?.contextMenu,
+        contributions.contextMenu,
+        context,
+      );
+      await this.pushAvailableGraphViewContributions<IGraphViewUiSlotContribution>(
+        info.plugin,
+        info.plugin.graphView?.ui,
+        contributions.ui,
+        context,
+      );
+    }
+
+    return contributions;
   }
 
   async analyzeFile(

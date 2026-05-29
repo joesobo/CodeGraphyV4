@@ -27,6 +27,38 @@ describe('gitHistory/diff/state', () => {
     expect(edgeSet).toEqual(new Set(['src/b.ts->src/b.ts#import']));
   });
 
+  it('removes a deleted file when it is not the first node', () => {
+    const nodes = [
+      { id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' },
+      { id: 'src/b.ts', label: 'b.ts', color: '#93C5FD' },
+    ];
+    const edges: IGraphEdge[] = [];
+    const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+
+    deleteGitHistoryGraphFile('src/b.ts', nodes, edges, nodeMap, new Set());
+
+    expect(nodes).toEqual([{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }]);
+    expect(nodeMap.has('src/b.ts')).toBe(false);
+  });
+
+  it('leaves nodes unchanged when deleting a path that is not in the graph', () => {
+    const nodes = [
+      { id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' },
+      { id: 'src/b.ts', label: 'b.ts', color: '#93C5FD' },
+    ];
+    const edges: IGraphEdge[] = [];
+    const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+
+    deleteGitHistoryGraphFile('src/missing.ts', nodes, edges, nodeMap, new Set());
+
+    expect(nodes).toEqual([
+      { id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' },
+      { id: 'src/b.ts', label: 'b.ts', color: '#93C5FD' },
+    ]);
+    expect(nodeMap.has('src/a.ts')).toBe(true);
+    expect(nodeMap.has('src/b.ts')).toBe(true);
+  });
+
   it('refreshes the renamed node metadata in the node map', () => {
     const renamedNode = { id: 'src/old.ts', label: 'old.ts', color: '#93C5FD' };
     const unchangedEdge: IGraphEdge = { id: 'src/c.ts->src/d.ts#import', from: 'src/c.ts', to: 'src/d.ts' , kind: 'import', sources: [] };
@@ -87,6 +119,46 @@ describe('gitHistory/diff/state', () => {
       { id: 'src/new.ts->src/b.ts#import', from: 'src/new.ts', to: 'src/b.ts' , kind: 'import', sources: [] },
     ]);
     expect(edgeSet).toEqual(new Set(['src/c.ts->src/new.ts#import', 'src/new.ts->src/b.ts#import']));
+  });
+
+  it('does not recompute unrelated edge ids during rename', () => {
+    const unrelatedEdge: IGraphEdge = {
+      id: 'custom-unrelated-edge',
+      from: 'src/x.ts',
+      to: 'src/y.ts',
+      kind: 'import',
+      sources: [],
+    };
+    const edges: IGraphEdge[] = [unrelatedEdge];
+    const edgeSet = new Set([unrelatedEdge.id]);
+
+    renameGitHistoryGraphFile('src/old.ts', 'src/new.ts', edges, new Map(), edgeSet);
+
+    expect(edges).toEqual([unrelatedEdge]);
+    expect(edgeSet).toEqual(new Set(['custom-unrelated-edge']));
+  });
+
+  it('keeps a renamed edge when its id already matches the renamed endpoints', () => {
+    const edge: IGraphEdge = {
+      id: 'src/new.ts->src/b.ts#import',
+      from: 'src/old.ts',
+      to: 'src/b.ts',
+      kind: 'import',
+      sources: [],
+    };
+    const edges: IGraphEdge[] = [edge];
+    const edgeSet = new Set([edge.id]);
+
+    renameGitHistoryGraphFile('src/old.ts', 'src/new.ts', edges, new Map(), edgeSet);
+
+    expect(edges).toEqual([{
+      id: 'src/new.ts->src/b.ts#import',
+      from: 'src/new.ts',
+      to: 'src/b.ts',
+      kind: 'import',
+      sources: [],
+    }]);
+    expect(edgeSet).toEqual(new Set(['src/new.ts->src/b.ts#import']));
   });
 
   it('deduplicates renamed edges that collapse onto an existing edge id', () => {

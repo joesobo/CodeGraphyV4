@@ -56,6 +56,21 @@ vi.mock('vscode', () => ({
   },
 }));
 
+function createDeferred<T = void>(): {
+  promise: Promise<T>;
+  resolve(value: T | PromiseLike<T>): void;
+  reject(reason?: unknown): void;
+} {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+
+  return { promise, resolve, reject };
+}
+
 class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
   readonly getWorkspaceRoot = vi.fn<() => string | undefined>(() => '/workspace');
   readonly clearCache = vi.fn();
@@ -78,6 +93,7 @@ class TestDiscoveryFacade extends WorkspacePipelineDiscoveryFacade {
   _registry = {
     id: 'registry',
     list: vi.fn(() => []),
+    disposeAll: vi.fn(),
   } as unknown as PluginRegistry;
   _cache = { files: {} } as unknown as IWorkspaceAnalysisCache;
 
@@ -132,6 +148,33 @@ describe('pipeline/service/discoveryFacade', () => {
     });
     expect(vi.mocked(initializeWorkspacePipeline).mock.calls[0][1].getWorkspaceRoot()).toBe('/workspace');
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] WorkspacePipeline initialized');
+  });
+
+  it('serializes concurrent workspace plugin reloads so registry registration cannot overlap', async () => {
+    const facade = new TestDiscoveryFacade();
+    const firstReload = createDeferred();
+    const secondReload = createDeferred();
+    vi.mocked(initializeWorkspacePipeline)
+      .mockImplementationOnce(() => firstReload.promise)
+      .mockImplementationOnce(() => secondReload.promise);
+
+    const first = facade.reloadWorkspacePlugins();
+    const second = facade.reloadWorkspacePlugins();
+
+    await Promise.resolve();
+
+    expect(initializeWorkspacePipeline).toHaveBeenCalledTimes(1);
+    expect(facade._registry.disposeAll).toHaveBeenCalledTimes(1);
+
+    firstReload.resolve(undefined);
+    await first;
+    await Promise.resolve();
+
+    expect(initializeWorkspacePipeline).toHaveBeenCalledTimes(2);
+    expect(facade._registry.disposeAll).toHaveBeenCalledTimes(2);
+
+    secondReload.resolve(undefined);
+    await expect(Promise.all([first, second])).resolves.toEqual([undefined, undefined]);
   });
 
   it('delegates plugin filters and index checks through the shared helpers', () => {

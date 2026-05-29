@@ -21,6 +21,8 @@ import {
 } from './runtime/run';
 
 export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipelineInternalBase {
+  private _workspacePluginReloadQueue: Promise<void> = Promise.resolve();
+
   async initialize(): Promise<void> {
     await initializeWorkspacePipeline(this._registry, {
       getWorkspaceRoot: () => this._getWorkspaceRoot(),
@@ -30,8 +32,12 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
   }
 
   async reloadWorkspacePlugins(): Promise<void> {
-    this._registry.disposeAll();
-    await this.initialize();
+    const reload = this._workspacePluginReloadQueue.then(async () => {
+      this._registry.disposeAll();
+      await this.initialize();
+    });
+    this._workspacePluginReloadQueue = reload.catch(() => undefined);
+    return reload;
   }
 
   getPluginFilterPatterns(

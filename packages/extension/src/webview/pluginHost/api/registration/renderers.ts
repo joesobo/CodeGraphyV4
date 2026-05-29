@@ -4,12 +4,26 @@ export function registerNodeRenderer(
   pluginId: string,
   type: string,
   fn: NodeRenderFn,
-  nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>,
+  nodeRenderers: Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>,
 ): WebviewDisposable {
-  nodeRenderers.set(type, { pluginId, fn });
+  const entry = { pluginId, fn };
+  const renderers = nodeRenderers.get(type) ?? [];
+  renderers.push(entry);
+  nodeRenderers.set(type, renderers);
   return {
     dispose: () => {
-      if (nodeRenderers.get(type)?.pluginId === pluginId) nodeRenderers.delete(type);
+      const currentRenderers = nodeRenderers.get(type);
+      if (!currentRenderers) {
+        return;
+      }
+
+      const nextRenderers = currentRenderers.filter(candidate => candidate !== entry);
+      if (nextRenderers.length === 0) {
+        nodeRenderers.delete(type);
+        return;
+      }
+
+      nodeRenderers.set(type, nextRenderers);
     },
   };
 }

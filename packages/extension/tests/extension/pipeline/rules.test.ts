@@ -71,18 +71,17 @@ describe('WorkspacePipeline sources', () => {
 
       const statuses = analyzer.getPluginStatuses(new Set());
 
-      expect(statuses.length).toBe(2);
-
       const names = statuses.map(s => s.name);
       expect(names).toContain('Markdown');
-      expect(names).toContain('Tree-sitter');
+      expect(names).not.toContain('Tree-sitter');
     });
 
-    it('marks all plugins as enabled when no disabled set', async () => {
+    it('marks registered runtime plugins as enabled when no disabled set', async () => {
       await analyzer.initialize();
       const statuses = analyzer.getPluginStatuses(new Set());
+      const registeredRuntimeStatuses = statuses.filter(status => status.id.startsWith('codegraphy.'));
 
-      for (const status of statuses) {
+      for (const status of registeredRuntimeStatuses) {
         expect(status.enabled).toBe(true);
       }
     });
@@ -122,13 +121,14 @@ describe('WorkspacePipeline sources', () => {
       expect(filteredStatuses).toEqual(baselineStatuses);
     });
 
-    it('all plugins report inactive status when no files discovered', async () => {
+    it('registered plugins report inactive status when no files discovered', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
       const statuses = analyzer.getPluginStatuses(new Set());
+      const registeredRuntimeStatuses = statuses.filter(status => status.id.startsWith('codegraphy.'));
 
       // No files have been discovered/analyzed so all should be inactive
-      for (const status of statuses) {
+      for (const status of registeredRuntimeStatuses) {
         expect(status.status).toBe('inactive');
         expect(status.connectionCount).toBe(0);
       }

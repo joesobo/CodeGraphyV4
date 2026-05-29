@@ -3,6 +3,10 @@ import type { CodeGraphyWorkspaceSettings } from './settingsContracts';
 import { normalizePluginSettings } from './settingsPlugins';
 import { isRecord, readStringArray } from './settingsValues';
 
+function normalizePluginData(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? { ...value } : {};
+}
+
 export function normalizeCodeGraphyWorkspaceSettings(
   value: unknown,
 ): CodeGraphyWorkspaceSettings {
@@ -28,5 +32,6 @@ export function normalizeCodeGraphyWorkspaceSettings(
     filterPatterns: [...new Set(readStringArray(value.filterPatterns))],
     disabledCustomFilterPatterns: [...new Set(readStringArray(value.disabledCustomFilterPatterns))],
     plugins: normalizePluginSettings(value.plugins),
+    pluginData: normalizePluginData(value.pluginData),
   };
 }

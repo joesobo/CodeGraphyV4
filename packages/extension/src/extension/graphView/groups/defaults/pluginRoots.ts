@@ -1,5 +1,20 @@
 import * as vscode from 'vscode';
 
+interface PackagePluginRootInfo {
+  plugin: {
+    id: string;
+  };
+  sourcePackageRoot?: string;
+}
+
+interface PackagePluginRootRegistry {
+  list(): PackagePluginRootInfo[];
+}
+
+interface PackagePluginRootAnalyzer {
+  registry: PackagePluginRootRegistry;
+}
+
 function getBuiltInGraphViewPluginDirEntries(): Array<readonly [string, string]> {
   return [
     ['codegraphy.godot', 'plugin-godot'],
@@ -21,5 +36,21 @@ export function registerBuiltInGraphViewPluginRoots(
         vscode.Uri.joinPath(extensionUri, 'packages', dirName),
       );
     }
+  }
+}
+
+export function registerPackageGraphViewPluginRoots(
+  analyzer: PackagePluginRootAnalyzer | undefined,
+  pluginExtensionUris: Map<string, vscode.Uri>,
+): void {
+  for (const pluginInfo of analyzer?.registry.list() ?? []) {
+    if (!pluginInfo.sourcePackageRoot || pluginExtensionUris.has(pluginInfo.plugin.id)) {
+      continue;
+    }
+
+    pluginExtensionUris.set(
+      pluginInfo.plugin.id,
+      vscode.Uri.file(pluginInfo.sourcePackageRoot),
+    );
   }
 }

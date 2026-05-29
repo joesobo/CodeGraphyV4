@@ -1,257 +1,315 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphLayoutSettings } from '../../../../../../src/shared/settings/graphLayout';
+import { describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../../../src/webview/components/graph/model/build';
 import {
+  applyNodeDrag,
   markNodeDragging,
+  postDraggedNodesDragEndMessages,
   postNodeDragEndMessages,
-  updateNodeDragOwnerPreview
 } from '../../../../../../src/webview/components/graph/runtime/use/interaction/nodeDrag';
 
-const nodeDragHarness = vi.hoisted(() => ({
-  postMessage: vi.fn(),
-}));
-
-vi.mock('../../../../../../src/webview/vscodeApi', () => ({
-  postMessage: nodeDragHarness.postMessage,
-}));
-
-function createLayout(ownerSectionId: string | null = null): GraphLayoutSettings {
-  return {
-    collapsedNodes: {},
-    pinnedNodes: {},
-    sections: {
-      parent: {
-        id: 'parent',
-        label: 'Parent',
-        color: '#60a5fa',
-        x: 0,
-        y: 0,
-        width: 200,
-        height: 200,
-        collapsed: false,
-        updatedAt: '2026-05-07T09:00:00.000Z',
-      },
-      child: {
-        id: 'child',
-        label: 'Child',
-        color: '#22c55e',
-        x: 20,
-        y: 20,
-        width: 80,
-        height: 80,
-        collapsed: false,
-        updatedAt: '2026-05-07T09:00:00.000Z',
-      },
-    },
-    ownership: {
-      parent: {
-        itemId: 'parent',
-        itemKind: 'section',
-        ownerSectionId: null,
-        updatedAt: '2026-05-07T09:00:00.000Z',
-      },
-      child: {
-        itemId: 'child',
-        itemKind: 'section',
-        ownerSectionId: 'parent',
-        updatedAt: '2026-05-07T09:00:00.000Z',
-      },
-      node: {
-        itemId: 'node',
-        itemKind: 'node',
-        ownerSectionId,
-        updatedAt: '2026-05-07T09:00:00.000Z',
-      },
-    },
-  };
-}
-
 describe('graph/runtime/use/interaction node drag', () => {
+  it('marks active node drags', () => {
+    const node = { id: 'node' } as FGNode;
 
-    beforeEach(() => {
-      nodeDragHarness.postMessage.mockReset();
+    markNodeDragging(node);
+
+    expect(node.isDragging).toBe(true);
+  });
+
+  it('moves the selected node group by the live drag delta', () => {
+    const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
+    const sibling = { id: 'sibling', vx: 1, vy: 2, x: 30, y: 40 } as FGNode;
+    const outside = { id: 'outside', x: 90, y: 90 } as FGNode;
+
+    const session = applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary, sibling, outside] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(['primary', 'sibling']),
     });
 
+    expect(session?.draggedNodeIds).toEqual(new Set(['primary', 'sibling']));
+    expect(primary).toMatchObject({
+      isDragging: true,
+      x: 15,
+      y: 12,
+    });
+    expect(sibling).toMatchObject({
+      fx: 35,
+      fy: 37,
+      isDragging: true,
+      vx: 0,
+      vy: 0,
+      x: 35,
+      y: 37,
+    });
+    expect(outside).toMatchObject({ x: 90, y: 90 });
+  });
 
+  it('moves selected group followers by each force graph drag delta', () => {
+    const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
+    const sibling = { id: 'sibling', vx: 1, vy: 2, x: 30, y: 40 } as FGNode;
 
-    it('updates a pinned node position at drag end', () => {
-      postNodeDragEndMessages(
-        { id: 'node', isPinned: true, x: 12, y: 24 } as FGNode,
-        undefined,
-        '2d',
-        false,
-      );
+    const firstSession = applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary, sibling] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(['primary', 'sibling']),
+    });
+    applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary, sibling] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(['primary', 'sibling']),
+    }, firstSession);
 
-      expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
-        type: 'UPDATE_GRAPH_LAYOUT_PIN',
-        payload: {
-          graphMode: '2d',
-          nodeId: 'node',
-          position: { x: 12, y: 24 },
-        },
-      });
+    expect(sibling).toMatchObject({
+      fx: 40,
+      fy: 34,
+      isDragging: true,
+      vx: 0,
+      vy: 0,
+      x: 40,
+      y: 34,
+    });
+  });
+
+  it('keeps a pinned primary node at the force graph live drag position in 2d', () => {
+    const primary = {
+      fx: 20,
+      fy: 9,
+      id: 'primary',
+      isPinned: true,
+      vx: 2,
+      vy: 4,
+      x: 20,
+      y: 9,
+    } as FGNode;
+
+    const session = applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(),
     });
 
+    expect(session).toBeNull();
+    expect(primary).toMatchObject({
+      fx: 20,
+      fy: 9,
+      isDragging: true,
+      vx: 0,
+      vy: 0,
+      x: 20,
+      y: 9,
+    });
+  });
 
+  it('does not move a pinned primary node beyond force graph live drag positions', () => {
+    const primary = {
+      fx: 20,
+      fy: 9,
+      id: 'primary',
+      isPinned: true,
+      vx: 2,
+      vy: 4,
+      x: 20,
+      y: 9,
+    } as FGNode;
 
-    it('updates a pinned Section Member position in direct owner local coordinates at drag end', () => {
-      postNodeDragEndMessages(
-        { id: 'node', isPinned: true, ownerSectionId: 'parent', x: 120, y: 80 } as FGNode,
-        {
-          collapsedNodes: {},
-          pinnedNodes: {},
-          sections: {
-            parent: {
-              id: 'parent',
-              label: 'Parent',
-              color: '#60a5fa',
-              x: 100,
-              y: 50,
-              width: 200,
-              height: 160,
-              collapsed: false,
-              updatedAt: '2026-05-07T09:00:00.000Z',
-            },
-          },
-          ownership: {
-            node: {
-              itemId: 'node',
-              itemKind: 'node',
-              ownerSectionId: 'parent',
-              updatedAt: '2026-05-07T09:00:00.000Z',
-            },
-          },
-        },
-        '2d',
-        false,
-      );
+    const firstSession = applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(),
+    });
+    primary.x = 25;
+    primary.y = 6;
+    primary.fx = 25;
+    primary.fy = 6;
+    applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(),
+    }, firstSession);
 
-      expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
-        type: 'UPDATE_GRAPH_LAYOUT_PIN',
-        payload: {
-          graphMode: '2d',
-          nodeId: 'node',
-          position: { x: 20, y: 30 },
-        },
-      });
+    expect(primary).toMatchObject({
+      fx: 25,
+      fy: 6,
+      isDragging: true,
+      vx: 0,
+      vy: 0,
+      x: 25,
+      y: 6,
+    });
+  });
+
+  it('ignores missing nodes in a reused drag group session', () => {
+    const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
+    const sibling = { id: 'sibling', x: 30, y: 40 } as FGNode;
+
+    expect(() => applyNodeDrag(primary, { x: 5, y: -3 }, {
+      graphData: { nodes: [primary, sibling] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(['primary', 'sibling']),
+    }, {
+      draggedNodeIds: new Set(['primary', 'missing', 'sibling']),
+      primaryNodeId: 'primary',
+    })).not.toThrow();
+    expect(sibling).toMatchObject({ x: 35, y: 37 });
+  });
+
+  it('ignores non-finite drag deltas after starting the drag', () => {
+    const primary = { id: 'primary', x: 15, y: 12 } as FGNode;
+    const sibling = { id: 'sibling', x: 30, y: 40 } as FGNode;
+
+    const session = applyNodeDrag(primary, { x: Number.NaN, y: -3 }, {
+      graphData: { nodes: [primary, sibling] },
+      graphMode: '2d',
+      selectedNodeIds: new Set(['primary', 'sibling']),
     });
 
+    expect(session?.draggedNodeIds).toEqual(new Set(['primary', 'sibling']));
+    expect(primary.isDragging).toBe(true);
+    expect(sibling).toMatchObject({ x: 30, y: 40 });
+    expect(sibling.isDragging).toBeUndefined();
+  });
 
+  it('releases unpinned nodes at drag end', () => {
+    const node = {
+      id: 'node',
+      fx: 12,
+      fy: 24,
+      fz: 36,
+      isDragging: true,
+      isPinned: false,
+    } as unknown as FGNode;
 
-    it('assigns a dragged node to the deepest section under the drop point', () => {
-      postNodeDragEndMessages(
-        { id: 'node', x: 40, y: 40 } as FGNode,
-        createLayout(null),
-        '2d',
-        false,
-      );
+    postNodeDragEndMessages(node, '3d');
 
-      expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
-        type: 'UPDATE_GRAPH_LAYOUT_OWNER',
-        payload: {
-          itemId: 'node',
-          itemKind: 'node',
-          ownerSectionId: 'child',
+    expect(node).toMatchObject({
+      fx: undefined,
+      fy: undefined,
+      fz: undefined,
+      isDragging: false,
+    });
+  });
+
+  it('releases pinned graph nodes when no plugin drag policy keeps them fixed', () => {
+    const node = {
+      id: 'node',
+      fx: 12,
+      fy: 24,
+      fz: 36,
+      isDragging: true,
+      isPinned: true,
+    } as unknown as FGNode;
+
+    postNodeDragEndMessages(node, '3d');
+
+    expect(node).toMatchObject({
+      fx: undefined,
+      fy: undefined,
+      fz: undefined,
+      isDragging: false,
+    });
+  });
+
+  it('keeps fixed coordinates when a plugin drag policy owns the node', () => {
+    const node = {
+      id: 'node',
+      fx: 12,
+      fy: 24,
+      isDragging: true,
+      isPinned: true,
+    } as FGNode;
+    const onNodeDragEnd = vi.fn(() => ({ keepFixedPosition: true }));
+
+    postNodeDragEndMessages(node, '2d', {
+      nodeDragEnd: [{
+        pluginId: 'acme.graph-tools',
+        contribution: {
+          id: 'acme.graph-tools.pin-drag-end',
+          label: 'Pinned Node Drag End',
+          onNodeDragEnd,
         },
-      });
+      }],
     });
 
-
-
-    it('assigns a dragged node to a nested section using world-space section bounds', () => {
-      const layout = createLayout('parent');
-      layout.sections.parent.x = 100;
-      layout.sections.parent.y = 50;
-      layout.sections.child.x = 20;
-      layout.sections.child.y = 20;
-
-      postNodeDragEndMessages(
-        { id: 'node', x: 140, y: 90 } as FGNode,
-        layout,
-        '2d',
-        false,
-      );
-
-      expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
-        type: 'UPDATE_GRAPH_LAYOUT_OWNER',
-        payload: {
-          itemId: 'node',
-          itemKind: 'node',
-          ownerSectionId: 'child',
-        },
-      });
+    expect(onNodeDragEnd).toHaveBeenCalledWith({
+      graphMode: '2d',
+      node,
+      nodes: [node],
+      timelineActive: false,
     });
+    expect(node).toMatchObject({
+      fx: 12,
+      fy: 24,
+      isDragging: false,
+    });
+  });
 
+  it('passes live graph nodes and timeline state to plugin drag policies', () => {
+    const node = {
+      id: 'node',
+      fx: 12,
+      fy: 24,
+      isDragging: true,
+      isPinned: true,
+      x: 12,
+      y: 24,
+    } as FGNode;
+    const pluginRuntimeNode = {
+      id: 'plugin-runtime-node',
+      ownerPluginId: 'acme.graph-tools',
+      runtimeNodeType: 'workspace-group',
+      workspaceGroupHeight: 100,
+      workspaceGroupWidth: 160,
+      x: 40,
+      y: 50,
+    } as unknown as FGNode;
+    const onNodeDragEnd = vi.fn(() => undefined);
 
-
-    it('previews nested section ownership using world-space section bounds', () => {
-      const layout = createLayout('parent');
-      layout.sections.parent.x = 100;
-      layout.sections.parent.y = 50;
-      layout.sections.child.x = 20;
-      layout.sections.child.y = 20;
-
-      expect(updateNodeDragOwnerPreview({ id: 'node', x: 140, y: 90 } as FGNode, {
-        graphData: { nodes: [] },
-        graphLayout: layout,
+    postDraggedNodesDragEndMessages(
+      node,
+      null,
+      {
+        graphData: { nodes: [node, pluginRuntimeNode] },
         graphMode: '2d',
-        timelineActive: false,
-      })).toBe('child');
-    });
-
-
-
-    it('assigns dragged nodes using live Section Node positions', () => {
-      const layout = createLayout(null);
-      layout.sections.child.x = 20;
-      layout.sections.child.y = 20;
-
-      postNodeDragEndMessages(
-        { id: 'node', x: 340, y: 40 } as FGNode,
-        layout,
-        '2d',
-        false,
-        [
-          {
-            id: 'child',
-            isGraphSection: true,
-            sectionHeight: 80,
-            sectionWidth: 80,
-            x: 340,
-            y: 60,
-          } as FGNode,
-        ],
-      );
-
-      expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
-        type: 'UPDATE_GRAPH_LAYOUT_OWNER',
-        payload: {
-          itemId: 'node',
-          itemKind: 'node',
-          ownerSectionId: 'child',
+        graphViewContributions: {
+          nodeDragEnd: [{
+            pluginId: 'acme.graph-tools',
+            contribution: {
+              id: 'acme.graph-tools.drag-end',
+              label: 'Section Drag End',
+              onNodeDragEnd,
+            },
+          }],
         },
-      });
+        timelineActive: true,
+      },
+    );
+
+    expect(onNodeDragEnd).toHaveBeenCalledWith({
+      graphMode: '2d',
+      node,
+      nodes: [node, pluginRuntimeNode],
+      timelineActive: true,
     });
+  });
 
+  it('releases every node in the active drag group', () => {
+    const primary = { id: 'primary', fx: 1, fy: 2, isDragging: true } as FGNode;
+    const sibling = { id: 'sibling', fx: 3, fy: 4, isDragging: true } as FGNode;
 
+    postDraggedNodesDragEndMessages(
+      primary,
+      {
+        draggedNodeIds: new Set(['primary', 'sibling']),
+        primaryNodeId: 'primary',
+      },
+      {
+        graphData: { nodes: [primary, sibling] },
+        graphMode: '2d',
+      },
+    );
 
-    it('marks active node drags and mirrors the new owner locally on drag end', () => {
-      const node = { id: 'node', x: 40, y: 40 } as FGNode;
-
-      markNodeDragging(node);
-      expect(node.isDragging).toBe(true);
-
-      postNodeDragEndMessages(node, createLayout(null), '2d', false);
-
-      expect(node.isDragging).toBe(false);
-      expect(node.ownerSectionId).toBe('child');
-      expect(nodeDragHarness.postMessage).toHaveBeenCalledWith({
-        type: 'UPDATE_GRAPH_LAYOUT_OWNER',
-        payload: {
-          itemId: 'node',
-          itemKind: 'node',
-          ownerSectionId: 'child',
-        },
-      });
-    });
+    expect(primary).toMatchObject({ fx: undefined, fy: undefined, isDragging: false });
+    expect(sibling).toMatchObject({ fx: undefined, fy: undefined, isDragging: false });
+  });
 });

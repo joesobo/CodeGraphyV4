@@ -1,7 +1,6 @@
 import type { GraphKeyboardCommand, GraphKeyboardOptions } from '../effects';
 import {
   createClearSelectionCommand,
-  createDeleteGraphSectionsCommand,
   createFitViewCommand,
   createOpenSelectedNodesCommand,
   createSelectAllCommand,
@@ -26,12 +25,6 @@ function getEnterCommand(selectedNodeIds: readonly string[]): GraphKeyboardComma
   );
 }
 
-function getDeleteCommand(selectedGraphSectionIds: readonly string[]): GraphKeyboardCommand | null {
-  return selectedGraphSectionIds.length === 0
-    ? null
-    : createDeleteGraphSectionsCommand([...selectedGraphSectionIds]);
-}
-
 function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null {
   return (
     getZoomShortcutCommand(options.key, options.isMod, options.graphMode) ??
@@ -40,41 +33,36 @@ function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand
   );
 }
 
-const DIRECT_KEY_COMMAND_BUILDERS = {
-  '0': createFitViewCommand,
-  Escape: createClearSelectionCommand,
-} satisfies Record<string, () => GraphKeyboardCommand>;
-
-function getStaticDirectKeyCommand(key: string): GraphKeyboardCommand | undefined {
-  const createCommand = DIRECT_KEY_COMMAND_BUILDERS[key as keyof typeof DIRECT_KEY_COMMAND_BUILDERS];
-  return createCommand?.();
-}
-
-function getSelectionDirectKeyCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null | undefined {
-  switch (options.key) {
-    case 'Enter':
-      return getEnterCommand(options.selectedNodeIds);
-    case 'Delete':
-    case 'Backspace':
-      return getDeleteCommand(options.selectedGraphSectionIds ?? []);
-    case 'a':
-      return options.isMod ? createSelectAllCommand(options.allNodeIds) : null;
-    default:
-      return undefined;
-  }
-}
-
-function getDirectKeyCommand(options: GraphKeyboardOptions): GraphKeyboardCommand | null | undefined {
-  return getStaticDirectKeyCommand(options.key) ?? getSelectionDirectKeyCommand(options);
-}
-
 export function getGraphKeyboardCommandImpl(
   options: GraphKeyboardOptions
 ): GraphKeyboardCommand | null {
-  if (options.targetIsEditable) {
+  const {
+    key,
+    isMod,
+    shiftKey,
+    graphMode,
+    selectedNodeIds,
+    allNodeIds,
+    targetIsEditable,
+  } = options;
+
+  if (targetIsEditable) {
     return null;
   }
 
-  const directCommand = getDirectKeyCommand(options);
-  return directCommand === undefined ? getShortcutCommand(options) : directCommand;
+  switch (key) {
+    case '0':
+      return createFitViewCommand();
+    case 'Escape':
+      return createClearSelectionCommand();
+    case 'Enter':
+      return getEnterCommand(selectedNodeIds);
+    case 'Delete':
+    case 'Backspace':
+      return null;
+    case 'a':
+      return isMod ? createSelectAllCommand(allNodeIds) : null;
+    default:
+      return getShortcutCommand({ key, isMod, shiftKey, graphMode, selectedNodeIds, allNodeIds, targetIsEditable });
+  }
 }

@@ -1,6 +1,7 @@
 import {
   type MutableRefObject,
 } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type {
   ForceGraphMethods as FG2DMethods,
   LinkObject,
@@ -11,7 +12,6 @@ import type {
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
-import type { GraphLayoutSettings } from '../../../../../shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../shared/settings/physics';
 import { ThemeKind } from '../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
@@ -40,8 +40,8 @@ export interface UseGraphRenderingRuntimeOptions {
   getLinkParticles: (this: void, link: LinkObject) => number;
   getParticleColor: (this: void, link: LinkObject) => string;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
-  graphLayout?: GraphLayoutSettings;
-  graphLayoutKey: string;
+  graphViewContributions?: CoreGraphViewContributionSet;
+  graphDataLayoutKey: string;
   graphMode: '2d' | '3d';
   highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
@@ -57,6 +57,7 @@ export interface UseGraphRenderingRuntimeOptions {
   showLabels: boolean;
   spritesRef: MutableRefObject<Map<string, SpriteText>>;
   theme: ThemeKind;
+  timelineActive: boolean;
   favorites: Set<string>;
   directionMode: 'arrows' | 'particles' | 'none';
 }
@@ -77,8 +78,8 @@ export function useGraphRenderingRuntime({
   getLinkParticles,
   getParticleColor,
   graphDataRef,
-  graphLayout,
-  graphLayoutKey,
+  graphViewContributions,
+  graphDataLayoutKey,
   graphMode,
   highlightVersion,
   highlightedNeighborsRef,
@@ -94,6 +95,7 @@ export function useGraphRenderingRuntime({
   showLabels,
   spritesRef,
   theme,
+  timelineActive,
   favorites,
   directionMode,
 }: UseGraphRenderingRuntimeOptions): UseGraphRenderingRuntimeResult {
@@ -137,15 +139,16 @@ export function useGraphRenderingRuntime({
     physicsPaused,
   });
 
-	  usePhysicsRuntime({
-	    fg2dRef,
-	    fg3dRef,
-	    graphDataRef,
-	    graphLayout,
-	    graphMode,
-    layoutKey: graphLayoutKey,
+  usePhysicsRuntime({
+    fg2dRef,
+    fg3dRef,
+    graphDataRef,
+    graphViewContributions,
+    graphMode,
+    layoutKey: graphDataLayoutKey,
     physicsPaused,
     physicsSettings,
+    timelineActive,
   });
 
   return {

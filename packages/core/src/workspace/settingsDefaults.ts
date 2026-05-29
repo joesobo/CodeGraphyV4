@@ -13,6 +13,7 @@ export function createDefaultCodeGraphyWorkspaceSettings(): CodeGraphyWorkspaceS
     filterPatterns: [],
     disabledCustomFilterPatterns: [],
     plugins: [],
+    pluginData: {},
   };
 }
 

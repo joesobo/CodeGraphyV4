@@ -25,6 +25,7 @@ describe('GraphStore', () => {
     expect(state.graphMode).toBe('2d');
     expect(state.activePanel).toBe('none');
     expect(state.graphHasIndex).toBe(false);
+    expect(state.graphViewContributionStatuses).toEqual([]);
   });
 
   it('handles GRAPH_DATA_UPDATED message', () => {
@@ -202,6 +203,22 @@ describe('GraphStore', () => {
       payload: { items },
     });
     expect(store.getState().pluginToolbarActions).toEqual(items);
+  });
+
+  it('handles GRAPH_VIEW_CONTRIBUTIONS_UPDATED message', () => {
+    const contributions = [{
+      kind: 'runtimeNodes' as const,
+      pluginId: 'acme.graph-tools',
+      contributionId: 'acme.graph-tools.runtime-nodes',
+      label: 'Runtime Nodes',
+    }];
+
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+      payload: { contributions },
+    });
+
+    expect(store.getState().graphViewContributionStatuses).toEqual(contributions);
   });
 
   it('handles MAX_FILES_UPDATED message', () => {
