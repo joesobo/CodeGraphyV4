@@ -1,5 +1,37 @@
 # @codegraphy-dev/plugin-api
 
+## 3.1.0
+
+### Minor Changes
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`582c514`](https://github.com/joesobo/CodeGraphyV4/commit/582c5140a3ffee19df917ce6f0796fd0f80d53e0) Thanks [@joesobo](https://github.com/joesobo)! - Add sized 2D rectangle node presentation so plugin nodes can render, pick, and collide at their expanded visual bounds.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`b9ffd7d`](https://github.com/joesobo/CodeGraphyV4/commit/b9ffd7d57f844071473049ba3bfa1a6ac5af667b) Thanks [@joesobo](https://github.com/joesobo)! - Add the Extract Pro foundation: Access Provider contracts, plugin-owned data persistence delivered to package plugin factories, Graph View runtime/projection/context-menu/UI/force-adapter contribution contracts and hosts, and local plugin linking for private paid plugins.
+
+  Graph View contribution callbacks receive live host context such as the current graph mode and timeline state.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`8b559dd`](https://github.com/joesobo/CodeGraphyV4/commit/8b559dd3204b87808dd1834fd2c00277d7f06d62) Thanks [@joesobo](https://github.com/joesobo)! - Expose live Graph View viewport node updates and per-node physics overrides so plugins can resize runtime nodes without restarting graph physics.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`005e4f5`](https://github.com/joesobo/CodeGraphyV4/commit/005e4f522b6295f6fbf068c79571f9182e963172) Thanks [@joesobo](https://github.com/joesobo)! - Add a Graph View node drag-end contribution so plugins can own fixed-position drag behavior without hard-coding plugin features in the host graph.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`a5f6df8`](https://github.com/joesobo/CodeGraphyV4/commit/a5f6df8b8ad5e89fddb43aaa77e0fc80e732f521) Thanks [@joesobo](https://github.com/joesobo)! - Fix package plugin toggles so Graph View contributions are added and removed immediately, add create-menu placement for plugin context menu actions, and keep plugin contribution snapshots stable while rendering the graph.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`265728a`](https://github.com/joesobo/CodeGraphyV4/commit/265728adb88828772fc9e8b8745aefc36bc55a08) Thanks [@joesobo](https://github.com/joesobo)! - Add plugin runtime node pointer areas so custom-shaped nodes can use graph-owned pointer picking.
+
+### Patch Changes
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`2b15c9c`](https://github.com/joesobo/CodeGraphyV4/commit/2b15c9c61c4d954554a4b979540b89a8ef595061) Thanks [@joesobo](https://github.com/joesobo)! - Expose graph mode and timeline state to Graph View context menu contributions so plugins can hide mode-specific actions.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`4e4a1ac`](https://github.com/joesobo/CodeGraphyV4/commit/4e4a1ac9187d9b6feaaa91437293b2fab8120cc2) Thanks [@joesobo](https://github.com/joesobo)! - Allow runtime node coordinate fields to be explicitly cleared with `undefined` in exact-optional TypeScript projects.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`c7a6ffc`](https://github.com/joesobo/CodeGraphyV4/commit/c7a6ffc1d271f1342139e0d7b79e6accb20cec7e) Thanks [@joesobo](https://github.com/joesobo)! - Allow graph plugins to request rounded corners for 2D rectangle nodes.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`07ff638`](https://github.com/joesobo/CodeGraphyV4/commit/07ff638cdc127a455f5606c6205e78b2ac0d3761) Thanks [@joesobo](https://github.com/joesobo)! - Pass current graph physics settings to Graph View force adapters so feature plugins can match CodeGraphy's configured force behavior.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`2a8751c`](https://github.com/joesobo/CodeGraphyV4/commit/2a8751c14492b23e292c28af8646e64b4251ee83) Thanks [@joesobo](https://github.com/joesobo)! - Expose runtime node coordinate, fixed-position, and velocity fields in the public Graph View API.
+
+- [#209](https://github.com/joesobo/CodeGraphyV4/pull/209) [`d11c799`](https://github.com/joesobo/CodeGraphyV4/commit/d11c799e29f547543184aed14487b6c7d6476326) Thanks [@joesobo](https://github.com/joesobo)! - Expose the current graph snapshot on the plugin host API for plugin-owned exporters and host actions.
+
 ## 3.0.0
 
 ### Major Changes
