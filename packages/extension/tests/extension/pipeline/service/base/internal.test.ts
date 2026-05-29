@@ -296,6 +296,7 @@ describe('extension/pipeline/service/internalBase', () => {
         completed: ['baseline'],
         required: ['baseline'],
       },
+      [],
     );
     await expect(
       vi.mocked(analyzeWorkspacePipelineDiscoveredFiles).mock.calls[0][4]('/workspace/src/a.ts'),
