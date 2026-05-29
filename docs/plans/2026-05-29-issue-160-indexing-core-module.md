@@ -62,3 +62,11 @@ The VS Code extension may expose UI for toggling and configuring plugins, then a
 When the VS Code extension plugin UI enables, disables, orders, or configures a plugin, the extension should send that intent to a Core-owned workspace plugin operation.
 
 Core should update Workspace Settings, report or mark Graph Cache freshness effects, and decide what indexing or graph rebuild work is needed. The extension should not directly edit the `plugins` setting or decide whether plugin files require incremental reprocessing versus full analysis.
+
+### 5. Core Rebuilds Relationship Graph Data
+
+Rebuilding graph data from the current indexed state is a Core Package operation.
+
+Core should own rebuilding the Relationship Graph payload from indexing state, Graph Scope, workspace/plugin settings, graph-data filters, and options that affect the graph payload such as orphan handling.
+
+The VS Code extension should own view-layer work after Core returns graph data, such as applying current webview transforms, sending Graph View messages, updating progress UI, and rendering.
