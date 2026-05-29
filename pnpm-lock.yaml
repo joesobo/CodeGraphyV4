@@ -401,12 +401,6 @@ importers:
         specifier: workspace:*
         version: link:../plugin-api
 
-  packages/pro:
-    dependencies:
-      '@codegraphy-dev/plugin-api':
-        specifier: workspace:*
-        version: link:../plugin-api
-
 packages:
 
   3d-force-graph@1.79.1:
