@@ -133,7 +133,7 @@ export function createCodeGraphyWorkspaceEngine(
       disabledPlugins,
       fileAnalysis: state.fileAnalysis,
       getPluginForFile: absolutePath => state.registry?.getPluginForFile(absolutePath),
-      showOrphans: state.settings.showOrphans,
+      showOrphans: true,
       workspaceRoot,
     });
     return state.graph;
@@ -293,4 +293,3 @@ export function createCodeGraphyWorkspaceEngine(
     index,
   };
 }
-

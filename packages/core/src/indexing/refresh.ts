@@ -19,7 +19,6 @@ export interface WorkspaceIndexRefreshSource {
   _buildGraphDataFromAnalysis(
     fileAnalysis: Map<string, IFileAnalysisResult>,
     workspaceRoot: string,
-    showOrphans: boolean,
     disabledPlugins: Set<string>,
   ): IGraphData;
   _lastDiscoveredFiles: IDiscoveredFile[];
@@ -39,7 +38,6 @@ export interface WorkspaceIndexRefreshSource {
 }
 
 export interface WorkspaceIndexRefreshDependencies {
-  config: { showOrphans: boolean };
   disabledPlugins: Set<string>;
   discoveredFiles: IDiscoveredFile[];
   filePaths: readonly string[];
@@ -116,7 +114,6 @@ export async function refreshWorkspaceIndexChangedFiles(
     return source._buildGraphDataFromAnalysis(
       source._lastFileAnalysis,
       dependencies.workspaceRoot,
-      dependencies.config.showOrphans,
       dependencies.disabledPlugins,
     );
   }
@@ -152,11 +149,9 @@ export async function refreshWorkspaceIndexChangedFiles(
   const graphData = source._buildGraphDataFromAnalysis(
     source._lastFileAnalysis,
     dependencies.workspaceRoot,
-    dependencies.config.showOrphans,
     dependencies.disabledPlugins,
   );
   await dependencies.persistIndexMetadata();
 
   return graphData;
 }
-

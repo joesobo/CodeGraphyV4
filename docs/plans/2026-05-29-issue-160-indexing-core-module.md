@@ -131,11 +131,12 @@ The implementation should preserve current graph smoothness and leave a clear ho
 - Added Core support for configured plugin entries so callers can pass plugin options and package metadata into Core-owned indexing registration.
 - Moved changed-file refresh selection, invalidation, plugin `notifyFilesChanged` fallback handling, incremental reanalysis, cache persistence, and index metadata persistence into `@codegraphy-dev/core`.
 - Replaced the extension changed-file refresh runtime with a compatibility export to the Core implementation.
+- Removed **Show Orphans** from the Core Indexing and changed-file refresh APIs. Core Indexing now always retains the complete indexed graph, while Graph View presentation settings stay in the extension rendering path.
 - Moved plugin status and plugin-name query semantics into `@codegraphy-dev/core`, with extension compatibility shims delegating to Core.
 - Moved workspace plugin selection rules into `@codegraphy-dev/core`, so the extension no longer owns the package-plugin settings merge/remove behavior.
+- Added a Core-owned package-plugin toggle plan so the extension sends plugin-toggle intent and Core returns both the next workspace plugin settings and the indexing action to perform.
 
 Remaining deeper-boundary work:
 
 - Route the extension's long-lived `WorkspacePipeline` state directly through the Core workspace engine instead of adapter facades around extension-owned fields.
-- Move plugin enable/disable/configuration command execution fully behind Core-owned workspace plugin operations.
 - Decide whether Core should return graph patches or whether the extension should diff Core's current graph against the rendered Graph View state for the first live-update UI improvement.

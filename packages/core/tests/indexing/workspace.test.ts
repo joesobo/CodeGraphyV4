@@ -161,7 +161,6 @@ describe('indexCodeGraphyWorkspace', () => {
       workspaceRoot,
       plugins: [createTextPlugin(calls)],
       includeCorePlugins: false,
-      showOrphans: true,
     });
 
     expect(result.workspaceRoot).toBe(path.resolve(workspaceRoot));
@@ -189,6 +188,31 @@ describe('indexCodeGraphyWorkspace', () => {
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).files.map(file => file.filePath)).toEqual(
       expect.arrayContaining(['source.txt', 'target.txt']),
     );
+  });
+
+  it('keeps orphan files in the core index regardless of graph view settings', async () => {
+    const workspaceRoot = await createWorkspace();
+    await fs.writeFile(path.join(workspaceRoot, 'orphan.txt'), 'unlinked\n', 'utf-8');
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      ...readCodeGraphyWorkspaceSettings(workspaceRoot),
+      showOrphans: false,
+    });
+
+    const result = await indexCodeGraphyWorkspace({
+      workspaceRoot,
+      plugins: [createTextPlugin({
+        onPreAnalyze: vi.fn(),
+        onPostAnalyze: vi.fn(),
+        onWorkspaceReady: vi.fn(),
+        analyzeFile: vi.fn(),
+      })],
+      includeCorePlugins: false,
+    });
+
+    expect(result.graph.nodes.map(node => node.id)).toEqual(
+      expect.arrayContaining(['source.txt', 'target.txt', 'orphan.txt']),
+    );
+    expect(result.graph.nodes.map(node => node.id)).not.toContain('.codegraphy');
   });
 
   it('keeps indexing state in core so changed files update the graph without full indexing', async () => {
@@ -418,7 +442,6 @@ describe('indexCodeGraphyWorkspace', () => {
           disabledFilterPatterns: ['**/ignored.txt'],
         }],
       },
-      showOrphans: true,
     });
 
     expect(result.files.map(file => file.relativePath)).toContain('ignored.txt');

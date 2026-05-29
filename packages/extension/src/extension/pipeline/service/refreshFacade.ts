@@ -40,8 +40,8 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
     return refreshWorkspacePipelineChangedFiles(((current) => ({
       _analyzeFiles: (files, root, progress, abortSignal) =>
         current._analyzeFiles(files, root, progress, abortSignal),
-      _buildGraphDataFromAnalysis: (fileAnalysis, root, showOrphans, selectedPlugins) =>
-        current._buildGraphDataFromAnalysis(fileAnalysis, root, showOrphans, selectedPlugins),
+      _buildGraphDataFromAnalysis: (fileAnalysis, root, selectedPlugins) =>
+        current._buildGraphDataFromAnalysis(fileAnalysis, root, true, selectedPlugins),
       get _lastDiscoveredFiles() {
         return current._lastDiscoveredFiles;
       },
@@ -71,7 +71,6 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         current.analyze(patterns, selectedPlugins, abortSignal, progress),
       invalidateWorkspaceFiles: paths => current.invalidateWorkspaceFiles(paths),
     }))(this), {
-      config,
       disabledPlugins,
       discoveredFiles: discoveryResult.files,
       filePaths,

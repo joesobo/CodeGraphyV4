@@ -36,6 +36,8 @@ export function shouldSkipKnownDirectory(relativePath: string): boolean {
 
   return normalizedRelative === 'node_modules'
     || normalizedRelative === '.git'
+    || normalizedRelative === '.codegraphy'
     || normalizedRelative.startsWith('node_modules/')
-    || normalizedRelative.startsWith('.git/');
+    || normalizedRelative.startsWith('.git/')
+    || normalizedRelative.startsWith('.codegraphy/');
 }

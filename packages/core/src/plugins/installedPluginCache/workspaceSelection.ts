@@ -11,6 +11,20 @@ export interface UpdateCodeGraphyWorkspacePluginSelectionOptions {
   defaultOptions?: Record<string, unknown>;
 }
 
+export interface CodeGraphyWorkspacePluginToggleOptions
+  extends UpdateCodeGraphyWorkspacePluginSelectionOptions {
+  pluginId: string;
+}
+
+export type CodeGraphyWorkspacePluginIndexingPlan =
+  | { kind: 'analyze-workspace' }
+  | { kind: 'reprocess-plugin-files'; pluginIds: string[] };
+
+export interface CodeGraphyWorkspacePluginTogglePlan {
+  plugins: CodeGraphyWorkspacePluginSettings[];
+  indexing: CodeGraphyWorkspacePluginIndexingPlan;
+}
+
 export function updateCodeGraphyWorkspacePluginSelection(
   plugins: readonly CodeGraphyWorkspacePluginSettings[],
   options: UpdateCodeGraphyWorkspacePluginSelectionOptions,
@@ -29,6 +43,18 @@ export function updateCodeGraphyWorkspacePluginSelection(
   }
 
   return [...plugins, nextPlugin];
+}
+
+export function createCodeGraphyWorkspacePluginTogglePlan(
+  plugins: readonly CodeGraphyWorkspacePluginSettings[],
+  options: CodeGraphyWorkspacePluginToggleOptions,
+): CodeGraphyWorkspacePluginTogglePlan {
+  return {
+    plugins: updateCodeGraphyWorkspacePluginSelection(plugins, options),
+    indexing: options.enabled
+      ? { kind: 'reprocess-plugin-files', pluginIds: [options.pluginId] }
+      : { kind: 'analyze-workspace' },
+  };
 }
 
 export function enableCodeGraphyWorkspacePlugin(

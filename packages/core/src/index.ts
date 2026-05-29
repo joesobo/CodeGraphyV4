@@ -228,6 +228,9 @@ export type {
 } from './plugins/packageManifest';
 export { parseCodeGraphyPluginPackageManifest } from './plugins/packageManifest';
 export type {
+  CodeGraphyWorkspacePluginIndexingPlan,
+  CodeGraphyWorkspacePluginToggleOptions,
+  CodeGraphyWorkspacePluginTogglePlan,
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
   CodeGraphyUserStateOptions,
@@ -235,6 +238,7 @@ export type {
   RegisterCodeGraphyInstalledPluginOptions,
 } from './plugins/installedCache';
 export {
+  createCodeGraphyWorkspacePluginTogglePlan,
   createBundledMarkdownInstalledPluginRecord,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,

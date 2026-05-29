@@ -5,7 +5,12 @@ export type {
   LinkCodeGraphyInstalledPluginPackageOptions,
   RegisterCodeGraphyInstalledPluginOptions,
 } from './installedPluginCache/contracts';
-export type { UpdateCodeGraphyWorkspacePluginSelectionOptions } from './installedPluginCache/workspaceSelection';
+export type {
+  CodeGraphyWorkspacePluginIndexingPlan,
+  CodeGraphyWorkspacePluginToggleOptions,
+  CodeGraphyWorkspacePluginTogglePlan,
+  UpdateCodeGraphyWorkspacePluginSelectionOptions,
+} from './installedPluginCache/workspaceSelection';
 export { createBundledMarkdownInstalledPluginRecord } from './installedPluginCache/bundled';
 export {
   getCodeGraphyUserDirectoryPath,
@@ -21,6 +26,7 @@ export {
   writeCodeGraphyInstalledPluginCache,
 } from './installedPluginCache/storage';
 export {
+  createCodeGraphyWorkspacePluginTogglePlan,
   disableCodeGraphyWorkspacePlugin,
   enableCodeGraphyWorkspacePlugin,
   updateCodeGraphyWorkspacePluginSelection,

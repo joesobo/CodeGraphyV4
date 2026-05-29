@@ -1,5 +1,5 @@
 import {
-  updateCodeGraphyWorkspacePluginSelection,
+  createCodeGraphyWorkspacePluginTogglePlan,
   type CodeGraphyWorkspacePluginSettings,
 } from '@codegraphy-dev/core';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
@@ -16,27 +16,26 @@ export async function applySettingsToggleMessage(
   switch (message.type) {
     case 'TOGGLE_PLUGIN':
       if (message.payload.packageName) {
-        await handlers.updateConfig(
-          'plugins',
-          updateCodeGraphyWorkspacePluginSelection(
-            handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
-            {
-              packageName: message.payload.packageName,
-              enabled: message.payload.enabled,
-              defaultOptions: message.payload.enabled
-                ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)
-                : undefined,
-            },
-          ),
+        const plan = createCodeGraphyWorkspacePluginTogglePlan(
+          handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
+          {
+            pluginId: message.payload.pluginId,
+            packageName: message.payload.packageName,
+            enabled: message.payload.enabled,
+            defaultOptions: message.payload.enabled
+              ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)
+              : undefined,
+          },
         );
+        await handlers.updateConfig('plugins', plan.plugins);
         await handlers.reloadWorkspacePlugins();
         handlers.sendPluginStatuses?.();
         handlers.sendContextMenuItems?.();
         handlers.sendPluginToolbarActions?.();
         handlers.sendGraphViewContributionStatuses?.();
         handlers.sendGraphControls();
-        if (message.payload.enabled) {
-          await handlers.reprocessPluginFiles([message.payload.pluginId]);
+        if (plan.indexing.kind === 'reprocess-plugin-files') {
+          await handlers.reprocessPluginFiles(plan.indexing.pluginIds);
           return true;
         }
 

@@ -134,7 +134,7 @@ describe('pipeline/service/refreshFacade', () => {
 
     const [refreshSource, refreshDependencies] = vi.mocked(refreshWorkspacePipelineChangedFiles).mock.calls[0];
 
-    expect(refreshDependencies.config).toEqual({ showOrphans: true, respectGitignore: true });
+    expect('config' in refreshDependencies).toBe(false);
     expect(refreshDependencies.disabledPlugins).toBe(disabledPlugins);
     expect(refreshDependencies.discoveredFiles).toEqual([
       { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
@@ -162,7 +162,7 @@ describe('pipeline/service/refreshFacade', () => {
     await refreshSource._analyzeFiles([], '/workspace', undefined, signal);
     expect(facade._analyzeFiles).toHaveBeenCalledWith([], '/workspace', undefined, signal);
 
-    refreshSource._buildGraphDataFromAnalysis(new Map(), '/workspace', true, disabledPlugins);
+    refreshSource._buildGraphDataFromAnalysis(new Map(), '/workspace', disabledPlugins);
     expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(new Map(), '/workspace', true, disabledPlugins);
 
     expect(refreshSource._lastDiscoveredFiles).toEqual([]);

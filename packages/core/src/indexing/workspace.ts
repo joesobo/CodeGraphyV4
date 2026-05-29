@@ -62,7 +62,7 @@ export async function indexCodeGraphyWorkspace(
     disabledPlugins,
     fileAnalysis: analysisResult.fileAnalysis,
     getPluginForFile: absolutePath => registry.getPluginForFile(absolutePath),
-    showOrphans: settings.showOrphans,
+    showOrphans: true,
     workspaceRoot,
   });
 

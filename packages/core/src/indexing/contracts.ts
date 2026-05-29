@@ -24,7 +24,6 @@ export interface IndexCodeGraphyWorkspaceOptions {
   disabledPlugins?: Iterable<string>;
   maxFiles?: number;
   respectGitignore?: boolean;
-  showOrphans?: boolean;
   signal?: AbortSignal;
   onProgress?: (progress: { phase: string; current: number; total: number }) => void;
   logInfo?: (message: string) => void;
