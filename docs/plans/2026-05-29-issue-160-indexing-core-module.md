@@ -135,8 +135,10 @@ The implementation should preserve current graph smoothness and leave a clear ho
 - Moved plugin status and plugin-name query semantics into `@codegraphy-dev/core`, with extension compatibility shims delegating to Core.
 - Moved workspace plugin selection rules into `@codegraphy-dev/core`, so the extension no longer owns the package-plugin settings merge/remove behavior.
 - Added a Core-owned package-plugin toggle plan so the extension sends plugin-toggle intent and Core returns both the next workspace plugin settings and the indexing action to perform.
+- Added Core-owned workspace index engine state for retained cache, discovered files/directories, file analysis, file connections, graph data, and workspace root.
+- Routed `WorkspacePipeline` retained indexing fields through the Core engine-state object while keeping compatibility accessors for existing extension callers.
+- Moved changed-file cache/analysis invalidation and discovered-directory invalidation behind Core indexing state helpers, with extension wrappers delegating to Core.
 
 Remaining deeper-boundary work:
 
-- Route the extension's long-lived `WorkspacePipeline` state directly through the Core workspace engine instead of adapter facades around extension-owned fields.
 - Decide whether Core should return graph patches or whether the extension should diff Core's current graph against the rendered Graph View state for the first live-update UI improvement.
