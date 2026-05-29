@@ -172,6 +172,7 @@ export { readGraphCacheStatus } from './graphCache/status';
 export {
   createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
+  refreshWorkspaceIndexChangedFiles,
 } from './indexing/workspace';
 export type {
   CodeGraphyWorkspaceEngine,
@@ -179,6 +180,8 @@ export type {
   IndexCodeGraphyWorkspacePlugin,
   IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
+  WorkspaceIndexRefreshDependencies,
+  WorkspaceIndexRefreshSource,
 } from './indexing/workspace';
 export {
   CORE_PLUGIN_API_VERSION,

@@ -13,6 +13,11 @@ export {
   createCodeGraphyWorkspaceEngine,
   type CodeGraphyWorkspaceEngine,
 } from './engine';
+export {
+  refreshWorkspaceIndexChangedFiles,
+  type WorkspaceIndexRefreshDependencies,
+  type WorkspaceIndexRefreshSource,
+} from './refresh';
 
 export type {
   IndexCodeGraphyWorkspaceOptions,

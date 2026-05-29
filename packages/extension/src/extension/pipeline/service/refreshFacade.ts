@@ -85,7 +85,6 @@ export abstract class WorkspacePipelineRefreshFacade extends WorkspacePipelineDi
         await this._persistIndexMetadata();
       },
       signal,
-      toWorkspaceRelativePath: (root, filePath) => this._toWorkspaceRelativePath(root, filePath),
       workspaceRoot,
     });
   }
