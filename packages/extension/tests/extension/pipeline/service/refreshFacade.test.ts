@@ -159,9 +159,6 @@ describe('pipeline/service/refreshFacade', () => {
     await refreshDependencies.persistIndexMetadata();
     expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
 
-    expect(refreshDependencies.toWorkspaceRelativePath('/workspace', '/workspace/src/a.ts')).toBe('src/a.ts');
-    expect(facade._toWorkspaceRelativePath).toHaveBeenCalledWith('/workspace', '/workspace/src/a.ts');
-
     await refreshSource._analyzeFiles([], '/workspace', undefined, signal);
     expect(facade._analyzeFiles).toHaveBeenCalledWith([], '/workspace', undefined, signal);
 

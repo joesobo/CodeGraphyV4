@@ -32,13 +32,6 @@ function createDependencies() {
     persistCache: vi.fn(),
     persistIndexMetadata: vi.fn(async () => undefined),
     signal: new AbortController().signal,
-    toWorkspaceRelativePath: vi.fn((workspaceRoot: string, filePath: string) => {
-      if (!filePath.startsWith(`${workspaceRoot}/`)) {
-        return undefined;
-      }
-
-      return filePath.slice(workspaceRoot.length + 1);
-    }),
     workspaceRoot: '/workspace',
   };
 }
@@ -65,7 +58,9 @@ describe('pipeline/service/refresh', () => {
 
     forwardedProgress({ phase: 'Analyzing Files', current: 2, total: 5 });
 
-    expect(dependencies.toWorkspaceRelativePath).toHaveBeenCalledWith('/workspace', '/workspace/src/a.ts');
+    expect(source._readAnalysisFiles).toHaveBeenCalledWith([
+      { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
+    ]);
     expect(source.analyze).toHaveBeenCalledWith(
       ['**/*.ts'],
       dependencies.disabledPlugins,

@@ -82,7 +82,7 @@ export default function createPlugin() {
       return {
         filePath,
         relations: [{
-          kind: 'reference' as const,
+          kind: 'reference',
           sourceId: 'configured-target',
           fromFilePath: filePath,
           toFilePath: targetPath,
