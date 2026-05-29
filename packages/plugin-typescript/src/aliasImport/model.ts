@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { IAnalysisFile, IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import ts from 'typescript';
 
 export const TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE = {
   id: 'codegraphy.typescript:alias-import',
@@ -10,7 +11,7 @@ export const TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE = {
 } as const;
 
 const COMPILER_OPTIONS_PATHS_SOURCE_ID = 'compiler-options-paths';
-const IMPORT_RESOLUTION_EXTENSIONS = ['', '.ts', '.tsx', '.mts', '.cts'] as const;
+const IMPORT_RESOLUTION_EXTENSIONS = ['', '.ts', '.tsx', '.d.ts', '.mts', '.cts'] as const;
 const TYPESCRIPT_SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts']);
 
 type TypeScriptPathMapping = {
@@ -23,13 +24,12 @@ type TypeScriptAliasConfig = {
   paths: TypeScriptPathMapping[];
 };
 
-type TsConfigFile = {
-  extends?: string;
-  compilerOptions?: {
-    baseUrl?: string;
-    paths?: Record<string, string[]>;
-  };
-};
+function toWorkspacePath(candidate: string, workspaceRoot: string): string {
+  const realWorkspaceRoot = fs.realpathSync.native(workspaceRoot);
+  return candidate === realWorkspaceRoot || candidate.startsWith(`${realWorkspaceRoot}${path.sep}`)
+    ? path.join(workspaceRoot, path.relative(realWorkspaceRoot, candidate))
+    : candidate;
+}
 
 export function isTypeScriptSourceFile(filePath: string): boolean {
   return TYPESCRIPT_SOURCE_EXTENSIONS.has(path.extname(filePath));
@@ -39,80 +39,59 @@ export function isTypeScriptConfigFile(filePath: string): boolean {
   return /^tsconfig(?:\..*)?\.json$/.test(path.basename(filePath));
 }
 
-function readTsConfigFile(tsconfigPath: string): TsConfigFile {
-  const parsed = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8')) as TsConfigFile;
-  return parsed;
-}
-
-function resolveLocalExtendsPath(tsconfigPath: string, extendedConfig: string): string | null {
-  if (!extendedConfig.startsWith('.')) {
+function readTypeScriptAliasConfig(workspaceRoot: string): TypeScriptAliasConfig | null {
+  const tsconfigPath = path.join(workspaceRoot, 'tsconfig.json');
+  if (!fs.existsSync(tsconfigPath)) {
     return null;
   }
 
-  const resolved = path.resolve(path.dirname(tsconfigPath), extendedConfig);
-  return path.extname(resolved) ? resolved : `${resolved}.json`;
-}
-
-function resolvePackageExtendsPath(tsconfigPath: string, extendedConfig: string): string | null {
-  let currentDir = path.dirname(tsconfigPath);
-  const rootDir = path.parse(currentDir).root;
-
-  while (true) {
-    const resolved = path.join(currentDir, 'node_modules', extendedConfig);
-    const candidate = path.extname(resolved) ? resolved : `${resolved}.json`;
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
-
-    if (currentDir === rootDir) {
-      return null;
-    }
-
-    currentDir = path.dirname(currentDir);
-  }
-}
-
-function resolveExtendsPath(tsconfigPath: string, extendedConfig: string): string | null {
-  return resolveLocalExtendsPath(tsconfigPath, extendedConfig)
-    ?? resolvePackageExtendsPath(tsconfigPath, extendedConfig);
-}
-
-function readTypeScriptAliasConfigFile(
-  tsconfigPath: string,
-  visited = new Set<string>(),
-): TypeScriptAliasConfig | null {
-  if (!fs.existsSync(tsconfigPath) || visited.has(tsconfigPath)) {
+  const readResult = ts.readConfigFile(tsconfigPath, fileName => ts.sys.readFile(fileName));
+  if (readResult.error) {
     return null;
   }
 
-  visited.add(tsconfigPath);
-  const parsed = readTsConfigFile(tsconfigPath);
-  const extendedConfigPath = parsed.extends
-    ? resolveExtendsPath(tsconfigPath, parsed.extends)
-    : null;
-  const inheritedPaths = extendedConfigPath
-    ? readTypeScriptAliasConfigFile(extendedConfigPath, visited)?.paths ?? []
-    : [];
-  const compilerOptions = parsed.compilerOptions;
-  const paths = compilerOptions?.paths;
-  if (!paths && inheritedPaths.length === 0) {
+  const parsed = ts.parseJsonConfigFileContent(
+    readResult.config,
+    ts.sys,
+    path.dirname(tsconfigPath),
+    undefined,
+    tsconfigPath,
+  );
+  const paths = parsed.options.paths;
+  if (!paths) {
     return null;
   }
 
+  const parsedBaseUrl = typeof parsed.options.baseUrl === 'string' ? parsed.options.baseUrl : undefined;
+  const parsedPathsBasePath = typeof parsed.options.pathsBasePath === 'string'
+    ? parsed.options.pathsBasePath
+    : undefined;
+  const baseUrl = toWorkspacePath(parsedBaseUrl ?? parsedPathsBasePath ?? path.dirname(tsconfigPath), workspaceRoot);
   return {
-    paths: [
-      ...inheritedPaths,
-      ...Object.entries(paths ?? {}).map(([key, targets]) => ({
-        baseUrl: path.resolve(path.dirname(tsconfigPath), compilerOptions?.baseUrl ?? '.'),
+    paths: Object.entries(paths)
+      .map(([key, targets]) => ({
+        baseUrl,
         key,
         targets,
-      })),
-    ],
+      }))
+      .sort(comparePathMappingSpecificity),
   };
 }
 
-function readTypeScriptAliasConfig(workspaceRoot: string): TypeScriptAliasConfig | null {
-  return readTypeScriptAliasConfigFile(path.join(workspaceRoot, 'tsconfig.json'));
+function pathMappingSpecificity(mapping: TypeScriptPathMapping): [number, number] {
+  const [prefix, suffix] = mapping.key.split('*');
+  return suffix === undefined
+    ? [Number.POSITIVE_INFINITY, mapping.key.length]
+    : [prefix.length, suffix.length];
+}
+
+function comparePathMappingSpecificity(
+  left: TypeScriptPathMapping,
+  right: TypeScriptPathMapping,
+): number {
+  const [leftPrefixLength, leftSuffixLength] = pathMappingSpecificity(left);
+  const [rightPrefixLength, rightSuffixLength] = pathMappingSpecificity(right);
+  return rightPrefixLength - leftPrefixLength || rightSuffixLength - leftSuffixLength;
 }
 
 function extractModuleSpecifiers(content: string): string[] {
@@ -140,7 +119,7 @@ function resolvePathMappingTarget(
   }
 
   const [prefix, suffix] = mapping.key.split('*');
-  if (!prefix || suffix === undefined || !specifier.startsWith(prefix) || !specifier.endsWith(suffix)) {
+  if (suffix === undefined || !specifier.startsWith(prefix) || !specifier.endsWith(suffix)) {
     return null;
   }
 

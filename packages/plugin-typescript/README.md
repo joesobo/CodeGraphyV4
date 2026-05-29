@@ -32,10 +32,12 @@ processes aliases whenever the TypeScript plugin is enabled so Graph Query, MCP,
 exports can use the same relationship data even when Graph Scope hides it.
 
 Alias import support starts from the CodeGraphy Workspace root `tsconfig.json`,
-follows local relative and package-based `extends` chains, honors `compilerOptions.baseUrl`,
-reads `compilerOptions.paths`, supports exact and wildcard mappings, honors fallback
-target arrays in order, and emits no relationship when an alias cannot resolve to a
-workspace file. Changes to `tsconfig*.json` re-analyze affected TypeScript files.
+parses normal TypeScript JSONC config files, follows local relative and package-based
+`extends` chains, honors `compilerOptions.baseUrl`, reads `compilerOptions.paths`
+with TypeScript inheritance and pattern precedence, supports exact and wildcard
+mappings, honors fallback target arrays in order, and emits no relationship when an
+alias cannot resolve to a workspace file. Changes to `tsconfig*.json` re-analyze
+affected TypeScript files.
 
 Core CodeGraphy now owns the default JS/TS icons and colors through Material Icon Theme.
 This plugin no longer ships general file theming.
