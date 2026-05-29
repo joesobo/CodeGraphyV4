@@ -1,5 +1,5 @@
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 import type { GraphDebugControls } from './contracts/protocol';
 
 export function buildGraphDebugOptions({
@@ -9,25 +9,25 @@ export function buildGraphDebugOptions({
   win,
 }: {
   graphMode: '2d' | '3d';
-  graphState: UseGraphStateResult;
+  graphState: GraphRuntime;
   interactions: UseGraphInteractionRuntimeResult;
   win?: Window;
 }): {
-  containerRef: UseGraphStateResult['containerRef'];
+  containerRef: GraphRuntime['renderer']['containerRef'];
   fitView(this: void): void;
   fg2dRef: { current: GraphDebugControls | undefined };
   fg3dRef: { current: GraphDebugControls | undefined };
-  graphDataRef: UseGraphStateResult['graphDataRef'];
+  graphDataRef: GraphRuntime['renderer']['graphDataRef'];
   graphMode: '2d' | '3d';
   openNodeContextMenu: UseGraphInteractionRuntimeResult['handleNodeContextMenuById'];
   win?: Window;
 } {
   return {
-    containerRef: graphState.containerRef,
+    containerRef: graphState.renderer.containerRef,
     fitView: interactions.interactionHandlers.fitView,
-    fg2dRef: graphState.fg2dRef,
-    fg3dRef: graphState.fg3dRef,
-    graphDataRef: graphState.graphDataRef,
+    fg2dRef: graphState.renderer.fg2dRef,
+    fg3dRef: graphState.renderer.fg3dRef,
+    graphDataRef: graphState.renderer.graphDataRef,
     graphMode,
     openNodeContextMenu: interactions.handleNodeContextMenuById,
     win,

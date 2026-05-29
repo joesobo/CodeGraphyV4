@@ -2,13 +2,14 @@ import { useMemo } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphViewStoreState } from '../view/store';
 import type {
+  GraphContextSelection,
   GraphContextMenuEntry,
 } from '../contextMenu/contracts';
 import { buildGraphContextMenuEntries } from '../contextMenu/build/entries';
 import { getGraphContextMutationAvailability } from '../contextMenu/mutationAvailability';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
 import type { UseGraphRenderingRuntimeResult } from '../runtime/use/rendering';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 import { buildSharedGraphProps } from '../rendering/surface/sharedProps';
 import { buildGraphSharedPropsOptions } from '../view/sharedPropsOptions';
 import { handleGraphSurface3dError } from '../rendering/surface/error';
@@ -27,7 +28,10 @@ export interface GraphViewportModel {
 }
 
 export interface GraphViewportModelOptions {
-  graphState: Pick<UseGraphStateResult, 'contextSelection' | 'graphData'>;
+  graphState: {
+    contextSelection: GraphContextSelection;
+    graphData: GraphRuntime['renderer']['graphData'];
+  };
   graphViewContributions?: CoreGraphViewContributionSet;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;

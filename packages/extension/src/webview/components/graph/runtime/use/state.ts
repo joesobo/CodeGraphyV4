@@ -39,7 +39,7 @@ export interface GraphMouseState {
   y: number;
 }
 
-export interface UseGraphStateOptions {
+export interface GraphRuntimeOptions {
   bidirectionalMode: BidirectionalEdgeMode;
   appearance?: GraphAppearance;
   data: IGraphData;
@@ -56,43 +56,59 @@ export interface UseGraphStateOptions {
   timelineActive: boolean;
 }
 
-export interface UseGraphStateResult {
+export interface GraphRuntimeSelection {
+  selectedNodeIds: string[];
+  selectedNodeIdsRef: MutableRefObject<Set<string>>;
+  setSelectedNodeIds: Dispatch<SetStateAction<string[]>>;
+}
+
+export interface GraphRuntimeRenderer {
   containerRef: MutableRefObject<HTMLDivElement | null>;
-  contextSelection: GraphContextSelection;
+  fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
+  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
+  graphData: { links: FGLink[]; nodes: FGNode[] };
+  graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
+}
+
+export interface GraphRuntimeContextSelection {
+  selection: GraphContextSelection;
+  setSelection: Dispatch<SetStateAction<GraphContextSelection>>;
+  lastContainerContextMenuEventRef: MutableRefObject<number>;
+  lastGraphContextEventRef: MutableRefObject<number>;
+  rightClickFallbackTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  rightMouseDownRef: MutableRefObject<GraphMouseState | null>;
+}
+
+export interface GraphRuntimeRenderCaches {
+  fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
+  imageCacheVersion: number;
+  invalidateImages(this: void): void;
+  meshesRef: MutableRefObject<Map<string, THREE.Mesh>>;
+  spritesRef: MutableRefObject<Map<string, SpriteText>>;
+}
+
+export interface GraphRuntime {
+  context: GraphRuntimeContextSelection;
   dataRef: MutableRefObject<IGraphData>;
   directionColorRef: MutableRefObject<string>;
   directionModeRef: MutableRefObject<DirectionMode>;
   edgeDecorationsRef: MutableRefObject<Record<string, EdgeDecorationPayload> | undefined>;
   favoritesRef: MutableRefObject<Set<string>>;
-  fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
-  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
-  fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphAppearanceRef: MutableRefObject<GraphAppearance>;
-  graphData: { links: FGLink[]; nodes: FGNode[] };
-  graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
-  imageCacheVersion: number;
   highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
   lastClickRef: MutableRefObject<{ nodeId: string; time: number } | null>;
-  lastContainerContextMenuEventRef: MutableRefObject<number>;
-  lastGraphContextEventRef: MutableRefObject<number>;
-  meshesRef: MutableRefObject<Map<string, THREE.Mesh>>;
   nodeDecorationsRef: MutableRefObject<Record<string, NodeDecorationPayload> | undefined>;
   nodeSizeModeRef: MutableRefObject<NodeSizeMode>;
-  rightClickFallbackTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
-  rightMouseDownRef: MutableRefObject<GraphMouseState | null>;
-  selectedNodes: string[];
-  selectedNodesSetRef: MutableRefObject<Set<string>>;
-  setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
+  renderer: GraphRuntimeRenderer;
+  renderCaches: GraphRuntimeRenderCaches;
+  selection: GraphRuntimeSelection;
   setHighlightVersion: Dispatch<SetStateAction<number>>;
-  setSelectedNodes: Dispatch<SetStateAction<string[]>>;
   showLabelsRef: MutableRefObject<boolean>;
-  spritesRef: MutableRefObject<Map<string, SpriteText>>;
   themeRef: MutableRefObject<ThemeKind>;
   timelineActiveRef: MutableRefObject<boolean>;
-  triggerImageRerender(this: void): void;
 }
 
 export interface TimelineAlphaGraph {
@@ -123,7 +139,7 @@ function getVisibleSelection(
   return selectedNodeIds.filter((nodeId) => visibleNodeIds.has(nodeId));
 }
 
-export function useGraphState({
+export function useGraphRuntime({
   bidirectionalMode,
   appearance = DEFAULT_GRAPH_APPEARANCE,
   data,
@@ -138,7 +154,7 @@ export function useGraphState({
   showLabels,
   theme,
   timelineActive,
-}: UseGraphStateOptions): UseGraphStateResult {
+}: GraphRuntimeOptions): GraphRuntime {
   const timelineActiveRef = useRef(timelineActive);
   timelineActiveRef.current = timelineActive;
 
@@ -230,41 +246,49 @@ export function useGraphState({
   }, [graphData, selectedNodes]);
 
   return {
-    containerRef,
-    contextSelection,
+    context: {
+      selection: contextSelection,
+      setSelection: setContextSelection,
+      lastContainerContextMenuEventRef,
+      lastGraphContextEventRef,
+      rightClickFallbackTimerRef,
+      rightMouseDownRef,
+    },
     dataRef,
     directionColorRef,
     directionModeRef,
     edgeDecorationsRef,
     favoritesRef,
-    fg2dRef,
-    fg3dRef,
-    fileInfoCacheRef,
     graphCursorRef,
     graphAppearanceRef,
-    graphData,
-    graphDataRef,
-    imageCacheVersion,
     highlightVersion,
     highlightedNeighborsRef,
     highlightedNodeRef,
     lastClickRef,
-    lastContainerContextMenuEventRef,
-    lastGraphContextEventRef,
-    meshesRef,
     nodeDecorationsRef,
     nodeSizeModeRef,
-    rightClickFallbackTimerRef,
-    rightMouseDownRef,
-    selectedNodes,
-    selectedNodesSetRef,
-    setContextSelection,
+    renderer: {
+      containerRef,
+      fg2dRef,
+      fg3dRef,
+      graphData,
+      graphDataRef,
+    },
+    renderCaches: {
+      fileInfoCacheRef,
+      imageCacheVersion,
+      invalidateImages: triggerImageRerender,
+      meshesRef,
+      spritesRef,
+    },
+    selection: {
+      selectedNodeIds: selectedNodes,
+      selectedNodeIdsRef: selectedNodesSetRef,
+      setSelectedNodeIds: setSelectedNodes,
+    },
     setHighlightVersion,
-    setSelectedNodes,
     showLabelsRef,
-    spritesRef,
     themeRef,
     timelineActiveRef,
-    triggerImageRerender,
   };
 }

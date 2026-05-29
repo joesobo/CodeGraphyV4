@@ -6,7 +6,7 @@ import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import type { GraphViewStoreState } from '../view/store';
 import type { UseGraphCallbacksResult } from '../rendering/useGraphCallbacks';
 import type { UseGraphInteractionRuntimeResult } from '../runtime/use/interaction';
-import type { UseGraphStateResult } from '../runtime/use/state';
+import type { GraphRuntime } from '../runtime/use/state';
 import { useGraphRenderingRuntime } from '../runtime/use/rendering';
 import { useGraphEventEffects } from '../runtime/use/events/effects';
 import { Viewport } from './view';
@@ -24,7 +24,7 @@ export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
   callbacks: UseGraphCallbacksResult;
   graphDataLayoutKey: string;
-  graphState: UseGraphStateResult;
+  graphState: GraphRuntime;
   graphViewContributions?: CoreGraphViewContributionSet;
   handleEngineStop(this: void): void;
   interactions: UseGraphInteractionRuntimeResult;
@@ -58,15 +58,15 @@ export function GraphViewportShell({
   }));
 
   useGraphEventEffects({
-    containerRef: graphState.containerRef,
+    containerRef: graphState.renderer.containerRef,
     dataRef: graphState.dataRef,
     directionColorRef: graphState.directionColorRef,
     directionModeRef: graphState.directionModeRef,
-    graphDataRef: graphState.graphDataRef,
+    graphDataRef: graphState.renderer.graphDataRef,
     graphMode: viewState.graphMode,
     interactionHandlers: interactions.interactionHandlers,
-    fileInfoCacheRef: graphState.fileInfoCacheRef,
-    selectedNodes: graphState.selectedNodes,
+    fileInfoCacheRef: graphState.renderCaches.fileInfoCacheRef,
+    selectedNodes: graphState.selection.selectedNodeIds,
     setTooltipData: interactions.setTooltipData,
     showLabelsRef: graphState.showLabelsRef,
     themeRef: graphState.themeRef,
@@ -97,12 +97,12 @@ export function GraphViewportShell({
       return;
     }
 
-    const graph = graphState.fg2dRef.current as GraphViewport2dControls | undefined;
+    const graph = graphState.renderer.fg2dRef.current as GraphViewport2dControls | undefined;
     pluginHost.setGraphViewViewportState(createGraphViewViewportState({
       globalScale,
       graph,
       graphMode: viewState.graphMode,
-      nodes: graphState.graphDataRef.current.nodes,
+      nodes: graphState.renderer.graphDataRef.current.nodes,
       timelineActive: viewState.timelineActive,
     }));
   };
@@ -130,7 +130,7 @@ export function GraphViewportShell({
       canvasBackgroundColor={viewportModel.canvasBackgroundColor}
       containerBackgroundColor={viewportModel.containerBackgroundColor}
       borderColor={viewportModel.borderColor}
-      containerRef={graphState.containerRef}
+      containerRef={graphState.renderer.containerRef}
       directionMode={viewState.directionMode}
       graphMode={viewState.graphMode}
       handleContextMenu={interactions.handleContextMenu}
