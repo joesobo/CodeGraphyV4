@@ -44,3 +44,23 @@ export function persistAnalysisEntry(
     runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex));
   }
 }
+
+export async function persistAnalysisEntryAsync(
+  connection: lb.Connection,
+  filePath: string,
+  entry: IWorkspaceAnalysisCache['files'][string],
+  afterStatement: () => Promise<void>,
+): Promise<void> {
+  runStatementSync(connection, createFileAnalysisStatement(filePath, entry));
+  await afterStatement();
+
+  for (const symbol of entry.analysis.symbols ?? []) {
+    runStatementSync(connection, createSymbolStatement(symbol));
+    await afterStatement();
+  }
+
+  for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
+    runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex));
+    await afterStatement();
+  }
+}

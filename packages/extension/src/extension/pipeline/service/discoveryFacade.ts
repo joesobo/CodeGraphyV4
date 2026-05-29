@@ -179,7 +179,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     return this.analyze(filterPatterns, disabledPlugins, signal, progress => {
       onProgress?.({
         ...progress,
-        phase: 'Refreshing Index',
+        phase: progress.phase || 'Refreshing Index',
       });
     });
   }

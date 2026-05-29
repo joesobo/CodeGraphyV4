@@ -57,7 +57,9 @@ export interface WorkspacePipelineAnalysisDependencies
   };
   getWorkspaceRoot(): string | undefined;
   logInfo(message: string): void;
-  saveCache(): void;
+  saveCache(
+    onProgress?: (progress: { current: number; total: number }) => void,
+  ): void | Promise<void>;
   showWarningMessage(message: string): void;
   sendProgress?(progress: { phase: string; current: number; total: number }): void;
 }
@@ -80,6 +82,11 @@ export async function analyzeWorkspaceWithAnalyzer(
   const config = dependencies.getConfig();
   const disabledCustomPatterns = new Set(config.disabledCustomFilterPatterns ?? []);
   const disabledPluginPatterns = new Set(config.disabledPluginFilterPatterns ?? []);
+  dependencies.sendProgress?.({
+    phase: 'Discovering Files',
+    current: 0,
+    total: 1,
+  });
   const discoveryResult = await discoverWorkspacePipelineFiles(
     dependencies,
     workspaceRoot,
@@ -89,6 +96,11 @@ export async function analyzeWorkspaceWithAnalyzer(
       .filter(pattern => !disabledPluginPatterns.has(pattern)),
     signal,
   );
+  dependencies.sendProgress?.({
+    phase: 'Discovering Files',
+    current: 1,
+    total: 1,
+  });
 
   throwIfWorkspaceAnalysisAborted(signal);
 
@@ -135,14 +147,40 @@ export async function analyzeWorkspaceWithAnalyzer(
   source._lastDiscoveredFiles = discoveryResult.files;
   source._lastWorkspaceRoot = workspaceRoot;
 
+  dependencies.sendProgress?.({
+    phase: 'Building Graph',
+    current: 0,
+    total: 1,
+  });
   const graphData = source._buildGraphDataFromAnalysis(
     analysisResult.fileAnalysis,
     workspaceRoot,
     config.showOrphans,
     disabledPlugins,
   );
+  dependencies.sendProgress?.({
+    phase: 'Building Graph',
+    current: 1,
+    total: 1,
+  });
 
-  dependencies.saveCache();
+  dependencies.sendProgress?.({
+    phase: 'Saving Graph Cache',
+    current: 0,
+    total: 1,
+  });
+  await dependencies.saveCache(progress => {
+    dependencies.sendProgress?.({
+      phase: 'Saving Graph Cache',
+      current: progress.current,
+      total: progress.total,
+    });
+  });
+  dependencies.sendProgress?.({
+    phase: 'Saving Graph Cache',
+    current: 1,
+    total: 1,
+  });
   dependencies.logInfo(
     `[CodeGraphy] Graph built: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`,
   );

@@ -25,7 +25,7 @@ export function createGraphViewAnalysisProgressForwarder(
   return (progress) => {
     handlers.sendIndexProgress?.({
       ...progress,
-      phase,
+      phase: progress.phase || phase,
     });
   };
 }

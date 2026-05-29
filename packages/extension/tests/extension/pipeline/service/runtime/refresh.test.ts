@@ -63,7 +63,7 @@ describe('pipeline/service/refresh', () => {
     const graph = await refreshWorkspacePipelineChangedFiles(source as never, dependencies as never);
     const forwardedProgress = source.analyze.mock.calls[0][3];
 
-    forwardedProgress({ phase: 'Ignored', current: 2, total: 5 });
+    forwardedProgress({ phase: 'Analyzing Files', current: 2, total: 5 });
 
     expect(dependencies.toWorkspaceRelativePath).toHaveBeenCalledWith('/workspace', '/workspace/src/a.ts');
     expect(source.analyze).toHaveBeenCalledWith(
@@ -73,7 +73,7 @@ describe('pipeline/service/refresh', () => {
       expect.any(Function),
     );
     expect(dependencies.onProgress).toHaveBeenCalledWith({
-      phase: 'Applying Changes',
+      phase: 'Analyzing Files',
       current: 2,
       total: 5,
     });
