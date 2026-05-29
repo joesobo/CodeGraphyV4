@@ -14,37 +14,79 @@ const COMPILER_OPTIONS_PATHS_SOURCE_ID = 'compiler-options-paths';
 const IMPORT_RESOLUTION_EXTENSIONS = ['', '.ts', '.tsx', '.mts', '.cts'] as const;
 
 type TypeScriptPathMapping = {
+  baseUrl: string;
   key: string;
   targets: string[];
 };
 
 type TypeScriptAliasConfig = {
-  baseUrl: string;
   paths: TypeScriptPathMapping[];
 };
 
-function readTypeScriptAliasConfig(workspaceRoot: string): TypeScriptAliasConfig | null {
-  const tsconfigPath = path.join(workspaceRoot, 'tsconfig.json');
-  if (!fs.existsSync(tsconfigPath)) {
-    return null;
-  }
+type TsConfigFile = {
+  extends?: string;
+  compilerOptions?: {
+    baseUrl?: string;
+    paths?: Record<string, string[]>;
+  };
+};
 
+function readTsConfigFile(tsconfigPath: string): TsConfigFile {
   const parsed = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8')) as {
+    extends?: string;
     compilerOptions?: {
       baseUrl?: string;
       paths?: Record<string, string[]>;
     };
   };
+  return parsed;
+}
+
+function resolveLocalExtendsPath(tsconfigPath: string, extendedConfig: string): string | null {
+  if (!extendedConfig.startsWith('.')) {
+    return null;
+  }
+
+  const resolved = path.resolve(path.dirname(tsconfigPath), extendedConfig);
+  return path.extname(resolved) ? resolved : `${resolved}.json`;
+}
+
+function readTypeScriptAliasConfigFile(
+  tsconfigPath: string,
+  visited = new Set<string>(),
+): TypeScriptAliasConfig | null {
+  if (!fs.existsSync(tsconfigPath) || visited.has(tsconfigPath)) {
+    return null;
+  }
+
+  visited.add(tsconfigPath);
+  const parsed = readTsConfigFile(tsconfigPath);
+  const extendedConfigPath = parsed.extends
+    ? resolveLocalExtendsPath(tsconfigPath, parsed.extends)
+    : null;
+  const inheritedPaths = extendedConfigPath
+    ? readTypeScriptAliasConfigFile(extendedConfigPath, visited)?.paths ?? []
+    : [];
   const compilerOptions = parsed.compilerOptions;
   const paths = compilerOptions?.paths;
-  if (!paths) {
+  if (!paths && inheritedPaths.length === 0) {
     return null;
   }
 
   return {
-    baseUrl: path.resolve(workspaceRoot, compilerOptions.baseUrl ?? '.'),
-    paths: Object.entries(paths).map(([key, targets]) => ({ key, targets })),
+    paths: [
+      ...inheritedPaths,
+      ...Object.entries(paths ?? {}).map(([key, targets]) => ({
+        baseUrl: path.resolve(path.dirname(tsconfigPath), compilerOptions?.baseUrl ?? '.'),
+        key,
+        targets,
+      })),
+    ],
   };
+}
+
+function readTypeScriptAliasConfig(workspaceRoot: string): TypeScriptAliasConfig | null {
+  return readTypeScriptAliasConfigFile(path.join(workspaceRoot, 'tsconfig.json'));
 }
 
 function extractModuleSpecifiers(content: string): string[] {
@@ -66,10 +108,9 @@ function resolvePathMappingTarget(
   specifier: string,
   mapping: TypeScriptPathMapping,
   target: string,
-  baseUrl: string,
 ): string | null {
   if (!mapping.key.includes('*')) {
-    return specifier === mapping.key ? resolveExistingFile(path.resolve(baseUrl, target)) : null;
+    return specifier === mapping.key ? resolveExistingFile(path.resolve(mapping.baseUrl, target)) : null;
   }
 
   const [prefix, suffix] = mapping.key.split('*');
@@ -78,7 +119,7 @@ function resolvePathMappingTarget(
   }
 
   const matched = specifier.slice(prefix.length, specifier.length - suffix.length);
-  return resolveExistingFile(path.resolve(baseUrl, target.replace('*', matched)));
+  return resolveExistingFile(path.resolve(mapping.baseUrl, target.replace('*', matched)));
 }
 
 function resolveAliasImport(
@@ -87,7 +128,7 @@ function resolveAliasImport(
 ): string | null {
   for (const mapping of config.paths) {
     for (const target of mapping.targets) {
-      const resolved = resolvePathMappingTarget(specifier, mapping, target, config.baseUrl);
+      const resolved = resolvePathMappingTarget(specifier, mapping, target);
       if (resolved) {
         return resolved;
       }
