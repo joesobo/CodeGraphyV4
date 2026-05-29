@@ -56,7 +56,13 @@ export interface UseGraphStateOptions {
   timelineActive: boolean;
 }
 
-export interface UseGraphStateResult {
+export interface GraphRuntimeSelection {
+  selectedNodeIds: string[];
+  selectedNodeIdsRef: MutableRefObject<Set<string>>;
+  setSelectedNodeIds: Dispatch<SetStateAction<string[]>>;
+}
+
+export interface GraphRuntime {
   containerRef: MutableRefObject<HTMLDivElement | null>;
   contextSelection: GraphContextSelection;
   dataRef: MutableRefObject<IGraphData>;
@@ -83,6 +89,7 @@ export interface UseGraphStateResult {
   nodeSizeModeRef: MutableRefObject<NodeSizeMode>;
   rightClickFallbackTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
   rightMouseDownRef: MutableRefObject<GraphMouseState | null>;
+  selection: GraphRuntimeSelection;
   selectedNodes: string[];
   selectedNodesSetRef: MutableRefObject<Set<string>>;
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
@@ -94,6 +101,8 @@ export interface UseGraphStateResult {
   timelineActiveRef: MutableRefObject<boolean>;
   triggerImageRerender(this: void): void;
 }
+
+export type UseGraphStateResult = GraphRuntime;
 
 export interface TimelineAlphaGraph {
   d3Alpha?: (value: number) => unknown;
@@ -138,7 +147,7 @@ export function useGraphState({
   showLabels,
   theme,
   timelineActive,
-}: UseGraphStateOptions): UseGraphStateResult {
+}: UseGraphStateOptions): GraphRuntime {
   const timelineActiveRef = useRef(timelineActive);
   timelineActiveRef.current = timelineActive;
 
@@ -256,6 +265,11 @@ export function useGraphState({
     nodeSizeModeRef,
     rightClickFallbackTimerRef,
     rightMouseDownRef,
+    selection: {
+      selectedNodeIds: selectedNodes,
+      selectedNodeIdsRef: selectedNodesSetRef,
+      setSelectedNodeIds: setSelectedNodes,
+    },
     selectedNodes,
     selectedNodesSetRef,
     setContextSelection,
