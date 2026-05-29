@@ -15,7 +15,7 @@ export function buildGraphSharedPropsOptions({
   containerSize: { width: number; height: number };
   dagMode: DagMode;
   damping: number;
-  graphData: GraphRuntime['graphData'];
+  graphData: GraphRuntime['renderer']['graphData'];
   handleEngineStop(this: void): void;
   interactions: UseGraphInteractionRuntimeResult;
   timelineActive: boolean;

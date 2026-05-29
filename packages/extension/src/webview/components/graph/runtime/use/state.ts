@@ -56,8 +56,6 @@ export interface GraphRuntimeOptions {
   timelineActive: boolean;
 }
 
-export type UseGraphStateOptions = GraphRuntimeOptions;
-
 export interface GraphRuntimeSelection {
   selectedNodeIds: string[];
   selectedNodeIdsRef: MutableRefObject<Set<string>>;
@@ -90,49 +88,28 @@ export interface GraphRuntimeRenderCaches {
 }
 
 export interface GraphRuntime {
-  containerRef: MutableRefObject<HTMLDivElement | null>;
   context: GraphRuntimeContextSelection;
-  contextSelection: GraphContextSelection;
   dataRef: MutableRefObject<IGraphData>;
   directionColorRef: MutableRefObject<string>;
   directionModeRef: MutableRefObject<DirectionMode>;
   edgeDecorationsRef: MutableRefObject<Record<string, EdgeDecorationPayload> | undefined>;
   favoritesRef: MutableRefObject<Set<string>>;
-  fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
-  fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
-  fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphAppearanceRef: MutableRefObject<GraphAppearance>;
-  graphData: { links: FGLink[]; nodes: FGNode[] };
-  graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
-  imageCacheVersion: number;
   highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
   lastClickRef: MutableRefObject<{ nodeId: string; time: number } | null>;
-  lastContainerContextMenuEventRef: MutableRefObject<number>;
-  lastGraphContextEventRef: MutableRefObject<number>;
-  meshesRef: MutableRefObject<Map<string, THREE.Mesh>>;
   nodeDecorationsRef: MutableRefObject<Record<string, NodeDecorationPayload> | undefined>;
   nodeSizeModeRef: MutableRefObject<NodeSizeMode>;
-  rightClickFallbackTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>;
-  rightMouseDownRef: MutableRefObject<GraphMouseState | null>;
   renderer: GraphRuntimeRenderer;
   renderCaches: GraphRuntimeRenderCaches;
   selection: GraphRuntimeSelection;
-  selectedNodes: string[];
-  selectedNodesSetRef: MutableRefObject<Set<string>>;
-  setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
   setHighlightVersion: Dispatch<SetStateAction<number>>;
-  setSelectedNodes: Dispatch<SetStateAction<string[]>>;
   showLabelsRef: MutableRefObject<boolean>;
-  spritesRef: MutableRefObject<Map<string, SpriteText>>;
   themeRef: MutableRefObject<ThemeKind>;
   timelineActiveRef: MutableRefObject<boolean>;
-  triggerImageRerender(this: void): void;
 }
-
-export type UseGraphStateResult = GraphRuntime;
 
 export interface TimelineAlphaGraph {
   d3Alpha?: (value: number) => unknown;
@@ -269,7 +246,6 @@ export function useGraphRuntime({
   }, [graphData, selectedNodes]);
 
   return {
-    containerRef,
     context: {
       selection: contextSelection,
       setSelection: setContextSelection,
@@ -278,31 +254,19 @@ export function useGraphRuntime({
       rightClickFallbackTimerRef,
       rightMouseDownRef,
     },
-    contextSelection,
     dataRef,
     directionColorRef,
     directionModeRef,
     edgeDecorationsRef,
     favoritesRef,
-    fg2dRef,
-    fg3dRef,
-    fileInfoCacheRef,
     graphCursorRef,
     graphAppearanceRef,
-    graphData,
-    graphDataRef,
-    imageCacheVersion,
     highlightVersion,
     highlightedNeighborsRef,
     highlightedNodeRef,
     lastClickRef,
-    lastContainerContextMenuEventRef,
-    lastGraphContextEventRef,
-    meshesRef,
     nodeDecorationsRef,
     nodeSizeModeRef,
-    rightClickFallbackTimerRef,
-    rightMouseDownRef,
     renderer: {
       containerRef,
       fg2dRef,
@@ -322,17 +286,9 @@ export function useGraphRuntime({
       selectedNodeIdsRef: selectedNodesSetRef,
       setSelectedNodeIds: setSelectedNodes,
     },
-    selectedNodes,
-    selectedNodesSetRef,
-    setContextSelection,
     setHighlightVersion,
-    setSelectedNodes,
     showLabelsRef,
-    spritesRef,
     themeRef,
     timelineActiveRef,
-    triggerImageRerender,
   };
 }
-
-export const useGraphState = useGraphRuntime;

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { GraphViewStoreState } from '../view/store';
 import type {
+  GraphContextSelection,
   GraphContextMenuEntry,
 } from '../contextMenu/contracts';
 import { buildGraphContextMenuEntries } from '../contextMenu/build/entries';
@@ -27,7 +28,10 @@ export interface GraphViewportModel {
 }
 
 export interface GraphViewportModelOptions {
-  graphState: Pick<GraphRuntime, 'contextSelection' | 'graphData'>;
+  graphState: {
+    contextSelection: GraphContextSelection;
+    graphData: GraphRuntime['renderer']['graphData'];
+  };
   graphViewContributions?: CoreGraphViewContributionSet;
   interactions: UseGraphInteractionRuntimeResult;
   handleEngineStop(this: void): void;

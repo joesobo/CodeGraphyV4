@@ -22,13 +22,13 @@ export interface MarqueeDragState {
 }
 
 export interface GraphMarqueeSelectionRuntimeOptions {
-  containerRef: GraphRuntime['containerRef'];
-  fg2dRef: GraphRuntime['fg2dRef'];
-  graphDataRef: GraphRuntime['graphDataRef'];
+  containerRef: GraphRuntime['renderer']['containerRef'];
+  fg2dRef: GraphRuntime['renderer']['fg2dRef'];
+  graphDataRef: GraphRuntime['renderer']['graphDataRef'];
   graphMode: '2d' | '3d';
   hoveredNodeRef: MutableRefObject<FGNode | null>;
   interactionHandlers: GraphInteractionHandlersRuntime;
-  selectedNodesSetRef: GraphRuntime['selectedNodesSetRef'];
+  selectedNodesSetRef: GraphRuntime['selection']['selectedNodeIdsRef'];
 }
 
 export interface GraphMarqueeSelectionRuntime {

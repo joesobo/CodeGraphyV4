@@ -16,7 +16,7 @@ export interface CreateGraphViewViewportStateOptions {
 	globalScale: number;
 	graph: GraphViewport2dControls | undefined;
 	graphMode: '2d' | '3d';
-	nodes: GraphRuntime['graphData']['nodes'];
+	nodes: GraphRuntime['renderer']['graphData']['nodes'];
 	timelineActive: boolean;
 }
 
@@ -29,7 +29,7 @@ function readViewportNumber(value: unknown): number | undefined {
 }
 
 export function toGraphViewViewportNodes(
-	nodes: GraphRuntime['graphData']['nodes'],
+	nodes: GraphRuntime['renderer']['graphData']['nodes'],
 ): GraphViewViewportNode[] {
 	return nodes.map(node => {
 		const viewportNode = node as GraphViewViewportNode;
@@ -54,7 +54,7 @@ export function toGraphViewViewportNodes(
 }
 
 export function updateGraphViewViewportNode(
-	nodes: GraphRuntime['graphData']['nodes'],
+	nodes: GraphRuntime['renderer']['graphData']['nodes'],
 	nodeId: string,
 	updates: Record<string, unknown>,
 ): boolean {
