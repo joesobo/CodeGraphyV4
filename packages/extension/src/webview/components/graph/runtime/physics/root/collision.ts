@@ -1,40 +1,32 @@
-import type { GraphLayoutSettings } from '../../../../../../shared/settings/graphLayout';
 import type { FGNode } from '../../../model/build';
-import { hasExpandedOwnerSection } from '../expandedOwnership';
+import { getRectangularNodeArea2D, getRectangularNodeAreaRadius } from '../../../model/node/rectangularArea';
 import { COLLISION_PADDING } from '../model';
-import { hasExpandedGraphSection, isExpandedGraphSection } from '../section/state';
+
+function readCollisionRadiusOverride(node: FGNode): number | undefined {
+	const radius = node.collisionRadius2D;
+	return typeof radius === 'number' && Number.isFinite(radius) && radius >= 0
+		? radius
+		: undefined;
+}
 
 export function getGraphCollisionRadius(node: FGNode): number {
-	if (isExpandedGraphSection(node)) {
-		return 0;
+	const collisionRadius = readCollisionRadiusOverride(node);
+	if (collisionRadius !== undefined) {
+		return collisionRadius + COLLISION_PADDING;
+	}
+
+	const visualArea = getRectangularNodeArea2D(node.shapeSize2D);
+	if (visualArea) {
+		return getRectangularNodeAreaRadius(visualArea) + COLLISION_PADDING;
 	}
 
 	return (node.size ?? 0) + COLLISION_PADDING;
 }
 
-export function getRootGraphCollisionRadius(
-	node: FGNode,
-	graphLayout: GraphLayoutSettings | undefined,
-): number {
-	if (node.isDragging && graphLayout && hasExpandedGraphSection(graphLayout) && !node.isGraphSection) {
-		return 0;
-	}
-
-	if (graphLayout && hasExpandedOwnerSection(node, graphLayout)) {
-		return 0;
-	}
-
+export function getRootGraphCollisionRadius(node: FGNode): number {
 	return getGraphCollisionRadius(node);
 }
 
-export function getRootGraphCenterStrength(
-	node: FGNode,
-	centerForce: number,
-	graphLayout: GraphLayoutSettings | undefined,
-): number {
-	if (graphLayout && hasExpandedOwnerSection(node, graphLayout)) {
-		return 0;
-	}
-
+export function getRootGraphCenterStrength(centerForce: number): number {
 	return centerForce;
 }

@@ -7,8 +7,7 @@ export interface GraphNodeDoubleClickOptions {
   clientX: number;
   clientY: number;
   doubleClickThresholdMs: number;
-  isCollapsedGraphSection?: boolean;
-  isGraphSection?: boolean;
+  isRuntimeNode?: boolean;
   label: string;
   lastClick: GraphLastClickState | null;
   nodeId: string;
@@ -32,7 +31,7 @@ function createNodeDoubleClickInteractionEffect(
   };
 }
 
-function getGraphSectionDoubleClickEffects(
+function getRuntimeNodeDoubleClickEffects(
   options: GraphNodeDoubleClickOptions,
 ): GraphNodeClickCommand['effects'] {
   return [
@@ -54,10 +53,10 @@ export function isDoubleNodeClick(
 export function getNodeDoubleClickCommand(
   options: GraphNodeDoubleClickOptions,
 ): GraphNodeClickCommand {
-  if (options.isGraphSection) {
+  if (options.isRuntimeNode) {
     return {
       nextLastClick: null,
-      effects: getGraphSectionDoubleClickEffects(options),
+      effects: getRuntimeNodeDoubleClickEffects(options),
     };
   }
 

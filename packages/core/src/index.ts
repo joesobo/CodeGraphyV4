@@ -181,6 +181,17 @@ export {
 } from './plugins/registry';
 export type { CorePluginInfo } from './plugins/registry';
 export type {
+  CoreGraphViewContributionEntry,
+  CoreGraphViewContributionSet,
+  CorePluginAccessCheck,
+  CorePluginAccessContext,
+} from './plugins/access/checks';
+export {
+  createEmptyGraphViewContributionSet,
+  resolvePluginAccess,
+} from './plugins/access/checks';
+export { createWorkspacePluginDataHost } from './plugins/data/host';
+export type {
   LoadedCodeGraphyWorkspacePluginPackage,
   LoadCodeGraphyWorkspacePluginPackagesOptions,
 } from './plugins/packageRuntime';
@@ -194,6 +205,7 @@ export type {
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
   CodeGraphyUserStateOptions,
+  LinkCodeGraphyInstalledPluginPackageOptions,
   RegisterCodeGraphyInstalledPluginOptions,
 } from './plugins/installedCache';
 export {
@@ -203,6 +215,7 @@ export {
   getCodeGraphyUserDirectoryPath,
   getCodeGraphyUserSettingsPath,
   getInstalledPluginsCachePath,
+  linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   registerCodeGraphyInstalledPlugin,
   writeCodeGraphyInstalledPluginCache,

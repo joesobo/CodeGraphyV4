@@ -25,7 +25,6 @@ export interface GraphViewReadyHandlers {
   loadAndSendData(): void | Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
-  sendGraphLayout?(): void;
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: { type: string; payload?: unknown }): void;
@@ -34,6 +33,7 @@ export interface GraphViewReadyHandlers {
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
+  sendGraphViewContributionStatuses?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
@@ -50,7 +50,6 @@ export async function applyWebviewReady(
   handlers.sendGraphControls();
   handlers.sendFavorites();
   handlers.sendSettings();
-  handlers.sendGraphLayout?.();
   handlers.sendPhysicsSettings();
   handlers.sendGroupsUpdated();
   handlers.sendMessage({
@@ -88,12 +87,14 @@ export async function applyWebviewReady(
   handlers.sendContextMenuItems();
   handlers.sendPluginExporters?.();
   handlers.sendPluginToolbarActions?.();
+  handlers.sendGraphViewContributionStatuses?.();
   handlers.sendPluginWebviewInjections();
   handlers.sendActiveFile();
   await handlers.loadAndSendData();
 
   if (state.hasWorkspace && state.firstAnalysis) {
     await handlers.waitForFirstWorkspaceReady();
+    handlers.sendGraphViewContributionStatuses?.();
   }
 
   handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });

@@ -5,6 +5,10 @@ export interface GraphDebugSnapshot {
   nodes: Array<{
     id: string;
     screenX: number;
+    shapeSize2D?: {
+      height: number;
+      width: number;
+    };
     screenY: number;
     size: number;
     x: number;
@@ -17,4 +21,11 @@ export interface GraphDebugControls {
   graph2ScreenCoords?(this: void, x: number, y: number, z?: number): { x: number; y: number };
   zoom?(this: void): number;
   zoomToFit?(this: void, durationMs?: number, padding?: number): void;
+}
+
+export interface GraphDebugApi {
+  fitView(this: void): void;
+  fitViewWithPadding(this: void, padding: number): void;
+  getSnapshot(this: void): GraphDebugSnapshot;
+  openNodeContextMenu(this: void, nodeId: string): void;
 }

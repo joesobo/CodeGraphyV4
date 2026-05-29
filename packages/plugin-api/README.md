@@ -17,7 +17,7 @@ npm install -D @codegraphy-dev/plugin-api
 ## Usage
 
 ```ts
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
+import type { IPlugin, IPluginFactory } from '@codegraphy-dev/plugin-api';
 ```
 
 This package is type-only. Use `import type` in plugin code.
@@ -26,12 +26,13 @@ Main surfaces in the current API:
 
 - per-file analysis objects with symbols, relationships, and Node Type / Edge Type contributions
 - default styling via `fileColors`, which already lets a plugin contribute Legend styling for extension matches, exact file names, and glob patterns
+- package plugin factories can receive `IPluginFactoryOptions` with merged workspace options and a plugin-owned data host
 - analysis hooks receive an optional `context` with a host-backed file-system adapter so plugins can resolve commit-local files during timeline indexing without reading `fs` directly
 - lifecycle hooks for headless analysis: `initialize`, `onWorkspaceReady`, `onPreAnalyze`, `onFilesChanged`, `analyzeFile`, `onPostAnalyze`, `onGraphRebuild`, and `onUnload`
 
-Recommended plugins are headless npm packages. They communicate with `@codegraphy-dev/core`; the VS Code extension owns VS Code UI, commands, webviews, and editor integration.
+Recommended plugins are headless npm packages. They communicate with `@codegraphy-dev/core`; the VS Code extension owns VS Code-specific UI, commands, and editor integration.
 
-Extension-owned plugin bridge types such as webview injections, commands, decorations, context menus, and toolbar actions intentionally live in `@codegraphy-dev/extension`, not in this public headless package.
+The public API exposes host-agnostic Graph View contracts, package webview asset declarations, plugin data, and host actions such as exporters. VS Code-specific bridge types, decorations, and the raw force-graph instance intentionally stay inside `@codegraphy-dev/extension`.
 
 Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged additively in the workspace plugin order. Plugins should add more specific evidence instead of deleting or suppressing core baseline relationships.
 
@@ -83,6 +84,23 @@ const plugin: IPlugin = {
   apiVersion: '^2.0.0',
   supportedExtensions: ['.ts'],
 };
+```
+
+Minimal package factory with workspace-owned plugin data:
+
+```ts
+const createPlugin: IPluginFactory = ({ dataHost } = {}) => ({
+  id: 'acme.plugin',
+  name: 'Acme Plugin',
+  version: '1.0.0',
+  apiVersion: '^2.0.0',
+  supportedExtensions: [],
+  async initialize() {
+    await dataHost?.saveData({ expanded: true });
+  },
+});
+
+export default createPlugin;
 ```
 
 The published CodeGraphy plugin packages use the same API surface:

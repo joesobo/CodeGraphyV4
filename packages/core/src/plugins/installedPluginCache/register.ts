@@ -1,9 +1,10 @@
 import type {
   CodeGraphyInstalledPluginCache,
   CodeGraphyInstalledPluginRecord,
+  LinkCodeGraphyInstalledPluginPackageOptions,
   RegisterCodeGraphyInstalledPluginOptions,
 } from './contracts';
-import { readRequiredPackageManifest } from './packageReader';
+import { readPackageManifest, readRequiredPackageManifest } from './packageReader';
 import { getGlobalPackageRootPackagePath } from './paths';
 import {
   readCodeGraphyInstalledPluginCache,
@@ -49,4 +50,19 @@ export async function registerCodeGraphyInstalledPlugin(
     `CodeGraphy plugin package '${options.packageName}' was not found in global npm package roots. ` +
     `Run \`npm i -g ${options.packageName}\` first.`,
   );
+}
+
+export async function linkCodeGraphyInstalledPluginPackage(
+  options: LinkCodeGraphyInstalledPluginPackageOptions,
+): Promise<CodeGraphyInstalledPluginRecord> {
+  const record = await readPackageManifest(options.packageRoot);
+  if (!record) {
+    throw new Error(`Package at '${options.packageRoot}' is not a CodeGraphy plugin.`);
+  }
+
+  writeCodeGraphyInstalledPluginCache(
+    upsertInstalledPluginRecord(readCodeGraphyInstalledPluginCache({ homeDir: options.homeDir }), record),
+    { homeDir: options.homeDir },
+  );
+  return record;
 }

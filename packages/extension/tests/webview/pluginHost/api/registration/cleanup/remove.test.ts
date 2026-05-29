@@ -3,7 +3,7 @@ import { removePluginRegistrations } from '../../../../../../src/webview/pluginH
 import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../../../src/webview/pluginHost/api/contracts/webview';
 
 describe('removePluginRegistrations', () => {
-  let nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>;
+  let nodeRenderers: Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>;
   let overlays: Map<string, { pluginId: string; fn: OverlayRenderFn }>;
   let tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }>;
   let messageHandlers: Map<string, Set<(msg: { type: string; data: unknown }) => void>>;
@@ -24,12 +24,12 @@ describe('removePluginRegistrations', () => {
 
   it('removes node renderers belonging to the specified plugin', () => {
     const fn = (() => {}) as unknown as NodeRenderFn;
-    nodeRenderers.set('.ts', { pluginId: 'target', fn });
-    nodeRenderers.set('.js', { pluginId: 'other', fn });
+    nodeRenderers.set('.ts', [{ pluginId: 'target', fn }, { pluginId: 'other', fn }]);
+    nodeRenderers.set('.js', [{ pluginId: 'other', fn }]);
 
     removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
 
-    expect(nodeRenderers.has('.ts')).toBe(false);
+    expect(nodeRenderers.get('.ts')).toEqual([{ pluginId: 'other', fn }]);
     expect(nodeRenderers.has('.js')).toBe(true);
   });
 

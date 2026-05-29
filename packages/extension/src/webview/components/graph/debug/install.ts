@@ -10,6 +10,7 @@ export function installGraphDebugApi({
   fg3dRef,
   graphDataRef,
   graphMode,
+  openNodeContextMenu,
   win,
 }: {
   containerRef: RefObject<HTMLElement | null>;
@@ -18,6 +19,7 @@ export function installGraphDebugApi({
   fg3dRef: MutableRefObject<GraphDebugControls | undefined>;
   graphDataRef: MutableRefObject<{ nodes: DebugNode[] }>;
   graphMode: '2d' | '3d';
+  openNodeContextMenu?(this: void, nodeId: string, event: MouseEvent): void;
   win: Window;
 }): (() => void) | undefined {
   if (win.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ !== true) {
@@ -36,6 +38,33 @@ export function installGraphDebugApi({
       graphMode,
       nodes: graphDataRef.current.nodes,
     }),
+    openNodeContextMenu: (nodeId: string) => {
+      const node = graphDataRef.current.nodes.find(entry => entry.id === nodeId);
+      if (!node || !openNodeContextMenu) {
+        return;
+      }
+
+      const graph = graphMode === '2d' ? fg2dRef.current : fg3dRef.current;
+      const screen = graph?.graph2ScreenCoords?.(
+        node.x ?? 0,
+        node.y ?? 0,
+        typeof node.z === 'number' ? node.z : 0,
+      ) ?? {
+        x: node.x ?? 0,
+        y: node.y ?? 0,
+      };
+      const rect = containerRef.current?.getBoundingClientRect();
+      const event = new MouseEvent('contextmenu', {
+        bubbles: true,
+        button: 2,
+        buttons: 2,
+        cancelable: true,
+        clientX: (rect?.left ?? 0) + screen.x,
+        clientY: (rect?.top ?? 0) + screen.y,
+      });
+
+      openNodeContextMenu(nodeId, event);
+    },
   };
 
   return () => {

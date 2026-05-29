@@ -8,6 +8,7 @@ function createMockContext() {
     rect: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),
+    quadraticCurveTo: vi.fn(),
     closePath: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
@@ -26,6 +27,7 @@ describe('shapes2D', () => {
       'circle',
       'square',
       'diamond',
+      'rectangle',
       'triangle',
       'hexagon',
       'star',
@@ -51,6 +53,38 @@ describe('shapes2D', () => {
 
       expect(mock.beginPath).toHaveBeenCalledOnce();
       expect(mock.rect).toHaveBeenCalledWith(10 - 5, 20 - 5, 5 * 2, 5 * 2);
+      expect(mock.closePath).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('rectangle', () => {
+    it('calls rect with explicit width and height centered on the node', () => {
+      drawShape(ctx, 'rectangle', 10, 20, 5, {
+        height: 12,
+        width: 30,
+      });
+
+      expect(mock.beginPath).toHaveBeenCalledOnce();
+      expect(mock.rect).toHaveBeenCalledWith(-5, 14, 30, 12);
+      expect(mock.closePath).toHaveBeenCalledOnce();
+    });
+
+    it('falls back to square dimensions when no explicit size is provided', () => {
+      drawShape(ctx, 'rectangle', 10, 20, 5);
+
+      expect(mock.rect).toHaveBeenCalledWith(5, 15, 10, 10);
+    });
+
+    it('draws rounded rectangles when a corner radius is provided', () => {
+      drawShape(ctx, 'rectangle', 10, 20, 5, {
+        height: 12,
+        width: 30,
+      }, 3);
+
+      expect(mock.rect).not.toHaveBeenCalled();
+      expect(mock.moveTo).toHaveBeenCalledWith(-2, 14);
+      expect(mock.lineTo).toHaveBeenCalledWith(22, 14);
+      expect(mock.quadraticCurveTo).toHaveBeenCalledTimes(4);
       expect(mock.closePath).toHaveBeenCalledOnce();
     });
   });

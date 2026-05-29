@@ -1,116 +1,16 @@
-/**
- * @fileoverview Store action implementations.
- * @module webview/storeActions
- */
-
-import type { StoreApi } from 'zustand/vanilla';
-import type { GraphState } from '../state';
-import { postMessage } from '../../vscodeApi';
-import { MESSAGE_HANDLERS } from '../messages';
 import { createDisplayActions } from './display';
-import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import {
-  clearPendingGroupUpdate,
-  createPendingUserGroupsUpdate,
-  mergePendingGroupUpdate,
-} from '../optimistic/groups/updates';
-
-type SetState = StoreApi<GraphState>['setState'];
-type GetState = StoreApi<GraphState>['getState'];
+import { createBootstrapActions } from './bootstrap';
+import { createExtensionMessageActions } from './messages';
+import { createOptimisticLegendActions } from './optimisticLegends';
+import { createScalarActions } from './scalars';
+import type { GetState, SetState } from './types';
 
 export function createActions(set: SetState, get: GetState) {
-  const replaceUserGroups = (
-    currentGroups: GraphState['legends'],
-    userGroups: GraphState['legends'],
-  ): GraphState['legends'] => [
-    ...userGroups,
-    ...currentGroups.filter((group) => group.isPluginDefault),
-  ];
-  const canFinishInitialLoading = (
-    state: Pick<GraphState, 'bootstrapComplete' | 'graphData' | 'pendingPluginAssetLoads'>,
-  ): boolean =>
-    state.bootstrapComplete
-    && state.graphData !== null
-    && state.pendingPluginAssetLoads === 0;
-
   return {
     ...createDisplayActions(set),
-    setDirectionMode: (mode: GraphState['directionMode']) => set({ directionMode: mode }),
-    setDirectionColor: (color: string) => set({ directionColor: color }),
-    setParticleSpeed: (speed: number) => set({ particleSpeed: speed }),
-    setParticleSize: (size: number) => set({ particleSize: size }),
-    setPhysicsPaused: (paused: boolean) => set({ physicsPaused: paused }),
-    setBidirectionalMode: (mode: GraphState['bidirectionalMode']) => set({ bidirectionalMode: mode }),
-    setDepthMode: (depthMode: boolean) => set({ depthMode }),
-    setDagMode: (mode: GraphState['dagMode']) => set({ dagMode: mode }),
-    setMaxFiles: (max: number) => set({ maxFiles: max }),
-    setPlaybackSpeed: (speed: number) => set({ playbackSpeed: speed }),
-    setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
-    beginInitialBootstrap: () =>
-      set((state) => {
-        if (state.graphData !== null || !state.isLoading) {
-          return {};
-        }
-
-        return {
-          awaitingInitialBootstrap: true,
-          bootstrapComplete: false,
-          isLoading: true,
-        };
-      }),
-    beginPluginAssetLoad: () =>
-      set((state) => ({
-        pendingPluginAssetLoads: state.pendingPluginAssetLoads + 1,
-      })),
-    finishPluginAssetLoad: () =>
-      set((state) => {
-        const pendingPluginAssetLoads = Math.max(0, state.pendingPluginAssetLoads - 1);
-        const nextState = {
-          ...state,
-          pendingPluginAssetLoads,
-        };
-
-        return {
-          pendingPluginAssetLoads,
-          isLoading: canFinishInitialLoading(nextState) ? false : state.isLoading,
-        };
-      }),
-    setOptimisticLegendUpdate: (groupId: string, updates: Partial<GraphState['legends'][number]>) =>
-      set((state) => ({
-        optimisticLegendUpdates: mergePendingGroupUpdate(
-          state.optimisticLegendUpdates,
-          groupId,
-          updates,
-        ),
-      })),
-    setOptimisticLegendUpdates: (updatesByLegendId: Record<string, Partial<GraphState['legends'][number]>>) =>
-      set((state) => ({
-        optimisticLegendUpdates: Object.entries(updatesByLegendId).reduce(
-          (pending, [groupId, updates]) => mergePendingGroupUpdate(pending, groupId, updates),
-          state.optimisticLegendUpdates,
-        ),
-      })),
-    clearOptimisticLegendUpdate: (groupId: string) =>
-      set((state) => ({
-        optimisticLegendUpdates: clearPendingGroupUpdate(
-          state.optimisticLegendUpdates,
-          groupId,
-        ),
-      })),
-    setOptimisticUserLegends: (legends: GraphState['legends']) =>
-      set((state) => ({
-        legends: replaceUserGroups(state.legends, legends),
-        optimisticUserLegends: createPendingUserGroupsUpdate(legends),
-      })),
-    handleExtensionMessage: (message: ExtensionToWebviewMessage) => {
-      const handler = MESSAGE_HANDLERS[message.type];
-      if (!handler) return;
-      const ctx = {
-        getState: get,
-        postMessage: postMessage as (msg: { type: string; payload: unknown }) => void,
-      };
-      const update = handler(message, ctx);
-      if (update) set(update);
-    },
+    ...createScalarActions(set),
+    ...createBootstrapActions(set),
+    ...createOptimisticLegendActions(set),
+    ...createExtensionMessageActions(set, get),
   };
 }

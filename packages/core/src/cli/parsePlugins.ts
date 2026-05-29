@@ -6,6 +6,8 @@ export function parsePluginsCommand(argv: string[]): CliCommand {
   switch (action) {
     case 'register':
       return { name: 'plugins', action, packageName };
+    case 'link':
+      return { name: 'plugins', action, packageRoot: packageName };
     case 'disable':
     case 'enable':
       return { name: 'plugins', action, packageName, workspacePath };

@@ -89,6 +89,57 @@ describe('WebviewPluginHost', () => {
     expect(handler).toHaveBeenCalledWith({ type: 'PING', data: { ok: true } });
   });
 
+  it('shares live Graph View viewport state with scoped plugin APIs', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const handler = vi.fn();
+    const state = {
+      graphMode: '2d' as const,
+      graphToScreen: (x: number, y: number) => ({ x: x + 1, y: y + 1 }),
+      nodes: [{ id: 'src/app.ts', x: 10, y: 20 }],
+      reheatSimulation: vi.fn(),
+      resumeAnimation: vi.fn(),
+      screenToGraph: (x: number, y: number) => ({ x: x - 1, y: y - 1 }),
+      timelineActive: false,
+      updateNode: vi.fn(() => true),
+      zoom: 1.5,
+    };
+
+    const disposable = api.onGraphViewViewportState(handler);
+    host.setGraphViewViewportState(state);
+    disposable.dispose();
+    host.setGraphViewViewportState(null);
+
+    expect(api.getGraphViewViewportState()).toBeNull();
+    expect(handler).toHaveBeenCalledTimes(2);
+    expect(handler).toHaveBeenNthCalledWith(1, null);
+    expect(handler).toHaveBeenNthCalledWith(2, state);
+  });
+
+  it('removes scoped Graph View viewport listeners when a plugin is removed', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const handler = vi.fn();
+    const state = {
+      graphMode: '2d' as const,
+      graphToScreen: (x: number, y: number) => ({ x, y }),
+      nodes: [{ id: 'src/app.ts', x: 10, y: 20 }],
+      reheatSimulation: vi.fn(),
+      resumeAnimation: vi.fn(),
+      screenToGraph: (x: number, y: number) => ({ x, y }),
+      timelineActive: false,
+      updateNode: vi.fn(() => true),
+      zoom: 1,
+    };
+
+    api.onGraphViewViewportState(handler);
+    host.removePlugin('acme.plugin');
+    host.setGraphViewViewportState(state);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith(null);
+  });
+
   it('continues delivering plugin messages when one handler throws', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const host = new WebviewPluginHost();
@@ -120,6 +171,18 @@ describe('WebviewPluginHost', () => {
     expect(host.getNodeRenderer('.ts')).toBe(secondRenderer);
   });
 
+  it('returns type-specific node renderers with wildcard renderers', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const typeRenderer = vi.fn();
+    const wildcardRenderer = vi.fn();
+
+    api.registerNodeRenderer('.ts', typeRenderer);
+    api.registerNodeRenderer('*', wildcardRenderer);
+
+    expect(host.getNodeRenderers('.ts')).toEqual([typeRenderer, wildcardRenderer]);
+  });
+
   it('returns qualified overlay ids and removes a plugin overlay on dispose', () => {
     const host = new WebviewPluginHost();
     const api = host.createAPI('acme.plugin', vi.fn());
@@ -130,6 +193,61 @@ describe('WebviewPluginHost', () => {
 
     disposable.dispose();
     expect(host.getOverlays()).toEqual([]);
+  });
+
+  it('registers graph-view contributions from scoped plugin APIs and removes them on dispose', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const listener = vi.fn();
+    const contribution = {
+      id: 'acme.plugin.runtime-node',
+      label: 'Runtime Node',
+      createNodes: () => [{ id: 'runtime-node', label: 'Runtime', color: '#ffffff' }],
+    };
+
+    const unsubscribe = host.subscribeGraphViewContributions(listener);
+    const disposable = api.registerGraphViewContributions({
+      runtimeNodes: [contribution],
+    });
+
+    expect(host.getGraphViewContributions().runtimeNodes).toEqual([
+      {
+        pluginId: 'acme.plugin',
+        contribution,
+      },
+    ]);
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    disposable.dispose();
+
+    expect(host.getGraphViewContributions().runtimeNodes).toEqual([]);
+    expect(listener).toHaveBeenCalledTimes(2);
+
+    unsubscribe.dispose();
+  });
+
+  it('returns a stable graph-view contribution snapshot until registrations change', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const contribution = {
+      id: 'acme.plugin.runtime-node',
+      label: 'Runtime Node',
+      createNodes: () => [{ id: 'runtime-node', label: 'Runtime', color: '#ffffff' }],
+    };
+
+    const disposable = api.registerGraphViewContributions({
+      runtimeNodes: [contribution],
+    });
+    const firstSnapshot = host.getGraphViewContributions();
+    const secondSnapshot = host.getGraphViewContributions();
+
+    expect(secondSnapshot).toBe(firstSnapshot);
+
+    disposable.dispose();
+    const emptySnapshot = host.getGraphViewContributions();
+
+    expect(emptySnapshot).not.toBe(firstSnapshot);
+    expect(host.getGraphViewContributions()).toBe(emptySnapshot);
   });
 
   it('aggregates tooltip sections and ignores failing providers', () => {

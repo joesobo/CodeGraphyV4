@@ -14,13 +14,28 @@ import type {
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
-import type { GraphLayoutSettings } from '../settings/graphLayout';
 import type { ITimelineData } from '../timeline/contracts';
 
 export interface IPluginFilterPatternGroup {
   pluginId: string;
   pluginName: string;
   patterns: string[];
+}
+
+export type GraphViewContributionStatusKind =
+  | 'runtimeNodes'
+  | 'runtimeEdges'
+  | 'projections'
+  | 'forces'
+  | 'nodeDragEnd'
+  | 'contextMenu'
+  | 'ui';
+
+export interface IGraphViewContributionStatus {
+  kind: GraphViewContributionStatusKind;
+  pluginId: string;
+  contributionId: string;
+  label: string;
 }
 
 export type ExtensionToWebviewMessage =
@@ -36,7 +51,6 @@ export type ExtensionToWebviewMessage =
     }
   | { type: 'GRAPH_INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'GRAPH_CONTROLS_UPDATED'; payload: IGraphControlsSnapshot }
-  | { type: 'GRAPH_LAYOUT_UPDATED'; payload: GraphLayoutSettings }
   | { type: 'FIT_VIEW' }
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }
@@ -98,6 +112,7 @@ export type ExtensionToWebviewMessage =
       };
     }
   | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
+  | { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED'; payload: { contributions: IGraphViewContributionStatus[] } }
   | { type: 'PLUGIN_EXPORTERS_UPDATED'; payload: { items: IPluginExporterItem[] } }
   | { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED'; payload: { items: IPluginToolbarAction[] } }
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }

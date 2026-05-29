@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
+import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { useGraphStore } from '../../../store/state';
 import { IndexToolbarAction } from './indexAction';
 import { ToolbarPanelButtons } from './panelButtons';
@@ -7,7 +9,6 @@ import { PluginToolbarActions } from '../plugin/Actions';
 import { LayoutModePopover } from '../LayoutModePopover';
 import { NodeSizeModePopover } from '../NodeSizeModePopover';
 import { CreateToolbarAction } from './create';
-import { getGraphContextMutationAvailability } from '../../graph/contextMenu/mutationAvailability';
 
 export {
   getToolbarActionIconPath,
@@ -15,23 +16,46 @@ export {
   getToolbarActionKey,
 } from './model';
 
-export function ToolbarActions(): React.ReactElement {
+function useGraphViewContributions(
+  pluginHost: WebviewPluginHost | undefined,
+): CoreGraphViewContributionSet | undefined {
+  const [contributionVersion, setContributionVersion] = useState(0);
+  const canReadGraphViewContributions =
+    typeof pluginHost?.getGraphViewContributions === 'function'
+    && typeof pluginHost.subscribeGraphViewContributions === 'function';
+
+  useEffect(() => {
+    if (!canReadGraphViewContributions) {
+      return undefined;
+    }
+
+    const subscription = pluginHost.subscribeGraphViewContributions(() => {
+      setContributionVersion(version => version + 1);
+    });
+    return () => subscription.dispose();
+  }, [canReadGraphViewContributions, pluginHost]);
+
+  void contributionVersion;
+  return canReadGraphViewContributions
+    ? pluginHost.getGraphViewContributions()
+    : undefined;
+}
+
+export function ToolbarActions({
+  pluginHost,
+}: {
+  pluginHost?: WebviewPluginHost;
+}): React.ReactElement {
   const activePanel = useGraphStore(s => s.activePanel);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
+  const graphViewContributions = useGraphViewContributions(pluginHost);
+  const graphMode = useGraphStore(s => s.graphMode);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIndexFreshness = useGraphStore(s => s.graphIndexFreshness);
   const graphIndexDetail = useGraphStore(s => s.graphIndexDetail);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
-  const graphMode = useGraphStore(s => s.graphMode);
-  const currentCommitSha = useGraphStore(s => s.currentCommitSha);
   const timelineActive = useGraphStore(s => s.timelineActive);
-  const timelineCommits = useGraphStore(s => s.timelineCommits);
-  const mutationAvailability = getGraphContextMutationAvailability({
-    currentCommitSha,
-    timelineActive,
-    timelineCommits,
-  });
 
   return (
     <div className="flex flex-col items-center gap-2" data-testid="toolbar-actions">
@@ -49,7 +73,8 @@ export function ToolbarActions(): React.ReactElement {
         <NodeSizeModePopover />
         <CreateToolbarAction
           graphMode={graphMode}
-          mutationAvailability={mutationAvailability}
+          graphViewContributions={graphViewContributions}
+          timelineActive={timelineActive}
         />
         <PluginToolbarActions pluginToolbarActions={pluginToolbarActions} />
         <ToolbarPanelButtons

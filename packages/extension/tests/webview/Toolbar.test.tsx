@@ -46,6 +46,7 @@ vi.mock('../../src/webview/components/icons/MdiIcon', () => ({
 }));
 
 import Toolbar from '../../src/webview/components/toolbar/view';
+import { resolveGraphViewCreateContributions } from '../../src/webview/components/toolbar/actions/create';
 import { graphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
@@ -53,6 +54,7 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     dagMode: null,
     graphMode: '2d',
+    timelineActive: false,
     depthLimit: 1,
     depthMode: false,
     activePanel: 'none',
@@ -178,5 +180,69 @@ describe('Toolbar', () => {
     render(<Toolbar />);
 
     expect(screen.getByTitle('Refresh')).toBeInTheDocument();
+  });
+
+  it('hosts Graph View toolbar slot contributions under graph.toolbar', () => {
+    const pluginHost = {
+      attachSlotHost: vi.fn(),
+      detachSlotHost: vi.fn(),
+    };
+
+    render(<Toolbar pluginHost={pluginHost as never} />);
+
+    expect(pluginHost.attachSlotHost).toHaveBeenCalledWith(
+      'graph.toolbar',
+      expect.any(HTMLDivElement),
+    );
+  });
+
+  it('passes graph mode and timeline state to Graph View create toolbar contributions', async () => {
+    const run = vi.fn();
+    const graphViewContributions = {
+      runtimeNodes: [],
+      runtimeEdges: [],
+      projections: [],
+      forces: [],
+      nodeDragEnd: [],
+      contextMenu: [{
+        pluginId: 'acme.graph-tools',
+        contribution: {
+          id: 'acme.new-section',
+          label: 'New Section...',
+          placement: { menu: 'create' },
+          targets: [{ kind: 'background' }],
+          isVisible: (context: { graphMode: '2d' | '3d'; timelineActive: boolean }) =>
+            context.graphMode === '2d' && !context.timelineActive,
+          run,
+        },
+      }],
+      ui: [],
+    } as never;
+
+    const liveContributions = resolveGraphViewCreateContributions({
+      graphMode: '2d',
+      graphViewContributions,
+      timelineActive: false,
+    });
+    expect(liveContributions.map(contribution => contribution.label)).toEqual(['New Section...']);
+    liveContributions[0]?.entry.contribution.run(liveContributions[0].context);
+
+    expect(run).toHaveBeenCalledWith({
+      target: { kind: 'background' },
+      graphMode: '2d',
+      timelineActive: false,
+      selectedNodeIds: [],
+      selectedEdgeIds: [],
+    });
+    expect(resolveGraphViewCreateContributions({
+      graphMode: '3d',
+      graphViewContributions,
+      timelineActive: false,
+    })).toEqual([]);
+    expect(resolveGraphViewCreateContributions({
+      graphMode: '2d',
+      graphViewContributions,
+      timelineActive: true,
+    })).toEqual([]);
   });
 });

@@ -8,6 +8,12 @@ import type {
   IProjectedConnection,
 } from '../../../types/contracts';
 import {
+  resolvePluginAccess,
+  type CoreGraphViewContributionSet,
+  type CorePluginAccessCheck,
+  type CorePluginAccessContext,
+} from '@codegraphy-dev/core';
+import {
   analyzeFile,
   analyzeFileResult,
 } from '../../../routing/router/analyze';
@@ -19,10 +25,36 @@ import {
 } from '../../../routing/router/lookups';
 import { listPluginContributions } from '../maps/contributions';
 import { PluginRegistryState } from './store';
+import {
+  listAvailableGraphViewContributionsForPlugins,
+  listPluginAccessProviders,
+} from './graphViewContributions';
 
 export abstract class PluginRegistryCollection extends PluginRegistryState {
   get(pluginId: string): IPluginInfo | undefined {
     return this._plugins.get(pluginId);
+  }
+
+  async getPluginAvailability(
+    pluginId: string,
+    context: CorePluginAccessContext = {},
+  ): Promise<CorePluginAccessCheck | undefined> {
+    const info = this._plugins.get(pluginId);
+    if (!info) {
+      return undefined;
+    }
+
+    return resolvePluginAccess(
+      info.plugin,
+      listPluginAccessProviders(this._plugins.values()),
+      context,
+    );
+  }
+
+  async listAvailableGraphViewContributions(
+    context: CorePluginAccessContext = {},
+  ): Promise<CoreGraphViewContributionSet> {
+    return listAvailableGraphViewContributionsForPlugins(this._plugins.values(), context);
   }
 
   getPluginForFile(filePath: string): IPlugin | undefined {

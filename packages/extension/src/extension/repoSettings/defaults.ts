@@ -11,10 +11,6 @@ import {
   createDefaultNodeColors,
   createDefaultNodeVisibility,
 } from '../../shared/graphControls/defaults/maps';
-import {
-  createDefaultGraphLayoutSettings,
-  type GraphLayoutSettings,
-} from '../../shared/settings/graphLayout';
 
 export interface ICodeGraphyRepoSettings {
   version: 1;
@@ -23,6 +19,7 @@ export interface ICodeGraphyRepoSettings {
   respectGitignore: boolean;
   showOrphans: boolean;
   plugins: CodeGraphyWorkspacePluginSettings[];
+  pluginData: Record<string, unknown>;
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
@@ -55,7 +52,6 @@ export interface ICodeGraphyRepoSettings {
     maxCommits: number;
     playbackSpeed: number;
   };
-  graphLayout: GraphLayoutSettings;
 }
 
 export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
@@ -68,6 +64,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     plugins: [{
       package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     }],
+    pluginData: {},
     nodeColors: createDefaultNodeColors(),
     nodeVisibility: createDefaultNodeVisibility(),
     edgeVisibility: createDefaultEdgeVisibility(),
@@ -100,6 +97,5 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
       maxCommits: 500,
       playbackSpeed: 1,
     },
-    graphLayout: createDefaultGraphLayoutSettings(),
   };
 }

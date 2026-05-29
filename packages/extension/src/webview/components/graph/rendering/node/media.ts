@@ -42,20 +42,28 @@ export function renderNodePluginOverlay(
     return;
   }
 
-  const renderer = pluginHost.getNodeRenderer(getNodeType(node.id))
-    ?? pluginHost.getNodeRenderer('*');
-  if (!renderer) {
+  const renderers = typeof pluginHost.getNodeRenderers === 'function'
+    ? pluginHost.getNodeRenderers(getNodeType(node.id))
+    : [
+        pluginHost.getNodeRenderer(getNodeType(node.id))
+        ?? pluginHost.getNodeRenderer('*'),
+      ].filter((renderer): renderer is NonNullable<ReturnType<WebviewPluginHost['getNodeRenderer']>> =>
+        renderer !== undefined
+      );
+  if (renderers.length === 0) {
     return;
   }
 
-  try {
-    renderer({
-      node,
-      ctx,
-      globalScale,
-      decoration,
-    });
-  } catch (error) {
-    console.error('[CodeGraphy] Plugin node renderer error:', error);
+  for (const renderer of renderers) {
+    try {
+      renderer({
+        node,
+        ctx,
+        globalScale,
+        decoration,
+      });
+    } catch (error) {
+      console.error('[CodeGraphy] Plugin node renderer error:', error);
+    }
   }
 }

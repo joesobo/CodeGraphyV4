@@ -9,9 +9,10 @@ import { buildEdgeEntries } from '../edge/entries';
 import {
   buildNodeEntries,
   buildSingleFolderNodeEntries,
-  buildSingleGraphSectionNodeEntries,
+  buildSinglePluginNodeEntries,
   buildSingleSymbolNodeEntries,
 } from '../node/entries';
+import { buildGraphViewContextMenuEntries } from '../graphView/entries';
 import { buildPluginEntriesForDecision } from '../plugin/entries';
 import type { GraphContextMenuDecision } from '../decision/model';
 
@@ -32,16 +33,38 @@ function getNodeTargetIds(
     : decision.targets.map(target => target.id);
 }
 
+function insertCreateMenuEntries(
+  baseEntries: GraphContextMenuEntry[],
+  createEntries: GraphContextMenuEntry[],
+): GraphContextMenuEntry[] {
+  if (createEntries.length === 0) {
+    return baseEntries;
+  }
+
+  const separatorIndex = baseEntries.findIndex(entry => entry.id === 'background-separator-primary');
+  if (separatorIndex === -1) {
+    return [...baseEntries, ...createEntries];
+  }
+
+  return [
+    ...baseEntries.slice(0, separatorIndex),
+    ...createEntries,
+    ...baseEntries.slice(separatorIndex),
+  ];
+}
+
 export function buildGraphContextMenuEntries(
   options: BuildGraphContextMenuOptions
 ): GraphContextMenuEntry[] {
   const {
     selection,
+    graphMode = '2d',
     timelineActive,
     favorites,
-    pinnedNodeIds = new Set<string>(),
     pluginItems,
+    graphViewContributions,
     nodes,
+    edges,
   } = options;
   const mutationAvailability = options.mutationAvailability ?? DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY;
   const decision = decideGraphContextMenu(selection, nodes);
@@ -50,20 +73,13 @@ export function buildGraphContextMenuEntries(
     : decision.kind === 'singleFolderNode'
       ? buildSingleFolderNodeEntries(
         decision.target,
-        timelineActive,
         mutationAvailability,
         favorites,
-        pinnedNodeIds,
       )
-      : decision.kind === 'singleGraphSectionNode'
-        ? buildSingleGraphSectionNodeEntries(
-          decision.target.id,
-          !!decision.target.isCollapsedGraphSection,
-          mutationAvailability,
-          pinnedNodeIds,
-        )
-        : decision.kind === 'singleSymbolNode'
+      : decision.kind === 'singleSymbolNode'
           ? buildSingleSymbolNodeEntries(decision.target.id, favorites)
+          : decision.kind === 'singlePluginNode'
+            ? buildSinglePluginNodeEntries()
           : decision.kind === 'edge'
             ? buildEdgeEntries(decision.targets)
             : decision.kind === 'emptyNodeSelection'
@@ -73,7 +89,32 @@ export function buildGraphContextMenuEntries(
                 timelineActive,
                 mutationAvailability,
                 favorites,
-                pinnedNodeIds,
               );
-  return [...baseEntries, ...buildPluginEntriesForDecision(decision, pluginItems)];
+  const graphViewCreateEntries = decision.kind === 'background'
+    ? buildGraphViewContextMenuEntries({
+      decision,
+      edges,
+      graphMode,
+      graphViewContributions,
+      includeSeparator: false,
+      nodes,
+      placement: 'create',
+      selection,
+      timelineActive,
+    })
+    : [];
+  const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
+  return [
+    ...positionedBaseEntries,
+    ...buildPluginEntriesForDecision(decision, pluginItems),
+    ...buildGraphViewContextMenuEntries({
+      decision,
+      edges,
+      graphMode,
+      graphViewContributions,
+      nodes,
+      selection,
+      timelineActive,
+    }),
+  ];
 }

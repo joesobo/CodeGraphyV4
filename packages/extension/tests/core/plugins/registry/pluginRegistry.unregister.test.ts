@@ -1,7 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createConfiguredRegistry, createMockPlugin } from './pluginRegistry.testSupport';
 
 describe('PluginRegistry unregister', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('unregisters a plugin', () => {
     const registry = createConfiguredRegistry();
     const plugin = createMockPlugin();
@@ -42,5 +46,23 @@ describe('PluginRegistry unregister', () => {
     registry.unregister(plugin.id);
 
     expect(registry.supportsFile('app.ts')).toBe(false);
+  });
+
+  it('does not log core-only built-ins as user-facing plugin unregistrations', () => {
+    const registry = createConfiguredRegistry();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const plugin = createMockPlugin({
+      id: 'codegraphy.treesitter',
+      name: 'Tree-sitter',
+    });
+
+    registry.register(plugin, { builtIn: true });
+    logSpy.mockClear();
+
+    registry.unregister(plugin.id);
+
+    expect(logSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('Unregistered plugin: codegraphy.treesitter'),
+    );
   });
 });

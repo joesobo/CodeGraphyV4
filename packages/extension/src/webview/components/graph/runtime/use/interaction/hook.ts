@@ -9,14 +9,10 @@ import { resolveGraphContextActionContext } from '../../../contextActions/contex
 import { createGraphContextMenuOpeningRuntime } from '../../../contextMenuOpening/runtime';
 import { createGraphInteractionHandlers } from '../../../interactionRuntime/handlers';
 import { applyCursorToGraphSurface } from '../../../support/dom';
-import {
-  useGraphTooltip,
-  type GraphTooltipInteractionDependencies,
-} from '../tooltip/hook';
+import { useGraphTooltip } from '../tooltip/hook';
 import type { FGNode } from '../../../model/build';
 import { postMessage } from '../../../../../vscodeApi';
 import type {
-  GraphInteractionHandlersRuntime,
   UseGraphInteractionRuntimeOptions,
   UseGraphInteractionRuntimeResult,
 } from './contracts';
@@ -28,43 +24,13 @@ import { useGraphMarqueeSelectionRuntime } from './marquee/hook';
 import {
   applyNodeDrag,
   postDraggedNodesDragEndMessages,
-  updateNodeDragOwnerPreview,
   type NodeDragGroupSession,
   type NodeDragTranslate,
 } from './nodeDrag';
-import { createGraphNodePositionMap } from './positions';
 import { useGraphViewportPanRuntime } from './viewportPan/hook';
-
-function buildTooltipInteractionHandlers(
-  interactionHandlers: GraphInteractionHandlersRuntime,
-): GraphTooltipInteractionDependencies {
-  return {
-    sendGraphInteraction: interactionHandlers.sendGraphInteraction,
-    setGraphCursor: interactionHandlers.setGraphCursor,
-  };
-}
-
-function handleGraphEngineStop(): void {
-  postMessage({ type: 'PHYSICS_STABILIZED' });
-}
-
-interface GraphViewportScaleReader {
-  zoom(): number;
-}
-
-function readGraphViewportScale(
-  graphMode: '2d' | '3d',
-  graph: unknown,
-): number | null {
-  if (graphMode !== '2d') {
-    return null;
-  }
-
-  const scale = (graph as GraphViewportScaleReader | undefined)?.zoom?.();
-  return typeof scale === 'number' && Number.isFinite(scale) && scale > 0
-    ? scale
-    : null;
-}
+import { postPhysicsStabilized } from './engineStop';
+import { buildTooltipInteractionHandlers } from './tooltipAdapter';
+import { readGraphViewportScale } from './viewportScale';
 
 export function useGraphInteractionRuntime({
   dataRef,
@@ -73,7 +39,7 @@ export function useGraphInteractionRuntime({
   graphContextSelection,
   graphCursorRef,
   graphDataRef,
-  graphLayout,
+  graphViewContributions,
   graphMode,
   highlightedNeighborsRef,
   highlightedNodeRef,
@@ -109,7 +75,6 @@ export function useGraphInteractionRuntime({
       fg2dRef: refs.fg2dRef,
       fg3dRef: refs.fg3dRef,
       fileInfoCacheRef,
-      graphLayout,
       graphCursorRef,
       graphDataRef,
       graphMode,
@@ -123,16 +88,12 @@ export function useGraphInteractionRuntime({
       setContextSelection: setLiveContextSelection,
       setHighlightVersion,
       setSelectedNodes,
-      toggleFolderCollapse: (nodeId, collapsed) => {
-        postMessage({ type: 'UPDATE_GRAPH_LAYOUT_COLLAPSE', payload: { nodeId, collapsed } });
-      },
     }),
     [
       dataRef,
       depthMode,
       fileInfoCacheRef,
       graphCursorRef,
-      graphLayout,
       graphDataRef,
       graphMode,
       highlightedNeighborsRef,
@@ -187,19 +148,16 @@ export function useGraphInteractionRuntime({
 
   const getActionContext = useCallback(
     () => resolveGraphContextActionContext(graphContextSelectionRef.current, {
-      graphLayout,
-      graphMode,
       graphViewportScale: readGraphViewportScale(graphMode, refs.fg2dRef.current),
       nodes: graphDataRef.current.nodes,
-      nodePositions: createGraphNodePositionMap(graphDataRef.current.nodes, graphMode),
     }),
-    [graphDataRef, graphLayout, graphMode, refs.fg2dRef],
+    [graphDataRef, graphMode, refs.fg2dRef],
   );
 
   function handleNodeDragEnd(node: FGNode): void {
     postDraggedNodesDragEndMessages(node, nodeDragGroupRef.current, {
       graphData: graphDataRef.current,
-      graphLayout,
+      graphViewContributions,
       graphMode,
       timelineActive,
     });
@@ -212,20 +170,6 @@ export function useGraphInteractionRuntime({
       graphMode,
       selectedNodeIds: refs.selectedNodesSetRef.current,
     }, nodeDragGroupRef.current);
-
-    const draggedNodeIds = nodeDragGroupRef.current?.draggedNodeIds ?? new Set([node.id]);
-    const nodesById = new Map(graphDataRef.current.nodes.map(graphNode => [graphNode.id, graphNode]));
-    for (const nodeId of draggedNodeIds) {
-      const draggedNode = nodeId === node.id ? node : nodesById.get(nodeId);
-      if (draggedNode) {
-        updateNodeDragOwnerPreview(draggedNode, {
-          graphData: graphDataRef.current,
-          graphLayout,
-          graphMode,
-          timelineActive,
-        });
-      }
-    }
 
     marqueeRuntime.clearMarqueeSelection();
   }
@@ -313,7 +257,7 @@ export function useGraphInteractionRuntime({
     ...contextMenuOpeningRuntime,
     handleBackgroundRightClick: suppressedContextMenuHandlers.handleBackgroundRightClick,
     handleContextMenu: suppressedContextMenuHandlers.handleContextMenu,
-    handleEngineStop: handleGraphEngineStop,
+    handleEngineStop: () => postPhysicsStabilized(postMessage),
     handleLinkRightClick: suppressedContextMenuHandlers.handleLinkRightClick,
     handleMouseLeave: handleGraphMouseLeave,
     handleNodeHover,

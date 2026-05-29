@@ -13,4 +13,5 @@ export interface CodeGraphyWorkspaceSettings {
   filterPatterns: string[];
   disabledCustomFilterPatterns: string[];
   plugins: CodeGraphyWorkspacePluginSettings[];
+  pluginData?: Record<string, unknown>;
 }

@@ -17,6 +17,21 @@ function removePluginMapEntries<T extends { pluginId: string }>(
   }
 }
 
+function removePluginNodeRenderers(
+  pluginId: string,
+  nodeRenderers: Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>,
+): void {
+  for (const [key, entries] of nodeRenderers) {
+    const remainingEntries = entries.filter(entry => entry.pluginId !== pluginId);
+    if (remainingEntries.length === 0) {
+      nodeRenderers.delete(key);
+      continue;
+    }
+
+    nodeRenderers.set(key, remainingEntries);
+  }
+}
+
 function removePluginTooltipProviders(
   pluginId: string,
   tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }>,
@@ -64,7 +79,7 @@ function removePluginSlotContainers(
  */
 export function removePluginRegistrations(
   pluginId: string,
-  nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>,
+  nodeRenderers: Map<string, Array<{ pluginId: string; fn: NodeRenderFn }>>,
   overlays: Map<string, { pluginId: string; fn: OverlayRenderFn }>,
   tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }>,
   messageHandlers: Map<string, Set<(msg: { type: string; data: unknown }) => void>>,
@@ -72,7 +87,7 @@ export function removePluginRegistrations(
   slotContainers: Map<string, Map<GraphPluginSlot, HTMLDivElement>>,
   slotHosts: Map<GraphPluginSlot, HTMLDivElement>,
 ): void {
-  removePluginMapEntries(pluginId, nodeRenderers);
+  removePluginNodeRenderers(pluginId, nodeRenderers);
   removePluginMapEntries(pluginId, overlays);
   removePluginTooltipProviders(pluginId, tooltipProviders);
   messageHandlers.delete(pluginId);

@@ -12,5 +12,6 @@ export {
   ensureCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceSettings,
   readCodeGraphyWorkspaceSettingsOrInitial,
+  writeCodeGraphyWorkspacePluginData,
   writeCodeGraphyWorkspaceSettings,
 } from './settingsStorage';

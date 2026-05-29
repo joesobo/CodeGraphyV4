@@ -19,7 +19,6 @@ export type GraphInteractionEffect =
   | { kind: 'previewNode'; nodeId: string }
   | { kind: 'openNode'; nodeId: string }
   | { kind: 'focusNode'; nodeId: string }
-  | { kind: 'setGraphSectionCollapsed'; sectionId: string; collapsed: boolean }
   | {
       kind: 'sendInteraction';
       event: 'graph:nodeClick' | 'graph:nodeDoubleClick' | 'graph:backgroundClick';
@@ -39,8 +38,7 @@ export interface GraphNodeClickOptions {
   metaKey: boolean;
   clientX: number;
   clientY: number;
-  isCollapsedGraphSection?: boolean;
-  isGraphSection?: boolean;
+  isRuntimeNode?: boolean;
   isMacPlatform: boolean;
   selectedNodeIds: Iterable<string>;
   lastClick: GraphLastClickState | null;

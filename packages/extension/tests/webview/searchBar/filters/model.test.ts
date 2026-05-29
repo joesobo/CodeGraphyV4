@@ -19,8 +19,17 @@ describe('searchBar/filters/model', () => {
     expect(toFilterGlob('**/src/app.ts')).toBe('**/src/app.ts');
   });
 
+  it('removes every leading slash before creating a repo glob', () => {
+    expect(toFilterGlob(' ///src/app.ts')).toBe('**/src/app.ts');
+  });
+
+  it('returns an empty glob for blank or slash-only paths', () => {
+    expect(toFilterGlob('   ')).toBe('');
+    expect(toFilterGlob('///')).toBe('');
+  });
+
   it('deduplicates custom patterns when adding pending globs', () => {
-    expect(addFilterPatterns(['**/src/app.ts'], [' **/src/app.ts ', '**/src/main.ts'])).toEqual([
+    expect(addFilterPatterns(['**/src/app.ts'], [' **/src/app.ts ', '   ', '**/src/main.ts'])).toEqual([
       '**/src/app.ts',
       '**/src/main.ts',
     ]);
@@ -62,6 +71,7 @@ describe('searchBar/filters/model', () => {
   it('compares filter pattern lists by length and order', () => {
     expect(filterPatternsEqual(['a'], ['a'])).toBe(true);
     expect(filterPatternsEqual(['a'], ['a', 'b'])).toBe(false);
+    expect(filterPatternsEqual(['a', 'b'], ['a', 'c'])).toBe(false);
     expect(filterPatternsEqual(['a', 'b'], ['b', 'a'])).toBe(false);
   });
 

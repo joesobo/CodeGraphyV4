@@ -5,6 +5,7 @@ import type { IGroup } from '../../../../../src/shared/settings/groups';
 const {
   getConfigValue,
   registerBuiltInPluginRoots,
+  registerPackagePluginRoots,
   getPluginDefaultGroups,
   getBuiltInDefaultGroups,
   buildMergedGroups,
@@ -15,6 +16,7 @@ const {
 } = vi.hoisted(() => ({
   getConfigValue: vi.fn(),
   registerBuiltInPluginRoots: vi.fn(),
+  registerPackagePluginRoots: vi.fn(),
   getPluginDefaultGroups: vi.fn(() => [] as IGroup[]),
   getBuiltInDefaultGroups: vi.fn(() => [] as IGroup[]),
   buildMergedGroups: vi.fn(() => [] as IGroup[]),
@@ -42,6 +44,7 @@ vi.mock('../../../../../src/extension/graphView/groups/defaults/plugin', () => (
 
 vi.mock('../../../../../src/extension/graphView/groups/defaults/pluginRoots', () => ({
   registerBuiltInGraphViewPluginRoots: registerBuiltInPluginRoots,
+  registerPackageGraphViewPluginRoots: registerPackagePluginRoots,
 }));
 
 vi.mock('../../../../../src/extension/graphView/groups/merged', () => ({

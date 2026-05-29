@@ -1,4 +1,8 @@
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type {
+  GraphViewContributionStatusKind,
+  IGraphViewContributionStatus,
+} from '../../../../shared/protocol/extensionToWebview';
 import {
   collectGraphViewContextMenuItems,
   collectGraphViewExporters,
@@ -48,6 +52,71 @@ interface GraphViewPluginRegistry {
 
 interface GraphViewPluginAnalyzer {
   registry: GraphViewPluginRegistry;
+}
+
+interface GraphViewContributionSet {
+  runtimeNodes: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
+  runtimeEdges: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
+  projections: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
+  forces: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
+  nodeDragEnd: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
+  contextMenu: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
+  ui: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
+}
+
+interface GraphViewContributionAnalyzer {
+  registry: {
+    listAvailableGraphViewContributions?(
+      context?: { workspaceRoot?: string },
+    ): Promise<GraphViewContributionSet>;
+  };
+}
+
+function collectContributionStatuses(
+  contributionSet: GraphViewContributionSet,
+): IGraphViewContributionStatus[] {
+  const statuses: IGraphViewContributionStatus[] = [];
+
+  for (const kind of [
+    'runtimeNodes',
+    'runtimeEdges',
+    'projections',
+    'forces',
+    'nodeDragEnd',
+    'contextMenu',
+    'ui',
+  ] as const satisfies readonly GraphViewContributionStatusKind[]) {
+    for (const entry of contributionSet[kind]) {
+      statuses.push({
+        kind,
+        pluginId: entry.pluginId,
+        contributionId: entry.contribution.id,
+        label: entry.contribution.label,
+      });
+    }
+  }
+
+  return statuses;
+}
+
+export async function sendGraphViewContributionStatuses(
+  analyzer: GraphViewContributionAnalyzer | undefined,
+  context: { workspaceRoot?: string },
+  sendMessage: (
+    message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED' }>
+  ) => void,
+): Promise<void> {
+  if (!analyzer?.registry.listAvailableGraphViewContributions) {
+    return;
+  }
+
+  const contributions = await analyzer.registry.listAvailableGraphViewContributions(context);
+  sendMessage({
+    type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+    payload: {
+      contributions: collectContributionStatuses(contributions),
+    },
+  });
 }
 
 export function sendGraphViewContextMenuItems(

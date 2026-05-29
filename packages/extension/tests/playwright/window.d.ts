@@ -16,5 +16,6 @@ interface Window {
     fitView(): void;
     fitViewWithPadding(padding: number): void;
     getSnapshot(): GraphDebugSnapshot;
+    openNodeContextMenu(nodeId: string): void;
   };
 }

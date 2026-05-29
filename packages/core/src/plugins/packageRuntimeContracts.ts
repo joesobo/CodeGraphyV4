@@ -13,6 +13,7 @@ export interface LoadCodeGraphyWorkspacePluginPackagesOptions {
   settings: CodeGraphyWorkspaceSettings;
   homeDir?: string;
   warn?: (message: string) => void;
+  workspaceRoot?: string;
 }
 
 export interface PackageJsonWithEntrypoint {

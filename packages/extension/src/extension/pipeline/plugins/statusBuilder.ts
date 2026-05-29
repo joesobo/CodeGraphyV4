@@ -3,10 +3,16 @@
  * @module extension/pipeline/plugins/statusBuilder
  */
 
-import * as path from 'path';
 import type { CodeGraphyInstalledPluginRecord, IDiscoveredFile } from '@codegraphy-dev/core';
 import type { IProjectedConnection, IPluginInfo } from '../../../core/plugins/types/contracts';
 import type { IPluginStatus } from '../../../shared/plugins/status';
+import { countPluginConnections } from './connectionCounts';
+import { getPluginMatchingFiles } from './extensions';
+import {
+  buildRegisteredPluginStatus,
+  buildUnregisteredInstalledPluginStatus,
+  isUserFacingPlugin,
+} from './statusRecords';
 
 export interface IWorkspacePluginStatusOptions {
   disabledPlugins: ReadonlySet<string>;
@@ -17,127 +23,59 @@ export interface IWorkspacePluginStatusOptions {
   workspaceEnabledPackageNames?: ReadonlySet<string>;
 }
 
-function supportsExtension(pluginExtensions: readonly string[], extension: string): boolean {
-  return pluginExtensions.includes('*') || pluginExtensions.includes(extension);
-}
-
-function getPluginMatchingFiles(
-  pluginInfo: IPluginInfo,
-  discoveredFiles: Pick<IDiscoveredFile, 'relativePath'>[],
-): Pick<IDiscoveredFile, 'relativePath'>[] {
-  return discoveredFiles.filter((file) => {
-    const extension = path.extname(file.relativePath).toLowerCase();
-    return supportsExtension(pluginInfo.plugin.supportedExtensions, extension);
-  });
-}
-
-function countPluginConnections(
-  pluginInfo: IPluginInfo,
-  fileConnections: ReadonlyMap<string, IProjectedConnection[]>,
-): number {
-  let totalConnections = 0;
-
-  for (const [filePath, connections] of fileConnections) {
-    const extension = path.extname(filePath).toLowerCase();
-    if (!supportsExtension(pluginInfo.plugin.supportedExtensions, extension)) {
-      continue;
-    }
-
-    for (const connection of connections) {
-      if (connection.pluginId !== pluginInfo.plugin.id || !connection.resolvedPath) {
-        continue;
-      }
-
-      totalConnections += 1;
-    }
-  }
-
-  return totalConnections;
-}
-
-function getPluginWorkspaceStatus(
-  matchingFileCount: number,
-  totalConnections: number,
-): IPluginStatus['status'] {
-  if (matchingFileCount === 0) {
-    return 'inactive';
-  }
-
-  return totalConnections > 0 ? 'active' : 'installed';
-}
-
-function isRegisteredPackagePlugin(
-  plugin: CodeGraphyInstalledPluginRecord,
-  registeredPackageNames: ReadonlySet<string>,
-): boolean {
-  return registeredPackageNames.has(plugin.package);
-}
-
-function buildRegisteredPluginStatus(
-  pluginInfo: IPluginInfo,
-  options: Pick<IWorkspacePluginStatusOptions, 'disabledPlugins' | 'discoveredFiles' | 'fileConnections' | 'workspaceEnabledPackageNames'>,
-): IPluginStatus {
-  const matchingFiles = getPluginMatchingFiles(pluginInfo, options.discoveredFiles);
-  const totalConnections = countPluginConnections(pluginInfo, options.fileConnections);
-  const status = getPluginWorkspaceStatus(matchingFiles.length, totalConnections);
-  const enabled = pluginInfo.sourcePackage && options.workspaceEnabledPackageNames
-    ? options.workspaceEnabledPackageNames.has(pluginInfo.sourcePackage)
-    : !options.disabledPlugins.has(pluginInfo.plugin.id);
-
-  return {
-    id: pluginInfo.plugin.id,
-    ...(pluginInfo.sourcePackage ? { packageName: pluginInfo.sourcePackage } : {}),
-    name: pluginInfo.plugin.name,
-    version: pluginInfo.plugin.version,
-    supportedExtensions: pluginInfo.plugin.supportedExtensions,
-    status,
-    enabled,
-    connectionCount: totalConnections,
-  };
-}
-
-function buildInstalledPackagePluginStatus(
-  plugin: CodeGraphyInstalledPluginRecord,
-  workspaceEnabledPackageNames: ReadonlySet<string> | undefined,
-): IPluginStatus {
-  const enabled = workspaceEnabledPackageNames?.has(plugin.package) ?? false;
-
-  return {
-    id: plugin.package,
-    packageName: plugin.package,
-    name: plugin.package,
-    version: plugin.version,
-    supportedExtensions: [],
-    status: enabled ? 'unavailable' : 'installed',
-    enabled,
-    connectionCount: 0,
-  };
-}
-
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
   const {
+    disabledPlugins,
+    discoveredFiles,
+    fileConnections,
     installedPlugins = [],
     pluginInfos,
     workspaceEnabledPackageNames,
   } = options;
 
-  const statuses: IPluginStatus[] = [];
-  const registeredPackageNames = new Set<string>();
+  const registeredPackageStatuses = new Map<string, IPluginStatus>();
+  const registeredStatusesInPluginOrder: IPluginStatus[] = [];
 
-  for (const pluginInfo of pluginInfos) {
+  for (const pluginInfo of pluginInfos.filter(isUserFacingPlugin)) {
+    const matchingFiles = getPluginMatchingFiles(pluginInfo, discoveredFiles);
+    const totalConnections = countPluginConnections(pluginInfo, fileConnections);
+
+    const status = buildRegisteredPluginStatus({
+      connectionCount: totalConnections,
+      disabledPlugins,
+      matchingFileCount: matchingFiles.length,
+      pluginInfo,
+      workspaceEnabledPackageNames,
+    });
+    registeredStatusesInPluginOrder.push(status);
+
     if (pluginInfo.sourcePackage) {
-      registeredPackageNames.add(pluginInfo.sourcePackage);
+      registeredPackageStatuses.set(pluginInfo.sourcePackage, status);
     }
-
-    statuses.push(buildRegisteredPluginStatus(pluginInfo, options));
   }
 
-  for (const plugin of installedPlugins) {
-    if (isRegisteredPackagePlugin(plugin, registeredPackageNames)) {
+  if (installedPlugins.length === 0) {
+    return registeredStatusesInPluginOrder;
+  }
+
+  const statuses: IPluginStatus[] = [];
+  const installedPackageNames = new Set(installedPlugins.map(plugin => plugin.package));
+
+  for (const installedPlugin of installedPlugins) {
+    const registeredStatus = registeredPackageStatuses.get(installedPlugin.package);
+    if (registeredStatus) {
+      statuses.push(registeredStatus);
       continue;
     }
 
-    statuses.push(buildInstalledPackagePluginStatus(plugin, workspaceEnabledPackageNames));
+    statuses.push(buildUnregisteredInstalledPluginStatus(installedPlugin, workspaceEnabledPackageNames));
+  }
+
+  for (const status of registeredStatusesInPluginOrder) {
+    if (status.packageName && installedPackageNames.has(status.packageName)) {
+      continue;
+    }
+    statuses.push(status);
   }
 
   return statuses;

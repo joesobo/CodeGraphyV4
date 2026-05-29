@@ -7,6 +7,7 @@ function dependencies(overrides: Partial<PluginsCommandDependencies> = {}): Plug
     cwd: () => '/workspace/current',
     disableWorkspacePlugin: vi.fn(),
     enableWorkspacePlugin: vi.fn(),
+    linkInstalledPluginPackage: vi.fn(),
     readInstalledPluginCache: () => ({ version: 1, plugins: [] }),
     registerInstalledPlugin: vi.fn(),
     resolveGlobalPackageRoots: () => [],

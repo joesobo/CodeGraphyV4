@@ -1,15 +1,4 @@
 import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
-import {
-  createDefaultGraphLayoutSettings,
-  countGraphLayoutHiddenDescendants,
-  getGraphLayoutPinCoordinate,
-  type GraphLayoutCoordinate2D,
-  type GraphLayoutCoordinate3D,
-  isGraphLayoutSectionNodeVisible,
-  type GraphLayoutMode,
-  type GraphLayoutSection,
-  type GraphLayoutSettings,
-} from '../../../../../shared/settings/graphLayout';
 import type { ThemeKind } from '../../../../theme/useTheme';
 import { adjustColorForLightTheme } from '../../../../theme/useTheme';
 import { DEFAULT_GRAPH_APPEARANCE, type GraphAppearance } from '../../appearance/model';
@@ -23,15 +12,13 @@ import {
 import { seedTimelinePositions } from '../timeline/seeding';
 
 export interface BuildGraphNodesOptions {
-  allNodeIds?: readonly string[];
   nodes: IGraphNode[];
   edges: IGraphEdge[];
   appearance?: GraphAppearance;
   nodeSizes: Map<string, number>;
   theme: ThemeKind;
   favorites: Set<string>;
-  graphLayout?: GraphLayoutSettings;
-  graphMode?: GraphLayoutMode;
+  graphMode?: '2d' | '3d';
   timelineActive: boolean;
   previousNodes?: Array<Pick<FGNode, 'id' | 'fx' | 'fy' | 'fz' | 'vx' | 'vy' | 'vz' | 'x' | 'y' | 'z'>>;
   random?: () => number;
@@ -65,6 +52,10 @@ function createPreviousNodeStateMap(
   }]));
 }
 
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
 function getNodeBorderColor(
   isFocused: boolean,
   isFavorite: boolean,
@@ -85,8 +76,6 @@ function getNodeBorderWidth(isFocused: boolean, isFavorite: boolean): number {
 
   return isFavorite ? 3 : 2;
 }
-
-type GraphNodePinCoordinate = GraphLayoutCoordinate2D | GraphLayoutCoordinate3D;
 
 interface GraphNodeStyle {
   baseOpacity: number;
@@ -109,23 +98,20 @@ interface GraphNodePositionState {
   z: number | undefined;
 }
 
-function getActiveGraphNodePinCoordinate(
-  nodeId: string,
-  options: {
-    graphLayout: GraphLayoutSettings;
-    graphMode: GraphLayoutMode;
-    timelineActive: boolean;
-  },
-): GraphNodePinCoordinate | undefined {
-  return options.timelineActive
-    ? undefined
-    : getGraphLayoutPinCoordinate(options.graphLayout.pinnedNodes[nodeId], options.graphMode);
+interface RuntimeGraphNodePositionState {
+  fx?: unknown;
+  fy?: unknown;
+  fz?: unknown;
+  vx?: unknown;
+  vy?: unknown;
+  vz?: unknown;
 }
 
-function read3DCoordinate(
-  coordinate: GraphNodePinCoordinate | undefined,
-): GraphLayoutCoordinate3D | undefined {
-  return coordinate && 'z' in coordinate ? coordinate : undefined;
+interface RuntimeGraphNodePresentation {
+  [key: string]: unknown;
+  ownerPluginId?: string;
+  runtimeNodeType?: string;
+  size?: number;
 }
 
 function createGraphNodeStyle(
@@ -140,7 +126,10 @@ function createGraphNodeStyle(
   const rawColor = isLight ? adjustColorForLightTheme(node.color) : node.color;
   const isFavorite = options.favorites.has(node.id);
   const isFocused = node.depthLevel === 0;
-  const size = (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);
+  const runtimePresentation = node as IGraphNode & RuntimeGraphNodePresentation;
+  const size = typeof runtimePresentation.size === 'number'
+    ? runtimePresentation.size
+    : (options.nodeSizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(node.depthLevel);
 
   return {
     baseOpacity: getDepthOpacity(node.depthLevel),
@@ -155,53 +144,19 @@ function createGraphNodeStyle(
 function createGraphNodePositionState(
   node: IGraphNode,
   previous: PreviousNodeState | undefined,
-  pinCoordinate: GraphNodePinCoordinate | undefined,
-  graphMode: GraphLayoutMode,
 ): GraphNodePositionState {
-  const pinCoordinate3D = graphMode === '3d' ? read3DCoordinate(pinCoordinate) : undefined;
-
+  const runtimePosition = node as RuntimeGraphNodePositionState;
+  const z = (node as { z?: unknown }).z;
   return {
-    fx: pinCoordinate?.x,
-    fy: pinCoordinate?.y,
-    fz: pinCoordinate3D?.z,
-    vx: previous?.vx,
-    vy: previous?.vy,
-    vz: previous?.vz,
-    x: pinCoordinate?.x ?? node.x ?? previous?.x,
-    y: pinCoordinate?.y ?? node.y ?? previous?.y,
-    z: pinCoordinate3D?.z ?? previous?.z,
-  };
-}
-
-function getGraphNodeOwnerSectionId(
-  nodeId: string,
-  graphLayout: GraphLayoutSettings,
-  timelineActive: boolean,
-): string | null {
-  return timelineActive ? null : (graphLayout.ownership[nodeId]?.ownerSectionId ?? null);
-}
-
-function resolveGraphNodePinCoordinate(
-  pinCoordinate: GraphNodePinCoordinate | undefined,
-  ownerSectionId: string | null,
-  options: {
-    graphLayout: GraphLayoutSettings;
-    graphMode: GraphLayoutMode;
-  },
-): GraphNodePinCoordinate | undefined {
-  if (!pinCoordinate || options.graphMode !== '2d' || !ownerSectionId) {
-    return pinCoordinate;
-  }
-
-  const ownerSection = options.graphLayout.sections[ownerSectionId];
-  if (!ownerSection) {
-    return pinCoordinate;
-  }
-
-  const ownerTopLeft = getSectionWorldTopLeft(ownerSection, options.graphLayout);
-  return {
-    x: ownerTopLeft.x + pinCoordinate.x,
-    y: ownerTopLeft.y + pinCoordinate.y,
+    fx: readFiniteNumber(runtimePosition.fx) ?? previous?.fx,
+    fy: readFiniteNumber(runtimePosition.fy) ?? previous?.fy,
+    fz: readFiniteNumber(runtimePosition.fz) ?? previous?.fz,
+    vx: readFiniteNumber(runtimePosition.vx) ?? previous?.vx,
+    vy: readFiniteNumber(runtimePosition.vy) ?? previous?.vy,
+    vz: readFiniteNumber(runtimePosition.vz) ?? previous?.vz,
+    x: node.x ?? previous?.x,
+    y: node.y ?? previous?.y,
+    z: typeof z === 'number' ? z : previous?.z,
   };
 }
 
@@ -210,174 +165,44 @@ function createGraphNode(
   options: {
     appearance: GraphAppearance;
     favorites: ReadonlySet<string>;
-    graphLayout: GraphLayoutSettings;
-    graphMode: GraphLayoutMode;
     nodeSizes: ReadonlyMap<string, number>;
-    timelineActive: boolean;
   },
   isLight: boolean,
   previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
 ): FGNode {
+  const runtimeNode = node as IGraphNode & RuntimeGraphNodePresentation;
   const previous = previousNodeStates.get(node.id);
-  const ownerSectionId = getGraphNodeOwnerSectionId(node.id, options.graphLayout, options.timelineActive);
-  const pinCoordinate = resolveGraphNodePinCoordinate(
-    getActiveGraphNodePinCoordinate(node.id, options),
-    ownerSectionId,
-    options,
-  );
   const style = createGraphNodeStyle(node, options, isLight);
-  const position = createGraphNodePositionState(node, previous, pinCoordinate, options.graphMode);
+  const position = createGraphNodePositionState(node, previous);
 
   return {
+    ...runtimeNode,
     id: node.id,
     label: node.label,
     ...style,
-    isPinned: !!pinCoordinate,
+    isPinned: runtimeNode.isPinned === true,
     nodeType: node.nodeType,
+    ownerPluginId: runtimeNode.ownerPluginId,
+    runtimeNodeType: runtimeNode.runtimeNodeType,
     shape2D: node.shape2D,
     shape3D: node.shape3D,
     imageUrl: node.imageUrl,
+    metadata: node.metadata,
     isCollapsible: node.isCollapsible,
     isCollapsed: node.isCollapsed,
     collapsedDescendantCount: node.collapsedDescendantCount,
-    ownerSectionId,
     ...position,
   } as FGNode;
-}
-
-function getSectionNodeSize(section: Pick<GraphLayoutSection, 'height' | 'width'>): number {
-  return Math.max(24, Math.min(48, Math.sqrt(section.width * section.height) / 12));
-}
-
-function getSectionWorldTopLeft(
-  section: GraphLayoutSection,
-  graphLayout: GraphLayoutSettings,
-  visited = new Set<string>(),
-): GraphLayoutCoordinate2D {
-  if (visited.has(section.id)) {
-    return { x: section.x, y: section.y };
-  }
-
-  const ownerSectionId = graphLayout.ownership[section.id]?.ownerSectionId ?? null;
-  const ownerSection = ownerSectionId ? graphLayout.sections[ownerSectionId] : undefined;
-  if (!ownerSection) {
-    return { x: section.x, y: section.y };
-  }
-
-  visited.add(section.id);
-  const ownerTopLeft = getSectionWorldTopLeft(ownerSection, graphLayout, visited);
-  return {
-    x: ownerTopLeft.x + section.x,
-    y: ownerTopLeft.y + section.y,
-  };
-}
-
-function getSectionOwnerTopLeft(
-  section: GraphLayoutSection,
-  graphLayout: GraphLayoutSettings,
-): GraphLayoutCoordinate2D | undefined {
-  const ownerSectionId = graphLayout.ownership[section.id]?.ownerSectionId ?? null;
-  const ownerSection = ownerSectionId ? graphLayout.sections[ownerSectionId] : undefined;
-  return ownerSection ? getSectionWorldTopLeft(ownerSection, graphLayout) : undefined;
-}
-
-function getSectionPinCoordinate(
-  section: GraphLayoutSection,
-  graphLayout: GraphLayoutSettings,
-): GraphLayoutCoordinate2D | undefined {
-  const rawPinCoordinate = getGraphLayoutPinCoordinate(graphLayout.pinnedNodes[section.id], '2d');
-  const ownerTopLeft = getSectionOwnerTopLeft(section, graphLayout);
-  return rawPinCoordinate && ownerTopLeft
-    ? { x: ownerTopLeft.x + rawPinCoordinate.x, y: ownerTopLeft.y + rawPinCoordinate.y }
-    : rawPinCoordinate;
-}
-
-function getSectionNodePosition(
-  section: GraphLayoutSection,
-  graphLayout: GraphLayoutSettings,
-  previous: PreviousNodeState | undefined,
-): { x: number; y: number } {
-  const pinCoordinate = getSectionPinCoordinate(section, graphLayout);
-  const worldTopLeft = getSectionWorldTopLeft(section, graphLayout);
-  return {
-    x: pinCoordinate?.x ?? previous?.x ?? worldTopLeft.x + (section.width / 2),
-    y: pinCoordinate?.y ?? previous?.y ?? worldTopLeft.y + (section.height / 2),
-  };
-}
-
-function createGraphSectionNode(
-  section: GraphLayoutSection,
-  options: {
-    allNodeIds: readonly string[];
-    graphLayout: GraphLayoutSettings;
-  },
-  previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
-): FGNode {
-  const previous = previousNodeStates.get(section.id);
-  const ownerSectionId = options.graphLayout.ownership[section.id]?.ownerSectionId ?? null;
-  const pinCoordinate = getSectionPinCoordinate(section, options.graphLayout);
-  const position = getSectionNodePosition(section, options.graphLayout, previous);
-
-  return {
-    id: section.id,
-    label: section.label,
-    icon: section.icon,
-    size: getSectionNodeSize(section),
-    color: section.color,
-    borderColor: section.color,
-    borderWidth: 2,
-    baseOpacity: 0.35,
-    hiddenDescendantCount: section.collapsed
-      ? countGraphLayoutHiddenDescendants(options.graphLayout, section.id, options.allNodeIds)
-      : 0,
-    isCollapsedGraphSection: section.collapsed,
-    isFavorite: false,
-    isGraphSection: true,
-    isPinned: !!pinCoordinate,
-    nodeType: 'graph-section',
-    ownerSectionId,
-    sectionHeight: section.height,
-    sectionWidth: section.width,
-    shape2D: 'square',
-    fx: pinCoordinate?.x,
-    fy: pinCoordinate?.y,
-    vx: previous?.vx,
-    vy: previous?.vy,
-    x: position.x,
-    y: position.y,
-  } as FGNode;
-}
-
-function buildGraphSectionNodes(
-  allNodeIds: readonly string[],
-  graphLayout: GraphLayoutSettings,
-  graphMode: GraphLayoutMode,
-  timelineActive: boolean,
-  previousNodeStates: ReadonlyMap<string, PreviousNodeState>,
-): FGNode[] {
-  if (graphMode !== '2d' || timelineActive) {
-    return [];
-  }
-
-  return Object.values(graphLayout.sections)
-    .filter(section => isGraphLayoutSectionNodeVisible(graphLayout, section.id))
-    .map(section => createGraphSectionNode(section, {
-      allNodeIds,
-      graphLayout,
-    }, previousNodeStates));
 }
 
 export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   const {
     nodes,
-    allNodeIds = nodes.map(node => node.id),
     edges,
     appearance = DEFAULT_GRAPH_APPEARANCE,
     nodeSizes,
     theme,
     favorites,
-    graphLayout = createDefaultGraphLayoutSettings(),
-    graphMode = '2d',
     timelineActive,
     previousNodes = [],
     random = Math.random,
@@ -386,15 +211,8 @@ export function buildGraphNodes(options: BuildGraphNodesOptions): FGNode[] {
   const previousNodeStates = createPreviousNodeStateMap(previousNodes);
   const graphNodes = nodes.map(node => createGraphNode(
     node,
-    { appearance, nodeSizes, favorites, graphLayout, graphMode, timelineActive },
+    { appearance, nodeSizes, favorites },
     isLight,
-    previousNodeStates,
-  ));
-  graphNodes.push(...buildGraphSectionNodes(
-    allNodeIds,
-    graphLayout,
-    graphMode,
-    timelineActive,
     previousNodeStates,
   ));
 

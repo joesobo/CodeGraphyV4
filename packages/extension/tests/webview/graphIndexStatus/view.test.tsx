@@ -37,6 +37,17 @@ describe('GraphIndexStatus', () => {
     expect(screen.getByTestId('graph-index-status-fill')).toHaveStyle({ width: '25%' });
   });
 
+  it('does not capture pointer events from graph controls and popups', () => {
+    render(
+      <GraphIndexStatus
+        isIndexing={true}
+        progress={{ phase: 'Indexing Workspace', current: 1, total: 4 }}
+      />,
+    );
+
+    expect(screen.getByTestId('graph-index-status').className).toContain('pointer-events-none');
+  });
+
   it('shows zero progress when the total is zero', () => {
     render(
       <GraphIndexStatus

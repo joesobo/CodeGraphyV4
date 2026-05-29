@@ -15,7 +15,6 @@ export interface GraphKeyboardListenerOptions {
     handlers: GraphKeyboardEffectHandlers,
   ) => void;
   selectedNodeIds: string[];
-  selectedGraphSectionIds?: string[];
   setSelection: (nodeIds: string[]) => void;
   zoomGraphView: (factor: number) => void;
 }
@@ -33,7 +32,6 @@ export function createGraphKeyboardListener({
   postMessage,
   runEffects,
   selectedNodeIds,
-  selectedGraphSectionIds = [],
   setSelection,
   zoomGraphView,
 }: GraphKeyboardListenerOptions): (event: KeyboardEvent) => void {
@@ -44,7 +42,6 @@ export function createGraphKeyboardListener({
       shiftKey: event.shiftKey,
       graphMode,
       selectedNodeIds,
-      selectedGraphSectionIds,
       allNodeIds: getAllNodeIds(),
       targetIsEditable: isEditableTarget(event.target),
     });

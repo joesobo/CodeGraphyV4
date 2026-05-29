@@ -47,6 +47,10 @@ export async function applySettingsToggleMessage(
           ),
         );
         await handlers.reloadWorkspacePlugins();
+        handlers.sendPluginStatuses?.();
+        handlers.sendContextMenuItems?.();
+        handlers.sendPluginToolbarActions?.();
+        handlers.sendGraphViewContributionStatuses?.();
         await handlers.analyzeAndSendData();
         return true;
       }

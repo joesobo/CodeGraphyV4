@@ -23,6 +23,19 @@ describe('exportSvgNodeMarkup', () => {
     );
   });
 
+  it('renders sized rectangle node shapes', () => {
+    expect(buildNodeShapeElement({
+      ...node,
+      shape2D: 'rectangle',
+      shapeSize2D: {
+        height: 40,
+        width: 80,
+      },
+    }, { x: 20, y: 30 }, 'rectangle')).toBe(
+      '<path d="M-20,10h80v40h-80Z" fill="#123456" stroke="#654321" stroke-width="3"/>'
+    );
+  });
+
   it('escapes label text and positions the label below the node', () => {
     expect(buildNodeLabelElement(node, { x: 20, y: 30 }, '#f8fafc')).toBe(
       '<text x="20" y="56" text-anchor="middle" fill="#f8fafc" font-size="12" font-family="sans-serif">A &amp; &lt;B&gt;</text>'

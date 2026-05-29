@@ -18,6 +18,7 @@ export interface E2EScenario {
   name: E2EScenarioName;
   workspaceRelativePath: string;
   pluginDevelopmentRelativePaths: string[];
+  workspacePluginPackageRelativePaths: string[];
   runByDefault?: boolean;
   preserveWorkspaceCodegraphy?: boolean;
   writeWorkspaceSettings?: boolean;
@@ -35,7 +36,8 @@ export const e2eScenarios: E2EScenario[] = [
   {
     name: 'codegraphy-root',
     workspaceRelativePath: '.',
-    pluginDevelopmentRelativePaths: ['packages/plugin-typescript', 'packages/plugin-godot'],
+    pluginDevelopmentRelativePaths: [],
+    workspacePluginPackageRelativePaths: [],
     runByDefault: false,
     preserveWorkspaceCodegraphy: true,
     writeWorkspaceSettings: false,
@@ -65,7 +67,11 @@ export const e2eScenarios: E2EScenario[] = [
   {
     name: 'typescript',
     workspaceRelativePath: 'examples/example-typescript',
-    pluginDevelopmentRelativePaths: ['packages/plugin-typescript'],
+    pluginDevelopmentRelativePaths: [],
+    workspacePluginPackageRelativePaths: [
+      'packages/plugin-typescript',
+      'packages/extension/src/e2e/fixtures/package-graph-view-plugin',
+    ],
     graphNodeExtension: '.ts',
     expectedNodeIds: [
       'src/index.ts',
@@ -127,7 +133,11 @@ export const e2eScenarios: E2EScenario[] = [
   {
     name: 'godot',
     workspaceRelativePath: 'examples/example-godot',
-    pluginDevelopmentRelativePaths: ['packages/plugin-godot'],
+    pluginDevelopmentRelativePaths: [],
+    workspacePluginPackageRelativePaths: [
+      'packages/plugin-godot',
+      'packages/extension/src/e2e/fixtures/package-graph-view-plugin',
+    ],
     graphNodeExtension: '.gd',
     expectedNodeIds: [
       'scripts/player.gd',

@@ -1,9 +1,15 @@
-import type { GraphLayoutMode } from '../../../../../../shared/settings/graphLayout';
-import type {
-  GraphContextNodePosition2D,
-  GraphContextNodePosition3D,
-} from '../../../contextActions/context';
 import type { FGNode } from '../../../model/build';
+
+type GraphMode = '2d' | '3d';
+
+export interface GraphNodePosition2D {
+  x: number;
+  y: number;
+}
+
+export interface GraphNodePosition3D extends GraphNodePosition2D {
+  z: number;
+}
 
 export function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
@@ -11,8 +17,8 @@ export function isFiniteNumber(value: unknown): value is number {
 
 export function readNodePosition(
   node: FGNode,
-  graphMode: GraphLayoutMode,
-): GraphContextNodePosition2D | GraphContextNodePosition3D | undefined {
+  graphMode: GraphMode,
+): GraphNodePosition2D | GraphNodePosition3D | undefined {
   if (!isFiniteNumber(node.x) || !isFiniteNumber(node.y)) {
     return undefined;
   }
@@ -28,9 +34,9 @@ export function readNodePosition(
 
 export function createGraphNodePositionMap(
   nodes: readonly FGNode[],
-  graphMode: GraphLayoutMode,
-): Map<string, GraphContextNodePosition2D | GraphContextNodePosition3D> {
-  const positions = new Map<string, GraphContextNodePosition2D | GraphContextNodePosition3D>();
+  graphMode: GraphMode,
+): Map<string, GraphNodePosition2D | GraphNodePosition3D> {
+  const positions = new Map<string, GraphNodePosition2D | GraphNodePosition3D>();
 
   for (const node of nodes) {
     const position = readNodePosition(node, graphMode);

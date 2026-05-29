@@ -55,6 +55,33 @@ export function getVendoredPackageRootPath(
   return path.join(path.dirname(outputFilePath), 'node_modules', ...packageName.split('/'));
 }
 
+function toPackageRelativeEntrypoint(entrypoint: string): string {
+  return entrypoint.endsWith('/')
+    ? `${entrypoint}index.js`
+    : `${entrypoint}/index.js`;
+}
+
+function normalizeVendoredPackageEntrypoint(packageRootPath: string): void {
+  const manifestPath = path.join(packageRootPath, 'package.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
+    main?: unknown;
+    [key: string]: unknown;
+  };
+  if (typeof manifest.main !== 'string' || path.extname(manifest.main) !== '') {
+    return;
+  }
+
+  const normalizedMain = toPackageRelativeEntrypoint(manifest.main);
+  if (!fs.existsSync(path.join(packageRootPath, normalizedMain))) {
+    return;
+  }
+
+  fs.writeFileSync(
+    manifestPath,
+    `${JSON.stringify({ ...manifest, main: normalizedMain }, null, 2)}\n`,
+  );
+}
+
 export function copyRuntimePackage(
   outputFilePath: string,
   packageName: string,
@@ -69,6 +96,7 @@ export function copyRuntimePackage(
     force: true,
     dereference: true,
   });
+  normalizeVendoredPackageEntrypoint(targetPath);
 
   return targetPath;
 }

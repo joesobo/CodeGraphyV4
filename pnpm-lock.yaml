@@ -78,6 +78,8 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@20.19.37)(jiti@1.21.7)(jsdom@25.0.1)(tsx@4.21.0)(yaml@2.8.2)
 
+  apps/web: {}
+
   packages/core:
     dependencies:
       '@codegraphy-dev/plugin-api':
@@ -394,6 +396,12 @@ importers:
         version: link:../plugin-api
 
   packages/plugin-typescript:
+    dependencies:
+      '@codegraphy-dev/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+
+  packages/pro:
     dependencies:
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*

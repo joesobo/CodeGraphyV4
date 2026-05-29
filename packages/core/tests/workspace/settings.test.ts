@@ -169,6 +169,7 @@ describe('CodeGraphy Workspace settings', () => {
       showOrphans: false,
       filterPatterns: ['dist/**'],
       disabledCustomFilterPatterns: ['generated/**'],
+      pluginData: {},
       plugins: [{
         package: '@codegraphy-dev/plugin-python',
         disabledFilterPatterns: ['**/__pycache__/**'],

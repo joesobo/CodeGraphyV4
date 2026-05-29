@@ -5,6 +5,8 @@
 
 import type {
   GraphPluginSlot,
+  GraphViewViewportState,
+  IGraphViewContributions,
   NodeRenderFn,
   OverlayRenderFn,
   TooltipProviderFn,
@@ -35,15 +37,22 @@ export function createPluginWebviewApi(
   registerNodeRenderer: (pluginId: string, type: string, fn: NodeRenderFn) => WebviewDisposable,
   registerOverlay: (pluginId: string, id: string, fn: OverlayRenderFn) => WebviewDisposable,
   registerTooltipProvider: (pluginId: string, fn: TooltipProviderFn) => WebviewDisposable,
+  registerGraphViewContributions: (pluginId: string, contributions: IGraphViewContributions) => WebviewDisposable,
+  getGraphViewViewportState: () => GraphViewViewportState | null,
+  onGraphViewViewportState: (handler: (state: GraphViewViewportState | null) => void) => WebviewDisposable,
   messageHandlers: Map<string, Set<(msg: { type: string; data: unknown }) => void>>,
   drawingHelpers: DrawingHelpers,
 ): CodeGraphyWebviewAPI {
   return {
     getContainer: () => getOrCreateContainer(pluginId),
     getSlotContainer: (slot: GraphPluginSlot) => getOrCreateSlotContainer(pluginId, slot),
+    getGraphViewViewportState,
+    onGraphViewViewportState,
     registerNodeRenderer: (type: string, fn: NodeRenderFn) => registerNodeRenderer(pluginId, type, fn),
     registerOverlay: (id: string, fn: OverlayRenderFn) => registerOverlay(pluginId, id, fn),
     registerTooltipProvider: (fn: TooltipProviderFn) => registerTooltipProvider(pluginId, fn),
+    registerGraphViewContributions: (contributions: IGraphViewContributions) =>
+      registerGraphViewContributions(pluginId, contributions),
     helpers: {
       drawBadge: (ctx: CanvasRenderingContext2D, opts: BadgeOpts) => drawingHelpers.drawBadge(ctx, opts),
       drawProgressRing: (ctx: CanvasRenderingContext2D, opts: RingOpts) => drawingHelpers.drawProgressRing(ctx, opts),

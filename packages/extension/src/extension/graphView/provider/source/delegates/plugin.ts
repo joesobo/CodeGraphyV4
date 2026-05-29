@@ -10,6 +10,7 @@ export function createGraphViewProviderPluginMethodDelegates(
   | '_sendContextMenuItems'
   | '_sendPluginExporters'
   | '_sendPluginToolbarActions'
+  | '_sendGraphViewContributionStatuses'
   | '_sendPluginWebviewInjections'
   | '_sendGroupsUpdated'
   | 'registerExternalPlugin'
@@ -21,6 +22,8 @@ export function createGraphViewProviderPluginMethodDelegates(
     _sendContextMenuItems: () => owner._methodContainers.plugin._sendContextMenuItems(),
     _sendPluginExporters: () => owner._methodContainers.plugin._sendPluginExporters(),
     _sendPluginToolbarActions: () => owner._methodContainers.plugin._sendPluginToolbarActions(),
+    _sendGraphViewContributionStatuses: () =>
+      owner._methodContainers.plugin._sendGraphViewContributionStatuses(),
     _sendPluginWebviewInjections: () => owner._methodContainers.plugin._sendPluginWebviewInjections(),
     _sendGroupsUpdated: () => owner._methodContainers.plugin._sendGroupsUpdated(),
     registerExternalPlugin: (plugin, options) =>

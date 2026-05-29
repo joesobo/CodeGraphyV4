@@ -7,17 +7,17 @@ import {
 
 describe('pluginHost/api/registration/renderers', () => {
   it('registers and disposes node renderers by plugin ownership', () => {
-    const renderers = new Map<string, { pluginId: string; fn: () => void }>();
+    const renderers = new Map<string, Array<{ pluginId: string; fn: () => void }>>();
     const fn = vi.fn();
     const disposable = registerNodeRenderer('plugin-a', '.ts', fn, renderers as never);
 
-    expect(renderers.get('.ts')).toEqual({ pluginId: 'plugin-a', fn });
+    expect(renderers.get('.ts')).toEqual([{ pluginId: 'plugin-a', fn }]);
     disposable.dispose();
     expect(renderers.has('.ts')).toBe(false);
   });
 
   it('does not throw when a node renderer is already missing on dispose', () => {
-    const renderers = new Map<string, { pluginId: string; fn: () => void }>();
+    const renderers = new Map<string, Array<{ pluginId: string; fn: () => void }>>();
     const disposable = registerNodeRenderer('plugin-a', '.ts', vi.fn(), renderers as never);
 
     renderers.delete('.ts');

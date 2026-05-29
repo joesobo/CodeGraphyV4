@@ -4,7 +4,8 @@
  * @module webview/components/Graph
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
 import {
@@ -14,7 +15,7 @@ import { getGraphNavigator, getGraphWindow } from '../environment/browser';
 import { buildGraphCallbackOptions } from './callbackOptions';
 import { useGraphDebugApi } from '../debug/api';
 import { buildGraphDebugOptions } from '../debug/options';
-import { buildGraphLayoutKey } from './layoutKey';
+import { buildGraphDataLayoutKey } from './layoutKey';
 import { detectMacPlatform } from '../environment/platform';
 import { useGraphViewStoreState } from './store';
 import { useGraphCallbacks } from '../rendering/useGraphCallbacks';
@@ -31,9 +32,53 @@ interface GraphProps {
   theme?: ThemeKind;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
+  graphViewContributions?: CoreGraphViewContributionSet;
   onAddFilterRequested?: (patterns: string[]) => void;
   onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
+}
+
+function hasGraphViewContributions(
+  contributions: CoreGraphViewContributionSet | undefined,
+): contributions is CoreGraphViewContributionSet {
+  return !!contributions
+    && (
+      contributions.runtimeNodes.length > 0
+      || contributions.runtimeEdges.length > 0
+      || contributions.projections.length > 0
+      || contributions.forces.length > 0
+      || contributions.nodeDragEnd.length > 0
+      || contributions.contextMenu.length > 0
+      || contributions.ui.length > 0
+    );
+}
+
+function useResolvedGraphViewContributions(
+  graphViewContributions: CoreGraphViewContributionSet | undefined,
+  pluginHost: WebviewPluginHost | undefined,
+): CoreGraphViewContributionSet | undefined {
+  const [contributionVersion, setContributionVersion] = useState(0);
+
+  useEffect(() => {
+    if (!pluginHost || graphViewContributions) {
+      return undefined;
+    }
+
+    const subscription = pluginHost.subscribeGraphViewContributions(() => {
+      setContributionVersion(version => version + 1);
+    });
+    return () => subscription.dispose();
+  }, [graphViewContributions, pluginHost]);
+
+  void contributionVersion;
+  if (graphViewContributions) {
+    return graphViewContributions;
+  }
+
+  const pluginContributions = pluginHost?.getGraphViewContributions();
+  return hasGraphViewContributions(pluginContributions)
+    ? pluginContributions
+    : undefined;
 }
 
 export default function Graph({
@@ -41,12 +86,17 @@ export default function Graph({
   theme = 'dark',
   nodeDecorations,
   edgeDecorations,
+  graphViewContributions,
   onAddFilterRequested = () => {},
   onAddLegendRequested = () => {},
   pluginHost,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
   const appearance = useGraphAppearance(theme);
+  const resolvedGraphViewContributions = useResolvedGraphViewContributions(
+    graphViewContributions,
+    pluginHost,
+  );
 
   const graphState = useGraphState({
     appearance,
@@ -56,7 +106,7 @@ export default function Graph({
     directionMode: viewState.directionMode,
     edgeDecorations,
     favorites: viewState.favorites,
-    graphLayout: viewState.graphLayout,
+    graphViewContributions: resolvedGraphViewContributions,
     graphMode: viewState.graphMode,
     nodeDecorations,
     nodeSizeMode: viewState.nodeSizeMode,
@@ -64,7 +114,7 @@ export default function Graph({
     theme,
     timelineActive: viewState.timelineActive,
   });
-  const graphLayoutKey = buildGraphLayoutKey(graphState.graphData, viewState.nodeSizeMode);
+  const graphDataLayoutKey = buildGraphDataLayoutKey(graphState.graphData, viewState.nodeSizeMode);
   const isMacPlatform = detectMacPlatform(getGraphNavigator());
 
   const interactions = useGraphInteractionRuntime({
@@ -74,7 +124,7 @@ export default function Graph({
     graphContextSelection: graphState.contextSelection,
     graphCursorRef: graphState.graphCursorRef,
     graphDataRef: graphState.graphDataRef,
-    graphLayout: viewState.graphLayout,
+    graphViewContributions: resolvedGraphViewContributions,
     graphMode: viewState.graphMode,
     highlightedNeighborsRef: graphState.highlightedNeighborsRef,
     highlightedNodeRef: graphState.highlightedNodeRef,
@@ -126,8 +176,9 @@ export default function Graph({
     <GraphViewportShell
       appearance={appearance}
       callbacks={callbacks}
-      graphLayoutKey={graphLayoutKey}
+      graphDataLayoutKey={graphDataLayoutKey}
       graphState={graphState}
+      graphViewContributions={resolvedGraphViewContributions}
       handleEngineStop={handleEngineStop}
       interactions={interactions}
       pluginHost={pluginHost}

@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as THREE from 'three';
 import type SpriteText from 'three-spritetext';
 import type { IGraphData } from '../../../../../src/shared/graph/contracts';
-import type { GraphLayoutSettings } from '../../../../../src/shared/settings/graphLayout';
 import type { IPhysicsSettings } from '../../../../../src/shared/settings/physics';
 import type { FGLink, FGNode } from '../../../../../src/webview/components/graph/model/build';
 import { DEFAULT_GRAPH_APPEARANCE } from '../../../../../src/webview/components/graph/appearance/model';
@@ -56,32 +55,6 @@ const PHYSICS_SETTINGS: IPhysicsSettings = {
 	repelForce: 500,
 };
 
-const GRAPH_LAYOUT: GraphLayoutSettings = {
-	collapsedNodes: {},
-	pinnedNodes: {},
-	sections: {
-		'section-1': {
-			id: 'section-1',
-			label: 'Section 1',
-			color: '#60a5fa',
-			x: 0,
-			y: 0,
-			width: 280,
-			height: 180,
-			collapsed: false,
-			updatedAt: '2026-05-07T09:00:00.000Z',
-		},
-	},
-	ownership: {
-		'section-1': {
-			itemId: 'section-1',
-			itemKind: 'section',
-			ownerSectionId: null,
-			updatedAt: '2026-05-07T09:00:00.000Z',
-		},
-	},
-};
-
 function createGraphData(): IGraphData {
 	return {
 		edges: [],
@@ -132,8 +105,7 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			getLinkParticles,
 			getParticleColor,
 			graphDataRef,
-			graphLayout: GRAPH_LAYOUT,
-			graphLayoutKey: 'uniform::',
+			graphDataLayoutKey: 'uniform::',
 			graphMode: '2d',
 			highlightVersion: 4,
 			highlightedNeighborsRef,
@@ -148,6 +120,7 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			showLabels: true,
 			spritesRef,
 			theme: 'dark',
+			timelineActive: false,
 		}));
 
 		expect(renderingHarness.useContainerSize).toHaveBeenCalledWith(containerRef);
@@ -189,11 +162,12 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			fg2dRef,
 			fg3dRef,
 			graphDataRef,
-			graphLayout: GRAPH_LAYOUT,
+			graphViewContributions: undefined,
 			graphMode: '2d',
 			layoutKey: 'uniform::',
 			physicsPaused: false,
 			physicsSettings: PHYSICS_SETTINGS,
+			timelineActive: false,
 		});
 		expect(result.current.containerSize).toEqual({ height: 360, width: 640 });
 

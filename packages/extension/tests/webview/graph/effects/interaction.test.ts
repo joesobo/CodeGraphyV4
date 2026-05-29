@@ -15,7 +15,6 @@ function createHandlers() {
     previewNode: vi.fn(),
     openNode: vi.fn(),
     focusNode: vi.fn(),
-    setGraphSectionCollapsed: vi.fn(),
     sendInteraction: vi.fn(),
   };
 }
@@ -124,16 +123,6 @@ describe('graph effects interaction', () => {
     applyInteractionEffects([{ kind: 'focusNode', nodeId: 'src/app.ts' }], handlers);
 
     expect(handlers.focusNode).toHaveBeenCalledWith('src/app.ts');
-  });
-
-  it('updates Graph Section collapsed state', () => {
-    const handlers = createHandlers();
-
-    applyInteractionEffects([
-      { kind: 'setGraphSectionCollapsed', sectionId: 'section-1', collapsed: false },
-    ], handlers);
-
-    expect(handlers.setGraphSectionCollapsed).toHaveBeenCalledWith('section-1', false);
   });
 
   it('forwards interaction payloads', () => {

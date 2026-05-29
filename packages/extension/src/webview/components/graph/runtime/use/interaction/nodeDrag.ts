@@ -1,291 +1,23 @@
-import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
-import {
-  findDeepestGraphLayoutSectionAtWorldPoint,
-  getGraphLayoutSectionWorldTopLeft,
-  isGraphLayoutSectionDescendant,
-  type GraphLayoutMode,
-  type GraphLayoutOwnershipUpdate,
-  type GraphLayoutSettings,
-} from '../../../../../../shared/settings/graphLayout';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { FGNode } from '../../../model/build';
-import { postMessage } from '../../../../../vscodeApi';
-import { readNodePosition } from './positions';
+import { createDragGroupSession, getDragEndNodes } from './nodeDrag/group';
+import { releaseNodeDrag } from './nodeDrag/policy';
+import { isFiniteTranslate, moveNodeByTranslate, stopNodeMotion } from './nodeDrag/position';
+import type {
+  ApplyNodeDragOptions,
+  GraphMode,
+  NodeDragEndOptions,
+  NodeDragGroupSession,
+  NodeDragTranslate,
+} from './nodeDrag/types';
 
-type GraphLayoutOwnerDragMessage = Extract<
-  WebviewToExtensionMessage,
-  { type: 'UPDATE_GRAPH_LAYOUT_OWNER' }
->;
-
-export interface NodeDragTranslate {
-  x: number;
-  y: number;
-}
-
-export interface NodeDragGroupSession {
-  draggedNodeIds: Set<string>;
-  primaryNodeId: string;
-}
-
-interface NodeDragGraphData {
-  nodes: readonly FGNode[];
-}
-
-interface ApplyNodeDragOptions {
-  graphData: NodeDragGraphData;
-  graphMode: GraphLayoutMode;
-  selectedNodeIds: ReadonlySet<string>;
-}
-
-interface NodeDragEndOptions {
-  graphData: NodeDragGraphData;
-  graphLayout: GraphLayoutSettings | undefined;
-  graphMode: GraphLayoutMode;
-  timelineActive: boolean;
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
-}
-
-function isFiniteTranslate(translate: NodeDragTranslate): boolean {
-  return isFiniteNumber(translate.x) && isFiniteNumber(translate.y);
-}
-
-function createNodeMap(nodes: readonly FGNode[]): Map<string, FGNode> {
-  return new Map(nodes.map(node => [node.id, node]));
-}
-
-function readLiveSectionDimension(
-  value: unknown,
-  fallback: number,
-): number {
-  return isFiniteNumber(value) ? value : fallback;
-}
-
-function getGraphLayoutItemKind(node: FGNode): GraphLayoutOwnershipUpdate['itemKind'] {
-  return node.isGraphSection ? 'section' : 'node';
-}
-
-function getLiveGraphSectionNode(node: FGNode): FGNode | undefined {
-  return node.isGraphSection && !node.isCollapsedGraphSection ? node : undefined;
-}
-
-function createLiveGraphLayoutSection(
-  graphLayout: GraphLayoutSettings,
-  node: FGNode,
-): GraphLayoutSettings['sections'][string] | undefined {
-  const section = graphLayout.sections[node.id];
-  const liveNode = getLiveGraphSectionNode(node);
-  if (!section || !liveNode) {
-    return undefined;
-  }
-
-  const height = readLiveSectionDimension(liveNode.sectionHeight, section.height);
-  const width = readLiveSectionDimension(liveNode.sectionWidth, section.width);
-  const centerX = isFiniteNumber(liveNode.x) ? liveNode.x : undefined;
-  const centerY = isFiniteNumber(liveNode.y) ? liveNode.y : undefined;
-  return {
-    ...section,
-    height,
-    width,
-    x: centerX === undefined ? section.x : centerX - (width / 2),
-    y: centerY === undefined ? section.y : centerY - (height / 2),
-  };
-}
-
-function createLiveGraphLayout(
-  graphLayout: GraphLayoutSettings,
-  graphNodes: readonly FGNode[] | undefined,
-): GraphLayoutSettings {
-  if (!graphNodes || graphNodes.length === 0) {
-    return graphLayout;
-  }
-
-  const sections = { ...graphLayout.sections };
-  for (const node of graphNodes) {
-    const liveSection = createLiveGraphLayoutSection(graphLayout, node);
-    if (liveSection) {
-      sections[node.id] = liveSection;
-    }
-  }
-
-  return { ...graphLayout, sections };
-}
-
-function createOwnershipCandidateGraphLayout(
-  graphLayout: GraphLayoutSettings,
-  node: FGNode,
-): GraphLayoutSettings {
-  if (!node.isGraphSection) {
-    return graphLayout;
-  }
-
-  const sections = { ...graphLayout.sections };
-  for (const sectionId of Object.keys(sections)) {
-    if (
-      sectionId === node.id
-      || isGraphLayoutSectionDescendant(graphLayout.ownership, sectionId, node.id)
-    ) {
-      delete sections[sectionId];
-    }
-  }
-
-  return { ...graphLayout, sections };
-}
-
-function getPinnedNodeOwnerSectionId(
-  node: FGNode,
-  graphLayout: GraphLayoutSettings | undefined,
-): string | null {
-  return graphLayout
-    ? (node.ownerSectionId ?? graphLayout.ownership[node.id]?.ownerSectionId ?? null)
-    : null;
-}
-
-function getPinnedNodePersistedPosition(
-  position: { x: number; y: number },
-  graphMode: GraphLayoutMode,
-  graphLayout: GraphLayoutSettings | undefined,
-  ownerSectionId: string | null,
-): { x: number; y: number } {
-  const ownerTopLeft = graphMode === '2d' && graphLayout && ownerSectionId
-    ? getGraphLayoutSectionWorldTopLeft(graphLayout, ownerSectionId)
-    : undefined;
-  return ownerTopLeft
-    ? { x: position.x - ownerTopLeft.x, y: position.y - ownerTopLeft.y }
-    : position;
-}
-
-function createPinnedNodeDragMessage(
-  node: FGNode,
-  graphMode: GraphLayoutMode,
-  graphLayout: GraphLayoutSettings | undefined,
-  graphNodes: readonly FGNode[] | undefined,
-): WebviewToExtensionMessage | undefined {
-  if (!node.isPinned) {
-    return undefined;
-  }
-
-  const position = readNodePosition(node, graphMode);
-  if (!position) {
-    return undefined;
-  }
-
-  const liveGraphLayout = graphLayout ? createLiveGraphLayout(graphLayout, graphNodes) : undefined;
-  const ownerSectionId = getPinnedNodeOwnerSectionId(node, liveGraphLayout);
-  const persistedPosition = getPinnedNodePersistedPosition(position, graphMode, liveGraphLayout, ownerSectionId);
-
-  return {
-    type: 'UPDATE_GRAPH_LAYOUT_PIN',
-    payload: {
-      graphMode,
-      nodeId: node.id,
-      position: persistedPosition,
-    },
-  };
-}
-
-function canUpdateGraphLayoutOwnerOnDrag(
-  graphLayout: GraphLayoutSettings | undefined,
-  graphMode: GraphLayoutMode,
-  timelineActive: boolean,
-): graphLayout is GraphLayoutSettings {
-  return !!graphLayout && graphMode === '2d' && !timelineActive;
-}
-
-function createGraphLayoutOwnerDragMessage(
-  node: FGNode,
-  graphLayout: GraphLayoutSettings | undefined,
-  graphMode: GraphLayoutMode,
-  timelineActive: boolean,
-  graphNodes?: readonly FGNode[],
-): GraphLayoutOwnerDragMessage | undefined {
-  if (!canUpdateGraphLayoutOwnerOnDrag(graphLayout, graphMode, timelineActive)) {
-    return undefined;
-  }
-
-  const position = readNodePosition(node, graphMode);
-  if (!position) {
-    return undefined;
-  }
-
-  const liveGraphLayout = createLiveGraphLayout(graphLayout, graphNodes);
-  const ownerCandidateGraphLayout = createOwnershipCandidateGraphLayout(liveGraphLayout, node);
-  const ownerSectionId = findDeepestGraphLayoutSectionAtWorldPoint(ownerCandidateGraphLayout, position);
-  const currentOwnerSectionId = graphLayout.ownership[node.id]?.ownerSectionId ?? null;
-  if (ownerSectionId === currentOwnerSectionId) {
-    return undefined;
-  }
-
-  return {
-    type: 'UPDATE_GRAPH_LAYOUT_OWNER',
-    payload: {
-      itemId: node.id,
-      itemKind: getGraphLayoutItemKind(node),
-      ownerSectionId,
-    },
-  };
-}
+export type {
+  NodeDragGroupSession,
+  NodeDragTranslate,
+};
 
 export function markNodeDragging(node: FGNode): void {
   node.isDragging = true;
-}
-
-function releaseNodeDrag(node: FGNode, graphMode: GraphLayoutMode): void {
-  node.isDragging = false;
-
-  if (node.isPinned) {
-    return;
-  }
-
-  if (graphMode === '2d') {
-    node.fx = undefined;
-    node.fy = undefined;
-  } else {
-    node.fx = undefined;
-    node.fy = undefined;
-    node.fz = undefined;
-  }
-}
-
-function moveNodeByTranslate(node: FGNode, translate: NodeDragTranslate): void {
-  if (!isFiniteTranslate(translate)) {
-    return;
-  }
-
-  const x = (isFiniteNumber(node.x) ? node.x : 0) + translate.x;
-  const y = (isFiniteNumber(node.y) ? node.y : 0) + translate.y;
-  node.x = x;
-  node.y = y;
-  node.fx = x;
-  node.fy = y;
-  node.vx = 0;
-  node.vy = 0;
-}
-
-function createDragGroupSession(
-  primaryNode: FGNode,
-  options: ApplyNodeDragOptions,
-): NodeDragGroupSession | null {
-  if (
-    options.graphMode !== '2d'
-    || !options.selectedNodeIds.has(primaryNode.id)
-    || options.selectedNodeIds.size < 2
-  ) {
-    return null;
-  }
-
-  const nodesById = createNodeMap(options.graphData.nodes);
-  const draggedNodeIds = new Set<string>();
-  for (const nodeId of options.selectedNodeIds) {
-    if (nodesById.has(nodeId)) {
-      draggedNodeIds.add(nodeId);
-    }
-  }
-
-  return draggedNodeIds.size > 1
-    ? { draggedNodeIds, primaryNodeId: primaryNode.id }
-    : null;
 }
 
 export function applyNodeDrag(
@@ -297,11 +29,19 @@ export function applyNodeDrag(
   markNodeDragging(primaryNode);
 
   const nextSession = session ?? createDragGroupSession(primaryNode, options);
-  if (!nextSession || !isFiniteTranslate(translate)) {
+  if (!isFiniteTranslate(translate)) {
     return nextSession;
   }
 
-  const nodesById = createNodeMap(options.graphData.nodes);
+  if (options.graphMode === '2d' && primaryNode.isPinned === true) {
+    stopNodeMotion(primaryNode);
+  }
+
+  if (!nextSession) {
+    return nextSession;
+  }
+
+  const nodesById = new Map(options.graphData.nodes.map(node => [node.id, node]));
   for (const nodeId of nextSession.draggedNodeIds) {
     const node = nodesById.get(nodeId);
     if (!node) {
@@ -317,74 +57,19 @@ export function applyNodeDrag(
   return nextSession;
 }
 
-function getDragEndNodes(
-  primaryNode: FGNode,
-  session: NodeDragGroupSession | null,
-  graphData: NodeDragGraphData,
-): FGNode[] {
-  if (!session) {
-    return [primaryNode];
-  }
-
-  const nodesById = createNodeMap(graphData.nodes);
-  const nodes: FGNode[] = [];
-  for (const nodeId of session.draggedNodeIds) {
-    const node = nodeId === primaryNode.id ? primaryNode : nodesById.get(nodeId);
-    if (node) {
-      nodes.push(node);
-    }
-  }
-
-  return nodes;
-}
-
 export function postNodeDragEndMessages(
   node: FGNode,
-  graphLayout: GraphLayoutSettings | undefined,
-  graphMode: GraphLayoutMode,
-  timelineActive: boolean,
-  graphNodes?: readonly FGNode[],
+  graphMode: GraphMode,
+  graphViewContributions?: Pick<CoreGraphViewContributionSet, 'nodeDragEnd'>,
+  options: {
+    graphData?: NodeDragEndOptions['graphData'];
+    timelineActive?: boolean;
+  } = {},
 ): void {
-  const ownerMessage = createGraphLayoutOwnerDragMessage(
-    node,
-    graphLayout,
-    graphMode,
-    timelineActive,
-    graphNodes,
-  );
-  if (ownerMessage) {
-    node.ownerSectionId = ownerMessage.payload.ownerSectionId;
-  }
-  releaseNodeDrag(node, graphMode);
-
-  const messages = [
-    createPinnedNodeDragMessage(node, graphMode, graphLayout, graphNodes),
-    ownerMessage,
-  ];
-
-  for (const message of messages) {
-    if (message) {
-      postMessage(message);
-    }
-  }
-}
-
-export function updateNodeDragOwnerPreview(
-  node: FGNode,
-  options: NodeDragEndOptions,
-): string | null {
-  if (!canUpdateGraphLayoutOwnerOnDrag(options.graphLayout, options.graphMode, options.timelineActive)) {
-    return null;
-  }
-
-  const position = readNodePosition(node, options.graphMode);
-  if (!position) {
-    return null;
-  }
-
-  const liveGraphLayout = createLiveGraphLayout(options.graphLayout, options.graphData.nodes);
-  const ownerCandidateGraphLayout = createOwnershipCandidateGraphLayout(liveGraphLayout, node);
-  return findDeepestGraphLayoutSectionAtWorldPoint(ownerCandidateGraphLayout, position);
+  releaseNodeDrag(node, graphMode, {
+    ...options,
+    graphViewContributions,
+  });
 }
 
 export function postDraggedNodesDragEndMessages(
@@ -395,10 +80,12 @@ export function postDraggedNodesDragEndMessages(
   for (const node of getDragEndNodes(primaryNode, session, options.graphData)) {
     postNodeDragEndMessages(
       node,
-      options.graphLayout,
       options.graphMode,
-      options.timelineActive,
-      options.graphData.nodes,
+      options.graphViewContributions,
+      {
+        graphData: options.graphData,
+        timelineActive: options.timelineActive,
+      },
     );
   }
 }

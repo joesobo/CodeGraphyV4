@@ -3,10 +3,34 @@
  * Called by @vscode/test-electron after VS Code starts.
  */
 import * as path from 'path';
+import * as fs from 'fs';
+import { createRequire } from 'module';
 import { glob } from 'glob';
+import type MochaConstructor from 'mocha';
+
+function findRepoRoot(startDir: string): string {
+  let currentDir = startDir;
+
+  while (currentDir !== path.dirname(currentDir)) {
+    if (fs.existsSync(path.join(currentDir, 'pnpm-workspace.yaml'))) {
+      return currentDir;
+    }
+
+    currentDir = path.dirname(currentDir);
+  }
+
+  throw new Error(`Unable to locate repo root from ${startDir}`);
+}
 
 export async function run(): Promise<void> {
-  const { default: Mocha } = await import('mocha');
+  const repoRoot = findRepoRoot(__dirname);
+  const requireFromExtension = createRequire(
+    path.join(repoRoot, 'packages/extension/package.json'),
+  );
+  const mochaModule = requireFromExtension('mocha') as
+    | typeof MochaConstructor
+    | { default: typeof MochaConstructor };
+  const Mocha = 'default' in mochaModule ? mochaModule.default : mochaModule;
   const grep = process.env.CODEGRAPHY_E2E_GREP
     ?? (process.env.CODEGRAPHY_E2E_FULL === '1'
       ? undefined

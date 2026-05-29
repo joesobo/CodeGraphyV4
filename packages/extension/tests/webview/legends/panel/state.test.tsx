@@ -175,6 +175,37 @@ describe('webview/legends/panelState', () => {
     expect(result.current.displayedEdgeLegendRules).toEqual([]);
   });
 
+  it('reclassifies exact edge-kind rules when edge types change', () => {
+    const initialProps: PanelStateProps = {
+      nodeTypes: [],
+      edgeTypes: [],
+      nodeColors: {},
+      legends: [
+        { id: 'edge:import', pattern: 'import', color: '#abcdef', target: 'edge' },
+      ],
+    };
+    const { result, rerender } = renderHook(
+      (props: PanelStateProps) => useLegendPanelState(props),
+      { initialProps },
+    );
+
+    expect(result.current.edgeLegendRules).toEqual([
+      { id: 'edge:import', pattern: 'import', color: '#abcdef', target: 'edge' },
+    ]);
+    expect(result.current.edgeEntries).toEqual([]);
+
+    rerender({
+      ...initialProps,
+      edgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#111111' }],
+    });
+
+    expect(result.current.edgeLegendRules).toEqual([]);
+    expect(result.current.displayedEdgeLegendRules).toEqual([]);
+    expect(result.current.edgeEntries).toEqual([
+      { id: 'import', label: 'Imports', color: '#abcdef', defaultColor: '#111111' },
+    ]);
+  });
+
   it('applies optimistic default-rule updates before the extension echoes legends back', () => {
     const { result } = renderHook(() =>
       useLegendPanelState({

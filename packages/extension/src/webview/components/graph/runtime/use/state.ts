@@ -7,6 +7,7 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from 'react';
+import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import * as THREE from 'three';
@@ -15,7 +16,6 @@ import type { IFileInfo } from '../../../../../shared/files/info';
 import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import type { BidirectionalEdgeMode, DirectionMode, NodeSizeMode } from '../../../../../shared/settings/modes';
-import type { GraphLayoutMode, GraphLayoutSettings } from '../../../../../shared/settings/graphLayout';
 import type {
   GraphContextSelection,
 } from '../../contextMenu/contracts';
@@ -47,8 +47,8 @@ export interface UseGraphStateOptions {
   directionMode: DirectionMode;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
   favorites: Set<string>;
-  graphLayout?: GraphLayoutSettings;
-  graphMode?: GraphLayoutMode;
+  graphViewContributions?: CoreGraphViewContributionSet;
+  graphMode?: '2d' | '3d';
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   nodeSizeMode: NodeSizeMode;
   showLabels: boolean;
@@ -131,7 +131,7 @@ export function useGraphState({
   directionMode,
   edgeDecorations,
   favorites,
-  graphLayout,
+  graphViewContributions,
   graphMode,
   nodeDecorations,
   nodeSizeMode,
@@ -199,7 +199,7 @@ export function useGraphState({
       nodeSizeMode: nodeSizeModeRef.current,
       theme: themeRef.current,
       favorites: favoritesRef.current,
-      graphLayout,
+      graphViewContributions,
       graphMode: resolvedGraphMode,
       bidirectionalMode,
       timelineActive,
@@ -208,7 +208,7 @@ export function useGraphState({
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, graphLayout, graphMode, timelineActive]);
+  }, [appearance, bidirectionalMode, data, graphMode, graphViewContributions, timelineActive]);
 
   useEffect(() => {
     if (!timelineActive) return;

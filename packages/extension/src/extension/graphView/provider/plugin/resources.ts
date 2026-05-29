@@ -3,7 +3,10 @@ import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { getBuiltInGraphViewDefaultGroups } from '../../groups/defaults/builtIn';
-import { registerBuiltInGraphViewPluginRoots } from '../../groups/defaults/pluginRoots';
+import {
+  registerBuiltInGraphViewPluginRoots,
+  registerPackageGraphViewPluginRoots,
+} from '../../groups/defaults/pluginRoots';
 import { buildGraphViewMergedGroups } from '../../groups/merged';
 import { getGraphViewPluginDefaultGroups } from '../../groups/defaults/plugin';
 import {
@@ -41,6 +44,7 @@ export interface GraphViewProviderPluginResourceMethods {
 
 export interface GraphViewProviderPluginResourceMethodDependencies {
   registerBuiltInPluginRoots: typeof registerBuiltInGraphViewPluginRoots;
+  registerPackagePluginRoots: typeof registerPackageGraphViewPluginRoots;
   getPluginDefaultGroups: typeof getGraphViewPluginDefaultGroups;
   getBuiltInDefaultGroups: typeof getBuiltInGraphViewDefaultGroups;
   buildMergedGroups: typeof buildGraphViewMergedGroups;
@@ -56,6 +60,7 @@ export interface GraphViewProviderPluginResourceMethodDependencies {
 function createDefaultGraphViewProviderPluginResourceMethodDependencies(): GraphViewProviderPluginResourceMethodDependencies {
   return {
     registerBuiltInPluginRoots: registerBuiltInGraphViewPluginRoots,
+    registerPackagePluginRoots: registerPackageGraphViewPluginRoots,
     getPluginDefaultGroups: getGraphViewPluginDefaultGroups,
     getBuiltInDefaultGroups: getBuiltInGraphViewDefaultGroups,
     buildMergedGroups: buildGraphViewMergedGroups,
@@ -79,6 +84,7 @@ export function createGraphViewProviderPluginResourceMethods(
     dependencies ?? createDefaultGraphViewProviderPluginResourceMethodDependencies();
   const _registerBuiltInPluginRoots = (): void => {
     resolvedDependencies.registerBuiltInPluginRoots(source._extensionUri, source._pluginExtensionUris);
+    resolvedDependencies.registerPackagePluginRoots(source._analyzer, source._pluginExtensionUris);
   };
 
   const _getPluginDefaultGroups = (): IGroup[] =>

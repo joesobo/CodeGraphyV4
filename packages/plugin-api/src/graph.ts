@@ -10,6 +10,7 @@ export type NodeType = CoreNodeType | (string & {});
 export type GraphNodeShape2D =
   | 'circle'
   | 'square'
+  | 'rectangle'
   | 'diamond'
   | 'triangle'
   | 'hexagon'
@@ -119,6 +120,36 @@ export interface IGraphNode {
   /** Optional 2D shape override for the node. */
   shape2D?: GraphNodeShape2D;
 
+  /** Optional 2D visual size override. Width and height are graph-space units centered on the node. */
+  shapeSize2D?: {
+    height: number;
+    width: number;
+  };
+
+  /** Optional 2D corner radius for rectangle nodes, in graph-space units. */
+  cornerRadius2D?: number;
+
+  /**
+   * Optional 2D collision radius override for physics. This is useful when a plugin renders
+   * a custom shape but owns its own collision or containment behavior.
+   */
+  collisionRadius2D?: number;
+
+  /**
+   * Optional multiplier for the 2D charge force. Use 0 when a plugin owns local physics for
+   * a runtime node or projected member node.
+   */
+  chargeStrengthMultiplier2D?: number;
+
+  /** Optional 2D fill opacity override for custom visual nodes. */
+  fillOpacity2D?: number;
+
+  /** Optional 2D pointer hit area override. Width and height are graph-space units centered on the node. */
+  pointerArea2D?: {
+    height: number;
+    width: number;
+  };
+
   /** Optional 3D shape override for the node. */
   shape3D?: GraphNodeShape3D;
 
@@ -127,6 +158,9 @@ export interface IGraphNode {
 
   /** Symbol metadata when this node represents a code symbol. */
   symbol?: IGraphNodeSymbolMetadata;
+
+  /** Optional plugin presentation metadata for details, popups, exports, and filters. */
+  metadata?: GraphMetadata;
 
   /** Whether this folder-like node can collapse descendant nodes in the graph view. */
   isCollapsible?: boolean;
@@ -196,6 +230,9 @@ export interface IGraphEdge {
 
   /** All contributing plugin sources merged into this edge. */
   sources: IGraphEdgeSource[];
+
+  /** Optional plugin presentation metadata for details, popups, exports, and filters. */
+  metadata?: GraphMetadata;
 }
 
 /**

@@ -37,6 +37,9 @@ describe('graphView/provider/plugin/broadcasts', () => {
         sendPluginToolbarActions: vi.fn((_analyzer, callback) =>
           callback({ type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED', payload: { actions: [] } }),
         ),
+        sendGraphViewContributionStatuses: vi.fn((_analyzer, _context, callback) =>
+          callback({ type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED', payload: { contributions: [] } }),
+        ),
         sendPluginWebviewInjections: vi.fn((_analyzer, _resolveAssetPath, callback) =>
           callback({ type: 'PLUGIN_WEBVIEW_INJECT', payload: { kind: 'script', src: 'asset://script.js' } }),
         ),
@@ -54,6 +57,7 @@ describe('graphView/provider/plugin/broadcasts', () => {
     methods._sendContextMenuItems();
     methods._sendPluginExporters();
     methods._sendPluginToolbarActions();
+    methods._sendGraphViewContributionStatuses();
     methods._sendPluginWebviewInjections();
     methods._sendGroupsUpdated();
 
@@ -65,15 +69,67 @@ describe('graphView/provider/plugin/broadcasts', () => {
       type: 'LEGENDS_UPDATED',
       payload: { legends: [] },
     });
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+      payload: { contributions: [] },
+    });
+  });
+
+  it('sends Graph View contribution statuses with the active workspace root', () => {
+    const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
+    const sendGraphViewContributionStatuses = vi.fn(async (_analyzer, context, callback) => {
+      expect(context).toEqual({ workspaceRoot: '/workspace' });
+      callback({
+        type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+        payload: {
+          contributions: [{
+            kind: 'runtimeNodes',
+            pluginId: 'acme.graph-tools',
+            contributionId: 'acme.graph-tools.runtime-nodes',
+            label: 'Runtime Nodes',
+          }],
+        },
+      });
+    });
+    const source = createPluginSource();
+    const methods = createGraphViewProviderPluginBroadcastMethods(
+      source,
+      {
+        sendGraphViewContributionStatuses,
+        getWorkspaceFolders: vi.fn(() => [workspaceFolder]),
+      },
+      1,
+    );
+
+    methods._sendGraphViewContributionStatuses();
+
+    expect(sendGraphViewContributionStatuses).toHaveBeenCalledWith(
+      source._analyzer,
+      { workspaceRoot: '/workspace' },
+      expect.any(Function),
+    );
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+      payload: {
+        contributions: [{
+          kind: 'runtimeNodes',
+          pluginId: 'acme.graph-tools',
+          contributionId: 'acme.graph-tools.runtime-nodes',
+          label: 'Runtime Nodes',
+        }],
+      },
+    });
   });
 
   it('uses provider-owned resource helpers and workspace folders for group updates', () => {
     const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
     const resolveWebviewAssetPath = vi.fn(() => 'asset://icon.svg');
     const registerBuiltInPluginRoots = vi.fn();
+    const refreshWebviewResourceRoots = vi.fn();
     const source = createPluginSource({
       _resolveWebviewAssetPath: resolveWebviewAssetPath,
       _registerBuiltInPluginRoots: registerBuiltInPluginRoots,
+      _refreshWebviewResourceRoots: refreshWebviewResourceRoots,
     });
     const methods = createGraphViewProviderPluginBroadcastMethods(
       source,
@@ -104,7 +160,11 @@ describe('graphView/provider/plugin/broadcasts', () => {
     methods._sendGroupsUpdated();
 
     expect(resolveWebviewAssetPath).toHaveBeenCalledWith('icon.svg', 'plugin.test');
-    expect(registerBuiltInPluginRoots).toHaveBeenCalledOnce();
+    expect(registerBuiltInPluginRoots).toHaveBeenCalledTimes(2);
+    expect(refreshWebviewResourceRoots).toHaveBeenCalledTimes(1);
+    expect(refreshWebviewResourceRoots.mock.invocationCallOrder[0]).toBeLessThan(
+      resolveWebviewAssetPath.mock.invocationCallOrder[0]!,
+    );
   });
 
   it('sends graph controls and plugin exporters through the provider bridge', () => {

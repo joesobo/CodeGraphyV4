@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  sendGraphViewContributionStatuses,
   sendGraphViewContextMenuItems,
   sendGraphViewPluginExporters,
   sendGraphViewPluginToolbarActions,
@@ -121,6 +122,71 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
         styles: ['plugin.test:dist/plugin.css'],
       },
     });
+  });
+
+  it('sends available Graph View contribution statuses without posting function values', async () => {
+    const sendMessage = vi.fn();
+    const runtimeNode = vi.fn();
+    const project = vi.fn();
+    const analyzer = {
+      registry: {
+        listAvailableGraphViewContributions: vi.fn(async () => ({
+          runtimeNodes: [{
+            pluginId: 'acme.graph-tools',
+            contribution: {
+              id: 'acme.graph-tools.runtime-nodes',
+              label: 'Runtime Nodes',
+              createNodes: runtimeNode,
+            },
+          }],
+          runtimeEdges: [],
+          projections: [{
+            pluginId: 'acme.graph-tools',
+            contribution: {
+              id: 'acme.graph-tools.projection',
+              label: 'Runtime Projection',
+              project,
+            },
+          }],
+          forces: [],
+          nodeDragEnd: [],
+          contextMenu: [],
+          ui: [],
+        })),
+      },
+    };
+
+    await sendGraphViewContributionStatuses(
+      analyzer,
+      { workspaceRoot: '/workspace' },
+      sendMessage,
+    );
+
+    expect(analyzer.registry.listAvailableGraphViewContributions).toHaveBeenCalledWith({
+      workspaceRoot: '/workspace',
+    });
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_VIEW_CONTRIBUTIONS_UPDATED',
+      payload: {
+        contributions: [
+          {
+            kind: 'runtimeNodes',
+            pluginId: 'acme.graph-tools',
+            contributionId: 'acme.graph-tools.runtime-nodes',
+            label: 'Runtime Nodes',
+          },
+          {
+            kind: 'projections',
+            pluginId: 'acme.graph-tools',
+            contributionId: 'acme.graph-tools.projection',
+            label: 'Runtime Projection',
+          },
+        ],
+      },
+    });
+    expect(sendMessage.mock.calls[0]?.[0]).not.toHaveProperty(
+      'payload.contributions.0.contribution.createNodes',
+    );
   });
 
   it('skips plugin dispatches when no analyzer is available', () => {

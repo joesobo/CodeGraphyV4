@@ -36,6 +36,7 @@ export function validateAndCreatePluginInfo(
     builtIn?: boolean;
     sourceExtension?: string;
     sourcePackage?: string;
+    sourcePackageRoot?: string;
     options?: Record<string, unknown>;
   },
   config: RegistryV2Config,
@@ -55,6 +56,7 @@ export function validateAndCreatePluginInfo(
     builtIn: options.builtIn ?? false,
     ...(options.sourceExtension ? { sourceExtension: options.sourceExtension } : {}),
     ...(options.sourcePackage ? { sourcePackage: options.sourcePackage } : {}),
+    ...(options.sourcePackageRoot ? { sourcePackageRoot: options.sourcePackageRoot } : {}),
     ...(options.options ? { options: { ...options.options } } : {}),
   };
 
@@ -88,5 +90,11 @@ export function addToRegistry(
   plugins.set(info.plugin.id, info);
   addPluginToExtensionMap(info.plugin, extensionMap);
   eventBus?.emit('plugin:registered', { pluginId: info.plugin.id });
-  console.log(`[CodeGraphy] Registered plugin: ${info.plugin.name} (${info.plugin.id})`);
+  if (shouldLogPluginLifecycle(info)) {
+    console.log(`[CodeGraphy] Registered plugin: ${info.plugin.name} (${info.plugin.id})`);
+  }
+}
+
+function shouldLogPluginLifecycle(info: IPluginInfoV2): boolean {
+  return !info.builtIn || !!info.sourceExtension || !!info.sourcePackage;
 }

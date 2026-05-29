@@ -93,13 +93,6 @@ describe('classifyConfigChange', () => {
 
   });
 
-  describe('layout category', () => {
-    it('returns layout when codegraphy.graphLayout is affected', () => {
-      const event = makeEvent('codegraphy.graphLayout', 'codegraphy');
-      expect(classifyConfigChange(event)).toBe('layout');
-    });
-  });
-
   describe('general category', () => {
     it('returns general when only codegraphy root is affected', () => {
       const event = makeEvent('codegraphy');

@@ -22,7 +22,13 @@ export function PanelStack({
   onClosePanel,
 }: PanelStackProps): React.ReactElement {
   return (
-    <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
+    <div className="absolute top-2 bottom-2 right-2 z-30 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
+      <SlotHost
+        pluginHost={pluginHost}
+        slot="graph.panelSlot"
+        data-testid="graph-panel-slot"
+        className="bg-[var(--cg-popover-translucent)] backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
+      />
       <SlotHost
         pluginHost={pluginHost}
         slot="node-details"
