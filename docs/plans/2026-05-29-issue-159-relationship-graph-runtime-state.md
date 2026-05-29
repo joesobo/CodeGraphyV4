@@ -10,9 +10,9 @@ Trello card: https://trello.com/c/09objACH/159-architecture-deepen-relationship-
 
 Recommendation strength: Strong
 
-## Current Shape
+## Previous Shape
 
-`useGraphState` owns real runtime concerns, but its return type is still mostly a bag of implementation details:
+Before this slice, the Graph View runtime hook owned real runtime concerns, but its return type was mostly a bag of implementation details:
 
 - force graph refs
 - selection refs and setters
@@ -22,11 +22,11 @@ Recommendation strength: Strong
 - file info, sprite, mesh, node decoration, and edge decoration caches
 - computed force graph data and its backing ref
 
-`Graph` then fans these details back out into interaction runtime setup, auto-fit, debug API setup, callback option building, and viewport props.
+`Graph` then fanned these details back out into interaction runtime setup, auto-fit, debug API setup, callback option building, and viewport props.
 
 ## Target Direction
 
-Move toward a runtime module that exposes behavior-oriented surfaces, such as:
+Move the runtime module toward behavior-oriented surfaces, such as:
 
 - rendered graph data access for surfaces that must render the Visible Graph
 - selection behavior instead of raw selected-node refs and setters
@@ -36,28 +36,28 @@ Move toward a runtime module that exposes behavior-oriented surfaces, such as:
 
 ## Alignment Questions
 
-1. Should this slice create one cohesive `graphRuntime` object, or a small set of named runtime facets such as `selection`, `renderer`, `contextSelection`, and `renderCaches`?
+1. Should this slice create one cohesive `graphRuntime` object, or a small set of named runtime facets such as `selection`, `renderer`, `context`, and `renderCaches`?
 2. Which consumers are allowed to keep raw refs because they integrate with `react-force-graph`, and which should be forced through behavior methods?
-3. Should the public boundary continue to use React hook language like `UseGraphStateResult`, or should this become a Graph View runtime model with hook implementation hidden behind it?
+3. Should the public boundary continue to use React hook-result language, or should this become a Graph View runtime model with hook implementation hidden behind it?
 4. What behavior is in scope for the first TDD slice: selection pruning, timeline alpha application, image cache invalidation, or interaction/runtime setup?
 5. Does this refactor need an ADR, or is the trade-off local and reversible enough to live only in this plan and tests?
 
 ## Decisions
 
-- Return one named Graph View runtime object made of explicit facets, such as `selection`, `renderer`, `contextSelection`, and `renderCaches`. Avoid a flat `UseGraphStateResult` bag of refs, but also avoid one vague runtime object with unrelated behavior mixed together.
+- Return one named Graph View runtime object made of explicit facets: `selection`, `renderer`, `context`, and `renderCaches`. Avoid a flat bag of refs, but also avoid one vague runtime object with unrelated behavior mixed together.
 - Keep raw `react-force-graph` refs at the adapter edge only. Rendering surfaces and renderer lifecycle code may receive raw `fg2dRef`, `fg3dRef`, and container refs when they call the force-graph imperative API directly. Interaction, debug, viewport model, callbacks, and Graph View composition should receive behavior-oriented runtime facets unless they have a concrete renderer integration reason to use refs.
-- Treat the exported boundary as a Graph View runtime model, not a React hook result type. A hook such as `useGraphRuntime` can construct the model, but callers should depend on domain-shaped types such as `GraphRuntime` and explicit runtime facets rather than `UseGraphStateResult`.
+- Treat the exported boundary as a Graph View runtime model, not a React hook result type. `useGraphRuntime` constructs the model, but callers depend on domain-shaped types such as `GraphRuntime` and explicit runtime facets.
 - No ADR is needed for this slice. The change is local to the Graph View runtime boundary, is reversible through ordinary refactoring, and does not introduce a hard-to-reverse product or package contract decision.
 
-## First Slice Candidate
+## First Slice
 
-Start with tests around the behavior that currently leaks through `UseGraphStateResult`:
+The slice starts with tests around behavior that used to leak through the flat runtime object:
 
 - selection is pruned when selected nodes leave the Visible Graph
 - timeline alpha is applied through runtime behavior, not by callers knowing about 2D graph refs
 - image cache invalidation is triggered through a named behavior rather than exposed setter details
 
-Then narrow the interface exposed from `useGraphState` enough that `Graph` no longer passes every individual state ref by hand.
+Then it narrows the interface exposed by the runtime hook enough that `Graph` no longer passes every individual state ref by hand.
 
 ## Implemented Shape
 

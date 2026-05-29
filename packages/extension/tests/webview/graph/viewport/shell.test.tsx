@@ -111,7 +111,6 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 	const triggerImageRerender = vi.fn();
 
 	return {
-		containerRef,
 		context: {
 			selection: { kind: 'background', targets: [] },
 			setSelection: setContextSelection,
@@ -120,23 +119,14 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 			rightClickFallbackTimerRef,
 			rightMouseDownRef,
 		},
-		contextSelection: { kind: 'background', targets: [] },
 		dataRef: { current: dataRefCurrent },
 		directionColorRef: { current: '#22c55e' },
 		directionModeRef: { current: 'arrows' },
-		fileInfoCacheRef,
-		fg2dRef,
-		fg3dRef,
-		graphData,
-		graphDataRef,
 		graphCursorRef: { current: 'default' },
 		highlightVersion: 0,
 		highlightedNeighborsRef: { current: new Set() },
 		highlightedNodeRef: { current: null },
 		lastClickRef: { current: null },
-		lastContainerContextMenuEventRef,
-		lastGraphContextEventRef,
-		meshesRef,
 		renderer: {
 			containerRef,
 			fg2dRef,
@@ -151,29 +141,19 @@ function createGraphState(graphData: GraphRuntime['renderer']['graphData']): Gra
 			meshesRef,
 			spritesRef,
 		},
-		rightClickFallbackTimerRef,
-		rightMouseDownRef,
 		selection: {
 			selectedNodeIds: [],
 			selectedNodeIdsRef: selectedNodesSetRef,
 			setSelectedNodeIds: setSelectedNodes,
 		},
-		selectedNodes: [],
-		selectedNodesSetRef,
 		edgeDecorationsRef: { current: {} },
 		favoritesRef: { current: new Set() },
-		graphContextSelection: { kind: 'background', targets: [] },
-		imageCacheVersion: 0,
 		nodeDecorationsRef: { current: {} },
 		nodeSizeModeRef: { current: 'connections' },
-		setContextSelection,
 		setHighlightVersion: vi.fn(),
-		setSelectedNodes,
 		timelineActiveRef: { current: true },
 		showLabelsRef: { current: true },
-		spritesRef,
 		themeRef: { current: 'dark' },
-		triggerImageRerender,
 	} as unknown as GraphRuntime;
 }
 
