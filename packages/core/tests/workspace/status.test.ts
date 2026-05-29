@@ -43,7 +43,6 @@ describe('CodeGraphy Workspace status', () => {
       workspaceRoot,
       includeCorePlugins: false,
       plugins: [textPlugin],
-      showOrphans: true,
     });
 
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, {
@@ -75,7 +74,6 @@ describe('CodeGraphy Workspace status', () => {
       workspaceRoot,
       includeCorePlugins: false,
       plugins: [textPlugin],
-      showOrphans: true,
     });
     const meta = readCodeGraphyWorkspaceMeta(workspaceRoot);
 

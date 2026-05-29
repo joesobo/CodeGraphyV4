@@ -18,7 +18,6 @@ function createSource() {
 
 function createDependencies() {
   return {
-    config: { showOrphans: true },
     disabledPlugins: new Set<string>(['plugin.disabled']),
     discoveredFiles: [
       { absolutePath: '/workspace/src/a.ts', relativePath: 'src/a.ts' },
@@ -160,6 +159,11 @@ describe('pipeline/service/refresh', () => {
     expect(source._lastFileConnections.get('src/b.ts')).toEqual([{ kind: 'call' }]);
     expect(dependencies.persistCache).toHaveBeenCalledOnce();
     expect(dependencies.persistIndexMetadata).toHaveBeenCalledOnce();
+    expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      source._lastFileAnalysis,
+      '/workspace',
+      dependencies.disabledPlugins,
+    );
     expect(graph).toEqual({ nodes: [{ id: 'node' }], edges: [] });
   });
 

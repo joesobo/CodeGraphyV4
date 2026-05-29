@@ -78,4 +78,3 @@ export function mergeDiscoveredWorkspaceIndexFiles(
     [...changedFiles, ...additionalFiles].map((file) => [file.relativePath, file] as const),
   ).values()];
 }
-

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  createCodeGraphyWorkspacePluginTogglePlan,
   updateCodeGraphyWorkspacePluginSelection,
   type CodeGraphyWorkspacePluginSettings,
 } from '../../src';
@@ -61,5 +62,52 @@ describe('plugins/workspaceSelection', () => {
     ).toEqual([
       { package: '@codegraphy-dev/plugin-python', options: { includeTests: true } },
     ]);
+  });
+
+  it('plans plugin file reprocessing when enabling a package plugin', () => {
+    const plan = createCodeGraphyWorkspacePluginTogglePlan([
+      { package: '@codegraphy-dev/plugin-markdown' },
+    ], {
+      pluginId: 'codegraphy.godot',
+      packageName: '@codegraphy-dev/plugin-godot',
+      enabled: true,
+      defaultOptions: {
+        includeAutoloads: true,
+      },
+    });
+
+    expect(plan).toEqual({
+      plugins: [
+        { package: '@codegraphy-dev/plugin-markdown' },
+        {
+          package: '@codegraphy-dev/plugin-godot',
+          options: { includeAutoloads: true },
+        },
+      ],
+      indexing: {
+        kind: 'reprocess-plugin-files',
+        pluginIds: ['codegraphy.godot'],
+      },
+    });
+  });
+
+  it('plans a workspace analysis refresh when disabling a package plugin', () => {
+    const plan = createCodeGraphyWorkspacePluginTogglePlan([
+      { package: '@codegraphy-dev/plugin-markdown' },
+      { package: '@codegraphy-dev/plugin-python' },
+    ], {
+      pluginId: 'codegraphy.python',
+      packageName: '@codegraphy-dev/plugin-python',
+      enabled: false,
+    });
+
+    expect(plan).toEqual({
+      plugins: [
+        { package: '@codegraphy-dev/plugin-markdown' },
+      ],
+      indexing: {
+        kind: 'analyze-workspace',
+      },
+    });
   });
 });
