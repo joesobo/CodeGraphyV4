@@ -1,31 +1,12 @@
-import type { CodeGraphyWorkspacePluginSettings } from '@codegraphy-dev/core';
+import {
+  updateCodeGraphyWorkspacePluginSelection,
+  type CodeGraphyWorkspacePluginSettings,
+} from '@codegraphy-dev/core';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,
 } from './router';
-
-function updateWorkspacePluginSettings(
-  plugins: CodeGraphyWorkspacePluginSettings[],
-  packageName: string,
-  enabled: boolean,
-  defaultOptions?: Record<string, unknown>,
-): CodeGraphyWorkspacePluginSettings[] {
-  if (!enabled) {
-    return plugins.filter(plugin => plugin.package !== packageName);
-  }
-
-  if (plugins.some(plugin => plugin.package === packageName)) {
-    return plugins;
-  }
-
-  const nextPlugin: CodeGraphyWorkspacePluginSettings = { package: packageName };
-  if (defaultOptions && Object.keys(defaultOptions).length > 0) {
-    nextPlugin.options = { ...defaultOptions };
-  }
-
-  return [...plugins, nextPlugin];
-}
 
 export async function applySettingsToggleMessage(
   message: WebviewToExtensionMessage,
@@ -37,13 +18,15 @@ export async function applySettingsToggleMessage(
       if (message.payload.packageName) {
         await handlers.updateConfig(
           'plugins',
-          updateWorkspacePluginSettings(
+          updateCodeGraphyWorkspacePluginSelection(
             handlers.getConfig<CodeGraphyWorkspacePluginSettings[]>('plugins', []),
-            message.payload.packageName,
-            message.payload.enabled,
-            message.payload.enabled
-              ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)
-            : undefined,
+            {
+              packageName: message.payload.packageName,
+              enabled: message.payload.enabled,
+              defaultOptions: message.payload.enabled
+                ? handlers.getInstalledPluginDefaultOptions?.(message.payload.packageName)
+                : undefined,
+            },
           ),
         );
         await handlers.reloadWorkspacePlugins();

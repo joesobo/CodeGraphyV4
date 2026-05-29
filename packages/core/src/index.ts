@@ -244,6 +244,7 @@ export {
   linkCodeGraphyInstalledPluginPackage,
   readCodeGraphyInstalledPluginCache,
   registerCodeGraphyInstalledPlugin,
+  updateCodeGraphyWorkspacePluginSelection,
   writeCodeGraphyInstalledPluginCache,
 } from './plugins/installedCache';
 export { createWorkspacePluginAnalysisContext } from './plugins/context/workspace';

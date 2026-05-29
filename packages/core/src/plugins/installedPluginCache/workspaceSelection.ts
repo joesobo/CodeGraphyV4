@@ -2,7 +2,34 @@ import {
   readCodeGraphyWorkspaceSettingsOrInitial,
   writeCodeGraphyWorkspaceSettings,
 } from '../../workspace/settings';
+import type { CodeGraphyWorkspacePluginSettings } from '../../workspace/settings';
 import type { CodeGraphyInstalledPluginRecord } from './contracts';
+
+export interface UpdateCodeGraphyWorkspacePluginSelectionOptions {
+  packageName: string;
+  enabled: boolean;
+  defaultOptions?: Record<string, unknown>;
+}
+
+export function updateCodeGraphyWorkspacePluginSelection(
+  plugins: readonly CodeGraphyWorkspacePluginSettings[],
+  options: UpdateCodeGraphyWorkspacePluginSelectionOptions,
+): CodeGraphyWorkspacePluginSettings[] {
+  if (!options.enabled) {
+    return plugins.filter(plugin => plugin.package !== options.packageName);
+  }
+
+  if (plugins.some(plugin => plugin.package === options.packageName)) {
+    return [...plugins];
+  }
+
+  const nextPlugin: CodeGraphyWorkspacePluginSettings = { package: options.packageName };
+  if (options.defaultOptions && Object.keys(options.defaultOptions).length > 0) {
+    nextPlugin.options = { ...options.defaultOptions };
+  }
+
+  return [...plugins, nextPlugin];
+}
 
 export function enableCodeGraphyWorkspacePlugin(
   workspaceRoot: string,
@@ -32,7 +59,11 @@ export function enableCodeGraphyWorkspacePlugin(
 
   writeCodeGraphyWorkspaceSettings(workspaceRoot, {
     ...settings,
-    plugins,
+    plugins: updateCodeGraphyWorkspacePluginSelection(plugins, {
+      packageName: plugin.package,
+      enabled: true,
+      defaultOptions: plugin.defaultOptions,
+    }),
   });
 }
 
@@ -43,6 +74,9 @@ export function disableCodeGraphyWorkspacePlugin(
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
   writeCodeGraphyWorkspaceSettings(workspaceRoot, {
     ...settings,
-    plugins: settings.plugins.filter(plugin => plugin.package !== packageName),
+    plugins: updateCodeGraphyWorkspacePluginSelection(settings.plugins, {
+      packageName,
+      enabled: false,
+    }),
   });
 }
