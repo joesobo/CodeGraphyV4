@@ -26,6 +26,20 @@ function createState(
   };
 }
 
+function createHandlers(overrides: Record<string, unknown> = {}) {
+  return {
+    normalizeExtensionUri: () => undefined,
+    getWorkspaceRoot: () => '/test/workspace',
+    refreshWebviewResourceRoots: vi.fn(),
+    sendDepthState: vi.fn(),
+    sendPluginStatuses: vi.fn(),
+    sendContextMenuItems: vi.fn(),
+    sendPluginWebviewInjections: vi.fn(),
+    reprocessPluginFiles: vi.fn(async () => undefined),
+    ...overrides,
+  };
+}
+
 async function flushPluginRegistration(): Promise<void> {
   await Promise.resolve();
   await Promise.resolve();
@@ -43,16 +57,7 @@ describe('graphView/webview/plugins/registration', () => {
       'plugin.test',
       undefined,
       state,
-      {
-        normalizeExtensionUri: () => undefined,
-        getWorkspaceRoot: () => '/test/workspace',
-        refreshWebviewResourceRoots,
-        sendDepthState: vi.fn(),
-        sendPluginStatuses: vi.fn(),
-        sendContextMenuItems: vi.fn(),
-        sendPluginWebviewInjections: vi.fn(),
-        analyzeAndSendData: vi.fn(),
-      },
+      createHandlers({ refreshWebviewResourceRoots }),
     );
 
     expect(state.analyzer?.registry.register).not.toHaveBeenCalled();
@@ -69,16 +74,7 @@ describe('graphView/webview/plugins/registration', () => {
       },
       undefined,
       state,
-      {
-        normalizeExtensionUri: () => undefined,
-        getWorkspaceRoot: () => '/test/workspace',
-        refreshWebviewResourceRoots,
-        sendDepthState: vi.fn(),
-        sendPluginStatuses: vi.fn(),
-        sendContextMenuItems: vi.fn(),
-        sendPluginWebviewInjections: vi.fn(),
-        analyzeAndSendData: vi.fn(),
-      },
+      createHandlers({ refreshWebviewResourceRoots }),
     );
 
     expect(state.analyzer?.registry.register).not.toHaveBeenCalled();
@@ -91,7 +87,7 @@ describe('graphView/webview/plugins/registration', () => {
     const sendPluginStatuses = vi.fn();
     const sendContextMenuItems = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
-    const analyzeAndSendData = vi.fn(async () => undefined);
+    const reprocessPluginFiles = vi.fn(async () => undefined);
     const state = createState();
     const plugin = {
       id: 'plugin.test',
@@ -115,7 +111,7 @@ describe('graphView/webview/plugins/registration', () => {
         sendPluginStatuses,
         sendContextMenuItems,
         sendPluginWebviewInjections,
-        analyzeAndSendData,
+        reprocessPluginFiles,
       },
     );
 
@@ -125,7 +121,7 @@ describe('graphView/webview/plugins/registration', () => {
     expect(state.analyzer?.registry.register).toHaveBeenCalledWith(plugin, {
       deferReadinessReplay: false,
     });
-    expect(state.analyzer?.clearCache).toHaveBeenCalledOnce();
+    expect(state.analyzer?.clearCache).not.toHaveBeenCalled();
     expect(state.analyzer?.registry.initializePlugin).toHaveBeenCalledWith(
       'plugin.test',
       '/test/workspace',
@@ -135,7 +131,7 @@ describe('graphView/webview/plugins/registration', () => {
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('defers readiness replay after first analysis even before the webview is marked ready', async () => {
@@ -156,16 +152,7 @@ describe('graphView/webview/plugins/registration', () => {
       },
       undefined,
       state,
-      {
-        normalizeExtensionUri: () => undefined,
-        getWorkspaceRoot: () => '/test/workspace',
-        refreshWebviewResourceRoots: vi.fn(),
-        sendDepthState: vi.fn(),
-        sendPluginStatuses: vi.fn(),
-        sendContextMenuItems: vi.fn(),
-        sendPluginWebviewInjections: vi.fn(),
-        analyzeAndSendData: vi.fn(async () => undefined),
-      },
+      createHandlers(),
     );
 
     await flushPluginRegistration();
@@ -174,6 +161,7 @@ describe('graphView/webview/plugins/registration', () => {
       deferReadinessReplay: true,
     });
     expect(state.analyzer?.registry.replayReadinessForPlugin).toHaveBeenCalledWith('plugin.test');
+    expect(state.analyzer?.clearCache).not.toHaveBeenCalled();
   });
 
   it('replays readiness and still initializes the plugin after the first analysis/webview-ready phase', async () => {
@@ -182,7 +170,7 @@ describe('graphView/webview/plugins/registration', () => {
       readyNotified: true,
       analyzerInitialized: false,
     });
-    const analyzeAndSendData = vi.fn(async () => undefined);
+    const reprocessPluginFiles = vi.fn(async () => undefined);
 
     registerGraphViewExternalPlugin(
       {
@@ -195,16 +183,7 @@ describe('graphView/webview/plugins/registration', () => {
       },
       undefined,
       state,
-      {
-        normalizeExtensionUri: () => undefined,
-        getWorkspaceRoot: () => '/test/workspace',
-        refreshWebviewResourceRoots: vi.fn(),
-        sendDepthState: vi.fn(),
-        sendPluginStatuses: vi.fn(),
-        sendContextMenuItems: vi.fn(),
-        sendPluginWebviewInjections: vi.fn(),
-        analyzeAndSendData,
-      },
+      createHandlers({ reprocessPluginFiles }),
     );
 
     await flushPluginRegistration();
@@ -217,7 +196,8 @@ describe('graphView/webview/plugins/registration', () => {
       'plugin.test',
       '/test/workspace',
     );
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(state.analyzer?.clearCache).not.toHaveBeenCalled();
+    expect(reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('skips plugin initialization when there is no workspace root', async () => {
@@ -225,7 +205,7 @@ describe('graphView/webview/plugins/registration', () => {
     const sendPluginStatuses = vi.fn();
     const sendContextMenuItems = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
-    const analyzeAndSendData = vi.fn(async () => undefined);
+    const reprocessPluginFiles = vi.fn(async () => undefined);
     const state = createState();
 
     registerGraphViewExternalPlugin(
@@ -247,7 +227,7 @@ describe('graphView/webview/plugins/registration', () => {
         sendPluginStatuses,
         sendContextMenuItems,
         sendPluginWebviewInjections,
-        analyzeAndSendData,
+        reprocessPluginFiles,
       },
     );
 
@@ -258,7 +238,8 @@ describe('graphView/webview/plugins/registration', () => {
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(state.analyzer?.clearCache).not.toHaveBeenCalled();
+    expect(reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('waits for analyzer initialization to settle before replaying readiness and reanalyzing', async () => {
@@ -272,7 +253,7 @@ describe('graphView/webview/plugins/registration', () => {
     });
     const initializePlugin = vi.fn(async () => undefined);
     const replayReadinessForPlugin = vi.fn();
-    const analyzeAndSendData = vi.fn(async () => undefined);
+    const reprocessPluginFiles = vi.fn(async () => undefined);
     const state: GraphViewExternalPluginRegistrationState = {
       pluginExtensionUris: new Map<string, vscode.Uri>(),
       analyzer: {
@@ -308,16 +289,7 @@ describe('graphView/webview/plugins/registration', () => {
       },
       undefined,
       state,
-      {
-        normalizeExtensionUri: () => undefined,
-        getWorkspaceRoot: () => '/test/workspace',
-        refreshWebviewResourceRoots: vi.fn(),
-        sendDepthState: vi.fn(),
-        sendPluginStatuses: vi.fn(),
-        sendContextMenuItems: vi.fn(),
-        sendPluginWebviewInjections: vi.fn(),
-        analyzeAndSendData,
-      },
+      createHandlers({ reprocessPluginFiles }),
     );
 
     await Promise.resolve();
@@ -329,12 +301,12 @@ describe('graphView/webview/plugins/registration', () => {
 
     expect(initializePlugin).toHaveBeenCalledWith('plugin.test', '/test/workspace');
     expect(replayReadinessForPlugin).toHaveBeenCalledWith('plugin.test');
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(reprocessPluginFiles).toHaveBeenCalledWith(['plugin.test']);
   });
 
   it('invalidates cached timeline history after registering an external plugin', async () => {
     const invalidateTimelineCache = vi.fn(async () => undefined);
-    const analyzeAndSendData = vi.fn(async () => undefined);
+    const reprocessPluginFiles = vi.fn(async () => undefined);
     const state = createState({
       firstAnalysis: false,
       readyNotified: true,
@@ -351,33 +323,23 @@ describe('graphView/webview/plugins/registration', () => {
       },
       undefined,
       state,
-      {
-        normalizeExtensionUri: () => undefined,
-        getWorkspaceRoot: () => '/test/workspace',
-        refreshWebviewResourceRoots: vi.fn(),
-        sendDepthState: vi.fn(),
-        sendPluginStatuses: vi.fn(),
-        sendContextMenuItems: vi.fn(),
-        sendPluginWebviewInjections: vi.fn(),
-        invalidateTimelineCache,
-        analyzeAndSendData,
-      },
+      createHandlers({ invalidateTimelineCache, reprocessPluginFiles }),
     );
 
     await flushPluginRegistration();
 
     expect(invalidateTimelineCache).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(reprocessPluginFiles).toHaveBeenCalledWith(['plugin.test']);
     expect(invalidateTimelineCache.mock.invocationCallOrder[0]).toBeLessThan(
-      analyzeAndSendData.mock.invocationCallOrder[0],
+      reprocessPluginFiles.mock.invocationCallOrder[0],
     );
   });
 
   it('logs follow-up failures instead of leaking unhandled rejections', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const initializePlugin = vi.fn(async () => undefined);
-    const analyzeAndSendData = vi.fn(async () => {
-      throw new Error('reanalysis failed');
+    const reprocessPluginFiles = vi.fn(async () => {
+      throw new Error('plugin reprocess failed');
     });
     const state = createState({
       firstAnalysis: false,
@@ -403,22 +365,13 @@ describe('graphView/webview/plugins/registration', () => {
       },
       undefined,
       state,
-      {
-        normalizeExtensionUri: () => undefined,
-        getWorkspaceRoot: () => '/test/workspace',
-        refreshWebviewResourceRoots: vi.fn(),
-        sendDepthState: vi.fn(),
-        sendPluginStatuses: vi.fn(),
-        sendContextMenuItems: vi.fn(),
-        sendPluginWebviewInjections: vi.fn(),
-        analyzeAndSendData,
-      },
+      createHandlers({ reprocessPluginFiles }),
     );
 
     await flushPluginRegistration();
 
     expect(initializePlugin).toHaveBeenCalledWith('plugin.test', '/test/workspace');
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(reprocessPluginFiles).toHaveBeenCalledWith(['plugin.test']);
     expect(consoleError).toHaveBeenCalledWith(
       '[CodeGraphy] External plugin registration follow-up failed for plugin.test:',
       expect.any(Error),
@@ -434,16 +387,10 @@ describe('graphView/webview/plugins/registration', () => {
       null,
       undefined,
       createState({ analyzer: undefined }),
-      {
-        normalizeExtensionUri: () => undefined,
+      createHandlers({
         getWorkspaceRoot: () => undefined,
         refreshWebviewResourceRoots,
-        sendDepthState: vi.fn(),
-        sendPluginStatuses: vi.fn(),
-        sendContextMenuItems: vi.fn(),
-        sendPluginWebviewInjections: vi.fn(),
-        analyzeAndSendData: vi.fn(),
-      },
+      }),
     );
 
     expect(refreshWebviewResourceRoots).not.toHaveBeenCalled();

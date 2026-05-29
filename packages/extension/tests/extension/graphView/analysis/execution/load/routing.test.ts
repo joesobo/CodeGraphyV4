@@ -10,7 +10,7 @@ describe('graph view analysis execution load routing', () => {
     ['load', 'stale', 'refresh', false],
     ['index', 'fresh', 'refresh', false],
     ['refresh', 'missing', 'refresh', false],
-    ['analyze', 'stale', 'refresh', false],
+    ['analyze', 'stale', 'analyze', false],
     ['analyze', 'missing', 'analyze', false],
     ['incremental', 'stale', 'incremental', false],
   ] as const)(

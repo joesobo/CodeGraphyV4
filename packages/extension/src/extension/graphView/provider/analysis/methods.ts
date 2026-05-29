@@ -123,6 +123,10 @@ export function createGraphViewProviderAnalysisMethods(
 ): GraphViewProviderAnalysisMethods {
   let fullIndexAnalysisPromise: Promise<void> | undefined;
 
+  const canReplayStaleCache = (): boolean =>
+    source._analyzer?.getIndexStatus?.().freshness === 'stale'
+    && typeof source._analyzer.loadCachedGraph === 'function';
+
   const waitForFullIndexAnalysis = async (): Promise<boolean> => {
     if (!fullIndexAnalysisPromise) {
       return false;
@@ -154,6 +158,14 @@ export function createGraphViewProviderAnalysisMethods(
         fullIndexAnalysisPromise = undefined;
       }
     }
+  };
+
+  const runFullIndexAnalysisInBackground = (
+    runAnalysis: () => Promise<void>,
+  ): void => {
+    void runFullIndexAnalysis(runAnalysis).catch(error => {
+      dependencies.logError('[CodeGraphy] Background cache sync failed:', error);
+    });
   };
 
   const runAfterFullIndexAnalysis = async (
@@ -260,6 +272,10 @@ export function createGraphViewProviderAnalysisMethods(
       }
 
       await _loadAndSendData();
+      const shouldSyncStaleCache = canReplayStaleCache();
+      if (shouldSyncStaleCache) {
+        runFullIndexAnalysisInBackground(_analyzeAndSendData);
+      }
     },
     _indexAndSendData: () => runFullIndexAnalysis(_indexAndSendData),
     _analyzeAndSendData: () => runAfterFullIndexAnalysis(_analyzeAndSendData),

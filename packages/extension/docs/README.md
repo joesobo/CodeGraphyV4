@@ -3,6 +3,7 @@
 This folder documents the current `@codegraphy-dev/extension` package.
 
 - `boundaries.md` - package boundaries and ownership
+- `graph-cache-lifecycle.md` - Graph Cache startup, sync, plugin changes, and loading-state rules
 - `messages.md` - extension/webview message flow
 - `plugin-lifecycle.md` - plugin readiness and lifecycle
 - `testing.md` - package testing strategy and commands
