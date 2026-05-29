@@ -11,7 +11,7 @@ export function createWorkspacePipelineAnalysisCacheTiers(
   pluginIds: readonly string[] = [],
 ): AnalysisCacheTierOptions {
   const activeTiers: AnalysisCacheTier[] = [BASELINE_ANALYSIS_CACHE_TIER];
-  if (nodeVisibility.symbol === true) {
+  if (requiresSymbolAnalysisCacheTier(nodeVisibility)) {
     activeTiers.push(SYMBOLS_ANALYSIS_CACHE_TIER);
   }
   activeTiers.push(...pluginIds.map(createPluginAnalysisCacheTier));
@@ -21,4 +21,19 @@ export function createWorkspacePipelineAnalysisCacheTiers(
     completed: activeTiers,
     required: activeTiers,
   };
+}
+
+function isSymbolScopedNodeType(nodeType: string): boolean {
+  return nodeType === 'symbol'
+    || nodeType === 'variable'
+    || nodeType.startsWith('symbol:')
+    || (nodeType.startsWith('plugin:') && nodeType.includes(':symbol:'));
+}
+
+export function requiresSymbolAnalysisCacheTier(
+  nodeVisibility: Readonly<Record<string, boolean>>,
+): boolean {
+  return Object.entries(nodeVisibility).some(([nodeType, visible]) =>
+    visible === true && isSymbolScopedNodeType(nodeType),
+  );
 }

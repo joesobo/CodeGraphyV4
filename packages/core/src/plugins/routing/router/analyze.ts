@@ -23,6 +23,21 @@ export type CoreFileAnalysisResultProvider = (
   workspaceRoot: string,
 ) => Promise<IFileAnalysisResult | null>;
 
+export interface AnalyzeFileResultOptions {
+  pluginIds?: ReadonlySet<string>;
+}
+
+function filterPluginInfosBySelection(
+  pluginInfos: IRoutablePluginInfo[],
+  options: AnalyzeFileResultOptions,
+): IRoutablePluginInfo[] {
+  if (!options.pluginIds) {
+    return pluginInfos;
+  }
+
+  return pluginInfos.filter(pluginInfo => options.pluginIds?.has(pluginInfo.plugin.id));
+}
+
 /**
  * Analyzes a file using the appropriate plugin.
  */
@@ -34,6 +49,7 @@ export async function analyzeFile(
   extensionMap: Map<string, string[]>,
   coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
   analysisContext?: IPluginAnalysisContext,
+  options: AnalyzeFileResultOptions = {},
 ): Promise<IProjectedConnection[]> {
   const analysis = await analyzeFileResult(
     filePath,
@@ -43,6 +59,7 @@ export async function analyzeFile(
     extensionMap,
     coreAnalyzeFileResult,
     analysisContext,
+    options,
   );
   return analysis ? toProjectedConnectionsFromFileAnalysis(analysis) : [];
 }
@@ -55,8 +72,12 @@ export async function analyzeFileResult(
   extensionMap: Map<string, string[]>,
   coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
   analysisContext: IPluginAnalysisContext = createWorkspacePluginAnalysisContext(workspaceRoot),
+  options: AnalyzeFileResultOptions = {},
 ): Promise<IFileAnalysisResult | null> {
-  const matchingPlugins = getPluginInfosForFile(filePath, plugins, extensionMap);
+  const matchingPlugins = filterPluginInfosBySelection(
+    getPluginInfosForFile(filePath, plugins, extensionMap),
+    options,
+  );
   const coreResult = await coreAnalyzeFileResult?.(filePath, content, workspaceRoot) ?? null;
   const normalizedCoreResult = coreResult
     ? mergeFileAnalysisResults(createEmptyFileAnalysisResult(filePath), coreResult)

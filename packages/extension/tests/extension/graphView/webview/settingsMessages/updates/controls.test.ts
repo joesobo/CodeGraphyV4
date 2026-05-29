@@ -132,6 +132,37 @@ describe('settingsMessages/updates/controls', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
+  it('enables Symbols and reprocesses scope when a symbol child type is enabled', async () => {
+    const handlers = createHandlers({
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'nodeVisibility') {
+          return { symbol: false, 'symbol:function': false } as T;
+        }
+        if (key === 'edgeVisibility') {
+          return { contains: false } as T;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await expect(
+      applyGraphControlMessage(
+        { type: 'UPDATE_NODE_VISIBILITY', payload: { nodeType: 'symbol:function', visible: true } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(1, 'nodeVisibility', {
+      symbol: true,
+      'symbol:function': true,
+    });
+    expect(handlers.updateConfig).toHaveBeenNthCalledWith(2, 'edgeVisibility', {
+      contains: true,
+    });
+    expect(handlers.reprocessGraphScope).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
+  });
+
   it('preserves child visibility settings when Symbols is disabled', async () => {
     const handlers = createHandlers({
       getConfig: vi.fn(<T>(key: string, defaultValue: T): T => (
