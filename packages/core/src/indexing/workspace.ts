@@ -14,7 +14,12 @@ export {
   type CodeGraphyWorkspaceEngine,
 } from './engine';
 
-export type { IndexCodeGraphyWorkspaceOptions, IndexCodeGraphyWorkspaceResult };
+export type {
+  IndexCodeGraphyWorkspaceOptions,
+  IndexCodeGraphyWorkspacePlugin,
+  IndexCodeGraphyWorkspacePluginEntry,
+  IndexCodeGraphyWorkspaceResult,
+} from './contracts';
 
 export async function indexCodeGraphyWorkspace(
   options: IndexCodeGraphyWorkspaceOptions,

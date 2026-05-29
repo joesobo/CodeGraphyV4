@@ -1,7 +1,11 @@
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
+import type {
+  IFileAnalysisResult,
+  IPlugin,
+  IPluginAnalysisContext,
+} from '@codegraphy-dev/plugin-api';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -78,7 +82,7 @@ export default function createPlugin() {
       return {
         filePath,
         relations: [{
-          kind: 'reference',
+          kind: 'reference' as const,
           sourceId: 'configured-target',
           fromFilePath: filePath,
           toFilePath: targetPath,
@@ -244,6 +248,76 @@ describe('indexCodeGraphyWorkspace', () => {
       path.resolve(workspaceRoot),
     );
     expect(readCodeGraphyWorkspaceStatus(workspaceRoot, { plugins: [plugin] }).state).toBe('fresh');
+  });
+
+  it('passes provided plugin entry options through the core workspace engine', async () => {
+    const workspaceRoot = await createWorkspace();
+    const analyzeFile = vi.fn(async (
+      filePath: string,
+      _content: string,
+      rootPath: string,
+      context?: IPluginAnalysisContext,
+    ): Promise<IFileAnalysisResult> => {
+      if (!filePath.endsWith('source.txt')) {
+        return { filePath, relations: [] };
+      }
+
+      const targetFile = String(context?.options?.targetFile ?? '');
+      const targetPath = path.join(rootPath, targetFile);
+      return {
+        filePath,
+        relations: [{
+          kind: 'reference',
+          sourceId: 'configured-target',
+          fromFilePath: filePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: targetFile,
+        }],
+      };
+    });
+    const engine = createCodeGraphyWorkspaceEngine({
+      workspaceRoot,
+      includeCorePlugins: false,
+      plugins: [{
+        plugin: {
+          id: 'acme.configured',
+          name: 'Configured Plugin',
+          version: '1.0.0',
+          apiVersion: '^2.0.0',
+          supportedExtensions: ['.txt'],
+          sources: [{
+            id: 'configured-target',
+            name: 'Configured Target',
+            description: 'References the configured target file.',
+          }],
+          analyzeFile,
+        },
+        options: {
+          targetFile: 'target.txt',
+        },
+      }],
+    });
+
+    const result = await engine.index();
+
+    expect(result.graph.edges).toContainEqual(
+      expect.objectContaining({
+        from: 'source.txt',
+        to: 'target.txt',
+        kind: 'reference',
+      }),
+    );
+    expect(analyzeFile).toHaveBeenCalledWith(
+      path.join(workspaceRoot, 'source.txt'),
+      'target.txt\n',
+      path.resolve(workspaceRoot),
+      expect.objectContaining({
+        options: {
+          targetFile: 'target.txt',
+        },
+      }),
+    );
   });
 
   it('enables and runs the Markdown plugin by default for a new workspace', async () => {
