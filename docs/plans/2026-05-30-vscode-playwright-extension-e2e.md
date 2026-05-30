@@ -50,6 +50,13 @@ Start with the basic user-perspective flow:
 
 Only after that is green should we migrate the richer standalone Playwright coverage.
 
+## Research Notes
+
+- Sigma.js uses Playwright E2E for short graph scenarios followed by screenshot comparison against committed reference snapshots. Its test package keeps datasets, a minimal app, E2E specs, and snapshots together.
+- JointJS recommends Playwright locators for normal DOM/SVG UI, real mouse dragging/linking interactions, and screenshot-based visual regression for visual state.
+- Cytoscape.js documents browser and Node test execution for its public API, but the obvious public testing guidance is model/API-heavy rather than a product-style visual E2E pattern.
+- CodeGraphy should not add ARIA labels merely to make canvas-rendered Nodes and Edges queryable. Add accessibility labels for real controls and state such as Graph Stage, Index Graph, and Indexing progress. For the rendered graph itself, prefer real pointer actions, canvas pixel/screenshot assertions, and user-observable VS Code effects such as opening a file.
+
 ## Risks
 
 - VS Code webview inspection may require brittle selectors, frame lookup, or pixel/screenshot assertions.
