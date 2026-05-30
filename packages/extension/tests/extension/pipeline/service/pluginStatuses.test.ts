@@ -9,6 +9,7 @@ import {
 } from '@codegraphy-dev/core';
 import { WorkspacePipelineLifecycleFacade as WorkspacePipelinePluginStatusReader } from '../../../../src/extension/pipeline/service/lifecycleFacade';
 import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
+import type { IDiscoveredFile } from '@codegraphy-dev/core';
 
 const homedirMock = vi.hoisted(() => vi.fn<() => string>());
 
@@ -44,6 +45,29 @@ class PluginStatusReader extends WorkspacePipelinePluginStatusReader {
       },
     } as never);
     this._cache = { files: {} } as unknown as IWorkspaceAnalysisCache;
+    this._lastDiscoveredFiles = [
+      { absolutePath: `${workspaceRoot}/src/index.ts`, relativePath: 'src/index.ts' },
+    ] as IDiscoveredFile[];
+    this._lastFileConnections = new Map([['src/index.ts', []]]);
+  }
+
+  registerTypeScriptPackagePlugin(): void {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    this._registry.register(
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript/JavaScript',
+        version: '2.1.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts', '.tsx'],
+        analyzeFile: vi.fn(),
+      },
+      {
+        sourcePackage: '@codegraphy-dev/plugin-typescript',
+        sourcePackageRoot: '/global/node_modules/@codegraphy-dev/plugin-typescript',
+      },
+    );
+    logSpy.mockRestore();
   }
 
   protected override _getWorkspaceRoot(): string | undefined {
@@ -69,7 +93,7 @@ describe('pipeline/service plugin statuses', () => {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
-  it('reports workspace-enabled package plugins even when the installed plugin cache is empty', () => {
+  it('reports registered package plugins as package-backed statuses', () => {
     writeCodeGraphyInstalledPluginCache({ version: 1, plugins: [] }, { homeDir });
     writeCodeGraphyWorkspaceSettings(workspaceRoot, {
       version: 1,
@@ -82,21 +106,17 @@ describe('pipeline/service plugin statuses', () => {
       plugins: [
         { package: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME },
         { package: '@codegraphy-dev/plugin-typescript' },
-        { package: '@codegraphy-dev/plugin-godot' },
-        { package: '@codegraphy-dev/plugin-python' },
-        { package: '@codegraphy-dev/plugin-csharp' },
       ],
     });
 
-    const statuses = new PluginStatusReader(workspaceRoot).getPluginStatuses(new Set());
+    const reader = new PluginStatusReader(workspaceRoot);
+    reader.registerTypeScriptPackagePlugin();
+    const statuses = reader.getPluginStatuses(new Set());
     const packageStatuses = statuses.filter(status => status.packageName);
 
     expect(packageStatuses.map(status => status.packageName)).toEqual([
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
       '@codegraphy-dev/plugin-typescript',
-      '@codegraphy-dev/plugin-godot',
-      '@codegraphy-dev/plugin-python',
-      '@codegraphy-dev/plugin-csharp',
     ]);
     expect(packageStatuses).toEqual([
       expect.objectContaining({
@@ -105,24 +125,11 @@ describe('pipeline/service plugin statuses', () => {
         status: 'unavailable',
       }),
       expect.objectContaining({
+        id: 'codegraphy.typescript',
+        name: 'TypeScript/JavaScript',
         packageName: '@codegraphy-dev/plugin-typescript',
         enabled: true,
-        status: 'unavailable',
-      }),
-      expect.objectContaining({
-        packageName: '@codegraphy-dev/plugin-godot',
-        enabled: true,
-        status: 'unavailable',
-      }),
-      expect.objectContaining({
-        packageName: '@codegraphy-dev/plugin-python',
-        enabled: true,
-        status: 'unavailable',
-      }),
-      expect.objectContaining({
-        packageName: '@codegraphy-dev/plugin-csharp',
-        enabled: true,
-        status: 'unavailable',
+        status: 'installed',
       }),
     ]);
   });
