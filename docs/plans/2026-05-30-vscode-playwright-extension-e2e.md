@@ -18,13 +18,16 @@ Move CodeGraphy's browser-level graph rendering E2E confidence closer to the act
 - Keep Vitest for unit/component/model behavior, including Graph View message routing and rendering callbacks that are cheaper and clearer outside Electron.
 - Use Playwright only where it can inspect or drive the real VS Code window and its Graph View webview.
 
+## Decisions
+
+- Standalone Chromium Playwright is not a product E2E lane. It should be retired after its product-critical assertions move into VS Code-window E2E. Future E2E tests for Graph View behavior should launch the VS Code Extension and inspect or drive the real Graph View webview in the VS Code window.
+- VS Code-window Playwright is the E2E runner. Do not keep a parallel Mocha `@vscode/test-electron` extension-host suite as a long-term lane. Unit and integration tests in the owning packages should cover extension API, Graph View message routing, Graph Cache behavior, and other lower-level contracts. E2E should be reserved for user-perspective scenarios in the running VS Code Extension.
+
 ## First Questions To Resolve
 
-1. What must a VS Code-window E2E prove before we are comfortable deleting the standalone Chromium harness?
-2. Should Playwright become the primary VS Code E2E runner, or should it augment the existing `@vscode/test-electron` Mocha runner?
-3. Should VS Code-window E2E run in CI, or remain a local/release gate because of runtime and flake risk?
-4. Which assertions are product-critical enough for E2E: Node render, Edge render, Graph Stage fit, Depth Mode, 3D fallback, plugin Graph View actions, theme rendering, or all of them?
-5. What debug/test hooks are acceptable in production webview code, and which must stay test-only?
+1. Should VS Code-window E2E run in CI, or remain a local/release gate because of runtime and flake risk?
+2. Which assertions are product-critical enough for E2E: Node render, Edge render, Graph Stage fit, Depth Mode, 3D fallback, plugin Graph View actions, theme rendering, or all of them?
+3. What debug/test hooks are acceptable in production webview code, and which must stay test-only?
 
 ## Candidate First Slice
 
@@ -46,4 +49,3 @@ Only after that is green should we migrate the richer standalone Playwright cove
 - Canvas pixel assertions can be noisy across Electron, GPU, headless, and CI environments.
 - Running real VS Code-window E2E in CI may increase flake rate and wall-clock time.
 - Deleting the Chromium harness too early could lose coverage for 3D/WebGL fallback and plugin Graph View actions.
-
