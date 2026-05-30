@@ -58,6 +58,7 @@ Only after that is green should we migrate the richer standalone Playwright cove
 - CodeGraphy should not add ARIA labels merely to make canvas-rendered Nodes and Edges queryable. Add accessibility labels for real controls and state such as Graph Stage, Index Graph, and Indexing progress. For the rendered graph itself, prefer real pointer actions, canvas pixel/screenshot assertions, and user-observable VS Code effects such as opening a file.
 - Deterministic visual assertions need a spike. The force graph physics may make stable screenshots or specific pixel-region assertions difficult unless the E2E fixture, layout, viewport, and fit behavior are controlled tightly.
 - It is acceptable to add accessibility labels to real hover or Graph Context Menu UI that appears from user interaction with a Node or Edge. That can help confirm a specific File Node or Edge was reached without adding hidden debug APIs or fake accessibility semantics to every canvas primitive.
+- If the Graph View layout is not deterministic enough for E2E, make the default product layout more deterministic rather than adding an E2E-only layout mode. Stable graph placement supports user spatial memory and makes visual E2E reliable for the same reason.
 
 ## Risks
 
