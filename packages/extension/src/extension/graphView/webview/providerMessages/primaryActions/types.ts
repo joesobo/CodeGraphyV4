@@ -21,6 +21,7 @@ export type GraphViewProviderPrimaryActions = Pick<
   | 'indexAndSendData'
   | 'analyzeAndSendData'
   | 'refreshIndex'
+  | 'refreshAnalysisScope'
   | 'clearCacheAndRefresh'
   | 'getFileInfo'
   | 'undo'

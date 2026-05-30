@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  getWorkspaceIndexPluginMatchingFiles,
   getWorkspaceIndexPluginNameForFile,
   getWorkspaceIndexPluginStatuses,
   resolveWorkspaceIndexPluginNameForFile,
+  supportsWorkspaceIndexPluginExtension,
 } from '../../src';
 
 describe('plugins/status', () => {
@@ -97,5 +99,18 @@ describe('plugins/status', () => {
       ),
     ).toBeUndefined();
     expect(getPluginForFile).toHaveBeenCalledWith('/workspace/src/index.ts');
+  });
+
+  it('matches plugin files case-insensitively for targeted refreshes', () => {
+    expect(supportsWorkspaceIndexPluginExtension(['.TS'], '.ts')).toBe(true);
+    expect(
+      getWorkspaceIndexPluginMatchingFiles(
+        { plugin: { supportedExtensions: ['.TS'] } },
+        [
+          { relativePath: 'src/app.ts' },
+          { relativePath: 'README.md' },
+        ],
+      ),
+    ).toEqual([{ relativePath: 'src/app.ts' }]);
   });
 });

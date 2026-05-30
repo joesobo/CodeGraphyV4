@@ -32,6 +32,8 @@ interface GraphViewProviderPublicMethodsOwner {
 export interface GraphViewProviderPublicMethods {
   refresh: () => Promise<void>;
   refreshIndex: () => Promise<void>;
+  refreshAnalysisScope: () => Promise<void>;
+  refreshPluginFiles: (pluginIds: readonly string[]) => Promise<void>;
   refreshChangedFiles: (filePaths: readonly string[]) => Promise<void>;
   refreshGroupSettings: () => void;
   refreshPhysicsSettings: () => void;
@@ -69,7 +71,7 @@ export interface GraphViewProviderPublicMethods {
   registerExternalPlugin: (
     plugin: unknown,
     options?: GraphViewExternalPluginRegistrationOptions,
-  ) => void;
+  ) => Promise<void>;
   queryGraph: (request: GraphQueryRequest) => GraphQueryResult;
   setDepthMode: (depthMode: boolean) => Promise<void>;
   setFocusedFile: (filePath: string | undefined) => void;
@@ -93,6 +95,8 @@ export function assignGraphViewProviderPublicMethods(
 ): void {
   target.refresh = () => target._methodContainers.refresh.refresh();
   target.refreshIndex = () => target._methodContainers.refresh.refreshIndex();
+  target.refreshAnalysisScope = () => target._methodContainers.refresh.refreshAnalysisScope();
+  target.refreshPluginFiles = pluginIds => target._methodContainers.refresh.refreshPluginFiles(pluginIds);
   target.refreshChangedFiles = filePaths =>
     target._methodContainers.refresh.refreshChangedFiles(filePaths);
   target.refreshGroupSettings = () => target._methodContainers.refresh.refreshGroupSettings();

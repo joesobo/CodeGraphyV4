@@ -19,6 +19,10 @@ import {
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
+import {
+  shouldIncludeTreeSitterSymbols,
+  type TreeSitterAnalysisOptions,
+} from '../options';
 
 type JavaScriptVisitContext = {
   filePath: string;
@@ -26,6 +30,7 @@ type JavaScriptVisitContext = {
   relations: IAnalysisRelation[];
   state: SymbolWalkState;
   symbols: IAnalysisSymbol[];
+  symbolsEnabled: boolean;
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void;
 };
 
@@ -35,6 +40,9 @@ type JavaScriptNodeVisitor = (
 ) => TreeWalkAction<SymbolWalkState> | void;
 
 const handleTypeDeclarationNode: JavaScriptNodeVisitor = (node, context) => {
+  if (!context.symbolsEnabled) {
+    return;
+  }
   handleJavaScriptTypeDeclaration(node, context.filePath, context.symbols);
 };
 
@@ -49,6 +57,9 @@ const JAVASCRIPT_NODE_VISITORS: Record<string, JavaScriptNodeVisitor> = {
     );
   },
   class_declaration: (node, context) => {
+    if (!context.symbolsEnabled) {
+      return;
+    }
     handleJavaScriptClassDeclaration(node, context.filePath, context.symbols);
   },
   enum_declaration: handleTypeDeclarationNode,
@@ -56,15 +67,21 @@ const JAVASCRIPT_NODE_VISITORS: Record<string, JavaScriptNodeVisitor> = {
     handleJavaScriptExportStatement(node, context.filePath, context.relations);
   },
   function_declaration: (node, context) =>
-    handleJavaScriptFunctionDeclaration(node, context.filePath, context.symbols, context.walk),
+    context.symbolsEnabled
+      ? handleJavaScriptFunctionDeclaration(node, context.filePath, context.symbols, context.walk)
+      : undefined,
   import_statement: (node, context) =>
     handleJavaScriptImportStatement(node, context.filePath, context.relations, context.importedBindings),
   interface_declaration: handleTypeDeclarationNode,
   method_definition: (node, context) =>
-    handleJavaScriptMethodDefinition(node, context.filePath, context.symbols, context.walk),
+    context.symbolsEnabled
+      ? handleJavaScriptMethodDefinition(node, context.filePath, context.symbols, context.walk)
+      : undefined,
   type_alias_declaration: handleTypeDeclarationNode,
   variable_declarator: (node, context) =>
-    handleJavaScriptVariableDeclarator(node, context.filePath, context.symbols, context.walk),
+    context.symbolsEnabled
+      ? handleJavaScriptVariableDeclarator(node, context.filePath, context.symbols, context.walk)
+      : undefined,
 };
 
 function visitJavaScriptNode(
@@ -75,20 +92,41 @@ function visitJavaScriptNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   const visitor = JAVASCRIPT_NODE_VISITORS[node.type];
-  return visitor?.(node, { filePath, importedBindings, relations, state, symbols, walk });
+  return visitor?.(node, {
+    filePath,
+    importedBindings,
+    relations,
+    state,
+    symbols,
+    symbolsEnabled,
+    walk,
+  });
 }
 
 export function analyzeJavaScriptFamilyFile(
   filePath: string,
   tree: Parser.Tree,
+  _workspaceRoot: string,
+  options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   walkTree(tree.rootNode, {}, (node, state, walk) =>
-    visitJavaScriptNode(node, state, walk, filePath, relations, symbols, importedBindings),
+    visitJavaScriptNode(
+      node,
+      state,
+      walk,
+      filePath,
+      relations,
+      symbols,
+      importedBindings,
+      symbolsEnabled,
+    ),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);
 }

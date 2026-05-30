@@ -13,6 +13,7 @@ import {
 import {
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
+  syncWorkspacePipelinePlugins,
 } from '../../../../src/extension/pipeline/plugins/bootstrap';
 import { hasWorkspacePipelineIndex } from '../../../../src/extension/pipeline/service/cache/index';
 import {
@@ -27,6 +28,7 @@ vi.mock('../../../../src/extension/pipeline/service/runtime/discovery', () => ({
 
 vi.mock('../../../../src/extension/pipeline/plugins/bootstrap', () => ({
   initializeWorkspacePipeline: vi.fn(),
+  syncWorkspacePipelinePlugins: vi.fn(),
   getWorkspacePipelinePluginFilterPatterns: vi.fn(),
 }));
 
@@ -134,6 +136,7 @@ describe('pipeline/service/discoveryFacade', () => {
       ],
     } as never);
     vi.mocked(getWorkspacePipelinePluginFilterPatterns).mockReturnValue(['plugin-filter']);
+    vi.mocked(syncWorkspacePipelinePlugins).mockResolvedValue(undefined);
     vi.mocked(hasWorkspacePipelineIndex).mockReturnValue(true);
     vi.mocked(analyzeWorkspacePipeline).mockResolvedValue({
       nodes: [{ id: 'analysis', label: 'Analysis', color: '#111111' }],
@@ -158,31 +161,34 @@ describe('pipeline/service/discoveryFacade', () => {
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] WorkspacePipeline initialized');
   });
 
-  it('serializes concurrent workspace plugin reloads so registry registration cannot overlap', async () => {
+  it('serializes concurrent workspace plugin syncs without disposing unrelated plugins', async () => {
     const facade = new TestDiscoveryFacade();
     const firstReload = createDeferred();
     const secondReload = createDeferred();
-    vi.mocked(initializeWorkspacePipeline)
+    vi.mocked(syncWorkspacePipelinePlugins)
       .mockImplementationOnce(() => firstReload.promise)
       .mockImplementationOnce(() => secondReload.promise);
 
-    const first = facade.reloadWorkspacePlugins();
-    const second = facade.reloadWorkspacePlugins();
+    const first = facade.syncWorkspacePlugins();
+    const second = facade.syncWorkspacePlugins();
 
     await Promise.resolve();
 
-    expect(initializeWorkspacePipeline).toHaveBeenCalledTimes(1);
-    expect(facade._registry.disposeAll).toHaveBeenCalledTimes(1);
+    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledTimes(1);
+    expect(facade._registry.disposeAll).not.toHaveBeenCalled();
 
     firstReload.resolve(undefined);
     await first;
     await Promise.resolve();
 
-    expect(initializeWorkspacePipeline).toHaveBeenCalledTimes(2);
-    expect(facade._registry.disposeAll).toHaveBeenCalledTimes(2);
+    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledTimes(2);
+    expect(facade._registry.disposeAll).not.toHaveBeenCalled();
 
     secondReload.resolve(undefined);
     await expect(Promise.all([first, second])).resolves.toEqual([undefined, undefined]);
+    expect(syncWorkspacePipelinePlugins).toHaveBeenCalledWith(facade._registry, {
+      getWorkspaceRoot: expect.any(Function),
+    });
   });
 
   it('delegates plugin filters and index checks through the shared helpers', () => {

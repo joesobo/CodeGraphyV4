@@ -1,5 +1,9 @@
 export {
+  refreshWorkspaceIndexAnalysisScope as refreshWorkspacePipelineAnalysisScope,
   refreshWorkspaceIndexChangedFiles as refreshWorkspacePipelineChangedFiles,
+  refreshWorkspaceIndexPluginFiles as refreshWorkspacePipelinePluginFiles,
+  type WorkspaceIndexAnalysisScopeRefreshDependencies as WorkspacePipelineAnalysisScopeRefreshDependencies,
   type WorkspaceIndexRefreshDependencies as WorkspacePipelineRefreshDependencies,
   type WorkspaceIndexRefreshSource as WorkspacePipelineRefreshSource,
+  type WorkspaceIndexPluginRefreshDependencies as WorkspacePipelinePluginRefreshDependencies,
 } from '@codegraphy-dev/core';

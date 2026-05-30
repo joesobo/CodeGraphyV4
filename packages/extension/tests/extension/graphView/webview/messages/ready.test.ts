@@ -19,6 +19,7 @@ function createHandlers() {
     sendCachedTimeline: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
+    sendPluginStatuses: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendPluginToolbarActions: vi.fn(),
     sendGraphViewContributionStatuses: vi.fn(),
@@ -58,6 +59,7 @@ describe('graph view ready message', () => {
     expect(handlers.sendCachedTimeline).toHaveBeenCalledOnce();
     expect(handlers.sendDecorations).toHaveBeenCalledOnce();
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(handlers.sendActiveFile).toHaveBeenCalledOnce();
@@ -132,6 +134,9 @@ describe('graph view ready message', () => {
       await Promise.resolve();
       events.push('graph:end');
     });
+    handlers.sendPluginStatuses.mockImplementation(() => {
+      events.push('plugins');
+    });
     handlers.sendMessage.mockImplementation((message: { type: string }) => {
       if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
         events.push('bootstrap');
@@ -152,7 +157,7 @@ describe('graph view ready message', () => {
       handlers
     );
 
-    expect(events).toEqual(['graph:start', 'graph:end', 'bootstrap']);
+    expect(events).toEqual(['graph:start', 'graph:end', 'plugins', 'bootstrap']);
   });
 
   it('waits for workspace readiness during the first workspace-backed analysis', async () => {

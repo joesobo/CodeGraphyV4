@@ -8,7 +8,7 @@ import type { IGraphData } from '../../shared/graph/contracts';
 import { getCachedGitHistoryChurnCounts } from '../gitHistory/cache/state';
 import { createGitHistoryPluginSignature } from '../gitHistory/pluginSignature';
 import type { IWorkspaceAnalysisCache } from './cache';
-import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
+import type { AnalysisCacheTierOptions, IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import {
   analyzeWorkspacePipelineSourceFiles,
   type WorkspacePipelineFilesSource,
@@ -23,6 +23,10 @@ import {
   getWorkspacePipelineFileStat,
   getWorkspacePipelineRoot,
 } from './io';
+
+export interface WorkspacePipelineGraphScopeOptions {
+  nodeVisibility?: Readonly<Record<string, boolean>>;
+}
 
 export async function preAnalyzeWorkspacePipelinePlugins(
   files: IDiscoveredFile[],
@@ -53,12 +57,22 @@ export function analyzeWorkspacePipelineFiles(
   workspaceRoot: string,
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
+  cacheTiers?: AnalysisCacheTierOptions,
+  pluginIds?: readonly string[],
 ): Promise<IWorkspaceFileAnalysisResult> {
   const source: WorkspacePipelineFilesSource = {
     _cache: cache,
     _discovery: discovery,
     _eventBus: eventBus,
     _getFileStat: getFileStat,
+    _preAnalyzePlugins: (preAnalyzeFiles, rootPath, abortSignal) =>
+      preAnalyzeWorkspacePipelinePlugins(
+        preAnalyzeFiles,
+        rootPath,
+        registry,
+        discovery,
+        abortSignal,
+      ),
     _registry: registry,
   };
 
@@ -71,6 +85,8 @@ export function analyzeWorkspacePipelineFiles(
     },
     onProgress,
     signal,
+    cacheTiers,
+    pluginIds,
   );
 }
 
@@ -113,6 +129,17 @@ export function buildWorkspacePipelineGraphData(
   );
 }
 
+function readWorkspacePipelineMetadataString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
+}
+
+function readWorkspacePipelineSymbolPluginId(
+  symbol: NonNullable<IFileAnalysisResult['symbols']>[number],
+): string | undefined {
+  return readWorkspacePipelineMetadataString(symbol.metadata?.pluginId)
+    ?? readWorkspacePipelineMetadataString(symbol.metadata?.source);
+}
+
 function filterWorkspacePipelineAnalysisByActivePlugins(
   fileAnalysis: Map<string, IFileAnalysisResult>,
   activePluginIds: ReadonlySet<string>,
@@ -126,12 +153,19 @@ function filterWorkspacePipelineAnalysisByActivePlugins(
       !relation.pluginId
       || (activePluginIds.has(relation.pluginId) && !disabledPlugins.has(relation.pluginId)),
     );
+    const symbols = analysis.symbols ?? [];
+    const activeSymbols = symbols.filter((symbol) => {
+      const pluginId = readWorkspacePipelineSymbolPluginId(symbol);
+      return !pluginId || (activePluginIds.has(pluginId) && !disabledPlugins.has(pluginId));
+    });
+    const unchanged = activeRelations.length === relations.length
+      && activeSymbols.length === symbols.length;
 
     filtered.set(
       filePath,
-      activeRelations.length === relations.length
+      unchanged
         ? analysis
-        : { ...analysis, relations: activeRelations },
+        : { ...analysis, relations: activeRelations, symbols: activeSymbols },
     );
   }
 
@@ -147,6 +181,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
   showOrphans: boolean,
   disabledPlugins: Set<string> = new Set(),
   directoryPaths: readonly string[] = [],
+  graphScope: WorkspacePipelineGraphScopeOptions = {},
 ): IGraphData {
   const activePluginIds = new Set(registry.list().map(info => info.plugin.id));
   const visibleFileAnalysis = filterWorkspacePipelineAnalysisByActivePlugins(
@@ -171,6 +206,7 @@ export function buildWorkspacePipelineGraphDataFromAnalysis(
     disabledPlugins,
     fileAnalysis: visibleFileAnalysis,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),
+    nodeVisibility: graphScope.nodeVisibility,
     showOrphans,
     workspaceRoot,
   });

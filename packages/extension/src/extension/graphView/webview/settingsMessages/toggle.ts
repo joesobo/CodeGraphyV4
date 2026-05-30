@@ -28,7 +28,7 @@ export async function applySettingsToggleMessage(
           },
         );
         await handlers.updateConfig('plugins', plan.plugins);
-        await handlers.reloadWorkspacePlugins();
+        await (handlers.syncWorkspacePlugins?.() ?? handlers.reloadWorkspacePlugins());
         handlers.sendPluginStatuses?.();
         handlers.sendContextMenuItems?.();
         handlers.sendPluginToolbarActions?.();
@@ -39,7 +39,7 @@ export async function applySettingsToggleMessage(
           return true;
         }
 
-        await handlers.analyzeAndSendData();
+        handlers.smartRebuild(message.payload.pluginId);
         return true;
       }
 
