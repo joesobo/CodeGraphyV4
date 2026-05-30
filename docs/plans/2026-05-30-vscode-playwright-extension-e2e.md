@@ -22,12 +22,12 @@ Move CodeGraphy's browser-level graph rendering E2E confidence closer to the act
 
 - Standalone Chromium Playwright is not a product E2E lane. It should be retired after its product-critical assertions move into VS Code-window E2E. Future E2E tests for Graph View behavior should launch the VS Code Extension and inspect or drive the real Graph View webview in the VS Code window.
 - VS Code-window Playwright is the E2E runner. Do not keep a parallel Mocha `@vscode/test-electron` extension-host suite as a long-term lane. Unit and integration tests in the owning packages should cover extension API, Graph View message routing, Graph Cache behavior, and other lower-level contracts. E2E should be reserved for user-perspective scenarios in the running VS Code Extension.
+- VS Code-window Playwright E2E runs in CI and should block merges. A visual break in the real Graph View is product breakage, so the CI gate must prove the VS Code Extension can launch, open the Graph View, render the Graph Stage, and show visible Nodes and Edges before a PR merges.
 
 ## First Questions To Resolve
 
-1. Should VS Code-window E2E run in CI, or remain a local/release gate because of runtime and flake risk?
-2. Which assertions are product-critical enough for E2E: Node render, Edge render, Graph Stage fit, Depth Mode, 3D fallback, plugin Graph View actions, theme rendering, or all of them?
-3. What debug/test hooks are acceptable in production webview code, and which must stay test-only?
+1. Which assertions are product-critical enough for E2E: Node render, Edge render, Graph Stage fit, Depth Mode, 3D fallback, plugin Graph View actions, theme rendering, or all of them?
+2. What debug/test hooks are acceptable in production webview code, and which must stay test-only?
 
 ## Candidate First Slice
 
@@ -47,5 +47,5 @@ Only after that is green should we migrate the richer standalone Playwright cove
 
 - VS Code webview inspection may require brittle selectors, frame lookup, or additional debug hooks.
 - Canvas pixel assertions can be noisy across Electron, GPU, headless, and CI environments.
-- Running real VS Code-window E2E in CI may increase flake rate and wall-clock time.
+- Running real VS Code-window E2E in CI may increase flake rate and wall-clock time, but that cost is acceptable for product-visible Graph View regressions.
 - Deleting the Chromium harness too early could lose coverage for 3D/WebGL fallback and plugin Graph View actions.
