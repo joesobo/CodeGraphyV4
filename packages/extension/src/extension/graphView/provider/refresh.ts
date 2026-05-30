@@ -37,6 +37,7 @@ export interface GraphViewProviderRefreshMethodsSource {
   _analysisController?: AbortController;
   _analysisRequestId: number;
   _disabledPlugins: Set<string>;
+  _filterPatterns: string[];
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
   _loadDisabledRulesAndPlugins(): boolean;
@@ -103,10 +104,15 @@ async function runScopedRefreshRequest(
     signal: AbortSignal,
     onProgress: (progress: GraphViewScopedRefreshProgress) => void,
   ) => Promise<IGraphData>,
+  lifecycle: {
+    setController(controller: AbortController): void;
+    clearController(controller: AbortController): void;
+  },
 ): Promise<IGraphData | undefined> {
   source._analysisController?.abort();
   const controller = new AbortController();
   source._analysisController = controller;
+  lifecycle.setController(controller);
   const requestId = ++source._analysisRequestId;
 
   const forwardProgress = (progress: GraphViewScopedRefreshProgress): void => {
@@ -128,6 +134,7 @@ async function runScopedRefreshRequest(
     }
     throw error;
   } finally {
+    lifecycle.clearController(controller);
     if (source._analysisController === controller) {
       source._analysisController = undefined;
     }
@@ -140,7 +147,24 @@ export function createGraphViewProviderRefreshMethods(
 ): GraphViewProviderRefreshMethods {
   const rebuildSenders = createRebuildSenders(source, dependencies);
   const _rebuildAndSend = (): void => rebuildSenders.rebuildAndSend();
-  const _smartRebuild = (id: string): void => rebuildSenders.smartRebuild(id);
+  let scopedRefreshController: AbortController | undefined;
+  const scopedRefreshLifecycle = {
+    setController(controller: AbortController): void {
+      scopedRefreshController = controller;
+    },
+    clearController(controller: AbortController): void {
+      if (scopedRefreshController === controller) {
+        scopedRefreshController = undefined;
+      }
+    },
+  };
+  const abortScopedRefresh = (): void => {
+    scopedRefreshController?.abort();
+  };
+  const _smartRebuild = (id: string): void => {
+    abortScopedRefresh();
+    rebuildSenders.smartRebuild(id);
+  };
   // Full reindex clears the persisted cache first, so competing refreshes
   // must wait or they can rebuild from an empty intermediate index.
   let indexRefreshPromise: Promise<void> | undefined;
@@ -199,11 +223,12 @@ export function createGraphViewProviderRefreshMethods(
     const graphData = await runScopedRefreshRequest(
       source,
       (signal, onProgress) => source._analyzer!.refreshAnalysisScope!(
-        [],
+        source._filterPatterns,
         source._disabledPlugins,
         signal,
         onProgress,
       ),
+      scopedRefreshLifecycle,
     );
     if (!graphData) {
       return;
@@ -228,11 +253,12 @@ export function createGraphViewProviderRefreshMethods(
       source,
       (signal, onProgress) => source._analyzer!.refreshPluginFiles!(
         pluginIds,
-        [],
+        source._filterPatterns,
         source._disabledPlugins,
         signal,
         onProgress,
       ),
+      scopedRefreshLifecycle,
     );
     if (!graphData) {
       return;
@@ -257,6 +283,7 @@ export function createGraphViewProviderRefreshMethods(
 
   const refreshToggleSettings = (): void => {
     if (!source._loadDisabledRulesAndPlugins()) return;
+    abortScopedRefresh();
     if (source._rebuildAndSend) {
       source._rebuildAndSend();
       return;
