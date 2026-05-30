@@ -14,6 +14,10 @@ import {
   handleKotlinObjectDeclaration,
   handleKotlinTypeDeclaration,
 } from './symbols';
+import {
+  shouldIncludeTreeSitterSymbols,
+  type TreeSitterAnalysisOptions,
+} from '../options';
 
 function visitKotlinNode(
   node: Parser.SyntaxNode,
@@ -23,6 +27,7 @@ function visitKotlinNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   switch (node.type) {
     case 'import': {
@@ -30,6 +35,9 @@ function visitKotlinNode(
       return { skipChildren: true };
     }
     case 'class_declaration': {
+      if (!symbolsEnabled) {
+        return;
+      }
       handleKotlinTypeDeclaration(
         node,
         filePath,
@@ -42,11 +50,16 @@ function visitKotlinNode(
       return;
     }
     case 'object_declaration': {
+      if (!symbolsEnabled) {
+        return;
+      }
       handleKotlinObjectDeclaration(node, filePath, symbols);
       return;
     }
     case 'function_declaration': {
-      return handleKotlinFunctionDeclaration(node, filePath, symbols);
+      return symbolsEnabled
+        ? handleKotlinFunctionDeclaration(node, filePath, symbols)
+        : undefined;
     }
     default:
       return;
@@ -56,10 +69,13 @@ function visitKotlinNode(
 export function analyzeKotlinFile(
   filePath: string,
   tree: Parser.Tree,
+  _workspaceRoot: string,
+  options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   const { packageName, sourceRoot } = resolveKotlinSourceInfo(filePath, tree);
   walkTree(tree.rootNode, {}, (node) =>
     visitKotlinNode(
@@ -70,6 +86,7 @@ export function analyzeKotlinFile(
       relations,
       symbols,
       importedBindings,
+      symbolsEnabled,
     ),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);

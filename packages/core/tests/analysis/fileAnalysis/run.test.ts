@@ -3,7 +3,18 @@ import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import type { IDiscoveredFile } from '../../../src/discovery/contracts';
 import type { IProjectedConnection } from '../../../src/analysis/projectedConnection';
 import { createEmptyWorkspaceAnalysisCache } from '../../../src/analysis/cache';
+import {
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+  createPluginAnalysisCacheTier,
+} from '../../../src/analysis/fileAnalysis/cacheTiers';
 import { analyzeWorkspaceFiles } from '../../../src/analysis/fileAnalysis/run';
+
+type CachedTieredAnalysis = IFileAnalysisResult & {
+  cache?: {
+    tiers?: string[];
+  };
+};
 
 function createFile(relativePath: string): IDiscoveredFile {
   const extensionIndex = relativePath.lastIndexOf('.');
@@ -41,6 +52,52 @@ function createEmptyAnalysis(
     filePath,
     relations: [],
   };
+}
+
+function createSymbolAnalysis(): IFileAnalysisResult {
+  return {
+    filePath: '/workspace/src/index.ts',
+    relations: [
+      {
+        kind: 'call',
+        sourceId: 'test-source',
+        type: 'static',
+        fromFilePath: '/workspace/src/index.ts',
+        toFilePath: '/workspace/src/utils.ts',
+        fromSymbolId: '/workspace/src/index.ts:function:run',
+        toSymbolId: '/workspace/src/utils.ts:function:boot',
+      },
+    ],
+    symbols: [
+      {
+        id: '/workspace/src/index.ts:function:run',
+        filePath: '/workspace/src/index.ts',
+        kind: 'function',
+        name: 'run',
+      },
+    ],
+  };
+}
+
+function createPluginAnalysis(): IFileAnalysisResult {
+  return {
+    filePath: '/workspace/src/index.ts',
+    relations: [
+      {
+        kind: 'plugin:edge',
+        sourceId: 'test-plugin',
+        pluginId: 'codegraphy.extra',
+        type: 'static',
+        fromFilePath: '/workspace/src/index.ts',
+        toFilePath: '/workspace/src/extra.ts',
+        resolvedPath: '/workspace/src/extra.ts',
+      },
+    ],
+  };
+}
+
+function readCacheTiers(analysis: IFileAnalysisResult): string[] {
+  return (analysis as CachedTieredAnalysis).cache?.tiers ?? [];
 }
 
 describe('pipeline/fileAnalysis', () => {
@@ -262,6 +319,229 @@ describe('pipeline/fileAnalysis', () => {
     expect(cache.files['src/index.ts'].size).toBeUndefined();
     expect(readContent).not.toHaveBeenCalled();
     expect(analyzeFile).not.toHaveBeenCalled();
+  });
+
+  it('stores baseline cache entries without symbol facts', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    const analyzeFile = vi.fn(async () => createSymbolAnalysis());
+
+    const result = await analyzeWorkspaceFiles({
+      analyzeFile,
+      cache,
+      cacheTiers: {
+        active: [BASELINE_ANALYSIS_CACHE_TIER],
+        completed: [BASELINE_ANALYSIS_CACHE_TIER],
+        required: [BASELINE_ANALYSIS_CACHE_TIER],
+      },
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 50, size: 12 })),
+      readContent: vi.fn(async () => 'function run() {}'),
+      workspaceRoot: '/workspace',
+    });
+
+    const cachedAnalysis = cache.files['src/index.ts'].analysis;
+    const resultAnalysis = result.fileAnalysis.get('src/index.ts');
+
+    expect(analyzeFile).toHaveBeenCalledWith(
+      '/workspace/src/index.ts',
+      'function run() {}',
+      '/workspace',
+      { features: { symbols: false } },
+    );
+    expect(readCacheTiers(cachedAnalysis)).toEqual([BASELINE_ANALYSIS_CACHE_TIER]);
+    expect(cachedAnalysis.symbols).toEqual([]);
+    expect(cachedAnalysis.relations?.[0]).not.toHaveProperty('fromSymbolId');
+    expect(cachedAnalysis.relations?.[0]).not.toHaveProperty('toSymbolId');
+    expect(resultAnalysis?.symbols).toEqual([]);
+    expect(resultAnalysis?.relations?.[0]).not.toHaveProperty('fromSymbolId');
+    expect(resultAnalysis?.relations?.[0]).not.toHaveProperty('toSymbolId');
+  });
+
+  it('reprocesses baseline cache entries when symbols are required', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    cache.files['src/index.ts'] = {
+      mtime: 25,
+      analysis: {
+        ...createEmptyAnalysis(),
+        cache: {
+          tiers: [BASELINE_ANALYSIS_CACHE_TIER],
+        },
+      } as IFileAnalysisResult,
+      size: 12,
+    };
+    const analyzeFile = vi.fn(async () => createSymbolAnalysis());
+
+    const result = await analyzeWorkspaceFiles({
+      analyzeFile,
+      cache,
+      cacheTiers: {
+        active: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+        completed: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+        required: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+      },
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 12 })),
+      readContent: vi.fn(async () => 'function run() {}'),
+      workspaceRoot: '/workspace',
+    });
+
+    expect(result.cacheHits).toBe(0);
+    expect(result.cacheMisses).toBe(1);
+    expect(analyzeFile).toHaveBeenCalledTimes(1);
+    expect(readCacheTiers(cache.files['src/index.ts'].analysis)).toEqual([
+      BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+    ]);
+    expect(result.fileAnalysis.get('src/index.ts')?.symbols).toHaveLength(1);
+  });
+
+  it('reuses enriched cache entries as baseline views', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    cache.files['src/index.ts'] = {
+      mtime: 25,
+      analysis: {
+        ...createSymbolAnalysis(),
+        cache: {
+          tiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+        },
+      } as IFileAnalysisResult,
+      size: 12,
+    };
+    const analyzeFile = vi.fn(async () => createEmptyAnalysis());
+
+    const result = await analyzeWorkspaceFiles({
+      analyzeFile,
+      cache,
+      cacheTiers: {
+        active: [BASELINE_ANALYSIS_CACHE_TIER],
+        completed: [BASELINE_ANALYSIS_CACHE_TIER],
+        required: [BASELINE_ANALYSIS_CACHE_TIER],
+      },
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 12 })),
+      readContent: vi.fn(async () => 'ignored'),
+      workspaceRoot: '/workspace',
+    });
+
+    expect(result.cacheHits).toBe(1);
+    expect(result.cacheMisses).toBe(0);
+    expect(analyzeFile).not.toHaveBeenCalled();
+    expect(readCacheTiers(cache.files['src/index.ts'].analysis)).toEqual([
+      BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+    ]);
+    expect(result.fileAnalysis.get('src/index.ts')?.symbols).toEqual([]);
+    expect(result.fileAnalysis.get('src/index.ts')?.relations?.[0]).not.toHaveProperty('fromSymbolId');
+    expect(result.fileAnalysis.get('src/index.ts')?.relations?.[0]).not.toHaveProperty('toSymbolId');
+  });
+
+  it('skips pre-analysis when every file is a cache hit', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    cache.files['src/index.ts'] = {
+      mtime: 25,
+      analysis: createImportAnalysis(),
+      size: 12,
+    };
+    const preAnalyzeFiles = vi.fn(async () => undefined);
+
+    await analyzeWorkspaceFiles({
+      analyzeFile: vi.fn(async () => createEmptyAnalysis()),
+      cache,
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 12 })),
+      preAnalyzeFiles,
+      readContent: vi.fn(async () => 'ignored'),
+      workspaceRoot: '/workspace',
+    });
+
+    expect(preAnalyzeFiles).not.toHaveBeenCalled();
+  });
+
+  it('keeps reusable symbol cache data out of plugin-only graph refresh results', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    cache.files['src/index.ts'] = {
+      mtime: 25,
+      analysis: {
+        ...createSymbolAnalysis(),
+        cache: {
+          tiers: [BASELINE_ANALYSIS_CACHE_TIER, SYMBOLS_ANALYSIS_CACHE_TIER],
+        },
+      } as IFileAnalysisResult,
+      size: 12,
+    };
+    const pluginTier = createPluginAnalysisCacheTier('codegraphy.extra');
+    const analyzeFile = vi.fn(async () => createPluginAnalysis());
+
+    const result = await analyzeWorkspaceFiles({
+      analyzeFile,
+      cache,
+      cacheTiers: {
+        active: [BASELINE_ANALYSIS_CACHE_TIER, pluginTier],
+        completed: [BASELINE_ANALYSIS_CACHE_TIER, pluginTier],
+        required: [BASELINE_ANALYSIS_CACHE_TIER, pluginTier],
+      },
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 12 })),
+      readContent: vi.fn(async () => 'plugin input'),
+      workspaceRoot: '/workspace',
+    });
+
+    const resultAnalysis = result.fileAnalysis.get('src/index.ts');
+    const cachedAnalysis = cache.files['src/index.ts'].analysis;
+
+    expect(result.cacheHits).toBe(0);
+    expect(result.cacheMisses).toBe(1);
+    expect(analyzeFile).toHaveBeenCalledWith(
+      '/workspace/src/index.ts',
+      'plugin input',
+      '/workspace',
+      { features: { symbols: false } },
+    );
+    expect(resultAnalysis?.relations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'plugin:edge',
+        pluginId: 'codegraphy.extra',
+      }),
+    ]));
+    expect(resultAnalysis?.relations?.some((relation) =>
+      'fromSymbolId' in relation || 'toSymbolId' in relation,
+    )).toBe(false);
+    expect(resultAnalysis?.symbols).toEqual([]);
+    expect(readCacheTiers(cachedAnalysis)).toEqual([
+      BASELINE_ANALYSIS_CACHE_TIER,
+      SYMBOLS_ANALYSIS_CACHE_TIER,
+      pluginTier,
+    ]);
+    expect(cachedAnalysis.symbols).toHaveLength(1);
+  });
+
+  it('runs pre-analysis before analyzing the first cache miss', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    const sequence: string[] = [];
+    const preAnalyzeFiles = vi.fn(async () => {
+      sequence.push('pre-analyze');
+    });
+    const analyzeFile = vi.fn(async () => {
+      sequence.push('analyze');
+      return createImportAnalysis();
+    });
+
+    await analyzeWorkspaceFiles({
+      analyzeFile,
+      cache,
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 50, size: 12 })),
+      preAnalyzeFiles,
+      readContent: vi.fn(async () => "import './utils'"),
+      workspaceRoot: '/workspace',
+    });
+
+    expect(preAnalyzeFiles).toHaveBeenCalledWith(
+      [createFile('src/index.ts')],
+      '/workspace',
+      undefined,
+    );
+    expect(sequence).toEqual(['pre-analyze', 'analyze']);
   });
 
 });

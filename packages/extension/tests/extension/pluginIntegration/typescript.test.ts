@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import * as vscode from 'vscode';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { activate } from '../../../src/extension/activate';
+import { getCodeGraphyConfiguration } from '../../../src/extension/repoSettings/current';
 import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from '../graphViewProvider/internals';
 import {
@@ -118,6 +119,7 @@ describe('extension/pluginIntegration/typescript', () => {
     const api = activate(currentContext as unknown as vscode.ExtensionContext);
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
+    await getCodeGraphyConfiguration().update('nodeVisibility', { symbol: true });
 
     await internals._analysisMethods._analyzeAndSendData();
 
@@ -130,7 +132,7 @@ describe('extension/pluginIntegration/typescript', () => {
       ]),
     );
 
-    api.registerPlugin(createTypeScriptPlugin(), {
+    await api.registerPlugin(createTypeScriptPlugin(), {
       extensionUri: vscode.Uri.file('/plugins/typescript'),
     });
 

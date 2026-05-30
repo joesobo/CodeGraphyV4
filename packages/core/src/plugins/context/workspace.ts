@@ -5,12 +5,19 @@ import { createWorkspaceAnalysisFileSystem } from './workspaceFileSystem';
 
 export function createWorkspacePluginAnalysisContext(
   workspaceRoot: string,
-  options: { pluginOptions?: Record<string, unknown> } = {},
+  options: {
+    features?: IPluginAnalysisContext['features'];
+    pluginOptions?: Record<string, unknown>;
+  } = {},
 ): IPluginAnalysisContext {
   const context: IPluginAnalysisContext = {
     mode: 'workspace',
     fileSystem: createWorkspaceAnalysisFileSystem(workspaceRoot),
   };
+
+  if (options.features) {
+    context.features = { ...options.features };
+  }
 
   if (options.pluginOptions) {
     context.options = { ...options.pluginOptions };

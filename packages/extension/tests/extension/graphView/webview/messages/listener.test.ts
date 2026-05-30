@@ -201,7 +201,7 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
   });
 
-  it('ignores duplicate WEBVIEW_READY messages from the same listener', async () => {
+  it('replays settings but avoids a second graph load for duplicate WEBVIEW_READY messages', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
       onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
@@ -209,15 +209,23 @@ describe('graph view webview message listener', () => {
         return { dispose: () => {} };
       }),
     };
-    const context = createContext();
+    let readyNotified = false;
+    const context = createContext({
+      isWebviewReadyNotified: vi.fn(() => readyNotified),
+      setWebviewReadyNotified: vi.fn((nextValue: boolean) => {
+        readyNotified = nextValue;
+      }),
+    });
 
     setGraphViewWebviewMessageListener(webview as never, context);
     await messageHandler?.({ type: 'WEBVIEW_READY' });
     await messageHandler?.({ type: 'WEBVIEW_READY' });
 
     expect(context.loadAndSendData).toHaveBeenCalledTimes(1);
-    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(1);
-    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(1);
+    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(2);
+    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(2);
+    expect(context.sendSettings).toHaveBeenCalledTimes(2);
+    expect(context.sendPhysicsSettings).toHaveBeenCalledTimes(2);
     expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
     expect(context.setWebviewReadyNotified).toHaveBeenCalledTimes(1);

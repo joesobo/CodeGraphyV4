@@ -95,6 +95,9 @@ export interface IPluginAnalysisContext {
   mode: 'workspace' | 'timeline';
   commitSha?: string;
   fileSystem: IPluginAnalysisFileSystem;
+  features?: {
+    symbols?: boolean;
+  };
   options?: Record<string, unknown>;
 }
 

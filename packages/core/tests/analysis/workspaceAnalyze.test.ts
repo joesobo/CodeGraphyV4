@@ -148,7 +148,7 @@ describe('pipeline/analysis/analyze', () => {
     ).resolves.toEqual(graphData);
 
     expect(dependencies.discover).toHaveBeenCalledOnce();
-    expect(source._preAnalyzePlugins).toHaveBeenCalledWith(files, '/workspace', undefined);
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
     expect(source._analyzeFiles).toHaveBeenCalledWith(
       files,
       '/workspace',

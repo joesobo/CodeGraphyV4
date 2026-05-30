@@ -29,6 +29,7 @@ export interface WorkspacePipelineGraphDependencies {
 
 export interface WorkspacePipelineGraphAnalysisDependencies extends Omit<WorkspacePipelineGraphDependencies, 'fileConnections'> {
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
+  nodeVisibility?: Readonly<Record<string, boolean>>;
 }
 
 export function buildWorkspacePipelineGraph(
@@ -55,6 +56,7 @@ export function buildWorkspacePipelineGraphFromAnalysis(
     directoryPaths: dependencies.directoryPaths ?? [],
     disabledPlugins: dependencies.disabledPlugins,
     fileAnalysis: dependencies.fileAnalysis,
+    nodeVisibility: dependencies.nodeVisibility,
     showOrphans: dependencies.showOrphans,
     workspaceRoot: dependencies.workspaceRoot,
     getPluginForFile: dependencies.getPluginForFile,

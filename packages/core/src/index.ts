@@ -38,8 +38,21 @@ export type {
   IWorkspaceFileAnalysisOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileProcessedPayload,
+  AnalysisCacheTier,
+  AnalysisCacheTierOptions,
 } from './analysis/fileAnalysis';
-export { analyzeWorkspaceFiles } from './analysis/fileAnalysis';
+export {
+  analyzeWorkspaceFiles,
+  BASELINE_ANALYSIS_CACHE_TIER,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+  createWorkspaceIndexAnalysisCacheTiers,
+  createPluginAnalysisCacheTier,
+  hasRequiredAnalysisCacheTiers,
+  markAnalysisCacheTiers,
+  projectAnalysisForCacheTiers,
+  readAnalysisCacheTiers,
+  requiresSymbolAnalysisCacheTier,
+} from './analysis/fileAnalysis';
 export {
   analyzeWorkspacePipelineFiles,
   analyzeWorkspacePipelineSourceFiles,
@@ -179,7 +192,9 @@ export { readGraphCacheStatus } from './graphCache/status';
 export {
   createCodeGraphyWorkspaceEngine,
   indexCodeGraphyWorkspace,
+  refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
+  refreshWorkspaceIndexPluginFiles,
 } from './indexing/workspace';
 export type {
   CodeGraphyWorkspaceEngine,
@@ -187,6 +202,8 @@ export type {
   IndexCodeGraphyWorkspacePlugin,
   IndexCodeGraphyWorkspacePluginEntry,
   IndexCodeGraphyWorkspaceResult,
+  WorkspaceIndexAnalysisScopeRefreshDependencies,
+  WorkspaceIndexPluginRefreshDependencies,
   WorkspaceIndexRefreshDependencies,
   WorkspaceIndexRefreshSource,
 } from './indexing/workspace';
@@ -267,7 +284,10 @@ export { notifyFilesChanged } from './plugins/lifecycle/notify/filesChanged';
 export type { IPluginFilesChangedResult } from './plugins/lifecycle/notify/filesChanged';
 export { getFileExtension, normalizePluginExtension } from './plugins/routing/fileExtensions';
 export { analyzeFile, analyzeFileResult } from './plugins/routing/router/analyze';
-export type { CoreFileAnalysisResultProvider } from './plugins/routing/router/analyze';
+export type {
+  AnalyzeFileResultOptions,
+  CoreFileAnalysisResultProvider,
+} from './plugins/routing/router/analyze';
 export {
   getPluginForFile,
   getPluginsForExtension,

@@ -37,6 +37,7 @@ export interface GraphViewPluginMessageContext {
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginStatuses?(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
   sendGraphViewContributionStatuses?(): void;

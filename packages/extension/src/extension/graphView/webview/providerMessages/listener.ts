@@ -96,6 +96,7 @@ export interface GraphViewProviderMessageListenerSource {
         getPluginFilterGroups?(disabledPlugins?: ReadonlySet<string>): IPluginFilterPatternGroup[];
         lastFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
         reloadWorkspacePlugins?(): Promise<void>;
+        syncWorkspacePlugins?(): Promise<void>;
         readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
         registry?: {
           notifyWebviewReady(): void;
@@ -131,6 +132,8 @@ export interface GraphViewProviderMessageListenerSource {
   _indexAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   refreshIndex(): Promise<void>;
+  refreshAnalysisScope(): Promise<void>;
+  refreshPluginFiles?(pluginIds: readonly string[]): Promise<void>;
   refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   _getFileInfo(filePath: string): Promise<void>;

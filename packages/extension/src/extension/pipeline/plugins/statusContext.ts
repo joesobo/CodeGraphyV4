@@ -39,10 +39,10 @@ export function readWorkspacePluginStatusContext(
     return { installedPlugins };
   }
 
+  const workspacePluginPackages = readCodeGraphyWorkspaceSettings(workspaceRoot).plugins.map(plugin => plugin.package);
+
   return {
     installedPlugins,
-    workspaceEnabledPackageNames: new Set(
-      readCodeGraphyWorkspaceSettings(workspaceRoot).plugins.map(plugin => plugin.package),
-    ),
+    workspaceEnabledPackageNames: new Set(workspacePluginPackages),
   };
 }
