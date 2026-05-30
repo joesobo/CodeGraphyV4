@@ -5,6 +5,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
 
@@ -63,6 +64,8 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     );
 
     await analyzer.initialize();
+    analyzer.registry.unregister('codegraphy.typescript');
+    analyzer.registry.register(createTypeScriptPlugin());
     analyzer.registry.register(createGDScriptPlugin());
 
     const graph = await analyzer.analyze();

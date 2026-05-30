@@ -2,10 +2,9 @@
 
 Small repo fixtures for manual testing, screenshots, and extension-host e2e work. Each folder is a tiny recognizable project for its language, with just enough source and project metadata to make its CodeGraphy relationships obvious.
 
-The root `tsconfig.json` exists so opening the full `examples/` workspace can
-also demonstrate TypeScript plugin alias edges for `example-typescript`. The
-nested `example-typescript/tsconfig.json` keeps the same alias demo working when
-that example is opened on its own.
+The nested `example-typescript/tsconfig.json` demonstrates TypeScript plugin
+alias edges whether you open the full `examples/` workspace or the focused
+`example-typescript/` workspace.
 
 - `example-typescript` — small TypeScript workspace used by extension e2e
 - `example-godot` — Godot/GDScript workspace used by plugin e2e
