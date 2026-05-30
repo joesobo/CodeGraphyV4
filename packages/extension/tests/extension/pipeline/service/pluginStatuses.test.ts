@@ -7,7 +7,7 @@ import {
   writeCodeGraphyInstalledPluginCache,
   writeCodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
-import { WorkspacePipelineLifecycleFacade } from '../../../../src/extension/pipeline/service/lifecycleFacade';
+import { WorkspacePipelineLifecycleFacade as WorkspacePipelinePluginStatusReader } from '../../../../src/extension/pipeline/service/lifecycleFacade';
 import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
 
 const homedirMock = vi.hoisted(() => vi.fn<() => string>());
@@ -34,7 +34,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-class StatusLifecycleFacade extends WorkspacePipelineLifecycleFacade {
+class PluginStatusReader extends WorkspacePipelinePluginStatusReader {
   constructor(private readonly workspaceRoot: string) {
     super({
       subscriptions: [],
@@ -51,7 +51,7 @@ class StatusLifecycleFacade extends WorkspacePipelineLifecycleFacade {
   }
 }
 
-describe('pipeline/service/lifecycleFacade plugin statuses', () => {
+describe('pipeline/service plugin statuses', () => {
   let tempRoot: string;
   let homeDir: string;
   let workspaceRoot: string;
@@ -88,7 +88,7 @@ describe('pipeline/service/lifecycleFacade plugin statuses', () => {
       ],
     });
 
-    const statuses = new StatusLifecycleFacade(workspaceRoot).getPluginStatuses(new Set());
+    const statuses = new PluginStatusReader(workspaceRoot).getPluginStatuses(new Set());
     const packageStatuses = statuses.filter(status => status.packageName);
 
     expect(packageStatuses.map(status => status.packageName)).toEqual([
