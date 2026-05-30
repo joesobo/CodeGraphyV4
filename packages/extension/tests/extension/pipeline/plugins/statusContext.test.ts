@@ -9,6 +9,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readWorkspacePluginStatusContext } from '../../../../src/extension/pipeline/plugins/statusContext';
+import { getWorkspacePipelineStatusList } from '../../../../src/extension/pipeline/service/runtime/plugins';
 
 describe('pipeline/plugins/statusContext', () => {
   let tempRoot: string;
@@ -116,5 +117,60 @@ describe('pipeline/plugins/statusContext', () => {
       CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
     );
     expect(statusContext.workspaceEnabledPackageNames?.has(CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME)).toBe(false);
+  });
+
+  it('includes enabled workspace plugin packages even when they are missing from the installed cache', () => {
+    writeCodeGraphyInstalledPluginCache({ version: 1, plugins: [] }, { homeDir });
+    writeCodeGraphyWorkspaceSettings(workspaceRoot, {
+      version: 1,
+      maxFiles: 1000,
+      include: ['**/*'],
+      respectGitignore: true,
+      showOrphans: true,
+      filterPatterns: [],
+      disabledCustomFilterPatterns: [],
+      plugins: [
+        { package: '@codegraphy-dev/plugin-python' },
+        { package: '@codegraphy-dev/plugin-csharp' },
+      ],
+    });
+
+    const statusContext = readWorkspacePluginStatusContext(workspaceRoot, { homeDir });
+
+    expect(statusContext.installedPlugins.map(plugin => plugin.package)).toEqual([
+      CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+      '@codegraphy-dev/plugin-python',
+      '@codegraphy-dev/plugin-csharp',
+    ]);
+    expect(statusContext.workspaceEnabledPackageNames).toEqual(new Set([
+      '@codegraphy-dev/plugin-python',
+      '@codegraphy-dev/plugin-csharp',
+    ]));
+    expect(
+      getWorkspacePipelineStatusList(
+        {
+          list: () => [],
+        } as never,
+        new Set(),
+        [],
+        new Map(),
+        statusContext,
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        packageName: CODEGRAPHY_MARKDOWN_PLUGIN_PACKAGE_NAME,
+        enabled: false,
+      }),
+      expect.objectContaining({
+        packageName: '@codegraphy-dev/plugin-python',
+        enabled: true,
+        status: 'unavailable',
+      }),
+      expect.objectContaining({
+        packageName: '@codegraphy-dev/plugin-csharp',
+        enabled: true,
+        status: 'unavailable',
+      }),
+    ]);
   });
 });
