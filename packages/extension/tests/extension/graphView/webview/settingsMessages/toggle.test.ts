@@ -23,6 +23,7 @@ function createHandlers(
       getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
       updateConfig: vi.fn(() => Promise.resolve()),
       reloadWorkspacePlugins: vi.fn(() => Promise.resolve()),
+      syncWorkspacePlugins: vi.fn(() => Promise.resolve()),
       sendPluginStatuses: vi.fn(),
       sendContextMenuItems: vi.fn(),
       sendPluginToolbarActions: vi.fn(),
@@ -98,7 +99,8 @@ describe('graph view settings toggle message', () => {
       { package: '@codegraphy-dev/plugin-markdown' },
     ]);
     expect(handlers.updateConfig).not.toHaveBeenCalledWith('disabledPlugins', expect.anything());
-    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
     expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
@@ -137,7 +139,8 @@ describe('graph view settings toggle message', () => {
       { package: '@codegraphy-dev/plugin-markdown' },
       { package: '@codegraphy-dev/plugin-python' },
     ]);
-    expect(handlers.reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.syncWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(handlers.reloadWorkspacePlugins).not.toHaveBeenCalled();
     expect(reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
     expect(analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).not.toHaveBeenCalled();
@@ -202,9 +205,10 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(false);
   });
 
-  it('sends fresh graph view contribution statuses after package toggles reload plugins', async () => {
+  it('sends fresh graph view contribution statuses after package toggles sync plugins', async () => {
     const state = createState();
     const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
+    const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
     const sendGraphViewContributionStatuses = vi.fn();
     const analyzeAndSendData = vi.fn(() => Promise.resolve());
     const handlers = createHandlers({
@@ -218,6 +222,7 @@ describe('graph view settings toggle message', () => {
         return defaultValue;
       }),
       reloadWorkspacePlugins,
+      syncWorkspacePlugins,
       sendGraphViewContributionStatuses,
       analyzeAndSendData,
     });
@@ -236,19 +241,21 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
-    expect(reloadWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(syncWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(reloadWorkspacePlugins).not.toHaveBeenCalled();
     expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(analyzeAndSendData).not.toHaveBeenCalled();
     expect(handlers.smartRebuild).toHaveBeenCalledWith('acme.graph-tools');
-    expect(reloadWorkspacePlugins.mock.invocationCallOrder[0])
+    expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphViewContributionStatuses.mock.invocationCallOrder[0]);
     expect(sendGraphViewContributionStatuses.mock.invocationCallOrder[0])
       .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
   });
 
-  it('sends graph controls after package toggles reload plugin contributions', async () => {
+  it('sends graph controls after package toggles sync plugin contributions', async () => {
     const state = createState();
     const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
+    const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
     const sendGraphControls = vi.fn();
     const analyzeAndSendData = vi.fn(() => Promise.resolve());
     const handlers = createHandlers({
@@ -259,6 +266,7 @@ describe('graph view settings toggle message', () => {
         return defaultValue;
       }),
       reloadWorkspacePlugins,
+      syncWorkspacePlugins,
       sendGraphControls,
       analyzeAndSendData,
     });
@@ -278,7 +286,9 @@ describe('graph view settings toggle message', () => {
 
     expect(handled).toBe(true);
     expect(sendGraphControls).toHaveBeenCalledOnce();
-    expect(reloadWorkspacePlugins.mock.invocationCallOrder[0])
+    expect(syncWorkspacePlugins).toHaveBeenCalledOnce();
+    expect(reloadWorkspacePlugins).not.toHaveBeenCalled();
+    expect(syncWorkspacePlugins.mock.invocationCallOrder[0])
       .toBeLessThan(sendGraphControls.mock.invocationCallOrder[0]);
     expect(sendGraphControls.mock.invocationCallOrder[0])
       .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
@@ -287,6 +297,7 @@ describe('graph view settings toggle message', () => {
   it('broadcasts package plugin cleanup before re-analysis when a package is toggled off', async () => {
     const state = createState();
     const reloadWorkspacePlugins = vi.fn(() => Promise.resolve());
+    const syncWorkspacePlugins = vi.fn(() => Promise.resolve());
     const sendPluginStatuses = vi.fn();
     const sendContextMenuItems = vi.fn();
     const sendPluginToolbarActions = vi.fn();
@@ -304,6 +315,7 @@ describe('graph view settings toggle message', () => {
         return defaultValue;
       }),
       reloadWorkspacePlugins,
+      syncWorkspacePlugins,
       sendPluginStatuses,
       sendContextMenuItems,
       sendPluginToolbarActions,
@@ -332,7 +344,7 @@ describe('graph view settings toggle message', () => {
     expect(sendGraphViewContributionStatuses).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).not.toHaveBeenCalled();
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
-      .toBeGreaterThan(reloadWorkspacePlugins.mock.invocationCallOrder[0]);
+      .toBeGreaterThan(syncWorkspacePlugins.mock.invocationCallOrder[0]);
     expect(sendPluginStatuses.mock.invocationCallOrder[0])
       .toBeLessThan(vi.mocked(handlers.smartRebuild).mock.invocationCallOrder[0]);
     expect(analyzeAndSendData).not.toHaveBeenCalled();
