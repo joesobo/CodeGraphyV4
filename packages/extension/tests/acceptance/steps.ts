@@ -1,4 +1,4 @@
-import { expect, test, type ElectronApplication, type Frame, type Page } from '@playwright/test';
+import { expect, type ElectronApplication, type Frame, type Page } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -10,8 +10,145 @@ interface VSCodeFixture {
   tempRoot: string;
 }
 
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface AcceptanceRuntimeStep {
+  keyword: string;
+  text: string;
+  sourcePath: string;
+  line: number;
+}
+
+interface GraphAcceptanceContext {
+  cleanup: () => Promise<void>;
+  workspaceTempRoot?: string;
+  workspacePath?: string;
+  vscode?: VSCodeFixture;
+  graphFrame?: Frame;
+  preIndexGraphImage?: Buffer;
+  beforeDragCenter?: Point;
+  afterDragCenter?: Point;
+}
+
+type AcceptanceStepImplementation = (
+  context: GraphAcceptanceContext,
+  step: AcceptanceRuntimeStep
+) => Promise<void>;
+
 const TARGET_FILE = 'src/index.ts';
 const TARGET_LEGEND_COLOR = '#ff1744';
+
+export async function createAcceptanceContext(_input: unknown): Promise<GraphAcceptanceContext> {
+  const context: GraphAcceptanceContext = {
+    cleanup: async () => {
+      if (context.vscode) {
+        await cleanupVSCode(context.vscode);
+      }
+
+      if (context.workspaceTempRoot) {
+        fs.rmSync(context.workspaceTempRoot, { recursive: true, force: true });
+      }
+    }
+  };
+
+  return context;
+}
+
+export const acceptanceSteps: Record<string, AcceptanceStepImplementation> = {
+  'I open the example TypeScript workspace': async (context) => {
+    context.workspaceTempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-workspace-'));
+    context.workspacePath = copyWorkspaceFixture(context.workspaceTempRoot);
+  },
+
+  'I open the CodeGraphy graph view': async (context) => {
+    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+    context.vscode = await launchVSCodeWithWorkspace(workspacePath);
+    await openGraphView(context.vscode.page);
+    context.graphFrame = await waitForGraphFrame(context.vscode.page);
+  },
+
+  'I see file nodes before indexing': async (context) => {
+    const graphFrame = requireGraphFrame(context);
+
+    await expect(graphFrame.getByLabel('Graph Stage')).toBeVisible();
+    await expect(graphFrame.getByText(/12 nodes • 0 edges/)).toBeVisible();
+    await expect.poll(() => countGraphCanvasPixels(graphFrame)).toBeGreaterThan(0);
+  },
+
+  'I index the workspace': async (context) => {
+    const graphFrame = requireGraphFrame(context);
+
+    context.preIndexGraphImage = await graphFrame.getByLabel('Graph Stage').screenshot();
+    await graphFrame.getByRole('button', { name: 'Index Workspace' }).click();
+  },
+
+  'I see indexing progress': async (context) => {
+    await expect(requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' })).toBeVisible();
+  },
+
+  'I see indexing progress disappear': async (context) => {
+    await expect(
+      requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' })
+    ).toBeHidden({ timeout: 30_000 });
+  },
+
+  'I see updated file nodes': async (context) => {
+    await expect(requireGraphFrame(context).getByText(/12 nodes • 10 edges/)).toBeVisible();
+  },
+
+  'I see edges': async (context) => {
+    const graphFrame = requireGraphFrame(context);
+    const preIndexGraphImage = requireValue(
+      context.preIndexGraphImage,
+      'Expected pre-index Graph Stage screenshot to be captured'
+    );
+
+    await expect.poll(() => countGraphCanvasPixels(graphFrame)).toBeGreaterThan(0);
+    const postIndexGraphImage = await graphFrame.getByLabel('Graph Stage').screenshot();
+    expect(countChangedBytes(preIndexGraphImage, postIndexGraphImage)).toBeGreaterThan(500);
+  },
+
+  'I see the src/index.ts file node': async (context) => {
+    const graphFrame = requireGraphFrame(context);
+
+    await graphFrame.getByRole('button', { name: 'Fit to Screen' }).click();
+    await expect.poll(() => getVisibleGraphPixelCenter(graphFrame)).toBeTruthy();
+  },
+
+  'I drag the src/index.ts file node': async (context) => {
+    const graphFrame = requireGraphFrame(context);
+    const graphStage = graphFrame.getByLabel('Graph Stage');
+    const beforeDragCenter = await getVisibleGraphPixelCenter(graphFrame);
+
+    await graphStage.dragTo(graphStage, {
+      sourcePosition: beforeDragCenter,
+      targetPosition: { x: beforeDragCenter.x + 64, y: beforeDragCenter.y + 32 },
+    });
+
+    context.beforeDragCenter = beforeDragCenter;
+    context.afterDragCenter = await getVisibleGraphPixelCenter(graphFrame);
+  },
+
+  'the src/index.ts file node moves': async (context) => {
+    const beforeDragCenter = requireValue(context.beforeDragCenter, 'Expected a node drag to start');
+    const afterDragCenter = requireValue(context.afterDragCenter, 'Expected a node drag to finish');
+
+    expect(distanceBetween(beforeDragCenter, afterDragCenter)).toBeGreaterThan(20);
+  },
+
+  'I activate the src/index.ts file node': async (context) => {
+    const vscode = requireValue(context.vscode, 'Expected VS Code to be launched');
+    await activateVisibleGraphNode(vscode.page, requireGraphFrame(context));
+  },
+
+  'src/index.ts opens in VS Code': async (context) => {
+    const vscode = requireValue(context.vscode, 'Expected VS Code to be launched');
+    await expect.poll(() => vscode.page.title(), { timeout: 10_000 }).toContain('index.ts');
+  },
+};
 
 function repoRoot(): string {
   return path.resolve(__dirname, '../../../..');
@@ -159,10 +296,7 @@ async function countGraphCanvasPixels(frame: Frame): Promise<number> {
   });
 }
 
-function distanceBetween(
-  previous: { x: number; y: number },
-  next: { x: number; y: number },
-): number {
+function distanceBetween(previous: Point, next: Point): number {
   return Math.hypot(next.x - previous.x, next.y - previous.y);
 }
 
@@ -179,12 +313,12 @@ function countChangedBytes(previous: Buffer, next: Buffer): number {
   return changed;
 }
 
-async function getVisibleGraphPixelCenter(frame: Frame): Promise<{ x: number; y: number }> {
+async function getVisibleGraphPixelCenter(frame: Frame): Promise<Point> {
   const points = await getTargetNodeProbePoints(frame);
   return points[0];
 }
 
-async function getTargetNodeProbePoints(frame: Frame): Promise<Array<{ x: number; y: number }>> {
+async function getTargetNodeProbePoints(frame: Frame): Promise<Point[]> {
   return frame.getByLabel('Graph Stage').evaluate((stage) => {
     const canvas = stage.querySelector('canvas');
     if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
@@ -222,7 +356,7 @@ async function getTargetNodeProbePoints(frame: Frame): Promise<Array<{ x: number
     }
 
     if (minX > maxX || minY > maxY) {
-      throw new Error('Expected Graph Stage canvas to contain visible pixels');
+      throw new Error('Expected Graph Stage canvas to contain the target node pixels');
     }
 
     const stageRect = stage.getBoundingClientRect();
@@ -242,10 +376,7 @@ async function getTargetNodeProbePoints(frame: Frame): Promise<Array<{ x: number
   });
 }
 
-async function activateVisibleGraphNode(
-  page: Page,
-  frame: Frame,
-): Promise<void> {
+async function activateVisibleGraphNode(page: Page, frame: Frame): Promise<void> {
   const graphStage = frame.getByLabel('Graph Stage');
   const probePoints = await getTargetNodeProbePoints(frame);
 
@@ -258,7 +389,7 @@ async function activateVisibleGraphNode(
     const opened = await page.waitForFunction(
       () => document.title.includes('index.ts'),
       undefined,
-      { timeout: 1_000 },
+      { timeout: 1_000 }
     ).then(() => true, () => false);
 
     if (opened) {
@@ -274,50 +405,14 @@ async function cleanupVSCode({ app, tempRoot }: VSCodeFixture): Promise<void> {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }
 
-test.describe('VS Code Graph View', () => {
-  test('opens, indexes, and renders the graph from the user perspective', async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-workspace-'));
-    const workspacePath = copyWorkspaceFixture(tempRoot);
-    const vscode = await launchVSCodeWithWorkspace(workspacePath);
+function requireGraphFrame(context: GraphAcceptanceContext): Frame {
+  return requireValue(context.graphFrame, 'Expected Graph View frame to be open');
+}
 
-    try {
-      await openGraphView(vscode.page);
-      const graphFrame = await waitForGraphFrame(vscode.page);
+function requireValue<T>(value: T | undefined, message: string): T {
+  if (value === undefined) {
+    throw new Error(message);
+  }
 
-      await expect(graphFrame.getByLabel('Graph Stage')).toBeVisible();
-      await expect(graphFrame.getByText(/12 nodes • 0 edges/)).toBeVisible();
-
-      const preIndexPixels = await countGraphCanvasPixels(graphFrame);
-      expect(preIndexPixels).toBeGreaterThan(0);
-      const preIndexGraphImage = await graphFrame.getByLabel('Graph Stage').screenshot();
-
-      await graphFrame.getByRole('button', { name: 'Index Workspace' }).click();
-      await expect(graphFrame.getByRole('progressbar', { name: 'Indexing progress' })).toBeVisible();
-      await expect(graphFrame.getByRole('progressbar', { name: 'Indexing progress' })).toBeHidden({ timeout: 30_000 });
-
-      await expect(graphFrame.getByText(/12 nodes • 10 edges/)).toBeVisible();
-      const postIndexPixels = await countGraphCanvasPixels(graphFrame);
-      expect(postIndexPixels).toBeGreaterThan(0);
-      const postIndexGraphImage = await graphFrame.getByLabel('Graph Stage').screenshot();
-      expect(countChangedBytes(preIndexGraphImage, postIndexGraphImage)).toBeGreaterThan(500);
-
-      const graphStage = graphFrame.getByLabel('Graph Stage');
-      await graphFrame.getByRole('button', { name: 'Fit to Screen' }).click();
-
-      const beforeDragCenter = await getVisibleGraphPixelCenter(graphFrame);
-      await graphStage.dragTo(graphStage, {
-        sourcePosition: beforeDragCenter,
-        targetPosition: { x: beforeDragCenter.x + 64, y: beforeDragCenter.y + 32 },
-      });
-
-      const afterDragCenter = await getVisibleGraphPixelCenter(graphFrame);
-      expect(distanceBetween(beforeDragCenter, afterDragCenter)).toBeGreaterThan(20);
-
-      await activateVisibleGraphNode(vscode.page, graphFrame);
-      await expect.poll(() => vscode.page.title(), { timeout: 10_000 }).toContain('index.ts');
-    } finally {
-      await cleanupVSCode(vscode);
-      fs.rmSync(tempRoot, { recursive: true, force: true });
-    }
-  });
-});
+  return value;
+}
