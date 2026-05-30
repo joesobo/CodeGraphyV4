@@ -38,6 +38,11 @@ export interface IWorkspaceFileAnalysisOptions {
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void;
   files: IDiscoveredFile[];
   getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
+  preAnalyzeFiles?: (
+    files: IDiscoveredFile[],
+    workspaceRoot: string,
+    signal?: AbortSignal,
+  ) => Promise<void>;
   readContent: (file: IDiscoveredFile) => Promise<string>;
   signal?: AbortSignal;
   workspaceRoot: string;
@@ -58,4 +63,5 @@ export interface IWorkspaceFileAnalysisState {
   cacheMissFilePaths: Set<string>;
   fileAnalysis: Map<string, IFileAnalysisResult>;
   fileConnections: Map<string, IProjectedConnection[]>;
+  preAnalysisCompleted: boolean;
 }

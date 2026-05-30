@@ -29,6 +29,7 @@ function createWorkspaceFileAnalysisState(): IWorkspaceFileAnalysisState {
     cacheMissFilePaths: new Set(),
     fileAnalysis: new Map<string, IFileAnalysisResult>(),
     fileConnections: new Map<string, IProjectedConnection[]>(),
+    preAnalysisCompleted: false,
   };
 }
 
@@ -149,6 +150,24 @@ function recordCacheHit(
   emitWorkspaceFileProgress(options, state, file);
 }
 
+async function ensureWorkspaceFilePreAnalysis(
+  options: IWorkspaceFileAnalysisOptions,
+  state: IWorkspaceFileAnalysisState,
+): Promise<void> {
+  if (state.preAnalysisCompleted) {
+    return;
+  }
+
+  state.preAnalysisCompleted = true;
+  throwIfWorkspaceAnalysisAborted(options.signal);
+  await options.preAnalyzeFiles?.(
+    [...options.files],
+    options.workspaceRoot,
+    options.signal,
+  );
+  throwIfWorkspaceAnalysisAborted(options.signal);
+}
+
 async function analyzeCacheMiss(
   options: IWorkspaceFileAnalysisOptions,
   state: IWorkspaceFileAnalysisState,
@@ -159,6 +178,7 @@ async function analyzeCacheMiss(
   state.cacheMisses += 1;
   state.cacheMissFilePaths.add(file.relativePath);
   throwIfWorkspaceAnalysisAborted(options.signal);
+  await ensureWorkspaceFilePreAnalysis(options, state);
   const content = await options.readContent(file);
   throwIfWorkspaceAnalysisAborted(options.signal);
   const cacheAnalysis = prepareAnalysisForCacheStorage(
