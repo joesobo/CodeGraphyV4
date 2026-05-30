@@ -3,7 +3,7 @@ import {
   type GraphContextEffect,
 } from '../contextActions/effects';
 import type { GraphContextActionContext } from '../contextActions/context';
-import type { GraphContextMenuAction } from '../contextMenu/contracts';
+import type { BuiltInContextMenuAction, GraphContextMenuAction } from '../contextMenu/contracts';
 import { applyContextEffects as runContextEffects } from '../effects/contextMenu';
 import type { GraphContextMenuRuntimeDependencies } from './controller';
 
@@ -20,6 +20,117 @@ type GraphContextMenuEffectDependencies = Pick<
 export interface GraphContextMenuEffectRuntime {
   applyContextEffects(effects: GraphContextEffect[]): void;
   handleMenuAction(action: GraphContextMenuAction, context: GraphContextActionContext): void;
+}
+
+const NODE_ACTIONS = new Set<BuiltInContextMenuAction>([
+  'open',
+  'reveal',
+  'copyRelative',
+  'copyAbsolute',
+  'copySymbolId',
+  'copySymbolName',
+  'toggleFavorite',
+  'focus',
+  'addToFilter',
+  'addNodeLegend',
+  'rename',
+  'delete',
+]);
+
+const EDGE_ACTIONS = new Set<BuiltInContextMenuAction>([
+  'openEdgeSource',
+  'openEdgeTarget',
+  'copyEdgeSource',
+  'copyEdgeTarget',
+  'copyEdgeBoth',
+]);
+
+const BACKGROUND_ACTIONS = new Set<BuiltInContextMenuAction>([
+  'refresh',
+  'fitView',
+]);
+
+function isFolderCreationContext(context: GraphContextActionContext): boolean {
+  return context.selectionKind === 'background'
+    || context.primaryTargetId === '(root)'
+    || context.primaryNode?.nodeType === 'folder';
+}
+
+function isBuiltInActionValid(
+  action: BuiltInContextMenuAction,
+  context: GraphContextActionContext,
+): boolean {
+  if (BACKGROUND_ACTIONS.has(action)) {
+    return context.selectionKind === 'background';
+  }
+
+  if (action === 'createFile' || action === 'createFolder') {
+    return isFolderCreationContext(context);
+  }
+
+  if (EDGE_ACTIONS.has(action)) {
+    return context.selectionKind === 'edge';
+  }
+
+  if (NODE_ACTIONS.has(action)) {
+    return context.selectionKind === 'node';
+  }
+
+  return false;
+}
+
+function selectedIdsMatchContext(
+  selectedIds: readonly string[],
+  context: GraphContextActionContext,
+): boolean {
+  return selectedIds.length === context.targetIds.length
+    && selectedIds.every((id, index) => id === context.targetIds[index]);
+}
+
+function isGraphViewPluginActionValid(
+  action: Extract<GraphContextMenuAction, { kind: 'graphViewPlugin' }>,
+  context: GraphContextActionContext,
+): boolean {
+  if (context.selectionKind === 'background') {
+    return action.context.target.kind === 'background'
+      && action.context.selectedNodeIds.length === 0
+      && action.context.selectedEdgeIds.length === 0;
+  }
+
+  if (context.selectionKind === 'edge') {
+    return action.context.selectedEdgeIds.includes(context.edgeId ?? '')
+      && action.context.selectedNodeIds.length === 0;
+  }
+
+  return selectedIdsMatchContext(action.context.selectedNodeIds, context)
+    && action.context.selectedEdgeIds.length === 0;
+}
+
+function isPluginActionValid(
+  action: Extract<GraphContextMenuAction, { kind: 'plugin' }>,
+  context: GraphContextActionContext,
+): boolean {
+  if (action.targetType === 'node') {
+    return context.selectionKind === 'node' && context.targetIds.includes(action.targetId);
+  }
+
+  return context.selectionKind === 'edge'
+    && (action.targetId === context.edgeId || context.targetIds.includes(action.targetId));
+}
+
+function isMenuActionValid(
+  action: GraphContextMenuAction,
+  context: GraphContextActionContext,
+): boolean {
+  if (action.kind === 'builtin') {
+    return isBuiltInActionValid(action.action, context);
+  }
+
+  if (action.kind === 'plugin') {
+    return isPluginActionValid(action, context);
+  }
+
+  return isGraphViewPluginActionValid(action, context);
 }
 
 export function createContextMenuEffectRuntime(
@@ -40,6 +151,10 @@ export function createContextMenuEffectRuntime(
     action: GraphContextMenuAction,
     context: GraphContextActionContext,
   ): void => {
+    if (!isMenuActionValid(action, context)) {
+      return;
+    }
+
     applyContextEffects(getGraphContextActionEffects(action, context));
   };
 

@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphContextMenuAction } from '../../../../src/webview/components/graph/contextMenu/contracts';
+import type {
+  GraphContextMenuAction,
+  GraphContextSelection,
+} from '../../../../src/webview/components/graph/contextMenu/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import { createGraphContextMenuOpeningRuntime } from '../../../../src/webview/components/graph/contextMenuOpening/runtime';
 
@@ -48,6 +51,10 @@ function createLink(id: string): FGLink {
   return { id } as FGLink;
 }
 
+function createSelection(targets: string[]): GraphContextSelection {
+  return { kind: 'node', targets };
+}
+
 function createOpeningOptions(overrides: Record<string, unknown> = {}) {
   const actionContext = {
     mutationDirectory: 'src/app.ts',
@@ -56,7 +63,7 @@ function createOpeningOptions(overrides: Record<string, unknown> = {}) {
     targetIds: ['src/app.ts'],
   };
   return {
-    getActionContext: vi.fn(() => actionContext),
+    getActionContext: vi.fn((_selection: GraphContextSelection) => actionContext),
     fileInfoCacheRef: { current: new Map([['src/stale.ts', { path: 'src/stale.ts' }]]) },
     hoveredNodeRef: { current: null },
     interactionHandlers: createInteractionHandlers(),
@@ -142,7 +149,8 @@ describe('graph/contextMenuOpening/runtime', () => {
     runtime.handleLinkRightClick(link, graphEvent);
     runtime.handleBackgroundRightClick(graphEvent);
     runtime.handleContextMenu(reactContextEvent);
-    runtime.handleMenuAction(action);
+    const contextSelection = createSelection(['src/app.ts']);
+    runtime.handleMenuAction({ action, contextSelection });
 
     expect(contextMenuRuntime.handleMouseDownCapture).toHaveBeenCalledWith({
       button: 2,
@@ -160,7 +168,7 @@ describe('graph/contextMenuOpening/runtime', () => {
     expect(options.interactionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith(graphEvent);
     expect(options.interactionHandlers.getBackgroundGraphPosition).toHaveBeenCalledWith(graphEvent);
     expect(contextMenuRuntime.handleContextMenu).toHaveBeenCalledWith({ x: 24, y: -32 });
-    expect(options.getActionContext).toHaveBeenCalledTimes(1);
+    expect(options.getActionContext).toHaveBeenCalledWith(contextSelection);
     expect(contextMenuRuntime.handleMenuAction).toHaveBeenCalledWith(action, expect.objectContaining({
       primaryTargetId: 'src/app.ts',
     }));

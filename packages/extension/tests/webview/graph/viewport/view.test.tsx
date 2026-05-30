@@ -52,12 +52,14 @@ vi.mock('../../../../src/webview/components/ui/context/menu', () => ({
 }));
 
 function createMenuEntries(): GraphContextMenuEntry[] {
+  const contextSelection = { kind: 'node' as const, targets: ['src/app.ts'] };
   return [
     {
       id: 'open',
       kind: 'item',
       label: 'Open file',
       action: { kind: 'builtin', action: 'open' },
+      contextSelection,
       destructive: false,
       shortcut: 'Enter',
     },
@@ -226,7 +228,10 @@ describe('Viewport', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /open file/i }));
 
-    expect(handleMenuAction).toHaveBeenCalledWith({ kind: 'builtin', action: 'open' });
+    expect(handleMenuAction).toHaveBeenCalledWith({
+      action: { kind: 'builtin', action: 'open' },
+      contextSelection: { kind: 'node', targets: ['src/app.ts'] },
+    });
     expect(screen.getByTestId('separator')).toBeInTheDocument();
   });
 
