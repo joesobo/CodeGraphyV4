@@ -1,5 +1,20 @@
 # @codegraphy-dev/extension
 
+## 5.6.4
+
+### Patch Changes
+
+- [#222](https://github.com/joesobo/CodeGraphyV4/pull/222) [`da9c309`](https://github.com/joesobo/CodeGraphyV4/commit/da9c3096afcf962490c1d271c52e85c09ae2f6de) Thanks [@joesobo](https://github.com/joesobo)! - Deepen the Graph View runtime boundary so graph selection, renderer state, context-menu state, and render caches are exposed through named runtime facets.
+
+- [#226](https://github.com/joesobo/CodeGraphyV4/pull/226) [`23c10c2`](https://github.com/joesobo/CodeGraphyV4/commit/23c10c24fc224b7d23036f08b84e0a617d1a80fe) Thanks [@joesobo](https://github.com/joesobo)! - Run Graph Context Menu actions against the selection that opened the menu and skip stale actions that no longer match that selection.
+
+- [#224](https://github.com/joesobo/CodeGraphyV4/pull/224) [`feac4c1`](https://github.com/joesobo/CodeGraphyV4/commit/feac4c15fb7b6555c1ae5d6d2655a7b6debc7f4c) Thanks [@joesobo](https://github.com/joesobo)! - Keep Symbol-scoped Graph View payloads small by caching baseline file relationships first, lazily enriching Symbols and plugin analysis when those scopes are enabled, and reusing enriched cache tiers when they are toggled back on.
+
+- [#224](https://github.com/joesobo/CodeGraphyV4/pull/224) [`8a95dc6`](https://github.com/joesobo/CodeGraphyV4/commit/8a95dc69ac170effc6ecb55dc64f1544555e4c13) Thanks [@joesobo](https://github.com/joesobo)! - Keep graph settings synced after webview reloads, keep registered package plugins visible in the plugin panel, and avoid reloading every plugin when toggling a package plugin.
+
+- Updated dependencies [[`a2625ba`](https://github.com/joesobo/CodeGraphyV4/commit/a2625ba942287b43f939abfe5a5ca68f8e730680), [`feac4c1`](https://github.com/joesobo/CodeGraphyV4/commit/feac4c15fb7b6555c1ae5d6d2655a7b6debc7f4c)]:
+  - @codegraphy-dev/core@1.2.0
+
 ## 5.6.3
 
 ### Patch Changes
