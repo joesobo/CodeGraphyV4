@@ -6,10 +6,16 @@ import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createMarkdownPlugin } from '../../../../plugin-markdown/src/plugin';
 
 describe('Plugin Rules', () => {
-  it('TypeScript plugin relies on the core analyzer and does not declare supplemental sources', () => {
+  it('TypeScript plugin adds project-aware analysis without declaring legacy supplemental sources', () => {
     const plugin = createTypeScriptPlugin();
     expect(plugin.sources).toBeUndefined();
-    expect(plugin.analyzeFile).toBeUndefined();
+    expect(plugin.analyzeFile).toBeDefined();
+    expect(plugin.contributeEdgeTypes?.()).toEqual([
+      expect.objectContaining({
+        id: 'codegraphy.typescript:alias-import',
+        label: 'TypeScript Alias Import',
+      }),
+    ]);
   });
 
   it('GDScript plugin declares sources', () => {
