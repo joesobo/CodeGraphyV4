@@ -3,6 +3,7 @@ import {
   DEFAULT_GRAPH_CONTEXT_MUTATION_AVAILABILITY,
   type BuildGraphContextMenuOptions,
   type GraphContextMenuEntry,
+  type GraphContextSelection,
 } from '../contracts';
 import { decideGraphContextMenu } from '../decision/model';
 import { buildEdgeEntries } from '../edge/entries';
@@ -51,6 +52,25 @@ function insertCreateMenuEntries(
     ...createEntries,
     ...baseEntries.slice(separatorIndex),
   ];
+}
+
+function captureContextSelection(
+  entries: GraphContextMenuEntry[],
+  selection: GraphContextSelection,
+): GraphContextMenuEntry[] {
+  const contextSelection = cloneContextSelection(selection);
+  return entries.map(entry =>
+    entry.kind === 'item' ? { ...entry, contextSelection } : entry
+  );
+}
+
+function cloneContextSelection(selection: GraphContextSelection): GraphContextSelection {
+  return {
+    kind: selection.kind,
+    targets: [...selection.targets],
+    ...(selection.edgeId ? { edgeId: selection.edgeId } : {}),
+    ...(selection.graphPosition ? { graphPosition: { ...selection.graphPosition } } : {}),
+  };
 }
 
 export function buildGraphContextMenuEntries(
@@ -104,7 +124,7 @@ export function buildGraphContextMenuEntries(
     })
     : [];
   const positionedBaseEntries = insertCreateMenuEntries(baseEntries, graphViewCreateEntries);
-  return [
+  return captureContextSelection([
     ...positionedBaseEntries,
     ...buildPluginEntriesForDecision(decision, pluginItems),
     ...buildGraphViewContextMenuEntries({
@@ -116,5 +136,5 @@ export function buildGraphContextMenuEntries(
       selection,
       timelineActive,
     }),
-  ];
+  ], selection);
 }
