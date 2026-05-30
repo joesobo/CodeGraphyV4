@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { createTypeScriptPlugin } from '../../src/plugin';
-import { createWorkspaceRoot, removeWorkspaceRoot, writeWorkspaceFile } from '../workspace';
+import {
+  createWorkspaceRoot,
+  expectedAliasImportRelation,
+  removeWorkspaceRoot,
+  writeWorkspaceFile,
+} from '../workspace';
 
 describe('TypeScript Alias Import compiler options support', () => {
   it('uses the nearest ancestor tsconfig for files in nested projects', async () => {
@@ -38,15 +43,7 @@ describe('TypeScript Alias Import compiler options support', () => {
 
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
-      expect(result?.relations[0]).toEqual({
-          kind: 'codegraphy.typescript:alias-import',
-          sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
-          specifier: '@app/token',
-        },
-      );
+      expect(result?.relations[0]).toEqual(expectedAliasImportRelation(sourcePath, targetPath, '@app/token'));
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -105,14 +102,8 @@ describe('TypeScript Alias Import compiler options support', () => {
 
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
-      expect(result?.relations[0]).toEqual({
-          kind: 'codegraphy.typescript:alias-import',
-          sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: childTargetPath,
-          resolvedPath: childTargetPath,
-          specifier: '#child/value',
-        },
+      expect(result?.relations[0]).toEqual(
+        expectedAliasImportRelation(sourcePath, childTargetPath, '#child/value'),
       );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
@@ -169,14 +160,8 @@ describe('TypeScript Alias Import compiler options support', () => {
 
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
-      expect(result?.relations[0]).toEqual({
-          kind: 'codegraphy.typescript:alias-import',
-          sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: childTargetPath,
-          resolvedPath: childTargetPath,
-          specifier: '#base/value',
-        },
+      expect(result?.relations[0]).toEqual(
+        expectedAliasImportRelation(sourcePath, childTargetPath, '#base/value'),
       );
     } finally {
       removeWorkspaceRoot(workspaceRoot);
@@ -219,15 +204,7 @@ describe('TypeScript Alias Import compiler options support', () => {
 
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
-      expect(result?.relations[0]).toEqual({
-          kind: 'codegraphy.typescript:alias-import',
-          sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
-          specifier: '@/token',
-        },
-      );
+      expect(result?.relations[0]).toEqual(expectedAliasImportRelation(sourcePath, targetPath, '@/token'));
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }

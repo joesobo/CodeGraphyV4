@@ -39,14 +39,20 @@ describe('TypeScript Alias Import analysis', () => {
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
       expect(result?.relations[0]).toEqual({
-          kind: 'codegraphy.typescript:alias-import',
-          sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
+        edgeType: 'codegraphy.typescript:alias-import',
+        sourceId: 'compiler-options-paths',
+        from: {
+          kind: 'file',
+          filePath: sourcePath,
+        },
+        target: {
+          kind: 'file',
+          path: targetPath,
+          pathKind: 'absolute',
           specifier: '@/registry/bases/radix/lib/utils',
         },
-      );
+        specifier: '@/registry/bases/radix/lib/utils',
+      });
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -90,19 +96,33 @@ describe('TypeScript Alias Import analysis', () => {
       expect(result?.relations).toHaveLength(2);
       expect(result?.relations).toEqual([
         {
-          kind: 'codegraphy.typescript:alias-import',
+          edgeType: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: formatPath,
-          resolvedPath: formatPath,
+          from: {
+            kind: 'file',
+            filePath: sourcePath,
+          },
+          target: {
+            kind: 'file',
+            path: formatPath,
+            pathKind: 'absolute',
+            specifier: '@/format',
+          },
           specifier: '@/format',
         },
         {
-          kind: 'codegraphy.typescript:alias-import',
+          edgeType: 'codegraphy.typescript:alias-import',
           sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: lazyPath,
-          resolvedPath: lazyPath,
+          from: {
+            kind: 'file',
+            filePath: sourcePath,
+          },
+          target: {
+            kind: 'file',
+            path: lazyPath,
+            pathKind: 'absolute',
+            specifier: '@/lazy',
+          },
           specifier: '@/lazy',
         },
       ]);
@@ -147,11 +167,18 @@ describe('TypeScript Alias Import analysis', () => {
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
       expect(result?.relations[0]).toEqual({
-        kind: 'codegraphy.typescript:alias-import',
+        edgeType: 'codegraphy.typescript:alias-import',
         sourceId: 'compiler-options-paths',
-        fromFilePath: sourcePath,
-        toFilePath: targetPath,
-        resolvedPath: targetPath,
+        from: {
+          kind: 'file',
+          filePath: sourcePath,
+        },
+        target: {
+          kind: 'file',
+          path: targetPath,
+          pathKind: 'absolute',
+          specifier: '@/button',
+        },
         specifier: '@/button',
       });
     } finally {

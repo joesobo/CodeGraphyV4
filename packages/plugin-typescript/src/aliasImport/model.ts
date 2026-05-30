@@ -42,12 +42,19 @@ export async function analyzeTypeScriptAliasImports(
       }))
       .filter((relation): relation is { specifier: string; resolvedPath: string } => Boolean(relation.resolvedPath))
       .map(relation => ({
-        kind: TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE.id,
+        edgeType: TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE.id,
         sourceId: COMPILER_OPTIONS_PATHS_SOURCE_ID,
-        fromFilePath: filePath,
-        toFilePath: relation.resolvedPath,
-        resolvedPath: relation.resolvedPath,
+        from: {
+          kind: 'file',
+          filePath,
+        },
+        target: {
+          kind: 'file',
+          path: relation.resolvedPath,
+          pathKind: 'absolute',
+          specifier: relation.specifier,
+        },
         specifier: relation.specifier,
-    })),
+      })),
   };
 }

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { createTypeScriptPlugin } from '../../src/plugin';
-import { createWorkspaceRoot, removeWorkspaceRoot, writeWorkspaceFile } from '../workspace';
+import {
+  createWorkspaceRoot,
+  expectedAliasImportRelation,
+  removeWorkspaceRoot,
+  writeWorkspaceFile,
+} from '../workspace';
 
 describe('TypeScript Alias Import tsconfig extends support', () => {
   it('follows local tsconfig extends', async () => {
@@ -45,15 +50,7 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
 
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
-      expect(result?.relations[0]).toEqual({
-          kind: 'codegraphy.typescript:alias-import',
-          sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
-          specifier: '~/format',
-        },
-      );
+      expect(result?.relations[0]).toEqual(expectedAliasImportRelation(sourcePath, targetPath, '~/format'));
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -101,15 +98,7 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
 
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
-      expect(result?.relations[0]).toEqual({
-          kind: 'codegraphy.typescript:alias-import',
-          sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
-          specifier: '#shared/token',
-        },
-      );
+      expect(result?.relations[0]).toEqual(expectedAliasImportRelation(sourcePath, targetPath, '#shared/token'));
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
@@ -164,15 +153,7 @@ describe('TypeScript Alias Import tsconfig extends support', () => {
 
       expect(result).toBeDefined();
       expect(result?.relations).toHaveLength(1);
-      expect(result?.relations[0]).toEqual({
-          kind: 'codegraphy.typescript:alias-import',
-          sourceId: 'compiler-options-paths',
-          fromFilePath: sourcePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
-          specifier: '#shared/token',
-        },
-      );
+      expect(result?.relations[0]).toEqual(expectedAliasImportRelation(sourcePath, targetPath, '#shared/token'));
     } finally {
       removeWorkspaceRoot(workspaceRoot);
     }
