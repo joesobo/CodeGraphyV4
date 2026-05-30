@@ -9,6 +9,7 @@ export interface GraphContextActionContext {
   selectionKind: GraphContextSelection['kind'];
   targetIds: readonly string[];
   primaryTargetId?: string;
+  edgeId?: string;
   edgeSourceId?: string;
   edgeTargetId?: string;
   primaryNode?: GraphContextMenuNode;
@@ -28,6 +29,7 @@ export function resolveGraphContextActionContext(
     selectionKind: selection.kind,
     targetIds: selection.targets,
     primaryTargetId,
+    edgeId: selection.edgeId,
     primaryNode: options.nodes?.find(node => node.id === primaryTargetId),
     edgeSourceId: isEdgeSelection ? primaryTargetId : undefined,
     edgeTargetId: isEdgeSelection ? secondaryTargetId : undefined,

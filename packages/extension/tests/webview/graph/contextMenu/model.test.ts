@@ -40,13 +40,21 @@ function builtInMenuItems(
 
 describe('graph/contextMenuModel', () => {
   it('uses Graph Revision mutability for background creation actions', () => {
+    const selection = makeBackgroundContextSelection();
     const liveEntries = buildGraphContextMenuEntries({
-      selection: makeBackgroundContextSelection(),
+      selection,
       timelineActive: false,
       favorites: new Set(),
       pluginItems: [],
     });
     expect(menuLabels(liveEntries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    selection.targets.push('src/late.ts');
+    expect(menuItems(liveEntries).map(entry => entry.contextSelection)).toEqual([
+      { kind: 'background', targets: [] },
+      { kind: 'background', targets: [] },
+      { kind: 'background', targets: [] },
+      { kind: 'background', targets: [] },
+    ]);
 
     const historicalEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
