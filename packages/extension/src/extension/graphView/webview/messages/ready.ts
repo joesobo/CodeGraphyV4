@@ -31,6 +31,7 @@ export interface GraphViewReadyHandlers {
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginStatuses?(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
   sendGraphViewContributionStatuses?(): void;
@@ -98,6 +99,7 @@ export async function applyWebviewReady(
   replayWebviewReadySettings(state, handlers);
   await handlers.sendCachedTimeline();
   await handlers.loadAndSendData();
+  handlers.sendPluginStatuses?.();
 
   if (state.hasWorkspace && state.firstAnalysis) {
     await handlers.waitForFirstWorkspaceReady();
