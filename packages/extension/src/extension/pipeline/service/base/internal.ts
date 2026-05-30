@@ -54,8 +54,10 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
-    pluginCacheTierIds: readonly string[] = [],
+    pluginCacheTierIds?: readonly string[],
   ): Promise<IWorkspaceFileAnalysisResult> {
+    const analysisPluginIds = pluginCacheTierIds ?? this._getActiveAnalysisPluginIds();
+
     return analyzeWorkspacePipelineDiscoveredFiles(
       this._cache,
       this._discovery,
@@ -68,10 +70,18 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       signal,
       createWorkspacePipelineAnalysisCacheTiers(
         this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
-        pluginCacheTierIds,
+        analysisPluginIds,
       ),
-      pluginCacheTierIds,
+      analysisPluginIds,
     );
+  }
+
+  private _getActiveAnalysisPluginIds(): string[] {
+    return this._registry.list()
+      .map(({ plugin }) => plugin.id)
+      .filter((pluginId): pluginId is string =>
+        typeof pluginId === 'string' && pluginId.length > 0,
+      );
   }
 
   protected _buildGraphData(
