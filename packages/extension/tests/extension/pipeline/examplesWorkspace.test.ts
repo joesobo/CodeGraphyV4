@@ -139,6 +139,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-typescript/src/index.ts->example-typescript/src/utils.ts#buildGreeting:function#import',
       'example-typescript/src/index.ts->example-typescript/src/types.ts#UserName:type#type-import',
       'example-typescript/src/utils.ts->example-typescript/src/depth.ts#getDepthTarget:function#import',
+      'example-typescript/src/index.ts->example-typescript/src/alias/greeting.ts#codegraphy.typescript:alias-import',
     ];
 
     const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !hasFileOrSymbolTargetEdge(edgeId));
@@ -181,6 +182,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
         'example-typescript/src/depth.ts',
         'example-typescript/src/leaf.ts',
         'example-typescript/src/types.ts',
+        'example-typescript/src/alias/greeting.ts',
       ]),
     );
   });
