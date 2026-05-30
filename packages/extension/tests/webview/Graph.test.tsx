@@ -34,6 +34,7 @@ describe('Graph', () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('div');
     expect(graphContainer).toBeInTheDocument();
+    expect(graphContainer).toHaveAttribute('aria-label', 'Graph Stage');
   });
 
   it('should apply correct container styles', () => {
