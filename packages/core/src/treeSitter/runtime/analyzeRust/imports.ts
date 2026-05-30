@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { getLastPathSegment, getNodeText } from '../analyze/nodes';
 import { resolveRustUsePath } from './paths';
@@ -9,7 +9,7 @@ export function handleRustUseDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> | void {
   const specifier = getNodeText(node.childForFieldName('argument'));

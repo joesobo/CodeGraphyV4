@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IFileAnalysisResult } from '../../../../../../plugin-api/src';
+import type { IAnalysisRelationshipEvidence, IFileAnalysisResult } from '../../../../../../plugin-api/src';
 import {
   createEmptyFileAnalysisResult,
   mergeById,
@@ -47,97 +47,63 @@ describe('routing/results/merge', () => {
   });
 
   it('deduplicates relations by the routed relation key', () => {
+    const baseRelation: IAnalysisRelationshipEvidence = {
+      edgeType: 'call',
+      sourceId: 'call:run',
+      from: { kind: 'symbol', symbolId: 'src/app.ts:function:run', filePath: 'src/app.ts' },
+      target: { kind: 'file', path: 'src/a.ts' },
+    };
+
     expect(
       mergeRelations(
-        [{
-          kind: 'call',
-          sourceId: 'call:run',
-          fromFilePath: 'src/app.ts',
-          fromSymbolId: 'src/app.ts:function:run',
-          toFilePath: 'src/a.ts',
-        }],
-        [{
-          kind: 'call',
-          sourceId: 'call:run',
-          fromFilePath: 'src/app.ts',
-          fromSymbolId: 'src/app.ts:function:run',
-          toFilePath: 'src/a.ts',
-          metadata: { updated: true },
-        }],
+        'src/app.ts',
+        [baseRelation],
+        [{ ...baseRelation, metadata: { updated: true } }],
       ),
-    ).toEqual([{
-      kind: 'call',
-      sourceId: 'call:run',
-      fromFilePath: 'src/app.ts',
-      fromSymbolId: 'src/app.ts:function:run',
-      toFilePath: 'src/a.ts',
-      metadata: { updated: true },
-    }]);
+    ).toEqual([{ ...baseRelation, metadata: { updated: true } }]);
   });
 
   it('keeps base relations when no later relations are provided', () => {
+    const baseRelation: IAnalysisRelationshipEvidence = {
+      edgeType: 'call',
+      sourceId: 'call:run',
+      from: { kind: 'symbol', symbolId: 'src/app.ts:function:run', filePath: 'src/app.ts' },
+      target: { kind: 'file', path: 'src/a.ts' },
+    };
+
     expect(
       mergeRelations(
-        [{
-          kind: 'call',
-          sourceId: 'call:run',
-          fromFilePath: 'src/app.ts',
-          fromSymbolId: 'src/app.ts:function:run',
-          toFilePath: 'src/a.ts',
-        }],
+        'src/app.ts',
+        [baseRelation],
         undefined,
       ),
-    ).toEqual([{
-      kind: 'call',
-      sourceId: 'call:run',
-      fromFilePath: 'src/app.ts',
-      fromSymbolId: 'src/app.ts:function:run',
-      toFilePath: 'src/a.ts',
-    }]);
+    ).toEqual([baseRelation]);
   });
 
   it('keeps distinct import relations when only the target symbol differs', () => {
+    const bootRelation: IAnalysisRelationshipEvidence = {
+      edgeType: 'import',
+      sourceId: 'import:lib',
+      from: { kind: 'file', filePath: 'src/app.ts' },
+      specifier: './lib',
+      target: { kind: 'symbol', symbolId: 'src/lib.ts:function:boot', filePath: 'src/lib.ts', specifier: './lib' },
+    };
+    const shutdownRelation: IAnalysisRelationshipEvidence = {
+      ...bootRelation,
+      target: { kind: 'symbol', symbolId: 'src/lib.ts:function:shutdown', filePath: 'src/lib.ts', specifier: './lib' },
+    };
+
     expect(
       mergeRelations(
-        [{
-          kind: 'import',
-          sourceId: 'import:lib',
-          fromFilePath: 'src/app.ts',
-          specifier: './lib',
-          toFilePath: 'src/lib.ts',
-          toSymbolId: 'src/lib.ts:function:boot',
-        }],
-        [{
-          kind: 'import',
-          sourceId: 'import:lib',
-          fromFilePath: 'src/app.ts',
-          specifier: './lib',
-          toFilePath: 'src/lib.ts',
-          toSymbolId: 'src/lib.ts:function:shutdown',
-        }],
+        'src/app.ts',
+        [bootRelation],
+        [shutdownRelation],
       ),
-    ).toEqual([
-      {
-        kind: 'import',
-        sourceId: 'import:lib',
-        fromFilePath: 'src/app.ts',
-        specifier: './lib',
-        toFilePath: 'src/lib.ts',
-        toSymbolId: 'src/lib.ts:function:boot',
-      },
-      {
-        kind: 'import',
-        sourceId: 'import:lib',
-        fromFilePath: 'src/app.ts',
-        specifier: './lib',
-        toFilePath: 'src/lib.ts',
-        toSymbolId: 'src/lib.ts:function:shutdown',
-      },
-    ]);
+    ).toEqual([bootRelation, shutdownRelation]);
   });
 
   it('treats missing relation arrays as empty lists', () => {
-    expect(mergeRelations(undefined, undefined)).toEqual([]);
+    expect(mergeRelations('src/app.ts', undefined, undefined)).toEqual([]);
   });
 
   it('merges analysis results field by field', () => {
@@ -148,10 +114,10 @@ describe('routing/results/merge', () => {
       nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
       nodes: [{ id: 'src/app.ts', nodeType: 'file', label: 'app.ts' }],
       relations: [{
-        kind: 'import' as const,
+        edgeType: 'import' as const,
         sourceId: 'import:lib',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/lib.ts',
+        from: { kind: 'file', filePath: 'src/app.ts' },
+        target: { kind: 'file', path: 'src/lib.ts' },
       }],
       symbols: [{
         id: 'src/app.ts:function:run',

@@ -123,9 +123,9 @@ describe('WorkspacePipeline analysis', () => {
     expect(result?.relations).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          kind: 'import',
+          edgeType: 'import',
           sourceId: 'codegraphy.treesitter:import',
-          specifier: './utils',
+          target: expect.objectContaining({ specifier: './utils' }),
         }),
       ]),
     );
@@ -156,16 +156,14 @@ describe('WorkspacePipeline analysis', () => {
     expect(result?.relations).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          kind: 'import',
+          edgeType: 'import',
           sourceId: 'codegraphy.treesitter:import',
-          specifier: '.pkg.thing',
-          toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
+          target: { kind: 'file', path: path.join(workspaceRoot, 'pkg/thing.py'), pathKind: 'absolute', specifier: '.pkg.thing' },
         }),
         expect.objectContaining({
-          kind: 'call',
+          edgeType: 'call',
           sourceId: 'codegraphy.treesitter:call',
-          specifier: '.pkg.thing',
-          toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
+          target: { kind: 'file', path: path.join(workspaceRoot, 'pkg/thing.py'), pathKind: 'absolute', specifier: '.pkg.thing' },
         }),
       ]),
     );

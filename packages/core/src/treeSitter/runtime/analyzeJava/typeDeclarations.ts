@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import { resolveJavaTypePath } from '../projectRoots';
@@ -49,7 +49,7 @@ export function handleJavaTypeDeclaration(
   filePath: string,
   sourceRoot: string | null,
   packageName: string | null,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): void {

@@ -22,11 +22,10 @@ const queryData: GraphQueryData = {
   ],
   relations: [
     {
-      kind: 'import',
+      edgeType: 'import',
       sourceId: 'codegraphy.treesitter:import',
-      fromFilePath: 'a.ts',
-      toFilePath: 'b.ts',
-      toSymbolId: 'b.ts#Thing',
+      from: { kind: 'file', filePath: 'a.ts' },
+      target: { kind: 'symbol', symbolId: 'b.ts#Thing', filePath: 'b.ts' },
     },
   ],
 };

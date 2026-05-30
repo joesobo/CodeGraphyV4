@@ -1,6 +1,6 @@
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 
-export type GDScriptFileAnalysisRelation = IAnalysisRelation;
+export type GDScriptFileAnalysisRelation = IAnalysisRelationshipEvidence;
 
 export interface GDScriptFileAnalysisResult {
   filePath: string;

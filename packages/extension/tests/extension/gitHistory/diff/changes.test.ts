@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
+import type { IAnalysisRelationshipEvidence, IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
 import type { IGraphEdge } from '../../../../src/shared/graph/contracts';
 import {
   addGitHistoryGraphFile,
@@ -8,6 +8,18 @@ import {
 
 describe('gitHistory/diff/changes', () => {
   const emptyAnalysis = (filePath: string): IFileAnalysisResult => ({ filePath, relations: [] });
+  const importRelation = (
+    fromFilePath: string,
+    targetPath: string,
+    specifier: string,
+  ): IAnalysisRelationshipEvidence => ({
+    edgeType: 'import',
+    sourceId: 'import',
+    specifier,
+    timing: 'static',
+    from: { kind: 'file', filePath: fromFilePath },
+    target: { kind: 'file', path: targetPath, pathKind: 'absolute', specifier },
+  });
 
   it('skips unsupported files instead of adding timeline-only nodes', async () => {
     const nodes: Array<{ id: string; label: string; color: string }> = [];
@@ -41,16 +53,7 @@ describe('gitHistory/diff/changes', () => {
     const registry = {
       analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
         filePath: absolutePath,
-        relations: [
-          {
-            sourceId: 'import',
-            specifier: './b',
-            type: 'static',
-            resolvedPath: '/workspace/src/b.ts',
-            kind: 'import',
-            fromFilePath: absolutePath,
-          },
-        ],
+        relations: [importRelation(absolutePath, '/workspace/src/b.ts', './b')],
       })),
       supportsFile: vi.fn(() => true),
     };
@@ -101,16 +104,7 @@ describe('gitHistory/diff/changes', () => {
     const registry = {
       analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
         filePath: absolutePath,
-        relations: [
-          {
-            sourceId: 'import',
-            specifier: './c',
-            type: 'static',
-            resolvedPath: '/workspace/src/c.ts',
-            kind: 'import',
-            fromFilePath: absolutePath,
-          },
-        ],
+        relations: [importRelation(absolutePath, '/workspace/src/c.ts', './c')],
       })),
       supportsFile: vi.fn(() => true),
     };
@@ -185,16 +179,7 @@ describe('gitHistory/diff/changes', () => {
     const registry = {
       analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
         filePath: absolutePath,
-        relations: [
-          {
-            sourceId: 'import',
-            specifier: './new',
-            type: 'static',
-            resolvedPath: '/workspace/src/new.ts',
-            kind: 'import',
-            fromFilePath: absolutePath,
-          },
-        ],
+        relations: [importRelation(absolutePath, '/workspace/src/new.ts', './new')],
       })),
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => true),

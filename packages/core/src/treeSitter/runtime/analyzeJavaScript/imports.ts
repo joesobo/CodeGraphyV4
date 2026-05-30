@@ -1,10 +1,10 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';
 import { resolveTreeSitterImportPath } from '../resolve';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { getStringSpecifier } from '../analyze/nodes';
-import { addRelation } from '../analyze/results';
+import { addRelation, createFileTarget } from '../analyze/results';
 import { hasValueImport } from './importKinds';
 import { addTypeImportRelations, addValueImportRelations } from './importRelations';
 import { hasDirectTypeKeyword, hasTypeSpecifierImport } from './typeImports/markers';
@@ -13,7 +13,7 @@ export type ImportStatementContext = {
   filePath: string;
   importedBindings: Map<string, ImportedBinding>;
   node: Parser.SyntaxNode;
-  relations: IAnalysisRelation[];
+  relations: IAnalysisRelationshipEvidence[];
   resolvedPath: string | null;
   specifier: string;
 };
@@ -21,7 +21,7 @@ export type ImportStatementContext = {
 export function handleJavaScriptImportStatement(
   node: Parser.SyntaxNode,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> {
   const specifier = getStringSpecifier(node.namedChildren.find((child) => child.type === 'string'));
@@ -52,7 +52,7 @@ export function handleJavaScriptImportStatement(
 export function handleJavaScriptExportStatement(
   node: Parser.SyntaxNode,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
 ): void {
   const specifier = getStringSpecifier(node.namedChildren.find((child) => child.type === 'string'));
   if (!specifier) {
@@ -61,11 +61,9 @@ export function handleJavaScriptExportStatement(
 
   const resolvedPath = resolveTreeSitterImportPath(filePath, specifier);
   addRelation(relations, {
-    kind: 'reexport',
+    edgeType: 'reexport',
     sourceId: TREE_SITTER_SOURCE_IDS.reexport,
-    fromFilePath: filePath,
-    specifier,
-    resolvedPath,
-    toFilePath: resolvedPath,
+    from: { kind: 'file', filePath },
+    target: createFileTarget(resolvedPath, specifier),
   });
 }

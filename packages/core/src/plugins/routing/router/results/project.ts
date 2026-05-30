@@ -1,5 +1,9 @@
 import type { IFileAnalysisResult, IPlugin } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../../../../analysis/projectedConnection';
+import {
+  getRelationshipEvidenceSpecifier,
+  materializeRelationshipTargetPath,
+} from '../../../../analysis/relationshipEvidence';
 
 export function withPluginProvenance(
   plugin: IPlugin,
@@ -14,15 +18,18 @@ export function withPluginProvenance(
   };
 }
 
-export function toProjectedConnectionsFromFileAnalysis(analysis: IFileAnalysisResult): IProjectedConnection[] {
-  return (analysis.relations ?? []).map(relation => ({
-    kind: relation.kind,
-    pluginId: relation.pluginId,
-    sourceId: relation.sourceId,
-    specifier: relation.specifier ?? '',
-    resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
-    type: relation.type,
-    variant: relation.variant,
-    metadata: relation.metadata,
+export function toProjectedConnectionsFromFileAnalysis(
+  analysis: IFileAnalysisResult,
+  workspaceRoot: string,
+): IProjectedConnection[] {
+  return (analysis.relations ?? []).map(evidence => ({
+    kind: evidence.edgeType,
+    pluginId: evidence.pluginId,
+    sourceId: evidence.sourceId,
+    specifier: getRelationshipEvidenceSpecifier(evidence),
+    resolvedPath: materializeRelationshipTargetPath(evidence.target, workspaceRoot),
+    type: evidence.timing,
+    variant: evidence.variant,
+    metadata: evidence.metadata,
   }));
 }

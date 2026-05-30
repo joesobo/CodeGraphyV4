@@ -1,4 +1,10 @@
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import {
+  getRelationshipEvidenceSourceFilePath,
+  getRelationshipEvidenceSourceNodeId,
+  getRelationshipEvidenceTargetNodeId,
+  materializeRelationshipTargetPath,
+} from '../../analysis/relationshipEvidence';
 import type { GraphQueryData } from '../data';
 import type { GraphQueryConnectionConfig } from '../model';
 import { deriveScopedGraphQueryData } from '../visible';
@@ -6,16 +12,18 @@ import type { RelationshipEvidence } from './model';
 import { createProvenance, createRelationshipSymbol } from './symbols';
 import { edgeKey } from './visibility';
 
-function relationFrom(relation: IAnalysisRelation): string {
-  return relation.fromNodeId ?? relation.fromFilePath;
+function relationFrom(relation: IAnalysisRelationshipEvidence): string {
+  return getRelationshipEvidenceSourceNodeId(relation) ?? getRelationshipEvidenceSourceFilePath(relation, '');
 }
 
-function relationTo(relation: IAnalysisRelation): string | undefined {
-  return relation.toNodeId ?? relation.toFilePath ?? undefined;
+function relationTo(relation: IAnalysisRelationshipEvidence): string | undefined {
+  return getRelationshipEvidenceTargetNodeId(relation)
+    ?? materializeRelationshipTargetPath(relation.target, '')
+    ?? undefined;
 }
 
 export function createRelationEvidence(
-  relations: readonly IAnalysisRelation[] | undefined,
+  relations: readonly IAnalysisRelationshipEvidence[] | undefined,
   symbolById: ReadonlyMap<string, IAnalysisSymbol>,
   visibleEdgeKeys: ReadonlySet<string>,
 ): RelationshipEvidence[] {
@@ -33,7 +41,7 @@ export function createRelationEvidence(
     const evidence = {
       from: relationFrom(relation),
       to,
-      edgeType: relation.kind,
+      edgeType: relation.edgeType,
     };
 
     if (!visibleEdgeKeys.has(edgeKey({ ...evidence, kind: evidence.edgeType }))) {
@@ -43,7 +51,7 @@ export function createRelationEvidence(
     evidenceItems.push({
       ...evidence,
       provenance: createProvenance(relation),
-      symbol: createRelationshipSymbol(relation.kind, relation, symbolById),
+      symbol: createRelationshipSymbol(relation.edgeType, relation, symbolById),
     });
   }
 

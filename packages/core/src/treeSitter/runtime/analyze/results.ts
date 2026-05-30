@@ -1,7 +1,7 @@
 import type Parser from 'tree-sitter';
 import type {
   IAnalysisRange,
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -48,7 +48,7 @@ export function createSymbol(
 export function normalizeAnalysisResult(
   filePath: string,
   symbols: IAnalysisSymbol[],
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
 ): IFileAnalysisResult {
   return {
     filePath,
@@ -61,14 +61,23 @@ export function normalizeAnalysisResult(
 }
 
 export function addRelation(
-  relations: IAnalysisRelation[],
-  relation: IAnalysisRelation,
+  relations: IAnalysisRelationshipEvidence[],
+  relation: IAnalysisRelationshipEvidence,
 ): void {
   relations.push(relation);
 }
 
+export function createFileTarget(
+  resolvedPath: string | null,
+  specifier: string,
+): IAnalysisRelationshipEvidence['target'] {
+  return resolvedPath
+    ? { kind: 'file', path: resolvedPath, pathKind: 'absolute', specifier }
+    : { kind: 'unresolved', specifier };
+}
+
 export function addImportRelation(
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   filePath: string,
   specifier: string,
   resolvedPath: string | null,
@@ -77,54 +86,47 @@ export function addImportRelation(
   binding?: ImportedBinding,
 ): void {
   addRelation(relations, {
-    kind: 'import',
+    edgeType: 'import',
     sourceId,
-    fromFilePath: filePath,
-    specifier,
-    resolvedPath,
-    toFilePath: resolvedPath,
-    type,
+    from: { kind: 'file', filePath },
+    target: createFileTarget(resolvedPath, specifier),
+    timing: type,
     metadata: createBindingMetadata(binding),
   });
 }
 
 export function addTypeImportRelation(
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   filePath: string,
   specifier: string,
   resolvedPath: string | null,
   binding?: ImportedBinding,
 ): void {
   addRelation(relations, {
-    kind: 'type-import',
+    edgeType: 'type-import',
     sourceId: TREE_SITTER_SOURCE_IDS.typeImport,
-    fromFilePath: filePath,
-    specifier,
-    resolvedPath,
-    toFilePath: resolvedPath,
+    from: { kind: 'file', filePath },
+    target: createFileTarget(resolvedPath, specifier),
     metadata: createBindingMetadata(binding),
   });
 }
 
 export function addCallRelation(
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   filePath: string,
   binding: ImportedBinding,
   fromSymbolId?: string,
 ): void {
   addRelation(relations, {
-    kind: 'call',
+    edgeType: 'call',
     sourceId: TREE_SITTER_SOURCE_IDS.call,
-    fromFilePath: filePath,
-    fromSymbolId,
-    specifier: binding.specifier,
-    resolvedPath: binding.resolvedPath,
-    toFilePath: binding.resolvedPath,
+    from: fromSymbolId ? { kind: 'symbol', symbolId: fromSymbolId, filePath } : { kind: 'file', filePath },
+    target: createFileTarget(binding.resolvedPath, binding.specifier),
     metadata: createBindingMetadata(binding),
   });
 }
 
-function createBindingMetadata(binding?: ImportedBinding): IAnalysisRelation['metadata'] | undefined {
+function createBindingMetadata(binding?: ImportedBinding): IAnalysisRelationshipEvidence['metadata'] | undefined {
   if (!binding) {
     return undefined;
   }
@@ -138,35 +140,30 @@ function createBindingMetadata(binding?: ImportedBinding): IAnalysisRelation['me
 }
 
 export function addInheritRelation(
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   filePath: string,
   specifier: string,
   resolvedPath: string | null = null,
 ): void {
   addRelation(relations, {
-    kind: 'inherit',
+    edgeType: 'inherit',
     sourceId: TREE_SITTER_SOURCE_IDS.inherit,
-    fromFilePath: filePath,
-    specifier,
-    resolvedPath,
-    toFilePath: resolvedPath,
+    from: { kind: 'file', filePath },
+    target: createFileTarget(resolvedPath, specifier),
   });
 }
 
 export function addReferenceRelation(
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   filePath: string,
   specifier: string,
   resolvedPath: string | null,
   fromSymbolId?: string,
 ): void {
   addRelation(relations, {
-    kind: 'reference',
+    edgeType: 'reference',
     sourceId: TREE_SITTER_SOURCE_IDS.reference,
-    fromFilePath: filePath,
-    fromSymbolId,
-    specifier,
-    resolvedPath,
-    toFilePath: resolvedPath,
+    from: fromSymbolId ? { kind: 'symbol', symbolId: fromSymbolId, filePath } : { kind: 'file', filePath },
+    target: createFileTarget(resolvedPath, specifier),
   });
 }

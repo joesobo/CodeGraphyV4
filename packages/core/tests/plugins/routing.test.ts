@@ -32,9 +32,10 @@ function plugin(id: string, extensions: string[], analyzeFile?: IPlugin['analyze
 
 function relation(overrides: Partial<Relation>): Relation {
   return {
-    kind: 'import',
+    edgeType: 'import',
     sourceId: 'source',
-    fromFilePath: 'src/source.ts',
+    from: { kind: 'file', filePath: 'src/source.ts' },
+    target: { kind: 'unresolved', specifier: '' },
     ...overrides,
   };
 }
@@ -61,25 +62,25 @@ describe('plugins/routing', () => {
       filePath: 'src/source.ts',
       relations: [
         {
-          kind: 'import',
+          edgeType: 'import',
           sourceId: 'import-target',
-          fromFilePath: 'src/source.ts',
-          toFilePath: 'src/target.ts',
+          from: { kind: 'file', filePath: 'src/source.ts' },
+          target: { kind: 'file', path: 'src/target.ts', pathKind: 'workspace-relative' },
           pluginId: undefined,
           metadata: { importedName: 'target' },
         },
         {
-          kind: 'call',
+          edgeType: 'call',
           sourceId: 'call-run',
-          fromFilePath: 'src/source.ts',
+          from: { kind: 'file', filePath: 'src/source.ts' },
           specifier: 'run',
-          resolvedPath: 'src/run.ts',
+          target: { kind: 'file', path: 'src/run.ts', pathKind: 'workspace-relative', specifier: 'run' },
           pluginId: 'existing',
         },
       ],
     };
 
-    expect(toProjectedConnectionsFromFileAnalysis(withPluginProvenance(plugin('typescript', ['.ts']), analysis))).toEqual([
+    expect(toProjectedConnectionsFromFileAnalysis(withPluginProvenance(plugin('typescript', ['.ts']), analysis), '')).toEqual([
       {
         kind: 'import',
         pluginId: 'typescript',
@@ -110,10 +111,10 @@ describe('plugins/routing', () => {
         plugin: plugin('first', ['.ts'], async () => ({
           filePath: 'src/app.ts',
           relations: [{
-            kind: 'import',
+            edgeType: 'import',
             sourceId: 'first-import',
-            fromFilePath: 'src/app.ts',
-            toFilePath: 'src/first.ts',
+            from: { kind: 'file', filePath: 'src/app.ts' },
+            target: { kind: 'file', path: 'src/first.ts', pathKind: 'workspace-relative' },
           }],
         })),
       }],
@@ -134,10 +135,10 @@ describe('plugins/routing', () => {
       async () => ({
         filePath: 'src/app.ts',
         relations: [{
-          kind: 'reference',
+          edgeType: 'reference',
           sourceId: 'core-reference',
-          fromFilePath: 'src/app.ts',
-          toFilePath: 'src/core.ts',
+          from: { kind: 'file', filePath: 'src/app.ts' },
+          target: { kind: 'file', path: 'src/core.ts', pathKind: 'workspace-relative' },
         }],
       }),
     )).resolves.toEqual({
@@ -145,16 +146,16 @@ describe('plugins/routing', () => {
       nodes: [],
       relations: [
         {
-          kind: 'reference',
+          edgeType: 'reference',
           sourceId: 'core-reference',
-          fromFilePath: 'src/app.ts',
-          toFilePath: 'src/core.ts',
+          from: { kind: 'file', filePath: 'src/app.ts' },
+          target: { kind: 'file', path: 'src/core.ts', pathKind: 'workspace-relative' },
         },
         {
-          kind: 'import',
+          edgeType: 'import',
           sourceId: 'first-import',
-          fromFilePath: 'src/app.ts',
-          toFilePath: 'src/first.ts',
+          from: { kind: 'file', filePath: 'src/app.ts' },
+          target: { kind: 'file', path: 'src/first.ts', pathKind: 'workspace-relative' },
           pluginId: 'first',
         },
       ],
@@ -179,20 +180,20 @@ describe('plugins/routing', () => {
       async () => ({
         filePath: 'README.md',
         relations: [{
-          kind: 'reference',
+          edgeType: 'reference',
           sourceId: 'doc-reference',
-          fromFilePath: 'README.md',
-          toFilePath: 'docs/guide.md',
+          from: { kind: 'file', filePath: 'README.md' },
+          target: { kind: 'file', path: 'docs/guide.md', pathKind: 'workspace-relative' },
         }],
       }),
     )).resolves.toEqual({
       filePath: 'README.md',
       nodes: [],
       relations: [{
-        kind: 'reference',
+        edgeType: 'reference',
         sourceId: 'doc-reference',
-        fromFilePath: 'README.md',
-        toFilePath: 'docs/guide.md',
+        from: { kind: 'file', filePath: 'README.md' },
+        target: { kind: 'file', path: 'docs/guide.md', pathKind: 'workspace-relative' },
       }],
       symbols: [],
       nodeTypes: [],
@@ -302,44 +303,36 @@ describe('plugins/routing', () => {
   });
 
   it('builds stable relation keys from base relation identity fields', () => {
-    expect(getRelationKey(relation({
-      kind: 'import',
+    expect(getRelationKey('src/source.ts', relation({
+      edgeType: 'import',
       sourceId: 'import-source',
-      fromFilePath: 'src/a.ts',
-      fromNodeId: 'node:a',
-      fromSymbolId: 'symbol:a',
+      from: { kind: 'symbol', symbolId: 'symbol:a', filePath: 'src/a.ts' },
       specifier: './b',
-      type: 'static',
+      timing: 'static',
       variant: 'value',
-      toFilePath: 'src/b.ts',
-    }))).toBe('import|import-source|src/a.ts|node:a|symbol:a|./b|static|value');
+      target: { kind: 'file', path: 'src/b.ts', pathKind: 'workspace-relative', specifier: './b' },
+    }))).toBe('import|import-source|src/a.ts||symbol:a|./b|static|value');
   });
 
   it('adds node and symbol destinations for non-resolved relation kinds', () => {
-    expect(getRelationKey(relation({
-      kind: 'import',
-      toFilePath: 'src/b.ts',
-      toNodeId: 'node:b',
-      toSymbolId: 'symbol:b',
-      resolvedPath: 'src/resolved.ts',
-    }))).toBe('import|source|src/source.ts||||||node:b|symbol:b');
+    expect(getRelationKey('src/source.ts', relation({
+      edgeType: 'import',
+      target: { kind: 'symbol', symbolId: 'symbol:b', filePath: 'src/resolved.ts' },
+    }))).toBe('import|source|src/source.ts|||||||symbol:b');
   });
 
   it('adds file, node, symbol, and resolved destinations for call and reference relations', () => {
-    expect(getRelationKey(relation({
-      kind: 'call',
+    expect(getRelationKey('src/source.ts', relation({
+      edgeType: 'call',
       sourceId: 'call-run',
       specifier: 'run',
-      toFilePath: 'src/run.ts',
-      toNodeId: 'node:run',
-      toSymbolId: 'symbol:run',
-      resolvedPath: 'src/run.ts',
-    }))).toBe('call|call-run|src/source.ts|||run|||src/run.ts|node:run|symbol:run|src/run.ts');
+      target: { kind: 'symbol', symbolId: 'symbol:run', filePath: 'src/run.ts', specifier: 'run' },
+    }))).toBe('call|call-run|src/source.ts|||run|||src/run.ts||symbol:run');
 
-    expect(getRelationKey(relation({
-      kind: 'reference',
+    expect(getRelationKey('src/source.ts', relation({
+      edgeType: 'reference',
       sourceId: 'reference-user',
-      toFilePath: 'src/user.ts',
-    }))).toBe('reference|reference-user|src/source.ts||||||src/user.ts|||');
+      target: { kind: 'file', path: 'src/user.ts', pathKind: 'workspace-relative' },
+    }))).toBe('reference|reference-user|src/source.ts||||||src/user.ts||');
   });
 });

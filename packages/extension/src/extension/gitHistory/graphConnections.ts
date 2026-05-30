@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { materializeRelationshipTargetPath } from '@codegraphy-dev/core';
 import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
 import type { IGraphEdge } from '../../shared/graph/contracts';
 import { createGraphEdgeId } from '../../shared/graph/edgeIdentity';
@@ -25,7 +26,7 @@ export function appendGitHistoryAnalysisEdges(
   } = options;
 
   for (const relation of analysis?.relations ?? []) {
-    const targetPath = relation.resolvedPath ?? relation.toFilePath;
+    const targetPath = materializeRelationshipTargetPath(relation.target, workspaceRoot);
     if (!targetPath) {
       continue;
     }
@@ -34,8 +35,8 @@ export function appendGitHistoryAnalysisEdges(
     const edgeId = createGraphEdgeId({
       from: sourcePath,
       to: targetRelative,
-      kind: relation.kind,
-      type: relation.type,
+      kind: relation.edgeType,
+      type: relation.timing,
       variant: relation.variant,
     });
     if (edgeSet.has(edgeId)) {
@@ -48,7 +49,7 @@ export function appendGitHistoryAnalysisEdges(
       id: edgeId,
       from: sourcePath,
       to: targetRelative,
-      kind: relation.kind,
+      kind: relation.edgeType,
       sources: pluginId ? [{
         id: `${pluginId}:${relation.sourceId}`,
         pluginId,

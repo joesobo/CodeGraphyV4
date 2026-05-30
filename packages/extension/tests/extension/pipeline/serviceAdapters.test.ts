@@ -42,12 +42,10 @@ describe('pipeline/serviceAdapters', () => {
         filePath: '/workspace/src/app.ts',
         relations: [
           {
-            kind: 'import',
+            edgeType: 'import',
             sourceId: 'test-source',
-            specifier: './lib',
-            resolvedPath: '/workspace/src/lib.ts',
-            fromFilePath: '/workspace/src/app.ts',
-            toFilePath: '/workspace/src/lib.ts',
+            from: { kind: 'file', filePath: '/workspace/src/app.ts' },
+            target: { kind: 'file', path: '/workspace/src/lib.ts', pathKind: 'absolute', specifier: './lib' },
           },
         ],
       })),
@@ -75,12 +73,10 @@ describe('pipeline/serviceAdapters', () => {
       filePath: '/workspace/src/app.ts',
       relations: [
         {
-          kind: 'import',
+          edgeType: 'import',
           sourceId: 'test-source',
-          specifier: './lib',
-          resolvedPath: '/workspace/src/lib.ts',
-          fromFilePath: '/workspace/src/app.ts',
-          toFilePath: '/workspace/src/lib.ts',
+          from: { kind: 'file', filePath: '/workspace/src/app.ts' },
+          target: { kind: 'file', path: '/workspace/src/lib.ts', pathKind: 'absolute', specifier: './lib' },
         },
       ],
     });

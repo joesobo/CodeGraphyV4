@@ -1,9 +1,9 @@
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { GraphQueryRelationshipProvenance } from '../model';
 
 const TREE_SITTER_PLUGIN_ID = 'codegraphy.treesitter';
 
-export function createProvenance(relation: IAnalysisRelation): GraphQueryRelationshipProvenance | undefined {
+export function createProvenance(relation: IAnalysisRelationshipEvidence): GraphQueryRelationshipProvenance | undefined {
   if (!relation.pluginId || relation.pluginId === TREE_SITTER_PLUGIN_ID) {
     return undefined;
   }

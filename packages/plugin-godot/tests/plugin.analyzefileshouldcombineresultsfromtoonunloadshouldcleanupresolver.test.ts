@@ -27,8 +27,8 @@ describe('createGDScriptPlugin lifecycle', () => {
       expect(analysis.relations.some(relation => relation.sourceId === 'extends')).toBe(true);
       expect(analysis.relations.some(relation => relation.sourceId === 'preload')).toBe(true);
       expect(analysis.relations.some(relation => relation.sourceId === 'load')).toBe(true);
-      expect(analysis.relations.some(relation => relation.kind === 'inherit')).toBe(true);
-      expect(analysis.relations.some(relation => relation.kind === 'load')).toBe(true);
+      expect(analysis.relations.some(relation => relation.edgeType === 'inherit')).toBe(true);
+      expect(analysis.relations.some(relation => relation.edgeType === 'load')).toBe(true);
     });
 
 
@@ -53,7 +53,7 @@ describe('createGDScriptPlugin lifecycle', () => {
         'res://scenes/item.tscn',
       ]);
       expect(analysis.relations.every(relation => relation.sourceId === 'ext-resource')).toBe(true);
-      expect(analysis.relations.every(relation => relation.kind === 'load')).toBe(true);
+      expect(analysis.relations.every(relation => relation.edgeType === 'load')).toBe(true);
     });
 
 
@@ -78,7 +78,7 @@ describe('createGDScriptPlugin lifecycle', () => {
         'res://textures/player_card.png',
       ]);
       expect(analysis.relations.every(relation => relation.sourceId === 'ext-resource')).toBe(true);
-      expect(analysis.relations.every(relation => relation.kind === 'load')).toBe(true);
+      expect(analysis.relations.every(relation => relation.edgeType === 'load')).toBe(true);
     });
 
 
@@ -107,7 +107,7 @@ describe('createGDScriptPlugin lifecycle', () => {
       expect(analysis.relations).toEqual([
         expect.objectContaining({
           specifier: 'res://wrong/path.tres',
-          resolvedPath: '/workspace/resources/player_loadout.tres',
+          target: expect.objectContaining({ path: '/workspace/resources/player_loadout.tres' }),
         }),
       ]);
     });
@@ -140,7 +140,7 @@ describe('createGDScriptPlugin lifecycle', () => {
         'res://scripts/game_manager.gd',
       ]);
       expect(analysis.relations.every(relation => relation.sourceId === 'project-settings')).toBe(true);
-      expect(analysis.relations.every(relation => relation.kind === 'load')).toBe(true);
+      expect(analysis.relations.every(relation => relation.edgeType === 'load')).toBe(true);
     });
 
 
@@ -156,10 +156,10 @@ describe('createGDScriptPlugin lifecycle', () => {
       expect(analysis.relations).toEqual(
         analysis.relations.map((relation) =>
           expect.objectContaining({
-            kind: relation.kind,
+            edgeType: relation.edgeType,
             sourceId: relation.sourceId,
             specifier: relation.specifier,
-            resolvedPath: relation.resolvedPath,
+            target: expect.objectContaining({ path: relation.target.kind === 'file' ? relation.target.path : undefined }),
           }),
         ),
       );

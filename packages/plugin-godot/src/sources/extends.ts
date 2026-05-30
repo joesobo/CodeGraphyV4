@@ -4,14 +4,14 @@
  * @module plugins/godot/sources/extends
  */
 
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { parseGDScriptResourceReferences } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
 
 /** Detects extends statements with file paths: extends "res://scripts/base.gd" */
-export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelation[] {
-  const relations: IAnalysisRelation[] = [];
+export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelationshipEvidence[] {
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
   for (const reference of parseGDScriptResourceReferences(content)) {
@@ -28,13 +28,14 @@ export function detect(content: string, filePath: string, ctx: GDScriptRuleConte
         })
       : null;
     relations.push({
-      kind: 'inherit',
-      specifier: reference.resPath,
-      resolvedPath,
-      type: 'static',
+      edgeType: 'inherit',
+      timing: 'static',
       sourceId: 'extends',
-      fromFilePath: filePath,
-      toFilePath: resolvedPath,
+      specifier: reference.resPath,
+      from: { kind: 'file', filePath },
+      target: resolvedPath
+        ? { kind: 'file', path: resolvedPath, pathKind: 'absolute', specifier: reference.resPath }
+        : { kind: 'unresolved', specifier: reference.resPath },
     });
   }
 

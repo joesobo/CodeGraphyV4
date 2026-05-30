@@ -12,27 +12,27 @@ describe('analysis/projection', () => {
       symbols: [],
       relations: [
         {
-          kind: 'import',
-          fromFilePath: '/workspace/src/app.ts',
+          edgeType: 'import',
+          from: { kind: 'file', filePath: '/workspace/src/app.ts' },
           pluginId: 'plugin-a',
           sourceId: 'source-a',
           specifier: 'react',
-          resolvedPath: '/workspace/node_modules/react/index.js',
-          type: 'value',
+          target: { kind: 'file', path: '/workspace/node_modules/react/index.js', pathKind: 'absolute', specifier: 'react' },
+          timing: 'value',
           variant: 'default',
           metadata: { package: 'react' },
         },
         {
-          kind: 'reference',
-          fromFilePath: '/workspace/src/app.ts',
+          edgeType: 'reference',
+          from: { kind: 'file', filePath: '/workspace/src/app.ts' },
           pluginId: 'plugin-b',
           sourceId: 'source-b',
-          toFilePath: '/workspace/src/lib.ts',
+          target: { kind: 'file', path: '/workspace/src/lib.ts', pathKind: 'absolute' },
         },
       ],
     };
 
-    expect(projectProjectedConnectionsFromFileAnalysis(analysis)).toEqual([
+    expect(projectProjectedConnectionsFromFileAnalysis(analysis, '/workspace')).toEqual([
       {
         kind: 'import',
         pluginId: 'plugin-a',
@@ -61,7 +61,7 @@ describe('analysis/projection', () => {
       filePath: '/workspace/src/app.ts',
       symbols: [],
       relations: undefined,
-    })).toEqual([]);
+    }, '/workspace')).toEqual([]);
   });
 
   it('projects a file analysis map entry by entry', () => {
@@ -69,10 +69,11 @@ describe('analysis/projection', () => {
       filePath: '/workspace/src/app.ts',
       symbols: [],
       relations: [{
-        kind: 'import',
-        fromFilePath: '/workspace/src/app.ts',
+        edgeType: 'import',
+        from: { kind: 'file', filePath: '/workspace/src/app.ts' },
         pluginId: 'plugin-a',
         sourceId: 'source-a',
+        target: { kind: 'unresolved', specifier: '' },
       }],
     };
     const secondAnalysis: IFileAnalysisResult = {
@@ -84,7 +85,7 @@ describe('analysis/projection', () => {
     expect(projectConnectionMapFromFileAnalysis(new Map([
       ['/workspace/src/app.ts', firstAnalysis],
       ['/workspace/src/lib.ts', secondAnalysis],
-    ]))).toEqual(new Map([
+    ]), '/workspace')).toEqual(new Map([
       ['/workspace/src/app.ts', [
         {
           kind: 'import',

@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -18,7 +18,7 @@ function visitRubyNode(
   node: Parser.SyntaxNode,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> | void {
@@ -49,7 +49,7 @@ export function analyzeRubyFile(
   workspaceRoot: string,
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   walkTree(tree.rootNode, {}, (node) =>
     visitRubyNode(node, filePath, workspaceRoot, relations, symbols, importedBindings),

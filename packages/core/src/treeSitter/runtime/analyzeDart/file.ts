@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -18,7 +18,7 @@ function visitDartNode(
   node: Parser.SyntaxNode,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'library_import') {
@@ -52,7 +52,7 @@ export function analyzeDartFile(
   tree: Parser.Tree,
   workspaceRoot: string,
 ): IFileAnalysisResult {
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   walkTree(tree.rootNode, {}, (node) =>
     visitDartNode(node, filePath, workspaceRoot, relations, symbols),

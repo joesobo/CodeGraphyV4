@@ -14,7 +14,7 @@ export function projectFileAnalysisConnections(
   return new Map(
     Array.from(fileAnalysis.entries()).map(([filePath, analysis]) => [
       toRepoRelativeGraphPath(filePath, workspaceRoot),
-      projectProjectedConnectionsFromFileAnalysis(analysis),
+      projectProjectedConnectionsFromFileAnalysis(analysis, workspaceRoot),
     ]),
   );
 }

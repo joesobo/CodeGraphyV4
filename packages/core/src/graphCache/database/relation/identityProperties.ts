@@ -1,4 +1,11 @@
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
+import {
+  getRelationshipEvidenceSourceFilePath,
+  getRelationshipEvidenceSourceSymbolId,
+  getRelationshipEvidenceSpecifier,
+  getRelationshipEvidenceTargetSymbolId,
+  materializeRelationshipTargetPath,
+} from '../../../analysis/relationshipEvidence';
 
 function escapeCypherString(value: string): string {
   return JSON.stringify(value);
@@ -10,19 +17,20 @@ function createCypherStringProperty(key: string, value: string): string {
 
 function createRelationRowId(
   filePath: string,
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
+  workspaceRoot: string,
   index: number,
 ): string {
   return [
     filePath,
-    relation.kind,
+    relation.edgeType,
     relation.sourceId,
-    relation.fromFilePath,
-    relation.toFilePath ?? '',
-    relation.fromSymbolId ?? '',
-    relation.toSymbolId ?? '',
-    relation.specifier ?? '',
-    relation.type ?? '',
+    getRelationshipEvidenceSourceFilePath(relation, filePath),
+    materializeRelationshipTargetPath(relation.target, workspaceRoot) ?? '',
+    getRelationshipEvidenceSourceSymbolId(relation) ?? '',
+    getRelationshipEvidenceTargetSymbolId(relation) ?? '',
+    getRelationshipEvidenceSpecifier(relation),
+    relation.timing ?? '',
     relation.variant ?? '',
     String(index),
   ].join('|');
@@ -30,13 +38,14 @@ function createRelationRowId(
 
 export function createRelationIdentityProperties(
   filePath: string,
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
   relationIndex: number,
+  workspaceRoot: string,
 ): string[] {
   return [
-    createCypherStringProperty('relationId', createRelationRowId(filePath, relation, relationIndex)),
+    createCypherStringProperty('relationId', createRelationRowId(filePath, relation, workspaceRoot, relationIndex)),
     createCypherStringProperty('filePath', filePath),
-    createCypherStringProperty('kind', relation.kind),
+    createCypherStringProperty('kind', relation.edgeType),
     createCypherStringProperty('sourceId', relation.sourceId),
   ];
 }

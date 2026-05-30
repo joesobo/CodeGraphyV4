@@ -52,7 +52,7 @@ export function saveWorkspaceAnalysisDatabaseCache(
       runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
 
       for (const [filePath, entry] of sortedCacheEntries(cache)) {
-        persistAnalysisEntry(connection, filePath, entry);
+        persistAnalysisEntry(connection, workspaceRoot, filePath, entry);
       }
     });
     replaceDatabaseCache(tempDatabasePath, databasePath);
@@ -96,7 +96,7 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
       };
 
       for (const [filePath, entry] of entries) {
-        await persistAnalysisEntryAsync(connection, filePath, entry, yieldAfterStatement);
+        await persistAnalysisEntryAsync(connection, workspaceRoot, filePath, entry, yieldAfterStatement);
         current += 1;
         options.onProgress?.({ current, total });
       }

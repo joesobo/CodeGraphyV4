@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
+import type { IAnalysisRelationshipEvidence, IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import type { IGraphEdge } from '../../../src/shared/graph/contracts';
 import {
   reanalyzeGraphFile,
@@ -8,6 +8,15 @@ import {
 
 describe('gitHistory/reanalyzeGraphFile', () => {
   const emptyAnalysis = (filePath: string): IFileAnalysisResult => ({ filePath, relations: [] });
+  const importRelation = (fromFilePath: string, pluginId?: string): IAnalysisRelationshipEvidence => ({
+    edgeType: 'import',
+    pluginId,
+    sourceId: 'import',
+    specifier: './b',
+    timing: 'static',
+    from: { kind: 'file', filePath: fromFilePath },
+    target: { kind: 'file', path: '/workspace/src/b.ts', pathKind: 'absolute', specifier: './b' },
+  });
 
   it('returns early for unsupported files', async () => {
     const getFileAtCommit = vi.fn(async () => '');
@@ -46,17 +55,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const registry = {
       analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
         filePath: absolutePath,
-        relations: [
-          {
-            sourceId: 'import',
-            specifier: './b',
-            type: 'static',
-            resolvedPath: '/workspace/src/b.ts',
-            kind: 'import',
-            pluginId: 'ts',
-            fromFilePath: absolutePath,
-          },
-        ],
+        relations: [importRelation(absolutePath, 'ts')],
       })),
       supportsFile: vi.fn(() => true),
     };
@@ -100,16 +99,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const registry = {
       analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
         filePath: absolutePath,
-        relations: [
-          {
-            sourceId: 'import',
-            specifier: './b',
-            type: 'static',
-            resolvedPath: '/workspace/src/b.ts',
-            kind: 'import',
-            fromFilePath: absolutePath,
-          },
-        ],
+        relations: [importRelation(absolutePath)],
       })),
       supportsFile: vi.fn(() => true),
     };

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding } from '../../../src/treeSitter/runtime/analyze/model';
 
 const javaImportsHarness = vi.hoisted(() => ({
@@ -30,7 +30,7 @@ describe('pipeline/treesitter/javaImports', () => {
   });
 
   it('records resolved Java imports when a source root is available', () => {
-    const relations: IAnalysisRelation[] = [];
+    const relations: IAnalysisRelationshipEvidence[] = [];
     const importedBindings = new Map<string, ImportedBinding>();
 
     javaImportsHarness.getNodeText.mockReturnValue('java.util.List');
@@ -64,7 +64,7 @@ describe('pipeline/treesitter/javaImports', () => {
   });
 
   it('records unresolved Java imports when no source root is available', () => {
-    const relations: IAnalysisRelation[] = [];
+    const relations: IAnalysisRelationshipEvidence[] = [];
     const importedBindings = new Map<string, ImportedBinding>();
 
     javaImportsHarness.getNodeText.mockReturnValue('java.util.Map');
@@ -94,7 +94,7 @@ describe('pipeline/treesitter/javaImports', () => {
   });
 
   it('ignores import declarations without a readable specifier', () => {
-    const relations: IAnalysisRelation[] = [];
+    const relations: IAnalysisRelationshipEvidence[] = [];
     const importedBindings = new Map<string, ImportedBinding>();
 
     javaImportsHarness.getNodeText.mockReturnValue('');

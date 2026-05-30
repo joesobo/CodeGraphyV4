@@ -11,6 +11,7 @@ const {
   addImportRelation,
   addTypeImportRelation,
   addRelation,
+  createFileTarget,
 } = vi.hoisted(() => ({
   resolveTreeSitterImportPath: vi.fn(),
   collectImportBindings: vi.fn(),
@@ -18,6 +19,7 @@ const {
   addImportRelation: vi.fn(),
   addTypeImportRelation: vi.fn(),
   addRelation: vi.fn(),
+  createFileTarget: vi.fn(),
 }));
 
 vi.mock('../../../src/treeSitter/runtime/resolve', () => ({
@@ -36,6 +38,7 @@ vi.mock('../../../src/treeSitter/runtime/analyze/results', () => ({
   addImportRelation,
   addTypeImportRelation,
   addRelation,
+  createFileTarget,
 }));
 
 describe('extension/pipeline/treesitter/javascriptImports', () => {
@@ -47,6 +50,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     addImportRelation.mockReset();
     addTypeImportRelation.mockReset();
     addRelation.mockReset();
+    createFileTarget.mockReset();
     collectImportBindings.mockReturnValue([]);
   });
 
@@ -341,6 +345,7 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
   it('adds reexport relations only when an export specifier exists', () => {
     resolveTreeSitterImportPath.mockReturnValue('/workspace/src/lib.ts');
     getStringSpecifier.mockReturnValueOnce('./lib').mockReturnValueOnce(null);
+    createFileTarget.mockReturnValue({ kind: 'file', path: '/workspace/src/lib.ts', pathKind: 'absolute', specifier: './lib' });
     const stringNode = { type: 'string' };
     const relations: never[] = [];
 
@@ -359,12 +364,10 @@ describe('extension/pipeline/treesitter/javascriptImports', () => {
     expect(getStringSpecifier).toHaveBeenNthCalledWith(2, undefined);
     expect(addRelation).toHaveBeenCalledTimes(1);
     expect(addRelation).toHaveBeenCalledWith(relations, {
-      kind: 'reexport',
+      edgeType: 'reexport',
       sourceId: 'codegraphy.treesitter:reexport',
-      fromFilePath: '/workspace/src/app.ts',
-      specifier: './lib',
-      resolvedPath: '/workspace/src/lib.ts',
-      toFilePath: '/workspace/src/lib.ts',
+      from: { kind: 'file', filePath: '/workspace/src/app.ts' },
+      target: { kind: 'file', path: '/workspace/src/lib.ts', pathKind: 'absolute', specifier: './lib' },
     });
   });
 });

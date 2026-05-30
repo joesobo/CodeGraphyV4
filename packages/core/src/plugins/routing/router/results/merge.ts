@@ -30,17 +30,18 @@ export function mergeById<TItem extends { id: string }>(
 }
 
 export function mergeRelations(
+  filePath: string,
   baseRelations: NonNullable<IFileAnalysisResult['relations']> | undefined,
   nextRelations: NonNullable<IFileAnalysisResult['relations']> | undefined,
 ): NonNullable<IFileAnalysisResult['relations']> {
   const merged = new Map<string, NonNullable<IFileAnalysisResult['relations']>[number]>();
 
   for (const relation of baseRelations ?? []) {
-    merged.set(getRelationKey(relation), relation);
+    merged.set(getRelationKey(filePath, relation), relation);
   }
 
   for (const relation of nextRelations ?? []) {
-    merged.set(getRelationKey(relation), relation);
+    merged.set(getRelationKey(filePath, relation), relation);
   }
 
   return [...merged.values()];
@@ -50,12 +51,13 @@ export function mergeFileAnalysisResults(
   baseResult: IFileAnalysisResult,
   nextResult: IFileAnalysisResult,
 ): IFileAnalysisResult {
+  const filePath = nextResult.filePath || baseResult.filePath;
   return {
-    filePath: nextResult.filePath || baseResult.filePath,
+    filePath,
     edgeTypes: mergeById(baseResult.edgeTypes, nextResult.edgeTypes),
     nodeTypes: mergeById(baseResult.nodeTypes, nextResult.nodeTypes),
     nodes: mergeById(baseResult.nodes, nextResult.nodes),
-    relations: mergeRelations(baseResult.relations, nextResult.relations),
+    relations: mergeRelations(filePath, baseResult.relations, nextResult.relations),
     symbols: mergeById(baseResult.symbols, nextResult.symbols),
   };
 }

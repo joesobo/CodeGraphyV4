@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { resolveGoPackagePath } from '../projectRoots';
 import { resolveTreeSitterImportPath } from '../resolve';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
@@ -19,7 +19,7 @@ export function handleGoImportDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> {
   const importSpecs = node.descendantsOfType('import_spec');

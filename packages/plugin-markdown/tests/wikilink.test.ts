@@ -19,7 +19,7 @@ describe('Markdown wikilink rule', () => {
       );
 
       expect(connections).toHaveLength(1);
-      expect(connections[0].resolvedPath).toBe('/resolved/docs/Note Name.md');
+      expect(connections[0].target.path).toBe('/resolved/docs/Note Name.md');
     });
 
     it('preserves the full alias syntax in the emitted specifier', () => {
@@ -47,7 +47,7 @@ describe('Markdown wikilink rule', () => {
       );
 
       expect(connections).toHaveLength(1);
-      expect(connections[0].kind).toBe('reference');
+      expect(connections[0].edgeType).toBe('reference');
       expect(connections[0].sourceId).toBe('wikilink');
     });
 
@@ -61,7 +61,7 @@ describe('Markdown wikilink rule', () => {
       );
 
       expect(connections).toHaveLength(1);
-      expect(connections[0].type).toBe('static');
+      expect(connections[0].timing).toBe('static');
     });
   });
 

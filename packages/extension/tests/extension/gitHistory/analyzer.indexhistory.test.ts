@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
+import type { IAnalysisRelationshipEvidence, IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 
 // Mock vscode module
@@ -109,6 +109,21 @@ function createAnalysisResult(
   return {
     filePath,
     relations,
+  };
+}
+
+function importRelation(
+  fromFilePath: string,
+  targetPath: string,
+  specifier: string,
+): IAnalysisRelationshipEvidence {
+  return {
+    edgeType: 'import',
+    sourceId: 'import',
+    specifier,
+    timing: 'static',
+    from: { kind: 'file', filePath: fromFilePath },
+    target: { kind: 'file', path: targetPath, pathKind: 'absolute', specifier },
   };
 }
 
@@ -225,25 +240,9 @@ describe('GitHistoryAnalyzer', () => {
           registry.analyzeFileResult.mockImplementation(
             async (filePath: string, content: string, _root: string) => {
               if (filePath.endsWith('a.ts') && content.includes('./b')) {
-                const relations = [
-                  {
-                    specifier: './b',
-                    resolvedPath: '/workspace/src/b.ts',
-                    type: 'static' as const,
-                    kind: 'import' as const,
-                    sourceId: 'import',
-                    fromFilePath: filePath,
-                  },
-                ];
+                const relations = [importRelation(filePath, '/workspace/src/b.ts', './b')];
                 if (content.includes('./c')) {
-                  relations.push({
-                    specifier: './c',
-                    resolvedPath: '/workspace/src/c.ts',
-                    type: 'static' as const,
-                    kind: 'import' as const,
-                    sourceId: 'import',
-                    fromFilePath: filePath,
-                  });
+                  relations.push(importRelation(filePath, '/workspace/src/c.ts', './c'));
                 }
                 return createAnalysisResult(filePath, relations);
               }
@@ -408,34 +407,13 @@ describe('GitHistoryAnalyzer', () => {
                 if (callCount <= 3) {
                   // First commit: only b
                   return createAnalysisResult(filePath, [
-                    {
-                      specifier: './b',
-                      resolvedPath: '/workspace/src/b.ts',
-                      type: 'static' as const,
-                      kind: 'import',
-                      sourceId: 'import',
-                      fromFilePath: filePath,
-                    },
+                    importRelation(filePath, '/workspace/src/b.ts', './b'),
                   ]);
                 }
                 // Second commit: b and c
                 return createAnalysisResult(filePath, [
-                  {
-                    specifier: './b',
-                    resolvedPath: '/workspace/src/b.ts',
-                    type: 'static' as const,
-                    kind: 'import',
-                    sourceId: 'import',
-                    fromFilePath: filePath,
-                  },
-                  {
-                    specifier: './c',
-                    resolvedPath: '/workspace/src/c.ts',
-                    type: 'static' as const,
-                    kind: 'import',
-                    sourceId: 'import',
-                    fromFilePath: filePath,
-                  },
+                  importRelation(filePath, '/workspace/src/b.ts', './b'),
+                  importRelation(filePath, '/workspace/src/c.ts', './c'),
                 ]);
               }
               return createAnalysisResult(filePath);
@@ -476,14 +454,7 @@ describe('GitHistoryAnalyzer', () => {
             async (filePath: string) => {
               if (filePath.endsWith('main.ts')) {
                 return createAnalysisResult(filePath, [
-                  {
-                    specifier: './old',
-                    resolvedPath: '/workspace/src/old.ts',
-                    type: 'static' as const,
-                    kind: 'import',
-                    sourceId: 'import',
-                    fromFilePath: filePath,
-                  },
+                  importRelation(filePath, '/workspace/src/old.ts', './old'),
                 ]);
               }
               return createAnalysisResult(filePath);

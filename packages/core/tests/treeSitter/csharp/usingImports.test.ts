@@ -36,14 +36,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () =>
 
     const relations = [
       {
-        kind: 'reference',
-        resolvedPath: '/workspace/src/Models/User.cs',
-        specifier: 'User',
+        edgeType: 'reference',
+        sourceId: 'codegraphy.treesitter:reference',
+        from: { kind: 'file', filePath: '/workspace/src/App.cs' },
+        target: { kind: 'file', path: '/workspace/src/Models/User.cs', pathKind: 'absolute', specifier: 'User' },
       },
       {
-        kind: 'inherit',
-        resolvedPath: '/workspace/src/Base/Entity.cs',
-        specifier: 'Entity',
+        edgeType: 'inherit',
+        sourceId: 'codegraphy.treesitter:inherit',
+        from: { kind: 'file', filePath: '/workspace/src/App.cs' },
+        target: { kind: 'file', path: '/workspace/src/Base/Entity.cs', pathKind: 'absolute', specifier: 'Entity' },
       },
     ] as never[];
     const importTargetsByNamespace = new Map<string, Set<string>>();
@@ -82,9 +84,24 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCSharp/usingImports', () =>
 
   it('ignores unrelated relations and emits null imports for namespaces without targets', () => {
     const relations = [
-      { kind: 'import', resolvedPath: '/workspace/src/Models/User.cs', specifier: 'User' },
-      { kind: 'reference', resolvedPath: null, specifier: 'User' },
-      { kind: 'reference', resolvedPath: '/workspace/src/Models/User.cs', specifier: null },
+      {
+        edgeType: 'import',
+        sourceId: 'codegraphy.treesitter:import',
+        from: { kind: 'file', filePath: '/workspace/src/App.cs' },
+        target: { kind: 'file', path: '/workspace/src/Models/User.cs', pathKind: 'absolute', specifier: 'User' },
+      },
+      {
+        edgeType: 'reference',
+        sourceId: 'codegraphy.treesitter:reference',
+        from: { kind: 'file', filePath: '/workspace/src/App.cs' },
+        target: { kind: 'unresolved', specifier: 'User' },
+      },
+      {
+        edgeType: 'reference',
+        sourceId: 'codegraphy.treesitter:reference',
+        from: { kind: 'file', filePath: '/workspace/src/App.cs' },
+        target: { kind: 'file', path: '/workspace/src/Models/User.cs', pathKind: 'absolute' },
+      },
     ] as never[];
 
     appendCSharpUsingImportRelations(

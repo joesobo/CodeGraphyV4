@@ -2,7 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { handleCInclude } from '../../../src/treeSitter/runtime/analyzeCFamily/includes';
 
 interface FakeSyntaxNode {
@@ -35,7 +35,7 @@ describe('treeSitter/analyzeCFamily/includes', () => {
     await fs.mkdir(path.dirname(localHeader), { recursive: true });
     await fs.writeFile(localHeader, '#pragma once\n', 'utf-8');
     await fs.writeFile(rootHeader, '#pragma once\n', 'utf-8');
-    const relations: IAnalysisRelation[] = [];
+    const relations: IAnalysisRelationshipEvidence[] = [];
 
     handleCInclude(
       node('preproc_include', '', [], { path: node('string_literal', '"local.h"') }) as never,
@@ -45,13 +45,11 @@ describe('treeSitter/analyzeCFamily/includes', () => {
     );
 
     expect(relations).toEqual([expect.objectContaining({
-      kind: 'import',
+      edgeType: 'import',
       sourceId: 'codegraphy.treesitter:include',
-      fromFilePath: sourcePath,
-      specifier: 'local.h',
-      type: 'include',
-      resolvedPath: localHeader,
-      toFilePath: localHeader,
+      from: { kind: 'file', filePath: sourcePath },
+      timing: 'include',
+      target: { kind: 'file', path: localHeader, pathKind: 'absolute', specifier: 'local.h' },
     })]);
   });
 
@@ -63,7 +61,7 @@ describe('treeSitter/analyzeCFamily/includes', () => {
     await fs.mkdir(path.dirname(localHeader), { recursive: true });
     await fs.writeFile(header, '#pragma once\n', 'utf-8');
     await fs.writeFile(localHeader, '#pragma once\n', 'utf-8');
-    const relations: IAnalysisRelation[] = [];
+    const relations: IAnalysisRelationshipEvidence[] = [];
 
     handleCInclude(
       node('preproc_include', '', [node('system_lib_string', '<include/lib.h>')]) as never,
@@ -91,13 +89,9 @@ describe('treeSitter/analyzeCFamily/includes', () => {
     );
 
     expect(relations).toEqual([expect.objectContaining({
-      specifier: 'include/lib.h',
-      resolvedPath: header,
-      toFilePath: header,
+      target: { kind: 'file', path: header, pathKind: 'absolute', specifier: 'include/lib.h' },
     }), expect.objectContaining({
-      specifier: 'include/lib.h',
-      resolvedPath: localHeader,
-      toFilePath: localHeader,
+      target: { kind: 'file', path: localHeader, pathKind: 'absolute', specifier: 'include/lib.h' },
     })]);
   });
 });

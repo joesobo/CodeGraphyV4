@@ -1,6 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
 import { analyzeDiffCommitGraph } from '../../../../src/extension/gitHistory/diff/analysis';
 import { resolveTreeSitterImportPath } from '@codegraphy-dev/core';
+import type { IAnalysisRelationshipEvidence } from '../../../../src/core/plugins/types/contracts';
+
+function importRelation(fromFilePath: string, targetPath: string): IAnalysisRelationshipEvidence {
+  return {
+    edgeType: 'import',
+    pluginId: 'ts',
+    sourceId: 'import',
+    specifier: './b',
+    timing: 'static',
+    from: { kind: 'file', filePath: fromFilePath },
+    target: { kind: 'file', path: targetPath, pathKind: 'absolute', specifier: './b' },
+  };
+}
 
 describe('gitHistory/diff/replay', () => {
   it('allows files added in the same commit to connect even when the importer is processed first', async () => {
@@ -28,17 +41,7 @@ describe('gitHistory/diff/replay', () => {
           const resolvedPath = resolveTreeSitterImportPath(absolutePath, './b');
           return {
             filePath: absolutePath,
-            relations: resolvedPath
-              ? [{
-                  sourceId: 'import',
-                  specifier: './b',
-                  type: 'static' as const,
-                  resolvedPath,
-                  kind: 'import' as const,
-                  pluginId: 'ts',
-                  fromFilePath: absolutePath,
-                }]
-              : [],
+            relations: resolvedPath ? [importRelation(absolutePath, resolvedPath)] : [],
           };
         }),
         supportsFile: vi.fn(() => true),

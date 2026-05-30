@@ -64,24 +64,20 @@ describe('pipeline/plugins/treesitter/runtime/analyzeC', () => {
     expect(result).not.toBeNull();
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:include',
-        type: 'include',
-        specifier: 'math/add.h',
-        fromFilePath: mainPath,
-        resolvedPath: path.join(workspaceRoot, 'src/math/add.h'),
-        toFilePath: path.join(workspaceRoot, 'src/math/add.h'),
+        timing: 'include',
+        from: { kind: 'file', filePath: mainPath },
+        target: { kind: 'file', path: path.join(workspaceRoot, 'src/math/add.h'), pathKind: 'absolute', specifier: 'math/add.h' },
       }),
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:include',
-        type: 'include',
-        specifier: 'stdio.h',
-        fromFilePath: mainPath,
-        resolvedPath: null,
-        toFilePath: null,
+        timing: 'include',
+        from: { kind: 'file', filePath: mainPath },
+        target: { kind: 'unresolved', specifier: 'stdio.h' },
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([

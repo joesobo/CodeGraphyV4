@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -34,7 +34,7 @@ function handleCSharpTypeNode(
   state: CSharpWalkState,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   usingNamespaces: Set<string>,
   importTargetsByNamespace: Map<string, Set<string>>,
@@ -62,7 +62,7 @@ function visitCSharpNode(
   walk: (node: Parser.SyntaxNode, context: CSharpWalkState) => void,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   usingNamespaces: Set<string>,
   importTargetsByNamespace: Map<string, Set<string>>,
@@ -111,7 +111,7 @@ export function analyzeCSharpFile(
   tree: Parser.Tree,
   workspaceRoot: string,
 ): IFileAnalysisResult {
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const usingNamespaces = new Set<string>();
   const importTargetsByNamespace = new Map<string, Set<string>>();

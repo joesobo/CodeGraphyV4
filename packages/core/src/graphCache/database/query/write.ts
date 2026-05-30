@@ -31,6 +31,7 @@ export function sortedCacheEntries(
 
 export function persistAnalysisEntry(
   connection: lb.Connection,
+  workspaceRoot: string,
   filePath: string,
   entry: IWorkspaceAnalysisCache['files'][string],
 ): void {
@@ -41,12 +42,13 @@ export function persistAnalysisEntry(
   }
 
   for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
-    runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex));
+    runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex, workspaceRoot));
   }
 }
 
 export async function persistAnalysisEntryAsync(
   connection: lb.Connection,
+  workspaceRoot: string,
   filePath: string,
   entry: IWorkspaceAnalysisCache['files'][string],
   afterStatement: () => Promise<void>,
@@ -60,7 +62,7 @@ export async function persistAnalysisEntryAsync(
   }
 
   for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
-    runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex));
+    runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex, workspaceRoot));
     await afterStatement();
   }
 }

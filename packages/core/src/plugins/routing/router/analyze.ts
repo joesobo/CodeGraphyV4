@@ -44,7 +44,7 @@ export async function analyzeFile(
     coreAnalyzeFileResult,
     analysisContext,
   );
-  return analysis ? toProjectedConnectionsFromFileAnalysis(analysis) : [];
+  return analysis ? toProjectedConnectionsFromFileAnalysis(analysis, workspaceRoot) : [];
 }
 
 export async function analyzeFileResult(

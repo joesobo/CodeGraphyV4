@@ -2,6 +2,7 @@ import { describe, expectTypeOf, it } from 'vitest';
 
 import type {
   CodeGraphyAccessKey,
+  IAnalysisRelationshipEvidence,
   IAccessProvider,
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
@@ -18,6 +19,25 @@ import type {
 } from '../src';
 
 describe('plugin API contracts', () => {
+  it('types relationship evidence as plugin intent instead of materialized graph relationships', () => {
+    const evidence = {
+      edgeType: 'reference',
+      sourceId: 'wikilink',
+      target: {
+        kind: 'file',
+        specifier: 'Target',
+        path: 'docs/Target.md',
+        pathKind: 'workspace-relative',
+      },
+      timing: 'static',
+    } satisfies IAnalysisRelationshipEvidence;
+
+    expectTypeOf(evidence).toMatchTypeOf<IAnalysisRelationshipEvidence>();
+    expectTypeOf(evidence).not.toHaveProperty('fromFilePath');
+    expectTypeOf(evidence).not.toHaveProperty('toFilePath');
+    expectTypeOf(evidence).not.toHaveProperty('resolvedPath');
+  });
+
   it('lets packages register access plumbing and contribute account UI without owning feature behavior', () => {
     const premiumAccess = 'premiumFeature' as CodeGraphyAccessKey;
 

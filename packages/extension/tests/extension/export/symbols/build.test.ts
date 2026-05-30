@@ -3,6 +3,26 @@ import {
   buildSymbolsExportData,
   buildSymbolsExportDataFromSnapshot,
 } from '../../../../src/extension/export/symbols/build';
+import type { IAnalysisRelationshipEvidence } from '../../../../src/core/plugins/types/contracts';
+
+function relation(
+  edgeType: IAnalysisRelationshipEvidence['edgeType'],
+  fromFilePath: string,
+  targetFilePath: string,
+  sourceSymbolId?: string,
+  targetSymbolId?: string,
+): IAnalysisRelationshipEvidence {
+  return {
+    edgeType,
+    sourceId: 'core:treesitter',
+    from: sourceSymbolId
+      ? { kind: 'symbol', symbolId: sourceSymbolId, filePath: fromFilePath }
+      : { kind: 'file', filePath: fromFilePath },
+    target: targetSymbolId
+      ? { kind: 'symbol', symbolId: targetSymbolId, filePath: targetFilePath }
+      : { kind: 'file', path: targetFilePath },
+  };
+}
 
 function withStableTimestamp(jsonText: string): string {
   return jsonText.replace(
@@ -27,14 +47,7 @@ describe('buildSymbolsExportData', () => {
           },
         ],
         relations: [
-          {
-            kind: 'call',
-            sourceId: 'core:treesitter',
-            fromFilePath: 'src/app.ts',
-            toFilePath: 'src/lib.ts',
-            fromSymbolId: 'symbol:src/app.ts:activate',
-            toSymbolId: 'symbol:src/lib.ts:boot',
-          },
+          relation('call', 'src/app.ts', 'src/lib.ts', 'symbol:src/app.ts:activate', 'symbol:src/lib.ts:boot'),
         ],
       }],
       ['src/lib.ts', {
@@ -69,12 +82,10 @@ describe('buildSymbolsExportData', () => {
     ]);
     expect(exportData.relations).toEqual([
       {
-        kind: 'call',
+        edgeType: 'call',
         sourceId: 'core:treesitter',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/lib.ts',
-        fromSymbolId: 'symbol:src/app.ts:activate',
-        toSymbolId: 'symbol:src/lib.ts:boot',
+        from: { kind: 'symbol', symbolId: 'symbol:src/app.ts:activate', filePath: 'src/app.ts' },
+        target: { kind: 'symbol', symbolId: 'symbol:src/lib.ts:boot', filePath: 'src/lib.ts' },
       },
     ]);
   });
@@ -84,22 +95,8 @@ describe('buildSymbolsExportData', () => {
       ['src/app.ts', {
         filePath: 'src/app.ts',
         relations: [
-          {
-            kind: 'call',
-            sourceId: 'core:treesitter',
-            fromFilePath: 'src/lib.ts',
-            toFilePath: 'src/app.ts',
-            fromSymbolId: 'symbol:src/lib.ts:boot',
-            toSymbolId: 'symbol:src/app.ts:activate',
-          },
-          {
-            kind: 'call',
-            sourceId: 'core:treesitter',
-            fromFilePath: 'src/app.ts',
-            toFilePath: 'src/lib.ts',
-            fromSymbolId: 'symbol:src/app.ts:activate',
-            toSymbolId: 'symbol:src/lib.ts:boot',
-          },
+          relation('call', 'src/lib.ts', 'src/app.ts', 'symbol:src/lib.ts:boot', 'symbol:src/app.ts:activate'),
+          relation('call', 'src/app.ts', 'src/lib.ts', 'symbol:src/app.ts:activate', 'symbol:src/lib.ts:boot'),
         ],
       }],
       ['src/lib.ts', {
@@ -107,7 +104,7 @@ describe('buildSymbolsExportData', () => {
       }],
     ]));
 
-    expect(exportData.relations.map((relation) => relation.fromFilePath)).toEqual([
+    expect(exportData.relations.map((item) => item.from?.kind === 'symbol' ? item.from.filePath : item.from?.kind === 'file' ? item.from.filePath : undefined)).toEqual([
       'src/app.ts',
       'src/lib.ts',
     ]);
@@ -186,14 +183,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
         },
       ],
       relations: [
-        {
-          kind: 'call',
-          sourceId: 'core:treesitter',
-          fromFilePath: 'src/app.ts',
-          toFilePath: 'src/lib.ts',
-          fromSymbolId: 'symbol:src/app.ts:activate',
-          toSymbolId: 'symbol:src/lib.ts:boot',
-        },
+        relation('call', 'src/app.ts', 'src/lib.ts', 'symbol:src/app.ts:activate', 'symbol:src/lib.ts:boot'),
       ],
     });
 
@@ -241,14 +231,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
         },
       ],
       relations: [
-        {
-          kind: 'call',
-          sourceId: 'core:treesitter',
-          fromFilePath: '/workspace/src/app.ts',
-          toFilePath: '/workspace/src/lib.ts',
-          fromSymbolId: 'symbol:src/app.ts:activate',
-          toSymbolId: 'symbol:src/lib.ts:boot',
-        },
+        relation('call', '/workspace/src/app.ts', '/workspace/src/lib.ts', 'symbol:src/app.ts:activate', 'symbol:src/lib.ts:boot'),
       ],
     });
 
@@ -262,12 +245,10 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
     ]);
     expect(exportData.relations).toEqual([
       {
-        kind: 'call',
+        edgeType: 'call',
         sourceId: 'core:treesitter',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/lib.ts',
-        fromSymbolId: 'symbol:src/app.ts:activate',
-        toSymbolId: 'symbol:src/lib.ts:boot',
+        from: { kind: 'symbol', symbolId: 'symbol:src/app.ts:activate', filePath: 'src/app.ts' },
+        target: { kind: 'symbol', symbolId: 'symbol:src/lib.ts:boot', filePath: 'src/lib.ts' },
       },
     ]);
   });
@@ -299,12 +280,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
         },
       ],
       relations: [
-        {
-          kind: 'import',
-          sourceId: 'core:treesitter',
-          fromFilePath: '/repo/src/app.ts',
-          toFilePath: '/repo/src/createFolder.ts',
-        },
+        relation('import', '/repo/src/app.ts', '/repo/src/createFolder.ts'),
       ],
     });
 
@@ -341,61 +317,60 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
         },
       ],
       relations: [
-        {
-          kind: 'call',
-          sourceId: 'core:treesitter',
-          fromFilePath: '/repo/src/utils/fileTree.ts',
-          toFilePath: '/repo/src/utils/createFolder.ts',
-          fromSymbolId: 'symbol:src/utils/fileTree.ts:onCreate',
-          toSymbolId: 'symbol:src/utils/createFolder.ts:createFolder',
-        },
+        relation('call', '/repo/src/utils/fileTree.ts', '/repo/src/utils/createFolder.ts', 'symbol:src/utils/fileTree.ts:onCreate', 'symbol:src/utils/createFolder.ts:createFolder'),
       ],
     });
 
     expect(
       JSON.parse(withStableTimestamp(JSON.stringify(exportData, null, 2))),
     ).toMatchInlineSnapshot(`
-      {
-        "exportedAt": "<timestamp>",
-        "files": [
-          {
-            "filePath": "src/utils/createFolder.ts",
-            "relationCount": 1,
-            "symbolCount": 1,
-          },
-          {
-            "filePath": "src/utils/fileTree.ts",
-            "relationCount": 1,
-            "symbolCount": 0,
-          },
-        ],
-        "format": "codegraphy-symbol-export",
-        "relations": [
-          {
-            "fromFilePath": "src/utils/fileTree.ts",
-            "fromSymbolId": "symbol:src/utils/fileTree.ts:onCreate",
-            "kind": "call",
-            "sourceId": "core:treesitter",
-            "toFilePath": "src/utils/createFolder.ts",
-            "toSymbolId": "symbol:src/utils/createFolder.ts:createFolder",
-          },
-        ],
-        "summary": {
-          "totalFiles": 2,
-          "totalRelations": 1,
-          "totalSymbols": 1,
-        },
-        "symbols": [
-          {
-            "filePath": "src/utils/createFolder.ts",
-            "id": "symbol:src/utils/createFolder.ts:createFolder",
-            "kind": "function",
-            "name": "createFolder",
-          },
-        ],
-        "version": "1.0",
-      }
-    `);
+            {
+              "exportedAt": "<timestamp>",
+              "files": [
+                {
+                  "filePath": "src/utils/createFolder.ts",
+                  "relationCount": 1,
+                  "symbolCount": 1,
+                },
+                {
+                  "filePath": "src/utils/fileTree.ts",
+                  "relationCount": 1,
+                  "symbolCount": 0,
+                },
+              ],
+              "format": "codegraphy-symbol-export",
+              "relations": [
+                {
+                  "edgeType": "call",
+                  "from": {
+                    "filePath": "src/utils/fileTree.ts",
+                    "kind": "symbol",
+                    "symbolId": "symbol:src/utils/fileTree.ts:onCreate",
+                  },
+                  "sourceId": "core:treesitter",
+                  "target": {
+                    "filePath": "src/utils/createFolder.ts",
+                    "kind": "symbol",
+                    "symbolId": "symbol:src/utils/createFolder.ts:createFolder",
+                  },
+                },
+              ],
+              "summary": {
+                "totalFiles": 2,
+                "totalRelations": 1,
+                "totalSymbols": 1,
+              },
+              "symbols": [
+                {
+                  "filePath": "src/utils/createFolder.ts",
+                  "id": "symbol:src/utils/createFolder.ts:createFolder",
+                  "kind": "function",
+                  "name": "createFolder",
+                },
+              ],
+              "version": "1.0",
+            }
+          `);
   });
 
   it('sorts snapshot relations by normalized file and symbol identity fields', () => {
@@ -414,26 +389,12 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
       ],
       symbols: [],
       relations: [
-        {
-          kind: 'call',
-          sourceId: 'core:treesitter',
-          fromFilePath: '/repo/src/lib.ts',
-          toFilePath: '/repo/src/app.ts',
-          fromSymbolId: 'symbol:src/lib.ts:boot',
-          toSymbolId: 'symbol:src/app.ts:activate',
-        },
-        {
-          kind: 'call',
-          sourceId: 'core:treesitter',
-          fromFilePath: '/repo/src/app.ts',
-          toFilePath: '/repo/src/lib.ts',
-          fromSymbolId: 'symbol:src/app.ts:activate',
-          toSymbolId: 'symbol:src/lib.ts:boot',
-        },
+        relation('call', '/repo/src/lib.ts', '/repo/src/app.ts', 'symbol:src/lib.ts:boot', 'symbol:src/app.ts:activate'),
+        relation('call', '/repo/src/app.ts', '/repo/src/lib.ts', 'symbol:src/app.ts:activate', 'symbol:src/lib.ts:boot'),
       ],
     });
 
-    expect(exportData.relations.map((relation) => relation.fromFilePath)).toEqual([
+    expect(exportData.relations.map((item) => item.from?.kind === 'symbol' ? item.from.filePath : item.from?.kind === 'file' ? item.from.filePath : undefined)).toEqual([
       'src/app.ts',
       'src/lib.ts',
     ]);

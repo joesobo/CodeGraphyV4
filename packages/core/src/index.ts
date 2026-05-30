@@ -34,6 +34,15 @@ export {
   projectConnectionMapFromFileAnalysis,
   projectProjectedConnectionsFromFileAnalysis,
 } from './analysis/projection';
+export {
+  getRelationshipEvidenceSourceFilePath,
+  getRelationshipEvidenceSourceNodeId,
+  getRelationshipEvidenceSourceSymbolId,
+  getRelationshipEvidenceSpecifier,
+  getRelationshipEvidenceTargetNodeId,
+  getRelationshipEvidenceTargetSymbolId,
+  materializeRelationshipTargetPath,
+} from './analysis/relationshipEvidence';
 export type {
   IWorkspaceFileAnalysisOptions,
   IWorkspaceFileAnalysisResult,

@@ -1,14 +1,20 @@
-import type { IAnalysisRelation, IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import {
+  getRelationshipEvidenceSourceFilePath,
+  getRelationshipEvidenceSourceSymbolId,
+  getRelationshipEvidenceTargetSymbolId,
+  materializeRelationshipTargetPath,
+} from '../analysis/relationshipEvidence';
 import type { IGraphEdge } from './contracts';
 import { createGraphEdgeId } from './edgeIdentity';
 import { createCanonicalSymbolIds } from './symbolIds';
 import { toRepoRelativeGraphPath } from './symbolPaths';
 
-export function hasSymbolEndpoint(relation: IAnalysisRelation): boolean {
-  return Boolean(relation.fromSymbolId || relation.toSymbolId);
+export function hasSymbolEndpoint(relation: IAnalysisRelationshipEvidence): boolean {
+  return Boolean(getRelationshipEvidenceSourceSymbolId(relation) || getRelationshipEvidenceTargetSymbolId(relation));
 }
 
-function createRelationEdgeSource(relation: IAnalysisRelation): IGraphEdge['sources'][number] | undefined {
+function createRelationEdgeSource(relation: IAnalysisRelationshipEvidence): IGraphEdge['sources'][number] | undefined {
   if (!relation.pluginId) {
     return undefined;
   }
@@ -24,25 +30,31 @@ function createRelationEdgeSource(relation: IAnalysisRelation): IGraphEdge['sour
 }
 
 function resolveRelationSourceId(
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
+  analysisFilePath: string,
   symbolIds: ReadonlyMap<string, string>,
   workspaceRoot: string,
 ): string {
-  return relation.fromSymbolId
-    ? symbolIds.get(relation.fromSymbolId) ?? relation.fromSymbolId
-    : toRepoRelativeGraphPath(relation.fromFilePath, workspaceRoot);
+  const sourceSymbolId = getRelationshipEvidenceSourceSymbolId(relation);
+  return sourceSymbolId
+    ? symbolIds.get(sourceSymbolId) ?? sourceSymbolId
+    : toRepoRelativeGraphPath(
+      getRelationshipEvidenceSourceFilePath(relation, analysisFilePath),
+      workspaceRoot,
+    );
 }
 
 function resolveRelationTargetId(
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
   symbolIds: ReadonlyMap<string, string>,
   workspaceRoot: string,
 ): string | undefined {
-  if (relation.toSymbolId) {
-    return symbolIds.get(relation.toSymbolId) ?? relation.toSymbolId;
+  const targetSymbolId = getRelationshipEvidenceTargetSymbolId(relation);
+  if (targetSymbolId) {
+    return symbolIds.get(targetSymbolId) ?? targetSymbolId;
   }
 
-  const targetPath = relation.toFilePath ?? relation.resolvedPath;
+  const targetPath = materializeRelationshipTargetPath(relation.target, workspaceRoot);
   return targetPath ? toRepoRelativeGraphPath(targetPath, workspaceRoot) : undefined;
 }
 
@@ -59,7 +71,7 @@ export function createSymbolRelationEdges(
         continue;
       }
 
-      const from = resolveRelationSourceId(relation, symbolIds, workspaceRoot);
+      const from = resolveRelationSourceId(relation, analysis.filePath, symbolIds, workspaceRoot);
       const to = resolveRelationTargetId(relation, symbolIds, workspaceRoot);
       if (!to) {
         continue;
@@ -70,13 +82,13 @@ export function createSymbolRelationEdges(
         id: createGraphEdgeId({
           from,
           to,
-          kind: relation.kind,
-          type: relation.type,
+          kind: relation.edgeType,
+          type: relation.timing,
           variant: relation.variant,
         }),
         from,
         to,
-        kind: relation.kind,
+        kind: relation.edgeType,
         sources: source ? [source] : [],
       });
     }

@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding } from '../analyze/model';
 import { getLastPathSegment } from '../analyze/nodes';
 import { addImportRelation } from '../analyze/results';
@@ -15,7 +15,7 @@ export function handlePhpNamespaceUseDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
   sourceRoot: string | null,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: Map<string, ImportedBinding>,
 ): void {
   for (const useClause of node.descendantsOfType('namespace_use_clause')) {

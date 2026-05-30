@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IPlugin } from '../../../../src/core/plugins/types/contracts';
+import type { IAnalysisRelationshipEvidence, IPlugin } from '../../../../src/core/plugins/types/contracts';
 import { analyzeFile, analyzeFileResult } from '../../../../src/core/plugins/routing/router/analyze';
 
 function buildMaps(
@@ -33,6 +33,15 @@ function makePlugin(id: string, extensions: string[], result: object): IPlugin {
     supportedExtensions: extensions,
     analyzeFile: vi.fn().mockResolvedValue(result),
   } as IPlugin;
+}
+
+function relation(edgeType: IAnalysisRelationshipEvidence['edgeType'], sourceId: string, targetPath: string): IAnalysisRelationshipEvidence {
+  return {
+    edgeType,
+    sourceId,
+    from: { kind: 'file', filePath: 'src/app.ts' },
+    target: { kind: 'file', path: targetPath },
+  };
 }
 
 describe('routing/analyze', () => {
@@ -80,12 +89,7 @@ describe('routing/analyze', () => {
         kind: 'function',
         filePath: 'src/app.ts',
       }],
-      relations: [{
-        kind: 'import',
-        sourceId: 'plugin:import',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/lib.ts',
-      }],
+      relations: [relation('import', 'plugin:import', 'src/lib.ts')],
     });
     const { pluginsMap, extensionMap } = buildMaps([active]);
 
@@ -103,7 +107,7 @@ describe('routing/analyze', () => {
         pluginId: 'active',
         sourceId: 'plugin:import',
         specifier: '',
-        resolvedPath: 'src/lib.ts',
+        resolvedPath: '/ws/src/lib.ts',
         type: undefined,
         variant: undefined,
         metadata: undefined,
@@ -147,12 +151,7 @@ describe('routing/analyze', () => {
     const { pluginsMap, extensionMap } = buildMaps([passive]);
     const coreAnalyzeFileResult = vi.fn().mockResolvedValue({
       filePath: '',
-      relations: [{
-        kind: 'reference',
-        sourceId: 'core:reference',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/base.ts',
-      }],
+      relations: [relation('reference', 'core:reference', 'src/base.ts')],
     });
 
     const result = await analyzeFileResult(
@@ -169,12 +168,7 @@ describe('routing/analyze', () => {
       edgeTypes: [],
       nodeTypes: [],
       nodes: [],
-      relations: [{
-        kind: 'reference',
-        sourceId: 'core:reference',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/base.ts',
-      }],
+      relations: [relation('reference', 'core:reference', 'src/base.ts')],
       symbols: [],
     });
     expect(consoleError).not.toHaveBeenCalled();
@@ -193,24 +187,13 @@ describe('routing/analyze', () => {
     } as IPlugin;
     const succeeding = makePlugin('succeeding', ['.ts'], {
       filePath: 'src/app.ts',
-      relations: [{
-        kind: 'import',
-        sourceId: 'plugin:import',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/lib.ts',
-      }],
+      relations: [relation('import', 'plugin:import', 'src/lib.ts')],
     });
     const { pluginsMap, extensionMap } = buildMaps([failing, succeeding]);
 
     const result = await analyzeFileResult('src/app.ts', 'content', '/ws', pluginsMap, extensionMap);
 
-    expect(result?.relations).toEqual([{
-      kind: 'import',
-      pluginId: 'succeeding',
-      sourceId: 'plugin:import',
-      fromFilePath: 'src/app.ts',
-      toFilePath: 'src/lib.ts',
-    }]);
+    expect(result?.relations).toEqual([{ ...relation('import', 'plugin:import', 'src/lib.ts'), pluginId: 'succeeding' }]);
     expect(consoleError).toHaveBeenCalledWith(
       '[CodeGraphy] Error analyzing src/app.ts with failing:',
       expect.any(Error),

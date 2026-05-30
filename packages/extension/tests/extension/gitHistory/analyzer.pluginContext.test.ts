@@ -133,11 +133,11 @@ describe('GitHistoryAnalyzer plugin analysis context', () => {
         return {
           filePath,
           relations: [{
-            kind: 'reference' as const,
+            edgeType: 'reference' as const,
             sourceId: 'timeline-edge',
-            fromFilePath: filePath,
-            toFilePath: targetPath,
             specifier: './target.edge',
+            from: { kind: 'file' as const, filePath },
+            target: { kind: 'file' as const, path: targetPath, pathKind: 'absolute' as const, specifier: './target.edge' },
           }],
         };
       }),

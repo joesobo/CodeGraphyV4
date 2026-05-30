@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IGraphData } from '../../src/graph/contracts';
 import { listGraphSymbols } from '../../src/graphQuery';
 
@@ -88,38 +88,34 @@ const symbols: IAnalysisSymbol[] = [
   },
 ];
 
-const relations: IAnalysisRelation[] = [
+const relations: IAnalysisRelationshipEvidence[] = [
   {
-    kind: 'type-import',
+    edgeType: 'type-import',
     pluginId: 'codegraphy.treesitter',
     sourceId: 'codegraphy.treesitter:type-import',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#UserConfig',
+    from: { kind: 'file', filePath: 'packages/app/src/a.ts' },
+    target: { kind: 'symbol', symbolId: 'packages/app/src/b.ts#UserConfig', filePath: 'packages/app/src/b.ts' },
   },
   {
-    kind: 'type-import',
+    edgeType: 'type-import',
     pluginId: 'codegraphy.treesitter',
     sourceId: 'codegraphy.treesitter:type-import',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#UserConfig',
+    from: { kind: 'file', filePath: 'packages/app/src/a.ts' },
+    target: { kind: 'symbol', symbolId: 'packages/app/src/b.ts#UserConfig', filePath: 'packages/app/src/b.ts' },
   },
   {
-    kind: 'reference',
+    edgeType: 'reference',
     pluginId: 'plugin.routes',
     sourceId: 'route-reference',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#Unused',
+    from: { kind: 'file', filePath: 'packages/app/src/a.ts' },
+    target: { kind: 'symbol', symbolId: 'packages/app/src/b.ts#Unused', filePath: 'packages/app/src/b.ts' },
   },
   {
-    kind: 'reference',
+    edgeType: 'reference',
     pluginId: 'plugin.routes',
     sourceId: 'route-reference',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/c.ts',
-    toSymbolId: 'packages/app/src/c.ts#External',
+    from: { kind: 'file', filePath: 'packages/app/src/a.ts' },
+    target: { kind: 'symbol', symbolId: 'packages/app/src/c.ts#External', filePath: 'packages/app/src/c.ts' },
   },
 ];
 

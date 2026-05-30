@@ -1,18 +1,27 @@
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
+import {
+  materializeRelationshipTargetPath,
+} from '../relationshipEvidence';
 import { resolveTargetSymbolId } from './targetSymbolName';
 
 export function enrichRelationTargetSymbol(
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
   symbolsByFilePath: ReadonlyMap<string, IAnalysisSymbol[]>,
-): IAnalysisRelation {
-  if (relation.toSymbolId || !relation.toFilePath) {
+  workspaceRoot: string,
+): IAnalysisRelationshipEvidence {
+  if (relation.target.kind === 'symbol') {
     return relation;
   }
 
-  const targetSymbols = symbolsByFilePath.get(relation.toFilePath);
+  const targetPath = materializeRelationshipTargetPath(relation.target, workspaceRoot);
+  if (!targetPath) {
+    return relation;
+  }
+
+  const targetSymbols = symbolsByFilePath.get(targetPath);
   if (!targetSymbols?.length) {
     return relation;
   }
@@ -21,7 +30,12 @@ export function enrichRelationTargetSymbol(
   return resolvedSymbolId
     ? {
       ...relation,
-      toSymbolId: resolvedSymbolId,
+      target: {
+        kind: 'symbol',
+        symbolId: resolvedSymbolId,
+        filePath: targetPath,
+        specifier: relation.target.specifier,
+      },
     }
     : relation;
 }

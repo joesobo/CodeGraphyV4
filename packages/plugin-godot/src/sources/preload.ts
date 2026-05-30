@@ -4,14 +4,14 @@
  * @module plugins/godot/sources/preload
  */
 
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { parseGDScriptResourceReferences } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
 
 /** Detects preload() calls: preload("res://path/to/file.gd") */
-export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelation[] {
-  const relations: IAnalysisRelation[] = [];
+export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelationshipEvidence[] {
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
   for (const reference of parseGDScriptResourceReferences(content)) {
@@ -28,13 +28,14 @@ export function detect(content: string, filePath: string, ctx: GDScriptRuleConte
         })
       : null;
     relations.push({
-      kind: 'load',
-      specifier: reference.resPath,
-      resolvedPath,
-      type: 'static',
+      edgeType: 'load',
+      timing: 'static',
       sourceId: 'preload',
-      fromFilePath: filePath,
-      toFilePath: resolvedPath,
+      specifier: reference.resPath,
+      from: { kind: 'file', filePath },
+      target: resolvedPath
+        ? { kind: 'file', path: resolvedPath, pathKind: 'absolute', specifier: reference.resPath }
+        : { kind: 'unresolved', specifier: reference.resPath },
     });
   }
 

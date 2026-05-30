@@ -49,11 +49,10 @@ describe('plugin routing', () => {
           (ts.analyzeFile as ReturnType<typeof vi.fn>).mockResolvedValue({
             filePath: 'src/app.ts',
             relations: [{
-              kind: 'import',
+              edgeType: 'import',
               sourceId: 'ts:import',
-              specifier: './b',
-              fromFilePath: 'src/app.ts',
-              toFilePath: '/ws/src/b.ts',
+              from: { kind: 'file', filePath: 'src/app.ts' },
+              target: { kind: 'file', path: '/ws/src/b.ts', pathKind: 'absolute', specifier: './b' },
             }],
           });
           const { pluginsMap, extensionMap } = buildMaps([ts]);
@@ -91,11 +90,10 @@ describe('plugin routing', () => {
           const coreAnalyzeFileResult = vi.fn().mockResolvedValue({
             filePath: 'src/app.ts',
             relations: [{
-              kind: 'reference',
+              edgeType: 'reference',
               sourceId: 'codegraphy.core.tree-sitter',
-              fromFilePath: 'src/app.ts',
-              toFilePath: 'src/base.ts',
-              specifier: './base',
+              from: { kind: 'file', filePath: 'src/app.ts' },
+              target: { kind: 'file', path: 'src/base.ts', pathKind: 'workspace-relative', specifier: './base' },
             }],
           });
 
@@ -114,7 +112,7 @@ describe('plugin routing', () => {
             pluginId: undefined,
             sourceId: 'codegraphy.core.tree-sitter',
             specifier: './base',
-            resolvedPath: 'src/base.ts',
+            resolvedPath: '/ws/src/base.ts',
             type: undefined,
             variant: undefined,
             metadata: undefined,
@@ -140,11 +138,10 @@ describe('plugin routing', () => {
           highPriority.analyzeFile = vi.fn().mockResolvedValue({
             filePath: 'src/app.ts',
             relations: [{
-              kind: 'import',
+              edgeType: 'import',
               sourceId: 'shared:import',
-              fromFilePath: 'src/app.ts',
-              toFilePath: 'src/high.ts',
-              specifier: './high',
+              from: { kind: 'file', filePath: 'src/app.ts' },
+              target: { kind: 'file', path: 'src/high.ts', pathKind: 'workspace-relative', specifier: './high' },
             }],
           });
 
@@ -152,11 +149,10 @@ describe('plugin routing', () => {
           lowPriority.analyzeFile = vi.fn().mockResolvedValue({
             filePath: 'src/app.ts',
             relations: [{
-              kind: 'import',
+              edgeType: 'import',
               sourceId: 'shared:import',
-              fromFilePath: 'src/app.ts',
-              toFilePath: 'src/low.ts',
-              specifier: './high',
+              from: { kind: 'file', filePath: 'src/app.ts' },
+              target: { kind: 'file', path: 'src/low.ts', pathKind: 'workspace-relative', specifier: './high' },
             }],
           });
 
@@ -170,12 +166,11 @@ describe('plugin routing', () => {
             (highPriority.analyzeFile as ReturnType<typeof vi.fn>).mock.invocationCallOrder[0],
           );
           expect(result?.relations).toEqual([{
-            kind: 'import',
+            edgeType: 'import',
             pluginId: 'high-priority',
             sourceId: 'shared:import',
-            fromFilePath: 'src/app.ts',
-            toFilePath: 'src/high.ts',
-            specifier: './high',
+            from: { kind: 'file', filePath: 'src/app.ts' },
+            target: { kind: 'file', path: 'src/high.ts', pathKind: 'workspace-relative', specifier: './high' },
           }]);
         });
 
@@ -186,22 +181,20 @@ describe('plugin routing', () => {
           plugin.analyzeFile = vi.fn().mockResolvedValue({
             filePath: 'src/app.ts',
             relations: [{
-              kind: 'import',
+              edgeType: 'import',
               sourceId: 'shared:import',
-              fromFilePath: 'src/app.ts',
-              toFilePath: 'src/plugin.ts',
-              specifier: './shared',
+              from: { kind: 'file', filePath: 'src/app.ts' },
+              target: { kind: 'file', path: 'src/plugin.ts', pathKind: 'workspace-relative', specifier: './shared' },
             }],
           });
           const { pluginsMap, extensionMap } = buildMaps([plugin]);
           const coreAnalyzeFileResult = vi.fn().mockResolvedValue({
             filePath: 'src/app.ts',
             relations: [{
-              kind: 'import',
+              edgeType: 'import',
               sourceId: 'shared:import',
-              fromFilePath: 'src/app.ts',
-              toFilePath: 'src/core.ts',
-              specifier: './shared',
+              from: { kind: 'file', filePath: 'src/app.ts' },
+              target: { kind: 'file', path: 'src/core.ts', pathKind: 'workspace-relative', specifier: './shared' },
             }],
           });
 
@@ -215,12 +208,11 @@ describe('plugin routing', () => {
           );
 
           expect(result?.relations).toEqual([{
-            kind: 'import',
+            edgeType: 'import',
             pluginId: 'plugin',
             sourceId: 'shared:import',
-            fromFilePath: 'src/app.ts',
-            toFilePath: 'src/plugin.ts',
-            specifier: './shared',
+            from: { kind: 'file', filePath: 'src/app.ts' },
+            target: { kind: 'file', path: 'src/plugin.ts', pathKind: 'workspace-relative', specifier: './shared' },
           }]);
         });
 
@@ -232,22 +224,16 @@ describe('plugin routing', () => {
             filePath: 'src/app.ts',
             relations: [
               {
-                kind: 'call',
+                edgeType: 'call',
                 sourceId: 'shared:call',
-                fromFilePath: 'src/app.ts',
-                fromSymbolId: 'src/app.ts:function:run',
-                toFilePath: 'src/lib-a.ts',
-                toSymbolId: 'src/lib-a.ts:function:boot',
-                specifier: './lib',
+                from: { kind: 'symbol', symbolId: 'src/app.ts:function:run', filePath: 'src/app.ts' },
+                target: { kind: 'symbol', symbolId: 'src/lib-a.ts:function:boot', filePath: 'src/lib-a.ts', specifier: './lib' },
               },
               {
-                kind: 'call',
+                edgeType: 'call',
                 sourceId: 'shared:call',
-                fromFilePath: 'src/app.ts',
-                fromSymbolId: 'src/app.ts:function:run',
-                toFilePath: 'src/lib-b.ts',
-                toSymbolId: 'src/lib-b.ts:function:boot',
-                specifier: './lib',
+                from: { kind: 'symbol', symbolId: 'src/app.ts:function:run', filePath: 'src/app.ts' },
+                target: { kind: 'symbol', symbolId: 'src/lib-b.ts:function:boot', filePath: 'src/lib-b.ts', specifier: './lib' },
               },
             ],
           });
@@ -263,24 +249,18 @@ describe('plugin routing', () => {
 
           expect(result?.relations).toEqual([
             {
-              kind: 'call',
+              edgeType: 'call',
               pluginId: 'plugin',
               sourceId: 'shared:call',
-              fromFilePath: 'src/app.ts',
-              fromSymbolId: 'src/app.ts:function:run',
-              toFilePath: 'src/lib-a.ts',
-              toSymbolId: 'src/lib-a.ts:function:boot',
-              specifier: './lib',
+              from: { kind: 'symbol', symbolId: 'src/app.ts:function:run', filePath: 'src/app.ts' },
+              target: { kind: 'symbol', symbolId: 'src/lib-a.ts:function:boot', filePath: 'src/lib-a.ts', specifier: './lib' },
             },
             {
-              kind: 'call',
+              edgeType: 'call',
               pluginId: 'plugin',
               sourceId: 'shared:call',
-              fromFilePath: 'src/app.ts',
-              fromSymbolId: 'src/app.ts:function:run',
-              toFilePath: 'src/lib-b.ts',
-              toSymbolId: 'src/lib-b.ts:function:boot',
-              specifier: './lib',
+              from: { kind: 'symbol', symbolId: 'src/app.ts:function:run', filePath: 'src/app.ts' },
+              target: { kind: 'symbol', symbolId: 'src/lib-b.ts:function:boot', filePath: 'src/lib-b.ts', specifier: './lib' },
             },
           ]);
         });

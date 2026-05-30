@@ -27,12 +27,11 @@ describe('GraphViewProvider query methods', () => {
       ],
       relations: [
         {
-          kind: 'type-import' as const,
+          edgeType: 'type-import' as const,
           pluginId: 'codegraphy.treesitter',
           sourceId: 'codegraphy.treesitter:type-import',
-          fromFilePath: 'src/a.ts',
-          toFilePath: 'src/b.ts',
-          toSymbolId: 'src/b.ts#UserConfig',
+          from: { kind: 'file' as const, filePath: 'src/a.ts' },
+          target: { kind: 'symbol' as const, symbolId: 'src/b.ts#UserConfig', filePath: 'src/b.ts' },
         },
       ],
     }));

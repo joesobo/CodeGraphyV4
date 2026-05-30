@@ -1,5 +1,5 @@
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '../../../../core/plugins/types/contracts';
 import { createFileEntries, countByFilePath, countRelationsByFilePath } from './counts';
@@ -34,7 +34,7 @@ export function createExportSymbol(
 export function createSymbolExportData(
   filePaths: readonly string[],
   symbols: readonly IAnalysisSymbol[],
-  relations: readonly IAnalysisRelation[],
+  relations: readonly IAnalysisRelationshipEvidence[],
 ): SymbolExportData {
   const symbolCountsByFile = countByFilePath(symbols);
   const relationCountsByFile = countRelationsByFilePath(relations);

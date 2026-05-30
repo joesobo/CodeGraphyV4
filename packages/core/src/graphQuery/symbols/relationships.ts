@@ -1,9 +1,13 @@
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { GraphQueryData } from '../data';
 import type { GraphQuerySymbolReportItem, GraphQuerySymbolsConfig } from '../model';
 import { toSymbolReportBase } from './metadata';
 import { relationMatchesConfig } from './relationshipFilters';
 import { getScopedSymbols } from './scope';
+import {
+  getRelationshipEvidenceSourceSymbolId,
+  getRelationshipEvidenceTargetSymbolId,
+} from '../../analysis/relationshipEvidence';
 
 export { hasRelationshipFilters } from './relationshipFilters';
 
@@ -19,12 +23,12 @@ function toRelationshipSymbol(symbol: IAnalysisSymbol): GraphQuerySymbolReportIt
   return item;
 }
 
-function symbolIdForRelation(relation: IAnalysisRelation): string | undefined {
-  return relation.toSymbolId ?? relation.fromSymbolId;
+function symbolIdForRelation(relation: IAnalysisRelationshipEvidence): string | undefined {
+  return getRelationshipEvidenceTargetSymbolId(relation) ?? getRelationshipEvidenceSourceSymbolId(relation);
 }
 
 function findRelationshipSymbol(
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
   symbolById: ReadonlyMap<string, IAnalysisSymbol>,
 ): IAnalysisSymbol | undefined {
   const symbolId = symbolIdForRelation(relation);

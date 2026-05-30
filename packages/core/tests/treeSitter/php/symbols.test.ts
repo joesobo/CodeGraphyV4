@@ -53,14 +53,14 @@ describe('treeSitter/analyzePhp/symbols', () => {
     ]);
     expect(relations).toEqual([
       expect.objectContaining({
-        kind: 'inherit',
-        specifier: 'BaseRunner',
-        resolvedPath: '/workspace/BaseRunner.php',
+        edgeType: 'inherit',
+        from: { kind: 'file', filePath: '/workspace/Runner.php' },
+        target: { kind: 'file', path: '/workspace/BaseRunner.php', pathKind: 'absolute', specifier: 'BaseRunner' },
       }),
       expect.objectContaining({
-        kind: 'inherit',
-        specifier: 'App\\Contracts\\Runnable',
-        resolvedPath: null,
+        edgeType: 'inherit',
+        from: { kind: 'file', filePath: '/workspace/Runner.php' },
+        target: { kind: 'unresolved', specifier: 'App\\Contracts\\Runnable' },
       }),
     ]);
   });

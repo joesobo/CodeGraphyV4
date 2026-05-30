@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -18,7 +18,7 @@ function visitHaskellNode(
   node: Parser.SyntaxNode,
   filePath: string,
   sourceRoot: string | null,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'header') {
@@ -38,7 +38,7 @@ export function analyzeHaskellFile(
   filePath: string,
   tree: Parser.Tree,
 ): IFileAnalysisResult {
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const { sourceRoot } = resolveHaskellSourceInfo(filePath, tree);
   walkTree(tree.rootNode, {}, (node) =>

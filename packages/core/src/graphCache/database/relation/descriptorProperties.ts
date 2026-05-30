@@ -1,4 +1,8 @@
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
+import {
+  getRelationshipEvidenceSpecifier,
+  materializeRelationshipTargetPath,
+} from '../../../analysis/relationshipEvidence';
 
 function escapeCypherString(value: string): string {
   return JSON.stringify(value);
@@ -12,13 +16,16 @@ function createCypherStringProperty(key: string, value: string): string {
   return `${key}: ${escapeCypherString(value)}`;
 }
 
-export function createRelationDescriptorProperties(relation: IAnalysisRelation): string[] {
+export function createRelationDescriptorProperties(
+  relation: IAnalysisRelationshipEvidence,
+  workspaceRoot: string,
+): string[] {
   return [
     createCypherStringProperty('pluginId', relation.pluginId ?? ''),
-    createCypherStringProperty('specifier', relation.specifier ?? ''),
-    createCypherStringProperty('relationType', relation.type ?? ''),
+    createCypherStringProperty('specifier', getRelationshipEvidenceSpecifier(relation)),
+    createCypherStringProperty('relationType', relation.timing ?? ''),
     createCypherStringProperty('variant', relation.variant ?? ''),
-    createCypherStringProperty('resolvedPath', relation.resolvedPath ?? ''),
+    createCypherStringProperty('resolvedPath', materializeRelationshipTargetPath(relation.target, workspaceRoot) ?? ''),
     createCypherStringProperty('metadataJson', serializeJson(relation.metadata)),
   ];
 }

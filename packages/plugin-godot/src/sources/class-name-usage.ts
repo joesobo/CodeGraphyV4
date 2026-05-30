@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { normalizePath, parseGDScriptDocument } from '../parser';
 import { detectUsagesInLine } from './class-name-detector';
@@ -20,8 +20,8 @@ const SOURCE_ID = 'class-name-usage';
  * Only identifiers starting with uppercase are considered, matching GDScript convention.
  * The resolver discards any name not in its class_name map.
  */
-export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelation[] {
-  const relations: IAnalysisRelation[] = [];
+export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelationshipEvidence[] {
+  const relations: IAnalysisRelationshipEvidence[] = [];
 
   for (const statement of parseGDScriptDocument(content).statements) {
     const usages = detectUsagesInLine(statement.code, statement.line);
@@ -30,13 +30,12 @@ export function detect(content: string, filePath: string, ctx: GDScriptRuleConte
       if (resolved) {
         const resolvedPath = normalizePath(path.join(ctx.workspaceRoot, resolved));
         relations.push({
-          kind: 'reference',
-          specifier: ref.resPath,
-          resolvedPath,
-          type: 'static',
+          edgeType: 'reference',
+          timing: 'static',
           sourceId: SOURCE_ID,
-          fromFilePath: filePath,
-          toFilePath: resolvedPath,
+          specifier: ref.resPath,
+          from: { kind: 'file', filePath },
+          target: { kind: 'file', path: resolvedPath, pathKind: 'absolute', specifier: ref.resPath },
         });
       }
     }

@@ -31,12 +31,12 @@ describe('project-settings rule', () => {
     expect(connections).toHaveLength(1);
     expect(connections[0]).toEqual(
       expect.objectContaining({
-        kind: 'load',
+        edgeType: 'load',
         specifier: 'res://scenes/main.tscn',
         sourceId: 'project-settings',
-        type: 'static',
-        fromFilePath: testFile,
-        toFilePath: '/workspace/my-game/scenes/main.tscn',
+        timing: 'static',
+        from: { kind: 'file', filePath: testFile },
+        target: expect.objectContaining({ path: '/workspace/my-game/scenes/main.tscn' }),
       }),
     );
   });
@@ -55,7 +55,7 @@ describe('project-settings rule', () => {
       'res://scripts/game_manager.gd',
       'res://scenes/ui/game_ui.tscn',
     ]);
-    expect(connections.map(connection => connection.toFilePath)).toEqual([
+    expect(connections.map(connection => connection.target.path)).toEqual([
       '/workspace/my-game/scripts/game_manager.gd',
       '/workspace/my-game/scenes/ui/game_ui.tscn',
     ]);

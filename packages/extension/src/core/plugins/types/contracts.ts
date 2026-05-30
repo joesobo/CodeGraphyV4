@@ -15,7 +15,7 @@ export type {
   IAnalysisFile,
   IAnalysisNode,
   IAnalysisRange,
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IConnectionSource,
   IFileAnalysisResult,

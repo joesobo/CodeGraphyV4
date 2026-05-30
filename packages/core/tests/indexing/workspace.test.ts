@@ -82,12 +82,15 @@ export default function createPlugin() {
       return {
         filePath,
         relations: [{
-          kind: 'reference',
+          edgeType: 'reference',
           sourceId: 'configured-target',
-          fromFilePath: filePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
-          specifier: targetFile
+          from: { kind: 'file', filePath },
+          target: {
+            kind: 'file',
+            path: targetPath,
+            pathKind: 'absolute',
+            specifier: targetFile
+          }
         }]
       };
     }
@@ -135,12 +138,15 @@ function createTextPlugin(calls: {
       return {
         filePath,
         relations: [{
-          kind: 'import',
+          edgeType: 'import',
           sourceId: 'line-reference',
-          fromFilePath: filePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
           specifier: content.trim(),
+          target: {
+            kind: 'file',
+            path: path.relative(workspaceRoot, targetPath),
+            pathKind: 'workspace-relative',
+            specifier: content.trim(),
+          },
         }],
       };
     },
@@ -294,12 +300,15 @@ describe('indexCodeGraphyWorkspace', () => {
       return {
         filePath,
         relations: [{
-          kind: 'reference',
+          edgeType: 'reference',
           sourceId: 'configured-target',
-          fromFilePath: filePath,
-          toFilePath: targetPath,
-          resolvedPath: targetPath,
           specifier: targetFile,
+          target: {
+            kind: 'file',
+            path: path.relative(rootPath, targetPath),
+            pathKind: 'workspace-relative',
+            specifier: targetFile,
+          },
         }],
       };
     });

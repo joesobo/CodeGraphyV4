@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import { getRustCallBinding } from './bindings';
@@ -13,7 +13,7 @@ import { walkSymbolBody } from '../analyze/walk';
 export function handleRustModuleItem(
   node: Parser.SyntaxNode,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
 ): void {
   const moduleName = getIdentifierText(node.childForFieldName('name'));
   if (moduleName) {
@@ -60,7 +60,7 @@ export function handleRustFunctionItem(
 export function handleRustCallExpression(
   node: Parser.SyntaxNode,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
   currentSymbolId?: string,
 ): void {

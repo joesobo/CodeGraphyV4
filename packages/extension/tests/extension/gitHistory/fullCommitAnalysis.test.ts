@@ -4,6 +4,23 @@ import {
   createGitHistoryNode,
 } from '../../../src/extension/gitHistory/fullCommitAnalysis';
 import { resolveTreeSitterImportPath } from '@codegraphy-dev/core';
+import type { IAnalysisRelationshipEvidence } from '../../../src/core/plugins/types/contracts';
+
+function importRelation(
+  fromFilePath: string,
+  targetPath: string,
+  specifier: string,
+): IAnalysisRelationshipEvidence {
+  return {
+    edgeType: 'import',
+    pluginId: 'ts',
+    sourceId: 'import',
+    specifier,
+    timing: 'static',
+    from: { kind: 'file', filePath: fromFilePath },
+    target: { kind: 'file', path: targetPath, pathKind: 'absolute', specifier },
+  };
+}
 
 describe('gitHistory/fullCommitAnalysis', () => {
   it('creates graph nodes from workspace-relative file paths', () => {
@@ -29,24 +46,8 @@ describe('gitHistory/fullCommitAnalysis', () => {
           return {
             filePath: absolutePath,
             relations: [
-              {
-                resolvedPath: '/workspace/src/b.ts',
-                sourceId: 'import',
-                specifier: './b',
-                type: 'static' as const,
-                kind: 'import' as const,
-                pluginId: 'ts',
-                fromFilePath: absolutePath,
-              },
-              {
-                resolvedPath: '/workspace/src/missing.ts',
-                specifier: './missing',
-                type: 'static' as const,
-                sourceId: 'import',
-                kind: 'import' as const,
-                pluginId: 'ts',
-                fromFilePath: absolutePath,
-              },
+              importRelation(absolutePath, '/workspace/src/b.ts', './b'),
+              importRelation(absolutePath, '/workspace/src/missing.ts', './missing'),
             ],
           };
         }
@@ -151,15 +152,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
         return {
           filePath: absolutePath,
           relations: resolvedPath
-            ? [{
-                resolvedPath,
-                sourceId: 'import',
-                specifier: './b',
-                type: 'static' as const,
-                kind: 'import' as const,
-                pluginId: 'ts',
-                fromFilePath: absolutePath,
-              }]
+            ? [importRelation(absolutePath, resolvedPath, './b')]
             : [],
         };
       }),

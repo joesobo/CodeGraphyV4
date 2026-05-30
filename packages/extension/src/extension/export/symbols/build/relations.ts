@@ -1,20 +1,45 @@
-import type { IAnalysisRelation } from '../../../../core/plugins/types/contracts';
+import type { IAnalysisRelationshipEvidence } from '../../../../core/plugins/types/contracts';
+import { materializeRelationshipTargetPath } from '@codegraphy-dev/core';
 
-export function relationSortKey(relation: IAnalysisRelation): string {
-  return `${relation.fromFilePath}:${relation.kind}:${relation.toFilePath ?? ''}:${relation.fromSymbolId ?? ''}:${relation.toSymbolId ?? ''}`;
+function relationSourceFilePath(relation: IAnalysisRelationshipEvidence): string {
+  if (relation.from?.kind === 'symbol') {
+    return relation.from.filePath ?? '';
+  }
+
+  return relation.from?.kind === 'file' ? relation.from.filePath ?? '' : '';
 }
 
-export function sortRelations(relations: readonly IAnalysisRelation[]): IAnalysisRelation[] {
+function relationTargetFilePath(relation: IAnalysisRelationshipEvidence): string {
+  if (relation.target.kind === 'symbol') {
+    return relation.target.filePath ?? '';
+  }
+
+  return materializeRelationshipTargetPath(relation.target, '') ?? '';
+}
+
+export function relationSortKey(relation: IAnalysisRelationshipEvidence): string {
+  return `${relationSourceFilePath(relation)}:${relation.edgeType}:${relationTargetFilePath(relation)}:${relation.from?.kind === 'symbol' ? relation.from.symbolId : ''}:${relation.target.kind === 'symbol' ? relation.target.symbolId : ''}`;
+}
+
+export function sortRelations(relations: readonly IAnalysisRelationshipEvidence[]): IAnalysisRelationshipEvidence[] {
   return [...relations].sort((left, right) => relationSortKey(left).localeCompare(relationSortKey(right)));
 }
 
 export function normalizeRelationFilePaths(
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
   resolveFilePath: (filePath: string) => string,
-): IAnalysisRelation {
+): IAnalysisRelationshipEvidence {
   return {
     ...relation,
-    fromFilePath: resolveFilePath(relation.fromFilePath),
-    toFilePath: relation.toFilePath ? resolveFilePath(relation.toFilePath) : undefined,
+    from: relation.from?.kind === 'file'
+      ? { ...relation.from, filePath: relation.from.filePath ? resolveFilePath(relation.from.filePath) : relation.from.filePath }
+      : relation.from?.kind === 'symbol'
+        ? { ...relation.from, filePath: relation.from.filePath ? resolveFilePath(relation.from.filePath) : relation.from.filePath }
+        : relation.from,
+    target: relation.target.kind === 'file'
+      ? { ...relation.target, path: resolveFilePath(relation.target.path) }
+      : relation.target.kind === 'symbol'
+        ? { ...relation.target, filePath: relation.target.filePath ? resolveFilePath(relation.target.filePath) : relation.target.filePath }
+        : relation.target,
   };
 }

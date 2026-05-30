@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { resolveJavaTypePath } from '../projectRoots';
 import type { ImportedBinding } from '../analyze/model';
 import { getLastPathSegment, getNodeText } from '../analyze/nodes';
@@ -9,7 +9,7 @@ export function handleJavaImportDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
   sourceRoot: string | null,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: Map<string, ImportedBinding>,
 ): void {
   const specifier = getNodeText(node.namedChildren[0]);

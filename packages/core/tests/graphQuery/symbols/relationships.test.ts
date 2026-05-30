@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IGraphData } from '../../../src/graph/contracts';
 import { createRelationshipSymbols } from '../../../src/graphQuery/symbols/relationships';
 
@@ -47,30 +47,27 @@ const symbols: IAnalysisSymbol[] = [
   },
 ];
 
-const relations: IAnalysisRelation[] = [
+const relations: IAnalysisRelationshipEvidence[] = [
   {
-    kind: 'type-import',
+    edgeType: 'type-import',
     pluginId: 'codegraphy.treesitter',
     sourceId: 'type-import',
-    fromFilePath: 'src/source.ts',
-    toFilePath: 'src/target.ts',
-    toSymbolId: 'src/target.ts#Target:type',
+    from: { kind: 'file', filePath: 'src/source.ts' },
+    target: { kind: 'symbol', symbolId: 'src/target.ts#Target:type', filePath: 'src/target.ts' },
   },
   {
-    kind: 'reference',
+    edgeType: 'reference',
     pluginId: 'plugin.symbols',
     sourceId: 'self-reference',
-    fromFilePath: 'src/source.ts',
-    fromSymbolId: 'src/source.ts#caller:function',
-    toFilePath: 'src/target.ts',
+    from: { kind: 'symbol', symbolId: 'src/source.ts#caller:function', filePath: 'src/source.ts' },
+    target: { kind: 'file', path: 'src/target.ts' },
   },
   {
-    kind: 'reference',
+    edgeType: 'reference',
     pluginId: 'plugin.symbols',
     sourceId: 'duplicate-reference',
-    fromFilePath: 'src/source.ts',
-    toFilePath: 'src/target.ts',
-    toSymbolId: 'src/target.ts#Target:type',
+    from: { kind: 'file', filePath: 'src/source.ts' },
+    target: { kind: 'symbol', symbolId: 'src/target.ts#Target:type', filePath: 'src/target.ts' },
   },
 ];
 

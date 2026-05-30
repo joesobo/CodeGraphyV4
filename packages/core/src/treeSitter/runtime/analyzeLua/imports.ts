@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { addImportRelation } from '../analyze/results';
 import { resolveLuaModulePath } from './paths';
 
@@ -11,7 +11,7 @@ export function handleLuaFunctionCall(
   node: Parser.SyntaxNode,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
 ): boolean {
   const name = node.childForFieldName('name');
   if (name?.text !== 'require') {

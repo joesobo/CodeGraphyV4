@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -20,7 +20,7 @@ function visitKotlinNode(
   filePath: string,
   sourceRoot: string | null,
   packageName: string | null,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> | void {
@@ -58,7 +58,7 @@ export function analyzeKotlinFile(
   tree: Parser.Tree,
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const { packageName, sourceRoot } = resolveKotlinSourceInfo(filePath, tree);
   walkTree(tree.rootNode, {}, (node) =>

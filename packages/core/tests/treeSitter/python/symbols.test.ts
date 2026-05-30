@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import {
@@ -128,7 +128,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
   });
 
   it('adds call relations for identifier and attribute-based imported bindings only', () => {
-    const relations: IAnalysisRelation[] = [];
+    const relations: IAnalysisRelationshipEvidence[] = [];
     const importedBindings = new Map<string, ImportedBinding>([
       ['boot', { specifier: './boot', resolvedPath: '/workspace/boot.py' }],
       ['service', { specifier: './service', resolvedPath: '/workspace/service.py' }],
@@ -170,26 +170,19 @@ describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
 
     expect(relations).toEqual([
       expect.objectContaining({
-        kind: 'call',
-        fromFilePath: '/workspace/app.py',
-        fromSymbolId: '/workspace/app.py:function:run',
-        specifier: './boot',
-        resolvedPath: '/workspace/boot.py',
-        toFilePath: '/workspace/boot.py',
+        edgeType: 'call',
+        from: { kind: 'symbol', symbolId: '/workspace/app.py:function:run', filePath: '/workspace/app.py' },
+        target: { kind: 'file', path: '/workspace/boot.py', pathKind: 'absolute', specifier: './boot' },
       }),
       expect.objectContaining({
-        kind: 'call',
-        fromFilePath: '/workspace/app.py',
-        fromSymbolId: undefined,
-        specifier: './service',
-        resolvedPath: '/workspace/service.py',
-        toFilePath: '/workspace/service.py',
+        edgeType: 'call',
+        from: { kind: 'file', filePath: '/workspace/app.py' },
+        target: { kind: 'file', path: '/workspace/service.py', pathKind: 'absolute', specifier: './service' },
       }),
       expect.objectContaining({
-        kind: 'call',
-        fromFilePath: '/workspace/app.py',
-        specifier: './service',
-        resolvedPath: '/workspace/service.py',
+        edgeType: 'call',
+        from: { kind: 'file', filePath: '/workspace/app.py' },
+        target: { kind: 'file', path: '/workspace/service.py', pathKind: 'absolute', specifier: './service' },
       }),
     ]);
   });

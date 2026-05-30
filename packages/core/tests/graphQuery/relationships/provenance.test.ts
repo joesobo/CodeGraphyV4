@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { createProvenance } from '../../../src/graphQuery/relationships/provenance';
 
-function relation(pluginId: string | undefined): IAnalysisRelation {
+function relation(pluginId: string | undefined): IAnalysisRelationshipEvidence {
   return {
-    kind: 'reference',
+    edgeType: 'reference',
     pluginId,
     sourceId: 'source-id',
-    fromFilePath: 'src/a.ts',
-    toFilePath: 'src/b.ts',
+    from: { kind: 'file', filePath: 'src/a.ts' },
+    target: { kind: 'file', path: 'src/b.ts' },
   };
 }
 

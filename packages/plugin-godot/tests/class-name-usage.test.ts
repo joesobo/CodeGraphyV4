@@ -27,10 +27,10 @@ describe('class-name-usage rule', () => {
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('RoundManager');
     expect(connections[0].specifier).not.toBe('');
-    expect(connections[0].kind).toBe('reference');
+    expect(connections[0].edgeType).toBe('reference');
     expect(connections[0].sourceId).toBe('class-name-usage');
-    expect(connections[0].resolvedPath).toContain('scripts/round_manager.gd');
-    expect(connections[0].resolvedPath).not.toBe('');
+    expect(connections[0].target.path).toContain('scripts/round_manager.gd');
+    expect(connections[0].target.path).not.toBe('');
   });
 
   it('should discard unresolved class_name usages', () => {
@@ -148,8 +148,8 @@ describe('class-name-usage rule', () => {
     const connections = detectClassNameUsage(content, testFile, ctx);
 
     expect(connections).toHaveLength(1);
-    expect(connections[0].resolvedPath).toBeTruthy();
-    expect(connections[0].resolvedPath!.length).toBeGreaterThan(0);
+    expect(connections[0].target.path).toBeTruthy();
+    expect(connections[0].target.path!.length).toBeGreaterThan(0);
   });
 
   it('should set connection type to static', () => {
@@ -159,7 +159,7 @@ describe('class-name-usage rule', () => {
     const connections = detectClassNameUsage(content, testFile, ctx);
 
     expect(connections).toHaveLength(1);
-    expect(connections[0].type).toBe('static');
+    expect(connections[0].timing).toBe('static');
   });
 
   it('should handle empty file', () => {

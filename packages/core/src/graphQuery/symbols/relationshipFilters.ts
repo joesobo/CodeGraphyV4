@@ -1,4 +1,10 @@
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
+import {
+  getRelationshipEvidenceSourceFilePath,
+  getRelationshipEvidenceSourceNodeId,
+  getRelationshipEvidenceTargetNodeId,
+  materializeRelationshipTargetPath,
+} from '../../analysis/relationshipEvidence';
 import type { GraphQuerySymbolsConfig } from '../model';
 
 export function hasRelationshipFilters(config: GraphQuerySymbolsConfig): boolean {
@@ -9,11 +15,13 @@ function optionalValueMatches<T>(expected: T | undefined, actual: T | undefined)
   return expected === undefined || actual === expected;
 }
 
-export function relationMatchesConfig(relation: IAnalysisRelation, config: GraphQuerySymbolsConfig): boolean {
-  const from = relation.fromNodeId ?? relation.fromFilePath;
-  const to = relation.toNodeId ?? relation.toFilePath ?? undefined;
+export function relationMatchesConfig(relation: IAnalysisRelationshipEvidence, config: GraphQuerySymbolsConfig): boolean {
+  const from = getRelationshipEvidenceSourceNodeId(relation) ?? getRelationshipEvidenceSourceFilePath(relation, '');
+  const to = getRelationshipEvidenceTargetNodeId(relation)
+    ?? materializeRelationshipTargetPath(relation.target, '')
+    ?? undefined;
 
   return optionalValueMatches(config.relatedFrom, from)
     && optionalValueMatches(config.relatedTo, to)
-    && optionalValueMatches(config.edgeType, relation.kind);
+    && optionalValueMatches(config.edgeType, relation.edgeType);
 }

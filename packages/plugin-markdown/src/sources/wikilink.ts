@@ -5,7 +5,7 @@
  * @module plugins/markdown/sources/wikilink
  */
 
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { PathResolver } from '../PathResolver';
 import {
   isFenceStart,
@@ -49,8 +49,8 @@ export function detect(
   content: string,
   filePath: string,
   ctx: MarkdownRuleContext
-): IAnalysisRelation[] {
-  const relations: IAnalysisRelation[] = [];
+): IAnalysisRelationshipEvidence[] {
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const lines = content.split('\n');
   let inFencedBlock = false;
 
@@ -75,13 +75,14 @@ export function detect(
 
       const resolvedPath = ctx.resolver.resolve(parsed.target, filePath);
       relations.push({
-        kind: 'reference',
-        specifier: parsed.specifier,
-        resolvedPath,
-        fromFilePath: filePath,
-        toFilePath: resolvedPath,
-        type: 'static',
+        edgeType: 'reference',
+        timing: 'static',
         sourceId: 'wikilink',
+        specifier: parsed.specifier,
+        from: { kind: 'file', filePath },
+        target: resolvedPath
+          ? { kind: 'file', path: resolvedPath, pathKind: 'absolute', specifier: parsed.specifier }
+          : { kind: 'unresolved', specifier: parsed.specifier },
       });
     }
   }

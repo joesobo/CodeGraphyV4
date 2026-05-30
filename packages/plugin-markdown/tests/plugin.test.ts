@@ -116,8 +116,8 @@ describe('createMarkdownPlugin', () => {
 
       expect(relations).toHaveLength(1);
       expect(relations[0].sourceId).toBe('wikilink');
-      expect(relations[0].fromFilePath).toBe(path.join(workspaceA, 'Current.md'));
-      expect(relations[0].resolvedPath).toBe(target.absolutePath);
+      expect(relations[0].from.filePath).toBe(path.join(workspaceA, 'Current.md'));
+      expect(relations[0].target.path).toBe(target.absolutePath);
     });
 
     it('scans wikilinks in non-markdown files', async () => {
@@ -136,8 +136,8 @@ describe('createMarkdownPlugin', () => {
       expect(analysis.relations ?? []).toHaveLength(1);
       expect(analysis.relations?.[0]).toMatchObject({
         sourceId: 'wikilink',
-        fromFilePath: path.join(workspaceA, 'src', 'component.ts'),
-        resolvedPath: target.absolutePath,
+        from: { kind: 'file', filePath: path.join(workspaceA, 'src', 'component.ts') },
+        target: expect.objectContaining({ path: target.absolutePath }),
       });
     });
 
@@ -163,8 +163,8 @@ describe('createMarkdownPlugin', () => {
         workspaceB,
       );
 
-      expect(firstPass.map((relation) => relation.resolvedPath)).toEqual([targetA.absolutePath]);
-      expect(secondPass.map((relation) => relation.resolvedPath)).toEqual([targetB.absolutePath]);
+      expect(firstPass.map((relation) => relation.target.path)).toEqual([targetA.absolutePath]);
+      expect(secondPass.map((relation) => relation.target.path)).toEqual([targetB.absolutePath]);
     });
 
     it('rebuilds the file index when onPreAnalyze is called with new files', async () => {
@@ -189,8 +189,8 @@ describe('createMarkdownPlugin', () => {
         workspaceB,
       );
 
-      expect(firstPass.map((relation) => relation.resolvedPath)).toEqual([targetA.absolutePath]);
-      expect(secondPass.map((relation) => relation.resolvedPath)).toEqual([targetB.absolutePath]);
+      expect(firstPass.map((relation) => relation.target.path)).toEqual([targetA.absolutePath]);
+      expect(secondPass.map((relation) => relation.target.path)).toEqual([targetB.absolutePath]);
     });
 
     it('resolves bundled markdown example links from markdown and non-markdown files', async () => {
@@ -223,7 +223,7 @@ describe('createMarkdownPlugin', () => {
         examplesRoot,
       );
 
-      expect(markdownRelations.map((relation) => relation.resolvedPath)).toEqual(
+      expect(markdownRelations.map((relation) => relation.target.path)).toEqual(
         expect.arrayContaining([
           path.join(rootMarkdownExample, 'notes/Architecture.md'),
           path.join(rootMarkdownExample, 'notes/guides/Setup.md'),
@@ -231,7 +231,7 @@ describe('createMarkdownPlugin', () => {
           path.join(rootMarkdownExample, 'src/commented.ts'),
         ]),
       );
-      expect(codeRelations.map((relation) => relation.resolvedPath)).toEqual([
+      expect(codeRelations.map((relation) => relation.target.path)).toEqual([
         path.join(rootMarkdownExample, 'notes/Architecture.md'),
       ]);
     });

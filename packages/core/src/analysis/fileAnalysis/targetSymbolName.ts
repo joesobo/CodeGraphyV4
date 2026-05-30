@@ -1,10 +1,10 @@
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 
 export function resolveTargetSymbolId(
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
   targetSymbols: readonly IAnalysisSymbol[],
 ): string | undefined {
   const symbolName = readRelationSymbolName(relation);
@@ -16,7 +16,7 @@ export function resolveTargetSymbolId(
 }
 
 function readRelationSymbolName(
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
 ): string | undefined {
   const memberName = readRelationMetadataString(relation, 'memberName');
   const importedName = readRelationMetadataString(relation, 'importedName');
@@ -45,7 +45,7 @@ function resolveUniqueTargetSymbol(
 }
 
 function readRelationMetadataString(
-  relation: IAnalysisRelation,
+  relation: IAnalysisRelationshipEvidence,
   key: string,
 ): string | undefined {
   const value = relation.metadata?.[key];

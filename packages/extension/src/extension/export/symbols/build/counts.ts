@@ -1,5 +1,6 @@
-import type { IAnalysisRelation } from '../../../../core/plugins/types/contracts';
+import type { IAnalysisRelationshipEvidence } from '../../../../core/plugins/types/contracts';
 import type { SymbolExportFileEntry } from '../build';
+import { materializeRelationshipTargetPath } from '@codegraphy-dev/core';
 
 export function countByFilePath<T extends { filePath: string }>(items: readonly T[]): Map<string, number> {
   const counts = new Map<string, number>();
@@ -12,14 +13,21 @@ export function countByFilePath<T extends { filePath: string }>(items: readonly 
 }
 
 export function countRelationsByFilePath(
-  items: readonly IAnalysisRelation[],
+  items: readonly IAnalysisRelationshipEvidence[],
 ): Map<string, number> {
   const counts = new Map<string, number>();
 
   for (const item of items) {
-    counts.set(item.fromFilePath, (counts.get(item.fromFilePath) ?? 0) + 1);
-    if (item.toFilePath && item.toFilePath !== item.fromFilePath) {
-      counts.set(item.toFilePath, (counts.get(item.toFilePath) ?? 0) + 1);
+    const sourceFilePath = item.from?.kind === 'symbol' ? item.from.filePath : item.from?.kind === 'file' ? item.from.filePath : undefined;
+    const targetFilePath = item.target.kind === 'symbol'
+      ? item.target.filePath
+      : materializeRelationshipTargetPath(item.target, '');
+
+    if (sourceFilePath) {
+      counts.set(sourceFilePath, (counts.get(sourceFilePath) ?? 0) + 1);
+    }
+    if (targetFilePath && targetFilePath !== sourceFilePath) {
+      counts.set(targetFilePath, (counts.get(targetFilePath) ?? 0) + 1);
     }
   }
 

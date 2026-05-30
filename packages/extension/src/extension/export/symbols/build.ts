@@ -1,5 +1,5 @@
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '../../../core/plugins/types/contracts';
@@ -36,7 +36,7 @@ export interface SymbolExportData {
     range?: IAnalysisSymbol['range'];
     metadata?: Record<string, string | number | boolean | null>;
   }>;
-  relations: IAnalysisRelation[];
+  relations: IAnalysisRelationshipEvidence[];
 }
 
 export function buildSymbolsExportData(
@@ -44,7 +44,7 @@ export function buildSymbolsExportData(
 ): SymbolExportData {
   const filePaths: string[] = [];
   const symbols: IAnalysisSymbol[] = [];
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
 
   for (const [filePath, analysis] of [...fileAnalysis.entries()].sort(([left], [right]) =>
     left.localeCompare(right),

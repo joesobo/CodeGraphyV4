@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -23,7 +23,7 @@ function visitPythonNode(
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> | void {
@@ -56,7 +56,7 @@ export function analyzePythonFile(
   workspaceRoot: string,
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   walkTree(tree.rootNode, {}, (node, state, walk) =>
     visitPythonNode(

@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { GodotAnalysisContext } from './types';
 import { detect as detectPreload } from '../sources/preload';
 import { detect as detectLoad } from '../sources/load';
@@ -15,7 +15,7 @@ export function detectRelations(
   content: string,
   filePath: string,
   context: GodotAnalysisContext,
-): IAnalysisRelation[] {
+): IAnalysisRelationshipEvidence[] {
   const extension = path.extname(filePath).toLowerCase();
   if (TEXT_RESOURCE_EXTENSIONS.has(extension)) {
     return detectExtResource(content, filePath, context);

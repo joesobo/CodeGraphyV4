@@ -1,4 +1,4 @@
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { RelationRow } from '../records/contracts';
 import {
   parseOptionalJson,
@@ -6,7 +6,7 @@ import {
   readRequiredString,
 } from '../records/values';
 
-export function createSnapshotRelationEntry(row: RelationRow): IAnalysisRelation | undefined {
+export function createSnapshotRelationEntry(row: RelationRow): IAnalysisRelationshipEvidence | undefined {
   const filePath = readRequiredString(row.filePath);
   const kind = readRequiredString(row.kind);
   const sourceId = readRequiredString(row.sourceId);
@@ -17,19 +17,24 @@ export function createSnapshotRelationEntry(row: RelationRow): IAnalysisRelation
   }
 
   return {
-    kind: kind as IAnalysisRelation['kind'],
+    edgeType: kind as IAnalysisRelationshipEvidence['edgeType'],
     pluginId: readOptionalString(row.pluginId),
     sourceId,
-    fromFilePath,
-    toFilePath: readOptionalString(row.toFilePath),
-    fromNodeId: readOptionalString(row.fromNodeId),
-    toNodeId: readOptionalString(row.toNodeId),
-    fromSymbolId: readOptionalString(row.fromSymbolId),
-    toSymbolId: readOptionalString(row.toSymbolId),
+    from: readOptionalString(row.fromSymbolId)
+      ? { kind: 'symbol', symbolId: readOptionalString(row.fromSymbolId)!, filePath: fromFilePath }
+      : readOptionalString(row.fromNodeId)
+        ? { kind: 'node', nodeId: readOptionalString(row.fromNodeId)! }
+        : { kind: 'file', filePath: fromFilePath },
+    target: readOptionalString(row.toSymbolId)
+      ? { kind: 'symbol', symbolId: readOptionalString(row.toSymbolId)!, filePath: readOptionalString(row.toFilePath) ?? undefined, specifier: readOptionalString(row.specifier) }
+      : readOptionalString(row.toNodeId)
+        ? { kind: 'node', nodeId: readOptionalString(row.toNodeId)!, specifier: readOptionalString(row.specifier) }
+        : readOptionalString(row.toFilePath)
+          ? { kind: 'file', path: readOptionalString(row.toFilePath)!, pathKind: 'absolute', specifier: readOptionalString(row.specifier) }
+          : { kind: 'unresolved', specifier: readOptionalString(row.specifier) ?? '' },
     specifier: readOptionalString(row.specifier),
-    type: readOptionalString(row.relationType),
+    timing: readOptionalString(row.relationType),
     variant: readOptionalString(row.variant),
-    resolvedPath: readOptionalString(row.resolvedPath),
     metadata: parseOptionalJson(row.metadataJson),
   };
 }

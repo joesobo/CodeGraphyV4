@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -24,7 +24,7 @@ export interface WorkspaceAnalysisDatabaseSnapshot {
     analysis: IFileAnalysisResult;
   }>;
   symbols: IAnalysisSymbol[];
-  relations: IAnalysisRelation[];
+  relations: IAnalysisRelationshipEvidence[];
 }
 
 export function readWorkspaceAnalysisDatabaseSnapshot(

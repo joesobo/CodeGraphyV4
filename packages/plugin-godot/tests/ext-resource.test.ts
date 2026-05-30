@@ -30,17 +30,17 @@ describe('ext-resource rule', () => {
     expect(connections).toHaveLength(2);
     expect(connections[0]).toEqual(
       expect.objectContaining({
-        kind: 'load',
+        edgeType: 'load',
         specifier: 'res://textures/item.png',
         sourceId: 'ext-resource',
-        type: 'static',
-        fromFilePath: testFile,
+        timing: 'static',
+        from: { kind: 'file', filePath: testFile },
       }),
     );
     expect(connections[1]).toEqual(
       expect.objectContaining({
         specifier: 'res://scripts/item.gd',
-        toFilePath: '/workspace/my-game/scripts/item.gd',
+        target: expect.objectContaining({ path: '/workspace/my-game/scripts/item.gd' }),
       }),
     );
   });
@@ -65,7 +65,7 @@ describe('ext-resource rule', () => {
       'res://textures/player_card.png',
     ]);
     expect(connections.every(connection => connection.sourceId === 'ext-resource')).toBe(true);
-    expect(connections.every(connection => connection.kind === 'load')).toBe(true);
+    expect(connections.every(connection => connection.edgeType === 'load')).toBe(true);
   });
 
   it('should resolve relative ext_resource paths the Godot way', () => {
@@ -81,7 +81,7 @@ describe('ext-resource rule', () => {
     });
 
     expect(connections).toHaveLength(2);
-    expect(connections.map(connection => connection.toFilePath)).toEqual([
+    expect(connections.map(connection => connection.target.path)).toEqual([
       '/workspace/my-game/scripts/ui/loadout_preview.gd',
       '/workspace/my-game/resources/player_loadout.tres',
     ]);
@@ -102,7 +102,7 @@ describe('ext-resource rule', () => {
 
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('../../wrong/player_loadout.tres');
-    expect(connections[0].toFilePath).toBe('/workspace/my-game/resources/player_loadout.tres');
+    expect(connections[0].target.path).toBe('/workspace/my-game/resources/player_loadout.tres');
   });
 
   it('should preserve uid fallback when the package parser cannot parse legacy quoting', () => {
@@ -120,7 +120,7 @@ describe('ext-resource rule', () => {
 
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('../../wrong/fallback.gd');
-    expect(connections[0].toFilePath).toBe('/workspace/my-game/scripts/fallback.gd');
+    expect(connections[0].target.path).toBe('/workspace/my-game/scripts/fallback.gd');
   });
 
   it('should ignore non-ext_resource tags and ext_resource tags without paths', () => {
@@ -159,7 +159,7 @@ describe('ext-resource rule', () => {
       nestedCtx,
     );
 
-    expect(connections.map(connection => connection.toFilePath)).toEqual([
+    expect(connections.map(connection => connection.target.path)).toEqual([
       '/workspace/examples/example-godot/scripts/ui/loadout_preview.gd',
       '/workspace/examples/example-godot/resources/player_loadout.tres',
     ]);
@@ -176,9 +176,9 @@ describe('ext-resource rule', () => {
 
     expect(connections).toHaveLength(2);
     expect(connections[0].specifier).toBe('user://textures/runtime.png');
-    expect(connections[0].resolvedPath).toBeNull();
+    expect(connections[0].target.kind).toBe('unresolved');
     expect(connections[1].specifier).toBe('file://textures/nope.png');
-    expect(connections[1].resolvedPath).toBeNull();
+    expect(connections[1].target.kind).toBe('unresolved');
   });
 
   it('exports the expected rule descriptor', () => {

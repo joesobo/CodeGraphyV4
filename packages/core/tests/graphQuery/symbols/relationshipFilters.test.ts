@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { hasRelationshipFilters, relationMatchesConfig } from '../../../src/graphQuery/symbols/relationshipFilters';
 
-const relation: IAnalysisRelation = {
-  kind: 'reference',
+const relation: IAnalysisRelationshipEvidence = {
+  edgeType: 'reference',
   pluginId: 'plugin.routes',
   sourceId: 'route-reference',
-  fromFilePath: 'src/source.ts',
-  toFilePath: 'src/target.ts',
+  from: { kind: 'file', filePath: 'src/source.ts' },
+  target: { kind: 'file', path: 'src/target.ts' },
 };
 
 describe('core/graphQuery/symbols/relationshipFilters', () => {
@@ -30,10 +30,10 @@ describe('core/graphQuery/symbols/relationshipFilters', () => {
   });
 
   it('uses node ids ahead of file paths when relationship endpoints are node-scoped', () => {
-    const nodeScopedRelation: IAnalysisRelation = {
+    const nodeScopedRelation: IAnalysisRelationshipEvidence = {
       ...relation,
-      fromNodeId: 'src/source.ts#run:function',
-      toNodeId: 'src/target.ts#Target:type',
+      from: { kind: 'node', nodeId: 'src/source.ts#run:function' },
+      target: { kind: 'node', nodeId: 'src/target.ts#Target:type' },
     };
 
     expect(relationMatchesConfig(nodeScopedRelation, {

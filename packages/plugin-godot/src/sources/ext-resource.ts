@@ -4,7 +4,7 @@
  * @module plugins/godot/sources/ext-resource
  */
 
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
 import { parseGodotTextResourceDocument } from '../textResource/parser';
@@ -33,8 +33,8 @@ export function detect(
   content: string,
   filePath: string,
   ctx: GDScriptRuleContext,
-): IAnalysisRelation[] {
-  const relations: IAnalysisRelation[] = [];
+): IAnalysisRelationshipEvidence[] {
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
   for (const resource of readExtResourceReferences(content)) {
@@ -51,13 +51,14 @@ export function detect(
         })
       : null;
     relations.push({
-      kind: 'load',
-      specifier: resource.path,
-      resolvedPath,
-      type: 'static',
+      edgeType: 'load',
+      timing: 'static',
       sourceId: 'ext-resource',
-      fromFilePath: filePath,
-      toFilePath: resolvedPath,
+      specifier: resource.path,
+      from: { kind: 'file', filePath },
+      target: resolvedPath
+        ? { kind: 'file', path: resolvedPath, pathKind: 'absolute', specifier: resource.path }
+        : { kind: 'unresolved', specifier: resource.path },
     });
   }
 

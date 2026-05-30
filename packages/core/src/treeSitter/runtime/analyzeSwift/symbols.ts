@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
@@ -10,7 +10,7 @@ import { getSwiftDeclarationName, getSwiftTypeKind, isInsideSwiftType } from './
 export function handleSwiftTypeDeclaration(
   node: Parser.SyntaxNode,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
 ): void {
   const kind = node.type === 'protocol_declaration' ? 'protocol' : getSwiftTypeKind(node);

@@ -60,13 +60,12 @@ describe('treeSitter/runtime/analyzeRust/imports', () => {
     );
     expect(relations).toEqual([
       {
-        kind: 'import',
+        edgeType: 'import',
         sourceId: 'codegraphy.treesitter:import',
-        fromFilePath: '/workspace/src/lib.rs',
-        specifier: 'crate::http::routes',
-        resolvedPath: '/workspace/src/routes.rs',
-        toFilePath: '/workspace/src/routes.rs',
-        type: undefined,
+        from: { kind: 'file', filePath: '/workspace/src/lib.rs' },
+        target: { kind: 'file', path: '/workspace/src/routes.rs', pathKind: 'absolute', specifier: 'crate::http::routes' },
+        metadata: undefined,
+        timing: undefined,
       },
     ]);
     expect(importedBindings).toEqual(new Map([

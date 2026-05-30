@@ -32,7 +32,7 @@ describe('createGDScriptPlugin lifecycle', () => {
       const content = 'var x: SpiritCapSpawner';
       const conns = (await plugin.analyzeFile('/workspace/scripts/test.gd', content, '/workspace')).relations ?? [];
       expect(conns.some(conn => conn.specifier === 'SpiritCapSpawner')).toBe(true);
-      expect(conns.some(conn => conn.kind === 'reference')).toBe(true);
+      expect(conns.some(conn => conn.edgeType === 'reference')).toBe(true);
     });
 
 

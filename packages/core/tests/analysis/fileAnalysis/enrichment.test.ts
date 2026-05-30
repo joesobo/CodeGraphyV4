@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -15,12 +15,12 @@ function symbol(filePath: string, name: string): IAnalysisSymbol {
   };
 }
 
-function relation(overrides: Partial<IAnalysisRelation>): IAnalysisRelation {
+function relation(overrides: Partial<IAnalysisRelationshipEvidence>): IAnalysisRelationshipEvidence {
   return {
-    fromFilePath: '/workspace/src/source.ts',
-    kind: 'import',
+    edgeType: 'import',
+    from: { kind: 'file', filePath: '/workspace/src/source.ts' },
     sourceId: 'test-source',
-    toFilePath: '/workspace/src/target.ts',
+    target: { kind: 'file', path: '/workspace/src/target.ts', pathKind: 'absolute' },
     ...overrides,
   };
 }
@@ -44,11 +44,16 @@ describe('pipeline/fileAnalysis/enrichment', () => {
       ['/workspace/src/target.ts', analysis('/workspace/src/target.ts', {
         symbols: [symbol('/workspace/src/target.ts', 'target')],
       })],
-    ]));
+    ]), '/workspace');
 
     expect(result.get('/workspace/src/source.ts')?.relations?.[0]).toEqual(
       expect.objectContaining({
-        toSymbolId: '/workspace/src/target.ts:target',
+        target: {
+          kind: 'symbol',
+          filePath: '/workspace/src/target.ts',
+          symbolId: '/workspace/src/target.ts:target',
+          specifier: undefined,
+        },
       }),
     );
   });
@@ -64,9 +69,9 @@ describe('pipeline/fileAnalysis/enrichment', () => {
           symbol('/workspace/src/target.ts', 'second'),
         ],
       })],
-    ]));
+    ]), '/workspace');
 
-    expect(result.get('/workspace/src/source.ts')?.relations?.[0]?.toSymbolId).toBeUndefined();
+    expect(result.get('/workspace/src/source.ts')?.relations?.[0]?.target.kind).toBe('file');
   });
 
   it('prefers member names over imported names when both are present', () => {
@@ -85,11 +90,16 @@ describe('pipeline/fileAnalysis/enrichment', () => {
           symbol('/workspace/src/target.ts', 'right'),
         ],
       })],
-    ]));
+    ]), '/workspace');
 
     expect(result.get('/workspace/src/source.ts')?.relations?.[0]).toEqual(
       expect.objectContaining({
-        toSymbolId: '/workspace/src/target.ts:right',
+        target: {
+          kind: 'symbol',
+          filePath: '/workspace/src/target.ts',
+          symbolId: '/workspace/src/target.ts:right',
+          specifier: undefined,
+        },
       }),
     );
   });
@@ -109,16 +119,22 @@ describe('pipeline/fileAnalysis/enrichment', () => {
           symbol('/workspace/src/target.ts', 'named'),
         ],
       })],
-    ]));
+    ]), '/workspace');
 
     expect(result.get('/workspace/src/source.ts')?.relations).toEqual([
-      expect.not.objectContaining({ toSymbolId: expect.any(String) }),
-      expect.not.objectContaining({ toSymbolId: expect.any(String) }),
+      expect.objectContaining({ target: expect.objectContaining({ kind: 'file' }) }),
+      expect.objectContaining({ target: expect.objectContaining({ kind: 'file' }) }),
     ]);
   });
 
   it('keeps existing target symbol ids and handles analysis without relations', () => {
-    const existingRelation = relation({ toSymbolId: 'existing-symbol' });
+    const existingRelation = relation({
+      target: {
+        kind: 'symbol',
+        filePath: '/workspace/src/target.ts',
+        symbolId: 'existing-symbol',
+      },
+    });
     const result = enrichWorkspaceFileAnalysis(new Map([
       ['/workspace/src/source.ts', analysis('/workspace/src/source.ts', {
         relations: [existingRelation],
@@ -129,7 +145,7 @@ describe('pipeline/fileAnalysis/enrichment', () => {
       ['/workspace/src/empty.ts', analysis('/workspace/src/empty.ts', {
         symbols: [symbol('/workspace/src/empty.ts', 'unused')],
       })],
-    ]));
+    ]), '/workspace');
 
     expect(result.get('/workspace/src/source.ts')?.relations?.[0]).toEqual(existingRelation);
     expect(result.get('/workspace/src/empty.ts')?.relations).toEqual([]);

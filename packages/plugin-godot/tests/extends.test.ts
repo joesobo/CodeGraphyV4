@@ -24,11 +24,11 @@ describe('extends rule', () => {
 
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('res://scripts/base_character.gd');
-    expect(connections[0].kind).toBe('inherit');
-    expect(connections[0].type).toBe('static');
+    expect(connections[0].edgeType).toBe('inherit');
+    expect(connections[0].timing).toBe('static');
     expect(connections[0].sourceId).toBe('extends');
-    expect(connections[0].fromFilePath).toBe(testFile);
-    expect(connections[0].toFilePath).toContain('scripts/base_character.gd');
+    expect(connections[0].from.filePath).toBe(testFile);
+    expect(connections[0].target.path).toContain('scripts/base_character.gd');
   });
 
   it('should ignore extends with built-in class (no quotes)', () => {

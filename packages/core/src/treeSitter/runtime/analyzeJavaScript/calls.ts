@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { getImportedBindingByIdentifier, getImportedBindingByPropertyAccess } from '../analyze/imports';
 import { getImportRelationForJavaScriptCallExpression } from './callImports';
 import type { ImportedBinding } from '../analyze/model';
@@ -19,7 +19,7 @@ function getImportedBindingForJavaScriptCall(
 export function handleJavaScriptCallExpression(
   node: Parser.SyntaxNode,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
   currentSymbolId?: string,
 ): void {

@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { findExistingFile } from '../analyze/existingFile';
 import { addImportRelation } from '../analyze/results';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';
@@ -60,7 +60,7 @@ export function handleCInclude(
   node: Parser.SyntaxNode,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
 ): void {
   const include = readIncludeSpecifier(node);
   if (!include) {

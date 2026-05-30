@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import type { CSharpWalkState } from './model';
@@ -14,7 +14,7 @@ export function handleCSharpTypeDeclaration(
   state: CSharpWalkState,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   usingNamespaces: ReadonlySet<string>,
   importTargetsByNamespace: Map<string, Set<string>>,

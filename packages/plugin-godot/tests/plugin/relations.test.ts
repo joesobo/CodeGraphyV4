@@ -27,8 +27,8 @@ describe('detectRelations', () => {
       {
         specifier: 'res://scripts/weapon.gd',
         sourceId: 'preload',
-        kind: 'load',
-        type: 'static',
+        edgeType: 'load',
+        timing: 'static',
       },
     ]);
   });
@@ -44,8 +44,8 @@ describe('detectRelations', () => {
       {
         specifier: 'res://scripts/player.gd',
         sourceId: 'ext-resource',
-        kind: 'load',
-        type: 'static',
+        edgeType: 'load',
+        timing: 'static',
       },
     ]);
 
@@ -57,8 +57,8 @@ describe('detectRelations', () => {
       {
         specifier: 'res://scenes/main.tscn',
         sourceId: 'project-settings',
-        kind: 'load',
-        type: 'static',
+        edgeType: 'load',
+        timing: 'static',
       },
     ]);
   });

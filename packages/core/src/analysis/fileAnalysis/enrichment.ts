@@ -6,6 +6,7 @@ import { enrichRelationTargetSymbol } from './targetSymbol';
 
 export function enrichWorkspaceFileAnalysis(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
+  workspaceRoot: string,
 ): Map<string, IFileAnalysisResult> {
   const symbolsByFilePath = createSymbolsByFilePath(fileAnalysis);
 
@@ -15,7 +16,7 @@ export function enrichWorkspaceFileAnalysis(
       {
         ...analysis,
         relations: (analysis.relations ?? []).map((relation) =>
-          enrichRelationTargetSymbol(relation, symbolsByFilePath),
+          enrichRelationTargetSymbol(relation, symbolsByFilePath, workspaceRoot),
         ),
       },
     ]),

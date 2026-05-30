@@ -47,19 +47,14 @@ describe('pipeline/database/cache/relation/entry', () => {
         metadataJson: '{"weight":2}',
       } as never),
     ).toEqual({
-      kind: 'import',
+      edgeType: 'import',
       pluginId: 'plugin.typescript',
       sourceId: 'source',
-      fromFilePath: 'src/from.ts',
-      toFilePath: 'src/to.ts',
-      fromNodeId: 'from-node',
-      toNodeId: 'to-node',
-      fromSymbolId: 'from-symbol',
-      toSymbolId: 'to-symbol',
+      from: { kind: 'symbol', symbolId: 'from-symbol', filePath: 'src/from.ts' },
+      target: { kind: 'symbol', symbolId: 'to-symbol', filePath: 'src/to.ts', specifier: './to' },
       specifier: './to',
-      type: 'static',
+      timing: 'static',
       variant: 'named',
-      resolvedPath: '/workspace/src/to.ts',
       metadata: { weight: 2 },
     });
   });

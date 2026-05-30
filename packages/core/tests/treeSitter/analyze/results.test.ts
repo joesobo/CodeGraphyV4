@@ -116,24 +116,20 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
 
     expect(relations).toEqual([
       {
-        kind: 'import',
+        edgeType: 'import',
         sourceId: TREE_SITTER_SOURCE_IDS.import,
-        fromFilePath: '/workspace/app.ts',
-        specifier: './dep',
-        resolvedPath: '/workspace/dep.ts',
-        toFilePath: '/workspace/dep.ts',
+        from: { kind: 'file', filePath: '/workspace/app.ts' },
+        target: { kind: 'file', path: '/workspace/dep.ts', pathKind: 'absolute', specifier: './dep' },
         metadata: undefined,
-        type: undefined,
+        timing: undefined,
       },
       {
-        kind: 'import',
+        edgeType: 'import',
         sourceId: TREE_SITTER_SOURCE_IDS.dynamicImport,
-        fromFilePath: '/workspace/app.ts',
-        specifier: './styles.css',
-        resolvedPath: null,
-        toFilePath: null,
+        from: { kind: 'file', filePath: '/workspace/app.ts' },
+        target: { kind: 'unresolved', specifier: './styles.css' },
         metadata: undefined,
-        type: 'style',
+        timing: 'style',
       },
     ]);
   });
@@ -158,21 +154,17 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
 
     expect(relations).toEqual([
       {
-        kind: 'type-import',
+        edgeType: 'type-import',
         sourceId: TREE_SITTER_SOURCE_IDS.typeImport,
-        fromFilePath: '/workspace/app.ts',
-        specifier: './types',
-        resolvedPath: '/workspace/types.ts',
-        toFilePath: '/workspace/types.ts',
+        from: { kind: 'file', filePath: '/workspace/app.ts' },
+        target: { kind: 'file', path: '/workspace/types.ts', pathKind: 'absolute', specifier: './types' },
         metadata: undefined,
       },
       {
-        kind: 'type-import',
+        edgeType: 'type-import',
         sourceId: TREE_SITTER_SOURCE_IDS.typeImport,
-        fromFilePath: '/workspace/app.ts',
-        specifier: './types',
-        resolvedPath: '/workspace/types.ts',
-        toFilePath: '/workspace/types.ts',
+        from: { kind: 'file', filePath: '/workspace/app.ts' },
+        target: { kind: 'file', path: '/workspace/types.ts', pathKind: 'absolute', specifier: './types' },
         metadata: {
           bindingKind: 'named',
           importedName: 'UserName',
@@ -203,13 +195,10 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
 
     expect(relations).toEqual([
       {
-        kind: 'call',
+        edgeType: 'call',
         sourceId: TREE_SITTER_SOURCE_IDS.call,
-        fromFilePath: '/workspace/app.ts',
-        fromSymbolId: 'function-id',
-        specifier: 'run',
-        resolvedPath: '/workspace/dep.ts',
-        toFilePath: '/workspace/dep.ts',
+        from: { kind: 'symbol', symbolId: 'function-id', filePath: '/workspace/app.ts' },
+        target: { kind: 'file', path: '/workspace/dep.ts', pathKind: 'absolute', specifier: 'run' },
         metadata: {
           bindingKind: null,
           importedName: null,
@@ -218,21 +207,16 @@ describe('pipeline/plugins/treesitter/runtime/analyze/results', () => {
         },
       },
       {
-        kind: 'inherit',
+        edgeType: 'inherit',
         sourceId: TREE_SITTER_SOURCE_IDS.inherit,
-        fromFilePath: '/workspace/app.ts',
-        specifier: 'BaseType',
-        resolvedPath: null,
-        toFilePath: null,
+        from: { kind: 'file', filePath: '/workspace/app.ts' },
+        target: { kind: 'unresolved', specifier: 'BaseType' },
       },
       {
-        kind: 'reference',
+        edgeType: 'reference',
         sourceId: TREE_SITTER_SOURCE_IDS.reference,
-        fromFilePath: '/workspace/app.ts',
-        fromSymbolId: 'reference-id',
-        specifier: 'Config',
-        resolvedPath: '/workspace/config.ts',
-        toFilePath: '/workspace/config.ts',
+        from: { kind: 'symbol', symbolId: 'reference-id', filePath: '/workspace/app.ts' },
+        target: { kind: 'file', path: '/workspace/config.ts', pathKind: 'absolute', specifier: 'Config' },
       },
     ]);
   });

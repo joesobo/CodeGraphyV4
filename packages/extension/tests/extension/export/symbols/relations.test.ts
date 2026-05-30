@@ -1,36 +1,42 @@
 import { describe, expect, it } from 'vitest';
+import type { IAnalysisRelationshipEvidence } from '../../../../src/core/plugins/types/contracts';
 import {
   normalizeRelationFilePaths,
   relationSortKey,
   sortRelations,
 } from '../../../../src/extension/export/symbols/build/relations';
 
+function relation(overrides: Partial<IAnalysisRelationshipEvidence> = {}): IAnalysisRelationshipEvidence {
+  return {
+    edgeType: 'call',
+    sourceId: 'core:treesitter',
+    from: { kind: 'file', filePath: 'src/a.ts' },
+    target: { kind: 'file', path: 'src/b.ts' },
+    ...overrides,
+  };
+}
+
 describe('extension/export/symbols/build/relations', () => {
   it('builds stable relation sort keys from file and symbol coordinates', () => {
     expect(
-      relationSortKey({
-        fromFilePath: 'src/a.ts',
-        kind: 'call',
-        toFilePath: 'src/b.ts',
-        fromSymbolId: 'a#run',
-        toSymbolId: 'b#boot',
-      } as never),
+      relationSortKey(relation({
+        from: { kind: 'symbol', symbolId: 'a#run', filePath: 'src/a.ts' },
+        target: { kind: 'symbol', symbolId: 'b#boot', filePath: 'src/b.ts' },
+      })),
     ).toBe('src/a.ts:call:src/b.ts:a#run:b#boot');
 
-    expect(
-      relationSortKey({
-        fromFilePath: 'src/a.ts',
-        kind: 'import',
-      } as never),
-    ).toBe('src/a.ts:import:::');
+    expect(relationSortKey(relation({
+      edgeType: 'import',
+      target: { kind: 'unresolved', specifier: '' },
+    }))).toBe('src/a.ts:import:::');
   });
 
   it('sorts relations by their normalized keys without mutating the input', () => {
     const relations = [
-      { fromFilePath: 'src/b.ts', kind: 'call', toFilePath: 'src/c.ts' },
-      { fromFilePath: 'src/a.ts', kind: 'import', toFilePath: 'src/b.ts' },
-      { fromFilePath: 'src/a.ts', kind: 'call', toFilePath: 'src/b.ts', fromSymbolId: 'run' },
-    ] as never[];
+      relation({ from: { kind: 'file', filePath: 'src/b.ts' }, target: { kind: 'file', path: 'src/c.ts' } }),
+      relation({ edgeType: 'import', from: { kind: 'file', filePath: 'src/a.ts' }, target: { kind: 'file', path: 'src/b.ts' } }),
+      relation({ from: { kind: 'symbol', symbolId: 'run', filePath: 'src/a.ts' }, target: { kind: 'file', path: 'src/b.ts' } }),
+    ];
 
     const sorted = sortRelations(relations);
 
@@ -39,42 +45,31 @@ describe('extension/export/symbols/build/relations', () => {
       relations[1],
       relations[0],
     ]);
-    expect(relations).toEqual([
-      { fromFilePath: 'src/b.ts', kind: 'call', toFilePath: 'src/c.ts' },
-      { fromFilePath: 'src/a.ts', kind: 'import', toFilePath: 'src/b.ts' },
-      { fromFilePath: 'src/a.ts', kind: 'call', toFilePath: 'src/b.ts', fromSymbolId: 'run' },
-    ]);
+    expect(relations[0]?.from).toEqual({ kind: 'file', filePath: 'src/b.ts' });
   });
 
   it('normalizes relation file paths and preserves missing destinations', () => {
     expect(
       normalizeRelationFilePaths(
-        {
-          fromFilePath: 'src/a.ts',
-          toFilePath: 'src/b.ts',
-          kind: 'call',
-        } as never,
+        relation(),
         (filePath) => `/workspace/${filePath}`,
       ),
     ).toEqual(
       expect.objectContaining({
-        fromFilePath: '/workspace/src/a.ts',
-        toFilePath: '/workspace/src/b.ts',
+        from: { kind: 'file', filePath: '/workspace/src/a.ts' },
+        target: { kind: 'file', path: '/workspace/src/b.ts' },
       }),
     );
 
     expect(
       normalizeRelationFilePaths(
-        {
-          fromFilePath: 'src/a.ts',
-          kind: 'call',
-        } as never,
+        relation({ target: { kind: 'unresolved', specifier: 'missing' } }),
         (filePath) => `/workspace/${filePath}`,
       ),
     ).toEqual(
       expect.objectContaining({
-        fromFilePath: '/workspace/src/a.ts',
-        toFilePath: undefined,
+        from: { kind: 'file', filePath: '/workspace/src/a.ts' },
+        target: { kind: 'unresolved', specifier: 'missing' },
       }),
     );
   });

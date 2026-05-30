@@ -43,8 +43,9 @@ function recordWorkspaceFileAnalysis(
   state: IWorkspaceFileAnalysisState,
   file: IDiscoveredFile,
   analysis: IFileAnalysisResult,
+  workspaceRoot: string,
 ): IProjectedConnection[] {
-  const connections = projectProjectedConnectionsFromFileAnalysis(analysis);
+  const connections = projectProjectedConnectionsFromFileAnalysis(analysis, workspaceRoot);
   state.fileAnalysis.set(file.relativePath, analysis);
   state.fileConnections.set(file.relativePath, connections);
   return connections;
@@ -73,7 +74,7 @@ function recordCacheHit(
   file: IDiscoveredFile,
   analysis: IFileAnalysisResult,
 ): void {
-  recordWorkspaceFileAnalysis(state, file, analysis);
+  recordWorkspaceFileAnalysis(state, file, analysis, options.workspaceRoot);
   state.cacheHits += 1;
   emitWorkspaceFileProgress(options, state, file);
 }
@@ -89,7 +90,7 @@ async function analyzeCacheMiss(
   const content = await options.readContent(file);
   throwIfWorkspaceAnalysisAborted(options.signal);
   const analysis = await options.analyzeFile(file.absolutePath, content, options.workspaceRoot);
-  const connections = recordWorkspaceFileAnalysis(state, file, analysis);
+  const connections = recordWorkspaceFileAnalysis(state, file, analysis, options.workspaceRoot);
 
   options.emitFileProcessed?.({
     filePath: file.relativePath,
@@ -144,13 +145,13 @@ export async function analyzeWorkspaceFiles(
     await analyzeWorkspaceFile(options, state, file);
   }
 
-  const enrichedFileAnalysis = enrichWorkspaceFileAnalysis(state.fileAnalysis);
+  const enrichedFileAnalysis = enrichWorkspaceFileAnalysis(state.fileAnalysis, options.workspaceRoot);
   updateCachedEnrichedAnalysis(options, enrichedFileAnalysis);
 
   return {
     cacheHits: state.cacheHits,
     cacheMisses: state.cacheMisses,
     fileAnalysis: enrichedFileAnalysis,
-    fileConnections: projectConnectionMapFromFileAnalysis(enrichedFileAnalysis),
+    fileConnections: projectConnectionMapFromFileAnalysis(enrichedFileAnalysis, options.workspaceRoot),
   };
 }

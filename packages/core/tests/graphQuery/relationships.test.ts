@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
 import { listGraphRelationships } from '../../src/graphQuery';
 
@@ -71,76 +71,32 @@ const symbols: IAnalysisSymbol[] = [
   },
 ];
 
-const relations: IAnalysisRelation[] = [
-  {
-    kind: 'type-import',
-    pluginId: 'codegraphy.treesitter',
-    sourceId: 'codegraphy.treesitter:type-import',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#UserConfig',
-  },
-  {
-    kind: 'import',
-    pluginId: 'codegraphy.treesitter',
-    sourceId: 'codegraphy.treesitter:import',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#createUser',
-  },
-  {
-    kind: 'import',
-    pluginId: 'codegraphy.treesitter',
-    sourceId: 'codegraphy.treesitter:import',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#createUser',
-  },
-  {
-    kind: 'import',
-    pluginId: 'codegraphy.treesitter',
-    sourceId: 'codegraphy.treesitter:import',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#buildUser',
-  },
-  {
-    kind: 'import',
-    pluginId: 'codegraphy.treesitter',
-    sourceId: 'codegraphy.treesitter:import',
-    fromFilePath: 'packages/app/src/a.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#anonymous',
-  },
-  {
-    kind: 'reference',
-    pluginId: 'plugin.routes',
-    sourceId: 'route-reference',
-    fromFilePath: 'packages/app/src/c.ts',
-    toFilePath: 'packages/app/src/b.ts',
-  },
-  {
-    kind: 'reference',
-    pluginId: 'plugin.forms',
-    sourceId: 'form-reference',
-    fromFilePath: 'packages/app/src/c.ts',
-    toFilePath: 'packages/app/src/b.ts',
-    toSymbolId: 'packages/app/src/b.ts#missing',
-  },
-  {
-    kind: 'reference',
-    pluginId: 'plugin.routes',
-    sourceId: 'missing-target',
-    fromFilePath: 'packages/app/src/c.ts',
-  },
-  {
-    kind: 'import',
-    pluginId: 'codegraphy.treesitter',
-    sourceId: 'invisible-import',
-    fromFilePath: 'packages/app/src/b.ts',
-    toFilePath: 'packages/app/src/c.ts',
-    toSymbolId: 'packages/app/src/b.ts#createUser',
-  },
+function relation(
+  edgeType: IAnalysisRelationshipEvidence['edgeType'],
+  sourceId: string,
+  fromFilePath: string,
+  target: IAnalysisRelationshipEvidence['target'],
+  pluginId = 'codegraphy.treesitter',
+): IAnalysisRelationshipEvidence {
+  return {
+    edgeType,
+    pluginId,
+    sourceId,
+    from: { kind: 'file', filePath: fromFilePath },
+    target,
+  };
+}
+
+const relations: IAnalysisRelationshipEvidence[] = [
+  relation('type-import', 'codegraphy.treesitter:type-import', 'packages/app/src/a.ts', { kind: 'symbol', symbolId: 'packages/app/src/b.ts#UserConfig', filePath: 'packages/app/src/b.ts' }),
+  relation('import', 'codegraphy.treesitter:import', 'packages/app/src/a.ts', { kind: 'symbol', symbolId: 'packages/app/src/b.ts#createUser', filePath: 'packages/app/src/b.ts' }),
+  relation('import', 'codegraphy.treesitter:import', 'packages/app/src/a.ts', { kind: 'symbol', symbolId: 'packages/app/src/b.ts#createUser', filePath: 'packages/app/src/b.ts' }),
+  relation('import', 'codegraphy.treesitter:import', 'packages/app/src/a.ts', { kind: 'symbol', symbolId: 'packages/app/src/b.ts#buildUser', filePath: 'packages/app/src/b.ts' }),
+  relation('import', 'codegraphy.treesitter:import', 'packages/app/src/a.ts', { kind: 'symbol', symbolId: 'packages/app/src/b.ts#anonymous', filePath: 'packages/app/src/b.ts' }),
+  relation('reference', 'route-reference', 'packages/app/src/c.ts', { kind: 'file', path: 'packages/app/src/b.ts' }, 'plugin.routes'),
+  relation('reference', 'form-reference', 'packages/app/src/c.ts', { kind: 'symbol', symbolId: 'packages/app/src/b.ts#missing', filePath: 'packages/app/src/b.ts' }, 'plugin.forms'),
+  relation('reference', 'missing-target', 'packages/app/src/c.ts', { kind: 'unresolved', specifier: '' }, 'plugin.routes'),
+  relation('import', 'invisible-import', 'packages/app/src/b.ts', { kind: 'symbol', symbolId: 'packages/app/src/b.ts#createUser', filePath: 'packages/app/src/c.ts' }),
 ];
 
 describe('core/graphQuery relationships report', () => {

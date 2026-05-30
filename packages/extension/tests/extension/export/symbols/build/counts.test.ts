@@ -25,21 +25,22 @@ describe('extension/export/symbols/build/counts', () => {
     expect(
       countRelationsByFilePath([
         {
-          kind: 'call',
+          edgeType: 'call',
           sourceId: 'core:treesitter',
-          fromFilePath: 'src/app.ts',
-          toFilePath: 'src/lib.ts',
+          from: { kind: 'file', filePath: 'src/app.ts' },
+          target: { kind: 'file', path: 'src/lib.ts' },
         },
         {
-          kind: 'call',
+          edgeType: 'call',
           sourceId: 'core:treesitter',
-          fromFilePath: 'src/app.ts',
-          toFilePath: 'src/app.ts',
+          from: { kind: 'file', filePath: 'src/app.ts' },
+          target: { kind: 'file', path: 'src/app.ts' },
         },
         {
-          kind: 'call',
+          edgeType: 'call',
           sourceId: 'core:treesitter',
-          fromFilePath: 'src/lib.ts',
+          from: { kind: 'file', filePath: 'src/lib.ts' },
+          target: { kind: 'unresolved', specifier: 'missing' },
         },
       ]),
     ).toEqual(

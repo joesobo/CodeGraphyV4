@@ -7,17 +7,16 @@ describe('pipeline/database/cache/relation/identityProperties', () => {
       createRelationIdentityProperties(
         'src/file.ts',
         {
-          kind: 'import',
+          edgeType: 'import',
           sourceId: 'source',
-          fromFilePath: 'src/from.ts',
-          toFilePath: 'src/to.ts',
-          fromSymbolId: 'from-symbol',
-          toSymbolId: 'to-symbol',
+          from: { kind: 'symbol', symbolId: 'from-symbol', filePath: 'src/from.ts' },
+          target: { kind: 'symbol', symbolId: 'to-symbol', filePath: 'src/to.ts', specifier: './to' },
           specifier: './to',
-          type: 'static',
+          timing: 'static',
           variant: 'named',
-        } as never,
+        },
         3,
+        '/workspace',
       ),
     ).toEqual([
       'relationId: "src/file.ts|import|source|src/from.ts|src/to.ts|from-symbol|to-symbol|./to|static|named|3"',
@@ -32,11 +31,13 @@ describe('pipeline/database/cache/relation/identityProperties', () => {
       createRelationIdentityProperties(
         'src/file.ts',
         {
-          kind: 'call',
+          edgeType: 'call',
           sourceId: 'source',
-          fromFilePath: 'src/from.ts',
-        } as never,
+          from: { kind: 'file', filePath: 'src/from.ts' },
+          target: { kind: 'unresolved', specifier: '' },
+        },
         0,
+        '/workspace',
       )[0],
     ).toBe('relationId: "src/file.ts|call|source|src/from.ts|||||||0"');
   });

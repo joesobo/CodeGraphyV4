@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
@@ -13,7 +13,7 @@ export function handlePhpTypeDeclaration(
   filePath: string,
   sourceRoot: string | null,
   namespaceName: string | null,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): void {

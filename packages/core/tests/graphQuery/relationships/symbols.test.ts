@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import {
   createProvenance,
   createRelationshipSymbol,
@@ -28,14 +28,13 @@ const symbols: IAnalysisSymbol[] = [
   },
 ];
 
-function relation(overrides: Partial<IAnalysisRelation> = {}): IAnalysisRelation {
+function relation(overrides: Partial<IAnalysisRelationshipEvidence> = {}): IAnalysisRelationshipEvidence {
   return {
-    kind: 'import',
+    edgeType: 'import',
     pluginId: 'plugin.routes',
     sourceId: 'route-import',
-    fromFilePath: 'src/app.ts',
-    toFilePath: 'src/user.ts',
-    toSymbolId: 'src/user.ts#User:type',
+    from: { kind: 'file', filePath: 'src/app.ts' },
+    target: { kind: 'symbol', symbolId: 'src/user.ts#User:type', filePath: 'src/user.ts' },
     ...overrides,
   };
 }
@@ -79,24 +78,24 @@ describe('core/graphQuery/relationships/symbols', () => {
     const symbolById = createSymbolMap(symbols);
 
     expect(createRelationshipSymbol('reference', relation({
-      fromSymbolId: 'src/user.ts#createUser:function',
-      toSymbolId: undefined,
+      from: { kind: 'symbol', symbolId: 'src/user.ts#createUser:function', filePath: 'src/user.ts' },
+      target: { kind: 'unresolved', specifier: '' },
     }), symbolById)).toEqual({
       id: 'src/user.ts#createUser:function',
       filePath: 'src/user.ts',
       name: 'createUser',
       kind: 'function',
     });
-    expect(createRelationshipSymbol('reference', relation({ toSymbolId: 'missing' }), symbolById)).toBeUndefined();
-    expect(createRelationshipSymbol('reference', relation({ toSymbolId: undefined }), symbolById)).toBeUndefined();
-    expect(createRelationshipSymbol('reference', relation({ toSymbolId: undefined }), new Map([
+    expect(createRelationshipSymbol('reference', relation({ target: { kind: 'symbol', symbolId: 'missing' } }), symbolById)).toBeUndefined();
+    expect(createRelationshipSymbol('reference', relation({ target: { kind: 'unresolved', specifier: '' } }), symbolById)).toBeUndefined();
+    expect(createRelationshipSymbol('reference', relation({ target: { kind: 'unresolved', specifier: '' } }), new Map([
       [undefined as unknown as string, symbols[0]],
     ]))).toBeUndefined();
   });
 
   it('omits blank symbol kinds from relationship symbols', () => {
     expect(createRelationshipSymbol('reference', relation({
-      toSymbolId: 'src/user.ts#anonymous',
+      target: { kind: 'symbol', symbolId: 'src/user.ts#anonymous', filePath: 'src/user.ts' },
     }), createSymbolMap([
       {
         id: 'src/user.ts#anonymous',

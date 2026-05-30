@@ -22,13 +22,12 @@ function createImportAnalysis(): IFileAnalysisResult {
     filePath: '/workspace/src/index.ts',
     relations: [
       {
-        kind: 'import',
+        edgeType: 'import',
         sourceId: 'test-source',
         specifier: './utils',
-        type: 'static',
-        resolvedPath: '/workspace/src/utils.ts',
-        fromFilePath: '/workspace/src/index.ts',
-        toFilePath: '/workspace/src/utils.ts',
+        timing: 'static',
+        from: { kind: 'file', filePath: '/workspace/src/index.ts' },
+        target: { kind: 'file', path: '/workspace/src/utils.ts', pathKind: 'absolute', specifier: './utils' },
       },
     ],
   };

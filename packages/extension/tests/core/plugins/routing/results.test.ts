@@ -13,15 +13,14 @@ import {
 describe('routing/results', () => {
   it('builds distinct relation keys for resolved call targets', () => {
     const baseRelation = {
-      kind: 'call' as const,
+      edgeType: 'call' as const,
       sourceId: 'call:run',
-      fromFilePath: 'src/app.ts',
-      fromSymbolId: 'src/app.ts:function:run',
+      from: { kind: 'symbol' as const, symbolId: 'src/app.ts:function:run', filePath: 'src/app.ts' },
       specifier: './lib',
     };
 
-    expect(getRelationKey({ ...baseRelation, toFilePath: 'src/a.ts' })).not.toEqual(
-      getRelationKey({ ...baseRelation, toFilePath: 'src/b.ts' }),
+    expect(getRelationKey('src/app.ts', { ...baseRelation, target: { kind: 'file', path: 'src/a.ts' } })).not.toEqual(
+      getRelationKey('src/app.ts', { ...baseRelation, target: { kind: 'file', path: 'src/b.ts' } }),
     );
   });
 
@@ -34,10 +33,10 @@ describe('routing/results', () => {
       nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
       nodes: [{ id: 'src/app.ts', nodeType: 'file', label: 'app.ts' }],
       relations: [{
-        kind: 'import',
+        edgeType: 'import',
         sourceId: 'plugin:import',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/lib.ts',
+        from: { kind: 'file', filePath: 'src/app.ts' },
+        target: { kind: 'file', path: 'src/lib.ts', specifier: './lib' },
         specifier: './lib',
       }],
       symbols: [{
@@ -49,7 +48,7 @@ describe('routing/results', () => {
     });
 
     const merged = mergeFileAnalysisResults(base, pluginResult);
-    const projected = toProjectedConnectionsFromFileAnalysis(merged);
+    const projected = toProjectedConnectionsFromFileAnalysis(merged, '');
 
     expect(merged.filePath).toBe('src/app.ts');
     expect(merged.edgeTypes).toEqual([

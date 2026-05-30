@@ -56,22 +56,18 @@ describe('pipeline/plugins/treesitter/runtime/analyzeLua', () => {
     expect(result).not.toBeNull();
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:import',
-        specifier: 'app.model.user',
-        fromFilePath: runnerPath,
-        resolvedPath: path.join(workspaceRoot, 'app/model/user.lua'),
-        toFilePath: path.join(workspaceRoot, 'app/model/user.lua'),
+        from: { kind: 'file', filePath: runnerPath },
+        target: { kind: 'file', path: path.join(workspaceRoot, 'app/model/user.lua'), pathKind: 'absolute', specifier: 'app.model.user' },
       }),
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:import',
-        specifier: 'json',
-        fromFilePath: runnerPath,
-        resolvedPath: null,
-        toFilePath: null,
+        from: { kind: 'file', filePath: runnerPath },
+        target: { kind: 'unresolved', specifier: 'json' },
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([

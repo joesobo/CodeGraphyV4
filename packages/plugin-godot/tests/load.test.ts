@@ -24,11 +24,11 @@ describe('load rule', () => {
 
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('res://scenes/enemy.tscn');
-    expect(connections[0].kind).toBe('load');
-    expect(connections[0].type).toBe('dynamic');
+    expect(connections[0].edgeType).toBe('load');
+    expect(connections[0].timing).toBe('dynamic');
     expect(connections[0].sourceId).toBe('load');
-    expect(connections[0].fromFilePath).toBe(testFile);
-    expect(connections[0].toFilePath).toContain('scenes/enemy.tscn');
+    expect(connections[0].from.filePath).toBe(testFile);
+    expect(connections[0].target.path).toContain('scenes/enemy.tscn');
   });
 
   it('should detect ResourceLoader.load', () => {

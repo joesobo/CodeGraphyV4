@@ -55,22 +55,18 @@ describe('pipeline/plugins/treesitter/runtime/analyzeHaskell', () => {
     expect(result).not.toBeNull();
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:import',
-        specifier: 'App.Model.User',
-        fromFilePath: runnerPath,
-        resolvedPath: path.join(workspaceRoot, 'src/App/Model/User.hs'),
-        toFilePath: path.join(workspaceRoot, 'src/App/Model/User.hs'),
+        from: { kind: 'file', filePath: runnerPath },
+        target: { kind: 'file', path: path.join(workspaceRoot, 'src/App/Model/User.hs'), pathKind: 'absolute', specifier: 'App.Model.User' },
       }),
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:import',
-        specifier: 'Data.Text',
-        fromFilePath: runnerPath,
-        resolvedPath: null,
-        toFilePath: null,
+        from: { kind: 'file', filePath: runnerPath },
+        target: { kind: 'unresolved', specifier: 'Data.Text' },
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([

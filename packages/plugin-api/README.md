@@ -53,8 +53,9 @@ Exact merge behavior:
 
 Path and source rules:
 
-- `filePath`, `fromFilePath`, and resolved `toFilePath` values are absolute workspace paths
-- unresolved package/runtime targets should use `toFilePath: null`
+- `filePath` stays the analyzed file path; relationship evidence may omit `from` when the analyzed file is the source
+- resolved file targets use `target: { kind: "file", path, pathKind, specifier }`; Core materializes final graph endpoints
+- unresolved package/runtime targets should use `target: { kind: "unresolved", specifier }` or `target: { kind: "external", specifier }`
 - `sourceId` in plugin output is plugin-local, like `wikilink` or `import`
 - the host qualifies provenance later, for example `codegraphy.markdown:wikilink`
 
@@ -63,7 +64,7 @@ Symbol analysis:
 - `symbols` describe declarations discovered in a file. Each symbol should have a stable plugin-local `id`, `name`, `kind`, and absolute `filePath`.
 - Optional `range` and `signature` values make navigation, exports, and MCP Graph Query results more precise.
 - Symbol metadata can include scalar fields such as `language`, `source`, and `pluginKind`; the host preserves these for Legend scoping, exports, and Graph Query payloads.
-- `relations` can point at symbols with `fromSymbolId` and `toSymbolId`. The host projects those endpoints into Symbol Nodes and connects files to symbols with `contains` edges.
+- `relations` can point at symbols with `from: { kind: "symbol", symbolId }` and `target: { kind: "symbol", symbolId }`. The host projects those endpoints into Symbol Nodes and connects files to symbols with `contains` edges.
 - Variable-like symbol kinds such as `variable`, `constant`, and `field` project as Variable Nodes under the Symbols Graph Scope. More specific language kinds project as Symbol Nodes unless a plugin contributes its own Node Type and Legend defaults.
 
 Timeline-safe plugins:

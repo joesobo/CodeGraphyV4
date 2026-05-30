@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -14,7 +14,7 @@ function visitCNode(
   node: Parser.SyntaxNode,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'preproc_include') {
@@ -30,7 +30,7 @@ export function analyzeCFile(
   tree: Parser.Tree,
   workspaceRoot: string,
 ): IFileAnalysisResult {
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   walkTree(tree.rootNode, {}, (node) =>
     visitCNode(node, filePath, workspaceRoot, relations, symbols),

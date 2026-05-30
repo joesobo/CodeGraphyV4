@@ -1,12 +1,12 @@
 import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy-dev/core';
 import { executeGraphQuery } from '@codegraphy-dev/core';
-import type { IAnalysisRelation, IAnalysisSymbol } from '../../../../core/plugins/types/contracts';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/contracts';
 
 interface GraphViewProviderQueryAnalyzerLike {
   readStructuredAnalysisSnapshot(): {
     symbols: IAnalysisSymbol[];
-    relations: IAnalysisRelation[];
+    relations: IAnalysisRelationshipEvidence[];
   };
 }
 

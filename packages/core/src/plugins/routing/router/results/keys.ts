@@ -1,38 +1,51 @@
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import {
+  getRelationshipEvidenceSourceNodeId,
+  getRelationshipEvidenceSourceSymbolId,
+  getRelationshipEvidenceSourceFilePath,
+  getRelationshipEvidenceSpecifier,
+  getRelationshipEvidenceTargetNodeId,
+  getRelationshipEvidenceTargetSymbolId,
+  materializeRelationshipTargetPath,
+} from '../../../../analysis/relationshipEvidence';
 
 function getBaseRelationKeyParts(
+  analysisFilePath: string,
   relation: NonNullable<IFileAnalysisResult['relations']>[number],
 ): string[] {
   return [
-    relation.kind,
+    relation.edgeType,
     relation.sourceId,
-    relation.fromFilePath,
-    relation.fromNodeId ?? '',
-    relation.fromSymbolId ?? '',
-    relation.specifier ?? '',
-    relation.type ?? '',
+    getRelationshipEvidenceSourceFilePath(relation, analysisFilePath),
+    getRelationshipEvidenceSourceNodeId(relation) ?? '',
+    getRelationshipEvidenceSourceSymbolId(relation) ?? '',
+    getRelationshipEvidenceSpecifier(relation),
+    relation.timing ?? '',
     relation.variant ?? '',
   ];
 }
 
 function getResolvedRelationKeyParts(
+  workspaceRoot: string,
   relation: NonNullable<IFileAnalysisResult['relations']>[number],
 ): string[] {
   return [
-    relation.toFilePath ?? '',
-    relation.toNodeId ?? '',
-    relation.toSymbolId ?? '',
-    relation.resolvedPath ?? '',
+    materializeRelationshipTargetPath(relation.target, workspaceRoot) ?? '',
+    getRelationshipEvidenceTargetNodeId(relation) ?? '',
+    getRelationshipEvidenceTargetSymbolId(relation) ?? '',
   ];
 }
 
-export function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[number]): string {
-  const key = getBaseRelationKeyParts(relation);
+export function getRelationKey(
+  analysisFilePath: string,
+  relation: NonNullable<IFileAnalysisResult['relations']>[number],
+): string {
+  const key = getBaseRelationKeyParts(analysisFilePath, relation);
 
-  if (relation.kind === 'call' || relation.kind === 'reference') {
-    key.push(...getResolvedRelationKeyParts(relation));
-  } else if (relation.toNodeId || relation.toSymbolId) {
-    key.push(relation.toNodeId ?? '', relation.toSymbolId ?? '');
+  if (relation.edgeType === 'call' || relation.edgeType === 'reference') {
+    key.push(...getResolvedRelationKeyParts('', relation));
+  } else if (getRelationshipEvidenceTargetNodeId(relation) || getRelationshipEvidenceTargetSymbolId(relation)) {
+    key.push(getRelationshipEvidenceTargetNodeId(relation) ?? '', getRelationshipEvidenceTargetSymbolId(relation) ?? '');
   }
 
   return key.join('|');

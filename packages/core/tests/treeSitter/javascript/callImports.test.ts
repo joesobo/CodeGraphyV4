@@ -92,13 +92,11 @@ describe('pipeline/treesitter/javascriptCallImports', () => {
         '/workspace/src/index.ts',
       ),
     ).toEqual({
-      kind: 'import',
+      edgeType: 'import',
       sourceId: TREE_SITTER_SOURCE_IDS.dynamicImport,
-      fromFilePath: '/workspace/src/index.ts',
-      specifier: './utils',
-      resolvedPath: '/workspace/src/utils.ts',
-      toFilePath: '/workspace/src/utils.ts',
-      type: 'dynamic',
+      from: { kind: 'file', filePath: '/workspace/src/index.ts' },
+      target: { kind: 'file', path: '/workspace/src/utils.ts', pathKind: 'absolute', specifier: './utils' },
+      timing: 'dynamic',
     });
     expect(resolveTreeSitterImportPath).toHaveBeenCalledWith('/workspace/src/index.ts', './utils');
   });
@@ -129,13 +127,11 @@ describe('pipeline/treesitter/javascriptCallImports', () => {
         '/workspace/src/index.ts',
       ),
     ).toEqual({
-      kind: 'import',
+      edgeType: 'import',
       sourceId: TREE_SITTER_SOURCE_IDS.commonjsRequire,
-      fromFilePath: '/workspace/src/index.ts',
-      specifier: './missing',
-      resolvedPath: null,
-      toFilePath: null,
-      type: 'require',
+      from: { kind: 'file', filePath: '/workspace/src/index.ts' },
+      target: { kind: 'unresolved', specifier: './missing' },
+      timing: 'require',
     });
   });
 

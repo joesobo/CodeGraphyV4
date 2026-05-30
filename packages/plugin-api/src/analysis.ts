@@ -40,20 +40,74 @@ export interface IAnalysisSymbol {
   metadata?: GraphMetadata;
 }
 
-export interface IAnalysisRelation {
-  kind: GraphEdgeKind;
+export interface IAnalysisRelationshipFileEndpoint {
+  kind: 'file';
+  filePath?: string;
+}
+
+export interface IAnalysisRelationshipNodeEndpoint {
+  kind: 'node';
+  nodeId: string;
+}
+
+export interface IAnalysisRelationshipSymbolEndpoint {
+  kind: 'symbol';
+  symbolId: string;
+  filePath?: string;
+}
+
+export type IAnalysisRelationshipEndpoint =
+  | IAnalysisRelationshipFileEndpoint
+  | IAnalysisRelationshipNodeEndpoint
+  | IAnalysisRelationshipSymbolEndpoint;
+
+export interface IAnalysisRelationshipFileTarget {
+  kind: 'file';
+  path: string;
+  pathKind?: 'absolute' | 'workspace-relative';
+  specifier?: string;
+}
+
+export interface IAnalysisRelationshipNodeTarget {
+  kind: 'node';
+  nodeId: string;
+  specifier?: string;
+}
+
+export interface IAnalysisRelationshipSymbolTarget {
+  kind: 'symbol';
+  symbolId: string;
+  filePath?: string;
+  specifier?: string;
+}
+
+export interface IAnalysisRelationshipExternalTarget {
+  kind: 'external';
+  specifier: string;
+  packageName?: string;
+}
+
+export interface IAnalysisRelationshipUnresolvedTarget {
+  kind: 'unresolved';
+  specifier: string;
+}
+
+export type IAnalysisRelationshipTarget =
+  | IAnalysisRelationshipFileTarget
+  | IAnalysisRelationshipNodeTarget
+  | IAnalysisRelationshipSymbolTarget
+  | IAnalysisRelationshipExternalTarget
+  | IAnalysisRelationshipUnresolvedTarget;
+
+export interface IAnalysisRelationshipEvidence {
+  edgeType: GraphEdgeKind;
   pluginId?: string;
   sourceId: string;
-  fromFilePath: string;
-  toFilePath?: string | null;
-  fromNodeId?: string;
-  toNodeId?: string;
-  fromSymbolId?: string;
-  toSymbolId?: string;
+  from?: IAnalysisRelationshipEndpoint;
+  target: IAnalysisRelationshipTarget;
   specifier?: string;
-  type?: string;
+  timing?: string;
   variant?: string;
-  resolvedPath?: string | null;
   metadata?: GraphMetadata;
 }
 
@@ -63,5 +117,5 @@ export interface IFileAnalysisResult {
   edgeTypes?: IPluginEdgeType[];
   nodes?: IAnalysisNode[];
   symbols?: IAnalysisSymbol[];
-  relations?: IAnalysisRelation[];
+  relations?: IAnalysisRelationshipEvidence[];
 }

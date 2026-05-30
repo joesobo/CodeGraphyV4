@@ -5,10 +5,11 @@ describe('graphCache/database/relation/descriptorProperties', () => {
   it('serializes relation descriptor properties with empty-string fallbacks', () => {
     expect(
       createRelationDescriptorProperties({
-        kind: 'import',
+        edgeType: 'import',
         sourceId: 'core:treesitter',
-        fromFilePath: 'src/app.ts',
-      }),
+        from: { kind: 'file', filePath: 'src/app.ts' },
+        target: { kind: 'unresolved', specifier: '' },
+      }, '/workspace'),
     ).toEqual([
       'pluginId: ""',
       'specifier: ""',
@@ -22,22 +23,22 @@ describe('graphCache/database/relation/descriptorProperties', () => {
   it('serializes explicit relation fields and metadata as cypher-safe JSON', () => {
     expect(
       createRelationDescriptorProperties({
-        kind: 'call',
+        edgeType: 'call',
         sourceId: 'plugin:java',
-        fromFilePath: 'src/app.ts',
+        from: { kind: 'file', filePath: 'src/app.ts' },
         pluginId: 'plugin:java',
         specifier: 'com.acme.Service',
-        type: 'static',
+        timing: 'static',
         variant: 'declaration',
-        resolvedPath: 'src/lib.ts',
+        target: { kind: 'file', path: 'src/lib.ts', pathKind: 'workspace-relative' },
         metadata: { depth: 2, exported: true, note: 'hello' },
-      }),
+      }, '/workspace'),
     ).toEqual([
       'pluginId: "plugin:java"',
       'specifier: "com.acme.Service"',
       'relationType: "static"',
       'variant: "declaration"',
-      'resolvedPath: "src/lib.ts"',
+      'resolvedPath: "/workspace/src/lib.ts"',
       'metadataJson: "{\\"depth\\":2,\\"exported\\":true,\\"note\\":\\"hello\\"}"',
     ]);
   });

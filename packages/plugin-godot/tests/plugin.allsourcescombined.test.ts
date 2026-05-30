@@ -62,7 +62,7 @@ describe('all sources combined', () => {
 
       expect(loads).toHaveLength(1);
       expect(loads[0].specifier).toBe('res://data/player_config.tres');
-      expect(loads[0].type).toBe('dynamic');
+      expect(loads[0].timing).toBe('dynamic');
 
       expect(extendsConns).toHaveLength(1);
       expect(extendsConns[0].specifier).toBe('res://scripts/character_base.gd');

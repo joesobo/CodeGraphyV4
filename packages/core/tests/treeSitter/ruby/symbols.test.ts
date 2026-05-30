@@ -48,10 +48,9 @@ describe('treeSitter/analyzeRuby/symbols', () => {
     ]);
     expect(relations).toEqual([
       expect.objectContaining({
-        kind: 'inherit',
-        specifier: 'BaseRunner',
-        resolvedPath: '/workspace/base.rb',
-        toFilePath: '/workspace/base.rb',
+        edgeType: 'inherit',
+        from: { kind: 'file', filePath: '/workspace/app.rb' },
+        target: { kind: 'file', path: '/workspace/base.rb', pathKind: 'absolute', specifier: 'BaseRunner' },
       }),
     ]);
   });

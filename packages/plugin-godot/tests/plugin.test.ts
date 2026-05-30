@@ -181,6 +181,6 @@ describe('createGDScriptPlugin lifecycle', () => {
       const content = 'var p: Player';
       const analysis = await plugin.analyzeFile('/workspace/scripts/test.gd', content, '/workspace');
       expect(analysis.relations.some(relation => relation.specifier === 'Player')).toBe(true);
-      expect(analysis.relations.some(relation => relation.kind === 'reference')).toBe(true);
+      expect(analysis.relations.some(relation => relation.edgeType === 'reference')).toBe(true);
     });
 });

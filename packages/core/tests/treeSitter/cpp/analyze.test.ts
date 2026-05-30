@@ -64,24 +64,20 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
     expect(result).not.toBeNull();
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:include',
-        type: 'include',
-        specifier: 'lib/widget.hpp',
-        fromFilePath: appPath,
-        resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
-        toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+        timing: 'include',
+        from: { kind: 'file', filePath: appPath },
+        target: { kind: 'file', path: path.join(workspaceRoot, 'src/lib/widget.hpp'), pathKind: 'absolute', specifier: 'lib/widget.hpp' },
       }),
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:include',
-        type: 'include',
-        specifier: 'vector',
-        fromFilePath: appPath,
-        resolvedPath: null,
-        toFilePath: null,
+        timing: 'include',
+        from: { kind: 'file', filePath: appPath },
+        target: { kind: 'unresolved', specifier: 'vector' },
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([

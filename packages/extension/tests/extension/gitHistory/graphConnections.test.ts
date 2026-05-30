@@ -1,6 +1,24 @@
 import { describe, expect, it } from 'vitest';
+import type { IAnalysisRelationshipEvidence } from '../../../src/core/plugins/types/contracts';
 import type { IGraphEdge } from '../../../src/shared/graph/contracts';
 import { appendGitHistoryAnalysisEdges } from '../../../src/extension/gitHistory/graphConnections';
+
+function importRelation(
+  path: string | null,
+  pluginId?: string,
+): IAnalysisRelationshipEvidence {
+  return {
+    edgeType: 'import',
+    pluginId,
+    sourceId: 'import',
+    specifier: path ? './b' : './missing',
+    timing: 'static',
+    from: { kind: 'file', filePath: '/workspace/src/a.ts' },
+    target: path
+      ? { kind: 'file', path, pathKind: 'absolute', specifier: './b' }
+      : { kind: 'unresolved', specifier: './missing' },
+  };
+}
 
 describe('gitHistory/graphConnections', () => {
   it('skips unresolved relations and suppresses duplicate edges', () => {
@@ -10,8 +28,8 @@ describe('gitHistory/graphConnections', () => {
     appendGitHistoryAnalysisEdges({
       analysis: {
         relations: [
-          { specifier: './missing', type: 'static', resolvedPath: null, kind: 'import', sourceId: 'import', fromFilePath: '/workspace/src/a.ts' },
-          { specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts', kind: 'import', sourceId: 'import', fromFilePath: '/workspace/src/a.ts' },
+          importRelation(null),
+          importRelation('/workspace/src/b.ts'),
         ],
       },
       edgeSet,
@@ -30,7 +48,7 @@ describe('gitHistory/graphConnections', () => {
 
     appendGitHistoryAnalysisEdges({
       analysis: {
-        relations: [{ specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts', kind: 'import', sourceId: 'import', fromFilePath: '/workspace/src/a.ts' }],
+        relations: [importRelation('/workspace/src/b.ts')],
       },
       edgeSet,
       edges,
@@ -47,14 +65,7 @@ describe('gitHistory/graphConnections', () => {
 
     appendGitHistoryAnalysisEdges({
       analysis: {
-        relations: [{
-          sourceId: 'import',
-          specifier: './b',
-          type: 'static',
-          resolvedPath: '/workspace/src/b.ts',
-          kind: 'import',
-          fromFilePath: '/workspace/src/a.ts',
-        }],
+        relations: [importRelation('/workspace/src/b.ts')],
       },
       edgeSet,
       edges,
@@ -89,15 +100,7 @@ describe('gitHistory/graphConnections', () => {
 
     appendGitHistoryAnalysisEdges({
       analysis: {
-        relations: [{
-          sourceId: 'import',
-          specifier: './b',
-          type: 'static',
-          resolvedPath: '/workspace/src/b.ts',
-          kind: 'import',
-          pluginId: 'plugin.enricher',
-          fromFilePath: '/workspace/src/a.ts',
-        }],
+        relations: [importRelation('/workspace/src/b.ts', 'plugin.enricher')],
       },
       edgeSet,
       edges,

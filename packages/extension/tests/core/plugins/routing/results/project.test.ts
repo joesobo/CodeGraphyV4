@@ -15,29 +15,29 @@ describe('routing/results/project', () => {
       nodeTypes: [],
       nodes: [],
       relations: [
-        { kind: 'import', sourceId: 'plugin:import', fromFilePath: 'src/app.ts', toFilePath: 'src/lib.ts' },
+        { edgeType: 'import', sourceId: 'plugin:import', from: { kind: 'file', filePath: 'src/app.ts' }, target: { kind: 'file', path: 'src/lib.ts' } },
         {
-          kind: 'import',
+          edgeType: 'import',
           sourceId: 'plugin:kept',
-          fromFilePath: 'src/app.ts',
-          toFilePath: 'src/kept.ts',
+          from: { kind: 'file', filePath: 'src/app.ts' },
+          target: { kind: 'file', path: 'src/kept.ts' },
           pluginId: 'existing-plugin',
         },
       ],
       symbols: [],
     }).relations).toEqual([
       {
-        kind: 'import',
+        edgeType: 'import',
         sourceId: 'plugin:import',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/lib.ts',
+        from: { kind: 'file', filePath: 'src/app.ts' },
+        target: { kind: 'file', path: 'src/lib.ts' },
         pluginId: 'plugin',
       },
       {
-        kind: 'import',
+        edgeType: 'import',
         sourceId: 'plugin:kept',
-        fromFilePath: 'src/app.ts',
-        toFilePath: 'src/kept.ts',
+        from: { kind: 'file', filePath: 'src/app.ts' },
+        target: { kind: 'file', path: 'src/kept.ts' },
         pluginId: 'existing-plugin',
       },
     ]);
@@ -68,17 +68,17 @@ describe('routing/results/project', () => {
       nodeTypes: [],
       nodes: [],
       relations: [{
-        kind: 'call',
+        edgeType: 'call',
         pluginId: 'plugin',
         sourceId: 'plugin:call',
-        fromFilePath: 'src/app.ts',
-        resolvedPath: 'src/lib.ts',
-        type: 'dynamic',
+        from: { kind: 'file', filePath: 'src/app.ts' },
+        target: { kind: 'file', path: 'src/lib.ts' },
+        timing: 'dynamic',
         variant: 'async',
         metadata: { line: 10 },
       }],
       symbols: [],
-    })).toEqual([{
+    }, '')).toEqual([{
       kind: 'call',
       pluginId: 'plugin',
       sourceId: 'plugin:call',
@@ -97,6 +97,6 @@ describe('routing/results/project', () => {
       nodeTypes: [],
       nodes: [],
       symbols: [],
-    })).toEqual([]);
+    }, '')).toEqual([]);
   });
 });

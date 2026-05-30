@@ -1,13 +1,14 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import { TREE_SITTER_SOURCE_IDS } from '../languages';
 import { resolveTreeSitterImportPath } from '../resolve';
 import { getIdentifierText, getStringSpecifier } from '../analyze/nodes';
+import { createFileTarget } from '../analyze/results';
 
 export function getImportRelationForJavaScriptCallExpression(
   callExpression: Parser.SyntaxNode,
   filePath: string,
-): IAnalysisRelation | null {
+): IAnalysisRelationshipEvidence | null {
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
   const argumentsNode = callExpression.childForFieldName('arguments')
     ?? callExpression.namedChildren.find((child) => child.type === 'arguments');
@@ -22,13 +23,11 @@ export function getImportRelationForJavaScriptCallExpression(
   const resolvedPath = resolveTreeSitterImportPath(filePath, specifier);
   if (calleeNode?.type === 'import') {
     return {
-      kind: 'import',
+      edgeType: 'import',
       sourceId: TREE_SITTER_SOURCE_IDS.dynamicImport,
-      fromFilePath: filePath,
-      specifier,
-      resolvedPath,
-      toFilePath: resolvedPath,
-      type: 'dynamic',
+      from: { kind: 'file', filePath },
+      target: createFileTarget(resolvedPath, specifier),
+      timing: 'dynamic',
     };
   }
 
@@ -37,12 +36,10 @@ export function getImportRelationForJavaScriptCallExpression(
   }
 
   return {
-    kind: 'import',
+    edgeType: 'import',
     sourceId: TREE_SITTER_SOURCE_IDS.commonjsRequire,
-    fromFilePath: filePath,
-    specifier,
-    resolvedPath,
-    toFilePath: resolvedPath,
-    type: 'require',
+    from: { kind: 'file', filePath },
+    target: createFileTarget(resolvedPath, specifier),
+    timing: 'require',
   };
 }

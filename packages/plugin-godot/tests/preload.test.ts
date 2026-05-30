@@ -24,8 +24,8 @@ describe('preload rule', () => {
 
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('res://scenes/player.gd');
-    expect(connections[0].kind).toBe('load');
-    expect(connections[0].type).toBe('static');
+    expect(connections[0].edgeType).toBe('load');
+    expect(connections[0].timing).toBe('static');
     expect(connections[0].sourceId).toBe('preload');
   });
 
@@ -89,7 +89,7 @@ describe('preload rule', () => {
     const connections = detectPreload(content, testFile, ctx);
 
     expect(connections).toHaveLength(1);
-    expect(connections[0].resolvedPath).toContain('scripts/player.gd');
+    expect(connections[0].target.path).toContain('scripts/player.gd');
   });
 
   it('should detect preload with no space before parenthesis', () => {

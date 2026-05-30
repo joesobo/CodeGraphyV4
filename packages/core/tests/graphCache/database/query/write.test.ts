@@ -29,6 +29,7 @@ describe('graphCache/database/writeStatements', () => {
 
     persistAnalysisEntry(
       {} as never,
+      '/workspace',
       '/workspace/src/app.ts',
       {
         mtime: 10,
@@ -44,10 +45,10 @@ describe('graphCache/database/writeStatements', () => {
           ],
           relations: [
             {
-              filePath: '/workspace/src/app.ts',
-              fromFilePath: '/workspace/src/app.ts',
-              kind: 'import',
+              edgeType: 'import',
+              from: { kind: 'file', filePath: '/workspace/src/app.ts' },
               sourceId: 'plugin:import',
+              target: { kind: 'unresolved', specifier: '' },
             },
           ],
         },
@@ -59,12 +60,13 @@ describe('graphCache/database/writeStatements', () => {
     expect(createRelationStatementSpy).toHaveBeenCalledWith(
       '/workspace/src/app.ts',
       {
-        filePath: '/workspace/src/app.ts',
-        fromFilePath: '/workspace/src/app.ts',
-        kind: 'import',
+        edgeType: 'import',
+        from: { kind: 'file', filePath: '/workspace/src/app.ts' },
         sourceId: 'plugin:import',
+        target: { kind: 'unresolved', specifier: '' },
       },
       0,
+      '/workspace',
     );
     expect(runStatementSyncSpy).toHaveBeenNthCalledWith(3, {}, 'RELATION');
   });
@@ -76,6 +78,7 @@ describe('graphCache/database/writeStatements', () => {
 
     persistAnalysisEntry(
       {} as never,
+      '/workspace',
       '/workspace/src/app.ts',
       {
         mtime: 10,

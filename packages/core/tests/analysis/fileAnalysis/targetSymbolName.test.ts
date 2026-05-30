@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import { resolveTargetSymbolId } from '../../../src/analysis/fileAnalysis/targetSymbolName';
@@ -14,12 +14,12 @@ function symbol(filePath: string, name: string): IAnalysisSymbol {
   };
 }
 
-function relation(overrides: Partial<IAnalysisRelation>): IAnalysisRelation {
+function relation(overrides: Partial<IAnalysisRelationshipEvidence>): IAnalysisRelationshipEvidence {
   return {
-    fromFilePath: '/workspace/src/source.ts',
-    kind: 'import',
+    edgeType: 'import',
+    from: { kind: 'file', filePath: '/workspace/src/source.ts' },
     sourceId: 'test-source',
-    toFilePath: '/workspace/src/target.ts',
+    target: { kind: 'file', path: '/workspace/src/target.ts', pathKind: 'absolute' },
     ...overrides,
   };
 }

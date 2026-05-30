@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -23,7 +23,7 @@ import { walkTree } from '../analyze/walk';
 type JavaScriptVisitContext = {
   filePath: string;
   importedBindings: Map<string, ImportedBinding>;
-  relations: IAnalysisRelation[];
+  relations: IAnalysisRelationshipEvidence[];
   state: SymbolWalkState;
   symbols: IAnalysisSymbol[];
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void;
@@ -72,7 +72,7 @@ function visitJavaScriptNode(
   state: SymbolWalkState,
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> | void {
@@ -85,7 +85,7 @@ export function analyzeJavaScriptFamilyFile(
   tree: Parser.Tree,
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   walkTree(tree.rootNode, {}, (node, state, walk) =>
     visitJavaScriptNode(node, state, walk, filePath, relations, symbols, importedBindings),

@@ -5,7 +5,7 @@
  * @module plugins/godot/sources/project-settings
  */
 
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { materializeResolvedPath } from '../resolved-path';
 import {
@@ -43,8 +43,8 @@ export function detect(
   content: string,
   filePath: string,
   ctx: GDScriptRuleContext,
-): IAnalysisRelation[] {
-  const relations: IAnalysisRelation[] = [];
+): IAnalysisRelationshipEvidence[] {
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
   for (const setting of parseGodotProjectSettingsDocument(content).settings) {
@@ -63,13 +63,14 @@ export function detect(
       : null;
 
     relations.push({
-      kind: 'load',
-      specifier: reference.specifier,
-      resolvedPath,
-      type: 'static',
+      edgeType: 'load',
+      timing: 'static',
       sourceId: 'project-settings',
-      fromFilePath: filePath,
-      toFilePath: resolvedPath,
+      specifier: reference.specifier,
+      from: { kind: 'file', filePath },
+      target: resolvedPath
+        ? { kind: 'file', path: resolvedPath, pathKind: 'absolute', specifier: reference.specifier }
+        : { kind: 'unresolved', specifier: reference.specifier },
     });
   }
 

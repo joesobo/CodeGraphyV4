@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import type { IAnalysisRelation } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence } from '@codegraphy-dev/plugin-api';
 import type { ImportedBinding } from '../analyze/model';
 import { addImportRelation } from '../analyze/results';
 import { getRubyRequireConstantName, resolveRubyRequirePath } from './paths';
@@ -12,7 +12,7 @@ export function handleRubyRequireCall(
   node: Parser.SyntaxNode,
   filePath: string,
   workspaceRoot: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: Map<string, ImportedBinding>,
 ): boolean {
   const methodName = node.childForFieldName('method')?.text;

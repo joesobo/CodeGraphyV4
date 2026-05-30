@@ -58,31 +58,25 @@ describe('pipeline/plugins/treesitter/runtime/analyzeRuby', () => {
     expect(result).not.toBeNull();
     expect(result?.relations).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:import',
-        specifier: '../base/base_runner',
-        fromFilePath: runnerPath,
-        resolvedPath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
-        toFilePath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
+        from: { kind: 'file', filePath: runnerPath },
+        target: { kind: 'file', path: path.join(workspaceRoot, 'lib/base/base_runner.rb'), pathKind: 'absolute', specifier: '../base/base_runner' },
       }),
       expect.objectContaining({
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:import',
-        specifier: 'json',
-        fromFilePath: runnerPath,
-        resolvedPath: null,
-        toFilePath: null,
+        from: { kind: 'file', filePath: runnerPath },
+        target: { kind: 'unresolved', specifier: 'json' },
       }),
       expect.objectContaining({
-        kind: 'inherit',
+        edgeType: 'inherit',
         pluginId: 'codegraphy.treesitter',
         sourceId: 'codegraphy.treesitter:inherit',
-        specifier: 'BaseRunner',
-        fromFilePath: runnerPath,
-        resolvedPath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
-        toFilePath: path.join(workspaceRoot, 'lib/base/base_runner.rb'),
+        from: { kind: 'file', filePath: runnerPath },
+        target: { kind: 'file', path: path.join(workspaceRoot, 'lib/base/base_runner.rb'), pathKind: 'absolute', specifier: 'BaseRunner' },
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([

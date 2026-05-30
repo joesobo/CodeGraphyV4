@@ -71,20 +71,20 @@ describe('CorePluginRegistry', () => {
       analyzeFile: async filePath => ({
         filePath,
         relations: [{
-          kind: 'reference',
+          edgeType: 'reference',
           sourceId: 'test-reference',
-          fromFilePath: filePath,
-          toFilePath: 'target.test',
+          from: { kind: 'file', filePath },
+          target: { kind: 'file', path: 'target.test', pathKind: 'workspace-relative' },
         }],
       }),
     }));
     registry.setCoreAnalyzeFileResult(async filePath => ({
       filePath,
       relations: [{
-        kind: 'import',
+        edgeType: 'import',
         sourceId: 'core-import',
-        fromFilePath: filePath,
-        toFilePath: 'core.test',
+        from: { kind: 'file', filePath },
+        target: { kind: 'file', path: 'core.test', pathKind: 'workspace-relative' },
       }],
     }));
 

@@ -38,8 +38,8 @@ describe('Godot GDScript Plugin Integration', () => {
 
       // player.gd preloads res://scripts/utils/math_helpers.gd which exists in the workspace
       const resolvedPaths = connections
-        .filter(conn => conn.resolvedPath !== null)
-        .map(conn => path.relative(workspaceRoot, conn.resolvedPath!).replace(/\\/g, '/'));
+        .filter(conn => conn.target.path !== null)
+        .map(conn => path.relative(workspaceRoot, conn.target.path!).replace(/\\/g, '/'));
 
       expect(resolvedPaths).toContain('scripts/utils/math_helpers.gd');
     });
@@ -51,11 +51,11 @@ describe('Godot GDScript Plugin Integration', () => {
       const content = fs.readFileSync(filePath, 'utf-8');
 
       const connections = (await plugin.analyzeFile(filePath, content, workspaceRoot)).relations ?? [];
-      const inWorkspace = connections.filter(conn => conn.resolvedPath !== null);
+      const inWorkspace = connections.filter(conn => conn.target.path !== null);
 
       for (const conn of inWorkspace) {
-        expect(path.isAbsolute(conn.resolvedPath!)).toBe(true);
-        const rel = path.relative(workspaceRoot, conn.resolvedPath!);
+        expect(path.isAbsolute(conn.target.path!)).toBe(true);
+        const rel = path.relative(workspaceRoot, conn.target.path!);
         expect(rel).not.toMatch(/^\.\./);
       }
     });
@@ -74,8 +74,8 @@ describe('Godot GDScript Plugin Integration', () => {
       );
       for (const conn of tscnOrTres) {
         // Either null or pointing to a non-.gd file — never a ghost gd path
-        if (conn.resolvedPath !== null) {
-          expect(conn.resolvedPath).not.toMatch(/\.gd$/);
+        if (conn.target.path !== null) {
+          expect(conn.target.path).not.toMatch(/\.gd$/);
         }
       }
     });
@@ -100,8 +100,8 @@ describe('Godot GDScript Plugin Integration', () => {
         const connections = (await plugin.analyzeFile(absPath, content, workspaceRoot)).relations ?? [];
 
         for (const conn of connections) {
-          if (conn.resolvedPath) {
-            const toRel = path.relative(workspaceRoot, conn.resolvedPath).replace(/\\/g, '/');
+          if (conn.target.path) {
+            const toRel = path.relative(workspaceRoot, conn.target.path).replace(/\\/g, '/');
             if (scriptFiles.includes(toRel)) {
               allConnections.push({ from: relPath, to: toRel });
             }
@@ -129,8 +129,8 @@ describe('Godot GDScript Plugin Integration', () => {
         const connections = (await plugin.analyzeFile(absPath, content, workspaceRoot)).relations ?? [];
 
         for (const conn of connections) {
-          if (conn.resolvedPath) {
-            const toRel = path.relative(workspaceRoot, conn.resolvedPath).replace(/\\/g, '/');
+          if (conn.target.path) {
+            const toRel = path.relative(workspaceRoot, conn.target.path).replace(/\\/g, '/');
             allConnections.push({ from: relPath, to: toRel });
           }
         }

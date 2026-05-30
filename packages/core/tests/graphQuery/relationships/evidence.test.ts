@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IAnalysisRelation, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
+import type { IAnalysisRelationshipEvidence, IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../../src/graph/contracts';
 import {
   createRelationEvidence,
@@ -41,35 +41,34 @@ const symbols: IAnalysisSymbol[] = [
 
 describe('core/graphQuery/relationships/evidence', () => {
   it('creates relation evidence for visible file and node endpoints with provenance and symbols', () => {
-    const relations: IAnalysisRelation[] = [
+    const relations: IAnalysisRelationshipEvidence[] = [
       {
-        kind: 'reference',
+        edgeType: 'reference',
         pluginId: 'plugin.symbols',
         sourceId: 'symbol-reference',
-        fromFilePath: 'src/a.ts',
-        toFilePath: 'src/b.ts',
-        toSymbolId: 'src/b.ts#User:type',
+        from: { kind: 'file', filePath: 'src/a.ts' },
+        target: { kind: 'symbol', symbolId: 'src/b.ts#User:type', filePath: 'src/b.ts' },
       },
       {
-        kind: 'reference',
+        edgeType: 'reference',
         pluginId: 'plugin.symbols',
         sourceId: 'node-reference',
-        fromFilePath: 'src/a.ts',
-        fromNodeId: 'src/a.ts',
-        toNodeId: 'src/b.ts',
+        from: { kind: 'node', nodeId: 'src/a.ts' },
+        target: { kind: 'node', nodeId: 'src/b.ts' },
       },
       {
-        kind: 'reference',
+        edgeType: 'reference',
         pluginId: 'plugin.symbols',
         sourceId: 'missing-target',
-        fromFilePath: 'src/a.ts',
+        from: { kind: 'file', filePath: 'src/a.ts' },
+        target: { kind: 'unresolved', specifier: '' },
       },
       {
-        kind: 'import',
+        edgeType: 'import',
         pluginId: 'plugin.symbols',
         sourceId: 'invisible-import',
-        fromFilePath: 'src/a.ts',
-        toFilePath: 'src/b.ts',
+        from: { kind: 'file', filePath: 'src/a.ts' },
+        target: { kind: 'file', path: 'src/b.ts' },
       },
     ];
     const visibleEdgeKeys = new Set([

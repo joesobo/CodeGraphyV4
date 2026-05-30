@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '@codegraphy-dev/plugin-api';
@@ -27,7 +27,7 @@ function visitPhpNode(
   filePath: string,
   sourceRoot: string | null,
   namespaceName: string | null,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> | void {
@@ -65,7 +65,7 @@ export function analyzePhpFile(
   tree: Parser.Tree,
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
-  const relations: IAnalysisRelation[] = [];
+  const relations: IAnalysisRelationshipEvidence[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const { namespaceName, sourceRoot } = resolvePhpSourceInfo(filePath, tree);
   walkTree(tree.rootNode, {}, (node) =>

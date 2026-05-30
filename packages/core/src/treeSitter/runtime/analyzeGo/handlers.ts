@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import { getImportedBindingByIdentifier, getImportedBindingByPropertyAccess } from '../analyze/imports';
@@ -64,7 +64,7 @@ export function handleGoTypeSpec(
 export function handleGoCallExpression(
   node: Parser.SyntaxNode,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
   currentSymbolId?: string,
 ): void {

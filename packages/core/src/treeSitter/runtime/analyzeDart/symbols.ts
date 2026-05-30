@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
 import type {
-  IAnalysisRelation,
+  IAnalysisRelationshipEvidence,
   IAnalysisSymbol,
 } from '@codegraphy-dev/plugin-api';
 import type { SymbolWalkState, TreeWalkAction } from '../analyze/model';
@@ -14,7 +14,7 @@ import {
 export function handleDartClassDefinition(
   node: Parser.SyntaxNode,
   filePath: string,
-  relations: IAnalysisRelation[],
+  relations: IAnalysisRelationshipEvidence[],
   symbols: IAnalysisSymbol[],
 ): void {
   addDartNamedSymbol(symbols, filePath, 'class', node);
