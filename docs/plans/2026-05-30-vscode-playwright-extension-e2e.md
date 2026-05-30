@@ -26,6 +26,7 @@ Move CodeGraphy's browser-level graph rendering E2E confidence closer to the act
 - Before Indexing performs analysis, File Discovery should populate the Graph View with File Nodes for the open CodeGraphy Workspace. The user should already have a live graph while processing runs. Indexing enriches that existing graph with Edges and any updated graph metadata rather than replacing an empty loading state with the final graph.
 - The first E2E progress assertion is intentionally narrow: when Indexing starts, the progress bar renders; after Indexing completes, the progress bar disappears.
 - VS Code-window Playwright E2E should use Playwright-observable product behavior only. Do not add a Graph View debug bridge or internal test API for locating Nodes or Edges. Tests should interact with the VS Code window and Graph View the way a user would, using visible UI, browser frames, canvas pixels, screenshots, accessibility where available, and real pointer/keyboard actions.
+- Stable accessibility labels are the preferred way for Playwright to locate real Graph View UI. Adding labels is product work, not just test work, because it improves accessibility while giving tests durable handles for user-visible controls and state.
 
 ## First Questions To Resolve
 
