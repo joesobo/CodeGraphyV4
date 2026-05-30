@@ -25,12 +25,12 @@ Move CodeGraphy's browser-level graph rendering E2E confidence closer to the act
 - VS Code-window Playwright E2E runs in CI and should block merges. A visual break in the real Graph View is product breakage, so the CI gate must prove the VS Code Extension can launch, open the Graph View, render the Graph Stage, and show visible Nodes and Edges before a PR merges.
 - Before Indexing performs analysis, File Discovery should populate the Graph View with File Nodes for the open CodeGraphy Workspace. The user should already have a live graph while processing runs. Indexing enriches that existing graph with Edges and any updated graph metadata rather than replacing an empty loading state with the final graph.
 - The first E2E progress assertion is intentionally narrow: when Indexing starts, the progress bar renders; after Indexing completes, the progress bar disappears.
-- VS Code-window Playwright tests may use a Graph View debug bridge to find the rendered screen position of a specific Node or Edge. The bridge is a locator aid, not the assertion by itself. After locating the target, Playwright should still assert user-visible behavior at that position, such as visible canvas pixels, drag movement, or opening the file from a click.
+- VS Code-window Playwright E2E should use Playwright-observable product behavior only. Do not add a Graph View debug bridge or internal test API for locating Nodes or Edges. Tests should interact with the VS Code window and Graph View the way a user would, using visible UI, browser frames, canvas pixels, screenshots, accessibility where available, and real pointer/keyboard actions.
 
 ## First Questions To Resolve
 
 1. Which assertions are product-critical enough for E2E: Node render, Edge render, Graph Stage fit, Depth Mode, 3D fallback, plugin Graph View actions, theme rendering, or all of them?
-2. What debug/test hooks are acceptable in production webview code, and which must stay test-only?
+2. What selectors, labels, or accessible names should production UI expose so Playwright can find user-visible Graph View controls without internal debug hooks?
 
 ## Candidate First Slice
 
@@ -51,7 +51,7 @@ Only after that is green should we migrate the richer standalone Playwright cove
 
 ## Risks
 
-- VS Code webview inspection may require brittle selectors, frame lookup, or additional debug hooks.
+- VS Code webview inspection may require brittle selectors, frame lookup, or pixel/screenshot assertions.
 - Canvas pixel assertions can be noisy across Electron, GPU, headless, and CI environments.
 - Running real VS Code-window E2E in CI may increase flake rate and wall-clock time, but that cost is acceptable for product-visible Graph View regressions.
 - Deleting the Chromium harness too early could lose coverage for 3D/WebGL fallback and plugin Graph View actions.
