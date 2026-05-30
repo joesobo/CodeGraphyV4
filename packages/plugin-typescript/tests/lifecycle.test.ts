@@ -53,6 +53,7 @@ describe('TypeScript plugin lifecycle', () => {
         workspaceRoot,
       );
 
+      expect(changedFiles).toHaveLength(1);
       expect(changedFiles).toEqual(['src/app.ts']);
     } finally {
       removeWorkspaceRoot(workspaceRoot);
@@ -70,6 +71,7 @@ describe('TypeScript plugin lifecycle', () => {
         workspaceRoot,
       );
 
+      expect(changedFiles).toBeDefined();
       expect(changedFiles).toEqual([]);
     } finally {
       removeWorkspaceRoot(workspaceRoot);

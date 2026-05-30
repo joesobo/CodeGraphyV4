@@ -1,15 +1,22 @@
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
-import { readTypeScriptAliasConfig } from './config';
-import { COMPILER_OPTIONS_PATHS_SOURCE_ID, TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE } from './edgeType';
+import { readTypeScriptAliasConfig } from './compilerOptions';
 import { collectTypeScriptFilePaths, isTypeScriptConfigFile, isTypeScriptSourceFile } from './files';
 import { resolveAliasImport } from './resolve';
 import { extractModuleSpecifiers } from './specifiers';
+
+export const TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE = {
+  id: 'codegraphy.typescript:alias-import',
+  label: 'TypeScript Alias Import',
+  defaultColor: '#38BDF8',
+  defaultVisible: true,
+} as const;
+
+const COMPILER_OPTIONS_PATHS_SOURCE_ID = 'compiler-options-paths';
 
 export {
   collectTypeScriptFilePaths,
   isTypeScriptConfigFile,
   isTypeScriptSourceFile,
-  TYPESCRIPT_ALIAS_IMPORT_EDGE_TYPE,
 };
 
 export async function analyzeTypeScriptAliasImports(

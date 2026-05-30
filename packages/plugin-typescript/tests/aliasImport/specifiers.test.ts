@@ -12,8 +12,10 @@ describe('TypeScript Alias Import module specifier extraction', () => {
       "const alsoIgnored = call('@/not-a-module-call');",
       "const literal = '@/not-a-module';",
     ].join('\n');
+    const specifiers = extractModuleSpecifiers('/repo/src/app.ts', source);
 
-    expect(extractModuleSpecifiers('/repo/src/app.ts', source)).toEqual([
+    expect(specifiers).toHaveLength(4);
+    expect(specifiers).toEqual([
       '@/a',
       '@/b',
       '@/c',
@@ -26,7 +28,9 @@ describe('TypeScript Alias Import module specifier extraction', () => {
       "import { Button } from '@/button';",
       "export const App = () => <Button label=\"@/not-a-module\" />;",
     ].join('\n');
+    const specifiers = extractModuleSpecifiers('/repo/src/app.tsx', source);
 
-    expect(extractModuleSpecifiers('/repo/src/app.tsx', source)).toEqual(['@/button']);
+    expect(specifiers).toHaveLength(1);
+    expect(specifiers).toEqual(['@/button']);
   });
 });

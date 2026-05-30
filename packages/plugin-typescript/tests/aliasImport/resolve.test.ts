@@ -1,9 +1,28 @@
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { comparePathMappingSpecificity, type TypeScriptPathMapping } from '../../src/aliasImport/pathMapping';
 import { resolveAliasImport } from '../../src/aliasImport/resolve';
 import { createWorkspaceRoot, removeWorkspaceRoot, writeWorkspaceFile } from '../workspace';
 
 describe('TypeScript Alias Import direct target resolution', () => {
+  it('sorts exact aliases before more specific wildcard aliases before broad wildcard aliases', () => {
+    const mappings: TypeScriptPathMapping[] = [
+      { baseUrl: '/repo', key: '@/*', targets: ['src/*'] },
+      { baseUrl: '/repo', key: '@/*/component', targets: ['src/*/component'] },
+      { baseUrl: '/repo', key: '@/features/*', targets: ['src/features/*'] },
+      { baseUrl: '/repo', key: '@/exact', targets: ['src/exact.ts'] },
+    ];
+    const sortedKeys = mappings.sort(comparePathMappingSpecificity).map(mapping => mapping.key);
+
+    expect(sortedKeys).toHaveLength(4);
+    expect(sortedKeys).toEqual([
+      '@/exact',
+      '@/features/*',
+      '@/*/component',
+      '@/*',
+    ]);
+  });
+
   it('does not resolve exact aliases for different specifiers', () => {
     const workspaceRoot = createWorkspaceRoot();
     try {

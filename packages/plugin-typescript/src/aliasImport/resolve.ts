@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import type { TypeScriptAliasConfig } from './config';
+import type { TypeScriptAliasConfig } from './compilerOptions';
 import { resolveExistingFile } from './fileCandidates';
 import type { TypeScriptPathMapping } from './pathMapping';
 
