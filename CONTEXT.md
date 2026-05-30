@@ -4,7 +4,7 @@ CodeGraphy visualizes relationships in a codebase as an interactive graph so peo
 
 ## Language
 
-### Graph Model
+### Graph Elements
 
 **Relationship Graph**:
 The main CodeGraphy graph that shows relationships between files and related codebase concepts.
@@ -81,6 +81,14 @@ The analyzer or plugin evidence that contributed a relationship to the graph.
 _Avoid_: Edge source when referring to provenance
 
 ### Graph Pipeline
+
+**Graph Model**:
+The Core-owned graph data model after caller-selected graph narrowing and organization stages have been applied. **Graph View** renders a **Graph Model** as the **Visible Graph** after adding presentation-only concerns.
+_Avoid_: Visible Graph when the graph is not specifically the UI-rendered graph, Graph Projection when referring to post-index graph narrowing or organization
+
+**Graph Model Contribution**:
+A plugin-owned graph organization contribution that adjusts graph data before **Graph Scope**, **Filter**, and **Search** decide what remains eligible for a caller. Graph Model Contributions are not Graph View-only behavior.
+_Avoid_: Graph View Projection when the contribution should be available through Core-owned graph model behavior
 
 **Graph Scope**:
 The persisted settings that choose which **Node Types** and **Edge Types** are eligible for downstream graph stages.
@@ -576,14 +584,14 @@ _Avoid_: Graph export
 - **2D Zoom** changes rendered graph scale, while **3D Zoom** changes camera distance.
 - **Continuous Zoom** should use the same zoom step as repeated single zoom actions.
 - **3D Zoom** should clamp camera distance relative to the current graph context so holding zoom out does not make the graph effectively disappear.
-- **Graph Query** behavior should live in a Core Package **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
+- **Graph Query** behavior should live in a Core Package **Module** so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same **Graph Model Contribution**, **Graph Scope**, **Filter**, **Search**, sorting, pagination, structural nodes, and relationship evidence semantics.
 - The **Graph Query** **Module** should return the graph data callers ask for while exposing opt-in query stages such as **Graph Scope** Node Type and Edge Type enablement, **Filter** conditions, **Search**, sorting, and pagination.
 - **Graph Scope** query behavior is about whether Node Types such as files, folders, and packages, and Edge Types such as imports, calls, tests, and nests are enabled; visual styling such as node colors belongs to the **Graph View** Adapter.
 - Core **Edge Types** should use canonical core ids such as `nests`; namespaced ids are appropriate for plugin-owned **Edge Types**.
 - A **Graph Query** configuration should keep stage inputs together: `scope.nodes`, `scope.edges`, `filters`, `search`, `sort`, `limit`, and `offset`.
 - **Show Orphans** remains a boolean **Graph View** presentation setting, not a **Graph Query** configuration field.
 - Structural **Folder Node** and **Workspace Package** projection belongs inside the **Graph Query** **Module**, so the **Graph View** Adapter and **CodeGraphy MCP** Adapter use the same structural graph behavior.
-- When callers opt in to multiple query stages, the **Graph Query** **Module** must apply them in canonical order so stages compound correctly: **Graph Scope** before **Filter**, **Filter** before **Search**, then sorting and pagination.
+- When callers opt in to multiple query stages, the **Graph Query** **Module** must apply them in canonical order so stages compound correctly: **Graph Model Contributions** before **Graph Scope**, **Graph Scope** before **Filter**, **Filter** before **Search**, then sorting and pagination.
 - The **Timeline View** lets users jump through commits in git history.
 - Selecting a **Timeline Snapshot** changes the nodes and edges rendered in the **Visible Graph** inside the **Graph View**.
 - **Timeline Snapshots** still flow through the same **Graph Scope**, **Filter**, **Search**, and view setting stages as the current workspace **Relationship Graph**.
