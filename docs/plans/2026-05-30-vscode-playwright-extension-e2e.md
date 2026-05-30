@@ -25,6 +25,7 @@ Move CodeGraphy's browser-level graph rendering E2E confidence closer to the act
 - VS Code-window Playwright E2E runs in CI and should block merges. A visual break in the real Graph View is product breakage, so the CI gate must prove the VS Code Extension can launch, open the Graph View, render the Graph Stage, and show visible Nodes and Edges before a PR merges.
 - Before Indexing performs analysis, File Discovery should populate the Graph View with File Nodes for the open CodeGraphy Workspace. The user should already have a live graph while processing runs. Indexing enriches that existing graph with Edges and any updated graph metadata rather than replacing an empty loading state with the final graph.
 - The first E2E progress assertion is intentionally narrow: when Indexing starts, the progress bar renders; after Indexing completes, the progress bar disappears.
+- VS Code-window Playwright tests may use a Graph View debug bridge to find the rendered screen position of a specific Node or Edge. The bridge is a locator aid, not the assertion by itself. After locating the target, Playwright should still assert user-visible behavior at that position, such as visible canvas pixels, drag movement, or opening the file from a click.
 
 ## First Questions To Resolve
 
