@@ -48,7 +48,7 @@ describe('GraphIndexStatus', () => {
     expect(screen.getByTestId('graph-index-status').className).toContain('pointer-events-none');
   });
 
-  it('reserves the bottom-right graph control lane so the percent stays readable', () => {
+  it('anchors to the graph bottom and reserves the bottom-right graph control lane', () => {
     render(
       <GraphIndexStatus
         isIndexing={true}
@@ -57,8 +57,11 @@ describe('GraphIndexStatus', () => {
     );
 
     const statusClass = screen.getByTestId('graph-index-status').className;
-    expect(statusClass).toContain('left-0');
-    expect(statusClass).toContain('right-14');
+    expect(statusClass).toContain('left-2');
+    expect(statusClass).toContain('right-12');
+    expect(statusClass).toContain('bottom-2');
+    expect(statusClass).toContain('rounded-md');
+    expect(statusClass).not.toContain('border-t');
     expect(statusClass).not.toContain('inset-x-0');
   });
 

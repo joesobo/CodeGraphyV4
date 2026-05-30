@@ -40,10 +40,10 @@ export interface GraphViewReadyHandlers {
   notifyWebviewReady(): void;
 }
 
-export async function applyWebviewReady(
+export function replayWebviewReadySettings(
   state: GraphViewReadyState,
   handlers: GraphViewReadyHandlers,
-): Promise<boolean> {
+): void {
   handlers.loadGroupsAndFilterPatterns();
   handlers.loadDisabledRulesAndPlugins();
   handlers.sendDepthState();
@@ -66,7 +66,6 @@ export async function applyWebviewReady(
     type: 'MAX_FILES_UPDATED',
     payload: { maxFiles: state.maxFiles },
   });
-  await handlers.sendCachedTimeline();
   handlers.sendMessage({
     type: 'PLAYBACK_SPEED_UPDATED',
     payload: { speed: state.playbackSpeed },
@@ -90,6 +89,14 @@ export async function applyWebviewReady(
   handlers.sendGraphViewContributionStatuses?.();
   handlers.sendPluginWebviewInjections();
   handlers.sendActiveFile();
+}
+
+export async function applyWebviewReady(
+  state: GraphViewReadyState,
+  handlers: GraphViewReadyHandlers,
+): Promise<boolean> {
+  replayWebviewReadySettings(state, handlers);
+  await handlers.sendCachedTimeline();
   await handlers.loadAndSendData();
 
   if (state.hasWorkspace && state.firstAnalysis) {

@@ -13,6 +13,7 @@ import {
   getWorkspacePipelinePluginFilterGroups,
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
+  syncWorkspacePipelinePlugins,
 } from '../plugins/bootstrap';
 import type { WorkspacePipelineSourceOwner } from '../analysisSource';
 import { WorkspacePipelineInternalBase } from './base/internal';
@@ -71,6 +72,16 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     });
     this._workspacePluginReloadQueue = reload.catch(() => undefined);
     return reload;
+  }
+
+  async syncWorkspacePlugins(): Promise<void> {
+    const sync = this._workspacePluginReloadQueue.then(async () => {
+      await syncWorkspacePipelinePlugins(this._registry, {
+        getWorkspaceRoot: () => this._getWorkspaceRoot(),
+      });
+    });
+    this._workspacePluginReloadQueue = sync.catch(() => undefined);
+    return sync;
   }
 
   getPluginFilterPatterns(

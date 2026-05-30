@@ -17,6 +17,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'updateConfig'
   | 'getInstalledPluginDefaultOptions'
   | 'reloadWorkspacePlugins'
+  | 'syncWorkspacePlugins'
   | 'sendPluginStatuses'
   | 'sendContextMenuItems'
   | 'sendPluginToolbarActions'
@@ -41,6 +42,21 @@ export function createGraphViewProviderMessageSettingsContext(
   const config = settingsPersistence.config;
   const persistConfig = async (key: string, value: unknown): Promise<void> =>
     settingsPersistence.persistConfig(key, value);
+  const runWorkspacePluginUpdate = (update: () => Promise<void>): Promise<void> => {
+    source._analyzerInitialized = false;
+    const updatePromise = Promise.resolve()
+      .then(update)
+      .then(() => {
+        source._analyzerInitialized = true;
+      })
+      .finally(() => {
+        if (source._analyzerInitPromise === updatePromise) {
+          source._analyzerInitPromise = undefined;
+        }
+      });
+    source._analyzerInitPromise = updatePromise;
+    return updatePromise;
+  };
 
   return {
     updateDagMode: async dagMode => {
@@ -66,19 +82,15 @@ export function createGraphViewProviderMessageSettingsContext(
         return Promise.resolve();
       }
 
-      source._analyzerInitialized = false;
-      const reloadPromise = Promise.resolve()
-        .then(() => analyzer.reloadWorkspacePlugins!())
-        .then(() => {
-          source._analyzerInitialized = true;
-        })
-        .finally(() => {
-          if (source._analyzerInitPromise === reloadPromise) {
-            source._analyzerInitPromise = undefined;
-          }
-        });
-      source._analyzerInitPromise = reloadPromise;
-      return reloadPromise;
+      return runWorkspacePluginUpdate(() => analyzer.reloadWorkspacePlugins!());
+    },
+    syncWorkspacePlugins: () => {
+      const analyzer = source._analyzer;
+      if (!analyzer?.syncWorkspacePlugins) {
+        return Promise.resolve();
+      }
+
+      return runWorkspacePluginUpdate(() => analyzer.syncWorkspacePlugins!());
     },
     sendPluginStatuses: () => {
       source._sendPluginStatuses();

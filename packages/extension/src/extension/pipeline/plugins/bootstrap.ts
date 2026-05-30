@@ -7,3 +7,6 @@ export {
   initializeWorkspacePipeline,
   type WorkspacePipelineInitializationDependencies,
 } from './bootstrap/initialize';
+export {
+  syncWorkspacePipelinePlugins,
+} from './bootstrap/sync';

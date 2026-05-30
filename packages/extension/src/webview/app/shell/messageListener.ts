@@ -9,7 +9,7 @@ import { parsePluginScopedMessage } from './messages';
 import type { WebviewPluginHost } from '../../pluginHost/manager';
 import { handlePluginInjectMessage } from './messageListener/pluginInjection';
 import { removeDisabledPluginRegistrations } from './messageListener/pluginRegistrations';
-import { postWebviewReadyOnce } from './messageListener/ready';
+import { postWebviewReadyOnce, resetWebviewReadyPosted } from './messageListener/ready';
 
 export interface InjectAssetsParams {
   pluginId: string;
@@ -65,5 +65,6 @@ export function setupMessageListener(
 
   return () => {
     window.removeEventListener('message', handleMessage);
+    resetWebviewReadyPosted(window);
   };
 }
