@@ -18,7 +18,10 @@ describe('TypeScript Alias Import file classification', () => {
       { absolutePath: '/repo/src/app.js', relativePath: 'src/app.js', content: '' },
     ];
 
-    expect(collectTypeScriptFilePaths(files)).toEqual([
+    const typeScriptFiles = collectTypeScriptFilePaths(files);
+
+    expect(typeScriptFiles).toHaveLength(4);
+    expect(typeScriptFiles).toEqual([
       'src/app.ts',
       'src/view.tsx',
       'src/module.mts',
