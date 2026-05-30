@@ -141,6 +141,23 @@ async function runScopedRefreshRequest(
   }
 }
 
+function publishScopedRefreshGraphData(
+  source: GraphViewProviderRefreshMethodsSource,
+  graphData: IGraphData,
+): void {
+  source._rawGraphData = graphData;
+  source._updateViewContext();
+  source._applyViewTransform();
+  source._computeMergedGroups();
+  source._sendGroupsUpdated();
+  source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: source._graphData });
+  source._sendDepthState();
+  source._sendGraphControls?.();
+  source._sendPluginStatuses();
+  source._sendDecorations();
+  source._analyzer?.registry.notifyGraphRebuild(source._graphData);
+}
+
 export function createGraphViewProviderRefreshMethods(
   source: GraphViewProviderRefreshMethodsSource,
   dependencies: GraphViewProviderRefreshMethodDependencies = DEFAULT_DEPENDENCIES,
@@ -233,7 +250,7 @@ export function createGraphViewProviderRefreshMethods(
     if (!graphData) {
       return;
     }
-    rebuildSenders.rebuildAndSend();
+    publishScopedRefreshGraphData(source, graphData);
     sendRefreshState(source);
   };
 
@@ -263,7 +280,7 @@ export function createGraphViewProviderRefreshMethods(
     if (!graphData) {
       return;
     }
-    rebuildSenders.rebuildAndSend();
+    publishScopedRefreshGraphData(source, graphData);
     sendRefreshState(source);
   };
 
