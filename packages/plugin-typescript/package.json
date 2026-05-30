@@ -48,7 +48,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy-dev/plugin-api": "workspace:*"
+    "@codegraphy-dev/plugin-api": "workspace:*",
+    "typescript": "^5.3.3"
   },
   "codegraphy": {
     "type": "plugin",

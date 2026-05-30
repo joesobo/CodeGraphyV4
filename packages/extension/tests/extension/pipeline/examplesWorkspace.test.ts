@@ -5,6 +5,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service/lifecycleFacade';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache/storage';
 
@@ -63,6 +64,8 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     );
 
     await analyzer.initialize();
+    analyzer.registry.unregister('codegraphy.typescript');
+    analyzer.registry.register(createTypeScriptPlugin());
     analyzer.registry.register(createGDScriptPlugin());
 
     const graph = await analyzer.analyze();
@@ -139,6 +142,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-typescript/src/index.ts->example-typescript/src/utils.ts#buildGreeting:function#import',
       'example-typescript/src/index.ts->example-typescript/src/types.ts#UserName:type#type-import',
       'example-typescript/src/utils.ts->example-typescript/src/depth.ts#getDepthTarget:function#import',
+      'example-typescript/src/index.ts->example-typescript/src/alias/greeting.ts#codegraphy.typescript:alias-import',
     ];
 
     const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !hasFileOrSymbolTargetEdge(edgeId));
@@ -181,6 +185,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
         'example-typescript/src/depth.ts',
         'example-typescript/src/leaf.ts',
         'example-typescript/src/types.ts',
+        'example-typescript/src/alias/greeting.ts',
       ]),
     );
   });
