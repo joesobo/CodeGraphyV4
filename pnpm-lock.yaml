@@ -400,6 +400,9 @@ importers:
       '@codegraphy-dev/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
 
 packages:
 

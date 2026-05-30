@@ -80,6 +80,36 @@ describe('graph/contextMenuRuntime/effects', () => {
     expect(dependencies.postMessage).not.toHaveBeenCalled();
   });
 
+  it('skips built-in menu actions that are invalid for the execution selection', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      { kind: 'builtin', action: 'createFile' },
+      nodeContext(['src/app.ts']),
+    );
+
+    expect(dependencies.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('skips plugin menu actions that are invalid for the execution selection', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      {
+        kind: 'plugin',
+        pluginId: 'plugin.test',
+        index: 2,
+        targetId: 'src/app.ts->src/util.ts',
+        targetType: 'edge',
+      },
+      nodeContext(['src/app.ts']),
+    );
+
+    expect(dependencies.postMessage).not.toHaveBeenCalled();
+  });
+
   it('opens the legend prompt for add-node-legend actions', () => {
     const dependencies = createDependencies();
     const runtime = createContextMenuEffectRuntime(dependencies);

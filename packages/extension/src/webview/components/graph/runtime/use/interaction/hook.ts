@@ -6,6 +6,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { resolveGraphContextActionContext } from '../../../contextActions/context';
+import type { GraphContextSelection } from '../../../contextMenu/contracts';
 import { createGraphContextMenuOpeningRuntime } from '../../../contextMenuOpening/runtime';
 import { createGraphInteractionHandlers } from '../../../interactionRuntime/handlers';
 import { applyCursorToGraphSurface } from '../../../support/dom';
@@ -147,7 +148,7 @@ export function useGraphInteractionRuntime({
   });
 
   const getActionContext = useCallback(
-    () => resolveGraphContextActionContext(graphContextSelectionRef.current, {
+    (selection: GraphContextSelection) => resolveGraphContextActionContext(selection, {
       graphViewportScale: readGraphViewportScale(graphMode, refs.fg2dRef.current),
       nodes: graphDataRef.current.nodes,
     }),

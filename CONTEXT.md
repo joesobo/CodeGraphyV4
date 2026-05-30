@@ -194,6 +194,10 @@ _Avoid_: Tree-sitter support when only the parser runtime or grammar package is 
 The indexing stage where plugins add or adjust **Nodes**, **Relationships**, and **Edge Types** after the built-in baseline analysis.
 _Avoid_: Tree-sitter analysis
 
+**Project-Aware Analysis Semantics**:
+Language- or ecosystem-specific relationship evidence that requires reading project configuration, package layout, or framework conventions beyond a single file's syntax.
+_Avoid_: Core Tree-sitter Language Coverage when the behavior needs project-specific configuration
+
 **Graph Projection**:
 The indexing stage that turns discovered files and analysis results into graph nodes and edges.
 _Avoid_: Rendering
@@ -435,8 +439,14 @@ _Avoid_: Graph export
 - Double-clicking a file node should select, focus, and **Open File** as a persistent tab.
 - Single-clicking a non-file node should select and focus it without opening a file.
 - Right-clicking an unselected node should select that node for **Context Selection** but should not preview or open it.
+- Right-clicking a node that is already part of a multi-node selection should keep the multi-node **Context Selection** and open the **Graph Context Menu** for that selected group.
+- Right-clicking a single node can switch the **Focused Node** to that node; right-clicking a selected group member should keep the existing **Focused Node** unchanged.
 - A **Graph Context Menu** is opened from the current **Context Selection** and should present actions that match that selection's target type.
+- A **Graph Context Menu** action should execute against the **Context Selection** snapshot that opened the menu, even if the live graph selection changes before the action runs.
+- A **Graph Context Menu** action that no longer matches its opening **Context Selection** snapshot should not run.
 - Graph Context Menu action availability can be decided by an explicit menu decision model; that model owns which actions appear, not right-click selection mechanics.
+- A multi-node **Context Selection** should only show **Graph Context Menu** actions that can apply to every selected node, unless a mixed-selection action has been explicitly defined.
+- Built-in actions and plugin contributions should follow the same **Graph Context Menu** selection rules.
 - A single **Folder Node** **Graph Context Menu** can offer child creation actions such as `New File...` and `New Folder...`; those actions target the selected folder.
 - A **File Node** **Graph Context Menu** stays file-focused and should not offer child creation actions by default.
 - Creating an empty directory from a **Folder Node** action should make that directory visible as a **Folder Node** after refresh or reindex.
@@ -460,6 +470,7 @@ _Avoid_: Graph export
 - **Core Tree-sitter Language Coverage** should be depth-first: a smaller set of languages with meaningful baseline relationships is better than a broad set of parser-only languages.
 - **Core Tree-sitter Language Coverage** should reuse shared Tree-sitter analysis code where languages follow the same parser-backed patterns, keeping language-specific code small.
 - When a language or ecosystem needs complex project-aware semantics, shallow **Core Tree-sitter Language Coverage** can provide baseline relationships while deeper support belongs in **Plugin Analysis**.
+- TypeScript `compilerOptions.paths` is **Project-Aware Analysis Semantics** and belongs in the TypeScript/JavaScript plugin path, not the always-on Core Tree-sitter JS/TS resolver.
 - Structured data and styling formats such as JSON and CSS are outside **Core Tree-sitter Language Coverage** unless a separate relationship model is defined for them.
 - C and C++ **Core Tree-sitter Language Coverage** should include local include relationships, useful code symbols, examples, and docs; full compiler include-path semantics, macros, templates, and conditional compilation are deeper project-aware work.
 - **Graph Projection** produces the **Relationship Graph** data that later flows through **Graph Scope**, **Filter**, **Search**, and view settings.

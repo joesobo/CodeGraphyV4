@@ -34,3 +34,27 @@ Expected behavior:
 - `buildGreeting` appears as a Function symbol imported from `src/utils.ts`.
 - `UserName` appears as a Type symbol reached through a type-only import.
 - `currentUser` appears as a Variable node, giving the tiny app a file/function/type/value story.
+
+## TypeScript Plugin Alias Demo
+
+The example still has relative imports for the built-in TypeScript graph behavior,
+and now also includes a `compilerOptions.paths` alias for the TypeScript plugin:
+
+```json
+"paths": {
+  "@example/*": ["src/alias/*"]
+}
+```
+
+Suggested alias check:
+
+1. Open this folder in VS Code.
+2. Make sure the TypeScript plugin is enabled.
+3. Open `src/index.ts`.
+4. In Graph Scope, enable **TypeScript Alias Import**.
+
+Expected behavior:
+
+- `src/index.ts` imports `@example/greeting`.
+- The TypeScript plugin resolves that alias to `src/alias/greeting.ts`.
+- The original relative-import graph still works when the TypeScript plugin is not enabled.
