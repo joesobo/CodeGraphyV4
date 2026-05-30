@@ -59,7 +59,7 @@ function createSource() {
 }
 
 describe('indexing/refresh', () => {
-  it('pre-analyzes plugins before refreshing the analysis scope', async () => {
+  it('lets file analysis own pre-analysis during analysis scope refreshes', async () => {
     const source = createSource();
     const sequence: string[] = [];
     source._preAnalyzePlugins.mockImplementation(async () => {
@@ -87,12 +87,45 @@ describe('indexing/refresh', () => {
       workspaceRoot: '/workspace',
     });
 
-    expect(source._preAnalyzePlugins).toHaveBeenCalledWith(
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
+    expect(sequence).toEqual(['analyze']);
+  });
+
+  it('does not pre-analyze eagerly before a scope refresh can reuse cached analysis', async () => {
+    const source = createSource();
+    const discoveredFiles = [createDiscoveredFile('src/plugin.ts')];
+    source._analyzeFiles.mockResolvedValueOnce({
+      cacheHits: 1,
+      cacheMisses: 0,
+      fileAnalysis: new Map<string, IFileAnalysisResult>([
+        ['src/plugin.ts', {
+          filePath: '/workspace/src/plugin.ts',
+          relations: [],
+        }],
+      ]),
+      fileConnections: new Map([
+        ['src/plugin.ts', []],
+      ]),
+    });
+
+    await refreshWorkspaceIndexAnalysisScope(source as never, {
+      disabledPlugins: new Set(),
+      discoveredDirectories: ['src'],
+      discoveredFiles,
+      onProgress: vi.fn(),
+      persistCache: vi.fn(),
+      persistIndexMetadata: vi.fn(async () => undefined),
+      signal: undefined,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
+    expect(source._analyzeFiles).toHaveBeenCalledWith(
       discoveredFiles,
       '/workspace',
+      expect.any(Function),
       undefined,
     );
-    expect(sequence).toEqual(['pre-analyze', 'analyze']);
   });
 
   it('keeps discovered file nodes when refreshing plugin data from a discover-only graph', async () => {
@@ -135,7 +168,7 @@ describe('indexing/refresh', () => {
     ]);
   });
 
-  it('pre-analyzes plugins before refreshing plugin files', async () => {
+  it('lets file analysis own pre-analysis during plugin file refreshes', async () => {
     const source = createSource();
     const sequence: string[] = [];
     source._preAnalyzePlugins.mockImplementation(async () => {
@@ -173,11 +206,7 @@ describe('indexing/refresh', () => {
       workspaceRoot: '/workspace',
     });
 
-    expect(source._preAnalyzePlugins).toHaveBeenCalledWith(
-      [createDiscoveredFile('src/plugin.ts')],
-      '/workspace',
-      undefined,
-    );
-    expect(sequence).toEqual(['pre-analyze', 'analyze']);
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
+    expect(sequence).toEqual(['analyze']);
   });
 });

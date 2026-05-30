@@ -435,6 +435,28 @@ describe('pipeline/fileAnalysis', () => {
     expect(result.fileAnalysis.get('src/index.ts')?.relations?.[0]).not.toHaveProperty('toSymbolId');
   });
 
+  it('skips pre-analysis when every file is a cache hit', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    cache.files['src/index.ts'] = {
+      mtime: 25,
+      analysis: createImportAnalysis(),
+      size: 12,
+    };
+    const preAnalyzeFiles = vi.fn(async () => undefined);
+
+    await analyzeWorkspaceFiles({
+      analyzeFile: vi.fn(async () => createEmptyAnalysis()),
+      cache,
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 25, size: 12 })),
+      preAnalyzeFiles,
+      readContent: vi.fn(async () => 'ignored'),
+      workspaceRoot: '/workspace',
+    });
+
+    expect(preAnalyzeFiles).not.toHaveBeenCalled();
+  });
+
   it('keeps reusable symbol cache data out of plugin-only graph refresh results', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     cache.files['src/index.ts'] = {
@@ -491,6 +513,35 @@ describe('pipeline/fileAnalysis', () => {
       pluginTier,
     ]);
     expect(cachedAnalysis.symbols).toHaveLength(1);
+  });
+
+  it('runs pre-analysis before analyzing the first cache miss', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    const sequence: string[] = [];
+    const preAnalyzeFiles = vi.fn(async () => {
+      sequence.push('pre-analyze');
+    });
+    const analyzeFile = vi.fn(async () => {
+      sequence.push('analyze');
+      return createImportAnalysis();
+    });
+
+    await analyzeWorkspaceFiles({
+      analyzeFile,
+      cache,
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => ({ mtime: 50, size: 12 })),
+      preAnalyzeFiles,
+      readContent: vi.fn(async () => "import './utils'"),
+      workspaceRoot: '/workspace',
+    });
+
+    expect(preAnalyzeFiles).toHaveBeenCalledWith(
+      [createFile('src/index.ts')],
+      '/workspace',
+      undefined,
+    );
+    expect(sequence).toEqual(['pre-analyze', 'analyze']);
   });
 
 });

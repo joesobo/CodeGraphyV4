@@ -38,6 +38,7 @@ describe('pipeline/serviceAdapters', () => {
       readAsBytes: vi.fn(async () => new Uint8Array()),
     };
     const registry = {
+      notifyPreAnalyze: vi.fn(async () => undefined),
       analyzeFileResult: vi.fn(async () => ({
         filePath: '/workspace/src/app.ts',
         relations: [
@@ -84,6 +85,7 @@ describe('pipeline/serviceAdapters', () => {
         },
       ],
     });
+    expect(registry.notifyPreAnalyze).toHaveBeenCalledOnce();
 
     const graphData = buildWorkspacePipelineGraphData(
       cache as never,

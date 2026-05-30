@@ -192,11 +192,6 @@ export async function refreshWorkspaceIndexAnalysisScope(
     total: dependencies.discoveredFiles.length,
   });
 
-  await source._preAnalyzePlugins(
-    [...dependencies.discoveredFiles],
-    dependencies.workspaceRoot,
-    dependencies.signal,
-  );
   const analysisResult = await source._analyzeFiles(
     [...dependencies.discoveredFiles],
     dependencies.workspaceRoot,
@@ -253,11 +248,6 @@ export async function refreshWorkspaceIndexPluginFiles(
       current: 0,
       total: pluginFiles.length,
     });
-    await source._preAnalyzePlugins(
-      pluginFiles,
-      dependencies.workspaceRoot,
-      dependencies.signal,
-    );
     const analysisResult = await source._analyzeFiles(
       pluginFiles,
       dependencies.workspaceRoot,

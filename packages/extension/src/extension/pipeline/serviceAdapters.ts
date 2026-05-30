@@ -65,6 +65,14 @@ export function analyzeWorkspacePipelineFiles(
     _discovery: discovery,
     _eventBus: eventBus,
     _getFileStat: getFileStat,
+    _preAnalyzePlugins: (preAnalyzeFiles, rootPath, abortSignal) =>
+      preAnalyzeWorkspacePipelinePlugins(
+        preAnalyzeFiles,
+        rootPath,
+        registry,
+        discovery,
+        abortSignal,
+      ),
     _registry: registry,
   };
 

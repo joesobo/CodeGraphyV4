@@ -25,6 +25,11 @@ export interface WorkspacePipelineFilesDependencies {
   getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
   logInfo(message: string): void;
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void;
+  preAnalyzeFiles?: (
+    files: IDiscoveredFile[],
+    workspaceRoot: string,
+    signal?: AbortSignal,
+  ) => Promise<void>;
   readContent: (file: IDiscoveredFile) => Promise<string>;
   signal?: AbortSignal;
   workspaceRoot: string;
@@ -37,6 +42,11 @@ export interface WorkspacePipelineFilesSource {
   };
   _eventBus?: Pick<WorkspacePipelineEventBus, 'emit'>;
   _getFileStat(filePath: string): Promise<{ mtime: number; size: number } | null>;
+  _preAnalyzePlugins?(
+    files: IDiscoveredFile[],
+    workspaceRoot: string,
+    signal?: AbortSignal,
+  ): Promise<void>;
   _registry: {
     analyzeFileResult(
       absolutePath: string,
@@ -97,6 +107,7 @@ export async function analyzeWorkspacePipelineFiles(
     files: dependencies.files,
     getFileStat: dependencies.getFileStat,
     onProgress: dependencies.onProgress,
+    preAnalyzeFiles: dependencies.preAnalyzeFiles,
     readContent: dependencies.readContent,
     signal: dependencies.signal,
     workspaceRoot: dependencies.workspaceRoot,
@@ -142,6 +153,10 @@ export async function analyzeWorkspacePipelineSourceFiles(
     getFileStat: filePath => source._getFileStat(filePath),
     logInfo,
     onProgress,
+    preAnalyzeFiles: source._preAnalyzePlugins
+      ? (preAnalyzeFiles, rootPath, abortSignal) =>
+          source._preAnalyzePlugins?.(preAnalyzeFiles, rootPath, abortSignal) ?? Promise.resolve()
+      : undefined,
     readContent: file => source._discovery.readContent(file),
     signal,
     workspaceRoot,
