@@ -1,5 +1,19 @@
 # @codegraphy-dev/core
 
+## 1.2.0
+
+### Minor Changes
+
+- [#223](https://github.com/joesobo/CodeGraphyV4/pull/223) [`a2625ba`](https://github.com/joesobo/CodeGraphyV4/commit/a2625ba942287b43f939abfe5a5ca68f8e730680) Thanks [@joesobo](https://github.com/joesobo)! - Add Core-owned workspace indexing engine APIs for retained indexing state, changed-file refreshes, configured plugin entries, plugin status queries, and package plugin toggle planning. Core indexing now retains complete graph data instead of accepting Graph View orphan-display settings.
+
+### Patch Changes
+
+- [#224](https://github.com/joesobo/CodeGraphyV4/pull/224) [`feac4c1`](https://github.com/joesobo/CodeGraphyV4/commit/feac4c15fb7b6555c1ae5d6d2655a7b6debc7f4c) Thanks [@joesobo](https://github.com/joesobo)! - Keep Symbol-scoped Graph View payloads small by caching baseline file relationships first, lazily enriching Symbols and plugin analysis when those scopes are enabled, and reusing enriched cache tiers when they are toggled back on.
+
+- Updated dependencies [[`feac4c1`](https://github.com/joesobo/CodeGraphyV4/commit/feac4c15fb7b6555c1ae5d6d2655a7b6debc7f4c)]:
+  - @codegraphy-dev/plugin-api@3.1.2
+  - @codegraphy-dev/plugin-markdown@1.1.3
+
 ## 1.1.2
 
 ### Patch Changes
