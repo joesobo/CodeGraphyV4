@@ -5,7 +5,7 @@ import type { IGroup } from '../../../src/shared/settings/groups';
 
 const buildGraphModelMock = vi.hoisted(() => vi.fn());
 
-vi.mock('@codegraphy-dev/core', () => ({
+vi.mock('@codegraphy-dev/core/graphModel', () => ({
   buildGraphModel: buildGraphModelMock,
 }));
 

@@ -68,6 +68,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@codegraphy-dev/core/graphModel': resolve(__dirname, '../core/src/graphModel/index.ts'),
       '@codegraphy-dev/core': resolve(__dirname, '../core/src/index.ts'),
       '@codegraphy-dev/plugin-markdown': resolve(__dirname, '../plugin-markdown/src/plugin.ts'),
       '@': resolve(__dirname, 'src'),

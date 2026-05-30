@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 import type { SearchOptions } from '../components/searchBar/field/model';
 import { applyLegendRules } from './filtering/rules';
-import { buildGraphModel } from '@codegraphy-dev/core';
+import { buildGraphModel } from '@codegraphy-dev/core/graphModel';
 import type { IGraphData } from '../../shared/graph/contracts';
 import type { IGraphEdgeTypeDefinition } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';

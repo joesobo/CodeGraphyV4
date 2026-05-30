@@ -22,6 +22,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '@codegraphy-dev/core/graphModel': resolve(workspaceRoot, 'packages/core/src/graphModel/index.ts'),
     },
   },
 });

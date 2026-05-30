@@ -6,7 +6,7 @@ import type {
   GraphModelFilterConfig,
   GraphModelScopeConfig,
   GraphModelSearchConfig,
-} from '@codegraphy-dev/core';
+} from '@codegraphy-dev/core/graphModel';
 
 const LEGACY_NESTS_EDGE_TYPE = 'codegraphy:nests';
 const SHARED_NESTS_EDGE_TYPE = 'nests';

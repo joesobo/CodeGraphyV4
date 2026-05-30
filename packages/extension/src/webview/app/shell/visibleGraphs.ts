@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { buildGraphModel } from '@codegraphy-dev/core';
+import { buildGraphModel } from '@codegraphy-dev/core/graphModel';
 import type { GraphState } from '../../store/state';
 import { buildVisibleGraphConfig } from '../../search/visibleGraphConfig';
 
