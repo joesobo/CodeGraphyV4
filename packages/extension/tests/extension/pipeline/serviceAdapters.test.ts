@@ -183,6 +183,9 @@ describe('pipeline/serviceAdapters', () => {
       ]),
       '/workspace',
       true,
+      new Set(),
+      [],
+      { nodeVisibility: { symbol: true } },
     );
 
     expect(graphData.nodes).toEqual(expect.arrayContaining([

@@ -8,6 +8,7 @@ import type {
   IPlugin,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
+import { requiresSymbolAnalysisCacheTier } from '../analysis/fileAnalysis/cacheTiers';
 import { DEFAULT_NODE_COLOR } from '../fileColors';
 import type { IGraphData } from './contracts';
 import { buildWorkspaceGraphEdges } from './edges';
@@ -67,7 +68,7 @@ function collectConnectedAnalysisFileIds(
 function shouldProjectSymbolGraph(
   nodeVisibility: IWorkspaceGraphAnalysisDataOptions['nodeVisibility'],
 ): boolean {
-  return nodeVisibility?.symbol !== false;
+  return requiresSymbolAnalysisCacheTier(nodeVisibility ?? {});
 }
 
 export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IGraphData {

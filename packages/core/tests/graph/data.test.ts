@@ -56,6 +56,7 @@ describe('core/graph/data', () => {
         churnCounts: {
           'src/player.gd': 4,
         },
+        nodeVisibility: { symbol: true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.godot'),
       });
@@ -135,6 +136,33 @@ describe('core/graph/data', () => {
     });
 
 
+    it('does not project symbol nodes when graph scope has no symbol visibility setting', () => {
+      const graph = buildWorkspaceGraphDataFromAnalysis({
+        cacheFiles: {},
+        disabledPlugins: new Set(),
+        fileAnalysis: new Map([
+          ['generated/virtual.ts', {
+            filePath: '/workspace/generated/virtual.ts',
+            symbols: [{
+              id: 'virtual-symbol',
+              filePath: '/workspace/generated/virtual.ts',
+              kind: 'function',
+              name: 'virtual',
+            }],
+            relations: [],
+          }],
+        ]),
+        showOrphans: false,
+        churnCounts: {},
+        workspaceRoot: '/workspace',
+        getPluginForFile: () => createPlugin('codegraphy.typescript'),
+      });
+
+      expect(graph.nodes).toEqual([]);
+      expect(graph.edges).toEqual([]);
+    });
+
+
 
     it('creates containing file nodes for symbol-only analysis outside the discovered cache', () => {
       const graph = buildWorkspaceGraphDataFromAnalysis({
@@ -156,6 +184,7 @@ describe('core/graph/data', () => {
         churnCounts: {
           'generated/virtual.ts': 7,
         },
+        nodeVisibility: { symbol: true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.typescript'),
       });
@@ -223,6 +252,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
+        nodeVisibility: { symbol: true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.godot'),
       });
@@ -286,6 +316,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
+        nodeVisibility: { symbol: true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.symbols'),
       });
@@ -336,6 +367,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
+        nodeVisibility: { symbol: true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.typescript'),
       });
@@ -370,6 +402,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
+        nodeVisibility: { symbol: true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('codegraphy.godot'),
       });
@@ -436,6 +469,7 @@ describe('core/graph/data', () => {
         ]),
         showOrphans: true,
         churnCounts: {},
+        nodeVisibility: { symbol: true },
         workspaceRoot: '/workspace',
         getPluginForFile: () => createPlugin('plugin.symbols'),
       });
