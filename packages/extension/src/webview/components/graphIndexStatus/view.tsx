@@ -35,6 +35,12 @@ export function GraphIndexStatus({
       <div
         className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
         data-testid="graph-index-status-track"
+        role="progressbar"
+        aria-label="Indexing progress"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        aria-valuetext={`${progress.phase} ${percent}%`}
       >
         <div
           className="h-full rounded-full bg-primary transition-all duration-200"
