@@ -1,5 +1,5 @@
 import type { IGraphData } from '../graph/contracts';
-import type { VisibleGraphConfig, VisibleGraphResult } from './contracts';
+import type { GraphModelConfig, GraphModelResult } from './contracts';
 import { applyCollapseProjection } from './collapse';
 import { applyFilterPatterns } from './filter';
 import { applyShowOrphans } from './orphans';
@@ -7,26 +7,26 @@ import { applySearch } from './search';
 import { applyGraphScope } from './scope';
 import { applyStructuralProjection } from './structure';
 
-type NonNullVisibleGraphResult = Omit<VisibleGraphResult, 'graphData'> & {
+type NonNullGraphModelResult = Omit<GraphModelResult, 'graphData'> & {
   graphData: IGraphData;
 };
 
-export function deriveVisibleGraph(
+export function buildGraphModel(
   graphData: IGraphData,
-  config?: VisibleGraphConfig,
-): NonNullVisibleGraphResult;
-export function deriveVisibleGraph(
+  config?: GraphModelConfig,
+): NonNullGraphModelResult;
+export function buildGraphModel(
   graphData: null,
-  config?: VisibleGraphConfig,
-): VisibleGraphResult;
-export function deriveVisibleGraph(
+  config?: GraphModelConfig,
+): GraphModelResult;
+export function buildGraphModel(
   graphData: IGraphData | null,
-  config?: VisibleGraphConfig,
-): VisibleGraphResult;
-export function deriveVisibleGraph(
+  config?: GraphModelConfig,
+): GraphModelResult;
+export function buildGraphModel(
   graphData: IGraphData | null,
-  config: VisibleGraphConfig = {},
-): VisibleGraphResult {
+  config: GraphModelConfig = {},
+): GraphModelResult {
   if (!graphData) {
     return {
       graphData: null,

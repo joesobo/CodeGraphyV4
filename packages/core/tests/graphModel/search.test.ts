@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
-import { applySearch } from '../../src/visibleGraph/search';
+import { applySearch } from '../../src/graphModel/search';
 
 function node(id: string, label = id, symbol?: IGraphNode['symbol']): IGraphNode {
   return {
@@ -21,7 +21,7 @@ function edge(from: string, to: string): IGraphEdge {
   };
 }
 
-describe('visibleGraph/search', () => {
+describe('graphModel/search', () => {
   it('leaves the graph untouched for blank queries', () => {
     const graphData: IGraphData = {
       nodes: [node('src/app.ts')],

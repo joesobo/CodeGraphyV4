@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
-import { deriveVisibleGraph } from '../../src/visibleGraph/derive';
+import { buildGraphModel } from '../../src/graphModel/build';
 
 function node(id: string, nodeType?: IGraphNode['nodeType']): IGraphNode {
   return {
@@ -21,9 +21,9 @@ function edge(from: string, to: string, kind: IGraphEdge['kind']): IGraphEdge {
   };
 }
 
-describe('visibleGraph/derive', () => {
+describe('graphModel/build', () => {
   it('returns an empty result when no graph data is available', () => {
-    expect(deriveVisibleGraph(null)).toEqual({
+    expect(buildGraphModel(null)).toEqual({
       graphData: null,
       regexError: null,
     });
@@ -38,7 +38,7 @@ describe('visibleGraph/derive', () => {
       edges: [],
     };
 
-    expect(deriveVisibleGraph(graphData)).toEqual({
+    expect(buildGraphModel(graphData)).toEqual({
       graphData,
       regexError: null,
     });
@@ -55,7 +55,7 @@ describe('visibleGraph/derive', () => {
       ],
     };
 
-    expect(deriveVisibleGraph(graphData, {
+    expect(buildGraphModel(graphData, {
       scope: {
         nodes: [],
         edges: [
@@ -85,7 +85,7 @@ describe('visibleGraph/derive', () => {
       ],
     };
 
-    expect(deriveVisibleGraph(graphData, {
+    expect(buildGraphModel(graphData, {
       filter: { patterns: ['src/generated.ts'] },
     })).toEqual({
       graphData: {
@@ -104,7 +104,7 @@ describe('visibleGraph/derive', () => {
       edges: [],
     };
 
-    const result = deriveVisibleGraph(graphData, {
+    const result = buildGraphModel(graphData, {
       search: {
         query: '[',
         options: { regex: true },
@@ -124,7 +124,7 @@ describe('visibleGraph/derive', () => {
       edges: [],
     };
 
-    expect(deriveVisibleGraph(graphData, {
+    expect(buildGraphModel(graphData, {
       showOrphans: false,
     })).toEqual({
       graphData: {
@@ -150,7 +150,7 @@ describe('visibleGraph/derive', () => {
       ],
     };
 
-    expect(deriveVisibleGraph(graphData, {
+    expect(buildGraphModel(graphData, {
       scope: {
         nodes: [
           { type: 'folder', enabled: true },

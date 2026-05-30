@@ -7,7 +7,7 @@ import {
   getEnabledTypes,
   getNodeType,
   isFileNode,
-} from '../../src/visibleGraph/model';
+} from '../../src/graphModel/model';
 
 function node(id: string, nodeType?: IGraphNode['nodeType']): IGraphNode {
   return {
@@ -28,7 +28,7 @@ function edge(from: string, to: string): IGraphEdge {
   };
 }
 
-describe('visibleGraph/model', () => {
+describe('graphModel/model', () => {
   it('treats missing node types as file nodes', () => {
     expect(getNodeType(node('src/app.ts'))).toBe(DEFAULT_FILE_NODE_TYPE);
     expect(isFileNode(node('src/app.ts'))).toBe(true);

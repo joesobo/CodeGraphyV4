@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   compileSearchPattern,
   normalizeSearchOptions,
-} from '../../../src/visibleGraph/searchQuery/options';
+} from '../../../src/graphModel/searchQuery/options';
 
-describe('visibleGraph/searchQuery options', () => {
+describe('graphModel/searchQuery options', () => {
   it('normalizes omitted search options to the default fuzzy mode', () => {
     expect(normalizeSearchOptions(undefined)).toEqual({
       matchCase: false,

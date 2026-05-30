@@ -30,12 +30,12 @@ export function listGraphNodes(
     nodes: scopedGraph.nodes.filter((node) => filteredNodeIds.has(node.id)),
     edges: scopedGraph.edges,
   };
-  const visibleGraph = applySearchAndOrphans({
+  const graphModel = applySearchAndOrphans({
     ...filteredGraph,
     edges: filterEdgesToReportNodes(filteredGraph.edges, filteredGraph.nodes),
   }, config);
   const sortedNodes = sortItems(
-    visibleGraph.nodes.map(toNodeReportItem),
+    graphModel.nodes.map(toNodeReportItem),
     config.sort,
     [{ by: 'path', direction: 'asc' }],
     readNodeReportValue,
@@ -55,11 +55,11 @@ export function listGraphEdges(
   const scopedGraph = deriveScopedGraphQueryData(graphData, config);
   const scopedEdges = filterEdgesToReportNodes(scopedGraph.edges, scopedGraph.nodes);
   const filteredEdges = applyReportFilters(scopedEdges, config.filters, readEdgeValue);
-  const visibleGraph = applySearchAndOrphans({
+  const graphModel = applySearchAndOrphans({
     nodes: scopedGraph.nodes,
     edges: filteredEdges,
   }, config);
-  const groupedEdges = groupEdges(filterEdgesToReportNodes(visibleGraph.edges, visibleGraph.nodes));
+  const groupedEdges = groupEdges(filterEdgesToReportNodes(graphModel.edges, graphModel.nodes));
   const sortedEdges = sortItems(
     groupedEdges,
     config.sort,

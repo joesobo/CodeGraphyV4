@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
-import { applyShowOrphans } from '../../src/visibleGraph/orphans';
+import { applyShowOrphans } from '../../src/graphModel/orphans';
 
 function node(id: string): IGraphNode {
   return {
@@ -20,7 +20,7 @@ function edge(from: string, to: string): IGraphEdge {
   };
 }
 
-describe('visibleGraph/orphans', () => {
+describe('graphModel/orphans', () => {
   it('returns the original graph when orphans remain visible', () => {
     const graphData: IGraphData = {
       nodes: [node('src/a.ts')],

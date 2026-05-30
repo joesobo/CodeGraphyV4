@@ -20,7 +20,7 @@ const graphData: IGraphData = {
   ],
 };
 
-describe('core/graphQuery visible graph helpers', () => {
+describe('core/graphQuery graph model helpers', () => {
   it('applies explicit node and edge scope before reports are generated', () => {
     const scoped = deriveScopedGraphQueryData(graphData, {
       scope: {
@@ -49,7 +49,7 @@ describe('core/graphQuery visible graph helpers', () => {
     expect(scoped.edges).toEqual([]);
   });
 
-  it('applies graph search through the visible graph model', () => {
+  it('applies graph search through the graph model model', () => {
     const visible = applySearchAndOrphans(graphData, { search: 'a.ts' });
 
     expect(visible.nodes.map((node) => node.id)).toEqual(['src/a.ts']);

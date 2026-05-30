@@ -1,5 +1,5 @@
 import type { IGraphData } from '../graph/contracts';
-import type { VisibleGraphScopeConfig } from './contracts';
+import type { GraphModelScopeConfig } from './contracts';
 import { filterEdgesToNodes, getDisabledTypes } from './model';
 import {
   getDisabledNodeTypes,
@@ -10,7 +10,7 @@ import { nodeMatchesScope } from './scopeMatch';
 
 export function applyGraphScope(
   graphData: IGraphData,
-  scope: VisibleGraphScopeConfig,
+  scope: GraphModelScopeConfig,
 ): IGraphData {
   const disabledNodeTypes = getDisabledNodeTypes(scope);
   const disabledSymbolKinds = getDisabledSymbolKinds(scope);

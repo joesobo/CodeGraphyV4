@@ -55,7 +55,7 @@ describe('workspace/signatures', () => {
     expect(first).not.toBe(withoutOptions);
   });
 
-  it('changes settings signatures when visible graph settings or plugin filters change', () => {
+  it('changes settings signatures when graph model settings or plugin filters change', () => {
     const defaults = createDefaultCodeGraphyWorkspaceSettings();
     const first = createCodeGraphyWorkspaceSettingsSignature(defaults);
 

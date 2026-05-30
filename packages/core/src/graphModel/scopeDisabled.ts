@@ -1,4 +1,4 @@
-import type { VisibleGraphScopeConfig, VisibleGraphScopeItem } from './contracts';
+import type { GraphModelScopeConfig, GraphModelScopeItem } from './contracts';
 import { getDisabledTypes } from './model';
 export {
   getDisabledScopedSymbolDefinitions,
@@ -6,13 +6,13 @@ export {
 } from './scopeSymbolTypes';
 
 function findScopeItem(
-  items: readonly VisibleGraphScopeItem[],
+  items: readonly GraphModelScopeItem[],
   type: string,
-): VisibleGraphScopeItem | undefined {
+): GraphModelScopeItem | undefined {
   return items.find((item) => item.type === type);
 }
 
-export function getDisabledNodeTypes(scope: VisibleGraphScopeConfig): Set<string> {
+export function getDisabledNodeTypes(scope: GraphModelScopeConfig): Set<string> {
   const disabledNodeTypes = getDisabledTypes(scope.nodes);
   if (findScopeItem(scope.nodes, 'symbol')?.enabled === false) {
     disabledNodeTypes.add('variable');

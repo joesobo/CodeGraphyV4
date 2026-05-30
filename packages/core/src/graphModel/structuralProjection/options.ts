@@ -1,4 +1,4 @@
-import type { VisibleGraphScopeConfig } from '../contracts';
+import type { GraphModelScopeConfig } from '../contracts';
 import {
   FOLDER_NODE_TYPE,
   getDisabledTypes,
@@ -14,7 +14,7 @@ export interface StructuralProjectionOptions {
 }
 
 export function resolveStructuralProjectionOptions(
-  scope?: VisibleGraphScopeConfig,
+  scope?: GraphModelScopeConfig,
 ): StructuralProjectionOptions {
   const enabledNodeTypes = scope?.nodes ? getEnabledTypes(scope.nodes) : new Set<string>();
   const enabledEdgeTypes = scope?.edges ? getEnabledTypes(scope.edges) : new Set<string>();

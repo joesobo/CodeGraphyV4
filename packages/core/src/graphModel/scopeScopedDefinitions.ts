@@ -1,9 +1,9 @@
 import type { IGraphNodeTypeDefinition } from '../graphControls/contracts';
 import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
-import type { VisibleGraphScopeConfig } from './contracts';
+import type { GraphModelScopeConfig } from './contracts';
 import { getDisabledTypes } from './model';
 
-export function getDisabledScopedSymbolDefinitions(scope: VisibleGraphScopeConfig): IGraphNodeTypeDefinition[] {
+export function getDisabledScopedSymbolDefinitions(scope: GraphModelScopeConfig): IGraphNodeTypeDefinition[] {
   const disabledNodeTypes = getDisabledTypes(scope.nodes);
   return scope.nodes
     .filter((item) => !item.enabled && !item.type.startsWith('symbol:'))

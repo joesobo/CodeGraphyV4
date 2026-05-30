@@ -35,10 +35,10 @@ export function createVisibleEdgeSet(data: GraphQueryData, config: GraphQueryCon
     filterEdgesToReportNodes(scopedGraph.edges, scopedGraph.nodes),
     config,
   );
-  const visibleGraph = applySearchAndOrphans({
+  const graphModel = applySearchAndOrphans({
     nodes: scopedGraph.nodes,
     edges: domainFilteredEdges,
   }, config);
 
-  return new Set(filterEdgesToReportNodes(visibleGraph.edges, visibleGraph.nodes).map(edgeKey));
+  return new Set(filterEdgesToReportNodes(graphModel.edges, graphModel.nodes).map(edgeKey));
 }

@@ -1,8 +1,8 @@
 import type { IGraphData, IGraphEdge, IGraphNode } from '../graph/contracts';
-import { deriveVisibleGraph } from '../visibleGraph';
+import { buildGraphModel } from '../graphModel';
 import {
   filterEdgesToNodes,
-} from '../visibleGraph/model';
+} from '../graphModel/model';
 import type { GraphQueryConfig } from './model';
 import { applyExplicitScope, toVisibleScope } from './visibleScope';
 
@@ -13,11 +13,11 @@ export function applySearchAndOrphans(
   let current = graphData;
 
   if (config.search !== undefined) {
-    current = deriveVisibleGraph(current, { search: { query: config.search } }).graphData;
+    current = buildGraphModel(current, { search: { query: config.search } }).graphData;
   }
 
   if (config.showOrphans !== undefined) {
-    current = deriveVisibleGraph(current, { showOrphans: config.showOrphans }).graphData;
+    current = buildGraphModel(current, { showOrphans: config.showOrphans }).graphData;
   }
 
   return current;
@@ -27,7 +27,7 @@ export function deriveScopedGraphQueryData(
   graphData: IGraphData,
   config: GraphQueryConfig = {},
 ): IGraphData {
-  const scopedGraph = deriveVisibleGraph(graphData, { scope: toVisibleScope(config.scope) }).graphData;
+  const scopedGraph = buildGraphModel(graphData, { scope: toVisibleScope(config.scope) }).graphData;
   return applyExplicitScope(scopedGraph, config);
 }
 

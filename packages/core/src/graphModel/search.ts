@@ -1,12 +1,12 @@
 import type { IGraphData } from '../graph/contracts';
-import type { VisibleGraphSearchConfig } from './contracts';
+import type { GraphModelSearchConfig } from './contracts';
 import { filterEdgesToNodes } from './model';
 import { collectMatchingNodeIds } from './searchQuery/matching';
 import { normalizeSearchOptions } from './searchQuery/options';
 
 export function applySearch(
   graphData: IGraphData,
-  search: VisibleGraphSearchConfig,
+  search: GraphModelSearchConfig,
 ): { graphData: IGraphData; regexError: string | null } {
   if (!search.query.trim()) {
     return { graphData, regexError: null };

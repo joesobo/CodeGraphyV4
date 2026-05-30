@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphNode } from '../../../src/graph/contracts';
-import { collectMatchingNodeIds } from '../../../src/visibleGraph/searchQuery/matching';
-import { normalizeSearchOptions } from '../../../src/visibleGraph/searchQuery/options';
+import { collectMatchingNodeIds } from '../../../src/graphModel/searchQuery/matching';
+import { normalizeSearchOptions } from '../../../src/graphModel/searchQuery/options';
 
 function node(id: string, label = id, symbol?: IGraphNode['symbol']): IGraphNode {
   return {
@@ -12,7 +12,7 @@ function node(id: string, label = id, symbol?: IGraphNode['symbol']): IGraphNode
   };
 }
 
-describe('visibleGraph/searchQuery matching', () => {
+describe('graphModel/searchQuery matching', () => {
   it('matches labels, ids, and symbol metadata case-insensitively by default', () => {
     const result = collectMatchingNodeIds([
       node('src/user.ts', 'User model', {

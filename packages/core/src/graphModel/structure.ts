@@ -1,5 +1,5 @@
 import type { IGraphData } from '../graph/contracts';
-import type { VisibleGraphScopeConfig } from './contracts';
+import type { GraphModelScopeConfig } from './contracts';
 import { filterEdgesToNodes, isFileNode } from './model';
 import { buildProjectedStructuralEdges } from './structuralProjection/edges';
 import { collectVisibleFolderNodeIds, isFolderNode, projectFolders } from './structuralProjection/folders';
@@ -11,7 +11,7 @@ import { projectWorkspacePackages } from './structuralProjection/packages';
 
 export function applyStructuralProjection(
   graphData: IGraphData,
-  scope?: VisibleGraphScopeConfig,
+  scope?: GraphModelScopeConfig,
   sourceGraphData: IGraphData = graphData,
 ): IGraphData {
   const options = resolveStructuralProjectionOptions(scope);

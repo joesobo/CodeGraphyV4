@@ -1,6 +1,6 @@
 import type { IGraphData } from '../graph/contracts';
 import { globMatch } from '../globMatch';
-import type { VisibleGraphFilterConfig } from './contracts';
+import type { GraphModelFilterConfig } from './contracts';
 import { filterEdgesToNodes } from './model';
 
 function nodeMatchesPattern(node: IGraphData['nodes'][number], pattern: string): boolean {
@@ -19,7 +19,7 @@ function edgeMatchesPattern(edge: IGraphData['edges'][number], pattern: string):
 
 export function applyFilterPatterns(
   graphData: IGraphData,
-  filter: VisibleGraphFilterConfig,
+  filter: GraphModelFilterConfig,
 ): IGraphData {
   if (filter.patterns.length === 0) {
     return graphData;

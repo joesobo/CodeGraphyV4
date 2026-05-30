@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
 import type { IGraphNodeTypeDefinition } from '../../src/graphControls/contracts';
-import type { VisibleGraphScopeConfig } from '../../src/visibleGraph/contracts';
-import { applyGraphScope } from '../../src/visibleGraph/scope';
-import { getDisabledNodeTypes } from '../../src/visibleGraph/scopeDisabled';
-import { nodeMatchesScope } from '../../src/visibleGraph/scopeMatch';
-import { getDisabledScopedSymbolDefinitions } from '../../src/visibleGraph/scopeScopedDefinitions';
-import { symbolMatchesScopedDefinition } from '../../src/visibleGraph/scopeSymbolMatch';
-import { getDisabledSymbolKinds } from '../../src/visibleGraph/scopeSymbolTypes';
+import type { GraphModelScopeConfig } from '../../src/graphModel/contracts';
+import { applyGraphScope } from '../../src/graphModel/scope';
+import { getDisabledNodeTypes } from '../../src/graphModel/scopeDisabled';
+import { nodeMatchesScope } from '../../src/graphModel/scopeMatch';
+import { getDisabledScopedSymbolDefinitions } from '../../src/graphModel/scopeScopedDefinitions';
+import { symbolMatchesScopedDefinition } from '../../src/graphModel/scopeSymbolMatch';
+import { getDisabledSymbolKinds } from '../../src/graphModel/scopeSymbolTypes';
 
 function node(id: string, nodeType?: IGraphNode['nodeType'], symbol?: IGraphNode['symbol']): IGraphNode {
   return {
@@ -29,7 +29,7 @@ function edge(from: string, to: string, kind: IGraphEdge['kind']): IGraphEdge {
   };
 }
 
-function scopeConfig(nodes: VisibleGraphScopeConfig['nodes']): VisibleGraphScopeConfig {
+function scopeConfig(nodes: GraphModelScopeConfig['nodes']): GraphModelScopeConfig {
   return { nodes, edges: [] };
 }
 
@@ -96,7 +96,7 @@ const userSymbol: IGraphNode['symbol'] = {
   filePath: 'src/user.ts',
 };
 
-describe('visibleGraph/scope', () => {
+describe('graphModel/scope', () => {
   it('filters disabled node, symbol, and edge types together', () => {
     const graphData: IGraphData = {
       nodes: [

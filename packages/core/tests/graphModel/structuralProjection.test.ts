@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphNode } from '../../src/graph/contracts';
-import { applyStructuralProjection } from '../../src/visibleGraph/structure';
+import { applyStructuralProjection } from '../../src/graphModel/structure';
 import {
   buildContainmentEdges,
   buildProjectedStructuralEdges,
   buildWorkspacePackageEdges,
   createStructuralEdge,
-} from '../../src/visibleGraph/structuralProjection/edges';
+} from '../../src/graphModel/structuralProjection/edges';
 import {
   collectVisibleFolderNodeIds,
   isFolderNode,
   projectFolders,
-} from '../../src/visibleGraph/structuralProjection/folders';
+} from '../../src/graphModel/structuralProjection/folders';
 import {
   hasStructuralNodeProjection,
   resolveStructuralProjectionOptions,
-} from '../../src/visibleGraph/structuralProjection/options';
-import { projectWorkspacePackages } from '../../src/visibleGraph/structuralProjection/packages';
+} from '../../src/graphModel/structuralProjection/options';
+import { projectWorkspacePackages } from '../../src/graphModel/structuralProjection/packages';
 
 function node(id: string, nodeType: IGraphNode['nodeType'] = 'file'): IGraphNode {
   return {
@@ -27,7 +27,7 @@ function node(id: string, nodeType: IGraphNode['nodeType'] = 'file'): IGraphNode
   };
 }
 
-describe('visibleGraph structural projection', () => {
+describe('graphModel structural projection', () => {
   it('creates deterministic structural containment edges', () => {
     expect(createStructuralEdge('src', 'src/app.ts')).toEqual({
       id: 'src->src/app.ts#nests',
@@ -203,8 +203,8 @@ describe('visibleGraph structural projection', () => {
     expect(applyStructuralProjection(graphData)).toBe(graphData);
   });
 
-  it('adds projected folders and package nodes around the visible graph', () => {
-    const visibleGraphData: IGraphData = {
+  it('adds projected folders and package nodes around the graph model', () => {
+    const graphModelData: IGraphData = {
       nodes: [
         node('src/app.ts'),
       ],
@@ -221,7 +221,7 @@ describe('visibleGraph structural projection', () => {
     };
 
     expect(applyStructuralProjection(
-      visibleGraphData,
+      graphModelData,
       {
         nodes: [
           { type: 'folder', enabled: true },

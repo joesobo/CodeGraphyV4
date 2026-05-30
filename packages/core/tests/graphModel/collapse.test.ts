@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IGraphEdge, IGraphNode } from '../../src/graph/contracts';
-import { applyCollapseProjection } from '../../src/visibleGraph/collapse';
-import { projectCollapsedEdges } from '../../src/visibleGraph/collapseEdges';
+import { applyCollapseProjection } from '../../src/graphModel/collapse';
+import { projectCollapsedEdges } from '../../src/graphModel/collapseEdges';
 import {
   findVisibleCollapsedAncestor,
   isDescendantOf,
-} from '../../src/visibleGraph/collapsePaths';
-import { applyFilterPatterns } from '../../src/visibleGraph/filter';
-import { symbolMatchesScopedDefinition } from '../../src/visibleGraph/scopeSymbolMatch';
+} from '../../src/graphModel/collapsePaths';
+import { applyFilterPatterns } from '../../src/graphModel/filter';
+import { symbolMatchesScopedDefinition } from '../../src/graphModel/scopeSymbolMatch';
 
 function node(id: string, nodeType: IGraphNode['nodeType'] = 'file'): IGraphNode {
   return {
@@ -44,7 +44,7 @@ function projectedEdge(
   };
 }
 
-describe('visibleGraph collapse and filtering', () => {
+describe('graphModel collapse and filtering', () => {
   it('matches scoped symbol definitions by kind, plugin metadata, language, and file glob', () => {
     const symbolNode: IGraphNode = {
       ...node('symbol:User'),

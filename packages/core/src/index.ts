@@ -390,3 +390,17 @@ export {
   listGraphRelationships,
   listGraphSymbols,
 } from './graphQuery';
+export type {
+  GraphModelConfig,
+  GraphModelCollapseConfig,
+  GraphModelFilterConfig,
+  GraphModelResult,
+  GraphModelScopeConfig,
+  GraphModelScopeItem,
+  GraphModelSearchConfig,
+  GraphModelSearchOptions,
+} from './graphModel';
+export {
+  buildGraphModel,
+  STRUCTURAL_NESTS_EDGE_KIND,
+} from './graphModel';

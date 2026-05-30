@@ -1,13 +1,13 @@
 import type { IGraphData } from '../graph/contracts';
-import type { VisibleGraphScopeConfig } from '../visibleGraph';
+import type { GraphModelScopeConfig } from '../graphModel';
 import {
   DEFAULT_FILE_NODE_TYPE,
   filterEdgesToNodes,
   getNodeType,
-} from '../visibleGraph/model';
+} from '../graphModel/model';
 import type { GraphQueryConfig, GraphQueryScope } from './model';
 
-export function toVisibleScope(scope: GraphQueryScope | undefined): VisibleGraphScopeConfig | undefined {
+export function toVisibleScope(scope: GraphQueryScope | undefined): GraphModelScopeConfig | undefined {
   if (!scope) {
     return undefined;
   }

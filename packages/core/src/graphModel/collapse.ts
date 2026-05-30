@@ -1,5 +1,5 @@
 import type { IGraphData } from '../graph/contracts';
-import type { VisibleGraphCollapseConfig } from './contracts';
+import type { GraphModelCollapseConfig } from './contracts';
 import { annotateCollapsibleFolders, annotateFolderNode } from './collapseAnnotate';
 import { projectCollapsedEdges } from './collapseEdges';
 import { findVisibleCollapsedAncestor } from './collapsePaths';
@@ -7,7 +7,7 @@ import { FOLDER_NODE_TYPE, getNodeType } from './model';
 
 export function applyCollapseProjection(
   graphData: IGraphData,
-  config?: VisibleGraphCollapseConfig,
+  config?: GraphModelCollapseConfig,
 ): IGraphData {
   const folderIds = new Set(
     graphData.nodes

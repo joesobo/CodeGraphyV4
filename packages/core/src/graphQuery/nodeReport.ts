@@ -1,5 +1,5 @@
 import type { IGraphNode, NodeType } from '../graph/contracts';
-import { getNodeType } from '../visibleGraph/model';
+import { getNodeType } from '../graphModel/model';
 import type { GraphQueryNodeReportItem } from './model';
 
 export function toNodeReportItem(node: IGraphNode): GraphQueryNodeReportItem {

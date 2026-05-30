@@ -1,6 +1,6 @@
-import type { VisibleGraphSearchOptions } from '../contracts';
+import type { GraphModelSearchOptions } from '../contracts';
 
-export type NormalizedSearchOptions = Required<VisibleGraphSearchOptions>;
+export type NormalizedSearchOptions = Required<GraphModelSearchOptions>;
 
 export interface CompiledSearchPattern {
   pattern: RegExp | null;
@@ -8,7 +8,7 @@ export interface CompiledSearchPattern {
 }
 
 export function normalizeSearchOptions(
-  options: VisibleGraphSearchOptions | undefined,
+  options: GraphModelSearchOptions | undefined,
 ): NormalizedSearchOptions {
   return {
     matchCase: options?.matchCase ?? false,
