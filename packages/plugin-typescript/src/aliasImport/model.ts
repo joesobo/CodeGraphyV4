@@ -28,7 +28,7 @@ export async function analyzeTypeScriptAliasImports(
     return { filePath, relations: [] };
   }
 
-  const config = readTypeScriptAliasConfig(workspaceRoot);
+  const config = readTypeScriptAliasConfig(filePath, workspaceRoot);
   if (!config) {
     return { filePath, relations: [] };
   }

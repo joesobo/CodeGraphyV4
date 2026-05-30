@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@example/*": ["example-typescript/src/alias/*"]
-    }
-  },
-  "files": []
-}

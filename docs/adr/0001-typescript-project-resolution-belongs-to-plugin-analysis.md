@@ -15,7 +15,8 @@ That Edge Type should default on in Graph Scope so alias-derived relationships a
 
 **Implementation Alignment**
 
-- Support root `tsconfig.json` plus local relative and package-based `extends` chains so shared configs such as `tsconfig.base.json` or `@org/tsconfig/base` can provide `compilerOptions.paths`.
+- For each TypeScript source file, use the nearest ancestor `tsconfig.json` within the CodeGraphy Workspace root. This matches TypeScript/editor-style project discovery better than requiring a root workspace config and supports nested projects in monorepos.
+- Support local relative and package-based `extends` chains so shared configs such as `tsconfig.base.json` or `@org/tsconfig/base` can provide `compilerOptions.paths`.
 - Support `compilerOptions.baseUrl` because TypeScript resolves `paths` targets relative to the config's base URL when present.
 - Support any TypeScript `compilerOptions.paths` mapping, not only `@/...` prefixes.
 - Support exact aliases and wildcard aliases.
@@ -24,4 +25,3 @@ That Edge Type should default on in Graph Scope so alias-derived relationships a
 - Limit this slice to TypeScript configuration. Do not read `jsconfig.json` until CodeGraphy has a JavaScript-specific plugin or a deliberate JavaScript project-analysis story.
 - Keep alias-derived relationships separate from baseline import relationships by using the **TypeScript Alias Import** Edge Type even when both edges resolve to the same target file.
 - Re-analyze affected TypeScript files when `tsconfig*.json` changes, not only the changed config file node.
-- For the first slice, start from the CodeGraphy Workspace root `tsconfig.json`. Monorepo nearest-config resolution can be added later when the product has a more precise package-level configuration model.

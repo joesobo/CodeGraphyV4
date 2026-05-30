@@ -3,6 +3,55 @@ import { createTypeScriptPlugin } from '../../src/plugin';
 import { createWorkspaceRoot, removeWorkspaceRoot, writeWorkspaceFile } from '../workspace';
 
 describe('TypeScript Alias Import compiler options support', () => {
+  it('uses the nearest ancestor tsconfig for files in nested projects', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      writeWorkspaceFile(
+        workspaceRoot,
+        'packages/app/tsconfig.json',
+        JSON.stringify({
+          compilerOptions: {
+            baseUrl: '.',
+            paths: {
+              '@app/*': ['src/alias/*'],
+            },
+          },
+        }),
+      );
+      const sourcePath = writeWorkspaceFile(
+        workspaceRoot,
+        'packages/app/src/index.ts',
+        "import { token } from '@app/token';\n",
+      );
+      const targetPath = writeWorkspaceFile(
+        workspaceRoot,
+        'packages/app/src/alias/token.ts',
+        'export const token = Symbol();\n',
+      );
+
+      const plugin = createTypeScriptPlugin();
+      const result = await plugin.analyzeFile?.(
+        sourcePath,
+        "import { token } from '@app/token';\n",
+        workspaceRoot,
+      );
+
+      expect(result).toBeDefined();
+      expect(result?.relations).toHaveLength(1);
+      expect(result?.relations[0]).toEqual({
+          kind: 'codegraphy.typescript:alias-import',
+          sourceId: 'compiler-options-paths',
+          fromFilePath: sourcePath,
+          toFilePath: targetPath,
+          resolvedPath: targetPath,
+          specifier: '@app/token',
+        },
+      );
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
+
   it('uses child paths replacement and effective baseUrl from extended tsconfig', async () => {
     const workspaceRoot = createWorkspaceRoot();
     try {
@@ -184,7 +233,7 @@ describe('TypeScript Alias Import compiler options support', () => {
     }
   });
 
-  it('emits no relationships when root tsconfig has no paths', async () => {
+  it('emits no relationships when nearest tsconfig has no paths', async () => {
     const workspaceRoot = createWorkspaceRoot();
     try {
       writeWorkspaceFile(
@@ -221,7 +270,7 @@ describe('TypeScript Alias Import compiler options support', () => {
     }
   });
 
-  it('emits no relationships when root tsconfig cannot be parsed', async () => {
+  it('emits no relationships when nearest tsconfig cannot be parsed', async () => {
     const workspaceRoot = createWorkspaceRoot();
     try {
       writeWorkspaceFile(workspaceRoot, 'tsconfig.json', '{ invalid json');
