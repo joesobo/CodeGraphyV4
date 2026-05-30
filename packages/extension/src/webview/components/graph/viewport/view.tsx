@@ -12,7 +12,7 @@ import {
 } from '../../ui/context/menu';
 import { NodeTooltip } from '../../nodeTooltip/view';
 import type {
-  GraphContextMenuAction,
+  GraphContextMenuActionInvocation,
   GraphContextMenuEntry,
 } from '../contextMenu/contracts';
 import {
@@ -35,7 +35,7 @@ export interface ViewportProps {
   directionMode: DirectionMode;
   graphMode: '2d' | '3d';
   handleContextMenu: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
-  handleMenuAction: (this: void, action: GraphContextMenuAction) => void;
+  handleMenuAction: (this: void, invocation: GraphContextMenuActionInvocation) => void;
   handleMouseDownCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
   handleMouseLeave: (this: void) => void;
   handleMouseMoveCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
@@ -160,7 +160,14 @@ function ViewportContextMenuItems({
             key={entry.id}
             className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
             disabled={entry.disabled}
-            onClick={() => handleMenuAction(entry.action)}
+            onClick={() => {
+              if (entry.contextSelection) {
+                handleMenuAction({
+                  action: entry.action,
+                  contextSelection: entry.contextSelection,
+                });
+              }
+            }}
           >
             {entry.label}
             {entry.shortcut ? <ContextMenuShortcut>{entry.shortcut}</ContextMenuShortcut> : null}

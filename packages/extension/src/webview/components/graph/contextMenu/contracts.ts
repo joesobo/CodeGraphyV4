@@ -41,12 +41,18 @@ export type GraphContextMenuAction =
       run: GraphViewContextMenuContribution['run'];
     };
 
+export interface GraphContextMenuActionInvocation {
+  action: GraphContextMenuAction;
+  contextSelection: GraphContextSelection;
+}
+
 export type GraphContextMenuEntry =
   | {
       kind: 'item';
       id: string;
       label: string;
       action: GraphContextMenuAction;
+      contextSelection?: GraphContextSelection;
       destructive?: boolean;
       disabled?: boolean;
       shortcut?: string;

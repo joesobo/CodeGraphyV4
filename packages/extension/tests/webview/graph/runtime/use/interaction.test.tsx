@@ -367,10 +367,9 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       },
     );
 
-    const latestNode = createNode('src/two.ts');
     rerender({
       graphContextSelection: createSelection(['src/two.ts']),
-      graphDataRef: { current: { links: [], nodes: [latestNode] } } as never,
+      graphDataRef: { current: { links: [], nodes: [createNode('src/two.ts')] } } as never,
       graphMode: '2d',
     });
 
@@ -378,13 +377,16 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       action: 'focus',
       kind: 'builtin',
     };
-    result.current.handleMenuAction(action);
+    result.current.handleMenuAction({
+      action,
+      contextSelection: createSelection(['src/one.ts']),
+    });
 
     expect(contextMenuRuntime.handleMenuAction).toHaveBeenCalledWith(action, expect.objectContaining({
       graphViewportScale: 2,
-      mutationDirectory: 'src/two.ts',
-      primaryNode: latestNode,
-      primaryTargetId: 'src/two.ts',
+      mutationDirectory: 'src/one.ts',
+      primaryNode: undefined,
+      primaryTargetId: 'src/one.ts',
     }));
   });
 
@@ -455,7 +457,10 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       action: 'focus',
       kind: 'builtin',
     };
-    result.current.handleMenuAction(firstAction);
+    result.current.handleMenuAction({
+      action: firstAction,
+      contextSelection: createSelection(['src/one.ts']),
+    });
 
     rerender({
       graphContextSelection: createSelection(['src/two.ts']),
@@ -465,7 +470,10 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       action: 'reveal',
       kind: 'builtin',
     };
-    result.current.handleMenuAction(secondAction);
+    result.current.handleMenuAction({
+      action: secondAction,
+      contextSelection: createSelection(['src/two.ts']),
+    });
     result.current.handleEngineStop();
 
     expect(contextMenuRuntime.handleMouseDownCapture).toHaveBeenCalledWith({
