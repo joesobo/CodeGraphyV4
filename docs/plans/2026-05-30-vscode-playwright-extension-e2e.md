@@ -31,15 +31,18 @@ Move CodeGraphy's browser-level graph rendering E2E confidence closer to the act
 
 ## Candidate First Slice
 
-Start with the smallest real-product assertion:
+Start with the basic user-perspective flow:
 
-1. Launch VS Code with the TypeScript example workspace.
-2. Open the Graph View.
-3. Trigger Indexing.
-4. Locate the Graph View webview from the VS Code window.
-5. Assert the Graph Stage canvas exists.
-6. Assert at least one File Node is rendered and visible.
-7. Assert at least one Edge is rendered and visible.
+1. Launch VS Code with the TypeScript example folder open.
+2. Open the CodeGraphy Graph View.
+3. Assert Nodes render before Indexing.
+4. Trigger Indexing.
+5. Assert graph-local progress is visible while Indexing runs.
+6. Assert Nodes update after Indexing completes.
+7. Assert Edges render after Indexing.
+8. Assert a specific File Node and specific Edge are visible.
+9. Drag a Node and assert that its rendered position changes.
+10. Click a File Node and assert the matching file opens in VS Code.
 
 Only after that is green should we migrate the richer standalone Playwright coverage.
 
