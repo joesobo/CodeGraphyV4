@@ -23,6 +23,13 @@ describe('graph view analysis execution load routing', () => {
     },
   );
 
+  it('replays a cached graph when loading with a fresh index and cached replay support', () => {
+    expect(selectGraphViewRawDataLoadDecision('load', 'fresh', true)).toEqual({
+      route: 'cached',
+      shouldDiscover: false,
+    });
+  });
+
   it('uses explicit index status freshness before falling back to hasIndex', () => {
     expect(getGraphIndexFreshness(createExecutionAnalyzer({
       getIndexStatus: vi.fn(() => ({
