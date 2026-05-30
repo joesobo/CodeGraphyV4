@@ -23,8 +23,8 @@ The extension source tree is intentionally feature-first inside each runtime bou
 - `src/extension/pipeline/` owns extension-facing adapters over `@codegraphy-dev/core` pipeline APIs and extension-only orchestration.
 - `src/extension/repoSettings/` owns repo-local settings, freshness decisions, and Graph Cache trust state.
 - `src/extension/workspaceFiles/` owns workspace file watching and refresh scheduling.
-- `@codegraphy-dev/core` owns File Discovery, Tree-sitter Analysis, headless plugin analysis, cache reads/writes, Graph Projection inputs, and agent-readable Graph Query.
-- `src/shared/visibleGraph/` owns the host/webview shared projection that turns scoped, filtered, and searched graph data into the Visible Graph.
+- `@codegraphy-dev/core` owns File Discovery, Tree-sitter Analysis, headless plugin analysis, cache reads/writes, Graph Projection inputs, Graph Model construction, and agent-readable Graph Query.
+- `src/webview/search/visibleGraphConfig.ts` owns the Graph View adapter that turns UI state into Core Graph Model configuration before the webview renders the Visible Graph.
 
 The webview is now organized by concern:
 

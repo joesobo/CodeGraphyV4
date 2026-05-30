@@ -1,6 +1,7 @@
 export type {
   GraphModelConfig,
   GraphModelCollapseConfig,
+  GraphModelContributionEntry,
   GraphModelFilterConfig,
   GraphModelResult,
   GraphModelScopeConfig,

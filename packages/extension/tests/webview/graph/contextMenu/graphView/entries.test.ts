@@ -10,7 +10,6 @@ function createContributions(
   return {
     runtimeNodes: [],
     runtimeEdges: [],
-    projections: [],
     forces: [],
     nodeDragEnd: [],
     contextMenu,

@@ -202,11 +202,18 @@ Hosts and account integrations can report whether paid capabilities are availabl
 
 Plugin id implies storage ownership. Hosts persist plugin data under the plugin id instead of asking plugins to register separate namespaces.
 
+### Graph Model (`graphModel.ts`)
+
+- `IGraphModelContribution`
+- `IGraphModelContributionContext`
+- `IGraphModelContributions`
+
+Graph Model contributions are Core-owned graph-to-graph transformations. They run before Graph Scope, Filter, and Search so plugin organization can participate in the same graph narrowing semantics as indexed Relationship Graph data.
+
 ### Graph View (`graphView.ts`)
 
 - `IGraphViewRuntimeNodeContribution`
 - `IGraphViewRuntimeEdgeContribution`
-- `IGraphViewProjectionContribution`
 - `IGraphViewForceAdapterContribution`
 - `IGraphViewNodeDragEndContribution`
 - `IGraphViewContextMenuContribution`

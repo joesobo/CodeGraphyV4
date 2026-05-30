@@ -90,7 +90,7 @@
           "src/graphCache/status.ts",
           "src/graphQuery/execute.ts",
           "src/packageIdentity.ts",
-          "src/visibleGraph/derive.ts",
+          "src/graphModel/build.ts",
           "src/workspace/requestQuery.ts"
         ]
       }
@@ -145,7 +145,6 @@
           "src/core/plugins/api/instance/index.ts",
           "src/extension/repoSettings/freshness/index.ts",
           "src/extension/repoSettings/store/index.ts",
-          "src/shared/visibleGraph/index.ts",
           "src/webview/pluginHost/api/registration/index.ts",
           "src/webview/main.tsx"
         ],

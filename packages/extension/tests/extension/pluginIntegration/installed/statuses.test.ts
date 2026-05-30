@@ -297,11 +297,6 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
           kind: 'runtimeNodes',
           pluginId: installedPackage!.pluginId,
         }),
-        expect.objectContaining({
-          contributionId: installedPackage!.graphViewContributionIds!.projection,
-          kind: 'projections',
-          pluginId: installedPackage!.pluginId,
-        }),
       ]),
     );
   }, 15000);

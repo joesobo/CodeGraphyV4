@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { deriveVisibleGraph } from '../../../shared/visibleGraph';
+import { buildGraphModel } from '@codegraphy-dev/core';
 import type { GraphState } from '../../store/state';
 import { buildVisibleGraphConfig } from '../../search/visibleGraphConfig';
 
@@ -17,7 +17,7 @@ function deriveShellVisibleGraph(
   input: Omit<ShellVisibleGraphsInput, 'activeFilterPatterns'>,
   filterPatterns: string[],
 ) {
-  return deriveVisibleGraph(input.graphData, buildVisibleGraphConfig({
+  return buildGraphModel(input.graphData, buildVisibleGraphConfig({
     edgeTypes: input.graphEdgeTypes,
     edgeVisibility: input.edgeVisibility,
     filterPatterns,

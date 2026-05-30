@@ -3,10 +3,10 @@ import { renderHook } from '@testing-library/react';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../src/shared/settings/groups';
 
-const deriveVisibleGraphMock = vi.hoisted(() => vi.fn());
+const buildGraphModelMock = vi.hoisted(() => vi.fn());
 
-vi.mock('../../../src/shared/visibleGraph', () => ({
-  deriveVisibleGraph: deriveVisibleGraphMock,
+vi.mock('@codegraphy-dev/core', () => ({
+  buildGraphModel: buildGraphModelMock,
 }));
 
 import { useFilteredGraph } from '../../../src/webview/search/useFilteredGraph';
@@ -31,8 +31,8 @@ const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
 
 describe('useFilteredGraph dependency array mutations', () => {
   beforeEach(() => {
-    deriveVisibleGraphMock.mockReset();
-    deriveVisibleGraphMock.mockImplementation((graphData: IGraphData | null) => ({
+    buildGraphModelMock.mockReset();
+    buildGraphModelMock.mockImplementation((graphData: IGraphData | null) => ({
       graphData,
       regexError: null,
     }));
@@ -59,14 +59,14 @@ describe('useFilteredGraph dependency array mutations', () => {
       { initialProps: { query: 'App' } },
     );
 
-    expect(deriveVisibleGraphMock).toHaveBeenLastCalledWith(
+    expect(buildGraphModelMock).toHaveBeenLastCalledWith(
       graphA,
       expect.objectContaining({ search: { query: 'App', options: defaultOptions } }),
     );
 
     rerender({ query: 'util' });
 
-    expect(deriveVisibleGraphMock).toHaveBeenLastCalledWith(
+    expect(buildGraphModelMock).toHaveBeenLastCalledWith(
       graphA,
       expect.objectContaining({ search: { query: 'util', options: defaultOptions } }),
     );
@@ -79,7 +79,7 @@ describe('useFilteredGraph dependency array mutations', () => {
       { initialProps: { options: { matchCase: false, wholeWord: false, regex: false } } },
     );
 
-    expect(deriveVisibleGraphMock).toHaveBeenLastCalledWith(
+    expect(buildGraphModelMock).toHaveBeenLastCalledWith(
       graphA,
       expect.objectContaining({
         search: { query: 'app', options: { matchCase: false, wholeWord: false, regex: false } },
@@ -88,7 +88,7 @@ describe('useFilteredGraph dependency array mutations', () => {
 
     rerender({ options: { matchCase: true, wholeWord: false, regex: false } });
 
-    expect(deriveVisibleGraphMock).toHaveBeenLastCalledWith(
+    expect(buildGraphModelMock).toHaveBeenLastCalledWith(
       graphA,
       expect.objectContaining({
         search: { query: 'app', options: { matchCase: true, wholeWord: false, regex: false } },
@@ -120,14 +120,14 @@ describe('useFilteredGraph dependency array mutations', () => {
       { initialProps: { showOrphans: true } },
     );
 
-    expect(deriveVisibleGraphMock).toHaveBeenLastCalledWith(
+    expect(buildGraphModelMock).toHaveBeenLastCalledWith(
       graphA,
       expect.objectContaining({ showOrphans: true }),
     );
 
     rerender({ showOrphans: false });
 
-    expect(deriveVisibleGraphMock).toHaveBeenLastCalledWith(
+    expect(buildGraphModelMock).toHaveBeenLastCalledWith(
       graphA,
       expect.objectContaining({ showOrphans: false }),
     );

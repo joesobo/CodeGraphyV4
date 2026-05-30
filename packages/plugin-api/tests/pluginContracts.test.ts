@@ -3,9 +3,9 @@ import { describe, expectTypeOf, it } from 'vitest';
 import type {
   CodeGraphyAccessKey,
   IAccessProvider,
+  IGraphModelContribution,
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
-  IGraphViewProjectionContribution,
   IGraphViewRuntimeNode,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
@@ -91,14 +91,14 @@ describe('plugin API contracts', () => {
       },
     } satisfies IGraphViewRuntimeEdgeContribution;
 
-    const projection = {
-      id: 'acme.graph.projection',
-      label: 'Runtime Projection',
+    const graphModelContribution = {
+      id: 'acme.graph.organization',
+      label: 'Runtime Organization',
       requiresAccess: premiumAccess,
-      project({ visibleGraph }) {
-        return visibleGraph;
+      build({ graphData }) {
+        return graphData;
       },
-    } satisfies IGraphViewProjectionContribution;
+    } satisfies IGraphModelContribution;
 
     const force = {
       id: 'acme.graph.force',
@@ -127,15 +127,18 @@ describe('plugin API contracts', () => {
       apiVersion: '^2.0.0',
       supportedExtensions: ['*'],
       requiresAccess: premiumAccess,
+      graphModel: {
+        contributions: [graphModelContribution],
+      },
       graphView: {
         runtimeNodes: [runtimeNode],
         runtimeEdges: [runtimeEdge],
-        projections: [projection],
         forces: [force],
         contextMenu: [contextMenu],
       },
     } satisfies IPlugin;
 
+    expectTypeOf(plugin.graphModel.contributions[0]).toMatchTypeOf<IGraphModelContribution>();
     expectTypeOf(plugin.graphView.forces[0]).toMatchTypeOf<IGraphViewForceAdapterContribution>();
     expectTypeOf(plugin.graphView.contextMenu[0].targets[0]).toMatchTypeOf<{ kind: 'multiSelection' }>();
   });

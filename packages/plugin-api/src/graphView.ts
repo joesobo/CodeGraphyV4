@@ -69,10 +69,6 @@ export interface IGraphViewRuntimeEdgeContribution extends IGraphViewContributio
   createEdges(context: IGraphViewContributionContext): readonly IGraphViewRuntimeEdge[];
 }
 
-export interface IGraphViewProjectionContribution extends IGraphViewContributionBase {
-  project(context: IGraphViewContributionContext): IGraphData;
-}
-
 export interface IGraphViewForceAdapterContext extends IGraphViewContributionContext {
   nodes: readonly IGraphViewRuntimeNode[];
   edges: readonly IGraphViewRuntimeEdge[];
@@ -169,7 +165,6 @@ export interface IGraphViewContextMenuContribution extends IGraphViewContributio
 export interface IGraphViewContributions {
   runtimeNodes?: readonly IGraphViewRuntimeNodeContribution[];
   runtimeEdges?: readonly IGraphViewRuntimeEdgeContribution[];
-  projections?: readonly IGraphViewProjectionContribution[];
   forces?: readonly IGraphViewForceAdapterContribution[];
   nodeDragEnd?: readonly IGraphViewNodeDragEndContribution[];
   contextMenu?: readonly IGraphViewContextMenuContribution[];

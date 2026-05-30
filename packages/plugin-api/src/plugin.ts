@@ -18,6 +18,7 @@ import type { IPluginDataHost } from './data';
 import type { Disposable } from './disposable';
 import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
 import type { IGraphViewContributions } from './graphView';
+import type { IGraphModelContributions } from './graphModel';
 
 export interface IPluginWebviewContributions {
   scripts?: string[];
@@ -183,7 +184,10 @@ export interface IPlugin {
    */
   defaultFilters?: string[];
 
-  /** Optional Graph View runtime, UI, menu, projection, and force contributions. */
+  /** Optional Core-owned graph model organization contributions. */
+  graphModel?: IGraphModelContributions;
+
+  /** Optional Graph View runtime, UI, menu, and force contributions. */
   graphView?: IGraphViewContributions;
 
   /** Optional webview API range this plugin's injected webview assets target. */

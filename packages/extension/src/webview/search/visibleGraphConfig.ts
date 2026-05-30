@@ -1,12 +1,12 @@
 import type { SearchOptions } from '../components/searchBar/field/model';
 import type { IGraphEdgeTypeDefinition } from '../../shared/graphControls/contracts';
 import type {
-  VisibleGraphCollapseConfig,
-  VisibleGraphConfig,
-  VisibleGraphFilterConfig,
-  VisibleGraphScopeConfig,
-  VisibleGraphSearchConfig,
-} from '../../shared/visibleGraph';
+  GraphModelCollapseConfig,
+  GraphModelConfig,
+  GraphModelFilterConfig,
+  GraphModelScopeConfig,
+  GraphModelSearchConfig,
+} from '@codegraphy-dev/core';
 
 const LEGACY_NESTS_EDGE_TYPE = 'codegraphy:nests';
 const SHARED_NESTS_EDGE_TYPE = 'nests';
@@ -35,7 +35,7 @@ export function buildVisibleGraphScopeConfig(
   nodeVisibility: Record<string, boolean> = {},
   edgeVisibility: Record<string, boolean> = {},
   edgeTypes: IGraphEdgeTypeDefinition[] = [],
-): VisibleGraphScopeConfig {
+): GraphModelScopeConfig {
   const edgeScopes = new Map<string, boolean>();
 
   for (const edgeType of edgeTypes) {
@@ -57,20 +57,20 @@ export function buildVisibleGraphScopeConfig(
 
 export function buildVisibleGraphFilterConfig(
   filterPatterns: readonly string[] = [],
-): VisibleGraphFilterConfig | undefined {
+): GraphModelFilterConfig | undefined {
   return filterPatterns.length > 0 ? { patterns: filterPatterns } : undefined;
 }
 
 export function buildVisibleGraphSearchConfig(
   searchQuery: string,
   searchOptions: SearchOptions,
-): VisibleGraphSearchConfig | undefined {
+): GraphModelSearchConfig | undefined {
   return searchQuery.trim().length > 0
     ? { query: searchQuery, options: searchOptions }
     : undefined;
 }
 
-export function buildVisibleGraphCollapseConfig(): VisibleGraphCollapseConfig | undefined {
+export function buildVisibleGraphCollapseConfig(): GraphModelCollapseConfig | undefined {
   return undefined;
 }
 
@@ -90,7 +90,7 @@ export function buildVisibleGraphConfig({
   searchOptions: SearchOptions;
   searchQuery: string;
   showOrphans: boolean;
-}): VisibleGraphConfig {
+}): GraphModelConfig {
   return {
     scope: buildVisibleGraphScopeConfig(nodeVisibility, edgeVisibility, edgeTypes),
     filter: buildVisibleGraphFilterConfig(filterPatterns),

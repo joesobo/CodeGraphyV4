@@ -1,12 +1,13 @@
 import type {
   CodeGraphyAccessKey,
+  GraphModelAccessRequirement,
   GraphViewAccessRequirement,
   IAccessProvider,
   IAccessResult,
+  IGraphModelContribution,
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
   IGraphViewNodeDragEndContribution,
-  IGraphViewProjectionContribution,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
@@ -28,21 +29,31 @@ export interface CoreGraphViewContributionEntry<TContribution> {
   contribution: TContribution;
 }
 
+export type CoreGraphModelContributionEntry<TContribution> = CoreGraphViewContributionEntry<TContribution>;
+
+export interface CoreGraphModelContributionSet {
+  contributions: CoreGraphModelContributionEntry<IGraphModelContribution>[];
+}
+
 export interface CoreGraphViewContributionSet {
   runtimeNodes: CoreGraphViewContributionEntry<IGraphViewRuntimeNodeContribution>[];
   runtimeEdges: CoreGraphViewContributionEntry<IGraphViewRuntimeEdgeContribution>[];
-  projections: CoreGraphViewContributionEntry<IGraphViewProjectionContribution>[];
   forces: CoreGraphViewContributionEntry<IGraphViewForceAdapterContribution>[];
   nodeDragEnd: CoreGraphViewContributionEntry<IGraphViewNodeDragEndContribution>[];
   contextMenu: CoreGraphViewContributionEntry<IGraphViewContextMenuContribution>[];
   ui: CoreGraphViewContributionEntry<IGraphViewUiSlotContribution>[];
 }
 
+export function createEmptyGraphModelContributionSet(): CoreGraphModelContributionSet {
+  return {
+    contributions: [],
+  };
+}
+
 export function createEmptyGraphViewContributionSet(): CoreGraphViewContributionSet {
   return {
     runtimeNodes: [],
     runtimeEdges: [],
-    projections: [],
     forces: [],
     nodeDragEnd: [],
     contextMenu: [],
@@ -51,7 +62,7 @@ export function createEmptyGraphViewContributionSet(): CoreGraphViewContribution
 }
 
 function normalizeAccessRequirement(
-  requirement: GraphViewAccessRequirement | undefined,
+  requirement: GraphModelAccessRequirement | GraphViewAccessRequirement | undefined,
 ): CodeGraphyAccessKey[] {
   if (!requirement) {
     return [];

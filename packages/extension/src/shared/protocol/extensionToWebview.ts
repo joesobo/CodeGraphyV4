@@ -25,7 +25,6 @@ export interface IPluginFilterPatternGroup {
 export type GraphViewContributionStatusKind =
   | 'runtimeNodes'
   | 'runtimeEdges'
-  | 'projections'
   | 'forces'
   | 'nodeDragEnd'
   | 'contextMenu'

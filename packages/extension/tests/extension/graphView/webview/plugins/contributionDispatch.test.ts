@@ -127,7 +127,6 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
   it('sends available Graph View contribution statuses without posting function values', async () => {
     const sendMessage = vi.fn();
     const runtimeNode = vi.fn();
-    const project = vi.fn();
     const analyzer = {
       registry: {
         listAvailableGraphViewContributions: vi.fn(async () => ({
@@ -140,14 +139,6 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
             },
           }],
           runtimeEdges: [],
-          projections: [{
-            pluginId: 'acme.graph-tools',
-            contribution: {
-              id: 'acme.graph-tools.projection',
-              label: 'Runtime Projection',
-              project,
-            },
-          }],
           forces: [],
           nodeDragEnd: [],
           contextMenu: [],
@@ -174,12 +165,6 @@ describe('graphView/webview/plugins/contributionDispatch', () => {
             pluginId: 'acme.graph-tools',
             contributionId: 'acme.graph-tools.runtime-nodes',
             label: 'Runtime Nodes',
-          },
-          {
-            kind: 'projections',
-            pluginId: 'acme.graph-tools',
-            contributionId: 'acme.graph-tools.projection',
-            label: 'Runtime Projection',
           },
         ],
       },

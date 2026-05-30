@@ -214,12 +214,15 @@ export type {
   WorkspaceIndexPluginStatusOptions,
 } from './plugins/status';
 export type {
+  CoreGraphModelContributionEntry,
+  CoreGraphModelContributionSet,
   CoreGraphViewContributionEntry,
   CoreGraphViewContributionSet,
   CorePluginAccessCheck,
   CorePluginAccessContext,
 } from './plugins/access/checks';
 export {
+  createEmptyGraphModelContributionSet,
   createEmptyGraphViewContributionSet,
   resolvePluginAccess,
 } from './plugins/access/checks';
@@ -393,6 +396,7 @@ export {
 export type {
   GraphModelConfig,
   GraphModelCollapseConfig,
+  GraphModelContributionEntry,
   GraphModelFilterConfig,
   GraphModelResult,
   GraphModelScopeConfig,

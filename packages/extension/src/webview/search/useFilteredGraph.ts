@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 import type { SearchOptions } from '../components/searchBar/field/model';
 import { applyLegendRules } from './filtering/rules';
-import { deriveVisibleGraph } from '../../shared/visibleGraph';
+import { buildGraphModel } from '@codegraphy-dev/core';
 import type { IGraphData } from '../../shared/graph/contracts';
 import type { IGraphEdgeTypeDefinition } from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
@@ -51,7 +51,7 @@ export function useFilteredGraph(
   showOrphans = true,
 ): IFilteredGraph {
   const visibleGraph = useMemo(() => {
-    return deriveVisibleGraph(graphData, buildVisibleGraphConfig({
+    return buildGraphModel(graphData, buildVisibleGraphConfig({
       edgeTypes,
       edgeVisibility,
       filterPatterns,

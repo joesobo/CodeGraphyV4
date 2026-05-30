@@ -3,6 +3,7 @@ import { getDisabledTypes } from './model';
 export {
   getDisabledScopedSymbolDefinitions,
   getDisabledSymbolKinds,
+  getScopedSymbolDefinitions,
 } from './scopeSymbolTypes';
 
 function findScopeItem(

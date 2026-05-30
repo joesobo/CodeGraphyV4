@@ -1,4 +1,4 @@
-import type { IPlugin } from '@codegraphy-dev/plugin-api';
+import type { IGraphModelContribution, IPlugin } from '@codegraphy-dev/plugin-api';
 import { describe, expect, it, vi } from 'vitest';
 
 import { CorePluginRegistry } from '../../src';
@@ -160,5 +160,40 @@ describe('CorePluginRegistry', () => {
       { id: 'plugin:custom-edge', label: 'Custom Edge', defaultColor: '#222222', defaultVisible: false },
       { id: 'plugin:other-edge', label: 'Other Edge', defaultColor: '#444444', defaultVisible: true },
     ]);
+  });
+
+  it('lists graph model contributions through the registry facade', async () => {
+    const registry = new CorePluginRegistry();
+    const graphModelContribution = {
+      id: 'organize.workspace',
+      label: 'Organize Workspace',
+      build({ graphData }) {
+        return graphData;
+      },
+    } satisfies IGraphModelContribution;
+
+    registry.register(plugin({
+      id: 'organize',
+      graphModel: {
+        contributions: [graphModelContribution],
+      },
+      graphView: {
+        forces: [{
+          id: 'organize.force',
+          label: 'Organize Force',
+          create() {
+            return { dispose() {} };
+          },
+        }],
+      },
+    }));
+
+    await expect(registry.listAvailableGraphModelContributions()).resolves.toEqual({
+      contributions: [{
+        pluginId: 'organize',
+        contribution: graphModelContribution,
+      }],
+    });
+    await expect(registry.listAvailableGraphViewContributions()).resolves.not.toHaveProperty('projections');
   });
 });

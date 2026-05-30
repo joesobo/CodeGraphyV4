@@ -10,7 +10,6 @@ import type {
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
   IGraphViewNodeDragEndContribution,
-  IGraphViewProjectionContribution,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
@@ -74,13 +73,6 @@ async function appendAvailableGraphViewContributions(
     accessProviders,
     graphView.runtimeEdges,
     contributions.runtimeEdges,
-    context,
-  );
-  await pushAvailableGraphViewContributions<IGraphViewProjectionContribution>(
-    plugin,
-    accessProviders,
-    graphView.projections,
-    contributions.projections,
     context,
   );
   await pushAvailableGraphViewContributions<IGraphViewForceAdapterContribution>(

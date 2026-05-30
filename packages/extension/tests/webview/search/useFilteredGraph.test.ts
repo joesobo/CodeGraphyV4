@@ -3,10 +3,10 @@ import { renderHook } from '@testing-library/react';
 import type { IGraphData } from '../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../src/shared/settings/groups';
 
-const deriveVisibleGraphMock = vi.hoisted(() => vi.fn());
+const buildGraphModelMock = vi.hoisted(() => vi.fn());
 
-vi.mock('../../../src/shared/visibleGraph', () => ({
-  deriveVisibleGraph: deriveVisibleGraphMock,
+vi.mock('@codegraphy-dev/core', () => ({
+  buildGraphModel: buildGraphModelMock,
 }));
 
 import { useFilteredGraph } from '../../../src/webview/search/useFilteredGraph';
@@ -23,8 +23,8 @@ const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
 
 describe('useFilteredGraph', () => {
   beforeEach(() => {
-    deriveVisibleGraphMock.mockReset();
-    deriveVisibleGraphMock.mockReturnValue({ graphData: sampleGraph, regexError: null });
+    buildGraphModelMock.mockReset();
+    buildGraphModelMock.mockReturnValue({ graphData: sampleGraph, regexError: null });
   });
 
   it('delegates visible graph derivation with scope, filter, search, and show-orphans config', () => {
@@ -52,7 +52,7 @@ describe('useFilteredGraph', () => {
       ),
     );
 
-    expect(deriveVisibleGraphMock).toHaveBeenCalledWith(sampleGraph, {
+    expect(buildGraphModelMock).toHaveBeenCalledWith(sampleGraph, {
       scope: {
         nodes: [
           { type: 'file', enabled: true },
@@ -78,7 +78,7 @@ describe('useFilteredGraph', () => {
       useFilteredGraph(sampleGraph, '   ', defaultOptions, [], {}, {}, {}, []),
     );
 
-    expect(deriveVisibleGraphMock).toHaveBeenCalledWith(sampleGraph, {
+    expect(buildGraphModelMock).toHaveBeenCalledWith(sampleGraph, {
       scope: { nodes: [], edges: [] },
       filter: undefined,
       search: undefined,
@@ -87,7 +87,7 @@ describe('useFilteredGraph', () => {
   });
 
   it('returns null graph fields when shared derivation returns null graphData', () => {
-    deriveVisibleGraphMock.mockReturnValue({ graphData: null, regexError: null });
+    buildGraphModelMock.mockReturnValue({ graphData: null, regexError: null });
 
     const { result } = renderHook(() =>
       useFilteredGraph(null, '', defaultOptions, [], {}, {}, {}, []),
@@ -99,7 +99,7 @@ describe('useFilteredGraph', () => {
   });
 
   it('passes through regex errors from shared derivation', () => {
-    deriveVisibleGraphMock.mockReturnValue({ graphData: sampleGraph, regexError: 'Invalid regex' });
+    buildGraphModelMock.mockReturnValue({ graphData: sampleGraph, regexError: 'Invalid regex' });
 
     const { result } = renderHook(() =>
       useFilteredGraph(sampleGraph, '[invalid', { ...defaultOptions, regex: true }, [], {}, {}, {}, []),
@@ -139,7 +139,7 @@ describe('useFilteredGraph', () => {
   });
 
   it('applies legacy nests edge defaults to shared nests edges after derivation', () => {
-    deriveVisibleGraphMock.mockReturnValue({
+    buildGraphModelMock.mockReturnValue({
       graphData: {
         nodes: sampleGraph.nodes,
         edges: [

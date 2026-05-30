@@ -74,6 +74,49 @@ describe('graphModel/build', () => {
     });
   });
 
+  it('applies graph model contributions before graph scope', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/app.ts'),
+      ],
+      edges: [],
+    };
+
+    expect(buildGraphModel(graphData, {
+      contributions: [{
+        pluginId: 'organize',
+        contribution: {
+          id: 'organize.virtual-node',
+          label: 'Virtual Node',
+          build({ graphData: current }) {
+            return {
+              nodes: [
+                ...current.nodes,
+                node('organize:virtual', 'organize:virtual'),
+              ],
+              edges: current.edges,
+            };
+          },
+        },
+      }],
+      scope: {
+        nodes: [
+          { type: 'file', enabled: true },
+          { type: 'organize:virtual', enabled: false },
+        ],
+        edges: [],
+      },
+    })).toEqual({
+      graphData: {
+        nodes: [
+          node('src/app.ts'),
+        ],
+        edges: [],
+      },
+      regexError: null,
+    });
+  });
+
   it('applies filter projection when configured', () => {
     const graphData: IGraphData = {
       nodes: [

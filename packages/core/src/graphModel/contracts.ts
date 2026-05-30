@@ -1,4 +1,10 @@
 import type { IGraphData } from '../graph/contracts';
+import type { IGraphModelContribution } from '@codegraphy-dev/plugin-api';
+
+export interface GraphModelContributionEntry {
+  pluginId: string;
+  contribution: IGraphModelContribution;
+}
 
 export interface GraphModelScopeItem {
   type: string;
@@ -30,6 +36,7 @@ export interface GraphModelCollapseConfig {
 }
 
 export interface GraphModelConfig {
+  contributions?: readonly GraphModelContributionEntry[];
   scope?: GraphModelScopeConfig;
   filter?: GraphModelFilterConfig;
   search?: GraphModelSearchConfig;

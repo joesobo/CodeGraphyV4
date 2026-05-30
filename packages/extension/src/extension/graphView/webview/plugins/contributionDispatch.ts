@@ -57,7 +57,6 @@ interface GraphViewPluginAnalyzer {
 interface GraphViewContributionSet {
   runtimeNodes: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
   runtimeEdges: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
-  projections: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
   forces: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
   nodeDragEnd: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
   contextMenu: Array<{ pluginId: string; contribution: { id: string; label: string } }>;
@@ -80,7 +79,6 @@ function collectContributionStatuses(
   for (const kind of [
     'runtimeNodes',
     'runtimeEdges',
-    'projections',
     'forces',
     'nodeDragEnd',
     'contextMenu',

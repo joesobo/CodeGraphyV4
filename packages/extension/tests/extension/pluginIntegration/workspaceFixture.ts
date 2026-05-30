@@ -111,13 +111,6 @@ export default function createPlugin() {
         createNodes() {
           return [];
         }
-      }],
-      projections: [{
-        id: '${graphViewContributionIds.projection}',
-        label: 'Runtime Projection',
-        project({ visibleGraph }) {
-          return visibleGraph;
-        }
       }]
     },
     ` : ''}

@@ -60,6 +60,15 @@ export type {
   IGraphNodeSymbolMetadata,
 } from './graph';
 
+// Graph Model contributions
+export type {
+  GraphModelAccessRequirement,
+  IGraphModelContribution,
+  IGraphModelContributionBase,
+  IGraphModelContributionContext,
+  IGraphModelContributions,
+} from './graphModel';
+
 // Graph View contributions
 export type {
   GraphViewAccessRequirement,
@@ -79,7 +88,6 @@ export type {
   IGraphViewNodeDragEndResult,
   IGraphViewNodeDragState,
   IGraphViewPhysicsSettings,
-  IGraphViewProjectionContribution,
   IGraphViewRuntimeEdge,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNode,

@@ -192,7 +192,6 @@ describe('graph/contextMenuModel', () => {
       graphViewContributions: {
         runtimeNodes: [],
         runtimeEdges: [],
-        projections: [],
         forces: [],
         nodeDragEnd: [],
         contextMenu: [{

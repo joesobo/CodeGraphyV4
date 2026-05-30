@@ -86,12 +86,6 @@ function enableRuntimeGraphViewContributions() {
         contributionId: 'acme.graph-tools.runtime-nodes',
         label: 'Runtime Nodes',
       },
-      {
-        kind: 'projections',
-        pluginId: 'acme.graph-tools',
-        contributionId: 'acme.graph-tools.projection',
-        label: 'Runtime Projection',
-      },
     ],
   });
 }
@@ -255,7 +249,6 @@ describe('ToolbarActions', () => {
       getGraphViewContributions: vi.fn(() => ({
         runtimeNodes: [],
         runtimeEdges: [],
-        projections: [],
         forces: [],
         nodeDragEnd: [],
         contextMenu: [{

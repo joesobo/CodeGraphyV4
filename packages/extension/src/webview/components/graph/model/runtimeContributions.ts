@@ -76,18 +76,3 @@ export function applyGraphViewRuntimeContributions(
 
   return { nodes, edges };
 }
-
-export function applyGraphViewProjectionContributions(
-  data: IGraphData,
-  contributions: CoreGraphViewContributionSet | undefined,
-  context: GraphViewRuntimeContributionContext = {},
-): IGraphData {
-  if (!contributions) {
-    return data;
-  }
-
-  return contributions.projections.reduce(
-    (visibleGraph, entry) => entry.contribution.project({ visibleGraph, ...context }),
-    data,
-  );
-}

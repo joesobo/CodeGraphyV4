@@ -4,7 +4,6 @@ import type {
   IGraphViewContextMenuContribution,
   IGraphViewForceAdapterContribution,
   IGraphViewNodeDragEndContribution,
-  IGraphViewProjectionContribution,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
@@ -57,11 +56,6 @@ describe('core/plugins/registry/runtime/state graph view contributions', () => {
       label: 'Runtime Edge',
       createEdges: vi.fn(() => []),
     } as IGraphViewRuntimeEdgeContribution;
-    const projection = {
-      id: 'projection',
-      label: 'Projection',
-      project: vi.fn(({ visibleGraph }) => visibleGraph),
-    } as IGraphViewProjectionContribution;
     const force = {
       id: 'force',
       label: 'Force',
@@ -92,7 +86,6 @@ describe('core/plugins/registry/runtime/state graph view contributions', () => {
         contextMenu: [contextMenu],
         forces: [force],
         nodeDragEnd: [nodeDragEnd],
-        projections: [projection],
         runtimeEdges: [runtimeEdge],
         runtimeNodes: [runtimeNode],
         ui: [ui],
@@ -111,7 +104,6 @@ describe('core/plugins/registry/runtime/state graph view contributions', () => {
     });
     expect(contributions.runtimeNodes).toEqual([{ pluginId: 'visuals', contribution: runtimeNode }]);
     expect(contributions.runtimeEdges).toEqual([{ pluginId: 'visuals', contribution: runtimeEdge }]);
-    expect(contributions.projections).toEqual([{ pluginId: 'visuals', contribution: projection }]);
     expect(contributions.forces).toEqual([{ pluginId: 'visuals', contribution: force }]);
     expect(contributions.nodeDragEnd).toEqual([{ pluginId: 'visuals', contribution: nodeDragEnd }]);
     expect(contributions.contextMenu).toEqual([{ pluginId: 'visuals', contribution: contextMenu }]);
@@ -159,7 +151,6 @@ describe('core/plugins/registry/runtime/state graph view contributions', () => {
       { pluginId: 'open-plugin', contribution: availableContribution },
     ]);
     expect(contributions.runtimeEdges).toEqual([]);
-    expect(contributions.projections).toEqual([]);
     expect(contributions.forces).toEqual([]);
     expect(contributions.nodeDragEnd).toEqual([]);
     expect(contributions.contextMenu).toEqual([]);
@@ -172,7 +163,6 @@ describe('core/plugins/registry/runtime/state graph view contributions', () => {
     ])).resolves.toEqual({
       runtimeNodes: [],
       runtimeEdges: [],
-      projections: [],
       forces: [],
       nodeDragEnd: [],
       contextMenu: [],

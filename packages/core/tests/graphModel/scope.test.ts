@@ -135,6 +135,54 @@ describe('graphModel/scope', () => {
     });
   });
 
+  it('keeps symbols that match an explicitly enabled child scope when the symbol root is disabled', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/app.ts', 'file'),
+        node('src/app.ts#run:function', 'symbol', {
+          id: 'src/app.ts#run:function',
+          name: 'run',
+          kind: 'function',
+          filePath: 'src/app.ts',
+        }),
+        node('src/app.ts#App:class', 'symbol', {
+          id: 'src/app.ts#App:class',
+          name: 'App',
+          kind: 'class',
+          filePath: 'src/app.ts',
+        }),
+      ],
+      edges: [
+        edge('src/app.ts', 'src/app.ts#run:function', 'contains'),
+        edge('src/app.ts', 'src/app.ts#App:class', 'contains'),
+      ],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: false },
+        { type: 'symbol:function', enabled: true },
+      ],
+      edges: [
+        { type: 'contains', enabled: true },
+      ],
+    })).toEqual({
+      nodes: [
+        node('src/app.ts', 'file'),
+        node('src/app.ts#run:function', 'symbol', {
+          id: 'src/app.ts#run:function',
+          name: 'run',
+          kind: 'function',
+          filePath: 'src/app.ts',
+        }),
+      ],
+      edges: [
+        edge('src/app.ts', 'src/app.ts#run:function', 'contains'),
+      ],
+    });
+  });
+
   it('disables variable nodes whenever the symbol root is disabled', () => {
     expect(getDisabledNodeTypes(scopeConfig([
       { type: 'symbol', enabled: false },

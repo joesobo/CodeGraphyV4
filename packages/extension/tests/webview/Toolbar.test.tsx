@@ -201,7 +201,6 @@ describe('Toolbar', () => {
     const graphViewContributions = {
       runtimeNodes: [],
       runtimeEdges: [],
-      projections: [],
       forces: [],
       nodeDragEnd: [],
       contextMenu: [{

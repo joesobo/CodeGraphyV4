@@ -45,7 +45,6 @@ function hasGraphViewContributions(
     && (
       contributions.runtimeNodes.length > 0
       || contributions.runtimeEdges.length > 0
-      || contributions.projections.length > 0
       || contributions.forces.length > 0
       || contributions.nodeDragEnd.length > 0
       || contributions.contextMenu.length > 0

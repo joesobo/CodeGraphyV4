@@ -37,6 +37,12 @@ export function buildGraphModel(
   let current = graphData;
   let regexError: string | null = null;
 
+  for (const entry of config.contributions ?? []) {
+    current = entry.contribution.build({
+      graphData: current,
+    });
+  }
+
   if (config.scope) {
     current = applyGraphScope(current, config.scope);
   }

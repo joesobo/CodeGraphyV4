@@ -4,7 +4,6 @@ import type {
   IGraphViewContributions,
   IGraphViewForceAdapterContribution,
   IGraphViewNodeDragEndContribution,
-  IGraphViewProjectionContribution,
   IGraphViewRuntimeEdgeContribution,
   IGraphViewRuntimeNodeContribution,
   IGraphViewUiSlotContribution,
@@ -21,10 +20,6 @@ function runtimeNodeContribution(id: string): IGraphViewRuntimeNodeContribution 
 
 function runtimeEdgeContribution(id: string): IGraphViewRuntimeEdgeContribution {
   return { id, label: id, createEdges: () => [] };
-}
-
-function projectionContribution(id: string): IGraphViewProjectionContribution {
-  return { id, label: id, project: context => context.visibleGraph };
 }
 
 function forceContribution(id: string): IGraphViewForceAdapterContribution {
@@ -53,7 +48,6 @@ describe('webview/pluginHost/manager/contributions', () => {
     expect(createEmptyWebviewGraphViewContributionSet()).toEqual({
       runtimeNodes: [],
       runtimeEdges: [],
-      projections: [],
       forces: [],
       nodeDragEnd: [],
       contextMenu: [],
@@ -65,7 +59,6 @@ describe('webview/pluginHost/manager/contributions', () => {
     const firstPluginContributions: IGraphViewContributions = {
       runtimeNodes: [runtimeNodeContribution('node')],
       runtimeEdges: [runtimeEdgeContribution('edge')],
-      projections: [projectionContribution('projection')],
       forces: [forceContribution('force')],
       nodeDragEnd: [nodeDragEndContribution('drag')],
       contextMenu: [contextMenuContribution('menu')],
@@ -87,7 +80,6 @@ describe('webview/pluginHost/manager/contributions', () => {
         { pluginId: 'plugin.two', contribution: secondPluginContributions.runtimeNodes?.[0] },
       ],
       runtimeEdges: [{ pluginId: 'plugin.one', contribution: firstPluginContributions.runtimeEdges?.[0] }],
-      projections: [{ pluginId: 'plugin.one', contribution: firstPluginContributions.projections?.[0] }],
       forces: [{ pluginId: 'plugin.one', contribution: firstPluginContributions.forces?.[0] }],
       nodeDragEnd: [{ pluginId: 'plugin.one', contribution: firstPluginContributions.nodeDragEnd?.[0] }],
       contextMenu: [{ pluginId: 'plugin.one', contribution: firstPluginContributions.contextMenu?.[0] }],

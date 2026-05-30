@@ -8,7 +8,6 @@ import type { NodeType } from '../../../../shared/graph/contracts';
 import { buildGraphLinks } from './link/build';
 import { buildGraphNodes } from './node/build';
 import {
-  applyGraphViewProjectionContributions,
   applyGraphViewRuntimeContributions,
 } from './runtimeContributions';
 export { processEdges } from './edgeProcessing';
@@ -104,18 +103,10 @@ export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[
       timelineActive: options.timelineActive,
     },
   );
-  const projectedData = applyGraphViewProjectionContributions(
-    runtimeData,
-    options.graphViewContributions,
-    {
-      graphMode,
-      timelineActive: options.timelineActive,
-    },
-  );
-  const nodeSizes = calculateNodeSizes(projectedData.nodes, projectedData.edges, options.nodeSizeMode);
+  const nodeSizes = calculateNodeSizes(runtimeData.nodes, runtimeData.edges, options.nodeSizeMode);
   const nodes = buildGraphNodes({
-    nodes: projectedData.nodes,
-    edges: projectedData.edges,
+    nodes: runtimeData.nodes,
+    edges: runtimeData.edges,
     appearance,
     nodeSizes,
     theme: options.theme,
@@ -125,7 +116,7 @@ export function buildGraphData(options: BuildGraphDataOptions): { nodes: FGNode[
     previousNodes: options.previousNodes,
     random: options.random,
   });
-  const links = buildGraphLinks(projectedData.edges, options.bidirectionalMode);
+  const links = buildGraphLinks(runtimeData.edges, options.bidirectionalMode);
 
   return { nodes, links };
 }

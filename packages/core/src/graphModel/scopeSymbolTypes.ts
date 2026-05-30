@@ -1,6 +1,7 @@
 import { CORE_GRAPH_NODE_TYPES } from '../graphControls/defaults/definitions';
 import type { GraphModelScopeConfig } from './contracts';
 export { getDisabledScopedSymbolDefinitions } from './scopeScopedDefinitions';
+export { getScopedSymbolDefinitions } from './scopeScopedDefinitions';
 
 export function getDisabledSymbolKinds(scope: GraphModelScopeConfig): Set<string> {
   return new Set(
