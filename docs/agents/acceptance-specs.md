@@ -21,3 +21,6 @@ Acceptance specs are the human-written contract for product E2E behavior.
 
 This keeps the alignment contract readable while leaving the implementation
 details in normal TypeScript.
+
+See `packages/extension/tests/acceptance/README.md` for the folder layout,
+local commands, and writing guidance.
