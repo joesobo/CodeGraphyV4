@@ -89,22 +89,6 @@ Helpful external references:
 - [Keep your scenarios BRIEF](https://cucumber.io/blog/bdd/keep-your-scenarios-brief/)
 - [Uncle Bob empire-2025 acceptance examples](https://github.com/unclebob/empire-2025/tree/master/acceptanceTests)
 
-## Cucumber
-
-This suite uses Gherkin-ish Markdown, but it does not use Cucumber as the
-runtime.
-
-Cucumber provides a full Gherkin parser, step-definition matching, tags,
-scenario outlines, data tables, hooks, reporting, and its own execution model.
-Those are useful in some teams, but CodeGraphy's current goal is narrower:
-human-authored Markdown specs compiled into normal Playwright tests that run in
-the existing VS Code-window E2E lane.
-
-Use Cucumber as a reference for language and spec style. Do not add Cucumber as
-a runtime unless CodeGraphy needs Cucumber-only features such as scenario
-outlines, tag filtering, data tables, or dedicated Cucumber reports badly enough
-to justify another runner.
-
 ## Commands
 
 Regenerate the Playwright file:
