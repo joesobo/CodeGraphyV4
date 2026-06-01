@@ -100,6 +100,7 @@ export type WebviewToExtensionMessage =
       type: 'VISIBLE_GRAPH_STATE_RESPONSE';
       payload: {
         nodeCount: number;
+        nodes: Array<{ id: string; nodeType?: string; color: string }>;
         edgeCount: number;
         edgeIds: string[];
       };
