@@ -7,8 +7,17 @@ export function formatGraphStat(count: number, singular: string, plural: string)
   return `${COUNT_FORMATTER.format(count)} ${label}`;
 }
 
-export function buildGraphStatsLabel(nodeCount: number, edgeCount: number): string {
-  return `${formatGraphStat(nodeCount, 'node', 'nodes')} • ${formatGraphStat(edgeCount, 'edge', 'edges')}`;
+export function buildGraphStatsLabel(
+  nodeCount: number,
+  edgeCount: number,
+  options: { hasIndex?: boolean } = {},
+): string {
+  const nodeLabel = formatGraphStat(nodeCount, 'visible node', 'visible nodes');
+  if (options.hasIndex === false && edgeCount === 0) {
+    return `${nodeLabel} • relationships not indexed`;
+  }
+
+  return `${nodeLabel} • ${formatGraphStat(edgeCount, 'rendered edge', 'rendered edges')}`;
 }
 
 export function GraphStatsBadge({ label }: { label: string }): React.ReactElement {

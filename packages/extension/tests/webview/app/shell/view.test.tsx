@@ -313,7 +313,35 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
-    expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
+    expect(screen.getByText('2 visible nodes • 1 rendered edge')).toBeInTheDocument();
+  });
+
+  it('keeps cold-cache file nodes visible after scope, filter, search, and Show Orphans', async () => {
+    graphStore.setState({
+      showOrphans: false,
+      graphHasIndex: false,
+      graphIndexFreshness: 'missing',
+      filterPatterns: ['src'],
+      searchQuery: 'a',
+      nodeVisibility: { file: true },
+    });
+
+    render(<App />);
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [
+            { id: 'src/a.ts', label: 'a.ts', color: '#3B82F6', nodeType: 'file' },
+            { id: 'docs/b.ts', label: 'b.ts', color: '#10B981', nodeType: 'file' },
+          ],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.getByText('1 visible node • relationships not indexed')).toBeInTheDocument();
   });
 
   it('counts filters against the scoped visible graph instead of raw graph data', () => {
