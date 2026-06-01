@@ -1,4 +1,7 @@
-import { loadWorkspaceAnalysisDatabaseCache as loadWorkspaceAnalysisDatabaseCacheImpl } from './io/load';
+import {
+  loadWorkspaceAnalysisDatabaseCache as loadWorkspaceAnalysisDatabaseCacheImpl,
+  loadWorkspaceAnalysisDatabaseCacheAsync as loadWorkspaceAnalysisDatabaseCacheAsyncImpl,
+} from './io/load';
 import { getWorkspaceAnalysisDatabasePath as getWorkspaceAnalysisDatabasePathImpl } from './io/paths';
 import {
   readWorkspaceAnalysisDatabaseSnapshot as readWorkspaceAnalysisDatabaseSnapshotImpl,
@@ -23,6 +26,12 @@ export function loadWorkspaceAnalysisDatabaseCache(
   workspaceRoot: string,
 ) {
   return loadWorkspaceAnalysisDatabaseCacheImpl(workspaceRoot);
+}
+
+export function loadWorkspaceAnalysisDatabaseCacheAsync(
+  workspaceRoot: string,
+) {
+  return loadWorkspaceAnalysisDatabaseCacheAsyncImpl(workspaceRoot);
 }
 
 export function readWorkspaceAnalysisDatabaseSnapshot(

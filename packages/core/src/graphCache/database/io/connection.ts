@@ -3,6 +3,7 @@ import type * as lb from '@ladybugdb/core';
 import type { FileAnalysisRow } from '../records/contracts';
 
 interface LadybugQueryResultLike {
+  getAll?(): Promise<FileAnalysisRow[]>;
   getAllSync?(): FileAnalysisRow[];
   close?(): void;
 }
@@ -24,12 +25,28 @@ export function runStatementSync(connection: lb.Connection, statement: string): 
   closeQueryResults(result);
 }
 
+export async function runStatementAsync(connection: lb.Connection, statement: string): Promise<void> {
+  const result = await connection.query(statement);
+  closeQueryResults(result);
+}
+
 export function readRowsSync(connection: lb.Connection, statement: string): FileAnalysisRow[] {
   const result = connection.querySync(statement);
 
   try {
     const queryResult = Array.isArray(result) ? result[0] : result;
     return (queryResult as LadybugQueryResultLike | undefined)?.getAllSync?.() ?? [];
+  } finally {
+    closeQueryResults(result);
+  }
+}
+
+export async function readRowsAsync(connection: lb.Connection, statement: string): Promise<FileAnalysisRow[]> {
+  const result = await connection.query(statement);
+
+  try {
+    const queryResult = Array.isArray(result) ? result[0] : result;
+    return await ((queryResult as LadybugQueryResultLike | undefined)?.getAll?.() ?? []);
   } finally {
     closeQueryResults(result);
   }
@@ -45,6 +62,21 @@ function ensureSchema(connection: lb.Connection): void {
     'CREATE NODE TABLE IF NOT EXISTS Symbol(symbolId STRING PRIMARY KEY, filePath STRING, name STRING, kind STRING, signature STRING, rangeJson STRING, metadataJson STRING)',
   );
   runStatementSync(
+    connection,
+    'CREATE NODE TABLE IF NOT EXISTS Relation(relationId STRING PRIMARY KEY, filePath STRING, kind STRING, pluginId STRING, sourceId STRING, fromFilePath STRING, toFilePath STRING, fromNodeId STRING, toNodeId STRING, fromSymbolId STRING, toSymbolId STRING, specifier STRING, relationType STRING, variant STRING, resolvedPath STRING, metadataJson STRING)',
+  );
+}
+
+async function ensureSchemaAsync(connection: lb.Connection): Promise<void> {
+  await runStatementAsync(
+    connection,
+    'CREATE NODE TABLE IF NOT EXISTS FileAnalysis(filePath STRING PRIMARY KEY, mtime INT64, size INT64, analysis STRING)',
+  );
+  await runStatementAsync(
+    connection,
+    'CREATE NODE TABLE IF NOT EXISTS Symbol(symbolId STRING PRIMARY KEY, filePath STRING, name STRING, kind STRING, signature STRING, rangeJson STRING, metadataJson STRING)',
+  );
+  await runStatementAsync(
     connection,
     'CREATE NODE TABLE IF NOT EXISTS Relation(relationId STRING PRIMARY KEY, filePath STRING, kind STRING, pluginId STRING, sourceId STRING, fromFilePath STRING, toFilePath STRING, fromNodeId STRING, toNodeId STRING, fromSymbolId STRING, toSymbolId STRING, specifier STRING, relationType STRING, variant STRING, resolvedPath STRING, metadataJson STRING)',
   );
@@ -75,11 +107,11 @@ export async function withConnectionAsync<T>(
   const connection = new Connection(database);
 
   try {
-    connection.initSync();
-    ensureSchema(connection);
+    await connection.init();
+    await ensureSchemaAsync(connection);
     return await callback(connection);
   } finally {
-    connection.closeSync();
-    database.closeSync();
+    await connection.close();
+    await database.close();
   }
 }
