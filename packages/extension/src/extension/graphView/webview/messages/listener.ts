@@ -9,7 +9,7 @@ import {
   dispatchGraphViewPrimaryMessage,
   type GraphViewPrimaryMessageContext,
 } from '../dispatch/primary';
-import { replayWebviewReadySettings } from './ready';
+import { replayDuplicateWebviewReady } from './ready';
 
 export interface GraphViewMessageListenerContext
   extends GraphViewPrimaryMessageContext,
@@ -76,7 +76,7 @@ function createGraphViewWebviewMessageHandler(
 
   return async function handleGraphViewWebviewMessage(message: WebviewToExtensionMessage): Promise<void> {
     if (message.type === 'WEBVIEW_READY' && webviewReadyHandled) {
-      replayWebviewReadySettings(createReadyState(context), context);
+      await replayDuplicateWebviewReady(createReadyState(context), context);
       return;
     }
     webviewReadyHandled ||= message.type === 'WEBVIEW_READY';

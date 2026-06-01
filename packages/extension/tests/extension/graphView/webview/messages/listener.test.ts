@@ -201,7 +201,7 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
   });
 
-  it('replays settings but avoids a second graph load for duplicate WEBVIEW_READY messages', async () => {
+  it('replays settings but not empty bootstrap payloads for duplicate WEBVIEW_READY during first analysis', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
       onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
@@ -211,6 +211,8 @@ describe('graph view webview message listener', () => {
     };
     let readyNotified = false;
     const context = createContext({
+      hasWorkspace: vi.fn(() => true),
+      isFirstAnalysis: vi.fn(() => true),
       isWebviewReadyNotified: vi.fn(() => readyNotified),
       setWebviewReadyNotified: vi.fn((nextValue: boolean) => {
         readyNotified = nextValue;
@@ -218,10 +220,35 @@ describe('graph view webview message listener', () => {
     });
 
     setGraphViewWebviewMessageListener(webview as never, context);
-    await messageHandler?.({ type: 'WEBVIEW_READY' });
-    await messageHandler?.({ type: 'WEBVIEW_READY' });
+    const firstReady = messageHandler?.({ type: 'WEBVIEW_READY' });
+    await Promise.resolve();
+    const duplicateReady = messageHandler?.({ type: 'WEBVIEW_READY' });
+
+    await Promise.resolve();
+
+    expect(
+      vi.mocked(context.sendMessage).mock.calls.filter(([message]) =>
+        (message as { type?: string }).type === 'GRAPH_DATA_UPDATED'
+      ),
+    ).toHaveLength(0);
+    expect(
+      vi.mocked(context.sendMessage).mock.calls.filter(([message]) =>
+        (message as { type?: string }).type === 'APP_BOOTSTRAP_COMPLETE'
+      ),
+    ).toHaveLength(0);
+
+    await firstReady;
+    await duplicateReady;
 
     expect(context.loadAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'APP_BOOTSTRAP_COMPLETE',
+    });
+    expect(
+      vi.mocked(context.sendMessage).mock.calls.filter(([message]) =>
+        (message as { type?: string }).type === 'GRAPH_DATA_UPDATED'
+      ),
+    ).toHaveLength(0);
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(2);
     expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(2);
     expect(context.sendSettings).toHaveBeenCalledTimes(2);
