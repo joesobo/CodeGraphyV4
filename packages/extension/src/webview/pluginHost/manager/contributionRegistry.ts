@@ -1,6 +1,6 @@
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
-import { toDisposable, type Disposable } from '../../../core/plugins/disposable';
 import type { IGraphViewContributions } from '../api/contracts/webview';
+import { toWebviewDisposable, type WebviewDisposable } from '../disposable';
 import {
   mergeGraphViewContributions,
   type GraphViewContributionsByPlugin,
@@ -22,21 +22,21 @@ export class GraphViewContributionRegistry {
     return this._snapshot;
   }
 
-  subscribe(listener: GraphViewContributionListener): Disposable {
+  subscribe(listener: GraphViewContributionListener): WebviewDisposable {
     this._listeners.add(listener);
-    return toDisposable(() => {
+    return toWebviewDisposable(() => {
       this._listeners.delete(listener);
     });
   }
 
-  register(pluginId: string, contributions: IGraphViewContributions): Disposable {
+  register(pluginId: string, contributions: IGraphViewContributions): WebviewDisposable {
     const pluginContributions = this.getOrCreatePluginContributions(pluginId);
 
     pluginContributions.add(contributions);
     this.invalidate();
     this.notifyListeners();
 
-    return toDisposable(() => {
+    return toWebviewDisposable(() => {
       const currentContributions = this._contributions.get(pluginId);
       currentContributions?.delete(contributions);
       if (currentContributions?.size === 0) {
