@@ -311,6 +311,51 @@ describe('App', () => {
     expect(screen.getByText('Indexing Workspace')).toBeInTheDocument();
   });
 
+  it('hides final-looking graph stats while explicit indexing is active', async () => {
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.getByText('1 node • 0 edges')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_INDEX_PROGRESS',
+        payload: { phase: 'Preparing Analysis', current: 0, total: 1 },
+      });
+    });
+
+    expect(screen.queryByText('1 node • 0 edges')).not.toBeInTheDocument();
+    expect(screen.getByText('Preparing Analysis')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [
+            { id: 'test.ts', label: 'test.ts', color: '#3B82F6' },
+            { id: 'used.ts', label: 'used.ts', color: '#3B82F6' },
+          ],
+          edges: [
+            { id: 'test.ts->used.ts#import', from: 'test.ts', to: 'used.ts', kind: 'import', sources: [] },
+          ],
+        },
+      });
+    });
+
+    expect(screen.queryByText('Preparing Analysis')).not.toBeInTheDocument();
+    expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
+  });
+
   it('should send WEBVIEW_READY only once across initial graph load', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sentMessages = (globalThis as any).__vscodeSentMessages as Array<{ type?: string }>;
