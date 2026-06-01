@@ -1,7 +1,7 @@
 import type * as lb from '@ladybugdb/core';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementSync } from '../io/connection';
+import { runStatementAsync, runStatementSync } from '../io/connection';
 import { createRelationStatement } from '../relation/statement';
 
 function escapeCypherString(value: string): string {
@@ -51,16 +51,16 @@ export async function persistAnalysisEntryAsync(
   entry: IWorkspaceAnalysisCache['files'][string],
   afterStatement: () => Promise<void>,
 ): Promise<void> {
-  runStatementSync(connection, createFileAnalysisStatement(filePath, entry));
+  await runStatementAsync(connection, createFileAnalysisStatement(filePath, entry));
   await afterStatement();
 
   for (const symbol of entry.analysis.symbols ?? []) {
-    runStatementSync(connection, createSymbolStatement(symbol));
+    await runStatementAsync(connection, createSymbolStatement(symbol));
     await afterStatement();
   }
 
   for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
-    runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex));
+    await runStatementAsync(connection, createRelationStatement(filePath, relation, relationIndex));
     await afterStatement();
   }
 }

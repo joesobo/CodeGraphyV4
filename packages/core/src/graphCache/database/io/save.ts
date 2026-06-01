@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { setImmediate as waitForImmediate } from 'node:timers/promises';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementSync, withConnection, withConnectionAsync } from './connection';
+import { runStatementAsync, runStatementSync, withConnection, withConnectionAsync } from './connection';
 import { ensureDatabaseDirectory, getWorkspaceAnalysisDatabasePath } from './paths';
 import {
   persistAnalysisEntry,
@@ -81,9 +81,9 @@ export async function saveWorkspaceAnalysisDatabaseCacheAsync(
 
   try {
     await withConnectionAsync(tempDatabasePath, async (connection) => {
-      runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
-      runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
-      runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
+      await runStatementAsync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
+      await runStatementAsync(connection, 'MATCH (entry:Symbol) DELETE entry');
+      await runStatementAsync(connection, 'MATCH (entry:Relation) DELETE entry');
 
       let current = 0;
       let statementsSinceYield = 0;
