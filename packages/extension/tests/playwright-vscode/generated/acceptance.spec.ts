@@ -24,141 +24,271 @@ async function runAcceptanceStep(
 }
 
 test.describe('Graph View', () => {
-  test('Opening and indexing the example workspace shows a usable graph', async ({}, testInfo) => {
+  test('Opening and indexing the example TypeScript workspace shows a usable graph', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
       sourcePath: 'tests/acceptance/specs/graph-view.md',
-      scenario: 'Opening and indexing the example workspace shows a usable graph'
+      scenario: 'Opening and indexing the example TypeScript workspace shows a usable graph'
     });
 
     try {
       // tests/acceptance/specs/graph-view.md:5
-      await test.step('Given I open the example TypeScript workspace', async () => {
-        await runAcceptanceStep(context, 'I open the example TypeScript workspace', {
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
           keyword: 'Given',
-          text: 'I open the example TypeScript workspace',
+          text: 'I open the examples/example-typescript workspace in VS Code',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 5
         });
       });
 
       // tests/acceptance/specs/graph-view.md:6
-      await test.step('When I open the CodeGraphy graph view', async () => {
-        await runAcceptanceStep(context, 'I open the CodeGraphy graph view', {
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
           keyword: 'When',
-          text: 'I open the CodeGraphy graph view',
+          text: 'I open the CodeGraphy extension graph view',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 6
         });
       });
 
       // tests/acceptance/specs/graph-view.md:7
-      await test.step('Then I see file nodes before indexing', async () => {
-        await runAcceptanceStep(context, 'I see file nodes before indexing', {
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
           keyword: 'Then',
-          text: 'I see file nodes before indexing',
+          text: 'I see graph nodes',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 7
         });
       });
 
       // tests/acceptance/specs/graph-view.md:8
-      await test.step('When I index the workspace', async () => {
-        await runAcceptanceStep(context, 'I index the workspace', {
-          keyword: 'When',
-          text: 'I index the workspace',
+      await test.step('And I do not see edges', async () => {
+        await runAcceptanceStep(context, 'I do not see edges', {
+          keyword: 'And',
+          text: 'I do not see edges',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 8
         });
       });
 
       // tests/acceptance/specs/graph-view.md:9
-      await test.step('Then I see indexing progress', async () => {
-        await runAcceptanceStep(context, 'I see indexing progress', {
-          keyword: 'Then',
-          text: 'I see indexing progress',
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 9
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:10
-      await test.step('And I see indexing progress disappear', async () => {
-        await runAcceptanceStep(context, 'I see indexing progress disappear', {
-          keyword: 'And',
-          text: 'I see indexing progress disappear',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 10
-        });
-      });
-
       // tests/acceptance/specs/graph-view.md:11
-      await test.step('And I see updated file nodes', async () => {
-        await runAcceptanceStep(context, 'I see updated file nodes', {
-          keyword: 'And',
-          text: 'I see updated file nodes',
+      await test.step('When I index the workspace', async () => {
+        await runAcceptanceStep(context, 'I index the workspace', {
+          keyword: 'When',
+          text: 'I index the workspace',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 11
         });
       });
 
       // tests/acceptance/specs/graph-view.md:12
-      await test.step('And I see edges', async () => {
-        await runAcceptanceStep(context, 'I see edges', {
-          keyword: 'And',
-          text: 'I see edges',
+      await test.step('Then I see indexing progress', async () => {
+        await runAcceptanceStep(context, 'I see indexing progress', {
+          keyword: 'Then',
+          text: 'I see indexing progress',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 12
         });
       });
 
       // tests/acceptance/specs/graph-view.md:13
-      await test.step('And I see the src/index.ts file node', async () => {
-        await runAcceptanceStep(context, 'I see the src/index.ts file node', {
+      await test.step('And I see indexing progress disappear', async () => {
+        await runAcceptanceStep(context, 'I see indexing progress disappear', {
           keyword: 'And',
-          text: 'I see the src/index.ts file node',
+          text: 'I see indexing progress disappear',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 13
         });
       });
 
       // tests/acceptance/specs/graph-view.md:14
-      await test.step('When I drag the src/index.ts file node', async () => {
-        await runAcceptanceStep(context, 'I drag the src/index.ts file node', {
-          keyword: 'When',
-          text: 'I drag the src/index.ts file node',
+      await test.step('And the graph nodes have not changed', async () => {
+        await runAcceptanceStep(context, 'the graph nodes have not changed', {
+          keyword: 'And',
+          text: 'the graph nodes have not changed',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/graph-view.md:15
-      await test.step('Then the src/index.ts file node moves', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts file node moves', {
-          keyword: 'Then',
-          text: 'the src/index.ts file node moves',
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
           line: 15
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:16
-      await test.step('When I activate the src/index.ts file node', async () => {
-        await runAcceptanceStep(context, 'I activate the src/index.ts file node', {
-          keyword: 'When',
-          text: 'I activate the src/index.ts file node',
+      // tests/acceptance/specs/graph-view.md:17
+      await test.step('Then I see the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I see the src/index.ts node', {
+          keyword: 'Then',
+          text: 'I see the src/index.ts node',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 16
+          line: 17
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:17
-      await test.step('Then src/index.ts opens in VS Code', async () => {
-        await runAcceptanceStep(context, 'src/index.ts opens in VS Code', {
+      // tests/acceptance/specs/graph-view.md:18
+      await test.step('And the src/index.ts node is a blue circle', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is a blue circle', {
+          keyword: 'And',
+          text: 'the src/index.ts node is a blue circle',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:19
+      await test.step('And the src/index.ts node has a white TS symbol in the center of the node', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node has a white TS symbol in the center of the node', {
+          keyword: 'And',
+          text: 'the src/index.ts node has a white TS symbol in the center of the node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:20
+      await test.step('And the src/index.ts node has the file name "index.ts" as a label below the node', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node has the file name "index.ts" as a label below the node', {
+          keyword: 'And',
+          text: 'the src/index.ts node has the file name "index.ts" as a label below the node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:21
+      await test.step('And the src/index.ts node has an edge that points to the src/types.ts node', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node has an edge that points to the src/types.ts node', {
+          keyword: 'And',
+          text: 'the src/index.ts node has an edge that points to the src/types.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:22
+      await test.step('And the src/index.ts node has an edge that points to the src/utils.ts node', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node has an edge that points to the src/utils.ts node', {
+          keyword: 'And',
+          text: 'the src/index.ts node has an edge that points to the src/utils.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:24
+      await test.step('When I hover the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I hover the src/index.ts node', {
+          keyword: 'When',
+          text: 'I hover the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:25
+      await test.step('Then I see information for the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I see information for the src/index.ts node', {
           keyword: 'Then',
+          text: 'I see information for the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:26
+      await test.step('And the information says "src/index.ts" at the top', async () => {
+        await runAcceptanceStep(context, 'the information says "src/index.ts" at the top', {
+          keyword: 'And',
+          text: 'the information says "src/index.ts" at the top',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:27
+      await test.step('When I click the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I click the src/index.ts node', {
+          keyword: 'When',
+          text: 'I click the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:28
+      await test.step('Then the src/index.ts node is visibly outlined', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is visibly outlined', {
+          keyword: 'Then',
+          text: 'the src/index.ts node is visibly outlined',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:29
+      await test.step('And src/index.ts opens in VS Code', async () => {
+        await runAcceptanceStep(context, 'src/index.ts opens in VS Code', {
+          keyword: 'And',
           text: 'src/index.ts opens in VS Code',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 17
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:30
+      await test.step('When I click and drag the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I click and drag the src/index.ts node', {
+          keyword: 'When',
+          text: 'I click and drag the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:31
+      await test.step('Then the src/index.ts node moves', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node moves', {
+          keyword: 'Then',
+          text: 'the src/index.ts node moves',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:32
+      await test.step('When I stop dragging the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I stop dragging the src/index.ts node', {
+          keyword: 'When',
+          text: 'I stop dragging the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/graph-view.md:33
+      await test.step('Then the src/index.ts node stays where I drop it', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node stays where I drop it', {
+          keyword: 'Then',
+          text: 'the src/index.ts node stays where I drop it',
+          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 33
         });
       });
 
