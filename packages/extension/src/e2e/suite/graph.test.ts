@@ -35,9 +35,9 @@ async function getAPI(): Promise<CodeGraphyAPI> {
 const scenario = getCurrentE2EScenario();
 let indexedGraphPromise: Promise<void> | undefined;
 let discoveredGraphPromise: Promise<void> | undefined;
-const CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD = 20_000;
-const CODEGRAPHY_ROOT_RENDERED_EDGE_THRESHOLD = 10_000;
-const CODEGRAPHY_ROOT_RENDERED_NODE_THRESHOLD = 5_000;
+const CODEGRAPHY_ROOT_PROVIDER_EDGE_THRESHOLD = 1_000;
+const CODEGRAPHY_ROOT_RENDERED_EDGE_THRESHOLD = 1_000;
+const CODEGRAPHY_ROOT_RENDERED_NODE_THRESHOLD = 500;
 const CODEGRAPHY_ROOT_INDEX_TIMEOUT_MS = 600_000;
 
 function sortedStrings(values: readonly string[]): string[] {
