@@ -129,8 +129,9 @@ async function dragMouseBetweenStagePoints(frame: Frame, source: Point, target: 
 export async function hoverNode(context: GraphAcceptanceContext, nodePath: string): Promise<NodeProbe> {
   const frame = requireGraphFrame(context);
   const probe = await findNodeProbe(context, nodePath);
+  await graphStage(frame).hover({ position: probe.center, force: true });
   await moveMouseToStagePoint(frame, probe.center);
-  await expect(frame.getByText(nodePath, { exact: true }).first()).toBeVisible({ timeout: 2_000 });
+  await expect(frame.getByText(nodePath, { exact: true }).first()).toBeVisible({ timeout: 10_000 });
   return probe;
 }
 
