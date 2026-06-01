@@ -553,7 +553,7 @@ suite('Graph: Workspace Analysis', function () {
         `Expected cold startup without a Graph Cache to show no edges. Updates: ${JSON.stringify(graphUpdates)}`,
       );
       assert.ok(
-        coldVisibleGraph.nodeCount > 0,
+        coldVisibleGraph.nodeCount > CODEGRAPHY_ROOT_RENDERED_NODE_THRESHOLD,
         `Expected cold startup visible graph nodes. Visible graph: ${JSON.stringify(coldVisibleGraph)}`,
       );
       assert.ok(
