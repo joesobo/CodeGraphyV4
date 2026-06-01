@@ -47,6 +47,24 @@ describe('pipeline/service/cache/storage', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
+  it('returns before repo-local cache persistence settles', async () => {
+    const cache = { files: { 'src/a.ts': {} } };
+    const warn = vi.fn();
+    let resolveSave!: () => void;
+    const savePromise = new Promise<void>((resolve) => {
+      resolveSave = resolve;
+    });
+    vi.mocked(saveWorkspaceAnalysisDatabaseCacheAsync).mockReturnValue(savePromise);
+
+    persistWorkspacePipelineCache('/workspace', cache as never, warn);
+
+    expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache);
+    expect(warn).not.toHaveBeenCalled();
+
+    resolveSave();
+    await savePromise;
+  });
+
   it('warns when saving the repo-local cache rejects', async () => {
     const cache = { files: {} };
     const warn = vi.fn();
