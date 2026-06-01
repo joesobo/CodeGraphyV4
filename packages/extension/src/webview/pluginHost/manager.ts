@@ -17,7 +17,7 @@ import type {
   LabelOpts,
   CodeGraphyWebviewAPI,
 } from './api/contracts/webview';
-import { toDisposable, type Disposable } from '../../core/plugins/disposable';
+import { toWebviewDisposable, type WebviewDisposable } from './disposable';
 import { drawBadge, drawProgressRing, drawLabel } from './api/drawing';
 import { createPluginWebviewApi } from './api';
 import { removePluginRegistrations } from './api/registration/cleanup/remove';
@@ -114,11 +114,11 @@ export class WebviewPluginHost {
   subscribeGraphViewViewportState(
     listener: GraphViewViewportStateListener,
     pluginId?: string,
-  ): Disposable {
+  ): WebviewDisposable {
     const entry = createGraphViewViewportStateListenerEntry(listener, pluginId);
     this._graphViewViewportStateListeners.add(entry);
     listener(this._graphViewViewportState);
-    return toDisposable(() => {
+    return toWebviewDisposable(() => {
       this._graphViewViewportStateListeners.delete(entry);
     });
   }
@@ -127,7 +127,7 @@ export class WebviewPluginHost {
     return this._graphViewContributions.get();
   }
 
-  subscribeGraphViewContributions(listener: GraphViewContributionListener): Disposable {
+  subscribeGraphViewContributions(listener: GraphViewContributionListener): WebviewDisposable {
     return this._graphViewContributions.subscribe(listener);
   }
 
