@@ -20,6 +20,33 @@ export function markNodeDragging(node: FGNode): void {
   node.isDragging = true;
 }
 
+function stopPinned2dNodeMotion(
+  node: FGNode,
+  options: Pick<ApplyNodeDragOptions, 'graphMode'>,
+): void {
+  if (options.graphMode === '2d' && node.isPinned === true) {
+    stopNodeMotion(node);
+  }
+}
+
+function moveDraggedSessionNodes(
+  primaryNode: FGNode,
+  translate: NodeDragTranslate,
+  options: ApplyNodeDragOptions,
+  session: NodeDragGroupSession,
+): void {
+  const nodesById = new Map(options.graphData.nodes.map(node => [node.id, node]));
+  for (const nodeId of session.draggedNodeIds) {
+    const node = nodesById.get(nodeId);
+    if (node) {
+      markNodeDragging(node);
+    }
+    if (node && node.id !== primaryNode.id) {
+      moveNodeByTranslate(node, translate);
+    }
+  }
+}
+
 export function applyNodeDrag(
   primaryNode: FGNode,
   translate: NodeDragTranslate,
@@ -33,27 +60,13 @@ export function applyNodeDrag(
     return nextSession;
   }
 
-  if (options.graphMode === '2d' && primaryNode.isPinned === true) {
-    stopNodeMotion(primaryNode);
-  }
+  stopPinned2dNodeMotion(primaryNode, options);
 
   if (!nextSession) {
     return nextSession;
   }
 
-  const nodesById = new Map(options.graphData.nodes.map(node => [node.id, node]));
-  for (const nodeId of nextSession.draggedNodeIds) {
-    const node = nodesById.get(nodeId);
-    if (!node) {
-      continue;
-    }
-
-    markNodeDragging(node);
-    if (node.id !== primaryNode.id) {
-      moveNodeByTranslate(node, translate);
-    }
-  }
-
+  moveDraggedSessionNodes(primaryNode, translate, options, nextSession);
   return nextSession;
 }
 

@@ -8,6 +8,21 @@ import { runLinkCommand } from './link';
 import { runListCommand } from './list';
 import { runRegisterCommand } from './register';
 
+type PluginCommandRunner = (
+  command: CliCommand,
+  dependencies: PluginsCommandDependencies,
+) => CommandExecutionResult | Promise<CommandExecutionResult>;
+
+type PluginCommandAction = Exclude<CliCommand['action'], undefined | 'help'>;
+
+const PLUGIN_COMMAND_RUNNERS: Partial<Record<PluginCommandAction, PluginCommandRunner>> = {
+  register: runRegisterCommand,
+  link: runLinkCommand,
+  enable: runEnableCommand,
+  disable: runDisableCommand,
+  list: runListCommand,
+};
+
 export async function runPluginsCommand(
   command: CliCommand,
   dependencies: Partial<PluginsCommandDependencies> = {},
@@ -18,21 +33,11 @@ export async function runPluginsCommand(
   };
 
   try {
-    switch (command.action) {
-      case 'register':
-        return await Promise.resolve(runRegisterCommand(command, mergedDependencies));
-      case 'link':
-        return await Promise.resolve(runLinkCommand(command, mergedDependencies));
-      case 'enable':
-        return await Promise.resolve(runEnableCommand(command, mergedDependencies));
-      case 'disable':
-        return await Promise.resolve(runDisableCommand(command, mergedDependencies));
-      case 'list':
-        return await Promise.resolve(runListCommand(command, mergedDependencies));
-      case 'help':
-      default:
-        return createHelpResult();
-    }
+    const action = command.action as PluginCommandAction | undefined;
+    const runner = action ? PLUGIN_COMMAND_RUNNERS[action] : undefined;
+    return runner
+      ? await Promise.resolve(runner(command, mergedDependencies))
+      : createHelpResult();
   } catch (error) {
     return {
       exitCode: 1,

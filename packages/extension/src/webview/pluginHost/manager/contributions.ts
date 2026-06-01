@@ -15,19 +15,37 @@ export function createEmptyWebviewGraphViewContributionSet(): CoreGraphViewContr
   };
 }
 
+type PluginContributionTarget = Array<{ pluginId: string; contribution: unknown }>;
+
+function appendPluginContributions(
+  target: PluginContributionTarget,
+  pluginId: string,
+  contributions: readonly unknown[] | undefined,
+): void {
+  target.push(...(contributions ?? []).map(contribution => ({ pluginId, contribution })));
+}
+
+function mergePluginContributionSet(
+  merged: CoreGraphViewContributionSet,
+  pluginId: string,
+  contributions: IGraphViewContributions,
+): void {
+  appendPluginContributions(merged.runtimeNodes, pluginId, contributions.runtimeNodes);
+  appendPluginContributions(merged.runtimeEdges, pluginId, contributions.runtimeEdges);
+  appendPluginContributions(merged.projections, pluginId, contributions.projections);
+  appendPluginContributions(merged.forces, pluginId, contributions.forces);
+  appendPluginContributions(merged.nodeDragEnd, pluginId, contributions.nodeDragEnd);
+  appendPluginContributions(merged.contextMenu, pluginId, contributions.contextMenu);
+  appendPluginContributions(merged.ui, pluginId, contributions.ui);
+}
+
 export function mergeGraphViewContributions(
   contributionsByPlugin: GraphViewContributionsByPlugin,
 ): CoreGraphViewContributionSet {
   const merged = createEmptyWebviewGraphViewContributionSet();
   for (const [pluginId, contributionSets] of contributionsByPlugin) {
     for (const contributions of contributionSets) {
-      merged.runtimeNodes.push(...(contributions.runtimeNodes ?? []).map(contribution => ({ pluginId, contribution })));
-      merged.runtimeEdges.push(...(contributions.runtimeEdges ?? []).map(contribution => ({ pluginId, contribution })));
-      merged.projections.push(...(contributions.projections ?? []).map(contribution => ({ pluginId, contribution })));
-      merged.forces.push(...(contributions.forces ?? []).map(contribution => ({ pluginId, contribution })));
-      merged.nodeDragEnd.push(...(contributions.nodeDragEnd ?? []).map(contribution => ({ pluginId, contribution })));
-      merged.contextMenu.push(...(contributions.contextMenu ?? []).map(contribution => ({ pluginId, contribution })));
-      merged.ui.push(...(contributions.ui ?? []).map(contribution => ({ pluginId, contribution })));
+      mergePluginContributionSet(merged, pluginId, contributions);
     }
   }
 

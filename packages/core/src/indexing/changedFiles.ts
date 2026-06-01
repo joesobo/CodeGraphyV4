@@ -33,7 +33,47 @@ function isDescendantPath(parentPath: string, childPath: string): boolean {
     normalizeWorkspaceRelativePath(parentPath),
     normalizeWorkspaceRelativePath(childPath),
   );
-  return Boolean(relativePath) && !relativePath.startsWith('..') && !path.posix.isAbsolute(relativePath);
+  const isNestedRelativePath = Boolean(relativePath)
+    && !relativePath.startsWith('..')
+    && !path.posix.isAbsolute(relativePath);
+  return isNestedRelativePath;
+}
+
+function getDescendantDiscoveredFiles(
+  relativePath: string,
+  discoveredByRelativePath: ReadonlyMap<string, IDiscoveredFile>,
+): IDiscoveredFile[] {
+  return [...discoveredByRelativePath.values()]
+    .filter((file) => isDescendantPath(relativePath, file.relativePath));
+}
+
+function selectDiscoveredWorkspaceIndexFileChange(
+  selected: Map<string, IDiscoveredFile>,
+  unmatchedFilePaths: string[],
+  filePath: string,
+  workspaceRoot: string,
+  discoveredByRelativePath: ReadonlyMap<string, IDiscoveredFile>,
+): void {
+  const relativePath = toWorkspaceRelativePath(workspaceRoot, filePath);
+  if (!relativePath) {
+    return;
+  }
+
+  const exactFile = discoveredByRelativePath.get(relativePath);
+  if (exactFile) {
+    selected.set(normalizeWorkspaceRelativePath(exactFile.relativePath), exactFile);
+    return;
+  }
+
+  const descendantFiles = getDescendantDiscoveredFiles(relativePath, discoveredByRelativePath);
+  if (descendantFiles.length === 0) {
+    unmatchedFilePaths.push(filePath);
+    return;
+  }
+
+  for (const file of descendantFiles) {
+    selected.set(normalizeWorkspaceRelativePath(file.relativePath), file);
+  }
 }
 
 export function selectDiscoveredWorkspaceIndexFileChanges(
@@ -45,28 +85,13 @@ export function selectDiscoveredWorkspaceIndexFileChanges(
   const unmatchedFilePaths: string[] = [];
 
   for (const filePath of filePaths) {
-    const relativePath = toWorkspaceRelativePath(workspaceRoot, filePath);
-    if (!relativePath) {
-      continue;
-    }
-
-    const exactFile = discoveredByRelativePath.get(relativePath);
-    if (exactFile) {
-      selected.set(normalizeWorkspaceRelativePath(exactFile.relativePath), exactFile);
-      continue;
-    }
-
-    const descendantFiles = [...discoveredByRelativePath.values()]
-      .filter((file) => isDescendantPath(relativePath, file.relativePath));
-
-    if (descendantFiles.length === 0) {
-      unmatchedFilePaths.push(filePath);
-      continue;
-    }
-
-    for (const file of descendantFiles) {
-      selected.set(normalizeWorkspaceRelativePath(file.relativePath), file);
-    }
+    selectDiscoveredWorkspaceIndexFileChange(
+      selected,
+      unmatchedFilePaths,
+      filePath,
+      workspaceRoot,
+      discoveredByRelativePath,
+    );
   }
 
   return {

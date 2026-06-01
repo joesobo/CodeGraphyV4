@@ -33,36 +33,29 @@ function getShortcutCommand(options: GraphKeyboardOptions): GraphKeyboardCommand
   );
 }
 
+function getDirectGraphKeyboardCommand(
+  options: GraphKeyboardOptions,
+): GraphKeyboardCommand | null | undefined {
+  const directCommands: Partial<Record<string, GraphKeyboardCommand | null>> = {
+    '0': createFitViewCommand(),
+    Escape: createClearSelectionCommand(),
+    Delete: null,
+    Backspace: null,
+    'a': options.isMod ? createSelectAllCommand(options.allNodeIds) : null,
+  };
+
+  return options.key === 'Enter'
+    ? getEnterCommand(options.selectedNodeIds)
+    : directCommands[options.key];
+}
+
 export function getGraphKeyboardCommandImpl(
   options: GraphKeyboardOptions
 ): GraphKeyboardCommand | null {
-  const {
-    key,
-    isMod,
-    shiftKey,
-    graphMode,
-    selectedNodeIds,
-    allNodeIds,
-    targetIsEditable,
-  } = options;
-
-  if (targetIsEditable) {
+  if (options.targetIsEditable) {
     return null;
   }
 
-  switch (key) {
-    case '0':
-      return createFitViewCommand();
-    case 'Escape':
-      return createClearSelectionCommand();
-    case 'Enter':
-      return getEnterCommand(selectedNodeIds);
-    case 'Delete':
-    case 'Backspace':
-      return null;
-    case 'a':
-      return isMod ? createSelectAllCommand(allNodeIds) : null;
-    default:
-      return getShortcutCommand({ key, isMod, shiftKey, graphMode, selectedNodeIds, allNodeIds, targetIsEditable });
-  }
+  const directCommand = getDirectGraphKeyboardCommand(options);
+  return directCommand === undefined ? getShortcutCommand(options) : directCommand;
 }

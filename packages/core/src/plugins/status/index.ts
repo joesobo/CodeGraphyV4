@@ -42,6 +42,11 @@ interface RegisteredPluginStatusOptions {
   workspaceEnabledPackageNames?: ReadonlySet<string>;
 }
 
+interface RegisteredWorkspaceIndexPluginStatuses {
+  byPackageName: Map<string, WorkspaceIndexPluginStatus>;
+  inPluginOrder: WorkspaceIndexPluginStatus[];
+}
+
 function getWorkspaceIndexPluginWorkspaceStatus(
   matchingFileCount: number,
   totalConnections: number,
@@ -143,32 +148,20 @@ export function buildUnregisteredInstalledWorkspaceIndexPluginStatus(
   workspaceEnabledPackageNames?: ReadonlySet<string>,
 ): WorkspaceIndexPluginStatus {
   const enabled = workspaceEnabledPackageNames?.has(plugin.package) ?? false;
+  const id = plugin.pluginId ?? plugin.package;
+  const name = plugin.pluginName ?? plugin.package;
+  const supportedExtensions = plugin.supportedExtensions ?? [];
 
   return {
-    id: plugin.pluginId ?? plugin.package,
+    id,
     packageName: plugin.package,
-    name: plugin.pluginName ?? plugin.package,
+    name,
     version: plugin.version,
-    supportedExtensions: plugin.supportedExtensions ?? [],
+    supportedExtensions,
     status: enabled ? 'unavailable' : 'installed',
     enabled,
     connectionCount: 0,
   };
-}
-
-function shouldReplaceDuplicateWorkspaceIndexPluginStatus(
-  existing: WorkspaceIndexPluginStatus,
-  next: WorkspaceIndexPluginStatus,
-): boolean {
-  if (existing.enabled !== next.enabled) {
-    return next.enabled;
-  }
-
-  if (existing.status === 'unavailable' && next.status !== 'unavailable') {
-    return true;
-  }
-
-  return false;
 }
 
 function dedupeWorkspaceIndexPluginStatuses(
@@ -186,7 +179,10 @@ function dedupeWorkspaceIndexPluginStatuses(
     }
 
     const existing = deduped[existingIndex];
-    if (shouldReplaceDuplicateWorkspaceIndexPluginStatus(existing, status)) {
+    const shouldReplace = existing.enabled !== status.enabled
+      ? status.enabled
+      : existing.status === 'unavailable' && status.status !== 'unavailable';
+    if (shouldReplace) {
       deduped[existingIndex] = status;
     }
   }
@@ -194,65 +190,85 @@ function dedupeWorkspaceIndexPluginStatuses(
   return deduped;
 }
 
-export function buildWorkspaceIndexPluginStatuses(
+function buildRegisteredWorkspaceIndexPluginStatuses(
   options: WorkspaceIndexPluginStatusOptions,
-): WorkspaceIndexPluginStatus[] {
-  const {
-    disabledPlugins,
-    discoveredFiles,
-    fileConnections,
-    installedPlugins = [],
-    pluginInfos,
-    workspaceEnabledPackageNames,
-  } = options;
+): RegisteredWorkspaceIndexPluginStatuses {
+  const byPackageName = new Map<string, WorkspaceIndexPluginStatus>();
+  const inPluginOrder: WorkspaceIndexPluginStatus[] = [];
 
-  const registeredPackageStatuses = new Map<string, WorkspaceIndexPluginStatus>();
-  const registeredStatusesInPluginOrder: WorkspaceIndexPluginStatus[] = [];
-
-  for (const pluginInfo of pluginInfos.filter(isUserFacingWorkspaceIndexPlugin)) {
-    const matchingFiles = getWorkspaceIndexPluginMatchingFiles(pluginInfo, discoveredFiles);
-    const totalConnections = countWorkspaceIndexPluginConnections(pluginInfo, fileConnections);
+  for (const pluginInfo of options.pluginInfos.filter(isUserFacingWorkspaceIndexPlugin)) {
+    const matchingFiles = getWorkspaceIndexPluginMatchingFiles(pluginInfo, options.discoveredFiles);
+    const connectionCount = countWorkspaceIndexPluginConnections(pluginInfo, options.fileConnections);
     const status = buildRegisteredWorkspaceIndexPluginStatus({
-      connectionCount: totalConnections,
-      disabledPlugins,
+      connectionCount,
+      disabledPlugins: options.disabledPlugins,
       matchingFileCount: matchingFiles.length,
       pluginInfo,
-      workspaceEnabledPackageNames,
+      workspaceEnabledPackageNames: options.workspaceEnabledPackageNames,
     });
 
-    registeredStatusesInPluginOrder.push(status);
+    inPluginOrder.push(status);
 
     if (pluginInfo.sourcePackage) {
-      registeredPackageStatuses.set(pluginInfo.sourcePackage, status);
+      byPackageName.set(pluginInfo.sourcePackage, status);
     }
   }
 
+  return { byPackageName, inPluginOrder };
+}
+
+function appendInstalledWorkspaceIndexPluginStatuses(
+  statuses: WorkspaceIndexPluginStatus[],
+  installedPlugins: readonly CodeGraphyInstalledPluginRecord[],
+  registeredByPackageName: ReadonlyMap<string, WorkspaceIndexPluginStatus>,
+  workspaceEnabledPackageNames?: ReadonlySet<string>,
+): void {
+  for (const installedPlugin of installedPlugins) {
+    statuses.push(
+      registeredByPackageName.get(installedPlugin.package)
+      ?? buildUnregisteredInstalledWorkspaceIndexPluginStatus(
+        installedPlugin,
+        workspaceEnabledPackageNames,
+      ),
+    );
+  }
+}
+
+function appendUninstalledRegisteredWorkspaceIndexPluginStatuses(
+  statuses: WorkspaceIndexPluginStatus[],
+  registeredStatuses: readonly WorkspaceIndexPluginStatus[],
+  installedPackageNames: ReadonlySet<string>,
+): void {
+  for (const status of registeredStatuses) {
+    if (!status.packageName || !installedPackageNames.has(status.packageName)) {
+      statuses.push(status);
+    }
+  }
+}
+
+export function buildWorkspaceIndexPluginStatuses(
+  options: WorkspaceIndexPluginStatusOptions,
+): WorkspaceIndexPluginStatus[] {
+  const installedPlugins = options.installedPlugins ?? [];
+  const registered = buildRegisteredWorkspaceIndexPluginStatuses(options);
+
   if (installedPlugins.length === 0) {
-    return dedupeWorkspaceIndexPluginStatuses(registeredStatusesInPluginOrder);
+    return dedupeWorkspaceIndexPluginStatuses(registered.inPluginOrder);
   }
 
   const statuses: WorkspaceIndexPluginStatus[] = [];
   const installedPackageNames = new Set(installedPlugins.map(plugin => plugin.package));
-
-  for (const installedPlugin of installedPlugins) {
-    const registeredStatus = registeredPackageStatuses.get(installedPlugin.package);
-    if (registeredStatus) {
-      statuses.push(registeredStatus);
-      continue;
-    }
-
-    statuses.push(buildUnregisteredInstalledWorkspaceIndexPluginStatus(
-      installedPlugin,
-      workspaceEnabledPackageNames,
-    ));
-  }
-
-  for (const status of registeredStatusesInPluginOrder) {
-    if (status.packageName && installedPackageNames.has(status.packageName)) {
-      continue;
-    }
-    statuses.push(status);
-  }
+  appendInstalledWorkspaceIndexPluginStatuses(
+    statuses,
+    installedPlugins,
+    registered.byPackageName,
+    options.workspaceEnabledPackageNames,
+  );
+  appendUninstalledRegisteredWorkspaceIndexPluginStatuses(
+    statuses,
+    registered.inPluginOrder,
+    installedPackageNames,
+  );
 
   return dedupeWorkspaceIndexPluginStatuses(statuses);
 }
