@@ -1,5 +1,6 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 
 export interface GraphViewReadyState {
   maxFiles: number;
@@ -14,6 +15,7 @@ export interface GraphViewReadyState {
 }
 
 export interface GraphViewReadyHandlers {
+  getGraphData(): IGraphData;
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
@@ -97,6 +99,9 @@ export async function applyWebviewReady(
   handlers: GraphViewReadyHandlers,
 ): Promise<boolean> {
   replayWebviewReadySettings(state, handlers);
+  handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: handlers.getGraphData() });
+  handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+
   await handlers.sendCachedTimeline();
   await handlers.loadAndSendData();
   handlers.sendPluginStatuses?.();
@@ -105,8 +110,6 @@ export async function applyWebviewReady(
     await handlers.waitForFirstWorkspaceReady();
     handlers.sendGraphViewContributionStatuses?.();
   }
-
-  handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
 
   if (state.readyNotified) {
     return true;

@@ -138,7 +138,7 @@ describe('App', () => {
     expect(screen.getByTitle('Graph Scope')).toBeInTheDocument();
   });
 
-  it('waits for startup plugin asset injection before showing the first graph', async () => {
+  it('keeps the first graph visible while startup plugin assets finish loading', async () => {
     let resolveInjection: (() => void) | undefined;
     const pendingImport = new Promise<void>((resolve) => {
       resolveInjection = resolve;
@@ -168,16 +168,117 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
-    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 edges')).toBeInTheDocument();
 
     await act(async () => {
       resolveInjection?.();
       await pendingImport;
     });
 
-    await waitFor(() => {
-      expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 edges')).toBeInTheDocument();
+  });
+
+  it('keeps the graph visible when plugin assets are injected after startup', async () => {
+    let resolveInjection: (() => void) | undefined;
+    const pendingImport = new Promise<void>((resolve) => {
+      resolveInjection = resolve;
     });
+    vi.doMock('/plugin/late-registration.js', () => pendingImport.then(() => ({
+      activate: vi.fn(),
+    })));
+
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 edges')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId: 'codegraphy.late',
+          scripts: ['/plugin/late-registration.js'],
+          styles: [],
+        },
+      });
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 edges')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveInjection?.();
+      await pendingImport;
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 edges')).toBeInTheDocument();
+  });
+
+  it('keeps the graph visible when settings and filters update after startup', async () => {
+    render(<App />);
+
+    await act(async () => {
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+          edges: [],
+        },
+      });
+      sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+    });
+
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 edges')).toBeInTheDocument();
+
+    await act(async () => {
+      sendMessage({
+        type: 'SETTINGS_UPDATED',
+        payload: {
+          bidirectionalEdges: 'combined',
+          showOrphans: true,
+        },
+      });
+      sendMessage({
+        type: 'FILTER_PATTERNS_UPDATED',
+        payload: {
+          patterns: ['dist/**'],
+          pluginPatterns: ['plugin/**'],
+          pluginPatternGroups: [],
+          disabledCustomPatterns: [],
+          disabledPluginPatterns: [],
+        },
+      });
+      sendMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [
+            { id: 'test.ts', label: 'test.ts', color: '#3B82F6' },
+            { id: 'src/app.ts', label: 'app.ts', color: '#10B981' },
+          ],
+          edges: [],
+        },
+      });
+    });
+
+    expect(graphStore.getState().bidirectionalMode).toBe('combined');
+    expect(graphStore.getState().filterPatterns).toEqual(['dist/**']);
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+    expect(screen.getByText('2 nodes • 0 edges')).toBeInTheDocument();
   });
 
   it('keeps the graph visible while indexing after startup', async () => {
