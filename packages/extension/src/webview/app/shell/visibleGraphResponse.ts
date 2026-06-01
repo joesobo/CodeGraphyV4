@@ -5,6 +5,11 @@ import { postMessage as postWebviewMessage } from '../../vscodeApi';
 export function createVisibleGraphStatePayload(graphData: IGraphData | null | undefined) {
   return {
     nodeCount: graphData?.nodes.length ?? 0,
+    nodes: graphData?.nodes.map(node => ({
+      id: node.id,
+      nodeType: node.nodeType,
+      color: node.color,
+    })) ?? [],
     edgeCount: graphData?.edges.length ?? 0,
     edgeIds: graphData?.edges.map(edge => edge.id) ?? [],
   };
