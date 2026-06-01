@@ -266,7 +266,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     })._getWorkspaceRoot()).toBeUndefined();
   });
 
-  it('loads the repo-local persisted cache when .codegraphy/graph.lbug already exists', () => {
+  it('defers repo-local Graph Cache hydration until cached graph replay', async () => {
     const workspaceRoot = createWorkspaceRoot();
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
@@ -293,6 +293,18 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
         update: vi.fn(() => Promise.resolve()),
       },
     } as unknown as vscode.ExtensionContext);
+
+    expect((analyzer as unknown as {
+      _cache: {
+        version: string;
+        files: Record<string, unknown>;
+      };
+    })._cache).toEqual({
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {},
+    });
+
+    await analyzer.loadCachedGraph();
 
     expect((analyzer as unknown as {
       _cache: {
