@@ -3,6 +3,10 @@ import { applyWebviewReady } from '../../../../../src/extension/graphView/webvie
 
 function createHandlers() {
   return {
+    getGraphData: vi.fn(() => ({
+      nodes: [{ id: 'cached.ts', label: 'cached.ts', color: '#ffffff' }],
+      edges: [],
+    })),
     getFilterPatterns: vi.fn(() => ['dist/**']),
     getPluginFilterPatterns: vi.fn(() => ['venv/**']),
     getConfig: vi.fn(<T>(_key: string, defaultValue: T): T => defaultValue),
@@ -126,12 +130,15 @@ describe('graph view ready message', () => {
     expect(callOrder.indexOf('plugin-injections')).toBeLessThan(callOrder.indexOf('analyze'));
   });
 
-  it('announces bootstrap completion after the initial graph load settles', async () => {
+  it('publishes the current graph and completes app bootstrap before slow graph loading settles', async () => {
     const events: string[] = [];
     const handlers = createHandlers();
+    let finishGraphLoad: (() => void) | undefined;
     handlers.loadAndSendData.mockImplementation(async () => {
       events.push('graph:start');
-      await Promise.resolve();
+      await new Promise<void>(resolve => {
+        finishGraphLoad = resolve;
+      });
       events.push('graph:end');
     });
     handlers.sendPluginStatuses.mockImplementation(() => {
@@ -141,9 +148,12 @@ describe('graph view ready message', () => {
       if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
         events.push('bootstrap');
       }
+      if (message.type === 'GRAPH_DATA_UPDATED') {
+        events.push('graph:snapshot');
+      }
     });
 
-    await applyWebviewReady(
+    const ready = applyWebviewReady(
       {
         maxFiles: 500,
         playbackSpeed: 1,
@@ -157,7 +167,14 @@ describe('graph view ready message', () => {
       handlers
     );
 
-    expect(events).toEqual(['graph:start', 'graph:end', 'plugins', 'bootstrap']);
+    await Promise.resolve();
+
+    expect(events).toEqual(['graph:snapshot', 'bootstrap', 'graph:start']);
+
+    finishGraphLoad?.();
+    await ready;
+
+    expect(events).toEqual(['graph:snapshot', 'bootstrap', 'graph:start', 'graph:end', 'plugins']);
   });
 
   it('waits for workspace readiness during the first workspace-backed analysis', async () => {
