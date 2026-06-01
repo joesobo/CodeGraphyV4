@@ -259,6 +259,46 @@ describe('pipeline/service/discoveryFacade', () => {
     );
   });
 
+  it('keeps cold-cache discovered file nodes visible when Show Orphans is disabled', async () => {
+    const facade = new TestDiscoveryFacade();
+    vi.mocked(facade._config.getAll).mockReturnValue({
+      showOrphans: false,
+      respectGitignore: true,
+    } as never);
+    const buildGraphData = vi
+      .spyOn(
+        facade as unknown as {
+          _buildGraphData: (...args: unknown[]) => unknown;
+        },
+        '_buildGraphData',
+      )
+      .mockReturnValue({
+        nodes: [
+          { id: 'src/a.ts', label: 'a.ts', color: '#333333' },
+          { id: 'src/b.ts', label: 'b.ts', color: '#333333' },
+        ],
+        edges: [],
+      });
+
+    await expect(facade.discoverGraph()).resolves.toEqual({
+      nodes: [
+        { id: 'src/a.ts', label: 'a.ts', color: '#333333' },
+        { id: 'src/b.ts', label: 'b.ts', color: '#333333' },
+      ],
+      edges: [],
+    });
+
+    expect(buildGraphData).toHaveBeenCalledWith(
+      new Map([
+        ['src/a.ts', []],
+        ['src/b.ts', []],
+      ]),
+      '/workspace',
+      true,
+      new Set<string>(),
+    );
+  });
+
   it('delegates analyze, rebuildGraph, and refreshIndex through the shared runners', async () => {
     const facade = new TestDiscoveryFacade();
     const disabledPlugins = new Set(['plugin.disabled']);
