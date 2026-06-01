@@ -168,6 +168,8 @@ describe('webview/store/messageHandlers/graph', () => {
       graphHasIndex: true,
       graphIndexFreshness: 'fresh',
       graphIndexDetail: 'CodeGraphy index is fresh.',
+      graphIsIndexing: false,
+      graphIndexProgress: null,
     });
 
     expect(handleGraphIndexProgress({
