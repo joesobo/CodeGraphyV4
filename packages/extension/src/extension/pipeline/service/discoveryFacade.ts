@@ -205,6 +205,8 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     signal?: AbortSignal,
   ): Promise<IGraphData> {
     throwIfWorkspaceAnalysisAborted(signal);
+    await this._hydrateCacheFromGraphCache();
+    throwIfWorkspaceAnalysisAborted(signal);
 
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {

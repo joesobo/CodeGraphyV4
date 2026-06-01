@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearWorkspacePipelineCache } from '../../../../../src/extension/pipeline/analysis/state';
-import { saveWorkspaceAnalysisDatabaseCache } from '../../../../../src/extension/pipeline/database/cache/storage.ts';
+import { saveWorkspaceAnalysisDatabaseCacheAsync } from '../../../../../src/extension/pipeline/database/cache/storage.ts';
 import {
   clearWorkspacePipelineStoredCache,
   persistWorkspacePipelineCache,
@@ -11,7 +11,7 @@ vi.mock('../../../../../src/extension/pipeline/analysis/state', () => ({
 }));
 
 vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
-  saveWorkspaceAnalysisDatabaseCache: vi.fn(),
+  saveWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
 }));
 
 describe('pipeline/service/cache/storage', () => {
@@ -33,7 +33,7 @@ describe('pipeline/service/cache/storage', () => {
 
     persistWorkspacePipelineCache(undefined, { files: {} } as never, warn);
 
-    expect(saveWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
+    expect(saveWorkspaceAnalysisDatabaseCacheAsync).not.toHaveBeenCalled();
     expect(warn).not.toHaveBeenCalled();
   });
 
@@ -43,23 +43,23 @@ describe('pipeline/service/cache/storage', () => {
 
     persistWorkspacePipelineCache('/workspace', cache as never, warn);
 
-    expect(saveWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith('/workspace', cache);
+    expect(saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalledWith('/workspace', cache);
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it('warns when saving the repo-local cache throws', () => {
+  it('warns when saving the repo-local cache rejects', async () => {
     const cache = { files: {} };
     const warn = vi.fn();
     const error = new Error('save failed');
-    vi.mocked(saveWorkspaceAnalysisDatabaseCache).mockImplementation(() => {
-      throw error;
-    });
+    vi.mocked(saveWorkspaceAnalysisDatabaseCacheAsync).mockRejectedValue(error);
 
     persistWorkspacePipelineCache('/workspace', cache as never, warn);
 
-    expect(warn).toHaveBeenCalledWith(
-      '[CodeGraphy] Failed to persist repo-local analysis cache.',
-      error,
-    );
+    await vi.waitFor(() => {
+      expect(warn).toHaveBeenCalledWith(
+        '[CodeGraphy] Failed to persist repo-local analysis cache.',
+        error,
+      );
+    });
   });
 });
