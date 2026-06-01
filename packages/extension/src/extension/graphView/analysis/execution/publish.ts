@@ -24,6 +24,12 @@ function resolveGraphIndexStatus(
   };
 }
 
+function shouldReportGraphViewUpdateProgress(
+  state: GraphViewAnalysisExecutionState,
+): boolean {
+  return state.mode === 'index' || state.mode === 'refresh' || state.mode === 'incremental';
+}
+
 export function publishEmptyGraph(
   handlers: GraphViewAnalysisExecutionHandlers,
   hasIndex: boolean = false,
@@ -45,6 +51,13 @@ export function publishAnalyzedGraph(
 ): void {
   const actualHasIndex = state.analyzer?.hasIndex() ?? hasIndex;
   const status = resolveGraphIndexStatus(state, actualHasIndex);
+  if (shouldReportGraphViewUpdateProgress(state)) {
+    handlers.sendIndexProgress?.({
+      phase: 'Updating Graph View',
+      current: 0,
+      total: 1,
+    });
+  }
   handlers.setRawGraphData(rawGraphData);
   handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   handlers.updateViewContext();
