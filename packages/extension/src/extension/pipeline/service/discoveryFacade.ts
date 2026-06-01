@@ -174,7 +174,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     return this._buildGraphData(
       fileConnections,
       workspaceRoot,
-      config.showOrphans,
+      true,
       disabledPlugins,
     );
   }

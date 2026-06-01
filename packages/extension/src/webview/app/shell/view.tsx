@@ -26,6 +26,7 @@ export default function App(): React.ReactElement {
   const {
     graphData,
     isLoading,
+    graphHasIndex,
     searchQuery,
     searchOptions,
     legends,
@@ -73,6 +74,7 @@ export default function App(): React.ReactElement {
     disabledPluginFilterPatterns,
     legends,
   );
+  const effectiveShowOrphans = graphHasIndex ? showOrphans : true;
   const { countBaseData, filterVisibleData } = useShellVisibleGraphs({
     activeFilterPatterns,
     edgeVisibility,
@@ -80,7 +82,7 @@ export default function App(): React.ReactElement {
     graphEdgeTypes,
     nodeVisibility,
     searchOptions,
-    showOrphans,
+    showOrphans: effectiveShowOrphans,
   });
   const {
     filteredData,
@@ -98,7 +100,7 @@ export default function App(): React.ReactElement {
     graphEdgeTypes,
     edgeDecorations,
     activeFilterPatterns,
-    showOrphans,
+    effectiveShowOrphans,
   );
 
   const {
@@ -130,6 +132,7 @@ export default function App(): React.ReactElement {
   const graphStatsLabel = buildGraphStatsLabel(
     loadedDisplayGraphData.nodes.length,
     loadedDisplayGraphData.edges.length,
+    { hasIndex: graphHasIndex },
   );
   const closeActivePanel = () => setActivePanel('none');
   const { countState, countTotal, excludedCount } = getShellGraphCountState({
@@ -172,7 +175,7 @@ export default function App(): React.ReactElement {
         <GraphSurface
           graphData={graphData}
           coloredData={coloredData}
-          showOrphans={showOrphans}
+          showOrphans={effectiveShowOrphans}
           depthMode={depthMode}
           timelineActive={timelineActive}
           theme={theme}
