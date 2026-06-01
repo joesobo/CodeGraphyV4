@@ -97,6 +97,7 @@ describe('graph view analysis execution publish', () => {
     });
     const sendIndexProgress = vi.mocked(handlers.sendIndexProgress!);
     const sendGraphDataUpdated = vi.mocked(handlers.sendGraphDataUpdated);
+    const sendGraphIndexStatusUpdated = vi.mocked(handlers.sendGraphIndexStatusUpdated);
 
     publishAnalyzedGraph(state, handlers, rawGraphData, true);
 
@@ -106,6 +107,9 @@ describe('graph view analysis execution publish', () => {
       total: 1,
     });
     expect(sendIndexProgress.mock.invocationCallOrder[0]).toBeLessThan(
+      sendGraphDataUpdated.mock.invocationCallOrder[0]!,
+    );
+    expect(sendGraphIndexStatusUpdated.mock.invocationCallOrder[0]).toBeGreaterThan(
       sendGraphDataUpdated.mock.invocationCallOrder[0]!,
     );
   });

@@ -130,7 +130,7 @@ describe('graph view ready message', () => {
     expect(callOrder.indexOf('plugin-injections')).toBeLessThan(callOrder.indexOf('analyze'));
   });
 
-  it('publishes the current graph and completes app bootstrap before slow graph loading settles', async () => {
+  it('keeps bootstrap pending until slow graph loading settles', async () => {
     const events: string[] = [];
     const handlers = createHandlers();
     let finishGraphLoad: (() => void) | undefined;
@@ -169,16 +169,25 @@ describe('graph view ready message', () => {
 
     await Promise.resolve();
 
-    expect(events).toEqual(['graph:snapshot', 'bootstrap', 'graph:start']);
+    expect(events).toEqual(['graph:start']);
 
     finishGraphLoad?.();
     await ready;
 
-    expect(events).toEqual(['graph:snapshot', 'bootstrap', 'graph:start', 'graph:end', 'plugins']);
+    expect(events).toEqual(['graph:start', 'graph:end', 'plugins', 'bootstrap']);
   });
 
-  it('waits for workspace readiness during the first workspace-backed analysis', async () => {
+  it('does not block bootstrap on first workspace-ready plugin notifications', async () => {
+    const events: string[] = [];
     const handlers = createHandlers();
+    handlers.sendGraphViewContributionStatuses.mockImplementation(() => {
+      events.push('contributions');
+    });
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
+        events.push('bootstrap');
+      }
+    });
 
     await applyWebviewReady(
       {
@@ -194,7 +203,8 @@ describe('graph view ready message', () => {
       handlers
     );
 
-    expect(handlers.waitForFirstWorkspaceReady).toHaveBeenCalledOnce();
+    expect(handlers.waitForFirstWorkspaceReady).not.toHaveBeenCalled();
+    expect(events).toEqual(['contributions', 'bootstrap']);
   });
 
   it('skips workspace readiness waiting outside the initial workspace pass', async () => {

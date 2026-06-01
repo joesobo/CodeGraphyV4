@@ -46,10 +46,16 @@ export function handleAppBootstrapComplete(
 export function handleGraphIndexStatusUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>,
 ): PartialState {
+  const indexIsReady = message.payload.hasIndex && message.payload.freshness === 'fresh';
+
   return {
     graphHasIndex: message.payload.hasIndex,
     graphIndexFreshness: message.payload.freshness,
     graphIndexDetail: message.payload.detail,
+    ...(indexIsReady ? {
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    } : {}),
   };
 }
 

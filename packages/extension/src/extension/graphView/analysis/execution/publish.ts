@@ -59,7 +59,6 @@ export function publishAnalyzedGraph(
     });
   }
   handlers.setRawGraphData(rawGraphData);
-  handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   handlers.updateViewContext();
   handlers.applyViewTransform();
   handlers.computeMergedGroups();
@@ -75,6 +74,7 @@ export function publishAnalyzedGraph(
 
   const graphData = handlers.getGraphData();
   handlers.sendGraphDataUpdated(graphData);
+  handlers.sendGraphIndexStatusUpdated(actualHasIndex, status.freshness, status.detail);
   state.analyzer?.registry.notifyPostAnalyze(graphData);
   handlers.markWorkspaceReady(graphData);
 }
