@@ -578,6 +578,10 @@ describe('App', () => {
       type: 'VISIBLE_GRAPH_STATE_RESPONSE',
       payload: {
         nodeCount: 2,
+        nodes: [
+          { id: 'src/app.ts', nodeType: 'file', color: '#3B82F6' },
+          { id: 'src/app.ts#run:function', nodeType: 'symbol', color: '#8B5CF6' },
+        ],
         edgeCount: 1,
         edgeIds: ['src/app.ts->src/app.ts#run:function#contains'],
       },
