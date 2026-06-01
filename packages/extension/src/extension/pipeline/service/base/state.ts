@@ -14,6 +14,7 @@ import { Configuration } from '../../../config/reader';
 import { EventBus } from '../../../../core/plugins/events/bus';
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import {
+  loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot,
   type WorkspaceAnalysisDatabaseSnapshot,
 } from '../../database/cache/storage';
@@ -26,6 +27,7 @@ export abstract class WorkspacePipelineStateBase {
   protected readonly _context: vscode.ExtensionContext;
   protected readonly _engineState: WorkspaceIndexEngineState;
   protected _eventBus?: EventBus;
+  private _cacheHydrationPromise?: Promise<void>;
 
   constructor(context: vscode.ExtensionContext) {
     this._context = context;
@@ -104,6 +106,25 @@ export abstract class WorkspacePipelineStateBase {
     }
 
     return readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+  }
+
+  protected async _hydrateCacheFromGraphCache(): Promise<void> {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot || Object.keys(this._cache.files).length > 0) {
+      return;
+    }
+
+    this._cacheHydrationPromise ??= loadWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot)
+      .then((cache) => {
+        if (Object.keys(this._cache.files).length === 0) {
+          this._cache = cache;
+        }
+      })
+      .finally(() => {
+        this._cacheHydrationPromise = undefined;
+      });
+
+    await this._cacheHydrationPromise;
   }
 
   protected abstract _getWorkspaceRoot(): string | undefined;

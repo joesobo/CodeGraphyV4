@@ -617,7 +617,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     });
   });
 
-  it('invalidates selected workspace files from the cache and persists the updated cache', () => {
+  it('invalidates selected workspace files from the cache and persists the updated cache', async () => {
     const workspaceRoot = createWorkspaceRoot();
     workspaceFoldersValue = [
       { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
@@ -677,10 +677,12 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     expect(analyzerPrivate._lastFileAnalysis.has('src/remove.ts')).toBe(false);
     expect(analyzerPrivate._lastFileConnections.has('src/remove.ts')).toBe(false);
     expect(context.workspaceState.update).not.toHaveBeenCalled();
-    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/keep.ts']).toEqual({
-      mtime: 10,
-      size: 0,
-      analysis: { filePath: '/workspace/src/keep.ts', relations: [] },
+    await vi.waitFor(() => {
+      expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/keep.ts']).toEqual({
+        mtime: 10,
+        size: 0,
+        analysis: { filePath: '/workspace/src/keep.ts', relations: [] },
+      });
     });
   });
 });
