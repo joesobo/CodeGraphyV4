@@ -9,6 +9,7 @@ function createContext(
   overrides: Partial<GraphViewPluginReadyContext> = {},
 ): GraphViewPluginReadyContext {
   return {
+    getGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
     getFilterPatterns: vi.fn(() => ['src/**']),
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),

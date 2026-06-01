@@ -138,6 +138,24 @@ describe('webview/store/messageHandlers/graph', () => {
     });
   });
 
+  it('settles initial bootstrap when graph data and app bootstrap are ready while plugin assets continue loading', () => {
+    const state = createState({
+      graphData: { nodes: [{ id: 'src/app.ts', label: 'App', color: '#fff' }], edges: [] },
+      awaitingInitialBootstrap: true,
+      pendingPluginAssetLoads: 1,
+      isLoading: true,
+    });
+
+    expect(handleAppBootstrapComplete(
+      { type: 'APP_BOOTSTRAP_COMPLETE' },
+      { getState: () => state },
+    )).toEqual({
+      bootstrapComplete: true,
+      awaitingInitialBootstrap: false,
+      isLoading: false,
+    });
+  });
+
   it('maps graph index status and progress payloads', () => {
     expect(handleGraphIndexStatusUpdated({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
