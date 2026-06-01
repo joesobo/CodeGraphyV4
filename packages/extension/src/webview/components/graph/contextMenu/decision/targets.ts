@@ -31,15 +31,33 @@ export function isPackageNodeId(nodeId: string): boolean {
   return nodeId.startsWith('pkg:');
 }
 
+function resolveGraphContextNodeSource(
+  nodeId: string,
+  source: GraphContextNodeSource | string | undefined,
+  symbol?: GraphContextNodeSource['symbol'],
+  isCollapsed?: boolean,
+): GraphContextNodeSource | undefined {
+  return typeof source === 'string'
+    ? { id: nodeId, isCollapsed, nodeType: source, symbol }
+    : source;
+}
+
+function resolveGraphContextNodeKind(
+  nodeType: string,
+  symbol?: GraphContextNodeSource['symbol'],
+): GraphContextNodeKind {
+  return symbol || nodeType === 'symbol' || nodeType === 'variable'
+    ? 'symbol'
+    : resolveNodeKind(nodeType);
+}
+
 export function classifyGraphContextNodeTarget(
   nodeId: string,
   source: GraphContextNodeSource | string | undefined,
   symbol?: GraphContextNodeSource['symbol'],
   isCollapsed?: boolean,
 ): GraphContextNodeTarget {
-  const nodeSource = typeof source === 'string'
-    ? { id: nodeId, isCollapsed, nodeType: source, symbol }
-    : source;
+  const nodeSource = resolveGraphContextNodeSource(nodeId, source, symbol, isCollapsed);
   const resolvedNodeType = isPackageNodeId(nodeId)
     ? 'package'
     : nodeSource?.nodeType ?? 'file';
@@ -47,9 +65,7 @@ export function classifyGraphContextNodeTarget(
   return {
     id: nodeId,
     isCollapsed: nodeSource?.isCollapsed,
-    nodeKind: resolvedSymbol || resolvedNodeType === 'symbol' || resolvedNodeType === 'variable'
-        ? 'symbol'
-        : resolveNodeKind(resolvedNodeType),
+    nodeKind: resolveGraphContextNodeKind(resolvedNodeType, resolvedSymbol),
     nodeType: resolvedNodeType,
     ...(nodeSource?.ownerPluginId ? { ownerPluginId: nodeSource.ownerPluginId } : {}),
     ...(nodeSource?.runtimeNodeType ? { runtimeNodeType: nodeSource.runtimeNodeType } : {}),

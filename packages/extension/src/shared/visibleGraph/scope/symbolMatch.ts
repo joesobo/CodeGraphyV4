@@ -13,11 +13,11 @@ export function symbolMatchesScopedDefinition(
 	}
 
 	const definitionSymbolKinds = getDefinitionSymbolKinds(definition);
-	const symbolKindMatches = !definitionSymbolKinds || definitionSymbolKinds.includes(symbol.kind);
-	const pluginKindMatches = !definition.matchSymbolPluginKind || definition.matchSymbolPluginKind === symbol.pluginKind;
-	const sourceMatches = !definition.matchSymbolSource || definition.matchSymbolSource === symbol.source;
-	const languageMatches = !definition.matchSymbolLanguage || definition.matchSymbolLanguage === symbol.language;
-	const filePathMatches = !definition.matchSymbolFilePath || globMatch(symbol.filePath, definition.matchSymbolFilePath);
-
-	return symbolKindMatches && pluginKindMatches && sourceMatches && languageMatches && filePathMatches;
+	return [
+		!definitionSymbolKinds || definitionSymbolKinds.includes(symbol.kind),
+		!definition.matchSymbolPluginKind || definition.matchSymbolPluginKind === symbol.pluginKind,
+		!definition.matchSymbolSource || definition.matchSymbolSource === symbol.source,
+		!definition.matchSymbolLanguage || definition.matchSymbolLanguage === symbol.language,
+		!definition.matchSymbolFilePath || globMatch(symbol.filePath, definition.matchSymbolFilePath),
+	].every(Boolean);
 }
