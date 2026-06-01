@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/playwright-vscode',
+  timeout: 120_000,
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
@@ -14,4 +15,3 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 });
-

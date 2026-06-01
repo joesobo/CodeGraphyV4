@@ -26,8 +26,10 @@ import {
 import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBoundary';
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
+import type { GraphAccessibilityItems } from './accessibility';
 
 export interface ViewportProps {
+  accessibilityItems?: GraphAccessibilityItems;
   canvasBackgroundColor: string;
   containerBackgroundColor: string;
   borderColor: string;
@@ -179,6 +181,7 @@ function ViewportContextMenuItems({
 }
 
 export function Viewport({
+  accessibilityItems = { nodes: [], edges: [] },
   canvasBackgroundColor,
   containerBackgroundColor,
   borderColor,
@@ -224,6 +227,7 @@ export function Viewport({
           />
           <ViewportPluginOverlay pluginHost={pluginHost} />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
+          <GraphAccessibilityOverlay accessibilityItems={accessibilityItems} />
         </div>
       </ContextMenuTrigger>
 
@@ -249,5 +253,36 @@ export function Viewport({
         pluginHost={pluginHost}
       />
     </ContextMenu>
+  );
+}
+
+function GraphAccessibilityOverlay({
+  accessibilityItems,
+}: {
+  accessibilityItems: GraphAccessibilityItems;
+}): ReactElement {
+  return (
+    <div aria-label="Graph accessibility" className="absolute inset-0 pointer-events-none">
+      {accessibilityItems.nodes.map(node => (
+        <div
+          key={node.id}
+          aria-label={node.label}
+          role="img"
+          className="absolute rounded-full opacity-0"
+          style={{
+            height: node.radius * 2,
+            left: node.x,
+            top: node.y,
+            transform: 'translate(-50%, -50%)',
+            width: node.radius * 2,
+          }}
+        />
+      ))}
+      <div className="sr-only">
+        {accessibilityItems.edges.map(edge => (
+          <span key={edge.id} aria-label={edge.label} role="img" />
+        ))}
+      </div>
+    </div>
   );
 }

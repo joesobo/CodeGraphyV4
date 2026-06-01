@@ -170,7 +170,7 @@ describe('graph/rendering/node/body', () => {
       renderNodeLabel({
         ctx,
         decoration: undefined,
-        globalScale: 0.81,
+        globalScale: 0.36,
         isHighlighted: true,
         node: createNode(),
         opacity: 1,
@@ -188,7 +188,7 @@ describe('graph/rendering/node/body', () => {
       renderNodeLabel({
         ctx,
         decoration: undefined,
-        globalScale: 0.813,
+        globalScale: 0.363,
         isHighlighted: true,
         node: createNode(),
         opacity: 1,

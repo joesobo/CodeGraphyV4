@@ -170,7 +170,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     expect(sibling.isDragging).toBeUndefined();
   });
 
-  it('releases unpinned nodes at drag end', () => {
+  it('keeps unpinned nodes fixed where the user drops them', () => {
     const node = {
       id: 'node',
       fx: 12,
@@ -183,14 +183,14 @@ describe('graph/runtime/use/interaction node drag', () => {
     postNodeDragEndMessages(node, '3d');
 
     expect(node).toMatchObject({
-      fx: undefined,
-      fy: undefined,
-      fz: undefined,
+      fx: 12,
+      fy: 24,
+      fz: 36,
       isDragging: false,
     });
   });
 
-  it('releases pinned graph nodes when no plugin drag policy keeps them fixed', () => {
+  it('keeps pinned graph nodes fixed where the user drops them', () => {
     const node = {
       id: 'node',
       fx: 12,
@@ -203,9 +203,9 @@ describe('graph/runtime/use/interaction node drag', () => {
     postNodeDragEndMessages(node, '3d');
 
     expect(node).toMatchObject({
-      fx: undefined,
-      fy: undefined,
-      fz: undefined,
+      fx: 12,
+      fy: 24,
+      fz: 36,
       isDragging: false,
     });
   });
@@ -293,7 +293,7 @@ describe('graph/runtime/use/interaction node drag', () => {
     });
   });
 
-  it('releases every node in the active drag group', () => {
+  it('keeps every node in the active drag group fixed where the user drops them', () => {
     const primary = { id: 'primary', fx: 1, fy: 2, isDragging: true } as FGNode;
     const sibling = { id: 'sibling', fx: 3, fy: 4, isDragging: true } as FGNode;
 
@@ -309,7 +309,7 @@ describe('graph/runtime/use/interaction node drag', () => {
       },
     );
 
-    expect(primary).toMatchObject({ fx: undefined, fy: undefined, isDragging: false });
-    expect(sibling).toMatchObject({ fx: undefined, fy: undefined, isDragging: false });
+    expect(primary).toMatchObject({ fx: 1, fy: 2, isDragging: false });
+    expect(sibling).toMatchObject({ fx: 3, fy: 4, isDragging: false });
   });
 });
