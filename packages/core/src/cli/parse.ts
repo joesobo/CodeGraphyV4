@@ -9,22 +9,49 @@ export type {
   PluginsCommandAction,
 } from './parseTypes';
 
+function readGlobalFlags(argv: string[]): { positional: string[]; verbose: boolean } {
+  const positional: string[] = [];
+  let verbose = false;
+
+  for (const arg of argv) {
+    if (arg === '--verbose') {
+      verbose = true;
+      continue;
+    }
+
+    positional.push(arg);
+  }
+
+  return { positional, verbose };
+}
+
+function withGlobalFlags(command: CliCommand, verbose: boolean): CliCommand {
+  return verbose ? { ...command, verbose } : command;
+}
+
 export function parseCliCommand(argv: string[]): CliCommand {
-  const [name, ...rest] = argv;
+  const { positional, verbose } = readGlobalFlags(argv);
+  const [name, ...rest] = positional;
 
   if (isHelpCommandName(name)) {
-    return { name: 'help' };
+    return withGlobalFlags({ name: 'help' }, verbose);
   }
 
+  let command: CliCommand;
   switch (name) {
     case 'setup':
-      return { name: 'setup' };
+      command = { name: 'setup' };
+      break;
     case 'index':
     case 'status':
-      return parseWorkspaceCommand(name, rest);
+      command = parseWorkspaceCommand(name, rest);
+      break;
     case 'plugins':
-      return parsePluginsCommand(rest);
+      command = parsePluginsCommand(rest);
+      break;
     default:
-      return { name: 'help' };
+      command = { name: 'help' };
   }
+
+  return withGlobalFlags(command, verbose);
 }
