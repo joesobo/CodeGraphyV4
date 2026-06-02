@@ -1,3 +1,5 @@
+import type { DiagnosticEventSink } from '../diagnostics/events';
+
 export type GraphQueryReport =
   | 'nodes'
   | 'edges'
@@ -6,6 +8,7 @@ export type GraphQueryReport =
   | 'paths';
 
 export interface WorkspacePathInput {
+  diagnostics?: DiagnosticEventSink;
   workspacePath?: string;
 }
 

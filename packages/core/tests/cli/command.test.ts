@@ -49,4 +49,25 @@ describe('cli/command', () => {
       '[CodeGraphy][Diagnostics] cli command-completed {"command":"status","exitCode":0}',
     );
   });
+
+  it('forwards verbose diagnostics from workspace indexing', async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-cli-diagnostics-'));
+    const diagnostics: string[] = [];
+
+    const result = await runCliCommand(
+      { name: 'index', verbose: true, workspacePath: workspaceRoot },
+      {
+        writeDiagnostic: line => diagnostics.push(line),
+      },
+    );
+
+    expect(JSON.parse(result.output)).toMatchObject({
+      workspaceRoot,
+      graphCache: '.codegraphy/graph.lbug',
+    });
+    expect(diagnostics).toEqual(expect.arrayContaining([
+      expect.stringContaining('[CodeGraphy][Diagnostics] workspace index-started'),
+      expect.stringContaining('[CodeGraphy][Diagnostics] indexing completed'),
+    ]));
+  });
 });
