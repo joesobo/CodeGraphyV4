@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { CoreGraphViewContributionSet } from '@codegraphy-dev/core';
 import type { ThemeKind } from '../../../theme/useTheme';
 import type { GraphAppearance } from '../appearance/model';
@@ -19,6 +19,11 @@ import {
 	createGraphViewViewportState,
 	type GraphViewport2dControls,
 } from './shell/viewportState';
+import {
+  createGraphAccessibilityItems,
+  type GraphAccessibilityItems,
+  type GraphScreenProjector,
+} from './accessibility';
 
 export interface GraphViewportShellProps {
   appearance?: GraphAppearance;
@@ -46,6 +51,11 @@ export function GraphViewportShell({
   viewState,
 }: GraphViewportShellProps): ReactElement {
   const lastPublishedViewportScaleRef = useRef<number | null>(null);
+  const lastAccessibilitySnapshotRef = useRef('');
+  const [accessibilityItems, setAccessibilityItems] = useState<GraphAccessibilityItems>({
+    nodes: [],
+    edges: [],
+  });
   const viewportRuntime = useGraphRenderingRuntime(buildRenderingRuntimeOptions({
     appearance,
     callbacks,
@@ -107,6 +117,26 @@ export function GraphViewportShell({
     }));
   };
 
+  const publishGraphAccessibilityItems = (): void => {
+    if (viewState.graphMode !== '2d') {
+      return;
+    }
+
+    const graph = graphState.renderer.fg2dRef.current as GraphScreenProjector | undefined;
+    const items = createGraphAccessibilityItems(
+      graphState.renderer.graphDataRef.current.nodes,
+      graphState.renderer.graphDataRef.current.links,
+      typeof graph?.graph2ScreenCoords === 'function' ? graph : undefined,
+    );
+    const snapshot = JSON.stringify(items);
+    if (snapshot === lastAccessibilitySnapshotRef.current) {
+      return;
+    }
+
+    lastAccessibilitySnapshotRef.current = snapshot;
+    setAccessibilityItems(items);
+  };
+
   useEffect(() => {
     return () => {
       pluginHost?.setGraphViewViewportState(null);
@@ -119,6 +149,7 @@ export function GraphViewportShell({
     onRenderFramePost: (ctx, globalScale) => {
       publishGraphViewportScale(globalScale);
       publishGraphViewViewportState(globalScale);
+      publishGraphAccessibilityItems();
       viewportRuntime.renderPluginOverlays(ctx, globalScale);
     },
     sharedProps: viewportModel.sharedProps,
@@ -127,6 +158,7 @@ export function GraphViewportShell({
 
   return (
     <Viewport
+      accessibilityItems={accessibilityItems}
       canvasBackgroundColor={viewportModel.canvasBackgroundColor}
       containerBackgroundColor={viewportModel.containerBackgroundColor}
       borderColor={viewportModel.borderColor}
@@ -139,6 +171,8 @@ export function GraphViewportShell({
       handleMouseLeave={interactions.handleMouseLeave}
       handleMouseMoveCapture={interactions.handleMouseMoveCapture}
       handleMouseUpCapture={interactions.handleMouseUpCapture}
+      handleNodeClick={interactions.interactionHandlers.handleNodeClick}
+      handleNodeHover={interactions.handleNodeHover}
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
       surface2dProps={surfaceProps.surface2dProps}

@@ -89,28 +89,28 @@ describe('graph/runtime/use/interaction/nodeDrag/policy', () => {
     );
   });
 
-  it('releases 2d coordinates while leaving z untouched', () => {
+  it('keeps 2d coordinates fixed where the user drops the node', () => {
     const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
 
     releaseNodeDrag(draggedNode, '2d');
 
     expect(draggedNode).toMatchObject({
-      fx: undefined,
-      fy: undefined,
+      fx: 1,
+      fy: 2,
       fz: 3,
       isDragging: false,
     });
   });
 
-  it('releases 3d coordinates including z', () => {
+  it('keeps 3d coordinates fixed where the user drops the node', () => {
     const draggedNode = node({ fx: 1, fy: 2, fz: 3, isDragging: true });
 
     releaseNodeDrag(draggedNode, '3d');
 
     expect(draggedNode).toMatchObject({
-      fx: undefined,
-      fy: undefined,
-      fz: undefined,
+      fx: 1,
+      fy: 2,
+      fz: 3,
       isDragging: false,
     });
   });

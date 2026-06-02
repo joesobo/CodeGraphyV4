@@ -35,6 +35,13 @@ interface WorkspaceEngineState extends WorkspaceIndexEngineState {
   settings?: CodeGraphyWorkspaceSettings;
 }
 
+interface WorkspaceEngineRuntime {
+  discovery: FileDiscovery;
+  options: IndexCodeGraphyWorkspaceOptions;
+  state: WorkspaceEngineState;
+  workspaceRoot: string;
+}
+
 export interface CodeGraphyWorkspaceEngine {
   applyChangedFiles(
     filePaths: readonly string[],
@@ -89,111 +96,188 @@ async function readAnalysisFiles(
   );
 }
 
+function buildWorkspaceEngineGraph(
+  runtime: WorkspaceEngineRuntime,
+  disabledPlugins: Set<string>,
+): IGraphData {
+  const { state, workspaceRoot } = runtime;
+  if (!state.discoveryResult || !state.registry || !state.settings) {
+    return { nodes: [], edges: [] };
+  }
+
+  state.graph = buildWorkspacePipelineGraphFromAnalysis({
+    cacheFiles: state.cache.files,
+    churnCounts: {},
+    directoryPaths: state.discoveredDirectories,
+    disabledPlugins,
+    fileAnalysis: state.fileAnalysis,
+    getPluginForFile: absolutePath => state.registry?.getPluginForFile(absolutePath),
+    showOrphans: true,
+    workspaceRoot,
+  });
+  return state.graph;
+}
+
+function persistWorkspaceEngine(runtime: WorkspaceEngineRuntime): void {
+  const { state, workspaceRoot } = runtime;
+  if (!state.registry || !state.settings) {
+    return;
+  }
+
+  saveWorkspaceAnalysisDatabaseCache(workspaceRoot, state.cache);
+  persistWorkspaceIndexMetadata({
+    loadedPackagePlugins: state.loadedPackagePlugins,
+    registry: state.registry,
+    settings: state.settings,
+    workspaceRoot,
+  });
+}
+
+async function discoverWorkspaceEngineFiles(
+  runtime: WorkspaceEngineRuntime,
+  disabledPlugins: Set<string>,
+): Promise<void> {
+  const { discovery, options, state, workspaceRoot } = runtime;
+  if (!state.registry || !state.settings) {
+    return;
+  }
+
+  state.discoveryResult = await discoverWorkspaceIndexFiles({
+    disabledPlugins,
+    discovery,
+    options,
+    registry: state.registry,
+    settings: state.settings,
+    workspaceRoot,
+  });
+  state.discoveredDirectories = state.discoveryResult.directories ?? [];
+  state.discoveredFiles = state.discoveryResult.files;
+}
+
+async function initializeWorkspaceEngine(runtime: WorkspaceEngineRuntime): Promise<void> {
+  const { options, state, workspaceRoot } = runtime;
+  state.cache = createEmptyWorkspaceAnalysisCache();
+  state.settings = createEffectiveIndexSettings(workspaceRoot, options);
+  const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot);
+  state.registry = registryResult.registry;
+  state.loadedPackagePlugins = registryResult.loadedPackagePlugins;
+  state.workspaceRoot = workspaceRoot;
+  await state.registry.initializeAll(workspaceRoot);
+}
+
+function createWorkspaceEngineIndexResult(
+  runtime: WorkspaceEngineRuntime,
+  graph: IGraphData,
+): IndexCodeGraphyWorkspaceResult {
+  const { state, workspaceRoot } = runtime;
+  return createIndexResult({
+    cache: state.cache,
+    directories: state.discoveredDirectories,
+    discoveryResult: state.discoveryResult!,
+    graph,
+    workspaceRoot,
+  });
+}
+
+async function indexWorkspaceEngine(
+  runtime: WorkspaceEngineRuntime,
+): Promise<IndexCodeGraphyWorkspaceResult> {
+  const { discovery, options, state, workspaceRoot } = runtime;
+  await initializeWorkspaceEngine(runtime);
+
+  const disabledPlugins = new Set(options.disabledPlugins ?? []);
+  await discoverWorkspaceEngineFiles(runtime, disabledPlugins);
+
+  const analysisResult = await analyzeWorkspaceIndexFiles({
+    cache: state.cache,
+    discovery,
+    discoveryResult: state.discoveryResult!,
+    options,
+    registry: state.registry!,
+    workspaceRoot,
+  });
+  updateStateFromAnalysis(state, analysisResult);
+  const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
+  state.registry!.notifyPostAnalyze(graph);
+  state.registry!.notifyWorkspaceReady(graph);
+  persistWorkspaceEngine(runtime);
+  options.logInfo?.(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
+
+  return createWorkspaceEngineIndexResult(runtime, graph);
+}
+
+function hasWorkspaceEngineIndexState(state: WorkspaceEngineState): boolean {
+  return Boolean(state.discoveryResult && state.registry && state.settings);
+}
+
+async function analyzeWorkspaceEngineChangedFiles(
+  runtime: WorkspaceEngineRuntime,
+  filesToAnalyze: IDiscoveredFile[],
+): Promise<IWorkspaceFileAnalysisResult> {
+  const { discovery, options, state, workspaceRoot } = runtime;
+  return analyzeWorkspacePipelineFiles({
+    analyzeFile: async (absolutePath, content, rootPath) =>
+      state.registry?.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
+        filePath: absolutePath,
+        relations: [],
+      })) ?? { filePath: absolutePath, relations: [] },
+    cache: state.cache,
+    files: filesToAnalyze,
+    getFileStat,
+    logInfo: options.logInfo ?? (() => undefined),
+    onProgress: progress => options.onProgress?.({
+      phase: 'Applying Changes',
+      current: progress.current,
+      total: progress.total,
+    }),
+    readContent: file => discovery.readContent(file),
+    signal: options.signal,
+    workspaceRoot,
+  });
+}
+
+function applyWorkspaceEngineAnalysisResult(
+  state: WorkspaceEngineState,
+  analysisResult: IWorkspaceFileAnalysisResult,
+): void {
+  for (const [filePath, analysis] of analysisResult.fileAnalysis) {
+    state.fileAnalysis.set(filePath, analysis);
+  }
+  for (const [filePath, connections] of analysisResult.fileConnections) {
+    state.fileConnections.set(filePath, connections);
+  }
+}
+
 export function createCodeGraphyWorkspaceEngine(
   options: IndexCodeGraphyWorkspaceOptions,
 ): CodeGraphyWorkspaceEngine {
   const workspaceRoot = resolveWorkspaceRoot(options.workspaceRoot);
   const discovery = new FileDiscovery();
   const state = createInitialState();
-
-  const buildGraph = (disabledPlugins: Set<string>): IGraphData => {
-    if (!state.discoveryResult || !state.registry || !state.settings) {
-      return { nodes: [], edges: [] };
-    }
-
-    state.graph = buildWorkspacePipelineGraphFromAnalysis({
-      cacheFiles: state.cache.files,
-      churnCounts: {},
-      directoryPaths: state.discoveredDirectories,
-      disabledPlugins,
-      fileAnalysis: state.fileAnalysis,
-      getPluginForFile: absolutePath => state.registry?.getPluginForFile(absolutePath),
-      showOrphans: true,
-      workspaceRoot,
-    });
-    return state.graph;
-  };
-
-  const persist = (): void => {
-    if (!state.registry || !state.settings) {
-      return;
-    }
-
-    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, state.cache);
-    persistWorkspaceIndexMetadata({
-      loadedPackagePlugins: state.loadedPackagePlugins,
-      registry: state.registry,
-      settings: state.settings,
-      workspaceRoot,
-    });
+  const runtime: WorkspaceEngineRuntime = {
+    discovery,
+    options,
+    state,
+    workspaceRoot,
   };
 
   const index = async (): Promise<IndexCodeGraphyWorkspaceResult> => {
-    state.cache = createEmptyWorkspaceAnalysisCache();
-    state.settings = createEffectiveIndexSettings(workspaceRoot, options);
-    const registryResult = await createWorkspaceIndexRegistry(options, state.settings, workspaceRoot);
-    state.registry = registryResult.registry;
-    state.loadedPackagePlugins = registryResult.loadedPackagePlugins;
-    state.workspaceRoot = workspaceRoot;
-
-    await state.registry.initializeAll(workspaceRoot);
-    const disabledPlugins = new Set(options.disabledPlugins ?? []);
-    state.discoveryResult = await discoverWorkspaceIndexFiles({
-      disabledPlugins,
-      discovery,
-      options,
-      registry: state.registry,
-      settings: state.settings,
-      workspaceRoot,
-    });
-    state.discoveredDirectories = state.discoveryResult.directories ?? [];
-    state.discoveredFiles = state.discoveryResult.files;
-
-    const analysisResult = await analyzeWorkspaceIndexFiles({
-      cache: state.cache,
-      discovery,
-      discoveryResult: state.discoveryResult,
-      options,
-      registry: state.registry,
-      workspaceRoot,
-    });
-    updateStateFromAnalysis(state, analysisResult);
-    const graph = buildGraph(disabledPlugins);
-    state.registry.notifyPostAnalyze(graph);
-    state.registry.notifyWorkspaceReady(graph);
-    persist();
-    options.logInfo?.(`[CodeGraphy] Graph built: ${graph.nodes.length} nodes, ${graph.edges.length} edges`);
-
-    return createIndexResult({
-      cache: state.cache,
-      directories: state.discoveredDirectories,
-      discoveryResult: state.discoveryResult,
-      graph,
-      workspaceRoot,
-    });
+    return indexWorkspaceEngine(runtime);
   };
 
   const applyChangedFiles = async (
     filePaths: readonly string[],
   ): Promise<IndexCodeGraphyWorkspaceResult> => {
-    if (!state.discoveryResult || !state.registry || !state.settings) {
+    if (!hasWorkspaceEngineIndexState(state)) {
       return index();
     }
 
     const disabledPlugins = new Set(options.disabledPlugins ?? []);
-    state.discoveryResult = await discoverWorkspaceIndexFiles({
-      disabledPlugins,
-      discovery,
-      options,
-      registry: state.registry,
-      settings: state.settings,
-      workspaceRoot,
-    });
-    state.discoveredDirectories = state.discoveryResult.directories ?? [];
-    state.discoveredFiles = state.discoveryResult.files;
+    await discoverWorkspaceEngineFiles(runtime, disabledPlugins);
+    const registry = state.registry!;
 
     const discoveredByRelativePath = mapDiscoveredWorkspaceIndexFilesByRelativePath(
-      state.discoveryResult.files,
+      state.discoveryResult!.files,
     );
     const changeSelection = selectDiscoveredWorkspaceIndexFileChanges(
       workspaceRoot,
@@ -207,7 +291,7 @@ export function createCodeGraphyWorkspaceEngine(
     }
 
     const changedAnalysisFiles = await readAnalysisFiles(discovery, changeSelection.files);
-    const pluginChanges = await state.registry.notifyFilesChanged(
+    const pluginChanges = await registry.notifyFilesChanged(
       changedAnalysisFiles,
       workspaceRoot,
     );
@@ -227,44 +311,14 @@ export function createCodeGraphyWorkspaceEngine(
       filesToAnalyze.map(file => file.absolutePath),
     );
 
-    const analysisResult = await analyzeWorkspacePipelineFiles({
-      analyzeFile: async (absolutePath, content, rootPath) =>
-        state.registry?.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
-          filePath: absolutePath,
-          relations: [],
-        })) ?? { filePath: absolutePath, relations: [] },
-      cache: state.cache,
-      files: filesToAnalyze,
-      getFileStat,
-      logInfo: options.logInfo ?? (() => undefined),
-      onProgress: progress => options.onProgress?.({
-        phase: 'Applying Changes',
-        current: progress.current,
-        total: progress.total,
-      }),
-      readContent: file => discovery.readContent(file),
-      signal: options.signal,
-      workspaceRoot,
-    });
+    const analysisResult = await analyzeWorkspaceEngineChangedFiles(runtime, filesToAnalyze);
+    applyWorkspaceEngineAnalysisResult(state, analysisResult);
 
-    for (const [filePath, analysis] of analysisResult.fileAnalysis) {
-      state.fileAnalysis.set(filePath, analysis);
-    }
-    for (const [filePath, connections] of analysisResult.fileConnections) {
-      state.fileConnections.set(filePath, connections);
-    }
+    const graph = buildWorkspaceEngineGraph(runtime, disabledPlugins);
+    registry.notifyPostAnalyze(graph);
+    persistWorkspaceEngine(runtime);
 
-    const graph = buildGraph(disabledPlugins);
-    state.registry.notifyPostAnalyze(graph);
-    persist();
-
-    return createIndexResult({
-      cache: state.cache,
-      directories: state.discoveredDirectories,
-      discoveryResult: state.discoveryResult,
-      graph,
-      workspaceRoot,
-    });
+    return createWorkspaceEngineIndexResult(runtime, graph);
   };
 
   return {

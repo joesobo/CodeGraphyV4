@@ -289,7 +289,7 @@ describe('graph/rendering/node/body', () => {
     expect(operations[0]?.kind).toBe('fillText');
     expect(operations[0]?.fillStyle).toBe('#facc15');
     expect(operations[0]?.font).toBe(`${12 / 1.4}px Sans-Serif`);
-    expect(operations[0]?.globalAlpha).toBeCloseTo(0.4);
+    expect(operations[0]?.globalAlpha).toBeCloseTo(0.7);
     expect(operations[0]?.text).toBe('Decorated Label');
     expect(operations[0]?.textAlign).toBe('center');
     expect(operations[0]?.textBaseline).toBe('top');
@@ -395,7 +395,7 @@ describe('graph/rendering/node/body', () => {
     renderNodeLabel({
       ctx,
       decoration: undefined,
-      globalScale: 0.81,
+      globalScale: 0.36,
       isHighlighted: true,
       node: createNode(),
       opacity: 1,
@@ -411,7 +411,7 @@ describe('graph/rendering/node/body', () => {
     renderNodeLabel({
       ctx,
       decoration: undefined,
-      globalScale: 0.813,
+      globalScale: 0.363,
       isHighlighted: true,
       node: createNode(),
       opacity: 1,

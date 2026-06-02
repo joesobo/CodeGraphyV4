@@ -2,7 +2,7 @@
   "version": 1,
   "target": ".",
   "generatedBy": "scripts/run-organize.mjs",
-  "directoryCount": 854,
+  "directoryCount": 897,
   "findings": [
     {
       "type": "cluster",
@@ -23,6 +23,7 @@
       "suggestedFolder": "target",
       "confidence": "imports-only",
       "members": [
+        "cacheTiers.ts",
         "enrichment.ts",
         "run.ts",
         "symbols.ts",
@@ -57,6 +58,7 @@
         "globalPackages.ts",
         "help.ts",
         "installed.ts",
+        "link.ts",
         "list.ts",
         "register.ts",
         "workspace.ts"
@@ -236,13 +238,17 @@
       "confidence": "imports-only",
       "members": [
         "analysis.ts",
+        "changedFiles.ts",
         "contracts.ts",
         "defaultPlugins.ts",
         "discovery.ts",
+        "engine.ts",
         "fileStat.ts",
         "metadata.ts",
+        "refresh.ts",
         "registry.ts",
         "settings.ts",
+        "state.ts",
         "workspace.ts"
       ]
     },
@@ -270,7 +276,6 @@
         "packageReader.ts",
         "paths.ts",
         "record.ts",
-        "refresh.ts",
         "register.ts",
         "storage.ts",
         "values.ts",
@@ -682,6 +687,17 @@
     },
     {
       "type": "cluster",
+      "path": "packages/core/tests/plugins",
+      "suggestedFolder": "package",
+      "confidence": "prefix-only",
+      "members": [
+        "packageEntrypoint.test.ts",
+        "packageManifest.test.ts",
+        "packageRuntime.test.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/core/tests/treeSitter/csharpIndex",
       "suggestedFolder": "fixtures",
       "confidence": "imports-only",
@@ -788,6 +804,7 @@
       "confidence": "imports-only",
       "members": [
         "collection.ts",
+        "graphViewContributions.ts",
         "lifecycle.ts",
         "store.ts"
       ]
@@ -813,6 +830,17 @@
         "catalog.ts",
         "contracts.ts",
         "registry.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/extension/actions/deleteFiles",
+      "suggestedFolder": "backup",
+      "confidence": "imports-only",
+      "members": [
+        "backup.ts",
+        "paths.ts",
+        "restore.ts"
       ]
     },
     {
@@ -993,6 +1021,22 @@
     },
     {
       "type": "cluster",
+      "path": "packages/extension/src/extension/graphView/groups/defaults/symbols",
+      "suggestedFolder": "core",
+      "confidence": "imports-only",
+      "members": [
+        "core.ts",
+        "icons.ts",
+        "matching.ts",
+        "model.ts",
+        "nodeType.ts",
+        "pluginMetadata.ts",
+        "plugins.ts",
+        "symbolKind.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/extension/src/extension/graphView/presentation",
       "suggestedFolder": "contracts",
       "confidence": "imports-only",
@@ -1141,17 +1185,6 @@
     },
     {
       "type": "cluster",
-      "path": "packages/extension/src/extension/graphView/webview/messages",
-      "suggestedFolder": "graph",
-      "confidence": "imports-only",
-      "members": [
-        "graphLayout.ts",
-        "iconImports.ts",
-        "legends.ts"
-      ]
-    },
-    {
-      "type": "cluster",
       "path": "packages/extension/src/extension/graphView/webview/nodeFile",
       "suggestedFolder": "edit",
       "confidence": "imports-only",
@@ -1171,6 +1204,36 @@
         "followUp.ts",
         "register.ts",
         "state.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions/pathResolution",
+      "suggestedFolder": "can",
+      "confidence": "imports-only",
+      "members": [
+        "canOpenPath.ts",
+        "inferredFolderPath.ts",
+        "nodeClassification.ts",
+        "openPath.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "suggestedFolder": "editor",
+      "confidence": "imports-only",
+      "members": [
+        "editorActions.ts",
+        "fileActions.ts",
+        "legendActions.ts",
+        "messageActions.ts",
+        "pathResolution.ts",
+        "pipelineActions.ts",
+        "timelineActions.ts",
+        "types.ts",
+        "viewActions.ts",
+        "workspaceFileActions.ts"
       ]
     },
     {
@@ -1197,16 +1260,13 @@
     },
     {
       "type": "cluster",
-      "path": "packages/extension/src/extension/graphView/webview/settingsMessages/updates",
-      "suggestedFolder": "apply",
-      "confidence": "imports-only",
+      "path": "packages/extension/src/extension/graphView/webview/settingsMessages/updates/apply",
+      "suggestedFolder": "filter",
+      "confidence": "prefix+imports",
       "members": [
-        "apply.ts",
-        "controls.ts",
-        "filterPatterns.ts",
-        "labels.ts",
-        "pluginPackageOrder.ts",
-        "simple.ts"
+        "filterPatternKeys.ts",
+        "filterPatternNotification.ts",
+        "filterPatternState.ts"
       ]
     },
     {
@@ -1222,10 +1282,25 @@
     },
     {
       "type": "cluster",
-      "path": "packages/extension/src/extension/pipeline/service",
-      "suggestedFolder": "discovery",
+      "path": "packages/extension/src/extension/pipeline/plugins/bootstrap",
+      "suggestedFolder": "built",
       "confidence": "imports-only",
       "members": [
+        "builtIns.ts",
+        "initialize.ts",
+        "markdown.ts",
+        "packages.ts",
+        "settings.ts",
+        "sync.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/extension/pipeline/service",
+      "suggestedFolder": "directory",
+      "confidence": "imports-only",
+      "members": [
+        "directoryInvalidation.ts",
         "discoveryFacade.ts",
         "lifecycleFacade.ts",
         "refreshFacade.ts"
@@ -1258,6 +1333,28 @@
     },
     {
       "type": "cluster",
+      "path": "packages/extension/src/extension/repoSettings/store/model/persistedShape",
+      "suggestedFolder": "allowed",
+      "confidence": "imports-only",
+      "members": [
+        "allowedKeys.ts",
+        "objectPick.ts",
+        "topLevel.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/extension/repoSettings/store/model/persistedShape",
+      "suggestedFolder": "filter",
+      "confidence": "imports-only",
+      "members": [
+        "filterPatterns.ts",
+        "plugins.ts",
+        "stringArray.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/extension/src/extension/repoSettings/store/model",
       "suggestedFolder": "changed",
       "confidence": "imports-only",
@@ -1265,7 +1362,6 @@
         "changedKeys.ts",
         "nestedValues.ts",
         "pathSegments.ts",
-        "persistedShape.ts",
         "plainObject.ts"
       ]
     },
@@ -1342,6 +1438,17 @@
     },
     {
       "type": "cluster",
+      "path": "packages/extension/src/shared/visibleGraph/scope",
+      "suggestedFolder": "definitions",
+      "confidence": "imports-only",
+      "members": [
+        "definitions.ts",
+        "nodes.ts",
+        "symbolMatch.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/extension/src/shared/visibleGraph",
       "suggestedFolder": "collapse",
       "confidence": "imports-only",
@@ -1374,15 +1481,34 @@
     {
       "type": "cluster",
       "path": "packages/extension/src/webview/app/shell",
-      "suggestedFolder": "derived",
+      "suggestedFolder": "visible",
       "confidence": "imports-only",
       "members": [
+        "counts.ts",
         "derivedState.ts",
+        "filterPopover.ts",
         "messageListener.ts",
         "messages.ts",
         "states.tsx",
         "storeSelectors.ts",
-        "view.tsx"
+        "view.tsx",
+        "visibleGraphResponse.ts",
+        "visibleGraphs.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/webview/colorParsing",
+      "suggestedFolder": "adjust",
+      "confidence": "imports-only",
+      "members": [
+        "adjust.ts",
+        "functions.ts",
+        "hex.ts",
+        "parse.ts",
+        "rgb.ts",
+        "transparent.ts",
+        "types.ts"
       ]
     },
     {
@@ -1394,6 +1520,20 @@
         "actions.ts",
         "model.ts",
         "sections.tsx"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/webview/components/graph/appearance",
+      "suggestedFolder": "contracts",
+      "confidence": "imports-only",
+      "members": [
+        "contracts.ts",
+        "cssToken.ts",
+        "defaults.ts",
+        "model.ts",
+        "tokens.ts",
+        "use.ts"
       ]
     },
     {
@@ -1423,12 +1563,33 @@
     },
     {
       "type": "cluster",
+      "path": "packages/extension/src/webview/components/graph/contextMenu/graphView",
+      "suggestedFolder": "edge",
+      "confidence": "imports-only",
+      "members": [
+        "decisionTargets.ts",
+        "edgeLookup.ts",
+        "edgeMatching.ts",
+        "entries.ts",
+        "listAllows.ts",
+        "model.ts",
+        "nodeMatching.ts",
+        "runContext.ts",
+        "selectedPositions.ts",
+        "selectorMatching.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/extension/src/webview/components/graph/contextMenu/node",
       "suggestedFolder": "entries",
       "confidence": "imports-only",
       "members": [
         "entries.ts",
+        "folderEntries.ts",
         "openCopyBlocks.ts",
+        "pluginNodeEntries.ts",
+        "symbolEntries.ts",
         "targets.ts"
       ]
     },
@@ -1492,6 +1653,21 @@
     },
     {
       "type": "cluster",
+      "path": "packages/extension/src/webview/components/graph/interactionRuntime/handlers/view/zoom",
+      "suggestedFolder": "zoom",
+      "confidence": "imports-only",
+      "members": [
+        "bounds.ts",
+        "constants.ts",
+        "coords.ts",
+        "distance.ts",
+        "scene.ts",
+        "zoom2d.ts",
+        "zoom3d.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/extension/src/webview/components/graph/keyboard",
       "suggestedFolder": "effects",
       "confidence": "imports-only",
@@ -1544,7 +1720,7 @@
       "members": [
         "build.ts",
         "edgeProcessing.ts",
-        "sectionProjection.ts"
+        "runtimeContributions.ts"
       ]
     },
     {
@@ -1556,73 +1732,6 @@
         "lineGeometry.ts",
         "link.ts",
         "style.ts"
-      ]
-    },
-    {
-      "type": "cluster",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/bridge",
-      "suggestedFolder": "endpoints",
-      "confidence": "imports-only",
-      "members": [
-        "endpoints.ts",
-        "forces.ts",
-        "linkForces.ts",
-        "memberEdge.ts",
-        "pressDirection.ts",
-        "sectionEndpoint.ts"
-      ]
-    },
-    {
-      "type": "cluster",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/member/bounds",
-      "suggestedFolder": "constrain",
-      "confidence": "imports-only",
-      "members": [
-        "constrain.ts",
-        "correction.ts",
-        "margin.ts",
-        "position.ts"
-      ]
-    },
-    {
-      "type": "cluster",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/member/simulation",
-      "suggestedFolder": "charge",
-      "confidence": "imports-only",
-      "members": [
-        "charge.ts",
-        "circleCollision.ts",
-        "collision.ts",
-        "groups.ts",
-        "settings.ts",
-        "weights.ts"
-      ]
-    },
-    {
-      "type": "cluster",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/rectangle/collision",
-      "suggestedFolder": "apply",
-      "confidence": "imports-only",
-      "members": [
-        "apply.ts",
-        "eligibility.ts",
-        "overlap.ts",
-        "participants.ts",
-        "repel.ts",
-        "sectionMember.ts",
-        "velocity.ts",
-        "weights.ts"
-      ]
-    },
-    {
-      "type": "cluster",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/root/boundary",
-      "suggestedFolder": "constrain",
-      "confidence": "imports-only",
-      "members": [
-        "constrain.ts",
-        "correction.ts",
-        "postIntegration.ts"
       ]
     },
     {
@@ -1642,30 +1751,6 @@
     },
     {
       "type": "cluster",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/section",
-      "suggestedFolder": "binding",
-      "confidence": "imports-only",
-      "members": [
-        "binding.ts",
-        "bounds.ts",
-        "force.ts",
-        "memberForces.ts"
-      ]
-    },
-    {
-      "type": "cluster",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics",
-      "suggestedFolder": "axis",
-      "confidence": "imports-only",
-      "members": [
-        "axisMotion.ts",
-        "model.ts",
-        "motion.ts",
-        "numeric.ts"
-      ]
-    },
-    {
-      "type": "cluster",
       "path": "packages/extension/src/webview/components/graph/runtime/use/interaction/marquee",
       "suggestedFolder": "hook",
       "confidence": "imports-only",
@@ -1673,6 +1758,18 @@
         "hook.ts",
         "selection.ts",
         "state.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/webview/components/graph/runtime/use/interaction/nodeDrag",
+      "suggestedFolder": "group",
+      "confidence": "imports-only",
+      "members": [
+        "group.ts",
+        "policy.ts",
+        "position.ts",
+        "types.ts"
       ]
     },
     {
@@ -1694,9 +1791,11 @@
       "members": [
         "contextSuppression.ts",
         "contracts.ts",
+        "engineStop.ts",
         "hook.ts",
         "nodeDrag.ts",
-        "positions.ts"
+        "tooltipAdapter.ts",
+        "viewportScale.ts"
       ]
     },
     {
@@ -1714,14 +1813,15 @@
     },
     {
       "type": "cluster",
-      "path": "packages/extension/src/webview/components/graph/sectionFrames",
-      "suggestedFolder": "drag",
+      "path": "packages/extension/src/webview/components/graph/tooltip",
+      "suggestedFolder": "context",
       "confidence": "imports-only",
       "members": [
-        "drag.ts",
-        "icons.ts",
+        "context.ts",
+        "edgeCounts.ts",
         "model.ts",
-        "view.tsx"
+        "state.ts",
+        "symbol.ts"
       ]
     },
     {
@@ -1739,10 +1839,10 @@
     {
       "type": "cluster",
       "path": "packages/extension/src/webview/components/graph/viewport",
-      "suggestedFolder": "model",
+      "suggestedFolder": "accessibility",
       "confidence": "imports-only",
       "members": [
-        "model.ts",
+        "accessibility.ts",
         "shell.tsx",
         "view.tsx"
       ]
@@ -1780,6 +1880,37 @@
         "DagLeftRightIcon.tsx",
         "DagRadialIcon.tsx",
         "DagTopDownIcon.tsx"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/webview/components/legends/panel/section/colorModel",
+      "suggestedFolder": "channels",
+      "confidence": "imports-only",
+      "members": [
+        "channels.ts",
+        "format.ts",
+        "hex.ts",
+        "parse.ts",
+        "rgb.ts",
+        "types.ts",
+        "update.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/webview/components/legends/panel/section/visual",
+      "suggestedFolder": "icon",
+      "confidence": "imports-only",
+      "members": [
+        "iconControl.tsx",
+        "iconModel.ts",
+        "options.ts",
+        "permissions.ts",
+        "previews.tsx",
+        "shapeControl.tsx",
+        "shapeModel.ts",
+        "types.ts"
       ]
     },
     {
@@ -1827,6 +1958,24 @@
         "keyboard.ts",
         "model.ts",
         "useKeyboard.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/webview/components/searchBar/filters/popover",
+      "suggestedFolder": "pattern",
+      "confidence": "imports-only",
+      "members": [
+        "actions.ts",
+        "customSection.tsx",
+        "draftState.ts",
+        "patternList.tsx",
+        "patternRow.tsx",
+        "pluginGroup.tsx",
+        "pluginSection.tsx",
+        "sectionHeader.tsx",
+        "sectionState.ts",
+        "types.ts"
       ]
     },
     {
@@ -1969,6 +2118,43 @@
     },
     {
       "type": "cluster",
+      "path": "packages/extension/src/webview/pluginHost",
+      "suggestedFolder": "api",
+      "confidence": "imports-only",
+      "members": [
+        "api.ts",
+        "disposable.ts",
+        "manager.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/webview/search/filtering/rules",
+      "suggestedFolder": "node",
+      "confidence": "prefix+imports",
+      "members": [
+        "nodeConstraints.ts",
+        "nodeMatcher.ts",
+        "nodePattern.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/src/webview/store/actions",
+      "suggestedFolder": "bootstrap",
+      "confidence": "imports-only",
+      "members": [
+        "bootstrap.ts",
+        "create.ts",
+        "display.ts",
+        "messages.ts",
+        "optimisticLegends.ts",
+        "scalars.ts",
+        "types.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/extension/src/webview/store/messageHandlers/equality",
       "suggestedFolder": "compare",
       "confidence": "imports-only",
@@ -2001,6 +2187,20 @@
         "leaf.ts",
         "types.ts",
         "utils.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/tests/acceptance/graphView",
+      "suggestedFolder": "canvas",
+      "confidence": "imports-only",
+      "members": [
+        "canvas.ts",
+        "context.ts",
+        "steps.ts",
+        "types.ts",
+        "vscode.ts",
+        "workspace.ts"
       ]
     },
     {
@@ -2114,7 +2314,6 @@
         "configActions.sendsplaybackspeedwhentimelinetohandlesbothfilterpatternsandplaybackspeed.test.ts",
         "configActions.test.ts",
         "configChangeDetection.test.ts",
-        "configListener.debounceslegendconfigurationsyncsandtoaddsasubscriptiontothe.test.ts",
         "configListener.test.ts",
         "configListenerExtra.test.ts",
         "configListenerMutants.test.ts",
@@ -2201,17 +2400,6 @@
     },
     {
       "type": "cluster",
-      "path": "packages/extension/tests/extension/graphView/webview/dispatch/primary",
-      "suggestedFolder": "graph",
-      "confidence": "prefix-only",
-      "members": [
-        "graphLayout.persistsexplicitgraphsectionownershiptorestoresadeletedgraphsection.test.ts",
-        "graphLayout.restoresgraphsectionownershipchangestorestoresnestedgraphsectionownership.test.ts",
-        "graphLayout.test.ts"
-      ]
-    },
-    {
-      "type": "cluster",
       "path": "packages/extension/tests/extension/graphView/webview/dispatch",
       "suggestedFolder": "context",
       "confidence": "imports-only",
@@ -2236,11 +2424,22 @@
       "type": "cluster",
       "path": "packages/extension/tests/extension/graphView/webview/providerMessages",
       "suggestedFolder": "primary",
-      "confidence": "prefix+imports",
+      "confidence": "prefix-only",
       "members": [
         "primaryActions.fixture.ts",
         "primaryActions.test.ts",
         "primaryActions.usesvscodefilesystemwrapperstoblocksinferredrootandnested.test.ts"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/tests/extension/graphView/webview/settingsMessages/updates/apply",
+      "suggestedFolder": "filter",
+      "confidence": "prefix-only",
+      "members": [
+        "filterPatternKeys.test.ts",
+        "filterPatternNotification.test.ts",
+        "filterPatternState.test.ts"
       ]
     },
     {
@@ -2332,7 +2531,6 @@
       "suggestedFolder": "node",
       "confidence": "prefix-only",
       "members": [
-        "node.sendsdeletefilesmessagewhentosendscopytoclipboardwith.test.tsx",
         "node.sendsopenfilemessagewhentoopensthefilterpopoverrequest.test.tsx",
         "node.sendsrenamefilemessagewhentosendsrenamefilemessagewhen.test.tsx",
         "node.sendstogglefavoritewithalltoopenscontextmenuandkeeps.test.tsx",
@@ -2397,18 +2595,6 @@
     },
     {
       "type": "cluster",
-      "path": "packages/extension/tests/webview/graph/rendering/nodes",
-      "suggestedFolder": "canvas",
-      "confidence": "prefix-only",
-      "members": [
-        "canvas2d.keepsdecoratedneighbornodesattorenderscollapsedsectionnodehidden.test.ts",
-        "canvas2d.renderscollapsedsectionnodeiconstoskipsexpandedsectionnodepointer.test.ts",
-        "canvas2d.test.ts",
-        "canvas3d.test.ts"
-      ]
-    },
-    {
-      "type": "cluster",
       "path": "packages/extension/tests/webview/graph/rendering/surface/view",
       "suggestedFolder": "three",
       "confidence": "prefix-only",
@@ -2429,28 +2615,6 @@
         "twoDimensional.passesparticlespeedaslinkdirectionalparticlespeedtopasseslinkwidthcallback.test.tsx",
         "twoDimensional.setslinkdirectionalparticlesto0when.test.tsx",
         "twoDimensional.test.tsx"
-      ]
-    },
-    {
-      "type": "cluster",
-      "path": "packages/extension/tests/webview/graph/runtime/physics/rectangle/collision",
-      "suggestedFolder": "apply",
-      "confidence": "prefix-only",
-      "members": [
-        "applyCircleAxis.test.ts",
-        "applyCircleOrder.test.ts",
-        "applySectionPairs.test.ts"
-      ]
-    },
-    {
-      "type": "cluster",
-      "path": "packages/extension/tests/webview/graph/runtime/use/interaction",
-      "suggestedFolder": "node",
-      "confidence": "prefix-only",
-      "members": [
-        "nodeDrag.doesnotchangesectionownershiptoskipspinandownerupdates.test.ts",
-        "nodeDrag.test.ts",
-        "nodeDrag.treatsnodeswithoutsavedownership.test.ts"
       ]
     },
     {
@@ -2512,6 +2676,17 @@
     },
     {
       "type": "cluster",
+      "path": "packages/extension/tests/webview/search/filtering/rules",
+      "suggestedFolder": "node",
+      "confidence": "prefix-only",
+      "members": [
+        "nodeConstraints.test.ts",
+        "nodeMatcher.test.ts",
+        "nodePattern.test.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/extension/tests/webview/searchBar/field",
       "suggestedFolder": "toggle",
       "confidence": "prefix-only",
@@ -2530,6 +2705,21 @@
         "Section.persistsparticlesizeafterdebouncetopostsorphanvisibilityupdateswhen.test.tsx",
         "Section.postsdirectionmodeupdateswhentoreportsthelatestparticlespeed.test.tsx",
         "Section.test.tsx"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/tests/webview/store/actions",
+      "suggestedFolder": "bootstrap",
+      "confidence": "imports-only",
+      "members": [
+        "bootstrap.test.ts",
+        "create.test.ts",
+        "display.test.ts",
+        "harness.ts",
+        "messages.test.ts",
+        "optimisticLegends.test.ts",
+        "scalars.test.ts"
       ]
     },
     {
@@ -2565,16 +2755,20 @@
     {
       "type": "cluster",
       "path": "packages/plugin-api/src",
-      "suggestedFolder": "analysis",
+      "suggestedFolder": "graph",
       "confidence": "imports-only",
       "members": [
+        "access.ts",
         "analysis.ts",
         "connection.ts",
+        "data.ts",
         "disposable.ts",
         "events.ts",
         "graph.ts",
+        "graphView.ts",
         "index.ts",
-        "plugin.ts"
+        "plugin.ts",
+        "webview.ts"
       ]
     },
     {
@@ -2695,6 +2889,21 @@
     },
     {
       "type": "cluster",
+      "path": "packages/plugin-typescript/src/aliasImport",
+      "suggestedFolder": "compiler",
+      "confidence": "imports-only",
+      "members": [
+        "compilerOptions.ts",
+        "fileCandidates.ts",
+        "files.ts",
+        "model.ts",
+        "pathMapping.ts",
+        "resolve.ts",
+        "specifiers.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "scripts/mutation",
       "suggestedFolder": "seed",
       "confidence": "prefix+imports",
@@ -2703,6 +2912,13 @@
         "seedJobs.ts",
         "seedMerge.ts"
       ]
+    },
+    {
+      "type": "fileIssue",
+      "path": "apps/web/src",
+      "kind": "low-info-banned",
+      "fileName": "index.ts",
+      "detail": "Indistinguishable in IDE tabs; breaks Go to Definition"
     },
     {
       "type": "fileIssue",
@@ -2737,7 +2953,7 @@
       "path": "packages/core/src/analysis",
       "kind": "barrel",
       "fileName": "fileAnalysis.ts",
-      "detail": "80% of statements are re-exports (2 of 2)"
+      "detail": "80% of statements are re-exports (4 of 4)"
     },
     {
       "type": "fileIssue",
@@ -2770,6 +2986,13 @@
     {
       "type": "fileIssue",
       "path": "packages/core/src/graphQuery",
+      "kind": "low-info-banned",
+      "fileName": "index.ts",
+      "detail": "Indistinguishable in IDE tabs; breaks Go to Definition"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/core/src/plugins/status",
       "kind": "low-info-banned",
       "fileName": "index.ts",
       "detail": "Indistinguishable in IDE tabs; breaks Go to Definition"
@@ -2828,7 +3051,7 @@
       "path": "packages/core/src",
       "kind": "barrel",
       "fileName": "index.ts",
-      "detail": "80% of statements are re-exports (102 of 102)"
+      "detail": "80% of statements are re-exports (109 of 109)"
     },
     {
       "type": "fileIssue",
@@ -2958,6 +3181,13 @@
     },
     {
       "type": "fileIssue",
+      "path": "packages/extension/src/e2e/fixtures/package-graph-view-plugin",
+      "kind": "redundancy",
+      "fileName": "plugin.js",
+      "detail": "filename repeats path context (100% token overlap)"
+    },
+    {
+      "type": "fileIssue",
       "path": "packages/extension/src/e2e/suite",
       "kind": "redundancy",
       "fileName": "extension.test.ts",
@@ -2976,6 +3206,13 @@
       "kind": "barrel",
       "fileName": "uri.ts",
       "detail": "80% of statements are re-exports (3 of 3)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/gitHistory/diff",
+      "kind": "barrel",
+      "fileName": "state.ts",
+      "detail": "80% of statements are re-exports (2 of 2)"
     },
     {
       "type": "fileIssue",
@@ -3007,10 +3244,101 @@
     },
     {
       "type": "fileIssue",
-      "path": "packages/extension/src/extension/graphView/webview/messages",
+      "path": "packages/extension/src/extension/graphView/groups/defaults/symbols",
+      "kind": "low-info-discouraged",
+      "fileName": "core.ts",
+      "detail": "Too broad; doesn't narrow scope"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions/pathResolution",
       "kind": "redundancy",
-      "fileName": "graphLayout.ts",
+      "fileName": "canOpenPath.ts",
+      "detail": "filename repeats path context (33% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions/pathResolution",
+      "kind": "redundancy",
+      "fileName": "inferredFolderPath.ts",
+      "detail": "filename repeats path context (33% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions/pathResolution",
+      "kind": "redundancy",
+      "fileName": "openPath.ts",
       "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "barrel",
+      "fileName": "pathResolution.ts",
+      "detail": "80% of statements are re-exports (3 of 3)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "low-info-discouraged",
+      "fileName": "types.ts",
+      "detail": "Can become a dump for unrelated type definitions"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "redundancy",
+      "fileName": "editorActions.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "redundancy",
+      "fileName": "fileActions.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "redundancy",
+      "fileName": "legendActions.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "redundancy",
+      "fileName": "messageActions.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "redundancy",
+      "fileName": "pipelineActions.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "redundancy",
+      "fileName": "timelineActions.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "redundancy",
+      "fileName": "viewActions.ts",
+      "detail": "filename repeats path context (100% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "kind": "redundancy",
+      "fileName": "workspaceFileActions.ts",
+      "detail": "filename repeats path context (33% token overlap)"
     },
     {
       "type": "fileIssue",
@@ -3063,6 +3391,13 @@
     },
     {
       "type": "fileIssue",
+      "path": "packages/extension/src/extension/pipeline/plugins/bootstrap",
+      "kind": "redundancy",
+      "fileName": "packages.ts",
+      "detail": "filename repeats path context (100% token overlap)"
+    },
+    {
+      "type": "fileIssue",
       "path": "packages/extension/src/extension/pipeline/plugins/treesitter/runtime",
       "kind": "barrel",
       "fileName": "pathHost.ts",
@@ -3077,10 +3412,31 @@
     },
     {
       "type": "fileIssue",
+      "path": "packages/extension/src/extension/pipeline/plugins",
+      "kind": "barrel",
+      "fileName": "bootstrap.ts",
+      "detail": "80% of statements are re-exports (3 of 3)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/pipeline/plugins",
+      "kind": "barrel",
+      "fileName": "queries.ts",
+      "detail": "80% of statements are re-exports (1 of 1)"
+    },
+    {
+      "type": "fileIssue",
       "path": "packages/extension/src/extension/pipeline/service/cache",
       "kind": "low-info-banned",
       "fileName": "index.ts",
       "detail": "Indistinguishable in IDE tabs; breaks Go to Definition"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/extension/pipeline/service/runtime",
+      "kind": "barrel",
+      "fileName": "refresh.ts",
+      "detail": "80% of statements are re-exports (1 of 1)"
     },
     {
       "type": "fileIssue",
@@ -3101,7 +3457,7 @@
       "path": "packages/extension/src/extension/pipeline",
       "kind": "barrel",
       "fileName": "fileAnalysis.ts",
-      "detail": "80% of statements are re-exports (2 of 2)"
+      "detail": "80% of statements are re-exports (3 of 3)"
     },
     {
       "type": "fileIssue",
@@ -3154,10 +3510,66 @@
     },
     {
       "type": "fileIssue",
+      "path": "packages/extension/src/webview/colorParsing",
+      "kind": "low-info-discouraged",
+      "fileName": "types.ts",
+      "detail": "Can become a dump for unrelated type definitions"
+    },
+    {
+      "type": "fileIssue",
       "path": "packages/extension/src/webview/components/graph/contextActions",
       "kind": "redundancy",
       "fileName": "context.ts",
       "detail": "filename repeats path context (100% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/contextMenu/graphView",
+      "kind": "redundancy",
+      "fileName": "runContext.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/contextMenu/node",
+      "kind": "redundancy",
+      "fileName": "pluginNodeEntries.ts",
+      "detail": "filename repeats path context (33% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/interactionRuntime/handlers/view/zoom",
+      "kind": "barrel",
+      "fileName": "bounds.ts",
+      "detail": "80% of statements are re-exports (2 of 2)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/interactionRuntime/handlers/view/zoom",
+      "kind": "low-info-discouraged",
+      "fileName": "constants.ts",
+      "detail": "Can become a dump for unrelated values"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/interactionRuntime/handlers/view/zoom",
+      "kind": "redundancy",
+      "fileName": "zoom2d.ts",
+      "detail": "filename repeats path context (33% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/interactionRuntime/handlers/view/zoom",
+      "kind": "redundancy",
+      "fileName": "zoom3d.ts",
+      "detail": "filename repeats path context (33% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/runtime/use/interaction/nodeDrag",
+      "kind": "low-info-discouraged",
+      "fileName": "types.ts",
+      "detail": "Can become a dump for unrelated type definitions"
     },
     {
       "type": "fileIssue",
@@ -3171,7 +3583,7 @@
       "path": "packages/extension/src/webview/components/graph/runtime",
       "kind": "barrel",
       "fileName": "physics.ts",
-      "detail": "80% of statements are re-exports (8 of 8)"
+      "detail": "80% of statements are re-exports (6 of 6)"
     },
     {
       "type": "fileIssue",
@@ -3179,6 +3591,62 @@
       "kind": "redundancy",
       "fileName": "forceGraph.ts",
       "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/tooltip",
+      "kind": "barrel",
+      "fileName": "model.ts",
+      "detail": "80% of statements are re-exports (2 of 2)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/graph/viewport/shell",
+      "kind": "redundancy",
+      "fileName": "viewportState.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/legends/panel/section/colorModel",
+      "kind": "low-info-discouraged",
+      "fileName": "types.ts",
+      "detail": "Can become a dump for unrelated type definitions"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/legends/panel/section/visual",
+      "kind": "low-info-discouraged",
+      "fileName": "types.ts",
+      "detail": "Can become a dump for unrelated type definitions"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/legends/panel/section",
+      "kind": "barrel",
+      "fileName": "colorModel.ts",
+      "detail": "80% of statements are re-exports (4 of 4)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/legends/panel/section",
+      "kind": "barrel",
+      "fileName": "visual.tsx",
+      "detail": "80% of statements are re-exports (3 of 3)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/searchBar/filters/popover",
+      "kind": "low-info-discouraged",
+      "fileName": "types.ts",
+      "detail": "Can become a dump for unrelated type definitions"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/components/searchBar/filters",
+      "kind": "barrel",
+      "fileName": "model.ts",
+      "detail": "80% of statements are re-exports (5 of 5)"
     },
     {
       "type": "fileIssue",
@@ -3193,6 +3661,20 @@
       "kind": "low-info-banned",
       "fileName": "index.ts",
       "detail": "Indistinguishable in IDE tabs; breaks Go to Definition"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview/store/actions",
+      "kind": "low-info-discouraged",
+      "fileName": "types.ts",
+      "detail": "Can become a dump for unrelated type definitions"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/src/webview",
+      "kind": "barrel",
+      "fileName": "colorParsing.ts",
+      "detail": "80% of statements are re-exports (3 of 3)"
     },
     {
       "type": "fileIssue",
@@ -3218,6 +3700,13 @@
     {
       "type": "fileIssue",
       "path": "packages/extension/test-fixtures/workspace/src",
+      "kind": "low-info-discouraged",
+      "fileName": "types.ts",
+      "detail": "Can become a dump for unrelated type definitions"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/tests/acceptance/graphView",
       "kind": "low-info-discouraged",
       "fileName": "types.ts",
       "detail": "Can become a dump for unrelated type definitions"
@@ -3352,13 +3841,6 @@
       "type": "fileIssue",
       "path": "packages/extension/tests/extension/config",
       "kind": "redundancy",
-      "fileName": "configListener.debounceslegendconfigurationsyncsandtoaddsasubscriptiontothe.test.ts",
-      "detail": "filename repeats path context (33% token overlap)"
-    },
-    {
-      "type": "fileIssue",
-      "path": "packages/extension/tests/extension/config",
-      "kind": "redundancy",
       "fileName": "configListener.test.ts",
       "detail": "filename repeats path context (50% token overlap)"
     },
@@ -3413,6 +3895,13 @@
     },
     {
       "type": "fileIssue",
+      "path": "packages/extension/tests/extension/graphView/groups/defaults/symbols",
+      "kind": "redundancy",
+      "fileName": "view.test.ts",
+      "detail": "filename repeats path context (100% token overlap)"
+    },
+    {
+      "type": "fileIssue",
       "path": "packages/extension/tests/extension/graphView/resources",
       "kind": "redundancy",
       "fileName": "view.test.ts",
@@ -3431,27 +3920,6 @@
       "kind": "redundancy",
       "fileName": "dispatch.test.ts",
       "detail": "filename repeats path context (100% token overlap)"
-    },
-    {
-      "type": "fileIssue",
-      "path": "packages/extension/tests/extension/graphView/webview/dispatch/primary",
-      "kind": "redundancy",
-      "fileName": "graphLayout.persistsexplicitgraphsectionownershiptorestoresadeletedgraphsection.test.ts",
-      "detail": "filename repeats path context (33% token overlap)"
-    },
-    {
-      "type": "fileIssue",
-      "path": "packages/extension/tests/extension/graphView/webview/dispatch/primary",
-      "kind": "redundancy",
-      "fileName": "graphLayout.restoresgraphsectionownershipchangestorestoresnestedgraphsectionownership.test.ts",
-      "detail": "filename repeats path context (33% token overlap)"
-    },
-    {
-      "type": "fileIssue",
-      "path": "packages/extension/tests/extension/graphView/webview/dispatch/primary",
-      "kind": "redundancy",
-      "fileName": "graphLayout.test.ts",
-      "detail": "filename repeats path context (50% token overlap)"
     },
     {
       "type": "fileIssue",
@@ -3525,6 +3993,27 @@
     },
     {
       "type": "fileIssue",
+      "path": "packages/extension/tests/webview/graph/contextMenu/graphView",
+      "kind": "redundancy",
+      "fileName": "runContext.test.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/tests/webview/graph/contextMenu/node",
+      "kind": "redundancy",
+      "fileName": "pluginNodeEntries.test.ts",
+      "detail": "filename repeats path context (33% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/extension/tests/webview/graph/contextMenu",
+      "kind": "redundancy",
+      "fileName": "graphViewContributions.test.ts",
+      "detail": "filename repeats path context (33% token overlap)"
+    },
+    {
+      "type": "fileIssue",
       "path": "packages/extension/tests/webview/graph/model",
       "kind": "low-info-banned",
       "fileName": "index.test.ts",
@@ -3560,6 +4049,13 @@
     },
     {
       "type": "fileIssue",
+      "path": "packages/extension/tests/webview/graph/viewport/shell",
+      "kind": "redundancy",
+      "fileName": "viewportState.test.ts",
+      "detail": "filename repeats path context (50% token overlap)"
+    },
+    {
+      "type": "fileIssue",
       "path": "packages/extension/tests/webview/pluginHost/api/registration",
       "kind": "low-info-banned",
       "fileName": "index.test.ts",
@@ -3577,7 +4073,7 @@
       "path": "packages/plugin-api/src",
       "kind": "barrel",
       "fileName": "index.ts",
-      "detail": "80% of statements are re-exports (6 of 6)"
+      "detail": "80% of statements are re-exports (10 of 10)"
     },
     {
       "type": "fileIssue",
@@ -3592,6 +4088,13 @@
       "kind": "redundancy",
       "fileName": "plugin.ts",
       "detail": "filename repeats path context (100% token overlap)"
+    },
+    {
+      "type": "fileIssue",
+      "path": "packages/plugin-api/tests",
+      "kind": "redundancy",
+      "fileName": "pluginContracts.test.ts",
+      "detail": "filename repeats path context (50% token overlap)"
     },
     {
       "type": "fileIssue",
@@ -3767,6 +4270,13 @@
       "kind": "redundancy",
       "fileName": "plugin.test.ts",
       "detail": "filename repeats path context (100% token overlap)"
+    },
+    {
+      "type": "verdict",
+      "path": ".",
+      "field": "folderFanOut",
+      "verdict": "WARNING",
+      "value": 10
     },
     {
       "type": "verdict",
@@ -4092,6 +4602,13 @@
     },
     {
       "type": "verdict",
+      "path": "examples/example-typescript/src/alias",
+      "field": "depth",
+      "verdict": "WARNING",
+      "value": 4
+    },
+    {
+      "type": "verdict",
       "path": "examples",
       "field": "folderFanOut",
       "verdict": "SPLIT",
@@ -4137,7 +4654,7 @@
       "path": "packages/core/src/cli/plugins",
       "field": "fileFanOut",
       "verdict": "SPLIT",
-      "value": 10
+      "value": 11
     },
     {
       "type": "verdict",
@@ -4318,12 +4835,26 @@
       "type": "verdict",
       "path": "packages/core/src/indexing",
       "field": "fileFanOut",
-      "verdict": "WARNING",
-      "value": 9
+      "verdict": "SPLIT",
+      "value": 13
+    },
+    {
+      "type": "verdict",
+      "path": "packages/core/src/plugins/access",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
     },
     {
       "type": "verdict",
       "path": "packages/core/src/plugins/context",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/core/src/plugins/data",
       "field": "depth",
       "verdict": "DEEP",
       "value": 5
@@ -4340,7 +4871,7 @@
       "path": "packages/core/src/plugins/installedPluginCache",
       "field": "fileFanOut",
       "verdict": "SPLIT",
-      "value": 11
+      "value": 10
     },
     {
       "type": "verdict",
@@ -4373,6 +4904,13 @@
     {
       "type": "verdict",
       "path": "packages/core/src/plugins/routing",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/core/src/plugins/status",
       "field": "depth",
       "verdict": "DEEP",
       "value": 5
@@ -4855,7 +5393,21 @@
     },
     {
       "type": "verdict",
+      "path": "packages/core/tests/plugins/access",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
       "path": "packages/core/tests/plugins/context",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/core/tests/plugins/data",
       "field": "depth",
       "verdict": "DEEP",
       "value": 5
@@ -4873,6 +5425,13 @@
       "field": "depth",
       "verdict": "WARNING",
       "value": 4
+    },
+    {
+      "type": "verdict",
+      "path": "packages/core/tests/plugins",
+      "field": "fileFanOut",
+      "verdict": "SPLIT",
+      "value": 10
     },
     {
       "type": "verdict",
@@ -5282,6 +5841,20 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/e2e/fixtures/package-graph-view-plugin",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 6
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/e2e/fixtures",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/e2e/suite",
       "field": "depth",
       "verdict": "DEEP",
@@ -5293,6 +5866,13 @@
       "field": "depth",
       "verdict": "WARNING",
       "value": 4
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/actions/deleteFiles",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 6
     },
     {
       "type": "verdict",
@@ -5380,6 +5960,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/extension/gitHistory/diff/state",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/extension/gitHistory/diff",
       "field": "depth",
       "verdict": "DEEP",
@@ -5405,6 +5992,13 @@
       "field": "fileFanOut",
       "verdict": "SPLIT",
       "value": 12
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/graphView/analysis/execution/load",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
     },
     {
       "type": "verdict",
@@ -5464,13 +6058,6 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/src/extension/graphView/graphLayout",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 6
-    },
-    {
-      "type": "verdict",
       "path": "packages/extension/src/extension/graphView/groups/defaults/materialTheme",
       "field": "depth",
       "verdict": "DEEP",
@@ -5482,6 +6069,27 @@
       "field": "fileFanOut",
       "verdict": "SPLIT",
       "value": 16
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/graphView/groups/defaults/symbols/core",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/graphView/groups/defaults/symbols",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/graphView/groups/defaults/symbols",
+      "field": "fileFanOut",
+      "verdict": "WARNING",
+      "value": 8
     },
     {
       "type": "verdict",
@@ -5705,7 +6313,7 @@
       "path": "packages/extension/src/extension/graphView/webview/messages",
       "field": "fileFanOut",
       "verdict": "WARNING",
-      "value": 9
+      "value": 8
     },
     {
       "type": "verdict",
@@ -5737,6 +6345,27 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions/pathResolution",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/graphView/webview/providerMessages/primaryActions",
+      "field": "fileFanOut",
+      "verdict": "SPLIT",
+      "value": 10
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/extension/graphView/webview/providerMessages/settingsContext",
       "field": "depth",
       "verdict": "DEEP",
@@ -5755,6 +6384,13 @@
       "field": "fileFanOut",
       "verdict": "WARNING",
       "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/graphView/webview/settingsMessages/updates/apply",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
     },
     {
       "type": "verdict",
@@ -5789,7 +6425,7 @@
       "path": "packages/extension/src/extension/graphView",
       "field": "folderFanOut",
       "verdict": "WARNING",
-      "value": 11
+      "value": 10
     },
     {
       "type": "verdict",
@@ -5825,6 +6461,13 @@
       "field": "depth",
       "verdict": "DEEP",
       "value": 6
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/pipeline/plugins/bootstrap",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
     },
     {
       "type": "verdict",
@@ -5891,17 +6534,24 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/src/extension/repoSettings/graphLayout",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 6
-    },
-    {
-      "type": "verdict",
       "path": "packages/extension/src/extension/repoSettings/store/change",
       "field": "depth",
       "verdict": "DEEP",
       "value": 7
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/repoSettings/store/model/persistedShape",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/repoSettings/store/model/persistedShape",
+      "field": "fileFanOut",
+      "verdict": "SPLIT",
+      "value": 10
     },
     {
       "type": "verdict",
@@ -5975,6 +6625,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/shared/graphControls/defaults/nodeTypes",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/shared/graphControls/defaults",
       "field": "depth",
       "verdict": "DEEP",
@@ -6038,6 +6695,20 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/shared/visibleGraph/collapse",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 6
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/shared/visibleGraph/scope",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 6
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/shared/visibleGraph/searchQuery",
       "field": "depth",
       "verdict": "DEEP",
@@ -6087,6 +6758,20 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/webview/app/shell/messageListener/pluginRegistrations",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/app/shell/messageListener",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/webview/app/shell/panel",
       "field": "depth",
       "verdict": "DEEP",
@@ -6101,6 +6786,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/webview/app/shell",
+      "field": "fileFanOut",
+      "verdict": "SPLIT",
+      "value": 10
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/webview/app/timeline",
       "field": "depth",
       "verdict": "DEEP",
@@ -6109,6 +6801,13 @@
     {
       "type": "verdict",
       "path": "packages/extension/src/webview/app",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/colorParsing",
       "field": "depth",
       "verdict": "DEEP",
       "value": 5
@@ -6185,14 +6884,21 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/contextMenu/node/destructive",
+      "path": "packages/extension/src/webview/components/graph/contextMenu/graphView",
       "field": "depth",
       "verdict": "DEEP",
-      "value": 9
+      "value": 8
     },
     {
       "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/contextMenu/node/pin",
+      "path": "packages/extension/src/webview/components/graph/contextMenu/graphView",
+      "field": "fileFanOut",
+      "verdict": "SPLIT",
+      "value": 10
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/graph/contextMenu/node/destructive",
       "field": "depth",
       "verdict": "DEEP",
       "value": 9
@@ -6301,6 +7007,20 @@
       "field": "depth",
       "verdict": "DEEP",
       "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/graph/interactionRuntime/handlers/view/zoom/bounds",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 11
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/graph/interactionRuntime/handlers/view/zoom",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 10
     },
     {
       "type": "verdict",
@@ -6437,16 +7157,16 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/rendering/node",
+      "path": "packages/extension/src/webview/components/graph/rendering/node/collapseIndicator",
       "field": "depth",
       "verdict": "DEEP",
-      "value": 8
+      "value": 9
     },
     {
       "type": "verdict",
       "path": "packages/extension/src/webview/components/graph/rendering/node",
-      "field": "fileFanOut",
-      "verdict": "WARNING",
+      "field": "depth",
+      "verdict": "DEEP",
       "value": 8
     },
     {
@@ -6493,76 +7213,6 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/bridge",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 9
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/member/bounds",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 10
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/member/movement",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 10
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/member/simulation",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 10
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/member",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 9
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/rectangle/collision",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 10
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/rectangle/collision",
-      "field": "fileFanOut",
-      "verdict": "WARNING",
-      "value": 8
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/rectangle/geometry",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 10
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/rectangle",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 9
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/root/boundary",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 10
-    },
-    {
-      "type": "verdict",
       "path": "packages/extension/src/webview/components/graph/runtime/physics/root/settings",
       "field": "depth",
       "verdict": "DEEP",
@@ -6578,13 +7228,6 @@
     {
       "type": "verdict",
       "path": "packages/extension/src/webview/components/graph/runtime/physics/root",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 9
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/runtime/physics/section",
       "field": "depth",
       "verdict": "DEEP",
       "value": 9
@@ -6640,6 +7283,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/webview/components/graph/runtime/use/interaction/nodeDrag",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 10
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/webview/components/graph/runtime/use/interaction/viewportPan",
       "field": "depth",
       "verdict": "DEEP",
@@ -6651,6 +7301,13 @@
       "field": "depth",
       "verdict": "DEEP",
       "value": 9
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/graph/runtime/use/interaction",
+      "field": "fileFanOut",
+      "verdict": "WARNING",
+      "value": 8
     },
     {
       "type": "verdict",
@@ -6696,13 +7353,6 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/src/webview/components/graph/sectionFrames",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 7
-    },
-    {
-      "type": "verdict",
       "path": "packages/extension/src/webview/components/graph/support/contracts",
       "field": "depth",
       "verdict": "DEEP",
@@ -6731,6 +7381,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/webview/components/graph/viewport/shell",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/webview/components/graph/viewport",
       "field": "depth",
       "verdict": "DEEP",
@@ -6748,7 +7405,7 @@
       "path": "packages/extension/src/webview/components/graph",
       "field": "folderFanOut",
       "verdict": "SPLIT",
-      "value": 21
+      "value": 20
     },
     {
       "type": "verdict",
@@ -6787,6 +7444,41 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/webview/components/legends/panel/section/colorModel/rgb",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 10
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/legends/panel/section/colorModel",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/legends/panel/section/iconImport",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/legends/panel/section/visual",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/legends/panel/section/visual",
+      "field": "fileFanOut",
+      "verdict": "WARNING",
+      "value": 8
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/webview/components/legends/panel/section",
       "field": "depth",
       "verdict": "DEEP",
@@ -6797,7 +7489,14 @@
       "path": "packages/extension/src/webview/components/legends/panel/section",
       "field": "fileFanOut",
       "verdict": "SPLIT",
-      "value": 14
+      "value": 22
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/legends/panel/state",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
     },
     {
       "type": "verdict",
@@ -6833,6 +7532,27 @@
       "field": "depth",
       "verdict": "DEEP",
       "value": 7
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/searchBar/filters/model",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/searchBar/filters/popover",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/webview/components/searchBar/filters/popover",
+      "field": "fileFanOut",
+      "verdict": "SPLIT",
+      "value": 10
     },
     {
       "type": "verdict",
@@ -7165,6 +7885,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/src/webview/pluginHost/manager",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 6
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/src/webview/pluginHost/slotHost",
       "field": "depth",
       "verdict": "DEEP",
@@ -7280,7 +8007,7 @@
       "path": "packages/extension/src/webview",
       "field": "folderFanOut",
       "verdict": "WARNING",
-      "value": 10
+      "value": 11
     },
     {
       "type": "verdict",
@@ -7299,6 +8026,27 @@
     {
       "type": "verdict",
       "path": "packages/extension/tests/__mocks__",
+      "field": "depth",
+      "verdict": "WARNING",
+      "value": 4
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/acceptance/graphView",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/acceptance/specs",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/acceptance",
       "field": "depth",
       "verdict": "WARNING",
       "value": 4
@@ -7403,6 +8151,20 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/core/plugins/registry/runtime/state",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/core/plugins/registry/runtime",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/core/plugins/registry",
       "field": "depth",
       "verdict": "DEEP",
@@ -7487,6 +8249,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/extension/actions/deleteFiles",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 6
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/extension/actions/reset",
       "field": "depth",
       "verdict": "DEEP",
@@ -7504,7 +8273,7 @@
       "path": "packages/extension/tests/extension/actions",
       "field": "fileFanOut",
       "verdict": "SPLIT",
-      "value": 11
+      "value": 12
     },
     {
       "type": "verdict",
@@ -7552,8 +8321,8 @@
       "type": "verdict",
       "path": "packages/extension/tests/extension/config",
       "field": "fileFanOut",
-      "verdict": "SPLIT",
-      "value": 10
+      "verdict": "WARNING",
+      "value": 9
     },
     {
       "type": "verdict",
@@ -7599,6 +8368,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/extension/gitHistory/diff/state",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/extension/gitHistory/diff",
       "field": "depth",
       "verdict": "DEEP",
@@ -7624,6 +8400,13 @@
       "field": "fileFanOut",
       "verdict": "SPLIT",
       "value": 16
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/extension/graphView/analysis/execution/load",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
     },
     {
       "type": "verdict",
@@ -7676,13 +8459,6 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/tests/extension/graphView/graphLayout",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 6
-    },
-    {
-      "type": "verdict",
       "path": "packages/extension/tests/extension/graphView/groups/defaults/materialTheme",
       "field": "depth",
       "verdict": "DEEP",
@@ -7694,6 +8470,13 @@
       "field": "fileFanOut",
       "verdict": "SPLIT",
       "value": 12
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/extension/graphView/groups/defaults/symbols",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
     },
     {
       "type": "verdict",
@@ -7970,6 +8753,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/extension/graphView/webview/settingsMessages/updates/apply",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/extension/graphView/webview/settingsMessages/updates",
       "field": "depth",
       "verdict": "DEEP",
@@ -8001,7 +8791,7 @@
       "path": "packages/extension/tests/extension/graphView",
       "field": "folderFanOut",
       "verdict": "WARNING",
-      "value": 12
+      "value": 11
     },
     {
       "type": "verdict",
@@ -8103,17 +8893,17 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/tests/extension/repoSettings/graphLayout",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 6
-    },
-    {
-      "type": "verdict",
       "path": "packages/extension/tests/extension/repoSettings/store/change",
       "field": "depth",
       "verdict": "DEEP",
       "value": 7
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/extension/repoSettings/store/model/persistedShape",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
     },
     {
       "type": "verdict",
@@ -8201,6 +8991,20 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/playwright-vscode/generated",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/playwright-vscode",
+      "field": "depth",
+      "verdict": "WARNING",
+      "value": 4
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/playwright",
       "field": "depth",
       "verdict": "WARNING",
@@ -8243,10 +9047,10 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/tests/shared/settings",
+      "path": "packages/extension/tests/shared/visibleGraph/collapse",
       "field": "depth",
       "verdict": "DEEP",
-      "value": 5
+      "value": 6
     },
     {
       "type": "verdict",
@@ -8299,6 +9103,20 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/webview/app/shell/messageListener/pluginRegistrations",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/app/shell/messageListener",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/webview/app/shell/panel",
       "field": "depth",
       "verdict": "DEEP",
@@ -8316,7 +9134,7 @@
       "path": "packages/extension/tests/webview/app/shell",
       "field": "fileFanOut",
       "verdict": "SPLIT",
-      "value": 13
+      "value": 17
     },
     {
       "type": "verdict",
@@ -8334,6 +9152,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/webview/colorParsing",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/webview/components/activeFileBreadcrumb",
       "field": "depth",
       "verdict": "DEEP",
@@ -8342,6 +9167,27 @@
     {
       "type": "verdict",
       "path": "packages/extension/tests/webview/components/export",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 6
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/components/graph/runtime/physics",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/components/graph/runtime",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/components/graph",
       "field": "depth",
       "verdict": "DEEP",
       "value": 6
@@ -8607,6 +9453,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/webview/graph/contextMenu/graphView",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/webview/graph/contextMenu/node",
       "field": "depth",
       "verdict": "DEEP",
@@ -8695,6 +9548,13 @@
       "field": "depth",
       "verdict": "DEEP",
       "value": 7
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/graph/interactionRuntime/handlers/view/zoom",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
     },
     {
       "type": "verdict",
@@ -8862,7 +9722,7 @@
       "path": "packages/extension/tests/webview/graph/rendering/surface/view",
       "field": "fileFanOut",
       "verdict": "WARNING",
-      "value": 8
+      "value": 9
     },
     {
       "type": "verdict",
@@ -8880,56 +9740,7 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/tests/webview/graph/runtime/physics/member/simulation",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 9
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/tests/webview/graph/runtime/physics/member",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 8
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/tests/webview/graph/runtime/physics/rectangle/collision",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 9
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/tests/webview/graph/runtime/physics/rectangle",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 8
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/tests/webview/graph/runtime/physics/root/boundary",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 9
-    },
-    {
-      "type": "verdict",
       "path": "packages/extension/tests/webview/graph/runtime/physics/root",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 8
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/tests/webview/graph/runtime/physics/section/memberCenter",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 9
-    },
-    {
-      "type": "verdict",
-      "path": "packages/extension/tests/webview/graph/runtime/physics/section",
       "field": "depth",
       "verdict": "DEEP",
       "value": 8
@@ -8978,6 +9789,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/webview/graph/runtime/use/interaction/nodeDrag",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 9
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/webview/graph/runtime/use/interaction",
       "field": "depth",
       "verdict": "DEEP",
@@ -8987,8 +9805,8 @@
       "type": "verdict",
       "path": "packages/extension/tests/webview/graph/runtime/use/interaction",
       "field": "fileFanOut",
-      "verdict": "WARNING",
-      "value": 9
+      "verdict": "SPLIT",
+      "value": 10
     },
     {
       "type": "verdict",
@@ -9034,13 +9852,6 @@
     },
     {
       "type": "verdict",
-      "path": "packages/extension/tests/webview/graph/sectionFrames",
-      "field": "depth",
-      "verdict": "DEEP",
-      "value": 6
-    },
-    {
-      "type": "verdict",
       "path": "packages/extension/tests/webview/graph/support",
       "field": "depth",
       "verdict": "DEEP",
@@ -9062,6 +9873,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/webview/graph/viewport/shell",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/webview/graph/viewport",
       "field": "depth",
       "verdict": "DEEP",
@@ -9071,8 +9889,8 @@
       "type": "verdict",
       "path": "packages/extension/tests/webview/graph/viewport",
       "field": "fileFanOut",
-      "verdict": "WARNING",
-      "value": 9
+      "verdict": "SPLIT",
+      "value": 10
     },
     {
       "type": "verdict",
@@ -9086,7 +9904,7 @@
       "path": "packages/extension/tests/webview/graph",
       "field": "folderFanOut",
       "verdict": "SPLIT",
-      "value": 21
+      "value": 20
     },
     {
       "type": "verdict",
@@ -9129,6 +9947,27 @@
       "field": "depth",
       "verdict": "DEEP",
       "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/legends/panel/section/iconImport",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/legends/panel/section",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/legends/panel/state",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
     },
     {
       "type": "verdict",
@@ -9175,6 +10014,13 @@
     {
       "type": "verdict",
       "path": "packages/extension/tests/webview/pluginHost/api",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 6
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/pluginHost/manager",
       "field": "depth",
       "verdict": "DEEP",
       "value": 6
@@ -9234,6 +10080,13 @@
       "field": "depth",
       "verdict": "DEEP",
       "value": 6
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests/webview/searchBar/filters/popover",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 7
     },
     {
       "type": "verdict",
@@ -9401,18 +10254,18 @@
       "path": "packages/extension/tests/webview",
       "field": "folderFanOut",
       "verdict": "SPLIT",
-      "value": 21
+      "value": 22
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests",
+      "field": "folderFanOut",
+      "verdict": "WARNING",
+      "value": 11
     },
     {
       "type": "verdict",
       "path": "packages/mcp/src/cli",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/src/index",
       "field": "depth",
       "verdict": "WARNING",
       "value": 4
@@ -9433,48 +10286,6 @@
     },
     {
       "type": "verdict",
-      "path": "packages/mcp/src/plugins",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/src/run",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/src/setup",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/src/status",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/src/workspace",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/tests/index",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
       "path": "packages/mcp/tests/mcp",
       "field": "depth",
       "verdict": "WARNING",
@@ -9482,38 +10293,10 @@
     },
     {
       "type": "verdict",
-      "path": "packages/mcp/tests/plugins",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/tests/run",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/tests/setup",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/tests/status",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
-    },
-    {
-      "type": "verdict",
-      "path": "packages/mcp/tests/workspace",
-      "field": "depth",
-      "verdict": "WARNING",
-      "value": 4
+      "path": "packages/plugin-api/src",
+      "field": "fileFanOut",
+      "verdict": "SPLIT",
+      "value": 11
     },
     {
       "type": "verdict",
@@ -9644,6 +10427,20 @@
     {
       "type": "verdict",
       "path": "packages/plugin-markdown/src/sources",
+      "field": "depth",
+      "verdict": "WARNING",
+      "value": 4
+    },
+    {
+      "type": "verdict",
+      "path": "packages/plugin-typescript/src/aliasImport",
+      "field": "depth",
+      "verdict": "WARNING",
+      "value": 4
+    },
+    {
+      "type": "verdict",
+      "path": "packages/plugin-typescript/tests/aliasImport",
       "field": "depth",
       "verdict": "WARNING",
       "value": 4

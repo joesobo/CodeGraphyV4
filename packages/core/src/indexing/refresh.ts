@@ -91,6 +91,23 @@ export interface WorkspaceIndexPluginRefreshDependencies
   pluginInfos: readonly WorkspaceIndexPluginInfo[];
 }
 
+function analyzeWorkspaceIndexFromRefresh(
+  source: WorkspaceIndexRefreshSource,
+  dependencies: WorkspaceIndexRefreshDependencies,
+): Promise<IGraphData> {
+  return source.analyze(
+    dependencies.filterPatterns,
+    dependencies.disabledPlugins,
+    dependencies.signal,
+    progress => {
+      dependencies.onProgress?.({
+        ...progress,
+        phase: progress.phase || 'Applying Changes',
+      });
+    },
+  );
+}
+
 function mergeWorkspaceIndexGraphData(
   primaryGraphData: IGraphData,
   fallbackGraphData: IGraphData,
@@ -132,6 +149,18 @@ function buildWorkspaceIndexGraphFromRefreshState(
     analysisGraphData,
     source._buildGraphData(source._lastFileConnections, workspaceRoot, disabledPlugins),
   );
+}
+
+function applyWorkspaceIndexAnalysisResult(
+  source: WorkspaceIndexRefreshSource,
+  analysisResult: IWorkspaceFileAnalysisResult,
+): void {
+  for (const [filePath, analysis] of analysisResult.fileAnalysis) {
+    source._lastFileAnalysis.set(filePath, analysis);
+  }
+  for (const [filePath, connections] of analysisResult.fileConnections) {
+    source._lastFileConnections.set(filePath, connections);
+  }
 }
 
 function updateWorkspaceIndexDiscoveryState(
@@ -297,17 +326,7 @@ export async function refreshWorkspaceIndexChangedFiles(
 
   if (changeSelection.unmatchedFilePaths.length > 0) {
     source.invalidateWorkspaceFiles(changeSelection.unmatchedFilePaths);
-    return source.analyze(
-      dependencies.filterPatterns,
-      dependencies.disabledPlugins,
-      dependencies.signal,
-      progress => {
-        dependencies.onProgress?.({
-          ...progress,
-          phase: progress.phase || 'Applying Changes',
-        });
-      },
-    );
+    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
   const changedAnalysisFiles = await source._readAnalysisFiles(changedFiles);
@@ -317,17 +336,7 @@ export async function refreshWorkspaceIndexChangedFiles(
   );
 
   if (incrementalLifecycle.requiresFullRefresh) {
-    return source.analyze(
-      dependencies.filterPatterns,
-      dependencies.disabledPlugins,
-      dependencies.signal,
-      progress => {
-        dependencies.onProgress?.({
-          ...progress,
-          phase: progress.phase || 'Applying Changes',
-        });
-      },
-    );
+    return analyzeWorkspaceIndexFromRefresh(source, dependencies);
   }
 
   const filesToAnalyze = mergeDiscoveredWorkspaceIndexFiles(
@@ -368,12 +377,7 @@ export async function refreshWorkspaceIndexChangedFiles(
     dependencies.signal,
   );
 
-  for (const [filePath, analysis] of analysisResult.fileAnalysis) {
-    source._lastFileAnalysis.set(filePath, analysis);
-  }
-  for (const [filePath, connections] of analysisResult.fileConnections) {
-    source._lastFileConnections.set(filePath, connections);
-  }
+  applyWorkspaceIndexAnalysisResult(source, analysisResult);
 
   dependencies.persistCache();
   const graphData = buildWorkspaceIndexGraphFromRefreshState(

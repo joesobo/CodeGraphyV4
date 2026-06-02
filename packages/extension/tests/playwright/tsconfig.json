@@ -8,5 +8,11 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["../../playwright.config.ts", "./**/*.ts", "./**/*.d.ts"]
+  "include": [
+    "../../playwright.config.ts",
+    "../../playwright.vscode.config.ts",
+    "./**/*.ts",
+    "./**/*.d.ts",
+    "../playwright-vscode/**/*.ts"
+  ]
 }

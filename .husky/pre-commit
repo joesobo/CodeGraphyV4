@@ -1,5 +1,9 @@
 echo "🔍 Running pre-commit checks..."
 
+# Human acceptance specs are protected from agent-authored edits.
+echo "🧾 Checking acceptance spec ownership..."
+pnpm run check:acceptance-specs || exit 1
+
 # Typecheck
 echo "📘 TypeScript check..."
 pnpm run typecheck || exit 1

@@ -179,8 +179,8 @@ jobs:
       - name: Install Playwright browser + system deps
         run: pnpm --filter @codegraphy-dev/extension exec playwright install --with-deps chromium
 
-      - name: Playwright tests
-        run: pnpm run test:playwright
+      - name: VS Code Playwright tests
+        run: xvfb-run --auto-servernum pnpm run test:vscode
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}

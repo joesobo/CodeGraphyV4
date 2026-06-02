@@ -1,6 +1,8 @@
 packages:
   - "packages/*"
   - "apps/*"
+onlyBuiltDependencies:
+  - "@poleski/quality-tools"
 allowBuilds:
   '@driftlog/tree-sitter-dart': true
   '@ladybugdb/core': true
