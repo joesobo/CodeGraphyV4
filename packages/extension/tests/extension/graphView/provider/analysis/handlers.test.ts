@@ -63,6 +63,7 @@ function createDependencies(
     isAbortError: vi.fn(() => false),
     hasWorkspace: vi.fn(() => true),
     logError: vi.fn(),
+    emitDiagnostic: vi.fn(),
     ...overrides,
   };
 }
@@ -258,10 +259,20 @@ describe('graphView/provider/analysis/handlers', () => {
     handlers.updateAnalysisRequestId?.(6);
     expect(handlers.isAbortError(new Error('boom'))).toBe(false);
     handlers.logError('label', new Error('boom'));
+    handlers.emitDiagnostic?.({
+      area: 'extension.analysis',
+      event: 'request-started',
+      context: { requestId: 6 },
+    });
 
     expect(callbacks.executeAnalysis).toHaveBeenCalledWith(controller.signal, 6);
     expect(source._analysisController).toBe(controller);
     expect(source._analysisRequestId).toBe(6);
     expect(dependencies.logError).toHaveBeenCalledOnce();
+    expect(dependencies.emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'request-started',
+      context: { requestId: 6 },
+    });
   });
 });

@@ -7,6 +7,8 @@ import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
 import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
 import { createCodeGraphyAgentUriHandler } from './agentBridge/uri';
 import type { GraphQueryRequest, GraphQueryResult } from '@codegraphy-dev/core';
+import { getCodeGraphyConfiguration } from './repoSettings/current';
+import { createExtensionDiagnosticLogger } from './diagnostics/logger';
 import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
@@ -34,6 +36,14 @@ export interface CodeGraphyAPI {
 
 export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   initializeCurrentCodeGraphyConfiguration(context);
+  const diagnostics = createExtensionDiagnosticLogger({
+    isEnabled: () => getCodeGraphyConfiguration().get('verboseDiagnostics', false),
+  });
+  diagnostics.emit({
+    area: 'extension.lifecycle',
+    event: 'activation-started',
+    context: { workspaceFolders: vscode.workspace.workspaceFolders?.length ?? 0 },
+  });
   const provider = new GraphViewProvider(context.extensionUri, context);
 
   context.subscriptions.push(
@@ -63,6 +73,11 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   registerSaveHandler(context, provider);
   registerFileWatcher(context, provider);
   registerCommands(context, provider);
+  diagnostics.emit({
+    area: 'extension.lifecycle',
+    event: 'activation-completed',
+    context: { registeredWebviewProviders: 2 },
+  });
 
   return {
     refresh: () => provider.refresh(),

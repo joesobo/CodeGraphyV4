@@ -69,6 +69,7 @@ export function createGraphViewProviderAnalysisHandlers(
     logError: (message, error) => {
       dependencies.logError(message, error);
     },
+    emitDiagnostic: input => dependencies.emitDiagnostic?.(input),
   };
 }
 
@@ -83,6 +84,7 @@ export function createGraphViewProviderAnalysisRequestHandlers(
     logError: (message, error) => {
       dependencies.logError(message, error);
     },
+    emitDiagnostic: input => dependencies.emitDiagnostic?.(input),
     updateAnalysisController: controller => {
       source._analysisController = controller;
     },

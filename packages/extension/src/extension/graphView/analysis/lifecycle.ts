@@ -8,6 +8,7 @@ import {
   runGraphViewAnalysisRequest,
   type GraphViewAnalysisRequestState,
 } from './request';
+import type { DiagnosticEventInput } from '@codegraphy-dev/core';
 
 interface GraphViewWorkspaceReadyRegistryLike {
   notifyWorkspaceReady(graphData: IGraphData): void;
@@ -21,6 +22,7 @@ export interface GraphViewProviderAnalysisRequestHandlers {
   executeAnalysis(signal: AbortSignal, requestId: number): Promise<void>;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
+  emitDiagnostic?(input: DiagnosticEventInput): void;
   updateAnalysisController?(controller: AbortController | undefined): void;
   updateAnalysisRequestId?(requestId: number): void;
 }
@@ -50,6 +52,7 @@ export async function runGraphViewProviderAnalysisRequest(
     logError: (message, error) => {
       handlers.logError(message, error);
     },
+    emitDiagnostic: input => handlers.emitDiagnostic?.(input),
     updateAnalysisController: controller => {
       state.analysisController = controller;
       handlers.updateAnalysisController?.(controller);
