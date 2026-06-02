@@ -85,11 +85,12 @@ describe('graph view analysis execution load', () => {
       }),
       analyzerInitialized: true,
     });
+    const { handlers } = createExecutionHandlers();
 
     const result = await loadGraphViewRawData(
       new AbortController().signal,
       state,
-      createExecutionHandlers().handlers,
+      handlers,
     );
 
     expect(result.shouldDiscover).toBe(false);
@@ -97,6 +98,17 @@ describe('graph view analysis execution load', () => {
     expect(loadCachedGraph).toHaveBeenCalledOnce();
     expect(analyze).not.toHaveBeenCalled();
     expect(refreshIndex).not.toHaveBeenCalled();
+    expect(handlers.emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'load-decision',
+      context: {
+        mode: 'load',
+        route: 'cached',
+        shouldDiscover: false,
+        indexFreshness: 'fresh',
+        canReplayCache: true,
+      },
+    });
   });
 
   it('loads cached graph data instead of blocking on refresh when a stale index can be replayed', async () => {

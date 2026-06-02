@@ -17,6 +17,7 @@ import {
   handlePhysicsSettingsUpdated,
   handleSettingsUpdated,
   handleShowLabelsUpdated,
+  handleVerboseDiagnosticsUpdated,
 } from '../../../../src/webview/store/messageHandlers/graph';
 import type { IStoreFields } from '../../../../src/webview/store/messageTypes';
 import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/contracts';
@@ -76,6 +77,7 @@ function createState(
     graphViewContributionStatuses: [],
     activePanel: 'none',
     maxFiles: 500,
+    verboseDiagnostics: false,
     activeFilePath: null,
     timelineActive: false,
     timelineCommits: [],
@@ -283,6 +285,11 @@ describe('webview/store/messageHandlers/graph', () => {
       type: 'MAX_FILES_UPDATED',
       payload: { maxFiles: 250 },
     })).toEqual({ maxFiles: 250 });
+
+    expect(handleVerboseDiagnosticsUpdated({
+      type: 'VERBOSE_DIAGNOSTICS_UPDATED',
+      payload: { verboseDiagnostics: true },
+    })).toEqual({ verboseDiagnostics: true });
 
     expect(handleActiveFileUpdated({
       type: 'ACTIVE_FILE_UPDATED',

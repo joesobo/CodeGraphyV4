@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../shared/graph/contracts';
+import type { DiagnosticEventInput } from '@codegraphy-dev/core';
 import { publishAnalysisFailure } from './execution/publish';
 import { prepareGraphViewAnalysis } from './execution/prepare';
 import { runGraphViewAnalysis } from './execution/run';
@@ -83,6 +84,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   markWorkspaceReady(graphData: IGraphData): void;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
+  emitDiagnostic?(input: DiagnosticEventInput): void;
 }
 
 export async function executeGraphViewAnalysis(

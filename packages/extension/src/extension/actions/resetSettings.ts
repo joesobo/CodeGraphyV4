@@ -37,6 +37,7 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   particleSize: 'particleSize',
   showLabels: 'showLabels',
   maxFiles: 'maxFiles',
+  verboseDiagnostics: 'verboseDiagnostics',
 };
 
 /** Repo settings key for node size mode */

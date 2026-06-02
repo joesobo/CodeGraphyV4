@@ -183,6 +183,12 @@ export function handleMaxFilesUpdated(
   return { maxFiles: message.payload.maxFiles };
 }
 
+export function handleVerboseDiagnosticsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'VERBOSE_DIAGNOSTICS_UPDATED' }>,
+): PartialState {
+  return { verboseDiagnostics: message.payload.verboseDiagnostics };
+}
+
 export function handleActiveFileUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'ACTIVE_FILE_UPDATED' }>,
 ): PartialState {

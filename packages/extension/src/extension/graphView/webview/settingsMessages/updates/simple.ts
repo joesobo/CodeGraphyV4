@@ -4,7 +4,8 @@ import type { GraphViewSettingsMessageHandlers } from '../router';
 type SettingsUpdateConfigKey =
   | 'showOrphans'
   | 'bidirectionalEdges'
-  | 'maxFiles';
+  | 'maxFiles'
+  | 'verboseDiagnostics';
 
 function getSimpleSettingsUpdateConfig(
   message: WebviewToExtensionMessage,
@@ -16,6 +17,8 @@ function getSimpleSettingsUpdateConfig(
       return { key: 'bidirectionalEdges', value: message.payload.bidirectionalMode };
     case 'UPDATE_MAX_FILES':
       return { key: 'maxFiles', value: message.payload.maxFiles };
+    case 'UPDATE_VERBOSE_DIAGNOSTICS':
+      return { key: 'verboseDiagnostics', value: message.payload.verboseDiagnostics };
     default:
       return undefined;
   }

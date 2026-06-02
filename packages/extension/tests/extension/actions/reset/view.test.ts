@@ -78,6 +78,7 @@ describe('ResetSettingsAction', () => {
     particleSize: 8,
     showLabels: false,
     maxFiles: 1000,
+    verboseDiagnostics: true,
     nodeSizeMode: 'file-size',
   };
 
@@ -121,6 +122,7 @@ describe('ResetSettingsAction', () => {
       particleSize: 8,
       showLabels: false,
       maxFiles: 1000,
+      verboseDiagnostics: true,
       nodeSizeMode: 'file-size',
     };
 

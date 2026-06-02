@@ -104,6 +104,8 @@ For commands with `[workspace]`, the workspace is an optional trailing positiona
 
 MCP tools should mirror the core CLI command semantics. They call Core APIs directly instead of shelling out to `codegraphy`.
 
+Every MCP tool accepts optional `verboseDiagnostics: true`. When enabled, the tool result includes factual CodeGraphy diagnostic events in a `diagnostics` array. Default tool responses are unchanged when it is omitted. See [Verbose Diagnostics](./DIAGNOSTICS.md).
+
 | Tool | What It Does | Typical Use |
 |---|---|---|
 | `codegraphy_status` | Reports CodeGraphy Workspace status for the MCP server working directory or an explicit `path` | decide whether to index before querying |

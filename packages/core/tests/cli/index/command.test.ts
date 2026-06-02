@@ -47,4 +47,30 @@ describe('index/command', () => {
       workspaceRoot: '/workspace/other',
     });
   });
+
+  it('passes verbose diagnostics to the workspace indexing request', async () => {
+    const diagnosticAreas: string[] = [];
+
+    await runIndexCommand('/workspace/other', {
+      cwd: () => '/workspace/project',
+      indexWorkspace: async ({ diagnostics }) => {
+        diagnostics?.emit({
+          area: 'indexing',
+          event: 'completed',
+          context: { operationId: 'index-1', files: 2 },
+        });
+        return {
+          workspaceRoot: '/workspace/other',
+          graphCache: '.codegraphy/graph.lbug',
+          message: 'indexed',
+        };
+      },
+      writeDiagnostic: line => diagnosticAreas.push(line),
+      writeStatus: vi.fn(),
+    }, { verbose: true });
+
+    expect(diagnosticAreas).toEqual([
+      '[CodeGraphy] Indexing complete: 2 files, operation=index-1',
+    ]);
+  });
 });

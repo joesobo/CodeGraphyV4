@@ -94,6 +94,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
   | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
+  | { type: 'VERBOSE_DIAGNOSTICS_UPDATED'; payload: { verboseDiagnostics: boolean } }
   | { type: 'ACTIVE_FILE_UPDATED'; payload: { filePath: string | undefined } }
   | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'TIMELINE_DATA'; payload: ITimelineData }

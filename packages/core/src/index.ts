@@ -3,6 +3,17 @@ export type { CommandExecutionResult } from './cli/command';
 export { runCliCommand } from './cli/command';
 export type { CliCommand, CliCommandName, PluginsCommandAction } from './cli/parse';
 export { parseCliCommand } from './cli/parse';
+export type {
+  DiagnosticContextValue,
+  DiagnosticEvent,
+  DiagnosticEventInput,
+  DiagnosticEventSink,
+} from './diagnostics/events';
+export {
+  collectDiagnosticEvents,
+  createDiagnosticEvent,
+  formatDiagnosticEventLine,
+} from './diagnostics/events';
 export { runIndexCommand } from './cli/index/command';
 export { runPluginsCommand } from './cli/plugins/command';
 export { runSetupCommand } from './cli/setup/command';

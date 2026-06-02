@@ -1,3 +1,5 @@
+import type { DiagnosticEventInput } from '@codegraphy-dev/core';
+
 export interface GraphViewAnalysisRequestState {
   analysisController: AbortController | undefined;
   analysisRequestId: number;
@@ -7,8 +9,27 @@ export interface GraphViewAnalysisRequestHandlers {
   executeAnalysis(signal: AbortSignal, requestId: number): Promise<void>;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
+  emitDiagnostic?(input: DiagnosticEventInput): void;
   updateAnalysisController(controller: AbortController | undefined): void;
   updateAnalysisRequestId(requestId: number): void;
+}
+
+function createRequestContext(
+  state: GraphViewAnalysisRequestState,
+  requestId: number,
+): Record<string, number | string | undefined> {
+  const diagnosticState = state as GraphViewAnalysisRequestState & {
+    mode?: string;
+    filterPatterns?: readonly string[];
+    disabledPlugins?: ReadonlySet<string>;
+  };
+
+  return {
+    requestId,
+    mode: diagnosticState.mode,
+    filterPatternCount: diagnosticState.filterPatterns?.length ?? 0,
+    disabledPluginCount: diagnosticState.disabledPlugins?.size ?? 0,
+  };
 }
 
 export async function runGraphViewAnalysisRequest(
@@ -21,11 +42,35 @@ export async function runGraphViewAnalysisRequest(
   handlers.updateAnalysisController(controller);
   const requestId = ++state.analysisRequestId;
   handlers.updateAnalysisRequestId(requestId);
+  const startedAt = Date.now();
+  const requestContext = createRequestContext(state, requestId);
+  handlers.emitDiagnostic?.({
+    area: 'extension.analysis',
+    event: 'request-started',
+    context: requestContext,
+  });
 
   try {
     await handlers.executeAnalysis(controller.signal, requestId);
+    handlers.emitDiagnostic?.({
+      area: 'extension.analysis',
+      event: 'request-completed',
+      context: {
+        ...requestContext,
+        durationMs: Date.now() - startedAt,
+      },
+    });
   } catch (error) {
     if (!handlers.isAbortError(error)) {
+      handlers.emitDiagnostic?.({
+        area: 'extension.analysis',
+        event: 'request-failed',
+        context: {
+          ...requestContext,
+          durationMs: Date.now() - startedAt,
+          error,
+        },
+      });
       handlers.logError('[CodeGraphy] Analysis failed:', error);
     }
   } finally {
