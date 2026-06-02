@@ -71,6 +71,10 @@ export function buildGraphViewAllSettingsMessages(
         payload: { maxFiles: snapshot.maxFiles },
       },
       {
+        type: 'VERBOSE_DIAGNOSTICS_UPDATED',
+        payload: { verboseDiagnostics: snapshot.verboseDiagnostics },
+      },
+      {
         type: 'NODE_SIZE_MODE_UPDATED',
         payload: { nodeSizeMode: snapshot.nodeSizeMode },
       },

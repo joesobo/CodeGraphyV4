@@ -29,6 +29,30 @@ describe('cli/parse', () => {
     });
   });
 
+  it('parses verbose as a global flag for every command', () => {
+    expect(parseCliCommand(['--verbose', 'index', '/workspace/project'])).toEqual({
+      name: 'index',
+      verbose: true,
+      workspacePath: '/workspace/project',
+    });
+    expect(parseCliCommand(['status', '--verbose', '/workspace/project'])).toEqual({
+      name: 'status',
+      verbose: true,
+      workspacePath: '/workspace/project',
+    });
+    expect(parseCliCommand(['plugins', 'enable', '@codegraphy-dev/plugin-python', '--verbose', '/workspace/project'])).toEqual({
+      name: 'plugins',
+      action: 'enable',
+      packageName: '@codegraphy-dev/plugin-python',
+      verbose: true,
+      workspacePath: '/workspace/project',
+    });
+    expect(parseCliCommand(['--verbose', 'setup'])).toEqual({
+      name: 'setup',
+      verbose: true,
+    });
+  });
+
   it('parses plugin cache and workspace commands', () => {
     expect(parseCliCommand(['plugins', 'register', 'private-plugin'])).toEqual({
       name: 'plugins',

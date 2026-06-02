@@ -220,6 +220,17 @@ describe('mcp/server', () => {
     });
   });
 
+  it('accepts verbose diagnostics on every MCP tool schema', async () => {
+    const client = await connectServer(createDependencies());
+    const tools = await client.listTools();
+
+    for (const tool of tools.tools) {
+      expect(propertiesFor(tool).verboseDiagnostics).toMatchObject({
+        type: 'boolean',
+      });
+    }
+  });
+
   it('falls back to the core plugin command runner with the dependency cwd', async () => {
     const workspaceRoot = await mkdtemp(join(tmpdir(), 'codegraphy-mcp-plugin-list-'));
     const client = await connectServer(createDependencies(workspaceRoot));
@@ -431,6 +442,62 @@ describe('mcp/server', () => {
       'index:/workspace/other',
       'query:/workspace/other:relationships',
     ]);
+  });
+
+  it('returns verbose diagnostics when MCP tools request them', async () => {
+    const client = await connectServer({
+      ...createDependencies(),
+      statusWorkspace: async ({ diagnostics, workspacePath }) => {
+        diagnostics?.emit({
+          area: 'workspace',
+          event: 'status-read',
+          context: { workspaceRoot: workspacePath ?? '/workspace/project', state: 'fresh' },
+        });
+        return {
+          workspaceRoot: workspacePath ?? '/workspace/project',
+          graphCache: '.codegraphy/graph.lbug',
+          state: 'fresh',
+          hasGraphCache: true,
+          staleReasons: [],
+          enabledPlugins: [],
+          message: 'fresh',
+        };
+      },
+      runGraphQuery: async ({ diagnostics, report }) => {
+        diagnostics?.emit({
+          area: 'graph-query',
+          event: 'completed',
+          context: { report, nodeCount: 0 },
+        });
+        return { nodes: [] };
+      },
+    });
+
+    const statusResult = await client.callTool({
+      name: 'codegraphy_status',
+      arguments: { verboseDiagnostics: true },
+    });
+    const queryResult = await client.callTool({
+      name: 'codegraphy_list_nodes',
+      arguments: { verboseDiagnostics: true },
+    });
+
+    expect(statusResult.structuredContent).toMatchObject({
+      workspaceRoot: '/workspace/project',
+      diagnostics: [{
+        area: 'workspace',
+        event: 'status-read',
+        context: { workspaceRoot: '/workspace/project', state: 'fresh' },
+      }],
+    });
+    expect(queryResult.structuredContent).toMatchObject({
+      nodes: [],
+      diagnostics: [{
+        area: 'graph-query',
+        event: 'completed',
+        context: { report: 'nodes', nodeCount: 0 },
+      }],
+    });
   });
 
   it('returns missing Graph Cache guidance from query tools without focusing VS Code', async () => {

@@ -40,6 +40,17 @@ export async function loadGraphViewRawData(
     indexFreshness,
     typeof analyzer.loadCachedGraph === 'function',
   );
+  handlers.emitDiagnostic?.({
+    area: 'extension.analysis',
+    event: 'load-decision',
+    context: {
+      mode: state.mode,
+      route: decision.route,
+      shouldDiscover: decision.shouldDiscover,
+      indexFreshness,
+      canReplayCache: typeof analyzer.loadCachedGraph === 'function',
+    },
+  });
   const forwardProgress = createGraphViewAnalysisProgressForwarder(state.mode, handlers);
 
   if (!decision.shouldDiscover) {

@@ -79,6 +79,7 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_NODE_VISIBILITY'; payload: { nodeType: string; visible: boolean } }
   | { type: 'UPDATE_EDGE_VISIBILITY'; payload: { edgeKind: string; visible: boolean } }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
+  | { type: 'UPDATE_VERBOSE_DIAGNOSTICS'; payload: { verboseDiagnostics: boolean } }
   | { type: 'INDEX_REPO' }
   | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }
   | { type: 'RESET_TIMELINE' }

@@ -56,6 +56,7 @@ export const INITIAL_STATE: GraphStateFields = {
   expandedGroupId: null,
   activePanel: 'none' as const,
   maxFiles: DEFAULT_MAX_FILES,
+  verboseDiagnostics: false,
   activeFilePath: null,
   timelineActive: false,
   timelineCommits: [],

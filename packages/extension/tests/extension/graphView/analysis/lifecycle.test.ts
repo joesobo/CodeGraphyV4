@@ -77,12 +77,14 @@ describe('graph view provider analysis lifecycle helper', () => {
     const handlers = createHandlers();
     const updateAnalysisController = vi.fn();
     const updateAnalysisRequestId = vi.fn();
+    const emitDiagnostic = vi.fn();
 
     await runGraphViewProviderAnalysisRequest(state, {
       executeAnalysis: (signal, requestId) =>
         executeGraphViewProviderAnalysis(signal, requestId, state, handlers),
       isAbortError: error => isGraphViewAbortError(error),
       logError: handlers.logError,
+      emitDiagnostic,
       updateAnalysisController,
       updateAnalysisRequestId,
     });
@@ -97,6 +99,25 @@ describe('graph view provider analysis lifecycle helper', () => {
     );
     expect(updateAnalysisController).toHaveBeenLastCalledWith(undefined);
     expect(updateAnalysisRequestId).toHaveBeenCalledWith(1);
+    expect(emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'request-started',
+      context: {
+        requestId: 1,
+        mode: 'analyze',
+        filterPatternCount: 0,
+        disabledPluginCount: 0,
+      },
+    });
+    expect(emitDiagnostic).toHaveBeenCalledWith({
+      area: 'extension.analysis',
+      event: 'request-completed',
+      context: expect.objectContaining({
+        requestId: 1,
+        mode: 'analyze',
+        durationMs: expect.any(Number),
+      }),
+    });
   });
 
   it('updates request state even when optional request update callbacks are absent', async () => {

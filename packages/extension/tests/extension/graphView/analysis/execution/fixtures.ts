@@ -64,6 +64,7 @@ export function createExecutionHandlers(
     markWorkspaceReady: vi.fn(),
     isAbortError: vi.fn(() => false),
     logError: vi.fn(),
+    emitDiagnostic: vi.fn(),
     ...overrides,
   };
 

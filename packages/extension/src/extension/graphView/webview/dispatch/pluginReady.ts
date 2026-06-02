@@ -51,6 +51,7 @@ export async function dispatchGraphViewPluginReadyMessage(
   return applyWebviewReady(
     {
       maxFiles: context.getMaxFiles(),
+      verboseDiagnostics: context.getConfig('verboseDiagnostics', false),
       playbackSpeed: context.getPlaybackSpeed(),
       depthMode: context.getDepthMode?.() ?? false,
       dagMode: context.getDagMode(),

@@ -325,7 +325,7 @@ The `@codegraphy-dev/core` npm package that owns the central CodeGraphy engine: 
 _Avoid_: VS Code extension when referring to headless engine behavior
 
 **CodeGraphy Interface**:
-A user, agent, or programmer-facing way to interact with the **Core Package** without owning the engine. The **VS Code Extension** is the user interface, **CodeGraphy MCP** is the agent interface, and **Plugin API** is the programmer interface for plugin authors.
+A user, agent, terminal, or programmer-facing way to interact with the **Core Package** without owning the engine. The **VS Code Extension** is the graphical user interface, **CodeGraphy CLI** is the terminal interface, **CodeGraphy MCP** is the agent interface, and **Plugin API** is the programmer interface for plugin authors.
 _Avoid_: Engine, core owner, implementation package
 
 **Plugin**:
@@ -361,6 +361,10 @@ _Avoid_: Setting when referring only to the UI element
 **Display Setting**:
 A Setting that changes how graph information is presented without changing which graph items exist in the **Relationship Graph**. Display Settings include visual preferences and lower-frequency view behavior such as labels, orphans, renderer mode, direction indicators, bidirectional edge display, and depth controls.
 _Avoid_: Graph Scope, Search, Filter Setting
+
+**Verbose Diagnostics**:
+A Setting that enables verbose CodeGraphy diagnostic logging for Core Package and VS Code Extension lifecycle support workflows while a user reproduces an issue. It stays off by default so ordinary CodeGraphy use remains quiet.
+_Avoid_: Dev Mode when the behavior only refers to diagnostic logging
 
 **Filter Setting**:
 A persisted Setting that defines include or exclude criteria for path/glob patterns first. Exclude criteria remove recurring noise; include criteria narrow graph consideration to a durable working subset. Graph-aware filter criteria may be added later only when they have clear semantics separate from **Graph Scope**.
@@ -612,7 +616,26 @@ _Avoid_: Graph export
 - The **Markdown Plugin** is installed with `@codegraphy-dev/core` and enabled by default for new CodeGraphy Workspaces, but users can still toggle it off.
 - A **Settings Control** changes a **Setting**; it is not a separate persisted concept.
 - **Settings** are saved workspace-locally under `.codegraphy/settings.json` so graph preferences survive between sessions.
-- **Graph Scope**, **Filter Setting**, **Display Setting**, **Favorite**, and **Legend Entry Toggle** are settings because they are saved between sessions.
+- **Graph Scope**, **Filter Setting**, **Display Setting**, **Verbose Diagnostics**, **Favorite**, and **Legend Entry Toggle** are settings because they are saved between sessions.
+- The **Verbose Diagnostics** persisted settings key is `verboseDiagnostics`.
+- **Verbose Diagnostics** takes effect immediately for newly occurring diagnostics after the Setting changes. Restarting VS Code is only required when a support workflow needs startup lifecycle diagnostics.
+- **Verbose Diagnostics** should expose Core Package diagnostics through the active **CodeGraphy Interface**: VS Code Developer Tools for the **VS Code Extension**, terminal diagnostic output for **CodeGraphy CLI**, and tool-result or MCP-safe diagnostic output for **CodeGraphy MCP**.
+- The persisted **Verbose Diagnostics** Setting controls only the **VS Code Extension** interface. **CodeGraphy CLI** and **CodeGraphy MCP** should opt into verbose diagnostics per invocation so scripts and agent tool calls stay quiet by default.
+- **CodeGraphy CLI** should accept `--verbose` consistently across commands, even if some commands have fewer diagnostic events than others.
+- **CodeGraphy MCP** should accept `verboseDiagnostics` consistently across tools, even if some tools only report Graph Cache read or Graph Query diagnostics.
+- **Verbose Diagnostics** should report factual Core Package state, VS Code Extension lifecycle state, decisions, counts, and execution context. They should not include suggested next actions or prescriptive guidance, though each interface may format the same facts for its output sink.
+- **Verbose Diagnostics** events should carry stable area and event identifiers so humans can grep logs and agents can reason over diagnostics without parsing prose.
+- **Verbose Diagnostics** context should be JSON-serializable plain data so the same event can render consistently through the VS Code Extension, CodeGraphy CLI, and CodeGraphy MCP.
+- **Verbose Diagnostics** should prefer workspace-relative paths when a CodeGraphy Workspace root is known. Absolute paths should be limited to explicit workspace roots, external package locations, or existing error surfaces where the absolute path is already part of the reported failure.
+- **Verbose Diagnostics** should include timing and duration facts for phase boundaries when they are cheap and reliable to measure.
+- **Verbose Diagnostics** should include operation or request identifiers for multi-event indexing, query, cache sync, and lifecycle operations so interleaved diagnostics can be correlated.
+- **Verbose Diagnostics** may include compact snapshots of behavior-shaping inputs, such as enabled plugin ids/packages, disabled plugin ids, Graph Scope counts, and filter counts. They should not dump complete settings objects.
+- **Verbose Diagnostics** should wrap important existing errors and warnings with structured diagnostic context while preserving the existing error or warning behavior.
+- **Verbose Diagnostics** should stay high-signal even when verbose: prefer operation boundaries, decisions, state transitions, summaries, timings, and structured error context over repeated hot-loop or per-item logs.
+- **Verbose Diagnostics** has one curated verbose mode, not multiple verbosity levels.
+- Obvious non-error lifecycle logs may move behind **Verbose Diagnostics** when they are noisy in normal use, but this should be selective rather than a blanket migration of all existing logs.
+- User-facing troubleshooting docs and changesets should use the name **Verbose Diagnostics** consistently.
+- **Verbose Diagnostics** may log event names, lifecycle phases, counts, plugin or package ids, cache freshness decisions, and workspace-relative paths when they help support diagnose ordering and state. It should avoid logging file contents and avoid absolute paths unless an existing error path already reports one.
 - **Filter Settings** are made of **Filter Rules** whose enabled state and user customizations must be understandable when rules come from defaults, plugins, or custom user entries.
 - Custom user **Filter Rules** and **Filter Rule Overrides** can be edited or removed; source-owned built-in and plugin-contributed **Filter Rules** can be toggled but not removed from their source.
 - **Display Settings** change presentation and view behavior; they do not change graph eligibility like **Graph Scope** or **Filter Setting**.

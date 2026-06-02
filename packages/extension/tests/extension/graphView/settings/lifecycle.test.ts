@@ -34,6 +34,7 @@ function createSnapshot(
     showLabels: true,
     nodeSizeMode: 'uniform',
     maxFiles: 500,
+    verboseDiagnostics: false,
     ...overrides,
   };
 }

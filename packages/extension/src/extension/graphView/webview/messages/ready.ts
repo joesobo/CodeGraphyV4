@@ -1,9 +1,11 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
 import type { IGraphData } from '../../../../shared/graph/contracts';
+import { createExtensionDiagnosticLogger } from '../../../diagnostics/logger';
 
 export interface GraphViewReadyState {
   maxFiles: number;
+  verboseDiagnostics: boolean;
   playbackSpeed: number;
   depthMode?: boolean;
   dagMode: DagMode;
@@ -47,6 +49,18 @@ export function replayWebviewReadySettings(
   state: GraphViewReadyState,
   handlers: GraphViewReadyHandlers,
 ): void {
+  createExtensionDiagnosticLogger({
+    isEnabled: () => state.verboseDiagnostics,
+  }).emit({
+    area: 'extension.webview',
+    event: 'ready-replayed',
+    context: {
+      hasWorkspace: state.hasWorkspace,
+      firstAnalysis: state.firstAnalysis,
+      readyNotified: state.readyNotified,
+      maxFiles: state.maxFiles,
+    },
+  });
   handlers.loadGroupsAndFilterPatterns();
   handlers.loadDisabledRulesAndPlugins();
   handlers.sendDepthState();
@@ -68,6 +82,10 @@ export function replayWebviewReadySettings(
   handlers.sendMessage({
     type: 'MAX_FILES_UPDATED',
     payload: { maxFiles: state.maxFiles },
+  });
+  handlers.sendMessage({
+    type: 'VERBOSE_DIAGNOSTICS_UPDATED',
+    payload: { verboseDiagnostics: state.verboseDiagnostics },
   });
   handlers.sendMessage({
     type: 'PLAYBACK_SPEED_UPDATED',
@@ -137,6 +155,17 @@ export async function applyWebviewReady(
   handlers.sendPluginStatuses?.();
 
   handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+  createExtensionDiagnosticLogger({
+    isEnabled: () => state.verboseDiagnostics,
+  }).emit({
+    area: 'extension.webview',
+    event: 'bootstrap-completed',
+    context: {
+      hasWorkspace: state.hasWorkspace,
+      firstAnalysis: state.firstAnalysis,
+      readyNotified: state.readyNotified,
+    },
+  });
 
   if (state.readyNotified) {
     return true;
