@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { supportedLanguages } from './content';
 import { HomeView } from './view';
 
 describe('CodeGraphy website home page', () => {
@@ -26,6 +27,21 @@ describe('CodeGraphy website home page', () => {
     );
     expect(screen.getByText('Example graphs')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Features.' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open examples on GitHub' })).toHaveAttribute(
+      'href',
+      'https://github.com/joesobo/CodeGraphyV4/tree/main/examples',
+    );
+    expect(screen.queryByText('Language examples')).not.toBeInTheDocument();
+    expect(screen.queryByText('Click a language to open its example workspace on GitHub.')).not.toBeInTheDocument();
+    expect(screen.getByText('Supported languages')).toBeInTheDocument();
+    supportedLanguages.forEach(language => {
+      const links = screen.getAllByRole('link', { name: `${language.label} example` });
+
+      expect(links).toHaveLength(2);
+      links.forEach(link => {
+        expect(link).toHaveAttribute('href', language.exampleHref);
+      });
+    });
     expect(screen.getByText('Quickstart')).toBeInTheDocument();
     expect(screen.getByText('Starting path')).toBeInTheDocument();
     expect(screen.getByText('@codegraphy-dev/plugin-typescript')).toBeInTheDocument();

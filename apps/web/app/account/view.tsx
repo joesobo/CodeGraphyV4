@@ -21,9 +21,9 @@ export function AccountView(): React.ReactElement {
         <section className="grid gap-4 md:grid-cols-2">
           <Card className="min-w-0 bg-card/90 p-6">
             <div className="mb-6 flex items-center gap-3">
-              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[linear-gradient(135deg,#2b73bb,#e26c13)]">
-                <div className="absolute -left-4 top-4 h-6 w-16 rounded-full border border-white/35" />
-                <div className="absolute -right-4 bottom-2 h-6 w-16 rounded-full border border-white/25" />
+              <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[hsl(var(--brand-blue))]">
+                <div className="absolute -left-4 top-4 h-6 w-16 rounded-full border border-white/38" />
+                <div className="absolute -right-4 bottom-2 h-6 w-16 rounded-full border border-[hsl(var(--brand-orange)/0.72)]" />
                 <UserRound className="relative text-white" size={21} />
               </div>
               <div>

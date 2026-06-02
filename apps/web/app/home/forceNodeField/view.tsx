@@ -40,7 +40,7 @@ function supportsDesktopMotion(): boolean {
     return false;
   }
 
-  return window.matchMedia('(min-width: 768px) and (pointer: fine)').matches
+  return window.matchMedia('(min-width: 768px)').matches
     && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
@@ -100,7 +100,7 @@ export function ForceNodeField(): React.ReactElement | null {
       return;
     }
 
-    const desktopQuery = window.matchMedia('(min-width: 768px) and (pointer: fine)');
+    const desktopQuery = window.matchMedia('(min-width: 768px)');
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updateEnabled = (): void => {
       setIsEnabled(desktopQuery.matches && !reducedMotionQuery.matches);

@@ -1,9 +1,14 @@
 import {
   Bot,
-  BrainCircuit,
   Bookmark,
+  Braces,
+  Component,
+  Cuboid,
   Database,
   FileImage,
+  FolderOpen,
+  FolderTree,
+  Gamepad2,
   MapPinned,
   Monitor,
   Network,
@@ -11,7 +16,29 @@ import {
   Palette,
   Plug,
   Search,
+  SlidersHorizontal,
 } from 'lucide-react';
+import type { SimpleIcon } from 'simple-icons';
+import {
+  siC,
+  siCplusplus,
+  siDart,
+  siDotnet,
+  siGo,
+  siGodotengine,
+  siHaskell,
+  siJavascript,
+  siKotlin,
+  siLua,
+  siMarkdown,
+  siOpenjdk,
+  siPhp,
+  siPython,
+  siRuby,
+  siRust,
+  siSwift,
+  siTypescript,
+} from 'simple-icons';
 
 export const installHref = 'https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy';
 export const githubHref = 'https://github.com/joesobo/CodeGraphyV4';
@@ -27,6 +54,11 @@ export const mcpDocsHref = `${githubHref}/blob/main/docs/MCP.md`;
 export const coreReadmeHref = `${githubHref}/blob/main/packages/core/README.md`;
 export const rootReadmeHref = `${githubHref}/blob/main/README.md`;
 export const githubIssuesHref = `${githubHref}/issues`;
+export const examplesHref = `${githubHref}/tree/main/examples`;
+
+function exampleHref(exampleName: string): string {
+  return `${examplesHref}/${exampleName}`;
+}
 
 export type FaqTextPart =
   | string
@@ -74,6 +106,12 @@ export type FaqItem = {
   question: string;
 };
 
+export type SupportedLanguageItem = {
+  exampleHref: string;
+  icon: SimpleIcon;
+  label: string;
+};
+
 export const workflowSteps = [
   {
     description: 'Start with a file, folder, symbol, or phrase and let the graph narrow around the work in front of you.',
@@ -83,7 +121,7 @@ export const workflowSteps = [
   },
   {
     description: 'Hide noise, focus Graph Scope, and keep the visible map small enough to reason about.',
-    icon: Network,
+    icon: SlidersHorizontal,
     image: '/product-media/plugins-panel.png',
     title: 'Filter',
   },
@@ -98,13 +136,13 @@ export const workflowSteps = [
 export const socialProofItems = [
   {
     href: 'https://github.com/godotengine/godot',
-    icon: Palette,
+    icon: Gamepad2,
     image: '/product-media/symbol-nodes-graph.png',
     title: 'Godot',
   },
   {
     href: 'https://github.com/shadcn-ui/ui',
-    icon: MapPinned,
+    icon: Component,
     image: '/product-media/graph-sections.png',
     title: 'shadcn/ui',
   },
@@ -118,25 +156,25 @@ export const socialProofItems = [
 
 export const galleryItems = [
   {
-    icon: BrainCircuit,
+    icon: Braces,
     image: '/product-media/large-repo-graph.png',
     text: 'Core ships with Tree-sitter analysis and Material Icons. Most languages start with useful connections, themes, and file icons out of the box.',
     title: 'Analysis and Themes',
   },
-	{
-    icon: Network,
+  {
+    icon: FolderTree,
     image: '/product-media/relationship-graph-2d.png',
     text: 'Folder context stays visible so you can return to a familiar view.',
     title: 'Folder view',
   },
   {
-    icon: Monitor,
+    icon: Cuboid,
     image: '/product-media/relationship-graph-3d.png',
     text: 'View the graph in 2D or 3D.',
     title: '3D view',
   },
   {
-    icon: Search,
+    icon: SlidersHorizontal,
     image: '/product-media/search-filter-panel.png',
     text: 'Search and filter out any of the noise from the graph to focus on what you care about.',
     title: 'Search and filters',
@@ -148,10 +186,105 @@ export const galleryItems = [
     title: 'Plugin system',
   },
   {
-    icon: Database,
+    icon: FolderOpen,
+    href: examplesHref,
     image: '/product-media/codegraphy-architecture.png',
-    text: 'Internal examples folder showing off CodeGraphy working on numerous example projects in various languages at once. (insert link)',
+    linkLabel: 'Open examples on GitHub',
+    text: 'Internal examples folder showing CodeGraphy working across many small projects and language fixtures at once.',
     title: 'Examples',
+  },
+];
+
+export const supportedLanguages: SupportedLanguageItem[] = [
+  {
+    exampleHref: exampleHref('example-c'),
+    icon: siC,
+    label: 'C',
+  },
+  {
+    exampleHref: exampleHref('example-cpp'),
+    icon: siCplusplus,
+    label: 'C++',
+  },
+  {
+    exampleHref: exampleHref('example-csharp'),
+    icon: siDotnet,
+    label: 'C#',
+  },
+  {
+    exampleHref: exampleHref('example-dart'),
+    icon: siDart,
+    label: 'Dart',
+  },
+  {
+    exampleHref: exampleHref('example-go'),
+    icon: siGo,
+    label: 'Go',
+  },
+  {
+    exampleHref: exampleHref('example-godot'),
+    icon: siGodotengine,
+    label: 'Godot',
+  },
+  {
+    exampleHref: exampleHref('example-haskell'),
+    icon: siHaskell,
+    label: 'Haskell',
+  },
+  {
+    exampleHref: exampleHref('example-java'),
+    icon: siOpenjdk,
+    label: 'Java',
+  },
+  {
+    exampleHref: exampleHref('example-typescript'),
+    icon: siJavascript,
+    label: 'JavaScript',
+  },
+  {
+    exampleHref: exampleHref('example-kotlin'),
+    icon: siKotlin,
+    label: 'Kotlin',
+  },
+  {
+    exampleHref: exampleHref('example-lua'),
+    icon: siLua,
+    label: 'Lua',
+  },
+  {
+    exampleHref: exampleHref('example-markdown'),
+    icon: siMarkdown,
+    label: 'Markdown',
+  },
+  {
+    exampleHref: exampleHref('example-php'),
+    icon: siPhp,
+    label: 'PHP',
+  },
+  {
+    exampleHref: exampleHref('example-python'),
+    icon: siPython,
+    label: 'Python',
+  },
+  {
+    exampleHref: exampleHref('example-ruby'),
+    icon: siRuby,
+    label: 'Ruby',
+  },
+  {
+    exampleHref: exampleHref('example-rust'),
+    icon: siRust,
+    label: 'Rust',
+  },
+  {
+    exampleHref: exampleHref('example-swift'),
+    icon: siSwift,
+    label: 'Swift',
+  },
+  {
+    exampleHref: exampleHref('example-typescript'),
+    icon: siTypescript,
+    label: 'TypeScript',
   },
 ];
 

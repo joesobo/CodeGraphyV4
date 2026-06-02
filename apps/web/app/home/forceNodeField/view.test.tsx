@@ -31,6 +31,33 @@ function installDesktopMatchMedia(): () => void {
   };
 }
 
+function installWideCoarsePointerMatchMedia(): () => void {
+  const originalMatchMedia = window.matchMedia;
+  const addEventListener = vi.fn();
+  const removeEventListener = vi.fn();
+
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: (query: string) => ({
+      addEventListener,
+      addListener: addEventListener,
+      dispatchEvent: vi.fn(),
+      matches: query.includes('min-width') && !query.includes('pointer: fine'),
+      media: query,
+      onchange: null,
+      removeEventListener,
+      removeListener: removeEventListener,
+    }),
+  });
+
+  return () => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: originalMatchMedia,
+    });
+  };
+}
+
 function firstRenderedNodeRadius(): number {
   const circle = document.querySelector<SVGCircleElement>('[data-testid="force-node-field"] > g > g > circle');
 
@@ -50,6 +77,24 @@ describe('ForceNodeField', () => {
     );
 
     expect(screen.queryByTestId('force-node-field')).not.toBeInTheDocument();
+  });
+
+  it('renders on wide screens even when the browser does not report a fine pointer', async () => {
+    const restoreMatchMedia = installWideCoarsePointerMatchMedia();
+
+    try {
+      render(
+        <ForceNodeSettingsProvider>
+          <section data-force-field-section="true">
+            <ForceNodeField />
+          </section>
+        </ForceNodeSettingsProvider>,
+      );
+
+      expect(await screen.findByTestId('force-node-field')).toBeInTheDocument();
+    } finally {
+      restoreMatchMedia();
+    }
   });
 
   it('updates rendered node size from the shared hero controls', async () => {

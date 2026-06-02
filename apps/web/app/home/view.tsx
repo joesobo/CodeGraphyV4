@@ -10,6 +10,7 @@ import {
   installHref,
   optionalPackages,
   socialProofItems,
+  supportedLanguages,
   workflowSteps,
 } from './content';
 import { ForceNodeControls } from './forceNodeField/controls';
@@ -115,6 +116,50 @@ function FaqAnswer({ blocks }: { blocks: FaqAnswerBlock[] }): React.ReactElement
   );
 }
 
+function SupportedLanguageIcon({
+  iconPath,
+}: {
+  iconPath: string;
+}): React.ReactElement {
+  return (
+    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
+      <path d={iconPath} fill="currentColor" />
+    </svg>
+  );
+}
+
+function SupportedLanguageMarquee(): React.ReactElement {
+  const languageRows = [supportedLanguages, supportedLanguages];
+
+  return (
+    <div className="mt-8 border-t border-border pt-6">
+      <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Supported languages</p>
+      <div aria-label="Supported language examples" className="language-marquee mt-4">
+        <div className="language-marquee-track">
+          {languageRows.map((languages, rowIndex) => (
+            <div className="language-marquee-group" key={`language-row-${rowIndex}`}>
+              {languages.map(language => (
+                <a
+                  aria-label={`${language.label} example`}
+                  className="language-icon-link"
+                  href={language.exampleHref}
+                  key={`${rowIndex}-${language.label}`}
+                  rel="noreferrer"
+                  target="_blank"
+                  title={`${language.label} example`}
+                >
+                  <SupportedLanguageIcon iconPath={language.icon.path} />
+                  <span className="sr-only">{language.label}</span>
+                </a>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function HomeView(): React.ReactElement {
   return (
     <>
@@ -158,7 +203,7 @@ export function HomeView(): React.ReactElement {
               <div>
                 <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Example graphs</p>
                 <h2 className="site-heading text-4xl sm:text-5xl">
-                  Open repos, from a birds eye view.
+                  Open repos from above.
                 </h2>
               </div>
               <p className="text-lg leading-8 text-muted-foreground">
@@ -199,7 +244,7 @@ export function HomeView(): React.ReactElement {
         <section className="section-plain border-y border-border/70">
           <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 md:grid-cols-[0.8fr_1fr] md:px-8">
             <div>
-              <p className="section-kicker-orange mb-3 text-xs font-black uppercase tracking-[0.08em]">Problem</p>
+              <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Problem</p>
               <h2 className="site-heading text-4xl sm:text-5xl">
                 Organization can be hard, folders are just one opinion.
               </h2>
@@ -225,7 +270,7 @@ export function HomeView(): React.ReactElement {
                 </h2>
               </div>
               <p className="text-lg leading-8 text-muted-foreground">
-                Instead of arbitrary categories, CodeGraphy leans into spatial awareness. Nearby nodes are naturally more relevant to what you are working on, and distant groups show where systems pulling apart internally.
+                Instead of arbitrary categories, CodeGraphy leans into spatial awareness. Nearby nodes are naturally more relevant to what you are working on, and distant groups show where systems are pulling apart internally.
               </p>
             </div>
             <div className="workflow-studio mt-8 grid gap-4 p-4 lg:grid-cols-[1.05fr_0.75fr]">
@@ -263,14 +308,14 @@ export function HomeView(): React.ReactElement {
           <div className="mx-auto max-w-7xl px-5 py-20 md:px-8">
             <Card className="notebook-card p-5 md:p-6">
               <div className="border-b border-border pb-5">
-                <p className="section-kicker-orange text-xs font-black uppercase tracking-[0.08em]">Core</p>
+                <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Core</p>
                 <div className="mt-3 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
                   <div>
                     <h2 className="site-heading max-w-3xl text-4xl sm:text-[3rem]">
                       Features.
                     </h2>
                     <p className="mt-2 max-w-3xl leading-7 text-muted-foreground">
-                      Install CodeGraphy, index a project, and start moving through the graphs connections.
+                      Install CodeGraphy, index a project, and start moving through the connection map.
                     </p>
                   </div>
                   <div className="flex flex-col gap-3 sm:flex-row">
@@ -304,11 +349,22 @@ export function HomeView(): React.ReactElement {
                             <h3 className="text-xl font-bold">{item.title}</h3>
                           </div>
                           <p className="leading-7 text-muted-foreground">{item.text}</p>
+                          {'href' in item ? (
+                            <a
+                              className="mt-4 inline-flex text-sm font-bold text-[hsl(var(--brand-blue))] underline-offset-4 hover:underline"
+                              href={item.href}
+                              rel="noreferrer"
+                              target="_blank"
+                            >
+                              {item.linkLabel}
+                            </a>
+                          ) : null}
                         </div>
                       </Card>
                     );
                   })}
               </div>
+              <SupportedLanguageMarquee />
             </Card>
           </div>
         </section>
@@ -364,7 +420,7 @@ export function HomeView(): React.ReactElement {
 
         <section className="section-plain border-y border-border/70" id="faq">
           <div className="mx-auto max-w-7xl px-5 py-20 md:px-8">
-            <p className="section-kicker-orange mb-3 text-xs font-black uppercase tracking-[0.08em]">FAQ</p>
+            <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">FAQ</p>
             <h2 className="site-heading max-w-4xl text-4xl sm:text-5xl">
               Questions worth answering.
             </h2>
@@ -389,23 +445,23 @@ export function HomeView(): React.ReactElement {
 
         <section className="section-cta relative overflow-hidden" data-force-field-section="true">
           <div className="force-field-background home-hero-overlay section-cta-overlay absolute inset-0" />
-          <div className="force-field-content mx-auto grid max-w-7xl gap-10 px-5 py-24 md:grid-cols-[0.9fr_1fr] md:items-center md:px-8">
+          <div className="force-field-content mx-auto grid max-w-7xl gap-8 px-5 py-14 md:grid-cols-[1fr_0.72fr] md:items-center md:px-8 md:py-16">
             <div className="max-w-3xl">
-              <p className="section-kicker-orange mb-3 text-xs font-black uppercase tracking-[0.08em]">Start graphing</p>
-              <h2 className="site-heading max-w-3xl text-4xl sm:text-5xl">
-                Let the graph show you where the code already wants to go.
+              <p className="section-kicker-blue mb-3 text-xs font-black uppercase tracking-[0.08em]">Start graphing</p>
+              <h2 className="site-heading max-w-2xl text-3xl sm:text-4xl">
+                Map the repo in front of you.
               </h2>
-              <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
-                Explore the many ways to use CodeGraphy with your codebase, and see how it can help you understand and change your code with confidence.
+              <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
+                Install the extension, open a project, and see the connections already inside the code.
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <Button asChild>
                   <a href={installHref}>
                     <VsCodeIcon className="h-[18px] w-[18px]" />
                     Install CodeGraphy
                   </a>
                 </Button>
-                <Button asChild size="lg" variant="outline">
+                <Button asChild variant="outline">
                   <a href={githubHref}>
                     <GitHubIcon className="h-[18px] w-[18px]" />
                     GitHub
@@ -413,10 +469,10 @@ export function HomeView(): React.ReactElement {
                 </Button>
               </div>
             </div>
-            <div className="section-cta-graph-window">
+            <div className="section-cta-graph-window md:ml-auto md:w-full md:max-w-[34rem]">
               <img
                 alt=""
-                className="h-full w-full object-cover"
+                className="aspect-[16/9] h-full w-full object-cover"
                 src="/product-media/large-repo-graph.png"
               />
             </div>
