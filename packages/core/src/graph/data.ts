@@ -8,6 +8,7 @@ import type {
   IPlugin,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
+import { requiresSymbolAnalysisCacheTier } from '../analysis/fileAnalysis/cacheTiers';
 import { DEFAULT_NODE_COLOR } from '../fileColors';
 import type { IGraphData } from './contracts';
 import { buildWorkspaceGraphEdges } from './edges';
@@ -31,6 +32,7 @@ export interface IWorkspaceGraphDataOptions {
 
 export interface IWorkspaceGraphAnalysisDataOptions extends Omit<IWorkspaceGraphDataOptions, 'fileConnections'> {
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
+  nodeVisibility?: Readonly<Record<string, boolean>>;
 }
 
 function createContainingFileNode(
@@ -50,14 +52,23 @@ function collectConnectedAnalysisFileIds(
   fileAnalysis: IWorkspaceGraphAnalysisDataOptions['fileAnalysis'],
   workspaceRoot: string,
   containingFileIds: Iterable<string>,
+  options: { includeSymbols: boolean },
 ): Set<string> {
   const connectedAnalysisFileIds = new Set(containingFileIds);
   for (const [filePath, analysis] of fileAnalysis) {
-    if ((analysis.relations?.length ?? 0) > 0 || (analysis.symbols?.length ?? 0) > 0) {
+    const hasRelations = (analysis.relations?.length ?? 0) > 0;
+    const hasSymbols = options.includeSymbols && (analysis.symbols?.length ?? 0) > 0;
+    if (hasRelations || hasSymbols) {
       connectedAnalysisFileIds.add(toRepoRelativeGraphPath(filePath, workspaceRoot));
     }
   }
   return connectedAnalysisFileIds;
+}
+
+function shouldProjectSymbolGraph(
+  nodeVisibility: IWorkspaceGraphAnalysisDataOptions['nodeVisibility'],
+): boolean {
+  return requiresSymbolAnalysisCacheTier(nodeVisibility ?? {});
 }
 
 export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IGraphData {
@@ -93,19 +104,23 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
 export function buildWorkspaceGraphDataFromAnalysis(
   options: IWorkspaceGraphAnalysisDataOptions,
 ): IGraphData {
+  const projectSymbolGraph = shouldProjectSymbolGraph(options.nodeVisibility);
   const graphData = buildWorkspaceGraphData({
     ...options,
     fileConnections: projectFileAnalysisConnections(options.fileAnalysis, options.workspaceRoot),
   });
-  const symbolGraph = buildSymbolNodesAndEdges(options.fileAnalysis, options.workspaceRoot, {
-    cacheFiles: options.cacheFiles,
-    churnCounts: options.churnCounts,
-  });
+  const symbolGraph = projectSymbolGraph
+    ? buildSymbolNodesAndEdges(options.fileAnalysis, options.workspaceRoot, {
+        cacheFiles: options.cacheFiles,
+        churnCounts: options.churnCounts,
+      })
+    : { containingFileIds: new Set<string>(), edges: [], nodes: [] };
   const existingNodeIds = new Set(graphData.nodes.map(node => node.id));
   const connectedAnalysisFileIds = collectConnectedAnalysisFileIds(
     options.fileAnalysis,
     options.workspaceRoot,
     symbolGraph.containingFileIds,
+    { includeSymbols: projectSymbolGraph },
   );
   const containingFileNodes = Array.from(connectedAnalysisFileIds)
     .filter(filePath => !existingNodeIds.has(filePath))

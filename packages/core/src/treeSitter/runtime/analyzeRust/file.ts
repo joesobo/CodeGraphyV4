@@ -14,6 +14,10 @@ import {
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from '../analyze/model';
 import { normalizeAnalysisResult } from '../analyze/results';
 import { walkTree } from '../analyze/walk';
+import {
+  shouldIncludeTreeSitterSymbols,
+  type TreeSitterAnalysisOptions,
+} from '../options';
 
 const RUST_NAMED_SYMBOL_KINDS = {
   enum_item: 'enum',
@@ -44,6 +48,7 @@ function visitRustNode(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): TreeWalkAction<SymbolWalkState> | void {
   if (node.type === 'use_declaration') {
     return handleRustUseDeclaration(node, filePath, workspaceRoot, relations, importedBindings);
@@ -54,12 +59,14 @@ function visitRustNode(
     return;
   }
 
-  if (handleRustNamedItem(node, filePath, symbols)) {
+  if (symbolsEnabled && handleRustNamedItem(node, filePath, symbols)) {
     return;
   }
 
   if (node.type === 'function_item') {
-    return handleRustFunctionItem(node, filePath, symbols, walk);
+    return symbolsEnabled
+      ? handleRustFunctionItem(node, filePath, symbols, walk)
+      : undefined;
   }
 
   if (node.type === 'call_expression') {
@@ -71,10 +78,12 @@ export function analyzeRustFile(
   filePath: string,
   tree: Parser.Tree,
   workspaceRoot: string,
+  options: TreeSitterAnalysisOptions = {},
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
   walkTree(tree.rootNode, {}, (node, state, walk) =>
     visitRustNode(
       node,
@@ -85,6 +94,7 @@ export function analyzeRustFile(
       relations,
       symbols,
       importedBindings,
+      symbolsEnabled,
     ),
   );
   return normalizeAnalysisResult(filePath, symbols, relations);

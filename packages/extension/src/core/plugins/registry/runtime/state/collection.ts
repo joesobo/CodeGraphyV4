@@ -99,6 +99,25 @@ export abstract class PluginRegistryCollection extends PluginRegistryState {
     );
   }
 
+  async analyzeFileResultForPlugins(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+    pluginIds: readonly string[],
+    analysisContext?: IPluginAnalysisContext,
+  ): Promise<IFileAnalysisResult | null> {
+    return analyzeFileResult(
+      filePath,
+      content,
+      workspaceRoot,
+      this._plugins,
+      this._extensionMap,
+      this._coreAnalyzeFileResult,
+      analysisContext,
+      { pluginIds: new Set(pluginIds) },
+    );
+  }
+
   list(): IPluginInfo[] {
     return Array.from(this._plugins.values());
   }

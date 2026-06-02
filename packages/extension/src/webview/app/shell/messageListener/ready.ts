@@ -15,3 +15,7 @@ export function postWebviewReadyOnce(targetWindow: Window): void {
     postMessage({ type: 'WEBVIEW_READY', payload: null });
   }
 }
+
+export function resetWebviewReadyPosted(targetWindow: Window): void {
+  delete (targetWindow as WindowWithCodeGraphyReadyFlag).__codegraphyWebviewReadyPosted;
+}

@@ -1,6 +1,6 @@
 import type { IWorkspaceAnalysisCache } from '../../cache';
 import { clearWorkspacePipelineCache } from '../../analysis/state';
-import { saveWorkspaceAnalysisDatabaseCache } from '../../database/cache/storage';
+import { saveWorkspaceAnalysisDatabaseCacheAsync } from '../../database/cache/storage';
 
 export function clearWorkspacePipelineStoredCache(
   workspaceRoot: string | undefined,
@@ -18,9 +18,8 @@ export function persistWorkspacePipelineCache(
     return;
   }
 
-  try {
-    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
-  } catch (error) {
-    warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
-  }
+  void saveWorkspaceAnalysisDatabaseCacheAsync(workspaceRoot, cache)
+    .catch((error: unknown) => {
+      warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
+    });
 }

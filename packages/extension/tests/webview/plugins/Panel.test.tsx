@@ -3,6 +3,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import PluginsPanel from '../../../src/webview/components/plugins/Panel';
 import { graphStore } from '../../../src/webview/store/state';
 import type { IPluginStatus } from '../../../src/shared/plugins/status';
+import { PluginRegistry } from '../../../src/core/plugins/registry/manager';
+import { buildWorkspaceIndexPluginStatuses as buildWorkspacePluginStatuses } from '@codegraphy-dev/core';
 
 const sentMessages: unknown[] = [];
 
@@ -58,6 +60,43 @@ describe('PluginsPanel', () => {
     expect(screen.queryByText('Bottom runs first. Top wins.')).not.toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
     expect(screen.queryByText('12')).not.toBeInTheDocument();
+  });
+
+  it('renders a toggle for package plugins registered by the extension status update', () => {
+    const registry = new PluginRegistry();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    registry.register(
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript/JavaScript',
+        version: '2.1.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts', '.tsx'],
+        analyzeFile: vi.fn(),
+      },
+      {
+        sourcePackage: '@codegraphy-dev/plugin-typescript',
+        sourcePackageRoot: '/global/node_modules/@codegraphy-dev/plugin-typescript',
+      },
+    );
+    logSpy.mockRestore();
+    const plugins = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [{ relativePath: 'src/index.ts' }],
+      fileConnections: new Map([['src/index.ts', []]]),
+      pluginInfos: registry.list(),
+      workspaceEnabledPackageNames: new Set(['@codegraphy-dev/plugin-typescript']),
+    });
+
+    graphStore.getState().handleExtensionMessage({
+      type: 'PLUGINS_UPDATED',
+      payload: { plugins },
+    });
+    render(<PluginsPanel isOpen onClose={vi.fn()} />);
+
+    expect(screen.queryByText('No plugins registered.')).not.toBeInTheDocument();
+    expect(screen.getByText('TypeScript/JavaScript')).toBeInTheDocument();
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
   });
 
   it('calls onClose when the close button is clicked', () => {

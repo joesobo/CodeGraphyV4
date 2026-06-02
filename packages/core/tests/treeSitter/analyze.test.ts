@@ -176,6 +176,47 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
       );
     });
 
+    it('skips TypeScript symbols when relation-only analysis is requested', async () => {
+      const workspaceRoot = await createWorkspace({
+        'src/lib.ts': 'export function boot() { return true; }\n',
+      });
+      const appPath = path.join(workspaceRoot, 'src/app.ts');
+      const appSource = [
+        "import { boot } from './lib';",
+        'function run() {',
+        '  boot();',
+        '}',
+        '',
+      ].join('\n');
+
+      const result = await analyzeFileWithTreeSitter(
+        appPath,
+        appSource,
+        workspaceRoot,
+        { includeSymbols: false },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.symbols).toEqual([]);
+      expect(result?.relations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'import',
+            specifier: './lib',
+            resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
+          }),
+          expect.objectContaining({
+            kind: 'call',
+            sourceId: 'codegraphy.treesitter:call',
+            resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
+          }),
+        ]),
+      );
+      expect(result?.relations?.some(relation =>
+        Boolean(relation.fromSymbolId || relation.toSymbolId),
+      )).toBe(false);
+    });
+
 
 
     it('extracts TypeScript type-only imports as type-import relations', async () => {

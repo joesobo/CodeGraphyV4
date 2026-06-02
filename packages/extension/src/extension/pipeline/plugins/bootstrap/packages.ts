@@ -3,10 +3,33 @@ import {
   type CodeGraphyWorkspaceSettings,
 } from '@codegraphy-dev/core';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
+import type { WorkspacePipelinePluginRegistration } from './builtIns';
 
 export interface WorkspacePackagePluginRegistrationDependencies {
   userHomeDir?: string;
   warn?: (message: string) => void;
+}
+
+export async function loadWorkspacePackagePluginRegistrations(
+  settings: CodeGraphyWorkspaceSettings,
+  workspaceRoot: string,
+  dependencies: WorkspacePackagePluginRegistrationDependencies,
+): Promise<WorkspacePipelinePluginRegistration[]> {
+  const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+    settings,
+    workspaceRoot,
+    homeDir: dependencies.userHomeDir,
+    warn: dependencies.warn,
+  });
+
+  return loadedPackagePlugins.map(loadedPlugin => ({
+    plugin: loadedPlugin.plugin,
+    options: {
+      sourcePackage: loadedPlugin.packageName,
+      sourcePackageRoot: loadedPlugin.record.packageRoot,
+      ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
+    },
+  }));
 }
 
 export async function registerWorkspacePackagePlugins(
@@ -15,18 +38,13 @@ export async function registerWorkspacePackagePlugins(
   workspaceRoot: string,
   dependencies: WorkspacePackagePluginRegistrationDependencies,
 ): Promise<void> {
-  const loadedPackagePlugins = await loadCodeGraphyWorkspacePluginPackages({
+  const registrations = await loadWorkspacePackagePluginRegistrations(
     settings,
     workspaceRoot,
-    homeDir: dependencies.userHomeDir,
-    warn: dependencies.warn,
-  });
+    dependencies,
+  );
 
-  for (const loadedPlugin of loadedPackagePlugins) {
-    registry.register(loadedPlugin.plugin, {
-      sourcePackage: loadedPlugin.packageName,
-      sourcePackageRoot: loadedPlugin.record.packageRoot,
-      ...(loadedPlugin.options ? { options: loadedPlugin.options } : {}),
-    });
+  for (const registration of registrations) {
+    registry.register(registration.plugin, registration.options);
   }
 }

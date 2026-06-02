@@ -169,6 +169,56 @@ describe('plugins/routing', () => {
     consoleError.mockRestore();
   });
 
+  it('limits plugin analysis to selected plugin ids when requested', async () => {
+    const selected = plugin('selected', ['.ts'], vi.fn(async () => ({
+      filePath: 'src/app.ts',
+      relations: [relation({
+        sourceId: 'selected-import',
+        fromFilePath: 'src/app.ts',
+        toFilePath: 'src/selected.ts',
+      })],
+    })));
+    const skipped = plugin('skipped', ['.ts'], vi.fn(async () => ({
+      filePath: 'src/app.ts',
+      relations: [relation({
+        sourceId: 'skipped-import',
+        fromFilePath: 'src/app.ts',
+        toFilePath: 'src/skipped.ts',
+      })],
+    })));
+    const plugins = new Map<string, IRoutablePluginInfo>([
+      ['selected', { plugin: selected }],
+      ['skipped', { plugin: skipped }],
+    ]);
+    const extensionMap = new Map([['.ts', ['selected', 'skipped']]]);
+
+    await expect(analyzeFileResult(
+      'src/app.ts',
+      'content',
+      '/workspace',
+      plugins,
+      extensionMap,
+      undefined,
+      undefined,
+      { pluginIds: new Set(['selected']) },
+    )).resolves.toEqual({
+      filePath: 'src/app.ts',
+      nodes: [],
+      relations: [{
+        kind: 'import',
+        sourceId: 'selected-import',
+        fromFilePath: 'src/app.ts',
+        toFilePath: 'src/selected.ts',
+        pluginId: 'selected',
+      }],
+      symbols: [],
+      nodeTypes: [],
+      edgeTypes: [],
+    });
+    expect(selected.analyzeFile).toHaveBeenCalledOnce();
+    expect(skipped.analyzeFile).not.toHaveBeenCalled();
+  });
+
   it('returns normalized core analysis when no plugins match', async () => {
     await expect(analyzeFileResult(
       'README.md',

@@ -6,11 +6,19 @@ import {
   projectConnectionMapFromFileAnalysis,
   projectProjectedConnectionsFromFileAnalysis,
 } from '../projection';
+import { mergeFileAnalysisResults } from '../../plugins/routing/router/results/merge';
+import {
+  hasRequiredAnalysisCacheTiers,
+  markAnalysisCacheTiers,
+  projectAnalysisForCacheTiers,
+  SYMBOLS_ANALYSIS_CACHE_TIER,
+} from './cacheTiers';
 import { enrichWorkspaceFileAnalysis } from './enrichment';
 import type {
   IWorkspaceFileAnalysisOptions,
   IWorkspaceFileAnalysisResult,
   IWorkspaceFileAnalysisState,
+  WorkspaceFileAnalysisRequest,
   WorkspaceFileStat,
 } from './types';
 
@@ -18,9 +26,56 @@ function createWorkspaceFileAnalysisState(): IWorkspaceFileAnalysisState {
   return {
     cacheHits: 0,
     cacheMisses: 0,
+    cacheMissFilePaths: new Set(),
     fileAnalysis: new Map<string, IFileAnalysisResult>(),
     fileConnections: new Map<string, IProjectedConnection[]>(),
+    preAnalysisCompleted: false,
   };
+}
+
+function prepareAnalysisForActiveCacheTiers(
+  options: IWorkspaceFileAnalysisOptions,
+  analysis: IFileAnalysisResult,
+): IFileAnalysisResult {
+  return projectAnalysisForCacheTiers(analysis, options.cacheTiers?.active);
+}
+
+function createWorkspaceFileAnalysisRequest(
+  options: IWorkspaceFileAnalysisOptions,
+): WorkspaceFileAnalysisRequest {
+  return {
+    features: {
+      symbols: options.cacheTiers?.active === undefined
+        || options.cacheTiers.active.includes(SYMBOLS_ANALYSIS_CACHE_TIER),
+    },
+  };
+}
+
+function mergeReusableAnalysisForCacheStorage(
+  reusableAnalysis: IFileAnalysisResult,
+  projectedAnalysis: IFileAnalysisResult,
+): IFileAnalysisResult {
+  const mergedAnalysis = mergeFileAnalysisResults(reusableAnalysis, projectedAnalysis) as IFileAnalysisResult & {
+    cache?: unknown;
+  };
+  mergedAnalysis.cache = (reusableAnalysis as { cache?: unknown }).cache;
+  return mergedAnalysis;
+}
+
+function prepareAnalysisForCacheStorage(
+  options: IWorkspaceFileAnalysisOptions,
+  analysis: IFileAnalysisResult,
+  reusableAnalysis?: IFileAnalysisResult,
+): IFileAnalysisResult {
+  const projectedAnalysis = prepareAnalysisForActiveCacheTiers(options, analysis);
+  const storageAnalysis = reusableAnalysis && options.cacheTiers?.active !== undefined
+    ? mergeReusableAnalysisForCacheStorage(reusableAnalysis, projectedAnalysis)
+    : projectedAnalysis;
+
+  return markAnalysisCacheTiers(
+    storageAnalysis,
+    options.cacheTiers?.completed,
+  );
 }
 
 function getCurrentFileCount(state: IWorkspaceFileAnalysisState): number {
@@ -60,8 +115,25 @@ function readCacheHitAnalysis(
     return undefined;
   }
 
+  if (!hasRequiredAnalysisCacheTiers(cached.analysis, options.cacheTiers?.required)) {
+    return undefined;
+  }
+
   if (cached.size === undefined && stat?.size !== undefined) {
     cached.size = stat.size;
+  }
+
+  return prepareAnalysisForActiveCacheTiers(options, cached.analysis);
+}
+
+function readReusableCacheAnalysis(
+  options: IWorkspaceFileAnalysisOptions,
+  file: IDiscoveredFile,
+  stat: WorkspaceFileStat,
+): IFileAnalysisResult | undefined {
+  const cached = options.cache.files[file.relativePath];
+  if (!cached || cached.mtime !== stat?.mtime) {
+    return undefined;
   }
 
   return cached.analysis;
@@ -78,18 +150,49 @@ function recordCacheHit(
   emitWorkspaceFileProgress(options, state, file);
 }
 
+async function ensureWorkspaceFilePreAnalysis(
+  options: IWorkspaceFileAnalysisOptions,
+  state: IWorkspaceFileAnalysisState,
+): Promise<void> {
+  if (state.preAnalysisCompleted) {
+    return;
+  }
+
+  state.preAnalysisCompleted = true;
+  throwIfWorkspaceAnalysisAborted(options.signal);
+  await options.preAnalyzeFiles?.(
+    [...options.files],
+    options.workspaceRoot,
+    options.signal,
+  );
+  throwIfWorkspaceAnalysisAborted(options.signal);
+}
+
 async function analyzeCacheMiss(
   options: IWorkspaceFileAnalysisOptions,
   state: IWorkspaceFileAnalysisState,
   file: IDiscoveredFile,
   stat: WorkspaceFileStat,
+  reusableAnalysis?: IFileAnalysisResult,
 ): Promise<void> {
   state.cacheMisses += 1;
+  state.cacheMissFilePaths.add(file.relativePath);
   throwIfWorkspaceAnalysisAborted(options.signal);
+  await ensureWorkspaceFilePreAnalysis(options, state);
   const content = await options.readContent(file);
   throwIfWorkspaceAnalysisAborted(options.signal);
-  const analysis = await options.analyzeFile(file.absolutePath, content, options.workspaceRoot);
-  const connections = recordWorkspaceFileAnalysis(state, file, analysis);
+  const cacheAnalysis = prepareAnalysisForCacheStorage(
+    options,
+    await options.analyzeFile(
+      file.absolutePath,
+      content,
+      options.workspaceRoot,
+      createWorkspaceFileAnalysisRequest(options),
+    ),
+    reusableAnalysis,
+  );
+  const activeAnalysis = prepareAnalysisForActiveCacheTiers(options, cacheAnalysis);
+  const connections = recordWorkspaceFileAnalysis(state, file, activeAnalysis);
 
   options.emitFileProcessed?.({
     filePath: file.relativePath,
@@ -102,7 +205,7 @@ async function analyzeCacheMiss(
 
   options.cache.files[file.relativePath] = {
     mtime: stat?.mtime ?? 0,
-    analysis,
+    analysis: cacheAnalysis,
     size: stat?.size,
   };
 }
@@ -121,14 +224,26 @@ async function analyzeWorkspaceFile(
     return;
   }
 
-  await analyzeCacheMiss(options, state, file, stat);
+  await analyzeCacheMiss(
+    options,
+    state,
+    file,
+    stat,
+    readReusableCacheAnalysis(options, file, stat),
+  );
 }
 
 function updateCachedEnrichedAnalysis(
   options: IWorkspaceFileAnalysisOptions,
   enrichedFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
 ): void {
+  const symbolTierIsInactive = options.cacheTiers?.active !== undefined
+    && !options.cacheTiers.active.includes(SYMBOLS_ANALYSIS_CACHE_TIER);
+
   for (const [relativePath, analysis] of enrichedFileAnalysis.entries()) {
+    if (symbolTierIsInactive) {
+      continue;
+    }
     options.cache.files[relativePath].analysis = analysis;
   }
 }

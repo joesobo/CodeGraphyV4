@@ -19,8 +19,16 @@ export function createTreeSitterPlugin(): IPlugin {
       filePath: string,
       content: string,
       workspaceRoot: string,
+      context,
     ): Promise<IFileAnalysisResult> {
-      return await analyzeFileWithTreeSitter(filePath, content, workspaceRoot) ?? {
+      const options = context?.features?.symbols === false
+        ? { includeSymbols: false }
+        : undefined;
+      const analysis = options
+        ? await analyzeFileWithTreeSitter(filePath, content, workspaceRoot, options)
+        : await analyzeFileWithTreeSitter(filePath, content, workspaceRoot);
+
+      return analysis ?? {
         filePath,
         edgeTypes: [],
         nodeTypes: [],

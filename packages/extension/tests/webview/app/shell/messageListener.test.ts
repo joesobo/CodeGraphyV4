@@ -243,4 +243,19 @@ describe('app message listener', () => {
     firstCleanup();
     secondCleanup();
   });
+
+  it('posts WEBVIEW_READY again after the previous listener is cleaned up', () => {
+    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
+    const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
+
+    const firstCleanup = setupMessageListener(injectPluginAssets, pluginHost);
+    firstCleanup();
+    const secondCleanup = setupMessageListener(injectPluginAssets, pluginHost);
+
+    expect(postMessage).toHaveBeenCalledTimes(2);
+    expect(postMessage).toHaveBeenNthCalledWith(1, { type: 'WEBVIEW_READY', payload: null });
+    expect(postMessage).toHaveBeenNthCalledWith(2, { type: 'WEBVIEW_READY', payload: null });
+
+    secondCleanup();
+  });
 });

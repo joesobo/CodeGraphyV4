@@ -1,5 +1,16 @@
 # @codegraphy-dev/plugin-typescript
 
+## 2.2.0
+
+### Minor Changes
+
+- [#225](https://github.com/joesobo/CodeGraphyV4/pull/225) [`4594cdc`](https://github.com/joesobo/CodeGraphyV4/commit/4594cdc097b6fafabc014411f01ef0a12ee725d6) Thanks [@joesobo](https://github.com/joesobo)! - Add TypeScript Alias Import relationships from `compilerOptions.paths` so alias-based imports appear as a separate, toggleable edge type in CodeGraphy.
+
+### Patch Changes
+
+- Updated dependencies [[`feac4c1`](https://github.com/joesobo/CodeGraphyV4/commit/feac4c15fb7b6555c1ae5d6d2655a7b6debc7f4c)]:
+  - @codegraphy-dev/plugin-api@3.1.2
+
 ## 2.1.2
 
 ### Patch Changes

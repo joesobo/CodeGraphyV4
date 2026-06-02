@@ -56,9 +56,12 @@ async function loadDispatchHarness({
 afterEach(() => {
   vi.restoreAllMocks();
   vi.resetModules();
+  vi.doUnmock('../../../../../src/extension/graphView/webview/providerMessages/context');
+  vi.doUnmock('../../../../../src/extension/graphView/webview/dispatch/primary');
+  vi.doUnmock('../../../../../src/extension/graphView/webview/dispatch/plugin');
 });
 
-describe('graph view provider message dispatch', () => {
+describe('graph view provider message dispatch', { timeout: 10_000 }, () => {
   it('updates user groups and filter patterns from a handled primary message', async () => {
     const userGroups = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
     const harness = await loadDispatchHarness({

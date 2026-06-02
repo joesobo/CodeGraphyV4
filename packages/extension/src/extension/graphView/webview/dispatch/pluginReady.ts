@@ -1,11 +1,13 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { applyWebviewReady } from '../messages/ready';
 
 type GraphViewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW_READY' }>;
 
 export interface GraphViewPluginReadyContext {
+  getGraphData(): IGraphData;
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
@@ -32,6 +34,7 @@ export interface GraphViewPluginReadyContext {
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginStatuses?(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
   sendGraphViewContributionStatuses?(): void;
@@ -58,6 +61,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       readyNotified: context.isWebviewReadyNotified(),
     },
     {
+      getGraphData: () => context.getGraphData(),
       getFilterPatterns: () => context.getFilterPatterns(),
       getPluginFilterPatterns: () => context.getPluginFilterPatterns(),
       getPluginFilterGroups: () => context.getPluginFilterGroups?.() ?? [],
@@ -75,6 +79,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       sendCachedTimeline: () => context.sendCachedTimeline(),
       sendDecorations: () => context.sendDecorations(),
       sendContextMenuItems: () => context.sendContextMenuItems(),
+      sendPluginStatuses: () => context.sendPluginStatuses?.(),
       sendPluginExporters: () => context.sendPluginExporters?.(),
       sendPluginToolbarActions: () => context.sendPluginToolbarActions?.(),
       sendGraphViewContributionStatuses: () => context.sendGraphViewContributionStatuses?.(),

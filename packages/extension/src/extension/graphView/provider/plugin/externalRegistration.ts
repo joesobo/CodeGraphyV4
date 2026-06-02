@@ -21,14 +21,14 @@ export function createGraphViewProviderExternalPluginRegistration(
   source: GraphViewProviderPluginMethodsSource,
   dependencies: GraphViewProviderExternalPluginRegistrationDependencies,
   broadcasts: GraphViewProviderPluginBroadcastMethods,
-): (plugin: unknown, options?: GraphViewExternalPluginRegistrationOptions) => void {
+): (plugin: unknown, options?: GraphViewExternalPluginRegistrationOptions) => Promise<void> {
   const resolved = {
     ...DEFAULT_GRAPH_VIEW_PROVIDER_EXTERNAL_PLUGIN_REGISTRATION_DEPENDENCIES,
     ...dependencies,
   };
 
-  return (plugin: unknown, options?: GraphViewExternalPluginRegistrationOptions): void => {
-    resolved.registerExternalPlugin(
+  return (plugin: unknown, options?: GraphViewExternalPluginRegistrationOptions): Promise<void> => {
+    return resolved.registerExternalPlugin(
       plugin,
       options,
       {
@@ -60,6 +60,11 @@ export function createGraphViewProviderExternalPluginRegistration(
         sendPluginWebviewInjections: () => broadcasts._sendPluginWebviewInjections(),
         invalidateTimelineCache: () => source._invalidateTimelineCache(),
         reprocessPluginFiles: async (pluginIds) => {
+          if (source.refreshPluginFiles) {
+            await source.refreshPluginFiles(pluginIds);
+            return;
+          }
+
           const invalidatedFilePaths = source.invalidatePluginFiles(pluginIds);
           if (invalidatedFilePaths.length === 0) {
             return;

@@ -1,13 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
+
+import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import {
+  refreshWorkspaceIndexAnalysisScope,
   refreshWorkspaceIndexChangedFiles,
+  refreshWorkspaceIndexPluginFiles,
   type WorkspaceIndexRefreshDependencies,
   type WorkspaceIndexRefreshSource,
-} from '../../src';
+} from '../../src/indexing/refresh';
 import type { IDiscoveredFile } from '../../src/discovery/contracts';
 import type { IGraphData } from '../../src/graph/contracts';
 
-function discovered(relativePath: string): IDiscoveredFile {
+function createDiscoveredFile(relativePath: string): IDiscoveredFile {
   const name = relativePath.split('/').at(-1) ?? relativePath;
   return {
     absolutePath: `/workspace/${relativePath}`,
@@ -17,7 +21,24 @@ function discovered(relativePath: string): IDiscoveredFile {
   };
 }
 
-function createSource(overrides: Partial<WorkspaceIndexRefreshSource> = {}): WorkspaceIndexRefreshSource {
+function createFileAnalysis(filePath: string): IFileAnalysisResult {
+  return {
+    filePath,
+    relations: [],
+  };
+}
+
+function createGraphNode(id: string) {
+  return {
+    color: '#808080',
+    id,
+    label: id.split('/').at(-1) ?? id,
+  };
+}
+
+function createSource(
+  overrides: Partial<WorkspaceIndexRefreshSource> = {},
+): WorkspaceIndexRefreshSource {
   const graph: IGraphData = {
     nodes: [{ color: '#808080', id: 'src/app.ts', label: 'app.ts', nodeType: 'file' }],
     edges: [],
@@ -27,17 +48,34 @@ function createSource(overrides: Partial<WorkspaceIndexRefreshSource> = {}): Wor
     _analyzeFiles: vi.fn(async (files: IDiscoveredFile[]) => ({
       cacheHits: 0,
       cacheMisses: files.length,
-      fileAnalysis: new Map(files.map(file => [file.absolutePath, {
-        filePath: file.absolutePath,
-        relations: [],
-      }])),
-      fileConnections: new Map(files.map(file => [file.absolutePath, []])),
+      fileAnalysis: new Map(files.map(file => [
+        file.relativePath,
+        createFileAnalysis(file.absolutePath),
+      ])),
+      fileConnections: new Map(files.map(file => [file.relativePath, []])),
     })),
-    _buildGraphDataFromAnalysis: vi.fn(() => graph),
-    _lastDiscoveredFiles: [],
-    _lastFileAnalysis: new Map(),
-    _lastFileConnections: new Map(),
-    _lastWorkspaceRoot: '',
+    _buildGraphData: vi.fn((fileConnections: Map<string, unknown[]>) => ({
+      nodes: [...fileConnections.keys()].map(createGraphNode),
+      edges: [],
+    })),
+    _buildGraphDataFromAnalysis: vi.fn((fileAnalysis: Map<string, IFileAnalysisResult>) => ({
+      nodes: [...fileAnalysis.keys()].map(createGraphNode),
+      edges: [],
+    })),
+    _lastDiscoveredDirectories: ['src'],
+    _lastDiscoveredFiles: [
+      createDiscoveredFile('README.md'),
+      createDiscoveredFile('src/plugin.ts'),
+      createDiscoveredFile('src/plain.txt'),
+    ],
+    _lastFileAnalysis: new Map<string, IFileAnalysisResult>(),
+    _lastFileConnections: new Map<string, unknown[]>([
+      ['README.md', []],
+      ['src/plugin.ts', []],
+      ['src/plain.txt', []],
+    ]) as Map<string, never>,
+    _lastWorkspaceRoot: '/workspace',
+    _preAnalyzePlugins: vi.fn(async () => undefined),
     _readAnalysisFiles: vi.fn(async (files: IDiscoveredFile[]) => files.map(file => ({
       absolutePath: file.absolutePath,
       relativePath: file.relativePath,
@@ -54,7 +92,8 @@ function refreshOptions(
 ): WorkspaceIndexRefreshDependencies {
   return {
     disabledPlugins: new Set(),
-    discoveredFiles: [discovered('src/app.ts')],
+    discoveredDirectories: ['src'],
+    discoveredFiles: [createDiscoveredFile('src/app.ts')],
     filePaths: ['/workspace/src/app.ts'],
     filterPatterns: [],
     notifyFilesChanged: vi.fn(async () => ({
@@ -69,6 +108,152 @@ function refreshOptions(
 }
 
 describe('indexing/refresh', () => {
+  it('lets file analysis own pre-analysis during analysis scope refreshes', async () => {
+    const source = createSource();
+    const sequence: string[] = [];
+    source._preAnalyzePlugins = vi.fn(async () => {
+      sequence.push('pre-analyze');
+    });
+    source._analyzeFiles = vi.fn(async () => {
+      sequence.push('analyze');
+      return {
+        cacheHits: 0,
+        cacheMisses: 1,
+        fileAnalysis: new Map<string, IFileAnalysisResult>(),
+        fileConnections: new Map(),
+      };
+    });
+
+    await refreshWorkspaceIndexAnalysisScope(source, {
+      disabledPlugins: new Set(),
+      discoveredDirectories: ['src'],
+      discoveredFiles: [createDiscoveredFile('src/plugin.ts')],
+      onProgress: vi.fn(),
+      persistCache: vi.fn(),
+      persistIndexMetadata: vi.fn(async () => undefined),
+      signal: undefined,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
+    expect(sequence).toEqual(['analyze']);
+  });
+
+  it('does not pre-analyze eagerly before a scope refresh can reuse cached analysis', async () => {
+    const source = createSource();
+    const discoveredFiles = [createDiscoveredFile('src/plugin.ts')];
+    source._analyzeFiles = vi.fn(async () => ({
+      cacheHits: 1,
+      cacheMisses: 0,
+      fileAnalysis: new Map<string, IFileAnalysisResult>([
+        ['src/plugin.ts', createFileAnalysis('/workspace/src/plugin.ts')],
+      ]),
+      fileConnections: new Map([
+        ['src/plugin.ts', []],
+      ]),
+    }));
+
+    await refreshWorkspaceIndexAnalysisScope(source, {
+      disabledPlugins: new Set(),
+      discoveredDirectories: ['src'],
+      discoveredFiles,
+      onProgress: vi.fn(),
+      persistCache: vi.fn(),
+      persistIndexMetadata: vi.fn(async () => undefined),
+      signal: undefined,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
+    expect(source._analyzeFiles).toHaveBeenCalledWith(
+      discoveredFiles,
+      '/workspace',
+      expect.any(Function),
+      undefined,
+    );
+  });
+
+  it('keeps discovered file nodes when refreshing plugin data from a discover-only graph', async () => {
+    const source = createSource();
+    const discoveredFiles = [
+      createDiscoveredFile('README.md'),
+      createDiscoveredFile('src/plugin.ts'),
+      createDiscoveredFile('src/plain.txt'),
+    ];
+
+    const graph = await refreshWorkspaceIndexPluginFiles(source, {
+      disabledPlugins: new Set(),
+      discoveredDirectories: ['src'],
+      discoveredFiles,
+      onProgress: vi.fn(),
+      persistCache: vi.fn(),
+      persistIndexMetadata: vi.fn(async () => undefined),
+      pluginIds: ['codegraphy.typescript'],
+      pluginInfos: [{
+        plugin: {
+          id: 'codegraphy.typescript',
+          supportedExtensions: ['.ts'],
+        },
+      }],
+      signal: undefined,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(source._analyzeFiles).toHaveBeenCalledWith(
+      [createDiscoveredFile('src/plugin.ts')],
+      '/workspace',
+      expect.any(Function),
+      undefined,
+      ['codegraphy.typescript'],
+    );
+    expect(graph.nodes.map(node => node.id)).toEqual([
+      'src/plugin.ts',
+      'README.md',
+      'src/plain.txt',
+    ]);
+  });
+
+  it('lets file analysis own pre-analysis during plugin file refreshes', async () => {
+    const source = createSource();
+    const sequence: string[] = [];
+    source._preAnalyzePlugins = vi.fn(async () => {
+      sequence.push('pre-analyze');
+    });
+    source._analyzeFiles = vi.fn(async () => {
+      sequence.push('analyze');
+      return {
+        cacheHits: 0,
+        cacheMisses: 1,
+        fileAnalysis: new Map<string, IFileAnalysisResult>(),
+        fileConnections: new Map(),
+      };
+    });
+
+    await refreshWorkspaceIndexPluginFiles(source, {
+      disabledPlugins: new Set(),
+      discoveredDirectories: ['src'],
+      discoveredFiles: [
+        createDiscoveredFile('README.md'),
+        createDiscoveredFile('src/plugin.ts'),
+      ],
+      onProgress: vi.fn(),
+      persistCache: vi.fn(),
+      persistIndexMetadata: vi.fn(async () => undefined),
+      pluginIds: ['codegraphy.typescript'],
+      pluginInfos: [{
+        plugin: {
+          id: 'codegraphy.typescript',
+          supportedExtensions: ['.ts'],
+        },
+      }],
+      signal: undefined,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
+    expect(sequence).toEqual(['analyze']);
+  });
+
   it('falls back to full analysis when changed paths no longer match discovered files', async () => {
     const source = createSource();
     const disabledPlugins = new Set<string>();
@@ -106,9 +291,11 @@ describe('indexing/refresh', () => {
     const graph: IGraphData = { nodes: [], edges: [] };
     const source = createSource({
       _buildGraphDataFromAnalysis: vi.fn(() => graph),
+      _lastFileConnections: new Map(),
     });
 
     await expect(refreshWorkspaceIndexChangedFiles(source, refreshOptions({
+      discoveredFiles: [],
       filePaths: ['/outside/src/app.ts'],
     }))).resolves.toBe(graph);
   });
@@ -120,8 +307,8 @@ describe('indexing/refresh', () => {
 
     await refreshWorkspaceIndexChangedFiles(source, refreshOptions({
       discoveredFiles: [
-        discovered('src/app.ts'),
-        discovered('src/generated.ts'),
+        createDiscoveredFile('src/app.ts'),
+        createDiscoveredFile('src/generated.ts'),
       ],
       notifyFilesChanged: vi.fn(async () => ({
         additionalFilePaths: ['src/generated.ts'],
@@ -133,8 +320,8 @@ describe('indexing/refresh', () => {
 
     expect(source._analyzeFiles).toHaveBeenCalledWith(
       [
-        discovered('src/app.ts'),
-        discovered('src/generated.ts'),
+        createDiscoveredFile('src/app.ts'),
+        createDiscoveredFile('src/generated.ts'),
       ],
       '/workspace',
       expect.any(Function),

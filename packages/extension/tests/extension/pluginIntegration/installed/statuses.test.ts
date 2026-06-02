@@ -15,6 +15,7 @@ const mockState = vi.hoisted(() => ({
     clearWorkspaceAnalysisDatabaseCache: vi.fn(),
     getWorkspaceAnalysisDatabasePath: vi.fn((workspaceRoot: string) => `${workspaceRoot}/.codegraphy/graph.lbug`),
     loadWorkspaceAnalysisDatabaseCache: vi.fn(() => ({ files: {}, version: '2.0.0' })),
+    loadWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => ({ files: {}, version: '2.0.0' })),
     readWorkspaceAnalysisDatabaseSnapshot: vi.fn(() => ({ files: [], symbols: [], relations: [] })),
     saveWorkspaceAnalysisDatabaseCacheAsync: vi.fn(async () => undefined),
   },
@@ -43,6 +44,7 @@ vi.mock('../../../../src/extension/pipeline/database/cache/storage.ts', () => ({
   clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
+  loadWorkspaceAnalysisDatabaseCacheAsync: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCacheAsync: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync,
 }));
@@ -209,6 +211,10 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       files: {},
       version: '2.0.0',
     });
+    mockState.databaseCache.loadWorkspaceAnalysisDatabaseCacheAsync.mockResolvedValue({
+      files: {},
+      version: '2.0.0',
+    });
     mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot.mockReturnValue({
       files: [],
       symbols: [],
@@ -261,9 +267,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       ]),
     );
     await internals._analysisMethods._analyzeAndSendData();
-    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
-      workspaceFixture!.workspacePath,
-    );
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).not.toHaveBeenCalled();
     expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCacheAsync).toHaveBeenCalled();
   }, 15000);
 
