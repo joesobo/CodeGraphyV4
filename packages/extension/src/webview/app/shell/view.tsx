@@ -132,7 +132,6 @@ export default function App(): React.ReactElement {
   const graphStatsLabel = buildGraphStatsLabel(
     loadedDisplayGraphData.nodes.length,
     loadedDisplayGraphData.edges.length,
-    { hasIndex: graphHasIndex },
   );
   const closeActivePanel = () => setActivePanel('none');
   const { countState, countTotal, excludedCount } = getShellGraphCountState({
