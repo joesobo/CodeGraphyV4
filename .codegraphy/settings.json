@@ -17,6 +17,7 @@
       "package": "@codegraphy-dev/plugin-godot"
     }
   ],
+  "pluginData": {},
   "nodeColors": {
     "file": "#A1A1AA",
     "folder": "#A1A1AA",
@@ -291,11 +292,5 @@
   "timeline": {
     "maxCommits": 500,
     "playbackSpeed": 1
-  },
-  "graphLayout": {
-    "collapsedNodes": {},
-    "pinnedNodes": {},
-    "sections": {},
-    "ownership": {}
   }
 }

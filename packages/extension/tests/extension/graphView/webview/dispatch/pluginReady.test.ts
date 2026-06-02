@@ -9,6 +9,7 @@ function createContext(
   overrides: Partial<GraphViewPluginReadyContext> = {},
 ): GraphViewPluginReadyContext {
   return {
+    getGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
     getFilterPatterns: vi.fn(() => ['src/**']),
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
     getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
@@ -85,7 +86,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     });
   });
 
-  it('waits for first workspace readiness and skips duplicate notification', async () => {
+  it('skips duplicate notification without blocking on first workspace readiness', async () => {
     const context = createContext({
       hasWorkspace: vi.fn(() => true),
       isFirstAnalysis: vi.fn(() => true),
@@ -96,7 +97,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
       dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY', payload: null }, context),
     ).resolves.toBe(true);
 
-    expect(context.waitForFirstWorkspaceReady).toHaveBeenCalledOnce();
+    expect(context.waitForFirstWorkspaceReady).not.toHaveBeenCalled();
     expect(context.notifyWebviewReady).not.toHaveBeenCalled();
   });
 

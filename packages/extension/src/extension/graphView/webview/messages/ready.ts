@@ -1,5 +1,6 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import { createExtensionDiagnosticLogger } from '../../../diagnostics/logger';
 
 export interface GraphViewReadyState {
@@ -16,6 +17,7 @@ export interface GraphViewReadyState {
 }
 
 export interface GraphViewReadyHandlers {
+  getGraphData(): IGraphData;
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
@@ -110,19 +112,47 @@ export function replayWebviewReadySettings(
   handlers.sendActiveFile();
 }
 
+export function replayWebviewReadyBootstrap(
+  state: GraphViewReadyState,
+  handlers: GraphViewReadyHandlers,
+): void {
+  replayWebviewReadySettings(state, handlers);
+  replayWebviewReadyGraphBootstrap(handlers);
+}
+
+export function replayWebviewReadyGraphBootstrap(
+  handlers: Pick<GraphViewReadyHandlers, 'getGraphData' | 'sendMessage'>,
+): void {
+  handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: handlers.getGraphData() });
+  handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+}
+
+export function shouldWaitForFirstWorkspaceGraph(state: GraphViewReadyState): boolean {
+  return state.hasWorkspace && state.firstAnalysis;
+}
+
+export async function replayDuplicateWebviewReady(
+  state: GraphViewReadyState,
+  handlers: GraphViewReadyHandlers,
+): Promise<void> {
+  replayWebviewReadySettings(state, handlers);
+
+  if (shouldWaitForFirstWorkspaceGraph(state)) {
+    return;
+  }
+
+  replayWebviewReadyGraphBootstrap(handlers);
+}
+
 export async function applyWebviewReady(
   state: GraphViewReadyState,
   handlers: GraphViewReadyHandlers,
 ): Promise<boolean> {
   replayWebviewReadySettings(state, handlers);
+
   await handlers.sendCachedTimeline();
   await handlers.loadAndSendData();
   handlers.sendPluginStatuses?.();
-
-  if (state.hasWorkspace && state.firstAnalysis) {
-    await handlers.waitForFirstWorkspaceReady();
-    handlers.sendGraphViewContributionStatuses?.();
-  }
 
   handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
   createExtensionDiagnosticLogger({

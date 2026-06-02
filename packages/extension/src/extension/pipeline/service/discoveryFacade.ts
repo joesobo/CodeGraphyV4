@@ -174,7 +174,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     return this._buildGraphData(
       fileConnections,
       workspaceRoot,
-      config.showOrphans,
+      true,
       disabledPlugins,
     );
   }
@@ -204,6 +204,8 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
   ): Promise<IGraphData> {
+    throwIfWorkspaceAnalysisAborted(signal);
+    await this._hydrateCacheFromGraphCache();
     throwIfWorkspaceAnalysisAborted(signal);
 
     const workspaceRoot = this._getWorkspaceRoot();

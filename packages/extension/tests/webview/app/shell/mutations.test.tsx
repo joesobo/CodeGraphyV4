@@ -273,6 +273,7 @@ describe('App (mutation targets)', () => {
   it('shows hidden-files hint when graph data is empty and orphans are disabled', () => {
     graphStore.setState({
       graphData: { nodes: [], edges: [] },
+      graphHasIndex: true,
       showOrphans: false,
       timelineActive: false,
     });

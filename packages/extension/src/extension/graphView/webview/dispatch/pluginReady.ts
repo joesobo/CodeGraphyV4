@@ -1,11 +1,13 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { applyWebviewReady } from '../messages/ready';
 
 type GraphViewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW_READY' }>;
 
 export interface GraphViewPluginReadyContext {
+  getGraphData(): IGraphData;
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
@@ -60,6 +62,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       readyNotified: context.isWebviewReadyNotified(),
     },
     {
+      getGraphData: () => context.getGraphData(),
       getFilterPatterns: () => context.getFilterPatterns(),
       getPluginFilterPatterns: () => context.getPluginFilterPatterns(),
       getPluginFilterGroups: () => context.getPluginFilterGroups?.() ?? [],

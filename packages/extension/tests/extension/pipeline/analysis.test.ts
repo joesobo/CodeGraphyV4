@@ -258,6 +258,39 @@ describe('WorkspacePipeline analysis', () => {
     expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot).relations.length).toBeGreaterThan(0);
   });
 
+  it('replays warm Graph Cache nodes and edges after a cold index', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/utils.ts': 'export const value = 1;\n',
+      'src/index.ts': "import { value } from './utils';\nconsole.log(value);\n",
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const coldAnalyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+
+    await coldAnalyzer.initialize();
+
+    const coldGraph = await coldAnalyzer.analyze();
+    expect(coldGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+
+    const warmAnalyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    await warmAnalyzer.initialize();
+
+    const warmGraph = await warmAnalyzer.loadCachedGraph();
+
+    expect(warmGraph.nodes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'src/index.ts', color: expect.stringMatching(/^#[0-9a-f]{6}$/i) }),
+        expect.objectContaining({ id: 'src/utils.ts', color: expect.stringMatching(/^#[0-9a-f]{6}$/i) }),
+      ]),
+    );
+    expect(warmGraph.edges.map(edge => edge.id)).toContain('src/index.ts->src/utils.ts#import');
+  });
+
   it('returns an empty graph when no workspace folder is open', async () => {
     workspaceFoldersValue = undefined;
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
