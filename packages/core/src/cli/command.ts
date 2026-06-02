@@ -39,9 +39,13 @@ function emitCliDiagnostic(
     return;
   }
 
-  const writeDiagnostic = dependencies.writeDiagnostic ?? ((line: string) => {
+  const writeDiagnostic = (line: string): void => {
+    if (dependencies.writeDiagnostic) {
+      dependencies.writeDiagnostic(line);
+      return;
+    }
     process.stderr.write(`${line}\n`);
-  });
+  };
   writeDiagnostic(formatDiagnosticEventLine(createDiagnosticEvent({
     area: 'cli',
     event,
@@ -73,13 +77,13 @@ export async function runCliCommand(
     case 'status':
       result = runStatusCommand(command.workspacePath, undefined, {
         verbose: command.verbose,
-        writeDiagnostic: dependencies.writeDiagnostic,
+        ...(dependencies.writeDiagnostic ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) } : {}),
       });
       break;
     case 'index':
       result = await runIndexCommand(command.workspacePath, undefined, {
         verbose: command.verbose,
-        writeDiagnostic: dependencies.writeDiagnostic,
+        ...(dependencies.writeDiagnostic ? { writeDiagnostic: line => dependencies.writeDiagnostic?.(line) } : {}),
       });
       break;
     case 'plugins':

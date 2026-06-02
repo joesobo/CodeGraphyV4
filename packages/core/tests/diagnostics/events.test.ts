@@ -54,4 +54,30 @@ describe('diagnostics/events', () => {
       },
     })).toBe('[CodeGraphy][Diagnostics] indexing completed {"operationId":"index-1","nodeCount":12}');
   });
+
+  it('normalizes non-JSON primitive context values into readable strings', () => {
+    function namedDiagnosticFunction(): void {
+      // The function name is the diagnostic payload under test.
+    }
+
+    expect(createDiagnosticEvent({
+      area: 'diagnostics',
+      event: 'normalized',
+      context: {
+        missing: undefined,
+        token: Symbol('verbose'),
+        count: 12n,
+        callback: namedDiagnosticFunction,
+      },
+    })).toEqual({
+      area: 'diagnostics',
+      event: 'normalized',
+      context: {
+        missing: 'undefined',
+        token: 'Symbol(verbose)',
+        count: '12',
+        callback: '[Function: namedDiagnosticFunction]',
+      },
+    });
+  });
 });

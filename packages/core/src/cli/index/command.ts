@@ -39,9 +39,17 @@ export async function runIndexCommand(
   const diagnostics: DiagnosticEventSink | undefined = options.verbose
     ? {
         emit(event: DiagnosticEvent): void {
-          const writeDiagnostic = options.writeDiagnostic ?? dependencies.writeDiagnostic ?? ((line: string) => {
+          const writeDiagnostic = (line: string): void => {
+            if (options.writeDiagnostic) {
+              options.writeDiagnostic(line);
+              return;
+            }
+            if (dependencies.writeDiagnostic) {
+              dependencies.writeDiagnostic(line);
+              return;
+            }
             process.stderr.write(`${line}\n`);
-          });
+          };
           writeDiagnostic(formatDiagnosticEventLine(event));
         },
       }
