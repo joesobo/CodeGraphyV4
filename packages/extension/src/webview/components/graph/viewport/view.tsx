@@ -1,4 +1,4 @@
-import type { MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
@@ -27,6 +27,7 @@ import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBound
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
 import type { GraphAccessibilityItems } from './accessibility';
+import type { FGNode } from '../model/build';
 
 export interface ViewportProps {
   accessibilityItems?: GraphAccessibilityItems;
@@ -42,6 +43,8 @@ export interface ViewportProps {
   handleMouseLeave: (this: void) => void;
   handleMouseMoveCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
   handleMouseUpCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
+  handleNodeClick?: (this: void, node: FGNode, event: MouseEvent) => void;
+  handleNodeHover?: (this: void, node: FGNode | null) => void;
   marqueeSelection?: GraphMarqueeSelectionState | null;
   menuEntries: GraphContextMenuEntry[];
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
@@ -194,6 +197,8 @@ export function Viewport({
   handleMouseLeave,
   handleMouseMoveCapture,
   handleMouseUpCapture,
+  handleNodeClick = () => undefined,
+  handleNodeHover = () => undefined,
   marqueeSelection,
   menuEntries,
   surface2dProps,
@@ -227,7 +232,12 @@ export function Viewport({
           />
           <ViewportPluginOverlay pluginHost={pluginHost} />
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
-          <GraphAccessibilityOverlay accessibilityItems={accessibilityItems} />
+          <GraphAccessibilityOverlay
+            accessibilityItems={accessibilityItems}
+            graphNodes={surface2dProps.sharedProps.graphData.nodes as FGNode[]}
+            onNodeClick={handleNodeClick}
+            onNodeHover={handleNodeHover}
+          />
         </div>
       </ContextMenuTrigger>
 
@@ -258,17 +268,60 @@ export function Viewport({
 
 function GraphAccessibilityOverlay({
   accessibilityItems,
+  graphNodes,
+  onNodeClick,
+  onNodeHover,
 }: {
   accessibilityItems: GraphAccessibilityItems;
+  graphNodes: readonly FGNode[];
+  onNodeClick(this: void, node: FGNode, event: MouseEvent): void;
+  onNodeHover(this: void, node: FGNode | null): void;
 }): ReactElement {
+  const findNode = (nodeId: string) => graphNodes.find(node => node.id === nodeId) ?? null;
+  const handleNodeClick = (
+    nodeId: string,
+    event: MouseEvent | ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
+  ) => {
+    const node = findNode(nodeId);
+    if (!node) return;
+
+    const clickEvent = event instanceof MouseEvent
+      ? event
+      : new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          clientX: 'clientX' in event ? event.clientX : 0,
+          clientY: 'clientY' in event ? event.clientY : 0,
+          ctrlKey: event.ctrlKey,
+          metaKey: event.metaKey,
+          shiftKey: event.shiftKey,
+        });
+    onNodeClick(node, clickEvent);
+  };
+  const handleNodeHover = (nodeId: string) => {
+    onNodeHover(findNode(nodeId));
+  };
+
   return (
     <div aria-label="Graph accessibility" className="absolute inset-0 pointer-events-none">
       {accessibilityItems.nodes.map(node => (
         <div
           key={node.id}
           aria-label={node.label}
-          role="img"
+          role="button"
+          tabIndex={0}
           className="absolute rounded-full opacity-0"
+          onBlur={() => onNodeHover(null)}
+          onClick={event => handleNodeClick(node.id, event)}
+          onFocus={() => handleNodeHover(node.id)}
+          onKeyDown={event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              handleNodeClick(node.id, event);
+            }
+          }}
+          onMouseOut={() => onNodeHover(null)}
+          onMouseOver={() => handleNodeHover(node.id)}
           style={{
             height: node.radius * 2,
             left: node.x,

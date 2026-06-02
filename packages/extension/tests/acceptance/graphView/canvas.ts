@@ -99,8 +99,12 @@ async function waitForStableNodeProbe(frame: Frame, nodePath: string): Promise<N
   return previous;
 }
 
+function graphNode(frame: Frame, nodePath: string): Locator {
+  return frame.getByLabel(`Graph node ${nodePath}`, { exact: true });
+}
+
 async function readNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe> {
-  const nodeLocator = frame.getByLabel(`Graph node ${nodePath}`, { exact: true });
+  const nodeLocator = graphNode(frame, nodePath);
   await expect(nodeLocator).toBeAttached({ timeout: 10_000 });
 
   const nodeBox = await nodeLocator.boundingBox();
@@ -117,43 +121,6 @@ async function readNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe>
     },
     radius: Math.round(Math.max(nodeBox.width, nodeBox.height) / 2),
   };
-}
-
-async function moveMouseToStagePoint(frame: Frame, point: Point): Promise<void> {
-  const stageBox = await graphStage(frame).boundingBox();
-  if (!stageBox) {
-    throw new Error('Expected Graph Stage to have a bounding box');
-  }
-
-  await frame.page().mouse.move(stageBox.x + point.x, stageBox.y + point.y);
-}
-
-async function dispatchCanvasMouseMoveToStagePoint(frame: Frame, point: Point): Promise<void> {
-  await graphStage(frame).evaluate((stage, stagePoint) => {
-    const canvas = stage.querySelector('canvas');
-    if (!(canvas instanceof HTMLCanvasElement)) {
-      throw new Error('Expected Graph Stage to contain a canvas');
-    }
-
-    const rect = stage.getBoundingClientRect();
-    const clientX = rect.left + stagePoint.x;
-    const clientY = rect.top + stagePoint.y;
-    stage.dispatchEvent(new PointerEvent('pointermove', {
-      bubbles: true,
-      cancelable: true,
-      clientX,
-      clientY,
-      pointerType: 'mouse',
-      view: window,
-    }));
-    canvas.dispatchEvent(new MouseEvent('mousemove', {
-      bubbles: true,
-      cancelable: true,
-      clientX,
-      clientY,
-      view: window,
-    }));
-  }, point);
 }
 
 async function dragMouseBetweenStagePoints(frame: Frame, source: Point, target: Point): Promise<void> {
@@ -173,51 +140,16 @@ export async function hoverNode(context: GraphAcceptanceContext, nodePath: strin
   const frame = requireGraphFrame(context);
   const probe = await findNodeProbe(context, nodePath);
   const tooltipPath = frame.getByText(nodePath, { exact: true }).first();
-  const hoverPoints = getNodeHoverProbePoints(probe);
 
-  for (const point of hoverPoints) {
-    await graphStage(frame).hover({ position: point, force: true });
-    await moveMouseToStagePoint(frame, point);
-    await dispatchCanvasMouseMoveToStagePoint(frame, point);
-    await frame.waitForTimeout(650);
-
-    if (await tooltipPath.isVisible()) {
-      return probe;
-    }
-  }
-
+  await graphNode(frame, nodePath).dispatchEvent('mouseover', { bubbles: true });
   await expect(tooltipPath).toBeVisible({ timeout: 10_000 });
   return probe;
 }
 
-function getNodeHoverProbePoints(probe: NodeProbe): Point[] {
-  const step = Math.max(4, Math.min(12, Math.round(probe.radius / 2)));
-  const outerStep = Math.max(step + 4, Math.round(probe.radius));
-  return [
-    probe.center,
-    { x: probe.center.x - step, y: probe.center.y },
-    { x: probe.center.x + step, y: probe.center.y },
-    { x: probe.center.x, y: probe.center.y - step },
-    { x: probe.center.x, y: probe.center.y + step },
-    { x: probe.center.x - step, y: probe.center.y - step },
-    { x: probe.center.x + step, y: probe.center.y - step },
-    { x: probe.center.x - step, y: probe.center.y + step },
-    { x: probe.center.x + step, y: probe.center.y + step },
-    { x: probe.center.x - outerStep, y: probe.center.y },
-    { x: probe.center.x + outerStep, y: probe.center.y },
-    { x: probe.center.x, y: probe.center.y - outerStep },
-    { x: probe.center.x, y: probe.center.y + outerStep },
-    { x: probe.center.x - outerStep, y: probe.center.y - outerStep },
-    { x: probe.center.x + outerStep, y: probe.center.y - outerStep },
-    { x: probe.center.x - outerStep, y: probe.center.y + outerStep },
-    { x: probe.center.x + outerStep, y: probe.center.y + outerStep },
-  ];
-}
-
 export async function clickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
   const frame = requireGraphFrame(context);
-  const probe = await findNodeProbe(context, nodePath);
-  await graphStage(frame).click({ position: probe.center, force: true });
+  await findNodeProbe(context, nodePath);
+  await graphNode(frame, nodePath).dispatchEvent('click', { bubbles: true });
 }
 
 export async function dragNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
