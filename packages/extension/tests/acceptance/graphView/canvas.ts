@@ -136,11 +136,21 @@ async function dispatchCanvasMouseMoveToStagePoint(frame: Frame, point: Point): 
     }
 
     const rect = stage.getBoundingClientRect();
+    const clientX = rect.left + stagePoint.x;
+    const clientY = rect.top + stagePoint.y;
+    stage.dispatchEvent(new PointerEvent('pointermove', {
+      bubbles: true,
+      cancelable: true,
+      clientX,
+      clientY,
+      pointerType: 'mouse',
+      view: window,
+    }));
     canvas.dispatchEvent(new MouseEvent('mousemove', {
       bubbles: true,
       cancelable: true,
-      clientX: rect.left + stagePoint.x,
-      clientY: rect.top + stagePoint.y,
+      clientX,
+      clientY,
       view: window,
     }));
   }, point);
