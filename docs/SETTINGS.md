@@ -68,6 +68,7 @@ Example:
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `maxFiles` | number | `1000` | Maximum files to discover/analyze |
+| `verboseDiagnostics` | boolean | `false` | Enables CodeGraphy-prefixed support diagnostics in the VS Code Developer Tools console |
 | `include` | string[] | `["**/*"]` | Glob patterns for files to include |
 | `filterPatterns` | string[] | `[]` | Filter Settings for files to exclude |
 | `respectGitignore` | boolean | `true` | Honor `.gitignore` patterns |
@@ -152,6 +153,13 @@ Adjusts the physics simulation in real time.
 | Center Force | 0-1 | Pull toward the viewport center. |
 | Link Distance | 30-500 | Preferred distance between connected nodes in pixels. |
 | Link Force | 0-1 | How strongly edges pull connected nodes together. |
+
+### Performance
+
+- **Max Files** limits how many files are discovered and analyzed.
+- **Verbose Diagnostics** writes factual `[CodeGraphy][Diagnostics]` lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
+
+See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP support workflow.
 
 ### Legends
 
