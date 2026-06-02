@@ -35,6 +35,7 @@ describe('webview/app/shell/visibleGraphResponse', () => {
       edgeCount: 0,
       edgeIds: [],
       nodeCount: 0,
+      nodes: [],
     });
   });
 
@@ -43,6 +44,7 @@ describe('webview/app/shell/visibleGraphResponse', () => {
       edgeCount: 1,
       edgeIds: ['a->b'],
       nodeCount: 1,
+      nodes: [{ id: 'a.ts', nodeType: undefined, color: '#3B82F6' }],
     });
   });
 
@@ -65,6 +67,7 @@ describe('webview/app/shell/visibleGraphResponse', () => {
         edgeCount: 1,
         edgeIds: ['a->b'],
         nodeCount: 1,
+        nodes: [{ id: 'a.ts', nodeType: undefined, color: '#3B82F6' }],
       },
     });
 

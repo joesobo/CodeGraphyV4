@@ -3,13 +3,12 @@ import type { SetState } from './types';
 
 type InitialLoadingState = Pick<
   GraphState,
-  'bootstrapComplete' | 'graphData' | 'pendingPluginAssetLoads'
+  'bootstrapComplete' | 'graphData'
 >;
 
 function canFinishInitialLoading(state: InitialLoadingState): boolean {
   return state.bootstrapComplete
-    && state.graphData !== null
-    && state.pendingPluginAssetLoads === 0;
+    && state.graphData !== null;
 }
 
 export function createBootstrapActions(set: SetState) {

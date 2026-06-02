@@ -1,5 +1,13 @@
 # @codegraphy-dev/core
 
+## 1.2.1
+
+### Patch Changes
+
+- [#235](https://github.com/joesobo/CodeGraphyV4/pull/235) [`ad8f8af`](https://github.com/joesobo/CodeGraphyV4/commit/ad8f8af9c1bcd6cd950c7f248ef3d662ab0c019f) Thanks [@joesobo](https://github.com/joesobo)! - Make Indexing progress clearer by separating preparation from file analysis, replacing final cache-save progress with graph-view update progress, and hiding old graph stats until the indexed graph is published.
+
+- [#235](https://github.com/joesobo/CodeGraphyV4/pull/235) [`c82e598`](https://github.com/joesobo/CodeGraphyV4/commit/c82e598a59349d9d3ff936627216baf518636800) Thanks [@joesobo](https://github.com/joesobo)! - Improve Graph Cache load and save responsiveness during startup and warm-cache graph replay.
+
 ## 1.2.0
 
 ### Minor Changes
