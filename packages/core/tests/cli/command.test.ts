@@ -43,10 +43,10 @@ describe('cli/command', () => {
       workspaceRoot: '/workspace/project',
     });
     expect(diagnostics).toContain(
-      '[CodeGraphy][Diagnostics] cli command-started {"command":"status","workspacePath":"/workspace/project"}',
+      '[CodeGraphy] Starting command: status, workspace=/workspace/project',
     );
     expect(diagnostics).toContain(
-      '[CodeGraphy][Diagnostics] cli command-completed {"command":"status","exitCode":0}',
+      '[CodeGraphy] Command complete: status, exitCode=0',
     );
   });
 
@@ -66,8 +66,8 @@ describe('cli/command', () => {
       graphCache: '.codegraphy/graph.lbug',
     });
     expect(diagnostics).toEqual(expect.arrayContaining([
-      expect.stringContaining('[CodeGraphy][Diagnostics] workspace index-started'),
-      expect.stringContaining('[CodeGraphy][Diagnostics] indexing completed'),
+      expect.stringContaining('[CodeGraphy] Starting indexing:'),
+      expect.stringContaining('[CodeGraphy] Indexing complete:'),
     ]));
   });
 });

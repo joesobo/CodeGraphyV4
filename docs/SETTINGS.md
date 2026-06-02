@@ -157,7 +157,7 @@ Adjusts the physics simulation in real time.
 ### Performance
 
 - **Max Files** limits how many files are discovered and analyzed.
-- **Verbose Diagnostics** writes factual `[CodeGraphy][Diagnostics]` lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
+- **Verbose Diagnostics** writes factual `[CodeGraphy]` event lines to VS Code Developer Tools for support workflows. It persists as `verboseDiagnostics` in `.codegraphy/settings.json`.
 
 See [Verbose Diagnostics](./DIAGNOSTICS.md) for the VS Code, CLI, and MCP support workflow.
 

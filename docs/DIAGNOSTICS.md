@@ -5,13 +5,13 @@ Verbose Diagnostics adds factual, CodeGraphy-prefixed logs for support and agent
 Diagnostic lines use this shape:
 
 ```text
-[CodeGraphy][Diagnostics] <area> <event> <json context>
+[CodeGraphy] <event message>: <compact facts>
 ```
 
 Example:
 
 ```text
-[CodeGraphy][Diagnostics] extension.analysis request-started {"requestId":4,"mode":"load","filterPatternCount":2,"disabledPluginCount":0}
+[CodeGraphy] Starting analysis: request=4, mode=load, filters=2, disabledPlugins=0
 ```
 
 ## VS Code Extension
@@ -32,7 +32,7 @@ For support:
 2. Reload VS Code if startup logs are needed.
 3. Open VS Code Developer Tools.
 4. Reproduce the issue.
-5. Copy `[CodeGraphy][Diagnostics]` console lines into the bug report.
+5. Copy the relevant `[CodeGraphy]` console lines into the bug report.
 
 The extension emits lifecycle, webview bootstrap, analysis request, and Graph Cache load-decision facts. Normal logging stays quiet when Verbose Diagnostics is off.
 
@@ -50,7 +50,7 @@ Verbose CLI diagnostics are written outside normal JSON stdout so command output
 Example diagnostic line:
 
 ```text
-[CodeGraphy][Diagnostics] cli command-started {"command":"status","workspacePath":"/absolute/path/to/workspace"}
+[CodeGraphy] Starting command: status, workspace=/absolute/path/to/workspace
 ```
 
 ## MCP
