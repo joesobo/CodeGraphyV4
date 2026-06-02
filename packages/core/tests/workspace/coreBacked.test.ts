@@ -97,4 +97,42 @@ describe('core-backed CodeGraphy Workspace commands', () => {
       }),
     }));
   });
+
+  it('emits factual verbose diagnostics for graph query requests', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-query-diagnostics-'));
+    await fs.writeFile(path.join(workspaceRoot, 'Home.md'), 'See [[Target.md]].\n', 'utf-8');
+    await fs.writeFile(path.join(workspaceRoot, 'Target.md'), 'Done.\n', 'utf-8');
+    await requestCodeGraphyIndexWorkspace({ workspacePath: workspaceRoot });
+    const diagnostics = collectDiagnosticEvents(true);
+
+    await requestWorkspaceGraphQuery({
+      workspacePath: workspaceRoot,
+      report: 'edges',
+      arguments: { from: 'Home.md' },
+      diagnostics,
+    });
+
+    expect(diagnostics.events).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        area: 'graph-query',
+        event: 'started',
+        context: expect.objectContaining({
+          operationId: expect.any(String),
+          workspaceRoot,
+          report: 'edges',
+        }),
+      }),
+      expect.objectContaining({
+        area: 'graph-query',
+        event: 'completed',
+        context: expect.objectContaining({
+          operationId: expect.any(String),
+          report: 'edges',
+          cacheState: 'fresh',
+          nodeCount: 2,
+          edgeCount: 1,
+        }),
+      }),
+    ]));
+  });
 });
