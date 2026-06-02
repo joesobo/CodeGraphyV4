@@ -75,4 +75,26 @@ describe('core-backed CodeGraphy Workspace commands', () => {
       }),
     ]));
   });
+
+  it('emits factual verbose diagnostics for status requests', async () => {
+    const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-status-diagnostics-'));
+    const diagnostics = collectDiagnosticEvents(true);
+
+    readCodeGraphyWorkspaceStatusForCli({
+      workspacePath: workspaceRoot,
+      diagnostics,
+    });
+
+    expect(diagnostics.events).toContainEqual(expect.objectContaining({
+      area: 'workspace',
+      event: 'status-read',
+      context: expect.objectContaining({
+        workspaceRoot,
+        state: 'missing',
+        hasGraphCache: false,
+        staleReasons: ['never-indexed'],
+        enabledPluginCount: 1,
+      }),
+    }));
+  });
 });
