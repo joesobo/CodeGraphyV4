@@ -14,7 +14,7 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
 describe('PerformanceSection', () => {
   beforeEach(() => {
     sentMessages.length = 0;
-    graphStore.setState({ maxFiles: 20 });
+    graphStore.setState({ maxFiles: 20, verboseDiagnostics: false });
   });
 
   it('commits max files through blur and enter handlers', () => {
@@ -35,6 +35,21 @@ describe('PerformanceSection', () => {
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_MAX_FILES',
       payload: { maxFiles: 5 },
+    });
+  });
+
+  it('toggles verbose diagnostics through the Performance settings section', () => {
+    render(<PerformanceSection />);
+
+    const toggle = screen.getByRole('switch', { name: 'Verbose Diagnostics' });
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+    fireEvent.click(toggle);
+
+    expect(graphStore.getState().verboseDiagnostics).toBe(true);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_VERBOSE_DIAGNOSTICS',
+      payload: { verboseDiagnostics: true },
     });
   });
 });

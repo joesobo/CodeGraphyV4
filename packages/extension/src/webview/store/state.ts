@@ -79,6 +79,7 @@ export interface GraphState {
   edgeVisibility: Record<string, boolean>;
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
+  verboseDiagnostics: boolean;
   activeFilePath: string | null;
   timelineActive: boolean;
   timelineCommits: ICommitInfo[];
@@ -115,6 +116,7 @@ export interface GraphState {
   setDepthMode: (depthMode: boolean) => void;
   setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;
+  setVerboseDiagnostics: (enabled: boolean) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;
   beginInitialBootstrap: () => void;
