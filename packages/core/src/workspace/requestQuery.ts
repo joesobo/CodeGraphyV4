@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
+import { createDiagnosticEvent } from '../diagnostics/events';
 import { loadWorkspaceAnalysisDatabaseCache, readWorkspaceAnalysisDatabaseSnapshot } from '../graphCache/database/storage';
 import { buildWorkspaceGraphDataFromAnalysis } from '../graph/data';
 import {
@@ -21,6 +22,13 @@ const DEFAULT_DEPENDENCIES: WorkspaceGraphQueryDependencies = {
   cwd: () => process.cwd(),
 };
 
+let graphQueryOperationCounter = 0;
+
+function createGraphQueryOperationId(): string {
+  graphQueryOperationCounter += 1;
+  return `query-${graphQueryOperationCounter}`;
+}
+
 function collectDirectoryPaths(filePaths: Iterable<string>): string[] {
   const directories = new Set<string>();
 
@@ -39,9 +47,31 @@ export async function requestWorkspaceGraphQuery(
   input: WorkspaceGraphQueryInput,
   dependencies: WorkspaceGraphQueryDependencies = DEFAULT_DEPENDENCIES,
 ): Promise<WorkspaceGraphQueryResult> {
+  const startedAt = performance.now();
   const workspaceRoot = resolveCodeGraphyWorkspacePath(input.workspacePath, dependencies.cwd());
+  const operationId = createGraphQueryOperationId();
+  input.diagnostics?.emit(createDiagnosticEvent({
+    area: 'graph-query',
+    event: 'started',
+    context: {
+      operationId,
+      workspaceRoot,
+      report: input.report,
+    },
+  }));
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   if (!status.hasGraphCache) {
+    input.diagnostics?.emit(createDiagnosticEvent({
+      area: 'graph-query',
+      event: 'cache-missing',
+      context: {
+        operationId,
+        workspaceRoot,
+        report: input.report,
+        cacheState: status.state,
+        staleReasons: status.staleReasons,
+      },
+    }));
     return {
       error: 'graph_cache_not_found',
       message: 'This CodeGraphy Workspace has not been indexed. Run `codegraphy_index`, then retry.',
@@ -65,16 +95,30 @@ export async function requestWorkspaceGraphQuery(
     showOrphans: settings.showOrphans,
     workspaceRoot,
   });
+  const queryResult = executeGraphQuery({
+    graphData,
+    symbols: snapshot.symbols,
+    relations: snapshot.relations,
+  }, {
+    report: input.report,
+    arguments: input.arguments,
+  } as GraphQueryRequest);
+  input.diagnostics?.emit(createDiagnosticEvent({
+    area: 'graph-query',
+    event: 'completed',
+    context: {
+      operationId,
+      report: input.report,
+      cacheState: status.state,
+      staleReasons: status.staleReasons,
+      nodeCount: graphData.nodes.length,
+      edgeCount: graphData.edges.length,
+      durationMs: Math.round(performance.now() - startedAt),
+    },
+  }));
 
   return {
-    ...executeGraphQuery({
-      graphData,
-      symbols: snapshot.symbols,
-      relations: snapshot.relations,
-    }, {
-      report: input.report,
-      arguments: input.arguments,
-    } as GraphQueryRequest),
+    ...queryResult,
     workspaceRoot,
     cacheStatus: {
       state: status.state,
