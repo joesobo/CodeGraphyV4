@@ -13,12 +13,11 @@ export function handleGraphDataUpdated(
   const state = ctx?.getState();
   const waitingForInitialBootstrap = Boolean(
     state?.awaitingInitialBootstrap
-    && (!state.bootstrapComplete || state.pendingPluginAssetLoads > 0),
+    && !state.bootstrapComplete,
   );
   const initialBootstrapFinished = Boolean(
     state?.awaitingInitialBootstrap
     && state.bootstrapComplete
-    && state.pendingPluginAssetLoads === 0,
   );
 
   return {
@@ -35,7 +34,7 @@ export function handleAppBootstrapComplete(
   ctx: Pick<IHandlerContext, 'getState'>,
 ): PartialState {
   const state = ctx.getState();
-  const graphReady = state.graphData !== null && state.pendingPluginAssetLoads === 0;
+  const graphReady = state.graphData !== null;
 
   return {
     bootstrapComplete: true,
@@ -47,10 +46,16 @@ export function handleAppBootstrapComplete(
 export function handleGraphIndexStatusUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>,
 ): PartialState {
+  const indexIsReady = message.payload.hasIndex && message.payload.freshness === 'fresh';
+
   return {
     graphHasIndex: message.payload.hasIndex,
     graphIndexFreshness: message.payload.freshness,
     graphIndexDetail: message.payload.detail,
+    ...(indexIsReady ? {
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    } : {}),
   };
 }
 

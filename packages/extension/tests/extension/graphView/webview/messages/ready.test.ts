@@ -3,6 +3,10 @@ import { applyWebviewReady } from '../../../../../src/extension/graphView/webvie
 
 function createHandlers() {
   return {
+    getGraphData: vi.fn(() => ({
+      nodes: [{ id: 'cached.ts', label: 'cached.ts', color: '#ffffff' }],
+      edges: [],
+    })),
     getFilterPatterns: vi.fn(() => ['dist/**']),
     getPluginFilterPatterns: vi.fn(() => ['venv/**']),
     getConfig: vi.fn(<T>(_key: string, defaultValue: T): T => defaultValue),
@@ -126,16 +130,58 @@ describe('graph view ready message', () => {
     expect(callOrder.indexOf('plugin-injections')).toBeLessThan(callOrder.indexOf('analyze'));
   });
 
-  it('announces bootstrap completion after the initial graph load settles', async () => {
+  it('keeps bootstrap pending until slow graph loading settles', async () => {
     const events: string[] = [];
     const handlers = createHandlers();
+    let finishGraphLoad: (() => void) | undefined;
     handlers.loadAndSendData.mockImplementation(async () => {
       events.push('graph:start');
-      await Promise.resolve();
+      await new Promise<void>(resolve => {
+        finishGraphLoad = resolve;
+      });
       events.push('graph:end');
     });
     handlers.sendPluginStatuses.mockImplementation(() => {
       events.push('plugins');
+    });
+    handlers.sendMessage.mockImplementation((message: { type: string }) => {
+      if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
+        events.push('bootstrap');
+      }
+      if (message.type === 'GRAPH_DATA_UPDATED') {
+        events.push('graph:snapshot');
+      }
+    });
+
+    const ready = applyWebviewReady(
+      {
+        maxFiles: 500,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    await Promise.resolve();
+
+    expect(events).toEqual(['graph:start']);
+
+    finishGraphLoad?.();
+    await ready;
+
+    expect(events).toEqual(['graph:start', 'graph:end', 'plugins', 'bootstrap']);
+  });
+
+  it('does not block bootstrap on first workspace-ready plugin notifications', async () => {
+    const events: string[] = [];
+    const handlers = createHandlers();
+    handlers.sendGraphViewContributionStatuses.mockImplementation(() => {
+      events.push('contributions');
     });
     handlers.sendMessage.mockImplementation((message: { type: string }) => {
       if (message.type === 'APP_BOOTSTRAP_COMPLETE') {
@@ -157,27 +203,8 @@ describe('graph view ready message', () => {
       handlers
     );
 
-    expect(events).toEqual(['graph:start', 'graph:end', 'plugins', 'bootstrap']);
-  });
-
-  it('waits for workspace readiness during the first workspace-backed analysis', async () => {
-    const handlers = createHandlers();
-
-    await applyWebviewReady(
-      {
-        maxFiles: 500,
-        playbackSpeed: 1,
-        dagMode: null,
-        nodeSizeMode: 'connections',
-        focusedFile: undefined,
-        hasWorkspace: true,
-        firstAnalysis: true,
-        readyNotified: false,
-      },
-      handlers
-    );
-
-    expect(handlers.waitForFirstWorkspaceReady).toHaveBeenCalledOnce();
+    expect(handlers.waitForFirstWorkspaceReady).not.toHaveBeenCalled();
+    expect(events).toEqual(['contributions', 'bootstrap']);
   });
 
   it('skips workspace readiness waiting outside the initial workspace pass', async () => {
