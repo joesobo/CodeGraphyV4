@@ -118,6 +118,7 @@ export {
   clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
+  loadWorkspaceAnalysisDatabaseCacheAsync,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
   saveWorkspaceAnalysisDatabaseCacheAsync,

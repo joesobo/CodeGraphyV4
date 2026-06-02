@@ -77,6 +77,43 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
   });
 
+  it('reports graph view update progress before publishing an explicit index result', () => {
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const transformedGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const state = createExecutionState({
+      mode: 'index',
+      analyzer: createExecutionAnalyzer(),
+    });
+    const { handlers } = createExecutionHandlers({
+      applyViewTransform: vi.fn(() => {
+        handlers.setGraphData(transformedGraphData);
+      }),
+    });
+    const sendIndexProgress = vi.mocked(handlers.sendIndexProgress!);
+    const sendGraphDataUpdated = vi.mocked(handlers.sendGraphDataUpdated);
+    const sendGraphIndexStatusUpdated = vi.mocked(handlers.sendGraphIndexStatusUpdated);
+
+    publishAnalyzedGraph(state, handlers, rawGraphData, true);
+
+    expect(sendIndexProgress).toHaveBeenCalledWith({
+      phase: 'Updating Graph View',
+      current: 0,
+      total: 1,
+    });
+    expect(sendIndexProgress.mock.invocationCallOrder[0]).toBeLessThan(
+      sendGraphDataUpdated.mock.invocationCallOrder[0]!,
+    );
+    expect(sendGraphIndexStatusUpdated.mock.invocationCallOrder[0]).toBeGreaterThan(
+      sendGraphDataUpdated.mock.invocationCallOrder[0]!,
+    );
+  });
+
   it('publishes the actual missing index state when indexing does not create a Graph Cache', () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],

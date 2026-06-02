@@ -289,6 +289,7 @@ describe('App behavior', () => {
     it('shows the hidden-files hint when the graph is empty and orphans are disabled', () => {
       graphStore.setState({
         graphData: { nodes: [], edges: [] },
+        graphHasIndex: true,
         showOrphans: false,
       });
 
