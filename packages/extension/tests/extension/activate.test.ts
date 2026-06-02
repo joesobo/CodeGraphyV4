@@ -98,4 +98,27 @@ describe('activate', () => {
 
     expect(activateDependentExtension).not.toHaveBeenCalled();
   });
+
+  it('emits verbose lifecycle diagnostics during activation when enabled', () => {
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+      get: vi.fn(<T>(key: string, defaultValue: T) =>
+        key === 'verboseDiagnostics' ? true as T : defaultValue
+      ),
+      inspect: vi.fn(() => undefined),
+      update: vi.fn(),
+    } as never);
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    activate(makeMockContext() as unknown as vscode.ExtensionContext);
+
+    const diagnosticLines = log.mock.calls
+      .map(call => call[0])
+      .filter(line => typeof line === 'string' && line.includes('[CodeGraphy][Diagnostics]'));
+    expect(diagnosticLines).toEqual([
+      '[CodeGraphy][Diagnostics] extension.lifecycle activation-started {"workspaceFolders":0}',
+      '[CodeGraphy][Diagnostics] extension.lifecycle activation-completed {"registeredWebviewProviders":2}',
+    ]);
+
+    log.mockRestore();
+  });
 });

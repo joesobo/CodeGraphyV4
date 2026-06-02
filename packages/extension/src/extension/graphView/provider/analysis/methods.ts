@@ -11,6 +11,9 @@ import {
   type GraphViewProviderAnalysisRequestHandlers,
   type GraphViewProviderAnalysisState,
 } from '../../analysis/lifecycle';
+import type { DiagnosticEventInput } from '@codegraphy-dev/core';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
+import { createExtensionDiagnosticLogger } from '../../../diagnostics/logger';
 import { createGraphViewProviderAnalysisDelegates } from './delegates';
 import {
   createGraphViewProviderWorkspaceReadyState,
@@ -100,9 +103,14 @@ export interface GraphViewProviderAnalysisMethodDependencies {
   isAbortError(error: unknown): boolean;
   hasWorkspace(): boolean;
   logError(message: string, error: unknown): void;
+  emitDiagnostic?(input: DiagnosticEventInput): void;
 }
 
 export function createDefaultGraphViewProviderAnalysisMethodDependencies(): GraphViewProviderAnalysisMethodDependencies {
+  const diagnostics = createExtensionDiagnosticLogger({
+    isEnabled: () => getCodeGraphyConfiguration().get('verboseDiagnostics', false),
+  });
+
   return {
     runAnalysisRequest: runGraphViewProviderAnalysisRequest,
     executeAnalysis: executeGraphViewProviderAnalysis,
@@ -113,6 +121,7 @@ export function createDefaultGraphViewProviderAnalysisMethodDependencies(): Grap
     logError: (message, error) => {
       console.error(message, error);
     },
+    emitDiagnostic: input => diagnostics.emit(input),
   };
 }
 

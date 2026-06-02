@@ -32,6 +32,7 @@ function createHandlers() {
 describe('graph view ready message', () => {
   it('sends the initial webview payloads and notifies readiness', async () => {
     const handlers = createHandlers();
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
     const readyNotified = await applyWebviewReady(
       {
@@ -96,6 +97,13 @@ describe('graph view ready message', () => {
     });
     expect(handlers.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(readyNotified).toBe(true);
+    expect(log.mock.calls.map(call => call[0])).toContain(
+      '[CodeGraphy][Diagnostics] extension.webview ready-replayed {"hasWorkspace":false,"firstAnalysis":false,"readyNotified":false,"maxFiles":500}',
+    );
+    expect(log.mock.calls.map(call => call[0])).toContain(
+      '[CodeGraphy][Diagnostics] extension.webview bootstrap-completed {"hasWorkspace":false,"firstAnalysis":false,"readyNotified":false}',
+    );
+    log.mockRestore();
   });
 
   it('sends available views before kicking off analysis', async () => {
