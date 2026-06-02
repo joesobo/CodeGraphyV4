@@ -34,6 +34,7 @@ describe('GraphIndexStatus', () => {
     expect(screen.getByTestId('graph-index-status')).toBeInTheDocument();
     expect(screen.getByText('Indexing Workspace')).toBeInTheDocument();
     expect(screen.getByText('25%')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: 'Indexing progress' })).toHaveAttribute('aria-valuenow', '25');
     expect(screen.getByTestId('graph-index-status-fill')).toHaveStyle({ width: '25%' });
   });
 

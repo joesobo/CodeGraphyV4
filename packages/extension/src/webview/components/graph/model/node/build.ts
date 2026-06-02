@@ -148,16 +148,20 @@ function createGraphNodePositionState(
   const runtimePosition = node as RuntimeGraphNodePositionState;
   const z = (node as { z?: unknown }).z;
   return {
-    fx: readFiniteNumber(runtimePosition.fx) ?? previous?.fx,
-    fy: readFiniteNumber(runtimePosition.fy) ?? previous?.fy,
-    fz: readFiniteNumber(runtimePosition.fz) ?? previous?.fz,
-    vx: readFiniteNumber(runtimePosition.vx) ?? previous?.vx,
-    vy: readFiniteNumber(runtimePosition.vy) ?? previous?.vy,
-    vz: readFiniteNumber(runtimePosition.vz) ?? previous?.vz,
+    fx: readPositionNumber(runtimePosition.fx, previous?.fx),
+    fy: readPositionNumber(runtimePosition.fy, previous?.fy),
+    fz: readPositionNumber(runtimePosition.fz, previous?.fz),
+    vx: readPositionNumber(runtimePosition.vx, previous?.vx),
+    vy: readPositionNumber(runtimePosition.vy, previous?.vy),
+    vz: readPositionNumber(runtimePosition.vz, previous?.vz),
     x: node.x ?? previous?.x,
     y: node.y ?? previous?.y,
     z: typeof z === 'number' ? z : previous?.z,
   };
+}
+
+function readPositionNumber(value: unknown, fallback: number | undefined): number | undefined {
+  return readFiniteNumber(value) ?? fallback;
 }
 
 function createGraphNode(

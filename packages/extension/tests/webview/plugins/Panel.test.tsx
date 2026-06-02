@@ -4,7 +4,7 @@ import PluginsPanel from '../../../src/webview/components/plugins/Panel';
 import { graphStore } from '../../../src/webview/store/state';
 import type { IPluginStatus } from '../../../src/shared/plugins/status';
 import { PluginRegistry } from '../../../src/core/plugins/registry/manager';
-import { buildWorkspacePluginStatuses } from '../../../src/extension/pipeline/plugins/statusBuilder';
+import { buildWorkspaceIndexPluginStatuses as buildWorkspacePluginStatuses } from '@codegraphy-dev/core';
 
 const sentMessages: unknown[] = [];
 

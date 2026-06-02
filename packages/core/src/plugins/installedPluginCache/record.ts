@@ -28,6 +28,36 @@ function readInstalledPluginRecordFields(
     : null;
 }
 
+function readSupportedExtensions(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const supportedExtensions = value
+    .filter((extension): extension is string => typeof extension === 'string' && extension.length > 0);
+  return supportedExtensions.length > 0 ? supportedExtensions : undefined;
+}
+
+function addOptionalInstalledPluginRecordFields(
+  record: CodeGraphyInstalledPluginRecord,
+  value: Record<string, unknown>,
+): void {
+  if (isRecord(value.defaultOptions)) {
+    record.defaultOptions = { ...value.defaultOptions };
+  }
+  if (typeof value.pluginId === 'string' && value.pluginId.length > 0) {
+    record.pluginId = value.pluginId;
+  }
+  if (typeof value.pluginName === 'string' && value.pluginName.length > 0) {
+    record.pluginName = value.pluginName;
+  }
+
+  const supportedExtensions = readSupportedExtensions(value.supportedExtensions);
+  if (supportedExtensions) {
+    record.supportedExtensions = supportedExtensions;
+  }
+}
+
 export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstalledPluginRecord | null {
   if (!isRecord(value)) {
     return null;
@@ -46,22 +76,6 @@ export function normalizeInstalledPluginRecord(value: unknown): CodeGraphyInstal
     packageRoot: fields.packageRoot,
   };
 
-  if (isRecord(value.defaultOptions)) {
-    record.defaultOptions = { ...value.defaultOptions };
-  }
-  if (typeof value.pluginId === 'string' && value.pluginId.length > 0) {
-    record.pluginId = value.pluginId;
-  }
-  if (typeof value.pluginName === 'string' && value.pluginName.length > 0) {
-    record.pluginName = value.pluginName;
-  }
-  if (Array.isArray(value.supportedExtensions)) {
-    const supportedExtensions = value.supportedExtensions
-      .filter((extension): extension is string => typeof extension === 'string' && extension.length > 0);
-    if (supportedExtensions.length > 0) {
-      record.supportedExtensions = supportedExtensions;
-    }
-  }
-
+  addOptionalInstalledPluginRecordFields(record, value);
   return record;
 }

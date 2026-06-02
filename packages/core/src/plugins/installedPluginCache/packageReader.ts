@@ -13,6 +13,26 @@ function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
+function readSupportedExtensions(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((extension): extension is string => typeof extension === 'string' && extension.length > 0)
+    : [];
+}
+
+function buildPluginPackageDisplayFields(
+  descriptor: Record<string, unknown>,
+): PluginPackageDisplayFields {
+  const pluginId = readString(descriptor.id);
+  const pluginName = readString(descriptor.name);
+  const supportedExtensions = readSupportedExtensions(descriptor.supportedExtensions);
+
+  return {
+    ...(pluginId ? { pluginId } : {}),
+    ...(pluginName ? { pluginName } : {}),
+    ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
+  };
+}
+
 async function readPluginPackageDisplayFields(
   packageRoot: string,
 ): Promise<PluginPackageDisplayFields> {
@@ -24,19 +44,7 @@ async function readPluginPackageDisplayFields(
       return {};
     }
 
-    const supportedExtensions = Array.isArray(descriptor.supportedExtensions)
-      ? descriptor.supportedExtensions
-        .filter((extension): extension is string => typeof extension === 'string' && extension.length > 0)
-      : [];
-
-    const pluginId = readString(descriptor.id);
-    const pluginName = readString(descriptor.name);
-
-    return {
-      ...(pluginId ? { pluginId } : {}),
-      ...(pluginName ? { pluginName } : {}),
-      ...(supportedExtensions.length > 0 ? { supportedExtensions } : {}),
-    };
+    return buildPluginPackageDisplayFields(descriptor);
   } catch {
     return {};
   }

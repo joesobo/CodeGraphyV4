@@ -16,6 +16,7 @@ describe('webview/toolbar/IconButton', () => {
     );
 
     const button = screen.getByTitle('Refresh');
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBe(button);
     expect(button).not.toHaveAttribute('aria-pressed');
     expect(button).not.toBeDisabled();
     expect(button.className).toContain('relative');

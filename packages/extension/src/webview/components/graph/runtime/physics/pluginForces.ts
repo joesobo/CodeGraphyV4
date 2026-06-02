@@ -80,6 +80,52 @@ function createVisibleGraph(graphData: { nodes: FGNode[]; links: FGLink[] }): IG
   };
 }
 
+function installedForceAdapterIsCurrent(
+  installed: InstalledForceAdapter | undefined,
+  contribution: InstalledForceAdapter['contribution'],
+  nodes: readonly FGNode[],
+  contextSignature: string,
+): boolean {
+  return installed?.contribution === contribution
+    && installed.nodes === nodes
+    && installed.contextSignature === contextSignature;
+}
+
+function uninstallGraphViewForceAdapter(
+  graph: GraphPhysicsControls,
+  namespace: string,
+  installed: InstalledForceAdapter,
+): void {
+  installed.adapter.dispose();
+  graph.d3Force(namespace, null);
+}
+
+function installGraphViewForceAdapter(
+  graph: GraphPhysicsControls,
+  state: GraphViewForceAdapterState,
+  entry: CoreGraphViewContributionSet['forces'][number],
+  namespace: string,
+  visibleGraph: IGraphData,
+  graphData: { nodes: FGNode[]; links: FGLink[] },
+  context: GraphViewForceSyncContext,
+  contextSignature: string,
+): void {
+  const adapter = entry.contribution.create({
+    nodes: graphData.nodes,
+    edges: visibleGraph.edges,
+    visibleGraph,
+    ...context,
+  }) as GraphViewForceAdapter;
+  state.installed.set(namespace, {
+    adapter,
+    contribution: entry.contribution,
+    contextSignature,
+    nodes: graphData.nodes,
+  });
+  graph.d3Force(namespace, createD3Force(adapter));
+  graph.d3ReheatSimulation();
+}
+
 export function syncGraphViewForceAdapters(
   graph: GraphPhysicsControls,
   state: GraphViewForceAdapterState,
@@ -96,33 +142,29 @@ export function syncGraphViewForceAdapters(
     activeNamespaces.add(namespace);
 
     const installed = state.installed.get(namespace);
-    if (
-      installed?.contribution === entry.contribution
-      && installed.nodes === graphData.nodes
-      && installed.contextSignature === contextSignature
-    ) {
+    if (installedForceAdapterIsCurrent(
+      installed,
+      entry.contribution,
+      graphData.nodes,
+      contextSignature,
+    )) {
       continue;
     }
 
     if (installed) {
-      installed.adapter.dispose();
-      graph.d3Force(namespace, null);
+      uninstallGraphViewForceAdapter(graph, namespace, installed);
     }
 
-    const adapter = entry.contribution.create({
-      nodes: graphData.nodes,
-      edges: visibleGraph.edges,
+    installGraphViewForceAdapter(
+      graph,
+      state,
+      entry,
+      namespace,
       visibleGraph,
-      ...context,
-    }) as GraphViewForceAdapter;
-    state.installed.set(namespace, {
-      adapter,
-      contribution: entry.contribution,
+      graphData,
+      context,
       contextSignature,
-      nodes: graphData.nodes,
-    });
-    graph.d3Force(namespace, createD3Force(adapter));
-    graph.d3ReheatSimulation();
+    );
   }
 
   for (const [namespace, installed] of state.installed) {
@@ -130,8 +172,7 @@ export function syncGraphViewForceAdapters(
       continue;
     }
 
-    installed.adapter.dispose();
-    graph.d3Force(namespace, null);
+    uninstallGraphViewForceAdapter(graph, namespace, installed);
     state.installed.delete(namespace);
     graph.d3ReheatSimulation();
   }

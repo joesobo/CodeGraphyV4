@@ -91,17 +91,33 @@ function isGraphViewPluginActionValid(
   action: Extract<GraphContextMenuAction, { kind: 'graphViewPlugin' }>,
   context: GraphContextActionContext,
 ): boolean {
-  if (context.selectionKind === 'background') {
-    return action.context.target.kind === 'background'
-      && action.context.selectedNodeIds.length === 0
-      && action.context.selectedEdgeIds.length === 0;
-  }
+  return context.selectionKind === 'background'
+    ? isGraphViewBackgroundActionValid(action)
+    : context.selectionKind === 'edge'
+      ? isGraphViewEdgeActionValid(action, context)
+      : isGraphViewNodeActionValid(action, context);
+}
 
-  if (context.selectionKind === 'edge') {
-    return action.context.selectedEdgeIds.includes(context.edgeId ?? '')
-      && action.context.selectedNodeIds.length === 0;
-  }
+function isGraphViewBackgroundActionValid(
+  action: Extract<GraphContextMenuAction, { kind: 'graphViewPlugin' }>,
+): boolean {
+  return action.context.target.kind === 'background'
+    && action.context.selectedNodeIds.length === 0
+    && action.context.selectedEdgeIds.length === 0;
+}
 
+function isGraphViewEdgeActionValid(
+  action: Extract<GraphContextMenuAction, { kind: 'graphViewPlugin' }>,
+  context: GraphContextActionContext,
+): boolean {
+  return action.context.selectedEdgeIds.includes(context.edgeId ?? '')
+    && action.context.selectedNodeIds.length === 0;
+}
+
+function isGraphViewNodeActionValid(
+  action: Extract<GraphContextMenuAction, { kind: 'graphViewPlugin' }>,
+  context: GraphContextActionContext,
+): boolean {
   return selectedIdsMatchContext(action.context.selectedNodeIds, context)
     && action.context.selectedEdgeIds.length === 0;
 }

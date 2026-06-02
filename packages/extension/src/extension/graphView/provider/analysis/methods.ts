@@ -116,16 +116,17 @@ export function createDefaultGraphViewProviderAnalysisMethodDependencies(): Grap
   };
 }
 
-export function createGraphViewProviderAnalysisMethods(
-  source: GraphViewProviderAnalysisMethodsSource,
-  dependencies: GraphViewProviderAnalysisMethodDependencies =
-    createDefaultGraphViewProviderAnalysisMethodDependencies(),
-): GraphViewProviderAnalysisMethods {
-  let fullIndexAnalysisPromise: Promise<void> | undefined;
+interface FullIndexAnalysisCoordinator {
+  runAfterFullIndexAnalysis(runAnalysis: () => Promise<void>): Promise<void>;
+  runFullIndexAnalysis(runAnalysis: () => Promise<void>): Promise<void>;
+  runFullIndexAnalysisInBackground(runAnalysis: () => Promise<void>): void;
+  waitForFullIndexAnalysis(): Promise<boolean>;
+}
 
-  const canReplayStaleCache = (): boolean =>
-    source._analyzer?.getIndexStatus?.().freshness === 'stale'
-    && typeof source._analyzer.loadCachedGraph === 'function';
+function createFullIndexAnalysisCoordinator(
+  dependencies: Pick<GraphViewProviderAnalysisMethodDependencies, 'logError'>,
+): FullIndexAnalysisCoordinator {
+  let fullIndexAnalysisPromise: Promise<void> | undefined;
 
   const waitForFullIndexAnalysis = async (): Promise<boolean> => {
     if (!fullIndexAnalysisPromise) {
@@ -174,6 +175,26 @@ export function createGraphViewProviderAnalysisMethods(
     await waitForFullIndexAnalysis();
     await runAnalysis();
   };
+
+  return {
+    runAfterFullIndexAnalysis,
+    runFullIndexAnalysis,
+    runFullIndexAnalysisInBackground,
+    waitForFullIndexAnalysis,
+  };
+}
+
+function canReplayStaleCache(source: GraphViewProviderAnalysisMethodsSource): boolean {
+  return source._analyzer?.getIndexStatus?.().freshness === 'stale'
+    && typeof source._analyzer.loadCachedGraph === 'function';
+}
+
+export function createGraphViewProviderAnalysisMethods(
+  source: GraphViewProviderAnalysisMethodsSource,
+  dependencies: GraphViewProviderAnalysisMethodDependencies =
+    createDefaultGraphViewProviderAnalysisMethodDependencies(),
+): GraphViewProviderAnalysisMethods {
+  const fullIndexAnalysis = createFullIndexAnalysisCoordinator(dependencies);
 
   const _markWorkspaceReady = (graph: IGraphData): void => {
     const state = createGraphViewProviderWorkspaceReadyState(source);
@@ -246,7 +267,7 @@ export function createGraphViewProviderAnalysisMethods(
     'refresh',
   );
   const _incrementalAnalyzeAndSendData = async (filePaths: readonly string[]): Promise<void> => {
-    await waitForFullIndexAnalysis();
+    await fullIndexAnalysis.waitForFullIndexAnalysis();
     source._changedFilePaths = [...filePaths];
     const doIncrementalAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
       source,
@@ -267,19 +288,18 @@ export function createGraphViewProviderAnalysisMethods(
 
   const methods: GraphViewProviderAnalysisMethods = {
     _loadAndSendData: async () => {
-      if (await waitForFullIndexAnalysis()) {
+      if (await fullIndexAnalysis.waitForFullIndexAnalysis()) {
         return;
       }
 
       await _loadAndSendData();
-      const shouldSyncStaleCache = canReplayStaleCache();
-      if (shouldSyncStaleCache) {
-        runFullIndexAnalysisInBackground(_analyzeAndSendData);
+      if (canReplayStaleCache(source)) {
+        fullIndexAnalysis.runFullIndexAnalysisInBackground(_analyzeAndSendData);
       }
     },
-    _indexAndSendData: () => runFullIndexAnalysis(_indexAndSendData),
-    _analyzeAndSendData: () => runAfterFullIndexAnalysis(_analyzeAndSendData),
-    _refreshAndSendData: () => runFullIndexAnalysis(_refreshAndSendData),
+    _indexAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_indexAndSendData),
+    _analyzeAndSendData: () => fullIndexAnalysis.runAfterFullIndexAnalysis(_analyzeAndSendData),
+    _refreshAndSendData: () => fullIndexAnalysis.runFullIndexAnalysis(_refreshAndSendData),
     _incrementalAnalyzeAndSendData,
     _doAnalyzeAndSendData,
     _markWorkspaceReady,

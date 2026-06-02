@@ -157,6 +157,14 @@ A reader should be able to guess what a file does from its path alone, before op
 
 ## Quality Gates
 
+### Human-Owned Acceptance Specs
+
+Files under `packages/extension/tests/acceptance/specs/**/*.md` are the
+human-written acceptance contract. Agents may update step bindings, fixtures,
+generated Playwright files, and tooling, but must not create, edit, rename, or
+delete acceptance spec Markdown unless the user explicitly asks for that exact
+spec change. See `docs/agents/acceptance-specs.md`.
+
 ### 1. TDD — Red → Green → Refactor
 
 Write acceptance scenarios for every new or changed behavior. Ask before changing existing scenarios.

@@ -69,7 +69,7 @@ export default defineConfig(
   {
     files: [
       'examples/**/*.{ts,tsx}',
-      'packages/**/playwright.config.ts',
+      'packages/**/playwright*.config.ts',
       'packages/**/test-fixtures/**/*.ts',
       'packages/**/tests/**/*.{ts,tsx}',
       'packages/**/__tests__/**/*.{ts,tsx}',
@@ -100,7 +100,7 @@ export default defineConfig(
   },
   // Playwright rules for browser smoke/e2e tests.
   {
-    files: ['packages/**/tests/playwright/**/*.ts'],
+    files: ['packages/**/tests/playwright*/**/*.ts'],
     ...playwrightPlugin.configs['flat/recommended'],
     rules: {
       ...playwrightPlugin.configs['flat/recommended'].rules,
