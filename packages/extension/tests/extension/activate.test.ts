@@ -113,10 +113,10 @@ describe('activate', () => {
 
     const diagnosticLines = log.mock.calls
       .map(call => call[0])
-      .filter(line => typeof line === 'string' && line.includes('[CodeGraphy][Diagnostics]'));
+      .filter(line => typeof line === 'string' && line.startsWith('[CodeGraphy] Extension activation'));
     expect(diagnosticLines).toEqual([
-      '[CodeGraphy][Diagnostics] extension.lifecycle activation-started {"workspaceFolders":0}',
-      '[CodeGraphy][Diagnostics] extension.lifecycle activation-completed {"registeredWebviewProviders":2}',
+      '[CodeGraphy] Extension activation started: workspaceFolders=0',
+      '[CodeGraphy] Extension activation complete: registeredWebviewProviders=2',
     ]);
 
     log.mockRestore();

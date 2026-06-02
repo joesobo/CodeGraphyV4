@@ -70,7 +70,7 @@ describe('index/command', () => {
     }, { verbose: true });
 
     expect(diagnosticAreas).toEqual([
-      '[CodeGraphy][Diagnostics] indexing completed {"operationId":"index-1","files":2}',
+      '[CodeGraphy] Indexing complete: 2 files, operation=index-1',
     ]);
   });
 });

@@ -49,7 +49,7 @@ describe('status/command', () => {
     }, { verbose: true });
 
     expect(diagnostics).toEqual([
-      '[CodeGraphy][Diagnostics] workspace status-read {"workspaceRoot":"/workspace/project","state":"missing"}',
+      '[CodeGraphy] Workspace status read: missing Graph Cache, workspace=/workspace/project',
     ]);
   });
 });

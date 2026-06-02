@@ -18,7 +18,7 @@ describe('extension/diagnostics/logger', () => {
     expect(write).not.toHaveBeenCalled();
   });
 
-  it('writes CodeGraphy-prefixed diagnostic facts when enabled', () => {
+  it('writes human-readable CodeGraphy-prefixed diagnostic facts when enabled', () => {
     const write = vi.fn();
     const logger = createExtensionDiagnosticLogger({
       isEnabled: () => true,
@@ -33,7 +33,7 @@ describe('extension/diagnostics/logger', () => {
 
     expect(write).toHaveBeenCalledOnce();
     expect(write.mock.calls[0][0]).toBe(
-      '[CodeGraphy][Diagnostics] extension.lifecycle activation-started {"workspaceFolders":1}',
+      '[CodeGraphy] Extension activation started: workspaceFolders=1',
     );
   });
 });

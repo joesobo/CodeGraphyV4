@@ -44,15 +44,17 @@ describe('diagnostics/events', () => {
     expect(disabled.events).toEqual([]);
   });
 
-  it('formats events with a stable prefix, area, event, and JSON context', () => {
+  it('formats events as concise human-readable CodeGraphy log lines', () => {
     expect(formatDiagnosticEventLine({
       area: 'indexing',
       event: 'completed',
       context: {
         operationId: 'index-1',
-        nodeCount: 12,
+        files: 4,
+        nodes: 12,
+        edges: 20,
       },
-    })).toBe('[CodeGraphy][Diagnostics] indexing completed {"operationId":"index-1","nodeCount":12}');
+    })).toBe('[CodeGraphy] Indexing complete: 4 files, 12 nodes, 20 edges, operation=index-1');
   });
 
   it('normalizes non-JSON primitive context values into readable strings', () => {

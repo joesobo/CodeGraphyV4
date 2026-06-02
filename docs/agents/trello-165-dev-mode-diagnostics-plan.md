@@ -30,13 +30,13 @@ As part of this work, selectively move obvious non-error lifecycle logs behind V
 When **Verbose Diagnostics** is on for a CodeGraphy interface, CodeGraphy should emit copy/paste-friendly diagnostics with a recognizable prefix:
 
 ```text
-[CodeGraphy][Diagnostics] <area> <event> <structured context>
+[CodeGraphy] <event message>: <compact facts>
 ```
 
-Recommended context style is a stable object argument after a short message, for example:
+Recommended context style is a concise event message followed by only the facts needed to orient debugging, for example:
 
 ```text
-[CodeGraphy][Diagnostics] graph-cache freshness decision { freshness: "stale", reason: "plugin-signature-changed" }
+[CodeGraphy] Graph Cache stale: reason=plugin-signature-changed
 ```
 
 Core Package diagnostics should be modeled as structured diagnostic events first, then rendered by each adapter. The Core Package should not know about VS Code Developer Tools, terminal streams, or MCP transport details.
@@ -115,7 +115,7 @@ Avoid diagnostics for:
    - Add adapter-side renderers for Extension, CLI, and MCP.
    - Adapter renderers should accept an enabled predicate so toggling or flags take effect immediately where the interface supports it.
    - Keep diagnostics inert when disabled.
-   - Use `[CodeGraphy][Diagnostics]` as the fixed prefix.
+   - Use `[CodeGraphy]` as the fixed prefix for extension console and CLI output.
    - Prefer typed helper functions for consistent area/event/context fields instead of open-ended console calls.
 
 4. Core Package diagnostic hooks
@@ -187,7 +187,7 @@ Avoid diagnostics for:
      - reload VS Code if startup logs are needed
      - open Developer Tools
      - reproduce the issue
-     - copy `[CodeGraphy][Diagnostics]` logs into the bug report
+     - copy relevant `[CodeGraphy]` logs into the bug report
    - Add CLI troubleshooting copy for `codegraphy ... --verbose` or the final chosen CLI flag.
    - Add MCP troubleshooting copy showing how an agent should request verbose diagnostics and where to find returned diagnostic entries.
    - Use the name **Verbose Diagnostics** consistently in docs.

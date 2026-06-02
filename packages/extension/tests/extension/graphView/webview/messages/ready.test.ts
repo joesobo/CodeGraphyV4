@@ -102,10 +102,10 @@ describe('graph view ready message', () => {
     expect(handlers.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(readyNotified).toBe(true);
     expect(log.mock.calls.map(call => call[0])).toContain(
-      '[CodeGraphy][Diagnostics] extension.webview ready-replayed {"hasWorkspace":false,"firstAnalysis":false,"readyNotified":false,"maxFiles":500}',
+      '[CodeGraphy] Webview ready replayed: hasWorkspace=false, firstAnalysis=false, readyNotified=false, maxFiles=500',
     );
     expect(log.mock.calls.map(call => call[0])).toContain(
-      '[CodeGraphy][Diagnostics] extension.webview bootstrap-completed {"hasWorkspace":false,"firstAnalysis":false,"readyNotified":false}',
+      '[CodeGraphy] Webview bootstrap complete: hasWorkspace=false, firstAnalysis=false, readyNotified=false',
     );
     log.mockRestore();
   });
