@@ -60,6 +60,45 @@ describe('graph view analysis execution load', () => {
     expect(analyze).toHaveBeenCalledOnce();
   });
 
+  it('loads cached graph data instead of reanalyzing when a fresh index can be replayed', async () => {
+    const cachedGraph: IGraphData = {
+      nodes: [{ id: 'src/cached.ts', label: 'src/cached.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const loadCachedGraph = vi.fn(async () => cachedGraph);
+    const analyze = vi.fn(async () => ({
+      nodes: [{ id: 'src/analyzed.ts', label: 'src/analyzed.ts', color: '#ffffff' }],
+      edges: [],
+    }));
+    const refreshIndex = vi.fn(async () => ({ nodes: [], edges: [] }));
+    const state = createExecutionState({
+      mode: 'load',
+      analyzer: createExecutionAnalyzer({
+        hasIndex: vi.fn(() => true),
+        getIndexStatus: vi.fn(() => ({
+          freshness: 'fresh' as const,
+          detail: 'CodeGraphy Workspace Graph Cache is fresh.',
+        })),
+        loadCachedGraph,
+        analyze,
+        refreshIndex,
+      }),
+      analyzerInitialized: true,
+    });
+
+    const result = await loadGraphViewRawData(
+      new AbortController().signal,
+      state,
+      createExecutionHandlers().handlers,
+    );
+
+    expect(result.shouldDiscover).toBe(false);
+    expect(result.rawGraphData).toEqual(cachedGraph);
+    expect(loadCachedGraph).toHaveBeenCalledOnce();
+    expect(analyze).not.toHaveBeenCalled();
+    expect(refreshIndex).not.toHaveBeenCalled();
+  });
+
   it('loads cached graph data instead of blocking on refresh when a stale index can be replayed', async () => {
     const cachedGraph: IGraphData = {
       nodes: [{ id: 'src/cached.ts', label: 'src/cached.ts', color: '#ffffff' }],

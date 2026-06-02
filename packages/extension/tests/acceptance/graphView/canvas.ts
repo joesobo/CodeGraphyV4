@@ -45,7 +45,7 @@ export async function countVisibleGraphPixels(frame: Frame): Promise<number> {
 
 export async function getGraphCounts(frame: Frame): Promise<{ nodes: number; edges: number }> {
   const text = await frame.locator('body').innerText();
-  const match = text.match(/(\d+)\s+nodes\s+•\s+(\d+)\s+edges/);
+  const match = text.match(/(\d+)\s+nodes\s+•\s+(\d+)\s+(?:edges|connections)/);
   if (!match) {
     throw new Error(`Expected graph count text in webview, saw:\n${text}`);
   }

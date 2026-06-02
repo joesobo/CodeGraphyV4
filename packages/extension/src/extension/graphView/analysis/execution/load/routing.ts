@@ -19,7 +19,7 @@ export function selectGraphViewRawDataLoadDecision(
     return { route: 'discover', shouldDiscover };
   }
 
-  if (mode === 'load' && freshness === 'stale' && canLoadCachedGraph) {
+  if (mode === 'load' && freshness !== 'missing' && canLoadCachedGraph) {
     return { route: 'cached', shouldDiscover };
   }
 

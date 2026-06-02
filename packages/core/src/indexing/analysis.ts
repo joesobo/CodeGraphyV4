@@ -15,16 +15,6 @@ export async function analyzeWorkspaceIndexFiles(input: {
   registry: CorePluginRegistry;
   workspaceRoot: string;
 }) {
-  await preAnalyzeWorkspacePipelineFiles(
-    input.discoveryResult.files,
-    input.workspaceRoot,
-    {
-      notifyPreAnalyze: (files, rootPath) => input.registry.notifyPreAnalyze(files, rootPath),
-      readContent: file => input.discovery.readContent(file),
-    },
-    input.options.signal,
-  );
-
   return analyzeWorkspacePipelineFiles({
     analyzeFile: async (absolutePath, content, rootPath) =>
       input.registry.analyzeFileResult(absolutePath, content, rootPath).then(result => result ?? ({
@@ -40,6 +30,17 @@ export async function analyzeWorkspaceIndexFiles(input: {
       current: progress.current,
       total: progress.total,
     }),
+    preAnalyzeFiles: (files, rootPath, signal) =>
+      preAnalyzeWorkspacePipelineFiles(
+        files,
+        rootPath,
+        {
+          notifyPreAnalyze: (preAnalyzeFiles, preAnalyzeRootPath) =>
+            input.registry.notifyPreAnalyze(preAnalyzeFiles, preAnalyzeRootPath),
+          readContent: file => input.discovery.readContent(file),
+        },
+        signal,
+      ),
     readContent: file => input.discovery.readContent(file),
     signal: input.options.signal,
     workspaceRoot: input.workspaceRoot,

@@ -98,7 +98,7 @@ describe('activate() API return values delegate to provider', () => {
       vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
     ).mock.calls[0]?.[1] as GraphViewProvider;
 
-    const registerSpy = vi.spyOn(provider, 'registerExternalPlugin').mockImplementation(() => {});
+    const registerSpy = vi.spyOn(provider, 'registerExternalPlugin').mockImplementation(async () => undefined);
     const mockPlugin = { id: 'test-plugin' };
     const mockOptions = { extensionUri: '/ext' };
 

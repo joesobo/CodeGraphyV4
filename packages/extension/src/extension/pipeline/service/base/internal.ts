@@ -16,6 +16,7 @@ import {
   readWorkspacePipelineAnalysisFiles,
   toWorkspaceRelativePath,
 } from '../cache/paths';
+import { createWorkspacePipelineAnalysisCacheTiers } from '../cache/tiers';
 import {
   createWorkspacePipelinePluginSignature,
   createWorkspacePipelineSettingsSignature,
@@ -53,7 +54,10 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     workspaceRoot: string,
     onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
+    pluginCacheTierIds?: readonly string[],
   ): Promise<IWorkspaceFileAnalysisResult> {
+    const analysisPluginIds = pluginCacheTierIds ?? this._getActiveAnalysisPluginIds();
+
     return analyzeWorkspacePipelineDiscoveredFiles(
       this._cache,
       this._discovery,
@@ -64,7 +68,20 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       workspaceRoot,
       onProgress,
       signal,
+      createWorkspacePipelineAnalysisCacheTiers(
+        this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {},
+        analysisPluginIds,
+      ),
+      analysisPluginIds,
     );
+  }
+
+  private _getActiveAnalysisPluginIds(): string[] {
+    return this._registry.list()
+      .map(({ plugin }) => plugin.id)
+      .filter((pluginId): pluginId is string =>
+        typeof pluginId === 'string' && pluginId.length > 0,
+      );
   }
 
   protected _buildGraphData(
@@ -91,6 +108,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
+    const nodeVisibility = this._config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
     return buildWorkspacePipelineGraphFromAnalysis(
       this._cache,
       this._context,
@@ -100,6 +118,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       showOrphans,
       disabledPlugins,
       this._lastDiscoveredDirectories,
+      { nodeVisibility },
     );
   }
 

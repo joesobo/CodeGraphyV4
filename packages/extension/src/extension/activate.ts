@@ -27,7 +27,7 @@ export interface CodeGraphyAPI {
   /** Listen for messages the extension sends to the webview. */
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
   /** Register an external v2 plugin. */
-  registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;
+  registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): Promise<void>;
   /** Query the current Relationship Graph through @codegraphy-dev/core. */
   queryGraph(request: GraphQueryRequest): GraphQueryResult;
 }

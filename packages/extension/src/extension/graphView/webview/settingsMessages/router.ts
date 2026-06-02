@@ -14,6 +14,7 @@ export interface GraphViewSettingsMessageHandlers {
   updateConfig(key: string, value: unknown): Promise<void>;
   getInstalledPluginDefaultOptions?(packageName: string): Record<string, unknown> | undefined;
   reloadWorkspacePlugins(): Promise<void>;
+  syncWorkspacePlugins?(): Promise<void>;
   sendPluginStatuses?(): void;
   sendContextMenuItems?(): void;
   sendPluginToolbarActions?(): void;
@@ -23,6 +24,7 @@ export interface GraphViewSettingsMessageHandlers {
   sendGroupsUpdated(): void;
   smartRebuild(id: string): void;
   sendGraphControls(): void;
+  reprocessGraphScope(): Promise<void>;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups(): IPluginFilterPatternGroup[];

@@ -1,5 +1,12 @@
 # @codegraphy-dev/plugin-markdown
 
+## 1.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`feac4c1`](https://github.com/joesobo/CodeGraphyV4/commit/feac4c15fb7b6555c1ae5d6d2655a7b6debc7f4c)]:
+  - @codegraphy-dev/plugin-api@3.1.2
+
 ## 1.1.2
 
 ### Patch Changes

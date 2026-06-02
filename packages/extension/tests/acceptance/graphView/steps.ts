@@ -131,7 +131,7 @@ export const graphViewAcceptanceSteps: Record<string, AcceptanceStepImplementati
   },
 
   'I see information for the src/index.ts node': async (context) => {
-    await expect(requireGraphFrame(context).getByText('Connections')).toBeVisible();
+    await expect(requireGraphFrame(context).getByText('Connections', { exact: true })).toBeVisible();
   },
 
   'the information says "src/index.ts" at the top': async (context) => {

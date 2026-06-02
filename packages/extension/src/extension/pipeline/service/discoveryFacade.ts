@@ -13,6 +13,7 @@ import {
   getWorkspacePipelinePluginFilterGroups,
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
+  syncWorkspacePipelinePlugins,
 } from '../plugins/bootstrap';
 import type { WorkspacePipelineSourceOwner } from '../analysisSource';
 import { WorkspacePipelineInternalBase } from './base/internal';
@@ -71,6 +72,16 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     });
     this._workspacePluginReloadQueue = reload.catch(() => undefined);
     return reload;
+  }
+
+  async syncWorkspacePlugins(): Promise<void> {
+    const sync = this._workspacePluginReloadQueue.then(async () => {
+      await syncWorkspacePipelinePlugins(this._registry, {
+        getWorkspaceRoot: () => this._getWorkspaceRoot(),
+      });
+    });
+    this._workspacePluginReloadQueue = sync.catch(() => undefined);
+    return sync;
   }
 
   getPluginFilterPatterns(
@@ -163,7 +174,7 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     return this._buildGraphData(
       fileConnections,
       workspaceRoot,
-      config.showOrphans,
+      true,
       disabledPlugins,
     );
   }
@@ -193,6 +204,8 @@ export abstract class WorkspacePipelineDiscoveryFacade extends WorkspacePipeline
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
   ): Promise<IGraphData> {
+    throwIfWorkspaceAnalysisAborted(signal);
+    await this._hydrateCacheFromGraphCache();
     throwIfWorkspaceAnalysisAborted(signal);
 
     const workspaceRoot = this._getWorkspaceRoot();

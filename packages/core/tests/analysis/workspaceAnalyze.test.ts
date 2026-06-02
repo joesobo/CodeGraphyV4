@@ -148,7 +148,7 @@ describe('pipeline/analysis/analyze', () => {
     ).resolves.toEqual(graphData);
 
     expect(dependencies.discover).toHaveBeenCalledOnce();
-    expect(source._preAnalyzePlugins).toHaveBeenCalledWith(files, '/workspace', undefined);
+    expect(source._preAnalyzePlugins).not.toHaveBeenCalled();
     expect(source._analyzeFiles).toHaveBeenCalledWith(
       files,
       '/workspace',
@@ -180,7 +180,7 @@ describe('pipeline/analysis/analyze', () => {
       total: 1,
     });
     expect(dependencies.sendProgress).toHaveBeenNthCalledWith(3, {
-      phase: 'Analyzing Files',
+      phase: 'Preparing Analysis',
       current: 0,
       total: 1,
     });
@@ -239,6 +239,53 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
       formatWorkspacePipelineLimitReachedMessage(27, 25),
     );
+  });
+
+  it('reports preparation before file-level analysis progress starts', async () => {
+    const source = createSource();
+    const dependencies = createDependencies();
+    const files = [
+      { absolutePath: '/workspace/src/index.ts', relativePath: 'src/index.ts' },
+    ] as IDiscoveredFile[];
+
+    dependencies.discover.mockResolvedValue({
+      directories: [],
+      durationMs: 4,
+      files,
+      limitReached: false,
+      totalFound: 1,
+    });
+    source._analyzeFiles.mockImplementation(
+      async (
+        _files: IDiscoveredFile[],
+        _workspaceRoot: string,
+        onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
+      ) => {
+        onProgress?.({
+          current: 1,
+          total: 1,
+          filePath: '/workspace/src/index.ts',
+        });
+
+        return {
+          fileAnalysis: new Map(),
+          fileConnections: new Map(),
+        };
+      },
+    );
+
+    await analyzeWorkspaceWithAnalyzer(source as never, dependencies as never);
+
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(3, {
+      phase: 'Preparing Analysis',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(4, {
+      phase: 'Analyzing Files',
+      current: 1,
+      total: 1,
+    });
   });
 
   it('keeps analyzing when progress reporting and the event bus are unavailable', async () => {

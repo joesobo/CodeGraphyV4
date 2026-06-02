@@ -7,8 +7,12 @@ export function formatGraphStat(count: number, singular: string, plural: string)
   return `${COUNT_FORMATTER.format(count)} ${label}`;
 }
 
-export function buildGraphStatsLabel(nodeCount: number, edgeCount: number): string {
-  return `${formatGraphStat(nodeCount, 'node', 'nodes')} • ${formatGraphStat(edgeCount, 'edge', 'edges')}`;
+export function buildGraphStatsLabel(
+  nodeCount: number,
+  edgeCount: number,
+): string {
+  const nodeLabel = formatGraphStat(nodeCount, 'node', 'nodes');
+  return `${nodeLabel} • ${formatGraphStat(edgeCount, 'connection', 'connections')}`;
 }
 
 export function GraphStatsBadge({ label }: { label: string }): React.ReactElement {

@@ -23,6 +23,7 @@
       "suggestedFolder": "target",
       "confidence": "imports-only",
       "members": [
+        "cacheTiers.ts",
         "enrichment.ts",
         "run.ts",
         "symbols.ts",
@@ -1289,7 +1290,8 @@
         "initialize.ts",
         "markdown.ts",
         "packages.ts",
-        "settings.ts"
+        "settings.ts",
+        "sync.ts"
       ]
     },
     {
@@ -2951,7 +2953,7 @@
       "path": "packages/core/src/analysis",
       "kind": "barrel",
       "fileName": "fileAnalysis.ts",
-      "detail": "80% of statements are re-exports (2 of 2)"
+      "detail": "80% of statements are re-exports (4 of 4)"
     },
     {
       "type": "fileIssue",
@@ -3413,7 +3415,7 @@
       "path": "packages/extension/src/extension/pipeline/plugins",
       "kind": "barrel",
       "fileName": "bootstrap.ts",
-      "detail": "80% of statements are re-exports (2 of 2)"
+      "detail": "80% of statements are re-exports (3 of 3)"
     },
     {
       "type": "fileIssue",
@@ -3455,7 +3457,7 @@
       "path": "packages/extension/src/extension/pipeline",
       "kind": "barrel",
       "fileName": "fileAnalysis.ts",
-      "detail": "80% of statements are re-exports (2 of 2)"
+      "detail": "80% of statements are re-exports (3 of 3)"
     },
     {
       "type": "fileIssue",

@@ -30,7 +30,11 @@ import {
 import { assertPluginApiCompatibility } from './compatibility';
 import { listPluginContributions } from './contributions';
 import { addPluginToExtensionMap } from './extensionMap';
-import { analyzeFile, analyzeFileResult, type CoreFileAnalysisResultProvider } from './routing/router/analyze';
+import {
+  analyzeFile,
+  analyzeFileResult,
+  type CoreFileAnalysisResultProvider,
+} from './routing/router/analyze';
 import {
   createCorePluginInfo,
   getPluginFilterPatterns,
@@ -261,6 +265,25 @@ export class CorePluginRegistry {
       this.extensionMap,
       this.coreAnalyzeFileResult,
       analysisContext,
+    );
+  }
+
+  async analyzeFileResultForPlugins(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+    pluginIds: readonly string[],
+    analysisContext?: IPluginAnalysisContext,
+  ): Promise<IFileAnalysisResult | null> {
+    return analyzeFileResult(
+      filePath,
+      content,
+      workspaceRoot,
+      this.plugins,
+      this.extensionMap,
+      this.coreAnalyzeFileResult,
+      analysisContext,
+      { pluginIds: new Set(pluginIds) },
     );
   }
 

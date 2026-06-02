@@ -57,6 +57,36 @@ describe('core tree-sitter built-in plugin', () => {
     );
   });
 
+  it('requests relation-only tree-sitter analysis when symbols are disabled', async () => {
+    const plugin = createTreeSitterPlugin();
+    const analysisResult = {
+      filePath: '/workspace/src/app.ts',
+      relations: [],
+      symbols: [],
+    };
+    vi.mocked(analyzeFileWithTreeSitter).mockResolvedValue(analysisResult as never);
+
+    await expect(
+      plugin.analyzeFile?.(
+        '/workspace/src/app.ts',
+        'export const app = true;',
+        '/workspace',
+        {
+          mode: 'workspace',
+          fileSystem: {} as never,
+          features: { symbols: false },
+        },
+      ),
+    ).resolves.toBe(analysisResult);
+
+    expect(analyzeFileWithTreeSitter).toHaveBeenCalledWith(
+      '/workspace/src/app.ts',
+      'export const app = true;',
+      '/workspace',
+      { includeSymbols: false },
+    );
+  });
+
   it('falls back to an empty analysis result when tree-sitter returns null', async () => {
     const plugin = createTreeSitterPlugin();
     vi.mocked(analyzeFileWithTreeSitter).mockResolvedValue(null);

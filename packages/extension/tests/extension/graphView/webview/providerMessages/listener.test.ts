@@ -176,6 +176,7 @@ function createSource(
     _sendCachedTimeline: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendContextMenuItems: vi.fn(),
+    _sendPluginStatuses: vi.fn(),
     _sendGraphControls: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
     invalidatePluginFiles: vi.fn(() => []),
@@ -295,6 +296,7 @@ describe('graph view provider listener bridge', () => {
     expect(source._sendCachedTimeline).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
     expect(source._sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(source._analyzer?.registry?.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({

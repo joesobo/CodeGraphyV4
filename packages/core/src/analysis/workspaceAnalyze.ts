@@ -120,11 +120,10 @@ export async function analyzeWorkspaceWithAnalyzer(
     fileCount: discoveryResult.files.length,
   });
 
-  await source._preAnalyzePlugins(discoveryResult.files, workspaceRoot, signal);
   dependencies.sendProgress?.({
-    phase: 'Analyzing Files',
+    phase: 'Preparing Analysis',
     current: 0,
-    total: discoveryResult.files.length,
+    total: 1,
   });
   const analysisResult = await source._analyzeFiles(
     discoveryResult.files,

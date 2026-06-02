@@ -9,6 +9,7 @@ import {
   dispatchGraphViewPrimaryMessage,
   type GraphViewPrimaryMessageContext,
 } from '../dispatch/primary';
+import { replayDuplicateWebviewReady } from './ready';
 
 export interface GraphViewMessageListenerContext
   extends GraphViewPrimaryMessageContext,
@@ -53,11 +54,18 @@ function applyGraphViewPluginMessageResult(
   }
 }
 
-function shouldSkipDuplicateWebviewReady(
-  message: WebviewToExtensionMessage,
-  webviewReadyHandled: boolean,
-): boolean {
-  return message.type === 'WEBVIEW_READY' && webviewReadyHandled;
+function createReadyState(context: GraphViewMessageListenerContext) {
+  return {
+    maxFiles: context.getMaxFiles(),
+    playbackSpeed: context.getPlaybackSpeed(),
+    depthMode: context.getDepthMode?.() ?? false,
+    dagMode: context.getDagMode(),
+    nodeSizeMode: context.getNodeSizeMode(),
+    focusedFile: context.getFocusedFile(),
+    hasWorkspace: context.hasWorkspace(),
+    firstAnalysis: context.isFirstAnalysis(),
+    readyNotified: context.isWebviewReadyNotified(),
+  };
 }
 
 function createGraphViewWebviewMessageHandler(
@@ -67,7 +75,8 @@ function createGraphViewWebviewMessageHandler(
   let webviewReadyHandled = false;
 
   return async function handleGraphViewWebviewMessage(message: WebviewToExtensionMessage): Promise<void> {
-    if (shouldSkipDuplicateWebviewReady(message, webviewReadyHandled)) {
+    if (message.type === 'WEBVIEW_READY' && webviewReadyHandled) {
+      await replayDuplicateWebviewReady(createReadyState(context), context);
       return;
     }
     webviewReadyHandled ||= message.type === 'WEBVIEW_READY';

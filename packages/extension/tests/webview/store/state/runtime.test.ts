@@ -57,6 +57,36 @@ describe('GraphStore', () => {
     expect(store.getState().graphIndexFreshness).toBe('fresh');
   });
 
+  it('clears graph indexing progress when the host reports a fresh index', () => {
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_INDEX_PROGRESS',
+      payload: {
+        phase: 'Saving Graph Cache',
+        current: 96,
+        total: 100,
+      },
+    });
+
+    expect(store.getState().graphIsIndexing).toBe(true);
+    expect(store.getState().graphIndexProgress).toEqual({
+      phase: 'Saving Graph Cache',
+      current: 96,
+      total: 100,
+    });
+
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_INDEX_STATUS_UPDATED',
+      payload: {
+        hasIndex: true,
+        freshness: 'fresh',
+        detail: 'CodeGraphy index is fresh.',
+      },
+    });
+
+    expect(store.getState().graphIsIndexing).toBe(false);
+    expect(store.getState().graphIndexProgress).toBeNull();
+  });
+
   it('handles FAVORITES_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'FAVORITES_UPDATED',

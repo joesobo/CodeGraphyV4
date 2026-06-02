@@ -1,7 +1,7 @@
 import type * as lb from '@ladybugdb/core';
 import type { IAnalysisSymbol } from '@codegraphy-dev/plugin-api';
 import type { IWorkspaceAnalysisCache } from '../../../analysis/cache';
-import { runStatementSync } from '../io/connection';
+import { runStatementAsync, runStatementSync } from '../io/connection';
 import { createRelationStatement } from '../relation/statement';
 
 function escapeCypherString(value: string): string {
@@ -50,7 +50,7 @@ async function runStatementAndYield(
   statement: string,
   afterStatement: () => Promise<void>,
 ): Promise<void> {
-  runStatementSync(connection, statement);
+  await runStatementAsync(connection, statement);
   await afterStatement();
 }
 

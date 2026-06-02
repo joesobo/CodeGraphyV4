@@ -101,6 +101,7 @@ class TestRefreshFacade extends WorkspacePipelineRefreshFacade {
     fileAnalysis: new Map(),
     fileConnections: new Map(),
   })) as never;
+  _buildGraphData = vi.fn(() => ({ nodes: [], edges: [] })) as never;
   _buildGraphDataFromAnalysis = vi.fn(() => ({ nodes: [], edges: [] })) as never;
   analyze = vi.fn(async () => ({ nodes: [], edges: [] })) as never;
   invalidateWorkspaceFiles = vi.fn((filePaths: readonly string[]) => [...filePaths]);
@@ -191,7 +192,10 @@ describe('pipeline/service/refreshFacade', () => {
     expect(facade._persistIndexMetadata).toHaveBeenCalledOnce();
 
     await refreshSource._analyzeFiles([], '/workspace', undefined, signal);
-    expect(facade._analyzeFiles).toHaveBeenCalledWith([], '/workspace', undefined, signal);
+    expect(facade._analyzeFiles).toHaveBeenCalledWith([], '/workspace', undefined, signal, undefined);
+
+    refreshSource._buildGraphData(new Map(), '/workspace', disabledPlugins);
+    expect(facade._buildGraphData).toHaveBeenCalledWith(new Map(), '/workspace', true, disabledPlugins);
 
     refreshSource._buildGraphDataFromAnalysis(new Map(), '/workspace', disabledPlugins);
     expect(facade._buildGraphDataFromAnalysis).toHaveBeenCalledWith(new Map(), '/workspace', true, disabledPlugins);

@@ -3,7 +3,7 @@ import type { FileDiscovery } from '@codegraphy-dev/core';
 import type { EventBus } from '../../../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { IWorkspaceAnalysisCache } from '../../cache';
-import type { IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
+import type { AnalysisCacheTierOptions, IWorkspaceFileAnalysisResult } from '../../fileAnalysis';
 import { preAnalyzeWorkspacePipelineFiles } from '../../analysis/preAnalyze';
 import { analyzeWorkspacePipelineFiles } from '../../serviceAdapters';
 
@@ -32,6 +32,8 @@ export async function analyzeWorkspacePipelineDiscoveredFiles(
   workspaceRoot: string,
   onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
+  cacheTiers?: AnalysisCacheTierOptions,
+  pluginIds?: readonly string[],
 ): Promise<IWorkspaceFileAnalysisResult> {
   return analyzeWorkspacePipelineFiles(
     cache,
@@ -43,5 +45,7 @@ export async function analyzeWorkspacePipelineDiscoveredFiles(
     workspaceRoot,
     onProgress,
     signal,
+    cacheTiers,
+    pluginIds,
   );
 }

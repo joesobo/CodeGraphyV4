@@ -1,5 +1,6 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/extensionToWebview';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 
 export interface GraphViewReadyState {
   maxFiles: number;
@@ -14,6 +15,7 @@ export interface GraphViewReadyState {
 }
 
 export interface GraphViewReadyHandlers {
+  getGraphData(): IGraphData;
   getFilterPatterns(): string[];
   getPluginFilterPatterns(): string[];
   getPluginFilterGroups?: () => IPluginFilterPatternGroup[];
@@ -31,6 +33,7 @@ export interface GraphViewReadyHandlers {
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginStatuses?(): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
   sendGraphViewContributionStatuses?(): void;
@@ -40,10 +43,10 @@ export interface GraphViewReadyHandlers {
   notifyWebviewReady(): void;
 }
 
-export async function applyWebviewReady(
+export function replayWebviewReadySettings(
   state: GraphViewReadyState,
   handlers: GraphViewReadyHandlers,
-): Promise<boolean> {
+): void {
   handlers.loadGroupsAndFilterPatterns();
   handlers.loadDisabledRulesAndPlugins();
   handlers.sendDepthState();
@@ -66,7 +69,6 @@ export async function applyWebviewReady(
     type: 'MAX_FILES_UPDATED',
     payload: { maxFiles: state.maxFiles },
   });
-  await handlers.sendCachedTimeline();
   handlers.sendMessage({
     type: 'PLAYBACK_SPEED_UPDATED',
     payload: { speed: state.playbackSpeed },
@@ -90,12 +92,49 @@ export async function applyWebviewReady(
   handlers.sendGraphViewContributionStatuses?.();
   handlers.sendPluginWebviewInjections();
   handlers.sendActiveFile();
-  await handlers.loadAndSendData();
+}
 
-  if (state.hasWorkspace && state.firstAnalysis) {
-    await handlers.waitForFirstWorkspaceReady();
-    handlers.sendGraphViewContributionStatuses?.();
+export function replayWebviewReadyBootstrap(
+  state: GraphViewReadyState,
+  handlers: GraphViewReadyHandlers,
+): void {
+  replayWebviewReadySettings(state, handlers);
+  replayWebviewReadyGraphBootstrap(handlers);
+}
+
+export function replayWebviewReadyGraphBootstrap(
+  handlers: Pick<GraphViewReadyHandlers, 'getGraphData' | 'sendMessage'>,
+): void {
+  handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: handlers.getGraphData() });
+  handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
+}
+
+export function shouldWaitForFirstWorkspaceGraph(state: GraphViewReadyState): boolean {
+  return state.hasWorkspace && state.firstAnalysis;
+}
+
+export async function replayDuplicateWebviewReady(
+  state: GraphViewReadyState,
+  handlers: GraphViewReadyHandlers,
+): Promise<void> {
+  replayWebviewReadySettings(state, handlers);
+
+  if (shouldWaitForFirstWorkspaceGraph(state)) {
+    return;
   }
+
+  replayWebviewReadyGraphBootstrap(handlers);
+}
+
+export async function applyWebviewReady(
+  state: GraphViewReadyState,
+  handlers: GraphViewReadyHandlers,
+): Promise<boolean> {
+  replayWebviewReadySettings(state, handlers);
+
+  await handlers.sendCachedTimeline();
+  await handlers.loadAndSendData();
+  handlers.sendPluginStatuses?.();
 
   handlers.sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
 

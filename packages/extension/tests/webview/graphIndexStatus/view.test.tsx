@@ -49,6 +49,23 @@ describe('GraphIndexStatus', () => {
     expect(screen.getByTestId('graph-index-status').className).toContain('pointer-events-none');
   });
 
+  it('anchors to the graph bottom and reserves the bottom-right graph control lane', () => {
+    render(
+      <GraphIndexStatus
+        isIndexing={true}
+        progress={{ phase: 'Discovering Files', current: 1, total: 1 }}
+      />,
+    );
+
+    const statusClass = screen.getByTestId('graph-index-status').className;
+    expect(statusClass).toContain('left-2');
+    expect(statusClass).toContain('right-12');
+    expect(statusClass).toContain('bottom-2');
+    expect(statusClass).toContain('rounded-md');
+    expect(statusClass).not.toContain('border-t');
+    expect(statusClass).not.toContain('inset-x-0');
+  });
+
   it('shows zero progress when the total is zero', () => {
     render(
       <GraphIndexStatus

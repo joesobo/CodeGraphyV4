@@ -2,6 +2,15 @@ import * as path from 'path';
 import type { IPlugin } from '@codegraphy-dev/plugin-api';
 import type { CodeGraphyInstalledPluginRecord } from '../installedPluginCache/contracts';
 import type { CorePluginInfo } from '../registry';
+import {
+  getWorkspaceIndexPluginMatchingFiles,
+  supportsWorkspaceIndexPluginExtension,
+} from './extensions';
+
+export {
+  getWorkspaceIndexPluginMatchingFiles,
+  supportsWorkspaceIndexPluginExtension,
+} from './extensions';
 
 export interface WorkspaceIndexPluginStatus {
   id: string;
@@ -56,23 +65,6 @@ function getWorkspaceIndexPluginWorkspaceStatus(
   }
 
   return totalConnections > 0 ? 'active' : 'installed';
-}
-
-export function supportsWorkspaceIndexPluginExtension(
-  pluginExtensions: readonly string[],
-  extension: string,
-): boolean {
-  return pluginExtensions.includes('*') || pluginExtensions.includes(extension);
-}
-
-export function getWorkspaceIndexPluginMatchingFiles(
-  pluginInfo: Pick<WorkspaceIndexPluginInfo, 'plugin'>,
-  discoveredFiles: Array<{ relativePath: string }>,
-): Array<{ relativePath: string }> {
-  return discoveredFiles.filter((file) => {
-    const extension = path.extname(file.relativePath).toLowerCase();
-    return supportsWorkspaceIndexPluginExtension(pluginInfo.plugin.supportedExtensions, extension);
-  });
 }
 
 export function countWorkspaceIndexPluginConnections(
