@@ -17,6 +17,7 @@ const scopeSchema = z.object({
 
 export const workspacePathSchema = {
   path: z.string().optional(),
+  verboseDiagnostics: z.boolean().optional(),
 };
 
 export const packagePluginSchema = {
