@@ -1,4 +1,5 @@
 import * as path from 'node:path';
+import { createDiagnosticEvent } from '../diagnostics/events';
 import {
   readCodeGraphyWorkspaceSettingsOrInitial,
 } from './settings';
@@ -33,6 +34,18 @@ export function readCodeGraphyWorkspaceStatusForCli(
   const workspaceRoot = resolveCodeGraphyWorkspacePath(input.workspacePath, dependencies.cwd());
   const status = readCodeGraphyWorkspaceStatus(workspaceRoot);
   const settings = readCodeGraphyWorkspaceSettingsOrInitial(workspaceRoot);
+  input.diagnostics?.emit(createDiagnosticEvent({
+    area: 'workspace',
+    event: 'status-read',
+    context: {
+      workspaceRoot: status.workspaceRoot,
+      graphCache: path.relative(status.workspaceRoot, status.graphCachePath),
+      state: status.state,
+      hasGraphCache: status.hasGraphCache,
+      staleReasons: status.staleReasons,
+      enabledPluginCount: settings.plugins.length,
+    },
+  }));
 
   return {
     workspaceRoot: status.workspaceRoot,

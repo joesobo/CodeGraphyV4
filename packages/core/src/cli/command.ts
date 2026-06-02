@@ -71,7 +71,10 @@ export async function runCliCommand(
       result = runSetupCommand();
       break;
     case 'status':
-      result = runStatusCommand(command.workspacePath);
+      result = runStatusCommand(command.workspacePath, undefined, {
+        verbose: command.verbose,
+        writeDiagnostic: dependencies.writeDiagnostic,
+      });
       break;
     case 'index':
       result = await runIndexCommand(command.workspacePath, undefined, {
