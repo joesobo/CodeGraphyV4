@@ -28,4 +28,25 @@ describe('cli/command', () => {
       output: expect.stringContaining('CodeGraphy indexing completed'),
     });
   });
+
+  it('emits verbose diagnostics outside command output', async () => {
+    const diagnostics: string[] = [];
+
+    const result = await runCliCommand(
+      { name: 'status', verbose: true, workspacePath: '/workspace/project' },
+      {
+        writeDiagnostic: line => diagnostics.push(line),
+      },
+    );
+
+    expect(JSON.parse(result.output)).toMatchObject({
+      workspaceRoot: '/workspace/project',
+    });
+    expect(diagnostics).toContain(
+      '[CodeGraphy][Diagnostics] cli command-started {"command":"status","workspacePath":"/workspace/project"}',
+    );
+    expect(diagnostics).toContain(
+      '[CodeGraphy][Diagnostics] cli command-completed {"command":"status","exitCode":0}',
+    );
+  });
 });
