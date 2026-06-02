@@ -12,19 +12,19 @@ describe('app/graph/stats', () => {
   it('builds a combined stats label and renders it', () => {
     render(<GraphStatsBadge label={buildGraphStatsLabel(2, 1)} />);
 
-    expect(screen.getByText('2 visible nodes • 1 rendered edge')).toBeInTheDocument();
+    expect(screen.getByText('2 nodes • 1 connection')).toBeInTheDocument();
   });
 
-  it('does not present missing-index edges as a final rendered edge count', () => {
+  it('does not present missing-index connections as a final connection count', () => {
     expect(buildGraphStatsLabel(2, 0, { hasIndex: false })).toBe(
-      '2 visible nodes • relationships not indexed',
+      '2 nodes • connections not indexed',
     );
   });
 
   it('keeps the stats badge distinct from the graph surface', () => {
     render(<GraphStatsBadge label={buildGraphStatsLabel(2, 1)} />);
 
-    const badge = screen.getByText('2 visible nodes • 1 rendered edge');
+    const badge = screen.getByText('2 nodes • 1 connection');
     expect(badge.className).toContain('bg-[var(--cg-background)]');
     expect(badge.className).toContain('border-[var(--cg-border-subtle)]');
     expect(badge.className).not.toContain('bg-[var(--cg-popover-translucent)]');
@@ -33,12 +33,12 @@ describe('app/graph/stats', () => {
   it('insets the stats badge from the graph corner', () => {
     render(<GraphStatsBadge label={buildGraphStatsLabel(2, 1)} />);
 
-    const badge = screen.getByText('2 visible nodes • 1 rendered edge');
+    const badge = screen.getByText('2 nodes • 1 connection');
     expect(badge.className).toContain('right-4');
     expect(badge.className).toContain('top-4');
   });
 
   it('builds a combined stats label for singular nodes and plural edges', () => {
-    expect(buildGraphStatsLabel(1, 2)).toBe('1 visible node • 2 rendered edges');
+    expect(buildGraphStatsLabel(1, 2)).toBe('1 node • 2 connections');
   });
 });
