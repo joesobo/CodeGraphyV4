@@ -61,7 +61,23 @@ function normalizeContextValue(value: unknown): DiagnosticContextValue {
     return normalized;
   }
 
-  return String(value);
+  if (typeof value === 'undefined') {
+    return 'undefined';
+  }
+
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  if (typeof value === 'symbol') {
+    return value.description ? `Symbol(${value.description})` : 'Symbol()';
+  }
+
+  if (typeof value === 'function') {
+    return value.name ? `[Function: ${value.name}]` : '[Function]';
+  }
+
+  return 'unknown';
 }
 
 function normalizeContext(context: Record<string, unknown> | undefined): Record<string, DiagnosticContextValue> | undefined {
