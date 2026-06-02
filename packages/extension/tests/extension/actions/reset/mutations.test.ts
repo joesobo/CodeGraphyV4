@@ -67,6 +67,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     particleSize: 4,
     showLabels: true,
     maxFiles: 500,
+    verboseDiagnostics: false,
     nodeSizeMode: 'connections',
   };
 
@@ -96,6 +97,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       particleSize: 4,
       showLabels: true,
       maxFiles: 500,
+      verboseDiagnostics: false,
       nodeSizeMode: 'connections',
     };
     mockConfig = createMockConfig(settingsStore);

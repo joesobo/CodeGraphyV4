@@ -44,6 +44,7 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     particleSize: 4,
     showLabels: true,
     maxFiles: DEFAULT_MAX_FILES,
+    verboseDiagnostics: false,
     nodeSizeMode: 'connections',
     physics: {
       repelForce: 1,

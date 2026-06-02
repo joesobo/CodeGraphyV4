@@ -54,6 +54,7 @@ describe('graphView/settings/snapshotMessages', () => {
       particleSize: 4,
       showLabels: true,
       maxFiles: DEFAULT_MAX_FILES,
+      verboseDiagnostics: false,
       nodeSizeMode: 'uniform',
     });
   });
@@ -76,6 +77,7 @@ describe('graphView/settings/snapshotMessages', () => {
         particleSize: 6,
         showLabels: false,
         maxFiles: 250,
+        verboseDiagnostics: true,
       }),
       {
         repelForce: 10,
@@ -112,6 +114,7 @@ describe('graphView/settings/snapshotMessages', () => {
       particleSize: 6,
       showLabels: false,
       maxFiles: 250,
+      verboseDiagnostics: true,
       nodeSizeMode: 'churn',
     });
   });
@@ -176,6 +179,7 @@ describe('graphView/settings/snapshotMessages', () => {
           particleSize: 6,
           showLabels: false,
           maxFiles: 250,
+          verboseDiagnostics: true,
           nodeSizeMode: 'churn',
         },
         ['venv/**'],
@@ -224,6 +228,10 @@ describe('graphView/settings/snapshotMessages', () => {
         {
           type: 'MAX_FILES_UPDATED',
           payload: { maxFiles: 250 },
+        },
+        {
+          type: 'VERBOSE_DIAGNOSTICS_UPDATED',
+          payload: { verboseDiagnostics: true },
         },
         {
           type: 'NODE_SIZE_MODE_UPDATED',

@@ -48,6 +48,7 @@ export function captureGraphViewSettingsSnapshot(
     particleSize: config.get('particleSize', 4),
     showLabels: config.get('showLabels', true),
     maxFiles: config.get('maxFiles', DEFAULT_MAX_FILES),
+    verboseDiagnostics: config.get('verboseDiagnostics', false),
     nodeSizeMode,
   };
 }

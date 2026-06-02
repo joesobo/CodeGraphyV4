@@ -3,6 +3,7 @@ import type { IPluginFilterPatternGroup } from '../../../../shared/protocol/exte
 
 export interface GraphViewReadyState {
   maxFiles: number;
+  verboseDiagnostics: boolean;
   playbackSpeed: number;
   depthMode?: boolean;
   dagMode: DagMode;
@@ -66,6 +67,10 @@ export function replayWebviewReadySettings(
   handlers.sendMessage({
     type: 'MAX_FILES_UPDATED',
     payload: { maxFiles: state.maxFiles },
+  });
+  handlers.sendMessage({
+    type: 'VERBOSE_DIAGNOSTICS_UPDATED',
+    payload: { verboseDiagnostics: state.verboseDiagnostics },
   });
   handlers.sendMessage({
     type: 'PLAYBACK_SPEED_UPDATED',

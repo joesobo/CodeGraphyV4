@@ -76,6 +76,7 @@ export interface IStoreFields {
   graphViewContributionStatuses: IGraphViewContributionStatus[];
   activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'graphScope' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
+  verboseDiagnostics: boolean;
   activeFilePath: string | null;
   timelineActive: boolean;
   timelineCommits: ICommitInfo[];
