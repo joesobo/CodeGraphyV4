@@ -12,12 +12,12 @@ export function buildGraphStatsLabel(
   edgeCount: number,
   options: { hasIndex?: boolean } = {},
 ): string {
-  const nodeLabel = formatGraphStat(nodeCount, 'visible node', 'visible nodes');
+  const nodeLabel = formatGraphStat(nodeCount, 'node', 'nodes');
   if (options.hasIndex === false && edgeCount === 0) {
-    return `${nodeLabel} • relationships not indexed`;
+    return `${nodeLabel} • connections not indexed`;
   }
 
-  return `${nodeLabel} • ${formatGraphStat(edgeCount, 'rendered edge', 'rendered edges')}`;
+  return `${nodeLabel} • ${formatGraphStat(edgeCount, 'connection', 'connections')}`;
 }
 
 export function GraphStatsBadge({ label }: { label: string }): React.ReactElement {

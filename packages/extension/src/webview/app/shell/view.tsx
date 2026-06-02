@@ -185,7 +185,7 @@ export default function App(): React.ReactElement {
           onAddFilterRequested={openFilterPopoverWithPatterns}
           onAddLegendRequested={openLegendPrompt}
         />
-        {!graphIsIndexing && <GraphStatsBadge label={graphStatsLabel} />}
+        <GraphStatsBadge label={graphStatsLabel} />
         <ToolbarRail pluginHost={pluginHost} />
         <PanelStack
           activePanel={activePanel}
