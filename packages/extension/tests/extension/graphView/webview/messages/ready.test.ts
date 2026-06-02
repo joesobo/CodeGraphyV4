@@ -36,6 +36,7 @@ describe('graph view ready message', () => {
     const readyNotified = await applyWebviewReady(
       {
         maxFiles: 500,
+        verboseDiagnostics: true,
         playbackSpeed: 1,
         dagMode: 'td',
         nodeSizeMode: 'connections',
@@ -78,6 +79,10 @@ describe('graph view ready message', () => {
       payload: { maxFiles: 500 },
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'VERBOSE_DIAGNOSTICS_UPDATED',
+      payload: { verboseDiagnostics: true },
+    });
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'PLAYBACK_SPEED_UPDATED',
       payload: { speed: 1 },
     });
@@ -106,6 +111,7 @@ describe('graph view ready message', () => {
     await applyWebviewReady(
       {
         maxFiles: 500,
+        verboseDiagnostics: false,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
@@ -146,6 +152,7 @@ describe('graph view ready message', () => {
     await applyWebviewReady(
       {
         maxFiles: 500,
+        verboseDiagnostics: false,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
@@ -166,6 +173,7 @@ describe('graph view ready message', () => {
     await applyWebviewReady(
       {
         maxFiles: 500,
+        verboseDiagnostics: false,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
@@ -186,6 +194,7 @@ describe('graph view ready message', () => {
     await applyWebviewReady(
       {
         maxFiles: 500,
+        verboseDiagnostics: false,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
@@ -206,6 +215,7 @@ describe('graph view ready message', () => {
     const readyNotified = await applyWebviewReady(
       {
         maxFiles: 500,
+        verboseDiagnostics: false,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
@@ -236,6 +246,7 @@ describe('graph view ready message', () => {
     await applyWebviewReady(
       {
         maxFiles: 500,
+        verboseDiagnostics: false,
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',

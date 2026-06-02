@@ -10,10 +10,12 @@ describe('extension/repoSettings/store/model/persistedShape', () => {
 
   it('deduplicates filter patterns and drops unknown top-level settings', () => {
     expect(normalizePersistedSettingsShape({
+      verboseDiagnostics: true,
       filterPatterns: ['**/*.png', '**/*.png', 42, '**/*.tmp'],
       edgeColors: { import: '#123456' },
       plugins: ['codegraphy.typescript'],
     })).toEqual({
+      verboseDiagnostics: true,
       filterPatterns: ['**/*.png', '**/*.tmp'],
     });
   });

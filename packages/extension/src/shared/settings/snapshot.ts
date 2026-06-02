@@ -22,4 +22,5 @@ export interface ISettingsSnapshot {
   showLabels: boolean;
   nodeSizeMode: NodeSizeMode;
   maxFiles: number;
+  verboseDiagnostics: boolean;
 }
