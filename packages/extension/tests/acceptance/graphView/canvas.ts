@@ -128,6 +128,24 @@ async function moveMouseToStagePoint(frame: Frame, point: Point): Promise<void> 
   await frame.page().mouse.move(stageBox.x + point.x, stageBox.y + point.y);
 }
 
+async function dispatchCanvasMouseMoveToStagePoint(frame: Frame, point: Point): Promise<void> {
+  await graphStage(frame).evaluate((stage, stagePoint) => {
+    const canvas = stage.querySelector('canvas');
+    if (!(canvas instanceof HTMLCanvasElement)) {
+      throw new Error('Expected Graph Stage to contain a canvas');
+    }
+
+    const rect = stage.getBoundingClientRect();
+    canvas.dispatchEvent(new MouseEvent('mousemove', {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left + stagePoint.x,
+      clientY: rect.top + stagePoint.y,
+      view: window,
+    }));
+  }, point);
+}
+
 async function dragMouseBetweenStagePoints(frame: Frame, source: Point, target: Point): Promise<void> {
   const stageBox = await graphStage(frame).boundingBox();
   if (!stageBox) {
@@ -150,6 +168,7 @@ export async function hoverNode(context: GraphAcceptanceContext, nodePath: strin
   for (const point of hoverPoints) {
     await graphStage(frame).hover({ position: point, force: true });
     await moveMouseToStagePoint(frame, point);
+    await dispatchCanvasMouseMoveToStagePoint(frame, point);
     await frame.waitForTimeout(650);
 
     if (await tooltipPath.isVisible()) {
@@ -163,6 +182,7 @@ export async function hoverNode(context: GraphAcceptanceContext, nodePath: strin
 
 function getNodeHoverProbePoints(probe: NodeProbe): Point[] {
   const step = Math.max(4, Math.min(12, Math.round(probe.radius / 2)));
+  const outerStep = Math.max(step + 4, Math.round(probe.radius));
   return [
     probe.center,
     { x: probe.center.x - step, y: probe.center.y },
@@ -173,6 +193,14 @@ function getNodeHoverProbePoints(probe: NodeProbe): Point[] {
     { x: probe.center.x + step, y: probe.center.y - step },
     { x: probe.center.x - step, y: probe.center.y + step },
     { x: probe.center.x + step, y: probe.center.y + step },
+    { x: probe.center.x - outerStep, y: probe.center.y },
+    { x: probe.center.x + outerStep, y: probe.center.y },
+    { x: probe.center.x, y: probe.center.y - outerStep },
+    { x: probe.center.x, y: probe.center.y + outerStep },
+    { x: probe.center.x - outerStep, y: probe.center.y - outerStep },
+    { x: probe.center.x + outerStep, y: probe.center.y - outerStep },
+    { x: probe.center.x - outerStep, y: probe.center.y + outerStep },
+    { x: probe.center.x + outerStep, y: probe.center.y + outerStep },
   ];
 }
 
