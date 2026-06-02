@@ -15,10 +15,8 @@ describe('app/graph/stats', () => {
     expect(screen.getByText('2 nodes • 1 connection')).toBeInTheDocument();
   });
 
-  it('does not present missing-index connections as a final connection count', () => {
-    expect(buildGraphStatsLabel(2, 0, { hasIndex: false })).toBe(
-      '2 nodes • connections not indexed',
-    );
+  it('builds missing-index graph stats as zero connections', () => {
+    expect(buildGraphStatsLabel(2, 0)).toBe('2 nodes • 0 connections');
   });
 
   it('keeps the stats badge distinct from the graph surface', () => {

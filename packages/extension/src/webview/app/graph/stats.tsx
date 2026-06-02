@@ -10,13 +10,8 @@ export function formatGraphStat(count: number, singular: string, plural: string)
 export function buildGraphStatsLabel(
   nodeCount: number,
   edgeCount: number,
-  options: { hasIndex?: boolean } = {},
 ): string {
   const nodeLabel = formatGraphStat(nodeCount, 'node', 'nodes');
-  if (options.hasIndex === false && edgeCount === 0) {
-    return `${nodeLabel} • connections not indexed`;
-  }
-
   return `${nodeLabel} • ${formatGraphStat(edgeCount, 'connection', 'connections')}`;
 }
 

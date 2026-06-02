@@ -169,7 +169,7 @@ describe('App', () => {
     });
 
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
 
     await act(async () => {
       resolveInjection?.();
@@ -177,7 +177,7 @@ describe('App', () => {
     });
 
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
   });
 
   it('keeps the graph visible when plugin assets are injected after startup', async () => {
@@ -203,7 +203,7 @@ describe('App', () => {
     });
 
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
 
     await act(async () => {
       sendMessage({
@@ -217,7 +217,7 @@ describe('App', () => {
     });
 
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
 
     await act(async () => {
       resolveInjection?.();
@@ -225,7 +225,7 @@ describe('App', () => {
     });
 
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
   });
 
   it('keeps the graph visible when settings and filters update after startup', async () => {
@@ -243,7 +243,7 @@ describe('App', () => {
     });
 
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
 
     await act(async () => {
       sendMessage({
@@ -278,7 +278,7 @@ describe('App', () => {
     expect(graphStore.getState().bidirectionalMode).toBe('combined');
     expect(graphStore.getState().filterPatterns).toEqual(['dist/**']);
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-    expect(screen.getByText('2 nodes • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('2 nodes • 0 connections')).toBeInTheDocument();
   });
 
   it('keeps the graph visible while indexing after startup', async () => {
@@ -325,7 +325,7 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
 
     await act(async () => {
       sendMessage({
@@ -334,7 +334,7 @@ describe('App', () => {
       });
     });
 
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
     expect(screen.getByText('Preparing Analysis')).toBeInTheDocument();
 
     await act(async () => {
@@ -487,7 +487,7 @@ describe('App', () => {
       sendMessage({ type: 'APP_BOOTSTRAP_COMPLETE' });
     });
 
-    expect(screen.getByText('1 node • connections not indexed')).toBeInTheDocument();
+    expect(screen.getByText('1 node • 0 connections')).toBeInTheDocument();
   });
 
   it('counts filters against the scoped visible graph instead of raw graph data', () => {
