@@ -358,6 +358,18 @@ export async function readNodeVisualSize(context: GraphAcceptanceContext, nodePa
   return Math.max(box.width, box.height);
 }
 
+export async function readScreenDistanceBetweenNodes(
+  context: GraphAcceptanceContext,
+  sourcePath: string,
+  targetPath: string,
+): Promise<number> {
+  const frame = requireGraphFrame(context);
+  const source = await readNodeProbe(frame, sourcePath);
+  const target = await readNodeProbe(frame, targetPath);
+
+  return distanceBetween(source.center, target.center);
+}
+
 async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<CanvasAnalysis> {
   return graphStage(frame).evaluate((stage, options) => {
     const canvas = stage.querySelector('canvas');
