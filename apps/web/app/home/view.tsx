@@ -5,7 +5,6 @@ import { SiteFooter } from '../_site/footer';
 import { SiteHeader } from '../_site/header';
 import {
   faqItems,
-  galleryItems,
   githubHref,
   installHref,
   optionalPackages,
@@ -13,6 +12,7 @@ import {
   supportedLanguages,
   workflowSteps,
 } from './content';
+import { FeatureTour } from './featureTour/view';
 import { ForceNodeControls } from './forceNodeField/controls';
 import { ForceNodeSettingsProvider } from './forceNodeField/settings';
 import { ForceNodeField } from './forceNodeField/view';
@@ -185,13 +185,16 @@ export function HomeView(): React.ReactElement {
                     Install CodeGraphy
                   </a>
                 </Button>
-                <Button asChild size="lg" variant="outline">
-                  <a href={githubHref}>
-                    <GitHubIcon className="h-[18px] w-[18px]" />
-                    GitHub
-                  </a>
-                </Button>
               </div>
+              <a
+                className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-foreground underline-offset-4 hover:underline"
+                href={githubHref}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <GitHubIcon className="h-4 w-4" />
+                Open source on GitHub
+              </a>
             </div>
             <ForceNodeControls />
           </div>
@@ -305,65 +308,22 @@ export function HomeView(): React.ReactElement {
         </section>
 
         <section className="section-plain border-y border-border/70" id="gallery">
-          <div className="mx-auto max-w-7xl px-5 py-20 md:px-8">
-            <Card className="notebook-card p-5 md:p-6">
-              <div className="border-b border-border pb-5">
+          <div className="mx-auto max-w-7xl px-5 py-16 md:px-8">
+            <Card className="notebook-card p-4 md:p-5">
+              <div className="border-b border-border pb-4">
                 <p className="section-kicker-blue text-xs font-black uppercase tracking-[0.08em]">Core</p>
-                <div className="mt-3 grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div className="mt-2">
                   <div>
                     <h2 className="site-heading max-w-3xl text-4xl sm:text-[3rem]">
                       Features.
                     </h2>
-                    <p className="mt-2 max-w-3xl leading-7 text-muted-foreground">
-                      Install CodeGraphy, index a project, and start moving through the connection map.
+                    <p className="mt-1 max-w-3xl leading-7 text-muted-foreground">
+                      Index a project and start moving through the connection map.
                     </p>
                   </div>
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button asChild>
-                    <a href={installHref}>
-                      <VsCodeIcon />
-                      Install CodeGraphy
-                    </a>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <a href={githubHref}>
-                      <GitHubIcon />
-                      GitHub
-                    </a>
-                  </Button>
-                </div>
                 </div>
               </div>
-              <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {galleryItems.map(item => {
-                    const Icon = item.icon;
-
-                    return (
-                      <Card className="overflow-hidden bg-background/55 shadow-none" key={item.title}>
-                        <img alt="" className="aspect-[16/10] w-full object-cover" src={item.image} />
-                        <div className="p-5">
-                          <div className="mb-3 flex items-center gap-3">
-                            <span className="icon-badge">
-                              <Icon size={18} />
-                            </span>
-                            <h3 className="text-xl font-bold">{item.title}</h3>
-                          </div>
-                          <p className="leading-7 text-muted-foreground">{item.text}</p>
-                          {'href' in item ? (
-                            <a
-                              className="mt-4 inline-flex text-sm font-bold text-[hsl(var(--brand-blue))] underline-offset-4 hover:underline"
-                              href={item.href}
-                              rel="noreferrer"
-                              target="_blank"
-                            >
-                              {item.linkLabel}
-                            </a>
-                          ) : null}
-                        </div>
-                      </Card>
-                    );
-                  })}
-              </div>
+              <FeatureTour />
               <SupportedLanguageMarquee />
             </Card>
           </div>
@@ -459,12 +419,6 @@ export function HomeView(): React.ReactElement {
                   <a href={installHref}>
                     <VsCodeIcon className="h-[18px] w-[18px]" />
                     Install CodeGraphy
-                  </a>
-                </Button>
-                <Button asChild variant="outline">
-                  <a href={githubHref}>
-                    <GitHubIcon className="h-[18px] w-[18px]" />
-                    GitHub
                   </a>
                 </Button>
               </div>
