@@ -7,6 +7,10 @@ Open `examples/` in CodeGraphy and look for:
 - `example-lua/main.lua -> example-lua/app/runner.lua#import`
 - `example-lua/app/runner.lua -> example-lua/app/model/user.lua#import`
 
+## Graph Screenshot
+
+![Lua example graph screenshot](../assets/graphs/lua.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:

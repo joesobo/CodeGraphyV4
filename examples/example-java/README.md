@@ -8,6 +8,10 @@ What to look for:
 - class and method symbols
 - inheritance edges
 
+## Graph Screenshot
+
+![Java example graph screenshot](../assets/graphs/java.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:

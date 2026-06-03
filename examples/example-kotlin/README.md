@@ -7,6 +7,10 @@ Open `examples/` in CodeGraphy and look for:
 - `example-kotlin/src/main/kotlin/com/example/app/AppRunner.kt -> example-kotlin/src/main/kotlin/com/example/base/BaseRunner.kt#import`
 - `example-kotlin/src/main/kotlin/com/example/app/AppRunner.kt -> example-kotlin/src/main/kotlin/com/example/base/RunnableThing.kt#inherit`
 
+## Graph Screenshot
+
+![Kotlin example graph screenshot](../assets/graphs/kotlin.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:

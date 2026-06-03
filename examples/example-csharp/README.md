@@ -2,6 +2,10 @@
 
 A small C# workspace for manual checks of CodeGraphy's C# support.
 
+## Graph Screenshot
+
+![C# example graph screenshot](../assets/graphs/csharp.png)
+
 ## Structure
 
 ```

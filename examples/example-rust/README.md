@@ -8,6 +8,10 @@ What to look for:
 - `mod` edges resolved to sibling modules
 - function, struct, enum, and trait symbols
 
+## Graph Screenshot
+
+![Rust example graph screenshot](../assets/graphs/rust.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:

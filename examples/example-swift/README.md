@@ -6,6 +6,10 @@ Open `examples/` in CodeGraphy and look for:
 
 - `example-swift/Sources/SwiftExample/main.swift -> example-swift/Sources/RunnerSupport/Worker.swift#import`
 
+## Graph Screenshot
+
+![Swift example graph screenshot](../assets/graphs/swift.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:
