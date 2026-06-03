@@ -98,7 +98,7 @@ describe('Graph context menu (node)', () => {
 
 
 
-    it('opens the filter popover request with all selected paths for Add Filter Patterns...', async () => {
+    it('opens the filter popover request with all selected paths for Add Filter Patterns', async () => {
       const onAddFilterRequested = vi.fn();
       const { container } = render(<Graph data={selectionData} onAddFilterRequested={onAddFilterRequested} />);
       const graphContainer = getGraphContainer(container);
@@ -106,11 +106,11 @@ describe('Graph context menu (node)', () => {
       await selectTwoNodesForMultiMenu(graphContainer);
 
       await waitFor(() => {
-        expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
+        expect(screen.getByText('Add Filter Patterns')).toBeInTheDocument();
       });
 
       await act(async () => {
-        fireEvent.click(screen.getByText('Add Filter Patterns...'));
+        fireEvent.click(screen.getByText('Add Filter Patterns'));
       });
 
       expect(onAddFilterRequested).toHaveBeenCalledWith(['nodeA.ts', 'nodeB.ts']);
@@ -157,9 +157,9 @@ describe('Graph context menu (node)', () => {
       expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
       expect(screen.getByText('Focus Node')).toBeInTheDocument();
       expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
-      expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
-      expect(screen.getByText('Add Legend Group...')).toBeInTheDocument();
-      expect(screen.getByText('Rename...')).toHaveAttribute('aria-disabled', 'true');
+      expect(screen.getByText('Add Filter Pattern')).toBeInTheDocument();
+      expect(screen.getByText('Add Legend Group')).toBeInTheDocument();
+      expect(screen.getByText('Rename')).toHaveAttribute('aria-disabled', 'true');
       expect(screen.getByText('Delete File')).toHaveAttribute('aria-disabled', 'true');
     });
 
@@ -177,7 +177,7 @@ describe('Graph context menu (node)', () => {
       });
       expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
       expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
-      expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
+      expect(screen.getByText('Add Filter Patterns')).toBeInTheDocument();
       expect(screen.getByText('Delete 2 Files')).toHaveAttribute('aria-disabled', 'true');
     });
 

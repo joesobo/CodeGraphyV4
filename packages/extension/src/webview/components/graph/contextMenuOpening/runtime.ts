@@ -17,6 +17,7 @@ import type { createGraphInteractionHandlers } from '../interactionRuntime/handl
 import type { FGLink, FGNode } from '../model/build';
 import type { GraphRuntime } from '../runtime/use/state';
 import { postMessage } from '../../../vscodeApi';
+import { graphStore } from '../../../store/state';
 
 type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
 type GraphContextMenuRuntime = ReturnType<typeof createGraphContextMenuRuntime>;
@@ -87,6 +88,8 @@ function createGraphContextMenuOpeningDependencies({
     setContextSelection,
     setTooltipData,
     stopTooltipTracking,
+    toggleFavoritesOptimistically: paths =>
+      graphStore.getState().toggleFavoritesOptimistically(paths),
   };
 }
 

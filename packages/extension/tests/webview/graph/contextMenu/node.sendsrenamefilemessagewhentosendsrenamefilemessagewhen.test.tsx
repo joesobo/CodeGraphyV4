@@ -82,7 +82,7 @@ describe('Graph context menu (node)', () => {
 
 
 
-    it('sends RENAME_FILE message when clicking Rename...', async () => {
+    it('sends RENAME_FILE message when clicking Rename', async () => {
       const { container } = render(<Graph data={menuData} />);
       const graphContainer = getGraphContainer(container);
 
@@ -92,12 +92,12 @@ describe('Graph context menu (node)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Rename...')).toBeInTheDocument();
+        expect(screen.getByText('Rename')).toBeInTheDocument();
       });
 
       clearSentMessages();
       await act(async () => {
-        fireEvent.click(screen.getByText('Rename...'));
+        fireEvent.click(screen.getByText('Rename'));
       });
 
       const renameMsg = findMessage('RENAME_FILE');
@@ -150,7 +150,7 @@ describe('Graph context menu (node)', () => {
       expect(screen.getByText('Add to Favorites')).toBeInTheDocument();
       expect(screen.getAllByText('Focus Node')).toHaveLength(1);
       expect(screen.queryByText('Open File')).not.toBeInTheDocument();
-      expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
+      expect(screen.queryByText('Rename')).not.toBeInTheDocument();
       expect(screen.queryByText('Delete File')).not.toBeInTheDocument();
     });
 
@@ -251,21 +251,21 @@ describe('Graph context menu (node)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('New Folder...')).toBeInTheDocument();
+        expect(screen.getByText('New Folder')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
       expect(screen.getByText('Reveal in Explorer')).toBeInTheDocument();
       expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
       expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
-      expect(screen.getByText('Rename Folder...')).toBeInTheDocument();
+      expect(screen.getByText('Rename Folder')).toBeInTheDocument();
       expect(screen.getByText('Delete Folder')).toBeInTheDocument();
       expect(screen.queryByText('Open File')).not.toBeInTheDocument();
     });
 
 
 
-    it('sends RENAME_FILE message when clicking Rename Folder...', async () => {
+    it('sends RENAME_FILE message when clicking Rename Folder', async () => {
       const { container } = render(<Graph data={folderData} />);
       const graphContainer = getGraphContainer(container);
 
@@ -275,12 +275,12 @@ describe('Graph context menu (node)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Rename Folder...')).toBeInTheDocument();
+        expect(screen.getByText('Rename Folder')).toBeInTheDocument();
       });
 
       clearSentMessages();
       await act(async () => {
-        fireEvent.click(screen.getByText('Rename Folder...'));
+        fireEvent.click(screen.getByText('Rename Folder'));
       });
 
       const renameMsg = findMessage('RENAME_FILE');

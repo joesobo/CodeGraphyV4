@@ -103,6 +103,7 @@ export interface GraphState {
   clearOptimisticLegendUpdate: (legendId: string) => void;
   setOptimisticUserLegends: (legends: IGroup[]) => void;
   setFilterPatterns: (patterns: string[]) => void;
+  toggleFavoritesOptimistically: (paths: readonly string[]) => void;
   setDisabledCustomFilterPatterns: (patterns: string[]) => void;
   setDisabledPluginFilterPatterns: (patterns: string[]) => void;
   setShowOrphans: (show: boolean) => void;

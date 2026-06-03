@@ -1,1 +1,3 @@
-.codegraphy/
+.codegraphy/*
+!.codegraphy/
+!.codegraphy/settings.json

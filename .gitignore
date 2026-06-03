@@ -19,5 +19,6 @@ blob-report/
 reports/
 .stryker-tmp/
 .pnpm-store/
+.codegraphy/*
+!.codegraphy/
 !.codegraphy/settings.json
-.codegraphy/

@@ -95,6 +95,17 @@ describe('GraphStore', () => {
     expect(store.getState().favorites).toEqual(new Set(['src/a.ts', 'src/b.ts']));
   });
 
+  it('toggles favorites optimistically while waiting for the extension update', () => {
+    store.getState().handleExtensionMessage({
+      type: 'FAVORITES_UPDATED',
+      payload: { favorites: ['src/a.ts'] },
+    });
+
+    store.getState().toggleFavoritesOptimistically(['src/a.ts', 'src/b.ts']);
+
+    expect(store.getState().favorites).toEqual(new Set(['src/b.ts']));
+  });
+
   it('handles SETTINGS_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'SETTINGS_UPDATED',

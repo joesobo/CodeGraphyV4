@@ -12,6 +12,7 @@ function createDependencies(
 ): Pick<
   GraphContextMenuRuntimeDependencies,
   'clearCachedFile' | 'fitView' | 'focusNode' | 'openFilterPatternPrompt' | 'openLegendRulePrompt' | 'postMessage'
+  | 'toggleFavoritesOptimistically'
 > {
   return {
     clearCachedFile: vi.fn(),
@@ -20,6 +21,7 @@ function createDependencies(
     openFilterPatternPrompt: vi.fn(),
     openLegendRulePrompt: vi.fn(),
     postMessage: vi.fn(),
+    toggleFavoritesOptimistically: vi.fn(),
     ...overrides,
   };
 }
@@ -78,6 +80,22 @@ describe('graph/contextMenuRuntime/effects', () => {
 
     expect(dependencies.openFilterPatternPrompt).toHaveBeenCalledWith(['README.md']);
     expect(dependencies.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('updates favorite state optimistically before posting the extension toggle message', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      { kind: 'builtin', action: 'toggleFavorite' },
+      nodeContext(['src/app.ts']),
+    );
+
+    expect(dependencies.toggleFavoritesOptimistically).toHaveBeenCalledWith(['src/app.ts']);
+    expect(dependencies.postMessage).toHaveBeenCalledWith({
+      type: 'TOGGLE_FAVORITE',
+      payload: { paths: ['src/app.ts'] },
+    });
   });
 
   it('skips built-in menu actions that are invalid for the execution selection', () => {

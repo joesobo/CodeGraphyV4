@@ -45,7 +45,7 @@ export async function countVisibleGraphPixels(frame: Frame): Promise<number> {
 
 export async function getGraphCounts(frame: Frame): Promise<{ nodes: number; edges: number }> {
   const text = await frame.locator('body').innerText();
-  const match = text.match(/(\d+)\s+nodes\s+•\s+(\d+)\s+(?:edges|connections)/);
+  const match = text.match(/(\d+)\s+nodes\s+•\s+(\d+)\s+(?:edges|connections?)/);
   if (!match) {
     throw new Error(`Expected graph count text in webview, saw:\n${text}`);
   }
@@ -168,6 +168,17 @@ export async function clickNode(context: GraphAcceptanceContext, nodePath: strin
   const frame = requireGraphFrame(context);
   await findNodeProbe(context, nodePath);
   await graphNode(frame, nodePath).dispatchEvent('click', { bubbles: true });
+  context.selectedNodePaths = [nodePath];
+}
+
+export async function modifierClickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  await graphNode(frame, nodePath).dispatchEvent('click', { bubbles: true, shiftKey: true });
+  const selectedNodePaths = context.selectedNodePaths ?? [];
+  context.selectedNodePaths = selectedNodePaths.includes(nodePath)
+    ? selectedNodePaths.filter(selectedPath => selectedPath !== nodePath)
+    : [...selectedNodePaths, nodePath];
 }
 
 export async function doubleClickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
@@ -179,6 +190,7 @@ export async function doubleClickNode(context: GraphAcceptanceContext, nodePath:
 export async function rightClickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
   const frame = requireGraphFrame(context);
   await findNodeProbe(context, nodePath);
+  context.lastContextMenuTarget = { kind: 'node', nodePath };
   await graphNode(frame, nodePath).dispatchEvent('contextmenu', { bubbles: true, button: 2 });
 }
 
@@ -190,16 +202,23 @@ export async function clickGraphBackground(context: GraphAcceptanceContext): Pro
   }
 
   await frame.page().mouse.click(stageBox.x + 12, stageBox.y + 12);
+  context.selectedNodePaths = [];
 }
 
 export async function rightClickGraphBackground(context: GraphAcceptanceContext): Promise<void> {
   const frame = requireGraphFrame(context);
-  const stageBox = await graphStage(frame).boundingBox();
-  if (!stageBox) {
-    throw new Error('Expected Graph Stage to have a bounding box');
-  }
-
-  await frame.page().mouse.click(stageBox.x + 12, stageBox.y + 12, { button: 'right' });
+  context.lastContextMenuTarget = { kind: 'background' };
+  await graphStage(frame).evaluate((stage) => {
+    const rect = stage.getBoundingClientRect();
+    stage.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      button: 2,
+      buttons: 2,
+      clientX: rect.left + 24,
+      clientY: rect.top + 24,
+    }));
+  });
 }
 
 export async function rightClickEdge(
@@ -209,6 +228,7 @@ export async function rightClickEdge(
 ): Promise<void> {
   const frame = requireGraphFrame(context);
   await expectVisibleEdgeBetween(context, sourcePath, targetPath);
+  context.lastContextMenuTarget = { kind: 'edge', sourcePath, targetPath };
   await frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true })
     .dispatchEvent('contextmenu', { bubbles: true, button: 2 });
 }

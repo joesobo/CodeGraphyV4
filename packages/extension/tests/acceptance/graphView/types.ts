@@ -17,6 +17,11 @@ export interface NodeProbe {
   radius: number;
 }
 
+export type LastGraphContextMenuTarget =
+  | { kind: 'background' }
+  | { kind: 'edge'; sourcePath: string; targetPath: string }
+  | { kind: 'node'; nodePath: string };
+
 export interface AcceptanceRuntimeStep {
   keyword: string;
   text: string;
@@ -38,6 +43,8 @@ export interface GraphAcceptanceContext {
   afterDragCenter?: Point;
   dropCenter?: Point;
   beforeZoomNodeSize?: number;
+  lastContextMenuTarget?: LastGraphContextMenuTarget;
+  selectedNodePaths?: string[];
 }
 
 export type AcceptanceStepImplementation = (

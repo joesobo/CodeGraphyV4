@@ -164,7 +164,7 @@ describe('Graph context menu (edge)', () => {
     expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
-    expect(screen.queryByText('New File...')).not.toBeInTheDocument();
+    expect(screen.queryByText('New File')).not.toBeInTheDocument();
   });
 
   it('keeps edge actions available in timeline mode', async () => {

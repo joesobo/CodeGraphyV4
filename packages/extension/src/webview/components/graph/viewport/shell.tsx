@@ -171,7 +171,9 @@ export function GraphViewportShell({
       handleMouseLeave={interactions.handleMouseLeave}
       handleMouseMoveCapture={interactions.handleMouseMoveCapture}
       handleMouseUpCapture={interactions.handleMouseUpCapture}
+      handleEdgeContextMenu={interactions.handleLinkRightClick}
       handleNodeClick={interactions.interactionHandlers.handleNodeClick}
+      handleNodeContextMenu={interactions.handleNodeContextMenuById}
       handleNodeHover={interactions.handleNodeHover}
       menuEntries={viewportModel.menuEntries}
       marqueeSelection={interactions.marqueeSelection}
