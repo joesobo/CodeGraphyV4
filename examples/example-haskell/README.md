@@ -7,6 +7,10 @@ Open `examples/` in CodeGraphy and look for:
 - `example-haskell/src/Main.hs -> example-haskell/src/App/Feature/Runner.hs#import`
 - `example-haskell/src/App/Feature/Runner.hs -> example-haskell/src/App/Model/User.hs#import`
 
+## Graph Screenshot
+
+![Haskell example graph screenshot](../assets/graphs/haskell.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:
