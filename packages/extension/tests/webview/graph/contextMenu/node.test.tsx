@@ -193,10 +193,10 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
     expect(screen.getByText('Focus Node')).toBeInTheDocument();
-    expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
-    expect(screen.getByText('Rename...')).toBeInTheDocument();
+    expect(screen.getByText('Add Filter Pattern')).toBeInTheDocument();
+    expect(screen.getByText('Rename')).toBeInTheDocument();
     expect(screen.getByText('Delete File')).toBeInTheDocument();
-    expect(screen.queryByText('New File...')).not.toBeInTheDocument();
+    expect(screen.queryByText('New File')).not.toBeInTheDocument();
     expect(screen.queryByText('Refresh')).not.toBeInTheDocument();
   });
 
@@ -371,7 +371,7 @@ describe('Graph context menu (node)', () => {
     expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20, expect.any(Function));
   });
 
-  it('opens the filter popover request when clicking Add Filter Pattern... for a single node', async () => {
+  it('opens the filter popover request when clicking Add Filter Pattern for a single node', async () => {
     const onAddFilterRequested = vi.fn();
     const { container } = render(
       <Graph
@@ -387,17 +387,17 @@ describe('Graph context menu (node)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
+      expect(screen.getByText('Add Filter Pattern')).toBeInTheDocument();
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Add Filter Pattern...'));
+      fireEvent.click(screen.getByText('Add Filter Pattern'));
     });
 
     expect(onAddFilterRequested).toHaveBeenCalledWith(['src/app.ts']);
   });
 
-  it('sends RENAME_FILE message when clicking Rename...', async () => {
+  it('sends RENAME_FILE message when clicking Rename', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -407,12 +407,12 @@ describe('Graph context menu (node)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Rename...')).toBeInTheDocument();
+      expect(screen.getByText('Rename')).toBeInTheDocument();
     });
 
     clearSentMessages();
     await act(async () => {
-      fireEvent.click(screen.getByText('Rename...'));
+      fireEvent.click(screen.getByText('Rename'));
     });
 
     const renameMsg = findMessage('RENAME_FILE');
@@ -460,7 +460,7 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Symbol Name')).toBeInTheDocument();
     expect(screen.getByText('Add to Favorites')).toBeInTheDocument();
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
-    expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Rename')).not.toBeInTheDocument();
     expect(screen.queryByText('Delete File')).not.toBeInTheDocument();
   });
 
@@ -555,19 +555,19 @@ describe('Graph context menu (node)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New Folder...')).toBeInTheDocument();
+      expect(screen.getByText('New Folder')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('New File...')).toBeInTheDocument();
+    expect(screen.getByText('New File')).toBeInTheDocument();
     expect(screen.getByText('Reveal in Explorer')).toBeInTheDocument();
     expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
-    expect(screen.getByText('Rename Folder...')).toBeInTheDocument();
+    expect(screen.getByText('Rename Folder')).toBeInTheDocument();
     expect(screen.getByText('Delete Folder')).toBeInTheDocument();
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
   });
 
-  it('sends RENAME_FILE message when clicking Rename Folder...', async () => {
+  it('sends RENAME_FILE message when clicking Rename Folder', async () => {
     const { container } = render(<Graph data={folderData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -577,12 +577,12 @@ describe('Graph context menu (node)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Rename Folder...')).toBeInTheDocument();
+      expect(screen.getByText('Rename Folder')).toBeInTheDocument();
     });
 
     clearSentMessages();
     await act(async () => {
-      fireEvent.click(screen.getByText('Rename Folder...'));
+      fireEvent.click(screen.getByText('Rename Folder'));
     });
 
     const renameMsg = findMessage('RENAME_FILE');
@@ -677,10 +677,10 @@ describe('Graph context menu (node)', () => {
     });
     expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
-    expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
+    expect(screen.getByText('Add Filter Patterns')).toBeInTheDocument();
     expect(screen.getByText('Delete 2 Files')).toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
-    expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Rename')).not.toBeInTheDocument();
   });
 
   it('sends OPEN_FILE for each selected node when clicking Open N Files', async () => {
@@ -743,7 +743,7 @@ describe('Graph context menu (node)', () => {
     expect(favMsg!.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
   });
 
-  it('opens the filter popover request with all selected paths for Add Filter Patterns...', async () => {
+  it('opens the filter popover request with all selected paths for Add Filter Patterns', async () => {
     const onAddFilterRequested = vi.fn();
     const { container } = render(<Graph data={selectionData} onAddFilterRequested={onAddFilterRequested} />);
     const graphContainer = getGraphContainer(container);
@@ -751,11 +751,11 @@ describe('Graph context menu (node)', () => {
     await selectTwoNodesForMultiMenu(graphContainer);
 
     await waitFor(() => {
-      expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
+      expect(screen.getByText('Add Filter Patterns')).toBeInTheDocument();
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Add Filter Patterns...'));
+      fireEvent.click(screen.getByText('Add Filter Patterns'));
     });
 
     expect(onAddFilterRequested).toHaveBeenCalledWith(['nodeA.ts', 'nodeB.ts']);
@@ -798,9 +798,9 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
     expect(screen.getByText('Focus Node')).toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
-    expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
-    expect(screen.getByText('Add Legend Group...')).toBeInTheDocument();
-    expect(screen.getByText('Rename...')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText('Add Filter Pattern')).toBeInTheDocument();
+    expect(screen.getByText('Add Legend Group')).toBeInTheDocument();
+    expect(screen.getByText('Rename')).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText('Delete File')).toHaveAttribute('aria-disabled', 'true');
   });
 
@@ -816,7 +816,7 @@ describe('Graph context menu (node)', () => {
     });
     expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
     expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
-    expect(screen.getByText('Add Filter Patterns...')).toBeInTheDocument();
+    expect(screen.getByText('Add Filter Patterns')).toBeInTheDocument();
     expect(screen.getByText('Delete 2 Files')).toHaveAttribute('aria-disabled', 'true');
   });
 

@@ -52,7 +52,7 @@ describe('graph/contextMenu product scenarios', () => {
       pluginItems: [],
     });
 
-    expect(labels(entries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
     expectBuiltInDisabled(entries, 'createFile', false);
     expectBuiltInDisabled(entries, 'createFolder', false);
   });
@@ -66,7 +66,7 @@ describe('graph/contextMenu product scenarios', () => {
       pluginItems: [],
     });
 
-    expect(labels(entries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(labels(entries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
     expectBuiltInDisabled(entries, 'createFile', true);
     expectBuiltInDisabled(entries, 'createFolder', true);
     expectBuiltInDisabled(entries, 'refresh', false);
@@ -88,9 +88,9 @@ describe('graph/contextMenu product scenarios', () => {
       'Copy Absolute Path',
       'Remove from Favorites',
       'Focus Node',
-      'Add Filter Pattern...',
-      'Add Legend Group...',
-      'Rename...',
+      'Add Filter Pattern',
+      'Add Legend Group',
+      'Rename',
       'Delete File',
     ]);
     expectBuiltInDisabled(entries, 'open', false);
@@ -109,9 +109,9 @@ describe('graph/contextMenu product scenarios', () => {
       nodes: [{ id: 'src', label: 'src', color: '#94a3b8', nodeType: 'folder' }],
     });
 
-    expect(labels(entries)).toContain('New File...');
-    expect(labels(entries)).toContain('New Folder...');
-    expect(labels(entries)).toContain('Rename Folder...');
+    expect(labels(entries)).toContain('New File');
+    expect(labels(entries)).toContain('New Folder');
+    expect(labels(entries)).toContain('Rename Folder');
     expect(labels(entries)).toContain('Delete Folder');
     expectBuiltInDisabled(entries, 'createFile', false);
     expectBuiltInDisabled(entries, 'createFolder', false);
@@ -164,12 +164,12 @@ describe('graph/contextMenu product scenarios', () => {
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
-      'Add Filter Patterns...',
+      'Add Filter Patterns',
       'Delete 2 Files',
     ]);
     expect(labels(entries)).not.toContain('Focus Node');
-    expect(labels(entries)).not.toContain('Rename...');
-    expect(labels(entries)).not.toContain('Add Legend Group...');
+    expect(labels(entries)).not.toContain('Rename');
+    expect(labels(entries)).not.toContain('Add Legend Group');
     expectBuiltInDisabled(entries, 'delete', true);
   });
 });

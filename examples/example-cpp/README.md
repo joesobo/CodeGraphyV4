@@ -7,6 +7,10 @@ Open `examples/` in CodeGraphy and look for:
 - `example-cpp/src/app.cpp -> example-cpp/src/lib/widget.hpp#import:include`
 - `example-cpp/src/lib/widget.cpp -> example-cpp/src/lib/widget.hpp#import:include`
 
+## Graph Screenshot
+
+![C++ example graph screenshot](../assets/graphs/cpp.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:

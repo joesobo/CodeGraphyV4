@@ -37,14 +37,14 @@ describe('graph/contextMenu/node/folderEntries', () => {
         disabled: false,
         id: 'node-create-file',
         kind: 'item',
-        label: 'New File...',
+        label: 'New File',
       },
       {
         action: { kind: 'builtin', action: 'createFolder' },
         disabled: false,
         id: 'node-create-folder',
         kind: 'item',
-        label: 'New Folder...',
+        label: 'New Folder',
       },
       { id: 'node-separator-create', kind: 'separator' },
       {
@@ -60,9 +60,9 @@ describe('graph/contextMenu/node/folderEntries', () => {
     const entries = buildFolderEntries('hidden');
     const labels = items(entries).map((entry) => entry.label);
 
-    expect(labels).not.toContain('New File...');
-    expect(labels).not.toContain('New Folder...');
-    expect(labels).not.toContain('Rename Folder...');
+    expect(labels).not.toContain('New File');
+    expect(labels).not.toContain('New Folder');
+    expect(labels).not.toContain('Rename Folder');
     expect(labels).not.toContain('Delete Folder');
     expect(entries.every((entry) => entry.kind === 'item' || entry.kind === 'separator')).toBe(true);
   });
@@ -70,7 +70,7 @@ describe('graph/contextMenu/node/folderEntries', () => {
   it('disables creation and destructive actions when mutation availability is disabled', () => {
     const entries = buildFolderEntries('disabled');
     const mutationItems = items(entries).filter((entry) =>
-      ['New File...', 'New Folder...', 'Rename Folder...', 'Delete Folder'].includes(entry.label)
+      ['New File', 'New Folder', 'Rename Folder', 'Delete Folder'].includes(entry.label)
     );
 
     expect(mutationItems).toHaveLength(4);
@@ -80,7 +80,7 @@ describe('graph/contextMenu/node/folderEntries', () => {
   it('leaves destructive actions enabled when mutation availability is enabled', () => {
     const entries = buildFolderEntries('enabled');
     const destructiveItems = items(entries).filter((entry) =>
-      ['Rename Folder...', 'Delete Folder'].includes(entry.label)
+      ['Rename Folder', 'Delete Folder'].includes(entry.label)
     );
 
     expect(destructiveItems).toHaveLength(2);
@@ -91,9 +91,9 @@ describe('graph/contextMenu/node/folderEntries', () => {
     const entries = buildFolderEntries('enabled', '(root)');
     const labels = items(entries).map((entry) => entry.label);
 
-    expect(labels).toContain('New File...');
-    expect(labels).toContain('New Folder...');
-    expect(labels).not.toContain('Rename Folder...');
+    expect(labels).toContain('New File');
+    expect(labels).toContain('New Folder');
+    expect(labels).not.toContain('Rename Folder');
     expect(labels).not.toContain('Delete Folder');
   });
 });

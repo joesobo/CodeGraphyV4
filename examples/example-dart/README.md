@@ -8,6 +8,10 @@ Open `examples/` in CodeGraphy and look for:
 - `example-dart/lib/app/runner.dart -> example-dart/lib/model/user.dart#import`
 - `example-dart/lib/app/runner.dart -> example-dart/lib/model/profile.dart#import`
 
+## Graph Screenshot
+
+![Dart example graph screenshot](../assets/graphs/dart.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:

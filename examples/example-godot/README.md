@@ -40,6 +40,10 @@ Expected behavior:
 - Those edges come from the Godot plugin's `project-settings` and `ext-resource` sources, not custom Edge Types.
 - The `.tscn` and `.tres` files in this fixture use relative `path=` values, and the scene points at the resource with both `uid=` and `path=` so CodeGraphy exercises the same fallback order Godot uses.
 
+## Graph Screenshot
+
+![Godot example graph screenshot](../assets/graphs/godot.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:

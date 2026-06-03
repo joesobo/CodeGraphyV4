@@ -214,7 +214,7 @@ describe('Graph context menu (node)', () => {
 
 
 
-    it('opens the filter popover request when clicking Add Filter Pattern... for a single node', async () => {
+    it('opens the filter popover request when clicking Add Filter Pattern for a single node', async () => {
       const onAddFilterRequested = vi.fn();
       const { container } = render(
         <Graph
@@ -230,11 +230,11 @@ describe('Graph context menu (node)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Add Filter Pattern...')).toBeInTheDocument();
+        expect(screen.getByText('Add Filter Pattern')).toBeInTheDocument();
       });
 
       await act(async () => {
-        fireEvent.click(screen.getByText('Add Filter Pattern...'));
+        fireEvent.click(screen.getByText('Add Filter Pattern'));
       });
 
       expect(onAddFilterRequested).toHaveBeenCalledWith(['src/app.ts']);

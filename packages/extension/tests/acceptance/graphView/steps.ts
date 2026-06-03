@@ -1,4 +1,5 @@
 import { expect, type Frame, type Page } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
@@ -20,6 +21,7 @@ import {
   getGraphCounts,
   graphStage,
   hoverNode,
+  modifierClickNode,
   readNodeVisualSize,
   recordDroppedNodeCenter,
   requireGraphFrame,
@@ -258,16 +260,16 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await waitForIndexingToFinish(context);
   }),
 
+  step(/^I right click the edge going from (.+) node to (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
+    await rightClickEdge(context, match[1], match[2]);
+  }),
+
   step(/^I right click the (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
     await rightClickNode(context, match[1]);
   }),
 
   step(/^I right click the graph background to open its Graph Context Menu$/, async (context) => {
     await rightClickGraphBackground(context);
-  }),
-
-  step(/^I right click the edge going from (.+) node to (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
-    await rightClickEdge(context, match[1], match[2]);
   }),
 
   step(/^I right click one of the folder nodes to open its Graph Context Menu$/, async (context) => {
@@ -452,7 +454,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I click and drag on the background I can select multiple nodes at once$/, async (context) => {
     await clickNode(context, TARGET_NODE);
-    await clickNode(context, 'src/utils.ts');
+    await modifierClickNode(context, 'src/utils.ts');
   }),
 
   step(/^I see all the selected nodes outlined in white$/, async (context) => {
@@ -460,7 +462,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^VS Code should navigate to the Explorer sidebar tab$/, async (context) => {
-    await expect(requireValue(context.vscode, 'Expected VS Code to be launched').page.getByLabel('Explorer')).toBeVisible();
+    await expect(requireValue(context.vscode, 'Expected VS Code to be launched').page.getByRole('tree', { name: 'Files Explorer' })).toBeVisible();
   }),
 
   step(/^the (.+) file should be highlighted in the Explorer$/, async (context, _step, match) => {
@@ -578,11 +580,93 @@ async function expectGraphCounts(
 }
 
 async function expectContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {
-  await expect(requireGraphFrame(context).getByRole('menuitem', { name: label, exact: true })).toBeVisible();
+  await expect(await requireContextMenuEntry(context, label)).toBeVisible();
 }
 
 async function clickContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {
-  await requireGraphFrame(context).getByRole('menuitem', { name: label, exact: true }).click();
+  await (await requireContextMenuEntry(context, label)).click();
+  await waitForFavoriteToggleIfNeeded(context, label);
+}
+
+async function requireContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<Locator> {
+  const entry = contextMenuEntry(context, label);
+  if (await isLocatorVisible(entry)) {
+    return entry;
+  }
+
+  await reopenLastContextMenu(context);
+  return contextMenuEntry(context, label);
+}
+
+function contextMenuEntry(context: GraphAcceptanceContext, label: string): Locator {
+  return requireGraphFrame(context).getByRole('menuitem', { name: label, exact: true });
+}
+
+async function isLocatorVisible(locator: Locator): Promise<boolean> {
+  if (await locator.count() === 0) {
+    return false;
+  }
+
+  return locator.first().isVisible().catch(() => false);
+}
+
+async function reopenLastContextMenu(context: GraphAcceptanceContext): Promise<void> {
+  const target = context.lastContextMenuTarget;
+  if (!target) {
+    return;
+  }
+
+  if (target.kind === 'background') {
+    await rightClickGraphBackground(context);
+    return;
+  }
+
+  if (target.kind === 'edge') {
+    await rightClickEdge(context, target.sourcePath, target.targetPath);
+    return;
+  }
+
+  await rightClickNode(context, target.nodePath);
+}
+
+async function waitForFavoriteToggleIfNeeded(context: GraphAcceptanceContext, label: string): Promise<void> {
+  const shouldAddFavorites = label === 'Add to Favorites' || label === 'Add All to Favorites';
+  const shouldRemoveFavorites = label === 'Remove from Favorites' || label === 'Remove All from Favorites';
+  if (!shouldAddFavorites && !shouldRemoveFavorites) {
+    return;
+  }
+
+  const favoriteTargets = favoriteTargetsForLastContextMenu(context);
+  if (favoriteTargets.length === 0) {
+    return;
+  }
+
+  await expect.poll(() => readWorkspaceFavorites(context), { timeout: 10_000 }).toEqual(
+    shouldAddFavorites
+      ? expect.arrayContaining(favoriteTargets)
+      : expect.not.arrayContaining(favoriteTargets),
+  );
+}
+
+function favoriteTargetsForLastContextMenu(context: GraphAcceptanceContext): string[] {
+  const selectedNodePaths = context.selectedNodePaths ?? [];
+  if (selectedNodePaths.length > 1) {
+    return selectedNodePaths;
+  }
+
+  const target = context.lastContextMenuTarget;
+  return target?.kind === 'node' ? [target.nodePath] : [];
+}
+
+function readWorkspaceFavorites(context: GraphAcceptanceContext): string[] {
+  const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+  const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+  if (!fs.existsSync(settingsPath)) {
+    return [];
+  }
+
+  const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as { favorites?: string[] };
+  return settings.favorites ?? [];
 }
 
 async function togglePanelSwitch(context: GraphAcceptanceContext, label: string): Promise<void> {

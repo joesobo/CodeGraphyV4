@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphSurfaceSharedProps } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
 
@@ -92,6 +93,31 @@ function createSharedProps(): GraphSurfaceSharedProps {
     onNodeRightClick: vi.fn(),
     warmupTicks: 0,
     width: 300,
+  };
+}
+
+function createGraphNode(id: string): FGNode {
+  return {
+    id,
+    label: id,
+    size: 24,
+    color: '#22c55e',
+    borderColor: '#111827',
+    borderWidth: 1,
+    baseOpacity: 1,
+    isFavorite: false,
+    isPinned: false,
+  };
+}
+
+function createGraphLink(id: string, source: string, target: string): FGLink {
+  return {
+    id,
+    from: source,
+    to: target,
+    source,
+    target,
+    bidirectional: false,
   };
 }
 
@@ -233,6 +259,62 @@ describe('Viewport', () => {
       contextSelection: { kind: 'node', targets: ['src/app.ts'] },
     });
     expect(screen.getByTestId('separator')).toBeInTheDocument();
+  });
+
+  it('opens the graph node context menu from the accessible node item', () => {
+    const handleNodeContextMenu = vi.fn();
+    const node = createGraphNode('src/app.ts');
+    const sharedProps = createSharedProps();
+    sharedProps.graphData = { nodes: [node], links: [] };
+
+    renderViewport({
+      accessibilityItems: {
+        nodes: [{
+          kind: 'node',
+          id: 'src/app.ts',
+          label: 'Graph node src/app.ts',
+          radius: 24,
+          x: 50,
+          y: 60,
+        }],
+        edges: [],
+      },
+      handleNodeContextMenu,
+      surface2dProps: createSurface2dProps(sharedProps),
+      surface3dProps: createSurface3dProps(sharedProps),
+    });
+
+    fireEvent.contextMenu(screen.getByRole('button', { name: 'Graph node src/app.ts' }));
+
+    expect(handleNodeContextMenu).toHaveBeenCalledWith('src/app.ts', expect.any(MouseEvent));
+  });
+
+  it('opens the graph edge context menu from the accessible edge item', () => {
+    const handleEdgeContextMenu = vi.fn();
+    const edge = createGraphLink('edge-src-app-src-types', 'src/app.ts', 'src/types.ts');
+    const sharedProps = createSharedProps();
+    sharedProps.graphData = {
+      nodes: [createGraphNode('src/app.ts'), createGraphNode('src/types.ts')],
+      links: [edge],
+    };
+
+    renderViewport({
+      accessibilityItems: {
+        nodes: [],
+        edges: [{
+          kind: 'edge',
+          id: 'edge-src-app-src-types',
+          label: 'Graph edge src/app.ts to src/types.ts',
+        }],
+      },
+      handleEdgeContextMenu,
+      surface2dProps: createSurface2dProps(sharedProps),
+      surface3dProps: createSurface3dProps(sharedProps),
+    });
+
+    fireEvent.contextMenu(screen.getByLabelText('Graph edge src/app.ts to src/types.ts'));
+
+    expect(handleEdgeContextMenu).toHaveBeenCalledWith(edge, expect.any(MouseEvent));
   });
 
   it('hosts Graph View stage slots separately for world and viewport overlays', () => {

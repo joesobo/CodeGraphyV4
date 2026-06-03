@@ -91,30 +91,30 @@ describe('graph/contextMenu/node/openCopyBlocks', () => {
   });
 
   describe('buildFilterBlock', () => {
-    it('includes Add Filter Pattern... for single target', () => {
+    it('includes Add Filter Pattern for single target', () => {
       const labels = itemLabels(buildFilterBlock(['src/app.ts']));
-      expect(labels).toContain('Add Filter Pattern...');
-      expect(labels).toContain('Add Legend Group...');
+      expect(labels).toContain('Add Filter Pattern');
+      expect(labels).toContain('Add Legend Group');
     });
 
-    it('shows Add Filter Patterns... and omits Add Legend Group... for multi-select', () => {
+    it('shows Add Filter Patterns and omits Add Legend Group for multi-select', () => {
       const labels = itemLabels(buildFilterBlock(['src/a.ts', 'src/b.ts']));
-      expect(labels).toContain('Add Filter Patterns...');
-      expect(labels).not.toContain('Add Legend Group...');
+      expect(labels).toContain('Add Filter Patterns');
+      expect(labels).not.toContain('Add Legend Group');
     });
   });
 
   describe('buildDestructiveBlock', () => {
     it('includes Rename and Delete for single target', () => {
       const labels = itemLabels(buildDestructiveBlock(['src/app.ts']));
-      expect(labels).toContain('Rename...');
+      expect(labels).toContain('Rename');
       expect(labels).toContain('Delete File');
     });
 
     it('shows plural labels and omits Rename for multi-select', () => {
       const labels = itemLabels(buildDestructiveBlock(['src/a.ts', 'src/b.ts']));
       expect(labels).toContain('Delete 2 Files');
-      expect(labels).not.toContain('Rename...');
+      expect(labels).not.toContain('Rename');
     });
 
     it('marks the delete entry as destructive', () => {

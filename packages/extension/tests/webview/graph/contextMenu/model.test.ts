@@ -47,7 +47,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(liveEntries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(liveEntries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
     selection.targets.push('src/late.ts');
     expect(menuItems(liveEntries).map(entry => entry.contextSelection)).toEqual([
       { kind: 'background', targets: [] },
@@ -63,7 +63,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(historicalEntries)).toEqual(['New File...', 'New Folder...', 'Refresh', 'Fit All Nodes']);
+    expect(menuLabels(historicalEntries)).toEqual(['New File', 'New Folder', 'Refresh', 'Fit All Nodes']);
     expect(
       builtInMenuItems(historicalEntries, ['createFile', 'createFolder'])
         .every(entry => entry.disabled)
@@ -86,9 +86,9 @@ describe('graph/contextMenuModel', () => {
       'Copy Absolute Path',
       'Remove from Favorites',
       'Focus Node',
-      'Add Filter Pattern...',
-      'Add Legend Group...',
-      'Rename...',
+      'Add Filter Pattern',
+      'Add Legend Group',
+      'Rename',
       'Delete File',
     ]);
 
@@ -105,9 +105,9 @@ describe('graph/contextMenuModel', () => {
       'Copy Absolute Path',
       'Remove from Favorites',
       'Focus Node',
-      'Add Filter Pattern...',
-      'Add Legend Group...',
-      'Rename...',
+      'Add Filter Pattern',
+      'Add Legend Group',
+      'Rename',
       'Delete File',
     ]);
     expect(
@@ -126,16 +126,16 @@ describe('graph/contextMenuModel', () => {
     });
 
     expect(menuLabels(entries)).toEqual([
-      'New File...',
-      'New Folder...',
+      'New File',
+      'New Folder',
       'Reveal in Explorer',
       'Copy Relative Path',
       'Copy Absolute Path',
       'Add to Favorites',
       'Focus Node',
-      'Add Filter Pattern...',
-      'Add Legend Group...',
-      'Rename Folder...',
+      'Add Filter Pattern',
+      'Add Legend Group',
+      'Rename Folder',
       'Delete Folder',
     ]);
   });
@@ -153,9 +153,9 @@ describe('graph/contextMenuModel', () => {
     const creationEntries = builtInMenuItems(entries, ['createFile', 'createFolder', 'rename', 'delete']);
 
     expect(creationEntries.map(entry => entry.label)).toEqual([
-      'New File...',
-      'New Folder...',
-      'Rename Folder...',
+      'New File',
+      'New Folder',
+      'Rename Folder',
       'Delete Folder',
     ]);
     expect(creationEntries.every(entry => entry.disabled)).toBe(true);
@@ -170,7 +170,7 @@ describe('graph/contextMenuModel', () => {
       nodes: [{ id: '(root)', label: '(root)', color: '#94a3b8', nodeType: 'folder' }],
     });
 
-    expect(menuLabels(entries)).not.toContain('Rename Folder...');
+    expect(menuLabels(entries)).not.toContain('Rename Folder');
     expect(menuLabels(entries)).not.toContain('Delete Folder');
   });
 
@@ -186,7 +186,7 @@ describe('graph/contextMenuModel', () => {
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
-      'Add Filter Patterns...',
+      'Add Filter Patterns',
       'Delete 2 Files',
     ]);
   });
