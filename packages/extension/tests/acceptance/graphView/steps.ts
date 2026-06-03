@@ -23,7 +23,7 @@ import {
   graphStage,
   hoverNode,
   modifierClickNode,
-  readNodeVisualSize,
+  readScreenDistanceBetweenNodes,
   recordDroppedNodeCenter,
   requireGraphFrame,
   rightClickEdge,
@@ -58,6 +58,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
       includeTypeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md'),
       includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
+        || step.sourcePath.endsWith('/graph-navigation.md')
         || step.sourcePath.endsWith('/typescript-example.md'),
     });
   },
@@ -360,43 +361,43 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I click the "Zoom In" button$/, async (context) => {
-    context.beforeZoomNodeSize = await readNodeVisualSize(context, TARGET_NODE);
+    context.beforeZoomNodeSize = await readZoomScaleMetric(context);
     await requireGraphFrame(context).getByRole('button', { name: 'Zoom In' }).click();
   }),
 
   step(/^the visible graph scale increases$/, async (context) => {
     const before = requireValue(context.beforeZoomNodeSize, 'Expected zoom baseline');
-    await expect.poll(() => readNodeVisualSize(context, TARGET_NODE)).toBeGreaterThan(before);
+    await expect.poll(() => readZoomScaleMetric(context)).toBeGreaterThan(before);
   }),
 
   step(/^I press and hold the "Zoom In" button$/, async (context) => {
-    context.beforeZoomNodeSize = await readNodeVisualSize(context, TARGET_NODE);
+    context.beforeZoomNodeSize = await readZoomScaleMetric(context);
     await pressAndHoldToolbarButton(context, 'Zoom In');
   }),
 
   step(/^the visible graph scale continues to increase$/, async (context) => {
     const before = requireValue(context.beforeZoomNodeSize, 'Expected zoom baseline');
-    await expect.poll(() => readNodeVisualSize(context, TARGET_NODE)).toBeGreaterThan(before);
+    await expect.poll(() => readZoomScaleMetric(context)).toBeGreaterThan(before);
   }),
 
   step(/^I click the "Zoom Out" button$/, async (context) => {
-    context.beforeZoomNodeSize = await readNodeVisualSize(context, TARGET_NODE);
+    context.beforeZoomNodeSize = await readZoomScaleMetric(context);
     await requireGraphFrame(context).getByRole('button', { name: 'Zoom Out' }).click();
   }),
 
   step(/^the visible graph scale decreases$/, async (context) => {
     const before = requireValue(context.beforeZoomNodeSize, 'Expected zoom baseline');
-    await expect.poll(() => readNodeVisualSize(context, TARGET_NODE)).toBeLessThan(before);
+    await expect.poll(() => readZoomScaleMetric(context)).toBeLessThan(before);
   }),
 
   step(/^I press and hold the "Zoom Out" button$/, async (context) => {
-    context.beforeZoomNodeSize = await readNodeVisualSize(context, TARGET_NODE);
+    context.beforeZoomNodeSize = await readZoomScaleMetric(context);
     await pressAndHoldToolbarButton(context, 'Zoom Out');
   }),
 
   step(/^the visible graph scale continues to decrease$/, async (context) => {
     const before = requireValue(context.beforeZoomNodeSize, 'Expected zoom baseline');
-    await expect.poll(() => readNodeVisualSize(context, TARGET_NODE)).toBeLessThan(before);
+    await expect.poll(() => readZoomScaleMetric(context)).toBeLessThan(before);
   }),
 
   step(/^I turn the VS Code setting "Preferences: Color Theme" to "(.+)"$/, async (context, _step, match) => {
@@ -584,6 +585,10 @@ async function expectGraphCounts(
     nodes: expectedNodes,
     edges: expectedEdges,
   });
+}
+
+async function readZoomScaleMetric(context: GraphAcceptanceContext): Promise<number> {
+  return readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/utils.ts');
 }
 
 async function expectContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {
