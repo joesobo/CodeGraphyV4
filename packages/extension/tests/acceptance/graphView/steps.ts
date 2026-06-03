@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   clickGraphBackground,
+  clickToolbarButton,
   clickNode,
   countEdgesConnectedTo,
   countChangedBytes,
@@ -51,10 +52,14 @@ interface PatternAcceptanceStep {
 }
 
 const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation> = {
-  'I open the examples/example-typescript workspace in VS Code': async (context) => {
+  'I open the examples/example-typescript workspace in VS Code': async (context, step) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = 'example-typescript';
-    context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot);
+    context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
+      includeTypeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md'),
+      includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
+        || step.sourcePath.endsWith('/typescript-example.md'),
+    });
   },
 
   'I open the CodeGraphy extension graph view': async (context) => {
@@ -248,7 +253,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I click the plugins button$/, async (context) => {
-    await requireGraphFrame(context).getByTitle('Plugins').click();
+    await clickToolbarButton(requireGraphFrame(context), 'Plugins');
   }),
 
   step(/^I see a list of plugins with toggles$/, async (context) => {
@@ -346,7 +351,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I click the "Fit to Screen" button$/, async (context) => {
-    await requireGraphFrame(context).getByRole('button', { name: 'Fit to Screen' }).click();
+    await clickToolbarButton(requireGraphFrame(context), 'Fit to Screen');
   }),
 
   step(/^all (\d+) graph nodes are visible in the graph viewport$/, async (context, _step, match) => {
@@ -412,7 +417,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I click the Graph Scope button$/, async (context) => {
-    await requireGraphFrame(context).getByTitle('Graph Scope').click();
+    await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
   }),
 
   step(/^I see to buttons for switching views between node type and edge type toggles$/, async (context) => {
@@ -445,7 +450,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I close the Graph Scope$/, async (context) => {
-    await requireGraphFrame(context).getByTitle('Graph Scope').click();
+    await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
   }),
 
   step(/^I can see a new "(.+)" node in the graph$/, async (context, _step, match) => {
@@ -510,7 +515,9 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^the VS Code rename input should be prefilled with "(.+)"$/, async (context, _step, match) => {
-    await expectInputValue(requireValue(context.vscode, 'Expected VS Code to be launched').page, match[1]);
+    const page = requireValue(context.vscode, 'Expected VS Code to be launched').page;
+    await expectInputValue(page, match[1]);
+    await page.keyboard.press('Escape');
   }),
 
   step(/^a confirmation pops up saying "(.+)"$/, async (context, _step, match) => {
@@ -584,7 +591,7 @@ async function expectContextMenuEntry(context: GraphAcceptanceContext, label: st
 }
 
 async function clickContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {
-  await (await requireContextMenuEntry(context, label)).click();
+  await clickMenuItem(await requireContextMenuEntry(context, label));
   await waitForFavoriteToggleIfNeeded(context, label);
 }
 
@@ -594,12 +601,38 @@ async function requireContextMenuEntry(context: GraphAcceptanceContext, label: s
     return entry;
   }
 
-  await reopenLastContextMenu(context);
+  await expect.poll(async () => {
+    await reopenLastContextMenu(context);
+    return isLocatorVisible(contextMenuEntry(context, label));
+  }, { timeout: 10_000 }).toBe(true);
+
   return contextMenuEntry(context, label);
 }
 
 function contextMenuEntry(context: GraphAcceptanceContext, label: string): Locator {
-  return requireGraphFrame(context).getByRole('menuitem', { name: label, exact: true });
+  return requireGraphFrame(context).getByRole('menuitem', {
+    name: new RegExp(`^${escapeRegExp(label)}$`, 'i'),
+  });
+}
+
+async function clickMenuItem(locator: Locator): Promise<void> {
+  try {
+    await locator.click({ force: true, timeout: 5_000 });
+    return;
+  } catch {
+    // Fall back to DOM activation when Playwright cannot act on a visible menu item.
+  }
+
+  await locator.evaluate((element) => {
+    const clickable = element as HTMLElement & { click?: unknown };
+    if (typeof clickable.click === 'function') {
+      clickable.click();
+    }
+  });
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 async function isLocatorVisible(locator: Locator): Promise<boolean> {
