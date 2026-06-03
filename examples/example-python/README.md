@@ -2,6 +2,10 @@
 
 A small Python workspace for manual checks of CodeGraphy's Python support.
 
+## Graph Screenshot
+
+![Python example graph screenshot](../assets/graphs/python.png)
+
 ## Structure
 
 ```

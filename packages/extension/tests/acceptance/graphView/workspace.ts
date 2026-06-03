@@ -4,7 +4,6 @@ import path from 'node:path';
 
 export const EXPECTED_EXAMPLE_TYPESCRIPT_FILES = [
   '.gitignore',
-  '.vscode/settings.json',
   'README.md',
   'package.json',
   'src/alias/greeting.ts',

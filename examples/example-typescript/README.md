@@ -21,6 +21,10 @@ Expected behavior:
 - Depth `3` adds `src/leaf.ts`.
 - `src/orphan.ts` stays out of the focused depth area because it is an Orphan Node.
 
+## Graph Screenshot
+
+![TypeScript example graph screenshot](../assets/graphs/typescript.png)
+
 ## Symbol Node Demo
 
 Suggested symbol check:
