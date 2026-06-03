@@ -96,6 +96,7 @@ describe('PluginsPanel', () => {
 
     expect(screen.queryByText('No plugins registered.')).not.toBeInTheDocument();
     expect(screen.getByText('TypeScript/JavaScript')).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: 'TypeScript/JavaScript' })).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
   });
 

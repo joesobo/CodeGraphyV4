@@ -23,12 +23,2787 @@ async function runAcceptanceStep(
   await implementation(context, step);
 }
 
+test.describe('Background Context Menu', () => {
+  test('Background context menus expose their primary actions', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+      scenario: 'Background context menus expose their primary actions'
+    });
+
+    try {
+      // tests/acceptance/specs/background-context-menu.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:12
+      await test.step('When I right click the graph background to open its Graph Context Menu', async () => {
+        await runAcceptanceStep(context, 'I right click the graph background to open its Graph Context Menu', {
+          keyword: 'When',
+          text: 'I right click the graph background to open its Graph Context Menu',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:13
+      await test.step('And I see the "New File" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "New File" entry', {
+          keyword: 'And',
+          text: 'I see the "New File" entry',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:14
+      await test.step('And I see the "New Folder" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "New Folder" entry', {
+          keyword: 'And',
+          text: 'I see the "New Folder" entry',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:15
+      await test.step('And I see the "Refresh" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Refresh" entry', {
+          keyword: 'And',
+          text: 'I see the "Refresh" entry',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/background-context-menu.md:16
+      await test.step('And I see the "Fit All Nodes" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Fit All Nodes" entry', {
+          keyword: 'And',
+          text: 'I see the "Fit All Nodes" entry',
+          sourcePath: 'tests/acceptance/specs/background-context-menu.md',
+          line: 16
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('C Example', () => {
+  test('C example renders expected file nodes and include relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/c-example.md',
+      scenario: 'C example renders expected file nodes and include relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/c-example.md:5
+      await test.step('Given I open the examples/example-c workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-c workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-c workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-c workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-c workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-c workspace',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:12
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:13
+      await test.step('And src/main.c points to src/math/add.h', async () => {
+        await runAcceptanceStep(context, 'src/main.c points to src/math/add.h', {
+          keyword: 'And',
+          text: 'src/main.c points to src/math/add.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:14
+      await test.step('And src/math/add.c points to src/math/add.h', async () => {
+        await runAcceptanceStep(context, 'src/math/add.c points to src/math/add.h', {
+          keyword: 'And',
+          text: 'src/math/add.c points to src/math/add.h',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:16
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:17
+      await test.step('And Makefile is an orphan node', async () => {
+        await runAcceptanceStep(context, 'Makefile is an orphan node', {
+          keyword: 'And',
+          text: 'Makefile is an orphan node',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/c-example.md:18
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/c-example.md',
+          line: 18
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('C++ Example', () => {
+  test('C++ example renders expected file nodes and include relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/cpp-example.md',
+      scenario: 'C++ example renders expected file nodes and include relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/cpp-example.md:5
+      await test.step('Given I open the examples/example-cpp workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-cpp workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-cpp workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-cpp workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-cpp workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-cpp workspace',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:12
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:13
+      await test.step('And src/app.cpp points to src/lib/widget.hpp', async () => {
+        await runAcceptanceStep(context, 'src/app.cpp points to src/lib/widget.hpp', {
+          keyword: 'And',
+          text: 'src/app.cpp points to src/lib/widget.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:14
+      await test.step('And src/lib/widget.cpp points to src/lib/widget.hpp', async () => {
+        await runAcceptanceStep(context, 'src/lib/widget.cpp points to src/lib/widget.hpp', {
+          keyword: 'And',
+          text: 'src/lib/widget.cpp points to src/lib/widget.hpp',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:16
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:17
+      await test.step('And CMakeLists.txt is an orphan node', async () => {
+        await runAcceptanceStep(context, 'CMakeLists.txt is an orphan node', {
+          keyword: 'And',
+          text: 'CMakeLists.txt is an orphan node',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/cpp-example.md:18
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/cpp-example.md',
+          line: 18
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('C# Example', () => {
+  test('C# example renders expected file nodes and using relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/csharp-example.md',
+      scenario: 'C# example renders expected file nodes and using relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/csharp-example.md:5
+      await test.step('Given I open the examples/example-csharp workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-csharp workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-csharp workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-csharp workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-csharp workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-csharp workspace',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:12
+      await test.step('Then I can see there are 9 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 9 nodes and 6 connections',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:13
+      await test.step('And src/Program.cs points to src/Config.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Config.cs', {
+          keyword: 'And',
+          text: 'src/Program.cs points to src/Config.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:14
+      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
+          keyword: 'And',
+          text: 'src/Program.cs points to src/Services/ApiService.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:15
+      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
+          keyword: 'And',
+          text: 'src/Program.cs points to src/Utils/Helpers.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:16
+      await test.step('And src/Utils/Helpers.cs points to src/Utils/Formatter.cs', async () => {
+        await runAcceptanceStep(context, 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs', {
+          keyword: 'And',
+          text: 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:18
+      await test.step('And src/Orphan.cs is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/Orphan.cs is an orphan node', {
+          keyword: 'And',
+          text: 'src/Orphan.cs is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:19
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:20
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:21
+      await test.step('And .vscode/settings.json is an orphan node', async () => {
+        await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
+          keyword: 'And',
+          text: '.vscode/settings.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 21
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Dart Example', () => {
+  test('Dart example renders expected file nodes and import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/dart-example.md',
+      scenario: 'Dart example renders expected file nodes and import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/dart-example.md:5
+      await test.step('Given I open the examples/example-dart workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-dart workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-dart workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-dart workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-dart workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-dart workspace',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:12
+      await test.step('Then I can see there are 7 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 7 nodes and 4 connections',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:13
+      await test.step('And bin/sample_app.dart points to lib/app/runner.dart', async () => {
+        await runAcceptanceStep(context, 'bin/sample_app.dart points to lib/app/runner.dart', {
+          keyword: 'And',
+          text: 'bin/sample_app.dart points to lib/app/runner.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:14
+      await test.step('And bin/sample_app.dart points to lib/model/profile.dart', async () => {
+        await runAcceptanceStep(context, 'bin/sample_app.dart points to lib/model/profile.dart', {
+          keyword: 'And',
+          text: 'bin/sample_app.dart points to lib/model/profile.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:15
+      await test.step('And lib/app/runner.dart points to lib/model/user.dart', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.dart points to lib/model/user.dart', {
+          keyword: 'And',
+          text: 'lib/app/runner.dart points to lib/model/user.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:16
+      await test.step('And lib/app/runner.dart points to lib/model/profile.dart', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.dart points to lib/model/profile.dart', {
+          keyword: 'And',
+          text: 'lib/app/runner.dart points to lib/model/profile.dart',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:18
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:19
+      await test.step('And pubspec.yaml is an orphan node', async () => {
+        await runAcceptanceStep(context, 'pubspec.yaml is an orphan node', {
+          keyword: 'And',
+          text: 'pubspec.yaml is an orphan node',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/dart-example.md:20
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/dart-example.md',
+          line: 20
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Dragging', () => {
+  test('Dragging a node moves it and keeps its dropped position', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/dragging.md',
+      scenario: 'Dragging a node moves it and keeps its dropped position'
+    });
+
+    try {
+      // tests/acceptance/specs/dragging.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:12
+      await test.step('When I click and drag the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I click and drag the src/index.ts node', {
+          keyword: 'When',
+          text: 'I click and drag the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:13
+      await test.step('Then the src/index.ts node moves', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node moves', {
+          keyword: 'Then',
+          text: 'the src/index.ts node moves',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:15
+      await test.step('When I stop dragging the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I stop dragging the src/index.ts node', {
+          keyword: 'When',
+          text: 'I stop dragging the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/dragging.md:16
+      await test.step('Then the src/index.ts node stays where I drop it', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node stays where I drop it', {
+          keyword: 'Then',
+          text: 'the src/index.ts node stays where I drop it',
+          sourcePath: 'tests/acceptance/specs/dragging.md',
+          line: 16
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Edge Context Menu', () => {
+  test('Edge context menus expose their primary actions', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+      scenario: 'Edge context menus expose their primary actions'
+    });
+
+    try {
+      // tests/acceptance/specs/edge-context-menu.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:12
+      await test.step('When I right click the edge going from src/index.ts node to src/types.ts node to open its Graph Context Menu', async () => {
+        await runAcceptanceStep(context, 'I right click the edge going from src/index.ts node to src/types.ts node to open its Graph Context Menu', {
+          keyword: 'When',
+          text: 'I right click the edge going from src/index.ts node to src/types.ts node to open its Graph Context Menu',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:13
+      await test.step('And I see the "Open Source" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Open Source" entry', {
+          keyword: 'And',
+          text: 'I see the "Open Source" entry',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:14
+      await test.step('And I see the "Open Target" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Open Target" entry', {
+          keyword: 'And',
+          text: 'I see the "Open Target" entry',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:15
+      await test.step('And I see the "Copy Source Path" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Source Path" entry', {
+          keyword: 'And',
+          text: 'I see the "Copy Source Path" entry',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/edge-context-menu.md:16
+      await test.step('And I see the "Copy Target Path" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Target Path" entry', {
+          keyword: 'And',
+          text: 'I see the "Copy Target Path" entry',
+          sourcePath: 'tests/acceptance/specs/edge-context-menu.md',
+          line: 16
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Favorite', () => {
+  test('Favorite nodes keep an orange outline when they are not selected', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/favorite.md',
+      scenario: 'Favorite nodes keep an orange outline when they are not selected'
+    });
+
+    try {
+      // tests/acceptance/specs/favorite.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:12
+      await test.step('Then I see the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I see the src/index.ts node', {
+          keyword: 'Then',
+          text: 'I see the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:13
+      await test.step('And I right click the src/index.ts node to open its Graph Context Menu', async () => {
+        await runAcceptanceStep(context, 'I right click the src/index.ts node to open its Graph Context Menu', {
+          keyword: 'And',
+          text: 'I right click the src/index.ts node to open its Graph Context Menu',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:14
+      await test.step('And I select the "Add to Favorites" entry', async () => {
+        await runAcceptanceStep(context, 'I select the "Add to Favorites" entry', {
+          keyword: 'And',
+          text: 'I select the "Add to Favorites" entry',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:16
+      await test.step('Then I click the graph background to unselect the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I click the graph background to unselect the src/index.ts node', {
+          keyword: 'Then',
+          text: 'I click the graph background to unselect the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:17
+      await test.step('And the src/index.ts node is visibly outlined in orange', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is visibly outlined in orange', {
+          keyword: 'And',
+          text: 'the src/index.ts node is visibly outlined in orange',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:19
+      await test.step('When I click the src/index.ts node to select it', async () => {
+        await runAcceptanceStep(context, 'I click the src/index.ts node to select it', {
+          keyword: 'When',
+          text: 'I click the src/index.ts node to select it',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:20
+      await test.step('Then the src/index.ts node is visibly outlined in white', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is visibly outlined in white', {
+          keyword: 'Then',
+          text: 'the src/index.ts node is visibly outlined in white',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:22
+      await test.step('Then I right click the src/index.ts node to open its Graph Context Menu', async () => {
+        await runAcceptanceStep(context, 'I right click the src/index.ts node to open its Graph Context Menu', {
+          keyword: 'Then',
+          text: 'I right click the src/index.ts node to open its Graph Context Menu',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:23
+      await test.step('And I select the "Remove from Favorites" entry', async () => {
+        await runAcceptanceStep(context, 'I select the "Remove from Favorites" entry', {
+          keyword: 'And',
+          text: 'I select the "Remove from Favorites" entry',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:24
+      await test.step('And I click the graph background to unselect the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I click the graph background to unselect the src/index.ts node', {
+          keyword: 'And',
+          text: 'I click the graph background to unselect the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/favorite.md:25
+      await test.step('Then the src/index.ts node is no longer outlined', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is no longer outlined', {
+          keyword: 'Then',
+          text: 'the src/index.ts node is no longer outlined',
+          sourcePath: 'tests/acceptance/specs/favorite.md',
+          line: 25
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('File Context Menu', () => {
+  test('File node context menus expose their primary actions', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+      scenario: 'File node context menus expose their primary actions'
+    });
+
+    try {
+      // tests/acceptance/specs/file-context-menu.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:12
+      await test.step('When I right click the src/index.ts node to open its Graph Context Menu', async () => {
+        await runAcceptanceStep(context, 'I right click the src/index.ts node to open its Graph Context Menu', {
+          keyword: 'When',
+          text: 'I right click the src/index.ts node to open its Graph Context Menu',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:13
+      await test.step('And I see the "Open File" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Open File" entry', {
+          keyword: 'And',
+          text: 'I see the "Open File" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:14
+      await test.step('And I see the "Reveal in Explorer" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Reveal in Explorer" entry', {
+          keyword: 'And',
+          text: 'I see the "Reveal in Explorer" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:15
+      await test.step('And I see the "Copy Relative Path" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Relative Path" entry', {
+          keyword: 'And',
+          text: 'I see the "Copy Relative Path" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:16
+      await test.step('And I see the "Copy Absolute Path" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Absolute Path" entry', {
+          keyword: 'And',
+          text: 'I see the "Copy Absolute Path" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:17
+      await test.step('And I see the "Add to Favorites" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add to Favorites" entry', {
+          keyword: 'And',
+          text: 'I see the "Add to Favorites" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:18
+      await test.step('And I see the "Focus Node" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Focus Node" entry', {
+          keyword: 'And',
+          text: 'I see the "Focus Node" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:19
+      await test.step('And I see the "Add Filter Pattern" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add Filter Pattern" entry', {
+          keyword: 'And',
+          text: 'I see the "Add Filter Pattern" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:20
+      await test.step('And I see the "Add Legend Group" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add Legend Group" entry', {
+          keyword: 'And',
+          text: 'I see the "Add Legend Group" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:21
+      await test.step('And I see the "Rename" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Rename" entry', {
+          keyword: 'And',
+          text: 'I see the "Rename" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:22
+      await test.step('And I see the "Delete File" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Delete File" entry', {
+          keyword: 'And',
+          text: 'I see the "Delete File" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:24
+      await test.step('When I click the "Open File" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Open File" entry', {
+          keyword: 'When',
+          text: 'I click the "Open File" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:25
+      await test.step('Then the index.ts file opens in VS Code as a pinned editor tab', async () => {
+        await runAcceptanceStep(context, 'the index.ts file opens in VS Code as a pinned editor tab', {
+          keyword: 'Then',
+          text: 'the index.ts file opens in VS Code as a pinned editor tab',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:26
+      await test.step('When I click the "Reveal in Explorer" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Reveal in Explorer" entry', {
+          keyword: 'When',
+          text: 'I click the "Reveal in Explorer" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:27
+      await test.step('Then VS Code should navigate to the Explorer sidebar tab', async () => {
+        await runAcceptanceStep(context, 'VS Code should navigate to the Explorer sidebar tab', {
+          keyword: 'Then',
+          text: 'VS Code should navigate to the Explorer sidebar tab',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:28
+      await test.step('And the src/index.ts file should be highlighted in the Explorer', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts file should be highlighted in the Explorer', {
+          keyword: 'And',
+          text: 'the src/index.ts file should be highlighted in the Explorer',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:29
+      await test.step('When I click the "Copy Relative Path" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Copy Relative Path" entry', {
+          keyword: 'When',
+          text: 'I click the "Copy Relative Path" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:30
+      await test.step('Then "src/index.ts" should be saved to my clipboard', async () => {
+        await runAcceptanceStep(context, '"src/index.ts" should be saved to my clipboard', {
+          keyword: 'Then',
+          text: '"src/index.ts" should be saved to my clipboard',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:31
+      await test.step('When I click the "Copy Absolute Path" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Copy Absolute Path" entry', {
+          keyword: 'When',
+          text: 'I click the "Copy Absolute Path" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:32
+      await test.step('Then the absolute path for src/index.ts should be saved to my clipboard', async () => {
+        await runAcceptanceStep(context, 'the absolute path for src/index.ts should be saved to my clipboard', {
+          keyword: 'Then',
+          text: 'the absolute path for src/index.ts should be saved to my clipboard',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:33
+      await test.step('When I click the "Add to Favorites" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Add to Favorites" entry', {
+          keyword: 'When',
+          text: 'I click the "Add to Favorites" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:34
+      await test.step('Then "src/index.ts" should be added to the "favorites" array in .codegraphy/settings.json', async () => {
+        await runAcceptanceStep(context, '"src/index.ts" should be added to the "favorites" array in .codegraphy/settings.json', {
+          keyword: 'Then',
+          text: '"src/index.ts" should be added to the "favorites" array in .codegraphy/settings.json',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:35
+      await test.step('When I click the "Focus Node" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Focus Node" entry', {
+          keyword: 'When',
+          text: 'I click the "Focus Node" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:36
+      await test.step('Then the src/index.ts node should be centered in the middle of the graph', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node should be centered in the middle of the graph', {
+          keyword: 'Then',
+          text: 'the src/index.ts node should be centered in the middle of the graph',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:37
+      await test.step('When I click the "Add Filter Pattern" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Add Filter Pattern" entry', {
+          keyword: 'When',
+          text: 'I click the "Add Filter Pattern" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:38
+      await test.step('Then the filter section of the graph should expand', async () => {
+        await runAcceptanceStep(context, 'the filter section of the graph should expand', {
+          keyword: 'Then',
+          text: 'the filter section of the graph should expand',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:39
+      await test.step('And the add glob text should be prefilled with "**/src/index.ts"', async () => {
+        await runAcceptanceStep(context, 'the add glob text should be prefilled with "**/src/index.ts"', {
+          keyword: 'And',
+          text: 'the add glob text should be prefilled with "**/src/index.ts"',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 39
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:40
+      await test.step('When I click the "Add Legend Group" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Add Legend Group" entry', {
+          keyword: 'When',
+          text: 'I click the "Add Legend Group" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 40
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:41
+      await test.step('Then a popup should appear titled "Add Legend Group"', async () => {
+        await runAcceptanceStep(context, 'a popup should appear titled "Add Legend Group"', {
+          keyword: 'Then',
+          text: 'a popup should appear titled "Add Legend Group"',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 41
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:42
+      await test.step('And the legend group text should be prefilled with "src/index.ts"', async () => {
+        await runAcceptanceStep(context, 'the legend group text should be prefilled with "src/index.ts"', {
+          keyword: 'And',
+          text: 'the legend group text should be prefilled with "src/index.ts"',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 42
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:43
+      await test.step('When I click the "Rename" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Rename" entry', {
+          keyword: 'When',
+          text: 'I click the "Rename" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 43
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:44
+      await test.step('Then a VS Code rename input should appear saying "Enter new file name (Press \'Enter\' to confirm or \'Escape\' to cancel)"', async () => {
+        await runAcceptanceStep(context, 'a VS Code rename input should appear saying "Enter new file name (Press \'Enter\' to confirm or \'Escape\' to cancel)"', {
+          keyword: 'Then',
+          text: 'a VS Code rename input should appear saying "Enter new file name (Press \'Enter\' to confirm or \'Escape\' to cancel)"',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:45
+      await test.step('And the VS Code rename input should be prefilled with "index.ts"', async () => {
+        await runAcceptanceStep(context, 'the VS Code rename input should be prefilled with "index.ts"', {
+          keyword: 'And',
+          text: 'the VS Code rename input should be prefilled with "index.ts"',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:46
+      await test.step('When I click the "Delete File" entry', async () => {
+        await runAcceptanceStep(context, 'I click the "Delete File" entry', {
+          keyword: 'When',
+          text: 'I click the "Delete File" entry',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/file-context-menu.md:47
+      await test.step('Then a confirmation pops up saying "Are you sure you want to delete "src/index.ts"?"', async () => {
+        await runAcceptanceStep(context, 'a confirmation pops up saying "Are you sure you want to delete "src/index.ts"?"', {
+          keyword: 'Then',
+          text: 'a confirmation pops up saying "Are you sure you want to delete "src/index.ts"?"',
+          sourcePath: 'tests/acceptance/specs/file-context-menu.md',
+          line: 47
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Folder Context Menu', () => {
+  test('Folder node context menus expose their primary actions', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+      scenario: 'Folder node context menus expose their primary actions'
+    });
+
+    try {
+      // tests/acceptance/specs/folder-context-menu.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:11
+      await test.step('And I can see there are 11 nodes and 6 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 6 connections displayed', {
+          keyword: 'And',
+          text: 'I can see there are 11 nodes and 6 connections displayed',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 11
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:13
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:14
+      await test.step('And I see to buttons for switching views between node type and edge type toggles', async () => {
+        await runAcceptanceStep(context, 'I see to buttons for switching views between node type and edge type toggles', {
+          keyword: 'And',
+          text: 'I see to buttons for switching views between node type and edge type toggles',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:15
+      await test.step('And I select node types', async () => {
+        await runAcceptanceStep(context, 'I select node types', {
+          keyword: 'And',
+          text: 'I select node types',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:17
+      await test.step('Then I see a list of node types with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of node types with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of node types with toggles',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:18
+      await test.step('And I toggle the Folder node on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Folder node on', {
+          keyword: 'And',
+          text: 'I toggle the Folder node on',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:19
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:21
+      await test.step('And I can see there are 14 nodes and 6 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 6 connections displayed', {
+          keyword: 'And',
+          text: 'I can see there are 14 nodes and 6 connections displayed',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:22
+      await test.step('And I can see a new "src" node in the graph', async () => {
+        await runAcceptanceStep(context, 'I can see a new "src" node in the graph', {
+          keyword: 'And',
+          text: 'I can see a new "src" node in the graph',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:23
+      await test.step('And I can see a new "alias" node in the graph', async () => {
+        await runAcceptanceStep(context, 'I can see a new "alias" node in the graph', {
+          keyword: 'And',
+          text: 'I can see a new "alias" node in the graph',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:24
+      await test.step('And I can see a new "(root)" node in the graph', async () => {
+        await runAcceptanceStep(context, 'I can see a new "(root)" node in the graph', {
+          keyword: 'And',
+          text: 'I can see a new "(root)" node in the graph',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:26
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:27
+      await test.step('And I see to buttons for switching views between node type and edge type toggles', async () => {
+        await runAcceptanceStep(context, 'I see to buttons for switching views between node type and edge type toggles', {
+          keyword: 'And',
+          text: 'I see to buttons for switching views between node type and edge type toggles',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:28
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
+          keyword: 'And',
+          text: 'I select edge types',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:30
+      await test.step('Then I see a list of edge types with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of edge types with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of edge types with toggles',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:31
+      await test.step('And I toggle the Nests edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Nests edge on', {
+          keyword: 'And',
+          text: 'I toggle the Nests edge on',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:32
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:34
+      await test.step('And I can see there are 14 nodes and 19 connections displayed', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 19 connections displayed', {
+          keyword: 'And',
+          text: 'I can see there are 14 nodes and 19 connections displayed',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:36
+      await test.step('When I right click one of the folder nodes to open its Graph Context Menu', async () => {
+        await runAcceptanceStep(context, 'I right click one of the folder nodes to open its Graph Context Menu', {
+          keyword: 'When',
+          text: 'I right click one of the folder nodes to open its Graph Context Menu',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:37
+      await test.step('And I see the "New File" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "New File" entry', {
+          keyword: 'And',
+          text: 'I see the "New File" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:38
+      await test.step('And I see the "New Folder" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "New Folder" entry', {
+          keyword: 'And',
+          text: 'I see the "New Folder" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:39
+      await test.step('And I see the "Reveal in explorer" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Reveal in explorer" entry', {
+          keyword: 'And',
+          text: 'I see the "Reveal in explorer" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 39
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:40
+      await test.step('And I see the "Copy Relative Path" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Relative Path" entry', {
+          keyword: 'And',
+          text: 'I see the "Copy Relative Path" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 40
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:41
+      await test.step('And I see the "Copy Absolute Path" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Absolute Path" entry', {
+          keyword: 'And',
+          text: 'I see the "Copy Absolute Path" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 41
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:42
+      await test.step('And I see the "Add to Favorites" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add to Favorites" entry', {
+          keyword: 'And',
+          text: 'I see the "Add to Favorites" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 42
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:43
+      await test.step('And I see the "Focus Node" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Focus Node" entry', {
+          keyword: 'And',
+          text: 'I see the "Focus Node" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 43
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:44
+      await test.step('And I see the "Add Filter Pattern" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add Filter Pattern" entry', {
+          keyword: 'And',
+          text: 'I see the "Add Filter Pattern" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 44
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:45
+      await test.step('And I see the "Add Legend Group" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add Legend Group" entry', {
+          keyword: 'And',
+          text: 'I see the "Add Legend Group" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 45
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:46
+      await test.step('And I see the "Rename Folder" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Rename Folder" entry', {
+          keyword: 'And',
+          text: 'I see the "Rename Folder" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 46
+        });
+      });
+
+      // tests/acceptance/specs/folder-context-menu.md:47
+      await test.step('And I see the "Delete Folder" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Delete Folder" entry', {
+          keyword: 'And',
+          text: 'I see the "Delete Folder" entry',
+          sourcePath: 'tests/acceptance/specs/folder-context-menu.md',
+          line: 47
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Go Example', () => {
+  test('Go example renders expected file nodes and import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/go-example.md',
+      scenario: 'Go example renders expected file nodes and import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/go-example.md:5
+      await test.step('Given I open the examples/example-go workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-go workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-go workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-go workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-go workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-go workspace',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:12
+      await test.step('Then I can see there are 5 nodes and 2 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 2 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 5 nodes and 2 connection',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:13
+      await test.step('And main.go points to internal/service/service.go', async () => {
+        await runAcceptanceStep(context, 'main.go points to internal/service/service.go', {
+          keyword: 'And',
+          text: 'main.go points to internal/service/service.go',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:15
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:16
+      await test.step('And go.mod is an orphan node', async () => {
+        await runAcceptanceStep(context, 'go.mod is an orphan node', {
+          keyword: 'And',
+          text: 'go.mod is an orphan node',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/go-example.md:17
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/go-example.md',
+          line: 17
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Godot Example', () => {
+  test('Godot example renders expected file nodes and plugin load relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/godot-example.md',
+      scenario: 'Godot example renders expected file nodes and plugin load relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/godot-example.md:5
+      await test.step('Given I open the examples/example-godot workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-godot workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-godot workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:9
+      await test.step('And I do not see edges', async () => {
+        await runAcceptanceStep(context, 'I do not see edges', {
+          keyword: 'And',
+          text: 'I do not see edges',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-godot workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-godot workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-godot workspace',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:12
+      await test.step('When I click the plugins button', async () => {
+        await runAcceptanceStep(context, 'I click the plugins button', {
+          keyword: 'When',
+          text: 'I click the plugins button',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:13
+      await test.step('Then I see a list of plugins with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of plugins with toggles',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:14
+      await test.step('And I toggle the GDScript (Godot) plugin on', async () => {
+        await runAcceptanceStep(context, 'I toggle the GDScript (Godot) plugin on', {
+          keyword: 'And',
+          text: 'I toggle the GDScript (Godot) plugin on',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:15
+      await test.step('Then I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'Then',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:16
+      await test.step('And I can see there are 19 nodes and 29 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 19 nodes and 29 connections', {
+          keyword: 'And',
+          text: 'I can see there are 19 nodes and 29 connections',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:17
+      await test.step('And project.godot points to scenes/main.tscn', async () => {
+        await runAcceptanceStep(context, 'project.godot points to scenes/main.tscn', {
+          keyword: 'And',
+          text: 'project.godot points to scenes/main.tscn',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:18
+      await test.step('And project.godot points to scripts/game_manager.gd', async () => {
+        await runAcceptanceStep(context, 'project.godot points to scripts/game_manager.gd', {
+          keyword: 'And',
+          text: 'project.godot points to scripts/game_manager.gd',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:19
+      await test.step('And scripts/player.gd points to scripts/utils/math_helpers.gd', async () => {
+        await runAcceptanceStep(context, 'scripts/player.gd points to scripts/utils/math_helpers.gd', {
+          keyword: 'And',
+          text: 'scripts/player.gd points to scripts/utils/math_helpers.gd',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:20
+      await test.step('And scripts/player.gd points to scenes/ui/loadout_preview.tscn', async () => {
+        await runAcceptanceStep(context, 'scripts/player.gd points to scenes/ui/loadout_preview.tscn', {
+          keyword: 'And',
+          text: 'scripts/player.gd points to scenes/ui/loadout_preview.tscn',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:21
+      await test.step('And scripts/player.gd points to resources/player_loadout.tres', async () => {
+        await runAcceptanceStep(context, 'scripts/player.gd points to resources/player_loadout.tres', {
+          keyword: 'And',
+          text: 'scripts/player.gd points to resources/player_loadout.tres',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:22
+      await test.step('And scripts/enemy.gd points to scripts/base/entity.gd', async () => {
+        await runAcceptanceStep(context, 'scripts/enemy.gd points to scripts/base/entity.gd', {
+          keyword: 'And',
+          text: 'scripts/enemy.gd points to scripts/base/entity.gd',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:23
+      await test.step('And resources/player_loadout.tres points to scripts/data/player_loadout.gd', async () => {
+        await runAcceptanceStep(context, 'resources/player_loadout.tres points to scripts/data/player_loadout.gd', {
+          keyword: 'And',
+          text: 'resources/player_loadout.tres points to scripts/data/player_loadout.gd',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:24
+      await test.step('And resources/player_loadout.tres points to textures/player_card.png', async () => {
+        await runAcceptanceStep(context, 'resources/player_loadout.tres points to textures/player_card.png', {
+          keyword: 'And',
+          text: 'resources/player_loadout.tres points to textures/player_card.png',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:25
+      await test.step('And scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', async () => {
+        await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', {
+          keyword: 'And',
+          text: 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:26
+      await test.step('And scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd', async () => {
+        await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd', {
+          keyword: 'And',
+          text: 'scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:28
+      await test.step('And scripts/orphan.gd is an orphan node', async () => {
+        await runAcceptanceStep(context, 'scripts/orphan.gd is an orphan node', {
+          keyword: 'And',
+          text: 'scripts/orphan.gd is an orphan node',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:29
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:30
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:31
+      await test.step('And .vscode/settings.json is an orphan node', async () => {
+        await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
+          keyword: 'And',
+          text: '.vscode/settings.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 31
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Graph Navigation', () => {
+  test('Fit to Screen and zoom controls change the visible graph scale', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+      scenario: 'Fit to Screen and zoom controls change the visible graph scale'
+    });
+
+    try {
+      // tests/acceptance/specs/graph-navigation.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:11
+      await test.step('When I click the "Fit to Screen" button', async () => {
+        await runAcceptanceStep(context, 'I click the "Fit to Screen" button', {
+          keyword: 'When',
+          text: 'I click the "Fit to Screen" button',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 11
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:12
+      await test.step('Then all 12 graph nodes are visible in the graph viewport', async () => {
+        await runAcceptanceStep(context, 'all 12 graph nodes are visible in the graph viewport', {
+          keyword: 'Then',
+          text: 'all 12 graph nodes are visible in the graph viewport',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:14
+      await test.step('When I click the "Zoom In" button', async () => {
+        await runAcceptanceStep(context, 'I click the "Zoom In" button', {
+          keyword: 'When',
+          text: 'I click the "Zoom In" button',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:15
+      await test.step('Then the visible graph scale increases', async () => {
+        await runAcceptanceStep(context, 'the visible graph scale increases', {
+          keyword: 'Then',
+          text: 'the visible graph scale increases',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:16
+      await test.step('When I press and hold the "Zoom In" button', async () => {
+        await runAcceptanceStep(context, 'I press and hold the "Zoom In" button', {
+          keyword: 'When',
+          text: 'I press and hold the "Zoom In" button',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:17
+      await test.step('Then the visible graph scale continues to increase', async () => {
+        await runAcceptanceStep(context, 'the visible graph scale continues to increase', {
+          keyword: 'Then',
+          text: 'the visible graph scale continues to increase',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:19
+      await test.step('When I click the "Fit to Screen" button', async () => {
+        await runAcceptanceStep(context, 'I click the "Fit to Screen" button', {
+          keyword: 'When',
+          text: 'I click the "Fit to Screen" button',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:20
+      await test.step('Then all 12 graph nodes are visible in the graph viewport', async () => {
+        await runAcceptanceStep(context, 'all 12 graph nodes are visible in the graph viewport', {
+          keyword: 'Then',
+          text: 'all 12 graph nodes are visible in the graph viewport',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:22
+      await test.step('When I click the "Zoom Out" button', async () => {
+        await runAcceptanceStep(context, 'I click the "Zoom Out" button', {
+          keyword: 'When',
+          text: 'I click the "Zoom Out" button',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:23
+      await test.step('Then the visible graph scale decreases', async () => {
+        await runAcceptanceStep(context, 'the visible graph scale decreases', {
+          keyword: 'Then',
+          text: 'the visible graph scale decreases',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:24
+      await test.step('When I press and hold the "Zoom Out" button', async () => {
+        await runAcceptanceStep(context, 'I press and hold the "Zoom Out" button', {
+          keyword: 'When',
+          text: 'I press and hold the "Zoom Out" button',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/graph-navigation.md:25
+      await test.step('Then the visible graph scale continues to decrease', async () => {
+        await runAcceptanceStep(context, 'the visible graph scale continues to decrease', {
+          keyword: 'Then',
+          text: 'the visible graph scale continues to decrease',
+          sourcePath: 'tests/acceptance/specs/graph-navigation.md',
+          line: 25
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Graph Rendering', () => {
+  test('Indexed TypeScript graph renders file nodes, labels, and import edges', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+      scenario: 'Indexed TypeScript graph renders file nodes, labels, and import edges'
+    });
+
+    try {
+      // tests/acceptance/specs/graph-rendering.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:12
+      await test.step('Then I see the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I see the src/index.ts node', {
+          keyword: 'Then',
+          text: 'I see the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:13
+      await test.step('And the src/index.ts node is a blue circle', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is a blue circle', {
+          keyword: 'And',
+          text: 'the src/index.ts node is a blue circle',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:14
+      await test.step('And the src/index.ts node has a white TS symbol in the center of the node', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node has a white TS symbol in the center of the node', {
+          keyword: 'And',
+          text: 'the src/index.ts node has a white TS symbol in the center of the node',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:15
+      await test.step('And the src/index.ts node has the file name "index.ts" as a label below the node', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node has the file name "index.ts" as a label below the node', {
+          keyword: 'And',
+          text: 'the src/index.ts node has the file name "index.ts" as a label below the node',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:16
+      await test.step('And the src/index.ts node has an edge that points to the src/types.ts node', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node has an edge that points to the src/types.ts node', {
+          keyword: 'And',
+          text: 'the src/index.ts node has an edge that points to the src/types.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/graph-rendering.md:17
+      await test.step('And the src/index.ts node has an edge that points to the src/utils.ts node', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node has an edge that points to the src/utils.ts node', {
+          keyword: 'And',
+          text: 'the src/index.ts node has an edge that points to the src/utils.ts node',
+          sourcePath: 'tests/acceptance/specs/graph-rendering.md',
+          line: 17
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Graph Theme', () => {
+  test('Graph colors follow the active VS Code color theme', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/graph-theme.md',
+      scenario: 'Graph colors follow the active VS Code color theme'
+    });
+
+    try {
+      // tests/acceptance/specs/graph-theme.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:11
+      await test.step('When I turn the VS Code setting "Preferences: Color Theme" to "Light 2026"', async () => {
+        await runAcceptanceStep(context, 'I turn the VS Code setting "Preferences: Color Theme" to "Light 2026"', {
+          keyword: 'When',
+          text: 'I turn the VS Code setting "Preferences: Color Theme" to "Light 2026"',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 11
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:12
+      await test.step('Then I can see that the background of the graph is "#FAFAFD"', async () => {
+        await runAcceptanceStep(context, 'I can see that the background of the graph is "#FAFAFD"', {
+          keyword: 'Then',
+          text: 'I can see that the background of the graph is "#FAFAFD"',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:13
+      await test.step('And I can see that the arrowheads of the edges are "#0069CC"', async () => {
+        await runAcceptanceStep(context, 'I can see that the arrowheads of the edges are "#0069CC"', {
+          keyword: 'And',
+          text: 'I can see that the arrowheads of the edges are "#0069CC"',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:15
+      await test.step('When I turn the VS Code setting "Preferences: Color Theme" to "Dark 2026"', async () => {
+        await runAcceptanceStep(context, 'I turn the VS Code setting "Preferences: Color Theme" to "Dark 2026"', {
+          keyword: 'When',
+          text: 'I turn the VS Code setting "Preferences: Color Theme" to "Dark 2026"',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:16
+      await test.step('Then I can see that the background of the graph is "#1F2122"', async () => {
+        await runAcceptanceStep(context, 'I can see that the background of the graph is "#1F2122"', {
+          keyword: 'Then',
+          text: 'I can see that the background of the graph is "#1F2122"',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/graph-theme.md:17
+      await test.step('And I can see that the arrowheads of the edges are "#297AA0"', async () => {
+        await runAcceptanceStep(context, 'I can see that the arrowheads of the edges are "#297AA0"', {
+          keyword: 'And',
+          text: 'I can see that the arrowheads of the edges are "#297AA0"',
+          sourcePath: 'tests/acceptance/specs/graph-theme.md',
+          line: 17
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
 test.describe('Graph View', () => {
-  test('Opening and indexing the example TypeScript workspace shows a usable graph', async ({}, testInfo) => {
+  test('Opening and indexing a workspace shows a usable graph', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
       testInfo,
       sourcePath: 'tests/acceptance/specs/graph-view.md',
-      scenario: 'Opening and indexing the example TypeScript workspace shows a usable graph'
+      scenario: 'Opening and indexing a workspace shows a usable graph'
     });
 
     try {
@@ -132,163 +2907,2183 @@ test.describe('Graph View', () => {
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:17
-      await test.step('Then I see the src/index.ts node', async () => {
-        await runAcceptanceStep(context, 'I see the src/index.ts node', {
-          keyword: 'Then',
-          text: 'I see the src/index.ts node',
+      // tests/acceptance/specs/graph-view.md:16
+      await test.step('And the top right of the graph says "12 nodes" and "5 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "12 nodes" and "5 connections"', {
+          keyword: 'And',
+          text: 'the top right of the graph says "12 nodes" and "5 connections"',
           sourcePath: 'tests/acceptance/specs/graph-view.md',
+          line: 16
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Haskell Example', () => {
+  test('Haskell example renders expected file nodes and module import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/haskell-example.md',
+      scenario: 'Haskell example renders expected file nodes and module import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/haskell-example.md:5
+      await test.step('Given I open the examples/example-haskell workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-haskell workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-haskell workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-haskell workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-haskell workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-haskell workspace',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:12
+      await test.step('Then I can see there are 6 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 3 connections',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:13
+      await test.step('And src/Main.hs points to src/App/Feature/Runner.hs', async () => {
+        await runAcceptanceStep(context, 'src/Main.hs points to src/App/Feature/Runner.hs', {
+          keyword: 'And',
+          text: 'src/Main.hs points to src/App/Feature/Runner.hs',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:14
+      await test.step('And src/Main.hs points to src/App/Model/User.hs', async () => {
+        await runAcceptanceStep(context, 'src/Main.hs points to src/App/Model/User.hs', {
+          keyword: 'And',
+          text: 'src/Main.hs points to src/App/Model/User.hs',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:15
+      await test.step('And src/App/Feature/Runner.hs points to src/App/Model/User.hs', async () => {
+        await runAcceptanceStep(context, 'src/App/Feature/Runner.hs points to src/App/Model/User.hs', {
+          keyword: 'And',
+          text: 'src/App/Feature/Runner.hs points to src/App/Model/User.hs',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/haskell-example.md:17
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 17
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:18
-      await test.step('And the src/index.ts node is a blue circle', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts node is a blue circle', {
+      // tests/acceptance/specs/haskell-example.md:18
+      await test.step('And example-haskell.cabal is an orphan node', async () => {
+        await runAcceptanceStep(context, 'example-haskell.cabal is an orphan node', {
           keyword: 'And',
-          text: 'the src/index.ts node is a blue circle',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          text: 'example-haskell.cabal is an orphan node',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 18
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:19
-      await test.step('And the src/index.ts node has a white TS symbol in the center of the node', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts node has a white TS symbol in the center of the node', {
+      // tests/acceptance/specs/haskell-example.md:19
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
-          text: 'the src/index.ts node has a white TS symbol in the center of the node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/haskell-example.md',
           line: 19
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:20
-      await test.step('And the src/index.ts node has the file name "index.ts" as a label below the node', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts node has the file name "index.ts" as a label below the node', {
-          keyword: 'And',
-          text: 'the src/index.ts node has the file name "index.ts" as a label below the node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 20
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Hover', () => {
+  test('Hovering a graph node shows and hides node information', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/hover.md',
+      scenario: 'Hovering a graph node shows and hides node information'
+    });
+
+    try {
+      // tests/acceptance/specs/hover.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 5
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:21
-      await test.step('And the src/index.ts node has an edge that points to the src/types.ts node', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts node has an edge that points to the src/types.ts node', {
-          keyword: 'And',
-          text: 'the src/index.ts node has an edge that points to the src/types.ts node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 21
+      // tests/acceptance/specs/hover.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 6
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:22
-      await test.step('And the src/index.ts node has an edge that points to the src/utils.ts node', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts node has an edge that points to the src/utils.ts node', {
+      // tests/acceptance/specs/hover.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
           keyword: 'And',
-          text: 'the src/index.ts node has an edge that points to the src/utils.ts node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 22
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 7
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:24
+      // tests/acceptance/specs/hover.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/hover.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/hover.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/hover.md:12
       await test.step('When I hover the src/index.ts node', async () => {
         await runAcceptanceStep(context, 'I hover the src/index.ts node', {
           keyword: 'When',
           text: 'I hover the src/index.ts node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 24
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 12
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:25
+      // tests/acceptance/specs/hover.md:13
       await test.step('Then I see information for the src/index.ts node', async () => {
         await runAcceptanceStep(context, 'I see information for the src/index.ts node', {
           keyword: 'Then',
           text: 'I see information for the src/index.ts node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 25
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 13
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:26
+      // tests/acceptance/specs/hover.md:14
       await test.step('And the information says "src/index.ts" at the top', async () => {
         await runAcceptanceStep(context, 'the information says "src/index.ts" at the top', {
           keyword: 'And',
           text: 'the information says "src/index.ts" at the top',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/hover.md:16
+      await test.step('When I stop hovering the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I stop hovering the src/index.ts node', {
+          keyword: 'When',
+          text: 'I stop hovering the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/hover.md:17
+      await test.step('Then I see information for the src/index.ts node goes away', async () => {
+        await runAcceptanceStep(context, 'I see information for the src/index.ts node goes away', {
+          keyword: 'Then',
+          text: 'I see information for the src/index.ts node goes away',
+          sourcePath: 'tests/acceptance/specs/hover.md',
+          line: 17
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Java Example', () => {
+  test('Java example renders expected file nodes and import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/java-example.md',
+      scenario: 'Java example renders expected file nodes and import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/java-example.md:5
+      await test.step('Given I open the examples/example-java workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-java workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-java workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-java workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-java workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-java workspace',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:12
+      await test.step('Then I can see there are 5 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 5 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:13
+      await test.step('And src/com/example/app/App.java points to src/com/example/app/Helper.java', async () => {
+        await runAcceptanceStep(context, 'src/com/example/app/App.java points to src/com/example/app/Helper.java', {
+          keyword: 'And',
+          text: 'src/com/example/app/App.java points to src/com/example/app/Helper.java',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:14
+      await test.step('And src/com/example/app/App.java points to src/com/example/app/BaseService.java', async () => {
+        await runAcceptanceStep(context, 'src/com/example/app/App.java points to src/com/example/app/BaseService.java', {
+          keyword: 'And',
+          text: 'src/com/example/app/App.java points to src/com/example/app/BaseService.java',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/java-example.md:16
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/java-example.md',
+          line: 16
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Kotlin Example', () => {
+  test('Kotlin example renders expected file nodes and import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+      scenario: 'Kotlin example renders expected file nodes and import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/kotlin-example.md:5
+      await test.step('Given I open the examples/example-kotlin workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-kotlin workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-kotlin workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-kotlin workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-kotlin workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-kotlin workspace',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:12
+      await test.step('Then I can see there are 9 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 9 nodes and 3 connections',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:13
+      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt', {
+          keyword: 'And',
+          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/BaseRunner.kt',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:14
+      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt', {
+          keyword: 'And',
+          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/base/RunnableThing.kt',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:15
+      await test.step('And src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt', {
+          keyword: 'And',
+          text: 'src/main/kotlin/com/example/app/AppRunner.kt points to src/main/kotlin/com/example/model/User.kt',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:17
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:18
+      await test.step('And build.gradle.kts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'build.gradle.kts is an orphan node', {
+          keyword: 'And',
+          text: 'build.gradle.kts is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:19
+      await test.step('And settings.gradle.kts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'settings.gradle.kts is an orphan node', {
+          keyword: 'And',
+          text: 'settings.gradle.kts is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:20
+      await test.step('And src/main/kotlin/com/example/app/Main.kt is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/main/kotlin/com/example/app/Main.kt is an orphan node', {
+          keyword: 'And',
+          text: 'src/main/kotlin/com/example/app/Main.kt is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/kotlin-example.md:21
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/kotlin-example.md',
+          line: 21
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Lua Example', () => {
+  test('Lua example renders expected file nodes and require relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/lua-example.md',
+      scenario: 'Lua example renders expected file nodes and require relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/lua-example.md:5
+      await test.step('Given I open the examples/example-lua workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-lua workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-lua workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-lua workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-lua workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-lua workspace',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:12
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 2 connections',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:13
+      await test.step('And main.lua points to app/runner.lua', async () => {
+        await runAcceptanceStep(context, 'main.lua points to app/runner.lua', {
+          keyword: 'And',
+          text: 'main.lua points to app/runner.lua',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:14
+      await test.step('And app/runner.lua points to app/model/user.lua', async () => {
+        await runAcceptanceStep(context, 'app/runner.lua points to app/model/user.lua', {
+          keyword: 'And',
+          text: 'app/runner.lua points to app/model/user.lua',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:16
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/lua-example.md:17
+      await test.step('And .luarc.json is an orphan node', async () => {
+        await runAcceptanceStep(context, '.luarc.json is an orphan node', {
+          keyword: 'And',
+          text: '.luarc.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/lua-example.md',
+          line: 17
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Markdown Example', () => {
+  test('Markdown example renders expected file nodes and reference relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/markdown-example.md',
+      scenario: 'Markdown example renders expected file nodes and reference relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/markdown-example.md:5
+      await test.step('Given I open the examples/example-markdown workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-markdown workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-markdown workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-markdown workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-markdown workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-markdown workspace',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:12
+      await test.step('Then I can see there are 7 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 7 nodes and 4 connections',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:13
+      await test.step('And notes/Home.md points to notes/Architecture.md', async () => {
+        await runAcceptanceStep(context, 'notes/Home.md points to notes/Architecture.md', {
+          keyword: 'And',
+          text: 'notes/Home.md points to notes/Architecture.md',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:14
+      await test.step('And notes/Home.md points to notes/assets/Diagram.md', async () => {
+        await runAcceptanceStep(context, 'notes/Home.md points to notes/assets/Diagram.md', {
+          keyword: 'And',
+          text: 'notes/Home.md points to notes/assets/Diagram.md',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:15
+      await test.step('And notes/Home.md points to src/commented.ts', async () => {
+        await runAcceptanceStep(context, 'notes/Home.md points to src/commented.ts', {
+          keyword: 'And',
+          text: 'notes/Home.md points to src/commented.ts',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:16
+      await test.step('And src/commented.ts points to notes/Architecture.md', async () => {
+        await runAcceptanceStep(context, 'src/commented.ts points to notes/Architecture.md', {
+          keyword: 'And',
+          text: 'src/commented.ts points to notes/Architecture.md',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:18
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:19
+      await test.step('And notes/guides/Setup.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'notes/guides/Setup.md is an orphan node', {
+          keyword: 'And',
+          text: 'notes/guides/Setup.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/markdown-example.md:20
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/markdown-example.md',
+          line: 20
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Multi File Node Context Menu', () => {
+  test('Multi File node context menus expose their primary actions', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+      scenario: 'Multi File node context menus expose their primary actions'
+    });
+
+    try {
+      // tests/acceptance/specs/multi-node-context-menu.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:12
+      await test.step('When I click and drag on the background I can select multiple nodes at once', async () => {
+        await runAcceptanceStep(context, 'I click and drag on the background I can select multiple nodes at once', {
+          keyword: 'When',
+          text: 'I click and drag on the background I can select multiple nodes at once',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:13
+      await test.step('Then I see all the selected nodes outlined in white', async () => {
+        await runAcceptanceStep(context, 'I see all the selected nodes outlined in white', {
+          keyword: 'Then',
+          text: 'I see all the selected nodes outlined in white',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:15
+      await test.step('When I right click one of the selected nodes to open its Graph Context Menu', async () => {
+        await runAcceptanceStep(context, 'I right click one of the selected nodes to open its Graph Context Menu', {
+          keyword: 'When',
+          text: 'I right click one of the selected nodes to open its Graph Context Menu',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:16
+      await test.step('And I see the "Open x Files" entry, where x is the number of selected nodes', async () => {
+        await runAcceptanceStep(context, 'I see the "Open x Files" entry, where x is the number of selected nodes', {
+          keyword: 'And',
+          text: 'I see the "Open x Files" entry, where x is the number of selected nodes',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:17
+      await test.step('And I see the "Copy Relative Paths" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Copy Relative Paths" entry', {
+          keyword: 'And',
+          text: 'I see the "Copy Relative Paths" entry',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:18
+      await test.step('And I see the "Add All to Favorites" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add All to Favorites" entry', {
+          keyword: 'And',
+          text: 'I see the "Add All to Favorites" entry',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:19
+      await test.step('And I see the "Add Filter Patterns" entry', async () => {
+        await runAcceptanceStep(context, 'I see the "Add Filter Patterns" entry', {
+          keyword: 'And',
+          text: 'I see the "Add Filter Patterns" entry',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/multi-node-context-menu.md:20
+      await test.step('And I see the "Delete x Files" entry, where x is the number of selected nodes', async () => {
+        await runAcceptanceStep(context, 'I see the "Delete x Files" entry, where x is the number of selected nodes', {
+          keyword: 'And',
+          text: 'I see the "Delete x Files" entry, where x is the number of selected nodes',
+          sourcePath: 'tests/acceptance/specs/multi-node-context-menu.md',
+          line: 20
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('PHP Example', () => {
+  test('PHP example renders expected file nodes and namespace relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/php-example.md',
+      scenario: 'PHP example renders expected file nodes and namespace relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/php-example.md:5
+      await test.step('Given I open the examples/example-php workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-php workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-php workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-php workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-php workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-php workspace',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:12
+      await test.step('Then I can see there are 7 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 7 nodes and 3 connections',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:13
+      await test.step('And src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php', async () => {
+        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php', {
+          keyword: 'And',
+          text: 'src/App/Feature/Runner.php points to src/App/Base/BaseRunner.php',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:14
+      await test.step('And src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php', async () => {
+        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php', {
+          keyword: 'And',
+          text: 'src/App/Feature/Runner.php points to src/App/Contracts/Runnable.php',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:15
+      await test.step('And src/App/Feature/Runner.php points to src/App/Model/User.php', async () => {
+        await runAcceptanceStep(context, 'src/App/Feature/Runner.php points to src/App/Model/User.php', {
+          keyword: 'And',
+          text: 'src/App/Feature/Runner.php points to src/App/Model/User.php',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:17
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:18
+      await test.step('And composer.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'composer.json is an orphan node', {
+          keyword: 'And',
+          text: 'composer.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/php-example.md:19
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/php-example.md',
+          line: 19
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Python Example', () => {
+  test('Python example renders expected file nodes and import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/python-example.md',
+      scenario: 'Python example renders expected file nodes and import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/python-example.md:5
+      await test.step('Given I open the examples/example-python workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-python workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-python workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-python workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-python workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-python workspace',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:12
+      await test.step('Then I can see there are 15 nodes and 17 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 17 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 15 nodes and 17 connections',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:13
+      await test.step('And src/main.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/utils/helpers.py', {
+          keyword: 'And',
+          text: 'src/main.py points to src/utils/helpers.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:14
+      await test.step('And src/main.py points to src/config.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/config.py', {
+          keyword: 'And',
+          text: 'src/main.py points to src/config.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:15
+      await test.step('And src/main.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/main.py points to src/services/api.py', {
+          keyword: 'And',
+          text: 'src/main.py points to src/services/api.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:16
+      await test.step('And src/utils/__init__.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/utils/__init__.py points to src/utils/helpers.py', {
+          keyword: 'And',
+          text: 'src/utils/__init__.py points to src/utils/helpers.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:17
+      await test.step('And src/utils/__init__.py points to src/utils/format.py', async () => {
+        await runAcceptanceStep(context, 'src/utils/__init__.py points to src/utils/format.py', {
+          keyword: 'And',
+          text: 'src/utils/__init__.py points to src/utils/format.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:18
+      await test.step('And src/utils/helpers.py points to src/utils/format.py', async () => {
+        await runAcceptanceStep(context, 'src/utils/helpers.py points to src/utils/format.py', {
+          keyword: 'And',
+          text: 'src/utils/helpers.py points to src/utils/format.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:19
+      await test.step('And src/services/api.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/services/api.py points to src/utils/helpers.py', {
+          keyword: 'And',
+          text: 'src/services/api.py points to src/utils/helpers.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:20
+      await test.step('And src/member_imports.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/member_imports.py points to src/services/api.py', {
+          keyword: 'And',
+          text: 'src/member_imports.py points to src/services/api.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:21
+      await test.step('And src/member_imports.py points to src/utils/helpers.py', async () => {
+        await runAcceptanceStep(context, 'src/member_imports.py points to src/utils/helpers.py', {
+          keyword: 'And',
+          text: 'src/member_imports.py points to src/utils/helpers.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:22
+      await test.step('And src/services/__init__.py points to src/services/api.py', async () => {
+        await runAcceptanceStep(context, 'src/services/__init__.py points to src/services/api.py', {
+          keyword: 'And',
+          text: 'src/services/__init__.py points to src/services/api.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:23
+      await test.step('And src/namespace_consumer.py points to src/ns_pkg/member.py', async () => {
+        await runAcceptanceStep(context, 'src/namespace_consumer.py points to src/ns_pkg/member.py', {
+          keyword: 'And',
+          text: 'src/namespace_consumer.py points to src/ns_pkg/member.py',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:25
+      await test.step('And src/orphan.py is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/orphan.py is an orphan node', {
+          keyword: 'And',
+          text: 'src/orphan.py is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/python-example.md:26
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 26
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:27
-      await test.step('When I click the src/index.ts node', async () => {
-        await runAcceptanceStep(context, 'I click the src/index.ts node', {
-          keyword: 'When',
-          text: 'I click the src/index.ts node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
+      // tests/acceptance/specs/python-example.md:27
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 27
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:28
-      await test.step('Then the src/index.ts node is visibly outlined', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts node is visibly outlined', {
-          keyword: 'Then',
-          text: 'the src/index.ts node is visibly outlined',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
+      // tests/acceptance/specs/python-example.md:28
+      await test.step('And pyproject.toml is an orphan node', async () => {
+        await runAcceptanceStep(context, 'pyproject.toml is an orphan node', {
+          keyword: 'And',
+          text: 'pyproject.toml is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 28
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:29
-      await test.step('And src/index.ts opens in VS Code', async () => {
-        await runAcceptanceStep(context, 'src/index.ts opens in VS Code', {
+      // tests/acceptance/specs/python-example.md:29
+      await test.step('And .vscode/settings.json is an orphan node', async () => {
+        await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
           keyword: 'And',
-          text: 'src/index.ts opens in VS Code',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          text: '.vscode/settings.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 29
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:30
-      await test.step('When I click and drag the src/index.ts node', async () => {
-        await runAcceptanceStep(context, 'I click and drag the src/index.ts node', {
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Ruby Example', () => {
+  test('Ruby example renders expected file nodes and require relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/ruby-example.md',
+      scenario: 'Ruby example renders expected file nodes and require relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/ruby-example.md:5
+      await test.step('Given I open the examples/example-ruby workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-ruby workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-ruby workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
           keyword: 'When',
-          text: 'I click and drag the src/index.ts node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-ruby workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-ruby workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-ruby workspace',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:12
+      await test.step('Then I can see there are 8 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 8 nodes and 3 connections',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:13
+      await test.step('And lib/example_ruby.rb points to lib/app/runner.rb', async () => {
+        await runAcceptanceStep(context, 'lib/example_ruby.rb points to lib/app/runner.rb', {
+          keyword: 'And',
+          text: 'lib/example_ruby.rb points to lib/app/runner.rb',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:14
+      await test.step('And lib/app/runner.rb points to lib/base/base_runner.rb', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.rb points to lib/base/base_runner.rb', {
+          keyword: 'And',
+          text: 'lib/app/runner.rb points to lib/base/base_runner.rb',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:15
+      await test.step('And lib/app/runner.rb points to lib/model/user.rb', async () => {
+        await runAcceptanceStep(context, 'lib/app/runner.rb points to lib/model/user.rb', {
+          keyword: 'And',
+          text: 'lib/app/runner.rb points to lib/model/user.rb',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:17
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:18
+      await test.step('And Gemfile is an orphan node', async () => {
+        await runAcceptanceStep(context, 'Gemfile is an orphan node', {
+          keyword: 'And',
+          text: 'Gemfile is an orphan node',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:19
+      await test.step('And example_ruby.gemspec is an orphan node', async () => {
+        await runAcceptanceStep(context, 'example_ruby.gemspec is an orphan node', {
+          keyword: 'And',
+          text: 'example_ruby.gemspec is an orphan node',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/ruby-example.md:20
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/ruby-example.md',
+          line: 20
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Rust Example', () => {
+  test('Rust example renders expected file nodes and module relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/rust-example.md',
+      scenario: 'Rust example renders expected file nodes and module relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/rust-example.md:5
+      await test.step('Given I open the examples/example-rust workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-rust workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-rust workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-rust workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-rust workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-rust workspace',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:12
+      await test.step('Then I can see there are 6 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 3 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 6 nodes and 3 connections',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:13
+      await test.step('And src/main.rs points to src/util.rs', async () => {
+        await runAcceptanceStep(context, 'src/main.rs points to src/util.rs', {
+          keyword: 'And',
+          text: 'src/main.rs points to src/util.rs',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:14
+      await test.step('And src/main.rs points to src/inner.rs', async () => {
+        await runAcceptanceStep(context, 'src/main.rs points to src/inner.rs', {
+          keyword: 'And',
+          text: 'src/main.rs points to src/inner.rs',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:16
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:17
+      await test.step('And Cargo.toml is an orphan node', async () => {
+        await runAcceptanceStep(context, 'Cargo.toml is an orphan node', {
+          keyword: 'And',
+          text: 'Cargo.toml is an orphan node',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/rust-example.md:18
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/rust-example.md',
+          line: 18
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Selection', () => {
+  test('Clicking and double-clicking a node select it and open its file in VS Code', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/selection.md',
+      scenario: 'Clicking and double-clicking a node select it and open its file in VS Code'
+    });
+
+    try {
+      // tests/acceptance/specs/selection.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:9
+      await test.step('When I click the src/index.ts node to select it', async () => {
+        await runAcceptanceStep(context, 'I click the src/index.ts node to select it', {
+          keyword: 'When',
+          text: 'I click the src/index.ts node to select it',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:10
+      await test.step('Then the src/index.ts node is visibly outlined in white', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is visibly outlined in white', {
+          keyword: 'Then',
+          text: 'the src/index.ts node is visibly outlined in white',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:11
+      await test.step('And the src/index.ts file opens in VS Code as a preview editor tab', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts file opens in VS Code as a preview editor tab', {
+          keyword: 'And',
+          text: 'the src/index.ts file opens in VS Code as a preview editor tab',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 11
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:13
+      await test.step('When I click the graph background to unselect the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I click the graph background to unselect the src/index.ts node', {
+          keyword: 'When',
+          text: 'I click the graph background to unselect the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:14
+      await test.step('Then the src/index.ts node is no longer outlined', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is no longer outlined', {
+          keyword: 'Then',
+          text: 'the src/index.ts node is no longer outlined',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:16
+      await test.step('When I double click the src/index.ts node', async () => {
+        await runAcceptanceStep(context, 'I double click the src/index.ts node', {
+          keyword: 'When',
+          text: 'I double click the src/index.ts node',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:17
+      await test.step('Then the src/index.ts node is visibly outlined in white', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts node is visibly outlined in white', {
+          keyword: 'Then',
+          text: 'the src/index.ts node is visibly outlined in white',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/selection.md:18
+      await test.step('And the src/index.ts file opens in VS Code as a pinned editor tab', async () => {
+        await runAcceptanceStep(context, 'the src/index.ts file opens in VS Code as a pinned editor tab', {
+          keyword: 'And',
+          text: 'the src/index.ts file opens in VS Code as a pinned editor tab',
+          sourcePath: 'tests/acceptance/specs/selection.md',
+          line: 18
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Swift Example', () => {
+  test('Swift example renders expected file nodes and module import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/swift-example.md',
+      scenario: 'Swift example renders expected file nodes and module import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/swift-example.md:5
+      await test.step('Given I open the examples/example-swift workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-swift workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-swift workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-swift workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-swift workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-swift workspace',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:12
+      await test.step('Then I can see there are 5 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 5 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:13
+      await test.step('And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift', async () => {
+        await runAcceptanceStep(context, 'Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift', {
+          keyword: 'And',
+          text: 'Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:15
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:16
+      await test.step('And Package.swift is an orphan node', async () => {
+        await runAcceptanceStep(context, 'Package.swift is an orphan node', {
+          keyword: 'And',
+          text: 'Package.swift is an orphan node',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/swift-example.md:17
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/swift-example.md',
+          line: 17
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('TypeScript Example', () => {
+  test('TypeScript example renders expected file relationships and plugin edges', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/typescript-example.md',
+      scenario: 'TypeScript example renders expected file relationships and plugin edges'
+    });
+
+    try {
+      // tests/acceptance/specs/typescript-example.md:5
+      await test.step('Given I open the examples/example-typescript workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-typescript workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-typescript workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-typescript workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-typescript workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-typescript workspace',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:12
+      await test.step('Then I can see there are 12 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 5 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 12 nodes and 5 connections',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:13
+      await test.step('And src/index.ts points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/index.ts points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/index.ts points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:14
+      await test.step('And src/index.ts points to src/utils.ts', async () => {
+        await runAcceptanceStep(context, 'src/index.ts points to src/utils.ts', {
+          keyword: 'And',
+          text: 'src/index.ts points to src/utils.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:15
+      await test.step('And src/utils.ts points to src/depth.ts', async () => {
+        await runAcceptanceStep(context, 'src/utils.ts points to src/depth.ts', {
+          keyword: 'And',
+          text: 'src/utils.ts points to src/depth.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:16
+      await test.step('And src/depth.ts points to src/leaf.ts', async () => {
+        await runAcceptanceStep(context, 'src/depth.ts points to src/leaf.ts', {
+          keyword: 'And',
+          text: 'src/depth.ts points to src/leaf.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:18
+      await test.step('And src/orphan.ts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/orphan.ts is an orphan node', {
+          keyword: 'And',
+          text: 'src/orphan.ts is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:19
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:20
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
+          keyword: 'And',
+          text: 'package.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:21
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:22
+      await test.step('And tsconfig.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+          keyword: 'And',
+          text: 'tsconfig.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:23
+      await test.step('And src/alias/greeting.ts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/alias/greeting.ts is an orphan node', {
+          keyword: 'And',
+          text: 'src/alias/greeting.ts is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:24
+      await test.step('And .vscode/settings.json is an orphan node', async () => {
+        await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
+          keyword: 'And',
+          text: '.vscode/settings.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:26
+      await test.step('When I click the plugins button', async () => {
+        await runAcceptanceStep(context, 'I click the plugins button', {
+          keyword: 'When',
+          text: 'I click the plugins button',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:27
+      await test.step('Then I see a list of plugins with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of plugins with toggles',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:28
+      await test.step('And I toggle the TypeScript/JavaScript plugin on', async () => {
+        await runAcceptanceStep(context, 'I toggle the TypeScript/JavaScript plugin on', {
+          keyword: 'And',
+          text: 'I toggle the TypeScript/JavaScript plugin on',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:29
+      await test.step('Then I can see there are 12 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 12 nodes and 6 connections',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:30
+      await test.step('And I see src/index.ts points to src/alias/greeting.ts', async () => {
+        await runAcceptanceStep(context, 'I see src/index.ts points to src/alias/greeting.ts', {
+          keyword: 'And',
+          text: 'I see src/index.ts points to src/alias/greeting.ts',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 30
         });
       });
 
-      // tests/acceptance/specs/graph-view.md:31
-      await test.step('Then the src/index.ts node moves', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts node moves', {
-          keyword: 'Then',
-          text: 'the src/index.ts node moves',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
+      // tests/acceptance/specs/typescript-example.md:31
+      await test.step('And src/alias/greeting.ts is no longer an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/alias/greeting.ts is no longer an orphan node', {
+          keyword: 'And',
+          text: 'src/alias/greeting.ts is no longer an orphan node',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 31
-        });
-      });
-
-      // tests/acceptance/specs/graph-view.md:32
-      await test.step('When I stop dragging the src/index.ts node', async () => {
-        await runAcceptanceStep(context, 'I stop dragging the src/index.ts node', {
-          keyword: 'When',
-          text: 'I stop dragging the src/index.ts node',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 32
-        });
-      });
-
-      // tests/acceptance/specs/graph-view.md:33
-      await test.step('Then the src/index.ts node stays where I drop it', async () => {
-        await runAcceptanceStep(context, 'the src/index.ts node stays where I drop it', {
-          keyword: 'Then',
-          text: 'the src/index.ts node stays where I drop it',
-          sourcePath: 'tests/acceptance/specs/graph-view.md',
-          line: 33
         });
       });
 

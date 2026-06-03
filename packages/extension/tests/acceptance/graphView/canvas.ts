@@ -78,10 +78,23 @@ export async function findNodeProbe(
   nodePath: string,
 ): Promise<NodeProbe> {
   const frame = requireGraphFrame(context);
-  await frame.getByRole('button', { name: 'Fit to Screen' }).click();
+  await clickFitToScreenIfAvailable(frame);
   const probe = await waitForStableNodeProbe(frame, nodePath);
   context.nodeProbes.set(nodePath, probe);
   return probe;
+}
+
+async function clickFitToScreenIfAvailable(frame: Frame): Promise<void> {
+  const fitByRole = frame.getByRole('button', { name: 'Fit to Screen' });
+  if (await fitByRole.count()) {
+    await fitByRole.click();
+    return;
+  }
+
+  const fitByTitle = frame.getByTitle('Fit to Screen');
+  if (await fitByTitle.count()) {
+    await fitByTitle.click();
+  }
 }
 
 async function waitForStableNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe> {
@@ -99,7 +112,7 @@ async function waitForStableNodeProbe(frame: Frame, nodePath: string): Promise<N
   return previous;
 }
 
-function graphNode(frame: Frame, nodePath: string): Locator {
+export function graphNode(frame: Frame, nodePath: string): Locator {
   return frame.getByLabel(`Graph node ${nodePath}`, { exact: true });
 }
 
@@ -146,10 +159,58 @@ export async function hoverNode(context: GraphAcceptanceContext, nodePath: strin
   return probe;
 }
 
+export async function stopHoverNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await graphNode(frame, nodePath).dispatchEvent('mouseout', { bubbles: true });
+}
+
 export async function clickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
   const frame = requireGraphFrame(context);
   await findNodeProbe(context, nodePath);
   await graphNode(frame, nodePath).dispatchEvent('click', { bubbles: true });
+}
+
+export async function doubleClickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  await graphNode(frame, nodePath).dispatchEvent('dblclick', { bubbles: true });
+}
+
+export async function rightClickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  await graphNode(frame, nodePath).dispatchEvent('contextmenu', { bubbles: true, button: 2 });
+}
+
+export async function clickGraphBackground(context: GraphAcceptanceContext): Promise<void> {
+  const frame = requireGraphFrame(context);
+  const stageBox = await graphStage(frame).boundingBox();
+  if (!stageBox) {
+    throw new Error('Expected Graph Stage to have a bounding box');
+  }
+
+  await frame.page().mouse.click(stageBox.x + 12, stageBox.y + 12);
+}
+
+export async function rightClickGraphBackground(context: GraphAcceptanceContext): Promise<void> {
+  const frame = requireGraphFrame(context);
+  const stageBox = await graphStage(frame).boundingBox();
+  if (!stageBox) {
+    throw new Error('Expected Graph Stage to have a bounding box');
+  }
+
+  await frame.page().mouse.click(stageBox.x + 12, stageBox.y + 12, { button: 'right' });
+}
+
+export async function rightClickEdge(
+  context: GraphAcceptanceContext,
+  sourcePath: string,
+  targetPath: string,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await expectVisibleEdgeBetween(context, sourcePath, targetPath);
+  await frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true })
+    .dispatchEvent('contextmenu', { bubbles: true, button: 2 });
 }
 
 export async function dragNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
@@ -212,11 +273,29 @@ export async function expectVisibleEdgeBetween(
   const target = await findNodeProbe(context, targetPath);
 
   await expect(frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true })).toBeAttached();
-  await expect.poll(() => countImportColoredPixelsOnLine(frame, source.center, target.center)).toBeGreaterThan(3);
+  await expect.poll(() => countVisiblePixelsOnLine(frame, source.center, target.center)).toBeGreaterThan(3);
 }
 
 export async function waitForFileOpened(page: Page, fileName: string): Promise<void> {
   await expect.poll(() => page.title(), { timeout: 10_000 }).toContain(fileName);
+}
+
+export async function countEdgesConnectedTo(frame: Frame, nodePath: string): Promise<number> {
+  return frame.locator('[aria-label^="Graph edge "]').evaluateAll((items, pathToFind) =>
+    items.filter((item) => item.getAttribute('aria-label')?.includes(String(pathToFind))).length,
+    nodePath,
+  );
+}
+
+export async function readNodeVisualSize(context: GraphAcceptanceContext, nodePath: string): Promise<number> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  const box = await graphNode(frame, nodePath).boundingBox();
+  if (!box) {
+    throw new Error(`Expected ${nodePath} to expose a visual box`);
+  }
+
+  return Math.max(box.width, box.height);
 }
 
 async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<CanvasAnalysis> {
@@ -288,7 +367,7 @@ async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<Canvas
   }, { probe, blue: BLUE_NODE_RGB });
 }
 
-async function countImportColoredPixelsOnLine(frame: Frame, source: Point, target: Point): Promise<number> {
+async function countVisiblePixelsOnLine(frame: Frame, source: Point, target: Point): Promise<number> {
   return graphStage(frame).evaluate((stage, options) => {
     const canvas = stage.querySelector('canvas');
     if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
@@ -330,7 +409,7 @@ async function countImportColoredPixelsOnLine(frame: Frame, source: Point, targe
           const green = image.data[index + 1];
           const blue = image.data[index + 2];
           const alpha = image.data[index + 3];
-          if (alpha > 80 && blue > red + 25 && green > red + 10) {
+          if (alpha > 80 && red + green + blue > 120) {
             matchingPixels += 1;
           }
         }

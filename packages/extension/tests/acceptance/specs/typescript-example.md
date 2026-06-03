@@ -26,5 +26,6 @@ And .vscode/settings.json is an orphan node
 When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the TypeScript/JavaScript plugin on
-Then I see src/index.ts points to src/alias/greeting.ts
+Then I can see there are 12 nodes and 6 connections
+And I see src/index.ts points to src/alias/greeting.ts
 And src/alias/greeting.ts is no longer an orphan node

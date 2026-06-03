@@ -13,7 +13,7 @@ When I click the plugins button
 Then I see a list of plugins with toggles
 And I toggle the GDScript (Godot) plugin on
 Then I see edges
-And I can see there are 19 nodes and 10 connections
+And I can see there are 19 nodes and 29 connections
 And project.godot points to scenes/main.tscn
 And project.godot points to scripts/game_manager.gd
 And scripts/player.gd points to scripts/utils/math_helpers.gd

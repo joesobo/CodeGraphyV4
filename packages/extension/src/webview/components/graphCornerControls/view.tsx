@@ -73,6 +73,7 @@ function ZoomButton({
         <Button
           variant="ghost"
           size="icon"
+          aria-label={title}
           className={CORNER_BUTTON_CLASS}
           title={title}
           {...zoomHandlers}
@@ -102,6 +103,7 @@ export function GraphCornerControls(): ReactElement {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Fit to Screen"
               className={CORNER_BUTTON_CLASS}
               title="Fit to Screen"
               onClick={() => postGraphWindowMessage('FIT_VIEW')}
@@ -117,6 +119,7 @@ export function GraphCornerControls(): ReactElement {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Open in Editor"
               className={CORNER_BUTTON_CLASS}
               title="Open in Editor"
               onClick={() => postGraphWindowMessage('REQUEST_OPEN_IN_EDITOR')}

@@ -2,21 +2,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-export const EXPECTED_EXAMPLE_TYPESCRIPT_FILES = [
-  '.gitignore',
-  '.vscode/settings.json',
-  'README.md',
-  'package.json',
-  'src/alias/greeting.ts',
-  'src/depth.ts',
-  'src/index.ts',
-  'src/leaf.ts',
-  'src/orphan.ts',
-  'src/types.ts',
-  'src/utils.ts',
-  'tsconfig.json',
-] as const;
-
 export function createWorkspaceTempRoot(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-workspace-'));
 }
@@ -30,8 +15,12 @@ export function extensionRoot(): string {
 }
 
 export function copyExampleTypescriptWorkspace(tempRoot: string): string {
-  const sourcePath = path.join(repoRoot(), 'examples/example-typescript');
-  const workspacePath = path.join(tempRoot, 'example-typescript');
+  return copyExampleWorkspace(tempRoot, 'example-typescript');
+}
+
+export function copyExampleWorkspace(tempRoot: string, exampleName: string): string {
+  const sourcePath = path.join(repoRoot(), 'examples', exampleName);
+  const workspacePath = path.join(tempRoot, exampleName);
 
   fs.cpSync(sourcePath, workspacePath, {
     recursive: true,
@@ -43,6 +32,10 @@ export function copyExampleTypescriptWorkspace(tempRoot: string): string {
 }
 
 export function readExampleTypescriptFiles(workspacePath: string): string[] {
+  return readExampleWorkspaceFiles(workspacePath);
+}
+
+export function readExampleWorkspaceFiles(workspacePath: string): string[] {
   return collectFiles(workspacePath)
     .filter(filePath => !filePath.startsWith('.codegraphy/'))
     .sort();
