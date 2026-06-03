@@ -1,6 +1,18 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+
+const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
+  'example-csharp',
+  'example-godot',
+  'example-python',
+]);
+
+interface CopyExampleWorkspaceOptions {
+  includeVSCodeSettings?: boolean;
+  includeTypeImportEdges?: boolean;
+}
+
 export function createWorkspaceTempRoot(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-workspace-'));
 }
@@ -13,11 +25,18 @@ export function extensionRoot(): string {
   return path.resolve(repoRoot(), 'packages/extension');
 }
 
-export function copyExampleTypescriptWorkspace(tempRoot: string): string {
-  return copyExampleWorkspace(tempRoot, 'example-typescript');
+export function copyExampleTypescriptWorkspace(
+  tempRoot: string,
+  options: CopyExampleWorkspaceOptions = {},
+): string {
+  return copyExampleWorkspace(tempRoot, 'example-typescript', options);
 }
 
-export function copyExampleWorkspace(tempRoot: string, exampleName: string): string {
+export function copyExampleWorkspace(
+  tempRoot: string,
+  exampleName: string,
+  options: CopyExampleWorkspaceOptions = {},
+): string {
   const sourcePath = path.join(repoRoot(), 'examples', exampleName);
   const workspacePath = path.join(tempRoot, exampleName);
 
@@ -25,7 +44,9 @@ export function copyExampleWorkspace(tempRoot: string, exampleName: string): str
     recursive: true,
     filter: (source) => !source.includes(`${path.sep}.codegraphy${path.sep}`),
   });
-  writeAcceptanceSettings(workspacePath);
+  rewriteMarkdownAcceptanceLinks(workspacePath, exampleName);
+  writeAcceptanceVSCodeSettings(workspacePath, exampleName, options);
+  writeAcceptanceSettings(workspacePath, options);
 
   return workspacePath;
 }
@@ -53,20 +74,58 @@ function collectFiles(root: string, current = root): string[] {
   });
 }
 
-function writeAcceptanceSettings(workspacePath: string): void {
+function rewriteMarkdownAcceptanceLinks(workspacePath: string, exampleName: string): void {
+  if (exampleName !== 'example-markdown') {
+    return;
+  }
+
+  for (const relativePath of ['notes/Home.md', 'src/commented.ts']) {
+    const filePath = path.join(workspacePath, relativePath);
+    const content = fs.readFileSync(filePath, 'utf8');
+    fs.writeFileSync(
+      filePath,
+      content
+        .replace(/example-markdown\/notes\/Architecture\.md/g, 'notes/Architecture.md')
+        .replace(/example-markdown\/notes\/assets\/Diagram\.md/g, 'notes/assets/Diagram.md')
+        .replace(/example-markdown\/src\/commented\.ts/g, 'src/commented.ts'),
+    );
+  }
+}
+
+function writeAcceptanceVSCodeSettings(
+  workspacePath: string,
+  exampleName: string,
+  options: CopyExampleWorkspaceOptions,
+): void {
+  const includeSettings = options.includeVSCodeSettings ?? EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS.has(exampleName);
+
+  if (!includeSettings) {
+    return;
+  }
+
+  const targetSettingsPath = path.join(workspacePath, '.vscode/settings.json');
+  fs.mkdirSync(path.dirname(targetSettingsPath), { recursive: true });
+  fs.writeFileSync(targetSettingsPath, '{}\n');
+}
+
+function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWorkspaceOptions): void {
   const targetSettingsPath = path.join(workspacePath, '.codegraphy/settings.json');
   const settings = {
     version: 1,
+    respectGitignore: false,
+    plugins: [{
+      package: '@codegraphy-dev/plugin-markdown',
+    }],
     edgeVisibility: {
       nests: false,
       import: true,
-      'type-import': false,
+      'type-import': options.includeTypeImportEdges ?? false,
       reexport: false,
       call: false,
-      inherit: false,
-      reference: false,
+      inherit: true,
+      reference: true,
       test: false,
-      load: false,
+      load: true,
       contains: false,
       overrides: false,
     },

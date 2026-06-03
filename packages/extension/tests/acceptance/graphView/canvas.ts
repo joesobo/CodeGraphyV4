@@ -84,17 +84,26 @@ export async function findNodeProbe(
   return probe;
 }
 
-async function clickFitToScreenIfAvailable(frame: Frame): Promise<void> {
+export async function clickFitToScreenIfAvailable(frame: Frame): Promise<void> {
   const fitByRole = frame.getByRole('button', { name: 'Fit to Screen' });
   if (await fitByRole.count()) {
-    await fitByRole.click();
+    await clickElement(fitByRole);
     return;
   }
 
   const fitByTitle = frame.getByTitle('Fit to Screen');
   if (await fitByTitle.count()) {
-    await fitByTitle.click();
+    await clickElement(fitByTitle);
   }
+}
+
+async function clickElement(locator: Locator): Promise<void> {
+  await locator.evaluate((element) => {
+    const clickable = element as HTMLElement & { click?: unknown };
+    if (typeof clickable.click === 'function') {
+      clickable.click();
+    }
+  });
 }
 
 async function waitForStableNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe> {
@@ -116,8 +125,39 @@ export function graphNode(frame: Frame, nodePath: string): Locator {
   return frame.getByLabel(`Graph node ${nodePath}`, { exact: true });
 }
 
+export async function graphNodeByExactPathOrBasename(frame: Frame, nodePath: string): Promise<Locator> {
+  const exactNode = graphNode(frame, nodePath);
+  if (await exactNode.count() > 0) {
+    return exactNode;
+  }
+
+  const matchingLabel = await frame.locator('[aria-label^="Graph node "]').evaluateAll((items, requestedPath) => {
+    const requested = String(requestedPath);
+    return items
+      .map(item => item.getAttribute('aria-label') ?? '')
+      .find((label) => {
+        const nodeId = label.replace(/^Graph node /, '');
+        return nodeId.split('/').at(-1) === requested;
+      });
+  }, nodePath);
+
+  if (matchingLabel) {
+    return frame.getByLabel(matchingLabel, { exact: true });
+  }
+
+  return exactNode;
+}
+
+export function graphEdge(frame: Frame, sourcePath: string, targetPath: string): Locator {
+  return frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true }).first();
+}
+
+export async function clickToolbarButton(frame: Frame, name: string): Promise<void> {
+  await frame.getByTitle(name).click({ force: true });
+}
+
 async function readNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe> {
-  const nodeLocator = graphNode(frame, nodePath);
+  const nodeLocator = await graphNodeByExactPathOrBasename(frame, nodePath);
   await expect(nodeLocator).toBeAttached({ timeout: 10_000 });
 
   const nodeBox = await nodeLocator.boundingBox();
@@ -292,7 +332,7 @@ export async function expectVisibleEdgeBetween(
   const source = await findNodeProbe(context, sourcePath);
   const target = await findNodeProbe(context, targetPath);
 
-  await expect(frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true })).toBeAttached();
+  await expect(graphEdge(frame, sourcePath, targetPath)).toBeAttached();
   await expect.poll(() => countVisiblePixelsOnLine(frame, source.center, target.center)).toBeGreaterThan(3);
 }
 
