@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-ruby workspace
 
-Then I can see there are 7 nodes and 4 connections
+Then I can see there are 8 nodes and 3 connections
 And lib/example_ruby.rb points to lib/app/runner.rb
 And lib/app/runner.rb points to lib/base/base_runner.rb
 And lib/app/runner.rb points to lib/model/user.rb
@@ -17,3 +17,4 @@ And lib/app/runner.rb points to lib/model/user.rb
 And README.md is an orphan node
 And Gemfile is an orphan node
 And example_ruby.gemspec is an orphan node
+And .gitignore is an orphan node

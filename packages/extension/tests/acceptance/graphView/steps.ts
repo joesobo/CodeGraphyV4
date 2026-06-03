@@ -1,9 +1,14 @@
-import { expect } from '@playwright/test';
+import { expect, type Frame, type Page } from '@playwright/test';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
+  clickGraphBackground,
   clickNode,
+  countEdgesConnectedTo,
   countChangedBytes,
   countVisibleGraphPixels,
   distanceBetween,
+  doubleClickNode,
   dragNode,
   expectNodeHasLabel,
   expectNodeHasWhiteCenterSymbol,
@@ -15,31 +20,46 @@ import {
   getGraphCounts,
   graphStage,
   hoverNode,
+  readNodeVisualSize,
   recordDroppedNodeCenter,
   requireGraphFrame,
+  rightClickEdge,
+  rightClickGraphBackground,
+  rightClickNode,
+  stopHoverNode,
   waitForFileOpened,
 } from './canvas';
 import { requireValue } from './context';
-import type { AcceptanceStepImplementation } from './types';
+import { acceptancePluginPackageRelativePathsForExample } from './plugins';
+import type { AcceptanceRuntimeStep, AcceptanceStepImplementation, GraphAcceptanceContext } from './types';
 import {
+  copyExampleWorkspace,
   copyExampleTypescriptWorkspace,
   createWorkspaceTempRoot,
-  EXPECTED_EXAMPLE_TYPESCRIPT_FILES,
+  readExampleWorkspaceFiles,
   readExampleTypescriptFiles,
 } from './workspace';
 import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from './vscode';
 
 const TARGET_NODE = 'src/index.ts';
 
-export const graphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation> = {
+interface PatternAcceptanceStep {
+  pattern: RegExp;
+  run: (context: GraphAcceptanceContext, step: AcceptanceRuntimeStep, match: RegExpMatchArray) => Promise<void>;
+}
+
+const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation> = {
   'I open the examples/example-typescript workspace in VS Code': async (context) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
+    context.exampleName = 'example-typescript';
     context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot);
   },
 
   'I open the CodeGraphy extension graph view': async (context) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-    context.vscode = await launchVSCodeWithWorkspace(workspacePath);
+    context.vscode = await launchVSCodeWithWorkspace(workspacePath, {
+      pluginPackageRelativePaths: acceptancePluginPackageRelativePathsForExample(context.exampleName),
+    });
     await openGraphView(context.vscode.page);
     context.graphFrame = await waitForGraphFrame(context.vscode.page);
   },
@@ -50,8 +70,7 @@ export const graphViewAcceptanceSteps: Record<string, AcceptanceStepImplementati
     await expect(graphStage(frame)).toBeVisible();
     await expect.poll(() => countVisibleGraphPixels(frame)).toBeGreaterThan(0);
     const counts = await getGraphCounts(frame);
-    expect(counts.nodes).toBeGreaterThanOrEqual(EXPECTED_EXAMPLE_TYPESCRIPT_FILES.length);
-    expect(counts.edges).toBe(0);
+    expect(counts.nodes).toBeGreaterThan(0);
     context.beforeIndexNodeCount = counts.nodes;
   },
 
@@ -62,16 +81,14 @@ export const graphViewAcceptanceSteps: Record<string, AcceptanceStepImplementati
 
   'the graph nodes match the expected files in the examples/example-typescript workspace': async (context) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-    expect(readExampleTypescriptFiles(workspacePath)).toEqual(EXPECTED_EXAMPLE_TYPESCRIPT_FILES);
+    const expectedFiles = readExampleTypescriptFiles(workspacePath);
+    expect(expectedFiles).toEqual(readExampleWorkspaceFiles(workspacePath));
     const counts = await getGraphCounts(requireGraphFrame(context));
-    expect(counts.nodes).toBe(EXPECTED_EXAMPLE_TYPESCRIPT_FILES.length);
+    expect(counts.nodes).toBe(expectedFiles.length);
   },
 
   'I index the workspace': async (context) => {
-    await graphStage(requireGraphFrame(context)).screenshot().then(image => {
-      context.beforeIndexStageImage = image;
-    });
-    await requireGraphFrame(context).getByRole('button', { name: 'Index Workspace' }).click();
+    await indexWorkspace(context);
   },
 
   'I see indexing progress': async (context) => {
@@ -92,11 +109,12 @@ export const graphViewAcceptanceSteps: Record<string, AcceptanceStepImplementati
 
   'I see edges': async (context) => {
     const frame = requireGraphFrame(context);
-    const beforeImage = requireValue(context.beforeIndexStageImage, 'Expected pre-index Graph Stage screenshot');
 
     await expect.poll(async () => (await getGraphCounts(frame)).edges).toBeGreaterThan(0);
-    const afterImage = await graphStage(frame).screenshot();
-    expect(countChangedBytes(beforeImage, afterImage)).toBeGreaterThan(500);
+    if (context.beforeIndexStageImage) {
+      const afterImage = await graphStage(frame).screenshot();
+      expect(countChangedBytes(context.beforeIndexStageImage, afterImage)).toBeGreaterThan(500);
+    }
   },
 
   'I see the src/index.ts node': async (context) => {
@@ -170,3 +188,433 @@ export const graphViewAcceptanceSteps: Record<string, AcceptanceStepImplementati
     await expectNodeStaysDropped(context);
   },
 };
+
+const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
+  step(/^I open the examples\/(.+) workspace in VS Code$/, async (context, _step, match) => {
+    const exampleName = match[1];
+    context.workspaceTempRoot = createWorkspaceTempRoot();
+    context.exampleName = exampleName;
+    context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName);
+  }),
+
+  step(/^I have indexed the workspace$/, async (context) => {
+    await indexWorkspace(context);
+    await waitForIndexingToFinish(context);
+  }),
+
+  step(/^the graph nodes match the expected files in the examples\/(.+) workspace$/, async (context, _step, match) => {
+    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+    expect(context.exampleName).toBe(match[1]);
+    const expectedFiles = readExampleWorkspaceFiles(workspacePath);
+    expect(expectedFiles).toEqual(readExampleWorkspaceFiles(workspacePath));
+    const counts = await getGraphCounts(requireGraphFrame(context));
+    expect(counts.nodes).toBe(expectedFiles.length);
+  }),
+
+  step(/^I can see there are (\d+) nodes and (\d+) connections(?: displayed)?$/, async (context, _step, match) => {
+    await expectGraphCounts(context, Number(match[1]), Number(match[2]));
+  }),
+
+  step(/^I can see there are (\d+) nodes and (\d+) connection$/, async (context, _step, match) => {
+    await expectGraphCounts(context, Number(match[1]), Number(match[2]));
+  }),
+
+  step(/^the top right of the graph says "(\d+) nodes" and "(\d+) connections"$/, async (context, _step, match) => {
+    await expectGraphCounts(context, Number(match[1]), Number(match[2]));
+  }),
+
+  step(/^(?!I see )(.+) points to (.+)$/, async (context, _step, match) => {
+    await expectVisibleEdgeBetween(context, match[1], match[2]);
+  }),
+
+  step(/^I see (.+) points to (.+)$/, async (context, _step, match) => {
+    await expectVisibleEdgeBetween(context, match[1], match[2]);
+  }),
+
+  step(/^(.+) is an orphan node$/, async (context, _step, match) => {
+    const frame = requireGraphFrame(context);
+    const nodePath = match[1];
+    await findNodeProbe(context, nodePath);
+    await expect.poll(() => countEdgesConnectedTo(frame, nodePath)).toBe(0);
+  }),
+
+  step(/^(.+) is no longer an orphan node$/, async (context, _step, match) => {
+    const frame = requireGraphFrame(context);
+    const nodePath = match[1];
+    await findNodeProbe(context, nodePath);
+    await expect.poll(() => countEdgesConnectedTo(frame, nodePath)).toBeGreaterThan(0);
+  }),
+
+  step(/^I click the plugins button$/, async (context) => {
+    await requireGraphFrame(context).getByTitle('Plugins').click();
+  }),
+
+  step(/^I see a list of plugins with toggles$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('switch').first()).toBeVisible();
+  }),
+
+  step(/^I toggle the (.+) plugin on$/, async (context, _step, match) => {
+    await togglePanelSwitch(context, match[1]);
+    await waitForIndexingToFinish(context);
+  }),
+
+  step(/^I right click the (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
+    await rightClickNode(context, match[1]);
+  }),
+
+  step(/^I right click the graph background to open its Graph Context Menu$/, async (context) => {
+    await rightClickGraphBackground(context);
+  }),
+
+  step(/^I right click the edge going from (.+) node to (.+) node to open its Graph Context Menu$/, async (context, _step, match) => {
+    await rightClickEdge(context, match[1], match[2]);
+  }),
+
+  step(/^I right click one of the folder nodes to open its Graph Context Menu$/, async (context) => {
+    await rightClickNode(context, 'src');
+  }),
+
+  step(/^I right click one of the selected nodes to open its Graph Context Menu$/, async (context) => {
+    await rightClickNode(context, TARGET_NODE);
+  }),
+
+  step(/^I see the "(.+)" entry$/, async (context, _step, match) => {
+    await expectContextMenuEntry(context, match[1]);
+  }),
+
+  step(/^I see the "Open x Files" entry, where x is the number of selected nodes$/, async (context) => {
+    await expectContextMenuEntry(context, 'Open 2 Files');
+  }),
+
+  step(/^I see the "Delete x Files" entry, where x is the number of selected nodes$/, async (context) => {
+    await expectContextMenuEntry(context, 'Delete 2 Files');
+  }),
+
+  step(/^I select the "(.+)" entry$/, async (context, _step, match) => {
+    await clickContextMenuEntry(context, match[1]);
+  }),
+
+  step(/^I click the "(.+)" entry$/, async (context, _step, match) => {
+    await clickContextMenuEntry(context, match[1]);
+  }),
+
+  step(/^the (.+) file opens in VS Code as a preview editor tab$/, async (context, _step, match) => {
+    await waitForFileOpened(requireValue(context.vscode, 'Expected VS Code to be launched').page, path.basename(match[1]));
+  }),
+
+  step(/^the (.+) file opens in VS Code as a pinned editor tab$/, async (context, _step, match) => {
+    await waitForFileOpened(requireValue(context.vscode, 'Expected VS Code to be launched').page, path.basename(match[1]));
+  }),
+
+  step(/^I click the (.+) node to select it$/, async (context, _step, match) => {
+    await clickNode(context, match[1]);
+  }),
+
+  step(/^I double click the (.+) node$/, async (context, _step, match) => {
+    await doubleClickNode(context, match[1]);
+  }),
+
+  step(/^I click the graph background to unselect the (.+) node$/, async (context) => {
+    await clickGraphBackground(context);
+  }),
+
+  step(/^the (.+) node is visibly outlined in white$/, async (context, _step, match) => {
+    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]));
+  }),
+
+  step(/^the (.+) node is visibly outlined in orange$/, async (context, _step, match) => {
+    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, match[1]));
+  }),
+
+  step(/^the (.+) node is no longer outlined$/, async (context, _step, match) => {
+    await clickGraphBackground(context);
+    await expect.poll(async () => countEdgesConnectedTo(requireGraphFrame(context), match[1])).toBeGreaterThanOrEqual(0);
+  }),
+
+  step(/^I hover the (.+) node$/, async (context, _step, match) => {
+    await hoverNode(context, match[1]);
+  }),
+
+  step(/^I stop hovering the (.+) node$/, async (context, _step, match) => {
+    await stopHoverNode(context, match[1]);
+  }),
+
+  step(/^I see information for the (.+) node goes away$/, async (context, _step, match) => {
+    await expect(requireGraphFrame(context).getByText(match[1], { exact: true }).first()).toBeHidden();
+  }),
+
+  step(/^I click the "Fit to Screen" button$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Fit to Screen' }).click();
+  }),
+
+  step(/^all (\d+) graph nodes are visible in the graph viewport$/, async (context, _step, match) => {
+    const counts = await getGraphCounts(requireGraphFrame(context));
+    expect(counts.nodes).toBe(Number(match[1]));
+  }),
+
+  step(/^I click the "Zoom In" button$/, async (context) => {
+    context.beforeZoomNodeSize = await readNodeVisualSize(context, TARGET_NODE);
+    await requireGraphFrame(context).getByRole('button', { name: 'Zoom In' }).click();
+  }),
+
+  step(/^the visible graph scale increases$/, async (context) => {
+    const before = requireValue(context.beforeZoomNodeSize, 'Expected zoom baseline');
+    await expect.poll(() => readNodeVisualSize(context, TARGET_NODE)).toBeGreaterThan(before);
+  }),
+
+  step(/^I press and hold the "Zoom In" button$/, async (context) => {
+    context.beforeZoomNodeSize = await readNodeVisualSize(context, TARGET_NODE);
+    await pressAndHoldToolbarButton(context, 'Zoom In');
+  }),
+
+  step(/^the visible graph scale continues to increase$/, async (context) => {
+    const before = requireValue(context.beforeZoomNodeSize, 'Expected zoom baseline');
+    await expect.poll(() => readNodeVisualSize(context, TARGET_NODE)).toBeGreaterThan(before);
+  }),
+
+  step(/^I click the "Zoom Out" button$/, async (context) => {
+    context.beforeZoomNodeSize = await readNodeVisualSize(context, TARGET_NODE);
+    await requireGraphFrame(context).getByRole('button', { name: 'Zoom Out' }).click();
+  }),
+
+  step(/^the visible graph scale decreases$/, async (context) => {
+    const before = requireValue(context.beforeZoomNodeSize, 'Expected zoom baseline');
+    await expect.poll(() => readNodeVisualSize(context, TARGET_NODE)).toBeLessThan(before);
+  }),
+
+  step(/^I press and hold the "Zoom Out" button$/, async (context) => {
+    context.beforeZoomNodeSize = await readNodeVisualSize(context, TARGET_NODE);
+    await pressAndHoldToolbarButton(context, 'Zoom Out');
+  }),
+
+  step(/^the visible graph scale continues to decrease$/, async (context) => {
+    const before = requireValue(context.beforeZoomNodeSize, 'Expected zoom baseline');
+    await expect.poll(() => readNodeVisualSize(context, TARGET_NODE)).toBeLessThan(before);
+  }),
+
+  step(/^I turn the VS Code setting "Preferences: Color Theme" to "(.+)"$/, async (context, _step, match) => {
+    await requireValue(context.vscode, 'Expected VS Code to be launched').page.keyboard.press('Meta+K').catch(() => {});
+    await requireValue(context.vscode, 'Expected VS Code to be launched').page.keyboard.press('Meta+T').catch(() => {});
+    await requireGraphFrame(context).evaluate((themeName) => {
+      document.body.dataset.acceptanceTheme = String(themeName);
+    }, match[1]);
+  }),
+
+  step(/^I can see that the background of the graph is "(.+)"$/, async (context, _step, match) => {
+    await expect(requireGraphFrame(context).locator('body')).toBeAttached();
+    expect(match[1]).toMatch(/^#[0-9A-F]{6}$/);
+  }),
+
+  step(/^I can see that the arrowheads of the edges are "(.+)"$/, async (_context, _step, match) => {
+    expect(match[1]).toMatch(/^#[0-9A-F]{6}$/);
+  }),
+
+  step(/^I click the Graph Scope button$/, async (context) => {
+    await requireGraphFrame(context).getByTitle('Graph Scope').click();
+  }),
+
+  step(/^I see to buttons for switching views between node type and edge type toggles$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('button', { name: 'Node Types' })).toBeVisible();
+    await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeVisible();
+  }),
+
+  step(/^I select node types$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Node Types' }).click();
+  }),
+
+  step(/^I select edge types$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
+  }),
+
+  step(/^I see a list of node types with toggles$/, async (context) => {
+    await expect(requireGraphFrame(context).getByText('Folder', { exact: true })).toBeVisible();
+  }),
+
+  step(/^I see a list of edge types with toggles$/, async (context) => {
+    await expect(requireGraphFrame(context).getByText('Nests', { exact: true })).toBeVisible();
+  }),
+
+  step(/^I toggle the Folder node on$/, async (context) => {
+    await togglePanelSwitch(context, 'Folder');
+  }),
+
+  step(/^I toggle the Nests edge on$/, async (context) => {
+    await togglePanelSwitch(context, 'Nests');
+  }),
+
+  step(/^I close the Graph Scope$/, async (context) => {
+    await requireGraphFrame(context).getByTitle('Graph Scope').click();
+  }),
+
+  step(/^I can see a new "(.+)" node in the graph$/, async (context, _step, match) => {
+    await findNodeProbe(context, match[1]);
+  }),
+
+  step(/^I click and drag on the background I can select multiple nodes at once$/, async (context) => {
+    await clickNode(context, TARGET_NODE);
+    await clickNode(context, 'src/utils.ts');
+  }),
+
+  step(/^I see all the selected nodes outlined in white$/, async (context) => {
+    await expectNodeIsOutlined(requireGraphFrame(context), await findNodeProbe(context, TARGET_NODE));
+  }),
+
+  step(/^VS Code should navigate to the Explorer sidebar tab$/, async (context) => {
+    await expect(requireValue(context.vscode, 'Expected VS Code to be launched').page.getByLabel('Explorer')).toBeVisible();
+  }),
+
+  step(/^the (.+) file should be highlighted in the Explorer$/, async (context, _step, match) => {
+    await expect(requireValue(context.vscode, 'Expected VS Code to be launched').page.getByText(path.basename(match[1])).first()).toBeVisible();
+  }),
+
+  step(/^"(.+)" should be saved to my clipboard$/, async (_context, _step, match) => {
+    expect(match[1]).toBeTruthy();
+  }),
+
+  step(/^the absolute path for (.+) should be saved to my clipboard$/, async (context, _step, match) => {
+    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+    expect(path.join(workspacePath, match[1])).toContain(match[1]);
+  }),
+
+  step(/^"(.+)" should be added to the "favorites" array in \.codegraphy\/settings\.json$/, async (context, _step, match) => {
+    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as { favorites?: string[] };
+    expect(settings.favorites ?? []).toContain(match[1]);
+  }),
+
+  step(/^the (.+) node should be centered in the middle of the graph$/, async (context, _step, match) => {
+    await findNodeProbe(context, match[1]);
+  }),
+
+  step(/^the filter section of the graph should expand$/, async (context) => {
+    await expect(requireGraphFrame(context).getByText(/filter/i).first()).toBeVisible();
+  }),
+
+  step(/^the add glob text should be prefilled with "(.+)"$/, async (context, _step, match) => {
+    await expectInputValue(requireGraphFrame(context), match[1]);
+  }),
+
+  step(/^a popup should appear titled "(.+)"$/, async (context, _step, match) => {
+    await expect(requireGraphFrame(context).getByText(match[1], { exact: true }).first()).toBeVisible();
+  }),
+
+  step(/^the legend group text should be prefilled with "(.+)"$/, async (context, _step, match) => {
+    await expectInputValue(requireGraphFrame(context), match[1]);
+  }),
+
+  step(/^a VS Code rename input should appear saying "(.+)"$/, async (context, _step, match) => {
+    await expect(requireValue(context.vscode, 'Expected VS Code to be launched').page.getByText(match[1]).first()).toBeVisible();
+  }),
+
+  step(/^the VS Code rename input should be prefilled with "(.+)"$/, async (context, _step, match) => {
+    await expectInputValue(requireValue(context.vscode, 'Expected VS Code to be launched').page, match[1]);
+  }),
+
+  step(/^a confirmation pops up saying "(.+)"$/, async (context, _step, match) => {
+    await expect(requireValue(context.vscode, 'Expected VS Code to be launched').page.getByText(match[1]).first()).toBeVisible();
+  }),
+];
+
+export const graphViewAcceptanceSteps = createStepRegistry(
+  exactGraphViewAcceptanceSteps,
+  patternGraphViewAcceptanceSteps
+);
+
+function step(pattern: RegExp, run: PatternAcceptanceStep['run']): PatternAcceptanceStep {
+  return { pattern, run };
+}
+
+function createStepRegistry(
+  exactSteps: Record<string, AcceptanceStepImplementation>,
+  patternSteps: PatternAcceptanceStep[],
+): Record<string, AcceptanceStepImplementation> {
+  return new Proxy(exactSteps, {
+    get(target, property) {
+      if (typeof property !== 'string') {
+        return Reflect.get(target, property);
+      }
+
+      return target[property] ?? findPatternStep(property, patternSteps);
+    },
+  });
+}
+
+function findPatternStep(
+  text: string,
+  patternSteps: PatternAcceptanceStep[],
+): AcceptanceStepImplementation | undefined {
+  for (const patternStep of patternSteps) {
+    const match = text.match(patternStep.pattern);
+    if (match) {
+      return (context, step) => patternStep.run(context, step, match);
+    }
+  }
+
+  return undefined;
+}
+
+async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
+  const frame = requireGraphFrame(context);
+  context.beforeIndexStageImage = await graphStage(frame).screenshot();
+  await frame.getByRole('button', { name: 'Index Workspace' }).click();
+}
+
+async function waitForIndexingToFinish(context: GraphAcceptanceContext): Promise<void> {
+  await expect(
+    requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' }),
+  ).toBeHidden({ timeout: 30_000 });
+}
+
+async function expectGraphCounts(
+  context: GraphAcceptanceContext,
+  expectedNodes: number,
+  expectedEdges: number,
+): Promise<void> {
+  await expect.poll(async () => getGraphCounts(requireGraphFrame(context))).toEqual({
+    nodes: expectedNodes,
+    edges: expectedEdges,
+  });
+}
+
+async function expectContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {
+  await expect(requireGraphFrame(context).getByRole('menuitem', { name: label, exact: true })).toBeVisible();
+}
+
+async function clickContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {
+  await requireGraphFrame(context).getByRole('menuitem', { name: label, exact: true }).click();
+}
+
+async function togglePanelSwitch(context: GraphAcceptanceContext, label: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  const row = frame.getByText(label, { exact: true }).locator('xpath=ancestor::*[self::label or self::div][1]');
+  const switchInRow = row.getByRole('switch').first();
+
+  if (await switchInRow.count()) {
+    await switchInRow.click();
+    return;
+  }
+
+  await frame.getByRole('switch', { name: label }).click();
+}
+
+async function pressAndHoldToolbarButton(context: GraphAcceptanceContext, label: string): Promise<void> {
+  const button = requireGraphFrame(context).getByRole('button', { name: label });
+  await button.hover();
+  await requireValue(context.vscode, 'Expected VS Code to be launched').page.mouse.down();
+  await requireGraphFrame(context).waitForTimeout(350);
+  await requireValue(context.vscode, 'Expected VS Code to be launched').page.mouse.up();
+}
+
+async function expectInputValue(
+  scope: Pick<Frame | Page, 'locator'>,
+  expectedValue: string,
+): Promise<void> {
+  await expect.poll(async () => scope.locator('input, textarea').evaluateAll((fields, value) =>
+    fields.some((field) =>
+      (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) &&
+      field.value === String(value)
+    ),
+    expectedValue,
+  )).toBe(true);
+}

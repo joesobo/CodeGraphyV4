@@ -9,8 +9,9 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-swift workspace
 
-Then I can see there are 4 nodes and 1 connection
+Then I can see there are 5 nodes and 1 connection
 And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift
 
 And README.md is an orphan node
 And Package.swift is an orphan node
+And .gitignore is an orphan node

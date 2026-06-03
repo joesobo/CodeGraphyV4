@@ -31,6 +31,10 @@ describe('graphCornerControls/view', () => {
     expect(screen.getByTitle('Zoom Out')).toBeInTheDocument();
     expect(screen.getByTitle('Fit to Screen')).toBeInTheDocument();
     expect(screen.getByTitle('Open in Editor')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Zoom In' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Zoom Out' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Fit to Screen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open in Editor' })).toBeInTheDocument();
   });
 
   it('uses standard graph-corner hit targets', () => {

@@ -26,6 +26,7 @@ export interface AcceptanceRuntimeStep {
 
 export interface GraphAcceptanceContext {
   cleanup: () => Promise<void>;
+  exampleName?: string;
   workspaceTempRoot?: string;
   workspacePath?: string;
   vscode?: VSCodeFixture;
@@ -36,6 +37,7 @@ export interface GraphAcceptanceContext {
   beforeDragCenter?: Point;
   afterDragCenter?: Point;
   dropCenter?: Point;
+  beforeZoomNodeSize?: number;
 }
 
 export type AcceptanceStepImplementation = (
