@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import CounterPanel from './components/CounterPanel.vue';
-import UserCard from './components/UserCard';
+import UserCard from './components/UserCard.vue';
 import { sampleUser } from './data/users';
 import { useCounter } from './composables/useCounter';
 
