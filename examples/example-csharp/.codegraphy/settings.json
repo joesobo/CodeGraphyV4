@@ -1,6 +1,7 @@
 {
   "version": 1,
   "maxFiles": 500,
+  "verboseDiagnostics": false,
   "include": [
     "**/*"
   ],
@@ -9,6 +10,9 @@
   "plugins": [
     {
       "package": "@codegraphy-dev/plugin-markdown"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-csharp"
     }
   ],
   "pluginData": {},
@@ -43,17 +47,17 @@
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
-    "nests": true,
     "import": true,
-    "type-import": false,
-    "reexport": true,
-    "call": true,
-    "inherit": true,
     "reference": true,
-    "test": true,
-    "load": true,
-    "contains": true,
-    "overrides": true,
+    "call": false,
+    "test": false,
+    "reexport": false,
+    "type-import": false,
+    "inherit": false,
+    "load": false,
+    "nests": false,
+    "contains": false,
+    "overrides": false,
     "codegraphy:nests": true
   },
   "favorites": [],

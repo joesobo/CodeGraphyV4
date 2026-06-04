@@ -1,6 +1,7 @@
 {
   "version": 1,
   "maxFiles": 1000,
+  "verboseDiagnostics": false,
   "include": [
     "**/*"
   ],
@@ -46,17 +47,17 @@
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
-    "nests": true,
-    "import": true,
-    "type-import": false,
-    "reexport": true,
-    "call": true,
-    "inherit": true,
+    "import": false,
     "reference": true,
-    "test": true,
+    "call": false,
+    "test": false,
+    "reexport": false,
+    "type-import": false,
+    "inherit": false,
     "load": true,
-    "contains": true,
-    "overrides": true
+    "nests": false,
+    "contains": false,
+    "overrides": false
   },
   "favorites": [],
   "bidirectionalEdges": "separate",
@@ -77,10 +78,10 @@
   "nodeSizeMode": "connections",
   "physics": {
     "repelForce": 20,
-    "linkDistance": 90,
+    "linkDistance": 150,
     "linkForce": 0.84,
     "damping": 0.7,
-    "centerForce": 0.22,
+    "centerForce": 0.14,
     "chargeRange": 200
   },
   "timeline": {

@@ -8,8 +8,8 @@
 <script setup lang="ts">
 import CounterPanel from './components/CounterPanel.vue';
 import UserCard from './components/UserCard.vue';
-import { sampleUser } from './data/users';
-import { useCounter } from './composables/useCounter';
+import { sampleUser } from './data/users.js';
+import { useCounter } from './composables/useCounter.js';
 
 const { count, increment } = useCounter(2);
 </script>
