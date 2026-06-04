@@ -32,7 +32,7 @@
       "outputs": []
     },
     "test:playwright": {
-      "env": ["CI"],
+      "env": ["CI", "CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE"],
       "outputs": [
         "$TURBO_ROOT$/playwright-report/**",
         "$TURBO_ROOT$/test-results/**"
