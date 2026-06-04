@@ -16,7 +16,7 @@ import {
   setupGraphContextMenuTest,
   waitFor,
   waitForThreeDimensionalSurface,
-} from './viewHarness';
+} from './harness';
 
 describe('Graph node context menu file actions', () => {
   setupGraphContextMenuTest();

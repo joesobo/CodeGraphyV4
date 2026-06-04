@@ -2,7 +2,7 @@
   "version": 1,
   "target": ".",
   "generatedBy": "scripts/run-organize.mjs",
-  "directoryCount": 902,
+  "directoryCount": 903,
   "findings": [
     {
       "type": "cluster",
@@ -2524,6 +2524,21 @@
         "Field.css.test.tsx",
         "Field.mutations.test.tsx",
         "Field.test.tsx"
+      ]
+    },
+    {
+      "type": "cluster",
+      "path": "packages/extension/tests/webview/graph/contextMenu/node/view",
+      "suggestedFolder": "file",
+      "confidence": "imports-only",
+      "members": [
+        "fileActions.test.tsx",
+        "folderActions.test.tsx",
+        "harness.tsx",
+        "opening.test.tsx",
+        "selectionActions.test.tsx",
+        "symbolActions.test.tsx",
+        "timelinePluginActions.test.tsx"
       ]
     },
     {
@@ -9491,6 +9506,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/webview/graph/contextMenu/node/view",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 8
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/webview/graph/contextMenu/node",
       "field": "depth",
       "verdict": "DEEP",
@@ -9515,7 +9537,7 @@
       "path": "packages/extension/tests/webview/graph/contextMenu",
       "field": "fileFanOut",
       "verdict": "SPLIT",
-      "value": 15
+      "value": 14
     },
     {
       "type": "verdict",

@@ -2,14 +2,14 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/contracts';
-import Graph from '../../../../../src/webview/components/graph/view/component';
-import { graphStore } from '../../../../../src/webview/store/state';
+import type { IGraphData } from '../../../../../../src/shared/graph/contracts';
+import Graph from '../../../../../../src/webview/components/graph/view/component';
+import { graphStore } from '../../../../../../src/webview/store/state';
 import {
   clearSentMessages,
   findMessage,
   getSentMessages,
-} from '../../../../helpers/sentMessages';
+} from '../../../../../helpers/sentMessages';
 
 export { act, fireEvent, render, screen, waitFor };
 export { ForceGraph2D, ForceGraph3D };
@@ -138,4 +138,3 @@ export async function selectTwoNodesForMultiMenu(graphContainer: HTMLElement): P
     fireEvent.contextMenu(graphContainer, { clientX: 180, clientY: 160 });
   });
 }
-
