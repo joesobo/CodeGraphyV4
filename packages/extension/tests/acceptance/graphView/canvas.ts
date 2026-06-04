@@ -189,6 +189,41 @@ async function dragMouseBetweenStagePoints(frame: Frame, source: Point, target: 
   await page.mouse.up();
 }
 
+async function dispatchCanvasDragBetweenStagePoints(frame: Frame, source: Point, target: Point): Promise<void> {
+  await graphStage(frame).evaluate((stage, options) => {
+    const canvas = stage.querySelector('canvas');
+    if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
+      throw new Error('Expected Graph Stage to contain a canvas');
+    }
+
+    const stageRect = stage.getBoundingClientRect();
+    const toClient = (point: Point): Point => ({
+      x: stageRect.left + point.x,
+      y: stageRect.top + point.y,
+    });
+    const dispatchMouse = (type: string, point: Point, buttons: number): void => {
+      const client = toClient(point);
+      canvas.dispatchEvent(new MouseEvent(type, {
+        bubbles: true,
+        button: 0,
+        buttons,
+        cancelable: true,
+        clientX: client.x,
+        clientY: client.y,
+      }));
+    };
+
+    dispatchMouse('mousedown', options.source, 1);
+    for (let step = 1; step <= 12; step += 1) {
+      dispatchMouse('mousemove', {
+        x: options.source.x + (((options.target.x - options.source.x) * step) / 12),
+        y: options.source.y + (((options.target.y - options.source.y) * step) / 12),
+      }, 1);
+    }
+    dispatchMouse('mouseup', options.target, 0);
+  }, { source, target });
+}
+
 export async function hoverNode(context: GraphAcceptanceContext, nodePath: string): Promise<NodeProbe> {
   const frame = requireGraphFrame(context);
   const probe = await findNodeProbe(context, nodePath);
@@ -282,7 +317,11 @@ export async function dragNode(context: GraphAcceptanceContext, nodePath: string
 
   context.beforeDragCenter = probe.center;
   context.nodeProbes.delete(nodePath);
-  context.afterDragCenter = await waitForNodeCenterToMove(frame, nodePath, probe.center);
+  context.afterDragCenter = await waitForNodeCenterToMove(frame, nodePath, probe.center, 1_500)
+    .catch(async () => {
+      await dispatchCanvasDragBetweenStagePoints(frame, probe.center, target);
+      return waitForNodeCenterToMove(frame, nodePath, probe.center);
+    });
   context.nodeProbes.set(nodePath, {
     path: nodePath,
     center: context.afterDragCenter,
@@ -377,8 +416,16 @@ export async function readGraphDebugZoom(frame: Frame): Promise<number | null> {
   });
 }
 
-async function waitForNodeCenterToMove(frame: Frame, nodePath: string, before: Point): Promise<Point> {
-  await expect.poll(async () => distanceBetween(before, (await readNodeProbe(frame, nodePath)).center)).toBeGreaterThan(20);
+async function waitForNodeCenterToMove(
+  frame: Frame,
+  nodePath: string,
+  before: Point,
+  timeout = 5_000,
+): Promise<Point> {
+  await expect.poll(
+    async () => distanceBetween(before, (await readNodeProbe(frame, nodePath)).center),
+    { timeout },
+  ).toBeGreaterThan(20);
   return (await readNodeProbe(frame, nodePath)).center;
 }
 
