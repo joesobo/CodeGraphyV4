@@ -170,6 +170,36 @@ jobs:
       - name: Release contract tests
         run: pnpm run test:release
 
+  vsix-artifact-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.22.0
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Package target VSIX artifacts
+        run: pnpm run package:vsix
+
+      - name: Validate VSIX native binaries
+        run: pnpm run check:vsix-native-artifacts
+
   playwright:
     runs-on: ubuntu-latest
     timeout-minutes: 20

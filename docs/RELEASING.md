@@ -43,6 +43,7 @@ To dry-run extension packaging before publishing, run:
 
 ```bash
 pnpm run package:vsix
+pnpm run check:vsix-native-artifacts
 ```
 
 This writes target-specific VSIX artifacts under `artifacts/vsix/`. If you
