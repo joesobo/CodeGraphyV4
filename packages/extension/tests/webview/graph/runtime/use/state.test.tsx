@@ -154,9 +154,36 @@ describe('graph/runtime/useGraphRuntime', () => {
     expect(result.current.context.selection).toEqual({ kind: 'background', targets: [] });
   });
 
-  it('updates mutable refs across rerender without rebuilding graph data for non-memo inputs', () => {
+  it('rebuilds graph data when favorites change', () => {
+    const firstGraph = createBuiltGraph('alpha', 10);
+    const secondGraph = createBuiltGraph('alpha', 30);
     const initialOptions = createOptions();
     const nextFavorites = new Set<string>(['src/beta.ts']);
+    graphStateHarness.buildGraphData
+      .mockReturnValueOnce(firstGraph)
+      .mockReturnValueOnce(secondGraph);
+
+    const { result, rerender } = renderHook(
+      (options: GraphRuntimeOptions) => useGraphRuntime(options),
+      { initialProps: initialOptions },
+    );
+
+    rerender(createOptions({
+      data: initialOptions.data,
+      favorites: nextFavorites,
+    }));
+
+    expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(2);
+    expect(graphStateHarness.buildGraphData).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      favorites: nextFavorites,
+      previousNodes: firstGraph.nodes,
+    }));
+    expect(result.current.renderer.graphData).toBe(secondGraph);
+    expect(result.current.favoritesRef.current).toBe(nextFavorites);
+  });
+
+  it('updates mutable refs across rerender without rebuilding graph data for non-memo inputs', () => {
+    const initialOptions = createOptions();
     const nextNodeDecorations: Record<string, NodeDecorationPayload> = {
       'src/beta.ts': { color: '#f59e0b' },
     };
@@ -174,7 +201,7 @@ describe('graph/runtime/useGraphRuntime', () => {
       directionColor: '#f59e0b',
       directionMode: 'particles',
       edgeDecorations: nextEdgeDecorations,
-      favorites: nextFavorites,
+      favorites: initialOptions.favorites,
       nodeDecorations: nextNodeDecorations,
       nodeSizeMode: 'file-size',
       showLabels: false,
@@ -187,7 +214,7 @@ describe('graph/runtime/useGraphRuntime', () => {
     expect(result.current.themeRef.current).toBe('light');
     expect(result.current.directionModeRef.current).toBe('particles');
     expect(result.current.directionColorRef.current).toBe('#f59e0b');
-    expect(result.current.favoritesRef.current).toBe(nextFavorites);
+    expect(result.current.favoritesRef.current).toBe(initialOptions.favorites);
     expect(result.current.nodeSizeModeRef.current).toBe('file-size');
     expect(result.current.showLabelsRef.current).toBe(false);
     expect(result.current.nodeDecorationsRef.current).toBe(nextNodeDecorations);

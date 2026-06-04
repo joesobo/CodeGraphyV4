@@ -214,7 +214,7 @@ export function useGraphRuntime({
       appearance,
       nodeSizeMode: nodeSizeModeRef.current,
       theme: themeRef.current,
-      favorites: favoritesRef.current,
+      favorites,
       graphViewContributions,
       graphMode: resolvedGraphMode,
       bidirectionalMode,
@@ -224,7 +224,7 @@ export function useGraphRuntime({
 
     graphDataRef.current = nextGraphData;
     return nextGraphData;
-  }, [appearance, bidirectionalMode, data, graphMode, graphViewContributions, timelineActive]);
+  }, [appearance, bidirectionalMode, data, favorites, graphMode, graphViewContributions, timelineActive]);
 
   useEffect(() => {
     if (!timelineActive) return;

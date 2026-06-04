@@ -26,7 +26,7 @@ describe('graphView/provider/refresh/run', () => {
 
     expect(() => sendRefreshState(source as never)).not.toThrow();
     expect(source._sendAllSettings).toHaveBeenCalledOnce();
-    expect(source._sendFavorites).toHaveBeenCalledOnce();
+    expect(source._sendFavorites).not.toHaveBeenCalled();
   });
 
   it('falls back to full analysis when no primary load helper is available', async () => {

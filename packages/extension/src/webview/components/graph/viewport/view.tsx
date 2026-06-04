@@ -1,4 +1,4 @@
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
+import { useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactElement, type Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
@@ -27,7 +27,7 @@ import { SurfaceFallbackBoundary } from '../rendering/surface/view/fallbackBound
 import type { WebviewPluginHost } from '../../../pluginHost/manager';
 import { SlotHost } from '../../../pluginHost/slotHost/view';
 import type { GraphAccessibilityItems } from './accessibility';
-import type { FGNode } from '../model/build';
+import type { FGLink, FGNode } from '../model/build';
 
 export interface ViewportProps {
   accessibilityItems?: GraphAccessibilityItems;
@@ -43,7 +43,9 @@ export interface ViewportProps {
   handleMouseLeave: (this: void) => void;
   handleMouseMoveCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
   handleMouseUpCapture: (this: void, event: ReactMouseEvent<HTMLDivElement>) => void;
+  handleEdgeContextMenu?: (this: void, link: FGLink, event: MouseEvent) => void;
   handleNodeClick?: (this: void, node: FGNode, event: MouseEvent) => void;
+  handleNodeContextMenu?: (this: void, nodeId: string, event: MouseEvent) => void;
   handleNodeHover?: (this: void, node: FGNode | null) => void;
   marqueeSelection?: GraphMarqueeSelectionState | null;
   menuEntries: GraphContextMenuEntry[];
@@ -161,26 +163,62 @@ function ViewportContextMenuItems({
         }
 
         return (
-          <ContextMenuItem
+          <ViewportContextMenuItem
             key={entry.id}
-            className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
-            disabled={entry.disabled}
-            onClick={() => {
-              if (entry.contextSelection) {
-                handleMenuAction({
-                  action: entry.action,
-                  contextSelection: entry.contextSelection,
-                });
-              }
-            }}
-          >
-            {entry.label}
-            {entry.shortcut ? <ContextMenuShortcut>{entry.shortcut}</ContextMenuShortcut> : null}
-          </ContextMenuItem>
+            entry={entry}
+            handleMenuAction={handleMenuAction}
+          />
         );
       })}
     </>
   );
+}
+
+function ViewportContextMenuItem({
+  entry,
+  handleMenuAction,
+}: {
+  entry: Extract<GraphContextMenuEntry, { kind: 'item' }>;
+  handleMenuAction: ViewportProps['handleMenuAction'];
+}): ReactElement {
+  const handledRef = useRef(false);
+  const handleAction = (): void => {
+    if (handledRef.current) {
+      return;
+    }
+
+    handledRef.current = true;
+    queueMicrotask(() => {
+      handledRef.current = false;
+    });
+
+    if (entry.contextSelection) {
+      handleMenuAction({
+        action: entry.action,
+        contextSelection: entry.contextSelection,
+      });
+    }
+  };
+
+  return (
+    <ContextMenuItem
+      className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
+      data-menu-entry-id={entry.id}
+      data-menu-entry-targets={entry.contextSelection?.targets.join('\n') ?? ''}
+      disabled={entry.disabled}
+      onClick={handleAction}
+      onSelect={handleAction}
+    >
+      {entry.label}
+      {entry.shortcut ? <ContextMenuShortcut>{entry.shortcut}</ContextMenuShortcut> : null}
+    </ContextMenuItem>
+  );
+}
+
+function createMenuEntriesSignature(menuEntries: readonly GraphContextMenuEntry[]): string {
+  return menuEntries
+    .map(entry => entry.kind === 'separator' ? `${entry.id}:separator` : `${entry.id}:${entry.label}`)
+    .join('|');
 }
 
 export function Viewport({
@@ -197,7 +235,9 @@ export function Viewport({
   handleMouseLeave,
   handleMouseMoveCapture,
   handleMouseUpCapture,
+  handleEdgeContextMenu = () => undefined,
   handleNodeClick = () => undefined,
+  handleNodeContextMenu = () => undefined,
   handleNodeHover = () => undefined,
   marqueeSelection,
   menuEntries,
@@ -207,6 +247,8 @@ export function Viewport({
   onSurface3dError,
   pluginHost,
 }: ViewportProps): ReactElement {
+  const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -234,14 +276,17 @@ export function Viewport({
           <ViewportMarqueeSelectionOverlay marqueeSelection={marqueeSelection} />
           <GraphAccessibilityOverlay
             accessibilityItems={accessibilityItems}
+            graphLinks={surface2dProps.sharedProps.graphData.links as FGLink[]}
             graphNodes={surface2dProps.sharedProps.graphData.nodes as FGNode[]}
+            onEdgeContextMenu={handleEdgeContextMenu}
             onNodeClick={handleNodeClick}
+            onNodeContextMenu={handleNodeContextMenu}
             onNodeHover={handleNodeHover}
           />
         </div>
       </ContextMenuTrigger>
 
-      <ContextMenuContent className="w-64">
+      <ContextMenuContent key={menuEntriesSignature} data-menu-entries-signature={menuEntriesSignature} className="w-64">
         <ViewportContextMenuItems
           handleMenuAction={handleMenuAction}
           menuEntries={menuEntries}
@@ -266,18 +311,50 @@ export function Viewport({
   );
 }
 
+function toNativeMouseEvent(
+  type: 'click' | 'contextmenu',
+  event: MouseEvent | ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
+): MouseEvent {
+  if (event instanceof MouseEvent) {
+    return event;
+  }
+
+  if (event.nativeEvent instanceof MouseEvent) {
+    return event.nativeEvent;
+  }
+
+  return new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    button: type === 'contextmenu' ? 2 : 0,
+    buttons: type === 'contextmenu' ? 2 : 0,
+    clientX: 'clientX' in event ? event.clientX : 0,
+    clientY: 'clientY' in event ? event.clientY : 0,
+    ctrlKey: event.ctrlKey,
+    metaKey: event.metaKey,
+    shiftKey: event.shiftKey,
+  });
+}
+
 function GraphAccessibilityOverlay({
   accessibilityItems,
+  graphLinks,
   graphNodes,
+  onEdgeContextMenu,
   onNodeClick,
+  onNodeContextMenu,
   onNodeHover,
 }: {
   accessibilityItems: GraphAccessibilityItems;
+  graphLinks: readonly FGLink[];
   graphNodes: readonly FGNode[];
+  onEdgeContextMenu(this: void, link: FGLink, event: MouseEvent): void;
   onNodeClick(this: void, node: FGNode, event: MouseEvent): void;
+  onNodeContextMenu(this: void, nodeId: string, event: MouseEvent): void;
   onNodeHover(this: void, node: FGNode | null): void;
 }): ReactElement {
   const findNode = (nodeId: string) => graphNodes.find(node => node.id === nodeId) ?? null;
+  const findLink = (edgeId: string) => graphLinks.find(link => link.id === edgeId) ?? null;
   const handleNodeClick = (
     nodeId: string,
     event: MouseEvent | ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
@@ -285,18 +362,28 @@ function GraphAccessibilityOverlay({
     const node = findNode(nodeId);
     if (!node) return;
 
-    const clickEvent = event instanceof MouseEvent
-      ? event
-      : new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          clientX: 'clientX' in event ? event.clientX : 0,
-          clientY: 'clientY' in event ? event.clientY : 0,
-          ctrlKey: event.ctrlKey,
-          metaKey: event.metaKey,
-          shiftKey: event.shiftKey,
-        });
-    onNodeClick(node, clickEvent);
+    onNodeClick(node, toNativeMouseEvent('click', event));
+  };
+  const handleNodeContextMenu = (
+    nodeId: string,
+    event: ReactMouseEvent<HTMLElement>,
+  ) => {
+    if (!findNode(nodeId)) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    onNodeContextMenu(nodeId, toNativeMouseEvent('contextmenu', event));
+  };
+  const handleEdgeContextMenu = (
+    edgeId: string,
+    event: ReactMouseEvent<HTMLElement>,
+  ) => {
+    const link = findLink(edgeId);
+    if (!link) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    onEdgeContextMenu(link, toNativeMouseEvent('contextmenu', event));
   };
   const handleNodeHover = (nodeId: string) => {
     onNodeHover(findNode(nodeId));
@@ -313,6 +400,7 @@ function GraphAccessibilityOverlay({
           className="absolute rounded-full opacity-0"
           onBlur={() => onNodeHover(null)}
           onClick={event => handleNodeClick(node.id, event)}
+          onContextMenu={event => handleNodeContextMenu(node.id, event)}
           onFocus={() => handleNodeHover(node.id)}
           onKeyDown={event => {
             if (event.key === 'Enter' || event.key === ' ') {
@@ -333,7 +421,12 @@ function GraphAccessibilityOverlay({
       ))}
       <div className="sr-only">
         {accessibilityItems.edges.map(edge => (
-          <span key={edge.id} aria-label={edge.label} role="img" />
+          <span
+            key={edge.id}
+            aria-label={edge.label}
+            role="img"
+            onContextMenu={event => handleEdgeContextMenu(edge.id, event)}
+          />
         ))}
       </div>
     </div>

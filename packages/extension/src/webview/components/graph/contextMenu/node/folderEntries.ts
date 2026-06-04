@@ -19,8 +19,8 @@ export function buildSingleFolderNodeEntries(
   if (mutationAvailability !== 'hidden') {
     const disabled = mutationAvailability === 'disabled';
     entries.push(
-      builtInItem('node-create-file', 'New File...', 'createFile', { disabled }),
-      builtInItem('node-create-folder', 'New Folder...', 'createFolder', { disabled }),
+      builtInItem('node-create-file', 'New File', 'createFile', { disabled }),
+      builtInItem('node-create-folder', 'New Folder', 'createFolder', { disabled }),
       separator('node-separator-create'),
     );
   }

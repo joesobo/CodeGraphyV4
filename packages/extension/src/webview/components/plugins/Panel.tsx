@@ -54,6 +54,7 @@ function PluginRow({
           <span className="block truncate text-xs font-medium">{plugin.name}</span>
         </div>
         <Switch
+          aria-label={plugin.name}
           checked={plugin.enabled}
           disabled={!plugin.packageName}
           onCheckedChange={(val) => onTogglePlugin(plugin.id, plugin.packageName, val)}

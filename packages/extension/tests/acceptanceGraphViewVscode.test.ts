@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildMacOSAppActivationScript,
   createVSCodeLaunchArgs,
+  resolveRefocusAppName,
   selectVSCodeTempBaseDir,
 } from './acceptance/graphView/vscode';
 
@@ -20,5 +22,24 @@ describe('createVSCodeLaunchArgs', () => {
 
   it('uses a short temp base for macOS VS Code IPC sockets', () => {
     expect(selectVSCodeTempBaseDir('darwin', '/var/folders/very/long/T')).toBe('/tmp');
+  });
+
+  it('builds a quoted macOS app activation script', () => {
+    expect(buildMacOSAppActivationScript('Codex')).toBe('tell application "Codex" to activate');
+  });
+
+  it('only refocuses when the local macOS app name is configured', () => {
+    expect(resolveRefocusAppName({
+      appName: 'Codex',
+      platform: 'darwin',
+    })).toBe('Codex');
+    expect(resolveRefocusAppName({
+      appName: 'Codex',
+      platform: 'linux',
+    })).toBeUndefined();
+    expect(resolveRefocusAppName({
+      appName: '',
+      platform: 'darwin',
+    })).toBeUndefined();
   });
 });

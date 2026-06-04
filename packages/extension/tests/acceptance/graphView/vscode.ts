@@ -1,17 +1,28 @@
 import { expect, type Frame, type Page } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { writeAcceptanceInstalledPluginCache } from './plugins';
 import { extensionRoot, repoRoot } from './workspace';
 import type { VSCodeFixture } from './types';
 
-export async function launchVSCodeWithWorkspace(workspacePath: string): Promise<VSCodeFixture> {
-  const tempRoot = fs.mkdtempSync(
-    path.join(selectVSCodeTempBaseDir(process.platform, os.tmpdir()), 'codegraphy-vscode-playwright-'),
-  );
-  const homePath = path.join(tempRoot, 'home');
-  writeLocalPluginCache(homePath);
+interface LaunchVSCodeWithWorkspaceOptions {
+  readonly pluginPackageRelativePaths?: readonly string[];
+}
+
+export async function launchVSCodeWithWorkspace(
+  workspacePath: string,
+  options: LaunchVSCodeWithWorkspaceOptions = {},
+): Promise<VSCodeFixture> {
+  const tempRoot = fs.mkdtempSync(path.join(selectVSCodeTempBaseDir(process.platform, os.tmpdir()), 'cgv-'));
+  const userDataPath = path.join(tempRoot, 'u');
+  const extensionsPath = path.join(tempRoot, 'e');
+  const homePath = path.join(tempRoot, 'h');
+  fs.mkdirSync(homePath, { recursive: true });
+  writeAcceptanceInstalledPluginCache(homePath, repoRoot(), options.pluginPackageRelativePaths ?? []);
+
   const vscodeExecutablePath = await downloadAndUnzipVSCode({
     version: 'stable',
     cachePath: path.join(extensionRoot(), '.vscode-test'),
@@ -22,65 +33,23 @@ export async function launchVSCodeWithWorkspace(workspacePath: string): Promise<
     executablePath: vscodeExecutablePath,
     args: createVSCodeLaunchArgs({
       extensionPath: repoRoot(),
-      extensionsPath: path.join(tempRoot, 'extensions'),
+      extensionsPath,
       platform: process.platform,
-      userDataPath: path.join(tempRoot, 'user-data'),
+      userDataPath,
       workspacePath,
     }),
     env: {
       ...process.env,
+      CODEGRAPHY_ACCEPTANCE: '1',
       HOME: homePath,
     },
   });
 
   const page = await app.firstWindow({ timeout: 90_000 });
   await page.waitForLoadState('domcontentloaded').catch(() => {});
+  refocusConfiguredLocalApp();
 
   return { app, page, tempRoot };
-}
-
-function writeLocalPluginCache(homePath: string): void {
-  const pluginPackageRoots = [
-    'packages/plugin-typescript',
-    'packages/plugin-godot',
-    'packages/plugin-csharp',
-    'packages/plugin-python',
-    'packages/plugin-vue',
-  ].map(packagePath => path.join(repoRoot(), packagePath));
-  const plugins = pluginPackageRoots.flatMap((packageRoot) => {
-    try {
-      const packageJson = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')) as {
-        codegraphy?: { apiVersion?: string; disclosures?: unknown[] };
-        name?: string;
-        version?: string;
-      };
-      const codegraphyJson = JSON.parse(fs.readFileSync(path.join(packageRoot, 'codegraphy.json'), 'utf8')) as {
-        id?: string;
-        name?: string;
-        supportedExtensions?: string[];
-      };
-      if (!packageJson.name || !packageJson.version || !packageJson.codegraphy?.apiVersion) {
-        return [];
-      }
-
-      return [{
-        package: packageJson.name,
-        version: packageJson.version,
-        apiVersion: packageJson.codegraphy.apiVersion,
-        disclosures: packageJson.codegraphy.disclosures ?? [],
-        pluginId: codegraphyJson.id,
-        pluginName: codegraphyJson.name,
-        supportedExtensions: codegraphyJson.supportedExtensions ?? [],
-        packageRoot,
-      }];
-    } catch {
-      return [];
-    }
-  });
-
-  const cachePath = path.join(homePath, '.codegraphy/plugins.json');
-  fs.mkdirSync(path.dirname(cachePath), { recursive: true });
-  fs.writeFileSync(cachePath, `${JSON.stringify({ version: 1, plugins }, null, 2)}\n`);
 }
 
 export async function openGraphView(page: Page): Promise<void> {
@@ -93,13 +62,13 @@ export async function openGraphView(page: Page): Promise<void> {
   await page.keyboard.type('CodeGraphy: Open');
   await expect(page.getByText('CodeGraphy: Open', { exact: true }).first()).toBeVisible();
   await page.keyboard.press('Enter');
+  refocusConfiguredLocalApp();
 }
 
 export async function waitForGraphFrame(page: Page): Promise<Frame> {
   await expect.poll(async () => {
     for (const frame of page.frames().filter(candidate => candidate.url().includes('fake.html'))) {
-      const graphStageCount = await frame.getByLabel('Graph Stage').count().catch(() => 0);
-      if (graphStageCount > 0) {
+      if (await isReadyGraphFrame(frame)) {
         return true;
       }
     }
@@ -108,8 +77,7 @@ export async function waitForGraphFrame(page: Page): Promise<Frame> {
   }, { timeout: 15_000 }).toBe(true);
 
   for (const frame of page.frames().filter(candidate => candidate.url().includes('fake.html'))) {
-    const graphStageCount = await frame.getByLabel('Graph Stage').count().catch(() => 0);
-    if (graphStageCount > 0) {
+    if (await isReadyGraphFrame(frame)) {
       return frame;
     }
   }
@@ -117,29 +85,41 @@ export async function waitForGraphFrame(page: Page): Promise<Frame> {
   throw new Error('Expected the Graph View webview frame to contain Graph Stage');
 }
 
+async function isReadyGraphFrame(frame: Frame): Promise<boolean> {
+  const graphStageCount = await frame.getByLabel('Graph Stage').count().catch(() => 0);
+  const fitButtonCount = await frame.getByTitle('Fit to Screen').count().catch(() => 0);
+  return graphStageCount > 0 && fitButtonCount > 0;
+}
+
 export async function cleanupVSCode({ app, tempRoot }: VSCodeFixture): Promise<void> {
   await app.close().catch(() => {});
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }
 
-export interface VSCodeLaunchArgsInput {
-  extensionPath: string;
-  extensionsPath: string;
-  platform: NodeJS.Platform;
-  userDataPath: string;
-  workspacePath: string;
+export interface VSCodeLaunchArgOptions {
+  readonly extensionPath: string;
+  readonly extensionsPath: string;
+  readonly platform: NodeJS.Platform;
+  readonly userDataPath: string;
+  readonly workspacePath: string;
 }
 
-export function createVSCodeLaunchArgs(input: VSCodeLaunchArgsInput): string[] {
+export function createVSCodeLaunchArgs({
+  extensionPath,
+  extensionsPath,
+  platform,
+  userDataPath,
+  workspacePath,
+}: VSCodeLaunchArgOptions): string[] {
   return [
-    input.workspacePath,
-    `--extensionDevelopmentPath=${input.extensionPath}`,
+    workspacePath,
+    `--extensionDevelopmentPath=${extensionPath}`,
     '--user-data-dir',
-    input.userDataPath,
+    userDataPath,
     '--extensions-dir',
-    input.extensionsPath,
+    extensionsPath,
     '--use-inmemory-secretstorage',
-    ...getMacOSMockKeychainArgs(input.platform),
+    ...getMacKeychainArgs(platform),
     '--sync',
     'off',
     '--disable-telemetry',
@@ -148,18 +128,54 @@ export function createVSCodeLaunchArgs(input: VSCodeLaunchArgsInput): string[] {
     '--skip-welcome',
     '--skip-release-notes',
     '--disable-extensions',
-    ...getLinuxSandboxArgs(input.platform),
+    ...getLinuxSandboxArgs(platform),
   ];
 }
 
-export function selectVSCodeTempBaseDir(platform: NodeJS.Platform, fallbackTempDir: string): string {
-  return platform === 'darwin' ? '/tmp' : fallbackTempDir;
+export function selectVSCodeTempBaseDir(platform: NodeJS.Platform, defaultTempDir: string): string {
+  return platform === 'darwin' ? '/tmp' : defaultTempDir;
+}
+
+export interface RefocusAppOptions {
+  readonly appName: string | undefined;
+  readonly platform: NodeJS.Platform;
+}
+
+export function resolveRefocusAppName({
+  appName,
+  platform,
+}: RefocusAppOptions): string | undefined {
+  if (platform !== 'darwin') {
+    return undefined;
+  }
+
+  const normalizedName = appName?.trim();
+  return normalizedName && normalizedName.length > 0 ? normalizedName : undefined;
+}
+
+export function buildMacOSAppActivationScript(appName: string): string {
+  return `tell application ${JSON.stringify(appName)} to activate`;
+}
+
+function refocusConfiguredLocalApp(): void {
+  const appName = resolveRefocusAppName({
+    appName: process.env.CODEGRAPHY_ACCEPTANCE_REFOCUS_APP,
+    platform: process.platform,
+  });
+  if (!appName) {
+    return;
+  }
+
+  spawn('osascript', ['-e', buildMacOSAppActivationScript(appName)], {
+    detached: true,
+    stdio: 'ignore',
+  }).unref();
+}
+
+function getMacKeychainArgs(platform: NodeJS.Platform): string[] {
+  return platform === 'darwin' ? ['--use-mock-keychain'] : [];
 }
 
 function getLinuxSandboxArgs(platform: NodeJS.Platform): string[] {
   return platform === 'linux' ? ['--no-sandbox'] : [];
-}
-
-function getMacOSMockKeychainArgs(platform: NodeJS.Platform): string[] {
-  return platform === 'darwin' ? ['--use-mock-keychain'] : [];
 }

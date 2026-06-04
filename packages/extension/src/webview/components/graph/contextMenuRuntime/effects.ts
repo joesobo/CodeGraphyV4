@@ -15,6 +15,7 @@ type GraphContextMenuEffectDependencies = Pick<
   | 'openFilterPatternPrompt'
   | 'openLegendRulePrompt'
   | 'postMessage'
+  | 'refreshContextSelection'
 >;
 
 export interface GraphContextMenuEffectRuntime {
@@ -172,6 +173,10 @@ export function createContextMenuEffectRuntime(
     }
 
     applyContextEffects(getGraphContextActionEffects(action, context));
+
+    if (action.kind === 'builtin' && action.action === 'toggleFavorite') {
+      dependencies.refreshContextSelection?.();
+    }
   };
 
   return {

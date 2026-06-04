@@ -17,6 +17,11 @@ export interface NodeProbe {
   radius: number;
 }
 
+export type LastGraphContextMenuTarget =
+  | { kind: 'background' }
+  | { kind: 'edge'; sourcePath: string; targetPath: string }
+  | { kind: 'node'; nodePath: string };
+
 export interface AcceptanceRuntimeStep {
   keyword: string;
   text: string;
@@ -26,6 +31,7 @@ export interface AcceptanceRuntimeStep {
 
 export interface GraphAcceptanceContext {
   cleanup: () => Promise<void>;
+  exampleName?: string;
   workspaceTempRoot?: string;
   workspacePath?: string;
   vscode?: VSCodeFixture;
@@ -36,6 +42,9 @@ export interface GraphAcceptanceContext {
   beforeDragCenter?: Point;
   afterDragCenter?: Point;
   dropCenter?: Point;
+  beforeZoomNodeSize?: number;
+  lastContextMenuTarget?: LastGraphContextMenuTarget;
+  selectedNodePaths?: string[];
 }
 
 export type AcceptanceStepImplementation = (

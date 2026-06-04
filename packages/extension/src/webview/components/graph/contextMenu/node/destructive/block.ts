@@ -12,7 +12,7 @@ export function buildFilterBlock(targets: readonly string[]): GraphContextMenuEn
     separator('node-separator-filter'),
     builtInItem(
       'node-add-filter',
-      isMultiSelect ? 'Add Filter Patterns...' : 'Add Filter Pattern...',
+      isMultiSelect ? 'Add Filter Patterns' : 'Add Filter Pattern',
       'addToFilter'
     ),
   ];
@@ -20,7 +20,7 @@ export function buildFilterBlock(targets: readonly string[]): GraphContextMenuEn
   if (!isMultiSelect) {
     entries.push(
       separator('node-separator-legend'),
-      builtInItem('node-add-legend', 'Add Legend Group...', 'addNodeLegend')
+      builtInItem('node-add-legend', 'Add Legend Group', 'addNodeLegend')
     );
   }
 
@@ -36,7 +36,7 @@ export function buildDestructiveBlock(
   const entries: GraphContextMenuEntry[] = [separator('node-separator-destructive')];
 
   if (!isMultiSelect) {
-    entries.push(builtInItem('node-rename', 'Rename...', 'rename', { disabled }));
+    entries.push(builtInItem('node-rename', 'Rename', 'rename', { disabled }));
   }
 
   entries.push(
@@ -52,7 +52,7 @@ export function buildDestructiveBlock(
 export function buildFolderDestructiveBlock(disabled: boolean): GraphContextMenuEntry[] {
   return [
     separator('node-separator-folder-destructive'),
-    builtInItem('node-rename-folder', 'Rename Folder...', 'rename', { disabled }),
+    builtInItem('node-rename-folder', 'Rename Folder', 'rename', { disabled }),
     builtInItem('node-delete-folder', 'Delete Folder', 'delete', {
       destructive: true,
       disabled,

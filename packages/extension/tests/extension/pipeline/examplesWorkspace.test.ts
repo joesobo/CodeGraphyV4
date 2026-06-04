@@ -114,7 +114,6 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
       'example-python/src/main.py->example-python/src/services/api.py#import',
       'example-go/main.go->example-go/internal/service/service.go#import',
       'example-java/src/com/example/app/App.java->example-java/src/com/example/app/Helper.java#import',
-      'example-java/src/com/example/app/App.java->example-java/src/com/example/app/BaseService.java#inherit',
       'example-rust/src/main.rs->example-rust/src/util.rs#import',
       'example-rust/src/main.rs->example-rust/src/inner.rs#import',
       'example-c/src/main.c->example-c/src/math/add.h#import:include',

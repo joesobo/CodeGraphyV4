@@ -24,11 +24,11 @@ describe('destructive block', () => {
   });
 
   it('includes Rename for single target', () => {
-    expect(itemLabels(buildDestructiveBlock(['a.ts']))).toContain('Rename...');
+    expect(itemLabels(buildDestructiveBlock(['a.ts']))).toContain('Rename');
   });
 
   it('omits Rename for multi-select', () => {
-    expect(itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']))).not.toContain('Rename...');
+    expect(itemLabels(buildDestructiveBlock(['a.ts', 'b.ts']))).not.toContain('Rename');
   });
 
   it('shows Delete File for single target', () => {
@@ -45,7 +45,7 @@ describe('destructive block', () => {
   });
 
   it('uses rename action for the rename entry', () => {
-    const entry = findItem(buildDestructiveBlock(['a.ts']), 'Rename...');
+    const entry = findItem(buildDestructiveBlock(['a.ts']), 'Rename');
     expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'rename' });
   });
 
@@ -61,16 +61,16 @@ describe('filter block', () => {
     expect(entries[0]).toEqual({ kind: 'separator', id: 'node-separator-filter' });
   });
 
-  it('includes Add Filter Pattern... for single target', () => {
-    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add Filter Pattern...');
+  it('includes Add Filter Pattern for single target', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add Filter Pattern');
   });
 
-  it('includes Add Filter Patterns... for multi-select', () => {
-    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).toContain('Add Filter Patterns...');
+  it('includes Add Filter Patterns for multi-select', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).toContain('Add Filter Patterns');
   });
 
-  it('includes Add Legend Group... for single target', () => {
-    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add Legend Group...');
+  it('includes Add Legend Group for single target', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts']))).toContain('Add Legend Group');
   });
 
   it('separates filter and legend actions into distinct blocks', () => {
@@ -78,23 +78,23 @@ describe('filter block', () => {
 
     expect(entries).toEqual([
       { kind: 'separator', id: 'node-separator-filter' },
-      expect.objectContaining({ kind: 'item', label: 'Add Filter Pattern...' }),
+      expect.objectContaining({ kind: 'item', label: 'Add Filter Pattern' }),
       { kind: 'separator', id: 'node-separator-legend' },
-      expect.objectContaining({ kind: 'item', label: 'Add Legend Group...' }),
+      expect.objectContaining({ kind: 'item', label: 'Add Legend Group' }),
     ]);
   });
 
-  it('omits Add Legend Group... for multi-select', () => {
-    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).not.toContain('Add Legend Group...');
+  it('omits Add Legend Group for multi-select', () => {
+    expect(itemLabels(buildFilterBlock(['a.ts', 'b.ts']))).not.toContain('Add Legend Group');
   });
 
   it('uses addToFilter action for the filter entry', () => {
-    const entry = findItem(buildFilterBlock(['a.ts']), 'Add Filter Pattern...');
+    const entry = findItem(buildFilterBlock(['a.ts']), 'Add Filter Pattern');
     expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addToFilter' });
   });
 
   it('uses addNodeLegend action for the add legend entry', () => {
-    const entry = findItem(buildFilterBlock(['a.ts']), 'Add Legend Group...');
+    const entry = findItem(buildFilterBlock(['a.ts']), 'Add Legend Group');
     expect(entry?.action).toMatchObject({ kind: 'builtin', action: 'addNodeLegend' });
   });
 });

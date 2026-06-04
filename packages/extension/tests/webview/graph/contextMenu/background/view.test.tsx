@@ -82,7 +82,7 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
     });
   });
 
@@ -98,7 +98,7 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
     });
   });
 
@@ -111,7 +111,7 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
     });
   });
 
@@ -125,7 +125,7 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
     });
   });
 
@@ -139,7 +139,7 @@ describe('Graph context menu (background)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('New File...')).toBeInTheDocument();
+        expect(screen.getByText('New File')).toBeInTheDocument();
       });
     } finally {
       platformSpy.mockRestore();
@@ -160,7 +160,7 @@ describe('Graph context menu (background)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('New File...')).toBeInTheDocument();
+        expect(screen.getByText('New File')).toBeInTheDocument();
       });
     } finally {
       platformSpy.mockRestore();
@@ -177,7 +177,7 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
     });
 
     expect(screen.getByText('Refresh')).toBeInTheDocument();
@@ -200,8 +200,8 @@ describe('Graph context menu (background)', () => {
       expect(screen.getByText('Refresh')).toBeInTheDocument();
     });
     expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
-    expect(screen.getByText('New File...')).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText('New Folder...')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText('New File')).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByText('New Folder')).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('sends REFRESH_GRAPH message when clicking Refresh', async () => {
@@ -224,7 +224,7 @@ describe('Graph context menu (background)', () => {
     expect(findMessage('REFRESH_GRAPH')).toBeTruthy();
   });
 
-  it('sends CREATE_FILE message when clicking New File...', async () => {
+  it('sends CREATE_FILE message when clicking New File', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -234,12 +234,12 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
     });
 
     clearSentMessages();
     await act(async () => {
-      fireEvent.click(screen.getByText('New File...'));
+      fireEvent.click(screen.getByText('New File'));
     });
 
     const createMsg = findMessage('CREATE_FILE');
@@ -247,7 +247,7 @@ describe('Graph context menu (background)', () => {
     expect(createMsg!.payload.directory).toBe('.');
   });
 
-  it('sends CREATE_FOLDER message when clicking New Folder...', async () => {
+  it('sends CREATE_FOLDER message when clicking New Folder', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -257,12 +257,12 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New Folder...')).toBeInTheDocument();
+      expect(screen.getByText('New Folder')).toBeInTheDocument();
     });
 
     clearSentMessages();
     await act(async () => {
-      fireEvent.click(screen.getByText('New Folder...'));
+      fireEvent.click(screen.getByText('New Folder'));
     });
 
     const createMsg = findMessage('CREATE_FOLDER');
@@ -338,7 +338,7 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
     });
     expect(screen.queryByText('Plugin Inspect')).not.toBeInTheDocument();
   });
@@ -357,7 +357,7 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('New File...')).toBeInTheDocument();
+      expect(screen.getByText('New File')).toBeInTheDocument();
     });
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
   });
@@ -376,7 +376,7 @@ describe('Graph context menu (background)', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('New File...')).toBeInTheDocument();
+        expect(screen.getByText('New File')).toBeInTheDocument();
       });
       expect(screen.queryByText('Open File')).not.toBeInTheDocument();
     } finally {

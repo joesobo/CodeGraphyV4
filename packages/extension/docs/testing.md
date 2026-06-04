@@ -61,6 +61,8 @@ pnpm --filter @codegraphy-dev/extension typecheck
 
 CI runs extension unit tests as separate `node` and grouped `webview` Vitest lanes. The webview groups are defined in `vitest.includes.ts` because the check names should describe the behavior under test, not an arbitrary shard number.
 
+`test:playwright` generates acceptance tests, builds the VS Code extension/webview artifacts, and runs the VS Code Playwright suite. `test:vscode` is kept as a compatibility alias for the same package-owned command.
+
 ```bash
 pnpm exec turbo run test:node --filter=@codegraphy-dev/extension
 CODEGRAPHY_VITEST_WEBVIEW_GROUP=graph pnpm exec turbo run test:webview --filter=@codegraphy-dev/extension

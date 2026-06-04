@@ -17,6 +17,7 @@ export const INITIAL_STATE: GraphStateFields = {
   searchQuery: '',
   searchOptions: DEFAULT_SEARCH_OPTIONS,
   favorites: new Set<string>(),
+  pendingFavoriteSnapshot: null,
   bidirectionalMode: 'separate' as const,
   showOrphans: true,
   directionMode: 'arrows' as const,

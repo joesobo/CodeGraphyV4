@@ -157,10 +157,10 @@ describe('graphView/provider/file/actions', () => {
     expect(executeUndoAction).toHaveBeenCalledTimes(4);
   });
 
-  it('creates undoable favorite toggles that resync favorites after completion', async () => {
+  it('creates undoable favorite toggles that send the explicit post-action favorites', async () => {
     const executeUndoAction = vi.fn(async () => undefined);
     const createToggleFavoriteAction = vi.fn((_paths, sendFavorites) => {
-      sendFavorites();
+      sendFavorites(['src/app.ts']);
       return createUndoableAction({ type: 'favorite' });
     });
     const toggleFavorites = vi.fn(async (_paths, handlers) => {
@@ -198,7 +198,8 @@ describe('graphView/provider/file/actions', () => {
       ['src/app.ts'],
       expect.any(Function),
     );
-    expect(source._sendFavorites).toHaveBeenCalledOnce();
+    expect(source._sendFavorites).toHaveBeenCalledWith(['src/app.ts']);
+    expect(source._sendFavorites).toHaveBeenCalledTimes(1);
     expect(executeUndoAction).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'favorite' }),
     );
@@ -230,13 +231,16 @@ describe('graphView/provider/file/actions', () => {
   });
 
   it('uses vscode confirmation and undo manager defaults for delete actions', async () => {
-    const { source, methods, deleteFiles, showWarningMessage, DeleteFilesAction, execute } =
+    const { source, methods, deleteFiles, showQuickPick, DeleteFilesAction, execute } =
       await createDefaultDependencyHarness();
 
     await methods._deleteFiles(['src/app.ts']);
 
     expect(deleteFiles).toHaveBeenCalledOnce();
-    expect(showWarningMessage).toHaveBeenCalledWith('Delete files?', { modal: true }, 'Delete');
+    expect(showQuickPick).toHaveBeenCalledWith(['Delete'], {
+      title: 'Delete files?',
+      ignoreFocusOut: true,
+    });
     expect(DeleteFilesAction).toHaveBeenCalledWith(
       ['src/app.ts'],
       { fsPath: '/workspace' },
@@ -305,7 +309,7 @@ describe('graphView/provider/file/actions', () => {
 
     expect(ToggleFavoriteAction).toHaveBeenCalledWith(['src/app.ts'], expect.any(Function));
     expect(execute).toHaveBeenCalledTimes(1);
-    expect(source._sendFavorites).toHaveBeenCalledOnce();
+    expect(source._sendFavorites).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -373,6 +377,7 @@ async function createDefaultDependencyHarness(
     await handlers.executeToggleFavoritesAction(['src/app.ts']);
   });
   const showWarningMessage = vi.fn(async () => 'Delete');
+  const showQuickPick = vi.fn(async () => 'Delete');
   const showInputBox = vi.fn(async () => 'result');
   const showErrorMessage = vi.fn();
   const execute = vi.fn(async (action: MockUndoableAction) => {
@@ -441,6 +446,7 @@ async function createDefaultDependencyHarness(
     },
     window: {
       showWarningMessage,
+      showQuickPick,
       showInputBox,
       showErrorMessage,
     },
@@ -498,6 +504,7 @@ async function createDefaultDependencyHarness(
     copyText,
     deleteFiles,
     showWarningMessage,
+    showQuickPick,
     showInputBox,
     showErrorMessage,
     execute,
