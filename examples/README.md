@@ -17,17 +17,17 @@ alias edges whether you open the full `examples/` workspace or the focused
 - `example-go` — Go package/import example
 - `example-c` — C include example
 - `example-cpp` — C++ include example
-- `example-objective-c` — Objective-C import/interface example
+- `example-objective-c` — Objective-C dashboard/controller/store/view example
 - `example-kotlin` — Kotlin import/inheritance example
-- `example-scala` — Scala import/inheritance example
+- `example-scala` — Scala app/service/repository/view import and inheritance example
 - `example-php` — PHP namespace/use/inheritance example
 - `example-ruby` — Ruby require/inheritance example
-- `example-pascal` — Pascal unit uses/inheritance example
+- `example-pascal` — Pascal runner/repository/service/view unit uses and inheritance example
 - `example-haskell` — Haskell module import example
 - `example-lua` — Lua require example
 - `example-swift` — Swift Package module import example
 - `example-dart` — Dart relative/package import example
-- `example-svelte` — Svelte component script import example
+- `example-svelte` — Svelte component, type import, and lazy module import example
 
 These examples are intentionally small. The goal is to keep the Relationship Graph predictable while still showing why symbol nodes are useful: files show the coarse architecture, then Symbol and Variable let you zoom into the declarations that explain why files are connected.
 
@@ -38,7 +38,7 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | Example | What To Look For With Symbol Enabled |
 |---------|---------------------------------------|
 | `example-typescript` | `src/index.ts` imports `buildGreeting`, type-imports `UserName`, and declares `currentUser` as a Variable node so the file graph becomes a small call/type/value story. |
-| `vue-example` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` imports, extensionless component imports, composables, and type-only imports. Before the Vue plugin exists, use it to inspect which `.vue` nodes and connections are missing from the baseline graph. |
+| `vue-example` | A Vue 3 workspace with `<script setup lang="ts">`, normal `<script lang="ts">`, explicit `.vue` imports, extensionless component imports, composables, type-only imports, and a lazy async component import. |
 | `example-godot` | A runnable Godot project with `project.godot`, scenes, resources, autoloads, and GDScript. Godot `class_name` declarations appear under Variable, so toggling Variable hides `Player`, `Enemy`, `PlayerLoadout`, `LoadoutPreview`, and other plugin-owned class-name symbols while preserving their own on/off state. |
 | `example-python` | `main.py` imports config, service, and helper functions; member-import files show how imports and function symbols identify the exact code path. |
 | `example-csharp` | `Program` calls into `Config`, `ApiService`, and `Helpers`, while classes and methods make the namespace relationships easier to scan. |
@@ -48,12 +48,12 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | `example-go` | `main.go` imports `internal/service`; package functions and the `Runner` type show how Go package edges connect to declarations. |
 | `example-c` | `main.c` and `math/add.c` include `add.h`; function and struct symbols make the tiny C dependency chain inspectable. |
 | `example-cpp` | `app.cpp` and `widget.cpp` include `widget.hpp`; class, method, and function symbols show both declaration and implementation files. |
-| `example-objective-c` | `AppDelegate.m` imports `UserCard.h`; interface and method symbols make the small Cocoa-style chain inspectable. |
+| `example-objective-c` | `main.m` launches an app delegate that wires a dashboard controller, session store, user model, and card view; interface, protocol, implementation, and method symbols make the Cocoa-style chain inspectable. |
 | `example-kotlin` | `AppRunner` imports a model, extends a base class, and implements an interface, giving a compact import/inheritance/symbol demo. |
-| `example-scala` | `AppRunner` imports a base trait and model, extends the trait, and exposes class/object/enum/type/function symbols. |
+| `example-scala` | `AppRunner` composes a `UserService`, repository, model, and dashboard view while extending a base trait; class/object/trait/enum/type/function symbols show the Scala app path. |
 | `example-php` | `Runner` imports a base class, interface, and model, then exposes class/function symbols for namespace-use checks. |
 | `example-ruby` | `example_ruby.rb` requires the runner, and the runner inherits from `BaseRunner`, with module/class/method symbols for navigation. |
-| `example-pascal` | `SampleApp.pas` uses `RunnerSupport.pas`; class and procedure symbols show baseline unit relationships. |
+| `example-pascal` | `Main.pas` starts `SampleApp.pas`, which uses runner support, repository, pricing, receipt, and order model units; class, record, function, and procedure symbols show baseline Pascal relationships. |
 | `example-haskell` | `Main` imports a feature runner and model module; module/data/function symbols show the Haskell path through the graph. |
 | `example-lua` | `main.lua` requires `app.runner`, which requires `app.model.user`; table/function symbols make the require chain less anonymous. |
 | `example-swift` | A small Swift Package imports `RunnerSupport`; `Runner`, `Worker`, and `Runnable` demonstrate class/protocol/function symbols. |

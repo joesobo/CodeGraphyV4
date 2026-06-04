@@ -1,12 +1,11 @@
-#import "Feature/UserCard.h"
-
-@interface AppDelegate : NSObject
-- (void)applicationDidFinishLaunching;
-@end
+#import "AppDelegate.h"
+#import "Data/SessionStore.h"
+#import "Controllers/DashboardController.h"
 
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching {
-  UserCard *card = [UserCard new];
-  [card configureWithName:@"Ada"];
+  SessionStore *store = [SessionStore demoStore];
+  DashboardController *controller = [[DashboardController alloc] initWithStore:store];
+  [controller reloadDashboard];
 }
 @end
