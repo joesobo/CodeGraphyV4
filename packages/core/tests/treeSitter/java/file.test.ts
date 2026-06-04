@@ -108,13 +108,10 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
     });
   });
 
-  it('still routes Java type declarations when symbol extraction is disabled', () => {
+  it('skips Java type declarations when symbol extraction is disabled', () => {
     let visit: ((node: unknown, state: unknown, walk: unknown) => unknown) | undefined;
     walkTree.mockImplementation((_root, _state, callback) => {
       visit = callback;
-    });
-    handleJavaTypeDeclaration.mockImplementation((_node, _filePath, _sourceRoot, _packageName, relations) => {
-      relations.push({ kind: 'inherit' });
     });
 
     const result = analyzeJavaFile(
@@ -126,24 +123,16 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
 
     visit?.({ type: 'class_declaration' }, {}, vi.fn());
 
-    expect(handleJavaTypeDeclaration).toHaveBeenCalledWith(
-      { type: 'class_declaration' },
-      '/workspace/src/App.java',
-      '/workspace/src',
-      'pkg',
-      expect.any(Array),
-      expect.any(Array),
-      expect.any(Map),
-    );
+    expect(handleJavaTypeDeclaration).not.toHaveBeenCalled();
     expect(normalizeAnalysisResult).toHaveBeenLastCalledWith(
       '/workspace/src/App.java',
       [],
-      [{ kind: 'inherit' }],
+      [],
     );
     expect(result).toEqual({
       filePath: '/workspace/src/App.java',
       symbols: [],
-      relations: [{ kind: 'inherit' }],
+      relations: [],
     });
   });
 });
