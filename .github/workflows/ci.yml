@@ -179,12 +179,12 @@ jobs:
       - name: Check Playwright Turbo cache
         id: playwright-turbo-cache
         run: |
-          pnpm exec turbo run test:playwright --filter=@codegraphy-dev/extension --dry=json > turbo-playwright-dry-run.json
+          node scripts/run-playwright-turbo.mjs --dry=json > turbo-playwright-dry-run.json
           node <<'NODE' >> "$GITHUB_OUTPUT"
           const fs = require('node:fs');
           const dryRun = JSON.parse(fs.readFileSync('turbo-playwright-dry-run.json', 'utf8'));
-          const task = dryRun.tasks.find((entry) => entry.taskId === '@codegraphy-dev/extension#test:playwright');
-          const isHit = task?.cache?.status === 'HIT';
+          const tasks = dryRun.tasks.filter((entry) => entry.task === 'test:playwright');
+          const isHit = tasks.length > 0 && tasks.every((entry) => entry.cache?.status === 'HIT');
           console.log(`hit=${isHit ? 'true' : 'false'}`);
           NODE
 
@@ -193,7 +193,7 @@ jobs:
         run: pnpm --filter @codegraphy-dev/extension exec playwright install --with-deps chromium
 
       - name: VS Code Playwright tests
-        run: xvfb-run --auto-servernum pnpm exec turbo run test:playwright --filter=@codegraphy-dev/extension
+        run: xvfb-run --auto-servernum pnpm run test:playwright
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
