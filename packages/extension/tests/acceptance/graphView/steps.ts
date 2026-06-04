@@ -356,6 +356,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I click the "Fit to Screen" button$/, async (context) => {
     await clickToolbarButton(requireGraphFrame(context), 'Fit to Screen');
+    await requireGraphFrame(context).waitForTimeout(400);
   }),
 
   step(/^all (\d+) graph nodes are visible in the graph viewport$/, async (context, _step, match) => {
