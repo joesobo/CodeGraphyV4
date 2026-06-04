@@ -21,6 +21,7 @@ export const EXPECTED_EXAMPLE_VUE_FILES = [
   'package.json',
   'src/App.vue',
   'src/components/CounterPanel.vue',
+  'src/components/LazyProfilePanel.vue',
   'src/components/StatusBadge.vue',
   'src/components/UserCard.vue',
   'src/composables/useCounter.ts',
