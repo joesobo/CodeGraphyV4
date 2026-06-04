@@ -106,3 +106,20 @@ pnpm --filter @codegraphy-dev/extension run test:playwright
 The full path compiles Markdown, builds the extension, launches a VS Code
 Extension Development Host, opens the Graph View, and runs the generated
 Playwright test.
+
+Run one generated scenario while iterating:
+
+```bash
+pnpm --filter @codegraphy-dev/extension run build:vscode
+pnpm --filter @codegraphy-dev/extension exec playwright test --config playwright.vscode.config.ts --grep "Vue example"
+```
+
+The direct Playwright command is only safe after `build:vscode`; otherwise it
+can launch stale extension output. Prefer `test:vscode` when you want the whole
+pipeline.
+
+The VS Code launcher in `graphView/vscode.ts` intentionally uses
+`--use-inmemory-secretstorage` and `--use-mock-keychain` on macOS. Those flags
+avoid the local "Keychain Not Found" / "Code Key" modal that blocks Playwright
+before it can see the Extension Development Host. Keep that launcher path in
+sync with any new VS Code Playwright fixtures.

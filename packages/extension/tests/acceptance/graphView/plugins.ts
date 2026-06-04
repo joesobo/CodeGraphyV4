@@ -36,6 +36,8 @@ export function acceptancePluginPackageRelativePathsForExample(exampleName: stri
       return ['packages/plugin-typescript'];
     case 'example-godot':
       return ['packages/plugin-godot'];
+    case 'vue-example':
+      return ['packages/plugin-vue'];
     default:
       return [];
   }

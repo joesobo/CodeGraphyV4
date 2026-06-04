@@ -5083,3 +5083,308 @@ test.describe('TypeScript Example', () => {
   });
 });
 
+test.describe('Vue Example', () => {
+  test('Vue example renders expected file nodes and import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/vue-example.md',
+      scenario: 'Vue example renders expected file nodes and import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/vue-example.md:5
+      await test.step('Given I open the examples/vue-example workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/vue-example workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/vue-example workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/vue-example workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/vue-example workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/vue-example workspace',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:12
+      await test.step('Then I can see there are 14 nodes and 7 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 7 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 14 nodes and 7 connections',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:14
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:15
+      await test.step('Then I see to buttons for switching views between node type and edge type toggles', async () => {
+        await runAcceptanceStep(context, 'I see to buttons for switching views between node type and edge type toggles', {
+          keyword: 'Then',
+          text: 'I see to buttons for switching views between node type and edge type toggles',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:16
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
+          keyword: 'And',
+          text: 'I select edge types',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:18
+      await test.step('Then I see a list of edge types with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of edge types with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of edge types with toggles',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:19
+      await test.step('And I toggle the Type imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Type imports edge on', {
+          keyword: 'And',
+          text: 'I toggle the Type imports edge on',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:20
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:22
+      await test.step('Then I can see there are 14 nodes and 10 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 10 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 14 nodes and 10 connections',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:24
+      await test.step('And src/main.ts points to src/App.vue', async () => {
+        await runAcceptanceStep(context, 'src/main.ts points to src/App.vue', {
+          keyword: 'And',
+          text: 'src/main.ts points to src/App.vue',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:25
+      await test.step('And src/App.vue points to src/components/CounterPanel.vue', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/components/CounterPanel.vue', {
+          keyword: 'And',
+          text: 'src/App.vue points to src/components/CounterPanel.vue',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:26
+      await test.step('And src/App.vue points to src/components/UserCard.vue', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/components/UserCard.vue', {
+          keyword: 'And',
+          text: 'src/App.vue points to src/components/UserCard.vue',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:27
+      await test.step('And src/App.vue points to src/data/users.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/data/users.ts', {
+          keyword: 'And',
+          text: 'src/App.vue points to src/data/users.ts',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:28
+      await test.step('And src/App.vue points to src/composables/useCounter.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.vue points to src/composables/useCounter.ts', {
+          keyword: 'And',
+          text: 'src/App.vue points to src/composables/useCounter.ts',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:29
+      await test.step('And src/data/users.ts points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/data/users.ts points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/data/users.ts points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:30
+      await test.step('And src/components/UserCard.vue points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/UserCard.vue points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/components/UserCard.vue points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:31
+      await test.step('And src/components/CounterPanel.vue points to src/components/StatusBadge.vue', async () => {
+        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/components/StatusBadge.vue', {
+          keyword: 'And',
+          text: 'src/components/CounterPanel.vue points to src/components/StatusBadge.vue',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 31
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:32
+      await test.step('And src/components/CounterPanel.vue points to src/composables/useCounter.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/composables/useCounter.ts', {
+          keyword: 'And',
+          text: 'src/components/CounterPanel.vue points to src/composables/useCounter.ts',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:33
+      await test.step('And src/components/CounterPanel.vue points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/CounterPanel.vue points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/components/CounterPanel.vue points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:35
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 35
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:36
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
+          keyword: 'And',
+          text: '.gitignore is an orphan node',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:37
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
+          keyword: 'And',
+          text: 'package.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:38
+      await test.step('And tsconfig.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+          keyword: 'And',
+          text: 'tsconfig.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/vue-example.md:39
+      await test.step('And vite.config.ts is an orphan node', async () => {
+        await runAcceptanceStep(context, 'vite.config.ts is an orphan node', {
+          keyword: 'And',
+          text: 'vite.config.ts is an orphan node',
+          sourcePath: 'tests/acceptance/specs/vue-example.md',
+          line: 39
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+

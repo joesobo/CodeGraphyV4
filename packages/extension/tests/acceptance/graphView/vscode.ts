@@ -45,7 +45,7 @@ export async function launchVSCodeWithWorkspace(
     },
   });
 
-  const page = await app.firstWindow();
+  const page = await app.firstWindow({ timeout: 90_000 });
   await page.waitForLoadState('domcontentloaded').catch(() => {});
   refocusConfiguredLocalApp();
 

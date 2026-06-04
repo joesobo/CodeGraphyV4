@@ -11,7 +11,7 @@
     "build": "pnpm run build:extension && pnpm run build:webview",
     "build:extension": "tsx scripts/buildExtension.ts",
     "build:webview": "vite build --config vite.config.ts",
-    "build:vscode": "pnpm -w exec turbo run build --filter=@codegraphy-dev/extension... --filter=@codegraphy-dev/plugin-typescript --filter=@codegraphy-dev/plugin-godot && tsc -p src/e2e/tsconfig.json",
+    "build:vscode": "pnpm -w exec turbo run build --filter=@codegraphy-dev/extension... --filter=@codegraphy-dev/plugin-typescript --filter=@codegraphy-dev/plugin-godot --filter=@codegraphy-dev/plugin-vue && tsc -p src/e2e/tsconfig.json",
     "watch": "concurrently \"pnpm run watch:extension\" \"pnpm run watch:webview\"",
     "watch:extension": "tsx scripts/buildExtension.ts --watch",
     "watch:webview": "vite build --config vite.config.ts --watch",

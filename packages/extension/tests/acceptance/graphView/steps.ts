@@ -39,9 +39,12 @@ import type { AcceptanceRuntimeStep, AcceptanceStepImplementation, GraphAcceptan
 import {
   copyExampleWorkspace,
   copyExampleTypescriptWorkspace,
+  copyExampleVueWorkspace,
   createWorkspaceTempRoot,
+  EXPECTED_EXAMPLE_VUE_FILES,
   readExampleWorkspaceFiles,
   readExampleTypescriptFiles,
+  readExampleVueFiles,
 } from './workspace';
 import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from './vscode';
 
@@ -50,6 +53,30 @@ const TARGET_NODE = 'src/index.ts';
 interface PatternAcceptanceStep {
   pattern: RegExp;
   run: (context: GraphAcceptanceContext, step: AcceptanceRuntimeStep, match: RegExpMatchArray) => Promise<void>;
+}
+
+async function expectGraphCounts(
+  context: Parameters<AcceptanceStepImplementation>[0],
+  nodes: number,
+  edges: number,
+): Promise<void> {
+  await expect.poll(async () => getGraphCounts(requireGraphFrame(context))).toEqual({ nodes, edges });
+}
+
+async function expectOrphanNode(
+  context: Parameters<AcceptanceStepImplementation>[0],
+  nodePath: string,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  const touchingEdges = await frame.locator('[aria-label^="Graph edge "]').evaluateAll((elements, path) =>
+    elements
+      .map(element => element.getAttribute('aria-label') ?? '')
+      .filter(label => label.startsWith(`Graph edge ${path} to `) || label.endsWith(` to ${path}`)),
+    nodePath,
+  );
+
+  expect(touchingEdges).toEqual([]);
 }
 
 const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation> = {
@@ -62,6 +89,12 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
         || step.sourcePath.endsWith('/graph-navigation.md')
         || step.sourcePath.endsWith('/typescript-example.md'),
     });
+  },
+
+  'I open the examples/vue-example workspace in VS Code': async (context) => {
+    context.workspaceTempRoot = createWorkspaceTempRoot();
+    context.exampleName = 'vue-example';
+    context.workspacePath = copyExampleVueWorkspace(context.workspaceTempRoot);
   },
 
   'I open the CodeGraphy extension graph view': async (context) => {
@@ -96,8 +129,24 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     expect(counts.nodes).toBe(expectedFiles.length);
   },
 
+  'the graph nodes match the expected files in the examples/vue-example workspace': async (context) => {
+    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+    expect(readExampleVueFiles(workspacePath)).toEqual(EXPECTED_EXAMPLE_VUE_FILES);
+    await expectGraphCounts(context, EXPECTED_EXAMPLE_VUE_FILES.length, 7);
+  },
+
   'I index the workspace': async (context) => {
     await indexWorkspace(context);
+  },
+
+  'I have indexed the workspace': async (context) => {
+    await graphStage(requireGraphFrame(context)).screenshot().then(image => {
+      context.beforeIndexStageImage = image;
+    });
+    await requireGraphFrame(context).getByRole('button', { name: 'Index Workspace' }).click();
+    await expect(
+      requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' }),
+    ).toBeHidden({ timeout: 30_000 });
   },
 
   'I see indexing progress': async (context) => {
@@ -124,6 +173,100 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
       const afterImage = await graphStage(frame).screenshot();
       expect(countChangedBytes(context.beforeIndexStageImage, afterImage)).toBeGreaterThan(500);
     }
+  },
+
+  'I can see there are 14 nodes and 7 connections': async (context) => {
+    await expectGraphCounts(context, 14, 7);
+  },
+
+  'I can see there are 14 nodes and 10 connections': async (context) => {
+    await expectGraphCounts(context, 14, 10);
+  },
+
+  'I click the Graph Scope button': async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Graph Scope' }).click();
+  },
+
+  'I see to buttons for switching views between node type and edge type toggles': async (context) => {
+    const frame = requireGraphFrame(context);
+    await expect(frame.getByRole('button', { name: 'Node Types' })).toBeVisible();
+    await expect(frame.getByRole('button', { name: 'Edge Types' })).toBeVisible();
+  },
+
+  'I select edge types': async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
+  },
+
+  'I see a list of edge types with toggles': async (context) => {
+    await expect(requireGraphFrame(context).getByLabel('Toggle Imports')).toBeVisible();
+  },
+
+  'I toggle the Type imports edge on': async (context) => {
+    await requireGraphFrame(context).getByLabel('Toggle Type imports').click();
+  },
+
+  'I close the Graph Scope': async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Close' }).click();
+  },
+
+  'src/main.ts points to src/App.vue': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/main.ts', 'src/App.vue');
+  },
+
+  'src/App.vue points to src/components/CounterPanel.vue': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/App.vue', 'src/components/CounterPanel.vue');
+  },
+
+  'src/App.vue points to src/components/UserCard.vue': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/App.vue', 'src/components/UserCard.vue');
+  },
+
+  'src/App.vue points to src/data/users.ts': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/App.vue', 'src/data/users.ts');
+  },
+
+  'src/App.vue points to src/composables/useCounter.ts': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/App.vue', 'src/composables/useCounter.ts');
+  },
+
+  'src/data/users.ts points to src/types.ts': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/data/users.ts', 'src/types.ts');
+  },
+
+  'src/components/UserCard.vue points to src/types.ts': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/components/UserCard.vue', 'src/types.ts');
+  },
+
+  'src/components/CounterPanel.vue points to src/components/StatusBadge.vue': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/components/CounterPanel.vue', 'src/components/StatusBadge.vue');
+  },
+
+  'src/components/CounterPanel.vue points to src/composables/useCounter.ts': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/components/CounterPanel.vue', 'src/composables/useCounter.ts');
+  },
+
+  'src/components/CounterPanel.vue points to src/types.ts': async (context) => {
+    await expectVisibleEdgeBetween(context, 'src/components/CounterPanel.vue', 'src/types.ts');
+  },
+
+  'README.md is an orphan node': async (context) => {
+    await expectOrphanNode(context, 'README.md');
+  },
+
+  '.gitignore is an orphan node': async (context) => {
+    await expectOrphanNode(context, '.gitignore');
+  },
+
+  'package.json is an orphan node': async (context) => {
+    await expectOrphanNode(context, 'package.json');
+  },
+
+  'tsconfig.json is an orphan node': async (context) => {
+    await expectOrphanNode(context, 'tsconfig.json');
+  },
+
+  'vite.config.ts is an orphan node': async (context) => {
+    await expectOrphanNode(context, 'vite.config.ts');
   },
 
   'I see the src/index.ts node': async (context) => {
@@ -604,17 +747,6 @@ async function waitForIndexingToFinish(context: GraphAcceptanceContext): Promise
   await expect(
     requireGraphFrame(context).getByRole('progressbar', { name: 'Indexing progress' }),
   ).toBeHidden({ timeout: 30_000 });
-}
-
-async function expectGraphCounts(
-  context: GraphAcceptanceContext,
-  expectedNodes: number,
-  expectedEdges: number,
-): Promise<void> {
-  await expect.poll(async () => getGraphCounts(requireGraphFrame(context))).toEqual({
-    nodes: expectedNodes,
-    edges: expectedEdges,
-  });
 }
 
 async function readZoomScaleMetric(context: GraphAcceptanceContext): Promise<number> {
