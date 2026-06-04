@@ -104,6 +104,18 @@ The editable Excalidraw source for this diagram lives at [docs/media/readme/code
 
 The VS Code extension bundles `@codegraphy-dev/core` for extension runtime behavior, which already ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Haskell, Java, Kotlin, Lua, PHP, Ruby, Rust, Swift, Dart, C#, C, and C++. It does not install the global terminal `codegraphy` command. Markdown is a real plugin package and is enabled by default for new CodeGraphy Workspaces.
 
+Supported VS Code Marketplace platforms:
+
+| Platform | VSIX target | Support status |
+|---|---|---|
+| Linux x64 | `linux-x64` | Supported |
+| macOS Apple Silicon | `darwin-arm64` | Supported |
+| Windows x64 | `win32-x64` | Supported |
+
+Intel macOS (`darwin-x64`), Linux arm64, Windows arm64, and Alpine Linux are
+not published targets yet. They should be added only after CodeGraphy has a
+matching native runtime package and a platform validation lane for that target.
+
 Plugin management starts from the global Core CLI:
 
 ```bash
