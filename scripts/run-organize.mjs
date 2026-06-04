@@ -32,7 +32,7 @@ function parseArgs(rawArgs) {
 }
 
 function runQualityToolsOrganize(args) {
-  const result = spawnSync('pnpm', ['exec', 'quality-tools', 'organize', ...args], {
+  const result = spawnSync('pnpm', ['--silent', 'exec', 'quality-tools', 'organize', ...args], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe']
   });
