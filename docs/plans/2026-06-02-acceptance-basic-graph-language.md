@@ -17,21 +17,35 @@ Human-owned acceptance spec Markdown under
 `packages/extension/tests/acceptance/specs/` should not be created or edited by
 agents until the human explicitly asks for that exact spec change.
 
-## Initial Scope
+## Implemented Scope
 
-This branch is for the first acceptance-test split:
+This branch is the first acceptance-test split for basic Graph View behavior and
+language examples. The accepted Markdown specs now cover:
 
 - Basic Graph View smoke behavior.
 - Graph rendering basics.
-- Node information and opening files.
-- Initial language-example acceptance coverage.
+- Graph navigation controls, including Fit to Screen and zoom.
+- Node selection, dragging, hover details, and favorite outlines.
+- File, folder, edge, multi-node, and background context menus.
+- Theme-sensitive graph colors.
+- Language-example graph coverage for C, C++, C#, Dart, Go, Godot,
+  Haskell, Java, Kotlin, Lua, Markdown, PHP, Python, Ruby, Rust, Swift, and
+  TypeScript.
 
-Candidate specs after review:
+The generated Playwright suite is produced from the accepted Markdown specs by:
 
-- `graph-view-smoke.md`
-- `graph-rendering.md`
-- `node-information.md`
-- `language-examples.md`
+```bash
+pnpm --filter @codegraphy-dev/extension run generate:acceptance
+```
+
+CI runs the VS Code Playwright acceptance suite through Turbo:
+
+```bash
+pnpm exec turbo run test:playwright --filter=@codegraphy-dev/extension
+```
+
+`turbo.json` includes the Playwright reports as task outputs and includes `CI`
+in the task hash so local and CI runs use the correct acceptance environment.
 
 ## Out Of Scope
 
@@ -39,4 +53,4 @@ These are planned for later Trello cards:
 
 - Search and filter workflows.
 - Export and advanced graph features.
-- Settings, cache, context menus, VS Code integrations, and plugins.
+- Settings, cache, deeper VS Code integrations, and plugin management flows.
