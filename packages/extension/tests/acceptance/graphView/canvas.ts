@@ -319,8 +319,7 @@ export async function expectNodeHasLabel(frame: Frame, probe: NodeProbe): Promis
 }
 
 export async function expectNodeIsOutlined(frame: Frame, probe: NodeProbe): Promise<void> {
-  const analysis = await analyzeNodePixels(frame, probe);
-  expect(analysis.outlinePixelCount).toBeGreaterThan(10);
+  await expect.poll(async () => (await analyzeNodePixels(frame, probe)).outlinePixelCount).toBeGreaterThan(10);
 }
 
 export async function expectVisibleEdgeBetween(
