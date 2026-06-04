@@ -86,14 +86,13 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
       includeTypeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md'),
       includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
-        || step.sourcePath.endsWith('/graph-navigation.md')
-        || step.sourcePath.endsWith('/typescript-example.md'),
+        || step.sourcePath.endsWith('/graph-navigation.md'),
     });
   },
 
-  'I open the examples/vue-example workspace in VS Code': async (context) => {
+  'I open the examples/example-vue workspace in VS Code': async (context) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
-    context.exampleName = 'vue-example';
+    context.exampleName = 'example-vue';
     context.workspacePath = copyExampleVueWorkspace(context.workspaceTempRoot);
   },
 
@@ -129,7 +128,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     expect(counts.nodes).toBe(expectedFiles.length);
   },
 
-  'the graph nodes match the expected files in the examples/vue-example workspace': async (context) => {
+  'the graph nodes match the expected files in the examples/example-vue workspace': async (context) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     expect(readExampleVueFiles(workspacePath)).toEqual(EXPECTED_EXAMPLE_VUE_FILES);
     await expectGraphCounts(context, EXPECTED_EXAMPLE_VUE_FILES.length, 7);
@@ -347,7 +346,8 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName, {
-      includeCallEdges: ['example-go', 'example-java', 'example-python', 'example-rust'].includes(exampleName),
+      includeCallEdges: false,
+      includeInheritEdges: exampleName === 'example-godot' ? false : undefined,
     });
   }),
 

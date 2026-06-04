@@ -10,6 +10,7 @@ const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
 
 interface CopyExampleWorkspaceOptions {
   includeCallEdges?: boolean;
+  includeInheritEdges?: boolean;
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
 }
@@ -70,8 +71,8 @@ export function copyExampleWorkspace(
 }
 
 export function copyExampleVueWorkspace(tempRoot: string): string {
-  const sourcePath = path.join(repoRoot(), 'examples/vue-example');
-  const workspacePath = path.join(tempRoot, 'vue-example');
+  const sourcePath = path.join(repoRoot(), 'examples/example-vue');
+  const workspacePath = path.join(tempRoot, 'example-vue');
 
   fs.cpSync(sourcePath, workspacePath, {
     recursive: true,
@@ -167,7 +168,7 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
       'type-import': options.includeTypeImportEdges ?? false,
       reexport: false,
       call: options.includeCallEdges ?? false,
-      inherit: true,
+      inherit: options.includeInheritEdges ?? true,
       reference: true,
       test: false,
       load: true,
