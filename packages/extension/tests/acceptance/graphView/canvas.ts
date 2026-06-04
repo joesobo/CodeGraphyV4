@@ -282,7 +282,7 @@ export async function dragNode(context: GraphAcceptanceContext, nodePath: string
 
   context.beforeDragCenter = probe.center;
   context.nodeProbes.delete(nodePath);
-  context.afterDragCenter = (await readNodeProbe(frame, nodePath)).center;
+  context.afterDragCenter = await waitForNodeCenterToMove(frame, nodePath, probe.center);
   context.nodeProbes.set(nodePath, {
     path: nodePath,
     center: context.afterDragCenter,
@@ -367,6 +367,19 @@ export async function readScreenDistanceBetweenNodes(
   const target = await readNodeProbe(frame, targetPath);
 
   return distanceBetween(source.center, target.center);
+}
+
+export async function readGraphDebugZoom(frame: Frame): Promise<number | null> {
+  return frame.evaluate(() => {
+    const debug = window.__CODEGRAPHY_GRAPH_DEBUG__;
+    const zoom = debug?.getSnapshot().zoom;
+    return typeof zoom === 'number' && Number.isFinite(zoom) ? zoom : null;
+  });
+}
+
+async function waitForNodeCenterToMove(frame: Frame, nodePath: string, before: Point): Promise<Point> {
+  await expect.poll(async () => distanceBetween(before, (await readNodeProbe(frame, nodePath)).center)).toBeGreaterThan(20);
+  return (await readNodeProbe(frame, nodePath)).center;
 }
 
 async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<CanvasAnalysis> {

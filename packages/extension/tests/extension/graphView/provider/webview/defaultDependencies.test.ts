@@ -108,6 +108,7 @@ describe('graphView/provider/webview/defaultDependencies', () => {
       'nonce-123',
       'graph',
       'light',
+      false,
     );
   });
 
