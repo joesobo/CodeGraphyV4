@@ -15,7 +15,7 @@ type GraphContextMenuEffectDependencies = Pick<
   | 'openFilterPatternPrompt'
   | 'openLegendRulePrompt'
   | 'postMessage'
-  | 'toggleFavoritesOptimistically'
+  | 'refreshContextSelection'
 >;
 
 export interface GraphContextMenuEffectRuntime {
@@ -172,11 +172,11 @@ export function createContextMenuEffectRuntime(
       return;
     }
 
-    if (action.kind === 'builtin' && action.action === 'toggleFavorite') {
-      dependencies.toggleFavoritesOptimistically?.(context.targetIds);
-    }
-
     applyContextEffects(getGraphContextActionEffects(action, context));
+
+    if (action.kind === 'builtin' && action.action === 'toggleFavorite') {
+      dependencies.refreshContextSelection?.();
+    }
   };
 
   return {

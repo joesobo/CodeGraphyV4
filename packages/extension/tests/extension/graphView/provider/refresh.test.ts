@@ -117,7 +117,7 @@ describe('graphView/provider/refresh', () => {
 
 
 
-    it('refresh resends favorites after re-analysis', async () => {
+    it('refresh does not resend favorites after re-analysis', async () => {
       const source = createSource();
       const methods = createGraphViewProviderRefreshMethods(source as never, {
         getShowOrphans: vi.fn(() => true),
@@ -127,7 +127,7 @@ describe('graphView/provider/refresh', () => {
 
       await methods.refresh();
 
-      expect(source._sendFavorites).toHaveBeenCalledOnce();
+      expect(source._sendFavorites).not.toHaveBeenCalled();
     });
 
 
@@ -150,7 +150,7 @@ describe('graphView/provider/refresh', () => {
       expect(refreshAndSendData).toHaveBeenCalledOnce();
       expect(source._analyzeAndSendData).not.toHaveBeenCalled();
       expect(source._sendAllSettings).toHaveBeenCalledOnce();
-      expect(source._sendFavorites).toHaveBeenCalledOnce();
+      expect(source._sendFavorites).not.toHaveBeenCalled();
     });
 
 
@@ -239,7 +239,7 @@ describe('graphView/provider/refresh', () => {
       expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
       expect(source._analyzeAndSendData).not.toHaveBeenCalled();
       expect(source._sendAllSettings).toHaveBeenCalledOnce();
-      expect(source._sendFavorites).toHaveBeenCalledOnce();
+      expect(source._sendFavorites).not.toHaveBeenCalled();
     });
 
     it('refreshPluginFiles publishes the targeted plugin refresh result without rebuilding it again', async () => {
@@ -276,7 +276,7 @@ describe('graphView/provider/refresh', () => {
         payload: source._graphData,
       });
       expect(source._sendAllSettings).toHaveBeenCalledOnce();
-      expect(source._sendFavorites).toHaveBeenCalledOnce();
+      expect(source._sendFavorites).not.toHaveBeenCalled();
     });
 
     it('refreshAnalysisScope forwards progress from the scoped refresh request', async () => {

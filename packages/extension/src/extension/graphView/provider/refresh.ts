@@ -47,7 +47,7 @@ export interface GraphViewProviderRefreshMethodsSource {
   _refreshAndSendData?(): Promise<void>;
   _incrementalAnalyzeAndSendData?(filePaths: readonly string[]): Promise<void>;
   _sendAllSettings(): void;
-  _sendFavorites(): void;
+  _sendFavorites(favorites?: string[]): void;
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
   _sendGraphControls?(): void;

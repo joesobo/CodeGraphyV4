@@ -36,8 +36,6 @@ export async function deleteGraphViewFiles(
   paths: string[],
   handlers: GraphViewFileDeleteHandlers,
 ): Promise<void> {
-  if (!handlers.workspaceFolder) return;
-
   const count = paths.length;
   const message =
     count === 1
@@ -45,6 +43,8 @@ export async function deleteGraphViewFiles(
       : `Are you sure you want to delete ${count} files?`;
 
   const confirm = await handlers.showWarningMessage(message, { modal: true }, 'Delete');
+  if (!handlers.workspaceFolder) return;
+
   if (confirm === 'Delete') {
     await handlers.executeDeleteAction(paths, handlers.workspaceFolder.uri);
   }

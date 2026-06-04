@@ -39,6 +39,7 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(settings.edgeVisibility).toEqual(expect.objectContaining({
       import: true,
       'type-import': false,
+      call: false,
       inherit: true,
       reference: true,
       load: true,
@@ -73,6 +74,22 @@ describe('acceptance graph view workspace fixtures', () => {
     };
 
     expect(settings.edgeVisibility?.['type-import']).toBe(true);
+  });
+
+  it('can expose call edges for language scenarios that assert imported-call connections', () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-go', {
+      includeCallEdges: true,
+    });
+    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+    };
+
+    expect(settings.edgeVisibility?.call).toBe(true);
   });
 
   it('rewrites markdown example links for the copied workspace root', () => {

@@ -1,4 +1,4 @@
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
+import { useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactElement, type Ref } from 'react';
 import type { DirectionMode } from '../../../../shared/settings/modes';
 import type { GraphMarqueeSelectionState } from '../marqueeSelection/model';
 import type { GraphTooltipState } from '../tooltip/model';
@@ -163,26 +163,62 @@ function ViewportContextMenuItems({
         }
 
         return (
-          <ContextMenuItem
+          <ViewportContextMenuItem
             key={entry.id}
-            className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
-            disabled={entry.disabled}
-            onClick={() => {
-              if (entry.contextSelection) {
-                handleMenuAction({
-                  action: entry.action,
-                  contextSelection: entry.contextSelection,
-                });
-              }
-            }}
-          >
-            {entry.label}
-            {entry.shortcut ? <ContextMenuShortcut>{entry.shortcut}</ContextMenuShortcut> : null}
-          </ContextMenuItem>
+            entry={entry}
+            handleMenuAction={handleMenuAction}
+          />
         );
       })}
     </>
   );
+}
+
+function ViewportContextMenuItem({
+  entry,
+  handleMenuAction,
+}: {
+  entry: Extract<GraphContextMenuEntry, { kind: 'item' }>;
+  handleMenuAction: ViewportProps['handleMenuAction'];
+}): ReactElement {
+  const handledRef = useRef(false);
+  const handleAction = (): void => {
+    if (handledRef.current) {
+      return;
+    }
+
+    handledRef.current = true;
+    queueMicrotask(() => {
+      handledRef.current = false;
+    });
+
+    if (entry.contextSelection) {
+      handleMenuAction({
+        action: entry.action,
+        contextSelection: entry.contextSelection,
+      });
+    }
+  };
+
+  return (
+    <ContextMenuItem
+      className={entry.destructive ? 'text-[var(--cg-error-foreground)] focus:text-[var(--cg-error-foreground)]' : undefined}
+      data-menu-entry-id={entry.id}
+      data-menu-entry-targets={entry.contextSelection?.targets.join('\n') ?? ''}
+      disabled={entry.disabled}
+      onClick={handleAction}
+      onSelect={handleAction}
+    >
+      {entry.label}
+      {entry.shortcut ? <ContextMenuShortcut>{entry.shortcut}</ContextMenuShortcut> : null}
+    </ContextMenuItem>
+  );
+}
+
+function createMenuEntriesSignature(menuEntries: readonly GraphContextMenuEntry[]): string {
+  return menuEntries
+    .map(entry => entry.kind === 'separator' ? `${entry.id}:separator` : `${entry.id}:${entry.label}`)
+    .join('|');
 }
 
 export function Viewport({
@@ -211,6 +247,8 @@ export function Viewport({
   onSurface3dError,
   pluginHost,
 }: ViewportProps): ReactElement {
+  const menuEntriesSignature = createMenuEntriesSignature(menuEntries);
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -248,7 +286,7 @@ export function Viewport({
         </div>
       </ContextMenuTrigger>
 
-      <ContextMenuContent className="w-64">
+      <ContextMenuContent key={menuEntriesSignature} data-menu-entries-signature={menuEntriesSignature} className="w-64">
         <ViewportContextMenuItems
           handleMenuAction={handleMenuAction}
           menuEntries={menuEntries}

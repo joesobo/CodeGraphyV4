@@ -1,4 +1,5 @@
 import type { GraphContextEffect } from '../contextActions/effects';
+import { graphStore } from '../../../store/state';
 
 export interface GraphContextEffectHandlers {
   clearCachedFile(path: string): void;
@@ -42,6 +43,9 @@ const EFFECT_APPLIERS: GraphContextEffectAppliers = {
     });
   },
   postMessage: (effect, handlers) => {
+    if (effect.message.type === 'TOGGLE_FAVORITE') {
+      graphStore.getState().toggleFavoritesOptimistically(effect.message.payload.paths);
+    }
     handlers.postMessage(effect.message);
   },
   runGraphViewContextMenuContribution: (effect) => {

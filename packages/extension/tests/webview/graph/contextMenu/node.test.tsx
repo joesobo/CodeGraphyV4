@@ -442,6 +442,65 @@ describe('Graph context menu (node)', () => {
     expect(favMsg!.payload.paths).toContain('src/app.ts');
   });
 
+  it('updates the favorite action after the store favorites change', async () => {
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Add to Favorites')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      graphStore.getState().toggleFavoritesOptimistically(['src/app.ts']);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Add to Favorites')).not.toBeInTheDocument();
+    });
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Remove from Favorites')).toBeInTheDocument();
+    });
+  });
+
+  it('updates the favorite action after clicking Add to Favorites', async () => {
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Add to Favorites')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Add to Favorites'));
+    });
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Remove from Favorites')).toBeInTheDocument();
+    });
+  });
+
   it('shows symbol-specific node menu actions', async () => {
     const { container } = render(<Graph data={symbolData} />);
     const graphContainer = getGraphContainer(container);

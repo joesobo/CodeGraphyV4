@@ -28,7 +28,7 @@ export class ToggleFavoriteAction implements IUndoableAction {
    */
   constructor(
     private readonly _paths: string[],
-    private readonly _sendFavorites: () => void
+    private readonly _sendFavorites: (favorites: string[]) => void
   ) {
     this.description = _paths.length === 1
       ? `Toggle favorite: ${_paths[0].split('/').pop()}`
@@ -59,7 +59,7 @@ export class ToggleFavoriteAction implements IUndoableAction {
 
     // Apply the "after" state
     await config.update('favorites', this._stateAfter);
-    this._sendFavorites();
+    this._sendFavorites(this._stateAfter);
   }
 
   async undo(): Promise<void> {
@@ -67,6 +67,6 @@ export class ToggleFavoriteAction implements IUndoableAction {
     
     // Restore to the "before" state (full replacement, not delta)
     await config.update('favorites', this._stateBefore);
-    this._sendFavorites();
+    this._sendFavorites(this._stateBefore);
   }
 }

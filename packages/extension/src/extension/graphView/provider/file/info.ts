@@ -28,7 +28,7 @@ export interface GraphViewProviderFileInfoMethodsSource {
 export interface GraphViewProviderFileInfoMethods {
   _getFileInfo(filePath: string): Promise<void>;
   _addToExclude(patterns: string[]): Promise<void>;
-  _sendFavorites(): void;
+  _sendFavorites(favorites?: string[]): void;
 }
 
 export interface GraphViewProviderFileInfoMethodDependencies {
@@ -96,7 +96,15 @@ export function createGraphViewProviderFileInfoMethods(
     });
   };
 
-  const _sendFavorites = (): void => {
+  const _sendFavorites = (favorites?: string[]): void => {
+    if (favorites) {
+      source._sendMessage({
+        type: 'FAVORITES_UPDATED',
+        payload: { favorites },
+      } as ExtensionToWebviewMessage);
+      return;
+    }
+
     resolvedDependencies.sendFavorites(
       resolvedDependencies.getConfiguration('codegraphy'),
       message => source._sendMessage(message as ExtensionToWebviewMessage),

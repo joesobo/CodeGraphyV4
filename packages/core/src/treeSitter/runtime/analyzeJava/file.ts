@@ -39,16 +39,13 @@ function visitJavaNode(
     case 'class_declaration':
     case 'interface_declaration':
     case 'enum_declaration': {
-      if (!symbolsEnabled) {
-        return;
-      }
       handleJavaTypeDeclaration(
         node,
         filePath,
         sourceRoot,
         packageName,
         relations,
-        symbols,
+        symbolsEnabled ? symbols : [],
         importedBindings,
       );
       return;
