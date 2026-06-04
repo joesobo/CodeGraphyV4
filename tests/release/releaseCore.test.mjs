@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -77,4 +79,34 @@ test('publish mode publishes every target-specific VSIX target', () => {
       ['publish', '--no-dependencies', '--skip-duplicate', '--target', 'win32-x64'],
     ],
   );
+});
+
+test('stages the target LadybugDB native binary before packaging a target VSIX', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-release-native-'));
+  const stageDir = path.join(tempDir, 'stage');
+  const linuxBinaryPath = path.join(tempDir, 'native', 'linux-x64', 'lbugjs.node');
+  const stagedBinaryPath = path.join(
+    stageDir,
+    'dist',
+    'node_modules',
+    '@ladybugdb',
+    'core',
+    'lbugjs.node',
+  );
+
+  fs.mkdirSync(path.dirname(linuxBinaryPath), { recursive: true });
+  fs.mkdirSync(path.dirname(stagedBinaryPath), { recursive: true });
+  fs.writeFileSync(linuxBinaryPath, 'ELF linux x64');
+  fs.writeFileSync(stagedBinaryPath, 'Mach-O darwin arm64');
+
+  releaseCore.stageTargetLadybugNativeBinary({
+    stageDir,
+    target: 'linux-x64',
+    resolveNativeBinaryPath: target => {
+      assert.equal(target, 'linux-x64');
+      return linuxBinaryPath;
+    },
+  });
+
+  assert.equal(fs.readFileSync(stagedBinaryPath, 'utf8'), 'ELF linux x64');
 });
