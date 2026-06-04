@@ -1,0 +1,12 @@
+{
+  "$schema": "../../codegraphy.schema.json",
+  "id": "codegraphy.svelte",
+  "name": "Svelte",
+  "version": "0.1.0",
+  "apiVersion": "^2.0.0",
+  "supportedExtensions": [
+    ".svelte"
+  ],
+  "defaultFilters": [],
+  "fileColors": {}
+}

@@ -1,0 +1,59 @@
+{
+  "name": "@codegraphy-dev/plugin-svelte",
+  "version": "0.1.0",
+  "description": "CodeGraphy Svelte plugin",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/plugin.js",
+  "types": "./dist/plugin.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joesobo/CodeGraphyV4.git"
+  },
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/plugin-svelte",
+  "bugs": {
+    "url": "https://github.com/joesobo/CodeGraphyV4/issues"
+  },
+  "engines": {
+    "node": ">=20.20.0 <23"
+  },
+  "keywords": [
+    "codegraphy",
+    "codegraphy-plugin",
+    "graph",
+    "svelte",
+    "sfc"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "codegraphy.json",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json --emitDeclarationOnly && node ../../scripts/build-workspace-package.mjs src/plugin.ts dist/plugin.js",
+    "test": "vitest run",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy-dev/plugin-api": "workspace:*",
+    "svelte": "^5.56.2",
+    "typescript": "^5.3.3"
+  },
+  "codegraphy": {
+    "type": "plugin",
+    "apiVersion": "^2.0.0",
+    "disclosures": []
+  }
+}
