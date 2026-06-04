@@ -271,6 +271,10 @@ Node, edge, Legend, and Plugin Settings Controls are in dedicated toolbar popups
 - **Plugins**: enable/disable plugins and reorder them
 - **Depth Mode**: optional toolbar mode that focuses the Visible Graph around the Focused Node
 
+Fresh CodeGraphy Workspaces default built-in Edge Type scope to **Imports** on and all other built-in Edge Types off. Plugin-contributed Edge Types default off unless the plugin explicitly defines a different `defaultVisible` value. Existing values saved in `.codegraphy/settings.json` remain the expected workspace values and are not migrated to new defaults. Users can enable additional Edge Types from Graph Scope without re-indexing when those relationships are already present in the Graph Cache.
+
+Graph Scope lists built-in Edge Types by common usefulness: **Imports**, **References**, **Calls**, **Tests**, **Re-exports**, **Type imports**, **Inherits**, **Loads**, **Nests**, **Contains**, then **Overrides**. Plugin-contributed Edge Types appear after built-ins unless a later product decision defines plugin grouping.
+
 Graph Cache enrichment follows Graph Scope. CodeGraphy caches baseline file nodes and file-level edges first; enabling Symbols or a plugin computes the missing tier and keeps it cached when that scope is turned off again.
 
 ## File discovery settings
@@ -398,14 +402,20 @@ CodeGraphy’s workspace behavior lives under `<workspace-root>/.codegraphy/`.
 - `~/.codegraphy/plugins.json` is user-level Plugin Registry state and is not part of any source workspace.
 - `~/.codegraphy/settings.json` is user-level CodeGraphy default state.
 
-Recommended `.gitignore` entries:
+Recommended default `.gitignore` entry:
 
 ```gitignore
-.codegraphy/graph.lbug
-.codegraphy/cache/
+.codegraphy/*
 ```
 
-Do not ignore all of `.codegraphy/` if you want to share workspace plugin enablement, filters, Graph Scope, or Legend settings with teammates.
+That default keeps generated Graph Cache artifacts, imported icons, and other CodeGraphy-managed files out of source control. If you want to share workspace plugin enablement, filters, Graph Scope, or Legend settings with teammates, add an explicit exception for the settings file:
+
+```gitignore
+.codegraphy/*
+!.codegraphy/settings.json
+```
+
+Do not use `.codegraphy/` if you want to share any files under `.codegraphy/`; ignoring the directory itself prevents Git from re-including files inside it.
 
 ## Troubleshooting
 

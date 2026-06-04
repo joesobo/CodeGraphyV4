@@ -2,7 +2,8 @@ import * as fs from 'node:fs';
 
 export const SETTINGS_DIR_NAME = '.codegraphy';
 export const SETTINGS_FILE_NAME = 'settings.json';
-const SETTINGS_IGNORE_ENTRY = '.codegraphy/';
+const SETTINGS_IGNORE_ENTRY = '.codegraphy/*';
+const LEGACY_SETTINGS_IGNORE_ENTRIES = new Set(['.codegraphy', '.codegraphy/']);
 
 export function ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath: string): void {
   if (!fs.existsSync(gitIgnorePath)) {
@@ -16,7 +17,15 @@ export function ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath: string): v
     .map(line => line.trim())
     .filter(Boolean);
 
-  if (lines.some(line => line === '.codegraphy' || line === SETTINGS_IGNORE_ENTRY)) {
+  if (lines.includes(SETTINGS_IGNORE_ENTRY)) {
+    return;
+  }
+
+  if (lines.some(line => LEGACY_SETTINGS_IGNORE_ENTRIES.has(line))) {
+    fs.writeFileSync(
+      gitIgnorePath,
+      existing.replace(/(^|\r?\n)([ \t]*)\.codegraphy\/?([ \t]*)(?=\r?\n|$)/, `$1$2${SETTINGS_IGNORE_ENTRY}$3`),
+    );
     return;
   }
 

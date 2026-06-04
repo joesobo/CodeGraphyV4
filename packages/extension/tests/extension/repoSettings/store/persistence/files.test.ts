@@ -32,7 +32,7 @@ describe('extension/repoSettings/store/persistence/files', () => {
 
     ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath);
 
-    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/\n');
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/*\n');
   });
 
   it('appends the entry to an empty gitignore without a leading blank line', () => {
@@ -42,7 +42,7 @@ describe('extension/repoSettings/store/persistence/files', () => {
 
     ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath);
 
-    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/\n');
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/*\n');
   });
 
   it('appends the repo-local entry once and preserves existing newline state', () => {
@@ -53,10 +53,22 @@ describe('extension/repoSettings/store/persistence/files', () => {
     ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath);
     ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath);
 
-    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('dist\ncoverage\n.codegraphy/\n');
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('dist\ncoverage\n.codegraphy/*\n');
   });
 
-  it('treats both .codegraphy and .codegraphy/ as existing entries', () => {
+  it('preserves a repo policy that ignores CodeGraphy contents but shares settings', () => {
+    const gitIgnorePath = createTempFilePath('.gitignore');
+    tempDirectories.push(path.dirname(gitIgnorePath));
+    fs.writeFileSync(gitIgnorePath, '.codegraphy/*\n!.codegraphy/settings.json\n', 'utf8');
+
+    ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath);
+
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe(
+      '.codegraphy/*\n!.codegraphy/settings.json\n',
+    );
+  });
+
+  it('migrates legacy directory ignore entries to a contents ignore entry', () => {
     const barePath = createTempFilePath('bare.gitignore');
     const suffixedPath = createTempFilePath('suffixed.gitignore');
     tempDirectories.push(path.dirname(barePath));
@@ -67,17 +79,17 @@ describe('extension/repoSettings/store/persistence/files', () => {
     ensureGitIgnoreContainsCodeGraphyEntry(barePath);
     ensureGitIgnoreContainsCodeGraphyEntry(suffixedPath);
 
-    expect(fs.readFileSync(barePath, 'utf8')).toBe('.codegraphy\n');
-    expect(fs.readFileSync(suffixedPath, 'utf8')).toBe('.codegraphy/\n');
+    expect(fs.readFileSync(barePath, 'utf8')).toBe('.codegraphy/*\n');
+    expect(fs.readFileSync(suffixedPath, 'utf8')).toBe('.codegraphy/*\n');
   });
 
-  it('treats whitespace-padded existing entries as already present', () => {
+  it('migrates whitespace-padded legacy entries', () => {
     const gitIgnorePath = createTempFilePath('spaced.gitignore');
     tempDirectories.push(path.dirname(gitIgnorePath));
     fs.writeFileSync(gitIgnorePath, 'dist\n   .codegraphy/   \n\n', 'utf8');
 
     ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath);
 
-    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('dist\n   .codegraphy/   \n\n');
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('dist\n   .codegraphy/*   \n\n');
   });
 });
