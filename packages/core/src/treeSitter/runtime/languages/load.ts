@@ -14,10 +14,12 @@ export interface ITreeSitterBindings {
   javaScript: Parser.Language;
   kotlin: Parser.Language;
   lua: Parser.Language;
+  objectiveC: Parser.Language;
   php: Parser.Language;
   python: Parser.Language;
   ruby: Parser.Language;
   rust: Parser.Language;
+  scala: Parser.Language;
   swift: Parser.Language;
   tsx: Parser.Language;
   typeScript: Parser.Language;
@@ -37,10 +39,12 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
     import('tree-sitter-javascript'),
     import('@tree-sitter-grammars/tree-sitter-kotlin'),
     import('@tree-sitter-grammars/tree-sitter-lua'),
+    import('tree-sitter-objc'),
     import('tree-sitter-php'),
     import('tree-sitter-python'),
     import('tree-sitter-ruby'),
     import('tree-sitter-rust'),
+    import('tree-sitter-scala'),
     import('tree-sitter-swift'),
     import('tree-sitter-typescript'),
   ])
@@ -56,10 +60,12 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
       javaScriptModule,
       kotlinModule,
       luaModule,
+      objectiveCModule,
       phpModule,
       pythonModule,
       rubyModule,
       rustModule,
+      scalaModule,
       swiftModule,
       typeScriptModule,
     ]) => {
@@ -81,10 +87,12 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
         javaScript: javaScriptModule.default as unknown as Parser.Language,
         kotlin: kotlinModule.default as unknown as Parser.Language,
         lua: luaModule.default as unknown as Parser.Language,
+        objectiveC: objectiveCModule.default as unknown as Parser.Language,
         php: (phpModule.default as unknown as { php: Parser.Language }).php,
         python: pythonModule.default as unknown as Parser.Language,
         ruby: rubyModule.default as unknown as Parser.Language,
         rust: rustModule.default as unknown as Parser.Language,
+        scala: scalaModule.default as unknown as Parser.Language,
         swift: swiftModule.default as unknown as Parser.Language,
         tsx: typeScriptLanguages.tsx,
         typeScript: typeScriptLanguages.typescript,

@@ -14,5 +14,6 @@ export const TREE_SITTER_OTHER_BINDINGS = {
   '.pyi': { languageKind: 'python', language: 'python' },
   '.rb': { languageKind: 'ruby', language: 'ruby' },
   '.rs': { languageKind: 'rust', language: 'rust' },
+  '.scala': { languageKind: 'scala', language: 'scala' },
   '.swift': { languageKind: 'swift', language: 'swift' },
 } satisfies Record<string, TreeSitterRuntimeBinding>;
