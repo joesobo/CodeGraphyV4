@@ -53,6 +53,18 @@ function packageAlias(packageName) {
   return packageName;
 }
 
+function packageAliases(packageName) {
+  const alias = packageAlias(packageName);
+  const aliases = [alias];
+
+  if (alias.startsWith('plugin-')) {
+    aliases.push(alias.slice('plugin-'.length));
+  }
+
+  aliases.push(packageName);
+  return aliases;
+}
+
 function collectWorkspacePackages(baseDir) {
   const rootManifest = readJson(path.join(baseDir, 'package.json'));
   const packages = [];
@@ -134,7 +146,7 @@ function toWorkspaceReleaseTarget(workspacePackage) {
 
   return {
     id: packageAlias(manifest.name),
-    aliases: [packageAlias(manifest.name), manifest.name],
+    aliases: packageAliases(manifest.name),
     kind: hasVsceRelease ? 'vsce' : 'npm',
     packageName: manifest.name,
     version: manifest.version,
