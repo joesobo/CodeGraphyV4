@@ -85,4 +85,3 @@ function renderSelectionGraph(): HTMLElement {
   const { container } = render(<Graph data={selectionData} />);
   return getGraphContainer(container);
 }
-

@@ -7,8 +7,8 @@ Make test commands easier to understand from the root and from each package.
 The target shape is:
 
 - `test` means Vitest/unit-level tests for a package.
-- `test:playwright` means browser tests for packages that have browser behavior.
-- `test:vscode` means VS Code Electron extension-host tests for packages that need the real VS Code API.
+- `test:playwright` means Playwright acceptance/browser tests for workspace packages and apps that declare that script.
+- `test:vscode` is the extension package's direct VS Code Playwright runner.
 - Root scripts compose package scripts instead of carrying package-specific details.
 - Mutation testing stays a local quality-tool workflow that runs against Vitest, not Playwright or VS Code E2E.
 
@@ -26,8 +26,8 @@ Root scripts:
 
 - `test` runs the full test suite that CI should trust.
 - `test:unit` runs all package Vitest suites through Turbo.
-- `test:playwright` runs package Playwright suites.
-- `test:vscode` runs a local-only VS Code Electron smoke suite.
+- `test:playwright` runs workspace package and app Playwright suites through Turbo.
+- `test:vscode` runs the extension package's raw VS Code Playwright suite.
 
 Package scripts:
 
@@ -45,9 +45,9 @@ Package scripts:
 
 ## First Slice Decisions
 
-- Root `pnpm test` now composes `test:unit` and `test:playwright`; CI does not run VS Code Electron tests.
+- Root `pnpm test` now composes `test:unit` and the Turbo-cached `test:playwright` lane.
 - Playwright is the CI E2E lane for browser/webview behavior that matters before merge.
-- VS Code E2E is a local sanity lane for the real Electron extension host. By default, `pnpm run test:vscode` runs a reduced smoke subset. Run `CODEGRAPHY_E2E_FULL=1 pnpm run test:vscode` for the full local suite.
+- `@codegraphy-dev/extension` keeps `test:vscode` as the direct VS Code Playwright command, while root and CI use `test:playwright` so Turbo can cache the acceptance lane.
 - The root release checks and `tests/release` suite are removed. The release workflow publishes artifacts; there is no public package-without-publish workflow.
 - CI runs separate lint, typecheck, unit-test, Playwright, and build lanes so independent work is not serialized behind the slowest suite.
 - Turbo caches package builds and test logs/results through task outputs and GitHub Actions restores `.turbo` between CI runs.

@@ -41,8 +41,13 @@ pnpm --filter @codegraphy-dev/extension run generate:acceptance
 CI runs the VS Code Playwright acceptance suite through Turbo:
 
 ```bash
-pnpm exec turbo run test:playwright --filter=@codegraphy-dev/extension
+pnpm run test:playwright
 ```
+
+The root `test:playwright` script discovers workspace packages and apps that
+declare `test:playwright`, then filters Turbo to just those owners. The
+extension package keeps `test:vscode` as the direct VS Code Playwright runner
+that its `test:playwright` script delegates to.
 
 `turbo.json` includes the Playwright reports as task outputs and includes `CI`
 in the task hash so local and CI runs use the correct acceptance environment.

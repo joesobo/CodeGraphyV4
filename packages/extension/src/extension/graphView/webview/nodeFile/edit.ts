@@ -25,16 +25,14 @@ function applyTimelineBoundEditMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewNodeFileEditHandlers,
 ): boolean | Promise<boolean> {
-  if (message.type === 'DELETE_FILES') {
-    void handlers.deleteFiles(message.payload.paths);
-    return true;
-  }
-
   if (handlers.timelineActive && !handlers.canMutateGraphRevision) {
     return isTimelineBoundEditMessage(message);
   }
 
   switch (message.type) {
+    case 'DELETE_FILES':
+      void handlers.deleteFiles(message.payload.paths);
+      return true;
     case 'RENAME_FILE':
       void handlers.renameFile(message.payload.path);
       return true;

@@ -119,4 +119,3 @@ describe('Graph node context menu opening', () => {
     });
   });
 });
-
