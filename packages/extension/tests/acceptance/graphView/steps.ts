@@ -856,10 +856,21 @@ async function togglePanelSwitch(context: GraphAcceptanceContext, label: string)
 
 async function pressAndHoldToolbarButton(context: GraphAcceptanceContext, label: string): Promise<void> {
   const button = requireGraphFrame(context).getByRole('button', { name: label });
-  await button.hover();
-  await requireValue(context.vscode, 'Expected VS Code to be launched').page.mouse.down();
+  await button.dispatchEvent('pointerdown', {
+    bubbles: true,
+    button: 0,
+    buttons: 1,
+    pointerId: 1,
+    pointerType: 'mouse',
+  });
   await requireGraphFrame(context).waitForTimeout(350);
-  await requireValue(context.vscode, 'Expected VS Code to be launched').page.mouse.up();
+  await button.dispatchEvent('pointerup', {
+    bubbles: true,
+    button: 0,
+    buttons: 0,
+    pointerId: 1,
+    pointerType: 'mouse',
+  });
 }
 
 async function expectInputValue(
