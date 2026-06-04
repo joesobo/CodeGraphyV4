@@ -10,16 +10,34 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
     expect(STRUCTURAL_NESTS_EDGE_KIND).toBe('nests');
     expect(createCoreGraphEdgeTypes()).toEqual([
       {
-        id: 'nests',
-        label: 'Nests',
-        defaultColor: '#64748B',
-        defaultVisible: true,
-      },
-      {
         id: 'import',
         label: 'Imports',
         defaultColor: '#60A5FA',
         defaultVisible: true,
+      },
+      {
+        id: 'reference',
+        label: 'References',
+        defaultColor: '#F97316',
+        defaultVisible: false,
+      },
+      {
+        id: 'call',
+        label: 'Calls',
+        defaultColor: '#22C55E',
+        defaultVisible: false,
+      },
+      {
+        id: 'test',
+        label: 'Tests',
+        defaultColor: '#EF4444',
+        defaultVisible: false,
+      },
+      {
+        id: 'reexport',
+        label: 'Re-exports',
+        defaultColor: '#A78BFA',
+        defaultVisible: false,
       },
       {
         id: 'type-import',
@@ -28,52 +46,34 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
         defaultVisible: false,
       },
       {
-        id: 'reexport',
-        label: 'Re-exports',
-        defaultColor: '#A78BFA',
-        defaultVisible: true,
-      },
-      {
-        id: 'call',
-        label: 'Calls',
-        defaultColor: '#22C55E',
-        defaultVisible: true,
-      },
-      {
         id: 'inherit',
         label: 'Inherits',
         defaultColor: '#F59E0B',
-        defaultVisible: true,
-      },
-      {
-        id: 'reference',
-        label: 'References',
-        defaultColor: '#F97316',
-        defaultVisible: true,
-      },
-      {
-        id: 'test',
-        label: 'Tests',
-        defaultColor: '#EF4444',
-        defaultVisible: true,
+        defaultVisible: false,
       },
       {
         id: 'load',
         label: 'Loads',
         defaultColor: '#06B6D4',
-        defaultVisible: true,
+        defaultVisible: false,
+      },
+      {
+        id: 'nests',
+        label: 'Nests',
+        defaultColor: '#64748B',
+        defaultVisible: false,
       },
       {
         id: 'contains',
         label: 'Contains',
         defaultColor: '#94A3B8',
-        defaultVisible: true,
+        defaultVisible: false,
       },
       {
         id: 'overrides',
         label: 'Overrides',
         defaultColor: '#EC4899',
-        defaultVisible: true,
+        defaultVisible: false,
       },
     ]);
     expect(CORE_GRAPH_EDGE_TYPES).toEqual(createCoreGraphEdgeTypes());
