@@ -23,7 +23,6 @@ The package uses several layers of tests:
 pnpm --filter @codegraphy-dev/extension test
 pnpm --filter @codegraphy-dev/extension run test:node
 pnpm --filter @codegraphy-dev/extension run test:webview
-pnpm --filter @codegraphy-dev/extension run prepare:playwright
 pnpm --filter @codegraphy-dev/extension run test:playwright
 pnpm --filter @codegraphy-dev/extension run test:vscode
 pnpm --filter @codegraphy-dev/extension exec vitest run --config vitest.config.ts tests/webview/graph/runtime/events.test.tsx
@@ -34,7 +33,7 @@ pnpm --filter @codegraphy-dev/extension typecheck
 
 CI runs extension unit tests as separate `node` and grouped `webview` Vitest lanes. The webview groups are defined in `vitest.includes.ts` because the check names should describe the behavior under test, not an arbitrary shard number.
 
-`prepare:playwright` generates acceptance tests and builds the VS Code extension/webview artifacts. `test:vscode` is the raw VS Code Playwright runner and expects those artifacts to already exist. The root `test:playwright` command prepares once, then runs the Turbo-cached package Playwright tasks.
+`test:playwright` generates acceptance tests, builds the VS Code extension/webview artifacts, and runs the VS Code Playwright suite. `test:vscode` is kept as a compatibility alias for the same package-owned command.
 
 ```bash
 pnpm exec turbo run test:node --filter=@codegraphy-dev/extension
