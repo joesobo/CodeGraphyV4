@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-scala workspace
 
-Then I can see there are 10 nodes and 11 connections
+Then I can see there are 11 nodes and 10 connections
 And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala
 And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala
 And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala
@@ -24,4 +24,3 @@ And src/main/scala/com/example/service/UserService.scala points to src/main/scal
 And README.md is an orphan node
 And build.sbt is an orphan node
 And project/build.properties is an orphan node
-
