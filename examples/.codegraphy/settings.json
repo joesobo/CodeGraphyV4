@@ -1,6 +1,7 @@
 {
   "version": 1,
   "maxFiles": 500,
+  "verboseDiagnostics": false,
   "include": [
     "**/*"
   ],
@@ -12,8 +13,24 @@
     },
     {
       "package": "@codegraphy-pro/organize"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-godot"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-vue"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-typescript"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-python"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-csharp"
     }
   ],
+  "pluginData": {},
   "nodeColors": {
     "file": "#A1A1AA",
     "folder": "#A1A1AA",
@@ -45,24 +62,29 @@
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
-    "nests": true,
     "import": true,
-    "type-import": false,
-    "reexport": true,
-    "call": true,
-    "inherit": true,
     "reference": true,
-    "test": true,
+    "call": false,
+    "test": false,
+    "reexport": false,
+    "type-import": true,
+    "inherit": false,
     "load": true,
-    "contains": true,
-    "overrides": true
+    "nests": false,
+    "contains": false,
+    "overrides": false,
+    "codegraphy.typescript:alias-import": true
   },
   "favorites": [],
   "bidirectionalEdges": "separate",
   "legend": [],
   "legendVisibility": {},
   "legendOrder": [],
-  "filterPatterns": [],
+  "filterPatterns": [
+    "**/.gitignore",
+    "*.png",
+    "README.md"
+  ],
   "disabledCustomFilterPatterns": [],
   "disabledPluginFilterPatterns": [],
   "showLabels": true,
@@ -75,21 +97,15 @@
   "dagMode": null,
   "nodeSizeMode": "connections",
   "physics": {
-    "repelForce": 13,
-    "linkDistance": 80,
-    "linkForce": 0.95,
+    "repelForce": 18,
+    "linkDistance": 50,
+    "linkForce": 1,
     "damping": 0.7,
-    "centerForce": 0.16,
+    "centerForce": 0.2,
     "chargeRange": 200
   },
   "timeline": {
     "maxCommits": 500,
     "playbackSpeed": 1
-  },
-  "graphLayout": {
-    "collapsedNodes": {},
-    "pinnedNodes": {},
-    "sections": {},
-    "ownership": {}
   }
 }
