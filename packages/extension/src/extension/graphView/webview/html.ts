@@ -18,6 +18,7 @@ export function createGraphViewHtml(
   nonce: string,
   viewKind: CodeGraphyWebviewKind,
   initialTheme: CodeGraphyWebviewThemeKind = 'dark',
+  enableGraphDebug = false,
 ): string {
   const scriptUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, 'dist', 'webview', 'index.js')
@@ -35,7 +36,7 @@ export function createGraphViewHtml(
   <link href="${styleUri.toString()}" rel="stylesheet">
   <title>CodeGraphy</title>
 </head>
-<body data-codegraphy-view="${viewKind}" data-codegraphy-theme="${initialTheme}">
+<body data-codegraphy-view="${viewKind}" data-codegraphy-theme="${initialTheme}"${enableGraphDebug ? ' data-codegraphy-debug="true"' : ''}>
   <div id="root"></div>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>

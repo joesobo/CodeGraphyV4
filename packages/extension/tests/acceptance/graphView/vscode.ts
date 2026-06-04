@@ -40,6 +40,7 @@ export async function launchVSCodeWithWorkspace(
     }),
     env: {
       ...process.env,
+      CODEGRAPHY_ACCEPTANCE: '1',
       HOME: homePath,
     },
   });

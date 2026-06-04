@@ -24,6 +24,7 @@ import {
   hoverNode,
   modifierClickNode,
   readScreenDistanceBetweenNodes,
+  readGraphDebugZoom,
   recordDroppedNodeCenter,
   requireGraphFrame,
   rightClickEdge,
@@ -616,7 +617,8 @@ async function expectGraphCounts(
 }
 
 async function readZoomScaleMetric(context: GraphAcceptanceContext): Promise<number> {
-  return readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/utils.ts');
+  return await readGraphDebugZoom(requireGraphFrame(context))
+    ?? readScreenDistanceBetweenNodes(context, TARGET_NODE, 'src/utils.ts');
 }
 
 async function expectContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {

@@ -20,6 +20,30 @@ describe('webview/graph/debug/install', () => {
     expect(win.__CODEGRAPHY_GRAPH_DEBUG__).toBeUndefined();
   });
 
+  it('installs the graph debug api when acceptance html marks the body', () => {
+    const win = {
+      document: {
+        body: {
+          dataset: {
+            codegraphyDebug: 'true',
+          },
+        },
+      },
+    } as unknown as Window;
+
+    installGraphDebugApi({
+      containerRef: { current: null },
+      fitView: vi.fn(),
+      fg2dRef: { current: undefined },
+      fg3dRef: { current: undefined },
+      graphDataRef: { current: { nodes: [] } },
+      graphMode: '2d',
+      win,
+    });
+
+    expect(win.__CODEGRAPHY_GRAPH_DEBUG__).toBeDefined();
+  });
+
   it('installs and cleans up the graph debug api when enabled', () => {
     const fitView = vi.fn();
     const zoomToFit = vi.fn();
