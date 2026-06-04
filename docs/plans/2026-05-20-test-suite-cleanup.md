@@ -7,9 +7,8 @@ Make test commands easier to understand from the root and from each package.
 The target shape is:
 
 - `test` means Vitest/unit-level tests for a package.
-- `prepare:playwright` means generate/build the artifacts a Playwright suite needs.
-- `test:playwright` means Playwright acceptance/browser tests for workspace packages and apps that declare that script.
-- `test:vscode` is the extension package's direct VS Code Playwright runner and does not rebuild by itself.
+- `test:playwright` means the full Playwright command for workspace packages and apps that declare that script.
+- `test:vscode` is the extension package compatibility alias for its VS Code Playwright suite.
 - Root scripts compose package scripts instead of carrying package-specific details.
 - Mutation testing stays a local quality-tool workflow that runs against Vitest, not Playwright or VS Code E2E.
 
@@ -28,8 +27,7 @@ Root scripts:
 - `test` runs the full test suite that CI should trust.
 - `test:unit` runs all package Vitest suites through Turbo.
 - `test:playwright` runs workspace package and app Playwright suites through Turbo.
-- `prepare:playwright` prepares Playwright artifacts before root/local full runs.
-- `test:vscode` runs the extension package's raw VS Code Playwright suite after preparation.
+- `test:vscode` remains an extension package compatibility alias.
 
 Package scripts:
 
@@ -49,8 +47,8 @@ Package scripts:
 
 - Root `pnpm test` now composes `test:unit` and the Turbo-cached `test:playwright` lane.
 - Playwright is the CI E2E lane for browser/webview behavior that matters before merge.
-- `@codegraphy-dev/extension` keeps `test:vscode` as the direct VS Code Playwright command, while root and CI use `test:playwright` so Turbo can cache the acceptance lane.
-- CI prepares the VS Code Playwright build before shard execution, then splits acceptance tests into language-example and graph-interaction shards with separate cache keys.
+- `@codegraphy-dev/extension` owns the full VS Code Playwright generate/build/run flow in its `test:playwright` command, while root and CI only discover and invoke workspace `test:playwright` owners through Turbo.
+- CI splits acceptance tests into language-example and graph-interaction shards with separate cache keys.
 - The root release checks and `tests/release` suite are removed. The release workflow publishes artifacts; there is no public package-without-publish workflow.
 - CI runs separate lint, typecheck, unit-test, Playwright, and build lanes so independent work is not serialized behind the slowest suite.
 - Turbo caches package builds and test logs/results through task outputs and GitHub Actions restores `.turbo` between CI runs.

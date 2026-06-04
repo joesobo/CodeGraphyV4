@@ -203,10 +203,6 @@ jobs:
         if: steps.playwright-turbo-cache.outputs.hit != 'true'
         run: pnpm --filter @codegraphy-dev/extension exec playwright install --with-deps chromium
 
-      - name: Prepare VS Code Playwright build
-        if: steps.playwright-turbo-cache.outputs.hit != 'true'
-        run: node scripts/run-playwright-prepare.mjs
-
       - name: VS Code Playwright tests
         run: xvfb-run --auto-servernum node scripts/run-playwright-turbo.mjs
 

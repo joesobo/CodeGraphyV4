@@ -44,11 +44,11 @@ CI runs the VS Code Playwright acceptance suite through Turbo:
 pnpm run test:playwright
 ```
 
-The root `test:playwright` script prepares the extension acceptance build once,
-then discovers workspace packages and apps that declare `test:playwright` and
-filters Turbo to just those owners. The extension package keeps `test:vscode` as
-the direct VS Code Playwright runner; CI uses that raw runner after the prepare
-step so sharded invocations do not rebuild the extension.
+The root `test:playwright` script discovers workspace packages and apps that
+declare `test:playwright`, then filters Turbo to just those owners. Each
+workspace package or app owns its full Playwright command. For the extension
+package, that command regenerates acceptance tests, builds VS Code/webview
+artifacts, and runs the VS Code Playwright suite.
 
 CI splits the VS Code acceptance suite into language examples and graph
 interaction shards with `CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE`. Each shard has a
