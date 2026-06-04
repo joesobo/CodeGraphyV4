@@ -52,7 +52,7 @@ describe('extension/repoSettings/store', () => {
     expect(warnSpy).not.toHaveBeenCalled();
   });
 
-  it('creates .gitignore when missing and adds .codegraphy/ once', () => {
+  it('creates .gitignore when missing and adds the CodeGraphy contents ignore once', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
 
@@ -60,7 +60,7 @@ describe('extension/repoSettings/store', () => {
     new CodeGraphyRepoSettingsStore(workspaceRoot);
 
     const gitIgnorePath = path.join(workspaceRoot, '.gitignore');
-    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/\n');
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/*\n');
   });
 
   it('updates nested settings keys and persists the result', async () => {
