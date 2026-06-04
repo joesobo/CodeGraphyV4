@@ -3968,10 +3968,10 @@ test.describe('Objective-C Example', () => {
       });
 
       // tests/acceptance/specs/objective-c-example.md:12
-      await test.step('Then I can see there are 12 nodes and 13 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 13 connections', {
+      await test.step('Then I can see there are 13 nodes and 13 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 13 connections', {
           keyword: 'Then',
-          text: 'I can see there are 12 nodes and 13 connections',
+          text: 'I can see there are 13 nodes and 13 connections',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 12
         });
@@ -4193,10 +4193,10 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:12
-      await test.step('Then I can see there are 8 nodes and 10 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 8 nodes and 10 connections', {
+      await test.step('Then I can see there are 9 nodes and 10 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 9 nodes and 10 connections', {
           keyword: 'Then',
-          text: 'I can see there are 8 nodes and 10 connections',
+          text: 'I can see there are 9 nodes and 10 connections',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 12
         });
@@ -5058,10 +5058,10 @@ test.describe('Scala Example', () => {
       });
 
       // tests/acceptance/specs/scala-example.md:12
-      await test.step('Then I can see there are 10 nodes and 11 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 10 nodes and 11 connections', {
+      await test.step('Then I can see there are 11 nodes and 10 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 10 connections', {
           keyword: 'Then',
-          text: 'I can see there are 10 nodes and 11 connections',
+          text: 'I can see there are 11 nodes and 10 connections',
           sourcePath: 'tests/acceptance/specs/scala-example.md',
           line: 12
         });
@@ -5398,10 +5398,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:12
-      await test.step('Then I can see there are 12 nodes and 1 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 1 connection', {
+      await test.step('Then I can see there are 13 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 1 connection', {
           keyword: 'Then',
-          text: 'I can see there are 12 nodes and 1 connection',
+          text: 'I can see there are 13 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 12
         });
@@ -5448,10 +5448,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:18
-      await test.step('And I can see there are 12 nodes and 4 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 4 connections', {
+      await test.step('And I can see there are 13 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 4 connections', {
           keyword: 'And',
-          text: 'I can see there are 12 nodes and 4 connections',
+          text: 'I can see there are 13 nodes and 4 connections',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 18
         });
@@ -5558,10 +5558,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:32
-      await test.step('Then I can see there are 12 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 6 connections', {
+      await test.step('Then I can see there are 13 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 6 connections', {
           keyword: 'Then',
-          text: 'I can see there are 12 nodes and 6 connections',
+          text: 'I can see there are 13 nodes and 6 connections',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 32
         });

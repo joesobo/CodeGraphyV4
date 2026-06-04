@@ -9,7 +9,7 @@ Then I see graph nodes
 And I see edges
 And the graph nodes match the expected files in the examples/example-objective-c workspace
 
-Then I can see there are 12 nodes and 13 connections
+Then I can see there are 13 nodes and 13 connections
 And Sources/main.m points to Sources/AppDelegate.h
 And Sources/AppDelegate.m points to Sources/AppDelegate.h
 And Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h
@@ -25,4 +25,3 @@ And Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h
 And Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h
 
 And README.md is an orphan node
-
