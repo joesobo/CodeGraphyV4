@@ -32,8 +32,8 @@
       "outputs": []
     },
     "test:playwright": {
+      "env": ["CI"],
       "outputs": [
-        "$TURBO_ROOT$/dist/webview/**",
         "$TURBO_ROOT$/playwright-report/**",
         "$TURBO_ROOT$/test-results/**"
       ]

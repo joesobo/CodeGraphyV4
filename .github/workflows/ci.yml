@@ -180,7 +180,7 @@ jobs:
         run: pnpm --filter @codegraphy-dev/extension exec playwright install --with-deps chromium
 
       - name: VS Code Playwright tests
-        run: xvfb-run --auto-servernum pnpm run test:vscode
+        run: xvfb-run --auto-servernum pnpm exec turbo run test:playwright --filter=@codegraphy-dev/extension
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}

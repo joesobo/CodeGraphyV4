@@ -12,7 +12,7 @@
 		"dev": "pnpm --filter @codegraphy-dev/extension run dev",
 		"test": "pnpm run test:unit && pnpm run test:vscode",
 		"test:unit": "turbo run test",
-		"test:playwright": "pnpm run test:vscode",
+		"test:playwright": "pnpm exec turbo run test:playwright --filter=@codegraphy-dev/extension",
 		"test:vscode": "pnpm -r --if-present run test:vscode",
 		"check:acceptance-specs": "node scripts/guard-acceptance-spec-edits.mjs",
 		"lint": "turbo run lint",
