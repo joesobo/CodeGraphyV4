@@ -3898,6 +3898,416 @@ test.describe('Multi File Node Context Menu', () => {
   });
 });
 
+test.describe('Objective-C Example', () => {
+  test('Objective-C example renders expected file nodes and import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+      scenario: 'Objective-C example renders expected file nodes and import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/objective-c-example.md:5
+      await test.step('Given I open the examples/example-objective-c workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-objective-c workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-objective-c workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-objective-c workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-objective-c workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-objective-c workspace',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:12
+      await test.step('Then I can see there are 12 nodes and 13 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 13 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 12 nodes and 13 connections',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:13
+      await test.step('And Sources/main.m points to Sources/AppDelegate.h', async () => {
+        await runAcceptanceStep(context, 'Sources/main.m points to Sources/AppDelegate.h', {
+          keyword: 'And',
+          text: 'Sources/main.m points to Sources/AppDelegate.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:14
+      await test.step('And Sources/AppDelegate.m points to Sources/AppDelegate.h', async () => {
+        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/AppDelegate.h', {
+          keyword: 'And',
+          text: 'Sources/AppDelegate.m points to Sources/AppDelegate.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:15
+      await test.step('And Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h', async () => {
+        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h', {
+          keyword: 'And',
+          text: 'Sources/AppDelegate.m points to Sources/Controllers/DashboardController.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:16
+      await test.step('And Sources/AppDelegate.m points to Sources/Data/SessionStore.h', async () => {
+        await runAcceptanceStep(context, 'Sources/AppDelegate.m points to Sources/Data/SessionStore.h', {
+          keyword: 'And',
+          text: 'Sources/AppDelegate.m points to Sources/Data/SessionStore.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:17
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h', {
+          keyword: 'And',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Controllers/DashboardController.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:18
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h', {
+          keyword: 'And',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Data/SessionStore.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:19
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h', {
+          keyword: 'And',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Feature/UserCardView.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:20
+      await test.step('And Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Controllers/DashboardController.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:21
+      await test.step('And Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h', {
+          keyword: 'And',
+          text: 'Sources/Data/SessionStore.m points to Sources/Data/SessionStore.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:22
+      await test.step('And Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Data/SessionStore.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:23
+      await test.step('And Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h', {
+          keyword: 'And',
+          text: 'Sources/Feature/UserCardView.m points to Sources/Feature/UserCardView.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:24
+      await test.step('And Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Feature/UserCardView.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:25
+      await test.step('And Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', async () => {
+        await runAcceptanceStep(context, 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h', {
+          keyword: 'And',
+          text: 'Sources/Models/UserProfile.m points to Sources/Models/UserProfile.h',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/objective-c-example.md:27
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/objective-c-example.md',
+          line: 27
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Pascal Example', () => {
+  test('Pascal example renders expected file nodes and uses relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/pascal-example.md',
+      scenario: 'Pascal example renders expected file nodes and uses relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/pascal-example.md:5
+      await test.step('Given I open the examples/example-pascal workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-pascal workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-pascal workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-pascal workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-pascal workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-pascal workspace',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:12
+      await test.step('Then I can see there are 8 nodes and 10 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 10 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 8 nodes and 10 connections',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:13
+      await test.step('And src/Main.pas points to src/SampleApp.pas', async () => {
+        await runAcceptanceStep(context, 'src/Main.pas points to src/SampleApp.pas', {
+          keyword: 'And',
+          text: 'src/Main.pas points to src/SampleApp.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:14
+      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:15
+      await test.step('And src/SampleApp.pas points to src/OrderModel.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderModel.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/OrderModel.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:16
+      await test.step('And src/SampleApp.pas points to src/OrderRepository.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/OrderRepository.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/OrderRepository.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:17
+      await test.step('And src/SampleApp.pas points to src/PricingService.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/PricingService.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/PricingService.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:18
+      await test.step('And src/SampleApp.pas points to src/ReceiptView.pas', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/ReceiptView.pas', {
+          keyword: 'And',
+          text: 'src/SampleApp.pas points to src/ReceiptView.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:19
+      await test.step('And src/OrderRepository.pas points to src/OrderModel.pas', async () => {
+        await runAcceptanceStep(context, 'src/OrderRepository.pas points to src/OrderModel.pas', {
+          keyword: 'And',
+          text: 'src/OrderRepository.pas points to src/OrderModel.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:20
+      await test.step('And src/PricingService.pas points to src/OrderModel.pas', async () => {
+        await runAcceptanceStep(context, 'src/PricingService.pas points to src/OrderModel.pas', {
+          keyword: 'And',
+          text: 'src/PricingService.pas points to src/OrderModel.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:21
+      await test.step('And src/ReceiptView.pas points to src/OrderModel.pas', async () => {
+        await runAcceptanceStep(context, 'src/ReceiptView.pas points to src/OrderModel.pas', {
+          keyword: 'And',
+          text: 'src/ReceiptView.pas points to src/OrderModel.pas',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/pascal-example.md:23
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/pascal-example.md',
+          line: 23
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
 test.describe('PHP Example', () => {
   test('PHP example renders expected file nodes and namespace relationships', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
@@ -4578,6 +4988,221 @@ test.describe('Rust Example', () => {
   });
 });
 
+test.describe('Scala Example', () => {
+  test('Scala example renders expected file nodes and import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/scala-example.md',
+      scenario: 'Scala example renders expected file nodes and import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/scala-example.md:5
+      await test.step('Given I open the examples/example-scala workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-scala workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-scala workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-scala workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-scala workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-scala workspace',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:12
+      await test.step('Then I can see there are 10 nodes and 11 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 10 nodes and 11 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 10 nodes and 11 connections',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:13
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/model/User.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 13
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:14
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/service/UserService.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:15
+      await test.step('And src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/Main.scala points to src/main/scala/com/example/view/DashboardView.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:16
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/base/BaseRunner.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:17
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/model/User.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:18
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/service/UserService.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:19
+      await test.step('And src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/app/AppRunner.scala points to src/main/scala/com/example/view/DashboardView.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 19
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:20
+      await test.step('And src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/repository/UserRepository.scala points to src/main/scala/com/example/model/User.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:21
+      await test.step('And src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/model/User.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:22
+      await test.step('And src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala', async () => {
+        await runAcceptanceStep(context, 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala', {
+          keyword: 'And',
+          text: 'src/main/scala/com/example/service/UserService.scala points to src/main/scala/com/example/repository/UserRepository.scala',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:24
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 24
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:25
+      await test.step('And build.sbt is an orphan node', async () => {
+        await runAcceptanceStep(context, 'build.sbt is an orphan node', {
+          keyword: 'And',
+          text: 'build.sbt is an orphan node',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/scala-example.md:26
+      await test.step('And project/build.properties is an orphan node', async () => {
+        await runAcceptanceStep(context, 'project/build.properties is an orphan node', {
+          keyword: 'And',
+          text: 'project/build.properties is an orphan node',
+          sourcePath: 'tests/acceptance/specs/scala-example.md',
+          line: 26
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
 test.describe('Selection', () => {
   test('Clicking and double-clicking a node select it and open its file in VS Code', async ({}, testInfo) => {
     const context = await createAcceptanceContext({
@@ -4694,6 +5319,311 @@ test.describe('Selection', () => {
           text: 'the src/index.ts file opens in VS Code as a pinned editor tab',
           sourcePath: 'tests/acceptance/specs/selection.md',
           line: 18
+        });
+      });
+
+    } finally {
+      await context.cleanup?.();
+    }
+  });
+});
+
+test.describe('Svelte Example', () => {
+  test('Svelte example renders expected file nodes and plugin import relationships', async ({}, testInfo) => {
+    const context = await createAcceptanceContext({
+      testInfo,
+      sourcePath: 'tests/acceptance/specs/svelte-example.md',
+      scenario: 'Svelte example renders expected file nodes and plugin import relationships'
+    });
+
+    try {
+      // tests/acceptance/specs/svelte-example.md:5
+      await test.step('Given I open the examples/example-svelte workspace in VS Code', async () => {
+        await runAcceptanceStep(context, 'I open the examples/example-svelte workspace in VS Code', {
+          keyword: 'Given',
+          text: 'I open the examples/example-svelte workspace in VS Code',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 5
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:6
+      await test.step('When I open the CodeGraphy extension graph view', async () => {
+        await runAcceptanceStep(context, 'I open the CodeGraphy extension graph view', {
+          keyword: 'When',
+          text: 'I open the CodeGraphy extension graph view',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 6
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:7
+      await test.step('And I have indexed the workspace', async () => {
+        await runAcceptanceStep(context, 'I have indexed the workspace', {
+          keyword: 'And',
+          text: 'I have indexed the workspace',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 7
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:8
+      await test.step('Then I see graph nodes', async () => {
+        await runAcceptanceStep(context, 'I see graph nodes', {
+          keyword: 'Then',
+          text: 'I see graph nodes',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 8
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:9
+      await test.step('And I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'And',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 9
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:10
+      await test.step('And the graph nodes match the expected files in the examples/example-svelte workspace', async () => {
+        await runAcceptanceStep(context, 'the graph nodes match the expected files in the examples/example-svelte workspace', {
+          keyword: 'And',
+          text: 'the graph nodes match the expected files in the examples/example-svelte workspace',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 10
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:12
+      await test.step('Then I can see there are 12 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 1 connection', {
+          keyword: 'Then',
+          text: 'I can see there are 12 nodes and 1 connection',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 12
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:14
+      await test.step('When I click the plugins button', async () => {
+        await runAcceptanceStep(context, 'I click the plugins button', {
+          keyword: 'When',
+          text: 'I click the plugins button',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 14
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:15
+      await test.step('Then I see a list of plugins with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of plugins with toggles',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 15
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:16
+      await test.step('And I toggle the Svelte plugin on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Svelte plugin on', {
+          keyword: 'And',
+          text: 'I toggle the Svelte plugin on',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 16
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:17
+      await test.step('Then I see edges', async () => {
+        await runAcceptanceStep(context, 'I see edges', {
+          keyword: 'Then',
+          text: 'I see edges',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 17
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:18
+      await test.step('And I can see there are 12 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 4 connections', {
+          keyword: 'And',
+          text: 'I can see there are 12 nodes and 4 connections',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 18
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:20
+      await test.step('And src/main.ts points to src/App.svelte', async () => {
+        await runAcceptanceStep(context, 'src/main.ts points to src/App.svelte', {
+          keyword: 'And',
+          text: 'src/main.ts points to src/App.svelte',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:21
+      await test.step('And src/App.svelte points to src/loadFeature.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.svelte points to src/loadFeature.ts', {
+          keyword: 'And',
+          text: 'src/App.svelte points to src/loadFeature.ts',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 21
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:22
+      await test.step('And src/App.svelte points to src/components/UserCard.svelte', async () => {
+        await runAcceptanceStep(context, 'src/App.svelte points to src/components/UserCard.svelte', {
+          keyword: 'And',
+          text: 'src/App.svelte points to src/components/UserCard.svelte',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 22
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:23
+      await test.step('And src/App.svelte points to src/components/LazyPanel.svelte', async () => {
+        await runAcceptanceStep(context, 'src/App.svelte points to src/components/LazyPanel.svelte', {
+          keyword: 'And',
+          text: 'src/App.svelte points to src/components/LazyPanel.svelte',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 23
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:25
+      await test.step('When I click the Graph Scope button', async () => {
+        await runAcceptanceStep(context, 'I click the Graph Scope button', {
+          keyword: 'When',
+          text: 'I click the Graph Scope button',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:26
+      await test.step('Then I see to buttons for switching views between node type and edge type toggles', async () => {
+        await runAcceptanceStep(context, 'I see to buttons for switching views between node type and edge type toggles', {
+          keyword: 'Then',
+          text: 'I see to buttons for switching views between node type and edge type toggles',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:27
+      await test.step('And I select edge types', async () => {
+        await runAcceptanceStep(context, 'I select edge types', {
+          keyword: 'And',
+          text: 'I select edge types',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:28
+      await test.step('Then I see a list of edge types with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of edge types with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of edge types with toggles',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 28
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:29
+      await test.step('And I toggle the Type imports edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the Type imports edge on', {
+          keyword: 'And',
+          text: 'I toggle the Type imports edge on',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 29
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:30
+      await test.step('And I close the Graph Scope', async () => {
+        await runAcceptanceStep(context, 'I close the Graph Scope', {
+          keyword: 'And',
+          text: 'I close the Graph Scope',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 30
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:32
+      await test.step('Then I can see there are 12 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 12 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 12 nodes and 6 connections',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 32
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:33
+      await test.step('And src/App.svelte points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/App.svelte points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/App.svelte points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 33
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:34
+      await test.step('And src/components/UserCard.svelte points to src/types.ts', async () => {
+        await runAcceptanceStep(context, 'src/components/UserCard.svelte points to src/types.ts', {
+          keyword: 'And',
+          text: 'src/components/UserCard.svelte points to src/types.ts',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 34
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:36
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 36
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:37
+      await test.step('And index.html is an orphan node', async () => {
+        await runAcceptanceStep(context, 'index.html is an orphan node', {
+          keyword: 'And',
+          text: 'index.html is an orphan node',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 37
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:38
+      await test.step('And package.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'package.json is an orphan node', {
+          keyword: 'And',
+          text: 'package.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 38
+        });
+      });
+
+      // tests/acceptance/specs/svelte-example.md:39
+      await test.step('And tsconfig.json is an orphan node', async () => {
+        await runAcceptanceStep(context, 'tsconfig.json is an orphan node', {
+          keyword: 'And',
+          text: 'tsconfig.json is an orphan node',
+          sourcePath: 'tests/acceptance/specs/svelte-example.md',
+          line: 39
         });
       });
 
