@@ -1,5 +1,48 @@
 # @codegraphy-dev/extension
 
+## 5.7.0
+
+### Minor Changes
+
+- [#236](https://github.com/joesobo/CodeGraphyV4/pull/236) [`7ff7ef3`](https://github.com/joesobo/CodeGraphyV4/commit/7ff7ef3aaea18770ada9f6262c1dd7800ce0c151) Thanks [@joesobo](https://github.com/joesobo)! - Add Verbose Diagnostics for support and agent debugging.
+
+  In the VS Code extension, Settings > Performance now includes a **Verbose Diagnostics** toggle. It is off by default and persists to `.codegraphy/settings.json` as `verboseDiagnostics`. When enabled, CodeGraphy writes factual `[CodeGraphy]` event lines to the VS Code Developer Tools console for extension activation, webview bootstrap, analysis requests, and Graph Cache load decisions.
+
+  The Core CLI now accepts a global `--verbose` flag on every command. Verbose command diagnostics are written outside JSON stdout so status and query-style output remains parseable.
+
+  Every MCP tool now accepts `verboseDiagnostics?: boolean`. When enabled, tool results include a `diagnostics` array with factual Core Package events such as workspace status reads, indexing phases, Graph Cache state, Graph Query execution, counts, and durations. Default MCP responses stay unchanged when diagnostics are disabled.
+
+### Patch Changes
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Fix Java graph relationships in the basic file view. The Java graph now counts the import and call from App.java to Helper.java as two connections collapsed into one visible edge, while superclass declarations no longer add an extra BaseService.java file connection.
+
+- [#229](https://github.com/joesobo/CodeGraphyV4/pull/229) [`24312f0`](https://github.com/joesobo/CodeGraphyV4/commit/24312f0552cf59bbb0ba35f69a5628d22c776942) Thanks [@joesobo](https://github.com/joesobo)! - Add accessible Graph View labels for the stage, toolbar buttons, and indexing progress.
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Restore Graph View context menus for background, file, folder, multi-file, symbol, edge, and canvas selections. Users can reliably right-click graph elements and see the expected actions with clear labels such as New File, Rename, Delete, Copy Path, Reveal in Explorer, and Fit All Nodes.
+
+- [#240](https://github.com/joesobo/CodeGraphyV4/pull/240) [`40e80f2`](https://github.com/joesobo/CodeGraphyV4/commit/40e80f28e02efef479a12d3faa5916b2632deec2) Thanks [@joesobo](https://github.com/joesobo)! - Update CodeGraphy's generated `.gitignore` entry from `.codegraphy/` to `.codegraphy/*`.
+
+  CodeGraphy still keeps generated workspace artifacts ignored by default, including Graph Cache files and imported assets, but the new contents-only ignore rule lets teams intentionally commit selected files under `.codegraphy/`. This matters for example projects and shared workspaces that want to version `.codegraphy/settings.json` so collaborators see the same plugin enablement, filters, Graph Scope, and Legend settings.
+
+  Existing exact `.codegraphy` or `.codegraphy/` entries are migrated to `.codegraphy/*` the next time CodeGraphy initializes workspace settings, avoiding the Git behavior where ignoring a parent directory prevents later `!` exceptions from re-including files inside it.
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Fix Graph View file actions opened from context menus. Create, rename, delete, reveal, copy path, filter, and legend actions now target the active workspace and show the expected prompts from the graph.
+
+- [#242](https://github.com/joesobo/CodeGraphyV4/pull/242) [`90be7a4`](https://github.com/joesobo/CodeGraphyV4/commit/90be7a4f5bc144b1be0abe78c17dc13514514774) Thanks [@joesobo](https://github.com/joesobo)! - Add baseline Vue SFC plugin support so `.vue` script imports are indexed in workspace graphs.
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Keep favorite toggles in sync in the Graph View. Favoriting or unfavoriting one or more nodes now updates immediately and stale refresh messages no longer undo the user's latest favorite selection.
+
+- [#241](https://github.com/joesobo/CodeGraphyV4/pull/241) [`734e7a2`](https://github.com/joesobo/CodeGraphyV4/commit/734e7a258a5be1c2ef3dad8c710880ccaf87722a) Thanks [@joesobo](https://github.com/joesobo)! - Default fresh Graph Scope Edge Types to Imports on and other built-in edges off.
+
+- [#243](https://github.com/joesobo/CodeGraphyV4/pull/243) [`9274dd2`](https://github.com/joesobo/CodeGraphyV4/commit/9274dd24ca42f3b2da7f696829145cc315adc372) Thanks [@joesobo](https://github.com/joesobo)! - Publish platform-specific VSIX artifacts for Linux x64, macOS Apple Silicon, and Windows x64 so installs load the matching LadybugDB native runtime.
+
+- [#229](https://github.com/joesobo/CodeGraphyV4/pull/229) [`541538d`](https://github.com/joesobo/CodeGraphyV4/commit/541538de90645b4bf3f1d814e7c3889ed1391071) Thanks [@joesobo](https://github.com/joesobo)! - Keep graph nodes fixed where users drop them and improve graph accessibility labels for nodes and edges.
+
+- [#237](https://github.com/joesobo/CodeGraphyV4/pull/237) [`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288) Thanks [@joesobo](https://github.com/joesobo)! - Improve Graph View accessibility targets for toolbar buttons, plugin toggles, nodes, and edges. These controls now expose stable labels so keyboard, screen-reader, and VS Code automation users can discover and operate graph controls more reliably.
+
+- Updated dependencies [[`9c30a29`](https://github.com/joesobo/CodeGraphyV4/commit/9c30a293d00338be08a70dcc912bb0520cf00288), [`7ff7ef3`](https://github.com/joesobo/CodeGraphyV4/commit/7ff7ef3aaea18770ada9f6262c1dd7800ce0c151)]:
+  - @codegraphy-dev/core@1.3.0
+
 ## 5.6.5
 
 ### Patch Changes
