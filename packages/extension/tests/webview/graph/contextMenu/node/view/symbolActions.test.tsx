@@ -64,4 +64,3 @@ describe('Graph node context menu symbol actions', () => {
     expect(findMessage('TOGGLE_FAVORITE')?.payload.paths).toEqual(['src/app.ts#start:function']);
   });
 });
-

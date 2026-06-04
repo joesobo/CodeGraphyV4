@@ -88,7 +88,7 @@ describe('graph view node/file router', () => {
       ),
     ).resolves.toBe(true);
 
-    expect(handlers.deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
+    expect(handlers.deleteFiles).not.toHaveBeenCalled();
     expect(handlers.renameFile).not.toHaveBeenCalled();
     expect(handlers.createFile).not.toHaveBeenCalled();
     expect(handlers.createFolder).not.toHaveBeenCalled();

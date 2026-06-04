@@ -8,15 +8,56 @@ function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-function findPlaywrightPackages() {
-  const packageDirs = readdirSync('packages', { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => join('packages', entry.name));
+function readWorkspacePackagePatterns() {
+  const workspaceConfig = readFileSync('pnpm-workspace.yaml', 'utf8');
+  const patterns = [];
+  let readingPackages = false;
 
+  for (const line of workspaceConfig.split(/\r?\n/)) {
+    if (line.trim() === 'packages:') {
+      readingPackages = true;
+      continue;
+    }
+
+    if (readingPackages && /^\S/.test(line)) {
+      break;
+    }
+
+    const match = readingPackages
+      ? line.match(/^\s*-\s*["']?([^"']+)["']?\s*$/)
+      : null;
+    if (match) {
+      patterns.push(match[1]);
+    }
+  }
+
+  return patterns;
+}
+
+function expandWorkspacePattern(pattern) {
+  if (!pattern.endsWith('/*')) {
+    return existsSync(pattern) ? [pattern] : [];
+  }
+
+  const parentDirectory = pattern.slice(0, -2);
+  if (!existsSync(parentDirectory)) {
+    return [];
+  }
+
+  return readdirSync(parentDirectory, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => join(parentDirectory, entry.name));
+}
+
+function findWorkspacePackageDirs() {
+  return [...new Set(readWorkspacePackagePatterns().flatMap(expandWorkspacePattern))].sort();
+}
+
+function findPlaywrightPackages() {
   // A bare root `turbo run test:playwright` currently schedules placeholder
   // tasks for packages that do not own Playwright. Filter dynamically so new
   // Playwright-owning packages are picked up without hard-coding extension.
-  return packageDirs
+  return findWorkspacePackageDirs()
     .map((dir) => {
       const manifestPath = join(dir, 'package.json');
       if (!existsSync(manifestPath)) {

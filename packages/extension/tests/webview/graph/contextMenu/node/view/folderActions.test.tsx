@@ -50,4 +50,3 @@ describe('Graph node context menu folder actions', () => {
     expect(findMessage('DELETE_FILES')?.payload.paths).toEqual(['src']);
   });
 });
-

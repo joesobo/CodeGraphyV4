@@ -32,7 +32,7 @@ describe('graph view node/file edit message', () => {
     expect(handlers.deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
   });
 
-  it('routes delete requests to the delete handler even when the graph revision is not mutable', async () => {
+  it('skips deletes when a timeline snapshot graph revision is not mutable', async () => {
     const handlers = createHandlers({
       timelineActive: true,
       canMutateGraphRevision: false,
@@ -43,7 +43,7 @@ describe('graph view node/file edit message', () => {
       handlers,
     );
 
-    expect(handlers.deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
+    expect(handlers.deleteFiles).not.toHaveBeenCalled();
   });
 
   it('deletes files when timeline mode is inactive even if revision mutability is false', async () => {
