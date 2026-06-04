@@ -1,4 +1,5 @@
 import { parse } from 'svelte/compiler';
+import type { AST } from 'svelte/compiler';
 import type { IFileAnalysisResult } from '@codegraphy-dev/plugin-api';
 import { extractScriptImports } from './imports';
 import { resolveSvelteScriptImport } from './resolver';
@@ -7,14 +8,21 @@ const SCRIPT_IMPORT_SOURCE_ID = 'svelte-script-import';
 const SCRIPT_TYPE_IMPORT_SOURCE_ID = 'svelte-script-type-import';
 const SCRIPT_DYNAMIC_IMPORT_SOURCE_ID = 'svelte-script-dynamic-import';
 
+interface SveltePositionedProgram {
+  start: number;
+  end: number;
+}
+
 export function analyzeSvelteComponent(filePath: string, content: string): IFileAnalysisResult {
-  if (!filePath.endsWith('.svelte') || !canParseSvelte(content)) {
+  if (!filePath.endsWith('.svelte')) {
     return { filePath, relations: [] };
   }
 
+  const scriptContents = extractSvelteScriptContents(filePath, content);
+
   return {
     filePath,
-    relations: extractSvelteScriptContents(content)
+    relations: scriptContents
       .flatMap(scriptContent => extractScriptImports(filePath, scriptContent))
       .map(scriptImport => ({
         scriptImport,
@@ -35,19 +43,44 @@ export function analyzeSvelteComponent(filePath: string, content: string): IFile
   };
 }
 
-function canParseSvelte(content: string): boolean {
+function parseSvelteComponent(filePath: string, content: string): AST.Root | null {
   try {
-    parse(content);
-    return true;
+    return parse(content, {
+      filename: filePath,
+      modern: true,
+    });
   } catch {
-    return false;
+    return null;
   }
 }
 
-function extractSvelteScriptContents(content: string): string[] {
-  return Array.from(content.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))
-    .map(match => match[1])
+function extractSvelteScriptContents(filePath: string, content: string): string[] {
+  const ast = parseSvelteComponent(filePath, content);
+  if (!ast) {
+    return [];
+  }
+
+  return [ast.module, ast.instance]
+    .map(script => readSvelteScriptProgram(content, script))
     .filter((scriptContent): scriptContent is string => Boolean(scriptContent));
+}
+
+function readSvelteScriptProgram(content: string, script: AST.Script | null): string | null {
+  const program = script?.content;
+  if (!isSveltePositionedProgram(program)) {
+    return null;
+  }
+
+  return content.slice(program.start, program.end);
+}
+
+function isSveltePositionedProgram(program: unknown): program is SveltePositionedProgram {
+  return typeof program === 'object'
+    && program !== null
+    && 'start' in program
+    && 'end' in program
+    && typeof program.start === 'number'
+    && typeof program.end === 'number';
 }
 
 function getSvelteScriptImportSourceId(scriptImport: ReturnType<typeof extractScriptImports>[number]): string {
