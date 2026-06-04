@@ -2,12 +2,12 @@
 
 ## Scenario: Vue example renders expected file nodes and import relationships
 
-Given I open the examples/vue-example workspace in VS Code
+Given I open the examples/example-vue workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 Then I see graph nodes
 And I see edges
-And the graph nodes match the expected files in the examples/vue-example workspace
+And the graph nodes match the expected files in the examples/example-vue workspace
 
 Then I can see there are 14 nodes and 7 connections
 

@@ -1,6 +1,7 @@
 {
   "version": 1,
   "maxFiles": 500,
+  "verboseDiagnostics": false,
   "include": [
     "**/*"
   ],
@@ -46,17 +47,17 @@
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
-    "nests": true,
     "import": true,
+    "reference": false,
+    "call": false,
+    "test": false,
+    "reexport": false,
     "type-import": false,
-    "reexport": true,
-    "call": true,
-    "inherit": true,
-    "reference": true,
-    "test": true,
-    "load": true,
-    "contains": true,
-    "overrides": true,
+    "inherit": false,
+    "load": false,
+    "nests": false,
+    "contains": false,
+    "overrides": false,
     "codegraphy:nests": true
   },
   "favorites": [],
