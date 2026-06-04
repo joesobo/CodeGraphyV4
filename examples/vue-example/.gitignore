@@ -1,0 +1,4 @@
+.codegraphy/*
+!.codegraphy/
+!.codegraphy/settings.json
+dist/

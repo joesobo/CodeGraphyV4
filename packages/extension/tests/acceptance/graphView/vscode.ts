@@ -7,7 +7,11 @@ import { extensionRoot, repoRoot } from './workspace';
 import type { VSCodeFixture } from './types';
 
 export async function launchVSCodeWithWorkspace(workspacePath: string): Promise<VSCodeFixture> {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-vscode-playwright-'));
+  const tempRoot = fs.mkdtempSync(
+    path.join(selectVSCodeTempBaseDir(process.platform, os.tmpdir()), 'codegraphy-vscode-playwright-'),
+  );
+  const homePath = path.join(tempRoot, 'home');
+  writeLocalPluginCache(homePath);
   const vscodeExecutablePath = await downloadAndUnzipVSCode({
     version: 'stable',
     cachePath: path.join(extensionRoot(), '.vscode-test'),
@@ -16,34 +20,67 @@ export async function launchVSCodeWithWorkspace(workspacePath: string): Promise<
   const { _electron } = await import('@playwright/test');
   const app = await _electron.launch({
     executablePath: vscodeExecutablePath,
-    args: [
+    args: createVSCodeLaunchArgs({
+      extensionPath: repoRoot(),
+      extensionsPath: path.join(tempRoot, 'extensions'),
+      platform: process.platform,
+      userDataPath: path.join(tempRoot, 'user-data'),
       workspacePath,
-      `--extensionDevelopmentPath=${repoRoot()}`,
-      '--user-data-dir',
-      path.join(tempRoot, 'user-data'),
-      '--extensions-dir',
-      path.join(tempRoot, 'extensions'),
-      '--use-inmemory-secretstorage',
-      '--sync',
-      'off',
-      '--disable-telemetry',
-      '--disable-updates',
-      '--disable-workspace-trust',
-      '--skip-welcome',
-      '--skip-release-notes',
-      '--disable-extensions',
-      ...getLinuxSandboxArgs(),
-    ],
+    }),
     env: {
       ...process.env,
-      HOME: path.join(tempRoot, 'home'),
+      HOME: homePath,
     },
   });
 
-  const page = await app.firstWindow();
+  const page = await app.firstWindow({ timeout: 90_000 });
   await page.waitForLoadState('domcontentloaded').catch(() => {});
 
   return { app, page, tempRoot };
+}
+
+function writeLocalPluginCache(homePath: string): void {
+  const pluginPackageRoots = [
+    'packages/plugin-typescript',
+    'packages/plugin-godot',
+    'packages/plugin-csharp',
+    'packages/plugin-python',
+    'packages/plugin-vue',
+  ].map(packagePath => path.join(repoRoot(), packagePath));
+  const plugins = pluginPackageRoots.flatMap((packageRoot) => {
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8')) as {
+        codegraphy?: { apiVersion?: string; disclosures?: unknown[] };
+        name?: string;
+        version?: string;
+      };
+      const codegraphyJson = JSON.parse(fs.readFileSync(path.join(packageRoot, 'codegraphy.json'), 'utf8')) as {
+        id?: string;
+        name?: string;
+        supportedExtensions?: string[];
+      };
+      if (!packageJson.name || !packageJson.version || !packageJson.codegraphy?.apiVersion) {
+        return [];
+      }
+
+      return [{
+        package: packageJson.name,
+        version: packageJson.version,
+        apiVersion: packageJson.codegraphy.apiVersion,
+        disclosures: packageJson.codegraphy.disclosures ?? [],
+        pluginId: codegraphyJson.id,
+        pluginName: codegraphyJson.name,
+        supportedExtensions: codegraphyJson.supportedExtensions ?? [],
+        packageRoot,
+      }];
+    } catch {
+      return [];
+    }
+  });
+
+  const cachePath = path.join(homePath, '.codegraphy/plugins.json');
+  fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+  fs.writeFileSync(cachePath, `${JSON.stringify({ version: 1, plugins }, null, 2)}\n`);
 }
 
 export async function openGraphView(page: Page): Promise<void> {
@@ -85,6 +122,44 @@ export async function cleanupVSCode({ app, tempRoot }: VSCodeFixture): Promise<v
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }
 
-function getLinuxSandboxArgs(): string[] {
-  return process.platform === 'linux' ? ['--no-sandbox'] : [];
+export interface VSCodeLaunchArgsInput {
+  extensionPath: string;
+  extensionsPath: string;
+  platform: NodeJS.Platform;
+  userDataPath: string;
+  workspacePath: string;
+}
+
+export function createVSCodeLaunchArgs(input: VSCodeLaunchArgsInput): string[] {
+  return [
+    input.workspacePath,
+    `--extensionDevelopmentPath=${input.extensionPath}`,
+    '--user-data-dir',
+    input.userDataPath,
+    '--extensions-dir',
+    input.extensionsPath,
+    '--use-inmemory-secretstorage',
+    ...getMacOSMockKeychainArgs(input.platform),
+    '--sync',
+    'off',
+    '--disable-telemetry',
+    '--disable-updates',
+    '--disable-workspace-trust',
+    '--skip-welcome',
+    '--skip-release-notes',
+    '--disable-extensions',
+    ...getLinuxSandboxArgs(input.platform),
+  ];
+}
+
+export function selectVSCodeTempBaseDir(platform: NodeJS.Platform, fallbackTempDir: string): string {
+  return platform === 'darwin' ? '/tmp' : fallbackTempDir;
+}
+
+function getLinuxSandboxArgs(platform: NodeJS.Platform): string[] {
+  return platform === 'linux' ? ['--no-sandbox'] : [];
+}
+
+function getMacOSMockKeychainArgs(platform: NodeJS.Platform): string[] {
+  return platform === 'darwin' ? ['--use-mock-keychain'] : [];
 }
