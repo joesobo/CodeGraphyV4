@@ -3263,10 +3263,10 @@ test.describe('Java Example', () => {
       });
 
       // tests/acceptance/specs/java-example.md:12
-      await test.step('Then I can see there are 5 nodes and 3 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 5 nodes and 3 connections', {
+      await test.step('Then I can see there are 5 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 2 connections', {
           keyword: 'Then',
-          text: 'I can see there are 5 nodes and 3 connections',
+          text: 'I can see there are 5 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/java-example.md',
           line: 12
         });
@@ -3282,23 +3282,13 @@ test.describe('Java Example', () => {
         });
       });
 
-      // tests/acceptance/specs/java-example.md:14
-      await test.step('And src/com/example/app/App.java points to src/com/example/app/BaseService.java', async () => {
-        await runAcceptanceStep(context, 'src/com/example/app/App.java points to src/com/example/app/BaseService.java', {
-          keyword: 'And',
-          text: 'src/com/example/app/App.java points to src/com/example/app/BaseService.java',
-          sourcePath: 'tests/acceptance/specs/java-example.md',
-          line: 14
-        });
-      });
-
-      // tests/acceptance/specs/java-example.md:16
+      // tests/acceptance/specs/java-example.md:15
       await test.step('And README.md is an orphan node', async () => {
         await runAcceptanceStep(context, 'README.md is an orphan node', {
           keyword: 'And',
           text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/java-example.md',
-          line: 16
+          line: 15
         });
       });
 
