@@ -6,6 +6,13 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
+export const EXTENSION_VSIX_TARGETS = [
+  'linux-x64',
+  'darwin-arm64',
+  'darwin-x64',
+  'win32-x64',
+];
+
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
 }
@@ -90,6 +97,40 @@ export function prepareCoreReleaseBase(baseDir = repoRoot, runCommand = run) {
   });
 }
 
+export function createCoreVsceInvocations({
+  mode,
+  version,
+  artifactsDir,
+  targets = EXTENSION_VSIX_TARGETS,
+}) {
+  return targets.map((target) => {
+    if (mode === 'package') {
+      return {
+        target,
+        args: [
+          'package',
+          '--no-dependencies',
+          '--target',
+          target,
+          '--out',
+          path.join(artifactsDir, `codegraphy.codegraphy-${version}-${target}.vsix`),
+        ],
+      };
+    }
+
+    return {
+      target,
+      args: [
+        'publish',
+        '--no-dependencies',
+        '--skip-duplicate',
+        '--target',
+        target,
+      ],
+    };
+  });
+}
+
 export function runCoreRelease(mode, baseDir = repoRoot) {
   if (mode !== 'package' && mode !== 'publish') {
     console.error('Usage: node scripts/release-core.mjs <package|publish>');
@@ -107,26 +148,13 @@ export function runCoreRelease(mode, baseDir = repoRoot) {
   mkdirSync(artifactsDir, { recursive: true });
 
   try {
-    if (mode === 'package') {
+    for (const invocation of createCoreVsceInvocations({ mode, version, artifactsDir })) {
       run(
         'vsce',
-        [
-          'package',
-          '--no-dependencies',
-          '--out',
-          path.join(artifactsDir, `codegraphy.codegraphy-${version}.vsix`),
-        ],
+        invocation.args,
         { cwd: stageDir, env },
       );
-
-      return;
     }
-
-    run(
-      'vsce',
-      ['publish', '--no-dependencies', '--skip-duplicate'],
-      { cwd: stageDir, env },
-    );
   } finally {
     rmSync(stageDir, { recursive: true, force: true });
   }
