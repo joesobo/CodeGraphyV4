@@ -36,13 +36,16 @@ publishing underneath that command.
 4. Update release docs and add a patch changeset for the user-facing activation
    fix.
 
-## Initial Target Set
+## Supported Target Set
 
 - `linux-x64`
 - `darwin-arm64`
-- `darwin-x64`
 - `win32-x64`
 
-Additional targets such as `linux-arm64`, `win32-arm64`, and Alpine should be
-added only after the native dependency and VS Code activation lane are proven
-for those platforms.
+This matches the desktop platforms supported by the locked `@ladybugdb/core`
+0.15.3 native optional packages and a VS Code extension target we are ready to
+publish. LadybugDB 0.15.3 also publishes `linux-arm64`, but this release does
+not add it until we have a Linux arm64 VS Code activation lane. Additional
+targets such as `darwin-x64`, `win32-arm64`, and Alpine should be added only
+after the native dependency and VS Code activation lane are proven for those
+platforms.

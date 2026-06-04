@@ -147,7 +147,105 @@ function getStagedLadybugNativeBinaryPath(stageDir) {
   );
 }
 
-function resolveInstalledLadybugNativeBinaryPath(target, baseDir = repoRoot) {
+function getLadybugCoreManifestPath(baseDir) {
+  const candidatePaths = [
+    path.join(
+      baseDir,
+      'packages',
+      'extension',
+      'node_modules',
+      '@ladybugdb',
+      'core',
+      'package.json',
+    ),
+    path.join(
+      baseDir,
+      'node_modules',
+      '@ladybugdb',
+      'core',
+      'package.json',
+    ),
+  ];
+
+  const manifestPath = candidatePaths.find(candidatePath => existsSync(candidatePath));
+
+  if (!manifestPath) {
+    throw new Error(
+      'Unable to find @ladybugdb/core/package.json. Run pnpm install before releasing.',
+    );
+  }
+
+  return manifestPath;
+}
+
+function getLadybugNativePackageVersion(nativePackageName, baseDir) {
+  const coreManifest = readJson(getLadybugCoreManifestPath(baseDir));
+  const version = coreManifest.optionalDependencies?.[nativePackageName];
+
+  if (!version) {
+    throw new Error(
+      `@ladybugdb/core does not declare ${nativePackageName} as an optional dependency.`,
+    );
+  }
+
+  return version;
+}
+
+function fetchLadybugNativePackage({ packageName, version, destinationDir }) {
+  mkdirSync(destinationDir, { recursive: true });
+
+  const packResult = spawnSync(
+    'npm',
+    ['pack', `${packageName}@${version}`, '--pack-destination', destinationDir, '--silent'],
+    {
+      encoding: 'utf8',
+      shell: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
+
+  if (packResult.status !== 0) {
+    throw new Error(
+      `Unable to download ${packageName}@${version} with npm pack.\n${packResult.stderr}`,
+    );
+  }
+
+  const tarballName = packResult.stdout.trim().split('\n').at(-1);
+  if (!tarballName) {
+    throw new Error(`npm pack did not return a tarball name for ${packageName}@${version}.`);
+  }
+
+  const tarballPath = path.join(destinationDir, tarballName);
+  const extractResult = spawnSync(
+    'tar',
+    ['-xzf', tarballPath, '-C', destinationDir],
+    {
+      encoding: 'utf8',
+      shell: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
+
+  if (extractResult.status !== 0) {
+    throw new Error(
+      `Unable to extract ${tarballPath}.\n${extractResult.stderr}`,
+    );
+  }
+
+  return tarballPath;
+}
+
+function getNativePackageCacheDir(cacheDir, packageName, version) {
+  const cacheName = `${packageName.replace(/^@/, '').replaceAll('/', '-')}-${version}`;
+  return path.join(cacheDir, cacheName);
+}
+
+export function resolveLadybugNativeBinaryPath({
+  target,
+  baseDir = repoRoot,
+  cacheDir = mkdtempSync(path.join(tmpdir(), 'codegraphy-ladybug-native-')),
+  fetchNativePackage = fetchLadybugNativePackage,
+}) {
   const nativePackageName = LADYBUG_NATIVE_PACKAGE_BY_TARGET[target];
   if (!nativePackageName) {
     throw new Error(`Unsupported CodeGraphy VSIX target: ${target}`);
@@ -171,20 +269,33 @@ function resolveInstalledLadybugNativeBinaryPath(target, baseDir = repoRoot) {
   ];
   const binaryPath = candidatePaths.find(candidatePath => existsSync(candidatePath));
 
-  if (!binaryPath) {
+  if (binaryPath) {
+    return binaryPath;
+  }
+
+  const version = getLadybugNativePackageVersion(nativePackageName, baseDir);
+  const packageCacheDir = getNativePackageCacheDir(cacheDir, nativePackageName, version);
+
+  fetchNativePackage({
+    packageName: nativePackageName,
+    version,
+    destinationDir: packageCacheDir,
+  });
+
+  const fetchedBinaryPath = path.join(packageCacheDir, 'package', 'lbugjs.node');
+  if (!existsSync(fetchedBinaryPath)) {
     throw new Error(
-      `Unable to find ${nativePackageName}/lbugjs.node for ${target}. `
-      + 'Run pnpm install with optional dependencies enabled before releasing.',
+      `Downloaded ${nativePackageName}@${version}, but package/lbugjs.node was not found.`,
     );
   }
 
-  return binaryPath;
+  return fetchedBinaryPath;
 }
 
 export function stageTargetLadybugNativeBinary({
   stageDir,
   target,
-  resolveNativeBinaryPath = resolveInstalledLadybugNativeBinaryPath,
+  resolveNativeBinaryPath = target => resolveLadybugNativeBinaryPath({ target }),
 }) {
   const sourcePath = resolveNativeBinaryPath(target);
   const targetPath = getStagedLadybugNativeBinaryPath(stageDir);
@@ -201,6 +312,7 @@ export function runCoreRelease(mode, baseDir = repoRoot) {
 
   prepareCoreReleaseBase(baseDir);
   const { stageDir, version } = createCoreReleaseStage(baseDir);
+  const nativeCacheDir = mkdtempSync(path.join(tmpdir(), 'codegraphy-ladybug-native-'));
   const artifactsDir = path.join(baseDir, 'artifacts', 'vsix');
   const env = {
     ...process.env,
@@ -211,7 +323,15 @@ export function runCoreRelease(mode, baseDir = repoRoot) {
 
   try {
     for (const invocation of createCoreVsceInvocations({ mode, version, artifactsDir })) {
-      stageTargetLadybugNativeBinary({ stageDir, target: invocation.target });
+      stageTargetLadybugNativeBinary({
+        stageDir,
+        target: invocation.target,
+        resolveNativeBinaryPath: target => resolveLadybugNativeBinaryPath({
+          target,
+          baseDir,
+          cacheDir: nativeCacheDir,
+        }),
+      });
       run(
         'vsce',
         invocation.args,
@@ -220,6 +340,7 @@ export function runCoreRelease(mode, baseDir = repoRoot) {
     }
   } finally {
     rmSync(stageDir, { recursive: true, force: true });
+    rmSync(nativeCacheDir, { recursive: true, force: true });
   }
 }
 
