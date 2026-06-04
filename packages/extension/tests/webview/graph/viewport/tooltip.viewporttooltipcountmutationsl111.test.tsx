@@ -244,6 +244,31 @@ describe('Viewport tooltip count mutations (L111-112)', () => {
       expect(lastCallProps.outgoingCount).toBe(2);
     });
 
+    it('prefers visible graph connection counts over file info counts', () => {
+      renderViewport({
+        tooltipData: {
+          visible: true,
+          nodeRect: { x: 10, y: 20, radius: 5 },
+          path: 'src/App.ts',
+          incomingCount: 1,
+          outgoingCount: 0,
+          info: {
+            path: 'src/App.ts',
+            size: 512,
+            lastModified: 1700000000000,
+            incomingCount: 4,
+            outgoingCount: 3,
+          },
+          pluginSections: [],
+        },
+      });
+
+      const calls = harness.nodeTooltip.mock.calls;
+      const lastCallProps = calls[calls.length - 1][0];
+      expect(lastCallProps.incomingCount).toBe(1);
+      expect(lastCallProps.outgoingCount).toBe(0);
+    });
+
 
 
     it('passes undefined for size when info is null', () => {
