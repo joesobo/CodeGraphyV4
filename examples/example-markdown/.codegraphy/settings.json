@@ -44,7 +44,7 @@
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
-    "import": true,
+    "import": false,
     "reference": true,
     "call": false,
     "test": false,

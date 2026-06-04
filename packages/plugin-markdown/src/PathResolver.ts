@@ -46,21 +46,21 @@ export class PathResolver {
    * @param target - The link target as written (e.g., "docs/Note", "src/file.ts")
    * @param _sourceFile - Absolute path of the file containing the link (unused for now)
    */
-  resolve(target: string, _sourceFile: string): string | null {
+  resolve(target: string, sourceFile: string): string | null {
     const clean = target.split('#')[0].trim();
     if (!clean) return null;
 
     if (clean.includes('/') || clean.includes('\\') || path.extname(clean) !== '') {
-      return this.resolveByPath(clean);
+      return this.resolveByPath(clean, sourceFile);
     }
 
     return null;
   }
 
-  private resolveByPath(target: string): string | null {
+  private resolveByPath(target: string, sourceFile: string): string | null {
     const candidates = this.buildPathCandidates(target);
 
-    for (const candidate of candidates) {
+    for (const candidate of this.buildSourceScopedCandidates(candidates, sourceFile)) {
       const indexedCandidate = this.fileIndex.get(this.toLookupKey(candidate))?.[0];
       if (indexedCandidate) {
         return indexedCandidate;
@@ -68,6 +68,17 @@ export class PathResolver {
     }
 
     return path.join(this.workspaceRoot, candidates[0]);
+  }
+
+  private buildSourceScopedCandidates(candidates: string[], sourceFile: string): string[] {
+    const sourceRelativePath = this.toLookupKey(path.relative(this.workspaceRoot, sourceFile));
+    const sourceTopLevel = sourceRelativePath.split('/')[0];
+    if (!sourceTopLevel || sourceTopLevel === sourceRelativePath) {
+      return candidates;
+    }
+
+    const scopedCandidates = candidates.map(candidate => `${sourceTopLevel}/${candidate}`);
+    return [...candidates, ...scopedCandidates];
   }
 
   private buildPathCandidates(target: string): string[] {
