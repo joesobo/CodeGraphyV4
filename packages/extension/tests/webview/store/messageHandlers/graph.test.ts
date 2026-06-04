@@ -39,6 +39,7 @@ function createState(
     searchQuery: '',
     searchOptions: { matchCase: false, wholeWord: false, regex: false },
     favorites: new Set<string>(),
+    pendingFavoriteSnapshot: null,
     bidirectionalMode: 'separate',
     showOrphans: true,
     directionMode: 'none',

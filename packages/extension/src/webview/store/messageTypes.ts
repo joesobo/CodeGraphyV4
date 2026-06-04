@@ -38,6 +38,7 @@ export interface IStoreFields {
   searchQuery: string;
   searchOptions: SearchOptions;
   favorites: Set<string>;
+  pendingFavoriteSnapshot: Set<string> | null;
   bidirectionalMode: BidirectionalEdgeMode;
   showOrphans: boolean;
   directionMode: DirectionMode;

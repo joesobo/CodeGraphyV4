@@ -22,7 +22,7 @@ export function createDisplayActions(set: SetState) {
           favorites.add(path);
         }
       }
-      return { favorites };
+      return { favorites, pendingFavoriteSnapshot: new Set(favorites) };
     }),
     setDisabledCustomFilterPatterns: (patterns: string[]) => set({ disabledCustomFilterPatterns: patterns }),
     setDisabledPluginFilterPatterns: (patterns: string[]) => set({ disabledPluginFilterPatterns: patterns }),

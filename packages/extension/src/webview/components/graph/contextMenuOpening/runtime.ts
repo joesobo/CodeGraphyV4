@@ -22,6 +22,15 @@ import { graphStore } from '../../../store/state';
 type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
 type GraphContextMenuRuntime = ReturnType<typeof createGraphContextMenuRuntime>;
 
+function cloneGraphContextSelection(selection: GraphContextSelection): GraphContextSelection {
+  return {
+    kind: selection.kind,
+    targets: [...selection.targets],
+    ...(selection.edgeId ? { edgeId: selection.edgeId } : {}),
+    ...(selection.graphPosition ? { graphPosition: { ...selection.graphPosition } } : {}),
+  };
+}
+
 export interface GraphContextMenuOpeningRuntime {
   contextMenuRuntime: GraphContextMenuRuntime;
   handleBackgroundRightClick(this: void, event: MouseEvent): void;
@@ -85,6 +94,9 @@ function createGraphContextMenuOpeningDependencies({
     openLegendRulePrompt: openLegendRulePrompt ?? (() => {}),
     openBackgroundContextMenu: interactionHandlers.openBackgroundContextMenu,
     postMessage,
+    refreshContextSelection: () => {
+      setContextSelection(previous => cloneGraphContextSelection(previous));
+    },
     setContextSelection,
     setTooltipData,
     stopTooltipTracking,

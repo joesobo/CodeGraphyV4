@@ -47,7 +47,7 @@ describe('graphView/files/actions', () => {
     expect(executeDeleteAction).not.toHaveBeenCalled();
   });
 
-  it('returns before prompting when no workspace folder is available for delete', async () => {
+  it('prompts but skips execution when no workspace folder is available for delete', async () => {
     const showWarningMessage = vi.fn(async (): Promise<'Delete' | undefined> => 'Delete');
     const executeDeleteAction = vi.fn(async () => undefined);
 
@@ -56,7 +56,11 @@ describe('graphView/files/actions', () => {
       executeDeleteAction,
     });
 
-    expect(showWarningMessage).not.toHaveBeenCalled();
+    expect(showWarningMessage).toHaveBeenCalledWith(
+      'Are you sure you want to delete "src/app.ts"?',
+      { modal: true },
+      'Delete',
+    );
     expect(executeDeleteAction).not.toHaveBeenCalled();
   });
 

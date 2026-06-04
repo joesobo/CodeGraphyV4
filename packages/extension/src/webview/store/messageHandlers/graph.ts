@@ -82,8 +82,33 @@ export function handleGraphControlsUpdated(
 
 export function handleFavoritesUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>,
+  ctx?: Pick<IHandlerContext, 'getState'>,
 ): PartialState {
-  return { favorites: new Set(message.payload.favorites) };
+  const favorites = new Set(message.payload.favorites);
+  const pendingFavoriteSnapshot = ctx?.getState().pendingFavoriteSnapshot;
+
+  if (pendingFavoriteSnapshot && !areSetsEqual(favorites, pendingFavoriteSnapshot)) {
+    return {};
+  }
+
+  return {
+    favorites,
+    ...(pendingFavoriteSnapshot ? { pendingFavoriteSnapshot: null } : {}),
+  };
+}
+
+function areSetsEqual(left: ReadonlySet<string>, right: ReadonlySet<string>): boolean {
+  if (left.size !== right.size) {
+    return false;
+  }
+
+  for (const value of left) {
+    if (!right.has(value)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export function handleSettingsUpdated(

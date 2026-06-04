@@ -202,7 +202,9 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     const exampleName = match[1];
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
-    context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName);
+    context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName, {
+      includeCallEdges: ['example-go', 'example-java', 'example-python', 'example-rust'].includes(exampleName),
+    });
   }),
 
   step(/^I have indexed the workspace$/, async (context) => {
@@ -508,7 +510,10 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^the legend group text should be prefilled with "(.+)"$/, async (context, _step, match) => {
-    await expectInputValue(requireGraphFrame(context), match[1]);
+    const frame = requireGraphFrame(context);
+    await expectInputValue(frame, match[1]);
+    await frame.getByRole('button', { name: 'Cancel' }).click();
+    await expect(frame.getByText('Add Legend Group', { exact: true })).toBeHidden({ timeout: 5_000 });
   }),
 
   step(/^a VS Code rename input should appear saying "(.+)"$/, async (context, _step, match) => {
@@ -519,10 +524,33 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     const page = requireValue(context.vscode, 'Expected VS Code to be launched').page;
     await expectInputValue(page, match[1]);
     await page.keyboard.press('Escape');
+    await expect(page.locator('.quick-input-widget')).toBeHidden({ timeout: 5_000 });
+    await page.waitForTimeout(250);
   }),
 
   step(/^a confirmation pops up saying "(.+)"$/, async (context, _step, match) => {
-    await expect(requireValue(context.vscode, 'Expected VS Code to be launched').page.getByText(match[1]).first()).toBeVisible();
+    const vscode = requireValue(context.vscode, 'Expected VS Code to be launched');
+    try {
+      await expect.poll(async () => {
+        for (const page of vscode.app.windows()) {
+          if (await page.getByText(match[1]).first().isVisible().catch(() => false)) {
+            return true;
+          }
+        }
+
+        return false;
+      }, { timeout: 5_000 }).toBe(true);
+    } catch (error) {
+      const visibleEntries = await readVisibleContextMenuEntries(context);
+      const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
+      const target = context.lastContextMenuTarget;
+      const targetExists = target?.kind === 'node'
+        ? fs.existsSync(path.join(workspacePath, target.nodePath))
+        : undefined;
+      const nextError = new Error(`Expected confirmation "${match[1]}". Visible entries: ${JSON.stringify(visibleEntries)}. Target exists: ${JSON.stringify(targetExists)}`);
+      (nextError as Error & { cause?: unknown }).cause = error;
+      throw nextError;
+    }
   }),
 ];
 
@@ -596,8 +624,15 @@ async function expectContextMenuEntry(context: GraphAcceptanceContext, label: st
 }
 
 async function clickContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<void> {
-  await clickMenuItem(await requireContextMenuEntry(context, label));
+  await refreshLastContextMenu(context);
+  const entry = await requireContextMenuEntry(context, label);
+  if (label === 'Delete File' || label === 'Delete Folder' || /^Delete \d+ Files$/.test(label)) {
+    await expect(entry).not.toHaveAttribute('aria-disabled', 'true');
+    await expect(entry).not.toHaveAttribute('data-disabled', '');
+  }
+  await clickMenuItem(entry);
   await waitForFavoriteToggleIfNeeded(context, label);
+  await dismissContextMenuAfterAction(context, label);
 }
 
 async function requireContextMenuEntry(context: GraphAcceptanceContext, label: string): Promise<Locator> {
@@ -606,10 +641,18 @@ async function requireContextMenuEntry(context: GraphAcceptanceContext, label: s
     return entry;
   }
 
-  await expect.poll(async () => {
-    await reopenLastContextMenu(context);
-    return isLocatorVisible(contextMenuEntry(context, label));
-  }, { timeout: 10_000 }).toBe(true);
+  try {
+    await expect.poll(async () => {
+      await reopenLastContextMenu(context);
+      return isLocatorVisible(contextMenuEntry(context, label));
+    }, { timeout: 10_000 }).toBe(true);
+  } catch (error) {
+    const visibleEntries = await readVisibleContextMenuEntries(context);
+    const workspaceFavorites = readWorkspaceFavorites(context);
+    const nextError = new Error(`Expected context menu entry "${label}". Visible entries: ${JSON.stringify(visibleEntries)}. Workspace favorites: ${JSON.stringify(workspaceFavorites)}`);
+    (nextError as Error & { cause?: unknown }).cause = error;
+    throw nextError;
+  }
 
   return contextMenuEntry(context, label);
 }
@@ -620,7 +663,40 @@ function contextMenuEntry(context: GraphAcceptanceContext, label: string): Locat
   });
 }
 
+async function readVisibleContextMenuEntries(context: GraphAcceptanceContext): Promise<Array<{
+  disabled: string | null;
+  id: string | null;
+  label: string;
+  targets: string | null;
+}>> {
+  return requireGraphFrame(context).getByRole('menuitem').evaluateAll(items =>
+    items
+      .filter(item => {
+        const style = window.getComputedStyle(item);
+        const rect = item.getBoundingClientRect();
+        return style.visibility !== 'hidden'
+          && style.display !== 'none'
+          && rect.width > 0
+          && rect.height > 0;
+      })
+      .map(item => ({
+        disabled: item.getAttribute('aria-disabled') ?? item.getAttribute('data-disabled'),
+        id: item.getAttribute('data-menu-entry-id'),
+        label: item.textContent?.trim() ?? '',
+        targets: item.getAttribute('data-menu-entry-targets'),
+      }))
+      .filter(item => item.label)
+  ).catch(() => []);
+}
+
 async function clickMenuItem(locator: Locator): Promise<void> {
+  try {
+    await locator.click({ timeout: 5_000 });
+    return;
+  } catch {
+    // Fall back to forced activation when VS Code overlays interfere with Playwright actionability.
+  }
+
   try {
     await locator.click({ force: true, timeout: 5_000 });
     return;
@@ -634,6 +710,29 @@ async function clickMenuItem(locator: Locator): Promise<void> {
       clickable.click();
     }
   });
+}
+
+async function dismissContextMenuAfterAction(context: GraphAcceptanceContext, label: string): Promise<void> {
+  if (label === 'Rename' || label === 'Rename Folder') {
+    return;
+  }
+
+  if (label === 'Delete File' || label === 'Delete Folder' || /^Delete \d+ Files$/.test(label)) {
+    return;
+  }
+
+  await closeContextMenuIfOpen(context);
+}
+
+async function closeContextMenuIfOpen(context: GraphAcceptanceContext): Promise<void> {
+  const frame = requireGraphFrame(context);
+  const visibleMenu = frame.locator('[role="menu"], [data-menu-entries-signature]').first();
+  if (!(await isLocatorVisible(visibleMenu))) {
+    return;
+  }
+
+  await frame.page().keyboard.press('Escape');
+  await expect(visibleMenu).toBeHidden({ timeout: 5_000 });
 }
 
 function escapeRegExp(value: string): string {
@@ -654,6 +753,8 @@ async function reopenLastContextMenu(context: GraphAcceptanceContext): Promise<v
     return;
   }
 
+  await ensureGraphViewVisible(context);
+
   if (target.kind === 'background') {
     await rightClickGraphBackground(context);
     return;
@@ -665,6 +766,22 @@ async function reopenLastContextMenu(context: GraphAcceptanceContext): Promise<v
   }
 
   await rightClickNode(context, target.nodePath);
+}
+
+async function ensureGraphViewVisible(context: GraphAcceptanceContext): Promise<void> {
+  const vscode = requireValue(context.vscode, 'Expected VS Code to be launched');
+  const currentFrame = context.graphFrame;
+  if (currentFrame && await graphStage(currentFrame).isVisible().catch(() => false)) {
+    return;
+  }
+
+  await openGraphView(vscode.page);
+  context.graphFrame = await waitForGraphFrame(vscode.page);
+}
+
+async function refreshLastContextMenu(context: GraphAcceptanceContext): Promise<void> {
+  await closeContextMenuIfOpen(context);
+  await reopenLastContextMenu(context);
 }
 
 async function waitForFavoriteToggleIfNeeded(context: GraphAcceptanceContext, label: string): Promise<void> {
@@ -684,6 +801,21 @@ async function waitForFavoriteToggleIfNeeded(context: GraphAcceptanceContext, la
       ? expect.arrayContaining(favoriteTargets)
       : expect.not.arrayContaining(favoriteTargets),
   );
+  await expectFavoriteMenuLabel(context, shouldAddFavorites);
+}
+
+async function expectFavoriteMenuLabel(
+  context: GraphAcceptanceContext,
+  addedFavorites: boolean,
+): Promise<void> {
+  await closeContextMenuIfOpen(context);
+  await expect.poll(async () => {
+    await reopenLastContextMenu(context);
+    return isLocatorVisible(contextMenuEntry(
+      context,
+      addedFavorites ? 'Remove from Favorites' : 'Add to Favorites',
+    ));
+  }, { timeout: 10_000 }).toBe(true);
 }
 
 function favoriteTargetsForLastContextMenu(context: GraphAcceptanceContext): string[] {

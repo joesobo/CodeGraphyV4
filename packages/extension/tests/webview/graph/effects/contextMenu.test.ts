@@ -1,6 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { applyContextEffects } from '../../../../src/webview/components/graph/effects/contextMenu';
 import type { GraphContextEffect } from '../../../../src/webview/components/graph/contextActions/effects';
+import { graphStore } from '../../../../src/webview/store/state';
+import { INITIAL_STATE } from '../../../../src/webview/store/initialState';
 
 function createHandlers() {
   return {
@@ -12,6 +14,10 @@ function createHandlers() {
 }
 
 describe('graph effects context menu', () => {
+  beforeEach(() => {
+    graphStore.setState({ ...INITIAL_STATE });
+  });
+
   it('opens files after clearing their cached info', () => {
     const handlers = createHandlers();
     const effects: GraphContextEffect[] = [{ kind: 'openFile', path: 'src/app.ts' }];
@@ -47,5 +53,20 @@ describe('graph effects context menu', () => {
     applyContextEffects([{ kind: 'postMessage', message: { type: 'REFRESH_GRAPH' } }], handlers);
 
     expect(handlers.postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
+  });
+
+  it('updates favorites optimistically when posting favorite toggles', () => {
+    const handlers = createHandlers();
+
+    applyContextEffects([{
+      kind: 'postMessage',
+      message: { type: 'TOGGLE_FAVORITE', payload: { paths: ['src/app.ts'] } },
+    }], handlers);
+
+    expect(graphStore.getState().favorites).toEqual(new Set(['src/app.ts']));
+    expect(handlers.postMessage).toHaveBeenCalledWith({
+      type: 'TOGGLE_FAVORITE',
+      payload: { paths: ['src/app.ts'] },
+    });
   });
 });

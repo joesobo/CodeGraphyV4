@@ -3263,10 +3263,10 @@ test.describe('Java Example', () => {
       });
 
       // tests/acceptance/specs/java-example.md:12
-      await test.step('Then I can see there are 5 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 5 nodes and 2 connections', {
+      await test.step('Then I can see there are 5 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 3 connections', {
           keyword: 'Then',
-          text: 'I can see there are 5 nodes and 2 connections',
+          text: 'I can see there are 5 nodes and 3 connections',
           sourcePath: 'tests/acceptance/specs/java-example.md',
           line: 12
         });

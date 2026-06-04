@@ -106,6 +106,24 @@ describe('GraphStore', () => {
     expect(store.getState().favorites).toEqual(new Set(['src/b.ts']));
   });
 
+  it('ignores stale favorites updates while an optimistic favorite snapshot is pending', () => {
+    store.getState().toggleFavoritesOptimistically(['src/index.ts']);
+
+    store.getState().handleExtensionMessage({
+      type: 'FAVORITES_UPDATED',
+      payload: { favorites: [] },
+    });
+
+    expect(store.getState().favorites).toEqual(new Set(['src/index.ts']));
+
+    store.getState().handleExtensionMessage({
+      type: 'FAVORITES_UPDATED',
+      payload: { favorites: ['src/index.ts'] },
+    });
+
+    expect(store.getState().favorites).toEqual(new Set(['src/index.ts']));
+  });
+
   it('handles SETTINGS_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'SETTINGS_UPDATED',

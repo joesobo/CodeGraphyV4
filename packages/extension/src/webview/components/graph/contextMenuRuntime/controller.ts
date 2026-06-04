@@ -52,6 +52,7 @@ export interface GraphContextMenuRuntimeDependencies<THoveredNode = unknown> {
   openLegendRulePrompt?(rule: { pattern: string; color: string; target: 'node' | 'edge' }): void;
   openBackgroundContextMenu(event: MouseEvent): void;
   postMessage(message: { type: string; payload?: unknown }): void;
+  refreshContextSelection?(): void;
   setContextSelection(selection: GraphContextSelection): void;
   setTooltipData(updater: (previousState: GraphTooltipState) => GraphTooltipState): void;
   stopTooltipTracking(): void;

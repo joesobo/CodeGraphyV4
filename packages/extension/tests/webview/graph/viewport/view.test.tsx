@@ -40,14 +40,35 @@ vi.mock('../../../../src/webview/components/graph/rendering/surface/view/threeDi
 vi.mock('../../../../src/webview/components/ui/context/menu', () => ({
   ContextMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ContextMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ContextMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ContextMenuContent: ({
+    children,
+    ...props
+  }: {
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => <div {...props}>{children}</div>,
   ContextMenuItem: ({
     children,
     onClick,
+    onSelect,
+    ...props
   }: {
     children: React.ReactNode;
     onClick?: () => void;
-  }) => <button type="button" onClick={onClick}>{children}</button>,
+    onSelect?: () => void;
+    [key: string]: unknown;
+  }) => (
+    <button
+      type="button"
+      {...props}
+      onClick={() => {
+        onClick?.();
+        onSelect?.();
+      }}
+    >
+      {children}
+    </button>
+  ),
   ContextMenuSeparator: () => <hr data-testid="separator" />,
   ContextMenuShortcut: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
@@ -259,6 +280,73 @@ describe('Viewport', () => {
       contextSelection: { kind: 'node', targets: ['src/app.ts'] },
     });
     expect(screen.getByTestId('separator')).toBeInTheDocument();
+  });
+
+  it('changes the context menu signature when an entry label changes', () => {
+    const contextSelection = { kind: 'node' as const, targets: ['src/app.ts'] };
+    const addFavoriteEntry: GraphContextMenuEntry = {
+      id: 'node-toggle-favorite',
+      kind: 'item',
+      label: 'Add to Favorites',
+      action: { kind: 'builtin', action: 'toggleFavorite' },
+      contextSelection,
+    };
+    const removeFavoriteEntry: GraphContextMenuEntry = {
+      ...addFavoriteEntry,
+      label: 'Remove from Favorites',
+    };
+    const { rerender } = render(
+      <Viewport
+        canvasBackgroundColor="transparent"
+        containerBackgroundColor="var(--cg-popover-translucent)"
+        borderColor="#222222"
+        containerRef={{ current: document.createElement('div') }}
+        directionMode="arrows"
+        graphMode="2d"
+        handleContextMenu={vi.fn()}
+        handleMenuAction={vi.fn()}
+        handleMouseDownCapture={vi.fn()}
+        handleMouseLeave={vi.fn()}
+        handleMouseMoveCapture={vi.fn()}
+        handleMouseUpCapture={vi.fn()}
+        menuEntries={[addFavoriteEntry]}
+        surface2dProps={createSurface2dProps()}
+        surface3dProps={createSurface3dProps()}
+        tooltipData={{ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null, pluginSections: [] }}
+      />,
+    );
+
+    expect(document.querySelector('[data-menu-entries-signature]')).toHaveAttribute(
+      'data-menu-entries-signature',
+      'node-toggle-favorite:Add to Favorites',
+    );
+
+    rerender(
+      <Viewport
+        canvasBackgroundColor="transparent"
+        containerBackgroundColor="var(--cg-popover-translucent)"
+        borderColor="#222222"
+        containerRef={{ current: document.createElement('div') }}
+        directionMode="arrows"
+        graphMode="2d"
+        handleContextMenu={vi.fn()}
+        handleMenuAction={vi.fn()}
+        handleMouseDownCapture={vi.fn()}
+        handleMouseLeave={vi.fn()}
+        handleMouseMoveCapture={vi.fn()}
+        handleMouseUpCapture={vi.fn()}
+        menuEntries={[removeFavoriteEntry]}
+        surface2dProps={createSurface2dProps()}
+        surface3dProps={createSurface3dProps()}
+        tooltipData={{ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null, pluginSections: [] }}
+      />,
+    );
+
+    expect(document.querySelector('[data-menu-entries-signature]')).toHaveAttribute(
+      'data-menu-entries-signature',
+      'node-toggle-favorite:Remove from Favorites',
+    );
+    expect(screen.getByRole('button', { name: 'Remove from Favorites' })).toBeInTheDocument();
   });
 
   it('opens the graph node context menu from the accessible node item', () => {
