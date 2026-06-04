@@ -49,6 +49,21 @@ describe('acceptance graph view workspace fixtures', () => {
     ]);
   });
 
+  it('keeps Markdown example reference edges visible for the relationships asserted by its spec', () => {
+    const sourceSettingsPath = path.resolve(__dirname, '../../../examples/example-markdown/.codegraphy/settings.json');
+    const sourceSettings = JSON.parse(fs.readFileSync(sourceSettingsPath, 'utf8')) as {
+      edgeVisibility?: Record<string, boolean>;
+      plugins?: Array<{ package?: string }>;
+    };
+
+    expect(sourceSettings.plugins).toEqual([
+      { package: '@codegraphy-dev/plugin-markdown' },
+    ]);
+    expect(sourceSettings.edgeVisibility).toEqual(expect.objectContaining({
+      reference: true,
+    }));
+  });
+
   it('omits VS Code settings from TypeScript fixtures unless the scenario asserts that node', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);

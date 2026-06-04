@@ -45,7 +45,7 @@
   },
   "edgeVisibility": {
     "import": true,
-    "reference": false,
+    "reference": true,
     "call": false,
     "test": false,
     "reexport": false,

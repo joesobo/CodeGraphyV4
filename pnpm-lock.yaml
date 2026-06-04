@@ -82,7 +82,7 @@ importers:
 
   examples/example-typescript: {}
 
-  examples/vue-example:
+  examples/example-vue:
     dependencies:
       '@vitejs/plugin-vue':
         specifier: ^6.0.1
