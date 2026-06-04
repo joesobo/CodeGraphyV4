@@ -13,6 +13,9 @@
     },
     {
       "package": "@codegraphy-dev/plugin-typescript"
+    },
+    {
+      "package": "@codegraphy-dev/plugin-vue"
     }
   ],
   "pluginData": {},
