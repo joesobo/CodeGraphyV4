@@ -10,7 +10,6 @@ test('core extension release declares platform-specific VSIX targets', () => {
   assert.deepEqual(releaseCore.EXTENSION_VSIX_TARGETS, [
     'linux-x64',
     'darwin-arm64',
-    'darwin-x64',
     'win32-x64',
   ]);
 });
@@ -47,14 +46,6 @@ test('package mode creates one target-specific vsce invocation per VSIX target',
         'package',
         '--no-dependencies',
         '--target',
-        'darwin-x64',
-        '--out',
-        path.join(artifactsDir, 'codegraphy.codegraphy-5.6.5-darwin-x64.vsix'),
-      ],
-      [
-        'package',
-        '--no-dependencies',
-        '--target',
         'win32-x64',
         '--out',
         path.join(artifactsDir, 'codegraphy.codegraphy-5.6.5-win32-x64.vsix'),
@@ -75,7 +66,6 @@ test('publish mode publishes every target-specific VSIX target', () => {
     [
       ['publish', '--no-dependencies', '--skip-duplicate', '--target', 'linux-x64'],
       ['publish', '--no-dependencies', '--skip-duplicate', '--target', 'darwin-arm64'],
-      ['publish', '--no-dependencies', '--skip-duplicate', '--target', 'darwin-x64'],
       ['publish', '--no-dependencies', '--skip-duplicate', '--target', 'win32-x64'],
     ],
   );
