@@ -732,12 +732,13 @@ Graph Cache sharing decision:
 - Graph Cache can be large, stale, branch-sensitive, plugin-version-sensitive, and machine/path-sensitive
 - teams should commit workspace settings when desired, not the Graph Cache
 - `codegraphy index` should regenerate Graph Cache for the current CodeGraphy Workspace
-- recommended ignore entries:
+- recommended default ignore entry:
 
 ```gitignore
-.codegraphy/graph.lbug
-.codegraphy/cache/
+.codegraphy/*
 ```
+
+- teams that want shared workspace settings should add `!.codegraphy/settings.json`
 
 Graph Cache staleness decision:
 
