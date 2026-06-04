@@ -132,7 +132,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   'the graph nodes match the expected files in the examples/vue-example workspace': async (context) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     expect(readExampleVueFiles(workspacePath)).toEqual(EXPECTED_EXAMPLE_VUE_FILES);
-    await expectGraphCounts(context, EXPECTED_EXAMPLE_VUE_FILES.length, 7);
+    await expectGraphCounts(context, EXPECTED_EXAMPLE_VUE_FILES.length, 8);
   },
 
   'I index the workspace': async (context) => {
