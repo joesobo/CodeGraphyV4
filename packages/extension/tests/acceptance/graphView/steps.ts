@@ -364,7 +364,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I click the "Zoom In" button$/, async (context) => {
     context.beforeZoomNodeSize = await readZoomScaleMetric(context);
-    await requireGraphFrame(context).getByRole('button', { name: 'Zoom In' }).click();
+    await clickToolbarButton(requireGraphFrame(context), 'Zoom In');
   }),
 
   step(/^the visible graph scale increases$/, async (context) => {
@@ -384,7 +384,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^I click the "Zoom Out" button$/, async (context) => {
     context.beforeZoomNodeSize = await readZoomScaleMetric(context);
-    await requireGraphFrame(context).getByRole('button', { name: 'Zoom Out' }).click();
+    await clickToolbarButton(requireGraphFrame(context), 'Zoom Out');
   }),
 
   step(/^the visible graph scale decreases$/, async (context) => {
