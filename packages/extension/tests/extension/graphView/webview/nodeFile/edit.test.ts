@@ -32,7 +32,7 @@ describe('graph view node/file edit message', () => {
     expect(handlers.deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
   });
 
-  it('skips deletes when the graph revision is not mutable', async () => {
+  it('skips deletes when a timeline snapshot graph revision is not mutable', async () => {
     const handlers = createHandlers({
       timelineActive: true,
       canMutateGraphRevision: false,
@@ -44,6 +44,20 @@ describe('graph view node/file edit message', () => {
     );
 
     expect(handlers.deleteFiles).not.toHaveBeenCalled();
+  });
+
+  it('deletes files when timeline mode is inactive even if revision mutability is false', async () => {
+    const handlers = createHandlers({
+      timelineActive: false,
+      canMutateGraphRevision: false,
+    });
+
+    await applyNodeFileEditMessage(
+      { type: 'DELETE_FILES', payload: { paths: ['src/app.ts'] } },
+      handlers,
+    );
+
+    expect(handlers.deleteFiles).toHaveBeenCalledWith(['src/app.ts']);
   });
 
   it('renames files outside timeline mode', async () => {
@@ -94,12 +108,29 @@ describe('graph view node/file edit message', () => {
   });
 
   it('toggles favorites even in timeline mode', async () => {
-    const handlers = createHandlers({ timelineActive: true });
+    let resolveToggle: (() => void) | undefined;
+    const toggleComplete = new Promise<void>(resolve => {
+      resolveToggle = resolve;
+    });
+    const handlers = createHandlers({
+      timelineActive: true,
+      toggleFavorites: vi.fn(() => toggleComplete),
+    });
 
-    await expect(applyNodeFileEditMessage(
+    let resolved = false;
+    const handled = applyNodeFileEditMessage(
       { type: 'TOGGLE_FAVORITE', payload: { paths: ['src/app.ts'] } },
       handlers,
-    )).resolves.toBe(true);
+    ).then((result) => {
+      resolved = true;
+      return result;
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(resolved).toBe(false);
+
+    resolveToggle?.();
+    await expect(handled).resolves.toBe(true);
 
     expect(handlers.toggleFavorites).toHaveBeenCalledWith(['src/app.ts']);
   });

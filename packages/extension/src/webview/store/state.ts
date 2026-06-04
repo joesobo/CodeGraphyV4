@@ -41,6 +41,7 @@ export interface GraphState {
   searchQuery: string;
   searchOptions: SearchOptions;
   favorites: Set<string>;
+  pendingFavoriteSnapshot: Set<string> | null;
   bidirectionalMode: BidirectionalEdgeMode;
   showOrphans: boolean;
   directionMode: DirectionMode;
@@ -103,6 +104,7 @@ export interface GraphState {
   clearOptimisticLegendUpdate: (legendId: string) => void;
   setOptimisticUserLegends: (legends: IGroup[]) => void;
   setFilterPatterns: (patterns: string[]) => void;
+  toggleFavoritesOptimistically: (paths: readonly string[]) => void;
   setDisabledCustomFilterPatterns: (patterns: string[]) => void;
   setDisabledPluginFilterPatterns: (patterns: string[]) => void;
   setShowOrphans: (show: boolean) => void;

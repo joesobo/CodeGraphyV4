@@ -3,17 +3,18 @@
 	"version": "1.0.0",
 	"packageManager": "pnpm@10.32.0",
 	"workspaces": [
-		"packages/*"
+		"packages/*",
+		"apps/*"
 	],
 	"scripts": {
 		"build": "turbo run build",
 		"build:devhost": "node scripts/build-devhost.mjs",
 		"watch": "pnpm --filter @codegraphy-dev/extension run watch",
 		"dev": "pnpm --filter @codegraphy-dev/extension run dev",
-		"test": "pnpm run test:unit && pnpm run test:vscode",
+		"test": "pnpm run test:unit && pnpm run test:playwright",
 		"test:unit": "turbo run test",
 		"test:release": "node --test tests/release/*.test.mjs",
-		"test:playwright": "pnpm run test:vscode",
+		"test:playwright": "node scripts/run-playwright-turbo.mjs",
 		"test:vscode": "pnpm -r --if-present run test:vscode",
 		"check:acceptance-specs": "node scripts/guard-acceptance-spec-edits.mjs",
 		"lint": "turbo run lint",
@@ -229,7 +230,7 @@
 		"@changesets/changelog-github": "^0.6.0",
 		"@changesets/cli": "^2.30.0",
 		"@eslint/js": "^9.0.0",
-		"@poleski/quality-tools": "github:joesobo/quality-tools#codex/acceptance-specs-tool",
+		"@poleski/quality-tools": "^0.2.0",
 		"@types/node": "^20.11.0",
 		"@types/vscode": "^1.85.0",
 		"@vitest/coverage-istanbul": "^3.2.4",

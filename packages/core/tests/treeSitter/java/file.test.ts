@@ -107,4 +107,32 @@ describe('pipeline/plugins/treesitter/runtime/analyzeJava/file', () => {
       relations: [],
     });
   });
+
+  it('skips Java type declarations when symbol extraction is disabled', () => {
+    let visit: ((node: unknown, state: unknown, walk: unknown) => unknown) | undefined;
+    walkTree.mockImplementation((_root, _state, callback) => {
+      visit = callback;
+    });
+
+    const result = analyzeJavaFile(
+      '/workspace/src/App.java',
+      { rootNode: {} } as never,
+      '/workspace',
+      { includeSymbols: false },
+    );
+
+    visit?.({ type: 'class_declaration' }, {}, vi.fn());
+
+    expect(handleJavaTypeDeclaration).not.toHaveBeenCalled();
+    expect(normalizeAnalysisResult).toHaveBeenLastCalledWith(
+      '/workspace/src/App.java',
+      [],
+      [],
+    );
+    expect(result).toEqual({
+      filePath: '/workspace/src/App.java',
+      symbols: [],
+      relations: [],
+    });
+  });
 });

@@ -3,7 +3,6 @@ import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
 export function sendRefreshState(source: GraphViewProviderRefreshMethodsSource): void {
   source._sendAllSettings();
   source._sendGraphControls?.();
-  source._sendFavorites();
 }
 
 export async function runPrimaryRefresh(source: GraphViewProviderRefreshMethodsSource): Promise<void> {

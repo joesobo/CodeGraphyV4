@@ -347,8 +347,8 @@ describe('Graph View context menu contributions', () => {
     });
 
     expect(itemLabels(entries).slice(0, 3)).toEqual([
-      'New File...',
-      'New Folder...',
+      'New File',
+      'New Folder',
       'New Plugin Node...',
     ]);
   });

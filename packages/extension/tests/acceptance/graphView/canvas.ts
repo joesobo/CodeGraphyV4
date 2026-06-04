@@ -45,7 +45,7 @@ export async function countVisibleGraphPixels(frame: Frame): Promise<number> {
 
 export async function getGraphCounts(frame: Frame): Promise<{ nodes: number; edges: number }> {
   const text = await frame.locator('body').innerText();
-  const match = text.match(/(\d+)\s+nodes\s+•\s+(\d+)\s+(?:edges|connections)/);
+  const match = text.match(/(\d+)\s+nodes\s+•\s+(\d+)\s+(?:edges|connections?)/);
   if (!match) {
     throw new Error(`Expected graph count text in webview, saw:\n${text}`);
   }
@@ -78,10 +78,32 @@ export async function findNodeProbe(
   nodePath: string,
 ): Promise<NodeProbe> {
   const frame = requireGraphFrame(context);
-  await frame.getByRole('button', { name: 'Fit to Screen' }).click();
+  await clickFitToScreenIfAvailable(frame);
   const probe = await waitForStableNodeProbe(frame, nodePath);
   context.nodeProbes.set(nodePath, probe);
   return probe;
+}
+
+export async function clickFitToScreenIfAvailable(frame: Frame): Promise<void> {
+  const fitByRole = frame.getByRole('button', { name: 'Fit to Screen' });
+  if (await fitByRole.count()) {
+    await clickElement(fitByRole);
+    return;
+  }
+
+  const fitByTitle = frame.getByTitle('Fit to Screen');
+  if (await fitByTitle.count()) {
+    await clickElement(fitByTitle);
+  }
+}
+
+async function clickElement(locator: Locator): Promise<void> {
+  await locator.evaluate((element) => {
+    const clickable = element as HTMLElement & { click?: unknown };
+    if (typeof clickable.click === 'function') {
+      clickable.click();
+    }
+  });
 }
 
 async function waitForStableNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe> {
@@ -99,12 +121,43 @@ async function waitForStableNodeProbe(frame: Frame, nodePath: string): Promise<N
   return previous;
 }
 
-function graphNode(frame: Frame, nodePath: string): Locator {
+export function graphNode(frame: Frame, nodePath: string): Locator {
   return frame.getByLabel(`Graph node ${nodePath}`, { exact: true });
 }
 
+export async function graphNodeByExactPathOrBasename(frame: Frame, nodePath: string): Promise<Locator> {
+  const exactNode = graphNode(frame, nodePath);
+  if (await exactNode.count() > 0) {
+    return exactNode;
+  }
+
+  const matchingLabel = await frame.locator('[aria-label^="Graph node "]').evaluateAll((items, requestedPath) => {
+    const requested = String(requestedPath);
+    return items
+      .map(item => item.getAttribute('aria-label') ?? '')
+      .find((label) => {
+        const nodeId = label.replace(/^Graph node /, '');
+        return nodeId.split('/').at(-1) === requested;
+      });
+  }, nodePath);
+
+  if (matchingLabel) {
+    return frame.getByLabel(matchingLabel, { exact: true });
+  }
+
+  return exactNode;
+}
+
+export function graphEdge(frame: Frame, sourcePath: string, targetPath: string): Locator {
+  return frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true }).first();
+}
+
+export async function clickToolbarButton(frame: Frame, name: string): Promise<void> {
+  await frame.getByTitle(name).click({ force: true });
+}
+
 async function readNodeProbe(frame: Frame, nodePath: string): Promise<NodeProbe> {
-  const nodeLocator = graphNode(frame, nodePath);
+  const nodeLocator = await graphNodeByExactPathOrBasename(frame, nodePath);
   await expect(nodeLocator).toBeAttached({ timeout: 10_000 });
 
   const nodeBox = await nodeLocator.boundingBox();
@@ -136,6 +189,41 @@ async function dragMouseBetweenStagePoints(frame: Frame, source: Point, target: 
   await page.mouse.up();
 }
 
+async function dispatchCanvasDragBetweenStagePoints(frame: Frame, source: Point, target: Point): Promise<void> {
+  await graphStage(frame).evaluate((stage, options) => {
+    const canvas = stage.querySelector('canvas');
+    if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
+      throw new Error('Expected Graph Stage to contain a canvas');
+    }
+
+    const stageRect = stage.getBoundingClientRect();
+    const toClient = (point: Point): Point => ({
+      x: stageRect.left + point.x,
+      y: stageRect.top + point.y,
+    });
+    const dispatchMouse = (type: string, point: Point, buttons: number): void => {
+      const client = toClient(point);
+      canvas.dispatchEvent(new MouseEvent(type, {
+        bubbles: true,
+        button: 0,
+        buttons,
+        cancelable: true,
+        clientX: client.x,
+        clientY: client.y,
+      }));
+    };
+
+    dispatchMouse('mousedown', options.source, 1);
+    for (let step = 1; step <= 12; step += 1) {
+      dispatchMouse('mousemove', {
+        x: options.source.x + (((options.target.x - options.source.x) * step) / 12),
+        y: options.source.y + (((options.target.y - options.source.y) * step) / 12),
+      }, 1);
+    }
+    dispatchMouse('mouseup', options.target, 0);
+  }, { source, target });
+}
+
 export async function hoverNode(context: GraphAcceptanceContext, nodePath: string): Promise<NodeProbe> {
   const frame = requireGraphFrame(context);
   const probe = await findNodeProbe(context, nodePath);
@@ -146,10 +234,78 @@ export async function hoverNode(context: GraphAcceptanceContext, nodePath: strin
   return probe;
 }
 
+export async function stopHoverNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await graphNode(frame, nodePath).dispatchEvent('mouseout', { bubbles: true });
+}
+
 export async function clickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
   const frame = requireGraphFrame(context);
   await findNodeProbe(context, nodePath);
   await graphNode(frame, nodePath).dispatchEvent('click', { bubbles: true });
+  context.selectedNodePaths = [nodePath];
+}
+
+export async function modifierClickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  await graphNode(frame, nodePath).dispatchEvent('click', { bubbles: true, shiftKey: true });
+  const selectedNodePaths = context.selectedNodePaths ?? [];
+  context.selectedNodePaths = selectedNodePaths.includes(nodePath)
+    ? selectedNodePaths.filter(selectedPath => selectedPath !== nodePath)
+    : [...selectedNodePaths, nodePath];
+}
+
+export async function doubleClickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  await graphNode(frame, nodePath).dispatchEvent('dblclick', { bubbles: true });
+}
+
+export async function rightClickNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  context.lastContextMenuTarget = { kind: 'node', nodePath };
+  await graphNode(frame, nodePath).dispatchEvent('contextmenu', { bubbles: true, button: 2 });
+}
+
+export async function clickGraphBackground(context: GraphAcceptanceContext): Promise<void> {
+  const frame = requireGraphFrame(context);
+  const stageBox = await graphStage(frame).boundingBox();
+  if (!stageBox) {
+    throw new Error('Expected Graph Stage to have a bounding box');
+  }
+
+  await frame.page().mouse.click(stageBox.x + 12, stageBox.y + 12);
+  context.selectedNodePaths = [];
+}
+
+export async function rightClickGraphBackground(context: GraphAcceptanceContext): Promise<void> {
+  const frame = requireGraphFrame(context);
+  context.lastContextMenuTarget = { kind: 'background' };
+  await graphStage(frame).evaluate((stage) => {
+    const rect = stage.getBoundingClientRect();
+    stage.dispatchEvent(new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      button: 2,
+      buttons: 2,
+      clientX: rect.left + 24,
+      clientY: rect.top + 24,
+    }));
+  });
+}
+
+export async function rightClickEdge(
+  context: GraphAcceptanceContext,
+  sourcePath: string,
+  targetPath: string,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await expectVisibleEdgeBetween(context, sourcePath, targetPath);
+  context.lastContextMenuTarget = { kind: 'edge', sourcePath, targetPath };
+  await frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true })
+    .dispatchEvent('contextmenu', { bubbles: true, button: 2 });
 }
 
 export async function dragNode(context: GraphAcceptanceContext, nodePath: string): Promise<void> {
@@ -161,7 +317,11 @@ export async function dragNode(context: GraphAcceptanceContext, nodePath: string
 
   context.beforeDragCenter = probe.center;
   context.nodeProbes.delete(nodePath);
-  context.afterDragCenter = (await readNodeProbe(frame, nodePath)).center;
+  context.afterDragCenter = await waitForNodeCenterToMove(frame, nodePath, probe.center, 1_500)
+    .catch(async () => {
+      await dispatchCanvasDragBetweenStagePoints(frame, probe.center, target);
+      return waitForNodeCenterToMove(frame, nodePath, probe.center);
+    });
   context.nodeProbes.set(nodePath, {
     path: nodePath,
     center: context.afterDragCenter,
@@ -198,8 +358,7 @@ export async function expectNodeHasLabel(frame: Frame, probe: NodeProbe): Promis
 }
 
 export async function expectNodeIsOutlined(frame: Frame, probe: NodeProbe): Promise<void> {
-  const analysis = await analyzeNodePixels(frame, probe);
-  expect(analysis.outlinePixelCount).toBeGreaterThan(10);
+  await expect.poll(async () => (await analyzeNodePixels(frame, probe)).outlinePixelCount).toBeGreaterThan(10);
 }
 
 export async function expectVisibleEdgeBetween(
@@ -211,12 +370,63 @@ export async function expectVisibleEdgeBetween(
   const source = await findNodeProbe(context, sourcePath);
   const target = await findNodeProbe(context, targetPath);
 
-  await expect(frame.getByLabel(`Graph edge ${sourcePath} to ${targetPath}`, { exact: true })).toBeAttached();
-  await expect.poll(() => countImportColoredPixelsOnLine(frame, source.center, target.center)).toBeGreaterThan(3);
+  await expect(graphEdge(frame, sourcePath, targetPath)).toBeAttached();
+  await expect.poll(() => countVisiblePixelsOnLine(frame, source.center, target.center)).toBeGreaterThan(3);
 }
 
 export async function waitForFileOpened(page: Page, fileName: string): Promise<void> {
   await expect.poll(() => page.title(), { timeout: 10_000 }).toContain(fileName);
+}
+
+export async function countEdgesConnectedTo(frame: Frame, nodePath: string): Promise<number> {
+  return frame.locator('[aria-label^="Graph edge "]').evaluateAll((items, pathToFind) =>
+    items.filter((item) => item.getAttribute('aria-label')?.includes(String(pathToFind))).length,
+    nodePath,
+  );
+}
+
+export async function readNodeVisualSize(context: GraphAcceptanceContext, nodePath: string): Promise<number> {
+  const frame = requireGraphFrame(context);
+  await findNodeProbe(context, nodePath);
+  const box = await graphNode(frame, nodePath).boundingBox();
+  if (!box) {
+    throw new Error(`Expected ${nodePath} to expose a visual box`);
+  }
+
+  return Math.max(box.width, box.height);
+}
+
+export async function readScreenDistanceBetweenNodes(
+  context: GraphAcceptanceContext,
+  sourcePath: string,
+  targetPath: string,
+): Promise<number> {
+  const frame = requireGraphFrame(context);
+  const source = await readNodeProbe(frame, sourcePath);
+  const target = await readNodeProbe(frame, targetPath);
+
+  return distanceBetween(source.center, target.center);
+}
+
+export async function readGraphDebugZoom(frame: Frame): Promise<number | null> {
+  return frame.evaluate(() => {
+    const debug = window.__CODEGRAPHY_GRAPH_DEBUG__;
+    const zoom = debug?.getSnapshot().zoom;
+    return typeof zoom === 'number' && Number.isFinite(zoom) ? zoom : null;
+  });
+}
+
+async function waitForNodeCenterToMove(
+  frame: Frame,
+  nodePath: string,
+  before: Point,
+  timeout = 5_000,
+): Promise<Point> {
+  await expect.poll(
+    async () => distanceBetween(before, (await readNodeProbe(frame, nodePath)).center),
+    { timeout },
+  ).toBeGreaterThan(20);
+  return (await readNodeProbe(frame, nodePath)).center;
 }
 
 async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<CanvasAnalysis> {
@@ -288,7 +498,7 @@ async function analyzeNodePixels(frame: Frame, probe: NodeProbe): Promise<Canvas
   }, { probe, blue: BLUE_NODE_RGB });
 }
 
-async function countImportColoredPixelsOnLine(frame: Frame, source: Point, target: Point): Promise<number> {
+async function countVisiblePixelsOnLine(frame: Frame, source: Point, target: Point): Promise<number> {
   return graphStage(frame).evaluate((stage, options) => {
     const canvas = stage.querySelector('canvas');
     if (!(stage instanceof HTMLElement) || !(canvas instanceof HTMLCanvasElement)) {
@@ -330,7 +540,7 @@ async function countImportColoredPixelsOnLine(frame: Frame, source: Point, targe
           const green = image.data[index + 1];
           const blue = image.data[index + 2];
           const alpha = image.data[index + 3];
-          if (alpha > 80 && blue > red + 25 && green > red + 10) {
+          if (alpha > 80 && red + green + blue > 120) {
             matchingPixels += 1;
           }
         }

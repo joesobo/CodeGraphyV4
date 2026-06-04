@@ -217,6 +217,70 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
       )).toBe(false);
     });
 
+    it('keeps Java file-view relations to imports and calls without superclass file connections', async () => {
+      const workspaceRoot = await createWorkspace({
+        'src/com/example/app/BaseService.java': [
+          'package com.example.app;',
+          '',
+          'public class BaseService {',
+          '  public void start() {}',
+          '}',
+          '',
+        ].join('\n'),
+        'src/com/example/app/Helper.java': [
+          'package com.example.app;',
+          '',
+          'public class Helper {',
+          '  public static void ping() {}',
+          '}',
+          '',
+        ].join('\n'),
+      });
+      const appPath = path.join(workspaceRoot, 'src/com/example/app/App.java');
+      const helperPath = path.join(workspaceRoot, 'src/com/example/app/Helper.java');
+      const baseServicePath = path.join(workspaceRoot, 'src/com/example/app/BaseService.java');
+      const appSource = [
+        'package com.example.app;',
+        '',
+        'import com.example.app.Helper;',
+        '',
+        'public class App extends BaseService {',
+        '  public void run() {',
+        '    Helper.ping();',
+        '  }',
+        '}',
+        '',
+      ].join('\n');
+
+      const result = await analyzeFileWithTreeSitter(
+        appPath,
+        appSource,
+        workspaceRoot,
+        { includeSymbols: false },
+      );
+
+      expect(result).not.toBeNull();
+      expect(result?.symbols).toEqual([]);
+      expect(result?.relations).toHaveLength(2);
+      expect(result?.relations).toEqual([
+        expect.objectContaining({
+          kind: 'import',
+          specifier: 'com.example.app.Helper',
+          resolvedPath: helperPath,
+          toFilePath: helperPath,
+        }),
+        expect.objectContaining({
+          kind: 'call',
+          specifier: 'com.example.app.Helper',
+          resolvedPath: helperPath,
+          toFilePath: helperPath,
+        }),
+      ]);
+      expect(result?.relations?.some(relation =>
+        relation.kind === 'inherit' || relation.toFilePath === baseServicePath,
+      )).toBe(false);
+    });
+
 
 
     it('extracts TypeScript type-only imports as type-import relations', async () => {

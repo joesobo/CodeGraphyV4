@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphSurfaceSharedProps } from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
 import { Viewport } from '../../../../src/webview/components/graph/viewport/view';
 
@@ -39,14 +40,35 @@ vi.mock('../../../../src/webview/components/graph/rendering/surface/view/threeDi
 vi.mock('../../../../src/webview/components/ui/context/menu', () => ({
   ContextMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ContextMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ContextMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ContextMenuContent: ({
+    children,
+    ...props
+  }: {
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => <div {...props}>{children}</div>,
   ContextMenuItem: ({
     children,
     onClick,
+    onSelect,
+    ...props
   }: {
     children: React.ReactNode;
     onClick?: () => void;
-  }) => <button type="button" onClick={onClick}>{children}</button>,
+    onSelect?: () => void;
+    [key: string]: unknown;
+  }) => (
+    <button
+      type="button"
+      {...props}
+      onClick={() => {
+        onClick?.();
+        onSelect?.();
+      }}
+    >
+      {children}
+    </button>
+  ),
   ContextMenuSeparator: () => <hr data-testid="separator" />,
   ContextMenuShortcut: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
@@ -92,6 +114,31 @@ function createSharedProps(): GraphSurfaceSharedProps {
     onNodeRightClick: vi.fn(),
     warmupTicks: 0,
     width: 300,
+  };
+}
+
+function createGraphNode(id: string): FGNode {
+  return {
+    id,
+    label: id,
+    size: 24,
+    color: '#22c55e',
+    borderColor: '#111827',
+    borderWidth: 1,
+    baseOpacity: 1,
+    isFavorite: false,
+    isPinned: false,
+  };
+}
+
+function createGraphLink(id: string, source: string, target: string): FGLink {
+  return {
+    id,
+    from: source,
+    to: target,
+    source,
+    target,
+    bidirectional: false,
   };
 }
 
@@ -233,6 +280,129 @@ describe('Viewport', () => {
       contextSelection: { kind: 'node', targets: ['src/app.ts'] },
     });
     expect(screen.getByTestId('separator')).toBeInTheDocument();
+  });
+
+  it('changes the context menu signature when an entry label changes', () => {
+    const contextSelection = { kind: 'node' as const, targets: ['src/app.ts'] };
+    const addFavoriteEntry: GraphContextMenuEntry = {
+      id: 'node-toggle-favorite',
+      kind: 'item',
+      label: 'Add to Favorites',
+      action: { kind: 'builtin', action: 'toggleFavorite' },
+      contextSelection,
+    };
+    const removeFavoriteEntry: GraphContextMenuEntry = {
+      ...addFavoriteEntry,
+      label: 'Remove from Favorites',
+    };
+    const { rerender } = render(
+      <Viewport
+        canvasBackgroundColor="transparent"
+        containerBackgroundColor="var(--cg-popover-translucent)"
+        borderColor="#222222"
+        containerRef={{ current: document.createElement('div') }}
+        directionMode="arrows"
+        graphMode="2d"
+        handleContextMenu={vi.fn()}
+        handleMenuAction={vi.fn()}
+        handleMouseDownCapture={vi.fn()}
+        handleMouseLeave={vi.fn()}
+        handleMouseMoveCapture={vi.fn()}
+        handleMouseUpCapture={vi.fn()}
+        menuEntries={[addFavoriteEntry]}
+        surface2dProps={createSurface2dProps()}
+        surface3dProps={createSurface3dProps()}
+        tooltipData={{ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null, pluginSections: [] }}
+      />,
+    );
+
+    expect(document.querySelector('[data-menu-entries-signature]')).toHaveAttribute(
+      'data-menu-entries-signature',
+      'node-toggle-favorite:Add to Favorites',
+    );
+
+    rerender(
+      <Viewport
+        canvasBackgroundColor="transparent"
+        containerBackgroundColor="var(--cg-popover-translucent)"
+        borderColor="#222222"
+        containerRef={{ current: document.createElement('div') }}
+        directionMode="arrows"
+        graphMode="2d"
+        handleContextMenu={vi.fn()}
+        handleMenuAction={vi.fn()}
+        handleMouseDownCapture={vi.fn()}
+        handleMouseLeave={vi.fn()}
+        handleMouseMoveCapture={vi.fn()}
+        handleMouseUpCapture={vi.fn()}
+        menuEntries={[removeFavoriteEntry]}
+        surface2dProps={createSurface2dProps()}
+        surface3dProps={createSurface3dProps()}
+        tooltipData={{ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null, pluginSections: [] }}
+      />,
+    );
+
+    expect(document.querySelector('[data-menu-entries-signature]')).toHaveAttribute(
+      'data-menu-entries-signature',
+      'node-toggle-favorite:Remove from Favorites',
+    );
+    expect(screen.getByRole('button', { name: 'Remove from Favorites' })).toBeInTheDocument();
+  });
+
+  it('opens the graph node context menu from the accessible node item', () => {
+    const handleNodeContextMenu = vi.fn();
+    const node = createGraphNode('src/app.ts');
+    const sharedProps = createSharedProps();
+    sharedProps.graphData = { nodes: [node], links: [] };
+
+    renderViewport({
+      accessibilityItems: {
+        nodes: [{
+          kind: 'node',
+          id: 'src/app.ts',
+          label: 'Graph node src/app.ts',
+          radius: 24,
+          x: 50,
+          y: 60,
+        }],
+        edges: [],
+      },
+      handleNodeContextMenu,
+      surface2dProps: createSurface2dProps(sharedProps),
+      surface3dProps: createSurface3dProps(sharedProps),
+    });
+
+    fireEvent.contextMenu(screen.getByRole('button', { name: 'Graph node src/app.ts' }));
+
+    expect(handleNodeContextMenu).toHaveBeenCalledWith('src/app.ts', expect.any(MouseEvent));
+  });
+
+  it('opens the graph edge context menu from the accessible edge item', () => {
+    const handleEdgeContextMenu = vi.fn();
+    const edge = createGraphLink('edge-src-app-src-types', 'src/app.ts', 'src/types.ts');
+    const sharedProps = createSharedProps();
+    sharedProps.graphData = {
+      nodes: [createGraphNode('src/app.ts'), createGraphNode('src/types.ts')],
+      links: [edge],
+    };
+
+    renderViewport({
+      accessibilityItems: {
+        nodes: [],
+        edges: [{
+          kind: 'edge',
+          id: 'edge-src-app-src-types',
+          label: 'Graph edge src/app.ts to src/types.ts',
+        }],
+      },
+      handleEdgeContextMenu,
+      surface2dProps: createSurface2dProps(sharedProps),
+      surface3dProps: createSurface3dProps(sharedProps),
+    });
+
+    fireEvent.contextMenu(screen.getByLabelText('Graph edge src/app.ts to src/types.ts'));
+
+    expect(handleEdgeContextMenu).toHaveBeenCalledWith(edge, expect.any(MouseEvent));
   });
 
   it('hosts Graph View stage slots separately for world and viewport overlays', () => {

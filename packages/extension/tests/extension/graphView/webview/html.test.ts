@@ -52,4 +52,34 @@ describe('graphView/webview/html', () => {
 
     expect(html).toContain('data-codegraphy-view="timeline"');
   });
+
+  it('marks the graph debug bridge as enabled when requested', () => {
+    const html = createGraphViewHtml(
+      vscode.Uri.file('/test/extension'),
+      {
+        cspSource: 'vscode-webview://test',
+        asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
+      } as unknown as vscode.Webview,
+      'nonce-value',
+      'graph',
+      'dark',
+      true,
+    );
+
+    expect(html).toContain('data-codegraphy-debug="true"');
+  });
+
+  it('does not enable the graph debug bridge by default', () => {
+    const html = createGraphViewHtml(
+      vscode.Uri.file('/test/extension'),
+      {
+        cspSource: 'vscode-webview://test',
+        asWebviewUri: vi.fn((uri: vscode.Uri) => `webview:${uri.fsPath}`),
+      } as unknown as vscode.Webview,
+      'nonce-value',
+      'graph',
+    );
+
+    expect(html).not.toContain('data-codegraphy-debug');
+  });
 });

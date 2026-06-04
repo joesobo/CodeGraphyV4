@@ -70,6 +70,7 @@ export function createDefaultGraphViewProviderWebviewMethodDependencies(): Graph
         createGraphViewNonce(),
         viewKind,
         getActiveGraphViewThemeKind(),
+        process.env.CODEGRAPHY_ACCEPTANCE === '1',
       ),
     resolveWebviewView: resolveGraphViewWebviewView,
     openInEditor: openGraphViewInEditor,

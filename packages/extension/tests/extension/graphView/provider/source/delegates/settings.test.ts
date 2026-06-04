@@ -26,7 +26,7 @@ describe('source/delegates/settings', () => {
     delegates._getLocalResourceRoots();
     delegates._updatePhysicsSetting!('repelForce', -180);
     delegates._resetPhysicsSettings!();
-    delegates._sendFavorites?.();
+    delegates._sendFavorites?.(['src/app.ts']);
 
     expect(owner._pluginResourceMethods._registerBuiltInPluginRoots).toHaveBeenCalledTimes(1);
     expect(owner._pluginResourceMethods._resolveWebviewAssetPath).toHaveBeenCalledWith(
@@ -49,6 +49,6 @@ describe('source/delegates/settings', () => {
       -180,
     );
     expect(owner._physicsSettingsMethods._resetPhysicsSettings).toHaveBeenCalledTimes(1);
-    expect(owner._fileInfoMethods._sendFavorites).toHaveBeenCalledTimes(1);
+    expect(owner._fileInfoMethods._sendFavorites).toHaveBeenCalledWith(['src/app.ts']);
   });
 });

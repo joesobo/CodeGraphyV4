@@ -100,7 +100,7 @@ pnpm --filter @codegraphy-dev/extension run generate:acceptance
 Run the full VS Code acceptance E2E path:
 
 ```bash
-pnpm --filter @codegraphy-dev/extension run test:vscode
+pnpm --filter @codegraphy-dev/extension run test:playwright
 ```
 
 The full path compiles Markdown, builds the extension, launches a VS Code

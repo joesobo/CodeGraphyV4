@@ -75,7 +75,7 @@ export function installGraphDebugApi({
   openNodeContextMenu,
   win,
 }: GraphDebugApiOptions): (() => void) | undefined {
-  if (win.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ !== true) {
+  if (win.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ !== true && win.document?.body?.dataset.codegraphyDebug !== 'true') {
     return undefined;
   }
   const options = {

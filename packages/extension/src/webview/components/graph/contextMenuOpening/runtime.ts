@@ -17,9 +17,19 @@ import type { createGraphInteractionHandlers } from '../interactionRuntime/handl
 import type { FGLink, FGNode } from '../model/build';
 import type { GraphRuntime } from '../runtime/use/state';
 import { postMessage } from '../../../vscodeApi';
+import { graphStore } from '../../../store/state';
 
 type GraphInteractionHandlersRuntime = ReturnType<typeof createGraphInteractionHandlers>;
 type GraphContextMenuRuntime = ReturnType<typeof createGraphContextMenuRuntime>;
+
+function cloneGraphContextSelection(selection: GraphContextSelection): GraphContextSelection {
+  return {
+    kind: selection.kind,
+    targets: [...selection.targets],
+    ...(selection.edgeId ? { edgeId: selection.edgeId } : {}),
+    ...(selection.graphPosition ? { graphPosition: { ...selection.graphPosition } } : {}),
+  };
+}
 
 export interface GraphContextMenuOpeningRuntime {
   contextMenuRuntime: GraphContextMenuRuntime;
@@ -84,9 +94,14 @@ function createGraphContextMenuOpeningDependencies({
     openLegendRulePrompt: openLegendRulePrompt ?? (() => {}),
     openBackgroundContextMenu: interactionHandlers.openBackgroundContextMenu,
     postMessage,
+    refreshContextSelection: () => {
+      setContextSelection(previous => cloneGraphContextSelection(previous));
+    },
     setContextSelection,
     setTooltipData,
     stopTooltipTracking,
+    toggleFavoritesOptimistically: paths =>
+      graphStore.getState().toggleFavoritesOptimistically(paths),
   };
 }
 

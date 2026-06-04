@@ -25,7 +25,7 @@ function applyTimelineBoundEditMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewNodeFileEditHandlers,
 ): boolean | Promise<boolean> {
-  if (!handlers.canMutateGraphRevision) {
+  if (handlers.timelineActive && !handlers.canMutateGraphRevision) {
     return isTimelineBoundEditMessage(message);
   }
 
@@ -65,7 +65,7 @@ export async function applyNodeFileEditMessage(
   }
 
   if (message.type === 'TOGGLE_FAVORITE') {
-    void handlers.toggleFavorites(message.payload.paths);
+    await handlers.toggleFavorites(message.payload.paths);
     return true;
   }
 
