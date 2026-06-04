@@ -26,6 +26,7 @@
 		"changeset": "changeset",
 		"version-packages": "changeset version",
 		"package:vsix": "node scripts/release-core.mjs package",
+		"check:vsix-native-artifacts": "node scripts/validate-vsix-native-artifacts.mjs",
 		"publish:vsce": "node scripts/release-core.mjs publish",
 		"release:publish": "node scripts/release.mjs publish",
 		"typecheck": "turbo run typecheck",
