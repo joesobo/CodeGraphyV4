@@ -144,8 +144,19 @@ jobs:
         run: ${{ matrix.command }}
 
   playwright:
+    name: Playwright / ${{ matrix.label }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Language examples
+            suite: examples
+          - label: Graph interactions
+            suite: interactions
+    env:
+      CODEGRAPHY_VSCODE_PLAYWRIGHT_SUITE: ${{ matrix.suite }}
 
     steps:
       - name: Checkout
@@ -192,14 +203,18 @@ jobs:
         if: steps.playwright-turbo-cache.outputs.hit != 'true'
         run: pnpm --filter @codegraphy-dev/extension exec playwright install --with-deps chromium
 
+      - name: Prepare VS Code Playwright build
+        if: steps.playwright-turbo-cache.outputs.hit != 'true'
+        run: node scripts/run-playwright-prepare.mjs
+
       - name: VS Code Playwright tests
-        run: xvfb-run --auto-servernum pnpm run test:playwright
+        run: xvfb-run --auto-servernum node scripts/run-playwright-turbo.mjs
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.suite }}
           path: playwright-report/
           retention-days: 30
 
@@ -207,7 +222,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results
+          name: playwright-test-results-${{ matrix.suite }}
           path: test-results/
           retention-days: 30
 

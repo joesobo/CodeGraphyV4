@@ -17,11 +17,12 @@
     "watch:webview": "vite build --config vite.config.ts --watch",
     "dev": "pnpm run watch",
     "generate:acceptance": "quality-tools acceptance compile --spec \"tests/acceptance/specs/**/*.md\" --steps \"tests/acceptance/steps.ts\" --out \"tests/playwright-vscode/generated/acceptance.spec.ts\"",
+    "prepare:playwright": "pnpm run generate:acceptance && pnpm run build:vscode",
     "test": "vitest run --config vitest.config.ts",
     "test:node": "vitest run --config vitest.config.ts --project node",
     "test:webview": "vitest run --config vitest.config.ts --project webview",
     "test:playwright": "pnpm run test:vscode",
-    "test:vscode": "pnpm run generate:acceptance && pnpm run build:vscode && playwright test --config playwright.vscode.config.ts",
+    "test:vscode": "playwright test --config playwright.vscode.config.ts",
     "lint": "pnpm run generate:acceptance && eslint \"src/**/*.{ts,tsx}\" \"scripts/**/*.ts\" \"tests/**/*.{ts,tsx}\"",
     "typecheck": "pnpm run generate:acceptance && tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json && tsc --noEmit -p tests/playwright/tsconfig.json"
   },
