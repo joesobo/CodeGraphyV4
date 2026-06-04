@@ -45,7 +45,7 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
 - Symbols are primarily for indexing, resolution, querying, exports, timeline overlays, and optional visualizations.
 - Drop the optional symbol visualization surface from scope.
 - `.codegraphy/` is the canonical local cache/index location.
-- CodeGraphy should auto-add `.codegraphy/` to repo `.gitignore` when safe.
+- CodeGraphy should auto-add `.codegraphy/*` to repo `.gitignore` when safe.
 - Move all meaningful repo-specific CodeGraphy settings out of `.vscode/settings.json` and into `.codegraphy/settings.json`.
 - LadybugDB is the default persistence layer unless blocked by integration constraints discovered during implementation.
 - Use native Tree-sitter in the extension host for this rewrite; do not add WASM Tree-sitter to CodeGraphy core right now.
@@ -66,7 +66,7 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
 - `package` means real workspace/package boundaries such as monorepo packages or equivalent project units.
 - Built-in plugins should be aggressively simplified once the new Tree-sitter core covers their current baseline work.
 - Plugin output should override core output directly, like replacing object fields, not coexist as parallel conflicting results.
-- Create `.gitignore` automatically when absent, then add `.codegraphy/`.
+- Create `.gitignore` automatically when absent, then add `.codegraphy/*`.
 - Loading UI can stay simple: one percent-based progress bar at the bottom of the graph.
 - Reorganize graph controls:
   - keep the `Plugins` popup, but repurpose it for plugin enable/disable and drag reordering
@@ -299,7 +299,7 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
   - `meta.json` for index metadata
   - optional embeddings/vector data
 - Git hygiene:
-  - auto-add `.codegraphy/` to `.gitignore` when absent
+  - auto-add `.codegraphy/*` to `.gitignore` when absent
   - never index `.codegraphy/` itself
 - Do not depend on `.vscode/settings.json` for repo-specific CodeGraphy behavior.
 
