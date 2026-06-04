@@ -34,6 +34,10 @@ _Avoid_: File node
 A node contributed by a plugin to represent a language- or framework-specific concept beyond files, folders, and packages.
 _Avoid_: Custom node when precision matters
 
+**Vue SFC Graph**:
+A Vue plugin view of the **Relationship Graph** where `.vue` file nodes keep their normal file identity while imports from Vue Single File Component script blocks appear as ordinary file relationships.
+_Avoid_: Nuxt Structure Graph, Vue component map
+
 **Package**:
 A collection of files and folders that can be represented as one node in the graph.
 _Avoid_: Dependency, module, library when used generically
