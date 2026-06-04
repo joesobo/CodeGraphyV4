@@ -13,7 +13,7 @@ import {
   selectTwoNodesForMultiMenu,
   setupGraphContextMenuTest,
   waitFor,
-} from './viewHarness';
+} from './harness';
 
 describe('Graph node context menu selection actions', () => {
   setupGraphContextMenuTest();

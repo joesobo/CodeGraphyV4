@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
+import type { IPluginContextMenuItem } from '../../../../../../src/shared/plugins/contextMenu';
 import {
   act,
   findMessage,
@@ -15,7 +15,7 @@ import {
   selectTwoNodesForMultiMenu,
   setupGraphContextMenuTest,
   waitFor,
-} from './viewHarness';
+} from './harness';
 
 describe('Graph node context menu timeline and plugin actions', () => {
   setupGraphContextMenuTest();
