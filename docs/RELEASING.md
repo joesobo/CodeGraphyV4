@@ -27,6 +27,29 @@ The repo-root [`package.json`](../package.json) is workspace metadata for the mo
 
 `all` discovers the publishable workspace packages from package metadata, publishes npm packages before Marketplace packages, and skips npm versions that already exist.
 
+The core VS Code extension release publishes platform-specific VSIX targets for
+the native LadybugDB runtime:
+
+- `linux-x64`
+- `darwin-arm64`
+- `win32-x64`
+
+The release script stages the matching `@ladybugdb/core-*` native package before
+each `vsce --target` publish. It can fetch missing target-native packages with
+`npm pack`, so the release host does not need to be the same OS as every VSIX
+target.
+
+To dry-run extension packaging before publishing, run:
+
+```bash
+pnpm run package:vsix
+```
+
+This writes target-specific VSIX artifacts under `artifacts/vsix/`. If you
+inspect `extension/dist/node_modules/@ladybugdb/core/lbugjs.node` inside each
+VSIX, Linux should be ELF x86-64, macOS should be Mach-O arm64, and Windows
+should be PE32+ x86-64.
+
 Use split publishing only when you want a manual checkpoint between npm and Marketplace:
 
 ```bash

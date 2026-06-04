@@ -25,6 +25,7 @@
 		"organize": "node scripts/run-organize.mjs",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
+		"package:vsix": "node scripts/release-core.mjs package",
 		"publish:vsce": "node scripts/release-core.mjs publish",
 		"release:publish": "node scripts/release.mjs publish",
 		"typecheck": "turbo run typecheck",
