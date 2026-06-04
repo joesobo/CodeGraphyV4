@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,9 +9,14 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 export const EXTENSION_VSIX_TARGETS = [
   'linux-x64',
   'darwin-arm64',
-  'darwin-x64',
   'win32-x64',
 ];
+
+const LADYBUG_NATIVE_PACKAGE_BY_TARGET = {
+  'linux-x64': '@ladybugdb/core-linux-x64',
+  'darwin-arm64': '@ladybugdb/core-darwin-arm64',
+  'win32-x64': '@ladybugdb/core-win32-x64',
+};
 
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
@@ -131,6 +136,63 @@ export function createCoreVsceInvocations({
   });
 }
 
+function getStagedLadybugNativeBinaryPath(stageDir) {
+  return path.join(
+    stageDir,
+    'dist',
+    'node_modules',
+    '@ladybugdb',
+    'core',
+    'lbugjs.node',
+  );
+}
+
+function resolveInstalledLadybugNativeBinaryPath(target, baseDir = repoRoot) {
+  const nativePackageName = LADYBUG_NATIVE_PACKAGE_BY_TARGET[target];
+  if (!nativePackageName) {
+    throw new Error(`Unsupported CodeGraphy VSIX target: ${target}`);
+  }
+
+  const candidatePaths = [
+    path.join(
+      baseDir,
+      'packages',
+      'extension',
+      'node_modules',
+      ...nativePackageName.split('/'),
+      'lbugjs.node',
+    ),
+    path.join(
+      baseDir,
+      'node_modules',
+      ...nativePackageName.split('/'),
+      'lbugjs.node',
+    ),
+  ];
+  const binaryPath = candidatePaths.find(candidatePath => existsSync(candidatePath));
+
+  if (!binaryPath) {
+    throw new Error(
+      `Unable to find ${nativePackageName}/lbugjs.node for ${target}. `
+      + 'Run pnpm install with optional dependencies enabled before releasing.',
+    );
+  }
+
+  return binaryPath;
+}
+
+export function stageTargetLadybugNativeBinary({
+  stageDir,
+  target,
+  resolveNativeBinaryPath = resolveInstalledLadybugNativeBinaryPath,
+}) {
+  const sourcePath = resolveNativeBinaryPath(target);
+  const targetPath = getStagedLadybugNativeBinaryPath(stageDir);
+
+  mkdirSync(path.dirname(targetPath), { recursive: true });
+  cpSync(sourcePath, targetPath);
+}
+
 export function runCoreRelease(mode, baseDir = repoRoot) {
   if (mode !== 'package' && mode !== 'publish') {
     console.error('Usage: node scripts/release-core.mjs <package|publish>');
@@ -149,6 +211,7 @@ export function runCoreRelease(mode, baseDir = repoRoot) {
 
   try {
     for (const invocation of createCoreVsceInvocations({ mode, version, artifactsDir })) {
+      stageTargetLadybugNativeBinary({ stageDir, target: invocation.target });
       run(
         'vsce',
         invocation.args,
