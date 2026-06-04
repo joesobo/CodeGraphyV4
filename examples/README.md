@@ -17,13 +17,17 @@ alias edges whether you open the full `examples/` workspace or the focused
 - `example-go` — Go package/import example
 - `example-c` — C include example
 - `example-cpp` — C++ include example
+- `example-objective-c` — Objective-C import/interface example
 - `example-kotlin` — Kotlin import/inheritance example
+- `example-scala` — Scala import/inheritance example
 - `example-php` — PHP namespace/use/inheritance example
 - `example-ruby` — Ruby require/inheritance example
+- `example-pascal` — Pascal unit uses/inheritance example
 - `example-haskell` — Haskell module import example
 - `example-lua` — Lua require example
 - `example-swift` — Swift Package module import example
 - `example-dart` — Dart relative/package import example
+- `example-svelte` — Svelte component script import example
 
 These examples are intentionally small. The goal is to keep the Relationship Graph predictable while still showing why symbol nodes are useful: files show the coarse architecture, then Symbol and Variable let you zoom into the declarations that explain why files are connected.
 
@@ -44,10 +48,14 @@ Open the repo-root `examples/` folder when you want to compare languages side by
 | `example-go` | `main.go` imports `internal/service`; package functions and the `Runner` type show how Go package edges connect to declarations. |
 | `example-c` | `main.c` and `math/add.c` include `add.h`; function and struct symbols make the tiny C dependency chain inspectable. |
 | `example-cpp` | `app.cpp` and `widget.cpp` include `widget.hpp`; class, method, and function symbols show both declaration and implementation files. |
+| `example-objective-c` | `AppDelegate.m` imports `UserCard.h`; interface and method symbols make the small Cocoa-style chain inspectable. |
 | `example-kotlin` | `AppRunner` imports a model, extends a base class, and implements an interface, giving a compact import/inheritance/symbol demo. |
+| `example-scala` | `AppRunner` imports a base trait and model, extends the trait, and exposes class/object/enum/type/function symbols. |
 | `example-php` | `Runner` imports a base class, interface, and model, then exposes class/function symbols for namespace-use checks. |
 | `example-ruby` | `example_ruby.rb` requires the runner, and the runner inherits from `BaseRunner`, with module/class/method symbols for navigation. |
+| `example-pascal` | `SampleApp.pas` uses `RunnerSupport.pas`; class and procedure symbols show baseline unit relationships. |
 | `example-haskell` | `Main` imports a feature runner and model module; module/data/function symbols show the Haskell path through the graph. |
 | `example-lua` | `main.lua` requires `app.runner`, which requires `app.model.user`; table/function symbols make the require chain less anonymous. |
 | `example-swift` | A small Swift Package imports `RunnerSupport`; `Runner`, `Worker`, and `Runnable` demonstrate class/protocol/function symbols. |
 | `example-dart` | `sample_app.dart` imports a runner and profile; `Runner`, `BaseRunner`, `Runnable`, `User`, and `Profile` demonstrate class/mixin/function symbols. |
+| `example-svelte` | `App.svelte` uses module and instance scripts, type imports, and a dynamic import to show Svelte plugin edges. |
