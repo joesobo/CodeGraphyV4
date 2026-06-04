@@ -2,4 +2,4 @@
 "@codegraphy-dev/extension": patch
 ---
 
-Publish platform-specific VSIX artifacts so Linux, macOS, and Windows installs load the matching LadybugDB native runtime.
+Publish platform-specific VSIX artifacts for Linux x64, macOS Apple Silicon, and Windows x64 so installs load the matching LadybugDB native runtime.
