@@ -2,7 +2,7 @@
   "version": 1,
   "target": ".",
   "generatedBy": "scripts/run-organize.mjs",
-  "directoryCount": 897,
+  "directoryCount": 902,
   "findings": [
     {
       "type": "cluster",
@@ -2197,6 +2197,7 @@
       "members": [
         "canvas.ts",
         "context.ts",
+        "plugins.ts",
         "steps.ts",
         "types.ts",
         "vscode.ts",
@@ -2527,19 +2528,6 @@
     },
     {
       "type": "cluster",
-      "path": "packages/extension/tests/webview/graph/contextMenu",
-      "suggestedFolder": "node",
-      "confidence": "prefix-only",
-      "members": [
-        "node.sendsopenfilemessagewhentoopensthefilterpopoverrequest.test.tsx",
-        "node.sendsrenamefilemessagewhentosendsrenamefilemessagewhen.test.tsx",
-        "node.sendstogglefavoritewithalltoopenscontextmenuandkeeps.test.tsx",
-        "node.test.tsx",
-        "nodeActionBlocks.test.ts"
-      ]
-    },
-    {
-      "type": "cluster",
       "path": "packages/extension/tests/webview/graph/contextMenuRuntime",
       "suggestedFolder": "controller",
       "confidence": "prefix-only",
@@ -2736,12 +2724,27 @@
     },
     {
       "type": "cluster",
+      "path": "packages/extension/tests",
+      "suggestedFolder": "acceptance",
+      "confidence": "prefix-only",
+      "members": [
+        "acceptanceGraphViewCanvas.test.ts",
+        "acceptanceGraphViewPlugins.test.ts",
+        "acceptanceGraphViewStepResolution.test.ts",
+        "acceptanceGraphViewVscode.test.ts",
+        "acceptanceGraphViewWorkspace.test.ts",
+        "acceptanceSteps.test.ts"
+      ]
+    },
+    {
+      "type": "cluster",
       "path": "packages/mcp/src/mcp",
       "suggestedFolder": "graph",
       "confidence": "imports-only",
       "members": [
         "contracts.ts",
         "defaultDependencies.ts",
+        "diagnostics.ts",
         "graphQueryTool.ts",
         "graphQueryTools.ts",
         "pluginTools.ts",
@@ -3051,7 +3054,7 @@
       "path": "packages/core/src",
       "kind": "barrel",
       "fileName": "index.ts",
-      "detail": "80% of statements are re-exports (109 of 109)"
+      "detail": "80% of statements are re-exports (111 of 111)"
     },
     {
       "type": "fileIssue",
@@ -4612,7 +4615,7 @@
       "path": "examples",
       "field": "folderFanOut",
       "verdict": "SPLIT",
-      "value": 17
+      "value": 18
     },
     {
       "type": "verdict",
@@ -4673,6 +4676,13 @@
     {
       "type": "verdict",
       "path": "packages/core/src/cli",
+      "field": "depth",
+      "verdict": "WARNING",
+      "value": 4
+    },
+    {
+      "type": "verdict",
+      "path": "packages/core/src/diagnostics",
       "field": "depth",
       "verdict": "WARNING",
       "value": 4
@@ -5192,8 +5202,8 @@
       "type": "verdict",
       "path": "packages/core/src",
       "field": "folderFanOut",
-      "verdict": "WARNING",
-      "value": 12
+      "verdict": "SPLIT",
+      "value": 13
     },
     {
       "type": "verdict",
@@ -5247,6 +5257,13 @@
     {
       "type": "verdict",
       "path": "packages/core/tests/cli",
+      "field": "depth",
+      "verdict": "WARNING",
+      "value": 4
+    },
+    {
+      "type": "verdict",
+      "path": "packages/core/tests/diagnostics",
       "field": "depth",
       "verdict": "WARNING",
       "value": 4
@@ -5640,8 +5657,8 @@
       "type": "verdict",
       "path": "packages/core/tests",
       "field": "folderFanOut",
-      "verdict": "WARNING",
-      "value": 12
+      "verdict": "SPLIT",
+      "value": 13
     },
     {
       "type": "verdict",
@@ -5912,6 +5929,13 @@
     {
       "type": "verdict",
       "path": "packages/extension/src/extension/config",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/src/extension/diagnostics",
       "field": "depth",
       "verdict": "DEEP",
       "value": 5
@@ -6607,7 +6631,7 @@
       "path": "packages/extension/src/extension",
       "field": "folderFanOut",
       "verdict": "WARNING",
-      "value": 10
+      "value": 11
     },
     {
       "type": "verdict",
@@ -8326,6 +8350,13 @@
     },
     {
       "type": "verdict",
+      "path": "packages/extension/tests/extension/diagnostics",
+      "field": "depth",
+      "verdict": "DEEP",
+      "value": 5
+    },
+    {
+      "type": "verdict",
       "path": "packages/extension/tests/extension/e2e",
       "field": "depth",
       "verdict": "DEEP",
@@ -8973,7 +9004,7 @@
       "path": "packages/extension/tests/extension",
       "field": "folderFanOut",
       "verdict": "SPLIT",
-      "value": 15
+      "value": 16
     },
     {
       "type": "verdict",
@@ -9484,7 +9515,7 @@
       "path": "packages/extension/tests/webview/graph/contextMenu",
       "field": "fileFanOut",
       "verdict": "SPLIT",
-      "value": 18
+      "value": 15
     },
     {
       "type": "verdict",
@@ -10259,6 +10290,13 @@
     {
       "type": "verdict",
       "path": "packages/extension/tests",
+      "field": "fileFanOut",
+      "verdict": "SPLIT",
+      "value": 10
+    },
+    {
+      "type": "verdict",
+      "path": "packages/extension/tests",
       "field": "folderFanOut",
       "verdict": "WARNING",
       "value": 11
@@ -10282,7 +10320,7 @@
       "path": "packages/mcp/src/mcp",
       "field": "fileFanOut",
       "verdict": "SPLIT",
-      "value": 10
+      "value": 11
     },
     {
       "type": "verdict",
