@@ -18,7 +18,7 @@ codegraphy index
 
 ## What It Provides
 
-This plugin indexes relative imports from Svelte component scripts.
+This plugin parses Svelte components with `svelte/compiler` and indexes relative imports from module and instance scripts.
 
 - runtime imports become baseline import relationships
 - type-only imports become type-import relationships

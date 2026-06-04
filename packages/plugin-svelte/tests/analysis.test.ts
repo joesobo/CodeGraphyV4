@@ -74,4 +74,40 @@ describe('Svelte component analysis', () => {
       removeWorkspaceRoot(workspaceRoot);
     }
   });
+
+  it('ignores script-like text outside compiler script nodes', async () => {
+    const workspaceRoot = createWorkspaceRoot();
+    try {
+      const source = [
+        '<script lang="ts">',
+        "import UserCard from './components/UserCard.svelte';",
+        '</script>',
+        '<!-- <script>import Phantom from "./Phantom.svelte";</script> -->',
+        '<p>{"<script>import Ghost from \\"./Ghost.svelte\\";</script>"}</p>',
+      ].join('\n');
+      const sourcePath = writeWorkspaceFile(workspaceRoot, 'src/App.svelte', source);
+      const userCardPath = writeWorkspaceFile(
+        workspaceRoot,
+        'src/components/UserCard.svelte',
+        '<script>export let name;</script>\n',
+      );
+      writeWorkspaceFile(workspaceRoot, 'src/Phantom.svelte', '<script></script>\n');
+      writeWorkspaceFile(workspaceRoot, 'src/Ghost.svelte', '<script></script>\n');
+
+      const result = await createSveltePlugin().analyzeFile?.(sourcePath, source, workspaceRoot);
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'import',
+          sourceId: 'svelte-script-import',
+          fromFilePath: sourcePath,
+          toFilePath: userCardPath,
+          resolvedPath: userCardPath,
+          specifier: './components/UserCard.svelte',
+        },
+      ]);
+    } finally {
+      removeWorkspaceRoot(workspaceRoot);
+    }
+  });
 });
