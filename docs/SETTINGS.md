@@ -402,14 +402,20 @@ CodeGraphy’s workspace behavior lives under `<workspace-root>/.codegraphy/`.
 - `~/.codegraphy/plugins.json` is user-level Plugin Registry state and is not part of any source workspace.
 - `~/.codegraphy/settings.json` is user-level CodeGraphy default state.
 
-Recommended `.gitignore` entries:
+Recommended default `.gitignore` entry:
 
 ```gitignore
-.codegraphy/graph.lbug
-.codegraphy/cache/
+.codegraphy/*
 ```
 
-Do not ignore all of `.codegraphy/` if you want to share workspace plugin enablement, filters, Graph Scope, or Legend settings with teammates.
+That default keeps generated Graph Cache artifacts, imported icons, and other CodeGraphy-managed files out of source control. If you want to share workspace plugin enablement, filters, Graph Scope, or Legend settings with teammates, add an explicit exception for the settings file:
+
+```gitignore
+.codegraphy/*
+!.codegraphy/settings.json
+```
+
+Do not use `.codegraphy/` if you want to share any files under `.codegraphy/`; ignoring the directory itself prevents Git from re-including files inside it.
 
 ## Troubleshooting
 
