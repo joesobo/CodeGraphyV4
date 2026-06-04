@@ -17,6 +17,7 @@ const publicPluginPackageRoots = [
   path.join(repoRoot, 'packages/plugin-godot'),
   path.join(repoRoot, 'packages/plugin-csharp'),
   path.join(repoRoot, 'packages/plugin-python'),
+  path.join(repoRoot, 'packages/plugin-vue'),
 ];
 
 const buildFilters = [
@@ -25,6 +26,7 @@ const buildFilters = [
   '@codegraphy-dev/plugin-godot...',
   '@codegraphy-dev/plugin-csharp...',
   '@codegraphy-dev/plugin-python...',
+  '@codegraphy-dev/plugin-vue...',
 ];
 
 function packageJsonPath(packageRoot) {
