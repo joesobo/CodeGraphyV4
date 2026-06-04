@@ -13,6 +13,9 @@ function findPlaywrightPackages() {
     .filter((entry) => entry.isDirectory())
     .map((entry) => join('packages', entry.name));
 
+  // A bare root `turbo run test:playwright` currently schedules placeholder
+  // tasks for packages that do not own Playwright. Filter dynamically so new
+  // Playwright-owning packages are picked up without hard-coding extension.
   return packageDirs
     .map((dir) => {
       const manifestPath = join(dir, 'package.json');
@@ -30,6 +33,7 @@ function findPlaywrightPackages() {
 }
 
 const packageNames = findPlaywrightPackages();
+const passthroughArgs = process.argv.slice(2).filter((arg) => arg !== '--');
 
 if (packageNames.length === 0) {
   console.error('No workspace packages declare a test:playwright script.');
@@ -42,7 +46,7 @@ const turboArgs = [
   'run',
   'test:playwright',
   ...packageNames.map((packageName) => `--filter=${packageName}`),
-  ...process.argv.slice(2),
+  ...passthroughArgs,
 ];
 
 const result = spawnSync('pnpm', turboArgs, {
