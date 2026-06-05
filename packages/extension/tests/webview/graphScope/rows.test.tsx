@@ -163,7 +163,7 @@ describe('graph scope rows', () => {
     const tooltipSwatch = tooltipBody.querySelector('[data-scope-tooltip-swatch="Imports"]') as HTMLElement;
 
     expect(tooltip).toHaveTextContent('Files imported by another file.');
-    expect(row).toHaveClass('cursor-help');
+    expect(row).toHaveClass('cursor-pointer');
     expect(visibleTooltip).toHaveClass('max-w-80');
     expect(tooltipBody).toHaveClass('max-w-80');
     expect(tooltipSwatch).toHaveStyle('background-color: #333333');
@@ -201,7 +201,7 @@ describe('graph scope rows', () => {
 
     const tooltip = await screen.findByRole('tooltip');
 
-    expect(row).toHaveClass('cursor-help');
+    expect(row).toHaveClass('cursor-pointer');
     expect(tooltip).toHaveTextContent('Folder');
     expect(tooltip).toHaveTextContent('Directories that group files and other folders.');
     expect(tooltip).not.toHaveTextContent('Example');
