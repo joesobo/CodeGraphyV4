@@ -82,7 +82,8 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     context.workspacePath = step.sourcePath.endsWith('/typescript-example.md')
       ? copyExampleTypescriptWorkspace(context.workspaceTempRoot)
       : copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
-        includeTypeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md'),
+        includeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? false : undefined,
+        includeNestsEdges: step.sourcePath.endsWith('/folder-context-menu.md') ? true : undefined,
         includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
           || step.sourcePath.endsWith('/graph-navigation.md'),
         pluginPackages: ['@codegraphy-dev/plugin-markdown'],
@@ -325,6 +326,10 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await waitForIndexingToFinish(context);
   }),
 
+  step(/^I have not yet indexed the workspace$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('button', { name: 'Index Workspace' })).toBeVisible();
+  }),
+
   step(/^the graph nodes match the expected files in the examples\/(.+) workspace$/, async (context, _step, match) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     expect(context.exampleName).toBe(match[1]);
@@ -536,6 +541,10 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
   }),
 
+  step(/^I open the Graph Scope$/, async (context) => {
+    await clickToolbarButton(requireGraphFrame(context), 'Graph Scope');
+  }),
+
   step(/^I see to buttons for switching views between node type and edge type toggles$/, async (context) => {
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Node Types' })).toBeVisible();
     await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeVisible();
@@ -549,6 +558,14 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
   }),
 
+  step(/^the Edge Types button is disabled$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeDisabled();
+  }),
+
+  step(/^the Edge Types button is no longer disabled$/, async (context) => {
+    await expect(requireGraphFrame(context).getByRole('button', { name: 'Edge Types' })).toBeEnabled();
+  }),
+
   step(/^I see a list of node types with toggles$/, async (context) => {
     await expect(requireGraphFrame(context).getByText('Folder', { exact: true })).toBeVisible();
   }),
@@ -557,12 +574,26 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     await expect(requireGraphFrame(context).getByText('Nests', { exact: true })).toBeVisible();
   }),
 
+  step(/^I toggle the Imports edge on$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
+    await setPanelSwitch(context, 'Imports', true);
+    await setPanelSwitch(context, 'Type imports', true);
+  }),
+
   step(/^I toggle the Folder node on$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Node Types' }).click();
     await setPanelSwitch(context, 'Folder', true);
   }),
 
   step(/^I toggle the Nests edge on$/, async (context) => {
+    await requireGraphFrame(context).getByRole('button', { name: 'Edge Types' }).click();
     await setPanelSwitch(context, 'Nests', true);
+  }),
+
+  step(/^the Nests edge is toggled on$/, async (context) => {
+    const frame = requireGraphFrame(context);
+    await frame.getByRole('button', { name: 'Edge Types' }).click();
+    await expect(await findPanelSwitch(frame, 'Nests')).toHaveAttribute('aria-checked', 'true');
   }),
 
   step(/^I close the Graph Scope$/, async (context) => {
@@ -1000,14 +1031,17 @@ async function setPanelSwitch(
 }
 
 async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
-  const row = frame.getByText(label, { exact: true }).locator('xpath=ancestor::*[self::label or self::div][1]');
+  const row = frame
+    .locator('[data-scope-row]')
+    .filter({ hasText: new RegExp(`^${escapeRegExp(label)}$`) })
+    .first();
   const switchInRow = row.getByRole('switch').first();
 
   if (await switchInRow.count()) {
     return switchInRow;
   }
 
-  return frame.getByRole('switch', { name: label });
+  return frame.getByRole('switch', { name: `Toggle ${label}`, exact: true });
 }
 
 async function closePanelIfOpen(frame: Frame): Promise<void> {
