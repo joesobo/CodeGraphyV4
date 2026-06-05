@@ -212,9 +212,21 @@ function readAcceptanceFilterPatterns(workspacePath: string): string[] {
 function matchesAcceptanceFilterPattern(filePath: string, filterPatterns: readonly string[]): boolean {
   return filterPatterns.some((pattern) =>
     pattern === filePath
+    || matchesRecursiveDirectoryGlob(filePath, pattern)
     || (pattern.endsWith('/**') && filePath.startsWith(pattern.slice(0, -2)))
     || (pattern.startsWith('**/') && filePath.endsWith(pattern.slice(3))),
   );
+}
+
+function matchesRecursiveDirectoryGlob(filePath: string, pattern: string): boolean {
+  if (!pattern.startsWith('**/') || !pattern.endsWith('/**')) {
+    return false;
+  }
+
+  const directoryName = pattern.slice(3, -3);
+  return filePath === directoryName
+    || filePath.startsWith(`${directoryName}/`)
+    || filePath.includes(`/${directoryName}/`);
 }
 
 function isAcceptanceGeneratedArtifact(relativePath: string): boolean {
@@ -222,8 +234,6 @@ function isAcceptanceGeneratedArtifact(relativePath: string): boolean {
     || relativePath.startsWith('node_modules/')
     || relativePath === 'dist'
     || relativePath.startsWith('dist/')
-    || relativePath === '.svelte-kit'
-    || relativePath.startsWith('.svelte-kit/')
     || relativePath === '.turbo'
     || relativePath.startsWith('.turbo/');
 }

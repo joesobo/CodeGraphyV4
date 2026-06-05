@@ -339,7 +339,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName, {
-      filterPatterns: exampleName === 'example-svelte' ? ['src/app.d.ts'] : [],
+      filterPatterns: exampleName === 'example-svelte' ? ['src/app.d.ts', '**/.svelte-kit/**'] : [],
       includeCallEdges: ['example-go', 'example-java', 'example-python', 'example-rust'].includes(exampleName),
       includeInheritEdges: exampleName === 'example-pascal' ? false : true,
     });

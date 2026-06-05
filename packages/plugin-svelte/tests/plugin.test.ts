@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createSveltePlugin } from '../src/plugin';
 
 describe('createSveltePlugin', () => {
-  it('exposes Svelte manifest metadata without default filters or custom graph types', () => {
+  it('exposes Svelte manifest metadata with generated app filters and no custom graph types', () => {
     const plugin = createSveltePlugin();
 
     expect(plugin).toMatchObject({
@@ -11,7 +11,7 @@ describe('createSveltePlugin', () => {
       version: expect.any(String),
       apiVersion: expect.any(String),
       supportedExtensions: ['.svelte'],
-      defaultFilters: [],
+      defaultFilters: ['**/.svelte-kit/**'],
       fileColors: {},
     });
     expect(plugin.contributeNodeTypes).toBeUndefined();
