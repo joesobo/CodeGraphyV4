@@ -298,8 +298,8 @@ export function Viewport({
         symbol={tooltipData.symbol}
         size={tooltipData.info?.size}
         lastModified={tooltipData.info?.lastModified}
-        incomingCount={tooltipData.info?.incomingCount ?? tooltipData.incomingCount ?? 0}
-        outgoingCount={tooltipData.info?.outgoingCount ?? tooltipData.outgoingCount ?? 0}
+        incomingCount={tooltipData.incomingCount ?? tooltipData.info?.incomingCount ?? 0}
+        outgoingCount={tooltipData.outgoingCount ?? tooltipData.info?.outgoingCount ?? 0}
         plugin={tooltipData.info?.plugin ?? tooltipData.symbol?.plugin}
         nodeRect={tooltipData.nodeRect}
         visible={tooltipData.visible}

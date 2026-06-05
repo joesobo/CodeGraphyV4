@@ -1,4 +1,4 @@
-// Docs: [[example-markdown/notes/Architecture.md]]
+// Docs: [[notes/Architecture.md]]
 export const linked = true;
 
 export function parseCommentedLink(source: string): string | null {

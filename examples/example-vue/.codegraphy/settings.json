@@ -50,15 +50,15 @@
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
-    "nests": false,
     "import": true,
-    "type-import": false,
-    "reexport": false,
-    "call": false,
-    "inherit": false,
     "reference": false,
+    "call": false,
     "test": false,
+    "reexport": false,
+    "type-import": false,
+    "inherit": false,
     "load": false,
+    "nests": false,
     "contains": false,
     "overrides": false
   },

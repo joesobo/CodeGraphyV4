@@ -79,21 +79,24 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   'I open the examples/example-typescript workspace in VS Code': async (context, step) => {
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = 'example-typescript';
-    context.workspacePath = copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
-      includeTypeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md'),
-      includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
-        || step.sourcePath.endsWith('/graph-navigation.md')
-        || step.sourcePath.endsWith('/typescript-example.md'),
-    });
+    context.workspacePath = step.sourcePath.endsWith('/typescript-example.md')
+      ? copyExampleTypescriptWorkspace(context.workspaceTempRoot)
+      : copyExampleTypescriptWorkspace(context.workspaceTempRoot, {
+        includeTypeImportEdges: step.sourcePath.endsWith('/folder-context-menu.md'),
+        includeVSCodeSettings: step.sourcePath.endsWith('/graph-view.md')
+          || step.sourcePath.endsWith('/graph-navigation.md'),
+        pluginPackages: ['@codegraphy-dev/plugin-markdown'],
+      });
   },
 
-  'I open the CodeGraphy extension graph view': async (context) => {
+  'I open the CodeGraphy extension graph view': async (context, step) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     context.vscode = await launchVSCodeWithWorkspace(workspacePath, {
       pluginPackageRelativePaths: acceptancePluginPackageRelativePathsForExample(context.exampleName),
     });
     await openGraphView(context.vscode.page);
     context.graphFrame = await waitForGraphFrame(context.vscode.page);
+    await applyExampleScenarioStartingUiState(context, step.sourcePath);
   },
 
   'I see graph nodes': async (context) => {
@@ -170,7 +173,7 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   },
 
   'I toggle the Type imports edge on': async (context) => {
-    await requireGraphFrame(context).getByLabel('Toggle Type imports').click();
+    await setPanelSwitch(context, 'Type imports', true);
   },
 
   'I close the Graph Scope': async (context) => {
@@ -314,12 +317,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     const exampleName = match[1];
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
-    context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName, {
-      filterPatterns: acceptanceFilterPatternsForExample(exampleName),
-      includeCallEdges: ['example-go', 'example-java', 'example-python', 'example-rust'].includes(exampleName),
-      includeInheritEdges: exampleName === 'example-pascal' ? false : true,
-      pluginPackages: acceptanceWorkspacePluginPackagesForExample(exampleName),
-    });
+    context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName);
   }),
 
   step(/^I have indexed the workspace$/, async (context) => {
@@ -378,7 +376,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I toggle the (.+) plugin on$/, async (context, _step, match) => {
-    await togglePanelSwitch(context, match[1]);
+    await setPanelSwitch(context, match[1], true);
     await waitForIndexingToFinish(context);
   }),
 
@@ -560,11 +558,11 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   }),
 
   step(/^I toggle the Folder node on$/, async (context) => {
-    await togglePanelSwitch(context, 'Folder');
+    await setPanelSwitch(context, 'Folder', true);
   }),
 
   step(/^I toggle the Nests edge on$/, async (context) => {
-    await togglePanelSwitch(context, 'Nests');
+    await setPanelSwitch(context, 'Nests', true);
   }),
 
   step(/^I close the Graph Scope$/, async (context) => {
@@ -678,29 +676,6 @@ function step(pattern: RegExp, run: PatternAcceptanceStep['run']): PatternAccept
   return { pattern, run };
 }
 
-function acceptanceFilterPatternsForExample(exampleName: string): string[] {
-  switch (exampleName) {
-    case 'example-svelte':
-      return ['src/app.d.ts'];
-    case 'example-vue':
-      return ['src/vue.d.ts'];
-    default:
-      return [];
-  }
-}
-
-function acceptanceWorkspacePluginPackagesForExample(exampleName: string): string[] | undefined {
-  switch (exampleName) {
-    case 'example-vue':
-      return [
-        '@codegraphy-dev/plugin-markdown',
-        '@codegraphy-dev/plugin-vue',
-      ];
-    default:
-      return undefined;
-  }
-}
-
 function createStepRegistry(
   exactSteps: Record<string, AcceptanceStepImplementation>,
   patternSteps: PatternAcceptanceStep[],
@@ -728,6 +703,24 @@ function findPatternStep(
   }
 
   return undefined;
+}
+
+async function applyExampleScenarioStartingUiState(
+  context: GraphAcceptanceContext,
+  sourcePath: string,
+): Promise<void> {
+  switch (path.basename(sourcePath)) {
+    case 'godot-example.md':
+      await setPluginSwitch(context, 'GDScript (Godot)', false);
+      return;
+    case 'svelte-example.md':
+      await setPluginSwitch(context, 'Svelte', false);
+      await setEdgeTypeSwitch(context, 'Type imports', false);
+      return;
+    case 'typescript-example.md':
+      await setPluginSwitch(context, 'TypeScript/JavaScript', false);
+      return;
+  }
 }
 
 async function indexWorkspace(context: GraphAcceptanceContext): Promise<void> {
@@ -967,17 +960,61 @@ function readWorkspaceFavorites(context: GraphAcceptanceContext): string[] {
   return settings.favorites ?? [];
 }
 
-async function togglePanelSwitch(context: GraphAcceptanceContext, label: string): Promise<void> {
+async function setPluginSwitch(
+  context: GraphAcceptanceContext,
+  label: string,
+  enabled: boolean,
+): Promise<void> {
   const frame = requireGraphFrame(context);
+  await clickToolbarButton(frame, 'Plugins');
+  await setPanelSwitch(context, label, enabled);
+  await waitForIndexingToFinish(context);
+  await closePanelIfOpen(frame);
+}
+
+async function setEdgeTypeSwitch(
+  context: GraphAcceptanceContext,
+  label: string,
+  enabled: boolean,
+): Promise<void> {
+  const frame = requireGraphFrame(context);
+  await frame.getByRole('button', { name: 'Graph Scope' }).click();
+  await frame.getByRole('button', { name: 'Edge Types' }).click();
+  await setPanelSwitch(context, label, enabled);
+  await closePanelIfOpen(frame);
+}
+
+async function setPanelSwitch(
+  context: GraphAcceptanceContext,
+  label: string,
+  enabled: boolean,
+): Promise<void> {
+  const switchInRow = await findPanelSwitch(requireGraphFrame(context), label);
+  const current = await switchInRow.getAttribute('aria-checked');
+
+  if (current !== String(enabled)) {
+    await switchInRow.click();
+  }
+
+  await expect(switchInRow).toHaveAttribute('aria-checked', String(enabled));
+}
+
+async function findPanelSwitch(frame: Frame, label: string): Promise<Locator> {
   const row = frame.getByText(label, { exact: true }).locator('xpath=ancestor::*[self::label or self::div][1]');
   const switchInRow = row.getByRole('switch').first();
 
   if (await switchInRow.count()) {
-    await switchInRow.click();
-    return;
+    return switchInRow;
   }
 
-  await frame.getByRole('switch', { name: label }).click();
+  return frame.getByRole('switch', { name: label });
+}
+
+async function closePanelIfOpen(frame: Frame): Promise<void> {
+  const closeButton = frame.getByRole('button', { name: 'Close' });
+  if (await closeButton.count()) {
+    await closeButton.first().click();
+  }
 }
 
 async function pressAndHoldToolbarButton(context: GraphAcceptanceContext, label: string): Promise<void> {

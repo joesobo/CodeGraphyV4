@@ -17,9 +17,6 @@ const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
 ]);
 
 interface CopyExampleWorkspaceOptions {
-  includeCallEdges?: boolean;
-  includeInheritEdges?: boolean;
-  filterPatterns?: string[];
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
   pluginPackages?: string[];
@@ -76,9 +73,16 @@ export function copyExampleWorkspace(
   });
   rewriteMarkdownAcceptanceLinks(workspacePath, exampleName);
   writeAcceptanceVSCodeSettings(workspacePath, exampleName, options);
-  writeAcceptanceSettings(workspacePath, options);
+  if (hasAcceptanceSettingsOverrides(options)) {
+    writeAcceptanceSettings(workspacePath, options);
+  }
 
   return workspacePath;
+}
+
+function hasAcceptanceSettingsOverrides(options: CopyExampleWorkspaceOptions): boolean {
+  return options.includeTypeImportEdges !== undefined
+    || options.pluginPackages !== undefined;
 }
 
 export async function readExampleWorkspaceFiles(workspacePath: string): Promise<string[]> {
@@ -148,14 +152,14 @@ function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWork
     respectGitignore: false,
     plugins: (options.pluginPackages ?? ['@codegraphy-dev/plugin-markdown'])
       .map(pluginPackage => ({ package: pluginPackage })),
-    filterPatterns: options.filterPatterns ?? [],
+    filterPatterns: [],
     edgeVisibility: {
       nests: false,
       import: true,
       'type-import': options.includeTypeImportEdges ?? false,
       reexport: false,
-      call: options.includeCallEdges ?? false,
-      inherit: options.includeInheritEdges ?? true,
+      call: false,
+      inherit: true,
       reference: true,
       test: false,
       load: true,

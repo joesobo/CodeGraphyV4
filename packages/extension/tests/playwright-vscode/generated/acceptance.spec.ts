@@ -2358,10 +2358,10 @@ test.describe('Go Example', () => {
       });
 
       // tests/acceptance/specs/go-example.md:12
-      await test.step('Then I can see there are 5 nodes and 2 connection', async () => {
-        await runAcceptanceStep(context, 'I can see there are 5 nodes and 2 connection', {
+      await test.step('Then I can see there are 5 nodes and 1 connection', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connection', {
           keyword: 'Then',
-          text: 'I can see there are 5 nodes and 2 connection',
+          text: 'I can see there are 5 nodes and 1 connection',
           sourcePath: 'tests/acceptance/specs/go-example.md',
           line: 12
         });
@@ -2523,10 +2523,10 @@ test.describe('Godot Example', () => {
       });
 
       // tests/acceptance/specs/godot-example.md:16
-      await test.step('And I can see there are 19 nodes and 29 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 19 nodes and 29 connections', {
+      await test.step('And I can see there are 19 nodes and 28 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 19 nodes and 28 connections', {
           keyword: 'And',
-          text: 'I can see there are 19 nodes and 29 connections',
+          text: 'I can see there are 19 nodes and 28 connections',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 16
         });
@@ -2583,92 +2583,82 @@ test.describe('Godot Example', () => {
       });
 
       // tests/acceptance/specs/godot-example.md:22
-      await test.step('And scripts/enemy.gd points to scripts/base/entity.gd', async () => {
-        await runAcceptanceStep(context, 'scripts/enemy.gd points to scripts/base/entity.gd', {
+      await test.step('And resources/player_loadout.tres points to scripts/data/player_loadout.gd', async () => {
+        await runAcceptanceStep(context, 'resources/player_loadout.tres points to scripts/data/player_loadout.gd', {
           keyword: 'And',
-          text: 'scripts/enemy.gd points to scripts/base/entity.gd',
+          text: 'resources/player_loadout.tres points to scripts/data/player_loadout.gd',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 22
         });
       });
 
       // tests/acceptance/specs/godot-example.md:23
-      await test.step('And resources/player_loadout.tres points to scripts/data/player_loadout.gd', async () => {
-        await runAcceptanceStep(context, 'resources/player_loadout.tres points to scripts/data/player_loadout.gd', {
+      await test.step('And resources/player_loadout.tres points to textures/player_card.png', async () => {
+        await runAcceptanceStep(context, 'resources/player_loadout.tres points to textures/player_card.png', {
           keyword: 'And',
-          text: 'resources/player_loadout.tres points to scripts/data/player_loadout.gd',
+          text: 'resources/player_loadout.tres points to textures/player_card.png',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 23
         });
       });
 
       // tests/acceptance/specs/godot-example.md:24
-      await test.step('And resources/player_loadout.tres points to textures/player_card.png', async () => {
-        await runAcceptanceStep(context, 'resources/player_loadout.tres points to textures/player_card.png', {
+      await test.step('And scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', async () => {
+        await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', {
           keyword: 'And',
-          text: 'resources/player_loadout.tres points to textures/player_card.png',
+          text: 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 24
         });
       });
 
       // tests/acceptance/specs/godot-example.md:25
-      await test.step('And scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', async () => {
-        await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres', {
-          keyword: 'And',
-          text: 'scenes/ui/loadout_preview.tscn points to resources/player_loadout.tres',
-          sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 25
-        });
-      });
-
-      // tests/acceptance/specs/godot-example.md:26
       await test.step('And scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd', async () => {
         await runAcceptanceStep(context, 'scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd', {
           keyword: 'And',
           text: 'scenes/ui/loadout_preview.tscn points to scripts/ui/loadout_preview.gd',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 26
+          line: 25
         });
       });
 
-      // tests/acceptance/specs/godot-example.md:28
+      // tests/acceptance/specs/godot-example.md:27
       await test.step('And scripts/orphan.gd is an orphan node', async () => {
         await runAcceptanceStep(context, 'scripts/orphan.gd is an orphan node', {
           keyword: 'And',
           text: 'scripts/orphan.gd is an orphan node',
+          sourcePath: 'tests/acceptance/specs/godot-example.md',
+          line: 27
+        });
+      });
+
+      // tests/acceptance/specs/godot-example.md:28
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/godot-example.md:29
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
-          text: 'README.md is an orphan node',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
           line: 29
         });
       });
 
       // tests/acceptance/specs/godot-example.md:30
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
-          keyword: 'And',
-          text: '.gitignore is an orphan node',
-          sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 30
-        });
-      });
-
-      // tests/acceptance/specs/godot-example.md:31
       await test.step('And .vscode/settings.json is an orphan node', async () => {
         await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
           keyword: 'And',
           text: '.vscode/settings.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/godot-example.md',
-          line: 31
+          line: 30
         });
       });
 
@@ -3588,10 +3578,10 @@ test.describe('Java Example', () => {
       });
 
       // tests/acceptance/specs/java-example.md:12
-      await test.step('Then I can see there are 5 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 5 nodes and 2 connections', {
+      await test.step('Then I can see there are 5 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 5 nodes and 1 connections', {
           keyword: 'Then',
-          text: 'I can see there are 5 nodes and 2 connections',
+          text: 'I can see there are 5 nodes and 1 connections',
           sourcePath: 'tests/acceptance/specs/java-example.md',
           line: 12
         });
@@ -4848,10 +4838,10 @@ test.describe('Python Example', () => {
       });
 
       // tests/acceptance/specs/python-example.md:12
-      await test.step('Then I can see there are 15 nodes and 17 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 17 connections', {
+      await test.step('Then I can see there are 15 nodes and 11 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 11 connections', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 17 connections',
+          text: 'I can see there are 15 nodes and 11 connections',
           sourcePath: 'tests/acceptance/specs/python-example.md',
           line: 12
         });
@@ -5248,10 +5238,10 @@ test.describe('Rust Example', () => {
       });
 
       // tests/acceptance/specs/rust-example.md:12
-      await test.step('Then I can see there are 6 nodes and 3 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 3 connections', {
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
           keyword: 'Then',
-          text: 'I can see there are 6 nodes and 3 connections',
+          text: 'I can see there are 6 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/rust-example.md',
           line: 12
         });
@@ -6153,10 +6143,10 @@ test.describe('TypeScript Example', () => {
       });
 
       // tests/acceptance/specs/typescript-example.md:12
-      await test.step('Then I can see there are 12 nodes and 5 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 5 connections', {
+      await test.step('Then I can see there are 11 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 5 connections', {
           keyword: 'Then',
-          text: 'I can see there are 12 nodes and 5 connections',
+          text: 'I can see there are 11 nodes and 5 connections',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 12
         });
@@ -6262,73 +6252,63 @@ test.describe('TypeScript Example', () => {
         });
       });
 
-      // tests/acceptance/specs/typescript-example.md:24
-      await test.step('And .vscode/settings.json is an orphan node', async () => {
-        await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
-          keyword: 'And',
-          text: '.vscode/settings.json is an orphan node',
-          sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 24
-        });
-      });
-
-      // tests/acceptance/specs/typescript-example.md:26
+      // tests/acceptance/specs/typescript-example.md:25
       await test.step('When I click the plugins button', async () => {
         await runAcceptanceStep(context, 'I click the plugins button', {
           keyword: 'When',
           text: 'I click the plugins button',
+          sourcePath: 'tests/acceptance/specs/typescript-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/typescript-example.md:26
+      await test.step('Then I see a list of plugins with toggles', async () => {
+        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
+          keyword: 'Then',
+          text: 'I see a list of plugins with toggles',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 26
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:27
-      await test.step('Then I see a list of plugins with toggles', async () => {
-        await runAcceptanceStep(context, 'I see a list of plugins with toggles', {
-          keyword: 'Then',
-          text: 'I see a list of plugins with toggles',
+      await test.step('And I toggle the TypeScript/JavaScript plugin on', async () => {
+        await runAcceptanceStep(context, 'I toggle the TypeScript/JavaScript plugin on', {
+          keyword: 'And',
+          text: 'I toggle the TypeScript/JavaScript plugin on',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:28
-      await test.step('And I toggle the TypeScript/JavaScript plugin on', async () => {
-        await runAcceptanceStep(context, 'I toggle the TypeScript/JavaScript plugin on', {
-          keyword: 'And',
-          text: 'I toggle the TypeScript/JavaScript plugin on',
+      await test.step('Then I can see there are 11 nodes and 6 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 6 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 11 nodes and 6 connections',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:29
-      await test.step('Then I can see there are 12 nodes and 6 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 12 nodes and 6 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 12 nodes and 6 connections',
+      await test.step('And I see src/index.ts points to src/alias/greeting.ts', async () => {
+        await runAcceptanceStep(context, 'I see src/index.ts points to src/alias/greeting.ts', {
+          keyword: 'And',
+          text: 'I see src/index.ts points to src/alias/greeting.ts',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
           line: 29
         });
       });
 
       // tests/acceptance/specs/typescript-example.md:30
-      await test.step('And I see src/index.ts points to src/alias/greeting.ts', async () => {
-        await runAcceptanceStep(context, 'I see src/index.ts points to src/alias/greeting.ts', {
-          keyword: 'And',
-          text: 'I see src/index.ts points to src/alias/greeting.ts',
-          sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 30
-        });
-      });
-
-      // tests/acceptance/specs/typescript-example.md:31
       await test.step('And src/alias/greeting.ts is no longer an orphan node', async () => {
         await runAcceptanceStep(context, 'src/alias/greeting.ts is no longer an orphan node', {
           keyword: 'And',
           text: 'src/alias/greeting.ts is no longer an orphan node',
           sourcePath: 'tests/acceptance/specs/typescript-example.md',
-          line: 31
+          line: 30
         });
       });
 
