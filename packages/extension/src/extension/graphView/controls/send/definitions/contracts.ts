@@ -3,6 +3,7 @@ export interface GraphNodeTypeLike {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  description?: GraphTypeDescriptionLike;
 }
 
 export interface GraphEdgeTypeLike {
@@ -10,6 +11,17 @@ export interface GraphEdgeTypeLike {
   label: string;
   defaultColor: string;
   defaultVisible: boolean;
+  description?: GraphTypeDescriptionLike;
+}
+
+export interface GraphTypeExampleLike {
+  label?: string;
+  code: string;
+}
+
+export interface GraphTypeDescriptionLike {
+  description: string;
+  examples?: GraphTypeExampleLike[];
 }
 
 export interface GraphControlsAnalyzerLike {

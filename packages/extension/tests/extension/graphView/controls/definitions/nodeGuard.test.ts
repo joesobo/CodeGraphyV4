@@ -13,6 +13,21 @@ describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
     ).toBe(true);
   });
 
+  it('accepts node definitions with optional tooltip descriptions and examples', () => {
+    expect(
+      isGraphNodeTypeLike({
+        id: 'route',
+        label: 'Route',
+        defaultColor: '#22C55E',
+        defaultVisible: false,
+        description: {
+          description: 'Application routes exposed by a framework.',
+          examples: [{ label: 'SvelteKit', code: 'src/routes/+page.svelte' }],
+        },
+      }),
+    ).toBe(true);
+  });
+
   it('rejects nullish and non-object node definitions', () => {
     expect(isGraphNodeTypeLike(null)).toBe(false);
     expect(isGraphNodeTypeLike(undefined)).toBe(false);
@@ -50,6 +65,18 @@ describe('extension/graphView/controls/send/definitions/nodeGuard', () => {
         label: 'Route',
         defaultColor: '#22C55E',
         defaultVisible: 1,
+      }),
+    ).toBe(false);
+    expect(
+      isGraphNodeTypeLike({
+        id: 'route',
+        label: 'Route',
+        defaultColor: '#22C55E',
+        defaultVisible: true,
+        description: {
+          description: 'Application routes exposed by a framework.',
+          examples: [{ label: 'SvelteKit' }],
+        },
       }),
     ).toBe(false);
   });
