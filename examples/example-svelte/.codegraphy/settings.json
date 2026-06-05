@@ -53,12 +53,13 @@
     "import": true,
     "reference": false,
     "call": false,
-    "type-import": true,
+    "type-import": false,
     "inherit": false,
     "load": false,
     "nests": false,
     "contains": false,
-    "overrides": false
+    "overrides": false,
+    "codegraphy.typescript:alias-import": false
   },
   "favorites": [
     "src/App.svelte"

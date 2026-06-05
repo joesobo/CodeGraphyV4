@@ -48,7 +48,7 @@
   },
   "edgeVisibility": {
     "import": true,
-    "reference": true,
+    "reference": false,
     "call": false,
     "type-import": false,
     "inherit": false,

@@ -6,9 +6,11 @@ Given I open the examples/example-swift workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 Then I see graph nodes
-And I see edges
+And I show no edge types
+Then I can see there are 6 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-swift workspace
 
+When I toggle the Inherits edge on
 Then I can see there are 6 nodes and 2 connections
 And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift
 And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Runnable.swift
@@ -16,11 +18,3 @@ And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Runnable.swi
 And README.md is an orphan node
 And Package.swift is an orphan node
 And .gitignore is an orphan node
-
-When I show only the File node type
-And I show no edge types
-Then the top right of the graph says "0 connections"
-When I toggle the Inherits edge on
-Then the top right of the graph says "2 connections"
-And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Worker.swift
-And Sources/SwiftExample/main.swift points to Sources/RunnerSupport/Runnable.swift
