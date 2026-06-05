@@ -115,6 +115,7 @@ describe('graph scope rows', () => {
           { id: 'reference', label: 'References', defaultColor: '#444444', defaultVisible: true },
         ]}
         edgeVisibility={{ reference: false }}
+        nodeVisibility={{ folder: true }}
       />,
     );
 

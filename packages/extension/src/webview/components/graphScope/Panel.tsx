@@ -67,6 +67,7 @@ export default function GraphScopePanel({
                 edgeColors={edgeColors}
                 edgeTypes={edgeTypes}
                 edgeVisibility={edgeVisibility}
+                nodeVisibility={nodeVisibility}
               />
             )}
           </div>
