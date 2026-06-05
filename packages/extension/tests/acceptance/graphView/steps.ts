@@ -39,12 +39,8 @@ import type { AcceptanceRuntimeStep, AcceptanceStepImplementation, GraphAcceptan
 import {
   copyExampleWorkspace,
   copyExampleTypescriptWorkspace,
-  copyExampleVueWorkspace,
   createWorkspaceTempRoot,
-  EXPECTED_EXAMPLE_VUE_FILES,
   readExampleWorkspaceFiles,
-  readExampleTypescriptFiles,
-  readExampleVueFiles,
 } from './workspace';
 import { launchVSCodeWithWorkspace, openGraphView, waitForGraphFrame } from './vscode';
 
@@ -91,12 +87,6 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
     });
   },
 
-  'I open the examples/example-vue workspace in VS Code': async (context) => {
-    context.workspaceTempRoot = createWorkspaceTempRoot();
-    context.exampleName = 'example-vue';
-    context.workspacePath = copyExampleVueWorkspace(context.workspaceTempRoot);
-  },
-
   'I open the CodeGraphy extension graph view': async (context) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     context.vscode = await launchVSCodeWithWorkspace(workspacePath, {
@@ -119,20 +109,6 @@ const exactGraphViewAcceptanceSteps: Record<string, AcceptanceStepImplementation
   'I do not see edges': async (context) => {
     await expect.poll(async () => (await getGraphCounts(requireGraphFrame(context))).edges).toBe(0);
     context.beforeIndexStageImage = await graphStage(requireGraphFrame(context)).screenshot();
-  },
-
-  'the graph nodes match the expected files in the examples/example-typescript workspace': async (context) => {
-    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-    const expectedFiles = readExampleTypescriptFiles(workspacePath);
-    expect(expectedFiles).toEqual(readExampleWorkspaceFiles(workspacePath));
-    const counts = await getGraphCounts(requireGraphFrame(context));
-    expect(counts.nodes).toBe(expectedFiles.length);
-  },
-
-  'the graph nodes match the expected files in the examples/example-vue workspace': async (context) => {
-    const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
-    expect(readExampleVueFiles(workspacePath)).toEqual(EXPECTED_EXAMPLE_VUE_FILES);
-    await expectGraphCounts(context, EXPECTED_EXAMPLE_VUE_FILES.length, 9);
   },
 
   'I index the workspace': async (context) => {
@@ -339,11 +315,11 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
     context.workspaceTempRoot = createWorkspaceTempRoot();
     context.exampleName = exampleName;
     context.workspacePath = copyExampleWorkspace(context.workspaceTempRoot, exampleName, {
-      filterPatterns: exampleName === 'example-svelte' ? ['src/app.d.ts', '**/.svelte-kit/**'] : [],
+      filterPatterns: acceptanceFilterPatternsForExample(exampleName),
       includeCallEdges: ['example-go', 'example-java', 'example-python', 'example-rust'].includes(exampleName),
       includeInheritEdges: exampleName === 'example-pascal' ? false : true,
+      pluginPackages: acceptanceWorkspacePluginPackagesForExample(exampleName),
     });
-    context.expectedWorkspaceFiles = readExampleWorkspaceFiles(context.workspacePath);
   }),
 
   step(/^I have indexed the workspace$/, async (context) => {
@@ -354,7 +330,7 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
   step(/^the graph nodes match the expected files in the examples\/(.+) workspace$/, async (context, _step, match) => {
     const workspacePath = requireValue(context.workspacePath, 'Expected example workspace to be open');
     expect(context.exampleName).toBe(match[1]);
-    const expectedFiles = context.expectedWorkspaceFiles ?? readExampleWorkspaceFiles(workspacePath);
+    const expectedFiles = await readExampleWorkspaceFiles(workspacePath, context.exampleName);
     const counts = await getGraphCounts(requireGraphFrame(context));
     expect(counts.nodes).toBe(expectedFiles.length);
   }),
@@ -700,6 +676,29 @@ export const graphViewAcceptanceSteps = createStepRegistry(
 
 function step(pattern: RegExp, run: PatternAcceptanceStep['run']): PatternAcceptanceStep {
   return { pattern, run };
+}
+
+function acceptanceFilterPatternsForExample(exampleName: string): string[] {
+  switch (exampleName) {
+    case 'example-svelte':
+      return ['src/app.d.ts'];
+    case 'example-vue':
+      return ['src/vue.d.ts'];
+    default:
+      return [];
+  }
+}
+
+function acceptanceWorkspacePluginPackagesForExample(exampleName: string): string[] | undefined {
+  switch (exampleName) {
+    case 'example-vue':
+      return [
+        '@codegraphy-dev/plugin-markdown',
+        '@codegraphy-dev/plugin-vue',
+      ];
+    default:
+      return undefined;
+  }
 }
 
 function createStepRegistry(
