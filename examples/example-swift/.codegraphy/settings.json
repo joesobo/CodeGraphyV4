@@ -44,11 +44,11 @@
     "plugin:codegraphy.gdscript:symbol:godot-class-name": false
   },
   "edgeVisibility": {
-    "import": true,
+    "import": false,
     "reference": false,
     "call": false,
     "type-import": false,
-    "inherit": false,
+    "inherit": true,
     "load": false,
     "nests": false,
     "contains": false,

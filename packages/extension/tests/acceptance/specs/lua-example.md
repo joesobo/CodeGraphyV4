@@ -6,9 +6,11 @@ Given I open the examples/example-lua workspace in VS Code
 When I open the CodeGraphy extension graph view
 And I have indexed the workspace
 Then I see graph nodes
-And I see edges
+And I show no edge types
+Then I can see there are 6 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-lua workspace
 
+When I toggle the Imports edge on
 Then I can see there are 6 nodes and 2 connections
 And main.lua points to app/runner.lua
 And app/runner.lua points to app/model/user.lua

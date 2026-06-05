@@ -52,7 +52,7 @@
     "call": false,
     "type-import": false,
     "inherit": false,
-    "load": true,
+    "load": false,
     "nests": false,
     "contains": false,
     "overrides": false
