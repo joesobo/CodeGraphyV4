@@ -17,9 +17,6 @@ const EXAMPLES_WITH_ASSERTED_VSCODE_SETTINGS = new Set([
 ]);
 
 interface CopyExampleWorkspaceOptions {
-  includeCallEdges?: boolean;
-  includeInheritEdges?: boolean;
-  filterPatterns?: string[];
   includeVSCodeSettings?: boolean;
   includeTypeImportEdges?: boolean;
   pluginPackages?: string[];
@@ -76,9 +73,16 @@ export function copyExampleWorkspace(
   });
   rewriteMarkdownAcceptanceLinks(workspacePath, exampleName);
   writeAcceptanceVSCodeSettings(workspacePath, exampleName, options);
-  writeAcceptanceSettings(workspacePath, options);
+  if (hasAcceptanceSettingsOverrides(options)) {
+    writeAcceptanceSettings(workspacePath, options);
+  }
 
   return workspacePath;
+}
+
+function hasAcceptanceSettingsOverrides(options: CopyExampleWorkspaceOptions): boolean {
+  return options.includeTypeImportEdges !== undefined
+    || options.pluginPackages !== undefined;
 }
 
 export async function readExampleWorkspaceFiles(workspacePath: string): Promise<string[]> {
@@ -143,29 +147,37 @@ function writeAcceptanceVSCodeSettings(
 
 function writeAcceptanceSettings(workspacePath: string, options: CopyExampleWorkspaceOptions): void {
   const targetSettingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+  const sourceSettings = readSettingsRecord(targetSettingsPath);
+  const sourceEdgeVisibility = isRecord(sourceSettings.edgeVisibility)
+    ? sourceSettings.edgeVisibility
+    : {};
+  const edgeVisibility = {
+    ...sourceEdgeVisibility,
+  };
+
+  if (options.includeTypeImportEdges !== undefined) {
+    edgeVisibility['type-import'] = options.includeTypeImportEdges;
+  }
   const settings = {
-    version: 1,
-    respectGitignore: false,
-    plugins: (options.pluginPackages ?? ['@codegraphy-dev/plugin-markdown'])
-      .map(pluginPackage => ({ package: pluginPackage })),
-    filterPatterns: options.filterPatterns ?? [],
-    edgeVisibility: {
-      nests: false,
-      import: true,
-      'type-import': options.includeTypeImportEdges ?? false,
-      reexport: false,
-      call: options.includeCallEdges ?? false,
-      inherit: options.includeInheritEdges ?? true,
-      reference: true,
-      test: false,
-      load: true,
-      contains: false,
-      overrides: false,
-    },
+    ...sourceSettings,
+    version: typeof sourceSettings.version === 'number' ? sourceSettings.version : 1,
+    plugins: options.pluginPackages
+      ? options.pluginPackages.map(pluginPackage => ({ package: pluginPackage }))
+      : sourceSettings.plugins ?? [{ package: '@codegraphy-dev/plugin-markdown' }],
+    edgeVisibility,
   };
 
   fs.mkdirSync(path.dirname(targetSettingsPath), { recursive: true });
   fs.writeFileSync(targetSettingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+}
+
+function readSettingsRecord(settingsPath: string): Record<string, unknown> {
+  try {
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as unknown;
+    return isRecord(settings) ? settings : {};
+  } catch {
+    return {};
+  }
 }
 
 function readAcceptanceFilterSettings(workspacePath: string): AcceptanceFilterSettings {

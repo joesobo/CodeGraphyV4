@@ -8,6 +8,12 @@ import {
   readExampleWorkspaceFiles,
 } from './acceptance/graphView/workspace';
 
+const examplesRoot = path.resolve(__dirname, '../../../examples');
+const exampleWorkspaceNames = fs.readdirSync(examplesRoot, { withFileTypes: true })
+  .filter(entry => entry.isDirectory() && entry.name.startsWith('example-'))
+  .map(entry => entry.name)
+  .sort();
+
 describe('acceptance graph view workspace fixtures', () => {
   const tempRoots: string[] = [];
 
@@ -17,36 +23,57 @@ describe('acceptance graph view workspace fixtures', () => {
     }
   });
 
-  it('writes settings for the relationships asserted by acceptance scenarios', async () => {
+  it.each(exampleWorkspaceNames)('copies %s CodeGraphy settings from the example workspace', (exampleName) => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const sourceSettingsPath = path.join(examplesRoot, exampleName, '.codegraphy/settings.json');
+    const workspacePath = copyExampleWorkspace(tempRoot, exampleName);
+    const copiedSettingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+
+    expect(fs.readFileSync(copiedSettingsPath, 'utf8')).toBe(fs.readFileSync(sourceSettingsPath, 'utf8'));
+  });
+
+  it('can add VS Code settings for scenarios that assert that node without changing CodeGraphy settings', async () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const sourceSettingsPath = path.join(examplesRoot, 'example-typescript/.codegraphy/settings.json');
+    const workspacePath = copyExampleTypescriptWorkspace(tempRoot, {
+      includeVSCodeSettings: true,
+    });
+    const copiedSettingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+    const files = await readExampleWorkspaceFiles(workspacePath);
+
+    expect(files).toContain('.vscode/settings.json');
+    expect(files).toContain('.gitignore');
+    expect(fs.readFileSync(copiedSettingsPath, 'utf8')).toBe(fs.readFileSync(sourceSettingsPath, 'utf8'));
+  });
+
+  it('can override TypeScript fixture settings for non-example graph scenarios', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
     const workspacePath = copyExampleTypescriptWorkspace(tempRoot, {
-      includeVSCodeSettings: true,
+      includeTypeImportEdges: true,
+      pluginPackages: ['@codegraphy-dev/plugin-markdown'],
     });
     const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-    const files = await readExampleWorkspaceFiles(workspacePath);
 
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
       edgeVisibility?: Record<string, boolean>;
       plugins?: Array<{ package?: string }>;
-      respectGitignore?: boolean;
     };
 
-    expect(files).toContain('.vscode/settings.json');
-    expect(files).toContain('.gitignore');
-    expect(settings.respectGitignore).toBe(false);
-    expect(settings.edgeVisibility).toEqual(expect.objectContaining({
-      import: true,
-      'type-import': false,
-      call: false,
-      inherit: true,
-      reference: true,
-      load: true,
-    }));
     expect(settings.plugins).toEqual([
       { package: '@codegraphy-dev/plugin-markdown' },
     ]);
+    expect(settings.edgeVisibility).toEqual(expect.objectContaining({
+      import: true,
+      'type-import': true,
+      call: false,
+      inherit: false,
+    }));
   });
 
   it('keeps Markdown example reference edges visible for the relationships asserted by its spec', () => {
@@ -75,13 +102,11 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(files).toContain('.gitignore');
   });
 
-  it('can expose TypeScript type import edges for scenarios that assert the extra connection', () => {
+  it('exposes Svelte type import edges from the copied example settings', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
-    const workspacePath = copyExampleTypescriptWorkspace(tempRoot, {
-      includeTypeImportEdges: true,
-    });
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte');
     const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
 
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
@@ -91,51 +116,31 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(settings.edgeVisibility?.['type-import']).toBe(true);
   });
 
-  it('can expose Svelte type import edges for the Svelte acceptance scenario', () => {
+  it('copies Vue active plugins and filters from the example settings', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte', {
-      includeTypeImportEdges: true,
-    });
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-vue');
     const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
 
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
-      edgeVisibility?: Record<string, boolean>;
-    };
-
-    expect(settings.edgeVisibility?.['type-import']).toBe(true);
-  });
-
-  it('can activate package plugins for examples that assert plugin relationships immediately', () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
-    tempRoots.push(tempRoot);
-
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-vue', {
-      pluginPackages: [
-        '@codegraphy-dev/plugin-markdown',
-        '@codegraphy-dev/plugin-vue',
-      ],
-    });
-    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
+      filterPatterns?: string[];
       plugins?: Array<{ package?: string }>;
     };
 
     expect(settings.plugins).toEqual([
       { package: '@codegraphy-dev/plugin-markdown' },
+      { package: '@codegraphy-dev/plugin-typescript' },
       { package: '@codegraphy-dev/plugin-vue' },
     ]);
+    expect(settings.filterPatterns).toEqual(['src/vue.d.ts']);
   });
 
-  it('can apply Svelte app declaration filters when reading expected acceptance files', async () => {
+  it('applies copied Svelte app declaration filters when reading expected acceptance files', async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte', {
-      filterPatterns: ['src/app.d.ts'],
-    });
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte');
     const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
       filterPatterns?: string[];
@@ -175,12 +180,7 @@ describe('acceptance graph view workspace fixtures', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte', {
-      pluginPackages: [
-        '@codegraphy-dev/plugin-markdown',
-        '@codegraphy-dev/plugin-svelte',
-      ],
-    });
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte');
     fs.mkdirSync(path.join(workspacePath, '.svelte-kit'), { recursive: true });
     fs.writeFileSync(path.join(workspacePath, '.svelte-kit/generated.d.ts'), '');
 
@@ -193,9 +193,7 @@ describe('acceptance graph view workspace fixtures', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte', {
-      filterPatterns: ['src/app.d.ts'],
-    });
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte');
     const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
     const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as Record<string, unknown>;
     fs.mkdirSync(path.join(workspacePath, '.svelte-kit'), { recursive: true });
@@ -207,6 +205,7 @@ describe('acceptance graph view workspace fixtures', () => {
         disabledCustomFilterPatterns: ['src/app.d.ts'],
         plugins: [
           { package: '@codegraphy-dev/plugin-markdown' },
+          { package: '@codegraphy-dev/plugin-typescript' },
           {
             package: '@codegraphy-dev/plugin-svelte',
             disabledFilterPatterns: ['**/.svelte-kit/**'],
@@ -221,45 +220,11 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(files).toContain('.svelte-kit/generated.d.ts');
   });
 
-  it('can expose call edges for language scenarios that assert imported-call connections', () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
-    tempRoots.push(tempRoot);
-
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-go', {
-      includeCallEdges: true,
-    });
-    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
-      edgeVisibility?: Record<string, boolean>;
-    };
-
-    expect(settings.edgeVisibility?.call).toBe(true);
-  });
-
-  it('can hide inherit edges for examples that assert only import relationships', () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
-    tempRoots.push(tempRoot);
-
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-pascal', {
-      includeInheritEdges: false,
-    });
-    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
-
-    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as {
-      edgeVisibility?: Record<string, boolean>;
-    };
-
-    expect(settings.edgeVisibility?.inherit).toBe(false);
-  });
-
   it('reads Vue expected files through the generic acceptance fixture path', async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
 
-    const workspacePath = copyExampleWorkspace(tempRoot, 'example-vue', {
-      filterPatterns: ['src/vue.d.ts'],
-    });
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-vue');
     const files = await readExampleWorkspaceFiles(workspacePath);
 
     expect(files).toContain('src/App.vue');
