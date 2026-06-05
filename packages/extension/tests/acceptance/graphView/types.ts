@@ -32,6 +32,7 @@ export interface AcceptanceRuntimeStep {
 export interface GraphAcceptanceContext {
   cleanup: () => Promise<void>;
   exampleName?: string;
+  expectedWorkspaceFiles?: string[];
   workspaceTempRoot?: string;
   workspacePath?: string;
   vscode?: VSCodeFixture;
