@@ -26,6 +26,7 @@ export function useAppState() {
   const nodeColors = useGraphStore(s => s.nodeColors);
   const nodeVisibility = useGraphStore(s => s.nodeVisibility);
   const edgeVisibility = useGraphStore(s => s.edgeVisibility);
+  const graphNodeTypes = useGraphStore(s => s.graphNodeTypes);
   const graphEdgeTypes = useGraphStore(s => s.graphEdgeTypes);
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
@@ -51,6 +52,7 @@ export function useAppState() {
     nodeColors,
     nodeVisibility,
     edgeVisibility,
+    graphNodeTypes,
     graphEdgeTypes,
     nodeDecorations,
     edgeDecorations,

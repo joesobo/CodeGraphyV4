@@ -46,6 +46,7 @@ function createNode({
 describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
   it('adds class symbols only when the class definition has a name', () => {
     const symbols: IAnalysisSymbol[] = [];
+    const relations: IAnalysisRelation[] = [];
     const namedClass = createNode({
       type: 'class_definition',
       fields: {
@@ -54,8 +55,8 @@ describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
     });
     const unnamedClass = createNode({ type: 'class_definition' });
 
-    handlePythonClassDefinition(namedClass, '/workspace/app.py', symbols);
-    handlePythonClassDefinition(unnamedClass, '/workspace/app.py', symbols);
+    handlePythonClassDefinition(namedClass, '/workspace/app.py', relations, symbols, new Map(), true);
+    handlePythonClassDefinition(unnamedClass, '/workspace/app.py', relations, symbols, new Map(), true);
 
     expect(symbols).toEqual([
       expect.objectContaining({
@@ -65,6 +66,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
         name: 'Service',
       }),
     ]);
+    expect(relations).toEqual([]);
   });
 
   it('creates function and method symbols and walks only the symbol body', () => {

@@ -107,6 +107,50 @@ describe('shared/visibleGraph/scope', () => {
 		});
 	});
 
+	it('hides symbol nodes that are disconnected after edge scope is applied', () => {
+		const result = applyGraphScope(
+			{
+				nodes: [
+					node('src/widget.cpp'),
+					node('include/base.h'),
+					symbolNode('src/widget.cpp#Widget:class', {
+						id: 'src/widget.cpp#Widget:class',
+						name: 'Widget',
+						kind: 'class',
+						filePath: 'src/widget.cpp',
+					}),
+					symbolNode('include/base.h#Base:class', {
+						id: 'include/base.h#Base:class',
+						name: 'Base',
+						kind: 'class',
+						filePath: 'include/base.h',
+					}),
+				],
+				edges: [
+					edge('src/widget.cpp', 'include/base.h', 'import'),
+					edge('src/widget.cpp', 'src/widget.cpp#Widget:class', 'contains'),
+					edge('include/base.h', 'include/base.h#Base:class', 'contains'),
+				],
+			},
+			{
+				nodes: [
+					{ type: 'file', enabled: true },
+					{ type: 'symbol', enabled: true },
+					{ type: 'symbol:class', enabled: true },
+				],
+				edges: [
+					{ type: 'import', enabled: true },
+					{ type: 'contains', enabled: false },
+				],
+			},
+		);
+
+		expect(ids(result)).toEqual({
+			nodes: ['src/widget.cpp', 'include/base.h'],
+			edges: ['src/widget.cpp->include/base.h#import'],
+		});
+	});
+
 	it('uses the most specific plugin symbol rule before a general symbol kind rule', () => {
 		const result = applyGraphScope(
 			{

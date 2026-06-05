@@ -142,11 +142,31 @@ export function addInheritRelation(
   filePath: string,
   specifier: string,
   resolvedPath: string | null = null,
+  fromSymbolId?: string,
 ): void {
   addRelation(relations, {
     kind: 'inherit',
     sourceId: TREE_SITTER_SOURCE_IDS.inherit,
     fromFilePath: filePath,
+    ...(fromSymbolId ? { fromSymbolId } : {}),
+    specifier,
+    resolvedPath,
+    toFilePath: resolvedPath,
+  });
+}
+
+export function addOverrideRelation(
+  relations: IAnalysisRelation[],
+  filePath: string,
+  specifier: string,
+  resolvedPath: string | null = null,
+  fromSymbolId?: string,
+): void {
+  addRelation(relations, {
+    kind: 'overrides',
+    sourceId: TREE_SITTER_SOURCE_IDS.override,
+    fromFilePath: filePath,
+    ...(fromSymbolId ? { fromSymbolId } : {}),
     specifier,
     resolvedPath,
     toFilePath: resolvedPath,

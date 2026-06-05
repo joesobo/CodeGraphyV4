@@ -8,6 +8,7 @@ import type {
   IPlugin,
 } from '@codegraphy-dev/plugin-api';
 import type { IProjectedConnection } from '../analysis/projectedConnection';
+import { enrichWorkspaceFileAnalysis } from '../analysis/fileAnalysis/enrichment';
 import { requiresSymbolAnalysisCacheTier } from '../analysis/fileAnalysis/cacheTiers';
 import { DEFAULT_NODE_COLOR } from '../fileColors';
 import type { IGraphData } from './contracts';
@@ -104,20 +105,21 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
 export function buildWorkspaceGraphDataFromAnalysis(
   options: IWorkspaceGraphAnalysisDataOptions,
 ): IGraphData {
+  const fileAnalysis = enrichWorkspaceFileAnalysis(options.fileAnalysis);
   const projectSymbolGraph = shouldProjectSymbolGraph(options.nodeVisibility);
   const graphData = buildWorkspaceGraphData({
     ...options,
-    fileConnections: projectFileAnalysisConnections(options.fileAnalysis, options.workspaceRoot),
+    fileConnections: projectFileAnalysisConnections(fileAnalysis, options.workspaceRoot),
   });
   const symbolGraph = projectSymbolGraph
-    ? buildSymbolNodesAndEdges(options.fileAnalysis, options.workspaceRoot, {
+    ? buildSymbolNodesAndEdges(fileAnalysis, options.workspaceRoot, {
         cacheFiles: options.cacheFiles,
         churnCounts: options.churnCounts,
       })
     : { containingFileIds: new Set<string>(), edges: [], nodes: [] };
   const existingNodeIds = new Set(graphData.nodes.map(node => node.id));
   const connectedAnalysisFileIds = collectConnectedAnalysisFileIds(
-    options.fileAnalysis,
+    fileAnalysis,
     options.workspaceRoot,
     symbolGraph.containingFileIds,
     { includeSymbols: projectSymbolGraph },

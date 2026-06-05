@@ -8,6 +8,7 @@ interface ShellVisibleGraphsInput {
   edgeVisibility: GraphState['edgeVisibility'];
   graphData: GraphState['graphData'];
   graphEdgeTypes: GraphState['graphEdgeTypes'];
+  graphNodeTypes: GraphState['graphNodeTypes'];
   nodeVisibility: GraphState['nodeVisibility'];
   searchOptions: GraphState['searchOptions'];
   showOrphans: GraphState['showOrphans'];
@@ -21,6 +22,7 @@ function deriveShellVisibleGraph(
     edgeTypes: input.graphEdgeTypes,
     edgeVisibility: input.edgeVisibility,
     filterPatterns,
+    nodeTypes: input.graphNodeTypes,
     nodeVisibility: input.nodeVisibility,
     searchOptions: input.searchOptions,
     searchQuery: '',
@@ -33,6 +35,7 @@ export function useShellVisibleGraphs({
   edgeVisibility,
   graphData,
   graphEdgeTypes,
+  graphNodeTypes,
   nodeVisibility,
   searchOptions,
   showOrphans,
@@ -42,22 +45,24 @@ export function useShellVisibleGraphs({
       edgeVisibility,
       graphData,
       graphEdgeTypes,
+      graphNodeTypes,
       nodeVisibility,
       searchOptions,
       showOrphans,
     }, []),
-    [edgeVisibility, graphData, graphEdgeTypes, nodeVisibility, searchOptions, showOrphans],
+    [edgeVisibility, graphData, graphEdgeTypes, graphNodeTypes, nodeVisibility, searchOptions, showOrphans],
   );
   const filterVisibleData = useMemo(
     () => deriveShellVisibleGraph({
       edgeVisibility,
       graphData,
       graphEdgeTypes,
+      graphNodeTypes,
       nodeVisibility,
       searchOptions,
       showOrphans,
     }, activeFilterPatterns),
-    [activeFilterPatterns, edgeVisibility, graphData, graphEdgeTypes, nodeVisibility, searchOptions, showOrphans],
+    [activeFilterPatterns, edgeVisibility, graphData, graphEdgeTypes, graphNodeTypes, nodeVisibility, searchOptions, showOrphans],
   );
 
   return {

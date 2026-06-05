@@ -135,6 +135,44 @@ describe('visibleGraph/scope', () => {
     });
   });
 
+  it('removes symbol nodes that are disconnected after edge type filtering', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        node('src/app.cpp'),
+        node('src/widget.hpp'),
+        node('src/app.cpp#Runner:class', 'symbol', symbol({
+          id: 'src/app.cpp:class:Runner',
+          kind: 'class',
+          name: 'Runner',
+        })),
+      ],
+      edges: [
+        edge('src/app.cpp', 'src/widget.hpp', 'import'),
+        edge('src/app.cpp', 'src/app.cpp#Runner:class', 'contains'),
+      ],
+    };
+
+    expect(applyGraphScope(graphData, {
+      nodes: [
+        { type: 'file', enabled: true },
+        { type: 'symbol', enabled: true },
+        { type: 'symbol:class', enabled: true },
+      ],
+      edges: [
+        { type: 'import', enabled: true },
+        { type: 'contains', enabled: false },
+      ],
+    })).toEqual({
+      nodes: [
+        node('src/app.cpp'),
+        node('src/widget.hpp'),
+      ],
+      edges: [
+        edge('src/app.cpp', 'src/widget.hpp', 'import'),
+      ],
+    });
+  });
+
   it('disables variable nodes whenever the symbol root is disabled', () => {
     expect(getDisabledNodeTypes(scopeConfig([
       { type: 'symbol', enabled: false },

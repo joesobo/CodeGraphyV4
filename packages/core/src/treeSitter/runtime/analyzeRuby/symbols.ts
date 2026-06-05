@@ -46,8 +46,11 @@ export function handleRubyClass(
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
+  symbolsEnabled: boolean,
 ): void {
-  addNamedSymbol(symbols, filePath, 'class', node);
+  if (symbolsEnabled) {
+    addNamedSymbol(symbols, filePath, 'class', node);
+  }
 
   const superclass = node.childForFieldName('superclass')?.descendantsOfType('constant')[0]?.text;
   if (!superclass) {

@@ -5,6 +5,7 @@ export const TREE_SITTER_SOURCE_IDS = {
   include: 'codegraphy.treesitter:include',
   import: 'codegraphy.treesitter:import',
   inherit: 'codegraphy.treesitter:inherit',
+  override: 'codegraphy.treesitter:override',
   reference: 'codegraphy.treesitter:reference',
   typeImport: 'codegraphy.treesitter:type-import',
 } as const;

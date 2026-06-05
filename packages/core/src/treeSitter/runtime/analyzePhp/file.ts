@@ -42,9 +42,6 @@ function visitPhpNode(
   }
 
   if (PHP_TYPE_DECLARATION_NODE_TYPES.has(node.type)) {
-    if (!symbolsEnabled) {
-      return;
-    }
     handlePhpTypeDeclaration(
       node,
       filePath,
@@ -53,6 +50,7 @@ function visitPhpNode(
       relations,
       symbols,
       importedBindings,
+      symbolsEnabled,
     );
     return;
   }

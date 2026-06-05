@@ -47,6 +47,7 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
       'namespace app {',
       'class Runner : public Widget {',
       'public:',
+      '  void render() override {}',
       '  void run() {}',
       '};',
       '',
@@ -82,6 +83,24 @@ describe('pipeline/plugins/treesitter/runtime/analyzeCpp', () => {
         fromFilePath: appPath,
         resolvedPath: null,
         toFilePath: null,
+      }),
+      expect.objectContaining({
+        kind: 'inherit',
+        sourceId: 'codegraphy.treesitter:inherit',
+        specifier: 'Widget',
+        fromFilePath: appPath,
+        fromSymbolId: `${appPath}:class:Runner`,
+        resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+      }),
+      expect.objectContaining({
+        kind: 'overrides',
+        sourceId: 'codegraphy.treesitter:override',
+        specifier: 'render',
+        fromFilePath: appPath,
+        fromSymbolId: `${appPath}:method:render`,
+        resolvedPath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
+        toFilePath: path.join(workspaceRoot, 'src/lib/widget.hpp'),
       }),
     ]));
     expect(result?.symbols).toEqual(expect.arrayContaining([

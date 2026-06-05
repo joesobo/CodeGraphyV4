@@ -25,6 +25,7 @@ function visitJavaNode(
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
   filePath: string,
   sourceRoot: string | null,
+  packageName: string | null,
   relations: IAnalysisRelation[],
   symbols: IAnalysisSymbol[],
   importedBindings: Map<string, ImportedBinding>,
@@ -38,9 +39,16 @@ function visitJavaNode(
     case 'class_declaration':
     case 'interface_declaration':
     case 'enum_declaration': {
-      if (symbolsEnabled) {
-        handleJavaTypeDeclaration(node, filePath, symbols);
-      }
+      handleJavaTypeDeclaration(
+        node,
+        filePath,
+        sourceRoot,
+        packageName,
+        relations,
+        symbols,
+        importedBindings,
+        symbolsEnabled,
+      );
       return;
     }
     case 'method_declaration': {
@@ -67,7 +75,7 @@ export function analyzeJavaFile(
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const symbolsEnabled = shouldIncludeTreeSitterSymbols(options);
-  const { sourceRoot } = resolveJavaSourceInfo(filePath, tree);
+  const { packageName, sourceRoot } = resolveJavaSourceInfo(filePath, tree);
   walkTree(tree.rootNode, {}, (node, state, walk) =>
     visitJavaNode(
       node,
@@ -75,6 +83,7 @@ export function analyzeJavaFile(
       walk,
       filePath,
       sourceRoot,
+      packageName,
       relations,
       symbols,
       importedBindings,

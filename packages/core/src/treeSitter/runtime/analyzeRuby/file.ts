@@ -40,10 +40,7 @@ function visitRubyNode(
   }
 
   if (node.type === 'class') {
-    if (!symbolsEnabled) {
-      return;
-    }
-    handleRubyClass(node, filePath, relations, symbols, importedBindings);
+    handleRubyClass(node, filePath, relations, symbols, importedBindings, symbolsEnabled);
     return;
   }
 
