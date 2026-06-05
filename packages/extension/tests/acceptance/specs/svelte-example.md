@@ -38,5 +38,5 @@ And tsconfig.json is an orphan node
 
 Then I toggle the Type Imports edge off
 And I toggle the Inherits edge on
-Then I can see there are 9 nodes and 1 connections
+Then I can see there are 13 nodes and 1 connections
 And src/types.ts points to src/inheritance.ts

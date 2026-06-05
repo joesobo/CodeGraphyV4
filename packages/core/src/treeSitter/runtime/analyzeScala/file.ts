@@ -37,7 +37,7 @@ export function analyzeScalaFile(
     importedPaths.set(specifier.split('.').at(-1) ?? specifier, resolvedPath);
   }
 
-  for (const match of source.matchAll(/\b(?:class|trait|object|enum)\s+[A-Za-z_]\w*\s+extends\s+([A-Za-z_]\w*)/g)) {
+  for (const match of source.matchAll(/\b(?:class|trait|object|enum)\s+[A-Za-z_]\w*(?:\s*\([^)]*\))?\s+extends\s+([A-Za-z_]\w*)/g)) {
     addInheritByImportedName(relations, filePath, match[1], importedPaths);
   }
 

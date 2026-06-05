@@ -463,10 +463,10 @@ test.describe('C++ Example', () => {
       });
 
       // tests/acceptance/specs/cpp-example.md:25
-      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
+      await test.step('Then I can see there are 8 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 2 connections', {
           keyword: 'Then',
-          text: 'I can see there are 6 nodes and 2 connections',
+          text: 'I can see there are 8 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 25
         });
@@ -513,10 +513,10 @@ test.describe('C++ Example', () => {
       });
 
       // tests/acceptance/specs/cpp-example.md:31
-      await test.step('Then I can see there are 6 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 1 connections', {
+      await test.step('Then I can see there are 8 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 1 connections', {
           keyword: 'Then',
-          text: 'I can see there are 6 nodes and 1 connections',
+          text: 'I can see there are 8 nodes and 1 connections',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 31
         });
@@ -563,10 +563,10 @@ test.describe('C++ Example', () => {
       });
 
       // tests/acceptance/specs/cpp-example.md:37
-      await test.step('Then I can see there are 6 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 6 nodes and 1 connections', {
+      await test.step('Then I can see there are 8 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 1 connections', {
           keyword: 'Then',
-          text: 'I can see there are 6 nodes and 1 connections',
+          text: 'I can see there are 8 nodes and 1 connections',
           sourcePath: 'tests/acceptance/specs/cpp-example.md',
           line: 37
         });
@@ -678,160 +678,160 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:14
-      await test.step('Then I can see there are 11 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 11 nodes and 2 connections', {
+      await test.step('Then I can see there are 11 nodes and 3 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 3 connections', {
           keyword: 'Then',
-          text: 'I can see there are 11 nodes and 2 connections',
+          text: 'I can see there are 11 nodes and 3 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 14
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:15
-      await test.step('And src/Program.cs points to src/Config.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Config.cs', {
+      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
           keyword: 'And',
-          text: 'src/Program.cs points to src/Config.cs',
+          text: 'src/Program.cs points to src/Services/ApiService.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 15
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:16
-      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
+      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
           keyword: 'And',
-          text: 'src/Program.cs points to src/Services/ApiService.cs',
+          text: 'src/Program.cs points to src/Utils/Helpers.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 16
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:17
-      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
-        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
-          keyword: 'And',
-          text: 'src/Program.cs points to src/Utils/Helpers.cs',
-          sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 17
-        });
-      });
-
-      // tests/acceptance/specs/csharp-example.md:18
       await test.step('And src/Services/ApiService.cs points to src/Contracts/IRunner.cs', async () => {
         await runAcceptanceStep(context, 'src/Services/ApiService.cs points to src/Contracts/IRunner.cs', {
           keyword: 'And',
           text: 'src/Services/ApiService.cs points to src/Contracts/IRunner.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 18
+          line: 17
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:19
-      await test.step('And src/Utils/Helpers.cs points to src/Utils/Formatter.cs', async () => {
-        await runAcceptanceStep(context, 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs', {
+      await test.step('And src/Orphan.cs is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/Orphan.cs is an orphan node', {
           keyword: 'And',
-          text: 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs',
+          text: 'src/Orphan.cs is an orphan node',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 19
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:21
-      await test.step('And src/Orphan.cs is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/Orphan.cs is an orphan node', {
+      // tests/acceptance/specs/csharp-example.md:20
+      await test.step('And src/Services/BaseService.cs is an orphan node', async () => {
+        await runAcceptanceStep(context, 'src/Services/BaseService.cs is an orphan node', {
           keyword: 'And',
-          text: 'src/Orphan.cs is an orphan node',
+          text: 'src/Services/BaseService.cs is an orphan node',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 20
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:21
+      await test.step('And README.md is an orphan node', async () => {
+        await runAcceptanceStep(context, 'README.md is an orphan node', {
+          keyword: 'And',
+          text: 'README.md is an orphan node',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 21
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:22
-      await test.step('And src/Services/BaseService.cs is an orphan node', async () => {
-        await runAcceptanceStep(context, 'src/Services/BaseService.cs is an orphan node', {
+      await test.step('And .gitignore is an orphan node', async () => {
+        await runAcceptanceStep(context, '.gitignore is an orphan node', {
           keyword: 'And',
-          text: 'src/Services/BaseService.cs is an orphan node',
+          text: '.gitignore is an orphan node',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 22
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:23
-      await test.step('And README.md is an orphan node', async () => {
-        await runAcceptanceStep(context, 'README.md is an orphan node', {
-          keyword: 'And',
-          text: 'README.md is an orphan node',
-          sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 23
-        });
-      });
-
-      // tests/acceptance/specs/csharp-example.md:24
-      await test.step('And .gitignore is an orphan node', async () => {
-        await runAcceptanceStep(context, '.gitignore is an orphan node', {
-          keyword: 'And',
-          text: '.gitignore is an orphan node',
-          sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 24
-        });
-      });
-
-      // tests/acceptance/specs/csharp-example.md:25
       await test.step('And .vscode/settings.json is an orphan node', async () => {
         await runAcceptanceStep(context, '.vscode/settings.json is an orphan node', {
           keyword: 'And',
           text: '.vscode/settings.json is an orphan node',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
-          line: 25
+          line: 23
         });
       });
 
-      // tests/acceptance/specs/csharp-example.md:27
+      // tests/acceptance/specs/csharp-example.md:25
       await test.step('Then I toggle the Imports edge off', async () => {
         await runAcceptanceStep(context, 'I toggle the Imports edge off', {
           keyword: 'Then',
           text: 'I toggle the Imports edge off',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 25
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:26
+      await test.step('And I toggle the References edge on', async () => {
+        await runAcceptanceStep(context, 'I toggle the References edge on', {
+          keyword: 'And',
+          text: 'I toggle the References edge on',
+          sourcePath: 'tests/acceptance/specs/csharp-example.md',
+          line: 26
+        });
+      });
+
+      // tests/acceptance/specs/csharp-example.md:27
+      await test.step('Then I can see there are 11 nodes and 4 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 4 connections', {
+          keyword: 'Then',
+          text: 'I can see there are 11 nodes and 4 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 27
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:28
-      await test.step('And I toggle the References edge on', async () => {
-        await runAcceptanceStep(context, 'I toggle the References edge on', {
+      await test.step('And src/Program.cs points to src/Config.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Config.cs', {
           keyword: 'And',
-          text: 'I toggle the References edge on',
+          text: 'src/Program.cs points to src/Config.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 28
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:29
-      await test.step('Then I can see there are 9 nodes and 4 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 4 connections', {
-          keyword: 'Then',
-          text: 'I can see there are 9 nodes and 4 connections',
+      await test.step('And src/Program.cs points to src/Services/ApiService.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Services/ApiService.cs', {
+          keyword: 'And',
+          text: 'src/Program.cs points to src/Services/ApiService.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 29
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:30
-      await test.step('And src/Services/ApiService.cs points to src/Services/BaseService.cs', async () => {
-        await runAcceptanceStep(context, 'src/Services/ApiService.cs points to src/Services/BaseService.cs', {
+      await test.step('And src/Program.cs points to src/Utils/Helpers.cs', async () => {
+        await runAcceptanceStep(context, 'src/Program.cs points to src/Utils/Helpers.cs', {
           keyword: 'And',
-          text: 'src/Services/ApiService.cs points to src/Services/BaseService.cs',
+          text: 'src/Program.cs points to src/Utils/Helpers.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 30
         });
       });
 
       // tests/acceptance/specs/csharp-example.md:31
-      await test.step('And src/Services/ApiService.cs points to src/Contracts/IRunner.cs', async () => {
-        await runAcceptanceStep(context, 'src/Services/ApiService.cs points to src/Contracts/IRunner.cs', {
+      await test.step('And src/Utils/Helpers.cs points to src/Utils/Formatter.cs', async () => {
+        await runAcceptanceStep(context, 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs', {
           keyword: 'And',
-          text: 'src/Services/ApiService.cs points to src/Contracts/IRunner.cs',
+          text: 'src/Utils/Helpers.cs points to src/Utils/Formatter.cs',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 31
         });
@@ -858,10 +858,10 @@ test.describe('C# Example', () => {
       });
 
       // tests/acceptance/specs/csharp-example.md:35
-      await test.step('Then I can see there are 9 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 2 connections', {
+      await test.step('Then I can see there are 11 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 2 connections', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 2 connections',
+          text: 'I can see there are 11 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/csharp-example.md',
           line: 35
         });
@@ -3359,10 +3359,10 @@ test.describe('Graph Scope Edge And Node Types', () => {
       });
 
       // tests/acceptance/specs/graph-scope-edge-node-types.md:38
-      await test.step('Then the top right of the graph says "14 connections"', async () => {
-        await runAcceptanceStep(context, 'the top right of the graph says "14 connections"', {
+      await test.step('Then the top right of the graph says "10 connections"', async () => {
+        await runAcceptanceStep(context, 'the top right of the graph says "10 connections"', {
           keyword: 'Then',
-          text: 'the top right of the graph says "14 connections"',
+          text: 'the top right of the graph says "10 connections"',
           sourcePath: 'tests/acceptance/specs/graph-scope-edge-node-types.md',
           line: 38
         });
@@ -4772,10 +4772,10 @@ test.describe('Java Example', () => {
       });
 
       // tests/acceptance/specs/java-example.md:21
-      await test.step('Then I can see there are 9 nodes and 2 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 2 connections', {
+      await test.step('Then I can see there are 6 nodes and 2 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 6 nodes and 2 connections', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 2 connections',
+          text: 'I can see there are 6 nodes and 2 connections',
           sourcePath: 'tests/acceptance/specs/java-example.md',
           line: 21
         });
@@ -5607,10 +5607,10 @@ test.describe('Objective-C Example', () => {
       });
 
       // tests/acceptance/specs/objective-c-example.md:14
-      await test.step('Then I can see there are 15 nodes and 13 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 15 nodes and 13 connections', {
+      await test.step('Then I can see there are 15 nodes and 15 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 15 nodes and 15 connections', {
           keyword: 'Then',
-          text: 'I can see there are 15 nodes and 13 connections',
+          text: 'I can see there are 15 nodes and 15 connections',
           sourcePath: 'tests/acceptance/specs/objective-c-example.md',
           line: 14
         });
@@ -5932,10 +5932,10 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:30
-      await test.step('Then I can see there are 9 nodes and 5 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 5 connections', {
+      await test.step('Then I can see there are 14 nodes and 5 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 14 nodes and 5 connections', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 5 connections',
+          text: 'I can see there are 14 nodes and 5 connections',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 30
         });
@@ -5982,20 +5982,20 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:36
-      await test.step('Then I can see there are 9 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connections', {
+      await test.step('Then I can see there are 10 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 10 nodes and 1 connections', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 1 connections',
+          text: 'I can see there are 10 nodes and 1 connections',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 36
         });
       });
 
       // tests/acceptance/specs/pascal-example.md:37
-      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas', async () => {
-        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas', {
+      await test.step('And src/SampleApp.pas points to src/RunnerSupport.pas#TBaseRunner:class', async () => {
+        await runAcceptanceStep(context, 'src/SampleApp.pas points to src/RunnerSupport.pas#TBaseRunner:class', {
           keyword: 'And',
-          text: 'src/SampleApp.pas points to src/RunnerSupport.pas',
+          text: 'src/SampleApp.pas points to src/RunnerSupport.pas#TBaseRunner:class',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 37
         });
@@ -6032,10 +6032,10 @@ test.describe('Pascal Example', () => {
       });
 
       // tests/acceptance/specs/pascal-example.md:42
-      await test.step('Then I can see there are 9 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connections', {
+      await test.step('Then I can see there are 11 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 11 nodes and 1 connections', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 1 connections',
+          text: 'I can see there are 11 nodes and 1 connections',
           sourcePath: 'tests/acceptance/specs/pascal-example.md',
           line: 42
         });
@@ -6117,10 +6117,10 @@ test.describe('PHP Example', () => {
       });
 
       // tests/acceptance/specs/php-example.md:10
-      await test.step('Then I can see there are 7 nodes and 3 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 7 nodes and 3 connections', {
+      await test.step('Then I can see there are 7 nodes and 0 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 7 nodes and 0 connections', {
           keyword: 'Then',
-          text: 'I can see there are 7 nodes and 3 connections',
+          text: 'I can see there are 7 nodes and 0 connections',
           sourcePath: 'tests/acceptance/specs/php-example.md',
           line: 10
         });
@@ -6777,10 +6777,10 @@ test.describe('Ruby Example', () => {
       });
 
       // tests/acceptance/specs/ruby-example.md:26
-      await test.step('Then I can see there are 9 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connections', {
+      await test.step('Then I can see there are 8 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 8 nodes and 1 connections', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 1 connections',
+          text: 'I can see there are 8 nodes and 1 connections',
           sourcePath: 'tests/acceptance/specs/ruby-example.md',
           line: 26
         });
@@ -7667,10 +7667,10 @@ test.describe('Svelte Example', () => {
       });
 
       // tests/acceptance/specs/svelte-example.md:41
-      await test.step('Then I can see there are 9 nodes and 1 connections', async () => {
-        await runAcceptanceStep(context, 'I can see there are 9 nodes and 1 connections', {
+      await test.step('Then I can see there are 13 nodes and 1 connections', async () => {
+        await runAcceptanceStep(context, 'I can see there are 13 nodes and 1 connections', {
           keyword: 'Then',
-          text: 'I can see there are 9 nodes and 1 connections',
+          text: 'I can see there are 13 nodes and 1 connections',
           sourcePath: 'tests/acceptance/specs/svelte-example.md',
           line: 41
         });

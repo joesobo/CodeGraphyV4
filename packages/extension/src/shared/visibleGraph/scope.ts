@@ -16,6 +16,55 @@ function pruneDisconnectedSymbolNodes(
   return nodes.filter((node) => !node.symbol || connectedNodeIds.has(node.id));
 }
 
+function getEdgeContainingFileKey(
+  edge: IGraphData['edges'][number],
+  nodeById: ReadonlyMap<string, IGraphData['nodes'][number]>,
+): string {
+  const fromNode = nodeById.get(edge.from);
+  const toNode = nodeById.get(edge.to);
+  const fromFile = fromNode?.symbol?.filePath ?? edge.from;
+  const toFile = toNode?.symbol?.filePath ?? edge.to;
+
+  return `${edge.kind}\0${fromFile}\0${toFile}`;
+}
+
+function keepMostSpecificUniqueEdges(
+	nodes: IGraphData['nodes'],
+	edges: IGraphData['edges'],
+): IGraphData['edges'] {
+	const nodeById = new Map(nodes.map((node) => [node.id, node]));
+	const maxEndpointSpecificityByKey = new Map<string, number>();
+
+  for (const edge of edges) {
+    const fromNode = nodeById.get(edge.from);
+    const toNode = nodeById.get(edge.to);
+    const key = getEdgeContainingFileKey(edge, nodeById);
+    const specificity = Number(Boolean(fromNode?.symbol)) + Number(Boolean(toNode?.symbol));
+    maxEndpointSpecificityByKey.set(
+      key,
+      Math.max(maxEndpointSpecificityByKey.get(key) ?? 0, specificity),
+    );
+  }
+
+	const seenEdgeIds = new Set<string>();
+	return edges.filter((edge) => {
+		const fromNode = nodeById.get(edge.from);
+		const toNode = nodeById.get(edge.to);
+		const key = getEdgeContainingFileKey(edge, nodeById);
+		const specificity = Number(Boolean(fromNode?.symbol)) + Number(Boolean(toNode?.symbol));
+		if (specificity !== (maxEndpointSpecificityByKey.get(key) ?? specificity)) {
+			return false;
+		}
+
+		if (seenEdgeIds.has(edge.id)) {
+			return false;
+		}
+
+		seenEdgeIds.add(edge.id);
+		return true;
+	});
+}
+
 export function applyGraphScope(
   graphData: IGraphData,
   scope: VisibleGraphScopeConfig,
@@ -29,7 +78,10 @@ export function applyGraphScope(
     scopedSymbolDefinitions,
   ));
   const scopedEdges = graphData.edges.filter((edge) => !disabledEdgeTypes.has(edge.kind));
-  const edges = filterEdgesToNodes(scopedEdges, nodes);
+	const edges = keepMostSpecificUniqueEdges(
+		nodes,
+		filterEdgesToNodes(scopedEdges, nodes),
+	);
   const connectedNodes = pruneDisconnectedSymbolNodes(nodes, edges);
 
   return {

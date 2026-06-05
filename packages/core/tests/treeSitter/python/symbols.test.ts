@@ -129,11 +129,19 @@ describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
     expect(walk).toHaveBeenNthCalledWith(2, body, { currentSymbolId: '/workspace/app.py:function:run' });
   });
 
-  it('adds call relations for identifier and attribute-based imported bindings only', () => {
+  it('adds call relations for identifier, attribute-based imported, and local symbol bindings', () => {
     const relations: IAnalysisRelation[] = [];
     const importedBindings = new Map<string, ImportedBinding>([
       ['boot', { specifier: './boot', resolvedPath: '/workspace/boot.py' }],
       ['service', { specifier: './service', resolvedPath: '/workspace/service.py' }],
+    ]);
+    const localBindings = new Map<string, ImportedBinding>([
+      ['fetch_data', {
+        importedName: 'fetch_data',
+        localName: 'fetch_data',
+        resolvedPath: '/workspace/app.py',
+        specifier: 'fetch_data',
+      }],
     ]);
     const identifierCall = createNode({
       type: 'call',
@@ -158,6 +166,12 @@ describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
         createNode({ type: 'attribute', fields: { object: createNode({ type: 'identifier', text: 'service' }) } }),
       ],
     });
+    const localCall = createNode({
+      type: 'call',
+      fields: {
+        function: createNode({ type: 'identifier', text: 'fetch_data' }),
+      },
+    });
     const unknownCall = createNode({
       type: 'call',
       fields: {
@@ -165,10 +179,11 @@ describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
       },
     });
 
-    handlePythonCall(identifierCall, '/workspace/app.py', relations, importedBindings, '/workspace/app.py:function:run');
-    handlePythonCall(attributeCall, '/workspace/app.py', relations, importedBindings);
-    handlePythonCall(fallbackCall, '/workspace/app.py', relations, importedBindings);
-    handlePythonCall(unknownCall, '/workspace/app.py', relations, importedBindings);
+    handlePythonCall(identifierCall, '/workspace/app.py', relations, importedBindings, localBindings, '/workspace/app.py:function:run');
+    handlePythonCall(attributeCall, '/workspace/app.py', relations, importedBindings, localBindings);
+    handlePythonCall(fallbackCall, '/workspace/app.py', relations, importedBindings, localBindings);
+    handlePythonCall(localCall, '/workspace/app.py', relations, importedBindings, localBindings, '/workspace/app.py:function:fetch_user');
+    handlePythonCall(unknownCall, '/workspace/app.py', relations, importedBindings, localBindings);
 
     expect(relations).toEqual([
       expect.objectContaining({
@@ -192,6 +207,14 @@ describe('pipeline/plugins/treesitter/runtime/analyzePython/symbols', () => {
         fromFilePath: '/workspace/app.py',
         specifier: './service',
         resolvedPath: '/workspace/service.py',
+      }),
+      expect.objectContaining({
+        kind: 'call',
+        fromFilePath: '/workspace/app.py',
+        fromSymbolId: '/workspace/app.py:function:fetch_user',
+        specifier: 'fetch_data',
+        resolvedPath: '/workspace/app.py',
+        toFilePath: '/workspace/app.py',
       }),
     ]);
   });

@@ -35,7 +35,7 @@ And I show only the File and Function node types
 And I show no edge types
 Then the top right of the graph says "0 connections"
 When I toggle the Calls edge on
-Then the top right of the graph says "14 connections"
+Then the top right of the graph says "10 connections"
 And src/main.py#main:function points to src/services/api.py#fetch_user:function
 And src/main.py#main:function points to src/utils/helpers.py#summarize_user:function
 And src/services/api.py#fetch_user:function points to src/utils/helpers.py#process_data:function
