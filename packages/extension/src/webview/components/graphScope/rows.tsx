@@ -90,7 +90,7 @@ function ScopeRow({
     <div
       className={cn(
         resolveScopeRowClassName(enabled),
-        description && 'cursor-help',
+        description && 'cursor-pointer',
         nested && 'pl-7',
       )}
       data-scope-row={label}
