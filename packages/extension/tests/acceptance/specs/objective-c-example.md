@@ -11,7 +11,7 @@ Then I can see there are 15 nodes and 0 connections
 And the graph nodes match the expected files in the examples/example-objective-c workspace
 
 When I toggle the Imports edge on
-Then I can see there are 15 nodes and 13 connections
+Then I can see there are 15 nodes and 15 connections
 And Sources/main.m points to Sources/AppDelegate.h
 And Sources/AppDelegate.m points to Sources/AppDelegate.h
 

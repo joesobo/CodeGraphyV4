@@ -12,12 +12,24 @@ import { walkSymbolBody } from '../analyze/walk';
 function getPythonCallBinding(
   callExpression: Parser.SyntaxNode,
   importedBindings: ReadonlyMap<string, ImportedBinding>,
+  localSymbolBindings: ReadonlyMap<string, ImportedBinding>,
 ): ImportedBinding | null {
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
   return (
     getImportedBindingByIdentifier(calleeNode, importedBindings)
     ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'attribute', 'object', 'attribute')
+    ?? getImportedBindingByIdentifier(calleeNode, localSymbolBindings)
   );
+}
+
+function createLocalSymbolBinding(filePath: string, name: string): ImportedBinding {
+  return {
+    bindingKind: 'named',
+    importedName: name,
+    localName: name,
+    resolvedPath: filePath,
+    specifier: name,
+  };
 }
 
 export function handlePythonClassDefinition(
@@ -27,11 +39,13 @@ export function handlePythonClassDefinition(
   symbols: IAnalysisSymbol[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
   symbolsEnabled: boolean,
+  localSymbolBindings?: Map<string, ImportedBinding>,
 ): void {
   const name = getIdentifierText(node.childForFieldName('name'));
   const symbol = name && symbolsEnabled ? createSymbol(filePath, 'class', name, node) : undefined;
-  if (symbol) {
+  if (symbol && name) {
     symbols.push(symbol);
+    localSymbolBindings?.set(name, createLocalSymbolBinding(filePath, name));
   }
 
   for (const baseName of readPythonBaseClassNames(node.text)) {
@@ -62,6 +76,7 @@ export function handlePythonFunctionDefinition(
   filePath: string,
   symbols: IAnalysisSymbol[],
   walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
+  localSymbolBindings?: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> | void {
   const name = getIdentifierText(node.childForFieldName('name'));
   if (!name) {
@@ -73,6 +88,7 @@ export function handlePythonFunctionDefinition(
     : 'function';
   const symbol = createSymbol(filePath, kind, name, node);
   symbols.push(symbol);
+  localSymbolBindings?.set(name, createLocalSymbolBinding(filePath, name));
   return walkSymbolBody(node, symbol.id, walk);
 }
 
@@ -81,9 +97,10 @@ export function handlePythonCall(
   filePath: string,
   relations: IAnalysisRelation[],
   importedBindings: ReadonlyMap<string, ImportedBinding>,
+  localSymbolBindings: ReadonlyMap<string, ImportedBinding> = new Map(),
   currentSymbolId?: string,
 ): void {
-  const binding = getPythonCallBinding(node, importedBindings);
+  const binding = getPythonCallBinding(node, importedBindings, localSymbolBindings);
   if (binding) {
     addCallRelation(relations, filePath, binding, currentSymbolId);
   }

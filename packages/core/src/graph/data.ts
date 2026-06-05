@@ -109,7 +109,9 @@ export function buildWorkspaceGraphDataFromAnalysis(
   const projectSymbolGraph = shouldProjectSymbolGraph(options.nodeVisibility);
   const graphData = buildWorkspaceGraphData({
     ...options,
-    fileConnections: projectFileAnalysisConnections(fileAnalysis, options.workspaceRoot),
+    fileConnections: projectFileAnalysisConnections(fileAnalysis, options.workspaceRoot, {
+      includeSymbolEndpointRelations: !projectSymbolGraph,
+    }),
   });
   const symbolGraph = projectSymbolGraph
     ? buildSymbolNodesAndEdges(fileAnalysis, options.workspaceRoot, {

@@ -236,7 +236,7 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
 
 
 
-    it('extracts Java imports and imported-call relations without file-level inheritance', async () => {
+    it('extracts Java imports, imported-call relations, and inheritance', async () => {
       const workspaceRoot = await createWorkspace({});
       const appPath = path.join(workspaceRoot, 'App.java');
       const appSource = [
@@ -276,10 +276,18 @@ describe('pipeline/plugins/treesitter/runtime/analyze', () => {
             fromSymbolId: expect.stringContaining(`${appPath}:method:run`),
             sourceId: 'codegraphy.treesitter:call',
           }),
+          expect.objectContaining({
+            kind: 'inherit',
+            specifier: 'Base',
+            resolvedPath: null,
+            fromFilePath: appPath,
+            toFilePath: null,
+            fromSymbolId: expect.stringContaining(`${appPath}:class:App`),
+            sourceId: 'codegraphy.treesitter:inherit',
+          }),
         ]),
       );
-      expect(result?.relations).toHaveLength(2);
-      expect(result?.relations?.some((relation) => relation.kind === 'inherit')).toBe(false);
+      expect(result?.relations).toHaveLength(3);
     });
 
 

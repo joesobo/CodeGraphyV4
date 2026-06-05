@@ -18,6 +18,6 @@ And README.md is an orphan node
 
 Then I toggle the Imports edge off
 And I toggle the Inherits edge on
-Then I can see there are 9 nodes and 2 connections
+Then I can see there are 6 nodes and 2 connections
 And src/com/example/app/App.java points to src/com/example/app/BaseService.java
 And src/com/example/app/App.java points to src/com/example/app/RunnableThing.java

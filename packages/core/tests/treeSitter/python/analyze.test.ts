@@ -90,17 +90,20 @@ describe('extension/pipeline/treesitter/python', () => {
       [],
       expect.any(Map),
       true,
+      expect.any(Map),
     );
     expect(handlePythonFunctionDefinition).toHaveBeenCalledWith(
       { type: 'function_definition' },
       'src/app.py',
       [],
       walk,
+      expect.any(Map),
     );
     expect(handlePythonCall).toHaveBeenCalledWith(
       { type: 'call' },
       'src/app.py',
       [],
+      expect.any(Map),
       expect.any(Map),
       undefined,
     );
@@ -119,6 +122,7 @@ describe('extension/pipeline/treesitter/python', () => {
       { type: 'call' },
       'src/app.py',
       [],
+      expect.any(Map),
       expect.any(Map),
       'symbol:run',
     );

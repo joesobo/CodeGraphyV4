@@ -25,7 +25,7 @@ function createPlugin(id: string): IPlugin {
 describe('core/graph/data', () => {
 
 
-    it('keeps file-level relation edges while adding symbol relation edges without plugin sources', () => {
+    it('uses symbol edges instead of duplicate file-level edges for symbol endpoint relations', () => {
       const graph = buildWorkspaceGraphDataFromAnalysis({
         cacheFiles: {
           'src/source.ts': { size: 10 },
@@ -78,15 +78,6 @@ describe('core/graph/data', () => {
             expect.objectContaining({
               label: 'ES6 import',
               sourceId: 'es6-import',
-            }),
-          ],
-        }),
-        expect.objectContaining({
-          kind: 'reference',
-          sources: [
-            expect.objectContaining({
-              label: 'reference',
-              sourceId: 'reference',
             }),
           ],
         }),

@@ -23,5 +23,5 @@ And .gitignore is an orphan node
 
 Then I toggle the Imports edge off
 And I toggle the Inherits edge on
-Then I can see there are 9 nodes and 1 connections
+Then I can see there are 8 nodes and 1 connections
 And lib/app/runner.rb points to lib/base/base_runner.rb
