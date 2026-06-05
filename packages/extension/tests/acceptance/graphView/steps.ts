@@ -49,8 +49,6 @@ const CORE_EDGE_TYPE_LABELS = [
   'Imports',
   'References',
   'Calls',
-  'Tests',
-  'Re-exports',
   'Type imports',
   'Inherits',
   'Loads',
@@ -384,6 +382,10 @@ const patternGraphViewAcceptanceSteps: PatternAcceptanceStep[] = [
 
   step(/^the top right of the graph says "(\d+) nodes" and "(\d+) connections"$/, async (context, _step, match) => {
     await expectGraphCounts(context, Number(match[1]), Number(match[2]));
+  }),
+
+  step(/^the top right of the graph says "(\d+) connections?"$/, async (context, _step, match) => {
+    await expect.poll(async () => (await getGraphCounts(requireGraphFrame(context))).edges).toBe(Number(match[1]));
   }),
 
   step(/^(?!I see )(.+) points to (.+)$/, async (context, _step, match) => {
