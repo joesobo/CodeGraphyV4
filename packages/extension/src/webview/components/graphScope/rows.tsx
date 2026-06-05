@@ -38,26 +38,38 @@ export function resolveScopeRowClassName(enabled: boolean): string {
 }
 
 function ScopeRowTooltipContent({
+  color,
   description,
   label,
 }: {
+  color?: string;
   description: IGraphTypeDescription;
   label: string;
 }): React.ReactElement {
   const example = description.examples?.[0];
 
   return (
-    <div className="max-w-64 space-y-2">
+    <div className="max-w-80 space-y-2" data-scope-tooltip-body={label}>
       <div className="space-y-1">
-        <div className="text-xs font-semibold text-popover-foreground">{label}</div>
+        <div className="flex items-center gap-2 text-xs font-semibold text-popover-foreground">
+          {color ? (
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full border border-border"
+              style={{ backgroundColor: color }}
+              aria-hidden="true"
+              data-scope-tooltip-swatch={label}
+            />
+          ) : null}
+          <span>{label}</span>
+        </div>
         <p className="text-xs leading-snug text-muted-foreground">{description.description}</p>
       </div>
       {example ? (
         <div className="border-t border-border/70 pt-2">
-          <div className="mb-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-            Example
-          </div>
-          <code className="block whitespace-pre-wrap rounded bg-muted px-2 py-1 font-mono text-[11px] leading-snug text-popover-foreground">
+          <code
+            className="block max-w-full overflow-x-auto whitespace-pre rounded bg-muted px-2 py-1 font-mono text-[11px] leading-snug text-popover-foreground"
+            data-scope-tooltip-example={label}
+          >
             {example.code}
           </code>
         </div>
@@ -76,7 +88,11 @@ function ScopeRow({
 }: ScopeRowProps): React.ReactElement {
   const row = (
     <div
-      className={cn(resolveScopeRowClassName(enabled), nested && 'pl-7')}
+      className={cn(
+        resolveScopeRowClassName(enabled),
+        description && 'cursor-help',
+        nested && 'pl-7',
+      )}
       data-scope-row={label}
     >
       {color ? (
@@ -103,8 +119,14 @@ function ScopeRow({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{row}</TooltipTrigger>
-      <TooltipContent side="left" align="center" className="px-3 py-2">
-        <ScopeRowTooltipContent description={description} label={label} />
+      <TooltipContent
+        side="left"
+        align="start"
+        sideOffset={12}
+        collisionPadding={16}
+        className="max-w-80 px-3 py-2"
+      >
+        <ScopeRowTooltipContent color={color} description={description} label={label} />
       </TooltipContent>
     </Tooltip>
   );

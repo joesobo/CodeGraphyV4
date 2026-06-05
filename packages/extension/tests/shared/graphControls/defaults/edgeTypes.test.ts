@@ -80,9 +80,9 @@ describe('shared/graphControls/defaults/edgeTypes', () => {
     ]);
     expect(edgeTypes.every((edgeType) => edgeType.description?.description)).toBe(true);
     expect(edgeTypes.find((edgeType) => edgeType.id === 'import')?.description?.examples?.[0]?.code)
-      .toBe('import { Button } from "./Button";');
-    expect(edgeTypes.find((edgeType) => edgeType.id === 'inherit')?.description?.examples?.[0]?.label)
-      .toBe('Java');
+      .toBe('import { thing } from "./module";');
+    expect(edgeTypes.find((edgeType) => edgeType.id === 'inherit')?.description?.examples?.[0]?.code)
+      .toBe('class Child extends Parent {}');
     expect(CORE_GRAPH_EDGE_TYPES).toEqual(createCoreGraphEdgeTypes());
   });
 });

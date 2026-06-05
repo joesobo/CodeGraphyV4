@@ -10,8 +10,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#60A5FA',
       defaultVisible: true,
       description: {
-        description: 'One file uses exports from another file or package.',
-        examples: [{ label: 'TypeScript', code: 'import { Button } from "./Button";' }],
+        description: 'Shows source files that depend on exports from another file or package.',
+        examples: [{ code: 'import { thing } from "./module";' }],
       },
     },
     {
@@ -20,8 +20,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#F97316',
       defaultVisible: false,
       description: {
-        description: 'One symbol or file mentions another symbol without necessarily calling it.',
-        examples: [{ label: 'TypeScript', code: 'const selected: GraphNode = node;' }],
+        description: 'Shows symbols or files that mention another symbol without necessarily calling it.',
+        examples: [{ code: 'const selected = current;' }],
       },
     },
     {
@@ -30,8 +30,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#22C55E',
       defaultVisible: false,
       description: {
-        description: 'One function, method, or code path invokes another callable symbol.',
-        examples: [{ label: 'TypeScript', code: 'renderGraph(scope);' }],
+        description: 'Shows a function, method, or code path invoking another callable symbol.',
+        examples: [{ code: 'runTask();' }],
       },
     },
     {
@@ -40,8 +40,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#EF4444',
       defaultVisible: false,
       description: {
-        description: 'A test file or test symbol verifies behavior from another file or symbol.',
-        examples: [{ label: 'Vitest', code: "import { buildScope } from './scope';" }],
+        description: 'Shows test code that verifies behavior from another file or symbol.',
+        examples: [{ code: 'expect(result).toEqual(value);' }],
       },
     },
     {
@@ -50,8 +50,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#A78BFA',
       defaultVisible: false,
       description: {
-        description: 'One file forwards exports from another file or package.',
-        examples: [{ label: 'TypeScript', code: 'export { Button } from "./Button";' }],
+        description: 'Shows files that forward exports from another file or package.',
+        examples: [{ code: 'export { thing } from "./module";' }],
       },
     },
     {
@@ -60,8 +60,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#38BDF8',
       defaultVisible: false,
       description: {
-        description: 'One file uses types from another file without pulling in runtime code.',
-        examples: [{ label: 'TypeScript', code: 'import type { GraphNode } from "./types";' }],
+        description: 'Shows type-only relationships that do not pull in runtime code.',
+        examples: [{ code: 'import type { Thing } from "./types";' }],
       },
     },
     {
@@ -70,8 +70,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#F59E0B',
       defaultVisible: false,
       description: {
-        description: 'One type extends, implements, or derives behavior from another type.',
-        examples: [{ label: 'Java', code: 'class Runner extends BaseRunner {}' }],
+        description: 'Shows types that extend, implement, or derive behavior from another type.',
+        examples: [{ code: 'class Child extends Parent {}' }],
       },
     },
     {
@@ -80,8 +80,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#06B6D4',
       defaultVisible: false,
       description: {
-        description: 'One file loads another file or resource at runtime.',
-        examples: [{ label: 'GDScript', code: 'const Scene = preload("res://ui/menu.tscn")' }],
+        description: 'Shows runtime loading of another file, module, or resource.',
+        examples: [{ code: 'load("path/to/resource")' }],
       },
     },
     {
@@ -90,7 +90,7 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#64748B',
       defaultVisible: false,
       description: {
-        description: 'A folder or package contains another folder, package, or file.',
+        description: 'Shows folder or package structure around files and nested folders.',
         examples: [{ code: 'src/ contains src/index.ts' }],
       },
     },
@@ -100,7 +100,7 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#94A3B8',
       defaultVisible: false,
       description: {
-        description: 'A file or code container includes a symbol inside it.',
+        description: 'Shows symbols that live inside a file or another code container.',
         examples: [{ code: 'settings.ts contains buildSettings()' }],
       },
     },
@@ -110,8 +110,8 @@ export function createCoreGraphEdgeTypes(): IGraphEdgeTypeDefinition[] {
       defaultColor: '#EC4899',
       defaultVisible: false,
       description: {
-        description: 'One method or member replaces behavior defined by a parent type.',
-        examples: [{ label: 'Java', code: '@Override\npublic void run() {}' }],
+        description: 'Shows methods or members replacing behavior from a parent type.',
+        examples: [{ code: 'override run() {}' }],
       },
     },
   ];
