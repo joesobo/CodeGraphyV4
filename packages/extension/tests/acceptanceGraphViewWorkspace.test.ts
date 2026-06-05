@@ -169,6 +169,32 @@ describe('acceptance graph view workspace fixtures', () => {
     expect(files).not.toContain('.svelte-kit/generated.d.ts');
   });
 
+  it('honors disabled custom and plugin filters when reading expected acceptance files', async () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
+    tempRoots.push(tempRoot);
+
+    const workspacePath = copyExampleWorkspace(tempRoot, 'example-svelte', {
+      filterPatterns: ['src/app.d.ts'],
+    });
+    const settingsPath = path.join(workspacePath, '.codegraphy/settings.json');
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as Record<string, unknown>;
+    fs.mkdirSync(path.join(workspacePath, '.svelte-kit'), { recursive: true });
+    fs.writeFileSync(path.join(workspacePath, '.svelte-kit/generated.d.ts'), '');
+    fs.writeFileSync(
+      settingsPath,
+      `${JSON.stringify({
+        ...settings,
+        disabledCustomFilterPatterns: ['src/app.d.ts'],
+        disabledPluginFilterPatterns: ['**/.svelte-kit/**'],
+      }, null, 2)}\n`,
+    );
+
+    const files = await readExampleWorkspaceFiles(workspacePath, 'example-svelte');
+
+    expect(files).toContain('src/app.d.ts');
+    expect(files).toContain('.svelte-kit/generated.d.ts');
+  });
+
   it('can expose call edges for language scenarios that assert imported-call connections', () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-acceptance-fixture-'));
     tempRoots.push(tempRoot);
